@@ -162,7 +162,20 @@ landscape HUD, loading screen, Explore tabs, bot playtest).
 
 ## 3. The map
 
-Detail in [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md). **Round 2 blockout with the full content
+Detail in [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md).
+
+**Round 3 blockout, the current layout** (`art/showcase-template/round-3-blockout/`, c292cc13e6): **fits**, west 61 %
+used, east 71 %, 19.0 % free. The hub is a **walled town, 176 × 176 m** (12.4 % of the cell; a 48 m gate plaza with
+the three tier givers, contracts, trophy wall, market stalls and a 22 m obelisk; Main Street with Tinker Rook, the
+weapons shop and three empty fronts; six gates, only the east one crosses into combat; the stable at the north gate).
+West toys around it: the range along the town's south wall, a stacked spiral movers park (48 × 44), the grapple tower's
+98 m zipline landing on town roofs, "the Rock" (a 16 m crag with the squeeze cave and the lookout bench) replacing Cave
+Hill, the riding oval and hover park kept. **NE:** bands 1→2→3→4 in a 2 × 2 grid. **SE top:** the stealth yard is band 5,
+band 6 its own section; **SE bottom:** only the gauntlet and the Crate Titan. 60 packs, 129 commons by day; bands 5–6
+have 4 packs a tier for the ~59 h golden-ratio grind (56 h of it there) with no waiting; phone estimate up to 15 enemies
+in a portrait view (cap 16).
+
+Earlier: **Round 2 blockout with the full content
 census** (`art/showcase-template/round-2-blockout/`, c6063ad0ce; `node placement.js` prints the fit tables): **it all
 fits, after three fixes.** West 42 % used, east 79 %, 24.9 % of the cell free; the interiors sit under the cell at 0 m².
 

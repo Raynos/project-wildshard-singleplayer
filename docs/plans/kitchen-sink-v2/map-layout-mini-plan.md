@@ -60,6 +60,11 @@ Everything Jake ruled after round 1, plus what the eye-height views showed:
 - v1: `art/blender-template/round-5-content/` (13 frames, look C).
 - v2 layout: `art/showcase-template/round-4-v2-layout/` (~40 frames: map, west, east, systems; in progress).
 
+## Round 3 (done, c292cc13e6: `art/showcase-template/round-3-blockout/`)
+
+Jake 11-03: the hub becomes a town; NE = bands 1–4; SE top = bands 5 (stealth yard) and 6; SE bottom = gauntlet and
+Titan only. Result: fits (19.0 % free); a 176 m walled town; the west rebalanced; see the parent §3 and its README.
+
 ## Rows
 
 | Row | What | Effort |
