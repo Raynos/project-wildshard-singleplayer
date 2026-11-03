@@ -96,3 +96,50 @@ test('the original grid deadline retains Inspector failures without replay or a 
   expect(now).toBeLessThan(250300);
   expect(sleeps).toEqual([800, ...Array.from({length: calls - 1}, () => 300)]);
 });
+
+type Retry = (expression: string, timeout?: number) => Promise<unknown>;
+const isRetry = (value: unknown): value is Retry => typeof value === 'function';
+function inspectorRefusal(failure?: string) {
+  const order: string[] = [], messages: string[] = [];
+  const value: unknown = runInNewContext(`(() => {
+    ${actual('const retryEvaluate = async (', '\n      driver = {')}
+    return retryEvaluate;
+  })()`, {
+    Error, errorText, currentUrl: 'fixed-original-url',
+    evaluate: () => { order.push('evaluate'); return failure === undefined ? Promise.resolve(42) : Promise.reject(new Error(failure)); },
+    process: {pid: 917, stderr: {write: (message: string) => { order.push('stderr'); messages.push(message); }}},
+    connect: (url: string) => { expect(url).toBe('fixed-original-url'); order.push('connect'); return Promise.resolve(); },
+    inspector: {raw: (expression: string) => { expect(expression).toBe('performance.timeOrigin'); order.push('origin'); return Promise.resolve(123); }},
+  });
+  if (!isRetry(value)) throw new Error('Actual Inspector refusal boundary missing');
+  return {retry: value, order, messages};
+}
+
+test('Inspector timeout is forwarded to inherited stderr before reconnect without replay', async () => {
+  const {retry, order, messages} = inspectorRefusal('Web Inspector timed out: Runtime.evaluate');
+  await expect(retry('original measurement')).rejects.toMatchObject({
+    message: 'Safari inspector lost the active evaluation; refusing to replay the measurement', documentOrigin: 123,
+    cause: {message: 'Web Inspector timed out: Runtime.evaluate'},
+  });
+  expect(order).toEqual(['evaluate', 'stderr', 'connect', 'origin']);
+  expect(messages).toHaveLength(1);
+  expect(messages[0]).toMatch(/^Safari Inspector failure: Web Inspector timed out: Runtime.evaluate; at=.+ worker=917; refusing replay\n$/u);
+});
+
+test('actual target changes remain distinct and never reconnect or replay the evaluation', async () => {
+  const {retry, order, messages} = inspectorRefusal('Web Inspector target changed');
+  await expect(retry('original measurement')).rejects.toMatchObject({cause: {message: 'Web Inspector target changed'}});
+  expect(order).toEqual(['evaluate', 'stderr', 'origin']);
+  expect(messages[0]).toContain('Safari Inspector failure: Web Inspector target changed;');
+});
+
+test('successful evaluations and ordinary game refusals do not emit Inspector diagnostics', async () => {
+  const success = inspectorRefusal();
+  await expect(success.retry('original measurement')).resolves.toBe(42);
+  const failure = inspectorRefusal('original game refusal');
+  await expect(failure.retry('original measurement')).rejects.toThrow('original game refusal');
+  for (const row of [success, failure]) {
+    expect(row.order).toEqual(['evaluate']);
+    expect(row.messages).toEqual([]);
+  }
+});

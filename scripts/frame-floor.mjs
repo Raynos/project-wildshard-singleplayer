@@ -1104,7 +1104,9 @@ async function worker() {
         try { return await evaluate(expr, timeout); }
         catch (error) {
           if (!errorText(error).includes('Web Inspector timed out: Runtime.evaluate') && !errorText(error).includes('Web Inspector target changed')) throw error;
-          console.log('Safari inspector target swapped; reconnecting');
+          // Inherited stderr reaches a live host diagnostic before reconnect or
+          // Simulator cleanup, without depending on the worker stdout pipe.
+          process.stderr.write(`Safari Inspector failure: ${errorText(error)}; at=${new Date().toISOString()} worker=${process.pid}; refusing replay\n`);
           if (!errorText(error).includes('Web Inspector target changed')) await connect(currentUrl);
           const documentOrigin = await inspector.raw('performance.timeOrigin').catch(() => undefined);
           throw Object.assign(new Error('Safari inspector lost the active evaluation; refusing to replay the measurement', { cause: error }), { documentOrigin });
