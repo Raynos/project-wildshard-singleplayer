@@ -1,0 +1,887 @@
+{
+  "schema": "billboard-reshoot/1",
+  "baselineSource": "8d810f14d7",
+  "framing": "Reconstructed from review geometry and boards; original camera bytes were deleted. No exact recovery or pixel parity claim.",
+  "plots": [
+    {
+      "plot": "mosslight-ruins",
+      "target": {
+        "slug": "open-plot-mosslight-ruins",
+        "instance": "open-plot-4-2",
+        "cameras": "art/open-plots/billboard-review-2026-11-03/after/mosslight-ruins/domes"
+      },
+      "baseline": "art/open-plots/billboard-review-2026-11-03/mosslight-ruins-board.jpg",
+      "baselineSha256": "420483e0724f6639b1ad51ba2de5cadf014b4ae2978136bd0c95ec5326f19652",
+      "sourceCell": [
+        2,
+        0
+      ],
+      "boards": [
+        {
+          "name": "plaza",
+          "dome": "A1-plaza",
+          "code": "A1",
+          "baselineRow": 0,
+          "baselineCentre": [
+            -22,
+            -40
+          ],
+          "baselineBottom": 2.5,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 20,
+          "defectViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "remainingViews": []
+        },
+        {
+          "name": "entry-s",
+          "dome": "A2-entry-s",
+          "code": "A2",
+          "baselineRow": 1,
+          "baselineCentre": [
+            12.5,
+            -247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-n",
+          "dome": "B1-entry-n",
+          "code": "B1",
+          "baselineRow": 2,
+          "baselineCentre": [
+            -12.5,
+            247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            1
+          ],
+          "width": 10,
+          "defectViews": [
+            4,
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-e",
+          "dome": "B2-entry-e",
+          "code": "B2",
+          "baselineRow": 3,
+          "baselineCentre": [
+            247,
+            12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            7,
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            8
+          ]
+        },
+        {
+          "name": "entry-w",
+          "dome": "C1-entry-w",
+          "code": "C1",
+          "baselineRow": 4,
+          "baselineCentre": [
+            -247,
+            -12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            -1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            2,
+            3,
+            4,
+            8,
+            9
+          ],
+          "remainingViews": [
+            1,
+            5,
+            6,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "plot": "night-market",
+      "target": {
+        "slug": "open-plot-night-market",
+        "instance": "open-plot-nw",
+        "cameras": "art/open-plots/billboard-review-2026-11-03/after/night-market/domes"
+      },
+      "baseline": "art/open-plots/billboard-review-2026-11-03/night-market-board.jpg",
+      "baselineSha256": "0719356cc8405081b746120e71379b9dd1d16c9a31152f8fbca2d4bfd34907e7",
+      "sourceCell": [
+        -1,
+        1
+      ],
+      "boards": [
+        {
+          "name": "plaza",
+          "dome": "A1-plaza",
+          "code": "A1",
+          "baselineRow": 0,
+          "baselineCentre": [
+            -22,
+            -40
+          ],
+          "baselineBottom": 2.5,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 20,
+          "defectViews": [
+            1,
+            2,
+            3,
+            7,
+            8,
+            9
+          ],
+          "remainingViews": [
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "name": "entry-s",
+          "dome": "A2-entry-s",
+          "code": "A2",
+          "baselineRow": 1,
+          "baselineCentre": [
+            12.5,
+            -247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-n",
+          "dome": "B1-entry-n",
+          "code": "B1",
+          "baselineRow": 2,
+          "baselineCentre": [
+            -12.5,
+            247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-e",
+          "dome": "B2-entry-e",
+          "code": "B2",
+          "baselineRow": 3,
+          "baselineCentre": [
+            247,
+            12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-w",
+          "dome": "C1-entry-w",
+          "code": "C1",
+          "baselineRow": 4,
+          "baselineCentre": [
+            -247,
+            -12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            -1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "plot": "frostline-peaks",
+      "target": {
+        "slug": "open-plot-frostline-peaks",
+        "instance": "open-plot-0-3",
+        "cameras": "art/open-plots/billboard-review-2026-11-03/after/frostline-peaks/domes"
+      },
+      "baseline": "art/open-plots/billboard-review-2026-11-03/frostline-peaks-board.jpg",
+      "baselineSha256": "4394c8cd18bd5d91b7612fc413c4e464e3545021bba51b18398240a13c69d322",
+      "sourceCell": [
+        -2,
+        1
+      ],
+      "boards": [
+        {
+          "name": "plaza",
+          "dome": "A1-plaza",
+          "code": "A1",
+          "baselineRow": 0,
+          "baselineCentre": [
+            -22,
+            -54
+          ],
+          "baselineBottom": 2.5,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 20,
+          "defectViews": [
+            1,
+            3,
+            4,
+            6,
+            8,
+            9
+          ],
+          "remainingViews": [
+            2,
+            5,
+            7
+          ]
+        },
+        {
+          "name": "entry-s",
+          "dome": "A2-entry-s",
+          "code": "A2",
+          "baselineRow": 1,
+          "baselineCentre": [
+            12.5,
+            -247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-n",
+          "dome": "B1-entry-n",
+          "code": "B1",
+          "baselineRow": 2,
+          "baselineCentre": [
+            -12.5,
+            247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-e",
+          "dome": "B2-entry-e",
+          "code": "B2",
+          "baselineRow": 3,
+          "baselineCentre": [
+            247,
+            12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-w",
+          "dome": "C1-entry-w",
+          "code": "C1",
+          "baselineRow": 4,
+          "baselineCentre": [
+            -247,
+            -12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            -1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "plot": "lantern-bayou",
+      "target": {
+        "slug": "open-plot-lantern-bayou",
+        "instance": "open-plot-0-1",
+        "cameras": "art/open-plots/billboard-review-2026-11-03/after/lantern-bayou/domes"
+      },
+      "baseline": "art/open-plots/billboard-review-2026-11-03/lantern-bayou-board.jpg",
+      "baselineSha256": "7ef6be155e0f52535efc00de6409dd9ec2013a4ae48cb44570ab8b005c361655",
+      "sourceCell": [
+        -2,
+        -1
+      ],
+      "boards": [
+        {
+          "name": "entry-s",
+          "dome": "A1-entry-s",
+          "code": "A1",
+          "baselineRow": 0,
+          "baselineCentre": [
+            12.5,
+            -247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-n",
+          "dome": "A2-entry-n",
+          "code": "A2",
+          "baselineRow": 1,
+          "baselineCentre": [
+            -12.5,
+            247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-e",
+          "dome": "B1-entry-e",
+          "code": "B1",
+          "baselineRow": 2,
+          "baselineCentre": [
+            247,
+            12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-w",
+          "dome": "B2-entry-w",
+          "code": "B2",
+          "baselineRow": 3,
+          "baselineCentre": [
+            -247,
+            -12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            -1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "plot": "ember-forge",
+      "target": {
+        "slug": "open-plot-ember-forge",
+        "instance": "open-plot-4-1",
+        "cameras": "art/open-plots/billboard-review-2026-11-03/after/ember-forge/domes"
+      },
+      "baseline": "art/open-plots/billboard-review-2026-11-03/ember-forge-board.jpg",
+      "baselineSha256": "26b5a195d15f64b520d1ada3fc3957a0dcc3c5d77e396489e740ee4566b1fe79",
+      "sourceCell": [
+        2,
+        -1
+      ],
+      "boards": [
+        {
+          "name": "entry-s",
+          "dome": "A1-entry-s",
+          "code": "A1",
+          "baselineRow": 0,
+          "baselineCentre": [
+            12.5,
+            -247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-n",
+          "dome": "A2-entry-n",
+          "code": "A2",
+          "baselineRow": 1,
+          "baselineCentre": [
+            -12.5,
+            247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-e",
+          "dome": "B1-entry-e",
+          "code": "B1",
+          "baselineRow": 2,
+          "baselineCentre": [
+            247,
+            12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-w",
+          "dome": "B2-entry-w",
+          "code": "B2",
+          "baselineRow": 3,
+          "baselineCentre": [
+            -247,
+            -12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            -1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "plot": "coral-drift",
+      "target": {
+        "slug": "open-plot-coral-drift",
+        "instance": "open-plot-0-2",
+        "cameras": "art/open-plots/billboard-review-2026-11-03/after/coral-drift/domes"
+      },
+      "baseline": "art/open-plots/billboard-review-2026-11-03/coral-drift-board.jpg",
+      "baselineSha256": "14c7b823a3d9706f125af79e09e451a2b5f64a487e96238e83333eb84dcd73fd",
+      "sourceCell": [
+        -2,
+        0
+      ],
+      "boards": [
+        {
+          "name": "entry-s",
+          "dome": "A1-entry-s",
+          "code": "A1",
+          "baselineRow": 0,
+          "baselineCentre": [
+            12.5,
+            -247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            -1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-n",
+          "dome": "A2-entry-n",
+          "code": "A2",
+          "baselineRow": 1,
+          "baselineCentre": [
+            -12.5,
+            247
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            0,
+            1
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-e",
+          "dome": "B1-entry-e",
+          "code": "B1",
+          "baselineRow": 2,
+          "baselineCentre": [
+            247,
+            12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "name": "entry-w",
+          "dome": "B2-entry-w",
+          "code": "B2",
+          "baselineRow": 3,
+          "baselineCentre": [
+            -247,
+            -12.5
+          ],
+          "baselineBottom": 0.6,
+          "normal": [
+            -1,
+            0
+          ],
+          "width": 10,
+          "defectViews": [
+            9
+          ],
+          "remainingViews": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ]
+    }
+  ],
+  "defectPanels": 51,
+  "totalPanels": 243
+}

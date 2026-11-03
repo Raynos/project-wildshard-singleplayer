@@ -1,0 +1,168 @@
+{
+  "dome": "A2-entry-n",
+  "type": "look",
+  "pair": "A2-entry-n",
+  "mockup": "art/open-plots/billboard-review-2026-11-03/coral-drift-board.jpg",
+  "layout": "src/shards/open-plots/data/layouts/coral-drift.json",
+  "anchor": [
+    -12.5,
+    1.7,
+    238
+  ],
+  "convention": "RECONSTRUCTED review cameras, not recovered originals. Fixed old board centres/bottoms and 62deg hFOV. Inferred eye 1.7m, three-quarter radius14m/45deg, edge radius14m, above y20m/front14m; approach road45m beyond edge or plaza70m south. Streaming anchor9m behind old board, unchanged for all views. Original BEFORE is a review-sheet crop; framing is approximate.",
+  "views": [
+    {
+      "n": 1,
+      "name": "front-8m",
+      "eye": [
+        -12.5,
+        1.7,
+        255
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": 0.0,
+      "pitch": 12.08252876015304,
+      "hfov": 62
+    },
+    {
+      "n": 2,
+      "name": "front-25m",
+      "eye": [
+        -12.5,
+        1.7,
+        272
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": 0.0,
+      "pitch": 3.9186394682839785,
+      "hfov": 62
+    },
+    {
+      "n": 3,
+      "name": "front-left-45deg",
+      "eye": [
+        -2.6005050633883346,
+        1.7,
+        256.8994949366117
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": -44.999999999999936,
+      "pitch": 6.973857118608893,
+      "hfov": 62
+    },
+    {
+      "n": 4,
+      "name": "front-right-45deg",
+      "eye": [
+        -22.399494936611667,
+        1.7,
+        256.8994949366117
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": 44.99999999999994,
+      "pitch": 6.973857118608892,
+      "hfov": 62
+    },
+    {
+      "n": 5,
+      "name": "edge-left",
+      "eye": [
+        1.5,
+        1.7,
+        247
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": -90.0,
+      "pitch": 6.973857118608901,
+      "hfov": 62
+    },
+    {
+      "n": 6,
+      "name": "edge-right",
+      "eye": [
+        -26.5,
+        1.7,
+        247
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": 90.0,
+      "pitch": 6.973857118608901,
+      "hfov": 62
+    },
+    {
+      "n": 7,
+      "name": "behind-12m",
+      "eye": [
+        -12.5,
+        1.7,
+        235
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": 180.0,
+      "pitch": 8.121746545623548,
+      "hfov": 62
+    },
+    {
+      "n": 8,
+      "name": "above-20m",
+      "eye": [
+        -12.5,
+        20,
+        261
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": 0.0,
+      "pitch": -49.83533161449206,
+      "hfov": 62
+    },
+    {
+      "n": 9,
+      "name": "road-approach",
+      "eye": [
+        0,
+        1.7,
+        295
+      ],
+      "look": [
+        -12.5,
+        3.4125,
+        247
+      ],
+      "yaw": -14.596575525494172,
+      "pitch": 1.9773844723303422,
+      "hfov": 62
+    }
+  ]
+}

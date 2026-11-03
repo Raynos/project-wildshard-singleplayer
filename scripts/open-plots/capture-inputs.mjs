@@ -13,6 +13,18 @@ const plotsSchema = v.pipe(v.array(v.strictObject({
 const registrySchema = v.strictObject({schema:v.literal('open-plot-captures/1'),plots:plotsSchema});
 export const ALL_DOMES = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D1', 'D2'];
 
+/** Select an explicit ordered subset without changing any camera or renumbering views.
+ * Partial captures remain partial inputs to the strict nine-view board maker.
+ * @param {import('../dome-cameras.mjs').DomeCameras} cameras
+ * @param {readonly number[] | undefined} selected */
+export function selectDomeViews(cameras, selected) {
+  if (selected === undefined) return cameras.views;
+  if (!Array.isArray(selected) || selected.length === 0
+    || selected.some((n, i) => !Number.isInteger(n) || n < 1 || n > 9 || (i > 0 && n <= selected[i - 1])))
+    throw new Error('Capture views must be a nonempty increasing subset of 1..9');
+  return cameras.views.filter(view => selected.includes(view.n));
+}
+
 /** Resolve a requested ordered subset; never silently skip an unknown or duplicate plot.
  * @param {unknown} value @param {readonly string[]} slugs */
 export function selectCapturePlots(value, slugs) {

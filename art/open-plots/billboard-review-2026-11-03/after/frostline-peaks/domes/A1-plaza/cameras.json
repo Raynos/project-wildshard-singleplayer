@@ -1,0 +1,168 @@
+{
+  "dome": "A1-plaza",
+  "type": "look",
+  "pair": "A1-plaza",
+  "mockup": "art/open-plots/billboard-review-2026-11-03/frostline-peaks-board.jpg",
+  "layout": "src/shards/open-plots/data/layouts/frostline-peaks.json",
+  "anchor": [
+    -22,
+    1.7,
+    -45
+  ],
+  "convention": "RECONSTRUCTED review cameras, not recovered originals. Fixed old board centres/bottoms and 62deg hFOV. Inferred eye 1.7m, three-quarter radius14m/45deg, edge radius14m, above y20m/front14m; approach road45m beyond edge or plaza70m south. Streaming anchor9m behind old board, unchanged for all views. Original BEFORE is a review-sheet crop; framing is approximate.",
+  "views": [
+    {
+      "n": 1,
+      "name": "front-8m",
+      "eye": [
+        -22,
+        1.7,
+        -62
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": 180.0,
+      "pitch": 38.768818357551645,
+      "hfov": 62
+    },
+    {
+      "n": 2,
+      "name": "front-25m",
+      "eye": [
+        -22,
+        1.7,
+        -79
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": 180.0,
+      "pitch": 14.413095404040593,
+      "hfov": 62
+    },
+    {
+      "n": 3,
+      "name": "front-left-45deg",
+      "eye": [
+        -31.899494936611667,
+        1.7,
+        -63.89949493661167
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": 135.0,
+      "pitch": 24.6517424587001,
+      "hfov": 62
+    },
+    {
+      "n": 4,
+      "name": "front-right-45deg",
+      "eye": [
+        -12.100505063388335,
+        1.7,
+        -63.89949493661167
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": -135.0,
+      "pitch": 24.6517424587001,
+      "hfov": 62
+    },
+    {
+      "n": 5,
+      "name": "edge-left",
+      "eye": [
+        -36,
+        1.7,
+        -54
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": 90.0,
+      "pitch": 24.651742458700102,
+      "hfov": 62
+    },
+    {
+      "n": 6,
+      "name": "edge-right",
+      "eye": [
+        -8,
+        1.7,
+        -54
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": -90.0,
+      "pitch": 24.651742458700102,
+      "hfov": 62
+    },
+    {
+      "n": 7,
+      "name": "behind-12m",
+      "eye": [
+        -22,
+        1.7,
+        -42
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": 0.0,
+      "pitch": 28.165338701230294,
+      "hfov": 62
+    },
+    {
+      "n": 8,
+      "name": "above-20m",
+      "eye": [
+        -22,
+        20,
+        -68
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": 180.0,
+      "pitch": -40.30508572074898,
+      "hfov": 62
+    },
+    {
+      "n": 9,
+      "name": "south-lane-approach",
+      "eye": [
+        0,
+        1.7,
+        -124
+      ],
+      "look": [
+        -22,
+        8.125,
+        -54
+      ],
+      "yaw": -162.5528115767178,
+      "pitch": 5.004226486128699,
+      "hfov": 62
+    }
+  ]
+}

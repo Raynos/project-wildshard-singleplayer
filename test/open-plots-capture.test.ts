@@ -9,7 +9,7 @@ import sharp from 'sharp';
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the exact serialized browser predicate without a browser.
 import { runInNewContext } from 'node:vm';
 import { domeResidencySettled, parseDomeCameras } from '../scripts/dome-cameras.mjs';
-import { readCapturePlans, ringJunctionPlan, selectCapturePlots } from '../scripts/open-plots/capture-inputs.mjs';
+import { readCapturePlans, ringJunctionPlan, selectCapturePlots, selectDomeViews } from '../scripts/open-plots/capture-inputs.mjs';
 import { admitBoardCapture, boardText, makeDomeBoards } from '../scripts/open-plots/boards.mjs';
 import { settledDomeReadExpression } from '../scripts/open-plots/settled-read.mjs';
 
@@ -34,6 +34,14 @@ const capture = {
   domes: [{ dome: 'A1-road-stand', complete: true, errors: [], cameras:{convention:'TEMPLATE camera method'},
     views: Array.from({ length: 9 }, (_, index) => ({ n: index + 1, name: `View ${index + 1}`, imageSha256: 'b'.repeat(64) })) }],
 } as const;
+
+test('defect view selection preserves original cameras and cannot pass a partial board', () => {
+  const cameras = parseDomeCameras(JSON.parse(readFileSync('test/fixtures/night-market-domes/A1-road-stand.json', 'utf8')));
+  expect(selectDomeViews(cameras, undefined)).toBe(cameras.views);
+  expect(selectDomeViews(cameras, [2, 4, 9])).toEqual([cameras.views[1], cameras.views[3], cameras.views[8]]);
+  for (const selected of [[], [0], [10], [1.5], [2, 2], [9, 1]]) expect(() => selectDomeViews(cameras, selected)).toThrow();
+  expect(() => admitBoardCapture({ ...capture, domes: capture.domes.map(row => ({ ...row, requestedViews: [9], views: [row.views[8]] })) })).toThrow();
+});
 
 test('late neighbour admission must drain before an image, with crossing and ring guards intact', () => {
   const ready = {live:{live:{gameplayReady:true,pending:[]},crossing:{phase:'settled',issue:null}},rings:{inFlight:0,queued:0}};

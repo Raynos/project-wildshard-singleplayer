@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { devices } from 'playwright';
 import { createHash } from 'node:crypto';
-import { readCapturePlans, ringJunctionPlan } from './open-plots/capture-inputs.mjs';
+import { readCapturePlans, ringJunctionPlan, selectDomeViews } from './open-plots/capture-inputs.mjs';
 import { makeDomeBoards } from './open-plots/boards.mjs';
 import { settledDomeReadExpression } from './open-plots/settled-read.mjs';
 import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
@@ -16,7 +16,7 @@ import { gridFloorPlans, gridFloorDeclaredPlan, gridFloorDocumentIdentity, stage
 import { chromiumProcessPeaks, ownedResidencyBytes } from './grid-ready-memory.mjs';
 
 /** One browser, any ordered list of plots. Every dome still earns its own normal grid entry.
- * @param {{base:string,pin:string,out:string,targets:readonly import('./open-plots/capture-inputs.mjs').CapturePlot[],milestone?:'RM2'|'RM3'|'END'|'OP4',domes?:readonly string[],clip?:number,flatOutput?:boolean,junction?:{x:number,z:number}} options */
+ * @param {{base:string,pin:string,out:string,targets:readonly import('./open-plots/capture-inputs.mjs').CapturePlot[],milestone?:'RM2'|'RM3'|'END'|'OP4',domes?:readonly string[],viewSelection?:Readonly<Record<string,readonly number[]>>,clip?:number,flatOutput?:boolean,junction?:{x:number,z:number}} options */
 export async function capturePlotDomes(options) {
 const {base, pin, out, targets, milestone = 'OP4', domes = ['A1','A2','B1','B2','C1','C2','D1','D2'], clip = 0, flatOutput = false} = options;
 if (!base || !/^[a-f0-9]{40}$/u.test(pin) || !out || targets.length === 0) throw new Error('Requires base, full pin, out and plots');
@@ -29,13 +29,19 @@ const admitted = targets.map(target => {
   if (flatOutput && targets.length !== 1) throw new Error('Flat capture output needs one target');
   const folder = flatOutput ? out : join(out, target.slug);
   if (existsSync(join(folder, 'capture.json')) || (!flatOutput && existsSync(folder))) throw new Error(`Capture output already exists: ${folder}`);
-  return {target, folder, plans: readCapturePlans(target, domes, process.cwd(), pin)};
+  return {target, folder, plans: readCapturePlans(target, domes, process.cwd(), pin).map(manifest => ({
+    cameras: manifest.cameras, file: manifest.file, sha256: manifest.sha256,
+    selectedViews: selectDomeViews(manifest.cameras, options.viewSelection?.[`${target.slug}/${manifest.cameras.dome.slice(0,2)}`]),
+  }))};
 });
+const keys = new Set(admitted.flatMap(({target,plans}) => plans.map(plan => `${target.slug}/${plan.cameras.dome.slice(0,2)}`)));
+if (Object.keys(options.viewSelection ?? {}).some(key => !keys.has(key))) throw new Error('Unknown capture view selection');
 const label = milestone === 'RM2' ? 'RM2 BASELINE' : milestone === 'RM3' ? 'RM3 KIT PARITY' : milestone === 'END' ? 'PLAN-END READING' : 'OP4 BATCH';
 const version = await (await fetch(new URL('/version.json', base))).json();
 if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served SHA differs');
 mkdirSync(out, { recursive: true });
-const batch = {source: pin, version, requestedDomes: domes, complete: false, plots: []};
+const batch = {source: pin, version, requestedDomes: domes, viewSelection: options.viewSelection ?? null,
+  completionScope: options.viewSelection === undefined ? 'all-nine-views' : 'requested-view-selection', complete: false, plots: []};
 const saveBatch = () => writeFileSync(join(out, 'batch.json'), JSON.stringify(batch, null, 2));
 saveBatch();
 function noQuiet() { if (existsSync('.git/quiet')) throw new Error('Official Simulator quiet is active; capture refuses'); }
@@ -64,7 +70,8 @@ try {
     const folder = join(plotFolder, plan.dome); mkdirSync(folder, { recursive: true });
     const { defaultBrowserType: _browserType, ...phone } = devices['iPhone 16 Pro'];
     const context = await browser.newContext({ ...phone, viewport: { width: 402, height: 603 } });
-    const row = { dome: plan.dome, cameras: plan, cameraFile: manifest.file, cameraSha256: manifest.sha256, complete: false, errors: [], views: [] };
+    const row = { dome: plan.dome, cameras: plan, cameraFile: manifest.file, cameraSha256: manifest.sha256,
+      requestedViews: manifest.selectedViews.map(view => view.n), complete: false, errors: [], views: [] };
     report.domes.push(row); save();
     try {
       await context.addInitScript({ content: frameFloorSettingsCode({ tier: 'phone', fps: 'auto' }) });
@@ -109,7 +116,7 @@ try {
       await page.evaluate(installDomeCamera);
       await page.addStyleTag({ content: 'body *{visibility:hidden!important}canvas[data-dome-canvas],#dome-caption{visibility:visible!important}#dome-caption{position:fixed;left:0;right:0;top:0;z-index:2147483647;background:#071521e8;color:white;padding:7px;font:11px sans-serif;text-align:center;pointer-events:none}' });
       const origin = { x: market.cell[0] * (initial.pitch ?? 555), z: market.cell[1] * (initial.pitch ?? 555) };
-      for (const view of plan.views) {
+      for (const view of manifest.selectedViews) {
         noQuiet();
         const camera = domeWorldCamera(view, origin, 2 / 3);
         await page.evaluate(pose => { window.__plotDome = pose; }, camera);
@@ -147,13 +154,17 @@ try {
         save();
       }
       row.pageProcessBytes = await processMemory(session);
-      row.complete = true; save();
+      row.complete = row.views.length === manifest.selectedViews.length;
+      row.fullNineViews = row.views.length === 9; save();
       console.info(JSON.stringify({ dome: row.dome, complete: row.complete, pageProcessBytes: row.pageProcessBytes,
         maxCalls: Math.max(...row.views.map(view => view.sample.maxCalls)), maxTriangles: Math.max(...row.views.map(view => view.sample.maxTriangles)) }));
     } catch (error) { row.errors.push(String(error)); save(); throw error; }
     finally { await context.close(); }
   }
-  await makeDomeBoards(plotFolder);
+  // A selected subset completes only its requested scope. The existing board
+  // admission still refuses anything except all nine ordered, hash-bound views.
+  if (plans.every(plan => plan.selectedViews.length === 9)) await makeDomeBoards(plotFolder);
+  else { report.boardsDeferred = true; save(); }
   plotReceipt.complete = true; saveBatch();
   }
   if (options.junction !== undefined) batch.junction = await captureRingJunction(browser, session, {base, pin, out, lattice: options.junction}, noQuiet);
