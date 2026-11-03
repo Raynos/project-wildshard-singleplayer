@@ -149,3 +149,6 @@ front of it).
 - 2026-11-03, Clockwork Canyon: first set, from `c40e60e600` (activation `9091bc1c56` plus lamp-lined avenues; preview
   `c40e60e-mw142b9e`), cameras Patchwork's plot-local set moved to Clockwork's cell (2, 1) (instance `open-plot-4-3`);
   final board `../clockwork-canyon/round-3-final/board.jpg` (its README lists the known gaps).
+- 2026-11-03, Pastel Alien Plain: first set, from `baf4985b4a` (activation `c960ad91a8` plus violet beds `0cd922ffd2`;
+  preview `baf4985-mw15080d`), cameras Patchwork's plot-local set moved to Alien Plain's cell (2, -2) (instance
+  `open-plot-4-0`); final board `../alien-plain/round-3-final/board.jpg` (its README lists the known gaps).
