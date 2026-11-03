@@ -12,6 +12,7 @@ with round 62's `art/grid/round-62-open-plot-palettes/16-frostline-peaks.jpg` as
 | `sheet-t0.jpg` | T0: the nine targets |
 | `sheet-r3.jpg` | R3: after this round's fixes |
 | `board-r3.jpg` | R3's BEFORE (R2) · AFTER · TARGET for four of the angles |
+| `final-board.jpg` | **For Jake:** round 62's road-entry mockup over START (R2) · NOW (R5) · TARGET (T0) at four angles, and what still differs |
 
 ## Rounds 1 and 2 (the dome captures, 17389ab93f)
 
