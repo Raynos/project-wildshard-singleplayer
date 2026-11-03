@@ -44,6 +44,11 @@ this board shows the spots are whole after the fix, not the defect itself: cam 2
 - **Far Reach:** the differences are its sky creatures passing the camera (2, 9, 10, 12, 14, 17), the windmill's turn
   and grass sway; cams 2 and 14 show the same creatures on `cc40cad706` (fix 1 only).
 - **Pine:** animals at the camera (11, 20), clouds, foliage.
+- **Nalati: fixed by QD11 `2d4405a27c`** (the classic GLSL post fragment had no `colorspace_fragment`, so Nalati's
+  grade, drawn straight to the canvas since `e4af5b6bab`, wrote linear values once `180df449c9` moved post to GLSL):
+  24/24 green in [Chromium](../../golden-runs/nalati-grasslands/2026-11-03-2d4405a27c-qd11-chromium-board-p1.jpg)
+  and [WebKit](../../golden-runs/nalati-grasslands/2026-11-03-2d4405a27c-qd11-webkit-board-p1.jpg) (pages p1-p3).
+  Before it:
 - **Nalati, red but not QD1:** every camera is darker and more saturated with an orange sky against both goldens. The
   `c9ae94288f` capture (sp-x2, before QD1) is pixel-for-pixel the same at cams 1 and 5, and sp-o2's WebKit SSIM matches
   its `c9ae` run: it predates both fixes. A slab-anchor visibility change cannot recolour a sky. Owner to find: a Nalati
