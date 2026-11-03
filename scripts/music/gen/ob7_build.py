@@ -226,6 +226,8 @@ def main() -> None:
     parser.add_argument("raw", type=Path, nargs="?")
     parser.add_argument("--plot")
     args = parser.parse_args()
+    if args.command in ("clap", "vocals") and (REPO / '.git/quiet').exists():
+        raise SystemExit('Official Simulator quiet window is open; no model loaded')
     if args.command == "listening":
         listening_list()
         return

@@ -10,6 +10,10 @@ case "$plot" in
   *) echo "Unknown OB7 plot: $plot" >&2; exit 2 ;;
 esac
 shift 2
+if [ -e "$repo/.git/quiet" ]; then
+  echo 'Official Simulator quiet window is open; no model loaded' >&2
+  exit 75
+fi
 raw="$repo/tmp/ob7-audio/raw"
 mkdir -p "$raw"
 log="$repo/tmp/ob7-audio/$plot-$model.log"

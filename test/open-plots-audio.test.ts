@@ -3,8 +3,12 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the author compiler's exact module entry resolution.
 import { resolve } from 'node:path';
 import { build } from 'vite';
+import { BoxGeometry, Matrix4, MeshStandardMaterial } from 'three';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
+import { staticGlb } from '../src/sdk/bake/glb';
+import { bakeAuthoredWorld } from '../src/sdk/bake/authoredWorld';
+import { validateProject } from '../src/sdk/project';
 import { prepareProjectOutput, mergeProjectBlobs } from '../src/sdk/projectOutput';
 import { controlFileHashes } from '../src/format/admissionControl';
 import { parseShardfile } from '../src/sdk/shardfile';
@@ -68,4 +72,25 @@ test('the audio recipe stays inside the real one-module author boundary', async 
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing author module output');
   expect(built.output.map(row => row.type)).toEqual(['chunk']);
+});
+
+test('an authored world keeps its real coarse-near bake and complete audio byte admission', async () => {
+  const geometry = new BoxGeometry(10, 1, 10), floor = new BoxGeometry(500, 1, 500), materials = Array.from({ length: 4 }, (_, index) => {
+    const material = new MeshStandardMaterial(); material.name = `Control${index}`; return material;
+  });
+  try {
+    const world = staticGlb(['collide_floor', 'detail_box', 'coarse_box', 'far_box'].map((name, index) => {
+      const material = materials[index]; if (material === undefined) throw new Error('Missing control material');
+      return { geometry: index === 0 ? floor : geometry, material, name, transform: new Matrix4().makeTranslation(index * 12, -0.5, 0) };
+    }));
+    const source = { ...base(), world: { glb: 'world.glb', colliders: 'nodes:collide_', detail: 'detail_', coarse: 'coarse_',
+      far: 'far_', farMode: 'replace', near: 'coarse', materials: Object.fromEntries(materials.map(material => [material.name, 'pbr'])) } };
+    const made = await generatePlotAudioProject(context(), source, binding());
+    const baked = await bakeAuthoredWorld(made.shard, world);
+    const output = await prepareProjectOutput('src/shards/open-plots', made.output);
+    const merged = mergeProjectBlobs(baked.shard, baked.assets, output.blobs, output.options.namedFiles, output.late);
+    expect(() => validateProject(merged.shard, merged.assets)).not.toThrow();
+    expect(Object.keys(merged.shard.audio.recordings ?? {})).toHaveLength(7);
+    expect(merged.shard.late).toHaveLength(7);
+  } finally { geometry.dispose(); floor.dispose(); materials.forEach(material => material.dispose()); }
 });

@@ -23,6 +23,8 @@ def main() -> None:
     parser.add_argument("--out", required=True)
     parser.add_argument("--seeds", default="701", help="SFX retake seeds; score always renders 701 and 702")
     args = parser.parse_args()
+    if (HERE.parents[2] / '.git/quiet').exists():
+        raise SystemExit('Official Simulator quiet window is open; no model loaded')
     score = json.loads((HERE / "ob7-score-jobs.json").read_text())
     if f"ob7/{args.plot}" not in score["jobs"]:
         parser.error("unknown OB7 plot")
