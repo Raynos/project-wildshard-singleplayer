@@ -86,7 +86,7 @@ const sceneDressing = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
     v.strictObject({kind:v.literal('lettering'),width:count,height:count,data:v.pipe(v.string(),v.maxLength(1048576)),rim:finite}),
     v.strictObject({kind:v.literal('lettering-file'),...BinaryFileSchema.entries,width:count,height:count,rim:finite}),
   ])),
-  layers:list(v.strictObject({id,model:id,geometry:id,material:id,file:id,member:v.exactOptional(id),binary:v.boolean(),far:finite,castShadow:v.boolean(),keepNear:finite,
+  layers:list(v.strictObject({id,model:id,geometry:id,material:id,file:id,binary:v.boolean(),far:finite,castShadow:v.boolean(),keepNear:finite,
     select:v.exactOptional(v.strictObject({modulo:v.pipe(count,v.minValue(1)),remainder:count,equal:v.boolean()})),contacts:contactSource}),32),
   statics:list(v.strictObject({name:id,recipe:PrivateSceneSchema,geometry:v.record(id,id),materials:v.record(id,id),tris:finite,
     /** the place's named gameplay points (an entrance, ledges, a tie spot), read by the encounters it hosts */
@@ -135,7 +135,7 @@ export interface SceneDressingRows { name: string; instances: v.InferOutput<type
   textures?: Record<string, v.InferOutput<typeof SpecimenTextureSchema>>; }) | ({ kind: 'mapped'; look: string;
   over: string; }) | ({ kind: 'lettering'; width: number; height: number; data: string; rim: number; }) | ({
   kind: 'lettering-file'; width: number; height: number; rim: number; } & v.InferOutput<typeof
-  BinaryFileSchema>)>; layers: ({ id: string; model: string; geometry: string; material: string; file: string; member?: string;
+  BinaryFileSchema>)>; layers: ({ id: string; model: string; geometry: string; material: string; file: string;
   binary: boolean; far: number; castShadow: boolean; keepNear: number; select?: { modulo: number; remainder:
   number; equal: boolean; }; contacts: (SceneDressingContactsRows) | ({ data: string; } & { kind:
   'packed-hulls'; origins: ([number, number, number, number])[]; surface: 'rock' | 'wood' | 'stone' | 'ground';
@@ -203,45 +203,3 @@ export type SceneFloorRows = ({ rects: ({ x: number; z: number; hw: number; hd: 
   slope?: number; tilt?: number; profile?: ([number, number, number])[]; })[]; }) | ({ x: number; z: number;
   size: number; res: number; data: string; }) | ({ x: number; z: number; size: number; res: number; } &
   v.InferOutput<typeof BinaryFileSchema>);
-
-const pageNumber = v.pipe(v.number(), v.finite());
-const pageId = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9-]{0,63}$/u));
-const pageXz = { x: pageNumber, z: pageNumber };
-const pageRows = <T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>(schema: T) =>
-  v.pipe(v.array(schema), v.maxLength(100000));
-const pagePose = v.strictObject({ x: pageNumber, y: pageNumber, z: pageNumber, yaw: pageNumber, sx: pageNumber, sy: pageNumber, sz: pageNumber,
-  far: pageNumber, r: pageNumber, g: pageNumber, b: pageNumber,
-  tiltX: v.exactOptional(pageNumber), tiltZ: v.exactOptional(pageNumber), solid: v.exactOptional(v.literal(true)) });
-const pageSpot = v.strictObject({ ...pageXz, s: pageNumber });
-/** Complete native scatter-list members. Each kind keeps its original row
- * grammar; pages alter transport only, never row order or numeric values. */
-const SceneScatterMemberSchema = v.variant('kind', [
-  v.strictObject({ kind: v.literal('poses'), id: pageId, rows: pageRows(pagePose) }),
-  v.strictObject({ kind: v.literal('logs'), id: pageId, rows: pageRows(v.strictObject({ ax: pageNumber, az: pageNumber, bx: pageNumber, bz: pageNumber, r: pageNumber, drift: v.boolean() })) }),
-  v.strictObject({ kind: v.literal('spots'), id: pageId, rows: pageRows(pageSpot) }),
-  v.strictObject({ kind: v.literal('paths'), id: pageId, rows: pageRows(pageRows(v.tuple([pageNumber, pageNumber]))) }),
-  v.strictObject({ kind: v.literal('gates'), id: pageId, rows: pageRows(v.strictObject({ ...pageXz, yaw: pageNumber })) }),
-  v.strictObject({ kind: v.literal('drifts'), id: pageId, rows: pageRows(v.strictObject({ ...pageXz, y: pageNumber, r: pageNumber })) }),
-  v.strictObject({ kind: v.literal('bounds'), id: pageId, rows: pageRows(v.strictObject({ ...pageXz, hw: pageNumber, hd: pageNumber, rot: pageNumber, yBottom: pageNumber, yTop: pageNumber,
-    ghost: v.exactOptional(v.literal(true)) })) }),
-  v.strictObject({ kind: v.literal('clutter'), id: pageId, rows: pageRows(v.strictObject({ ...pageXz, yaw: pageNumber, kind: pageNumber })) }),
-]);
-interface ScatterPosePageRow { x: number; z: number; y: number; yaw: number; sx: number; sy: number; sz: number;
-  tiltX?: number; tiltZ?: number; solid?: true; far: number; r: number; g: number; b: number }
-type ScatterPageMember =
-  | { id: string; kind: 'poses'; rows: ScatterPosePageRow[] }
-  | { id: string; kind: 'logs'; rows: { ax: number; az: number; bx: number; bz: number; r: number; drift: boolean }[] }
-  | { id: string; kind: 'spots'; rows: { x: number; z: number; s: number }[] }
-  | { id: string; kind: 'paths'; rows: [number, number][][] }
-  | { id: string; kind: 'gates'; rows: { x: number; z: number; yaw: number }[] }
-  | { id: string; kind: 'drifts'; rows: { x: number; z: number; y: number; r: number }[] }
-  | { id: string; kind: 'bounds'; rows: { x: number; z: number; hw: number; hd: number; rot: number; yBottom: number; yTop: number; ghost?: true }[] }
-  | { id: string; kind: 'clutter'; rows: { x: number; z: number; yaw: number; kind: number }[] };
-/** A transport owns at most four complete, typed, independently named lists. */
-export interface SceneScatterPage { version: 1; members: ScatterPageMember[] }
-
-/** At most four complete lists per page; duplicate identities never alias. */
-export const SceneScatterPageSchema: v.GenericSchema<SceneScatterPage, SceneScatterPage> = v.strictObject({ version: v.literal(1), members: v.pipe(v.array(SceneScatterMemberSchema),
-  v.minLength(1), v.maxLength(4), v.check(members => new Set(members.map(row => row.id)).size === members.length, 'Scatter page member identities must be unique')) });
-/** Decode the entire bounded page before any member can be published. */
-export function parseSceneScatterPage(input: unknown): SceneScatterPage { return v.parse(SceneScatterPageSchema, input); }

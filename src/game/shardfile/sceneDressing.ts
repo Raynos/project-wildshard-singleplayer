@@ -1,4 +1,3 @@
-import { SceneScatterPages } from './sceneScatterPages';
 import {prepareBinarySources,binarySourceBytes} from '../models/binarySource';
 import { decodeLaneBytes, inflateBytes } from '@wildshard/engine/core/deflate';
 import { floorAtRects } from '@wildshard/engine/physics/box';
@@ -120,21 +119,11 @@ function dressingPhases<P extends string>(slug:string,step:string,names:readonly
   const batch=clientPreparationBatch(slug,step,names);
   return {run:(phase,work)=>batch===undefined?work():batch.run(phase,work),sync:(phase,work)=>batch===undefined?work():batch.sync(phase,work),finish:()=>{batch?.finish();}};
 }
-async function sceneScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'][number],pause:()=>Promise<void>,pages:SceneScatterPages|undefined):Promise<ScatterPose[]>{
+async function sceneScatterPoses(ctx:ShardContext,row:SceneDressingRows['layers'][number],pause:()=>Promise<void>):Promise<ScatterPose[]>{
   const poses:ScatterPose[]=[],selection=row.select;let at=0;
   if(row.binary){
     for(const pose of readSceneScatterTable(await ctx.product.file(row.file))){
       if(selection===undefined||(at%selection.modulo===selection.remainder)===selection.equal)poses.push(pose);
-      if(++at%256===0)await pause();
-    }
-    return poses;
-  }
-  if(row.member!==undefined){
-    if(pages===undefined)throw new Error('Missing scene scatter page owner');
-    // The complete owned page already passed the same finite/strict pose
-    // grammar. Keep every selection, copy and pause at its original cursor.
-    for(const {solid,...pose} of await pages.poses(row.file,row.member)){
-      if(selection===undefined||(at%selection.modulo===selection.remainder)===selection.equal)poses.push(solid===undefined?pose:{...pose,solid:true});
       if(++at%256===0)await pause();
     }
     return poses;
@@ -252,13 +241,7 @@ export class SceneDressing {
       if(!ctx.product.hasFile(source.address.file))throw new Error('Missing scene geometry address file');
       if(source.kind==='baked-file'&&!ctx.product.hasFile(source.file))throw new Error('Missing scene geometry bake file');
     }
-    for(const row of rows.layers){
-      if(!ctx.product.hasFile(row.file))throw new Error('Missing scene scatter file');
-      if(row.binary&&row.member!==undefined)throw new Error('Numeric scatter tables cannot select JSON page members');
-    }
-    const pageNames=rows.layers.flatMap(row=>row.member===undefined?[]:[row.file]);
-    const pages=pageNames.length===0?undefined:new SceneScatterPages(ctx,pageNames);
-    try {
+    for(const row of rows.layers)if(!ctx.product.hasFile(row.file))throw new Error('Missing scene scatter file');
     const looks=[...Object.values(rows.materials).flatMap(row=>row.kind==='look'||row.kind==='mapped'?[row.look]:[]),...(rows.motes===undefined?[]:[rows.motes.look])];
     const missing=looks.filter(id=>!hasLentLook(id));if(missing.length>0)lendLooks(ctx.scope,await runtimeLookMaterials({scope:ctx.scope,game:ctx.game},ctx.product.shardfile,true,missing));
     const sky=world.sky, models=modelContext(sky), pause=()=>buildYield(ctx.scope);
@@ -320,7 +303,7 @@ export class SceneDressing {
     const at=dressingPhases(ctx.product.slug,'dressing.layers',['poses','place','registered','pause']);
     for(const row of rows.layers){
       await timeClientPreparation(ctx.product.slug,`dressing.layer.${row.id}`,async()=>{
-      const poses=await at.run('poses',()=>timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause,pages)));
+      const poses=await at.run('poses',()=>timeClientPreparation(ctx.product.slug,`dressing.poses.${row.id}`,()=>sceneScatterPoses(ctx,row,pause)));
       if(poses.length===0)return;
       const colliderRows=Array.isArray(row.contacts)?contacts(row.contacts):await unpackHulls(row.contacts,files);
       const layer=scatterLayer(row.id,needGeometry(row.geometry),needMaterial(row.material),poses,row.far,row.castShadow,row.keepNear);this.layers.push(layer);this.group.add(layer.mesh);
@@ -370,7 +353,6 @@ export class SceneDressing {
     const templates=new Set(rows.staticModels.map(row=>row.geometry));
     for(const [key,shape]of geometry)if(!templates.has(key)&&Object.keys(shape.morphAttributes).length===0)gpuOnlyAttributes(shape,'scene.dressing');
     ctx.root.add(this.group);
-    } finally { await pages?.close(); }
   }
   /** N2: a placement's world-space colliders by every tile their footprint reaches (none missing at a ring edge) */
   private byTile(key:string,model:ModelDef<object>,colliders:readonly ColliderDesc[]):void{
