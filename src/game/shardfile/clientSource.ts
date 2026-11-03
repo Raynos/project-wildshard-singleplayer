@@ -1,5 +1,6 @@
 import { prepareClientModuleGroups } from './clientModules';
 import { outputDescriptor, isBuildValidatedOutput } from './outputDescriptor';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
@@ -164,6 +165,8 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   const admitted = await admitProduct(source, productOptions);
   if (prepared !== undefined) await prepared();
   const client = clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance });
+  const plan = sections?.get('client/plan');
+  const sceneAudio = plan !== undefined && parseClientPlan(plan).features.some(row => row.kind === 'audio.scene');
   const { image: _unadmittedImage, ...mapLook } = manifest.minimap ?? {};
   // First-party declared pages keep their authored scalar level presentation and boot inventory.
   // The admitted client owns ground, navigation and all executable stages; no shard loader survives.
@@ -175,6 +178,10 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     ...(client.load === undefined ? {} : { load: client.load }),
   } : client;
   const installed = { ...page,
+    // Explicit scene features retain the counted first-party catalogue.
+    ...(sceneAudio && manifest.audio?.preload !== undefined ? { audio: manifest.audio } : {}),
+    ...(sceneAudio && page.boot !== undefined && manifest.boot?.audio !== undefined
+      ? { boot: { ...page.boot, audio: manifest.boot.audio } } : {}),
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
     ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
