@@ -1,3 +1,7 @@
+import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServiceSpotsSchema,parseNativeQuestServiceSpots} from './nativeQuestComposition';
+import {ContractCatalogueSchema,parseContractCatalogue} from './contracts';
+
+import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue} from './panelTemplate';
 import {PopulationKeeperRowsSchema} from './populationKeeper';
 import { CoverCompositionSchema } from './streamedCover';
 import { PopulationFieldSchema } from './populationEnvironment';
@@ -17,7 +21,7 @@ import {ForestWeatherSchema} from './forestWeather';
 import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
 import { QuestPageCompositionSchema } from './questPageComposition';
-import { QuestServiceActionsSchema,parseQuestServiceActions,QuestStepRowsSchema,parseQuestStepRows,QuestHintRowsSchema,parseQuestHintRows } from './questSteps';
+import {QuestServiceActionsSchema,parseQuestServiceActions,QuestStepRowsSchema,parseQuestStepRows,QuestHintRowsSchema,parseQuestHintRows,CarriedQuestSchema,parseCarriedQuest} from './questSteps';
 import { QuestStorySchema,parseQuestStory } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector,ChapterWakeSchema,parseChapterWake } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
@@ -32,6 +36,11 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'quests/native-story.json':{readonly schema:typeof NativeQuestCompositionSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'};
+  readonly 'quests/native-spots.json':{readonly schema:typeof NativeQuestServiceSpotsSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'};
+  readonly 'quests/contracts.json':{readonly schema:typeof ContractCatalogueSchema;readonly source:'@wildshard/format/contracts#ContractCatalogueSchema'};
+  readonly 'quests/carried.json':{readonly schema:typeof CarriedQuestSchema;readonly source:'@wildshard/format/questSteps#CarriedQuestSchema'};
+  readonly 'quests/panels.json':{readonly schema:typeof QuestPanelCatalogueSchema;readonly source:'@wildshard/format/panelTemplate#QuestPanelCatalogueSchema'};
   readonly 'actors/roster.json':{readonly schema:typeof NativePopulationRowsSchema;readonly source:'@wildshard/format/populationRoster#NativePopulationRowsSchema'};
   readonly 'actors/elites.json':{readonly schema:typeof EliteFeatureSchema;readonly source:'@wildshard/format/eliteFeature#EliteFeatureSchema'};
   readonly 'sim/keeper.json':{readonly schema:typeof PopulationKeeperRowsSchema;readonly source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'};
@@ -95,6 +104,11 @@ export interface RegisteredJsonContracts {
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
+  'quests/native-spots.json':{schema:NativeQuestServiceSpotsSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'},
+  'quests/contracts.json':{schema:ContractCatalogueSchema,source:'@wildshard/format/contracts#ContractCatalogueSchema'},
+  'quests/carried.json':{schema:CarriedQuestSchema,source:'@wildshard/format/questSteps#CarriedQuestSchema'},
+  'quests/panels.json':{schema:QuestPanelCatalogueSchema,source:'@wildshard/format/panelTemplate#QuestPanelCatalogueSchema'},
   'actors/roster.json':{schema:NativePopulationRowsSchema,source:'@wildshard/format/populationRoster#NativePopulationRowsSchema'},
   'actors/elites.json':{schema:EliteFeatureSchema,source:'@wildshard/format/eliteFeature#EliteFeatureSchema'},
   'sim/keeper.json':{schema:PopulationKeeperRowsSchema,source:'@wildshard/format/populationKeeper#PopulationKeeperRowsSchema'},
@@ -226,6 +240,11 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'quests/native-story.json':parseNativeQuestComposition(value);break;
+    case 'quests/native-spots.json':parseNativeQuestServiceSpots(value);break;
+    case 'quests/contracts.json':parseContractCatalogue(value);break;
+    case 'quests/carried.json':parseCarriedQuest(value);break;
+    case 'quests/panels.json':parseQuestPanelCatalogue(value);break;
     case 'quests/steps.json':parseQuestStepRows(value);break;
     case 'quests/hints.json':parseQuestHintRows(value);break;
     case 'quests/wake-boss.json':parseChapterWake(value);break;

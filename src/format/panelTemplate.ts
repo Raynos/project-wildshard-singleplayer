@@ -67,6 +67,15 @@ export function parsePanelDefinition(input: unknown): PanelDefinition {
   return parsed;
 }
 
+/** Whole catalogue used by the existing Pine and Nalati quest-panel readers.
+ * The native parser retains the original 16-panel and per-panel bounds. */
+export const QuestPanelCatalogueSchema: v.GenericSchema<Record<string, PanelDefinitionInput>, Readonly<Record<string, PanelDefinition>>> = v.pipe(v.record(v.string(), PanelDefinitionSchema), v.maxEntries(16));
+/** Preserve the original outer refusal before bounded per-panel admission. */
+export function parseQuestPanelCatalogue(input: unknown): Readonly<Record<string, PanelDefinition>> {
+  if (typeof input !== 'object' || input === null || Array.isArray(input) || Object.keys(input).length > 16) throw new Error('Invalid named panels');
+  return Object.fromEntries(Object.entries(input).map(([name, definition]) => [name, parsePanelDefinition(definition)]));
+}
+
 /** Admitted data contracts, independent of validator implementation metadata. */
 interface PanelDefinitionInputFields {
     frame: v.InferInput<typeof template>;

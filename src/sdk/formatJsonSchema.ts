@@ -1,3 +1,5 @@
+
+
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { AudioSceneSchema } from '@wildshard/format/audioScene';
@@ -8,7 +10,7 @@ import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import { ClientRidingSessionSchema } from '@wildshard/format/riding';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { AdventurePersistenceSchema, HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
-import { NativeQuestCompositionSchema } from '@wildshard/format/nativeQuestComposition';
+import {NativeQuestCompositionSchema,NativeQuestServiceSpotsSchema} from '@wildshard/format/nativeQuestComposition';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
@@ -41,7 +43,7 @@ import { ClaimedPickupSchema } from '@wildshard/format/lootEconomy';
 import { ContractCatalogueSchema, ContractBoardPageSchema } from '@wildshard/format/contracts';
 import { AchievementCounterDataSchema } from '@wildshard/format/achievementCounters';
 import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
-import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
+import { PanelDefinitionSchema,QuestPanelCatalogueSchema } from '@wildshard/format/panelTemplate';
 import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
 import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figures';
 import { QuestStorySchema } from '@wildshard/format/questStory';
@@ -69,7 +71,7 @@ import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import { EdgeProfileSchema, EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { StateSchema } from '@wildshard/format/state';
-import { QuestStepRowsSchema, QuestServiceActionsSchema, QuestKillRowsSchema, QuestHintRowsSchema } from '@wildshard/format/questSteps';
+import {QuestStepRowsSchema,QuestServiceActionsSchema,QuestKillRowsSchema,QuestHintRowsSchema,CarriedQuestSchema} from '@wildshard/format/questSteps';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema, BuildingCloudPoseSchema } from '@wildshard/format/buildings';
 import { WorldSceneWeldSchema } from '@wildshard/format/worldSceneWeld';
@@ -423,6 +425,10 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'populationEnvironment.PopulationField': PopulationFieldSchema,
   'namedJsonContracts.PageReturnRows': PageReturnRowsSchema,
   'worldScenePlacement.WorldScenePlacementPage': WorldScenePlacementPageSchema,
+  'questSteps.CarriedQuest': CarriedQuestSchema,
+  'nativeQuestComposition.NativeQuestComposition': NativeQuestCompositionSchema,
+  'nativeQuestComposition.NativeQuestServiceSpots': NativeQuestServiceSpotsSchema,
+  'panelTemplate.QuestPanelCatalogue': QuestPanelCatalogueSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

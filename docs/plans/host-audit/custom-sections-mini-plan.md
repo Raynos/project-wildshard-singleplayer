@@ -113,7 +113,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
 | **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Pine's 112-placement consolidation is qualified in `5c72cf6cf0` below; remaining implementation: other streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **Qualified slices done; row remains open for its explicit owner/host exits.** Pine common physics `5596fde41e`: strict7 and original unfiltered walk **75/75, 0 stuck/bounds/pending**. Floor/cave defining contracts `b5a7dc391d` are qualified by the recorded coalesced proof; fields and complete ground aliases `d0c35248f3` retain original payload/pack/native checks. See the completion ledger below. Pine owner-only physics and G667 tests 2–6 are not closed by metadata. | 2–3 days, Codex (Opus memory reading) |
-| **CS5** | **open (2026-10-31, sp-x1):** all 14 remaining quest names are accounted for: three qualified aliases, four prepared native aliases, a tested off-tree whole-panel root and six concrete contract/owner exits. Pine's live `custom/questRuntime` remains a complete-envelope / AS-owner exit; Sky's existing shared quest sections are identified separately. See the [remainder evidence](#cs5-complete-remainder-disposition-and-next-slices). Source readiness does not close payload, host or CS10 deletion work. | 4–6 days, Opus design + Codex port |
+| **CS5** | **open (2026-11-02, sp-x1):** eight historical quest names now have qualified exact slices: the earlier DW three, Pine native-story/native-spots/contracts, Nalati carried and the shared whole-panel catalogue. The one fresh-baseline combined proof retains all target bodies, 226 old wire contracts and original owners; only the exact G872 Nalati source-stamp case differs (self-applied under the 2026-11-02 standing rule, with explicit concurrence). Six presentation/figure/discovery/finds/story/guest exits and live `custom/questRuntime` remain open. See the [qualified slice](#cs5-four-native-aliases-and-the-whole-panel-catalogue). | 4–6 days, Opus design + Codex port |
 | **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
 | **CS7** | **Audio/cards slice done; row remains open for the 25-name held/look/weather exits.** `2c5aa6386d` / `515ffcac96` qualify Nalati audio and Driftwood people cards: strict6, six controls, original five suites **28.7 s**, 2,993 unchanged bodies of 2,994; only the exact G872-classified Nalati source stamp differs. No full-CS7 completion, geometry/binary exit or weather-envelope unification is inferred. | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
@@ -2077,3 +2077,76 @@ browsers close, and X1 receives the next sole producer turn. Retained
 scratch is `tmp/sp-x2-cs3-placement-pages/`: full payload/pack audits,
 committed-validator inputs, immutable source contrast, four maintained
 loading records and all strict capture records. No unchanged run is repeated.
+
+### CS5: four native aliases and the whole panel catalogue
+
+**2026-10-31, one combined AFTER after the qualified Pine placement
+turn.** Bind Pine `quests/native-story.json`, `quests/native-spots.json`
+and `quests/contracts.json`, and Nalati `quests/carried.json`, to their
+existing whole schemas and **full native parsers**. Saved-role and spot
+identities, contract references and carried state/output checks remain
+strict. Append the defining SDK roots without changing any of the
+**226** existing named wire contracts.
+
+`quests/panels.json` is one shared whole catalogue with two actual users.
+Its named `QuestPanelCatalogueSchema` and `parseQuestPanelCatalogue`
+retain the original reader's 16-panel outer refusal before per-panel
+admission, 8,192-node / 32-depth bound, safe action paths and
+transient/persistent shown-frame rule. `readDataPanels` delegates that
+same original parser sequence; its rendering, callbacks and scoped panel
+owners are unchanged. Pine's metadata adds only the already-enforced
+outer bound and defining provenance; Nalati gains the complete catalogue
+metadata. All six target document bodies remain byte-identical.
+
+The fresh BEFORE is captured **before activation** on the checked
+`5c72cf6cf0` handback. Ordinary strict admission is CURRENT independently
+for DW, Pine and Nalati; their full payload bodies, source-map input
+corpora, manifests and 74 ordered packs are hash-verified and sealed.
+No local draft oracle, earlier namespace or BEFORE generation is used.
+The foreign loose `ENGINE.md` changes remain untouched; only this API's
+manual paragraph is included in the fresh HEAD-only commit patch.
+
+One normal DW/Pine/Nalati AFTER takes **44.673 s**. Ordinary strict3
+admits every target, and the final strict3 still reports CURRENT after
+the consumers. The **five original plus two new suites / 31 cases pass
+in 23.899 s**: native-story admission, Pine contract admission, carried
+quest host, data panels, declared panel lifecycle and the two new native
+catalogue/provenance suites. Root types, touched typed lint and the
+physical panel controls pass. Nine physical code/test hashes remain
+frozen through the entire producer and consumer proof.
+
+The corpus has **1,822 unique payload paths / 323,047,922 B**. All
+**1,821 other payloads / 323,047,758 B** are exact. Precisely six defining
+metadata records change: four Pine and two Nalati. Every other manifest
+field and custom schema is exact; ordered pack members, offsets and both
+old/new pack hashes reconstruct. Pine and DW map stamps are unchanged.
+Pine's index is **1,189,307 B**, below both the roughly 1.9 MB rule and
+hard 2 MB cap; Nalati is **1,108,884 B**, DW **995,665 B**.
+
+The raw comparator retains **EXIT2** solely for Nalati's 164 B
+`look/map` source stamp: `e40e2211…57c520` to `62a2bba6…4dd95a`.
+The new stamp equals the current `mapTilesHash`; the old full ordered
+source inputs reconstruct the old stamp exactly. Only Nalati
+`generators/output.ts` changes in that source corpus: the carried/panels
+metadata options and unused schema import removal. Image
+`80afaa55…aff2d6` and every other map field are identical. **G872, 2026-11-02:** self-apply this established source-stamp class;
+wildshard-new also explicitly concurred with this exact case. No tolerance,
+old-stamp freeze or freshness bypass is introduced.
+
+This qualifies eight of the historical 14 quest names, including the
+earlier DW three. The six presentation/figure/discovery/finds/story/guest
+contract or ownership exits and live `custom/questRuntime` remain open;
+no new host-bar or CS10 deletion credit follows. X9's prepared CS9 body
+omissions are excluded from this proof and source patch.
+
+Evidence is `tmp/sp-x1-cs5-combined/{capture-complete,before-strict,
+payload-before,source-final,strict,audit,map-source-audit,proof-exits,
+originals-report}.json`, the five step logs and final types/lint logs.
+The exact source-stamp difference remains in the raw audit.
+
+**Standing G872 rule (2026-11-02):** builders decide each case on the
+recommended option. Apply an established class with exact case evidence
+and record it as self-applied in the commit; report genuinely new classes
+with the recommendation, proceed and log the decision. Do not wait for
+coordinator availability. This changes decision routing, not comparators,
+source freshness, payload identity, caps or native assertions.

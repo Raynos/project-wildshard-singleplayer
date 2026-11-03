@@ -1,7 +1,7 @@
 import { pinePhysicsOwnersBytes, pinePhysicsSources, pineWorldPhysics } from './physics';
 import { PINE_NATIVE_QUEST } from './nativeQuest';
 import { TREE_REST_FILE, TREE_SET } from './treeSet';
-import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
+import { parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
 import forestWeather from '../data/forestWeather.json' with { type: 'json' };
 import { forestStory } from './forestStory';
 import { questPage, questPageBlob } from './pageComposition';
@@ -57,8 +57,6 @@ import { KNIFE_LOOK } from './knifeLook';
 import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
 import { CONTRACT_PROGRAM_SCRIPT, contractProgramRegistries } from './contractProgram';
-import { ContractCatalogueSchema } from '@wildshard/format/contracts';
-import { PanelDefinitionSchema } from '@wildshard/format/panelTemplate';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { PINE_SPECIES_PROGRAMS } from './speciesPrograms';
@@ -171,14 +169,14 @@ async function outputRows(sources: PineSources, readImagePixels: ProjectGenerati
   v.parse(PoolGroundSchema, timbers.poolGround);
   const { FOREST_STORY_BLOB } = forestStory(sources), { PINE_QUEST_PAGE_BLOB } = questPage(sources), { RANGED_PAGE_BLOBS } = await rangedPage(sources), { FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB } = forestPage(sources);
   const { WORLD_SCENES, SCENE_BLOBS, SCENE_PACKED_MODELS } = await worldScenes(sources);
-  const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather)), { jsonSchema: registeredJsonSchema('world/forest-weather.json') }), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsOwnersBytes(), { jsonSchema: namedJsonSchema(PinePhysicsOwnersSchema) }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: namedJsonSchema(NativeQuestCompositionSchema) }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: namedJsonSchema(NativeQuestServiceSpotsSchema) }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB,
+  const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather)), { jsonSchema: registeredJsonSchema('world/forest-weather.json') }), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsOwnersBytes(), { jsonSchema: namedJsonSchema(PinePhysicsOwnersSchema) }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: registeredJsonSchema('quests/native-story.json') }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: registeredJsonSchema('quests/native-spots.json') }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB,
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures})))),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence)),{jsonSchema:registeredJsonSchema('quests/persistence.json')}),
   nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ constants: { terrain: PINE_TERRAIN, entries: headlessEntries, environment: POPULATION_ENVIRONMENT } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR)), { jsonSchema: registeredJsonSchema('quests/chapter-director.json') }),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorData.module, bytes: '', file: 'behaviour/director.wasm' }, stages: directorStages, bindings: null, seed: 357 })), { jsonSchema: registeredJsonSchema('directors/main.json') }),
   nameBlob('actors/roster.json', 'json', new TextEncoder().encode(encodeCanonicalJson(POPULATION_ROSTER)), { jsonSchema: registeredJsonSchema('actors/roster.json') }),
   nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(CabinAmbienceSchema, cabinAmbienceRows(sources))))),
-  nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS)), { jsonSchema: namedJsonSchema(v.record(v.string(), PanelDefinitionSchema)) }),
+  nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS)), { jsonSchema: registeredJsonSchema('quests/panels.json') }),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall)), { jsonSchema: registeredJsonSchema('quests/stall.json') }),
   nameBlob('world/weather.json','json',new TextEncoder().encode(encodeCanonicalJson(parseWeatherProgram(weatherProgram)))),
   nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(PINE_QUEST_SERVICES))), { jsonSchema: registeredJsonSchema('quests/services.json') }),
@@ -238,7 +236,7 @@ async function contractModule(ctx: ProjectGenerationContext) {
   const script: unknown = JSON.parse(new TextDecoder().decode(row));
   const blob = nameBlob('behaviour/pine.contracts.wasm', 'wasm', bytes, { critical: true, script: { abi: 1, pages: 1 } });
   if (typeof script !== 'object' || script === null || !('module' in script) || script.module !== blob.file.path) throw new Error('Pine contract module differs from its row');
-  const catalogue = nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...contractCatalogue(), program: { script, bytes: '' } })), { jsonSchema: namedJsonSchema(ContractCatalogueSchema) });
+  const catalogue = nameBlob('quests/contracts.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...contractCatalogue(), program: { script, bytes: '' } })), { jsonSchema: registeredJsonSchema('quests/contracts.json') });
   return { script, files: emitNamedBlobs([blob, catalogue]) };
 }
 
