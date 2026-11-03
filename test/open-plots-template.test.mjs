@@ -52,6 +52,16 @@ test('an explicit activation selects only the requested declared output',()=>{
  expect(after.outputs.find(row=>row.slug===recipe.slug)).toMatchObject({layout:'test-template',scaffold:true});expect(proposal.activated).toBe(true);
 });
 
+test('a build-out template emits unplaced audio requests without activating playback',()=>{
+ const before=readFileSync(resolve(root,'src/shards/open-plots/outputs.json'),'utf8');
+ const proposal=plotTemplate(root,{...recipe,slug:'open-plot-lantern-bayou',name:'Lantern Bayou'});
+ const requests=JSON.parse(proposal.paths.get('src/shards/open-plots/data/templates/lantern-bayou.audio.json'));
+ expect(requests.idea).toBe('lantern-bayou');expect(requests.spots).toHaveLength(4);
+ expect(requests.spots.every(row=>row.at===null)).toBe(true);
+ expect(proposal.paths.has('src/shards/open-plots/outputs.json')).toBe(false);
+ expect(readFileSync(resolve(root,'src/shards/open-plots/outputs.json'),'utf8')).toBe(before);
+});
+
 test('refuses to overwrite a hand-edited generated layout',()=>{
  const a=plotTemplate(root,recipe);writeTemplate(root,a.paths,a.before);const changed=read(a.layout);changed.rows[0]='E0 E0 E0 E0 E0 E0 E0 E0';write(a.layout,changed);
  expect(()=>plotTemplate(root,recipe)).toThrow('edited template layout');expect(read(a.layout)).toEqual(changed);

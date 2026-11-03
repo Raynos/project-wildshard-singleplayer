@@ -235,7 +235,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 |---|---|---|---|---|
 | OB0 | **done (2026-11-03, G984; `8b7168fce9` + `53dd955063`, WebKit `53dd955-mw0atk0y`). On SHARD SELECT.** Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift each get a SHARD SELECT card (existing thumbs) that enters the plot standalone, public build too | Codex | 0.5 | Each of the five enters from SHARD SELECT on WebKit (iPhone 16 Pro); a test pins the five cards |
 | OB1 | **done (2026-11-03, G972; `ffb6270346` + `913b810625`).** **G972, one grid.** `src/game/grid/singleplayer.json`: `nine-dragon-stack` takes (1,-1) in `grid.cells` (it replaces that Lantern Bayou copy), and `grid.developer` is deleted along with every reader of it (`src/game/grid/catalogue.ts`, `assembly.ts`, `copyIdentity.ts`, `entryDownloads.ts`, the grid tests, and the scripts that read it: `public-grid.mjs`, `frame-floor.mjs`, soak, parity, the world-map atlas and others; grep before deleting). Blender-template, pastel-plain and ink-cel-valley leave the grid. Fold the now-redundant `devserver` Nine entry if nothing else needs it | Codex | 1 d | One grid for public and Developer. Nine enters from its cell on a public build. The grid tests, `vitest related` and the boot smoke pass. Net lines are negative |
-| OB2 | **Pilot: Lantern Bayou** through pipeline steps 1–8. Template additions that every later plot reuses (Codex): audio rows from the template, the bar-7 life check (pixel change per 500 ms in the 5 s clip), the bar-5 three-way board maker, and the per-plot tiling report (G950). Opus: the plot itself, and holding the landmark for the whole cell (§6) | Opus 2 + Codex 1.5 | 3.5 lane-days (was 5.5) | Board sent; the four hero views read as the 2 × 2 board, by eye; the layout is mirror-symmetric kit tiles plus ≤ 3 theme tile variants and one landmark (G978); the three-way board reads "better"; life visible; audio plays; ≤ 130 draws, ≤ 600k triangles, ≤ 1.0 GB in the Chromium reading; 0 stuck; the plot replaces its hologram |
+| OB2 | **Pilot: Lantern Bayou** through pipeline steps 1–8. **Codex tools done (2026-11-03):** template audio requests `ee85143593`; live bar-7 pixel check `a19c4cae2f`; plot-slug bar-5 board command `8bc2037c69`; five-plot G950 reports `10fe65fdb1`; five native entry/bridge/plaza/landmark walks, all 0 stuck, `d74cab106c`. Ember live pixel check reports FAIL (one changing region); visible life and OB7 playback remain open. Opus: the plot itself, and holding the landmark for the whole cell (§6) | Opus 2 + Codex 1.5 | 3.5 lane-days (was 5.5) | Board sent; the four hero views read as the 2 × 2 board, by eye; the layout is mirror-symmetric kit tiles plus ≤ 3 theme tile variants and one landmark (G978); the three-way board reads "better"; life visible; audio plays; ≤ 130 draws, ≤ 600k triangles, ≤ 1.0 GB in the Chromium reading; 0 stuck; the plot replaces its hologram |
 | OB3 | **Frostline Peaks** (wave 2; builds the shared pines, snow and ice) | Opus 2 + Codex 0.5 | 2.5 (was 6) | As OB2. The peak lodge and lift are readable from the road entry and from the Far Reach side |
 | OB4 | **Ember Forge** (wave 2; builds the lava kind). **In flight (2026-11-03, sp-o3, from sp-o2): activated `c33dc15dcc`.** Kit `forges`/`ore` and furnace script take GLBs `50e156f0d8`, lava kind `ef19f9487b`, F forge court + O ore yard tiles and a lava moat of canals, look loop R1-R2 `837135050d` (art/ember-forge/round-1-look-loop), final three-way board art/ember-forge/round-2-final (G872). Wire 3,688,268 B, no tile debt. Open: Hunyuan/TRELLIS furnace takes (model lane START) and the landmark board, life clip, audio (OB7), the open-plot walk route, J1, scale and density toward round 62 | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2, plus junction J1 holds (§6) |
 | OB5 | **Coral Drift** (wave 2; builds the palms and the lagoon water) | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2. The sea-edge sides read at the 100 m view |
@@ -395,28 +395,38 @@ rows, measure the road-entry clip, compose its comparison board and
 export the existing verified per-tile report. See
 [the tool guide](../../../scripts/open-plots/OB2.md).
 
-**2026-11-03: the four reusable tools are done on unit/type/lint checks.**
-Three focused suites / **24 cases PASS in 8.0 s**, including exact motion
-pixel counts and false-source/camera/lossy-image refusals, the real
-five-second synthetic capture-port check, labelled JPEG generation and
-unaltered native tiling/ownership controls. Root and scripts types and
-named typed lint pass, including the declaration file. The 1206 × 2622
-synthetic board was viewed and stays under 500,000 B. The actual audio
-CLI smoke passes and emits the inert six-asset packet. No browser, app
-build, shared publisher or native world is needed to land these tools.
-Actual pilot capture/build/readings stay queued after PF13; these
-controls do not qualify those live bars.
+**2026-11-03: Codex tooling complete, with live captures and native walks.**
 
-The audio packet remains inert until OB7 supplies assets, credits,
-loop metadata and native catalogue binding. The life report counts
-exact RGB changes in two or more owner-declared disjoint regions over
-eleven lossless samples; it does not infer system identity or replace
-the owner’s visible-life read. Four matching plot-local cameras form
-the MOCKUP / PLOT NOW / NIGHT MARKET NOW portrait board, at most 500 KB.
-Tiling uses ordinary CURRENT product admission and the existing strict
-NT7 reader; missing products refuse without generation. None of these
-tool controls grants the still-open pilot’s audio, motion, art, phone
-performance or walk qualification.
+- `ee85143593`: the five planned audio rosters feed both the template's
+  `<idea>.audio.json` requests and `ob2.mjs audio --plot=<idea>`. Positions
+  stay null until OB7 places them; real assets, credits, loop metadata and
+  native playback binding remain OB7's work.
+- `a19c4cae2f`: `life-capture.mjs` captures eleven lossless 402 × 874 PNGs
+  from one live fixed road-entry camera and prints PASS/FAIL plus each
+  500 ms interval's changed-pixel count. Actual Ember at `05f1661521`:
+  5.005 s, **FAIL**, one changing region. Furnace sparks: zero pixels in
+  all ten intervals; road lamps: 1,750–2,152 pixels per interval. This
+  detects the still-open bar-7 gap; it does not infer system identity.
+- `8bc2037c69`: `comparison.mjs --plot=<idea>` captures the four matched
+  plot-local phone cameras for NOW and Night Market and makes the labelled
+  MOCKUP / PLOT NOW / NIGHT MARKET NOW JPEG. Actual Ember board viewed:
+  1206 × 2622, **283,816 B**, same build, live clock, 2× render scale.
+- `10fe65fdb1`: `tiling.mjs --plot=all` exports five verified G950 reports,
+  80 tiles each, with per-tile MB, triangles, draws and height plus index
+  hashes. CURRENT admission remains strict; stale products refuse before
+  batch publication. Whole-level totals are not live-view memory/draws.
+- `d74cab106c`: maintained routes for Frostline, Bayou, Ember, Mosslight
+  and Coral run through `physics-baseline.mjs --no-build --mode=walk`
+  with `--shard=open-plot-<idea>`. All five native residents complete their
+  south entry, bridge approaches, plaza perimeter and landmark-base route
+  with **0 stuck / 0 bounds failures**. No geometry or colliders changed.
+
+Focused controls: 10 OB2 cases, 18 template cases and 6 native CLI cases
+pass, plus all five actual walk routes. Root/scripts types and named fast
+lint pass. Live captures used a muted browser-lane-owned iPhone 16 Pro
+profile, closed after capture. The pilot's art, visible-life, native audio
+playback and phone-performance acceptance remain open; tooling completion
+is not full OB2 completion. No visual fix is part of these commits.
 
 
 ### OB0: public five-card source landing (2026-11-03, G984)
