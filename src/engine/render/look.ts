@@ -162,6 +162,8 @@ export interface LightingRig { install: () => void }
 export interface ShadowStyle {
   /** 'phoneSplits': on a one-cascade tier (the phone), three 2048² cascades to 7 / 22 / 80 m (E123, E147) */
   rig: 'tier' | 'phoneSplits';
+  /** the phone rig's last cascade ends here (m) instead of 80 (DW: Driftwood's draw budget) */
+  phoneFar?: number;
   /** 'tent': the phone rig's 7×7 / 5×5 tent filter (E138, shadowFilter.ts) */
   filter?: 'tent';
   /** each step of the key light's shadow crossfades (E147 / E153, shadowFade.ts) */

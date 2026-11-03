@@ -18,7 +18,8 @@ function draw(id: string): string {
 export const TOON_LOOK: ReturnType<typeof parseToonLook> = parseToonLook({
   id: 'driftwood.toon', lighting: held.look.lighting,
   fog: { ...RAMP_FOG, order: 200 },
-  shadows: { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: .14, radius: .6, texelBias: 'phone', depth16: 'phone' },
+  // DW (engine-performance section 10): the phone's last cascade ends at 60 m, not 80 (fewer far casters a far tick)
+  shadows: { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: .14, radius: .6, texelBias: 'phone', depth16: 'phone', phoneFar: 60 },
   ground: { materials: GROUND_LOOK.materials, files: { ground: draw('draw:ground:ground'), slab: draw('draw:ground:slab') }, kit: KIT_LENDS },
   sky: { day: DRIFTWOOD_SKY_DAY, cycleSeconds: 48 * 60, name: 'driftwood-isle', channels: 'driftwood.sky',
     dome: { look: SKY_DOME_LOOK, radius: 2200, segments: [48, 24], order: -20 },

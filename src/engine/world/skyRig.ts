@@ -44,12 +44,12 @@ const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 3, size: 2
  * wider than its reach: the one 80 m cascade was 189 m across, so a 1024² texel was 18.5 cm and every shadow edge a
  * row of 18 cm steps smeared by the PCF (E123: "blocky, blobby, pixelated, bleeding").
  */
-export function shadowRig(phoneSplits: boolean): ShadowRig {
+export function shadowRig(phoneSplits: boolean, phoneFar?: number): ShadowRig {
   const T = TIER_CONFIG;
   const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, splits: [], phone: false };
   if (T.cascades !== 1 || !phoneSplits) return base; // desktop / a level without the split rig: the tier table
   const splits = PHONE_SHADOW.splits;
-  return { ...PHONE_SHADOW, cascades: splits.length + 1, splits, margin: base.margin, phone: true };
+  return { ...PHONE_SHADOW, far: phoneFar ?? PHONE_SHADOW.far, cascades: splits.length + 1, splits, margin: base.margin, phone: true };
 }
 
 
@@ -119,7 +119,7 @@ export class SkyRig {
     fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
     fogUniforms.fogDistDensity.value = A.fogDistDensity;
 
-    const rig = shadowRig(shadows?.rig === 'phoneSplits');
+    const rig = shadowRig(shadows?.rig === 'phoneSplits', shadows?.phoneFar);
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: rig.cascades, mode: rig.splits.length > 0 ? 'custom' : 'practical',
       // the near cascade ends at `splits[0]` m: a tight square round the player (the deck, the pier under foot), the last one takes the rest

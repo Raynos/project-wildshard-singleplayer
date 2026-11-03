@@ -36,7 +36,8 @@ export const ToonLookSchema: v.GenericSchema<ToonLookRowInput, ToonLookRow> = v.
   id, lighting: ToonLightingSchema,
   fog: v.pipe(v.strictObject({ start: n, end: n, near: rgb, zenith: rgb, order: n }), v.check(row => row.start < row.end)),
   shadows: v.strictObject({ rig: v.picklist(['tier', 'phoneSplits']), filter: v.exactOptional(v.literal('tent')), fade: v.exactOptional(v.boolean()),
-    normalBias: n, radius: n, texelBias: v.exactOptional(v.literal('phone')), depth16: v.exactOptional(v.literal('phone')) }),
+    normalBias: n, radius: n, texelBias: v.exactOptional(v.literal('phone')), depth16: v.exactOptional(v.literal('phone')),
+    phoneFar: v.exactOptional(v.pipe(v.number(), v.minValue(30), v.maxValue(200))) }),
   ground: v.strictObject({ materials: v.strictObject({ ground: id, slab: id }), files: v.strictObject({ ground: id, slab: id }), kit: v.record(id, id) }),
   sky: v.strictObject({ day: ToonDaySchema, cycleSeconds: positive, name: id, channels: id,
     dome: v.strictObject({ look: id, radius: positive, segments: v.tuple([v.pipe(positive, v.integer()), v.pipe(positive, v.integer())]), order: n }),
@@ -257,6 +258,7 @@ interface ToonLookRowFields {
         normalBias: number;
         radius: number;
         texelBias?: 'phone';
+        phoneFar?: number;
         depth16?: 'phone';
     };
     ground: {
