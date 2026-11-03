@@ -21,7 +21,7 @@ not qualify a later audio candidate. Saltwind's final admitted candidate is
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
-| Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Chromium/control complete; walk/goldens open | Open |
+| Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Chromium/control complete; walk/goldens open | Memory + standalone Sim complete; grid refused |
 | Sky Harbor | `open-plot-4-4` / (2,2) | Awaiting audio handoff | Open | Open |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
@@ -99,3 +99,89 @@ file is `tmp/sp-x1-open-plots/saltwind-lighthouse-standing.json`.
 The Chromium/control browser is closed. The own preview lease stays retained
 for the pending maintained walk and eight-view golden bridge, after sp-x8's
 finite memory/official Simulator boundary. Those scopes remain open.
+
+## Saltwind Lighthouse — Memory/Simulator (sp-x8)
+
+Exact admitted source **f8a1406288c2407b26085afa9d54aa599d30941d**,
+normal immutable build **f8a1406-mw167rcy** (:4401), shares the audio/body
+bridge above. The literal served index SHA-256 is
+`7017ad4f16c8666b35181666ca82e8aba24d25a6b2548ccafad74fee16fbea07`.
+The independently matching normalized index-object hash is
+`65526fcbc06ca11d4d9c9da6a63efdbda5b7279c5e81c1b67f1468aa99966287`:
+Python sorted compact ASCII JSON, without a newline. Extra scratch checks
+initially confused these hash units; the served raw bytes matched throughout.
+The correct defining projection matched before Simulator admission. No source,
+threshold or admission guard changed.
+
+The separate maintained Chromium phone-memory reader uses phone 2×, its
+original 20 s settle and three samples, without forced GC or page errors.
+Its renderer/GPU-process/JS-heap figures are **MiB**, despite the legacy
+`MB` field names; they are not native Simulator RAM or a per-shard sum.
+
+| Sample | Renderer MiB | GPU process MiB | JS heap MiB | FPS | Draws |
+|---|---:|---:|---:|---:|---:|
+| 1 | 189 | 509 | 46 | 60.2 | 53 |
+| 2 | 157 | 497 | 45 | 60.2 | 53 |
+| 3 | 159 | 495 | 46 | 60.2 | 53 |
+
+All three retain 18 textures, 81 geometries and 25 programs. The browser
+closed before official quiet admission; these FPS readings earn no native
+timing credit.
+
+One official `frame-floor.mjs --surface=sim --quiet` command owns the
+`wildshard-iphone` window, normal shared model lock and native sampler.
+X1's browser and X2's completed model batch released before admission;
+no model was interrupted. The actual build reports Apple GPU, phone 2×,
+CSS 402×714 and canvas 804×1428. Three standalone windows are complete,
+with 120/120 frames each, zero skipped frames, no page errors or context loss.
+
+| Pose | Median FPS | p95 / p99 / max ms | Max draws | Reported triangles |
+|---|---:|---:|---:|---:|
+| Spawn | 30.303 | 34 / 35 / 35 | 50 | 35,493 |
+| Road entry | 30.303 | 34 / 34 / 34 | 57 | 33,148 |
+| Plaza | 30.303 | 34 / 34 / 35 | 60 | 43,707 |
+
+All pass the existing 30 FPS floor and 150-draw controls. The stricter
+33.3 ms p95 and strict-pass flags remain **false**. These are Mac-backed
+Simulator results, not physical-phone clearance.
+
+Standalone native memory has **221 playing / 75 loading samples** and
+**47 GPU witnesses**. The conservative playing upper envelope is
+**262.018 MB** (241.848 MB native + 20.170 MB GPU ledger); loading is
+**1,059.825 MB** (1,039.655 + 20.170 MB). These separate maxima need not
+occur simultaneously. They fit the unchanged 1,200 / 1,800 MB per-shard
+limits. GPU-process footprint is excluded. The GPU ledger retains
+1.044 MB unattributed and one Inspector-closed error; phase coverage remains
+complete. The memory sampler explicitly grants no timing credit.
+
+Every standalone after-window pool observation reports 45 returned,
+retained and available logical blocks, **3,080,192 B**, with zero hits,
+misses or blocked blocks. This is reusable logical capacity, not another
+resident-memory charge or a claim about unused physical pages.
+
+**Grid scope refused.** The same finite command then hit the original
+**240 s grid-loading deadline**, with repeated Inspector target changes.
+The grid GPU log has **zero samples and 29 Inspector errors**, including
+an evaluation timeout; grading refuses `Missing native/GPU samples`.
+Native process sampling alone cannot provide the missing GPU/readiness
+witness. The full 364.444 s command exits 3, **complete=false/pass=false**.
+No unchanged retry, deadline extension, invented zero or crash attribution
+is made. All four junction directions, settled residents, pending/crossing
+state and grid pool/memory remain unmeasured. G556 gives the pooled grid
+page no 1.2 GB cap; it does not turn absent readings into passes.
+
+The junction inputs come from the admitted pin's real grid source:
+Saltwind cell **(0,2)**, southeast intersection **(281.25,1.7,843.75)**,
+with Pine Hollow, Template, Saltwind and Starfall as its four neighbours.
+That source audit is preparation, not a measured residency claim.
+
+Raw evidence stays under `tmp/sp-x8-plot-readings/saltwind-final/`:
+`memory.json`, `admission.json`, `junction-source.json`, `sim-poses.json`,
+`summary.json`, `simulator.log`, native phase/GPU logs and official result
+`simulator/f8a140628-65472-1793740002467.json`. X6 has the exact paths for
+bounded read-only cause review. Quiet is removed, the Simulator is shut
+down and the model lock is free; X1/X2/X6 received literal release before
+parsing. No browser, model or Simulator lease remains with this reading.
+The own preview use is released after recording; X1 and X6 retain theirs.
+Saltwind's full cohort stays open for the grid refusal and remaining
+peer-owned walk/golden scopes. The other nine await final audio handoffs.
