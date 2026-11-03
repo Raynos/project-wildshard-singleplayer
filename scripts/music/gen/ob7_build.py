@@ -27,6 +27,17 @@ def write(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n")
 
 
+def read_compared_take(wav: Path, comparison: dict) -> dict:
+    """Keep publication and rejection records bound to the measured source."""
+    source = wav.with_suffix(".json")
+    wave_hash = hashlib.sha256(wav.read_bytes()).hexdigest()
+    metadata_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+    if comparison.get("sourceWaveSha256") != wave_hash or comparison.get("sourceMetadataSha256") != metadata_hash:
+        raise ValueError(f"{wav}: source changed or comparison lacks source hashes")
+    return {"sourceWaveSha256": wave_hash, "sourceMetadataSha256": metadata_hash,
+            "source": json.loads(source.read_text())}
+
+
 def score_files(raw: Path, plot: str) -> list[Path]:
     files = [raw / f"ob7-{plot}" / f"minimax3-{seed}.wav" for seed in (701, 702)]
     if any(not file.is_file() for file in files):
@@ -97,12 +108,15 @@ def clap(raw: Path, plot: str) -> None:
         return {"rank": int((similarity > similarity[own]).sum()) + 1,
                 "p": round(float(probability[own]), 6), "best": texts[int(similarity.argmax())]}
 
-    result = {"model": "laion/clap-htsat-fused", "sfx": {}, "score": {}}
+    result = {"model": "laion/clap-htsat-fused", "sfx": {}, "sfxTakes": {}, "score": {}}
     families = list(SFX)
     for wav in sfx_files(raw, plot):
         family = wav.parent.name
         model_name = wav.parent.parent.name
-        match = {**compare(wav, descriptions, families.index(family)), "seed": wav.stem}
+        match = {**compare(wav, descriptions, families.index(family)), "seed": wav.stem,
+                 "sourceWaveSha256": hashlib.sha256(wav.read_bytes()).hexdigest(),
+                 "sourceMetadataSha256": hashlib.sha256(wav.with_suffix(".json").read_bytes()).hexdigest()}
+        result["sfxTakes"].setdefault(family, []).append({"engine": model_name, **match})
         family_rows = result["sfx"].setdefault(family, {})
         old = family_rows.get(model_name)
         if old is None or (match["rank"], -match["p"]) < (old["rank"], -old["p"]):
@@ -195,21 +209,35 @@ def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
                                  "slots": {"score": slot}, "stings": {}, "recommendation": winner["id"], "takes": candidates})
     manifest = {"model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium", "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
                 "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
-                "beds": {}, "hums": {}, "oneshots": {}, "provenance": []}
+                "beds": {}, "hums": {}, "oneshots": {}, "provenance": [], "rejected": []}
     for family, row in SFX.items():
         if row["into"] != plot:
+            continue
+        if row.get("shipping", True) is False:
+            takes = comparisons.get("sfxTakes", {}).get(family, [])
+            if {take["engine"] for take in takes} != {"moss", "medium"} or any(take["rank"] <= 5 for take in takes):
+                raise ValueError(f"{family}: rejected takes need complete failing engine comparisons")
+            expected = {(engine, wav.stem) for engine in ("moss", "medium") for wav in (raw / engine / family).glob("*.wav")}
+            actual = {(take["engine"], take["seed"]) for take in takes}
+            if actual != expected or len(takes) != len(expected):
+                raise ValueError(f"{family}: missing or duplicate rejected take comparison")
+            rejected = []
+            for take in takes:
+                wav = raw / take["engine"] / family / f"{take['seed']}.wav"
+                rejected.append({"comparison": take, **read_compared_take(wav, take)})
+            manifest["rejected"].append({"family": family, "reason": row["rejection"], "takes": rejected})
             continue
         pair = comparisons["sfx"][family]
         engine = min(pair, key=lambda key: (pair[key]["rank"], -pair[key]["p"]))
         if pair[engine]["rank"] > 5:
             raise ValueError(f"{family}: neither engine meets the existing CLAP top-five bar")
         wav = raw / engine / family / f"{pair[engine]['seed']}.wav"
+        source = read_compared_take(wav, pair[engine])
         ident = family.removeprefix("bed.").removeprefix("hum.")
         name = family.rsplit(".", 1)[1]
         entry = encode_loop(wav, sfx / f"{name}.m4a", -24 if row["kind"] == "bed" else -26, 64, scratch)
         manifest["beds" if row["kind"] == "bed" else "hums"][ident] = entry
-        manifest["provenance"].append({"file": entry["file"], "winner": engine, "comparison": pair,
-                                       "source": json.loads(wav.with_suffix(".json").read_text())})
+        manifest["provenance"].append({"file": entry["file"], "winner": engine, "comparison": pair, **source})
     write(sfx / "sfx.json", manifest)
     total = sum(path.stat().st_size for folder in (music, sfx) for path in folder.iterdir() if path.is_file())
     if total > 3_000_000 or any(path.stat().st_size > 1_000_000 for folder in (music, sfx) for path in folder.iterdir()):

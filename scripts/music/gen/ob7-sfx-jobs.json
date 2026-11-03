@@ -342,7 +342,9 @@
       "into": "patchwork-fairground",
       "duration": 10,
       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
-      "prompt": "Close isolated foley of small woven cloth bunting flags stretched on a rope in a steady breeze. Distinct dry fabric flaps and crisp short snapping cracks as each little flag pulls taut, with pauses between bursts. Nearby cloth flexing and snapping is the only sound. No leafy tree rustle, no waves or running water, no engine, no music, no speech, no distortion. Ten seconds of clear flag-cloth detail."
+      "prompt": "Close-up isolated dry foley: a line of small thick cloth bunting flags WHIPPING and SNAPPING taut in sudden gusts. Sharp pap-pap cloth cracks, short rattling fabric flaps, then a quiet pause, repeated irregularly. Emphasize the abrupt cloth snaps, not background wind. The microphone is close to the cloth. No steady wind hiss, no leafy rustling, no steam, no water, no birds, no engine, no music, no speech. Ten seconds.",
+      "shipping": false,
+      "rejection": "All paired701/702/703/704 flag takes fail the unchanged CLAP top-five bar. Coordinator approved bed+five qualified positional sounds (six total); flags stay unshipped, every failed take recorded, no rank waiver."
     },
     "hum.patchwork-fairground.crowd-murmur": {
       "kind": "hum",

@@ -1752,6 +1752,233 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-65f7ac5b.m4a"
   }
  },
+ "patchwork-fairground": {
+  "genre": "patchwork-fairground",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-b-0e7f6f396f9d.m4a",
+    "loopStart": 13.5,
+    "loopEnd": 26.32,
+    "duration": 27.32,
+    "gain": 1,
+    "seamScore": 0.369,
+    "calm": "take-b-0e7f6f396f9d.m4a",
+    "bpm": 112.3,
+    "beatsPerBar": 3
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-702",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.3482385,
+    "metrics": {
+     "duration_s": 75.08,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -14.2,
+      "lra": 6.7,
+      "true_peak_dbfs": 0
+     },
+     "clipping": {
+      "clipped_samples": 13,
+      "clipped_frac": 0.0000019630914643575075,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2019,
+      "rolloff95_hz": 8929.5,
+      "flatness": 0.0017,
+      "hf_above_12k": 0.00039,
+      "sub_below_60": 0.0459,
+      "stereo_corr": 0.689
+     },
+     "tempo": {
+      "estimated_bpm": 117.5,
+      "brief_bpm": 120,
+      "rel_err": 0.021
+     },
+     "key": {
+      "best_key": "C minor",
+      "best_r": 0.812,
+      "d_major_r": -0.248,
+      "d_major_rank": 18,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.565,
+      "similarity": 0.565,
+      "level_match": 0.998,
+      "start_s": 16.25,
+      "end_s": 70.25,
+      "bars": 36,
+      "loop_s": 54,
+      "beats_per_bar": 3,
+      "grid_bpm": 120
+     },
+     "vocals": {
+      "vocal_energy_share": 0.2251,
+      "vocal_active_frac": 0.24,
+      "stem_share": {
+       "drums": 0.2751,
+       "bass": 0.0866,
+       "other": 0.4132,
+       "vocals": 0.2251
+      },
+      "groove_active_frac": 0.947,
+      "drums_active_frac": 0.92
+     }
+    },
+    "qualified": false,
+    "failedChecks": [
+     "vocal check 22.5% exceeds 10%"
+    ],
+    "clap": {
+     "rank": 5,
+     "p": 0.000977,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-9218b66bf0b9.m4a",
+     "loopStart": 16.25,
+     "loopEnd": 70.25,
+     "duration": 71.25,
+     "gain": 1,
+     "seamScore": 0.565
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "patchwork-fairground",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 120 BPM, 3/4 waltz time. Jaunty travelling fair in warm buttermilk morning light. Bright mechanical band organ carries a playful short waltz melody, light accordion answers over plucked upright bass on beat one and restrained brushes on beats two and three. Toy-box primaries, striped tents, a carousel and a giant Ferris wheel, friendly delighted exploration, never sinister or frantic. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 287.1,
+     "model_load_s": 10.2,
+     "mps_driver_gb": 27.21
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.28400749999999997,
+    "metrics": {
+     "duration_s": 36.36,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15.7,
+      "lra": 4.8,
+      "true_peak_dbfs": -0.1
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.9805
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2124.7,
+      "rolloff95_hz": 8874.9,
+      "flatness": 0.0018,
+      "hf_above_12k": 0.00034,
+      "sub_below_60": 0.0718,
+      "stereo_corr": 0.479
+     },
+     "tempo": {
+      "estimated_bpm": 112.3,
+      "brief_bpm": 120,
+      "rel_err": 0.064
+     },
+     "key": {
+      "best_key": "C# major",
+      "best_r": 0.694,
+      "d_major_r": -0.32,
+      "d_major_rank": 18,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.369,
+      "similarity": 0.371,
+      "level_match": 0.976,
+      "start_s": 13.5,
+      "end_s": 26.32,
+      "bars": 8,
+      "loop_s": 12.82,
+      "beats_per_bar": 3,
+      "grid_bpm": 112.3
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.1283,
+       "bass": 0.0022,
+       "other": 0.8695,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.639,
+      "drums_active_frac": 0.639
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 4,
+     "p": 0.127915,
+     "best": "Instrumental video game score, 104 BPM, 4/4. Bright turquoise tropical noon, light steel drum melody and gently strummed ukulele with rounded acoustic bass and restrained hand percussion. Friendly sunlit lagoon village, airy joyful instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "encoded": {
+     "file": "take-b-0e7f6f396f9d.m4a",
+     "loopStart": 13.5,
+     "loopEnd": 26.32,
+     "duration": 27.32,
+     "gain": 1,
+     "seamScore": 0.369
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "patchwork-fairground",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 120 BPM, 3/4 waltz time. Jaunty travelling fair in warm buttermilk morning light. Bright mechanical band organ carries a playful short waltz melody, light accordion answers over plucked upright bass on beat one and restrained brushes on beats two and three. Toy-box primaries, striped tents, a carousel and a giant Ferris wheel, friendly delighted exploration, never sinister or frantic. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 150.4,
+     "model_load_s": 10.2,
+     "mps_driver_gb": 27.21
+    }
+   }
+  ]
+ },
  "piano": {
   "style": "piano",
   "model": "MiniMax-Music3",
@@ -3461,6 +3688,312 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ]
    }
   }
+ },
+ "patchwork-fairground": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "patchwork-fairground.ambience": {
+    "file": "ambience-0e6ee442383f.m4a",
+    "loopStart": 11.5,
+    "loopEnd": 22.5,
+    "duration": 23.5,
+    "gain": 1,
+    "seamScore": 0.451
+   }
+  },
+  "hums": {
+   "patchwork-fairground.carousel-bells": {
+    "file": "carousel-bells-b67cf7c6bdab.m4a",
+    "loopStart": 3.25,
+    "loopEnd": 7.25,
+    "duration": 8.25,
+    "gain": 1,
+    "seamScore": 0.288
+   },
+   "patchwork-fairground.band-organ": {
+    "file": "band-organ-22f79a450dc1.m4a",
+    "loopStart": 2,
+    "loopEnd": 5,
+    "duration": 6,
+    "gain": 1,
+    "seamScore": 0.232
+   },
+   "patchwork-fairground.wheel-creak": {
+    "file": "wheel-creak-f120165f01a9.m4a",
+    "loopStart": 3,
+    "loopEnd": 5,
+    "duration": 6,
+    "gain": 1,
+    "seamScore": 0.507
+   },
+   "patchwork-fairground.crowd-murmur": {
+    "file": "crowd-murmur-38a483e9e64c.m4a",
+    "loopStart": 4,
+    "loopEnd": 7,
+    "duration": 8,
+    "gain": 1,
+    "seamScore": 0.505
+   },
+   "patchwork-fairground.big-top-drum": {
+    "file": "big-top-drum-c03e0bf7299d.m4a",
+    "loopStart": 3.5,
+    "loopEnd": 6.5,
+    "duration": 7.5,
+    "gain": 1,
+    "seamScore": 0.624
+   }
+  },
+  "oneshots": {},
+  "rejected": [
+   {
+    "family": "hum.patchwork-fairground.flags-snap",
+    "reason": "All paired701/702/703/704 flag takes fail the unchanged CLAP top-five bar. Coordinator approved bed+five qualified positional sounds (six total); flags stay unshipped, every failed take recorded, no rank waiver.",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 19,
+       "p": 0.000146,
+       "best": "A quiet intermittent steam vent hissing beside hot stone",
+       "seed": "701",
+       "sourceWaveSha256": "4cf4cfe75f10746bef57cbd597df41ced8d7d1d9552fc61738efd7973d23d40f",
+       "sourceMetadataSha256": "e35cf828a653d0ef4b97c011e7a42ef0c97e46841da61d8c1fc68df37d04119c"
+      },
+      "sourceWaveSha256": "4cf4cfe75f10746bef57cbd597df41ced8d7d1d9552fc61738efd7973d23d40f",
+      "sourceMetadataSha256": "e35cf828a653d0ef4b97c011e7a42ef0c97e46841da61d8c1fc68df37d04119c",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 63.12,
+       "model_load_s": 7.9,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 6,
+       "p": 0.000647,
+       "best": "Long palm fronds softly rustling in a warm sea breeze",
+       "seed": "702",
+       "sourceWaveSha256": "7c93bd6ae085ea74b4dc73d6ac0fb0162f2af13f09e41cd172886619accc0a66",
+       "sourceMetadataSha256": "910374971cc74a35a0d886196f84ccb6081643e1c49d1d705bca6a1fd86cf1e0"
+      },
+      "sourceWaveSha256": "7c93bd6ae085ea74b4dc73d6ac0fb0162f2af13f09e41cd172886619accc0a66",
+      "sourceMetadataSha256": "910374971cc74a35a0d886196f84ccb6081643e1c49d1d705bca6a1fd86cf1e0",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close isolated foley of small woven cloth bunting flags stretched on a rope in a steady breeze. Distinct dry fabric flaps and crisp short snapping cracks as each little flag pulls taut, with pauses between bursts. Nearby cloth flexing and snapping is the only sound. No leafy tree rustle, no waves or running water, no engine, no music, no speech, no distortion. Ten seconds of clear flag-cloth detail.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 52.34,
+       "model_load_s": 8.6,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 14,
+       "p": 0.000199,
+       "best": "A large leather bellows pumping air in slow repeated whooshes",
+       "seed": "703",
+       "sourceWaveSha256": "5ceaab1a5f865176cd410bcca05b2eeb3f2a304ca89029ab99cab52f74c57bd0",
+       "sourceMetadataSha256": "83b2f7ba8905981f7620d15300823333490b1998513b9faebf97ea26acb9a29f"
+      },
+      "sourceWaveSha256": "5ceaab1a5f865176cd410bcca05b2eeb3f2a304ca89029ab99cab52f74c57bd0",
+      "sourceMetadataSha256": "83b2f7ba8905981f7620d15300823333490b1998513b9faebf97ea26acb9a29f",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 703,
+       "prompt": "Close-up isolated dry foley: a line of small thick cloth bunting flags WHIPPING and SNAPPING taut in sudden gusts. Sharp pap-pap cloth cracks, short rattling fabric flaps, then a quiet pause, repeated irregularly. Emphasize the abrupt cloth snaps, not background wind. The microphone is close to the cloth. No steady wind hiss, no leafy rustling, no steam, no water, no birds, no engine, no music, no speech. Ten seconds.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 55.61,
+       "model_load_s": 6.4,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 22,
+       "p": 0.00249,
+       "best": "A small stepped stone waterfall cascading into a jungle pool",
+       "seed": "704",
+       "sourceWaveSha256": "7485002415bcf746ecbe8e9020a9254ebecc7e3941660e6d80fcb2b9cc7670fe",
+       "sourceMetadataSha256": "541bfa52809ef92ff2eba95cb7b88a4dcdbf2cad71a814187d4547392c83e0ea"
+      },
+      "sourceWaveSha256": "7485002415bcf746ecbe8e9020a9254ebecc7e3941660e6d80fcb2b9cc7670fe",
+      "sourceMetadataSha256": "541bfa52809ef92ff2eba95cb7b88a4dcdbf2cad71a814187d4547392c83e0ea",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 704,
+       "prompt": "Close-up isolated dry foley: a line of small thick cloth bunting flags WHIPPING and SNAPPING taut in sudden gusts. Sharp pap-pap cloth cracks, short rattling fabric flaps, then a quiet pause, repeated irregularly. Emphasize the abrupt cloth snaps, not background wind. The microphone is close to the cloth. No steady wind hiss, no leafy rustling, no steam, no water, no birds, no engine, no music, no speech. Ten seconds.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 52.21,
+       "model_load_s": 6.4,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 10,
+       "p": 0.004403,
+       "best": "A small stepped stone waterfall cascading into a jungle pool",
+       "seed": "701",
+       "sourceWaveSha256": "999a9f035a98ffa3229b69076730cdf569f447718d01f6105ef53a2f41151f1b",
+       "sourceMetadataSha256": "36b62331cc32651c2f09df0e76ed7ff0c2eaff54f0d0459147c73f68294c3c65"
+      },
+      "sourceWaveSha256": "999a9f035a98ffa3229b69076730cdf569f447718d01f6105ef53a2f41151f1b",
+      "sourceMetadataSha256": "36b62331cc32651c2f09df0e76ed7ff0c2eaff54f0d0459147c73f68294c3c65",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.71,
+       "model_load_s": 12.3,
+       "mps_driver_gb": 11.41
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 14,
+       "p": 0.000383,
+       "best": "Soft hanging cypress moss and leaves rustling in a light breeze",
+       "seed": "702",
+       "sourceWaveSha256": "b7916babb0a10769ce05447da73c9292f91757233d5326909e4f2250f2ffee16",
+       "sourceMetadataSha256": "afc88d976df8c1e6ad6fac7537d13887e205cda1165a7400d6f4e32816356fba"
+      },
+      "sourceWaveSha256": "b7916babb0a10769ce05447da73c9292f91757233d5326909e4f2250f2ffee16",
+      "sourceMetadataSha256": "afc88d976df8c1e6ad6fac7537d13887e205cda1165a7400d6f4e32816356fba",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close isolated foley of small woven cloth bunting flags stretched on a rope in a steady breeze. Distinct dry fabric flaps and crisp short snapping cracks as each little flag pulls taut, with pauses between bursts. Nearby cloth flexing and snapping is the only sound. No leafy tree rustle, no waves or running water, no engine, no music, no speech, no distortion. Ten seconds of clear flag-cloth detail.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 2.72,
+       "model_load_s": 11.6,
+       "mps_driver_gb": 11.38
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 10,
+       "p": 0.001434,
+       "best": "A large leather bellows pumping air in slow repeated whooshes",
+       "seed": "703",
+       "sourceWaveSha256": "b40ef3a9cabf4c67ab7771e5c960c34569943b8013fac721eab92fbd3fb07d37",
+       "sourceMetadataSha256": "032e68d01f32bb578cd64c0ce633536916cc57f2010c5b01f0dcc753a2497b0e"
+      },
+      "sourceWaveSha256": "b40ef3a9cabf4c67ab7771e5c960c34569943b8013fac721eab92fbd3fb07d37",
+      "sourceMetadataSha256": "032e68d01f32bb578cd64c0ce633536916cc57f2010c5b01f0dcc753a2497b0e",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 703,
+       "prompt": "Close-up isolated dry foley: a line of small thick cloth bunting flags WHIPPING and SNAPPING taut in sudden gusts. Sharp pap-pap cloth cracks, short rattling fabric flaps, then a quiet pause, repeated irregularly. Emphasize the abrupt cloth snaps, not background wind. The microphone is close to the cloth. No steady wind hiss, no leafy rustling, no steam, no water, no birds, no engine, no music, no speech. Ten seconds.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 4.37,
+       "model_load_s": 9.9,
+       "mps_driver_gb": 11.38
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 20,
+       "p": 0.000105,
+       "best": "A large leather bellows pumping air in slow repeated whooshes",
+       "seed": "704",
+       "sourceWaveSha256": "8ac169a8fbfe5353cb1fb6547b65117f907483ca6a759c2af63c8f6ed3d9f0a6",
+       "sourceMetadataSha256": "53e153a7ac4cac6395b29470ae222f8f1b101b780e9e1c2e8b88c6557dee9f5c"
+      },
+      "sourceWaveSha256": "8ac169a8fbfe5353cb1fb6547b65117f907483ca6a759c2af63c8f6ed3d9f0a6",
+      "sourceMetadataSha256": "53e153a7ac4cac6395b29470ae222f8f1b101b780e9e1c2e8b88c6557dee9f5c",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.patchwork-fairground.flags-snap",
+       "kind": "hum",
+       "seed": 704,
+       "prompt": "Close-up isolated dry foley: a line of small thick cloth bunting flags WHIPPING and SNAPPING taut in sudden gusts. Sharp pap-pap cloth cracks, short rattling fabric flaps, then a quiet pause, repeated irregularly. Emphasize the abrupt cloth snaps, not background wind. The microphone is close to the cloth. No steady wind hiss, no leafy rustling, no steam, no water, no birds, no engine, no music, no speech. Ten seconds.",
+       "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.48,
+       "model_load_s": 9.9,
+       "mps_driver_gb": 11.38
+      }
+     }
+    ]
+   }
+  ]
  },
  "pine-hollow": {
   "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",
