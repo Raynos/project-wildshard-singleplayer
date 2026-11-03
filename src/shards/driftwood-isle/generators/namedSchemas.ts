@@ -4,8 +4,6 @@ import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
 
 const MixedPopulationSchema: ReturnType<typeof authorFormatSchema<'mixedPopulation.MixedPopulationSchema'>> = authorFormatSchema('mixedPopulation.MixedPopulationSchema');
-const NativeQuestCompositionSchema: ReturnType<typeof authorFormatSchema<'nativeQuestComposition.NativeQuestCompositionSchema'>> = authorFormatSchema('nativeQuestComposition.NativeQuestCompositionSchema');
-const HEADLESS_ASSEMBLY_JSON_SCHEMA: ReturnType<typeof authorFormatSchema<'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA'>> = authorFormatSchema('namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA');
 const ReturnProgramSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.ReturnProgramSchema'>> = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');
 const QuestTraderSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.QuestTraderSchema'>> = authorFormatSchema('namedJsonContracts.QuestTraderSchema');
 const PosedLibrarySchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.PosedLibrarySchema'>> = authorFormatSchema('namedJsonContracts.PosedLibrarySchema');
@@ -72,17 +70,13 @@ const composedSchemas: Readonly<Record<string, Readonly<Record<string, unknown>>
             program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch,
         } }),
 };
-const nativeAssemblySchema = { ...HEADLESS_ASSEMBLY_JSON_SCHEMA,
-    allOf: [defineNamedRows(({ kind: "object", mode: "strip", entries: { constants: ({ kind: "object", mode: "strip", entries: { nativeQuest: NativeQuestCompositionSchema } } as const) } } as const)).jsonSchema],
-};
 /** Every scene, placement and document names its actual defining consumer. */
 export function driftwoodJsonBlob(name: string, kind: 'json', bytes: Uint8Array): NamedBlob {
     try {
         const contract = name.startsWith('scenes/') ? 'clientChannels.WorldScene'
             : name.startsWith('world/piers/') || name.startsWith('world/foliage/') ? 'worldScenePlacement.WorldScenePlacement' : sharedContracts[name];
         const schema = schemas[name];
-        const jsonSchema = registeredJsonSchema(name)??(name === 'sim/headless-assembly.json' ? nativeAssemblySchema
-            : contract !== undefined ? namedFormatJsonSchema(contract) : composedSchemas[name] ?? (schema === undefined ? undefined : defineNamedRows(schema).jsonSchema));
+        const jsonSchema = registeredJsonSchema(name)??(contract !== undefined ? namedFormatJsonSchema(contract) : composedSchemas[name] ?? (schema === undefined ? undefined : defineNamedRows(schema).jsonSchema));
         if (jsonSchema === undefined)
             throw new Error(`Missing Driftwood named JSON schema: ${name}`);
         return nameBlob(name, kind, bytes, { jsonSchema });

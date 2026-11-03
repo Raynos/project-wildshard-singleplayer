@@ -16,12 +16,7 @@ test('the admitted physics reconstructs every original native catalogue byte in 
 });
 
 test('the emitted toon section retains the entire native day input without an assembly copy', () => {
-  const file = output.namedFiles.find(row => row.name === 'sim/headless-assembly.json');
-  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
-  if (bytes === undefined) throw new Error('Missing emitted native assembly');
-  const assembly: unknown = JSON.parse(new TextDecoder().decode(bytes));
-  expect(assembly).not.toHaveProperty('constants.dayStyle');
-  expect(assembly).not.toHaveProperty('constants.nativeSpecs');
+  expect(output.namedFiles.some(row => row.name === 'sim/headless-assembly.json')).toBe(false);
   const section = output.platform.sections.find(row => row.name === 'look/toon');
   const lookBytes = section === undefined ? undefined : output.platform.files.get(section.path);
   if (lookBytes === undefined) throw new Error('Missing emitted toon section');

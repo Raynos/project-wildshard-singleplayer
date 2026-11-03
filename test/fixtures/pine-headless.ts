@@ -75,8 +75,8 @@ export function pineHeadlessAssets(assets: ReadonlyMap<string, Uint8Array>): Map
 /** Direct calls preserve the Pine gameplay recorder without executable JSON selectors. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation => {
 const { product, assets, rapier } = preparation, shard = product.shardfile;
-const {constants} = await product.json<{constants:{terrain:typeof TERRAIN,entries:typeof ENTRIES,environment:unknown}}>('sim/headless-assembly.json');
 const lendReturns = await prepareReturns(preparation);
+const constants = await readPineNativeOracle();
 const storyPolicy = await readJson<NativeQuestCompositionInput["rows"]>(product,"quests/native-story.json");
 const storySpots = await readJson<NativeQuestCompositionInput["spots"]>(product,"quests/native-spots.json");
 const bossView = await product.json<{projection:{encounter:{profile:unknown}}}>("combat/roaming.json");

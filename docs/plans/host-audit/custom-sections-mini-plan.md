@@ -162,7 +162,7 @@ does not close a Z row.
 | **Z10** | **Census complete (2026-11-03, sp-x9), 0/3 removed.** All three / 1,669 B have original live readers and only DW as a complete emitter; per-file evidence below. E9 building-life is already in Jake’s batch, not new credit. **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Qualified five-file slice (2026-11-03, sp-x6), source `7cc93a3856`: −5 / −57,213 custom bytes; three one-user documents remain charged for Jake's batch. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
 | **Z12** | **One unread copy retired (2026-11-03, sp-x2); eight live files remain charged for Jake’s one-user batch.** Delete only Pine landmark-view, 5,510 B, while the original ForestPage/native models retain its facts. All other 880 Pine bodies / 154,020,452 B and 78 old/new packs reconstruct exactly. Strict native 24 frames / 8 A/A + 8 A/B all zero; Pine 24/24 green in Chromium and WebKit. Seven native physics route legs pass, zero stuck/bounds failures. [Per-file census and qualification](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2); no fake field-root credit | **1 of 9 retired; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
-| **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x1 + sp-x2): 0/6 files deleted; qualified Driftwood and Nalati duplicate-field cuts below. G872 approves proof-only shipping-copy retirement with fenced typed oracles; live semantic owners remain charged.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
+| **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x1 + sp-x2): 2/6 files deleted; qualified per-shard landings below. G872 retires proved shipping-only copies behind exact typed native oracles; live semantic owners stay charged.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **One approved unread copy retired (2026-11-03, sp-x1); nine live one-user roots remain charged for Jake’s batch.** Nalati ride/rules removes 31,569 B. All other bodies/ordered packs retain exact proof with the independently reconstructed map source stamp; strict native 24 frames / 8 A/A + 8 A/B all zero. Nalati G998 24/24 green in Chromium and WebKit. Titan decisions already compile from shard AS; no new family is registered. [Per-file evidence and qualification below](#z14-census-encounters-riding-and-one-unread-copy-2026-11-03-sp-x1) | **1 of 10 retired; 9 charged:** Nalati room-entry, timed-encounters, titan-fight, titan-geometry, cloud-specimen, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page. Cloud overlaps Z7 and is charged once | Codex (G958) | 4.5 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
 
@@ -534,6 +534,68 @@ silently approved by the batch label. No catch-all quest union,
 compatibility alias, guard deletion or cap increase is proposed.
 
 ### Z13: qualified cuts and retained semantic owners
+
+**2026-11-03, sp-x2 — Driftwood/Pine shipping-only native copies retired.**
+G872 authorizes retirement only after proving zero production readers.
+The actual bake/headless worker selects shipped sections through
+`HEADLESS_CONTEXT_SECTIONS` and `prepareProductRuntimePlan`; neither it
+nor a client reads these two files. Emitted section/named-JSON closure
+contains no remaining reference to either retired name. The real direct
+native recorders and trade fixture retain their complete typed inputs.
+
+| Retired shipping body | Bytes | SHA-256 |
+|---|---:|---|
+| Driftwood `sim/headless-assembly.json` | 912,509 | `fea70e3051c7594cdd97c1a32f214a3ba57de1ba7a950dd16a808215b41af31e` |
+| Pine `sim/headless-assembly.json` | 64,095 | `5e6a851d41c1b82dd61558c6ac4cd2b7701954f1cc3869d37991feabff5513b2` |
+
+**Two files / 976,604 B retired; no family credit or new shipping envelope.**
+The existing direct test factories reconstruct every original fact and
+original canonical-reader key iteration order. Pine retains all trails,
+cabins, pond, stream, trees and native terrain/nav bindings. Independent
+entry expectations stay independent of geometry. `fencedNativeOracle`
+compares the complete typed parent with a fresh source-fenced child;
+original semantic parsers, malformed/unknown-policy refusals, module and
+native collision/provenance guards stay intact. Preparatory source:
+`1f51ff63e2`; independent per-factory admission rows: `2b73d0a0b3`.
+
+Frozen ordinary BEFORE `5957ebd1d9-mw0zlw01` and combined AFTER
+`5957ebd1d9-mw0zo0kg` retain the same peer Z6 cuts. Driftwood has
+452→451 bodies, Pine 880→879; every other **1,330 bodies / 232,851,801 B**
+is byte-identical, including every map body. All **104 before/after packs /
+2,588 ordered entries** reconstruct exactly after excluding only those two
+retired bodies. Admission loses only their hashes and exact library costs.
+The targeted candidate census is Driftwood **16 / 861,590 B**, Pine
+**19 / 4,632,896 B**; independent peer cuts are not credited to this slice.
+
+Both original and candidate maintained native residents run **240 ticks**,
+restore a separate resident at tick 120, and compare every complete
+canonical snapshot/effect wire plus the entire **120-tick restored suffix**.
+All are exact and source/asset fences pass. Full former shipping wires
+reconstruct byte-for-byte in two maintained hash cases. The original
+Driftwood earned trade tape passes **7,656 ticks**, BUY/refusal, 120 restored
+suffix ticks and 48 identical physics comparisons. Eight focused files /
+24 cases, root types and touched lint pass. Physics walks: **Pine 7/7,
+Driftwood 8/8, zero stuck or bounds failures**.
+
+Strict native Metal, both tiers, four poses per shard: **48 full RGBA frames,
+16 A/A + 16 A/B, every changed-pixel count zero**. The initial Pine desktop
+pond A/A refused 11,133 pixels with 126 versus 122 draws at the same frame.
+The maintained original terrain queue completion promise, before/after the
+unchanged 90 native frames, settles with zero pose/clock/frame changes;
+the complete rerun is exact. The raw refusal is retained; no allowance,
+cap, shader, renderer or production readiness change was introduced.
+
+Goldens: **Driftwood 24/24 Chromium + 24/24 WebKit; Pine 24/24 Chromium +
+24/24 WebKit green** on `5957ebd1d9-mw0zo0kg`. All 96 individual
+LEGACY/SHARDFILE/NOW rows were read, receipts complete/settled/error-free.
+Pine WebKit 11/20 retain raw automatic colour flags from close moving
+animals; all static landscape, structures, sky, props and hands remain.
+[Driftwood Chromium](../../../art/golden-runs/driftwood-isle/2026-11-03-5957ebd1d9-z13-chromium-board.jpg),
+[Driftwood WebKit](../../../art/golden-runs/driftwood-isle/2026-11-03-5957ebd1d9-z13-webkit-board.jpg),
+[Pine Chromium](../../../art/golden-runs/pine-hollow/2026-11-03-5957ebd1d9-z13-chromium-board.jpg),
+[Pine WebKit](../../../art/golden-runs/pine-hollow/2026-11-03-5957ebd1d9-z13-webkit-board.jpg).
+All own browsers closed; the shared AFTER remains leased while sp-x1 uses it.
+Raw temporary audit, closure, snapshot and capture readers: `tmp/sp-x2-z13/`.
 
 **2026-11-03, sp-x1 — Nalati ordered group declarations.** The native
 assembly no longer repeats the complete pasture declaration in its three
@@ -2369,31 +2431,35 @@ has zero diagnostics. CS10's recorded live-user exits are unchanged.
 
 ### driftwood-isle — `sim/headless-assembly.json`
 
+**Retired shipping-only copy (2026-11-03, sp-x2, G872).** Zero production readers/routes; every native fact remains in the existing direct test factory with full canonical/240-tick restore proof above. No host-family credit.
+
 | Field | Disposition / defining payload or explicit exit |
 |---|---|
 | `dayStyle` | **Qualified Z13 derivation (2026-11-03).** Complete admitted look/toon.sky.day reproduces TOON_LOOK.sky.day byte for byte. Native preset values and initial clock alignment remain unchanged. |
-| `entries` | **Explicit exit.** CS9 native entry-proof exit: data/entryWalk.json is an expected walk/count budget consumed by proveTerrainEntries; do not recompute expected proof facts from the geometry being checked. |
+| `entries` | **Shipping copy retired, G872.** The direct typed native oracle retains original ENTRY_WALK, independently authored lanes/start/walk/maxTicks/ramp and unchanged proveTerrainEntries guards; no expectation is inferred from checked geometry. |
 | `interact` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/interaction-source.json#/constants/interact; existing bounded named-JSON admission and original native interaction owner |
 | `interactSpots` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/interaction-source.json#/constants/interactSpots; original page/native placement input |
-| `mixedPopulation` | **Explicit exit.** CS6/CS9 complete mixed-roster owner: combines practice placement/respawn, native attack cap and four pose banks. sim/keeper and sim/enemy-placement are partial inputs, not the whole native value. |
+| `mixedPopulation` | **Shipping copy retired, G872.** Existing test/fixtures/driftwood-headless.ts retains the whole original mixedPopulation value: original practice placement, defining spawn respawn, native attack cap and four exact pose banks. Full canonical wire and native restore are exact; no fixture counts as a platform user. |
 | `nativeChapterCues` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/wake-boss.json#/cues projected to id/operation by the original parseChapterWake |
 | `nativeCounters` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/achievements.json through parseAchievementCounterData and the original native-feat/flag/write projection |
-| `nativeQuest` | **Explicit exit.** CS5/CS9 complete native quest-composition owner: generators/nativeQuest.ts joins save order, prompts, transitions, acquisition and reward. Preserve parseNativeQuestComposition and original native entry assertions. |
-| `nativeQuestSpots` | **Explicit exit.** CS5/CS9 complete native place/prompt/cable root: DRIFTWOOD_SPOTS contains more than the interaction-source row array. Keep readNativeQuestSpots, prompt-registration and cable bounds. |
+| `nativeQuest` | **Shipping copy retired, G872.** The original defining constructor and complete NativeQuestCompositionSchema retain phase/save order, prompts, transitions, acquisition/reward and every malformed/unknown-field refusal before native installation. |
+| `nativeQuestSpots` | **Shipping copy retired, G872.** Original complete DRIFTWOOD_SPOTS stays in the source-fenced typed oracle, with unchanged readNativeQuestSpots, ordered registrations and cable bounds; no partial interaction-row substitute. |
 | `nativeSpecs` | **Qualified Z13 derivation (2026-11-03).** Ordered catalogue over the full admitted physics actor specs plus captain spec reconstructs every original catalogue byte. Conflicting bodies under the same kind.variant are refused; no species-name inference. |
-| `physics` | **Explicit exit.** CS4 complete native-bake owner/typed binary derivation: preserve solid order, tagged provenance, actor/herd/habitat/captain and exact ground/collider bytes. The two existing binaries alone do not define this whole compound value. |
-| `questKillSteps` | **Explicit exit.** CS5 native kill-step/feat continuation: preserve kill fact identity, ordered native reward and original quest counter ownership; no whole admitted replacement was found. |
-| `questProps` | **Explicit exit.** CS5 complete native prop-owner exit: nativeQuestProps joins barrels, floors, plates and water with placements and owned save order; a scene/view payload is not the native owner. |
+| `physics` | **Shipping copy retired, G872.** Original driftwoodPhysics → driftwoodNativeRows retains the full native solid order/tagged provenance, ground, actors/herds/habitat/captain and exact owned binaries. Existing native schemas, pool/bounds/identity checks and independent entry expectations remain. |
+| `questKillSteps` | **Shipping copy retired, G872.** The typed direct oracle keeps the original questKillSteps input and unchanged kill-step/feat/native counter owner; complete native continuation and restore remain exact. |
+| `questProps` | **Shipping copy retired, G872.** Original NATIVE_QUEST_PROPS retains complete native floor/drop/body/gate ownership and placements, with its original native parsers and save order. No scene child or new shipping wrapper replaces it. |
 | `sea` | **Qualified exact derivation; full old canonical bytes reconstructed.** admitted shardfile.water row id=sea; declaredWaterBody unchanged |
-| `swords` | **Explicit exit.** CS7 complete native melee/loadout policy exit: data/nativeSwords.json has slot, source, tags, combo/contact/lunge rules not present as the same whole admitted item row. |
+| `swords` | **Shipping copy retired, G872.** Original nativeSwords.json remains the typed native oracle policy, admitted by unchanged installNativeItems/parseNativeSweptMeleeBinding. Slot/source/tags/combo/contact/lunge facts stay exact; no two-fixture family credit. |
 
 ### pine-hollow — `sim/headless-assembly.json`
 
+**Retired shipping-only copy (2026-11-03, sp-x2, G872).** Zero production readers/routes; every native fact remains in the existing direct test factory with full canonical/240-tick restore proof above. No host-family credit.
+
 | Field | Disposition / defining payload or explicit exit |
 |---|---|
-| `entries` | **Explicit exit.** CS9 native entry-proof exit: data/entryWalk.json binds lanes/walk/start/maxTicks; preserve expected proof facts independently of actual geometry and original native entry guards. |
-| `environment` | **Explicit exit.** CS6/CS9 G571 population-environment owner/genericity exit. POPULATION_ENVIRONMENT is emitted only here; actors/shelter contains an id reference, not this 63,824-byte value. PopulationEnvironmentSchema is not host approval. |
-| `terrain` | **Explicit exit.** CS4/CS9 native terrain/navmesh binding exit: terrainBindings.json names the native terrain format, resolution/size/seed and original public asset paths. The admitted sampling tile is a different wire; no implicit conversion or path alias. |
+| `entries` | **Shipping copy retired, G872.** Existing direct test factory retains original entryWalk.json lanes/walk/start/maxTicks, independent of checked geometry; original entry guards are unchanged. |
+| `environment` | **Shipping copy retired, G872.** Existing direct test factory reconstructs all 63,824 B of native habitat facts: original trails, cabins, pond, stream, trees and scalar settings. Complete PopulationEnvironmentSchema, source/parent fence, reader key order and native restore are retained; no private replacement document or family credit. |
+| `terrain` | **Shipping copy retired, G872.** Original terrainBindings.json remains an explicitly fenced native terrain/navmesh oracle: unchanged format/resolution/size/seed/public paths and original asset/entry guards. No implicit sampling-tile conversion or path alias. |
 
 ### nalati-grasslands — `sim/headless-assembly.json`
 

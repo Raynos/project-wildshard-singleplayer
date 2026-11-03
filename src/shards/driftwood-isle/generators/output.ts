@@ -9,10 +9,8 @@ import { driftwoodPageFileOutput } from './productPageFiles';
 import { driftwoodCatalogueFeatures } from './catalogueEconomy';
 import { driftwoodWorldStages } from './worldAssembly';
 import { driftwoodWorldUpdates } from './worldUpdates';
-import { DRIFTWOOD_NATIVE_QUEST } from './nativeQuest';
 import { GULL_DRAW } from './gullDraw';
 import { FISH_DRAW } from './fishDraw';
-import { DRIFTWOOD_SPOTS as nativeQuestSpots } from './spots';
 import pageComposition from '../data/questPageComposition.json' with { type: 'json' };
 import { driftwoodQuestContinuation } from './lootBag';
 import { driftwoodQuestWorld } from './questWorld';
@@ -25,12 +23,9 @@ import { CRAB_CLIPS as crabClips } from './crabClips';
 import { SAILOR_CLIPS as sailorClips, CAPTAIN_CLIPS as captainClips } from './humanoidClips';
 import creatureLookRows from '../data/creatureLookRows.json' with { type: 'json' };
 import { CREATURE_INSTALL } from './creatureLook';
-import nativePopulationPolicy from '../data/nativePopulationPolicy.json' with { type: 'json' };
 import { driftwoodJsonBlob as nameBlob } from './namedSchemas';
-import { driftwoodNativeRows } from './nativeBake';
-import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsSources, driftwoodPhysicsOwnedSources, driftwoodProofLateRoots } from './physics';
+import { driftwoodPhysicsFloor, driftwoodPhysicsSources, driftwoodPhysicsOwnedSources, driftwoodProofLateRoots } from './physics';
 import { WAKE_ENCOUNTER } from './wakeEncounter';
-import { NATIVE_QUEST_PROPS } from './nativeQuestProps';
 import { EXPLORER_CATALOGUE } from './explorerCatalogue';
 import authoredSpots from '../data/spotsRows.json' with { type: 'json' };
 import { CHAPTER_DIRECTOR } from './chapterDirector';
@@ -64,11 +59,7 @@ import { driftwoodSceneBankOutput, driftwoodSceneBanksCached, type DriftwoodScen
 import cascadeScene from '../data/cascadeScene.json' with { type: 'json' };
 import { driftwoodHeldArms } from './heldArms';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
-import questKillSteps from '../data/questKillSteps.json' with { type: 'json' };
 import questHints from '../data/questHints.json' with { type: 'json' };
-import { ENTRY_WALK } from './entryWalk';
-import headlessSwords from '../data/nativeSwords.json' with { type: 'json' };
-import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import fixedInventory from '../data/fixedGeometry.json' with { type: 'json' };
 import strings from '../data/strings.json' with { type: 'json' };
 import directorData from '../data/director.json' with { type: 'json' };
@@ -103,7 +94,6 @@ import { driftwoodGroundDeclaration } from './groundDeclaration';
 import { driftwoodNavigation } from './navigation';
 import { driftwoodBootProgram } from './bootProgram';
 
-const nativePhysics = driftwoodPhysics();
 
 const placed = enemyPlacements();
 const custom=emitDefinedSections([]);
@@ -141,7 +131,6 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
   nameBlob('scenes/cascade.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cascadeScene))),
   nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseSectionValue(FixedGeometryGroupsSchema, fixedInventory.groups)))),
   nameGuestBlob('quests/interaction-source.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ constants: { interact: DRIFTWOOD_INTERACT, interactSpots: authoredSpots.rows } })), { jsonSchema: interactionWireSchema }),
-  nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...headlessAssembly, constants: { nativeQuest: DRIFTWOOD_NATIVE_QUEST, nativeQuestSpots, mixedPopulation: { ...mixedPopulation, attackTurnCap: nativePopulationPolicy.attackTurnCap, practice: { ...mixedPopulation.practice, at: placed.practice, ...DRIFTWOOD_SPECIES_PROGRAMS.spawns.find(row => row.id === 'spawn.driftwood.practice')?.respawn }, poses: [{ kind: 'crab', clips: [crabClips] }, { kind: 'sailor', clips: [sailorClips], lift: [1.5, 1.5, -2.3, 6] }, { kind: 'captain', clips: [captainClips] }, { kind: 'monkey', clips: monkeyClips }] }, questProps: NATIVE_QUEST_PROPS, physics: driftwoodNativeRows(nativePhysics).physics, questKillSteps, entries: ENTRY_WALK, swords: headlessSwords } }))),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
   nameBlob('quests/wake-boss.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WAKE_ENCOUNTER))),
   nameBlob('look/gull-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(GULL_DRAW))),

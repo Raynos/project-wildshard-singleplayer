@@ -67,26 +67,8 @@ export function readDriftwoodNativeOracle(): Promise<ReturnType<typeof driftwood
 /** Direct native calls retain every Driftwood gameplay recorder and continuation. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation) => {
     const { product, assets } = preparation, shard = product.shardfile;
-    const { constants } = await product.json<{
-        constants: Pick<ReturnType<typeof driftwoodNativeRows>, 'physics'> & {
-            nativeQuest: NativeQuestCompositionInput['rows'] & {
-                reward: {
-                    director: string;
-                    channels: string;
-                };
-                acquisition: {
-                    population: string;
-                };
-            };
-            nativeQuestSpots: unknown;
-            mixedPopulation: unknown;
-            questProps: unknown;
-            questKillSteps: unknown;
-            swords: unknown;
-            entries: Parameters<typeof proveTerrainEntries>[3];
-        };
-    }>('sim/headless-assembly.json');
     const lendReturns = await prepareReturns(preparation);
+    const constants = await readDriftwoodNativeOracle();
     const dayStyle = product.section('look/toon').sky.day;
     const nativeSea = structuredClone(need(product.shardfile.water.find(row => row.id === "sea" && row.kind === "sea"), "Driftwood requires its admitted sea"));
     const interaction = await product.json<{ constants: { interact: NativeQuestCompositionInput["table"]; interactSpots: NativeQuestCompositionInput["spots"]["rows"] } }>("quests/interaction-source.json");

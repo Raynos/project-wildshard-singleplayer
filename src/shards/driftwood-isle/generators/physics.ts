@@ -66,7 +66,7 @@ export async function driftwoodPhysicsOwnedSources(ctx: Pick<ProjectGenerationCo
 /** Only native proof consumers borrow this bank. Required and shared readers
  * still win through the common control-file selector. All costs stay declared. */
 export function driftwoodProofLateRoots(files: readonly { readonly name?: string; readonly hash: string }[]): { hash: string }[] {
-  const names = ['sim/headless-assembly.json', floorFile, ...driftwoodPhysicsSources().map(row => row.name)];
+  const names = [floorFile, ...driftwoodPhysicsSources().map(row => row.name)];
   return [...new Set(names.map(name => {
     const file = files.find(row => row.name === name);
     if (file === undefined) throw new Error(`Missing Driftwood proof file: ${name}`);

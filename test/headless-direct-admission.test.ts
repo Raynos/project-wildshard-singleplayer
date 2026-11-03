@@ -12,8 +12,8 @@ import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json
 test.each([
   { prepare: prepareHeadlessRuntime, expectedReads: ['assembly'] },
   { prepare: prepareNalati, expectedReads: ['assembly'] },
-  { prepare: preparePine, expectedReads: ['assembly'] },
-  { prepare: prepareDriftwood, expectedReads: ['assembly'] },
+  { prepare: preparePine, expectedReads: [] },
+  { prepare: prepareDriftwood, expectedReads: [] },
 ])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async ({ prepare, expectedReads }) => {
   const shard = emptyShardfile({ slug: 'native-proof', name: 'Native proof', author: 'Fixture', revision: 1, seed: 7 });
   const reads: string[] = [];
