@@ -5,7 +5,7 @@ import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readPineProject } from './fixtures/pine-project';
-import { SECTIONS } from '../src/shards/pine-hollow/generators/sections';
+import { RangedPageSchema } from '../src/format/rangedPage';
 
 // The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
 // emitted, with the shapes the readers convert (skin pickups, wildlife voices, mount packs).
@@ -15,11 +15,6 @@ const pine = await readPineProject();
 test('Pine client reads resolve against the emitted output', () => {
   const loaded = pine, custom = loaded.output.custom;
   if (custom === undefined) throw new Error('Pine custom sections absent');
-  const value = <K extends keyof typeof SECTIONS>(name: K): v.InferOutput<(typeof SECTIONS)[K]> => {
-    const row = custom.sections.find(entry => entry.name === name), bytes = row === undefined ? undefined : custom.files.get(row.path);
-    if (bytes === undefined) throw new Error(`Pine output has no ${name}`);
-    return v.parse(SECTIONS[name], JSON.parse(new TextDecoder().decode(bytes)));
-  };
   const rows = loaded.shard.items.pickups ?? {};
   expect(Object.keys(rows).sort()).toEqual(['blackpaw', 'ghost-stag', 'hollow-ash', 'imperial', 'ironhide', 'scarback-furnace', 'warden']);
   expect(loaded.shard.quests.achievements?.length).toBeGreaterThan(0);
@@ -39,17 +34,22 @@ test('Pine client reads resolve against the emitted output', () => {
   for (const voice of voices) expect(shots.includes(voice), voice).toBe(true);
   expect(custom.sections.some(row => row.name === 'custom/ambientLife')).toBe(false);
   expect(shots.length).toBe(new Set(shots).size);
-  for (const geometry of value('custom/trophyMounts').rows.geometries) expect(geometry.own).toBeNull();
+  const rangedFile = loaded.output.namedFiles?.find(row => row.name === 'client/ranged-page.json');
+  const rangedBytes = rangedFile === undefined ? undefined : loaded.assets.get(rangedFile.hash);
+  if (rangedBytes === undefined) throw new Error('Pine defining ranged page absent');
+  const ranged = v.parse(RangedPageSchema, JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(rangedBytes)));
+  for (const geometry of ranged.collection.pack.rows.geometries) expect(geometry.own).toBeNull();
   const names = new Set(loaded.output.namedFiles?.map(row => row.name));
   const coverFile = loaded.output.namedFiles?.find(row => row.name === 'look/cover-appearance.json');
   const coverBytes = coverFile === undefined ? undefined : loaded.assets.get(coverFile.hash);
   if (coverBytes === undefined) throw new Error('Pine output has no cover appearance');
   const appearance = parseCoverAppearance(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(coverBytes)));
   expect(Object.keys(appearance.textures).sort()).toEqual(['endGrain', 'ferns', 'glow', 'litter', 'moss', 'reeds', 'shrubs', 'stones']);
-  expect(Object.keys(value('custom/paintedTextures').textures).sort()).toEqual(['chalk', 'coatArm', 'coatMap', 'coatNormal']);
   const held = v.parse(HeldEquipmentSchema, outputPlatformPayloads(loaded.output.platform,['held/equipment']).get('held/equipment'));
-  const wanted = [held.firearm.pool.url, held.launcher.pool.url, value('custom/trophyMounts').url,
-    ...Object.values(value('custom/paintedTextures').textures).map(row => row.url),
+  const textures = {coatArm:held.coatTextures.armMap,coatMap:held.coatTextures.map,coatNormal:held.coatTextures.normalMap,chalk:ranged.collection.texture};
+  expect(Object.keys(textures).sort()).toEqual(['chalk', 'coatArm', 'coatMap', 'coatNormal']);
+  const wanted = [held.firearm.pool.url, held.launcher.pool.url, ranged.collection.pack.url,
+    ...Object.values(textures).map(row => row.url),
     ...Object.values(appearance.textures).map(row => row.url),
     'world/ambience.json', 'actors/elites.json', ...['night', 'director'].map(stem => `behaviour/${stem}.wasm`),
     ...['ironhide', 'ghost-stag', 'blackpaw', 'imperial-bull'].map(stem => `behaviour/elites/${stem}.wasm`)];

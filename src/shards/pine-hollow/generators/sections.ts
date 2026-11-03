@@ -3,7 +3,6 @@ import { RoamingBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { BuildingLifeLookSchema } from '@wildshard/format/buildings';
 import { QuestStepRowsSchema, QuestSpawnPageSchema, QuestLeadPageSchema } from '@wildshard/format/questSteps';
 import { NpcDialogueRowSchema } from '@wildshard/format/npcs';
-import { CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
 import * as v from 'valibot';
 import { RoamingEncounterSchema, BossEncounterPresentationSchema } from '@wildshard/format/bossEncounter';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
@@ -12,9 +11,6 @@ const text: v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MaxLengthAct
 const number: v.NumberSchema<undefined> = v.number();
 const finite: v.SchemaWithPipe<readonly [typeof number, v.MinValueAction<number, number, undefined>, v.MaxValueAction<number, number, undefined>]> = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));
 const point: { x: typeof finite; y: typeof finite; z: typeof finite; } = { x:finite, y:finite, z:finite };
-const strings: v.SchemaWithPipe<readonly [v.ArraySchema<typeof text, undefined>, v.MaxLengthAction<string[], 8192, undefined>]> = v.pipe(v.array(text), v.maxLength(8192));
-const pool: v.StrictObjectSchema<{ readonly url: typeof text; readonly parts: typeof strings; }, undefined> = v.strictObject({ url: text, parts: strings });
-const texture: v.StrictObjectSchema<{ readonly url: typeof text; readonly srgb: v.BooleanSchema<undefined>; readonly repeat: v.BooleanSchema<undefined>; }, undefined> = v.strictObject({ url:text, srgb:v.boolean(), repeat:v.boolean() });
 const triple: v.TupleSchema<[typeof number, typeof number, typeof number], undefined> = v.tuple([number, number, number]);
 const pair: v.TupleSchema<[typeof number, typeof number], undefined> = v.tuple([number, number]);
 /** Cabin spatial facts are checked before section emission. */
@@ -174,7 +170,6 @@ export const CabinRowsSchema: v.StrictObjectSchema<{ readonly bin: v.StringSchem
 
 
 export const CabinSeedsSchema: v.ArraySchema<v.StrictObjectSchema<{ readonly ordinal: v.SchemaWithPipe<readonly [typeof number, v.IntegerAction<number, undefined>, v.MinValueAction<number, 0, undefined>]>; readonly width: v.LiteralSchema<4, undefined>; readonly values: v.ArraySchema<typeof cabinNumber, undefined>; }, undefined>, undefined> = v.array(v.strictObject({ ordinal: v.pipe(v.number(), v.integer(), v.minValue(0)), width: v.literal(4), values: v.array(finite) }));
-export const RuntimeGraphsSchema: v.SchemaWithPipe<readonly [v.ArraySchema<v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MaxLengthAction<string, 128, undefined>]>, undefined>, v.MaxLengthAction<string[], 128, undefined>]> = v.pipe(v.array(v.pipe(v.string(), v.maxLength(128))), v.maxLength(128));
 
 
 /** Checked against the build's emitted JSON before publication; client reads never import data/. */
@@ -201,16 +196,9 @@ export function parseFloorRows(input: unknown): v.InferOutput<typeof FloorRowsSc
 }
 
 
-export const SECTIONS: { readonly 'custom/nativeView': typeof NativeViewSchema; readonly 'custom/cabinAppearance': typeof CabinAppearanceSchema; readonly 'custom/questRuntime': typeof PineQuestRowsSchema; readonly 'custom/thrallLook': typeof ThrallLookSchema; readonly 'custom/runtimeGraphs': typeof RuntimeGraphsSchema; readonly 'custom/cabinAmbience': typeof CabinAmbienceSchema; readonly 'custom/paintedTextures': v.StrictObjectSchema<{ readonly textures: v.StrictObjectSchema<{ readonly coatArm: typeof texture; readonly chalk: typeof texture; readonly coatMap: typeof texture; readonly coatNormal: typeof texture; }, undefined>; readonly chalk: typeof CollectionChalkSchema; }, undefined>; readonly 'custom/trophyMounts': typeof CollectionMountPackSchema; readonly 'custom/kingKit': v.StrictObjectSchema<{ readonly pool: typeof pool; readonly lanterns: v.SchemaWithPipe<readonly [v.ArraySchema<typeof triple, undefined>, v.MaxLengthAction<[number, number, number][], 8, undefined>]>; }, undefined>; } = {
+export const SECTIONS: {readonly 'custom/nativeView':typeof NativeViewSchema;readonly 'custom/questRuntime':typeof PineQuestRowsSchema} = {
   'custom/nativeView': NativeViewSchema,
-  'custom/cabinAppearance': CabinAppearanceSchema,
   'custom/questRuntime': PineQuestRowsSchema,
-  'custom/thrallLook': ThrallLookSchema,
-  'custom/runtimeGraphs': RuntimeGraphsSchema,
-  'custom/cabinAmbience': CabinAmbienceSchema,
-  'custom/paintedTextures':v.strictObject({textures:v.strictObject({coatArm:texture,chalk:texture,coatMap:texture,coatNormal:texture}),chalk:CollectionChalkSchema}),
-  'custom/trophyMounts':CollectionMountPackSchema,
-  'custom/kingKit':v.strictObject({pool,lanterns:v.pipe(v.array(triple),v.maxLength(8))}),
 } as const;
 
 

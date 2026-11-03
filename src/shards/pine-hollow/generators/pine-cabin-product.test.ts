@@ -7,15 +7,26 @@ import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { pineScriptSources } from './scriptSources.mjs';
+import { forestPageRows, worldSceneRows } from '@wildshard/sdk/worldScenes';
+import { outputPlatformPayloads } from '@wildshard/sdk/outputProduct';
 
 // the program's sources (GR8 G37: the timber world is baked in the program, so no disk file holds it)
 const output = await staticOutput(await pineScriptSources('pine-cabin-product-test'), readImagePixels);
 
-test('admitted cabin JSON retains every authored material and life value and rejects malformed rows', () => {
-  const section = output.custom.sections.find(row => row.name === 'custom/cabinAppearance');
-  const bytes = section === undefined ? undefined : output.custom.files.get(section.path);
-  if (bytes === undefined) throw new Error('Missing named cabin JSON');
-  const rows = v.parse(CabinRowsSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+test('native cabin carriers retain every authored material and life value and reject malformed rows', () => {
+  expect(output.custom.sections.some(row => row.name === 'custom/cabinAppearance')).toBe(false);
+  const file = output.namedFiles.find(row => row.name === 'world/forest-page.json');
+  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing defining forest page');
+  const page = forestPageRows(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  const scenes = worldSceneRows(outputPlatformPayloads(output.platform,['world/scenes']).get('world/scenes'));
+  const look = (id:string):string => {
+    const row = scenes.materials.find(material => material.id === id);
+    if (row?.kind !== 'look') throw new Error(`Missing defining cabin material: ${id}`);
+    return row.look;
+  };
+  const rows = v.parse(CabinRowsSchema,{CABIN_LIFE:page.buildings.life,CABIN_LIGHT:page.buildings.light,
+    HEARTH_LOOKS:{smoke:look('cabin.smoke'),flame:look('cabin.flame'),ember:look('cabin.ember')}});
   expect(rows).toEqual({ CABIN_LIFE, CABIN_LIGHT, HEARTH_LOOKS });
   expect(() => v.parse(CabinRowsSchema, { ...rows, extra: true })).toThrow();
   expect(() => v.parse(CabinRowsSchema, { ...rows, CABIN_LIFE: { ...rows.CABIN_LIFE, fire: [0.7] } })).toThrow();

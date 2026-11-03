@@ -118,7 +118,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS7** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** audio/cards `2c5aa6386d` / `515ffcac96` have normal/strict6 and exact original payload/owner proofs. Every remaining logical name is in the 25-row source table: ten native-root qualification exits and fifteen complete-contract/model/binary/owner/collision exits. No byte rewrite, host score, weather union or CS10 deletion follows. See the [completion bar](#cs4--cs7-completion-bar). | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
 | **CS9** | **done (2026-11-02, sp-x1, exact-slice-or-explicit-exit bar):** eight defining-payload derivations reconstruct all old canonical bytes; 36 original cases pass across eight suites. The complete 69-field ledger accounts for eight qualified derivations and 61 explicit owner/contract exits; Pine’s scaffold is retired and the other three shells have explicit source/schema/witness exits. The exact Nalati source-stamp case is self-applied under G872, with raw refusal retained. No CS10 deletion or host credit follows. See the [completion proof](#cs9-exact-constant-derivations-and-completion-bar). | 2–3 days, Opus (after WASM-HOST H9, H17) |
-| **CS10** | **open (2026-11-03, sp-x1/sp-x9):** the fourteen names are split seven each; the historical read-only census finds 14 live `custom/*` sections and 461 named JSON files in six observed products, with nonzero ceilings and missing template outputs. The private emitter/reader, named-JSON validator and freeze/growth policy remain used; no guard deletion is justified. See the [tool/runtime census](#cs10-live-tool-and-runtime-users). | 1 day, Codex |
+| **CS10** | **open toward deleting the live path (2026-11-03, sp-x1/sp-x9):** ten redundant custom copies are retired with full CURRENT payload/native/pack proof and 29 original cases passing. Four live envelopes remain explicit KEEP exits: DW collections/fixedLayouts and Pine nativeView/questRuntime. The private reader/emitter, named-JSON validator, nonzero ceilings and growth/freeze policies remain used; no guard deletion is justified. See the [combined retirement proof](#cs10-seven-case-ownership-and-combined-retirement-proof). | 1 day, Codex |
 
 ### Recorded completed bars: CS1 / CS4 / CS7
 
@@ -2268,7 +2268,7 @@ changed streaming remain open. CS3 remains open; Driftwood has priority.
 
 ## CS10: Pine seven-case decisions
 
-**2026-11-03, sp-x9; agreed disjoint split with sp-x1.** X1 owns DW's
+**Done, 2026-11-03, sp-x9; agreed disjoint split with sp-x1.** X1 owns DW's
 five sections and Pine runtimeGraphs/cabinAmbience. This half owns the
 seven Pine names below. These are per-case decisions under Jake's standing
 G872 rule, self-applied without waiting for a coordinator pick. The global
@@ -2276,44 +2276,52 @@ CS10 deletion bar and all live named-JSON validators/policies stay unchanged.
 
 | Pine section | Observed body | Decision and complete defining carrier / remaining exit |
 |---|---:|---|
-| `custom/cabinAppearance` | 594 B | **In flight: retire redundant emitted copy.** Complete native `world/forest-page.json` supplies buildings.life/light; admitted `world/scenes` supplies all three exact cabin smoke/flame/ember material bindings. The whole old canonical object reconstructs; retain original life/material negative assertions against these carriers. |
-| `custom/kingKit` | 311 B | **In flight: retire redundant emitted copy.** Complete native `combat/roaming.json` supplies projection.socketRig.pool and the hazards-ordered attachment positions. Full pool parts, every floating-point coordinate and original <=3 hazard capacity remain; the actual baked kit/model still ships. |
-| `custom/paintedTextures` | 718 B | **In flight: retire redundant emitted copy.** Existing `held/equipment` supplies all three coat textures; complete native `client/ranged-page.json` supplies collection chalk/texture. Reconstruct the entire textures/chalk object, including every URL, colour-space and repeat flag; preserve original named-asset checks. |
-| `custom/thrallLook` | 8,900 B | **In flight: retire redundant emitted copy.** Existing `look/hull-book` elk row supplies the complete postPose, thrall tint and traits; remove only the explicitly added derived antlers=1 field when reconstructing the old object. Every numeric channel/input/output/restore/scalar row and value remains exact. This test/proof projection installs no runtime adapter or new schema. |
-| `custom/trophyMounts` | 970 B | **In flight: retire redundant emitted copy.** The complete `client/ranged-page.json` collection.pack is the original CollectionMountPackSchema value. Preserve all geometry/index ownership, bytes, SHA, slots and original resource-presence assertions; only the redundant custom document/schema retire. |
+| `custom/cabinAppearance` | 594 B | **Done: redundant emitted copy retired.** Complete native `world/forest-page.json` supplies buildings.life/light; admitted `world/scenes` supplies all three exact cabin smoke/flame/ember material bindings. The whole old canonical object reconstructs; retain original life/material negative assertions against these carriers. |
+| `custom/kingKit` | 311 B | **Done: redundant emitted copy retired.** Complete native `combat/roaming.json` supplies projection.socketRig.pool and the hazards-ordered attachment positions. Full pool parts, every floating-point coordinate and original <=3 hazard capacity remain; the actual baked kit/model still ships. |
+| `custom/paintedTextures` | 718 B | **Done: redundant emitted copy retired.** Existing `held/equipment` supplies all three coat textures; complete native `client/ranged-page.json` supplies collection chalk/texture. Reconstruct the entire textures/chalk object, including every URL, colour-space and repeat flag; preserve original named-asset checks. |
+| `custom/thrallLook` | 8,900 B | **Done: redundant emitted copy retired.** Existing `look/hull-book` elk row supplies the complete postPose, thrall tint and traits; remove only the explicitly added derived antlers=1 field when reconstructing the old object. Every numeric channel/input/output/restore/scalar row and value remains exact. This test/proof projection installs no runtime adapter or new schema. |
+| `custom/trophyMounts` | 970 B | **Done: redundant emitted copy retired.** The complete `client/ranged-page.json` collection.pack is the original CollectionMountPackSchema value. Preserve all geometry/index ownership, bytes, SHA, slots and original resource-presence assertions; only the redundant custom document/schema retire. |
 | `custom/nativeView` | 8,648 B | **Explicit exit / KEEP.** `test/fixtures/pine-headless.ts` still reads BOSS_ENCOUNTER.profile, and the original runtime-mirror test checks the complete NativeViewSchema envelope. Combat's encounter child alone does not replace all ribs, presentation/cues, clearing/cave, fog/look, spray and prop-kind/box fields. A complete admitted derivation plus unchanged native-witness/input proof is still required; a renamed private look/native-view wrapper is not a platform migration. |
 | `custom/questRuntime` | 29,289 B | **Explicit exit / KEEP.** The real client-plan quest.spawns source, forest-story content and native fixture remain live. The local whole envelope includes lead.program, events, deaths, pageDeaths and content with unresolved complete guest/AS ownership. Existing native-story/page children do not cover it. Keep all content/source/save/phase/reference/native assertions until a complete format and the actual custom-port migration are proved. |
 
-Read-only reconstruction ran all six full existing native carrier parsers
-and the original canonical encoder over the hash-verified observed product.
-All five complete bodies / **11,493 B** match their original SHA256 and byte
-length. Evidence: `tmp/sp-x9-cs10/observed-projections.json`; the index is
-`64317e2e…146daa7`. This is observed-body readiness, **not** fresh ordinary
-CURRENT admission or a normal BEFORE/AFTER output proof. An initial probe
-refused its wrong local import path before parsing; the corrected bounded
-probe completed in0.255s. No product generation or native worker ran.
+All five complete bodies / **11,493 B** reconstruct exactly from the six
+full native carrier parsers. Together with X1's runtimeGraphs and
+cabinAmbience copies, this commit retires seven Pine bodies / **13,442 B**
+and their **8,981 B** schemas. Existing named ambience, the full graph
+implementation, held equipment, ranged page, combat and hull-book remain.
+Author input dictionaries are not mistaken for runtime custom readers;
+the unreachable heldToolPlayback fallback is preserved for narrow scope.
 
-The six-path combined Pine candidate preserves X1's exact two removals and
-these five only. Its source/test patch is
-`tmp/sp-x9-cs10/pine-seven.patch`, SHA256
-`1e0b70c63ffa48f67e66ecf549400dfbc65ed2ca86337c44ffcd121a07c09e62`;
-X1 independently verified the patch and all six after hashes. The original
-ambience/enemy named-payload assertions remain X1's separate test patch.
-The unreachable heldToolPlayback fallback, full forest-page/graph producers,
-actual named ambience parser, both live custom envelopes and global CS10
-validators/ceilings are preserved. Authoring input dictionaries are not
-misreported as runtime custom-section readers.
+The fresh ordinary CURRENT DW/Pine BEFORE was sealed once. The one normal
+AFTER publication and strict admission pass, and the sole corpus comparator
+exits **0**: all 1,393 remaining paths / 234,342,145 B, complete native
+assemblies, file/schema metadata and every old/new ordered pack verify.
+No map stamp or other exception is needed. All twelve original/native
+suites pass **29 cases / 35.50 s**; root types and touched typed lint pass.
+See the combined receipt below for the ten-copy scope and exact pack
+deduplication; this is not a cold-author or frame-time gain claim.
 
-**Next proof, still unstarted:** seal a fresh ordinary current Pine BEFORE,
-then activate only the agreed bounded source/test tuple after X2's frozen
-DW proof/source handback. Regenerate the two Pine schema/type tables through
-the maintained generator. Run one normal Pine AFTER with independent strict
-admission, every unrelated body/descriptor and ordered-pack reconstruction,
-all seven removed-document reconstructions and the original native/product
-suites. No speculative old-prefix repin, guard deletion, new platform host,
-cap change, renderer change or source-stamp exception is assumed. The
-candidate remains entirely off-tree; OP4's actual captures remain queued.
+The generator-side cabin diagnostic uses the existing complete SDK
+forestPageRows/worldSceneRows facades, keeping every original equality
+and malformed-row refusal. Its first forbidden-format import lint is
+retained; no new API, schema shim or moved map input fixes it. The initial
+observed-body probe and off-tree patch were readiness only; the qualified
+current corpus now supplies the retirement evidence. Artifacts remain in
+tmp/sp-x9-cs10 and tmp/sp-x1-cs10.
 
+**G798 declaration correction:** the earlier manual DW table command had
+failed module resolution, leaving old declarations in the precommit
+fifteen-path fence. The maintained hook correctly regenerated those two
+DW declaration tables in f534af4da8, and post-generation root types pass.
+Authored source, native assemblies and shipped payloads do not change;
+the two generated DW hashes intentionally advance after the closed proof.
+Pine's maintained table generation succeeded and its two hashes remain
+the qualified values. No corpus, native visit or publication is repeated.
+
+Pine nativeView and questRuntime retain their concrete KEEP exits above.
+The shared original named-payload test reaches the exact qualified final
+bytes only in this second, ordered commit; the first DW commit keeps the
+then-live Pine assertion intact. OP4's browser captures remain queued.
 
 ## CS3: Driftwood twelve-row pages (2026-11-03)
 
@@ -2506,8 +2514,8 @@ scene family or tier-copy retirement is credited by this loading closure.
 ## CS10: seven-case ownership and combined retirement proof
 
 **2026-11-03, sp-x1; DW first, Pine second.** The three DW copies below
-retire in this source commit. The two Pine removals are qualified by the
-same frozen combined proof and await the immediately ordered Pine landing.
+landed in f534af4da8. The two Pine removals now land with the five Pine
+copies above in the second ordered source commit, using the same full proof.
 This table supersedes only the corresponding historical census decisions.
 
 | Custom section | Exact complete carrier / disposition |
@@ -2515,8 +2523,8 @@ This table supersedes only the corresponding historical census decisions.
 | DW `cumulusPuffs` (9,013 B) | **Done:** full native `parseToonLook(look/toon).sky.clouds.puffs`; exact original cloud rows and original nonempty assertion remain. |
 | DW `gullFlock` (1,607 B) | **Done:** full native `parsePageLife(actors/page-life.json)` gull flock row, with original assembly ambient flock unchanged. Packed rows, draw ownership and lifetime checks remain. |
 | DW `enemyPlacements` (8,572 B) | **Done:** existing complete `sim/enemy-placement.json`; keep its native schema, seed/sampling and keeper controls. The original named-body test now compares complete authored canonical bytes and asserts only the duplicate is absent. |
-| Pine `cabinAmbience` (1,564 B) | **Qualified, ordered Pine landing pending:** full ForestPage buildings floors/firePits and existing named `world/ambience.json` reconstruct the complete old canonical body. Audio order/caps and native parser remain. |
-| Pine `runtimeGraphs` (385 B) | **Qualified, ordered Pine landing pending:** full ForestPage graphs reconstruct all 20 exact IDs; every hash-bound graph file and native look owner remains. No look math or cache changes. |
+| Pine `cabinAmbience` (1,564 B) | **Done:** full ForestPage buildings floors/firePits and existing named `world/ambience.json` reconstruct the complete old canonical body. Audio order/caps and native parser remain. |
+| Pine `runtimeGraphs` (385 B) | **Done:** full ForestPage graphs reconstruct all 20 exact IDs; every hash-bound graph file and native look owner remains. No look math or cache changes. |
 | DW `collections` (2,698 B) | **Explicit live-port exit / KEEP:** complete CollectionDisplaysSchema exists, but collectionDisplay and continuation dynamically read the synchronous custom port. A migration must preserve cold/entered/read-once catalogue, model and keepsake lifetimes together; a filename or asynchronous JSON substitution is insufficient. |
 | DW `fixedLayouts` (7,855 B) | **Explicit live identity/owner-port exit / KEEP:** complete G571 ResolvedIslandLibrarySchema is approved. islandBook's preflight resource/unique-slot checks, product/root identity cache, three post-await identity checks and resourceScope ownership remain live through islandLibrary and people/cards draws. Migrate that entire port before deleting it. |
 

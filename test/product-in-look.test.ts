@@ -10,10 +10,14 @@ import { output as driftwoodOutput } from '../src/shards/driftwood-isle/generato
 import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
+import * as v from 'valibot';
 import { defineNamedRows } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
 import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/sections';
+import { cabinAmbienceRows } from '../src/shards/pine-hollow/generators/ambience';
+import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sections';
+import { PINE_SOURCES } from './fixtures/pine-sources';
 
 type LookOutput = Pick<ProjectOutput, 'custom' | 'platform' | 'namedFiles' | 'assets'>;
 const outputs = new Map<string, LookOutput>([['driftwood-isle', driftwoodOutput], ['pine-hollow', pineOutput]]);
@@ -45,27 +49,20 @@ const productOf = (slug: string): ShardProduct => {
 };
 
 test.each([
-  ['pine-hollow', 'custom/cabinAmbience', 'world/ambience.json'],
-])('%s %s retains the original named payload exactly', (slug, section, name) => {
+  { slug: 'driftwood-isle', section: 'custom/enemyPlacements', name: 'sim/enemy-placement.json',
+    original: () => defineNamedRows(EnemyPlacementsSchema).parse(enemyPlacements()) },
+  { slug: 'pine-hollow', section: 'custom/cabinAmbience', name: 'world/ambience.json',
+    original: () => v.parse(CabinAmbienceSchema, cabinAmbienceRows(PINE_SOURCES)) },
+])('$slug $name retains the original defining payload exactly', ({ slug, section, name, original }) => {
   const output = outputOf(slug);
-  const entry = output.custom?.sections.find(row => row.name === section);
   const named = output.namedFiles?.find(row => row.name === name);
-  const sectionBytes = entry === undefined ? undefined : output.custom?.files.get(entry.path);
   const namedBytes = named === undefined ? undefined : output.assets?.get(named.hash);
-  if (sectionBytes === undefined || namedBytes === undefined) throw new Error('Missing emitted content');
-  expect(JSON.parse(new TextDecoder().decode(sectionBytes))).toEqual(JSON.parse(new TextDecoder().decode(namedBytes)));
-}, 30_000);
-
-test('Driftwood named enemies retain the complete original defining payload', () => {
-  const output = outputOf('driftwood-isle');
-  const file = output.namedFiles?.find(row => row.name === 'sim/enemy-placement.json');
-  const bytes = file === undefined ? undefined : output.assets?.get(file.hash);
-  if (bytes === undefined) throw new Error('Missing emitted content');
-  const decoded: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-  const expected = defineNamedRows(EnemyPlacementsSchema).parse(enemyPlacements());
+  if (namedBytes === undefined) throw new Error('Missing emitted content');
+  const decoded: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(namedBytes));
+  const expected = original();
   expect(decoded).toEqual(expected);
-  expect(bytes).toEqual(new TextEncoder().encode(encodeCanonicalJson(expected)));
-  expect(output.custom?.sections.some(row => row.name === 'custom/enemyPlacements')).toBe(false);
+  expect(namedBytes).toEqual(new TextEncoder().encode(encodeCanonicalJson(expected)));
+  expect(output.custom?.sections.some(row => row.name === section)).toBe(false);
 }, 30_000);
 
 describe('toLevelSpec binds the product', () => {
