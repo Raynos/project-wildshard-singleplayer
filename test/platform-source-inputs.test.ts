@@ -4,6 +4,7 @@ import {mkdirSync,mkdtempSync,rmSync,unlinkSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine fixture files to their owned root.
 import {dirname,join} from 'node:path';
 import {sourceProgressInventory} from '../scripts/shard-platform.mjs';
+import {productManifestPath} from '../scripts/authored-manifest.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
 it('refuses an absent discovery root instead of charging its shared user',()=>{
@@ -15,7 +16,9 @@ it('refuses an absent discovery root instead of charging its shared user',()=>{
   platformOutput(root,'nalati-grasslands',{'runtime/index.ts':source});
   platformOutput(root,'pine-hollow');
   put('src/shards/pine-hollow/manifest.json','{}');
-  const path='src/shards/pine-hollow/discovery.generated.ts';
+  // Pine retains its reviewed source discovery; ungrandfathered composed products use the out bank below.
+  put('lint/generated-import-debt.json',JSON.stringify({schema:'no-generated-import/1',sources:['src/shards/pine-hollow/discovery.generated.ts']}));
+  const path=productManifestPath(root,{slug:'pine-hollow',folder:'pine-hollow',output:null});
   const discovery="import {shared} from '../../game/shared'; export const value=shared();";
   put(path,discovery);
   expect(sourceProgressInventory(root)['nalati-grasslands']?.conversion.gameSystemAttribution.lines).toBe(0);
@@ -32,10 +35,11 @@ it('requires every composed product discovery, not only the representative',()=>
  try{
   put('src/shards/open-plots/manifest.json','{}');
   put('src/shards/open-plots/outputs.json',JSON.stringify({outputs:[{slug:'open-one'},{slug:'open-two'}]}));
-  const first='src/shards/open-plots/discovery.open-one.generated.ts';
+  const first=productManifestPath(root,{slug:'open-one',folder:'open-plots',output:{slug:'open-one'}});
   expect(()=>sourceProgressInventory(root)).toThrow(first);
   put(first,'export const value=1;');
-  expect(()=>sourceProgressInventory(root)).toThrow('src/shards/open-plots/discovery.open-two.generated.ts');
+  const second=productManifestPath(root,{slug:'open-two',folder:'open-plots',output:{slug:'open-two'}});
+  expect(()=>sourceProgressInventory(root)).toThrow(second);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 

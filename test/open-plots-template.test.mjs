@@ -12,9 +12,16 @@ const read=file=>JSON.parse(readFileSync(resolve(root,file),'utf8'));
 const write=(file,value)=>{const path=resolve(root,file);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,`${JSON.stringify(value,null,2)}\n`);};
 beforeEach(()=>{
  mkdirSync('tmp',{recursive:true});root=mkdtempSync(resolve('tmp/open-plot-template-test-'));
- const reference='art/grid/round-62-open-plot-palettes/07-showcase-template.jpg';
- for(const file of ['.gitignore','src/shards/open-plots/outputs.json','src/game/grid/singleplayer.json','src/shards/open-plots/data/map.json','src/shards/open-plots/data/source.json','src/shards/open-plots/data/layouts/night-market.json','scripts/source-generation-outputs.json','scripts/test-products.json','lint/tile-bake-debt.json','lint/custom-sections.json',reference,...DOME_NAMES.map(dome=>`art/grid/round-63-night-market-domes/${dome}/cameras.json`)]){
+ const reference='art/test/template-reference.svg';
+ for(const file of ['.gitignore','src/shards/open-plots/outputs.json','src/game/grid/singleplayer.json','src/shards/open-plots/data/map.json','src/shards/open-plots/data/source.json','src/shards/open-plots/data/layouts/night-market.json','scripts/source-generation-outputs.json','scripts/test-products.json','lint/tile-bake-debt.json','lint/custom-sections.json']){
   const target=resolve(root,file);mkdirSync(dirname(target),{recursive:true});copyFileSync(file,target);
+ }
+ // CI intentionally excludes repository art. Own a real reference image and use the maintained exact camera fixtures.
+ const image=resolve(root,reference);mkdirSync(dirname(image),{recursive:true});
+ writeFileSync(image,'<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><path fill="#987" d="M0 0h2v2H0z"/></svg>');
+ for(const dome of DOME_NAMES){
+  const target=resolve(root,`art/grid/round-63-night-market-domes/${dome}/cameras.json`);
+  mkdirSync(dirname(target),{recursive:true});copyFileSync(`test/fixtures/night-market-domes/${dome}.json`,target);
  }
  const grid=read('src/game/grid/singleplayer.json');for(const row of grid.grid.cells)if(row.slug==='open-plot-showcase-template')row.slug='open-plot-test-template';
  for(const row of grid.placements)if(row.slug==='open-plot-showcase-template')row.slug='open-plot-test-template';write('src/game/grid/singleplayer.json',grid);
@@ -29,7 +36,11 @@ test('creates deterministic building data and all8x9 admitted cameras without ac
  expect([...a.paths]).toEqual([...b.paths]);expect(a.activated).toBe(false);expect(a.paths.has('src/shards/open-plots/outputs.json')).toBe(false);
  expect(JSON.parse(a.paths.get(a.layout)).landmark).toBeNull();expect(JSON.parse(a.paths.get(a.layout)).posters).toBeNull();
  const cameras=[...a.paths].filter(([name])=>name.endsWith('/cameras.json'));expect(cameras).toHaveLength(8);
- for(const [,text]of cameras){const row=parseDomeCameras(JSON.parse(text));expect(row.views).toHaveLength(9);expect(row.convention).toMatch(/^TEMPLATE/);}
+ for(const [path,text]of cameras){
+  const row=parseDomeCameras(JSON.parse(text)),dome=path.split('/').at(-2),source=read(`art/grid/round-63-night-market-domes/${dome}/cameras.json`);
+  expect(row.views).toHaveLength(9);expect(row.convention).toMatch(/^TEMPLATE/);
+  for(const key of ['views','anchor','type','pair','dome'])expect(row[key]).toEqual(source[key]);
+ }
  writeTemplate(root,a.paths,a.before);expect(readFileSync(resolve(root,'src/shards/open-plots/outputs.json'),'utf8')).toBe(old);
  expect([...plotTemplate(root,recipe).paths]).toEqual([...a.paths]);
 });
@@ -61,6 +72,7 @@ for(const [name,edit]of [
  ['missing palette',r=>({...r,palette:{}})],['unknown builder',r=>({...r,plot:'unknown'})],
  ['bad rows',r=>({...r,rows:Array.from({length:8},()=> 'Z0 Z0 Z0 Z0 Z0 Z0 Z0 Z0')})],
  ['another cell',r=>({...r,cell:[0,0]})],['reference escape',r=>({...r,reference:'art/../../package.json'})],
+ ['missing reference',r=>({...r,reference:'art/test/absent.svg'})],
 ])test(`refuses ${name} without writing any source`,()=>{
  expect(()=>plotTemplate(root,edit(recipe))).toThrow();expect(existsSync(resolve(root,'src/shards/open-plots/data/layouts/test-template.json'))).toBe(false);
 });
