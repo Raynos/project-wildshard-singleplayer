@@ -239,6 +239,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       if ('file' in declared && declared.member !== undefined) {
         if (bytes === undefined) throw new Error('Missing placement page bytes');
         const page = await placementPages.read(declared.file, bytes);
+        reads.validate();
         const member = page.rows[declared.member];
         if (member === undefined || member.tier !== declared.tier) throw new Error('Scene placement page member differs');
         row = member;
