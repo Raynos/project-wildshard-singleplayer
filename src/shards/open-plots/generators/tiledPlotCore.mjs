@@ -8,7 +8,7 @@
 // texture) and `Poster` (the poster picture, lit). The far proxy is the far-only nodes alone (the source's `farMode:
 // 'replace'`): each tile's stand-in, the landmark's far model in its texture's colours and the boards. Collision is
 // `collide_plot`: the floor, the kit's boxes, the kerb, the boards' posts and the landmark's far model.
-import { bakeLanternVertices, buildLayout, parseLayout, paving, Soup } from './kit.mjs';
+import { bakeLanternVertices, buildLayout, parseLayout, paving, Soup, waterStreaks } from './kit.mjs';
 import { prepareModelKit } from './kitGlb.mjs';
 
 
@@ -103,7 +103,7 @@ const json = (bytes) => JSON.parse(new TextDecoder('utf-8', { fatal: true }).dec
 
 /** Build a tiled idea's world: { parts, image textures } ready for the writer. GR9: every input arrives through
  *  `read(path)` (a repo-relative path: the build program's declared, cached inputs), so this module opens no file. */
-async function tiledPlot(read, tools, layoutName, plot, codec, litCoarse = false) {
+async function tiledPlot(read, tools, layoutName, plot, codec, litCoarse = false, streaks = false) {
   const layout = json(read(`src/shards/open-plots/data/layouts/${layoutName}.json`));
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
@@ -151,6 +151,8 @@ async function tiledPlot(read, tools, layoutName, plot, codec, litCoarse = false
     for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset }, lanterns);
   }
   plot.pools(parts, palette);
+  // OB2: a row's `pool: "streaks"` mirrors its low lanterns in the water nearby (kit.mjs waterStreaks, in the Pool's draw)
+  if (streaks) console.info(`open-plots: ${layoutName} water streaks: ${waterStreaks(parts.Pool, parts.Water.part('Water'), lanterns)}`);
   // the landmark: its near model as drawn, its far model in its texture's colours (far only, and the collider)
   const landmark = { positions: [], normals: [], colours: [], uvs: [] }, farLandmark = { positions: [], normals: [], colours: [] };
   let nearImage = null;
@@ -211,8 +213,8 @@ function standIns(parts, farLandmark, ring, litCoarse) {
 /** GR9: a tiled idea's world GLB bytes, from inputs read through `read(path)`; nothing is written. */
 export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
   const { Document, WebIO } = codec;
-  const litCoarse = idea.coarseLandmark === 'lit';
-  const { parts, landmark, farLandmark, nearImage, poster: posterBytes, ring } = await tiledPlot(read, tools, idea.layout, plot, codec, litCoarse);
+  const litCoarse = idea.coarseLandmark === 'lit', streaks = idea.pool === 'streaks';
+  const { parts, landmark, farLandmark, nearImage, poster: posterBytes, ring } = await tiledPlot(read, tools, idea.layout, plot, codec, litCoarse, streaks);
   const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('plot');
   const texture = async (name, pixels) => doc.createTexture(name).setImage(await tools.writeImagePixels(pixels)).setMimeType('image/png');
   const materials = {
@@ -258,7 +260,8 @@ export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
   node('draw_kit', parts.Kit.part('Kit'), materials.Kit);
   node('detail_water', parts.Water.part('Water'), materials.Water);
   node('draw_glow', parts.Glow.part('Glow'), materials.Glow);
-  node('detail_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false });
+  // a streaks row's pools carry uvs: the streak corners' (kit.mjs waterStreaks), 0 at every pool corner
+  node('detail_pool', parts.Pool.part('Pool'), materials.Pool, { normals: false, uv: streaks });
   node('detail_poster', parts.Poster.part('Poster'), materials.Poster, { uv: true });
   node('detail_landmark', landmark, materials.Landmark, { uv: true });
   // RM8.2: the kit's models, full detail only (L0), and the big ones' boxes standing in for them in the coarse (L1) tiles

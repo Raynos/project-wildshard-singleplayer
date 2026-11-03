@@ -253,7 +253,7 @@
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   },
   "open-plots/cypress": {
-   "about": "Lantern Bayou's landmark (open-plots build-out OB2, G978): the giant moss-draped cypress as a script, picked over Hunyuan3D 2.1 and TRELLIS.2 (art/lantern-bayou/round-1-landmark/board.jpg); 40 m, near ~15k and far 2.4k triangles on one swatch atlas, its 40 lantern ropes' hook points in build/hooks.json for the layout",
+   "about": "Lantern Bayou's landmark (open-plots build-out OB2, G978): the giant moss-draped cypress as a script, picked over Hunyuan3D 2.1 and TRELLIS.2 (art/lantern-bayou/round-1-landmark/board.jpg); 40 m, near ~15k and far 2.4k triangles on one swatch atlas, its 72 lantern ropes' hook points (40 until the OB2 crown round) in build/hooks.json for the layout",
    "script": "scripts/blender/open-plots/cypress.py",
    "args": ["$BUILD"],
    "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/landmarklib.py"],

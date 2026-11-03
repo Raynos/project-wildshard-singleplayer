@@ -308,6 +308,7 @@
       "layout": "lantern-bayou",
       "landmarkLight": "dusk",
       "kitGround": "planks",
+      "pool": "streaks",
       "lookKeys": [
         {
           "time": 0,

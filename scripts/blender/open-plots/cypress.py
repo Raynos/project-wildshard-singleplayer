@@ -34,7 +34,10 @@ SWATCHES = {
     'moss': ['#727e40', '#626e38', '#525e30', '#434d28'],
     'rope': ['#4a3c30', '#3e3228', '#332920', '#28201a'],
 }
-LANTERNS = 40
+LANTERNS = 72
+# the pads the ropes hang from: the outermost 40 (a second rope on most of them past the first 40); the inner pads sit
+# inside the crown's top, where a lantern would not show
+OUTER = 40
 
 
 def trunk(p, rng, k):
@@ -133,7 +136,7 @@ def crown(p, rng, k):
 def ropes(p, rng, pads, k):
     """The hero lanterns' ropes (G827: every lantern hangs on something): LANTERNS dark ropes, 1.2-3.4 m long, from the
     undersides of the outer pads' rims, spread round the crown; returns each rope's lower end, where a lantern's hook goes."""
-    outer = sorted(pads, key=lambda row: -math.hypot(row[0][0], row[0][1]))
+    outer = sorted(pads, key=lambda row: -math.hypot(row[0][0], row[0][1]))[:OUTER]
     hooks = []
     for n in range(LANTERNS):
         (x, y, z), r = outer[n % len(outer)]

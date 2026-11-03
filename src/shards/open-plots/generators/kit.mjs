@@ -149,6 +149,42 @@ export function pool(w, x, z, radius, colour, y = 0.08) {
   }
 }
 /**
+ * Lantern reflections on still water (OB2, Lantern Bayou): a streak in the Pool part under each low emitter within
+ * `reach` metres of water, at the water's level. It is a small quad at the emitter's foot whose uv carries its corner
+ * (x: 1 + along in [0, 1], y: side +-1; every other Pool corner keeps uv 0): the streak pool graph
+ * (data/poolStreaks.graph.json) stretches it toward the camera and shades it, in the Pool's own additive draw. The
+ * boardwalks cover what reaches under them. Returns the number of streaks.
+ */
+export function waterStreaks(pools, water, emitters, { reach = 5, low = 8, lift = 0.03 } = {}) {
+  const tris = [];
+  for (let i = 0; i + 8 < water.positions.length; i += 9) {
+    const p = water.positions, ys = [p[i + 1], p[i + 4], p[i + 7]];
+    if (ys.some(y => y !== ys[0])) continue; // a bank or skirt, not the surface
+    tris.push({ y: ys[0], a: [p[i], p[i + 2]], b: [p[i + 3], p[i + 5]], c: [p[i + 6], p[i + 8]] });
+  }
+  const segment = (x, z, [ax, az], [bx, bz]) => {
+    const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+    return Math.hypot(x - ax - t * dx, z - az - t * dz);
+  };
+  const inside = (x, z, { a, b, c }) => {
+    const s = (p, q) => (q[0] - p[0]) * (z - p[1]) - (q[1] - p[1]) * (x - p[0]), d1 = s(a, b), d2 = s(b, c), d3 = s(c, a);
+    return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+  };
+  const part = pools.part('Pool');
+  let count = 0;
+  for (const { at: [x, y, z], colour } of emitters) {
+    const near = tris.find(t => y - t.y < low && (inside(x, z, t) || Math.min(segment(x, z, t.a, t.b), segment(x, z, t.b, t.c), segment(x, z, t.c, t.a)) < reach));
+    if (near === undefined) continue;
+    const h = near.y + lift, corner = (along, side) => [x + side * 0.1, h, z + along * 0.1];
+    for (const [along, side] of [[0, -1], [1, -1], [1, 1], [0, -1], [1, 1], [0, 1]]) {
+      part.positions.push(...corner(along, side)); part.normals.push(0, 1, 0); part.colours.push(...colour); part.uvs.push(1 + along, side);
+    }
+    count++;
+  }
+  return count;
+}
+
+/**
  * Build the whole layout into `parts` ({ Kit, Glow, far, solid } soups): tile (column c, row r) has its centre at
  * x = -250 + 62.5 (c + 0.5), z = 250 - 62.5 (r + 0.5) (row 1 north). The plot supplies its tile builders,
  * sockets, far stand-ins, optional variants/seams and coarse-family policy; `kit` brings models and an emitter sink.
