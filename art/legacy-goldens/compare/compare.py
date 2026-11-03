@@ -33,7 +33,22 @@ KINDS = {'co6': 'CO6 camera', 'poi': 'Point of interest', 'grid': 'Coverage', 'a
 
 def cameras(): return json.load(open(SET))['cameras']
 def cam_id(c): return f'{c["n"]:02d}-{c["name"]}'
-def golden(slug, c): return os.path.join(GOLDENS, slug, '24', f'{cam_id(c)}.jpg')
+def golden(slug, c, against='legacy'):
+    base = os.path.join(ROOT, 'art', 'shardfile-goldens') if against == 'shardfile' else GOLDENS
+    return os.path.join(base, slug, '24', f'{cam_id(c)}.jpg')
+
+
+def golden_image(slug, c, against='legacy'):
+    image = Image.open(golden(slug, c, against)).convert('RGB')
+    # SHARDFILE reference labels are provenance, never part of the image score.
+    return image.crop((0, 22, image.width, image.height)) if against == 'shardfile' else image
+
+
+def selected_shards(args):
+    names = ORDER if not args.shards else args.shards.split(',')
+    if not names or len(set(names)) != len(names) or any(name not in ORDER for name in names):
+        raise ValueError('--shards requires unique camera-set shard names')
+    return names
 def frame(run, slug, c): return os.path.join(RUNS, run, slug, f'{cam_id(c)}.jpg')
 
 
@@ -107,19 +122,20 @@ def cmd_goldens(args):
 
 
 def cmd_frames(args):
-    for slug in ORDER:
+    for slug in selected_shards(args):
         cams = cameras()[slug]
         os.makedirs(os.path.join(RUNS, args.run, slug), exist_ok=True)
         for c in cams:
             open(frame(args.run, slug, c), 'wb').write(jpeg(Image.open(raw_png(args.raw, slug, c, 'shardfile')), 540, (75,), 1e9))
-        print(slug, ' '.join(f'{ssim(Image.open(golden(slug, c)), Image.open(frame(args.run, slug, c))):.2f}' for c in cams))
+        print(slug, ' '.join(f'{ssim(golden_image(slug, c, args.against), Image.open(frame(args.run, slug, c))):.2f}' for c in cams))
 
 
 def uri(data, kind='jpeg'): return f'data:image/{kind};base64,' + base64.b64encode(data).decode()
 
 
-def full(path, q):
+def full(path, q, strip=0):
     img = Image.open(path).convert('RGB')
+    if strip: img = img.crop((0, strip, img.width, img.height))
     if img.width != 540: img = img.resize((540, round(img.height * 540 / img.width)), Image.LANCZOS)
     buf = io.BytesIO(); img.save(buf, 'WEBP', quality=q, method=6)
     return uri(buf.getvalue(), 'webp')
@@ -129,41 +145,45 @@ def esc(s): return str(s).replace('&', '&amp;').replace('<', '&lt;').replace('>'
 
 
 def cmd_page(args):
-    verdicts = json.load(open(os.path.join(HERE, 'verdicts.json')))
+    # Legacy review calls and accepted differences are not permissions to
+    # change the known-good SHARDFILE look. A new target starts unreviewed.
+    verdicts = json.load(open(os.path.join(HERE, 'verdicts.json'))) if args.against == 'legacy' else {'pairs': {}, 'accepted': {}}
     sha = args.run.split('-')[-1]
     shards, great_all, total = [], 0, 0
-    for slug in ORDER:
+    for slug in selected_shards(args):
         pairs = []
         for c in cameras()[slug]:
-            g, f = golden(slug, c), frame(args.run, slug, c)
-            s = ssim(Image.open(g), Image.open(f))
+            g, f = golden(slug, c, args.against), frame(args.run, slug, c)
+            s = ssim(golden_image(slug, c, args.against), Image.open(f))
             v = verdicts['pairs'].get(f'{slug}/{cam_id(c)}', {})
-            great = v.get('verdict', 'great' if s >= 0.85 else 'needs') == 'great'
+            great = v.get('verdict', 'great' if args.against == 'legacy' and s >= 0.85 else 'needs') == 'great'
             pairs.append({'c': c, 'ssim': s, 'great': great, 'note': v.get('note', '' if great else 'Not reviewed yet'), 'row': v.get('row', ''),
-                          'b': full(g, args.q), 'a': full(f, args.q)})
+                          'b': full(g, args.q, 22 if args.against == 'shardfile' else 0), 'a': full(f, args.q)})
         g = sum(p['great'] for p in pairs); great_all += g; total += len(pairs)
         shards.append((slug, pairs, g))
-    html = render(shards, great_all, total, sha, args.captured, verdicts, verdicts.get('judged') != args.run)
+    html = render(shards, great_all, total, sha, args.captured, verdicts, verdicts.get('judged') != args.run, args.against)
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     open(args.out, 'w').write(html)
     print(f'{args.out}: {len(html) / 1e6:.2f} MB, {great_all}/{total} great')
 
 
-def pair_html(slug, p, sha):
+def pair_html(slug, p, sha, against='legacy'):
     c = p['c']
+    reference = 'SHARDFILE golden' if against == 'shardfile' else 'LEGACY golden'
     row = f'<span class="row">{esc(p["row"])}</span>' if p['row'] else ''
     note = f'<p class="note">{row}{esc(p["note"])}</p>' if p['note'] or row else ''
     return f'''<figure class="pair {'ok' if p['great'] else 'bad'}" id="{slug}-{esc(cam_id(c))}">
 <figcaption><span class="cam"><b>{c['n']}</b> {esc(c['name'])}</span><span class="ssim">SSIM {p['ssim']:.2f}</span></figcaption>
 <p class="poi"><span class="kind">{esc(KINDS.get(c.get('kind', ''), ''))}</span> {esc(c.get('poi', ''))}</p>
 <button class="frames" type="button" aria-expanded="false" aria-label="Show {esc(slug)} camera {c['n']} full size">
-<span class="f"><img src="{p['b']}" alt="LEGACY golden, {esc(slug)} camera {esc(cam_id(c))}"><span>LEGACY golden</span></span>
+<span class="f"><img src="{p['b']}" alt="{reference}, {esc(slug)} camera {esc(cam_id(c))}"><span>{reference}</span></span>
 <span class="f"><img src="{p['a']}" alt="SHARDFILE at {esc(sha)}, {esc(slug)} camera {esc(cam_id(c))}"><span>SHARDFILE @{esc(sha[:10])}</span></span>
 </button>
 {note}</figure>'''
 
 
-def render(shards, great, total, sha, captured, verdicts, stale):
+def render(shards, great, total, sha, captured, verdicts, stale, against='legacy'):
+    reference = 'SHARDFILE Golden' if against == 'shardfile' else 'Legacy Golden'
     tally = ''.join(f'''<a class="tally" href="#{slug}"><span class="nm">{NAMES[slug]}</span><span class="ct"><b>{g}</b> great · <b>{len(pairs) - g}</b> needs work</span><span class="bar">{''.join(f'<i class="{"g" if p["great"] else "n"}"></i>' for p in pairs)}</span></a>''' for slug, pairs, g in shards)
     body = []
     for slug, pairs, g in shards:
@@ -171,11 +191,12 @@ def render(shards, great, total, sha, captured, verdicts, stale):
         accepted = verdicts.get('accepted', {}).get(slug, '')
         sec = f'<section class="shard" id="{slug}"><header><h2>{NAMES[slug]}</h2><p class="score"><b>{g}/{len(pairs)}</b> great · <b>{len(bad)}</b> needs work · mean SSIM {np.mean([p["ssim"] for p in pairs]):.2f}</p></header>'
         if accepted: sec += f'<p class="accepted">Accepted changes (count as Great): {esc(accepted)}</p>'
-        if bad: sec += f'<h3 class="h-bad">Needs work · {len(bad)}</h3><div class="grid">' + ''.join(pair_html(slug, p, sha) for p in bad) + '</div>'
-        if ok: sec += f'<h3 class="h-ok">Great · {len(ok)}</h3><div class="grid">' + ''.join(pair_html(slug, p, sha) for p in ok) + '</div>'
+        if bad: sec += f'<h3 class="h-bad">Needs work · {len(bad)}</h3><div class="grid">' + ''.join(pair_html(slug, p, sha, against) for p in bad) + '</div>'
+        if ok: sec += f'<h3 class="h-ok">Great · {len(ok)}</h3><div class="grid">' + ''.join(pair_html(slug, p, sha, against) for p in ok) + '</div>'
         body.append(sec + '</section>')
-    warn = '<p class="stale">The by-eye verdicts were judged on an earlier run; pairs without a verdict fall back to SSIM ≥ 0.85.</p>' if stale else ''
-    return f'''<title>Shardfile vs Legacy Golden</title>
+    warn = ('<p class="stale">Not reviewed against the SHARDFILE goldens. SSIM is a guide; every camera needs a by-eye call.</p>' if against == 'shardfile' else '<p class="stale">The by-eye verdicts were judged on an earlier run; pairs without a verdict fall back to SSIM ≥ 0.85.</p>') if stale else ''
+    reference_note = 'SHARDFILE goldens are the known-good look (art/shardfile-goldens/, G873).' if against == 'shardfile' else 'LEGACY goldens captured at the same build through the LEGACY button (art/legacy-goldens/&lt;shard&gt;/24, G859)'
+    return f'''<title>Shardfile vs {reference}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -249,8 +270,8 @@ footer {{ color: var(--muted); font-size: 13px; max-width: 75ch; }}
 </style>
 <div class="wrap">
 <header>
-<h1>Shardfile vs Legacy Golden</h1>
-<p class="meta">SHARDFILE build <b>{esc(sha)}</b> · captured <b>{esc(captured)}</b> · LEGACY goldens captured at the same build through the LEGACY button (art/legacy-goldens/&lt;shard&gt;/24, G859)</p>
+<h1>Shardfile vs {reference}</h1>
+<p class="meta">SHARDFILE build <b>{esc(sha)}</b> · captured <b>{esc(captured)}</b> · {reference_note}</p>
 <p class="meta">24 cameras per shard: the 4 CO6 cameras, then points of interest, coverage across the 500 m cell, 2 aerials and 2 hands close-ups. Chromium, iPhone 16 Pro portrait, phone tier, render scale 2×, seed 357, midday / clear. Frames are the canvas alone (no HUD). SSIM is luma; the verdict is by eye. Tap a pair to open it full size.</p>
 <div class="overall"><span class="big">{great}/{total}</span><span>pairs great · {total - great} need work</span></div>
 </header>
@@ -276,5 +297,8 @@ if __name__ == '__main__':
     f = sub.add_parser('frames'); f.add_argument('--raw', required=True, nargs='+'); f.add_argument('--run', required=True)
     p = sub.add_parser('page'); p.add_argument('--run', required=True); p.add_argument('--out', required=True); p.add_argument('--captured', default='')
     p.add_argument('--q', type=int, default=38, help='WebP quality of the embedded 540 px frames')
+    for command in (f, p):
+        command.add_argument('--shards', default='', help='Comma-separated shard subset')
+        command.add_argument('--against', choices=('legacy', 'shardfile'), default='legacy', help='Golden baseline; shardfile preserves its known-good look')
     a = ap.parse_args()
     {'eyes': cmd_eyes, 'goldens': cmd_goldens, 'frames': cmd_frames, 'page': cmd_page}[a.cmd](a)

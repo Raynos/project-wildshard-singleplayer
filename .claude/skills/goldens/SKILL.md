@@ -43,8 +43,8 @@ scripts/browser-lane.sh --max 25 node art/legacy-goldens/compare/capture.mjs --b
   --cameras=art/legacy-goldens/compare/cameras24.json --mode=shardfile --shards=$SLUG --out=$RUN/raw-webkit
 ```
 
-- **`--cameras=…cameras24.json` is required.** Without it capture.mjs takes the old 4-camera CO6 file and names frames
-  differently. Never `--mode=legacy`: the LEGACY goldens are frozen.
+- **`cameras24.json` is the default.** An explicit `--cameras` can select another recorded set. Never
+  `--mode=legacy`: the LEGACY goldens are frozen.
 - `--sha` must be the commit the preview was built from (capture refuses a mismatch). `--cams=11,12` re-captures some.
 - Engine-wide change: all six, two lanes in parallel, `--shards=driftwood-isle,pine-hollow,nalati-grasslands` and
   `--shards=far-reach,sunscar-dunes,nine-dragon-stack`, `--max 40` each.

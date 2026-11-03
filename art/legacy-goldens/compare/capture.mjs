@@ -17,20 +17,22 @@
 import {chromium,webkit,devices} from 'playwright';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
-import {execFileSync} from 'node:child_process';
 import {saveFixture,developerSettings,hideDeveloperOverlays} from '../../../scripts/debug-settings.mjs';
 import {loadingCardIndex} from '../../../scripts/loading-benchmark/catalogue.mjs';
 import {pressEscape} from '../../../scripts/parity/browser-escape.mjs';
+import {DEFAULT_GOLDEN_CAMERAS,goldenPreviewIdentity,selectGoldenShards,selectGoldenCameraNumbers} from '../../../scripts/goldens/capture-inputs.mjs';
 
 const arg=(k,d)=>process.argv.find(x=>x.startsWith(`--${k}=`))?.slice(k.length+3)??d;
 const base=arg('base',''),root=arg('out','tmp/golden-compare/raw');
 if(!base)throw Error('--base=<preview url> is required');
-const head=arg('sha',execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim());
-const set=arg('cameras','');const mode=arg('mode','shardfile');if(!['legacy','shardfile'].includes(mode))throw Error(`--mode=${mode}`);
-const canonical=set?JSON.parse(readFileSync(set,'utf8')).cameras:JSON.parse(readFileSync('art/legacy-vs-shardfile/round-1-2026-10-28/cameras.json','utf8')).pairedCameras;
+const source=goldenPreviewIdentity(await(await fetch(new URL('/version.json',base))).json(),arg('sha',''));
+const head=source.sha;
+const set=arg('cameras',DEFAULT_GOLDEN_CAMERAS);const mode=arg('mode','shardfile');if(!['legacy','shardfile'].includes(mode))throw Error(`--mode=${mode}`);
+if(!set)throw Error('--cameras requires a camera-set path');
+const canonical=JSON.parse(readFileSync(set,'utf8')).cameras;
 const exp=arg('exp','')?readFileSync(arg('exp',''),'utf8'):'';// --exp=<file.js>: diagnostics only, run in the page before the held shot (its return value lands in the receipt)
-const only=arg('cams','')?new Set(arg('cams','').split(',').map(Number)):null;
-const slugs=arg('shards',Object.keys(canonical).join(',')).split(',');
+const only=selectGoldenCameraNumbers(arg('cams',''));
+const slugs=selectGoldenShards(canonical,arg('shards',undefined));
 const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
 mkdirSync(root,{recursive:true});
 
@@ -77,7 +79,8 @@ try{for(const slug of slugs){
   page.on('console',m=>{if(m.type()!=='warning')return;const t=m.text().slice(0,300);row.warnings[t]=(row.warnings[t]??0)+1;});
   const inflight=new Map();page.on('request',r=>inflight.set(r,Date.now()));page.on('requestfinished',r=>inflight.delete(r));page.on('requestfailed',r=>inflight.delete(r));
   const version=await(await page.request.get(new URL('/version.json',base).href)).json();
-  if(!version.build.startsWith(head.slice(0,7)))throw Error(`Preview ${version.build} is not ${head.slice(0,10)}`);row.build=version.build;
+  const actual=goldenPreviewIdentity(version,arg('sha',''));
+  if(actual.build!==source.build)throw Error(`Preview changed from ${source.build} to ${actual.build}`);row.build=actual.build;
   await page.goto(base,{waitUntil:'load'});await page.locator('.ws-main-select').click();
   const names=await page.locator('.ws-menu-card b').allTextContents();
   await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names,slug)}"]`).click();

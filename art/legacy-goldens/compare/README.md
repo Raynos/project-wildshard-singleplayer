@@ -51,7 +51,21 @@ python3 art/legacy-goldens/compare/compare.py page --run $RUN --captured "<time>
 rm -rf tmp/golden-compare-144/raw      # keep tmp/golden-compare-144/<run>/ for the next page
 ```
 
-`capture.mjs` refuses a preview whose build is not HEAD. Pass `--sha=<full sha>` if HEAD moved after the build started.
+`capture.mjs` defaults to `cameras24.json` and identifies the preview from
+`version.json`, independently of moving HEAD. Optional `--sha=<full sha>`
+requires that source; a preview changing during capture refuses.
+`--shards=nine-dragon-stack` selects one shard and refuses unknown/duplicate names.
+
+To compare against the known-good SHARDFILE look rather than LEGACY:
+
+```sh
+python3 art/legacy-goldens/compare/compare.py frames --raw <raw> --run <run> --shards=nine-dragon-stack --against shardfile
+python3 art/legacy-goldens/compare/compare.py page --run <run> --out <page.html> --shards=nine-dragon-stack --against shardfile
+```
+
+This uses `art/shardfile-goldens/`, removes only its 22 px provenance strip
+from scoring/display, and keeps legacy review calls and accepted differences
+out of the new comparison. Every camera starts unreviewed; SSIM is a pointer.
 `--exp=<file.js>` (diagnostics only) runs that file's body in the page just before the held shot, with `w` (the world) and
 `g` (the game); its return value lands in the receipt (`poses[].exp`). NR15 used it to hide or swap meshes and read live uniforms.
 `--cams=5,9` recaptures only some cameras.
