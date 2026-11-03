@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **0/10 complete; Saltwind grid Simulator refusal remains open**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **1/10 complete; Saltwind qualified with its original refusal retained**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -218,11 +218,12 @@ owner; no golden is promoted and no new look round is introduced. The
 published G994 density, rain/beam and neighbour-camera gaps remain explicit.
 
 The source/body bridge from sp-x6, matched Chromium/control above, maintained
-walk and golden bridge are complete. **The full cohort remains open only for
-sp-x8's recorded Simulator grid refusal**; its standalone results and missing
-grid witnesses retain their exact scope. The earlier memory/Sim paragraph's
-then-pending walk/golden scopes are now complete. No unchanged retry or
-invented measurement closes that refusal.
+walk and golden bridge are complete. **The first admission left the cohort
+open for sp-x8's recorded Simulator grid refusal**; its standalone results
+and missing grid witnesses retain their exact scope. The separately
+authorized fresh grid scope below later completes the cohort. The earlier
+memory/Sim paragraph's then-pending walk/golden scopes are now complete.
+No unchanged retry or invented measurement closes that refusal.
 
 Raw walk, capture, eight comparison rows and explicit classification stay in
 `tmp/sp-x1-open-plots/saltwind-final/`. All own browsers are closed; the own

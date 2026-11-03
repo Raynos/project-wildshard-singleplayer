@@ -16,7 +16,7 @@ Jake played the overnight plots: *"good enough."* The twelve left are built the 
 - **§7's questions are answered:** all plots (G990); round 62 / 75 targets, the builder picks (G872); Night Market's budgets; no play loop (G971); the new ideas took their cells (G972–G982); Showcase last; 3 Opus lanes (G990).
 
 
-**Wave A Codex half (2026-11-03, sp-x6): in flight.** Jungle Ziggurat
+**Wave A Codex half (2026-11-03, sp-x6): done.** Jungle Ziggurat
 and Patchwork Fairground use the established OB7 audio path: two MiniMax
 Music 3 score takes, one bed and six positional SFX, each compared between
 MOSS v2 and Stable Audio 3 Medium; package ≤3 MB, retained credits and
@@ -28,7 +28,8 @@ board/source. Saltwind's real source is `e28e863753`, final board
 `ec9c29fdfc`; publication `678d952bb0` and activation `f8a1406288` pass
 full native bar 10 in 15 s before landing. Score B plus five local spots
 use the canonical shared Coral bed, with a named gap: no squall rain or
-foghorn in the bed. Actual cell (0,2); X1/X8 final readings remain open.
+foghorn in the bed. Actual cell (0,2); X1/X8 final readings are complete,
+including the separately authorized preserved-diagnostic grid admission.
 Opus owns all visual source and look rulings (G848).
 
 Audio publications: Jungle `add58749da` (1,240,450 B) and Fairground
@@ -116,10 +117,10 @@ Pastel audio under their agreed 4/6 split. Completed Jungle and Fairground
 readings stay with sp-x6, covering all twelve plots. Exact final SHA/build
 and shared preview leases arrive from the audio owner before any cohort.
 [The shared readings page](../reviews/open-plots-final-readings.md) records
-measured results; **0/10 final cohorts are measured at this boundary**.
-Saltwind's actual cell is **(0,2)** / `open-plot-2-4`; `db418c06d7` now
-supplies its maintained 14-waypoint / 180 s route, awaiting the final audio
-candidate's walk qualification. No visual source or guard changes.
+measured results; **1/10 final cohorts is complete: Saltwind**.
+Saltwind's actual cell is **(0,2)** / `open-plot-2-4`; its maintained
+14-waypoint route completes in 164.0762 s under the original 180 s bound.
+The other nine await their whole final cohorts. No visual or guard changes.
 
 
 **Saltwind final audio readings (2026-11-03, sp-x1).** Exact activation
@@ -129,9 +130,17 @@ and strict-timing misses retained). Maintained walk reaches all 14 waypoints,
 0 stuck/out in 164.0762 s under the original 180 s bound. All eight golden
 rows are read green, with sp-o3's explicit existing Pine foreground artefact
 classification and no promotion. [Full source-bound results and board](../reviews/open-plots-final-readings.md#saltwind-lighthouse--walk-and-golden-bridge-sp-x1).
-Sp-x8's memory and standalone Simulator numbers are recorded there too;
-its 240 s grid-load deadline and missing GPU/native witnesses remain an open
-refusal, so this does not close the whole cohort or OP9. No visual source changes.
+Sp-x8's standalone results and original 364.444 s grid refusal remain
+recorded there. Harness `060198eb6c` preserves entry/Inspector diagnostics
+alongside unload errors, with unchanged caps and guards. One coordinator-
+authorized fresh grid-only admission completes in **64.754 s**: five
+120-frame windows, zero skips/errors, 30.303 fps / p95 34 ms. All four
+actual junction neighbours are near, pending empty and crossing settled;
+road current is null and residents empty (near visibility, not four live
+gameplay worlds). Pooled-page envelopes are 909.987 MB playing and
+1,322.639 MB loading, with no 1.2 GB grid-page cap claim. The original
+Simulator/Inspector cause remains unproved. Closure `2ee191dacf` completes
+OP9; CPU-target/strict-timing misses and named look gaps remain visible.
 
 **Starfall walk qualification (2026-11-03, sp-x9).** The ordinary maintained
 `scripts/open-plots/walk.mjs` ran under the browser lane on a shared lease
@@ -314,7 +323,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP6 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
 | OP7 | **done (2026-11-03, sp-o2 + sp-x6).** Patchwork Fairground: final visual source `15efc85eee`, [final board](../../art/patchwork-fairground/round-3-final/board.jpg) `80ba3ebf58`; audio `02c7ca0db0` + activation `8bdf53f635`, full native bar 10 passes (B, bed + five qualified spots; failed flags stay unshipped). [OB8 readings](../reviews/open-plots-wave-a-readings.md): Chromium/control, separate memory, walk 0 stuck/out, official Simulator plot + four junction headings 30 fps / p95 34 ms; native+GPU caps hold. Existing matched CPU-target and home-grid strict misses retained, not waived. Actual committed instance `open-plot-0-0`, cell (-2,-2). Look target [round 75](../../art/grid/round-75-new-plot-palettes/03-patchwork-fairground.jpg), theme §4b | Opus + Codex | 12 / 4 h | Final board, audio and readings complete; OP23 all-plots-built reading remains open |
 | OP8 | ~~Mushroom Hollow~~ **dropped (G977)**: Jungle Ziggurat (OP13) takes its cell (-2,2) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
-| OP9 | **Built and on the grid (2026-11-03, sp-o3): landmark `749d7e7f44` (Blender script), harbour kit `2ebbc0ea97`, tiles and layout `c613015a52`, activation `e28e863753` (original wire 1,171,496 B and four plaza L1 draw rows approved), 8 goldens/final board `ec9c29fdfc` (road 110 draws, plaza 93). Audio `678d952bb0` + activation `f8a1406288`: full native bar 10 before landing, 15 s, score B, shared canonical Coral bed and five local spots; no copied bed. Approved audio-only +1,004,042 B sets wire ceiling 2,175,538 B, preserving 10 B margin. Known gaps: sparser than round 75, no rain or beam; no squall rain or foghorn in the bed (local horn remains). Open: X1 Chromium/control, walk/golden bridge; X8 memory/official Simulator on the immutable audio source.** Historical inactive stub `9361210b9d`. Saltwind Lighthouse — [round 75 target](../../art/grid/round-75-new-plot-palettes/04-saltwind-lighthouse.jpg), actual `open-plot-2-4` cell **(0,2)**; historical G982 target (-2,1) does not move it. | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP9 | **done (2026-11-03, sp-o3 + sp-x6 + sp-x1 + sp-x8): landmark `749d7e7f44` (Blender script), harbour kit `2ebbc0ea97`, tiles and layout `c613015a52`, activation `e28e863753` (original wire 1,171,496 B and four plaza L1 draw rows approved), 8 goldens/final board `ec9c29fdfc` (road 110 draws, plaza 93). Audio `678d952bb0` + activation `f8a1406288`: full native bar 10 before landing, 15 s, score B, shared canonical Coral bed and five local spots; no copied bed. Approved audio-only +1,004,042 B sets wire ceiling 2,175,538 B, preserving 10 B margin. Known gaps: sparser than round 75, no rain or beam; no squall rain or foghorn in the bed (local horn remains). [Final readings](../reviews/open-plots-final-readings.md) complete on immutable `f8a1406288`: matched Chromium/control, 14-waypoint walk 0 stuck/out in 164.0762 s, reviewed 8/8 goldens, separate memory, three standalone Simulator windows and the single authorized fresh grid scope (64.754 s, five ×120 frames, all four junctions settled). Original grid refusal, raw CPU/strict timing misses and unproved Simulator/Inspector cause retained. Closure `2ee191dacf`.** Historical inactive stub `9361210b9d`. Saltwind Lighthouse — [round 75 target](../../art/grid/round-75-new-plot-palettes/04-saltwind-lighthouse.jpg), actual `open-plot-2-4` cell **(0,2)**; historical G982 target (-2,1) does not move it. | Opus + Codex | 16 / 5 h | Final board, audio and readings complete; OP23 all-plots-built reading remains open |
 | OP10 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP11 | **Visual and audio work complete (2026-11-03, sp-o2 + sp-x2); final readings open.** Sky Harbor geometry `c6d4f23295`, [final board](../../art/sky-harbor/round-3-final/board.jpg), eight goldens and cards `f5aa4028e3`. Audio publication `38e01a3407`: qualified A, canonical Coral bed without a copied asset, five qualified spots; the airship hum, rigging and tower flag remain a named G872 gap. Full native bar 10 passes before landing on `3dbfcb0fc1-mw16svtm`; audio-only wire 4,384,382 B. All 158 prior file bodies and 32/34 old sections exact. Actual instance `open-plot-4-4`, cell (2,2). X1 owns final Chromium/control, maintained walk and golden bridge; X8 owns separate memory and official Simulator on the ensuing immutable source | Opus + Codex | 16 / 5 h | Final matched readings, walk, golden bridge and official Simulator remain open; no performance or memory claim |
 | OP12 | **Built (2026-11-03, sp-o1); Codex audio and readings (sp-x6) open.** Desert Ruin: instance `open-plot-3-0`, cell (1,-2), on sp-x9's stub `8035bdf6ec`. Landmark `59a06db332` (gateway.py, Blender take C, G872; laid out at 52 m), activation `cad1dbd0a2` (desert.mjs: oases, tent rows, ruin courts, palm groves, sandy gardens; noon look; birds and lamps for bar 7; a walk leg through the gateway), approved debt: entry tiles ~496 KB (`cad1dbd0a2`), plaza L1 3 draws (`af4b65d614`), wire 5,525,056 B (`d90343121c`). [Final board](../../art/desert-ruin/round-2-final/board.jpg) and 8 goldens on `bf48edbf7c`: 5 6 5 7 6 6 5 6, mean 5.75, NOT YET (eye level: the gateway small from the road, wide bare paving; Nine's far silhouette floats behind the gateway, sp-o3's Nine fix, `383434a749`). In-engine card art (card off, G991). | Opus + Codex | 16 / 5 h | Steps 1–8 |
