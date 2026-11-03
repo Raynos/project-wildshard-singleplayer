@@ -13,7 +13,7 @@ import { chromium, devices } from 'playwright';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../../../..');
-const scratch = join(root, 'tmp/ks-remaster-west');
+const scratch = process.env.SCRATCH ?? join(root, 'tmp/ks-remaster-west');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json' };
 const server = createServer(async (req, res) => {
   const path = resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://x').pathname));
@@ -39,10 +39,15 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=swif
 try {
   const page = await browser.newPage({ ...devices['iPhone 16 Pro'], viewport: { width: 402, height: 603 } });
   page.on('pageerror', e => console.error('page error:', e.message));
-  await page.goto(`http://127.0.0.1:${port}/art/showcase-template/round-4-blockout/index.html`);
-  await page.waitForFunction(() => window.labReady === true, null, { timeout: 120_000 });
+  let loaded = '';
   for (const s of shots) {
     if (only && !only.includes(s.id)) continue;
+    const blockout = s.blockout ?? 'round-4-blockout';   // a shot may name round-5-blockout (m03)
+    if (blockout !== loaded) {
+      await page.goto(`http://127.0.0.1:${port}/art/showcase-template/${blockout}/index.html`);
+      await page.waitForFunction(() => window.labReady === true, null, { timeout: 120_000 });
+      loaded = blockout;
+    }
     const c = s.camera;
     if (c.topdown) await page.evaluate(t => window.lab.topdown(...t), c.topdown);
     else await page.evaluate(o => window.lab.cam(o), { pos: c.pos, look: c.look, fov: c.fov ?? 70, signs: false });

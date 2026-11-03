@@ -1286,9 +1286,11 @@ function show(name) {
 renderer.setAnimationLoop(() => { if (current === 'orbit') { controls.update(); render(persp); } });
 show('plan');
 // A free camera for clean grey frames (round-11 remaster inputs): no caption, no labels, no signs unless asked.
-//   lab.cam({ pos: [x, y, z], look: [x, y, z], fov: 70, signs: false })
-function cam({ pos, look, fov = 70, signs: withSigns = false }) {
+//   lab.cam({ pos: [x, y, z], look: [x, y, z], fov: 70, signs: false, hidden: false })
+// hidden: true shows only the hidden layer (the Titan arena at y −150), like the 'arena' view.
+function cam({ pos, look, fov = 70, signs: withSigns = false, hidden = false }) {
   current = 'cam'; controls.enabled = false; full(); signs.visible = withSigns;
+  if (hidden) { world.visible = false; hiddenG.visible = true; }
   for (const id of ['cap', 'foot', 'panel', 'ui']) $(id).style.display = 'none';
   persp.fov = fov; persp.near = .2; persp.position.set(...pos); persp.lookAt(...look); render(persp);
 }

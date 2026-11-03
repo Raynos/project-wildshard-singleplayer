@@ -2,6 +2,7 @@
 //   scripts/browser-lane.sh node art/showcase-template/round-11-remaster/east/grey.mjs [id,id...]
 // Serves the repo root on a loopback port (three comes from node_modules), opens round-4-blockout/index.html muted as an
 // "iPhone 16 Pro" (402 x 874 CSS px), aims window.lab.cam at each shot in shots.json, writes <id>-grey.jpg (<= 150 KB).
+// A shot with "blockout": "round-5-blockout" is shot on that blockout instead; "hidden": true frames its hidden layer.
 import { createServer } from 'node:http';
 import { readFile, mkdir, stat } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
@@ -11,7 +12,7 @@ import { chromium, devices } from 'playwright';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../../../..');
-const scratch = join(root, 'tmp/ks-remaster-east/raw');
+const scratch = process.env.SCRATCH ?? join(root, 'tmp/ks-remaster-east/raw');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json' };
 const server = createServer(async (req, res) => {
   const path = resolve(root, '.' + decodeURIComponent(new URL(req.url, 'http://x').pathname));
@@ -30,13 +31,18 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=swif
 try {
   const page = await browser.newPage({ ...devices['iPhone 16 Pro'], viewport: { width: 402, height: 874 } });
   page.on('pageerror', e => console.error('page error:', e.message));
-  await page.goto(`http://127.0.0.1:${port}/art/showcase-template/round-4-blockout/index.html`);
-  await page.waitForFunction(() => window.labReady === true, null, { timeout: 120_000 });
+  let loaded = '';
   for (const s of shots) {
     if (only && !only.includes(s.id)) continue;
+    const blockout = s.blockout ?? 'round-4-blockout';
+    if (blockout !== loaded) {
+      await page.goto(`http://127.0.0.1:${port}/art/showcase-template/${blockout}/index.html`);
+      await page.waitForFunction(() => window.labReady === true, null, { timeout: 120_000 });
+      loaded = blockout;
+    }
     const c = s.camera;
     if (c.topdown) await page.evaluate(t => window.lab.topdown(...t), c.topdown);
-    else await page.evaluate(o => window.lab.cam(o), { pos: c.pos, look: c.look, fov: c.fov ?? 70, signs: false });
+    else await page.evaluate(o => window.lab.cam(o), { pos: c.pos, look: c.look, fov: c.fov ?? 70, signs: false, hidden: s.hidden === true });
     const raw = join(scratch, s.id + '.png');
     await page.screenshot({ path: raw });
     const out = join(outDir, s.id + '-grey.jpg');
