@@ -1219,15 +1219,95 @@
       "idea": "jungle-ziggurat",
       "name": "Jungle Ziggurat",
       "accent": "jade",
-      "placeholder": true,
+      "layout": "jungle-ziggurat",
+      "landmarkLight": "noon",
+      "coarseLandmark": "lit",
+      "water": "lagoon",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.02,
+              0.3,
+              0.52
+            ],
+            "horizon": [
+              0.45,
+              0.7,
+              0.74
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.4,
+              0.62,
+              0.66
+            ],
+            "density": 0,
+            "near": 500,
+            "far": 2200
+          },
+          "sun": {
+            "colour": [
+              1,
+              0.95,
+              0.86
+            ],
+            "intensity": 2.4
+          },
+          "ambient": {
+            "sky": [
+              0.55,
+              0.75,
+              0.8
+            ],
+            "ground": [
+              0.6,
+              0.7,
+              0.5
+            ],
+            "intensity": 1.6
+          }
+        }
+      ],
+      "lookGrade": {
+        "exposure": 0,
+        "saturation": 1.1,
+        "contrast": 1.05,
+        "lut": null
+      },
+      "lookDay": {
+        "day": {
+          "minutes": 12,
+          "start": 0.6,
+          "maxElevation": 58,
+          "azimuth": 71
+        },
+        "dayOverride": 0.6
+      },
       "manifest": {
         "name": "Open Plot · Jungle Ziggurat",
-        "blurb": "Jungle Ziggurat placeholder: survey floor and open entries; theme art is not built yet.",
+        "status": "earlyAccess",
+        "shardSelect": false,
+        "blurb": "An open plot of the grid: a freshly painted temple town after a tropical rain, jade pools fed by stepped waterfalls, thatched stilt houses and painted steles round a cinnabar step pyramid.",
         "bindings": {
-          "accent": "jade"
+          "accent": "jade",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "pois": [],
-        "shardSelect": false
+        "assetGlobs": [
+          "public/assets/open-plots/**"
+        ]
       }
     }
   ]

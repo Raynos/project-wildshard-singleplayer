@@ -17,6 +17,11 @@
       "cameras": "art/open-plots/frostline-peaks/domes"
     },
     {
+      "slug": "open-plot-jungle-ziggurat",
+      "instance": "open-plot-0-4",
+      "cameras": "art/open-plots/jungle-ziggurat/domes"
+    },
+    {
       "slug": "open-plot-lantern-bayou",
       "instance": "open-plot-0-1",
       "cameras": "art/open-plots/lantern-bayou/domes"

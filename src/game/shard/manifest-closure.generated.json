@@ -520,6 +520,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/thumbs/card.jpg"
   ],
   "open-plot-lantern-bayou": [
