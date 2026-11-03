@@ -6,9 +6,12 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine generated fixtures to an owned repository scratch root.
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
+// oxlint-disable-next-line import/no-nodejs-modules -- Run the exact serialized browser predicate without a browser.
+import { runInNewContext } from 'node:vm';
 import { domeResidencySettled, parseDomeCameras } from '../scripts/dome-cameras.mjs';
 import { readCapturePlans, ringJunctionPlan, selectCapturePlots } from '../scripts/open-plots/capture-inputs.mjs';
 import { admitBoardCapture, boardText, makeDomeBoards } from '../scripts/open-plots/boards.mjs';
+import { settledDomeReadExpression } from '../scripts/open-plots/settled-read.mjs';
 
 const registry = [
   { slug: 'open-plot-night-market', instance: 'open-plot-nw', cameras: 'art/open-plots/night-market/domes' },
@@ -40,6 +43,24 @@ test('late neighbour admission must drain before an image, with crossing and rin
   for (const crossing of [{phase:'preparing',issue:null},{phase:'settled',issue:'refused'}])
     expect(domeResidencySettled({...ready,live:{...ready.live,crossing}})).toBe(false);
   for (const rings of [{inFlight:1,queued:0},{inFlight:0,queued:1}]) expect(domeResidencySettled({...ready,rings})).toBe(false);
+});
+
+test('the accepted capture snapshot is the same grid that passed the pending gate', () => {
+  let reads = 0, pending = ['pine-hollow'];
+  const context = {window:{__wildshard:{shard:{grid:{state:() => {
+    reads++;
+    return {live:{live:{gameplayReady:true,pending:[...pending]},crossing:{phase:'settled',issue:null}},rings:{inFlight:0,queued:0}};
+  }}}}}};
+  const expression = settledDomeReadExpression('(_argument, grid) => ({grid})', null);
+  expect(runInNewContext(expression, context)).toBe(false);
+  expect(reads).toBe(1);
+  pending = [];
+  const snapshot: unknown = runInNewContext(expression, context);
+  expect(snapshot).toMatchObject({grid:{live:{live:{pending:[]}}}});
+  pending = ['pine-hollow'];
+  expect(snapshot).toMatchObject({grid:{live:{live:{pending:[]}}}});
+  expect(reads).toBe(2);
+  expect(runInNewContext(expression, context)).toBe(false);
 });
 
 test('board admission cannot turn a partial, duplicate, failed or reordered capture into a sheet', () => {

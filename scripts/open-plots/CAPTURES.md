@@ -34,8 +34,11 @@ streaming anchors, shipping tiles/LOD/far plane, phone tier, 2× render scale,
 view. Before sampling and before accepting each image, the normal grid pending
 list, crossing and ring queues must settle within the existing 180-second
 readiness bound. The original post-sample anchor, residency, camera and document
-guards still run; the 120-draw sample keeps its original 15-second cap. Samples
-may include admission work that begins during their window; they are not a
+guards still run; the 120-draw sample keeps its original 15-second cap.
+The readiness predicate returns the actual grid/camera/residency snapshot in
+one synchronous browser task. A second CDP read cannot race a newly started
+neighbour admission between the wait and the unchanged anchor assertion.
+Samples may include admission work that begins during their window; they are not a
 steady-state performance claim. Each dome has its own context and a separate page-wide Chromium memory
 sample. Counts and memory are descriptive, not an official frame-floor pass.
 

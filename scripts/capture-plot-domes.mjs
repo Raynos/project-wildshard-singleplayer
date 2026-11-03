@@ -6,6 +6,7 @@ import { devices } from 'playwright';
 import { createHash } from 'node:crypto';
 import { readCapturePlans, ringJunctionPlan } from './open-plots/capture-inputs.mjs';
 import { makeDomeBoards } from './open-plots/boards.mjs';
+import { settledDomeReadExpression } from './open-plots/settled-read.mjs';
 import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
 import { saveFixture, harnessPins } from './debug-settings.mjs';
 import { domeGroundAnchor, domeWorldCamera, assertDomeAnchorReady, domeResidencySettled } from './dome-cameras.mjs';
@@ -99,20 +100,12 @@ try {
           if (failures.length > 0) throw new Error(failures.join('; '));
         }
       }
-      await page.waitForFunction(() => {
-        const state = window.__wildshard.shard.grid.state();
-        return state.live.live.pending.length === 0 && state.live.crossing.phase === 'settled';
-      });
-      assertDomeAnchorReady(await page.evaluate(() => window.__wildshard.shard.grid.state()), anchor);
+      assertDomeAnchorReady((await settledCaptureState(page, (_argument, grid) => grid, null)).state, anchor);
       await page.evaluate(async at => {
         const api = window.__wildshard, world = api.requireWorld(), live = api.shard.grid.state().live.live;
         await api.pose({ x: at.x - (live.worldFeet.x - world.player.position.x), z: at.z - (live.worldFeet.z - world.player.position.z), yaw: 0, pitch: 0 });
       }, anchor);
-      await page.waitForFunction(() => {
-        const state = window.__wildshard.shard.grid.state();
-        return state.live.live.gameplayReady && state.live.crossing.phase === 'settled' && state.rings.inFlight === 0 && state.rings.queued === 0;
-      });
-      assertDomeAnchorReady(await page.evaluate(() => window.__wildshard.shard.grid.state()), anchor);
+      assertDomeAnchorReady((await settledCaptureState(page, (_argument, grid) => grid, null)).state, anchor);
       await page.evaluate(installDomeCamera);
       await page.addStyleTag({ content: 'body *{visibility:hidden!important}canvas[data-dome-canvas],#dome-caption{visibility:visible!important}#dome-caption{position:fixed;left:0;right:0;top:0;z-index:2147483647;background:#071521e8;color:white;padding:7px;font:11px sans-serif;text-align:center;pointer-events:none}' });
       const origin = { x: market.cell[0] * (initial.pitch ?? 555), z: market.cell[1] * (initial.pitch ?? 555) };
@@ -123,9 +116,8 @@ try {
         await page.waitForTimeout(2000);
         const beforeSample = await waitForDomeResidency(page);
         const sample = await page.evaluate(sampleDomeFrames);
-        const beforeImage = await waitForDomeResidency(page);
-        const state = await page.evaluate(({ownInstance, ownSlug}) => {
-          const api = window.__wildshard, world = api.requireWorld(), grid = api.shard.grid.state();
+        const {state, wait:beforeImage} = await settledCaptureState(page, ({ownInstance, ownSlug}, grid) => {
+          const api = window.__wildshard, world = api.requireWorld();
           const live = grid.live.live, renderOrigin = grid.live.renderOrigin, position = world.game.camera.position;
           const dx = live.worldFeet.x - world.player.position.x - renderOrigin.x, dz = live.worldFeet.z - world.player.position.z - renderOrigin.z;
           return { grid, claims: api.shard.grid.residency().claims.filter(claim => claim.owner === ownInstance || claim.id === `product:grid:${ownSlug}`), frame: world.game.frameCount,
@@ -197,11 +189,7 @@ async function captureRingJunction(browser, session, options, noQuiet) {
     const identity = await page.evaluate(gridFloorDocumentIdentity);
     const seed = {name:'open-plots-ring-junction',from:null,to:null,start:anchor,waypoints:[],requiredResidents:[]};
     await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(seed)},${JSON.stringify(identity)},(${driveFloorGrid.toString()}))`);
-    await page.waitForFunction(() => {
-      const state = window.__wildshard.shard.grid.state();
-      return state.live.live.gameplayReady && state.live.live.pending.length === 0 && state.live.crossing.phase === 'settled' && state.rings.inFlight === 0 && state.rings.queued === 0;
-    });
-    assertDomeAnchorReady(await page.evaluate(() => window.__wildshard.shard.grid.state()), anchor);
+    assertDomeAnchorReady((await settledCaptureState(page, (_argument, grid) => grid, null)).state, anchor);
     const height = await page.evaluate(() => window.__wildshard.requireWorld().game.camera.position.y);
     await page.evaluate(installDomeCamera);
     await page.addStyleTag({content:'body *{visibility:hidden!important}canvas[data-dome-canvas],#dome-caption{visibility:visible!important}#dome-caption{position:fixed;left:0;right:0;top:0;z-index:2147483647;background:#071521e8;color:white;padding:7px;font:11px sans-serif;text-align:center;pointer-events:none}'});
@@ -214,9 +202,8 @@ async function captureRingJunction(browser, session, options, noQuiet) {
       await page.waitForTimeout(2000);
       const beforeSample = await waitForDomeResidency(page);
       const sample = await page.evaluate(sampleDomeFrames);
-      const beforeImage = await waitForDomeResidency(page);
-      const state = await page.evaluate(({target, neighbours:targets, pitch:latticePitch}) => {
-        const api = window.__wildshard, world = api.requireWorld(), grid = api.shard.grid.state(), renderedCamera = world.game.camera;
+      const {state, wait:beforeImage} = await settledCaptureState(page, ({target, neighbours:targets, pitch:latticePitch}, grid) => {
+        const api = window.__wildshard, world = api.requireWorld(), renderedCamera = world.game.camera;
         const live = grid.live.live, origin = grid.live.renderOrigin;
         const dx = live.worldFeet.x - world.player.position.x - origin.x, dz = live.worldFeet.z - world.player.position.z - origin.z;
         // Project the declared cell centre through the actual unchanged camera matrices.
@@ -264,6 +251,14 @@ async function waitForDomeResidency(page) {
   const ready = await page.waitForFunction(`(${domeResidencySettled.toString()})(window.__wildshard.shard.grid.state())`, undefined, {timeout:180000});
   await ready.dispose();
   return {wallMs:Date.now()-start,pending:[],crossing:'settled',inFlight:0,queued:0};
+}
+
+/** The returned state is the actual snapshot that passed readiness, not a later CDP read. */
+async function settledCaptureState(page, reader, argument) {
+  const start = Date.now();
+  const ready = await page.waitForFunction(settledDomeReadExpression(reader.toString(), argument), undefined, {timeout:180000});
+  try { return {state:await ready.jsonValue(),wait:{wallMs:Date.now()-start,pending:[],crossing:'settled',inFlight:0,queued:0}}; }
+  finally { await ready.dispose(); }
 }
 
 /** Same world-to-render-origin conversion as the existing hero capture; no scene or streamer mutation. */
