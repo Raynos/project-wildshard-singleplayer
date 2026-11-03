@@ -244,6 +244,7 @@
       "accent": "marigold",
       "layout": "lantern-bayou",
       "landmarkLight": "dusk",
+      "kitGround": "planks",
       "lookKeys": [
         {
           "time": 0,

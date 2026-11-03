@@ -9,6 +9,7 @@ import paving from '../data/paving.graph.json' with { type: 'json' };
 import kit from '../data/kit.graph.json' with { type: 'json' };
 import landmark from '../data/landmark.graph.json' with { type: 'json' };
 import landmarkDusk from '../data/landmarkDusk.graph.json' with { type: 'json' };
+import kitPlanks from '../data/kitPlanks.graph.json' with { type: 'json' };
 import lava from '../data/lava.graph.json' with { type: 'json' };
 import mapSettings from '../data/map.json' with { type: 'json' };
 import type { OutputProgramResult, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
@@ -40,7 +41,7 @@ const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicke
   landmark: { family: 'graph', graph: landmark } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly water?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly kitGround?: string; readonly water?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
     spawn: (typeof source)["spawn"];
@@ -73,7 +74,10 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   const lit = row.landmarkLight === 'dusk' ? { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: landmarkDusk } } } : tiledLook;
   // OB4: a row's `water: "lava"` draws its water as molten lava (data/lava.graph.json: unlit, its vertex colour as the
   // molten colour, dark crust plates drifting over it in world metres), the lava kind any volcanic plot shares
-  const tiled = row.water === 'lava' ? { ...lit, materials: { ...lit.materials, water: { family: 'graph', graph: lava } } } : lit;
+  const molten = row.water === 'lava' ? { ...lit, materials: { ...lit.materials, water: { family: 'graph', graph: lava } } } : lit;
+  // OB2: a row's `kitGround: "planks"` rules its ground as boardwalk boards in place of flagstones (data/kitPlanks.graph.json:
+  // the kit graph with its own ground rule, scripts/open-plots/ruled-graphs.py)
+  const tiled = row.kitGround === 'planks' ? { ...molten, materials: { ...molten.materials, kit: { family: 'graph', graph: kitPlanks } } } : molten;
   if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...tiled, keys },
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
     // RM8.2: its kit models draw only at L0 (`detail_`); their boxes stand in at L1 (`coarse_`)
