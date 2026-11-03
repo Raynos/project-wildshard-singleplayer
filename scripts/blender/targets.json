@@ -360,6 +360,18 @@
    "outputs": ["public/assets/open-plots/thin-ice/landmark.glb", "public/assets/open-plots/thin-ice/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/polar": {
+   "about": "Thin Ice's theme kit family (OPEN-PLOTS OP18): a snow-block igloo with its entrance tunnel, ice-fishing gear (crossed skis, a stool, a bucket and a rod over the hole) and a snowy slat bench in kit.py's format, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/polar.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["polar.glb"],
+   "copy": [["polar.glb", "public/assets/open-plots/kit/polar.glb"]],
+   "outputs": ["public/assets/open-plots/kit/polar.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
   "open-plots/dig": {
    "about": "Fossil Badlands' theme kit family (OPEN-PLOTS OP21): a canvas dig tent, a timber hand crane with a sling of bones and a sorting table with crates in kit.py's format, retinted by palette slot like open-plots/kit",
    "script": "scripts/blender/open-plots/dig.py",
