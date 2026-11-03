@@ -21,7 +21,7 @@ test('Night Market road B lowers only its layout curtain and keeps road A poster
   const low = grid.cells.filter(cell => cell.edgeLook !== undefined);
   expect(low.map(cell => cell.slug)).toEqual(['open-plot-night-market']);
   for (const cell of low) expect(cell.edgeLook).toEqual({ height: 1.2 });
-  expect(layout.posters.entry).toMatchObject({ width: 10, bottom: 0.6, inset: 247, posts: 4, offset: 12.5 });
+  expect(layout.posters.entry).toMatchObject({ width: 10, bottom: 1.8, inset: 247, posts: 4, offset: 18 });
 });
 
 test('all plot poster faces use the unlit map or baked mean without fog', () => {

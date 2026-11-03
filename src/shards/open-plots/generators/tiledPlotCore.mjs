@@ -98,6 +98,30 @@ function poster(parts, palette, { centre, n, width, bottom, posts, offset = 0 },
 }
 
 
+/** The layout's poster boards (poster()'s rows): the plaza's facing the south entry, one over each entry facing out to the road. */
+function boards(posters) {
+  if (posters === null) return [];
+  const { plaza, entry } = posters, out = [];
+  // a plot whose landmark fills the plaza (Lantern Bayou's cypress) may stand no plaza poster (`plaza: null`)
+  if (plaza !== null) out.push({ centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 });
+  for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) out.push({ centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset });
+  return out;
+}
+/** OP26 (Jake 11-03, art/open-plots/billboard-review-2026-11-03): no model stands in front of or behind a board's picture
+ *  (as wide as the board, `face` m off either face: both carry it) or within `side` m of its frame's ends and edges (`near`
+ *  m deep). Beside the picture, past `near`, models stay: Mosslight's south avenue arch spans the lane 8 m before the plaza
+ *  board's end and frames the tower. */
+const KEEP_OUT = { side: 4, near: 1.5, face: 8 };
+/** A board's keep-outs, [x0, z0, x1, z1] in plot metres: the strips before and behind its picture, and the frame's margin. */
+function keepOuts({ centre, n, width, offset }) {
+  const r = [-n[2], n[0]], half = width / 2 + 0.35, rect = (s0, s1, d) => {
+    const xs = [], zs = [];
+    for (const s of [s0, s1]) for (const k of [-d, d]) { xs.push(centre[0] + r[0] * s + n[0] * k); zs.push(centre[1] + r[1] * s + n[2] * k); }
+    return [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)];
+  };
+  return [rect(offset - half, offset + half, 0.6 + KEEP_OUT.face), rect(offset - half - KEEP_OUT.side, offset + half + KEEP_OUT.side, 0.6 + KEEP_OUT.near)];
+}
+
 /** A JSON input's value, from its bytes. */
 const json = (bytes) => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
 
@@ -137,19 +161,16 @@ async function tiledPlot(read, tools, layoutName, plot, codec, litCoarse = false
   // Night Market's switched on with RM8.6 once RM8.1's quantized tiles and RM8.2's L0-only detail paid for them
   const files = new Map((layout.kit ?? []).map(family => [family, read(`public/assets/open-plots/kit/${family}.glb`)]));
   const lanterns = [], kit = files.size === 0 ? {} : await prepareModelKit(palette, files, tools.normalizeWorldGlb);
+  // OP26: the boards are known before the tiles, so every model the tiles and the plot place keeps out of their keep-outs
+  const posters = boards(layout.posters), zones = posters.flatMap(keepOuts), leftOut = [];
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2,
-    { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) }, builders);
-  if (layout.landmark !== null) plot.models(parts, { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) }, layout);
+    { ...kit, keepOut: zones, leftOut, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) }, builders);
+  if (layout.landmark !== null) plot.models(parts, { ...kit, keepOut: zones, leftOut, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) }, layout);
+  if (leftOut.length > 0) console.info(`open-plots: ${layoutName} poster keep-out left out ${leftOut.length} models: ${[...new Set(leftOut)].join(', ')}`);
   // a pool at the plot's edge (an entry forecourt's lanterns) keeps to the cell: its rim (black, it adds nothing) stops at it
   const pools = parts.Pool.part('Pool').positions, EDGE = 249.5;
   for (let i = 0; i < pools.length; i += 3) for (const k of [0, 2]) pools[i + k] = Math.max(-EDGE, Math.min(EDGE, pools[i + k] ?? 0));
-  // the posters: the plaza's facing the south entry, one over each entry facing out to the road
-  if (layout.posters !== null) {
-    const { plaza, entry } = layout.posters;
-    // a plot whose landmark fills the plaza (Lantern Bayou's cypress) may stand no plaza poster (`plaza: null`)
-    if (plaza !== null) poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 }, lanterns);
-    for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset }, lanterns);
-  }
+  for (const board of posters) poster(parts, palette, board, lanterns);
   plot.pools(parts, palette);
   // OB2: a row's `pool: "streaks"` mirrors its low lanterns in the water nearby (kit.mjs waterStreaks, in the Pool's draw)
   if (streaks) console.info(`open-plots: ${layoutName} water streaks: ${waterStreaks(parts.Pool, parts.Water.part('Water'), lanterns)}`);

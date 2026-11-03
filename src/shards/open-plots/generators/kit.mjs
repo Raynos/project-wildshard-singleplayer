@@ -74,8 +74,24 @@ function writer(parts, centre, turns, kit, coarseFamilies) {
     for (let i = 0; i < turns; i++) [px, pz] = [pz, -px];
     return [centre[0] + px, y, centre[1] + pz];
   };
-  const tri = (part, a, b, c, colour) => parts[part].tri(part, turn(a), turn(b), turn(c), colour);
-  const triColours = (part, a, b, c, colours) => parts[part].triColours(part, [turn(a), turn(b), turn(c)], colours);
+  // OP26 (the billboard review, Jake 11-03): the posters' keep-outs ([x0, z0, x1, z1] plot metres, tiledPlotCore's
+  // keepOut). A model whose footprint meets one is left out (`refused`), and so is what this writer later draws inside a
+  // left-out footprint (its collider, its L1 stand-in), so nothing invisible or half-placed stays by a board
+  const zones = kit?.keepOut ?? [], refused = [], SLACK = 0.75;
+  /** the plot-metre rectangle round tile-local points */
+  const rect = (points) => {
+    const out = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const p of points) { const [x, , z] = turn(p); out[0] = Math.min(out[0], x); out[1] = Math.min(out[1], z); out[2] = Math.max(out[2], x); out[3] = Math.max(out[3], z); }
+    return out;
+  };
+  const meets = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+  const leftOut = (points) => {
+    if (refused.length === 0) return false;
+    const [x0, z0, x1, z1] = rect(points);
+    return refused.some(r => x0 >= r[0] - SLACK && z0 >= r[1] - SLACK && x1 <= r[2] + SLACK && z1 <= r[3] + SLACK);
+  };
+  const tri = (part, a, b, c, colour) => { if (part === 'coarse' && leftOut([a, b, c])) return; parts[part].tri(part, turn(a), turn(b), turn(c), colour); };
+  const triColours = (part, a, b, c, colours) => { if (part === 'coarse' && leftOut([a, b, c])) return; parts[part].triColours(part, [turn(a), turn(b), turn(c)], colours); };
   // Preserve authored GLB normals rather than deriving a new face normal from float-rounded positions.
   const triChannels = (part, points, colours, normals, uvs) => {
     let directions = normals;
@@ -91,6 +107,7 @@ function writer(parts, centre, turns, kit, coarseFamilies) {
   const quad = (part, a, b, c, d, colour) => { tri(part, a, b, c, colour); tri(part, a, c, d, colour); };
   /** an axis-aligned box, every face outward; `open` leaves out the bottom */
   const box = (part, [x0, y0, z0], [x1, y1, z1], colour, top = colour, open = true) => {
+    if (leftOut([[x0, 0, z0], [x1, 0, z1]])) return;
     quad(part, [x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], top);
     if (!open) quad(part, [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], colour);
     quad(part, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], colour);
@@ -101,6 +118,7 @@ function writer(parts, centre, turns, kit, coarseFamilies) {
   /** `box`'s four sides only, for a box whose top is always covered (a post under its lantern, a trunk inside its crown,
    *  a wall under its roof's closed underside): NM12, the triangles the court greens and canal glow add come back here */
   const sides = (part, [x0, y0, z0], [x1, y1, z1], colour) => {
+    if (leftOut([[x0, 0, z0], [x1, 0, z1]])) return;
     quad(part, [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], colour);
     quad(part, [x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], colour);
     quad(part, [x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], colour);
@@ -110,6 +128,7 @@ function writer(parts, centre, turns, kit, coarseFamilies) {
   const floor = (part, x0, z0, x1, z1, y, colour) => quad(part, [x0, y, z0], [x0, y, z1], [x1, y, z1], [x1, y, z0], colour);
   /** a collision box (tile-local, turned) */
   const solid = (min, max) => {
+    if (leftOut([min, max])) return;
     const a = turn(min), b = turn(max);
     parts.solid.box('Solid', [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])], [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])]);
   };
@@ -121,11 +140,20 @@ function writer(parts, centre, turns, kit, coarseFamilies) {
     for (let i = 0; i < turns; i++) [px, pz] = [-pz, px];
     return [px, pz];
   };
-  const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, local, placeModel: undefined, hasModel: () => false };
+  /** whether a tile-local disc of radius `r` keeps clear of every keep-out (a builder asks before it draws round a model) */
+  const clear = (x, z, r = 0) => { const at = rect([[x - r, 0, z - r], [x + r, 0, z + r]]); return !zones.some(zone => meets(zone, at)); };
+  const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, local, clear, placeModel: undefined, hasModel: () => false };
   // RM4: a kit model (kitGlb.mjs) at tile-local (x, z), through this writer's turn and lantern bake; a builder uses its
-  // family's models only when the kit placed has that family (the layout's kit)
+  // family's models only when the kit placed has that family (the layout's kit). It returns whether the model was placed.
   if (kit?.placeModel !== undefined) {
     w.placeModel = (family, variant, x, z, options) => {
+      // OP26: a dry run measures the model's footprint; one that meets a keep-out is left out
+      if (zones.length > 0) {
+        const points = [];
+        kit.placeModel({ triChannels: (_part, corners) => { points.push(...corners); } }, family, variant, x, z, options);
+        const footprint = rect(points);
+        if (zones.some(zone => meets(zone, footprint))) { refused.push(footprint); kit.leftOut?.push(`${family}/${variant}`); return false; }
+      }
       // RM8.2: a model draws only in the full-detail (L0) tiles (the `detail` parts); a big one leaves its box at L1 (the
       // `coarse` part), its top the colour of its up-facing faces, its sides of the rest
       const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity], top = [0, 0, 0, 0], side = [0, 0, 0, 0];
@@ -138,9 +166,10 @@ function writer(parts, centre, turns, kit, coarseFamilies) {
         sum[3] += area;
       } };
       kit.placeModel(detail, family, variant, x, z, options);
-      if (!coarseFamilies.has(family) || !(lo[0] < hi[0])) return;
+      if (!coarseFamilies.has(family) || !(lo[0] < hi[0])) return true;
       const mean = (sum, other) => (sum[3] > 0 ? sum : other).slice(0, 3).map(v => v / Math.max(1e-9, (sum[3] > 0 ? sum : other)[3]));
       box('coarse', lo, hi, mean(side, top), mean(top, side));
+      return true;
     };
     w.hasModel = (family) => kit.has(family);
   }

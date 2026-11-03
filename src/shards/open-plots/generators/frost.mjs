@@ -96,6 +96,8 @@ function coarseLodge(w, p, x, z, hx, hz) {
 /** A pine clump (the kit's, 3 / 5 / 8 trees), or a stand-in cone when the kit has no pines, and its shadow. */
 function pines(w, p, x, z, variant, shade, bound) {
   const [r, h] = variant === 0 ? [2.2, 7] : variant === 1 ? [3.4, 8] : [4, 9];
+  // OP26: a clump in a poster's keep-out stands nowhere (its shadow is drawn before its model would be refused)
+  if (!w.clear(x, z, r)) return;
   shadow(w, p, shade, [x, z], ring(x, z, r * 0.8, 5), h, 0.3, bound);
   if (w.hasModel('pines')) { w.placeModel('pines', variant, x, z, { yaw: pick(x, z, 4) * Math.PI / 2 }); coarsePines(w, p, x, z, variant); }
   else for (const [dx, dz] of [[0, 0], [2.4, 1.2], [-2, 1.6]]) {

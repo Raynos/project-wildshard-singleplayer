@@ -105,3 +105,10 @@ front of it).
   the sky and the neighbours changed, both intended: 2 and 3 lose the sun disc and its halo (G992, `0d7a022fbb`, after
   these frames were shot), 3's right-hand horizon and 8's left-hand horizon (a grey peak) show the plots G993's grid
   moves (`109ef326d6`) put beside the Night Market.
+- 2026-11-03, Ember Forge and Mosslight Ruins 2, 3, 4, 5, 7 and 8: refreshed from OP26's candidate run on `86c0716c30`
+  (`../../golden-runs/open-plot-ember-forge/2026-11-03-86c0716c30-op26-board.jpg` and the Mosslight one beside it). The
+  plots match; the light is sp-o1's G992 relight (`1cc6b48123`, landed after these frames were shot), and OP26's poster
+  keep-out leaves two forges (Ember) and ten ruin, rubble, tree and lantern models (Mosslight) out of the boards' strips.
+- 2026-11-03, Coral Drift 1: refreshed from OP26's run on `12ca83e456`
+  (`../../golden-runs/open-plot-coral-drift/2026-11-03-12ca83e456-op26-board.jpg`): the road and kerb in front are G993's
+  grid move (`109ef326d6`, Coral to (-2, 0)); the entry board stands higher and further from the lane (OP26).

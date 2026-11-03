@@ -117,7 +117,7 @@
     "image": "public/assets/open-plots/frostline-peaks/billboard.webp",
     "plaza": {
       "x": 0,
-      "z": -54,
+      "z": -62,
       "width": 20,
       "bottom": 2.5,
       "offset": -22
@@ -125,7 +125,7 @@
     "entry": {
       "inset": 247,
       "width": 10,
-      "bottom": 0.6,
+      "bottom": 3,
       "posts": 4,
       "offset": 12.5
     }

@@ -66,9 +66,9 @@
     "entry": {
       "inset": 247,
       "width": 10,
-      "bottom": 0.6,
+      "bottom": 1.8,
       "posts": 4,
-      "offset": 12.5
+      "offset": 18
     }
   }
 }
