@@ -79,7 +79,7 @@ export class AudioSceneDirector {
   const expected=ownCues===undefined?[]:requireAudioProfile(this.data.samples?.catalogue,'scene loop inventory').loopOrder;
   if(ownCues!==undefined&&expected.length===0)throw new Error('Scene cue bank requires its loop inventory');
   if(ownCues!==undefined)a.onLevelBank(bank=>{ownCues.useBank(bank.cues);},scope);
-  if(music!==undefined){const profile=requireAudioProfile(this.data.music,'scene score'),score=SetScore.declared(profile,music);this.score=score;scope.onDispose(()=>{score.dispose();});scope.onDispose(music.setScore(profile.id,score));a.onLevelBank(bank=>{if(ownCues===undefined||expected.every(id=>bank.cues.loops.has(id)))score.useBank(bank.score);},scope);}
+  if(music!==undefined){const profile=requireAudioProfile(this.data.music,'scene score'),score=SetScore.declared(profile,music,undefined,{styleIndependent:ownCues!==undefined});this.score=score;scope.onDispose(()=>{score.dispose();});scope.onDispose(music.setScore(profile.id,score));a.onLevelBank(bank=>{if(ownCues===undefined||expected.every(id=>bank.cues.loops.has(id)))score.useBank(bank.score);},scope);}
   this.ambience=new SampledAmbience(a,requireAudioProfile(this.data.zones,'scene zones'),ownCues,scope);
   scope.onDispose(()=>{this.ambience?.dispose();this.ambience=null;if(a.hoofSurfaceAt===hoof)a.hoofSurfaceAt=previousHoof;if(a.bedId===voices.rows.bed)a.setAmbient(previousBed);if(animals?.onSound===animalSound){if(previousAnimal===undefined)delete animals.onSound;else Object.defineProperty(animals,'onSound',previousAnimal);}this.audio=null;this.voices=null;this.score=undefined;this.music=undefined;this.thrustPending=false;});
  }

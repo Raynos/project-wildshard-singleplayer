@@ -14,6 +14,8 @@ export type AudioDecode = (bytes: ArrayBuffer) => Promise<AudioBuffer>;
 /** a set's decoded score: every slot's stems and the stings, ready for SetScore to play */
 export interface ScoreBank { slots: Map<string, SlotAudio>; stings: Map<StemSting, AudioBuffer> }
 export interface ScoreSource {
+  /** A self-contained recording set bypasses unrelated preferred-style failures. */
+  readonly styleIndependent?: boolean;
   readonly slots: readonly string[];
   /** The base-style slot used by this source before its scene-specific recordings. */
   readonly base?: string;
@@ -82,18 +84,20 @@ export interface SetScoreOptions<Scene> extends ScoreSet {
   read: AudioRead; decode: AudioDecode; onReady: () => void;
   waitForBank?: boolean;
   /** Admitted minimum crossfade and fallback synth lead; omission keeps Music's existing defaults. */
+  styleIndependent?: boolean;
   minFade?: number; synthLead?: 'pluck' | 'marimba';
 }
 /** One score set; only the playing and wanted slots retain PCM across scene changes. */
 export class SetScore<Scene> implements ScoreSource {
   /** Bind admitted scene defaults and music-state selection to the existing set decoder. */
-  static declared(profile:AudioMusicProfile,music:Pick<Music,'refreshScore'>,io?:{read:AudioRead;decode:AudioDecode}):SetScore<Record<string,number|boolean|string|null>> {
+  static declared(profile:AudioMusicProfile,music:Pick<Music,'refreshScore'>,io?:{read:AudioRead;decode:AudioDecode},policyOptions?:{styleIndependent?:boolean}):SetScore<Record<string,number|boolean|string|null>> {
     const source=profile.source,policy=profile.setPlayback;
     if(source===null||policy===undefined)throw new Error('Missing declared score set');
     const ports=io??{read:(url:string)=>import('./preload').then(({cachedBytes})=>cachedBytes(url)),decode:(bytes:ArrayBuffer)=>import('./preload').then(({decodeBytes})=>decodeBytes(bytes))};
-    return new SetScore({...source,...ports,onReady:()=>{music.refreshScore();},minFade:profile.minFade,synthLead:profile.synthLead,scene:{...policy.scene},waitForBank:policy.waitForBank,
+    return new SetScore({...source,...ports,...policyOptions,onReady:()=>{music.refreshScore();},minFade:profile.minFade,synthLead:profile.synthLead,scene:{...policy.scene},waitForBank:policy.waitForBank,
       pick:(scene,state)=>selectScoreSlots(profile.selection,profile.selectMode,{...scene,...(policy.stateMode?{mode:state?.mode??null}:{})})});
   }
+  readonly styleIndependent: boolean;
   readonly scene: Scene;
   readonly minFade?: number;
   readonly synthLead?: 'pluck' | 'marimba';
@@ -109,6 +113,7 @@ export class SetScore<Scene> implements ScoreSource {
   readonly log: { slot: string; ms: number }[] = [];
   constructor(options: SetScoreOptions<Scene>) {
     this.options = options;
+    this.styleIndependent = options.styleIndependent ?? false;
     if (options.minFade !== undefined) this.minFade = options.minFade;
     if (options.synthLead !== undefined) this.synthLead = options.synthLead;
     this.waitingBoot = options.waitForBank ?? false;

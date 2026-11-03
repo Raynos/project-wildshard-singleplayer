@@ -39,7 +39,7 @@ test('the native scene waits for all six own cue loops, then releases its score 
   try {
     scene.bind(audio, music, undefined, scope);
     if (!(source instanceof SetScore)) throw new Error('Missing native own score');
-    expect(source.pending).toBe(true);
+    expect(source.pending).toBe(true); expect(source.styleIndependent).toBe(true);
     audio.useLevelBank(bank); expect(source.pending).toBe(true);
     const ids = data.samples?.catalogue?.loopOrder; if (ids === undefined) throw new Error('Missing own loop inventory');
     const buffer = new Pcm();
@@ -61,10 +61,12 @@ test('the existing Nalati score catalogue keeps its shared sample overlay withou
   expect(data.samples?.catalogue).toBeUndefined();
   const scope = new Scope('nalati.audio.compatibility'), audio = new Audio(), music = new Music(audio);
   vi.spyOn(music, 'refreshScore').mockImplementation(() => { /* No device opens in this compatibility control. */ });
-  vi.spyOn(music, 'setScore').mockImplementation(() => () => { /* No music deck opens in this compatibility control. */ });
+  let installed: ScoreSource | undefined;
+  vi.spyOn(music, 'setScore').mockImplementation((_id, score) => { installed = score; return () => { installed = undefined; }; });
   const scene = new AudioSceneDirector(data, legacyDouble<Player>({ position: new Vector3(), yaw: 0 }));
   try {
     expect(() => scene.bind(audio, music, undefined, scope)).not.toThrow();
+    expect(installed).toBeInstanceOf(SetScore); expect(installed?.styleIndependent).toBe(false);
     expect(() => audio.useLevelBank({ title: undefined, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } })).not.toThrow();
   } finally { scope.dispose(); }
 });

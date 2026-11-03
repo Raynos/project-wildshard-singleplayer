@@ -731,9 +731,9 @@ export class Music {
   private sync(): void {
     if (!this.rig || !this.playing) return;
     const now = this.rig.ctx.currentTime, genre = this._genre;
-    if (genre === 'synth' || this.failed.has(genre) || this.wantSlot() === null) { this.toSynth(now); return; }
-    this.deck?.setTension(this.tension(), now); // a deck of another slot / genre plays on (at the right level) until the new one is in
     const source = this.state.mode !== 'menu' ? this.scoreSource() : undefined;
+    if (((genre === 'synth' || this.failed.has(genre)) && source?.styleIndependent !== true) || this.wantSlot() === null) { this.toSynth(now); return; }
+    this.deck?.setTension(this.tension(), now); // a deck of another slot / genre plays on (at the right level) until the new one is in
     if (source) {
       const playing = this.deck && source.slots.includes(this.deck.slot) ? this.deck.slot : undefined;
       const a = source.want(playing);
