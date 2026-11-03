@@ -121,7 +121,8 @@ export function installPortalRide(ctx: Pick<ShardContext, 'game' | 'system' | 's
 export async function installDeclaredPortalRide(ctx: ShardContext, input: DeclaredPortalRideRows): Promise<PortalRide> {
   const owner = portalOwner(ctx, ctx), source = ctx.product.shardfile;
   const rows = v.parse(DeclaredPortalRideSchema, input); owner.check();
-  return await installPageRide(ctx, source, rows, ctx);
+  const ride = await installPageRide(ctx, source, rows, ctx);
+  return ride;
 }
 
 async function installPageRide(ctx: Pick<ShardContext, 'game' | 'system' | 'scope'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts | ShardContext): Promise<PortalRide> {
