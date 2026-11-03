@@ -40,15 +40,28 @@ class FailFastTests(unittest.TestCase):
         source = Path('.github/workflows/deploy.yml').read_text()
         prepare = source.split('\n  prepare:\n', 1)[1].split('\n  native-escape:\n', 1)[0]
         generation = 'node scripts/gen.mjs --reuse'
-        # CI7: the fixtures job repeats generation on its own runner only to write
-        # snapshots; prepare alone packs and publishes products.
+        # The fixtures runner publishes constructor inputs and optional snapshots;
+        # prepare alone packs and publishes products.
         fixtures = source.split('\n  fixtures:\n', 1)[1].split('\n  behaviour:\n', 1)[0]
         self.assertEqual(source.count(generation), 2)
         self.assertEqual(prepare.count(generation), 1)
         self.assertEqual(fixtures.count(generation), 1)
         self.assertNotIn('ci-products.py pack', fixtures)
-        self.assertEqual(fixtures.count('actions/upload-artifact'), 1)
-        self.assertIn('name: test-fixtures', fixtures)
+        uploads = re.findall(r'      - uses: actions/upload-artifact@v4\n([\s\S]*?)(?=\n      - |\Z)', fixtures)
+        self.assertEqual(len(uploads), 2)
+        self.assertEqual([re.search(r'          name: (\S+)', upload).group(1)
+                          for upload in uploads], ['native-fixtures', 'test-fixtures'])
+        self.assertIn('path: tmp/ci-native-fixtures/native-fixtures.bundle.json', uploads[0])
+        self.assertIn('path: test-fixtures.tar.zst', uploads[1])
+        for upload in uploads:
+            self.assertIn("if: steps.admission.outputs.run == 'true'", upload)
+            self.assertIn('if-no-files-found: error', upload)
+        publisher = fixtures.split('      - name: Publish source-host native constructor inputs\n', 1)[1].split('      - uses:', 1)[0]
+        self.assertIn('scripts/ci-native-fixtures.mjs build', publisher)
+        self.assertNotIn('continue-on-error', publisher)
+        self.assertNotIn('if !', publisher)
+        self.assertIn('if ! WS_FIXTURE_SNAPSHOT_WRITE=', fixtures)
+        self.assertIn('A fixture snapshot writer failed; shards compute that fixture', fixtures)
         self.assertNotIn('node scripts/build-shardfiles.mjs', prepare)
         self.assertNotIn('node scripts/gen.mjs --inputs-only', prepare)
         self.assertNotIn('  generated-inputs:', source)
