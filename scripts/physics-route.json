@@ -3761,6 +3761,77 @@
   "notes": "OB2: south forecourt to plaza across tile-boundary lanes and canal/pond bridge approaches; a full plaza perimeter at the landmark base, then its south approach. Continuous fixed-step walking, no hovering or per-waypoint teleport."
  }
 ],
+ "open-plot-fossil-badlands": [
+ {
+  "name": "road-avenue-plaza-skeleton",
+  "start": {
+   "x": 0,
+   "z": -245,
+   "y": 0.2,
+   "yaw": 3.141592653589793
+  },
+  "waypoints": [
+   {
+    "x": 0,
+    "z": -220
+   },
+   {
+    "x": 0,
+    "z": -187.5
+   },
+   {
+    "x": 0,
+    "z": -125
+   },
+   {
+    "x": 0,
+    "z": -62.5
+   },
+   {
+    "x": -62.5,
+    "z": -62.5
+   },
+   {
+    "x": -62.5,
+    "z": 0
+   },
+   {
+    "x": -62.5,
+    "z": 62.5
+   },
+   {
+    "x": 0,
+    "z": 62.5
+   },
+   {
+    "x": 62.5,
+    "z": 62.5
+   },
+   {
+    "x": 62.5,
+    "z": 0
+   },
+   {
+    "x": 62.5,
+    "z": -62.5
+   },
+   {
+    "x": 0,
+    "z": -62.5
+   },
+   {
+    "x": 0,
+    "z": -50
+   },
+   {
+    "x": 0,
+    "z": -62.5
+   }
+  ],
+  "timeout": 180,
+  "notes": "OP21: south road entry up the avenue between the mine-cart rails and lanterns, a full plaza perimeter on the tile seams past the dig trenches round the skeleton, then its south approach. Continuous fixed-step walking, no hovering or per-waypoint teleport."
+ }
+],
  "open-plot-patchwork-fairground": [
  {
   "name": "road-avenue-plaza-wheel",
