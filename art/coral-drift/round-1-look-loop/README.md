@@ -38,6 +38,18 @@ goes to Jake. The method and the 9 angles are Lantern Bayou's (`art/lantern-bayo
   scope). Bar 7 (sp-o3's road-entry clip): lamps and black-blinking specks only, hence gulls and no fireflies
   (3221e06306).
 
+## Round 3: capture 583f2b3ae4 (72 views)
+
+- Closed: the arch saturated, the plaza sky a deeper blue, the caustic web over every lagoon, palms on the banks, gulls
+  over the water and no noon specks (bar 7 passes: lamp flicker and gulls, sp-o3 at acc0a955d6).
+- Open: the boards are warmer but still greyer than the targets' bright pale planks under noon light; the road views'
+  sky is the grid's; the lagoons show no sandy floor through the water (a transparent lagoon would be a new material).
+
+## Final board
+
+`final-board.jpg`: four hero angles (road entry, 40 m toward the arch, the plaza, under the arch), each as A before
+(the first build, 02f325dade), B after (round 3, 583f2b3ae4) and C target. This is the board for Jake.
+
 ## Picks (G872, logged)
 
 - **R1** (sp-o2, 2026-11-03, b595178992): gaps 2 and 4, the sky key and fog of gap 1, and the water colour of gap 3.
@@ -46,3 +58,5 @@ goes to Jake. The method and the 9 angles are Lantern Bayou's (`art/lantern-bayo
   saturated sky key and a bluer fog; the bank palms scaled to the trees they replace (the same model, no new bytes).
 - **R3** (sp-o2, 2026-11-03): warmer bleached boards (paving, lanes, plaza, forecourts, court, planks); the gulls and
   firefly removal of 3221e06306. Coral's last round: the final board comes from its capture.
+- **Finish** (sp-o2, 2026-11-03): stop after round 3. The structure, light, life and colour gaps are closed. The
+  boards' last bit of brightness, a visible lagoon floor and the grid's sky are logged as open items, not more rounds.
