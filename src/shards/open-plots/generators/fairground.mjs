@@ -3,9 +3,10 @@
 // gardens and forecourts, retinted by the layout's palette: sand paving, striped stalls); three theme tiles are the fair's
 // own, each a paved border meeting any neighbour ('pppp'):
 //   Q quilt:    a 3 x 3 patchwork of mustard, lavender and clover field squares between box hedges, hay bales on two;
-//   K carousel: the carousel (the `fair` family's variant 0) on a clover lawn in a ring of box hedges, lamps at its corners;
+//   K carousel: the carousel (the `fair` family's variant 0) on a clover lawn in a ring of box hedges, a sunken pool either
+//               side, lamps at its corners;
 //   T big top:  the striped big top (variant 1) on a lawn, its door toward the tile's north edge, hay bales and lamps round it.
-// The entry forecourts carry a helter-skelter (variant 2) either side of the lane. Every model is a kit family (fair,
+// The avenues are lined with striped booths (the kit's stalls), a helter-skelter (variant 2) either side at the road entry. Every model is a kit family (fair,
 // lanterns, trees, stalls), placed only when the layout's kit has it. A fresh morning: no fireflies, no lanterns lit by day.
 import { HALF, INNER, pool } from './kit.mjs';
 import { nightMarketBuilders } from './nightMarket.mjs';
@@ -66,9 +67,32 @@ function quilt(w, p, variant) {
   for (const [x, z, along] of variant % 2 === 0 ? [[-17, 17, 0], [-14, 19, 1], [17, -18, 0], [19, -15, 1], [15, -15, 0]] : [[-18, -17, 1], [-15, -19, 0], [17, 18, 1], [14, 16, 0]]) bale(w, p, x, z, along);
 }
 
-/** K carousel: the carousel on a clover lawn in a ring of box hedges open at the four sides, a lamp on each corner. */
+/** the pools' water below their coping (the canal's level, kit.py BRIDGE['water']) */
+const DEPTH = 0.45;
+/** K's two pools (x0, z0, x1, z1): either side of the carousel, as round 75's quadrants set blue basins beside it */
+const POOLS = [[-24.5, -7, -17, 7], [17, -7, 24.5, 7]];
+
+/** A sunken pool: recessed water, its banks walked with the water on their left so they face it, a white coping, a
+ *  collision skirt. */
+function basin(w, p, [x0, z0, x1, z1]) {
+  w.floor('Water', x0, z0, x1, z1, -DEPTH, p.water);
+  for (const [xa, za, xb, zb] of [[x0, z1, x0, z0], [x0, z0, x1, z0], [x1, z0, x1, z1], [x1, z1, x0, z1]]) {
+    w.quad('Kit', [xa, -DEPTH, za], [xb, -DEPTH, zb], [xb, 0, zb], [xa, 0, za], p.stone);
+  }
+  for (const [a, b] of [[[x0 - 0.5, z0 - 0.5], [x1 + 0.5, z0]], [[x0 - 0.5, z1], [x1 + 0.5, z1 + 0.5]], [[x0 - 0.5, z0], [x0, z1]], [[x1, z0], [x1 + 0.5, z1]]]) {
+    w.box('Kit', [a[0], 0, a[1]], [b[0], 0.3, b[1]], p.stoneTop ?? p.stone);
+  }
+  w.solid([x0, -DEPTH - 0.3, z0], [x1, -DEPTH, z1]);
+}
+
+/** K carousel: the carousel on a clover lawn in a ring of box hedges open at the four sides, a pool either side, a lamp on
+ *  each corner. */
 function carousel(w, p, variant) {
-  w.floor('Kit', -INNER, -INNER, INNER, INNER, 0.04, p.quiltC ?? p.lawn);
+  const lawn = p.quiltC ?? p.lawn, [[a0, b0, a1, b1], [c0, , c1]] = POOLS;
+  w.floor('Kit', -INNER, -INNER, INNER, b0 - 0.5, 0.04, lawn); w.floor('Kit', -INNER, b1 + 0.5, INNER, INNER, 0.04, lawn);
+  w.floor('Kit', -INNER, b0 - 0.5, a0 - 0.5, b1 + 0.5, 0.04, lawn); w.floor('Kit', a1 + 0.5, b0 - 0.5, c0 - 0.5, b1 + 0.5, 0.04, lawn);
+  w.floor('Kit', c1 + 0.5, b0 - 0.5, INNER, b1 + 0.5, 0.04, lawn);
+  for (const rect of POOLS) basin(w, p, rect);
   w.floor('Kit', -10, -10, 10, 10, 0.06, p.paving);
   for (const [x0, z0, x1, z1] of [[-14, -14, -4, -12.6], [4, -14, 14, -12.6], [-14, 12.6, -4, 14], [4, 12.6, 14, 14],
     [-14, -12.6, -12.6, -4], [-14, 4, -12.6, 12.6], [12.6, -12.6, 14, -4], [12.6, 4, 14, 12.6]]) hedge(w, p, x0, z0, x1, z1);
@@ -86,15 +110,33 @@ function bigTop(w, p, variant) {
   for (const x of [-5, 5]) lamp(w, p, x, 14, 0);
 }
 
-/** An entry forecourt's fair dressing: a helter-skelter either side of the road entry's lane, set into the tile's corner
- *  nearest the seam (tile-local: the seam on +x, the road on -z for variant 0; the generator turns the tile). */
-function forecourtFair(w) {
-  ride(w, 2, HALF - 12, -HALF + 12, Math.PI, 3.2, 3.2, 16);
+/** where an avenue's booths stand (plot metres from the plaza along it, either side of the lane) and where the
+ *  helter-skelter pair flanks it at the road entry, short of the entry's 15 m footprint, which must stay clear */
+const BOOTHS = [62, 82, 102, 122, 142, 162, 182], GATE = 205;
+
+/** One of the four avenues from a road entry to the wheel (the seams on x = 0 and z = 0), as round 75's top-down lines
+ *  them: a striped booth either side at each of BOOTHS, its front toward the lane, and the helter-skelter pair at GATE.
+ *  `along(u, off)` is the seam's tile-local point. */
+function avenue(w, side, centre) {
+  const along = (u, off) => (side === 0 ? [u, HALF + off] : [HALF + off, -u]);
+  // the seam's points (u) whose distance along the avenue is one of `list`, on either side of the plaza
+  const at = list => list.flatMap(r => [r, -r]).map(r => (side === 0 ? r - centre[0] : centre[1] - r)).filter(u => u >= -HALF && u < HALF);
+  for (const u of at(BOOTHS)) for (const off of [-6.5, 6.5]) {
+    const [x, z] = along(u, off), yaw = side === 0 ? (off < 0 ? 0 : Math.PI) : (off < 0 ? Math.PI / 2 : -Math.PI / 2);
+    if (w.hasModel('stalls')) w.placeModel('stalls', ((Math.round(u) % 3) + 3) % 3, x, z, { yaw });
+    w.solid([x - 1.6, 0, z - 1.6], [x + 1.6, 2.6, z + 1.6]);
+  }
+  for (const u of at([GATE])) for (const off of [-8.5, 8.5]) { const [x, z] = along(u, off); ride(w, 2, x, z, 0, 3.2, 3.2, 16); }
 }
 
-/** The shared kinds the fair dresses, and Night Market's own letters for them when a layout names none. */
-const DRESS = { forecourt: forecourtFair };
-const SHARED_LETTERS = { G: 'garden', N: 'forecourt', P: 'plaza' };
+/** A lane seam: the shared builders' strings and banners (no fireflies by day), and on the four avenues the booths and
+ *  helter-skelters. */
+function fairLane(shared) {
+  return (w, p, side, centre, ...rest) => {
+    shared?.(noFireflies(w), p, side, centre, ...rest);
+    if ((side === 0 ? centre[1] : centre[0]) + HALF === 0) avenue(noFireflies(w), side, centre);
+  };
+}
 
 /** The far stand-ins (RM11): the field squares' colours, hedges as low green boxes, the rides as coloured blocks. */
 function farFair(w, p, type, variant) {
@@ -105,29 +147,24 @@ function farFair(w, p, type, variant) {
     return;
   }
   w.floor('far', -INNER, -INNER, INNER, INNER, 0.04, type === 'K' ? (p.quiltC ?? p.lawn) : (p.quiltA ?? p.lawn));
-  if (type === 'K') w.box('far', [-6, 0, -6], [6, 7, 6], p.tentRed ?? p.stall);
+  if (type === 'K') { w.box('far', [-6, 0, -6], [6, 7, 6], p.tentRed ?? p.stall); for (const [x0, z0, x1, z1] of POOLS) w.floor('far', x0, z0, x1, z1, 0.06, p.water); }
   else w.box('far', [-8, 0, -10], [8, 9, 6], p.tentWhite ?? p.wall);
 }
 
 const THEME = {
   Q: { build: quilt, far: (w, p, variant) => farFair(w, p, 'Q', variant), sockets: 'pppp' },
-  K: { build: carousel, far: (w, p, variant) => farFair(w, p, 'K', variant), sockets: 'pppp' },
+  K: { build: carousel, far: (w, p, variant) => farFair(w, p, 'K', variant), sockets: 'pppp', water: POOLS },
   T: { build: bigTop, far: (w, p, variant) => farFair(w, p, 'T', variant), sockets: 'pppp' },
 };
 
-/** The fair's builders: a layout's shared letters (Night Market's kinds, `layout.builders`, their forecourts dressed with
- *  helter-skelters) plus Q, K and T, every one drawn without fireflies. */
+/** The fair's builders: a layout's shared letters (Night Market's kinds, `layout.builders`) plus Q, K and T, every one
+ *  drawn without fireflies, and lane seams that line the avenues with booths and the helter-skelter pair. */
 export function patchworkFairgroundBuilders(letters) {
   const shared = nightMarketBuilders(letters);
   for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`patchwork-fairground: letter ${letter} is a theme tile`);
   const tiles = { ...shared.tiles, ...THEME };
-  for (const [letter, kind] of Object.entries(letters ?? SHARED_LETTERS)) {
-    const dress = DRESS[kind], base = tiles[letter];
-    if (dress !== undefined && base !== undefined) tiles[letter] = { ...base, build: (w, p, variant) => { base.build(w, p, variant); dress(w, p, variant); } };
-  }
   const day = Object.fromEntries(Object.entries(tiles).map(([letter, tile]) => [letter, { ...tile, build: (w, ...rest) => tile.build(noFireflies(w), ...rest) }]));
-  const seam = shared.seam === undefined ? undefined : (w, ...rest) => shared.seam(noFireflies(w), ...rest);
-  return { tiles: day, coarseFamilies: new Set([...shared.coarseFamilies, 'fair']), seam };
+  return { tiles: day, coarseFamilies: new Set([...shared.coarseFamilies, 'fair', 'stalls']), seam: fairLane(shared.seam) };
 }
 
 /** Hooks at the generic construction points (tiledPlotCore.mjs): the wheel stands alone on the plaza (no lanterns of its
