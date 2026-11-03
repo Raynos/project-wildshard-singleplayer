@@ -396,6 +396,18 @@
    "outputs": ["public/assets/open-plots/sky-race/landmark.glb", "public/assets/open-plots/sky-race/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/race": {
+   "about": "Floating Island Race's theme kit family (OPEN-PLOTS OP22): a red open-wheel race car, a white pit garage under a blue hipped roof and a five-tier grandstand under a blue canopy in kit.py's format, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/race.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["race.glb"],
+   "copy": [["race.glb", "public/assets/open-plots/kit/race.glb"]],
+   "outputs": ["public/assets/open-plots/kit/race.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
   "open-plots/dig": {
    "about": "Fossil Badlands' theme kit family (OPEN-PLOTS OP21): a canvas dig tent, a timber hand crane with a sling of bones and a sorting table with crates in kit.py's format, retinted by palette slot like open-plots/kit",
    "script": "scripts/blender/open-plots/dig.py",
@@ -455,6 +467,18 @@
    "meshopt": [["landmark.glb", "public/assets/open-plots/alien-plain/landmark.glb"], ["landmark-far.glb", "public/assets/open-plots/alien-plain/landmark-far.glb"]],
    "outputs": ["public/assets/open-plots/alien-plain/landmark.glb", "public/assets/open-plots/alien-plain/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
+  },
+  "open-plots/alien": {
+   "about": "Pastel Alien Plain's theme kit family (OPEN-PLOTS OP20): 0 a crystal cluster of violet and glowing lime crystals on a dark rock, 1 a 20 m faceted dome habitat with a band of lit windows and a lit door, 2 a 7 m dark rock spire split by a glowing lime crack with violet crystals at its foot, 3 a glow plant of deep green leaves with lit tips; retinted by palette slot",
+   "script": "scripts/blender/open-plots/alien.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["alien.glb"],
+   "copy": [["alien.glb", "public/assets/open-plots/kit/alien.glb"]],
+   "outputs": ["public/assets/open-plots/kit/alien.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   },
   "open-plots/lighthouse": {
    "about": "Saltwind Lighthouse's landmark (OPEN-PLOTS OP9): the red-banded lighthouse on its stepped basalt plinth as a script (turned bands and the railing smear in image-to-3D); 40 m, whitewash with three signal-red bands, a black gallery and railing, a cold glass lantern room, a black domed cap, the stair up +Z; one swatch atlas",
