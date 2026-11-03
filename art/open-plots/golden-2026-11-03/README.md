@@ -11,7 +11,23 @@ Eight fixed, repeatable cameras per built plot: the regression set. Each plot fo
 portrait 402×603, phone tier, 2× render scale, 62° horizontal FOV, live clock, muted, through `scripts/browser-lane.sh`.
 Normal grid entry into the plot, the player posed at the view's `player` point (streaming anchor, so the near tiles draw
 at L0), then the free camera (the dome harness's `onLate` override) at `eye` → `look` once the grid's residency settles.
-World = plot-local + `origin` in `cameras.json`. To re-shoot, use the same harness with these numbers.
+World = plot-local + `origin` in `cameras.json`.
+
+**Re-shoot (G998).** One command captures eight views and runs the existing GOLDEN · NOW board with SSIM per view:
+
+```bash
+scripts/browser-lane.sh --max 20 uv run --with pillow --with numpy node \
+  art/open-plots/golden-2026-11-03/capture.mjs --plot=night-market \
+  --base=http://127.0.0.1:4400/ --out=tmp/golden-night-market-new
+```
+
+Use an actual `serve-build.sh` URL. `--out` must be a fresh directory under `./tmp`. With Pillow/NumPy already
+installed, omit `uv run --with pillow --with numpy`; `--python` can select that interpreter. Optional `--sha=<full SHA>`
+checks the served version; HEAD is never the source authority. The wrapper reuses the dome harness camera and
+normal grid entry, waits for residency, checks the physical anchor and emits image hashes plus the source manifest hash.
+After a grid swap, local poses follow the product's actual served cell; `capture.json` records historical and current
+origins. Read all eight rows in `<out>/board/` before a verdict. SSIM is a regression pointer, not the 1–10 art score
+below; the generated board is labelled UNREVIEWED. Golden images and the historical scores stay frozen.
 
 The eight views: 1 road entry, eye level (292 m south on the lane) · 2 40 m over the road · 3 100 m over the southern
 neighbour · 4 top-down (430 m) · 5 plaza facing the landmark (62 m south) · 6 beside the landmark looking up (24 m south;

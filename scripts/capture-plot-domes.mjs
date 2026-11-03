@@ -254,7 +254,7 @@ async function waitForDomeResidency(page) {
 }
 
 /** The returned state is the actual snapshot that passed readiness, not a later CDP read. */
-async function settledCaptureState(page, reader, argument) {
+export async function settledCaptureState(page, reader, argument) {
   const start = Date.now();
   const ready = await page.waitForFunction(settledDomeReadExpression(reader.toString(), argument), undefined, {timeout:180000});
   try { return {state:await ready.jsonValue(),wait:{wallMs:Date.now()-start,pending:[],crossing:'settled',inFlight:0,queued:0}}; }
@@ -262,7 +262,7 @@ async function settledCaptureState(page, reader, argument) {
 }
 
 /** Same world-to-render-origin conversion as the existing hero capture; no scene or streamer mutation. */
-function installDomeCamera() {
+export function installDomeCamera() {
   const api = window.__wildshard, world = api.requireWorld();
   world.freeCamera = true; world.player.keys.clear(); world.game.viewmodel.visible = false;
   world.game.renderer.domElement.dataset.domeCanvas = 'true';
@@ -281,7 +281,7 @@ function installDomeCamera() {
 }
 
 /** Observe completed real draws; never adds a render or a fixed step to manufacture a budget result. */
-async function sampleDomeFrames() {
+export async function sampleDomeFrames() {
   const game = window.__wildshard.requireWorld().game, start = performance.now(), rows = [];
   let previous = game.frameCount;
   while (rows.length < 120) {

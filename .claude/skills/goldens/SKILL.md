@@ -83,11 +83,17 @@ python3 .claude/skills/goldens/board.py --shard $SLUG --now $RUN/raw --out $RUN/
 
 ## Open plots (8 views a plot)
 
-Set: `art/open-plots/golden-2026-11-03/<plot>/` (`<n>-<view>.jpg`, `cameras.json`). There is no committed re-shoot
-script yet: shoot each view with the free-camera harness the set's README describes (`scripts/capture-plot-domes.mjs`'s
-`onLate` camera at `world.eye` → `world.look`, `world.fov`, player at `player`, 402 × 603 portrait), save
-`$RUN/raw/<plot>/<n>-<view>.png`, then `board.py --plot <plot> --now $RUN/raw --out $RUN/board`. Commit the script you
-wrote beside the set so the next run is one command.
+Set: `art/open-plots/golden-2026-11-03/<plot>/` (`<n>-<view>.jpg`, `cameras.json`). One command captures eight views
+and builds the scored GOLDEN · NOW board (Python needs Pillow and NumPy; `--python` selects its interpreter):
+
+```bash
+scripts/browser-lane.sh --max 20 node art/open-plots/golden-2026-11-03/capture.mjs \
+  --plot=night-market --base=$URL --out=$RUN
+```
+
+`$RUN` must be a new directory under `./tmp`. Frames: `$RUN/raw/<plot>/<n>-<view>.png`; rows and board: `$RUN/board/`.
+The dome harness supplies the free camera and settled residency reader. Plot-local poses follow the current served
+cell, with old and new grid origins in `capture.json`. Read every row; `UNREVIEWED` and SSIM never mean green.
 
 ## Is shard X ready for QA? (plan agent)
 

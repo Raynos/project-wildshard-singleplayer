@@ -78,10 +78,13 @@ never updates a golden. LEGACY goldens are never updated.
 ## Open plots
 
 The 8 views per plot are the regression set for every open-plot change (kit, landmark, layout, generators, plot sky).
-There is **no committed re-shoot script yet**: re-shoot with the free-camera harness the plot README describes
-(the dome harness's `onLate` override, `scripts/capture-plot-domes.mjs`, at `cameras.json`'s `world.eye` / `look` /
-`fov` with the player at `player`), name frames `<n>-<view>.png`, then `board.py --plot <plot>`. The first lane that
-re-shoots a plot commits the script beside the set.
+Run the committed wrapper through a browser lane:
+`scripts/browser-lane.sh --max 20 node art/open-plots/golden-2026-11-03/capture.mjs --plot=<plot> --base=<preview URL> --out=tmp/<new run>`.
+It reuses the dome harness's `onLate` camera, real grid entry and settled residency reader, captures all eight views,
+then runs `board.py --plot <plot>` for the scored GOLDEN · NOW board and individual rows. Python needs Pillow and
+NumPy (`--python=<interpreter>`). Frames and receipts stay under the new run; read every row before a verdict.
+The manifest's local eye, look and player pose follow the plot's **served cell** after grid moves; its historical world
+coordinates remain checked provenance, and `capture.json` records both origins. No forced residency or golden writes.
 
 ## The plan agent's duty
 
