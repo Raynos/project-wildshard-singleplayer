@@ -74,6 +74,7 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
     <div class="chip"><b>v1 plan</b><span><span class="tag wait">parked</span> K0 done, nothing built</span></div>
     <div class="chip"><b>Shard audit</b><span><span class="tag done">done</span> 6 shards + host catalogue</span></div>
     <div class="chip"><b>Plans mined</b><span><span class="tag done">done</span> ~35 ideas</span></div>
+    <div class="chip"><b>Wave 1 host audit</b><span><span class="tag wait">running</span> what hosts must exist first</span></div>
     <div class="chip"><b>Grey blockout</b><span><span class="tag wait">running</span> does it fit in 500 m?</span></div>
     <div class="chip"><b>Jake's pass</b><span><span class="tag wait">in progress</span> core kept, water skipped</span></div>
   </div>
@@ -85,6 +86,14 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
     <tr><th>Date</th><th>Decision</th></tr>
     <tr><td class="n">11-02</td><td><b>The cell stays 500 × 500 m.</b> The size is fixed; the job is to fit as much as we can by being strategic (stacking, interiors, shared spaces).</td></tr>
     <tr><td class="n">11-02</td><td><b>The look stays the dev map</b> (orange and grey, stencilled labels, 1 m grid; G523). OPEN-PLOTS' teal-expo line for this plot now points at KITCHEN-SINK.</td></tr>
+    <tr><td class="n">11-02</td><td><b>v2 runs in two waves.</b> Wave 1 front-loads every engine, game and host change the showcase needs: new hosts through the host bar, making single-shard hosts generic, cleanup from HOST-AUDIT and other plans, and removing custom JSON from shardfiles (all approved). Wave 2 builds the showcase on top, with no host work left.</td></tr>
+    <tr><td class="n">11-02</td><td><b>West half is non-combat, east half is combat only.</b> West: hub, quest givers, vendors, a kill-contract board, the weapon practice range (nothing hostile), the hoverboard playground, the grapple tower and zipline, the movers park and lifts, the riding course. East: every enemy, the mini-bosses and the boss.</td></tr>
+    <tr><td class="n">11-02</td><td><b>Guild Wars-style levels 1 to 20.</b> You arrive at level 1 and gain XP only from kills. Player and enemies share at most 8 attributes. 6+ enemy types in bands 1–3, 4–6, 7–9, 10–12, 13–15, 16–18; mini-bosses at 6, 12 and 18; the boss at 20 is the final quest. Real combat maths replaces fixed damage. <span class="tag wait">system design running</span></td></tr>
+    <tr><td class="n">11-02</td><td><b>Quests come from several NPCs</b>, plus a simple contract board with kill contracts for the enemies, mini-bosses and boss.</td></tr>
+    <tr><td class="n">11-02</td><td><b>The creature pen, taming and mounts are cut.</b></td></tr>
+    <tr><td class="n">11-02</td><td><b>Storm hour:</b> one chain step turns the whole cell to an evening storm until the beacons are lit. No per-zone weather.</td></tr>
+    <tr><td class="n">11-02</td><td><b>In:</b> checkpoint cards per chain leg; crates and loot chests. <b>Out:</b> happenings, time trials, thin ice, glide shaft, daily seed. <b>Not yet:</b> tooling demos (third-person camera, landscape, loading screen, Explore tabs).</td></tr>
+    <tr><td class="n">11-02</td><td><b>Every shard gets a shard-complete card</b>, and a shardfile validator requires it.</td></tr>
     <tr><td class="n">11-02</td><td><b>Jake picks the additions himself.</b> The lists below are the menu; his picks so far are in the next section.</td></tr>
   </table>
 </section>
@@ -95,16 +104,39 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
   <ul>
     <li>Quests, dialogue, vendor</li>
     <li>Sword, spear, bow, crossbow, <b>plus the gun</b> (the gun already exists)</li>
-    <li><b>Mounts only, no taming</b>; riding course</li>
+    <li>Riding course (west half); <s>mounts and taming</s> cut with the creature pen</li>
     <li>Movers and lifts; grapple and zipline; stealth</li>
     <li>Elites, waves, boss</li>
     <li>Weather, day/night</li>
     <li>Physics props, hoverboard, pressure plates</li>
     <li>Portal vault <b>if it fits</b></li>
+    <li><b>Economy:</b> currency and an upgrade shop behind the vendor</li>
+    <li>Collectibles that pay perks; trophies; a pack inventory</li>
+    <li>Skins and finishes as elite drops; a legendary weapon from the boss</li>
+    <li>Feats and achievements with joke titles ("100 %"); the FINDS tab</li>
+    <li><b>Weapons:</b> the lever rifle; crossbow ammo types (iron, pitch, broadhead)</li>
+    <li>Sword combo and parry (Nine Dragon's), if the engine has them: build them in</li>
+    <li>Night-only enemies</li>
+    <li>Ladders, scramble climbs, swaying rope bridges, a cave or dungeon interior, <b>where they fit the mockups and the layout</b></li>
+    <li>The vistas and secrets ring (bench views, squeeze caves, hidden caches)</li>
+    <li><b>An in-engine cutscene for the boss intro</b></li>
+    <li>A mini dungeon / shrine room: <a href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ" style="color:var(--orange)">explainer and 10 mockups</a> <span class="tag wait">Jake to decide</span></li>
+    <li><b>Full audio:</b> a music plan, an SFX plan, zone ambience, mini-boss (elite) music, boss music, stings. It is the kitchen sink, so it gets all of it</li>
   </ul>
   <h3>Skipped</h3>
   <ul>
-    <li>Swimming, diving, boats (so no water zone)</li>
+    <li>Swimming, diving, boats (so no water zone); the canoe ferry; the dam and sluice puzzle</li>
+    <li><s>Contracts board</s>: back in as a simple kill-contract board</li>
+    <li>War fan GUST; bullwhip; mounted combat</li>
+    <li>Taming, mounts, the creature pen; herd life</li>
+    <li>Lightning; hover-only bridges</li>
+    <li>Kokpar (Nalati's own)</li>
+  </ul>
+  <h3>Generic, not showcase content</h3>
+  <ul>
+    <li><b>Every shard needs a shard-complete card</b>, enforced by a shardfile validator. The card exists (src/game/complete/ShardComplete.ts, rows in src/format/completion.ts), but only Driftwood seems to declare it and nothing requires it. <span class="tag gap">add the validator</span></li>
+    <li><b>The "Killed by…" card</b> belongs in the engine. It is already there (src/engine/ui/HurtArc.ts; a shard can name the verb, e.g. "Gored by"). <span class="tag done">exists</span></li>
+    <li><b>Respawn at the last discovered place</b> belongs in the game layer. It is already there (src/game/LastPlace.ts, wired in session/play.ts for every shard with named places). <span class="tag done">exists</span></li>
   </ul>
 </section>
 
@@ -216,6 +248,19 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
     <li>Detailed loading screen for everyone <span class="tag src">October backlog OB8</span></li>
     <li>Explore tabs: Beats (PLAY FROM HERE), Coverage, Composition <span class="tag src">WorldClaw Tools</span></li>
     <li>Bot or AI playtest across the 9-step chain <span class="tag src">Shard Platform Next</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>WAVE 1 DRAFT: HOST WORK FIRST</h2>
+  <p>About 380 h (~48 lane-days), measured before the levels system was added. Most picked features already have a host. The work is moving hosts out of the plugin scaffolding, generalising one-shard schemas, and building what's missing.</p>
+  <ul>
+    <li><b>First:</b> make the host ruler honest (HOST-AUDIT HA0, HA1, HA5), so "0 % custom TS" means something.</li>
+    <li><b>Missing, to build:</b> conveyor and jump pad, trick scoring, see-saw, scramble climb, parry, the cutscene timeline (IN-GAME-CUTSCENES IC1–IC4), the completion validator, and now levels, attributes and XP.</li>
+    <li><b>To generalise:</b> an interactables section (benches, chests, doors, plates) to replace Driftwood's own JSON; held weapons (the schema is Pine-shaped); one boss path instead of four; weather kinds still named "forest"; a generic interior split from Pine's forest page; a given-mount row with no taming.</li>
+    <li><b>To move out of the plugin:</b> movers, the wave director, firearms.</li>
+    <li><b>Folds in:</b> HOST-AUDIT HA0/1/4/5 and H110; custom sections CS5–CS8; SHARD-PLATFORM-NEXT N2/N5 slices; BURN-DAMAGE D53.</li>
+    <li><span class="tag gap">riskiest</span> boss unification plus cutscenes; moving firearms and movers out of the plugin; the completion validator (backfill every shard first, then turn the rule on).</li>
   </ul>
 </section>
 
