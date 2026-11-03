@@ -384,3 +384,34 @@ One panel of four, asked with the question tool. Option 1 is always "Skip for no
 
    *Why:* the five will out-class it. One row (Opus 1 d, Codex 0.5 d) keeps the reference plot from becoming the
    worst on the grid.
+
+### OB2 reusable Codex additions
+
+G979 track 2, sp-x1, atop X2’s OP2 `fc404c48b1`: one authoring CLI
+(`scripts/open-plots/ob2.mjs`) and typed API prepare the pilot’s audio
+rows, measure the road-entry clip, compose its comparison board and
+export the existing verified per-tile report. See
+[the tool guide](../../../scripts/open-plots/OB2.md).
+
+**2026-11-03: the four reusable tools are done on unit/type/lint checks.**
+Three focused suites / **24 cases PASS in 8.0 s**, including exact motion
+pixel counts and false-source/camera/lossy-image refusals, the real
+five-second synthetic capture-port check, labelled JPEG generation and
+unaltered native tiling/ownership controls. Root and scripts types and
+named typed lint pass, including the declaration file. The 1206 × 2622
+synthetic board was viewed and stays under 500,000 B. The actual audio
+CLI smoke passes and emits the inert six-asset packet. No browser, app
+build, shared publisher or native world is needed to land these tools.
+Actual pilot capture/build/readings stay queued after PF13; these
+controls do not qualify those live bars.
+
+The audio packet remains inert until OB7 supplies assets, credits,
+loop metadata and native catalogue binding. The life report counts
+exact RGB changes in two or more owner-declared disjoint regions over
+eleven lossless samples; it does not infer system identity or replace
+the owner’s visible-life read. Four matching plot-local cameras form
+the MOCKUP / PLOT NOW / NIGHT MARKET NOW portrait board, at most 500 KB.
+Tiling uses ordinary CURRENT product admission and the existing strict
+NT7 reader; missing products refuse without generation. None of these
+tool controls grants the still-open pilot’s audio, motion, art, phone
+performance or walk qualification.

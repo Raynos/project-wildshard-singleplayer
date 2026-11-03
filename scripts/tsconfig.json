@@ -45,6 +45,7 @@
     "preparation-cache-key.mjs",
     "author-bundle-usage.mjs",
     "generation-cache-prune.mjs",
-    "ci-product-cache.mjs"
+    "ci-product-cache.mjs",
+    "open-plots/ob2.mjs"
   ]
 }
