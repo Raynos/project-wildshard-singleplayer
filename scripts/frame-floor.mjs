@@ -476,6 +476,9 @@ async function standingSample(driver, pose) {
   const cpuProfile = raw === undefined ? undefined : summarizeTravelProfile(raw, started, await driver.evaluate('window.__frameFloorLongTasks ?? []'), pose.name);
   const scriptProfile = script === undefined ? undefined : await saveSafariProfile(pose.name, script, result.sampleRange);
   const { glFrames, ...value } = result;
+  // Detached logical pool capacity after timing, never a physical-residency
+  // estimate. Older app pins remain null; no constructor observer is needed.
+  const scriptMemoryPool = await driver.evaluate(SCRIPT_MEMORY_POOL);
   // Fixed grid poses retain the actual assembly after timing, so a junction
   // reading can prove its pitch/neighbours without another browser or scene walk.
   const gridContext = suppliedStanding === null ? undefined : await driver.evaluate(`(() => {
@@ -485,7 +488,7 @@ async function standingSample(driver, pose) {
     return { pitch: grid.pitch, home: grid.home, cells: grid.cells,
       current: live?.current ?? null, residents: live?.residents ?? [], pending: live?.pending ?? [], crossing: grid.live?.crossing?.phase ?? null };
   })()`);
-  return { pose, ...value, ...assess(value, surface), ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, []) }),
+  return { pose, ...value, ...assess(value, surface), scriptMemoryPool, ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, []) }),
     ...(gridContext === undefined ? {} : {gridContext}),
     ...(cpuProfile === undefined ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }) };
 }
