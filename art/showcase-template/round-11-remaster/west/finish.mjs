@@ -1,5 +1,6 @@
 // Burn the caption strip onto each picked remaster: node art/showcase-template/round-11-remaster/west/finish.mjs [id,...]
-// Reads tmp/ks-remaster-west/out/<id><pick>.png (pick from shots.json "pick", default ""), writes <id>.jpg here (<= 250 KB):
+// v2: reads tmp/ks-remaster-west-v2/out/<id>-<pick>.png (pick from shots.json "pick"), writes <id>.jpg here (<= 250 KB);
+// shots with "keep": "v1" (Jake kept the v1 frame) are skipped. The strip:
 // a dark strip on top with "<ID> · <title>" and the one-line caption, then the 1024 x 1536 frame.
 import { readFileSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -7,10 +8,10 @@ import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const out = resolve(here, '../../../../tmp/ks-remaster-west/out');
+const out = resolve(here, '../../../../tmp/ks-remaster-west-v2/out');
 const only = process.argv[2]?.split(',');
 for (const s of JSON.parse(readFileSync(join(here, 'shots.json'), 'utf8')).shots) {
-  if (only && !only.includes(s.id)) continue;
+  if ((only && !only.includes(s.id)) || s.keep === 'v1') continue;
   const src = join(out, `${s.id}${s.pick ? '-' + s.pick : ''}.png`), dst = join(here, `${s.id}.jpg`);
   for (let q = 82; ; q -= 6) {
     execFileSync('magick', [
