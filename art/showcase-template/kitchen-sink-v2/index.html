@@ -47,7 +47,7 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
 figure { margin: 0; display: grid; gap: 6px; }
 a { color: var(--orange); }
 .meter { height: 14px; background: var(--floor); border: 1px solid var(--line); }
-.meter > div { height: 100%; width: 92%; background: var(--good); }
+.meter > div { height: 100%; width: 96%; background: var(--good); }
 .open { border-left-color: var(--warn); }
 .open h2 { color: var(--warn); }
 </style>
@@ -58,8 +58,8 @@ a { color: var(--orange); }
   <h1>KITCHEN SINK v2</h1>
   <div class="sub">The Showcase Template (Template 3) · docs/plans/KITCHEN-SINK.md · planning, nothing built · 2026-11-03</div>
   <p>A levelled, MMO-style test shard in the orange-and-grey dev-map look. Every engine feature in one 500 × 500 m cell, built only from shared hosts, data rows and AssemblyScript. You arrive at level 1 and grind to a level-20 boss.</p>
-  <div class="meter" aria-label="Plan about 92 percent decided"><div></div></div>
-  <div class="sub">Plan ≈ 92 % decided. Open: the attribute list beyond VIT, STR, DEX and AGI (study running); the other attributes' growth curves (Wave 1 design pass).</div>
+  <div class="meter" aria-label="Plan about 96 percent decided"><div></div></div>
+  <div class="sub">Plan ≈ 96 % decided. Levels, attributes and the combat maths are locked. In progress: all 40 mockups remastered from the grey blockout.</div>
 </header>
 
 <section>
@@ -78,11 +78,12 @@ a { color: var(--orange); }
 <section>
   <h2>LEVELS AND YOUR CHARACTER</h2>
   <ul>
-    <li><b>Levels 1–20, per shard.</b> Each shard keeps its own level; the road and every new shard start you at 1. Other shards run at level 1 with levels hidden, for now.</li>
+    <li><b>Levels 1–20, per shard.</b> Each shard keeps its own level; the road and every new shard start you at 1. Only the showcase has levels: the other shards keep today's flat damage, stats and HP, and get upgraded later.</li>
     <li><b>XP only from kills.</b> An enemy pays 10 × its level, less when it's below you, nothing at 6 under. The XP to the next level grows ×1.618 a level (RuneScape's curve squeezed into 20): 10 kills for level 2, ~110 for 11→12, ~3,000 for 19→20. About 60 h to level 20.</li>
     <li><b>Attributes grow automatically.</b> Each shard rolls you a new character with a balanced aptitude spread: some strong attributes, some weak, never a worse total. Each level-up rolls average step × aptitude × a swing, so late levels can jump +10 or more. Each attribute has a cap just above its average.</li>
-    <li><b>Attributes so far:</b> VIT = HP (100 → 300 on average at +6 % a level, cap 330) · STR = melee damage · DEX = ranged damage, hit chance for every weapon, melee crit · AGI = dodge, ranged crit.</li>
-    <li><b>Death</b> costs 25 % of the level's XP and never delevels. <b>No mid-fight heals</b>; regen only out of combat.</li>
+    <li><b>Seven attributes</b> (average L1 → L20, cap): <b>VIT</b> = your HP, 100 → 600 (660) · <b>STR</b> melee damage and stagger, 20 → 120 (132) · <b>DEX</b> ranged damage, landing hits with every weapon, melee crits, 20 → 120 · <b>AGI</b> dodging and ranged crits, front-loaded 20 → 80 · <b>DEF</b> armour and deflects, linear 20 → 80 · <b>MDEF</b> resists burn, shock and blast, a late bloomer 10 → 80 · <b>LUK</b> crit size and lucky saves, 10 → 20.</li>
+    <li><b>Level-up never stops a fight.</b> In combat: a ring, a sting, the LV chip flips, a one-line gain chip, and your HP refills. The full tick-up card, each gain in turn, waits until you're out of combat. The Character tab shows your attributes against par, your strong ▲ and weak ▼ ones, and the derived numbers.</li>
+    <li><b>Death</b> costs 25 % of the level's XP and never delevels. <b>No mid-fight heals</b>; out of combat (5 s after the last hit) HP refills in 12 s. Enemies that lose you walk home and reset.</li>
   </ul>
 </section>
 
@@ -91,7 +92,10 @@ a { color: var(--orange); }
   <ul>
     <li><b>Weapons</b> are bought at a level-locked weapons shop: sword with combo and parry, spear, bow, crossbow with iron, pitch and broadhead ammo, lever rifle. Forge I–IV upgrades raise every weapon.</li>
     <li><b>Real dice.</b> 12 % of attacks fail at equal level, rising to 90 % when the target is 8 levels above you. No streak guard. Enemies fail against you by the same rules.</li>
-    <li><b>A failed hit is something the enemy did:</b> a DEFLECT (sparks, clang, recoil), a DODGE (it slips aside) or a PARRY. "MISS" means only a shot you aimed wrong. Hits show grey glances, white hits, orange crits.</li>
+    <li><b>A failed hit is something the enemy did:</b> a DEFLECT (sparks, clang, recoil), a DODGE (it slips aside) or a PARRY. "MISS" means only a shot you aimed wrong. Floating numbers: white hits, big yellow crits, small grey glances, the words on fails.</li>
+    <li><b>The maths (WoW-classic style):</b> damage = weapon × Forge × STR or DEX × K / (K + armour), so armour takes a share and never walls you. DEX against AGI nudges the fail roll by up to 8 points. Crits 10 % base, up to 40 %, ×1.6–1.7. Lucky saves (2–4 %) flip a fail either way. Above your level, up to 40 % of hits glance for half.</li>
+    <li><b>Pacing:</b> a common at your level dies in ~7 swings (~9 s) and kills you in ~11 hits; +3 levels is a coin flip, +6 a loss. Elites ~1 min, the Titan ~3.5 min. Ranged does ~10 % less damage a second than melee.</li>
+    <li><b>Skill on top:</b> a timed parry (0.15 s) cancels a hit and makes your next hit a crit. Hits fill an enemy's stagger bar (STR fills it faster) for a 1.5 s stun. Energy hits burn, shock or knock back.</li>
     <li><b>HUD:</b> a bottom XP bar with an LV chip; nameplates within 25 m, coloured by level gap; a read-only Character tab. An enemy cap keeps the phone smooth: full AI within 60 m, at most 16 animated.</li>
   </ul>
 </section>
@@ -101,7 +105,7 @@ a { color: var(--orange); }
   <div class="scroll"><table>
     <tr><th>Tier</th><th>Who</th></tr>
     <tr><td>Commons</td><td>Crate Mite L1–3 · Pallet Jack L4–6 · Plumb Drone L7–9 · Welder Unit L10–12 · Riveter L13–15 · Arc Sentry L16–18. At night and in storms each swaps to a night-shift variant (+1 level). Packs respawn ~90 s after you leave.</td></tr>
-    <tr><td>Rare variants</td><td>Spawn at random among the commons: uncommon 8 % (+1 level), rare 2 % (+2 levels, a trophy).</td></tr>
+    <tr><td>Rare variants</td><td>Spawn at random among the commons: uncommon 8 % (+1 level), rare 2 % (+2 levels). Uncommons have ×1.5 HP, rares ×2.5 and always drop a part. Each species' stats are fixed; only you roll.</td></tr>
     <tr><td>Elites</td><td>Big Pallet L6 · the Vault Warden L12 (inside the Training Vault) · Foreman Unit 7 L18 (the gauntlet finale) · night elites Sir Nibbles, Hot Mess, Riveting Rita.</td></tr>
     <tr><td>Boss</td><td>The Crate Titan L20: three phases and a cutscene intro that plays the first time (skippable); drops the Titan Cleaver sword.</td></tr>
   </table></div>
@@ -132,15 +136,15 @@ a { color: var(--orange); }
 
 <section>
   <h2>DETAIL PAGES</h2>
-  <p><a href="https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj">Mockups (40)</a> · <a href="https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf">XP Curve and Growth</a> · <a href="https://claude.ai/artifact/R7BU7ErLT9Vi5wkYd3EsZR">How a Miss Feels</a> · <a href="https://claude.ai/artifact/BEQrDR1Ti1WUyY7pVRphYR">Loot and Economy</a> · <a href="https://claude.ai/artifact/X1RZboFagn5EuHpQXkdWG5">Enemy Tiers</a> · <a href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ">Mini Dungeon</a> · <a href="https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s">Levels 1 to 20 (first draft, partly superseded)</a></p>
+  <p><a href="https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj">Mockups (40, being remastered from the blockout)</a> · <a href="https://claude.ai/artifact/YAVYVe7uPQ3GNxTiFL7B6y">Combat Maths</a> · <a href="https://claude.ai/artifact/1vKjyhEmkmRQCV4vFNuXEq">Attributes</a> · <a href="https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf">XP Curve and Growth</a> · <a href="https://claude.ai/artifact/R7BU7ErLT9Vi5wkYd3EsZR">How a Miss Feels</a> · <a href="https://claude.ai/artifact/BEQrDR1Ti1WUyY7pVRphYR">Loot and Economy</a> · <a href="https://claude.ai/artifact/X1RZboFagn5EuHpQXkdWG5">Enemy Tiers</a> · <a href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ">Mini Dungeon</a> · <a href="https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s">Levels 1 to 20 (first draft, partly superseded)</a></p>
   <p class="sub">Mini plans: docs/plans/kitchen-sink-v2/ (levels-combat, loot-economy, enemies-bosses, quests-contracts, hud-character, audio, mini-dungeon, map-layout, wave-1-hosts, wave-1-migration-map, STATE).</p>
 </section>
 
 <section class="open">
   <h2>STILL OPEN</h2>
   <ul>
-    <li>Whether a fifth attribute earns a place (a source of armour and deflects), or armour comes from Forge tiers and level. The 20-game attributes study is running.</li>
-    <li>The average curves and caps for STR, DEX and AGI, tuned the way VIT was. That's part of Wave 1's levels design pass.</li>
+    <li>Loot may be revisited (you called it under-thought).</li>
+    <li>The hover park's ramps read flat at eye height; a later blockout pass can raise them.</li>
   </ul>
 </section>
 </main>
