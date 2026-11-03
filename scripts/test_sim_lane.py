@@ -77,6 +77,9 @@ elif args[1]=='boot':
     if code==0: booted.touch()
     sys.exit(code)
 elif args[1]=='bootstatus':
+    if os.environ.get('SIM_STATUS_OUTPUT'):
+        payload=b'Native migration progress\\n'*8192
+        os.write(1,payload);os.write(2,payload)
     print('Finished',flush=True)
     if os.environ.get('SIM_STATUS_HANG'): time.sleep(30)
     sys.exit(int(os.environ.get('SIM_STATUS_RC','0')))
@@ -452,6 +455,31 @@ else:
         self.assertLess(time.monotonic() - started, 5)
         self.assertFalse((self.root / 'safari-launched').exists())
         self.assertFalse((self.root / 'safari-rendered').exists())
+        self.assert_not_handed_over()
+
+    def test_bootstatus_does_not_wait_for_the_console_to_drain(self):
+        receipt = self.root / 'preparation.json'
+        program = ('import runpy,sys; helpers=runpy.run_path(sys.argv[1]); '
+                   'sys.exit(helpers["wait_for_bootstatus"](sys.argv[2], 1))')
+        # No reader drains stderr until the helper exits. Native progress
+        # exceeds the console pipe capacity on both output descriptors.
+        child = subprocess.Popen([PYTHON, '-c', program,
+            str(ROOT / 'scripts/sim-safari-ready.py'), UDID],
+            env={**self.env, 'SIM_STATUS_OUTPUT': '1',
+                 'PHONE_SIMULATOR_PREPARATION': str(receipt)},
+            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        try:
+            code = child.wait(timeout=5)
+        finally:
+            if child.poll() is None:
+                child.kill()
+            _, errors = child.communicate(timeout=5)
+        self.assertEqual(code, 0, errors)
+        self.assertLess(len(errors), 2048)
+        transcript = receipt.with_suffix('.bootstatus.log').read_text()
+        self.assertGreater(len(transcript), 256*1024)
+        self.assertTrue(transcript.endswith('Finished\n'))
+        self.assertFalse((self.root / 'safari-launched').exists())
         self.assert_not_handed_over()
 
     def test_helper_imports_spend_the_original_bootstatus_budget(self):

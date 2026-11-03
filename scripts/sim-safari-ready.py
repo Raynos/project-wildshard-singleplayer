@@ -53,6 +53,31 @@ def native_text(stream):
     return os.pread(stream.fileno(), os.fstat(stream.fileno()).st_size, 0).decode(errors='replace')
 
 
+@contextmanager
+def bootstatus_transcript():
+    # Verbose native migration output must not wait for the Actions console
+    # (Node -> tee -> runner) to drain. Retain both descriptors in the existing
+    # preparation artifact; only the native exit can satisfy the prerequisite.
+    preparation = os.environ.get('PHONE_SIMULATOR_PREPARATION')
+    if preparation:
+        path = Path(preparation).with_suffix('.bootstatus.log')
+        path.parent.mkdir(parents=True, exist_ok=True)
+        print(f'sim-lane: native bootstatus transcript {path}', file=sys.stderr, flush=True)
+        with path.open('w+b') as stream:
+            yield stream
+    else:
+        with native_transcript() as stream:
+            try:
+                yield stream
+            finally:
+                # Interactive callers keep a bounded diagnostic tail. Never
+                # copy an unbounded native transcript back into the pipe.
+                size = os.fstat(stream.fileno()).st_size
+                tail = os.pread(stream.fileno(), min(size, 2048), max(0, size - 2048))
+                if tail:
+                    print(tail.decode(errors='replace'), file=sys.stderr, flush=True)
+
+
 def owned_launch_pid(text):
     """A complete PID receipt from our exact UDID-bound launch command.
 
@@ -721,8 +746,12 @@ def wait_for_bootstatus(udid, remaining):
     started = time.monotonic()
     print('sim-lane: device bootstatus started', file=sys.stderr, flush=True)
     try:
-        result = subprocess.run([*SIMCTL_COMMAND, 'bootstatus', udid, '-b', '-d'],
-                                stdout=sys.stderr, timeout=budget, check=False)
+        with bootstatus_transcript() as transcript:
+            budget = deadline - time.monotonic()
+            if budget <= 0:
+                return 75
+            result = subprocess.run([*SIMCTL_COMMAND, 'bootstatus', udid, '-b', '-d'],
+                                    stdout=transcript, stderr=transcript, timeout=budget, check=False)
         code = result.returncode if result.returncode >= 0 else 128 - result.returncode
         if code == 0 and time.monotonic() >= deadline:
             print('sim-lane: bootstatus success observed after admission deadline', file=sys.stderr, flush=True)
