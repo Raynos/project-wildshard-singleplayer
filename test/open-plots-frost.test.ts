@@ -28,6 +28,11 @@ const cable=new Soup(),lift=liftPlacements({stations:[[40,0,30],[8,54,6]],towers
 assert.deepEqual(lift.map(row=>row.variant).sort(),[0,0,0,...Array(12).fill(1),2,2],'two stations, three towers, twelve chairs');
 assert.ok(lift.every(row=>row.at.every(Number.isFinite)&&Number.isFinite(row.yaw)));
 assert.equal(cable.part('Kit').positions.length/9,2*4*4,'two cables of four spans, four triangles a span');
+// a tower that gives its sheaves' height stands scaled to it, and the cable passes over it there
+const tall=new Soup(),high=liftPlacements({stations:[[48,0,0],[16,60.1,0]],towers:[[21,38.8,0,22],[30,25.4,0],[38,11.8,0]],chairs:12},tall,[0.1,0.1,0.1]);
+assert.deepEqual(high.filter(row=>row.variant===0).map(row=>+row.scale.toFixed(3)),[+(22/11.9).toFixed(3),1,1]);
+assert.ok(high.filter(row=>row.variant===0).every(row=>row.at.length===3));
+assert.ok(tall.part('Kit').positions.some((v,i)=>i%3===1&&Math.abs(v-(38.8+22))<0.1),'the cable rides the tall tower at 60.8 m');
 console.log('ok');`;
   expect(execFileSync(process.execPath, ['--input-type=module', '-e', program], { encoding: 'utf8' }).trim()).toBe('ok');
 });

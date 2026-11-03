@@ -100,15 +100,19 @@ export function frostlineBuilders(letters) {
 /** The chair lift's placements and cable (the layout's `landmark.lift`: `stations` [bottom, top] and `towers` as
  *  [x, y, z] plot metres on the peak's surface, `chairs` a line): the kit's `lift` stations and towers turned across the
  *  line, its chairs hung at their grips along the up and down cables, 1.8 m either side of the line, which sag 12 m over
- *  the towers' feet between them. Returns the placements; the cables are written into `cable` (the Kit soup). */
+ *  the towers' feet between them. A tower may give its sheaves' height as a fourth number (the kit's tower is 11.9 m;
+ *  OB3: the first tower below Frostline's lodge terrace stands 22 m, so the cable clears the cliff lip), scaled to it.
+ *  Returns the placements; the cables are written into `cable` (the Kit soup). */
+/** the kit's lift tower: its sheaves' height (m) at scale 1 */
+const TOWER = 11.9;
 export function liftPlacements(lift, cable, colour) {
   const { stations, towers, chairs = 12 } = lift, line = [stations[0], ...towers, stations[1]];
   const [[x0, , z0], [x1, , z1]] = [line[0], line[line.length - 1]], yaw = Math.atan2(x1 - x0, z1 - z0);
   const across = [Math.cos(yaw) * 1.8, 0, -Math.sin(yaw) * 1.8];
-  const height = (k) => (k === 0 || k === line.length - 1 ? 3.0 : 11.9); // a station's wheel, a tower's sheaves
+  const height = (k) => (k === 0 || k === line.length - 1 ? 3.0 : line[k][3] ?? TOWER); // a station's wheel, a tower's sheaves
   const cablePoint = (k, s) => [line[k][0] + across[0] * s, line[k][1] + height(k), line[k][2] + across[2] * s];
   const placements = [{ family: 'lift', variant: 2, at: stations[0], scale: 1, yaw }, { family: 'lift', variant: 2, at: stations[1], scale: 1, yaw: yaw + Math.PI },
-    ...towers.map(at => ({ family: 'lift', variant: 0, at, scale: 1, yaw }))];
+    ...towers.map(([x, y, z, sheaves = TOWER]) => ({ family: 'lift', variant: 0, at: [x, y, z], scale: sheaves / TOWER, yaw }))];
   for (const s of [-1, 1]) {
     for (let k = 0; k + 1 < line.length; k++) {
       const a = cablePoint(k, s), b = cablePoint(k + 1, s), r = 0.06;

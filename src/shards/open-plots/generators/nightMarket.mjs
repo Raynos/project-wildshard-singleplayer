@@ -99,6 +99,12 @@ function tree(w, x, z, size, p, spin) {
     w.solid([x - 0.3, 0, z - 0.3], [x + 0.3, 3, z + 0.3]);
     return;
   }
+  // OB3 (G978, shared kit rule): a snowbound plot's kit has pines and no broadleaf trees, so its bank trees are pine clumps
+  if (w.hasModel('pines')) {
+    w.placeModel('pines', pick(x, z, 3), x, z, { yaw: spin });
+    w.solid([x - 1, 0, z - 1], [x + 1, 4, z + 1]);
+    return;
+  }
   w.sides('Kit', [x - 0.25, 0, z - 0.25], [x + 0.25, size * 0.45, z + 0.25], p.trunk);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 1.1, p.foliage, spin);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 0.32, p.foliageDark, spin);
@@ -281,12 +287,37 @@ function waterOf(type) {
   if (type === 'C') return [[-half, -HALF, half, HALF]];
   return [[-half, -HALF, half, half], [-half, -half, HALF, half]];
 }
+/** OB3 (G978, shared kit rule, the ice water kind): a palette with `ice` freezes its canals. The water is a glossy ice
+ *  sheet in that colour (the Water draw), crazed with paler cracks, and snow drifts lie along the walls; the walls'
+ *  sides are the rectangle's edges that are not open borders. */
+function frozen(w, p, [x0, z0, x1, z1], depth) {
+  const y = -depth + 0.02, crack = p.iceCrack ?? p.snow ?? p.ice, snow = p.snow ?? p.ice;
+  // cracks: a few long thin slivers across the sheet, the same every bake (pick)
+  for (let i = 0; i < 6; i++) {
+    const t = (i + 0.5) / 6, ax = x0 + (x1 - x0) * pick(x0 + i, z0, 7, i) / 6, az = z0 + (z1 - z0) * t;
+    const bx = x0 + (x1 - x0) * pick(x1, z1 + i, 7, i + 3) / 6, bz = Math.min(z1, Math.max(z0, az + (z1 - z0) * (pick(i, x0, 5) - 2) / 10));
+    const dx = bx - ax, dz = bz - az, l = Math.hypot(dx, dz) || 1, nx = -dz / l * 0.06, nz = dx / l * 0.06;
+    w.quad('Kit', [ax - nx, y, az - nz], [ax + nx, y, az + nz], [bx + nx, y, bz + nz], [bx - nx, y, bz - nz], crack);
+  }
+  // drifts: a wedge along each long side, 0.35 m up the wall and 1.6 m out over the ice
+  const long = x1 - x0 < z1 - z0;
+  for (const side of [-1, 1]) {
+    if (long) {
+      const wall = side < 0 ? x0 : x1, out = wall - side * 1.6;
+      w.quad('Kit', [wall, -depth + 0.35, z0], [out, y + 0.01, z0], [out, y + 0.01, z1], [wall, -depth + 0.35, z1], snow);
+    } else {
+      const wall = side < 0 ? z0 : z1, out = wall - side * 1.6;
+      w.quad('Kit', [x0, -depth + 0.35, wall], [x1, -depth + 0.35, wall], [x1, y + 0.01, out], [x0, y + 0.01, out], snow);
+    }
+  }
+}
 /** C / L canal: recessed water between stone walls and rims, trees and lanterns on the banks, half a bridge per wet border. */
 function canal(w, p, type) {
   const rects = waterOf(type);
   const { half, rim, rimHeight, depth } = CANAL;
   // the water and its walls, each walked with the water on its left so it faces the water
-  for (const [x0, z0, x1, z1] of rects) w.floor('Water', x0, z0, x1, z1, -depth, p.water);
+  for (const [x0, z0, x1, z1] of rects) w.floor('Water', x0, z0, x1, z1, -depth, p.ice ?? p.water);
+  if (p.ice !== undefined) for (const rect of rects) frozen(w, p, rect, depth);
   // RM10.3: fireflies over the banks (dry in both the straight and the corner)
   firefly(w, half + 4, 1.4, -20); firefly(w, -half - 4, 1.8, 12);
   const walls = type === 'C'
