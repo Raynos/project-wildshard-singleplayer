@@ -12,6 +12,7 @@ from pathlib import Path
 import runpy
 import select
 import signal
+import socket
 import shutil
 import subprocess
 import sys
@@ -966,6 +967,7 @@ else:
         ready, requested, phases = Event(), Event(), []
         def blocked(*_args, **_kwargs): raise BlockingIOError('Progress sink cannot complete')
         ports = {**READY, 'page': '/safari/owned', 'callback': '/ready/owned',
+                 'transport': '/transport/owned', 'token': 'owned',
                  'document': b'owned document', 'started': 0, 'deadline': 120,
                  'ready': ready, 'requested': requested, 'record_http': phases.append, 'print': blocked}
         exec(compile(ast.Module(body=[handler], type_ignores=[]), 'actual-readiness-handler', 'exec'), ports)
@@ -1447,6 +1449,138 @@ sys.exit(75 if len(path.read_text().splitlines())==2 else 0)
         self.assertEqual(result.returncode, 64, result.stderr)
         self.assert_not_handed_over()
 
+
+class SimulatorTransportTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(dir=ROOT / 'tmp', prefix='sim-transport-test-')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+
+    def assert_not_handed_over(self):
+        self.assertFalse((self.root / 'child-ran').exists())
+        self.assertFalse((self.root / 'lane' / f'{UDID}.lease').exists())
+
+    def test_native_transport_client_reaches_only_its_transport_path(self):
+        executable = self.root / 'transport-client'
+        built = subprocess.run(['cc', '-std=c11', '-Wall', '-Wextra', '-Werror',
+            str(ROOT / 'scripts/sim-transport.c'), '-o', str(executable)],
+            capture_output=True, text=True, timeout=5, check=False)
+        self.assertEqual(built.returncode, 0, built.stderr)
+        lifecycle = {}
+        with READY['readiness_page'](time.monotonic() + 5, lifecycle=lifecycle) as (url, ready):
+            location = urlsplit(url)
+            token = location.path.rsplit('/', 1)[1]
+            result = subprocess.run([str(executable), str(location.port), token],
+                capture_output=True, text=True, timeout=2, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            # This is a real host protocol test, not native Simulator evidence.
+            records = [json.loads(line) for line in result.stdout.splitlines()]
+            self.assertEqual(records[0]['phase'], 'started')
+            self.assertEqual(records[-1],
+                {'simulator': False, 'phase': 'complete', 'connected': True, 'errno': 0})
+            self.assertFalse(ready.is_set())
+            foreign = ('a' if token[0] != 'a' else 'b') + token[1:]
+            refused = subprocess.run([str(executable), str(location.port), foreign],
+                capture_output=True, text=True, timeout=2, check=False)
+            self.assertEqual(refused.returncode, 1, refused.stderr)
+            self.assertEqual(json.loads(refused.stdout.splitlines()[-1])['phase'], 'response')
+            self.assertFalse(ready.is_set())
+        self.assertEqual(lifecycle['http']['transportRequest']['count'], 1)
+        self.assertEqual(lifecycle['http']['transportFlush']['count'], 1)
+        self.assertEqual(lifecycle['http']['request']['count'], 0)
+        self.assertEqual(lifecycle['http']['callbackRequest']['count'], 0)
+        self.assertEqual(lifecycle['http']['accept']['count'], 2)
+        with socket.socket() as unavailable:
+            unavailable.bind(('127.0.0.1', 0))  # Owned port, no listening peer.
+            refused = subprocess.run([str(executable), str(unavailable.getsockname()[1]), token],
+                capture_output=True, text=True, timeout=2, check=False)
+            self.assertEqual(refused.returncode, 1, refused.stderr)
+            self.assertEqual(json.loads(refused.stdout.splitlines()[-1])['phase'], 'connect')
+            self.assertFalse(json.loads(refused.stdout.splitlines()[-1])['connected'])
+        self.assert_not_handed_over()
+
+    def test_native_transport_rpc_uses_exact_device_and_one_shared_deadline(self):
+        native = READY['native_transport_witness']
+        url = 'http://127.0.0.1:12345/safari/' + 'a' * 24
+        for delays, codes, expected, count in [
+                ((.1, .1), (0, 0), 'native-exit', 2),
+                ((.6, .1), (0, 0), 'expired', 1),
+                ((.1, .6), (0, 0), 'expired', 2),
+                ((.1, .1), (None, 0), 'expired', 1),
+                ((.1, .1), (0, None), 'expired', 2),
+                ((.1, .1), (23, 0), 'compile-failed', 1),
+                ((.1, .1), (0, 23), 'native-exit', 2)]:
+            clock = SimpleNamespace(now=0)
+            calls = []
+            def run(command, **kwargs):
+                index = len(calls)
+                calls.append((command, kwargs['timeout']))
+                clock.now += delays[index]
+                if codes[index] is None:
+                    raise subprocess.TimeoutExpired(command, kwargs['timeout'])
+                return SimpleNamespace(returncode=codes[index])
+            ports = {**native.__globals__,
+                'os': SimpleNamespace(environ={'PHONE_SIMULATOR_PREPARATION': str(self.root / 'prepare.json'),
+                    'DEVELOPER_DIR': str(self.root / 'developer')}, path=os.path, uname=os.uname),
+                'time': SimpleNamespace(monotonic=lambda: clock.now),
+                'subprocess': SimpleNamespace(run=run, TimeoutExpired=subprocess.TimeoutExpired)}
+            helper = FunctionType(native.__code__, ports)
+            result = helper(UDID, url, .5, 0)
+            self.assertEqual(result['status'], expected)
+            self.assertEqual(len(calls), count)
+            self.assertEqual(calls[0][1], .5)
+            if count == 2:
+                self.assertAlmostEqual(calls[1][1], .4)
+                self.assertEqual(calls[1][0], ['xcrun', 'simctl', 'spawn', UDID,
+                    str(self.root / 'prepare.transport'), '12345', 'a' * 24])
+            self.assertEqual(result['destination'], url.replace('/safari/', '/transport/'))
+        self.assert_not_handed_over()
+
+    def test_transport_success_cannot_grant_frames_or_replay_the_safari_url(self):
+        native = READY['open_ready_page']
+        clock = SimpleNamespace(now=0.)
+        offers, witnesses = [], []
+        class Event:
+            def is_set(self): return False
+            def wait(self, seconds): clock.now += seconds
+        class Client:
+            returncode = None
+            def __init__(self, command, **_kwargs): offers.append(command)
+            def __enter__(self): return self
+            def __exit__(self, *_args): pass
+            def poll(self): return self.returncode
+            def kill(self): self.returncode = -9
+            def wait(self): return self.returncode
+        @contextmanager
+        def transcript(): yield object()
+        def witness(*args):
+            witnesses.append(args)
+            clock.now += 1
+            return {'status': 'native-exit', 'nativeReturnCode': 0}
+        ports = {**native.__globals__, 'time': SimpleNamespace(monotonic=lambda: clock.now),
+            'threading': SimpleNamespace(Event=Event), 'native_transcript': transcript, 'native_text': lambda _: '',
+            'native_transport_witness': witness,
+            'os': SimpleNamespace(environ={'GITHUB_ACTIONS': 'true', 'PHONE_SIMULATOR_PREPARATION': 'owned.json'}),
+            'subprocess': SimpleNamespace(Popen=Client, DEVNULL=subprocess.DEVNULL)}
+        helper = FunctionType(native.__code__, ports, argdefs=native.__defaults__)
+        receipt = {'count': 0, 'omitted': 0, 'samples': []}
+        url = 'http://127.0.0.1:12345/safari/' + 'a' * 24
+        # First offer races launch; second is the existing launched-state offer.
+        ownership = lambda: 0 if clock.now >= 12 else None
+        self.assertEqual(helper(UDID, url, Event(), 120, 120, 0, ownership, receipt), 124)
+        self.assertEqual(clock.now, 120)
+        self.assertEqual(len(offers), 2)
+        self.assertEqual(len(witnesses), 1)
+        self.assertEqual(witnesses[0], (UDID, url, 120, 0))
+        self.assertEqual(receipt['transport']['nativeReturnCode'], 0)
+        clock.now = 0
+        offers.clear(); witnesses.clear()
+        receipt = {'count': 0, 'omitted': 0, 'samples': []}
+        self.assertEqual(helper(UDID, url, Event(), 120, 120, 0, ownership, receipt, None,
+                                {'request': {'count': 1}}), 124)
+        self.assertEqual(len(offers), 2)
+        self.assertEqual(witnesses, [])  # An HTTP request already proves transport.
+        self.assert_not_handed_over()
 
 class ParallelReadinessSuite(unittest.TestSuite):
     """Three independent fake-device cases share the unchanged whole-run cap."""

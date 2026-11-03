@@ -360,13 +360,16 @@ def readiness_page(deadline, started=None, lifecycle=None):
     # An unpredictable local page proves two real frames, without app assets,
     # external networking, an error page or a LaunchServices exit-code guess.
     token = secrets.token_hex(12)
-    page, callback = f'/safari/{token}', f'/ready/{token}'
+    page, callback, transport = f'/safari/{token}', f'/ready/{token}', f'/transport/{token}'
     ready = threading.Event()
     requested = threading.Event()
     started = time.monotonic() if started is None else started
     # Transport milestones are diagnostic; only the owned callback grants frames.
     phases = {name: {'count': 0, 'firstSeconds': None, 'lastSeconds': None}
-              for name in ('accept', 'request', 'flush', 'callbackRequest', 'callbackFlush')}
+              for name in ('accept', 'request', 'flush', 'callbackRequest', 'callbackFlush',
+                           'transportRequest', 'transportFlush')}
+    if lifecycle is not None:
+        lifecycle['http'] = phases
     phase_lock = threading.Lock()
     listener = {'boundAddress': None, 'startedAt': None, 'cycles': 0,
                 'firstCycleAt': None, 'lastCycleAt': None, 'stoppedAt': None,
@@ -424,6 +427,14 @@ def readiness_page(deadline, started=None, lifecycle=None):
                 self.reply(501, b'GET only')
                 return
             path = parts[1]
+            if path == transport.encode():
+                # This native diagnostic is never a document or frame callback.
+                # Aggregate TCP accepts include it; Safari request/callback
+                # counters remain separate from the transport-only counters.
+                record_http('transportRequest')
+                self.reply(200, f'transport:{token}'.encode())
+                record_http('transportFlush')
+                return
             if path not in (page.encode(), callback.encode()):
                 self.reply(404, b'Not found')
                 return
@@ -503,11 +514,59 @@ def readiness_page(deadline, started=None, lifecycle=None):
                     lifecycle['listener'] = dict(listener)
 
 
-def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None, lifecycle=None, screenshots=None):
+def native_transport_witness(udid, url, deadline, started):
+    """Diagnostic only: one simctl-spawned TCP client, never Safari or frames."""
+    record = {'status': 'unavailable', 'requestedAt': round(time.monotonic() - started, 3),
+              'completedAt': None, 'compileReturnCode': None, 'nativeReturnCode': None}
+    try:
+        preparation = os.environ.get('PHONE_SIMULATOR_PREPARATION', '')
+        developer = os.environ.get('DEVELOPER_DIR', '')
+        prefix = 'http://127.0.0.1:'
+        port, separator, token = url.removeprefix(prefix).partition('/safari/')
+        if (not preparation or not os.path.isabs(developer) or not url.startswith(prefix)
+                or not port.isdecimal() or not 1024 < int(port) <= 65535 or not separator
+                or len(token) != 24 or any(char not in '0123456789abcdef' for char in token)):
+            return record
+        binary = Path(preparation).with_suffix('.transport')
+        log = Path(preparation).with_suffix('.transport.log')
+        record.update(destination=f'{prefix}{port}/transport/{token}', log=str(log))
+        compiler = str(Path(developer) / 'Toolchains/XcodeDefault.xctoolchain/usr/bin/clang')
+        sdk = str(Path(developer) / 'Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk')
+        commands = [
+            ('compileReturnCode', [compiler, '-target', f'{os.uname().machine}-apple-ios18.0-simulator',
+                '-isysroot', sdk, '-O1', str(Path(__file__).with_name('sim-transport.c')), '-o', str(binary)]),
+            ('nativeReturnCode', [*SIMCTL_COMMAND, 'spawn', udid, str(binary), port, token])]
+        # Compilation and the one RPC share one original URL-sized diagnostic
+        # slice inside the existing Safari wall; neither restarts a deadline.
+        diagnostic_deadline = min(deadline, time.monotonic() + 10)
+        with log.open('wb') as output:
+            for field, command in commands:
+                remaining = diagnostic_deadline - time.monotonic()
+                if remaining <= 0:
+                    record['status'] = 'expired'
+                    return record
+                record['command'] = command
+                result = subprocess.run(command, stdout=output, stderr=output, timeout=remaining, check=False)
+                record[field] = result.returncode
+                if result.returncode != 0:
+                    record['status'] = 'compile-failed' if field == 'compileReturnCode' else 'native-exit'
+                    return record
+        record['status'] = 'native-exit' if time.monotonic() < diagnostic_deadline else 'expired'
+    except subprocess.TimeoutExpired:
+        record['status'] = 'expired'
+    except OSError as error:
+        record.update(status='unavailable', errorType=type(error).__name__)
+    finally:
+        record['completedAt'] = round(time.monotonic() - started, 3)
+    return record
+
+
+def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=None, lifecycle=None, screenshots=None, http=None):
     code, detail = 124, 'URL service did not respond'
     if lifecycle is not None:
         lifecycle['destination'] = url
     attempts, accepted, pending_delivery, pending_before_launch = 0, False, False, False
+    transport_offered = False
     ownership = launch_state if launch_state is not None else lambda: 0
 
     def failed_launch(status):
@@ -540,6 +599,15 @@ def open_ready_page(udid, url, ready, deadline, timeout, started, launch_state=N
             pending_delivery = False
             print('sim-lane: owned app launch confirmed; delivering its probe once in the launched state', file=sys.stderr)
         if ready.is_set() or accepted or pending_delivery:
+            if (pending_delivery and not pending_before_launch and launch_code == 0 and not ready.is_set()
+                    and not transport_offered and os.environ.get('GITHUB_ACTIONS') == 'true'
+                    and (http is None or http['request']['count'] == 0)
+                    and os.environ.get('PHONE_SIMULATOR_PREPARATION')):
+                transport_offered = True
+                transport = native_transport_witness(udid, url, deadline, started)
+                if lifecycle is not None:
+                    lifecycle['transport'] = transport
+                continue  # Recheck only the existing launch/frame/deadline predicates.
             # A completed delivery or a stopped unresponsive client can leave
             # this exact URL queued in native services. Await its owned page
             # instead of issuing duplicates under the same launch state.
@@ -707,7 +775,7 @@ def wait_for_safari(udid):
                             return 0
                     return None
                 try:
-                    result = open_ready_page(udid, url, ready, deadline, timeout, started, launch_state, lifecycle['url'], screenshots)
+                    result = open_ready_page(udid, url, ready, deadline, timeout, started, launch_state, lifecycle['url'], screenshots, lifecycle['http'])
                     return result
                 finally:
                     # Retire only our launch RPC, never the observed Safari app.
