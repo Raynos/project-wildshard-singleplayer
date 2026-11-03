@@ -1,11 +1,19 @@
 # Custom sections to one generic platform (E498)
 
-**State:** `planned` 2026-10-24; **non-graphics rows unparked for the Codex lanes 2026-10-31 (G963):** CS1, CS2, CS4, CS5, CS6, CS7 (audio / weather / people), CS9; CS3 only with identical captures; graphics rows stay Opus. — phase HA7 of [HOST-AUDIT](../HOST-AUDIT.md) (G697). **CS0 lands now** (G698); CS1–CS10
-start with HOST-AUDIT (G679), **quests (CS5) first** (G702), no exceptions at the end (G699), WASM-HOST H6 / H8 / H17 only (G701). Direction is G696 ([decisions](../shard-platform/decisions.md)). Read-only audit by the plan agent's subagent
-at HEAD `6b7dd7ebd6` (~15:45 Cancun): source greps of every non-legacy shard's generators, the built products in
-`out/` (Pine Hollow, Far Reach) and the push gate's latest exact measure
-(`.git/custom-section-measures/dcff0904cd….json`). No builds. Counts for Driftwood, Nalati and Nine are split by kind
-from their generators, so per-kind numbers are ±10 %; per-shard totals are exact.
+**State:** `in progress` 2026-11-03 — **goal: custom sections at ZERO through generic, high-quality hosts** (Jake,
+2026-11-03). Today **342** (4 `custom/` + 338 named JSON, 30.6 MB; gate measure at `2ec2da8a9e`). CS0–CS10 closed
+their *disposition* (slices plus named exits); those exits are **not** an ending any more. The open work is the
+**zero rows Z0–Z15** below (one row per host, ~45 lane-days, ~29 Opus / ~16 Codex); the count and evidence are in
+the [zero spike](custom-sections-zero-mini-spike.md). A Z row is done only when the gate's count drops by its kill
+count with identical pixels (Opus rows) or identical bytes (Codex rows). Jake rules first on decision 6 (what zero
+counts). Non-graphics rows run on Codex (G963 / G969); graphics rows stay Opus (G848); no WASM-HOST work (G969).
+Phase HA7 of [HOST-AUDIT](../HOST-AUDIT.md) (G697); direction G696 ([decisions](../shard-platform/decisions.md)).
+
+Jake, 2026-11-03: *"all the custom sections have to be removed … they all have to be generic, high-quality hosts in
+the engine … the goal is to get custom sections to zero."*
+
+History: the original audit (2026-10-24) was read-only at HEAD `6b7dd7ebd6`: source greps, the built Pine and Far
+products and the push gate's measure (`.git/custom-section-measures/dcff0904cd….json`); per-kind numbers ±10 %.
 
 Jake, 2026-10-24 (E498): *"I read about those custom sections. Those are absolutely horrible. I didn't know we had
 custom sections at all. We don't want custom sections. We don't want one-shot custom sections. We want a generic
@@ -96,11 +104,17 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
   a Jake-approved G row. `custom-sections/<slug>` ceilings are 0 for every shard, then the check is deleted.
 - **(a) generic platform section** for data that is the same concept in two or more shards (K1–K3, K5–K8, most of
   K4 / K9): one schema, streamed by id where it is big (`world/scenes`, `world/fields`).
-- **(b) evict to WASM** for data that is really behaviour (spawn streams, keeper / return programs, director rows,
-  quest runtime programs, Titan fight script, native views, runtime graphs): an AssemblyScript module plus generic
-  data rows, hosted by WASM-HOST (H6 `ws_step`, H8 sim lane, H9 view lane, H17 headless).
-- **(c) delete** what is derived or duplicated: tier / shadow copies of cabins (4 files, 0.44 MB), per-shard headless
-  assemblies (derive from the sections), raw three.js geometry JSON (ship as GLB).
+- **What zero counts (2026-11-03, decision 6):** no `custom/` section and no named JSON outside a **registered
+  platform file family** (a name pattern → one `@wildshard/format` schema with two shard users or a Jake G row, read
+  by a host that scores 6/6). Streamed pages stay separate files: sections load eagerly, and inlining 30 MB would
+  break the 1.2 GB phone budget. The build refuses anything else; `custom-sections/total = 0` is the ratchet.
+- **(b) evict to AssemblyScript** for data that is really behaviour (spawn streams, keeper / return programs,
+  quest runtime programs, Titan fight script): an AS module on **today's Script ABI** (`sim/scripts`, 10 Hz) plus
+  generic rows. G969 bars WASM-HOST work, so H6 / H8 / H17 are not assumed; a program that truly needs a per-frame
+  lane is raised as a blocker, never kept as a private section.
+- **(c) delete** what is derived or duplicated: tier / shadow copies of cabins (4 files, 0.34 MB), per-shard headless
+  assemblies (derive from the sections), meshes and buffers in JSON (Jian cloth, sign atlas, Nine layout, Titan
+  geometry, cloud specimen, weather fx: ship as GLB / `.bin` with row headers).
 - **Rating:** every reading host is scored on HOST-BAR's six tests by HA2's fresh seats before its section moves; a
   fail goes to HA4a/b (back to the shard as data or AS), never a renamed TS file.
 
@@ -111,14 +125,65 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
 | **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
-| **CS3** | **done (2026-11-03, sp-x2, qualified-slice-or-named-explicit-exit bar):** Pine112 and DW12 have qualified bounded-page slices; catalogues/recipes retain exact render-input proofs and Nalati dressing retains twelve zero-pixel comparisons. All 318 historical rows and the expanded remainder have a qualified slice or named **CS3-E1–E13** exit in the [completion ledger](#cs3-completion-bar-and-named-implementation-exits). Tier/shadow derivation remains source-only; no file retirement, all-pose streaming, new host score or CS10 deletion is inferred. | 3–4 days, Codex (Opus memory reading on Pine) |
+| **CS3** | **done (2026-11-03, sp-x2, qualified-slice-or-named-explicit-exit bar):** Pine112 and DW12 have qualified bounded-page slices; catalogues/recipes retain exact render-input proofs and Nalati dressing retains twelve zero-pixel comparisons. All 318 historical rows and the expanded remainder have a qualified slice or named **CS3-E1–E13** exit in the [completion ledger](#cs3-completion-bar-and-named-implementation-exits). Tier/shadow derivation remains source-only. **Disposition only: every CS3 exit is now built by a Z row** ([exit → host map](#exits-become-host-rows)). | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** the five field descriptors, common Pine physics, floor/cave contracts and two ground aliases have their recorded exact payload/native proofs; maintained Pine walk is **75/75, 0 stuck/bounds/pending**. Pine owner-only physics, G667 tests 2–6 and the named terrain/bake/shelter/recipe/grid-collision owner configurations remain explicit exits, without host or CS10 deletion credit. See the [completion bar](#cs4--cs7-completion-bar). | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **done (2026-11-02, sp-x1, Jake accepted `9507499224`):** eight historical quest names now have qualified exact slices: the earlier DW three, Pine native-story/native-spots/contracts, Nalati carried and the shared whole-panel catalogue. The one fresh-baseline combined proof retains all target bodies, 226 old wire contracts and original owners; only the exact G872 Nalati source-stamp case differs (self-applied under the 2026-11-02 standing rule, with explicit concurrence). Six presentation/figure/discovery/finds/story/guest families and live `custom/questRuntime` retain their explicit exits, without host or CS10 deletion credit. See the [qualified slice](#cs5-four-native-aliases-and-the-whole-panel-catalogue). | 4–6 days, Opus design + Codex port |
 | **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
 | **CS7** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** audio/cards `2c5aa6386d` / `515ffcac96` have normal/strict6 and exact original payload/owner proofs. Every remaining logical name is in the 25-row source table: ten native-root qualification exits and fifteen complete-contract/model/binary/owner/collision exits. No byte rewrite, host score, weather union or CS10 deletion follows. See the [completion bar](#cs4--cs7-completion-bar). | 4–5 days, Codex |
-| **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
+| **CS8** | **folded into Z14 (2026-11-03):** K9 combat and riding: room, encounter and riding-profile rows; Titan script to AS | see Z14 |
 | **CS9** | **done (2026-11-02, sp-x1, exact-slice-or-explicit-exit bar):** eight defining-payload derivations reconstruct all old canonical bytes; 36 original cases pass across eight suites. The complete 69-field ledger accounts for eight qualified derivations and 61 explicit owner/contract exits; Pine’s scaffold is retired and the other three shells have explicit source/schema/witness exits. The exact Nalati source-stamp case is self-applied under G872, with raw refusal retained. No CS10 deletion or host credit follows. See the [completion proof](#cs9-exact-constant-derivations-and-completion-bar). | 2–3 days, Opus (after WASM-HOST H9, H17) |
-| **CS10** | **done (2026-11-03, Codex takeover from sp-x1/sp-x9, exact-slice-or-named-explicit-exit bar; G872 self-applied):** ten redundant copies retain their landed exact payload/native/pack proof and 29 original cases. The four live envelopes and shared reader/emitter/validation/policy paths have named **CS10-E1–E6** KEEP exits in the [completion ledger](#cs10-completion-bar-and-named-implementation-exits). G908 leaves Pine and Nine unchanged; path deletion remains unbuilt, with every guard and cap retained. | 1 day, Codex |
+| **CS10** | **done (2026-11-03, Codex takeover from sp-x1/sp-x9, exact-slice-or-named-explicit-exit bar; G872 self-applied):** ten redundant copies retain their landed exact payload/native/pack proof and 29 original cases. The four live envelopes and shared reader/emitter/validation/policy paths had named **CS10-E1–E6** exits in the [completion ledger](#cs10-completion-bar-and-named-implementation-exits). **Superseded 2026-11-03: no KEEP survives; E1–E6 are built by Z0, Z1, Z7, Z8 and Z15** ([exit → host map](#exits-become-host-rows)). | 1 day, Codex |
+
+### Zero rows: one generic host each (2026-11-03)
+
+From the [zero spike](custom-sections-zero-mini-spike.md): 342 today, every row assigned once. **Bar for every Z
+row:** the gate's count (`outputSections`, same as `scripts/section-inventory.ts`) drops by the row's kill count;
+Opus rows show zero-pixel A/A + A/B captures of every affected pose at both tiers plus no-worse loading; Codex rows
+show identical payload bytes; collider changes walk 0 stuck. The reading host is scored on HOST-BAR's six tests
+(fresh seat) before its family registers; a fail folds back as data or AS, never a renamed TS file. A named exit
+does not close a Z row.
+
+| Row | Host: what it is | Kills (sections) | Lane | Days |
+|---|---|---|---|---:|
+| **Z0** | **Ceilings to actuals and a dead section.** `custom-sections/<slug>` to measured (DW 48, Pine 123, Nalati 45, Far 19, Sun 16; record Nine at 91 / 10.9 MB, 72 over its 19). Delete Pine `custom/nativeView`: no `src/` reader and no emitted row names it; only `test/fixtures/pine-headless.ts` and Pine generators touch it | 1 (`custom/nativeView`) | Codex | 0.25 |
+| **Z1** | **Platform file families.** A registry in `@wildshard/format` beside `PLATFORM_DATA_SECTIONS`: name pattern → one format schema. The measure counts a named file only if its family is unregistered. The census follows emitted routing rows so every family has a known reader | 98 already on a shared schema: placement pages 12, scene recipes 42, scene buffers 9, world-scene models 3, quests 19, actors 9, people catalogue 2, forest weather 2 | Codex | 2 |
+| **Z2** | **Streamed scene pages: Nine.** `world/placements/*` onto `WorldScenePlacementPageSchema` (DW + Pine host `sdk/worldScenes.ts`) | 72: Nine placements 70, `world/casts`, `world/fabric` | Opus | 2.5 |
+| **Z3** | **Streamed scene pages: Pine cabins and DW island.** Specimens and living roots become pages; tier / shadow variants derived at load | 70: Pine specimens 56, living 8, tier/shadow copies 4; DW `world/island/plan-{phone,desktop}` | Opus | 4.5 |
+| **Z4** | **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
+| **Z5** | **Scene source envelopes.** One complete bake / model source root (`game/shardfile/sceneSources.ts`, Far + Sun) | 6: Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects | Codex | 1.5 |
+| **Z6** | **Held kits.** Weapon pages into the `held/*` platform sections; Jian cloth / halo ship as GLB | 10: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Opus | 3 |
+| **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
+| **Z8** | **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
+| **Z9** | **Instanced scatter rows.** Nalati's scatter pages become the generic dressing host with Pine props as user two | 9: Nalati dressing-pages 5, dressing-{phone,desktop}; Pine props, prop-shapes | Opus | 3 |
+| **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
+| **Z11** | **Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | 8: Nalati weather, weather-fx, audio/scene, look/post; Pine weather, rain, weather-observations, ambience | Opus fx, Codex audio | 3 |
+| **Z12** | **Ground pages.** `world/ground` family: layout, caves, collision; big grids as `.bin` with row headers, sharing the fields host with Far / Sun | 9: Pine floor, crag-cave, cave-interior, forest-page, building-sites, landmark-view, physics.generated; Nalati meadow, water | Opus | 3.5 |
+| **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
+| **Z14** | **Encounters and riding (was CS8).** Arena room, timed encounter and riding-profile rows (`game/boss/arenaRoom.ts`, `game/riding/*`); Titan fight to AS | 9: Nalati room-entry, timed-encounters, titan-fight, titan-geometry, ride/rules, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page | Opus | 4.5 |
+| **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
+
+Kills: 1 + 98 + 72 + 70 + 13 + 6 + 10 + 14 + 14 + 9 + 3 + 8 + 9 + 6 + 9 = **342**. Z0–Z3 remove 241 (70 %) in
+~9 lane-days. Rows are numbered in build order (most sections per lane-day first); Codex takes Z1, Z4, Z5, Z13 at
+once while Opus starts Z2.
+
+### Exits become host rows
+
+| Named exit | Built by |
+|---|---|
+| CS3-E1 Nine placements | Z2 |
+| CS3-E2 recipe transport | Z1 (recipes already share `WorldSceneSchema` across five shards) |
+| CS3-E3 welds, CS3-E4 living roots, CS3-E11 island plan | Z3 (Nine casts / fabric in Z2) |
+| CS3-E5 source envelopes | Z5 |
+| CS3-E6 fixed geometry, CS3-E7 specimen book, CS3-E8 sign atlas | Z7 |
+| CS3-E9 building life | Z10 |
+| CS3-E10 Nalati dressing rows | Z9 |
+| CS3-E12 landmark view | Z12 |
+| CS3-E13 spray packet | none: it is a `.bin` blob, not custom |
+| CS10-E1 collections, CS10-E2 fixed layouts | Z7 |
+| CS10-E3 native view | Z0 (delete) |
+| CS10-E4 quest runtime | Z8 |
+| CS10-E5 private emitter / reader path | Z15 |
+| CS10-E6 named-JSON validation and freeze | Z1 (registry replaces the freeze), Z15 (policy files deleted) |
 
 ### Recorded completed bars: CS1 / CS4 / CS7
 
@@ -141,9 +206,9 @@ No build, native worker, browser, stamp rewrite or requalification was run
 for this documentation update. The defining payload/pack proofs below
 remain the authority, including every recorded refusal and explicit exit.
 
-**Effort:** ~26–37 lane-days, about 60 % Codex (CS0–CS4, CS7, CS10: mechanical producer/reader moves) and 40 %
-Opus (schema unification in CS5 / CS6, WASM ports, memory readings). With 3 Opus + 3 Codex lanes: ~2–3 weeks
-calendar, plus WASM-HOST H6 / H8 / H17 if not already built (that plan's own estimate).
+**Effort (Z0–Z15, 2026-11-03):** ~45 lane-days, ~29 Opus (Z2, Z3, Z6, Z7, Z9, Z12, Z14 and the visual halves of
+Z4, Z8, Z11) and ~16 Codex. With 3 Opus + 3 Codex lanes about two weeks, Opus-bound. No WASM-HOST rows (G969).
+The earlier 26–37 day estimate (CS0–CS10) bought the inventory, slices and exits, not removal.
 
 ## Order and interactions
 
@@ -152,10 +217,12 @@ calendar, plus WASM-HOST H6 / H8 / H17 if not already built (that plan's own est
    7.7 MB of K2, 10 of the 15 `custom/` sections).
 3. Most duplication next: CS5 quests, then CS7's small kinds.
 4. Behaviour last: CS6, CS8, CS9 wait on WASM-HOST H6 / H8 / H17 (H9 is already in progress).
-5. CS10 disposition closes under the completion ledger below; actual path/guard removal stays an explicit exit until its zero-user and zero-ceiling conditions are proved.
+5. CS10 disposition closed under the completion ledger below.
+6. **From 2026-11-03 the order is Z0 → Z15** (the zero rows above): registry and pages first, behaviour hosts
+   (Z13, Z14) late, Z15 deletes the path once the count is 0.
 
-- **WASM-HOST** must provide H6 (one `ws_step` per module) and H8 (sim lane) before CS6 / CS8, H17 (headless v2)
-  before CS9; H9 (view lane) is already being built. Pull only those rows in, not all of v2.
+- **WASM-HOST** is not pulled in (G969). Behaviour moves to AS on the existing Script ABI; a per-frame need is a
+  blocker raised to Jake, not a reason to keep a section.
 - **Custom-code wave 3 and the legacy shards:** independent. No legacy file reads a custom section or named JSON, so
   nothing here breaks `src/shards/*-legacy`, and CS10 does not wait for legacy deletion.
 - **SHARD-PLATFORM's W2 exit rows** for the 15 `custom/` sections (open-x-queue) fold into CS3–CS9 when this starts;
@@ -172,6 +239,13 @@ calendar, plus WASM-HOST H6 / H8 / H17 if not already built (that plan's own est
    and a third of the bytes, mostly mechanical.
 5. **Delete the custom path at the end with no exception?** Recommended: **yes**: no `custom/` sections and no
    shard-defined JSON schemas; a one-shard schema needs a Jake G row or goes to WASM.
+6. **(2026-11-03) What does zero count?** Recommended: **no `custom/` and no named JSON outside a registered
+   platform file family** (Z1). Counting every named file would force 30 MB of pages into eagerly loaded sections.
+7. **(2026-11-03) One-user hosts?** Forest ground (Z12), arena / Titan and riding (Z14) may find no second user.
+   Recommended: fold into two-user families where honest, then bring what is left to Jake as **one batch** of G595
+   approvals after Z0–Z11, not one host at a time.
+8. **(2026-11-03) Nine pages now?** Z2 does not touch Nine legacy (G908 / G933). Recommended: build it now under
+   identical captures rather than wait for the Nine fps QA (CS3-E1's deferral).
 
 ## CS5 / CS6: initial shared-document slices
 
@@ -2573,6 +2647,10 @@ for unchanged collider, geometry and native assembly bytes.
 
 ## CS10 completion bar and named implementation exits
 
+> **Superseded 2026-11-03 (zero goal):** none of the KEEP exits below is an ending. Each is built by a zero row:
+> E1 / E2 → Z7, E3 → Z0, E4 → Z8, E5 → Z15, E6 → Z1 + Z15 ([map](#exits-become-host-rows)). The ledger stays as
+> the record of what each port must preserve.
+
 **Done, 2026-11-03, Codex takeover from sp-x1/sp-x9.** The coordinator's
 fresh-context instruction applies the same exact-slice-or-named-explicit-exit
 bar as CS2–CS9, with **G872 self-applied**. This closes CS10's disposition
@@ -2615,6 +2693,10 @@ pixel result, loading gain, new host score or completed path deletion is
 claimed. All six implementation exits and all existing guards remain live.
 
 ## CS3 completion bar and named implementation exits
+
+> **Superseded 2026-11-03 (zero goal):** every exit below is built by a zero row (E1 → Z2; E2 → Z1; E3, E4, E11 →
+> Z3; E5 → Z5; E6–E8 → Z7; E9 → Z10; E10 → Z9; E12 → Z12; E13 is a binary blob, not custom;
+> [map](#exits-become-host-rows)). The conditions below stay as each port's preservation checklist.
 
 **2026-11-03, sp-x2; coordinator's qualified-slice-or-named-explicit-exit
 instruction.** This completion bar supersedes the earlier requirement to
