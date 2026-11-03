@@ -69,3 +69,11 @@ LIVE `8057f4f` · FIX `2d4405a` (both QD1 fixes + QD11), 60 s at each pose.
 - **The pale plane** at the bottom of the earlier shaft boards is not a floor, a clear plane or a fog card: those
   approximate poses stood 35-50 m above the square looking past the stack's open edge, and rays there hit no collider
   within 400 m. It is the fog over the void under the stack, the same on both builds. Nothing to fix.
+
+## QD6 proof on the live build (sp-o3, 2026-11-03)
+
+[jake7-live-0b5d27d-board.jpg](jake7-live-0b5d27d-board.jpg): the same 7 matched poses on production after the release
+carrying every Nine fix (`0b5d27d384`, build `0b5d27d-mw0zj8ty`), JAKE'S PHONE · LIVE BEFORE `8057f4f` (sp-o1's run) ·
+LIVE NOW `0b5d27d`, Chromium as iPhone 16 Pro portrait, phone 2x, 60 s at each pose. The street floor (07:49) is the
+change Jake will see: his flat pale floor is the flagstone street on live now. The other six read whole on both, the gate
+(07:51) with QD3's short streaks under the lights.
