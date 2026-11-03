@@ -84,6 +84,9 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19j. **Shops:** weapons are **bought, level-locked**. Several shops, including a **dedicated weapons shop**; each shop's
     stock opens up by level. **Day/night like Driftwood** (20 min day + 4 min night). The Titan's **cutscene plays the
     first time, skippable**. **Storms:** the storm-hour quest plus rare natural storms.
+19k. **Night elites** keep their names: Sir Nibbles (band 1, L4), Hot Mess (band 4, L13), Riveting Rita (band 5, L16).
+    **Storm hour counts as night** for spawns. **Robots are Blender scripts** (no image-to-3D). **New SFX go into the
+    shared sound set** for every shard; robots chirp, no spoken lines.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
