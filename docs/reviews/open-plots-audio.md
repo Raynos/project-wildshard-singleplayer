@@ -1,8 +1,8 @@
 # Open plots: morning listening batch
 
-**Status:** `unread` 2026-11-03 — All five plots pass native bar 10; both score takes are on the shared listening list.
+**Status:** `unread` 2026-11-03 — All six plots pass native bar 10; both score takes are on the shared listening list.
 **Link:** https://wildshard-singleplayer.vercel.app/assets/music/ob7-listening.html (ships with the automatic deployment)
-**Plan:** OPEN-PLOTS, [build-out OB7](../plans/open-plots/build-out-mini-plan.md)
+**Plan:** OPEN-PLOTS, [build-out OB7 and OB10](../plans/open-plots/build-out-mini-plan.md)
 **Made by:** E521, sp-x2 / Codex
 
 One listening list holds both MiniMax Music 3 takes for each completed plot.
@@ -15,6 +15,7 @@ The measured recommendation ships; the other take stays available for comparison
 | Ember Forge | A, seed 701 | 1.56 MB | pass, `a723810b29` |
 | Mosslight Ruins | A, seed 701 | 1.06 MB | pass, `a6c5ce99cc` |
 | Coral Drift | B, seed 702 | 1.42 MB | pass, `aa2ef8558f` |
+| Night Market | A, seed 701 | 1.28 MB | pass, `2bdad75694` |
 
 Bayou A passes the voice check at 0.01% separated vocal energy. B measures
 28.79%, so it is labelled comparison-only and cannot become the active score.
@@ -102,3 +103,23 @@ Ember `49f5db5c90`; Mosslight `5f9e506c7b`; Coral `2a4ad076fc`.
 Native activations include Ember `699ac2968c`, Mosslight `a6c5ce99cc`
 and Coral `27b857779a`. The Nalati compatibility fix is `af6f2f8eb3`;
 the explicit scene-owner client gate is `658a62b688`.
+
+Night Market completes OB10 audio. The package is **1,279,210 B**,
+including both MiniMax Music 3 score candidates and catalogues. A ships
+with 0.02% separated vocal energy; B remains comparison-only for raw
+clipping (0.0141% of samples, above the existing 0.01% check).
+The ambience bed and six spots each compare MOSS v2 with Stable Audio 3
+Medium. Paired bed and awning retakes improve both to rank one. Three
+chosen recordings use MOSS and four use Stable Audio; six rank first
+and garden crickets ranks third. Required credits are retained.
+
+Night Market passes the same muted native phone check on `2bdad75694`
+(activation `c61524b2c8`): sustained recorded score, seven decoded cue
+loops, active bed and six positional gains 0.387–0.396 with heading
+pan flips near −0.698 / +0.695. No page errors or performance claim.
+All 158 prior product blobs and tile/collision/material sections stay
+unchanged; eight deferred audio blobs join. The audio adds 860,868
+served bytes: 7,902,859 → 8,763,727 B. Its exact 8,805,039 B ceiling
+preserves the existing 41,312 B non-audio margin (G872, same OB7 rule).
+Publication is `4f5e804f0c`; the containing build and wire pin are
+`2bdad75694`. The check browser and both borrowed previews are closed.
