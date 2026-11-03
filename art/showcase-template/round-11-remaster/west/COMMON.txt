@@ -10,7 +10,7 @@ LANDMARK STYLE SHEET (identical wording in every shot; only draw a landmark wher
 - THE WATER TANK (hook 3): a wide 18 m tall off-white riveted cylinder with an orange band round its top rim and a dark ladder up its side, black stencil "HOOK 3".
 - HOOK POLES AND THE MAST: dark-grey square steel poles, each topped with a glowing cyan ball (the grapple hook point).
 - THE ZIPLINE: one thin dark steel cable with a slight sag.
-- THE TOWN WALL: a 5 m light-grey dev-block wall with a dark-orange cap, walkable on top. TOWN GATES: two 9 m dark-orange square posts and a dark-orange lintel. The East Gate is flanked by two 11 m light-grey gatehouse towers with dark-orange caps.
+- THE TOWN WALL: a 5 m tan-orange (sandstone-orange) dev-block wall, walkable on top. TOWN GATES: two 9 m dark-orange square posts and a dark-orange lintel. The East Gate is flanked by two 11 m tan-orange gatehouse towers with dark-orange caps.
 - THE SEAM WALL: a 3 m orange dev-block wall running north-south; the seam gate is two 8 m dark-orange square posts with black stencil "SEAM GATE".
 - TOWN BUILDINGS: houses are light-grey or off-white dev-block boxes with orange or dark-orange gable or flat roofs, small dark window recesses and doors; shops are orange dev-block buildings with flat cyan awnings; TO LET fronts are grey with a "TO LET" stencil; the zip house is light grey with a cyan roof edge.
 - THE ROCK: a 16 m grey faceted six-sided crag of rough grey dev-blocks.

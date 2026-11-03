@@ -204,22 +204,22 @@
   {
    "id": "w11",
    "title": "The Rock lookout, vista 1",
-   "caption": "The bench on top of the Rock: the climb yard, the town and its obelisk in one frame; a FINDS toast.",
+   "caption": "The lookout bench on top of the Rock: the zipline and the town with its obelisk below; a FINDS toast.",
    "camera": {
     "pos": [
-     -215,
-     18.2,
-     48
+     -214,
+     17.7,
+     41
     ],
     "look": [
-     -160,
-     8,
-     -20
+     -120,
+     2,
+     18
     ],
-    "fov": 78
+    "fov": 70
    },
    "notes": "",
-   "screen": "SCREEN: on top of THE ROCK at the lookout, 16 m up, looking north-east over the town. The two white blocks in the foreground are the lookout bench and its footrest: make them a simple wood-and-steel bench. Beyond: the climb yard's rope bridges and decks, THE ZIPLINE, the town with its houses. On the right, under the minimap, a FINDS toast \"★ FOUND · ROCK LOOKOUT\" with \"VISTAS 1 / 8\". HUD values: Scrip \"45\", objective \"◆ SIT ON THE BENCH\", \"LV 3\"; SWAP shows a sword."
+   "screen": "SCREEN: on top of THE ROCK at the lookout, 16 m up, looking east over the town. The flat grey ground in front is the Rock's rough grey top. The two white blocks are the lookout bench (left) and a second bench (right edge): make them simple wood-and-steel benches. Beyond the Rock's edge: the town's houses, the light-grey zip house with the cyan roof on the left with THE ZIPLINE's cable coming down to it from the top-left, the town wall and the Movers Gate on the left, and THE OBELISK small and far in the centre (keep it small and exactly there). On the right, under the minimap, a FINDS toast \"★ FOUND · ROCK LOOKOUT\" with \"VISTAS 1 / 8\". HUD values: Scrip \"45\", objective \"◆ SIT ON THE BENCH\", \"LV 3\"; SWAP shows a sword."
   },
   {
    "id": "w12",

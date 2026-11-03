@@ -14,9 +14,9 @@ for (const s of JSON.parse(readFileSync(join(here, 'shots.json'), 'utf8')).shots
   const src = join(out, `${s.id}${s.pick ? '-' + s.pick : ''}.png`), dst = join(here, `${s.id}.jpg`);
   for (let q = 82; ; q -= 6) {
     execFileSync('magick', [
-      '(', '-size', '1024x', '-background', '#16181b', '-fill', '#f08a24', '-font', 'Helvetica-Bold', '-pointsize', '38',
+      '(', '-size', '1024x', '-background', '#16181b', '-fill', '#f08a24', '-font', '/System/Library/Fonts/Supplemental/Arial Bold.ttf', '-pointsize', '38',
       `caption:${s.id.toUpperCase()} · ${s.title}`, ')',
-      '(', '-size', '1024x', '-background', '#16181b', '-fill', '#e6e6e6', '-font', 'Helvetica', '-pointsize', '25', `caption:${s.caption}`, ')',
+      '(', '-size', '1024x', '-background', '#16181b', '-fill', '#e6e6e6', '-font', '/System/Library/Fonts/Supplemental/Arial.ttf', '-pointsize', '25', `caption:${s.caption}`, ')',
       '-bordercolor', '#16181b', '-border', '18x8', '-append', '-resize', '1024x', '(', src, '-resize', '1024x1536!', ')', '-append',
       '-quality', String(q), dst]);
     const { size } = statSync(dst);
