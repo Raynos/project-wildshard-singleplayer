@@ -242,7 +242,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 | OB6 | **Mosslight Ruins** (first free Opus lane; builds the ruin-stone tile). **In flight (2026-11-03, sp-o3): activated `38b95ef7fd` + `3748dcc5b1`.** Ruin-stone kit `330bed66fc` (ruins: arch, L wall, terrace; rubble: heap, columns; Desert Ruin reuses them), plot `f5b29be288` (R ruin court, E emerald pool, tower windows as emerald Glow), landmark A Hunyuan3D 2.1 picked (G872, `eba2a44862`, art/mosslight-ruins/round-1-landmark). Chromium phone: road 110 draws / 249k tris, plaza 114 / 327k. G983 look loop R1 `d3f8c7cc97`, R2 `e164db2efb`, R3 `def30fc8f4` (art/mosslight-ruins/round-2-look-loop), final three-way board art/mosslight-ruins/round-3-final (G872). Open: life clip (bar 7), audio (OB7), the open-plot walk route (0 stuck), density toward round 62 | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2 |
 | OB6b | **done (2026-11-03).** **Trim Mosslight's phone wire** toward Night Market's: 8,947,522 B against 8,225,190 (+9 %, approved G872 with this row). `def30fc8f4` brought it to 8,828,397 B (tower texture 768 px). It now serves **8,222,060 B**, and the ceiling is ratcheted to that: a 576 px poster in place of the 1024 px billboard, and the tower texture at 704 px. Before and after board: art/mosslight-ruins/round-4-wire-trim (hero views 0–0.5 % of pixels changed, same draws). Mosslight's tile debt shrinks to 26 rows | Opus | S | ≤ 8.23 MB, look unchanged |
 | OB7 | **Audio batch** under the model lock. Pilot first, then the four: 5 scores (two MiniMax Music 3 takes each, on one listening page in the morning batch; the lane ships its recommended take), 5 ambience beds, about 25 spot SFX (MOSS v2 vs Stable Audio 3, the better take ships). Files go in `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`, with credits | Codex | 1.5 | Every plot meets bar 10; the credits file is updated; the audio stays within its ≤ 3 MB budget |
-| OB8 | **In flight (2026-11-03, sp-x1).** Pinned final-look readings for Mosslight, Ember, Frostline and Bayou pass measured frame/draw/triangle/memory bars and maintained walks. Earlier J1/J2 pass on `0c3e3ca16b` (69/82 max draws). Current Ember/J1 refresh at `c8b9be9d42`: Ember passes; J1 −135 has p95 42 ms during a pre-existing MiniMax batch, so `OB8-J1-FRAME` waits for one clean confirmation; no plot-specific cause established. **Open:** final Coral reread; one clean J1 −135 confirmation once `.model.lock` is free. Ember refresh accepted by coordinator. Ancillary grid home spawn misses 181 draws vs 150 (`OB8-GRID-HOME-DRAWS`, sent to coordinator); full cohort exit 2 retained, with no junction failure. **OB8-RENDER-CPU (G908, after Jake QA):** engine submission/ownership, uniform and static-matrix bookkeeping; expected 0.07–0.20 ms/frame at 4× (about 1–3.5 µs/draw), estimated from sampled exclusive costs, unproven; no engine/game cut landed. Exact numbers and source limits below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
+| OB8 | **In flight (2026-11-03, sp-x1).** Pinned final-look readings for Mosslight, Ember, Frostline and Bayou pass measured frame/draw/triangle/memory bars and maintained walks. Earlier J1/J2 pass on `0c3e3ca16b` (69/82 max draws). Current Ember/J1 refresh at `c8b9be9d42`: Ember accepted; the authorized clean J1 −135 confirmation passes (59 max draws, 134,734 median triangles, 30.303 fps, p95 34 ms), closing `OB8-J1-FRAME` without routing. Earlier contention-overlap failure retained below. **Open:** final Coral reread after its final board. Ancillary grid home spawn misses 181 draws vs 150 (`OB8-GRID-HOME-DRAWS`, sent to coordinator); full cohort exit 2 retained, with no junction failure. **OB8-RENDER-CPU (G908, after Jake QA):** engine submission/ownership, uniform and static-matrix bookkeeping; expected 0.07–0.20 ms/frame at 4× (about 1–3.5 µs/draw), estimated from sampled exclusive costs, unproven; no engine/game cut landed. Exact numbers and source limits below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
 | OB9 | **Title hero re-shoot board.** After G972 and OB2–OB6, the 5 × 5 hero shows three of these plots, plus Nine Dragon at (1,-1). One labelled A / B / C board of re-shoots of the same NW-b framing | Opus | 0.5 | Board sent. Jake's pick ships, or the current hero stays |
 | OB10 | **Night Market catch-up (G980)**: after OB2–OB6, bring the Night Market to the same tile-kit bar (landmark, dressing density, audio, phone perf). **In flight (2026-11-03, sp-o3).** R1, the gate (art/grid/round-77-night-market-ob10): the coarse gate is drawn in its landmark graph (`coarseLandmark: "lit"`), so it reads red and gold from the road entry instead of dark; near 12k → 18k triangles; road entry 116 draws (`a8f1f940c7`). R2, density: L0 max 17,886 → 14,852 triangles, mean 8,910; wire 7.94 MB. Top-down 624k triangles, mostly the neighbouring cells; road 282k, plaza 495k (`8925472ace`). Look loop R1 (G983): warm dusk ground on round 49's floor colour, a lavender-to-peach sky and warmer lantern pools. Loop R2: fog 600-1800 m, so the aerials read clear. Final board art/grid/round-77-night-market-ob10/board-final.jpg (round 49 · before · now). Open: the gate's coral (its landmark graph is shared), the plaza's scale. Audio goes with OB7 | Opus + Codex | — | Same bar as OB2 |
 | — | Jake plays the plots on live | Jake | — | His word |
@@ -949,3 +949,51 @@ the single clean confirmation. Coral remains deferred until its final
 board. Any further shared-plan edit uses an exact patch; the accidental
 OB4 life status inclusion in `bfdc06d73c` was confirmed correct by its owner
 and referenced in his `c8b9be9d42` landing, with nothing to fix.
+
+
+### OB8 clean J1 −135 confirmation, source c8b9be9d42
+
+**`OB8-J1-FRAME` closed by the coordinator's explicit pass rule.** The
+single requested heading passes on the same production preview/source
+`c8b9be9d42`; the earlier 42 ms p95 reading remains intact above and is
+not routed to an Opus lane. No source or look change between the readings.
+
+sp-x2's existing Frostline two-score wrapper exited naturally, code 0,
+after 548.8 s. Before entry, `lsof` found **no holders** of
+`~/projects/localai/.model.lock`; sp-x2 and the coordinator received the
+start notice, and sp-x2 kept the next model load out until the end notice.
+The official reader alone owned the bounded G670 quiet window through
+`sim-lane` / `sim-quiet`: **51.648 s, complete, pass, exit 0**.
+
+| Clean J1 heading | Max draws | Triangles (median) | Median / p5 fps | p95 / p99 / worst ms | Work / callback p95 ms |
+|---|---:|---:|---:|---:|---:|
+| −135 | 59 | 134,734 | 30.303 / 29.412 | 34 / 47 / 70 | 4 / 37 |
+
+120 paired drawn frames, live game clock, phone tier at 2× render scale;
+no CPU throttle or GL timing observer. Zero intervals >100 ms, page
+errors, context losses or crashes. This clean result supports the
+contention explanation; it does not assign a plot-specific CPU cause.
+The actual post-sample snapshot verifies pitch **562.5**, road current
+null, no resident guest, crossing settled, and the intended Nine Dragon /
+Ember / Nalati / Mosslight corner. **Nalati and Nine remain pending in
+that snapshot**; unlike the previous batch, it is not an empty-pending
+reading. The fixed pose and source hash are retained in the raw report.
+
+The unavoidable initial home row also passes this run: **139 max draws**,
+**1,086,260 median triangles**, median **30.303 fps**, p95 **34 ms**, worst
+**39 ms**, work p95 **8 ms**, callback p95 **36 ms**. Its five pending
+neighbours remain explicit in the report. This supplements the earlier
+181-draw `OB8-GRID-HOME-DRAWS` miss; it does not erase that reading or
+close the coordinator-owned home follow-up.
+
+Grid aggregate native envelope: **984,319,097 B playing / 1,410,372,665 B
+loading**, GPU peak **161,297,209 B**, **148 playing / 182 loading** native
+samples, 32 GPU reads and one navigation Inspector gap. G556 page-aggregate
+qualification applies. The Simulator shut down, quiet cleared, sp-x2
+received the end notice, and the joined preview use was released. The
+preview remains available only for another lane's existing use.
+
+**Remaining measurement boundary: Coral's final board.** No repeat of its
+unfinished look loop is taken here. G908 engine/game CPU cuts and the
+home miss remain the named follow-ups already recorded on OB8. Pine and
+Nine source stays untouched.
