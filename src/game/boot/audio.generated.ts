@@ -2624,6 +2624,233 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
     }
    }
   ]
+ },
+ "starfall-observatory": {
+  "genre": "starfall-observatory",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-b-14c36abd5346.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 53.33,
+    "duration": 54.33,
+    "gain": 1,
+    "seamScore": 0.353,
+    "calm": "take-b-14c36abd5346.m4a",
+    "bpm": 103.4,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-702",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.316848,
+    "metrics": {
+     "duration_s": 56.54,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15,
+      "lra": 14.8,
+      "true_peak_dbfs": 0
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.9961
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2134.3,
+      "rolloff95_hz": 9939.9,
+      "flatness": 0.0007,
+      "hf_above_12k": 0.00008,
+      "sub_below_60": 0.0185,
+      "stereo_corr": 0.437
+     },
+     "tempo": {
+      "estimated_bpm": 161.5,
+      "brief_bpm": 60,
+      "rel_err": 0.346
+     },
+     "key": {
+      "best_key": "G minor",
+      "best_r": 0.761,
+      "d_major_r": -0.001,
+      "d_major_rank": 13,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.484,
+      "similarity": 0.495,
+      "level_match": 0.927,
+      "start_s": 13,
+      "end_s": 39.75,
+      "bars": 18,
+      "loop_s": 26.75,
+      "beats_per_bar": 4,
+      "grid_bpm": 161.5
+     },
+     "vocals": {
+      "vocal_energy_share": 0.3989,
+      "vocal_active_frac": 0.375,
+      "stem_share": {
+       "drums": 0.0402,
+       "bass": 0.0615,
+       "other": 0.4994,
+       "vocals": 0.3989
+      },
+      "groove_active_frac": 0.429,
+      "drums_active_frac": 0.25
+     }
+    },
+    "qualified": false,
+    "failedChecks": [
+     "vocal check 39.9% exceeds 10%"
+    ],
+    "clap": {
+     "rank": 3,
+     "p": 0.012196,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-6e799c04008a.m4a",
+     "loopStart": 13,
+     "loopEnd": 39.75,
+     "duration": 40.75,
+     "gain": 1,
+     "seamScore": 0.484
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "starfall-observatory",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 60 BPM, 4/4. A hushed iris-blue night garden surrounding a white domed observatory, a telescope and quiet canals. Celesta and glass harmonica carry sparse luminous notes above a very soft sustained string pad, occasional delicate harp plucks and a barely audible low wordless ooh choir texture far behind the instruments. Gentle astronomical wonder and peaceful discovery, never ominous. No drums or percussion, no solo singer, no words. The instruments dominate and the distant choral texture is subtle. Clear short memorable theme, consistent quiet dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no intelligible vocals or dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 221.8,
+     "model_load_s": 10.8,
+     "mps_driver_gb": 26.9
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.287085,
+    "metrics": {
+     "duration_s": 68.16,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -19.3,
+      "lra": 10.7,
+      "true_peak_dbfs": -2.5
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.75
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1898.6,
+      "rolloff95_hz": 9461.3,
+      "flatness": 0.0004,
+      "hf_above_12k": 0.00003,
+      "sub_below_60": 0.0789,
+      "stereo_corr": 0.181
+     },
+     "tempo": {
+      "estimated_bpm": 103.4,
+      "brief_bpm": 60,
+      "rel_err": 0.139
+     },
+     "key": {
+      "best_key": "A# minor",
+      "best_r": 0.898,
+      "d_major_r": -0.596,
+      "d_major_rank": 22,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.353,
+      "similarity": 0.4,
+      "level_match": 0.61,
+      "start_s": 2.25,
+      "end_s": 53.33,
+      "bars": 22,
+      "loop_s": 51.08,
+      "beats_per_bar": 4,
+      "grid_bpm": 103.4
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0022,
+      "vocal_active_frac": 0.029,
+      "stem_share": {
+       "drums": 0.0766,
+       "bass": 0.0712,
+       "other": 0.8499,
+       "vocals": 0.0022
+      },
+      "groove_active_frac": 0.235,
+      "drums_active_frac": 0.147
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 2,
+     "p": 0.02707,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-14c36abd5346.m4a",
+     "loopStart": 2.25,
+     "loopEnd": 53.33,
+     "duration": 54.33,
+     "gain": 1,
+     "seamScore": 0.353
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "starfall-observatory",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 60 BPM, 4/4. A hushed iris-blue night garden surrounding a white domed observatory, a telescope and quiet canals. Celesta and glass harmonica carry sparse luminous notes above a very soft sustained string pad, occasional delicate harp plucks and a barely audible low wordless ooh choir texture far behind the instruments. Gentle astronomical wonder and peaceful discovery, never ominous. No drums or percussion, no solo singer, no words. The instruments dominate and the distant choral texture is subtle. Clear short memorable theme, consistent quiet dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no intelligible vocals or dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 242.1,
+     "model_load_s": 10.8,
+     "mps_driver_gb": 26.96
+    }
+   }
+  ]
  }
 };
 export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
@@ -6218,6 +6445,203 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
        "cfg": 1,
        "gen_time_s": 2.14,
        "model_load_s": 8.4,
+       "mps_driver_gb": 11.44
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "starfall-observatory": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI; shared bed from lantern-bayou",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "starfall-observatory.ambience": {
+    "file": {
+     "set": "lantern-bayou",
+     "file": "ambience-99496e6be1b8.m4a"
+    },
+    "loopStart": 8.25,
+    "loopEnd": 26.25,
+    "duration": 27.25,
+    "gain": 1,
+    "seamScore": 0.368
+   }
+  },
+  "hums": {
+   "starfall-observatory.dome-motor": {
+    "file": "dome-motor-c40a8a4133b7.m4a",
+    "loopStart": 3.5,
+    "loopEnd": 8.5,
+    "duration": 9.5,
+    "gain": 1,
+    "seamScore": 0.234
+   },
+   "starfall-observatory.canal-lap": {
+    "file": "canal-lap-b50de9cf4079.m4a",
+    "loopStart": 4.5,
+    "loopEnd": 6.5,
+    "duration": 7.5,
+    "gain": 1,
+    "seamScore": 0.581
+   },
+   "starfall-observatory.pavilion-chimes": {
+    "file": "pavilion-chimes-995b4a756734.m4a",
+    "loopStart": 4.25,
+    "loopEnd": 6.25,
+    "duration": 7.25,
+    "gain": 1,
+    "seamScore": 0.578
+   },
+   "starfall-observatory.garden-frogs": {
+    "file": "garden-frogs-b84c5197a74d.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 4.25,
+    "duration": 5.25,
+    "gain": 1,
+    "seamScore": 0.466
+   },
+   "starfall-observatory.window-lute": {
+    "file": "window-lute-27fa05e57684.m4a",
+    "loopStart": 3.75,
+    "loopEnd": 5.75,
+    "duration": 6.75,
+    "gain": 1,
+    "seamScore": 0.215
+   },
+   "starfall-observatory.kiosk-murmur": {
+    "file": "kiosk-murmur-0b464681052b.m4a",
+    "loopStart": 3,
+    "loopEnd": 9,
+    "duration": 10,
+    "gain": 1,
+    "seamScore": 0.46
+   }
+  },
+  "oneshots": {},
+  "rejected": [
+   {
+    "family": "bed.starfall-observatory.ambience",
+    "reason": "Own bed failed; canonical qualified bed reused",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 8,
+       "p": 0.004415,
+       "best": "A few nearby crickets chirping in a sheltered courtyard garden",
+       "seed": "701",
+       "sourceWaveSha256": "9ba465bd52f7b82755134004ef3552c6325b8e29ecd7e1d0c8c6d9cb5b031fc9",
+       "sourceMetadataSha256": "6aeebe29c75529d3f1cf5b1ef805b4e6cc4c95a51fa03cc90d1e2661544ceca9"
+      },
+      "sourceWaveSha256": "9ba465bd52f7b82755134004ef3552c6325b8e29ecd7e1d0c8c6d9cb5b031fc9",
+      "sourceMetadataSha256": "6aeebe29c75529d3f1cf5b1ef805b4e6cc4c95a51fa03cc90d1e2661544ceca9",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.starfall-observatory.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "A calm night garden: sparse crickets chirp around a gently trickling ornamental fountain, with a few faint delicate wind chimes in a soft breeze. Natural spacious ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Quiet night garden crickets with a small fountain and occasional soft wind chimes",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 42.37,
+       "model_load_s": 5.2,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 12,
+       "p": 0.000097,
+       "best": "Rainforest birds with distant falling water and light rain drips after a tropical shower",
+       "seed": "702",
+       "sourceWaveSha256": "4043346178b53659ea9f62a6b35f3b5d42563c0fe4d039b78b02756b64513607",
+       "sourceMetadataSha256": "90b088f6cf688753506e1ccc385707234e4dc0db3028cbc9351765ebc110173a"
+      },
+      "sourceWaveSha256": "4043346178b53659ea9f62a6b35f3b5d42563c0fe4d039b78b02756b64513607",
+      "sourceMetadataSha256": "90b088f6cf688753506e1ccc385707234e4dc0db3028cbc9351765ebc110173a",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.starfall-observatory.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "A calm night garden: sparse crickets chirp around a gently trickling ornamental fountain, with a few faint delicate wind chimes in a soft breeze. Natural spacious ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Quiet night garden crickets with a small fountain and occasional soft wind chimes",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 42.7,
+       "model_load_s": 5.6,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 75,
+       "p": 0.000001,
+       "best": "Rainforest birds with distant falling water and light rain drips after a tropical shower",
+       "seed": "701",
+       "sourceWaveSha256": "d8881354dc325a8dcedb1c6ca533330ae666caa9c0b1b9a2a35ddc41a75e5795",
+       "sourceMetadataSha256": "06599ffb8ce3ed9efa07fb46ec538cfd688e9f0ea4c1b0d41eb4c32afe86fcc5"
+      },
+      "sourceWaveSha256": "d8881354dc325a8dcedb1c6ca533330ae666caa9c0b1b9a2a35ddc41a75e5795",
+      "sourceMetadataSha256": "06599ffb8ce3ed9efa07fb46ec538cfd688e9f0ea4c1b0d41eb4c32afe86fcc5",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.starfall-observatory.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "A calm night garden: sparse crickets chirp around a gently trickling ornamental fountain, with a few faint delicate wind chimes in a soft breeze. Natural spacious ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Quiet night garden crickets with a small fountain and occasional soft wind chimes",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 3.15,
+       "model_load_s": 5.7,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 36,
+       "p": 0.000096,
+       "best": "Rainforest birds with distant falling water and light rain drips after a tropical shower",
+       "seed": "702",
+       "sourceWaveSha256": "c230769ac68e2b6fd16849bc0638ee56c57c71638ba40312dc6c75fad10fadf7",
+       "sourceMetadataSha256": "59298d859e2a5be10dbaf1ff9c76527352140df9daf1bcd4b36857e72d86e5be"
+      },
+      "sourceWaveSha256": "c230769ac68e2b6fd16849bc0638ee56c57c71638ba40312dc6c75fad10fadf7",
+      "sourceMetadataSha256": "59298d859e2a5be10dbaf1ff9c76527352140df9daf1bcd4b36857e72d86e5be",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.starfall-observatory.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "A calm night garden: sparse crickets chirp around a gently trickling ornamental fountain, with a few faint delicate wind chimes in a soft breeze. Natural spacious ambience, no music, no melody, no voices or intelligible speech.",
+       "desc": "Quiet night garden crickets with a small fountain and occasional soft wind chimes",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 2.81,
+       "model_load_s": 8.2,
        "mps_driver_gb": 11.44
       }
      }
