@@ -3,6 +3,7 @@ import { installAssetFixture } from './fixtures/bootSetup';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Audio } from '../src/engine/audio/Audio';
+import { sfxCredit } from '../src/engine/audio/credits';
 import { Music } from '../src/engine/audio/Music';
 import { Scope } from '../src/engine/app/scope';
 import { SetScore, type ScoreSource } from '../src/engine/audio/SetScore';
@@ -35,9 +36,11 @@ test('the native scene waits for all six own cue loops, then releases its score 
   const refresh = vi.spyOn(music, 'refreshScore').mockImplementation(() => { /* No device is opened in this bank-lifetime control. */ });
   vi.spyOn(music, 'setScore').mockImplementation((_id, score) => { source = score; return () => { source = undefined; }; });
   const scene = new AudioSceneDirector(data, legacyDouble<Player>({ position: new Vector3(), yaw: 0 }));
+  const previousCredit = sfxCredit('synth');
   const bank: LevelAudioBank = { title: undefined, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } };
   try {
     scene.bind(audio, music, undefined, scope);
+    expect(sfxCredit('synth')).toContain('Powered by Stability AI');
     if (!(source instanceof SetScore)) throw new Error('Missing native own score');
     expect(source.pending).toBe(true); expect(source.styleIndependent).toBe(true);
     audio.useLevelBank(bank); expect(source.pending).toBe(true);
@@ -49,7 +52,7 @@ test('the native scene waits for all six own cue loops, then releases its score 
     bank.cues.loops.set(final, { buffer, loopStart: 0, loopEnd: 1, gain: 1 });
     audio.useLevelBank(bank); expect(source.pending).toBe(false);
     const dispose = vi.spyOn(source, 'dispose');
-    scope.dispose(); expect(source).toBeUndefined(); expect(audio.bedId).toBe('');
+    scope.dispose(); expect(sfxCredit('synth')).toBe(previousCredit); expect(source).toBeUndefined(); expect(audio.bedId).toBe('');
     expect(dispose).toHaveBeenCalledOnce();
     refresh.mockClear(); audio.useLevelBank(bank); expect(refresh).not.toHaveBeenCalled();
   } finally { scope.dispose(); }

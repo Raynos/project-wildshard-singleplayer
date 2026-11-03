@@ -97,6 +97,7 @@
     "./app/systems": "./app/systems.ts",
     "./audio/AmbienceBeds": "./audio/AmbienceBeds.ts",
     "./audio/Audio": "./audio/Audio.ts",
+    "./audio/credits": "./audio/credits.ts",
     "./audio/Cues": "./audio/Cues.ts",
     "./audio/Music": "./audio/Music.ts",
     "./audio/SetScore": "./audio/SetScore.ts",

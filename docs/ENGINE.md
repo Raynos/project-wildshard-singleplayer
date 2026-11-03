@@ -1990,11 +1990,12 @@ floor footprints, circular regions and live zone spots. Ordered rows feed
 the existing mixer expressions; `probeFinite` holds the mix on invalid
 listener/weather input. Floor, site and point ports remain real owners.
 
-`SampledAmbience`: `set` inputs, `mix` levels/pans, `advance` calls.
-Mixer or `CuePlayer` supplies loops. Explicit sample catalogues gate
-scores on `loopOrder` and pass `styleIndependent` in `SetScore.declared`'s
-fourth options argument. Only these owned recordings bypass preferred-style
-guards. Exit retires loops, score and listeners.
+`SampledAmbience` runs levels/pans/calls via `set`/`mix`/`advance`.
+Explicit scene catalogues gate scores on `loopOrder` and opt into
+`SetScore.declared`'s fourth option, `styleIndependent`. Other sources
+retain style guards. `engine/audio/credits.installSfxCredit(credit,scope)`
+keeps owned-bank attribution through Synth selection. Exit retires
+loops, score, listeners and credits.
 
 | Export | What it is |
 |---|---|

@@ -15,7 +15,8 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { SampledAmbience, PositionalLoops } from '@wildshard/engine/audio/AmbienceBeds';
-import { CuePlayer } from '@wildshard/engine/audio/Cues';
+import { installSfxCredit } from '@wildshard/engine/audio/credits';
+import { CuePlayer, cueManifest } from '@wildshard/engine/audio/Cues';
 import { castRay } from '@wildshard/engine/physics/query';
 import { ambientTick, tap } from '@wildshard/engine/core/harnessTap';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
@@ -78,6 +79,7 @@ export class AudioSceneDirector {
   const ownCues=this.data.music?.setCatalogue===undefined||this.data.samples?.catalogue===undefined?undefined:new CuePlayer(a,scope,audioRandom);
   const expected=ownCues===undefined?[]:requireAudioProfile(this.data.samples?.catalogue,'scene loop inventory').loopOrder;
   if(ownCues!==undefined&&expected.length===0)throw new Error('Scene cue bank requires its loop inventory');
+  if(ownCues!==undefined){const credit=cueManifest(requireAudioProfile(this.data.samples,'scene sample catalogue').set)?.['credit'];if(typeof credit!=='string')throw new Error('Scene cue bank requires its credit');installSfxCredit(credit,scope);}
   if(ownCues!==undefined)a.onLevelBank(bank=>{ownCues.useBank(bank.cues);},scope);
   if(music!==undefined){const profile=requireAudioProfile(this.data.music,'scene score'),score=SetScore.declared(profile,music,undefined,{styleIndependent:ownCues!==undefined});this.score=score;scope.onDispose(()=>{score.dispose();});scope.onDispose(music.setScore(profile.id,score));a.onLevelBank(bank=>{if(ownCues===undefined||expected.every(id=>bank.cues.loops.has(id)))score.useBank(bank.score);},scope);}
   this.ambience=new SampledAmbience(a,requireAudioProfile(this.data.zones,'scene zones'),ownCues,scope);

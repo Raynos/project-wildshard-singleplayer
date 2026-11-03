@@ -1,3 +1,4 @@
+import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 // src/engine/audio/credits.ts — the model credits the licences ask the UI to show (project/archive/2026-09-23-music.md v3): MiniMax-Music3 for the
 // score, and the sound-effect set's own `credit` string (public/assets/sfx/best/sfx.json). The one generated set is the better
@@ -20,8 +21,20 @@ const NAMES: Record<Exclude<SfxSet, 'synth'>, string> = {
 const STABILITY_SETS: ReadonlySet<SfxSet> = new Set<SfxSet>(['best']);
 const loaded = new Map<SfxSet, string>();
 const listeners = new Set<() => void>();
+const scopedCredits = new Map<object, string>();
+
+/** Retain an owned bank's attribution independently of the shared sound-set
+ * preference. Retiring its scene restores the remaining or shared credits. */
+export function installSfxCredit(credit: string, scope: Scope): void {
+  const text = credit.trim();
+  if (text === '' || scope.disposed || scope.disposing) throw new Error('Active SFX credit requires a live scope and text');
+  const token = {};
+  scopedCredits.set(token, text); listeners.forEach(fn => fn());
+  scope.onDispose(() => { scopedCredits.delete(token); listeners.forEach(fn => fn()); });
+}
 
 export function sfxCredit(set: SfxSet): string {
+  if (scopedCredits.size > 0) return [...new Set(scopedCredits.values())].join(' · ');
   if (set === 'synth' || !shipped(`/assets/sfx/${set}/sfx.json`)) return ''; // a set this build does not ship plays no model's sounds
   const c = loaded.get(set) ?? NAMES[set];
   return !STABILITY_SETS.has(set) || c.includes('Stability AI') ? c : engineString('s_276bbc529952', [c, STABILITY]);
