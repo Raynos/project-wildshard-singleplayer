@@ -206,6 +206,17 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   registering colliders (`ctx.piece` / `app.registry.add`); moving things run in the fixed step. After changing
   colliders, `node scripts/physics-baseline.mjs --no-build --mode=walk` must report 0 stuck.
 
+## Goldens: re-capture before you land a look change → [docs/process/GOLDENS.md](docs/process/GOLDENS.md)
+
+- Every shard has **24 SHARDFILE goldens** (`art/shardfile-goldens/<shard>/24/`, the look to hold) and 24 frozen
+  LEGACY ones; open plots have 8 views each (`art/open-plots/golden-*/`). `ls` them before saying a shard has none.
+- **Anything that can change what the player sees** (render, shader, material, geometry, tiles, sky, light, LOD,
+  culling, bakes, "pixel-identical" perf cuts) re-captures that shard's 24 cameras on the candidate build and compares
+  them against the SHARDFILE goldens before it lands (skill `goldens`). **A red camera blocks the landing**; P1–P5
+  diffs alone never count. Shader, render-target, clear or perf changes add a WebKit pass.
+- A golden changes only with an approved look change (Jake's ruling or a logged G872 decision), never silently.
+  Before telling Jake a shard is ready for QA, look at a fresh golden rerun board of that build (Jake, 2026-11-03).
+
 ## Deploy → [docs/process/DEPLOY.md](docs/process/DEPLOY.md)
 
 - Production ships the **newest CI-green `main` with an exact-SHA green boot smoke** immediately (`.github/deploy-pin.json`, G920).
