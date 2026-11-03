@@ -1,4 +1,4 @@
-"""cypress.py <out-dir>: Lantern Bayou's landmark as a Blender script (OB2, docs/plans/open-plots/build-out-mini-plan.md):
+"""cypress.py <out-dir>: Lantern Bayou's landmark as a Blender script (OB2, project/archive/2026-11-03-open-plots-build-out.md):
 the script take of the giant moss-draped bald cypress, beside the Hunyuan3D 2.1 and TRELLIS.2 takes on the pick board
 (art/lantern-bayou/round-1-landmark/).
 

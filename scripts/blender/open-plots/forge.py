@@ -1,4 +1,4 @@
-"""forge.py <out-dir>: Ember Forge's theme kit families (OB4, docs/plans/open-plots/build-out-mini-plan.md, G978).
+"""forge.py <out-dir>: Ember Forge's theme kit families (OB4, project/archive/2026-11-03-open-plots-build-out.md, G978).
 
 Two families in kit.py's format (kitlib.py), retinted by a layout's palette like every kit family:
 - `forges`: the forge-hall tile's buildings in coursed basalt under iron roofs: a smithy with a glowing hearth and a

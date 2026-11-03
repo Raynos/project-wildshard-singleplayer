@@ -1,4 +1,4 @@
-"""bayou.py <out-dir>: Lantern Bayou's theme kit families (OB2, docs/plans/open-plots/build-out-mini-plan.md, G978).
+"""bayou.py <out-dir>: Lantern Bayou's theme kit families (OB2, project/archive/2026-11-03-open-plots-build-out.md, G978).
 
 Two families in kit.py's format (kitlib.py), retinted by a layout's palette like every kit family:
 - `stilts`: houses standing on timber stilts in the swamp, each with a porch deck, a ladder down to the water and a

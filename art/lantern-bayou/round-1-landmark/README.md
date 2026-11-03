@@ -1,6 +1,6 @@
 # Lantern Bayou · round 1 · the landmark (OB2, 2026-11-02, sp-o2)
 
-The pilot plot's signature landmark (docs/plans/open-plots/build-out-mini-plan.md §3, bar 1): a giant moss-draped bald
+The pilot plot's signature landmark (project/archive/2026-11-03-open-plots-build-out.md §3, bar 1): a giant moss-draped bald
 cypress, about 40 m, its lanterns each hung on a visible rope (G827). Look target: round 62's
 `art/grid/round-62-open-plot-palettes/18-lantern-bayou.jpg`.
 

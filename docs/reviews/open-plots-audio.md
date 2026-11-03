@@ -2,7 +2,7 @@
 
 **Status:** `unread` 2026-11-03 — All six plots pass native bar 10; both score takes are on the shared listening list.
 **Link:** https://wildshard-singleplayer.vercel.app/assets/music/ob7-listening.html (ships with the automatic deployment)
-**Plan:** OPEN-PLOTS, [build-out OB7 and OB10](../plans/open-plots/build-out-mini-plan.md)
+**Plan:** OPEN-PLOTS, [build-out OB7 and OB10](../../project/archive/2026-11-03-open-plots-build-out.md)
 **Made by:** E521, sp-x2 / Codex
 
 One listening list holds both MiniMax Music 3 takes for each completed plot.

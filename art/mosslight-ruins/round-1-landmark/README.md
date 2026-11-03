@@ -1,6 +1,6 @@
 # Mosslight Ruins · round 1 · the landmark (OB6, 2026-11-03, sp-o3)
 
-The plot's signature landmark (docs/plans/open-plots/build-out-mini-plan.md, Mosslight Ruins): a ruined stone tower
+The plot's signature landmark (project/archive/2026-11-03-open-plots-build-out.md, Mosslight Ruins): a ruined stone tower
 about 35 m tall on a rock outcrop at the plaza, ivy-wrapped, its windows glowing emerald. Look target: round 62's
 `art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg`.
 

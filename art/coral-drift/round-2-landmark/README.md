@@ -1,6 +1,6 @@
 # Coral Drift · round 2 · the coral arch landmark (OB5, 2026-11-03, sp-o2)
 
-The plot's signature landmark (docs/plans/open-plots/build-out-mini-plan.md, Coral Drift): a giant faceted coral arch,
+The plot's signature landmark (project/archive/2026-11-03-open-plots-build-out.md, Coral Drift): a giant faceted coral arch,
 25 m, over the plaza. Look target: the G983 look loop's targets (`../round-1-look-loop/target-*.jpg`), themselves
 remastered from round 62's `art/grid/round-62-open-plot-palettes/10-coral-drift.jpg`.
 

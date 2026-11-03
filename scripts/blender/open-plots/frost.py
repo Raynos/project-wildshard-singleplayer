@@ -1,4 +1,4 @@
-"""frost.py <out-dir>: Frostline Peaks' theme kit families (OB3, docs/plans/open-plots/build-out-mini-plan.md, G978).
+"""frost.py <out-dir>: Frostline Peaks' theme kit families (OB3, project/archive/2026-11-03-open-plots-build-out.md, G978).
 
 Two families in kit.py's format (kitlib.py), retinted by a layout's palette like every kit family:
 - `lodges`: timber alpine houses under steep snow-loaded roofs (a lodge with a balcony, a two-storey chalet, a small

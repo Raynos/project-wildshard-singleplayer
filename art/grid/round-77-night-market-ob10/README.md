@@ -1,6 +1,6 @@
 # Night Market · round 77 · OB10 (build-out catch-up, G980), 2026-11-03, sp-o3
 
-The build-out bar (docs/plans/open-plots/build-out-mini-plan.md §2) applied to the Night Market. Captured in the engine on
+The build-out bar (project/archive/2026-11-03-open-plots-build-out.md §2) applied to the Night Market. Captured in the engine on
 the phone tier at 2x as an iPhone 16 Pro, at the round-62 hero cameras plus the gate at 200 m and 100 m.
 
 ## Round 1: the gate (`board-r1.jpg`)

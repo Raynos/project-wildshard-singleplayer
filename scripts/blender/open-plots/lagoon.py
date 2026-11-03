@@ -1,4 +1,4 @@
-"""lagoon.py <out-dir>: Coral Drift's theme kit families (OB5, docs/plans/open-plots/build-out-mini-plan.md, G978).
+"""lagoon.py <out-dir>: Coral Drift's theme kit families (OB5, project/archive/2026-11-03-open-plots-build-out.md, G978).
 
 Three families in kit.py's format (kitlib.py), retinted by a layout's palette like every kit family:
 - `huts`: the beach-hut tile's buildings in sun-bleached timber under blue roofs: a stilt hut over the water with a

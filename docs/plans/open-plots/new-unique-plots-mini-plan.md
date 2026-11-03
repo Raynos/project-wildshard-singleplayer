@@ -26,7 +26,7 @@ graphically better than Night Market."* · *"Nine Dragons should be permanently 
 public mode. I don't want two different grids."* · *"Showcase template is going to come later … For the five new plots,
 you just need to come up with a theme and some mock-ups."*
 
-Sibling: [build-out-mini-plan.md](build-out-mini-plan.md) (the per-plot pipeline; another lane is writing it).
+Sibling: [archived build-out](../../../project/archive/2026-11-03-open-plots-build-out.md) (the per-plot pipeline; another lane is writing it).
 Parent: [OPEN-PLOTS](../OPEN-PLOTS.md) (parked). Read at HEAD `d795fa9dfe`.
 
 ## 1. Why Lantern Bayou was there twice

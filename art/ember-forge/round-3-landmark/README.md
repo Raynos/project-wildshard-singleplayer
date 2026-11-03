@@ -1,6 +1,6 @@
 # Ember Forge · round 3 · the furnace landmark (OB4, 2026-11-03, sp-o3)
 
-The plot's signature landmark (docs/plans/open-plots/build-out-mini-plan.md, Ember Forge): the forge furnace hall, about
+The plot's signature landmark (project/archive/2026-11-03-open-plots-build-out.md, Ember Forge): the forge furnace hall, about
 35 m, with four glowing chimneys and a great lit door. Look target: round 62's
 `art/grid/round-62-open-plot-palettes/17-ember-forge.jpg`.
 

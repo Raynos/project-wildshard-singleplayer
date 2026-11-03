@@ -1,7 +1,7 @@
 # OB9 · Title hero re-shoot after the five plots
 
 [Labelled A / B / C board](board.jpg), iPhone portrait. Row OB9 of
-[the build-out plan](../../../docs/plans/open-plots/build-out-mini-plan.md): after G972 and OB2–OB6
+[the build-out plan](../../../project/archive/2026-11-03-open-plots-build-out.md): after G972 and OB2–OB6
 the 5 × 5 hero holds Frostline (-1,-1), Lantern Bayou (-2,-1), Coral Drift (-2,-2), Night Market and
 Nine Dragon at (1,-1), which the shipped image still showed as holograms and grey slabs.
 

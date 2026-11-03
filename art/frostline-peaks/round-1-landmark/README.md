@@ -1,6 +1,6 @@
 # Frostline Peaks · round 1 · the landmark (OB3, 2026-11-03, sp-o1 from sp-o2's takes)
 
-The plot's signature landmark (docs/plans/open-plots/build-out-mini-plan.md, Frostline Peaks): a granite peak about
+The plot's signature landmark (project/archive/2026-11-03-open-plots-build-out.md, Frostline Peaks): a granite peak about
 70 m tall on the 2 × 2 plaza, a lit summit lodge, and a chair lift (three towers, moving chairs). Look target: round
 62's `art/grid/round-62-open-plot-palettes/16-frostline-peaks.jpg`.
 

@@ -1,6 +1,6 @@
 # Plan: OPEN-PLOTS — build the other 18 open plots the way Night Market was built
 
-**State:** `parked` (rows re-pointed 11-02: the five build-outs and four new plots live in [open-plots/build-out-mini-plan.md](open-plots/build-out-mini-plan.md) and [open-plots/new-unique-plots-mini-plan.md](open-plots/new-unique-plots-mini-plan.md), G971–G977; play loops dropped, G971) — was `parked (draft, 2026-10-28): starts on Jake's word, after SHARD-PLATFORM archives (G824)`
+**State:** `parked` (rows re-pointed 11-02: the five build-outs are archived in [open-plots build-out](../../project/archive/2026-11-03-open-plots-build-out.md) and [open-plots/new-unique-plots-mini-plan.md](open-plots/new-unique-plots-mini-plan.md), G971–G977; play loops dropped, G971) — was `parked (draft, 2026-10-28): starts on Jake's word, after SHARD-PLATFORM archives (G824)`
 
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
