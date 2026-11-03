@@ -7,6 +7,11 @@
       "cameras": "art/open-plots/lantern-bayou/domes"
     },
     {
+      "slug": "open-plot-mosslight-ruins",
+      "instance": "open-plot-4-2",
+      "cameras": "art/open-plots/mosslight-ruins/domes"
+    },
+    {
       "slug": "open-plot-night-market",
       "instance": "open-plot-nw",
       "cameras": "art/open-plots/night-market/domes"
