@@ -24,7 +24,8 @@ native bar 10 before closure. Briefs and offline waltz-meter checks are
 `878e5311af`; no audio is activated by that source. Plot owners supplied
 the six real horizontal probe locations. OB8 Chromium pair, separate
 memory, official Simulator window and maintained walk follow each final
-board/source. Saltwind Lighthouse's inert template stub follows these two.
+board/source. Saltwind Lighthouse's inert template stub is `9361210b9d`; its live
+output/grid/map remain unchanged and its Opus visual row remains open.
 Opus owns all visual source and look rulings (G848).
 
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
@@ -146,7 +147,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP6 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
 | OP7 | Patchwork Fairground (wave 1; new idea, reuses stalls and strings) — look target [round 75](../../art/grid/round-75-new-plot-palettes/03-patchwork-fairground.jpg), cell (-2,0), theme in §4b | Opus + Codex | 12 / 4 h | Steps 1–8; takes a repeat cell |
 | OP8 | ~~Mushroom Hollow~~ **dropped (G977)**: Jungle Ziggurat (OP13) takes its cell (-2,2) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
-| OP9 | Saltwind Lighthouse (wave 2; new) — look target [round 75](../../art/grid/round-75-new-plot-palettes/04-saltwind-lighthouse.jpg), cell (-2,1), G982, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP9 | **Inactive template stub `9361210b9d` (2026-11-03, sp-x6); visual build remains open.** Saltwind Lighthouse (wave 2; new) — look target [round 75](../../art/grid/round-75-new-plot-palettes/04-saltwind-lighthouse.jpg), cell (-2,1), G982, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP10 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP11 | Sky Harbor (wave 3) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP12 | Desert Ruin (wave 3; reuses the palms) | Opus + Codex | 16 / 5 h | Steps 1–8 |
