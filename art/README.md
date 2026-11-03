@@ -107,6 +107,7 @@ when the images were generated.
 | `menu/` | `round-11-whats-new` (10-07) | SF60 / G201: where the daily "WHAT'S NEW · WHAT TO TRY" playtest card sits on the main menu (A card over the title art, recommended · B strip above the doors · C chip + sheet) |
 | `open-plots/` | `new-unique-plots/round-1` (11-02) | E522 / G970–G973: five new open-plot themes, one labelled portrait board each (`1-saltwind-lighthouse` … `5-jungle-ziggurat`, the spare) + `0-overview.jpg`; prompts in its README; [plan](../docs/plans/open-plots/new-unique-plots-mini-plan.md) |
 | `lantern-bayou/` | `round-1-landmark` (11-02) | OB2 (open-plots build-out pilot): the giant cypress landmark: round 62's crop, two codex references, `board.jpg` (Hunyuan3D 2.1 · TRELLIS.2 · Blender script, the stilts / marsh theme families and OP1's hero lanterns); C, the script, ships (G872). README has the detail list and numbers |
+| `grid/` | `round-76-night-market-op1` (11-03) | OPEN-PLOTS OP1 (G827): Night Market NOW vs AFTER at three dome cameras: sky lanterns gone, thick ropes, hero lanterns; README has the numbers |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
