@@ -1,0 +1,20 @@
+{
+  "schema": "open-plot-captures/1",
+  "plots": [
+    {
+      "slug": "open-plot-lantern-bayou",
+      "instance": "open-plot-0-1",
+      "cameras": "art/open-plots/lantern-bayou/domes"
+    },
+    {
+      "slug": "open-plot-night-market",
+      "instance": "open-plot-nw",
+      "cameras": "art/open-plots/night-market/domes"
+    },
+    {
+      "slug": "open-plot-showcase-template",
+      "instance": "open-plot-2-4",
+      "cameras": "art/open-plots/showcase-template/domes"
+    }
+  ]
+}
