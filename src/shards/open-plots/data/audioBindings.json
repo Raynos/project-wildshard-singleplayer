@@ -47,5 +47,54 @@
         "reach": 45
       }
     ]
+  },
+  "frostline-peaks": {
+    "idea": "frostline-peaks",
+    "source": {
+      "dir": "/assets/music/frostline-peaks/",
+      "manifestKey": "frostline-peaks"
+    },
+    "sfxDir": "/assets/sfx/frostline-peaks/",
+    "files": {
+      "score": "take-b-ab47fa6f0820.m4a",
+      "ambience": "ambience-b9f79739ab4a.m4a",
+      "lift-wheel-creak": "lift-wheel-creak-5b84c80057bd.m4a",
+      "hearth-crackle": "hearth-crackle-3a1839049eba.m4a",
+      "ice-creak": "ice-creak-33fda83c960a.m4a",
+      "gate-wind-chimes": "gate-wind-chimes-e7a515826dfb.m4a",
+      "pine-rustle": "pine-rustle-7ff7e897e215.m4a"
+    },
+    "spots": [
+      {
+        "id": "lift-wheel-creak",
+        "x": 48,
+        "z": 0,
+        "reach": 35
+      },
+      {
+        "id": "hearth-crackle",
+        "x": -156.25,
+        "z": -218.75,
+        "reach": 25
+      },
+      {
+        "id": "ice-creak",
+        "x": -31.25,
+        "z": -156.25,
+        "reach": 26
+      },
+      {
+        "id": "gate-wind-chimes",
+        "x": 0,
+        "z": -230,
+        "reach": 28
+      },
+      {
+        "id": "pine-rustle",
+        "x": -93.75,
+        "z": -218.75,
+        "reach": 28
+      }
+    ]
   }
 }

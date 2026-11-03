@@ -121,7 +121,18 @@
             "practice": "/src/shards/open-plots/thumbs/frostline-peaks.jpg"
           }
         },
-        "pois": []
+        "pois": [],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.frostline-peaks",
+          "score": "score.frostline-peaks",
+          "bed": "none"
+        },
+        "assetGlobs": [
+          "public/assets/open-plots/**",
+          "public/assets/music/frostline-peaks/**",
+          "public/assets/sfx/frostline-peaks/**"
+        ]
       },
       "layout": "frostline-peaks",
       "scaffold": true,
