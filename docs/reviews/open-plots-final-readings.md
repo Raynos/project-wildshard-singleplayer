@@ -24,7 +24,7 @@ not qualify a later audio candidate. Saltwind's final admitted candidate is
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Open | Chromium memory complete; official Sim queued |
+| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Chromium/control complete; walk/goldens open | Chromium memory complete; official Sim queued |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
@@ -521,3 +521,46 @@ Saltwind and Starfall neighbours. These are prepared source poses, not
 measured residency. The exact body admission, memory samples and source
 poses are retained at `tmp/sp-x8-plot-readings/starfall-final/`.
 The full row stays open for the independent remaining scopes.
+
+## Starfall Observatory — Chromium/control (sp-x1)
+
+Final audio-containing **aa33a361f526d9a82d280912014de6e451cff381**,
+shared immutable **aa33a36-mw17vdnh** (:4400). X2's native bar 10 passes
+17 s before landing. Its final bridge retains all 166 files and 34/35
+sections, with only the map source stamp differing. The pre-audio 158 files,
+9,173,791 B, and 32/34 old sections stay exact; wire is 5,911,520 B.
+The audio owner retains those full body/pack/wire and playback proofs.
+
+One maintained Chromium/Metal command uses the same pin and real standing
+poses for Starfall and Night Market: phone 2×, muted iPhone 16 Pro
+402×874 / 804×1748 canvas, live clock, boot CPU 1× then acknowledged 4×
+CPU only after readiness/new draw. It completes in **52.320 s**, with all
+six windows **120/120 paired draw and render-CPU samples**, zero skips,
+page errors or context loss. The existing floor reader reports
+complete/pass; this earns no official Simulator or physical-phone timing
+credit.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Starfall / spawn | 47 | 93,596 | 47.908 / 80.851 |
+| Starfall / road | 54 | 89,506 | 44.784 / 77.778 |
+| Starfall / plaza | 54 | 119,012 | 35.725 / 48.148 |
+| Night Market / spawn | 48 | 225,198 | 44.479 / 66.667 |
+| Night Market / road | 56 | 140,577 | 43.943 / 75.000 |
+| Night Market / plaza | 57 | 283,280 | 35.599 / 49.123 |
+
+All six report **30.03 fps / p95 33.4 ms**, maximum 33.4–33.5 ms and zero
+sampled intervals over 50 or 100 ms. All strict 33.3 ms flags remain
+**false**. All windows fit 150 draws and miss the original **30 µs/draw**
+CPU target. The worst whole-frame ratio stays the gate; these descriptive
+matched results stay under G908 / OB8-RENDER-CPU, without an isolated saving
+or cause claim. Initial held-cue fallback messages do not establish the
+late audio bank's readiness; generated playback remains the separate native
+bar 10 scope, as described for Sky above.
+
+Raw result, paired draw-budget report and standing source hash are under
+`tmp/sp-x1-open-plots/starfall-final/`. The real road `(0,1.7,-241,pi,0)`
+and plaza `(0,1.7,-62,pi,0)` match the control. The browser is closed;
+the own preview lease remains for the maintained walk and eight-view golden
+bridge after X8's model-free official window. Those scopes remain open.
+No visual source changes.
