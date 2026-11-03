@@ -515,3 +515,30 @@ walk, golden bridge, memory and official Simulator remain open with
 X1/X8 on the ensuing immutable source. No performance, memory or full
 OP20 close is claimed. This source is committed locally under Jake’s
 audio/plots/docs push hold, without a push request.
+
+The ensuing immutable carriers also pass full native bar 10: Thin Ice
+**`6ce898ee5fd69dc3a9a7ac3820a6ad562473bb26` /
+`6ce898e-mw1buojk`**, 18 s, and Pastel Alien Plain
+**`5fcb0ac75ac4d47e695dfec2953b280e80445cbc` /
+`5fcb0ac-mw1c7hz2`**, 17 s. Both retain phone 2×, own recorded score,
+seven decoded loops, active bed, six positional gain/pan checks,
+native pause/resume and zero page errors; browsers closed. Each final
+product has all **166 file bodies and 34/35 sections** exact to its
+native-checked candidate, with only the defining-source map stamp
+changing. Full final listed-body/hash/ordered-pack audits pass.
+Receipts are `tmp/sp-x2-ob7/{thin,pastel}-final-native.json` and the
+corresponding `final-audit` / `final-native-bridge` JSONs.
+
+X1 and X8 have literal final source, build, body/pack/wire bridges and
+Opus camera pins for their existing reading split. Those final cohorts
+remain queued behind required CI work; this playback qualification
+claims no frame-floor, memory or physical-phone result. The shared
+listening page has all fourteen currently published sets and forty-two
+score/bed players, including both Fossil candidates and its canonical
+Night Market bed. No agent listening verdict is claimed. All local
+model work for these four plots has exited; completed candidate and
+baseline preview uses are released through the ordinary owner path.
+No audio/plots/docs push request was made under Jake's hold. Local Git
+ancestry now confirms the Pastel activation is already contained in
+`origin/main` through the coordinated carrier; no CI-green or live
+claim follows from that publication alone.
