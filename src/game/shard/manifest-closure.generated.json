@@ -342,6 +342,8 @@
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-clockwork-canyon.generated.ts",
+    "src/shards/open-plots/thumbs/clockwork-canyon-landscape.jpg",
+    "src/shards/open-plots/thumbs/clockwork-canyon-portrait.jpg",
     "src/shards/open-plots/thumbs/clockwork-canyon.jpg"
   ],
   "open-plot-coral-drift": [

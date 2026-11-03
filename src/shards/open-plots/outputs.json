@@ -839,8 +839,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/clockwork-canyon.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/clockwork-canyon-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/clockwork-canyon-landscape.jpg"
         },
         "explore": {
           "art": {
