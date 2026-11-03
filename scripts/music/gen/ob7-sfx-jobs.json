@@ -364,8 +364,8 @@
       "kind": "bed",
       "into": "saltwind-lighthouse",
       "duration": 30,
-      "desc": "Steady squall rain on slate roofs and wet harbour stone, gusting wind and water slapping quay walls",
-      "prompt": "Steady rain pattering on slate roofs and wet stone in a northern fishing harbour. Cold gusts swell gently, with subdued water slapping a basalt quay wall beneath the rain. Continuous restrained storm field recording. No birdsong, no music, no voices, no thunder crashes."
+      "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
+      "prompt": "Steady rain pattering on slate roofs and wet stone in a northern fishing harbour. Cold gusts swell gently, with subdued water slapping a basalt quay wall. A very faint distant low two-tone foghorn sounds once across the harbour then leaves a long quiet gap beneath the rain. Continuous restrained storm field recording, rain stays dominant. No birdsong, no music, no voices, no thunder crashes."
     },
     "hum.saltwind-lighthouse.lighthouse-foghorn": {
       "kind": "hum",
