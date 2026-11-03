@@ -8,7 +8,7 @@ test('lantern vertex bake preserves neutral words, sums compact linear light and
   const builders = new URL('../src/shards/open-plots/generators/nightMarket.mjs', import.meta.url).href;
   const program = `import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {bakeLanternVertices,buildLayout,parseLayout,Soup} from ${JSON.stringify(kit)};
+import {bakeLanternVertices,buildLayout,parseLayout,plotWriter,Soup} from ${JSON.stringify(kit)};
 import {nightMarketBuilders} from ${JSON.stringify(builders)};
 import {prepareModelKit} from ${JSON.stringify(glb)};
 import {normalizeWorldGlb} from ${JSON.stringify(new URL('../src/sdk/bake/world.ts', import.meta.url).href)};
@@ -36,12 +36,26 @@ const layout=JSON.parse(readFileSync('src/shards/open-plots/data/layouts/night-m
 const palette=Object.fromEntries(Object.entries(layout.palette).map(([key,s])=>[key,[1,3,5].map(at=>{const c=parseInt(s.slice(at,at+2),16)/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4})]));
 const parts=Object.fromEntries(['Kit','Glow','Pool','Water','far','solid','detailKit','detailGlow','coarse'].map(role=>[role,new Soup()])),before=[];
 const kit=await prepareModelKit(palette,new Map([['lanterns',new Uint8Array(readFileSync('public/assets/open-plots/kit/lanterns.glb'))]]),normalizeWorldGlb);
-buildLayout(parseLayout(layout.rows, nightMarketBuilders()),parts,palette,(r,c)=>(r*7+c*3)%2,{...kit,lanternEmitter:(at,colour)=>before.push({at,colour})},nightMarketBuilders());
+const builders=nightMarketBuilders(),grid=parseLayout(layout.rows,builders);
+assert.equal(grid.flat().filter(cell=>cell.type==='P').length,4);
+assert.equal(kit.has('stalls'),false);
+buildLayout(grid,parts,palette,(r,c)=>(r*7+c*3)%2,{...kit,lanternEmitter:(at,colour)=>before.push({at,colour})},builders);
 for(const light of before)assert.ok(light.at.every(Number.isFinite)&&light.colour.every(c=>c>=0&&c<=1));
 const surface=parts.Kit.part('Kit');
 assert.deepEqual(bakeLanternVertices(surface,before,{gain:0,radius:1.5,cut:3}),surface.colours);
+// OB10 R3: one corner lamp, three kiosk lights and the four unchanged bed lamps.
+const quarter=Object.fromEntries(Object.keys(parts).map(role=>[role,new Soup()])),lights=[],placements=[];
+const quarterKit={...kit,lanternEmitter:(at,colour)=>lights.push({at,colour}),placeModel:(w,family,variant,x,z,options)=>{
+ placements.push({family,at:[x,z]});kit.placeModel(w,family,variant,x,z,options);
+}};
+builders.tiles.P.build(plotWriter(quarter,quarterKit),palette,0);
+assert.equal(lights.length,8);
+assert.deepEqual(placements.map(row=>row.family),Array(5).fill('lanterns'));
+assert.deepEqual(placements.map(row=>row.at),[[9.25,-9.25],[14.45,-15.25],[14.45,2.75],[-2.75,-14.45],[15.25,-14.45]]);
+assert.deepEqual(lights.slice(1,4).map(row=>row.at),[[-16,2.5,16],[-4,2.5,16],[-16,2.5,4]]);
 console.log(before.length);`;
   const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', program], { encoding: 'utf8' });
-  // RM8.4's plaza beds add 16 lanterns when the lantern family is on
-  expect(Number(output.trim())).toBe(5500);
+  // R3 replaces 10 ring lanterns with 1 + 3 per quarter: 5500 - 4 * 6.
+  // RM8.4's 16 bed lanterns remain, as the isolated real-kit quarter checks.
+  expect(Number(output.trim())).toBe(5476);
 });
