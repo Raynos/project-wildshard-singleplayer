@@ -477,14 +477,14 @@
       "into": "sky-harbor",
       "duration": 30,
       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
-      "prompt": "A spacious sunny wooden quay atmosphere: gentle water lapping, occasional distant gull calls, light timber and rope creaks, soft wind and a faint faraway mechanical airship hum. Quiet natural layered ambience, no music, no melody, no voices or intelligible speech."
+      "prompt": "Close field recording at a sunny wooden harbour pier: gentle seawater laps against timber quay walls, with clear distant seagull calls, intermittent squeaking mooring ropes and loose canvas rustling in a sea breeze. A very faint far-off moored airship motor hum. Quiet spacious waterfront ambience, no music, no melody, no voices or speech."
     },
     "hum.sky-harbor.airship-tower": {
       "kind": "hum",
       "into": "sky-harbor",
       "duration": 12,
       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
-      "prompt": "Close harbour tower and moored airship foley: a soft steady low propeller machinery hum, occasional taut rope rigging creaks and gentle canvas flag flaps. Restrained continuous loop, no helicopter roar, no music, no speech."
+      "prompt": "A moored propeller airship at a harbour tower. Deep soft steady vibrating airship engine hum with a low fluttering propeller pulse, dry squeaks from suspended rigging ropes and distinct canvas flag flaps overhead. Close airy mechanical harbour sound, restrained continuous loop, no music, no melody, no voices or speech."
     },
     "hum.sky-harbor.basin-water": {
       "kind": "hum",
