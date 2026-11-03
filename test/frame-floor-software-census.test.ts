@@ -3,6 +3,7 @@ import {frameFloorSoftwareCensus} from '../scripts/frame-floor-args.mjs';
 import {frameFloorDrawReport, frameFloorDrawMarkdown, frameFloorDrawConsole, type FloorDrawRecord} from '../scripts/frame-floor-draw-report.mjs';
 import {assertFrameFloorRenderer} from '../scripts/frame-floor-report-phase.mjs';
 import {assessDrawBudget} from '../src/engine/core/drawBudget';
+import {gridFloorRuntimeFailure} from '../scripts/frame-floor-grid.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the maintained controller without a browser/build.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate the real software branch and its explicit test-owned loans.
@@ -73,7 +74,7 @@ test('wrong backend/resolution, missing pairs, foreign pose and pre-throttle fra
   }
 });
 
-test('the real software controller samples only the ready native spawn and always unloads', async () => {
+async function softwareController(failure?: 'ready' | 'sample' | 'unload') {
   const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
   const start = source.indexOf('async function measureShard('), end = source.indexOf('\n/** Long tasks inside', start);
   if (start === -1 || end === -1) throw new Error('Missing maintained shard controller');
@@ -81,26 +82,57 @@ test('the real software controller samples only the ready native spawn and alway
   const driver = {
     load: (shard: string) => {events.push(`load:${shard}`); return Promise.resolve();},
     beginMeasurement: () => {events.push('throttle-and-fence'); return Promise.resolve();},
-    evaluate: (code: string): Promise<unknown> => Promise.resolve(runInNewContext(code)),
+    evaluate: (code: string): Promise<unknown> => Promise.resolve().then(() => {
+      const value: unknown = runInNewContext(code);
+      return value;
+    }),
     errors: () => Promise.resolve([]), progress: () => null, cpuPhase: () => null,
-    unload: () => {events.push('unload'); return Promise.resolve();},
+    unload: () => {events.push('unload'); return failure === 'unload' ? Promise.reject(new Error('Fixture cleanup refusal')) : Promise.resolve();},
   };
-  const result: unknown = await runInNewContext(`(${source.slice(start,end)})(driver,'nine-dragon-stack',Date.now()+600000)`, {
+  let result: unknown, error: unknown;
+  try { result = await runInNewContext(`(${source.slice(start,end)})(driver,'nine-dragon-stack',Date.now()+600000)`, {
     driver, surface: 'desktop', softwareCensus: frameFloorSoftwareCensus(args,'linux'), frames: 4, settleMs: 2000,
+    chromiumPhone: args.includes('--chromium-phone'), desktopDpr: 2,
     developer: 'on', settings: {tier:'phone'}, picks: {}, deviceSaves: {}, expectedSystems: [], publicGrid: false,
     process: {platform: 'linux'}, chromiumBackend: {angle: 'swiftshader', explicit: true}, drawBudgetOn: true, drawBudgetMode: 'report-only',
-    evaluationOriginDriftMaxMs: 0, assertFrameFloorRenderer, frameFloorDrawConsole, console: {log: () => undefined},
-    waitReady: () => {events.push('ready'); return Promise.resolve();}, sleep: () => Promise.resolve(),
+    evaluationOriginDriftMaxMs: 0, assertFrameFloorRenderer, frameFloorDrawConsole, gridFloorRuntimeFailure,
+    errorText: (value: unknown) => value instanceof Error ? value.message : String(value),
+    console: {log: () => undefined, error: () => undefined},
+    waitReady: () => {events.push('ready'); return failure === 'ready' ? Promise.reject(new Error('Fixture readiness deadline')) : Promise.resolve();}, sleep: () => Promise.resolve(),
     gridFloorDocumentIdentity: function gridFloorDocumentIdentity() {return {token:'document',timeOrigin:1000};},
     metadata: function metadata() {return {renderer: 'ANGLE (Google, Vulkan 1.3 (SwiftShader Device), SwiftShader driver)',
       viewport:[201,437],canvas:[402,874],renderScale:2,settings:{tier:'phone',fps:'auto'},developer:true,deviceSaves:{devMode:true},clock:'live',
       spawn:{name:'spawn',x:1,y:2,z:3},systems:[]};},
     standingSample: (_driver: unknown, pose: {name:string}) => {
       events.push(`sample:${pose.name}`);
+      if (failure === 'sample') return Promise.reject(new Error('Fixture sampler refusal'));
       return Promise.resolve({pose,frames:4,pass:false,medianFps:1,p95Ms:1000,p99Ms:1000,
         drawBudget:assessDrawBudget(Array.from({length:4},()=>({draws:200,renderMs:20})),4,{tier:'software-diagnostic',cpuRate:4})});
     },
-  });
+  }); } catch (caught) { error = caught; }
+  return {result,error,events};
+}
+
+test('the real software controller samples only the ready native spawn and always unloads', async () => {
+  const {result,error,events} = await softwareController();
+  expect(error).toBeUndefined();
   expect(result).toMatchObject({complete:true,pass:false,cameraSource:'software diagnostic native spawn only',scan:[],rows:[{frames:4}]});
   expect(events).toEqual(['load:nine-dragon-stack','ready','throttle-and-fence','sample:spawn','unload']);
+});
+
+test('readiness and sampler refusals keep their errors and always unload without later samples', async () => {
+  for (const stage of ['ready', 'sample'] as const) {
+    const {result,error,events} = await softwareController(stage);
+    expect(error).toBeUndefined();
+    expect(result).toMatchObject({complete:false,pass:false,error: stage === 'ready' ? 'Fixture readiness deadline' : 'Fixture sampler refusal'});
+    expect(events).toEqual(stage === 'ready' ? ['load:nine-dragon-stack','ready','unload']
+      : ['load:nine-dragon-stack','ready','throttle-and-fence','sample:spawn','unload']);
+  }
+});
+
+test('cleanup refusal cannot turn a software census into a completed result', async () => {
+  const {result,error,events} = await softwareController('unload');
+  expect(result).toBeUndefined();
+  expect(error).toMatchObject({message:'Fixture cleanup refusal'});
+  expect(events.at(-1)).toBe('unload');
 });
