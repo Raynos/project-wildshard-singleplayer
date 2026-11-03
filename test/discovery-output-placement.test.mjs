@@ -70,7 +70,12 @@ test('all four actual NU3 wrappers keep complete code, manifest rows and physica
   expect(composition).toContain(`../${file.slice(0,-3)}`);
   expect(closure[row.slug]).toContain(file);
   expect(closure[row.slug]).toContain('src/game/shard/manifest.ts');
-  expect(closure[row.slug]).toContain('src/shards/open-plots/thumbs/card.jpg');
+  const card=outputManifest(root,row.folder,row.output).card;
+  expect(Object.keys(card).sort()).toEqual(['landscape','portrait','thumb']);
+  for(const image of Object.values(card)){
+   expect(image).toMatch(/^\/src\/shards\/open-plots\/thumbs\/[a-z0-9-]+\.jpg$/u);
+   expect(closure[row.slug]).toContain(image.slice(1));
+  }
   expect(closure[row.slug]).not.toContain(oldPath(row));
   const loader=selectionCatalogueSource([{slug:row.slug,file}]);
   expect(loader).toContain(`import("/${file}")`);
