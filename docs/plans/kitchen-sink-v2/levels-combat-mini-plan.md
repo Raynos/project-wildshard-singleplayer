@@ -247,3 +247,13 @@ These supersede the matching parts of §2–§4; the worked numbers there are to
 - **HP:** 100 → 300 over levels 1–20 at +6 % a level. VIT is the HP: HP = f(VIT), tuned so average VIT growth lands on
   the curve. Enemies have their own, steeper HP curves.
 - **Misses:** option E (deflect / dodge / parry), §9; no streak guard (row LV4's "streak guard" is dropped).
+
+### Growth model (Jake 11-02, later still): VIT is the HP
+
+No flat HP per level; HP = VIT. Average VIT A(L) = 100 × 3^((L−1)/19) (100 → 300), cap 330. Each level-up:
+gain = round((A(L+1) − A(L)) × aptitude × swing); aptitude is rolled per shard per attribute from
+{0.8, 0.9, 1.0, 1.0, 1.0, 1.0, 1.1, 1.2} shuffled; swing is uniform 0.4–1.6 per level. The step grows with the level
+(≈6 at L1, 10 at L10, 17 at L19), so late level-ups can add 10+ (7–27 at L19, aptitude 1.0). Simulation (20k): any roll
+averages 298 at L20 (5–95 %: 254–330), 14 % reach the cap; aptitude 1.2 caps 70 % of the time. The other seven
+attributes use the same model with their own curves and a cap ~10 % over their L20 average; tuned in the LV design pass.
+This replaces the "+1 at growth %" Fire Emblem proposal.

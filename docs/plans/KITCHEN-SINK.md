@@ -113,6 +113,10 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     (12 % at equal level, 90 % at +8); a failed hit shows as a **DEFLECT** (silver sparks, clang, blade recoil, 0 damage),
     a **DODGE** (the enemy slips aside) or a **PARRY** (enemies with one). MISS stays for aim misses only. Enemy failures
     on you show as a silver hurt arc and a small word. Odds are never shown as a %.
+19s. **Growth model:** no flat HP per level; **HP = VIT**. VIT averages 100 → 300 (+6 % a level), **cap 330**. Each
+    level-up gains round(average step × aptitude × swing): the step grows with the level (≈6 at L1, 17 at L19), aptitude
+    is a per-shard roll per attribute (0.8–1.2), swing is per-level dice (0.4–1.6), so late levels can give +10 or more.
+    Every attribute uses this model with its own curve and a cap ~10 % over its average.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

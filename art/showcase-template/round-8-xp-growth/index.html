@@ -38,8 +38,25 @@ th{font:600 12px var(--mono);color:var(--muted);text-transform:uppercase} .scrol
 <li><b>Enemies</b> use the same 8 attributes with fixed average growths per type, so a level 12 Welder is always the same Welder.</li>
 <li>The combat formulas are re-tuned for these smaller numbers (an average stat at level 20 is about 15, not 24).</li>
 </ul></section>
+<section><h2>VIT IS THE HP: THE GROWTH MODEL</h2>
+<p>Jake: no flat HP per level; HP comes from VIT. On average VIT follows the +6 % curve, 100 at level 1 to 300 at level 20; the cap is 330. Gains grow as you level, and late level-ups can jump by 10 or more.</p>
+<ul>
+<li><b>VIT points are HP</b> (VIT 100 = 100 HP). Average curve: A(L) = 100 × 3<sup>(L−1)/19</sup>.</li>
+<li><b>Each level-up</b> adds <b>gain = round(average step × aptitude × swing)</b>. The average step is A(L+1) − A(L): about 6 at level 1, 10 at level 10, 17 at level 19. So <b>the level is part of the roll</b>, and gains grow as you level.</li>
+<li><b>Aptitude</b> is rolled per shard (the Fire Emblem "who is this character" roll): each attribute gets one of 0.8, 0.9, 1.0, 1.0, 1.0, 1.0, 1.1, 1.2, shuffled.</li>
+<li><b>Swing</b> is the per-level dice: a uniform draw from 0.4 to 1.6. At aptitude 1.0 a level-up gives 2–10 VIT at level 1, 4–16 at level 10, 7–27 at level 19.</li>
+<li><b>Cap 330</b>, just above the average: once you hit it, you're done.</li>
+</ul>
+<div class="scroll"><table><tr><th>Character</th><th>VIT at L10</th><th>VIT at L20 (avg)</th><th>L20, 5 %–95 %</th><th>Hits the cap</th></tr>
+<tr><td>Aptitude 0.8 (frail)</td><td>155</td><td>260</td><td>238–282</td><td>0 %</td></tr>
+<tr><td>Aptitude 1.0 (typical)</td><td>168</td><td>300</td><td>273–328</td><td>4 %</td></tr>
+<tr><td>Aptitude 1.2 (tank)</td><td>182</td><td>326</td><td>307–330</td><td>70 %</td></tr>
+<tr><td>Any roll</td><td>168</td><td>298</td><td>254–330</td><td>14 %</td></tr></table></div>
+<p class="sub">20,000 simulated characters per row.</p>
+<p><b>The other 7 attributes use the same model</b>: each has its own average curve and a cap about 10 % above its level-20 average. Their curves get tuned in Wave 1's levels design pass, starting from VIT.</p>
+</section>
 <section class="rec"><h2>RECOMMENDATION</h2>
 <ul><li><b>The golden ratio, ×1.618:</b> it is the RuneScape curve at our scale. Level 10 in a few hours, level 15 a long weekend, level 20 about 60 hours of grind in one shard.</li>
 <li><b>Enemies pay 10 × level</b>, drop-off below you, 0 at 6 under.</li>
-<li><b>Fire Emblem growth</b> as above, with pure dice: no "blank level" protection, matching your no-streak-guard call.</li></ul></section>
+<li><b>Growth by aptitude × swing</b>, scaled by the level: VIT averages 100 → 300 with a 330 cap; the other attributes follow the same model.</li></ul></section>
 </main></body></html>
