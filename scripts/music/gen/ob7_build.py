@@ -135,6 +135,12 @@ def encode_loop(wav: Path, target: Path, lufs: float, kbps: int, scratch: Path, 
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(intermediate),
                     "-af", f"loudnorm=I={lufs}:TP=-2:LRA=8,aresample=48000,asetpts=N/SR/TB", "-ar", "48000", "-c:a", "aac",
                     "-b:a", f"{kbps}k", "-movflags", "+faststart", str(target)], check=True)
+    # Refuse unsupported packets before any public copy or catalogue activation.
+    subprocess.run(["node", "--experimental-transform-types", "--input-type=module", "-e",
+                    "import {readFileSync} from 'node:fs'; "
+                    "import {indexRecordingAac} from './src/format/aacIndex.ts'; "
+                    "indexRecordingAac(new Uint8Array(readFileSync(process.argv[1])));", str(target)],
+                   cwd=REPO, check=True)
     lag, duration = decode_offset(target, source, sr)
     if not 0 <= start + lag < end + lag <= duration:
         raise ValueError(f"{target}: loop is outside the decoded AAC")
