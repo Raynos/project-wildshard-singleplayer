@@ -1,25 +1,32 @@
 {
-  "why": "OP3 Coral Drift: shared-kit TEMPLATE; theme art remains its Opus row.",
-  "template": {
-    "schema": "open-plot-template/1",
-    "slug": "open-plot-coral-drift",
-    "contentHash": "11fc01533ee5e200f7c9f71cce800fff5b827a28b8077f37bd66d6eeede2df4f"
-  },
+  "why": "OB5 (open-plots build-out, G978): Coral Drift's 8 x 8 of 62.5 m tiles, mirror-symmetric as round 62's top-down (art/grid/round-62-open-plot-palettes/10-coral-drift.jpg): the coral arch on the 2 x 2 plaza, reef pools (R) ringing it, beach-hut lagoons (B) round the edges facing in, palm groves (M) at the corners and between, the four entry lanes (N) on the seams.",
   "plot": "coral-drift",
-  "rows": [
-    "G0 G0 G0 N0 N3 G0 G0 G0",
-    "G0 G0 G0 G0 G0 G0 G0 G0",
-    "G0 G0 G0 G0 G0 G0 G0 G0",
-    "N2 G0 G0 P0 P1 G0 G0 N1",
-    "N3 G0 G0 P3 P2 G0 G0 N0",
-    "G0 G0 G0 G0 G0 G0 G0 G0",
-    "G0 G0 G0 G0 G0 G0 G0 G0",
-    "G0 G0 G0 N1 N2 G0 G0 G0"
-  ],
+  "tiles": "B20 M12 N8 P4 R20",
+  "builders": {
+    "G": "garden",
+    "N": "forecourt",
+    "P": "plaza"
+  },
   "kit": [
-    "trees",
+    "lanterns",
+    "bridges",
+    "strings",
     "props",
-    "lanterns"
+    "canal",
+    "trees",
+    "huts",
+    "palms",
+    "reef"
+  ],
+  "rows": [
+    "M0 B2 B2 N0 N3 B2 B2 M0",
+    "B1 R0 M0 R0 R0 M0 R0 B3",
+    "B1 M0 B2 R0 R0 B2 M0 B3",
+    "N2 R0 R0 P0 P1 R0 R0 N1",
+    "N3 R0 R0 P3 P2 R0 R0 N0",
+    "B1 M0 B0 R0 R0 B0 M0 B3",
+    "B1 R0 M0 R0 R0 M0 R0 B3",
+    "M0 B0 B0 N1 N2 B0 B0 M0"
   ],
   "palette": {
     "paving": "#d9cdb4",
@@ -84,6 +91,21 @@
     "rock": "#c8c4b8",
     "rockDark": "#a8a498"
   },
-  "landmark": null,
-  "posters": null
+  "landmark": {
+    "near": "public/assets/open-plots/coral-drift/landmark.glb",
+    "far": "public/assets/open-plots/coral-drift/landmark-far.glb",
+    "height": 25,
+    "turn": 0
+  },
+  "posters": {
+    "image": "public/assets/open-plots/coral-drift/poster.webp",
+    "plaza": null,
+    "entry": {
+      "inset": 247,
+      "width": 10,
+      "bottom": 0.6,
+      "posts": 4,
+      "offset": 12.5
+    }
+  }
 }
