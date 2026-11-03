@@ -103,8 +103,8 @@
       "kind": "hum",
       "into": "ember-forge",
       "duration": 10,
-      "desc": "Large leather forge bellows slowly breathing and creaking with air rushing",
-      "prompt": "Large leather forge bellows slowly breathing and creaking with air rushing. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+      "desc": "A large leather bellows pumping air in slow repeated whooshes",
+      "prompt": "Close dry sound of a large hand-operated leather fireplace bellows pumping air. Slow repeated puff of air, leathery squeak as the handles pull apart, airy whoosh as they squeeze closed. Several clear pumping cycles with a short quiet gap between each. No fire, no machinery motor, no voice, no music."
     },
     "hum.ember-forge.crane-chain": {
       "kind": "hum",
