@@ -153,6 +153,29 @@ test('native batch culling/order, repeated camera passes, visibility and capacit
   } finally { native.dispose(); tracked.dispose(); geometry.dispose(); material.dispose(); d.dispose(); }
 });
 
+test('PF13: a sorted batch culls for the shadow camera unsorted, the native unsorted cull exactly, and the view keeps its sort', () => {
+  const material = new MeshBasicMaterial(), geometry = new BoxGeometry(), native = new BatchedMesh(4, 24, 36, material), tracked = new ChangedBatchedMesh(4, 24, 36, material);
+  const camera = new PerspectiveCamera(70, 1, .1, 100);
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing native renderer port');
+  try {
+    for (const batch of [native, tracked]) {
+      const key = batch.addGeometry(geometry);
+      // far to near along the view: a distance sort reverses them
+      for (const z of [-30, -20, -10, 50]) batch.setMatrixAt(batch.addInstance(key), new Matrix4().makeTranslation(0, 0, z));
+      batch.perObjectFrustumCulled = true; batch.updateMatrixWorld(true);
+    }
+    camera.updateMatrixWorld(true);
+    native.sortObjects = false; tracked.sortObjects = true;
+    native.onBeforeShadow(renderer, new Scene(), camera, camera, native.geometry, material, new Group());
+    tracked.onBeforeShadow(renderer, new Scene(), camera, camera, tracked.geometry, material, new Group());
+    expect(drawList(tracked)).toEqual(drawList(native)); expect(words(indirect(tracked)).slice(0, 3)).toEqual(Uint32Array.from([0, 1, 2]));
+    expect(tracked.sortObjects).toBe(true);
+    tracked.onBeforeRender(renderer, new Scene(), camera, tracked.geometry, material, new Group());
+    expect(words(indirect(tracked)).slice(0, 3)).toEqual(Uint32Array.from([2, 1, 0]));
+  } finally { native.dispose(); tracked.dispose(); geometry.dispose(); material.dispose(); }
+});
+
 test('far palettes match every native Float32 word through frozen poses, motion and data bones', () => {
   const bones = [new Bone(), new Bone()], native = new Skeleton(bones), tracked = trackSkeletonTextureUploads(new Skeleton(bones));
   native.computeBoneTexture(); tracked.computeBoneTexture();

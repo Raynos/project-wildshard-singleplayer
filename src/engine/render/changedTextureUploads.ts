@@ -94,6 +94,14 @@ export class ChangedBatchedMesh extends BatchedMesh {
     trackPaletteTexture(indirect);
     super.onBeforeRender(renderer, scene, camera, geometry, material, group);
   }
+
+  /** PF13: a shadow map keeps each texel's nearest depth whatever the draw order, so a sorted batch (Pine's needles) culls
+   *  for the shadow camera without its distance sort; the view's draw keeps it. Same casters, same depth. */
+  override onBeforeShadow(...args: Parameters<BatchedMesh['onBeforeShadow']>): void {
+    const sort = this.sortObjects;
+    this.sortObjects = false;
+    try { super.onBeforeShadow(...args); } finally { this.sortObjects = sort; }
+  }
 }
 
 /** The native skeleton still computes the exact palette. Its lazily allocated
