@@ -14,7 +14,7 @@ const names = ['places.bin', 'places.json', 'specimens.bin', 'placeSpecimens.jso
 
 /** Cache fresh native construction as owned byte files; never publishes a source/public handoff.
  * The native cache key includes the bundled dressing recipe, original specimen arithmetic and codec. */
-export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'cached'>, phase: 'i3' | 'exact' = 'exact'): Promise<ReadonlyMap<string, Uint8Array>> {
+export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'cached' | 'encodeZstdBytes'>, phase: 'i3' | 'exact' = 'exact'): Promise<ReadonlyMap<string, Uint8Array>> {
   const scalarBlocks = await nalatiGeographyProgram(ctx);
   // iPhone downloads I3: the shipped ('i3') bake is the 'places' step; the original ('exact') bake has its own
   const files = await ctx.cached({ id: phase === 'i3' ? 'places' : 'places-exact', native: true, inputs: [terrain] }, async inputs => {
@@ -27,7 +27,8 @@ export async function nalatiPlacesProgram(ctx: Pick<ProjectGenerationContext, 'c
     const compress = (value: Uint8Array): Uint8Array => encodeBuildBytes(value, 'deflate', 9, 'native');
     // Only the admitted product's place lane opts into the bounded worker codec.
     // Historical exact pins and the specimen bank retain their original zlib bytes.
-    const places = encodeNalatiPart(made.places, phase === 'i3' ? value => encodeBuildBytes(value, 'zstd', 19) : compress);
+    const places = encodeNalatiPart(made.places, phase === 'i3'
+      ? value => ctx.encodeZstdBytes?.(value, 19) ?? encodeBuildBytes(value, 'zstd', 19) : compress);
     const specimens = encodeNalatiPart(made.specimens, compress);
     const parts = nalatiNativePlaceParts(made.places.rows, made.places.bin, partNames);
     const geometry = Object.fromEntries([...parts].map(([name, part]) => [name, part.geometry]));

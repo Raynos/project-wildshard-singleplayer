@@ -14,16 +14,20 @@ test('fresh owned places stay service-free and cache hits isolate caller mutatio
     import { mkdtempSync,rmSync } from 'node:fs';
     import { resolve } from 'node:path';
     import { createProjectGeneration } from './src/sdk/projectGeneration.ts';
+    import { encodeBuildBytes } from './src/sdk/bake/byteCodec.ts';
     import { selectedLevel } from '@wildshard/engine/level/selection';
     import { nalatiPlacesProgram } from './src/shards/nalati-grasslands/generators/placesProgram.ts';
     assert.equal(selectedLevel(),null);
     const cache=mkdtempSync(resolve('tmp/nalati-places-owned-'));
-    let constructions=0;
-    const context=()=>{
-      const context=createProjectGeneration(resolve('src/shards/nalati-grasslands'),'a'.repeat(64),new Map(),cache,
+    let constructions=0,compressions=0;
+    const context=(memo=false,version='a')=>{
+      const context=createProjectGeneration(resolve('src/shards/nalati-grasslands'),version.repeat(64),new Map(),cache,
         [{prefix:'/assets/baked/nalati-grasslands/',directory:resolve('public/assets/baked/nalati-grasslands')}]);
       // the exact bake (the pins'), under its own step since cd955cd8d9 shipped the I3 one as 'places'
-      return{...context,cached:(step,make)=>context.cached(step,inputs=>{if(step.id==='places-exact')constructions++;return make(inputs);})};
+      return{...context,...(memo?{encodeZstdBytes:(bytes,level)=>{
+        assert.equal(level,19);compressions++;const result=encodeBuildBytes(bytes,'zstd',level);
+        assert.equal(Buffer.compare(result,context.encodeZstdBytes(bytes,level)),0);return result;
+      }}:{encodeZstdBytes:undefined}),cached:(step,make)=>context.cached(step,inputs=>{if(step.id==='places-exact')constructions++;return make(inputs);})};
     };
     try{
       const cold=await nalatiPlacesProgram(context());assert.equal(selectedLevel(),null);
@@ -33,6 +37,14 @@ test('fresh owned places stay service-free and cache hits isolate caller mutatio
       assert.equal(constructions,1);
       assert.deepEqual([...hit.keys()],[...before.keys()]);
       for(const [name,bytes] of hit){assert.notEqual(bytes,cold.get(name));assert.equal(Buffer.compare(bytes,before.get(name)),0);}
+      const fallback=await nalatiPlacesProgram(context(),'i3');
+      const shipping=await nalatiPlacesProgram(context(true,'b'),'i3');
+      assert.equal(compressions,1);assert.equal(selectedLevel(),null);
+      const shippingHit=await nalatiPlacesProgram(context(true,'b'),'i3');
+      assert.equal(compressions,1);
+      for(const [name,bytes] of shippingHit)assert.equal(Buffer.compare(bytes,shipping.get(name)),0);
+      assert.deepEqual([...shipping.keys()],[...fallback.keys()]);
+      for(const [name,bytes] of shipping)assert.equal(Buffer.compare(bytes,fallback.get(name)),0);
     }finally{rmSync(cache,{recursive:true,force:true});}
   `;
   execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
