@@ -157,7 +157,7 @@
 .ws-gmenu-heatkey { display: flex; gap: 3px; align-items: center; font-size: 8px; letter-spacing: 0.14em; color: var(--ws-text-dim); }
 .ws-gmenu-heatkey i { width: 14px; height: 6px; }
 .ws-minimap-band { position: absolute; inset: -3px; border-radius: 50%; pointer-events: none; border: 3px solid transparent; border-top-color: #ff9a3c; border-right-color: #ff9a3c; transform: rotate(-20deg); filter: drop-shadow(0 0 5px rgba(255, 154, 60, 0.85)); }
-.ws-minimap-bandtag { position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); padding: 1px 7px; font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.16em; white-space: nowrap; color: #ffcf9a; background: rgba(26, 14, 4, 0.85); border: 1px solid rgba(255, 154, 60, 0.75); pointer-events: none; }
+.ws-minimap-bandtag { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 1px 7px; font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.16em; white-space: nowrap; color: #ffcf9a; background: rgba(26, 14, 4, 0.85); border: 1px solid rgba(255, 154, 60, 0.75); pointer-events: none; }
 
 /* ── UI-31 / UI-32 shop.css: the two-tab header and the level lock on a tile ── */
 .ws-shop .ws-shop-tabs { display: grid; grid-template-columns: 1fr 1fr; margin: -2px 0 10px; border: 1px solid color-mix(in srgb, var(--ws-shop-a) 40%, transparent); }

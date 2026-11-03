@@ -39,8 +39,8 @@ const NALATI = [
     },
     inject: (page) => page.evaluate(() => {
       const ui = window.__wildshard.shard['nalati.boss'].ui; ui.showBar('THE CRATE TITAN', [0.66, 0.33]); ui.setHp(0.52); ui.setPhase(1, 'PHASE II · THE BLOCKS ROLL', 0);
-      const b = document.querySelector('.ws-boss-bar');
-      window.__P.add(b.querySelector('.ws-boss-bar-name'), '<span class="ws-boss-lv">LV 20</span>');
+      const b = ui.bar;
+      window.__P.add(ui.barName, '<span class="ws-boss-lv">LV 20</span>');
       window.__P.add(b, '<div class="ws-boss-bar-pips"><i class="done"></i><i></i><i></i></div>');
     }),
     teardown: (page) => page.evaluate(() => { const ui = window.__wildshard.shard['nalati.boss'].ui; ui.hideBar(); document.querySelector('.ws-boss-bar-caption')?.classList.remove('show'); }) },
@@ -73,28 +73,30 @@ const NALATI = [
     setup: async (page) => {
       await at(page);
       await page.evaluate(() => {
-        const real = document.querySelector('.ws-stealth'); if (real) window.__P.hide(real);
-        window.__P.protoStealth = true;
-        const s = window.__P.add('#hud', '<div class="ws-stealth"><div class="ws-stealth-vig"></div><div class="ws-stealth-pip"><i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span></div><div class="ws-stealth-chev"></div></div>');
-        s.dataset.state = 'hidden'; s.querySelector('.ws-stealth-label').textContent = 'Hidden';
-        s.querySelector('.ws-stealth-eye').innerHTML = '<svg viewBox="0 0 24 24"><path d="M2 10c2.9 3.6 6.2 5.4 10 5.4S19.1 13.6 22 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.6 13.4 4 16M9.4 15 8.8 18M14.6 15l.6 3M18.4 13.4 20 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+        const EYE = '<svg viewBox="0 0 24 24"><path d="M2 10c2.9 3.6 6.2 5.4 10 5.4S19.1 13.6 22 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.6 13.4 4 16M9.4 15 8.8 18M14.6 15l.6 3M18.4 13.4 20 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+        const real = document.querySelector('.ws-stealth-row'); window.__P.realRow = !!real;
+        const row = real ? window.__P.swap(real, () => {}) : window.__P.add('.ws-touch-status', '<div class="ws-touch-row ws-stealth-row"><i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span></div>');
+        row.dataset.state = 'hidden'; row.querySelector('.ws-stealth-eye').innerHTML = EYE; row.querySelector('.ws-stealth-label').textContent = 'Hidden';
       });
     },
-    inject: (page) => page.evaluate(() => { const s = document.querySelector('.ws-stealth[data-proto]'); s.querySelector('.ws-stealth-label').textContent = 'Unseen'; window.__wildshard.world.hud.toast('Keycard · stay unseen · 2 guards on the yard'); }),
+    note: 'the phone’s stealth row',
+    inject: (page) => page.evaluate(() => { const r = document.querySelector('.ws-stealth-row[data-proto]'); r.querySelector('.ws-stealth-label').textContent = 'Unseen'; window.__wildshard.world.hud.toast('Keycard · stay unseen · 2 guards on the yard'); }),
     teardown: clearToasts },
 ];
 
 const pie = (page, items, anchorText = null) => page.evaluate(([list, hub, anchor]) => {
   list.hub = hub;
-  const ring = anchor === null ? document.querySelector('.ws-touch-swap') : [...document.querySelectorAll('.ws-touch-disc')].find((d) => d.textContent.trim().toLowerCase() === anchor), layer = document.querySelector('.ws-touch');
+  const ring = anchor === null ? document.querySelector('.ws-touch-swap') : [...document.querySelectorAll('.ws-touch button')].find((d) => d.textContent.trim().toLowerCase() === anchor && d.getBoundingClientRect().width > 0), layer = document.querySelector('.ws-touch');
   const lr = layer.getBoundingClientRect(), cr = ring.getBoundingClientRect();
   const cx = cr.left + cr.width / 2 - lr.left, cy = Math.min(lr.height - 136, Math.max(136, cr.top + cr.height / 2 - lr.top));
   const R = 128, H = 28, size = R * 2 + 4, n = list.length, span = 180 / n;
   const at = (r, a) => `${(Math.cos(a) * r).toFixed(1)} ${(Math.sin(a) * r).toFixed(1)}`;
   let wedges = '', labels = '';
+  // the strip's pie fans across the right half; anchored on the right edge (the BOLTS disc) it mirrors to the left half
+  const left = cx > lr.width / 2, dir = left ? -1 : 1, base = left ? 270 : -90, sw = left ? 0 : 1;
   list.forEach((k, i) => {
-    const a0 = (-90 + i * span) * Math.PI / 180, a1 = (-90 + (i + 1) * span) * Math.PI / 180, mid = (a0 + a1) / 2, r = (H + R) / 2 + 6;
-    wedges += `<path class="ws-touch-pie-wedge${k.held ? ' held' : ''}" d="M ${at(H, a0)} L ${at(R, a0)} A ${R} ${R} 0 0 1 ${at(R, a1)} L ${at(H, a1)} A ${H} ${H} 0 0 0 ${at(H, a0)} Z"/>`;
+    const a0 = (base + dir * i * span) * Math.PI / 180, a1 = (base + dir * (i + 1) * span) * Math.PI / 180, mid = (a0 + a1) / 2, r = (H + R) / 2 + 6;
+    wedges += `<path class="ws-touch-pie-wedge${k.held ? ' held' : ''}" d="M ${at(H, a0)} L ${at(R, a0)} A ${R} ${R} 0 0 ${sw} ${at(R, a1)} L ${at(H, a1)} A ${H} ${H} 0 0 ${1 - sw} ${at(H, a0)} Z"/>`;
     labels += `<div class="ws-touch-pie-label${k.held ? ' held' : ''}" style="transform:translate(${(Math.cos(mid) * r).toFixed(1)}px,${(Math.sin(mid) * r).toFixed(1)}px)">${k.svg}<span>${k.name} <b class="${k.n === 0 ? 'empty' : ''}">${k.n}</b></span></div>`;
   });
   const p = window.__P.add(layer, `<div class="ws-touch-pie open" style="left:${cx}px;top:${cy}px"><svg class="ws-touch-pie-disc" viewBox="${-size / 2} ${-size / 2} ${size} ${size}" width="${size}" height="${size}">${wedges}</svg>${labels}<div class="ws-touch-pie-hub">${list.hub ?? ''}</div></div>`);
@@ -111,10 +113,31 @@ const PINE = [
       await sleep(1500);
     },
     inject: (page) => page.evaluate(() => {
-      const board = document.querySelector('.ws-ph-board.show') ?? document.querySelector('[class*=board].show');
-      window.__P.dump = board?.outerHTML.slice(0, 3000);
-      window.__P.swap(board, (c) => { c.dataset.protoBoard = '1'; });
-    }) },
+      const board = document.querySelector('.ws-ph-board.show');
+      window.__P.swap(board, (c) => {
+        c.querySelector('.ws-ph-kicker').textContent = 'The gate plaza'; c.querySelector('.ws-ph-title').textContent = 'Kill contracts';
+        c.querySelector('.ws-ph-tally').innerHTML = '<span>Done 2 / 13</span><span>Titles 1</span><span>LV 7</span>';
+        const N = [
+          ['Count · band 3', 'Drone Season', 'Down 20 Plumb Drones', 8, 20, 'Pays 70 Scrip · first time: a trophy and the title Drone Ranger', '', -1.2],
+          ['Elite · LV 6', 'Big Pallet', 'Down the band-2 gate elite', 1, 1, 'Claimed · title Forklift Certified', 'done', 0.8],
+          ['Elite · LV 12', 'The Vault Warden', 'Opens at LV 12', 0, 1, 'Pays 300 Scrip · title Plate Expectations', 'locked', -0.5],
+        ];
+        const body = c.querySelector('.ws-ph-body'), foot = c.querySelector('.ws-ph-foot');
+        for (const n of body.querySelectorAll('.ws-ph-note')) n.remove();
+        for (const [kind, title, goal, have, need, pay, st, tilt] of N) {
+          const d = document.createElement('div'); d.className = 'ws-ph-note'; d.style.setProperty('--tilt', tilt + 'deg');
+          if (st === 'locked') d.style.filter = 'grayscale(1) brightness(0.62)';
+          const shown = Math.min(need, 5), lit = Math.round(shown * have / need);
+          const cells = Array.from({ length: shown }, (_, i) => '<i class="' + (i < lit ? 'on' : '') + '"></i>').join('');
+          const count = st === 'locked' ? 'LV 12' : have + ' / ' + need;
+          const btn = st === 'done' ? 'Claimed' : st === 'locked' ? 'Locked' : 'Track';
+          d.innerHTML = '<i class="ws-ph-pin"></i><div class="ws-ph-note-kind">' + kind + '</div><div class="ws-ph-note-title">' + title + '</div><div class="ws-ph-note-goal">' + goal + '</div><div class="ws-ph-note-bar">' + cells + '<b class="ws-ph-note-count">' + count + '</b></div><div class="ws-ph-note-pay">' + pay + '</div><div class="ws-ph-note-row"><button class="ws-ph-tear" type="button">' + btn + '</button></div>';
+          foot.before(d);
+        }
+        foot.textContent = 'A fixed list, opened by level. The first clear pays a trophy and a joke title; repeats pay Scrip and parts.';
+      });
+    }),
+    teardown: (page) => page.evaluate(() => { for (const b of document.querySelectorAll('.ws-ph-board.show .ws-ph-close')) b.click(); }) },
   { id: 'UI-35', slug: 'ammo-pouch', title: 'Crossbow ammo: pouch counters + the ammo picker (iron / pitch / broadhead) (W3b · D17 / D18)',
     setup: async (page) => { await at(page); await page.evaluate(() => { window.__wildshard.combat.equip('crossbow'); }); await sleep(1500); await clearToasts(page); },
     inject: async (page) => {
@@ -132,10 +155,12 @@ const PINE = [
 ];
 
 // the range's loaner: Nalati's real weapon pie (a long press on the SWAP ring), the lent wedges tagged
-const swapPress = (page, down) => page.evaluate((d) => {
-  const ring = document.querySelector('.ws-touch-swap'), r = ring.getBoundingClientRect();
-  ring.dispatchEvent(new PointerEvent(d ? 'pointerdown' : 'pointercancel', { bubbles: true, cancelable: true, pointerId: 7, isPrimary: true, pointerType: 'touch', clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }));
-}, down);
+let cdp = null;
+const swapPress = async (page, down) => {
+  const r = await page.evaluate(() => { const b = document.querySelector('.ws-touch-swap').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+  cdp ??= await page.context().newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', { type: down ? 'touchStart' : 'touchCancel', touchPoints: down ? [{ x: r.x, y: r.y, id: 1 }] : [] });
+};
 NALATI.push({ id: 'UI-37', slug: 'range-loaner', title: 'The range lends every weapon inside its fence (W3a · D2)',
   setup: async (page) => { await at(page); await page.evaluate(() => { window.__wildshard.combat.equip('sabre'); }); await sleep(1200); await clearToasts(page); await swapPress(page, true); await sleep(700); },
   inject: async (page) => {

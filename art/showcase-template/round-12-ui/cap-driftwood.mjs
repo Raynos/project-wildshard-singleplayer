@@ -11,11 +11,24 @@ const url = arg('url'), only = arg('only').split(',').filter(Boolean);
 if (url === '') { console.error('usage: cap-driftwood.mjs --url=<build> [--only=UI-01,…]'); process.exit(2); }
 
 const BEACH = { x: 134, z: 1, yaw: 0, pitch: -0.12 };
-const CAMP = { x: -32, z: -73, yaw: Math.atan2(-(-19.6 + 32), -(-72.2 + 73)), pitch: -0.04 };
+const CAMP = { x: -20, z: -84, yaw: Math.atan2(-(-22 + 20), -(-72.85 + 84)), pitch: -0.04 }; // facing between Wendell and Maren
 const PIER = { x: 0, y: 1.3, z: -194, yaw: Math.PI, pitch: 0 };
 const WENDELL = { x: -19.6, z: -69.6, yaw: Math.atan2(0, 2.6), pitch: -0.1 }; // 2.6 m in front of him: his real talk prompt
 
 const atBeach = async (page) => { await pose(page, BEACH, 2600); await page.evaluate(() => { window.__P.holdAll(40); window.__P.clearToasts(); }); };
+/** the crab pack seen across its long axis, so six plates spread out (a fight read from the side, 7 m off) */
+const atSpread = async (page) => {
+  const p = await page.evaluate(() => {
+    const cs = window.__wildshard.world.animals.animals.filter((a) => a.alive && a.kind === 'crab' && Math.hypot(a.position.x - 134, a.position.z + 8) < 16);
+    const mx = cs.reduce((s, a) => s + a.position.x, 0) / cs.length, mz = cs.reduce((s, a) => s + a.position.z, 0) / cs.length;
+    let xx = 0, zz = 0, xz = 0; for (const a of cs) { const dx = a.position.x - mx, dz = a.position.z - mz; xx += dx * dx; zz += dz * dz; xz += dx * dz; }
+    const ang = 0.5 * Math.atan2(2 * xz, xx - zz), nx = -Math.sin(ang), nz = Math.cos(ang);
+    const cand = [1, -1].map((s) => ({ x: mx + s * nx * 7.5, z: mz + s * nz * 7.5 }));
+    const c = cand.sort((a, b) => Math.hypot(a.x - 134, a.z - 1) - Math.hypot(b.x - 134, b.z - 1))[0]; // the beach side
+    return { x: c.x, z: c.z, yaw: Math.atan2(-(mx - c.x), -(mz - c.z)), pitch: -0.2 };
+  });
+  await pose(page, p, 2600); await page.evaluate(() => { window.__P.holdAll(40); window.__P.clearToasts(); });
+};
 const atPier = async (page) => { await pose(page, PIER, 2600); await page.evaluate(() => { window.__P.clearToasts(); }); };
 const atCamp = async (page) => { await pose(page, CAMP, 2600); await page.evaluate(() => { window.__P.holdAll(60); window.__P.clearToasts(); }); };
 const clearToasts = (page) => page.evaluate(() => { window.__P.clearToasts(); });
@@ -62,9 +75,12 @@ const PLATES = [
 const plates = (page, rows) => page.evaluate((list) => {
   window.__P.hide(document.querySelector('.ws-combat-layer'));
   const layer = window.__P.add('#hud', '<div class="ws-combat-layer"></div>');
-  const crabs = window.__P.visible('crab');
+  // nearest first, skipping a crab whose plate would sit on one already placed (the pool keeps the nearest six)
+  const placed = [];
+  for (const c of window.__P.visible('crab')) { if (placed.length < list.length && placed.every((q) => Math.abs(q.p.x - c.p.x) > 124 || Math.abs(q.p.y - c.p.y) > 40)) placed.push(c); }
+  window.__P.placed = placed;
   list.forEach((r, i) => {
-    const c = crabs[i]; if (!c) return;
+    const c = placed[i]; if (!c) return;
     const p = c.p;
     const cls = ['ws-combat-hp', 'lvl', 'show', r.hp < 0.5 ? 'low' : '', r.grey ? 'grey' : '', r.rare ? 'rare' : '', r.status ?? ''].filter(Boolean).join(' ');
     const el = window.__P.add(layer, `<div class="${cls}">${r.rare ? '<span class="ws-combat-hp-tag">Rare</span>' : ''}<span class="ws-combat-hp-kind"><span class="lv con-${r.con}">Lv ${r.lv}</span>${r.name}${r.status ? `<span class="ws-combat-hp-status">${r.status === 'burn' ? '▲ BURN' : 'ϟ SHOCK'}</span>` : ''}</span><div class="ws-combat-hp-track"><i class="ws-combat-hp-fill" style="transform:scaleX(${r.hp})"></i></div>${r.stagger > 0 ? `<div class="ws-combat-hp-stagger"><i style="width:${r.stagger * 100}%"></i></div>` : ''}</div>`);
@@ -73,7 +89,8 @@ const plates = (page, rows) => page.evaluate((list) => {
 }, rows);
 const floats = (page, rows) => page.evaluate((list) => {
   const layer = document.querySelector('.ws-combat-layer[data-proto]') ?? window.__P.add('#hud', '<div class="ws-combat-layer"></div>');
-  const crabs = window.__P.visible('crab');
+  const placed = window.__P.placed ?? [], all = window.__P.visible('crab');
+  const crabs = [...placed, ...all.filter((c) => placed.every((q) => Math.hypot(q.p.x - c.p.x, q.p.y - c.p.y) > 60))];
   for (const r of list) {
     let p;
     if (r.at === 'you') { const v = document.querySelector('.ws-touch-status'); const b = v.getBoundingClientRect(); p = { x: b.left + 150, y: b.top + 14 }; }
@@ -95,7 +112,7 @@ const ITEMS = [
       await page.evaluate(() => {
         const t = document.querySelector('.ws-touch');
         window.__P.add(t, '<div class="ws-game-burst-ring"></div>'); window.__P.add(t, '<div class="ws-game-burst-ring inner"></div>');
-        window.__P.add(t, '<div class="ws-game-burst-chip"><b>LEVEL 7</b>· +11 VIT · +3 STR · +4 DEX</div>');
+        window.__P.add(t, '<div class="ws-game-burst-chip"><b>LEVEL 7</b>· +11 VIT</div>');
       });
       await plates(page, PLATES.slice(0, 1));
     } },
@@ -166,19 +183,19 @@ const ITEMS = [
     inject: async (page) => {
       await plates(page, PLATES.slice(0, 1));
       await floats(page, [{ at: 0, cls: 'fail', text: 'DEFLECT', dy: -16 }]);
-      await page.evaluate(() => { window.__P.add('#hud', '<div class="ws-glass ws-hint-tag desk show proto-show proto-wide" style="top:calc(50% + 52px)"><span><b>DEFLECT</b> · it is above your level<br>fight targets near LV 6</span></div>'); });
+      await page.evaluate(() => { window.__P.add('#hud', '<div class="ws-glass ws-hint-tag desk show proto-show proto-wide" style="top:calc(50% + 118px)"><span><b>DEFLECT</b> · it is above your level<br>fight targets near LV 6</span></div>'); });
     } },
 
   // ───────────── quests and the world ─────────────
   { id: 'UI-12', slug: 'quest-givers', title: 'Quest-giver markers: yellow ! (eligible), grey ! (too low) (W1b · HC6)', setup: atCamp,
     note: 'Wendell and Maren stand in for the tier givers',
     inject: (page) => page.evaluate(() => {
-      const givers = [{ x: -19.6, y: 21.5, z: -72.2, cls: '', sub: 'YARD BOSS · L1–6' }, { x: -24.4, y: 21.5, z: -73.5, cls: 'grey', sub: 'SURVEYOR · LV 7' }];
+      const givers = [{ x: -19.6, y: 21.6, z: -72.2, cls: '', sub: 'YARD BOSS · L1–6' }, { x: -24.4, y: 21.6, z: -73.5, cls: 'grey', sub: 'SURVEYOR · LV 7' }];
       const layer = window.__P.add('#hud', '<div class="ws-combat-layer"></div>');
       const mm = document.querySelector('.ws-minimap'), r = mm.getBoundingClientRect();
       for (const g of givers) {
         const p = window.__P.project(g.x, g.y, g.z);
-        window.__P.at(window.__P.add(layer, `<div class="ws-quest-giver ${g.cls}"><b>!</b><span>${g.sub}</span></div>`), p, 0, -62);
+        window.__P.at(window.__P.add(layer, `<div class="ws-quest-giver ${g.cls}"><b>!</b><span>${g.sub}</span></div>`), p, 0, -30);
         const l = window.__P.local(g.x, g.y, g.z), k = (r.width / 2) / 110;
         const pip = window.__P.add(mm, `<i class="ws-quest-mappip ${g.cls}">!</i>`);
         pip.style.left = `${r.width / 2 + l.right * k}px`; pip.style.top = `${r.height / 2 - l.ahead * k}px`;
@@ -286,7 +303,7 @@ const ITEMS = [
     note: 'crabs stand in for robots',
     inject: async (page) => {
       await chipWith(page, { title: 'Room 2/4', sub: 'Sealed · 3 left · doors open on the last', tone: 'plain' }, G.vault, ['wave']);
-      await page.evaluate(() => { window.__wildshard.world.hud.toast('The doors seal · clear the room'); });
+      await page.evaluate(() => { window.__wildshard.world.hud.toast('The doors seal · clear the room'); window.__P.restack(document.querySelector('.ws-game-weather')); });
       await sleep(400);
     }, teardown: async (page) => { await chipOff(page); await clearToasts(page); } },
   { id: 'UI-30', slug: 'shrine-complete', title: 'SHRINE COMPLETE card: time, deaths, rooms (DG3, the complete card’s layout)',
@@ -304,15 +321,15 @@ const ITEMS = [
     }),
     teardown: async (page) => { await page.evaluate(() => { document.querySelector('.ws-complete [data-act=keep]')?.click(); }); await sleep(900); } },
   { id: 'UI-31', slug: 'trick-score', title: 'Hover park: trick words + the running score (W5b)',
-    setup: async (page) => { await atPier(page); await page.evaluate(() => { document.querySelector('.ws-touch-hover')?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); document.querySelector('.ws-touch-hover')?.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); document.querySelector('.ws-touch-hover')?.click(); }); await sleep(2200); await clearToasts(page); },
+    setup: async (page) => { await atPier(page); await page.evaluate(() => { window.__wildshard.world.player.setHover(true); }); await sleep(2200); await clearToasts(page); },
     inject: async (page) => {
       await page.evaluate(() => { const l = window.__P.add('#hud', '<div class="ws-combat-layer"></div>'); const f = window.__P.add(l, '<div class="ws-combat-float show trick"><b>360</b><i>1.4 s air · ×3</i></div>'); f.style.transform = `translate3d(${innerWidth / 2}px,${innerHeight * 0.36}px,0)`; });
       await chipWith(page, { title: '2,450', sub: 'Trick score · ×3 combo · PB 3,120', tone: 'plain' }, G.board, ['clock']);
-    }, teardown: async (page) => { await chipOff(page); await page.evaluate(() => { document.querySelector('.ws-touch-hover')?.click(); }); await sleep(1200); } },
+    }, teardown: async (page) => { await chipOff(page); await page.evaluate(() => { window.__wildshard.world.player.setHover(false); }); await sleep(1200); } },
 
   // ───────────── economy ─────────────
   { id: 'UI-32', slug: 'upgrades-bench', title: 'Tinker Rook’s stall: UPGRADES / BENCH tabs, Scrip + parts, LV locks (W2b · 19g)',
-    setup: async (page) => { await pose(page, WENDELL, 2200); await page.evaluate(() => { window.__wildshard.shard['driftwood.loot'].shop.open(); }); await sleep(1400); },
+    setup: async (page) => { await pose(page, { x: -24.4, z: -70.5, yaw: 0, pitch: -0.05 }, 2200); await page.evaluate(() => { window.__wildshard.world.interactables.find((x) => x.label === 'Trade with Maren').onInteract(); }); await sleep(1600); },
     inject: (page) => page.evaluate(([servo, tine, rotor, core, sword]) => {
       const s = [...document.querySelectorAll('.ws-shop')].pop();
       const t = (q, v) => { const e = s.querySelector(q); if (e) e.textContent = v; };
@@ -329,9 +346,9 @@ const ITEMS = [
       });
       void t;
     }, [G.servo, G.tine, G.rotor, G.core, G.sword]),
-    teardown: async (page) => { await page.evaluate(() => { window.__wildshard.shard['driftwood.loot'].shop.close(); }); await sleep(700); } },
+    teardown: async (page) => { await page.evaluate(() => { document.querySelector('.ws-shop.show .ws-shop-close')?.click(); }); await sleep(700); } },
   { id: 'UI-33', slug: 'weapons-shop', title: 'The weapons shop: weapons bought, locked by level (W2b · 19j)',
-    setup: async (page) => { await pose(page, WENDELL, 2200); await page.evaluate(() => { window.__wildshard.shard['driftwood.loot'].shop.open(); }); await sleep(1400); },
+    setup: async (page) => { await pose(page, { x: -24.4, z: -70.5, yaw: 0, pitch: -0.05 }, 2200); await page.evaluate(() => { window.__wildshard.world.interactables.find((x) => x.label === 'Trade with Maren').onInteract(); }); await sleep(1600); },
     inject: (page) => page.evaluate(([sword, spear, bow, crossbow, rifle]) => {
       const s = [...document.querySelectorAll('.ws-shop')].pop();
       window.__P.swap(s.querySelector('.ws-shop-top'), (c) => { c.querySelector('.ws-shop-title b').textContent = 'Gunsmith Brass'; c.querySelector('.ws-shop-title span').textContent = 'Weapons · Main Street'; });
@@ -344,7 +361,7 @@ const ITEMS = [
         const buy = c.querySelector('.ws-shop-bigbuy'); buy.disabled = false; buy.className = 'ws-shop-bigbuy'; buy.textContent = 'Buy the spear · 120 Scrip';
       });
     }, [G.sword, G.spear, G.bow, G.crossbow, G.rifle]),
-    teardown: async (page) => { await page.evaluate(() => { window.__wildshard.shard['driftwood.loot'].shop.close(); }); await sleep(700); } },
+    teardown: async (page) => { await page.evaluate(() => { document.querySelector('.ws-shop.show .ws-shop-close')?.click(); }); await sleep(700); } },
   { id: 'UI-34', slug: 'pack-20', title: 'The 20-slot pack: one slot a kind, unfound kinds as silhouettes (W2a · loot 4)',
     setup: (page) => menu(page, 'inventory'),
     inject: (page) => page.evaluate((I) => {
