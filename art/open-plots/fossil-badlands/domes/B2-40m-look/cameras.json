@@ -1,0 +1,168 @@
+{
+  "dome": "B2-40m-look",
+  "type": "look",
+  "pair": "B1-40m-stand",
+  "mockup": "art/grid/round-75-new-plot-palettes/06-fossil-badlands.jpg",
+  "layout": "src/shards/open-plots/outputs.json",
+  "anchor": [
+    0,
+    40,
+    -120
+  ],
+  "convention": "TEMPLATE camera geometry: canonical 500 m dome protocol; open-plot-fossil-badlands; art direction is not approved by this camera copy. Plot-local metres: x east, y up, z NORTH; south entry z=-250, gate at origin. Engine yaw 0 faces -z, +90 faces +x; pitch positive up. eye/look authoritative. Portrait 2:3 tiles; horizontal FOV 62 degrees; row-major 1..9.",
+  "views": [
+    {
+      "n": 1,
+      "name": "look up",
+      "eye": [
+        0,
+        40,
+        -120
+      ],
+      "look": [
+        0,
+        80,
+        -100
+      ],
+      "yaw": 180,
+      "pitch": 63.4349,
+      "hfov": 62
+    },
+    {
+      "n": 2,
+      "name": "south-west aerial",
+      "eye": [
+        -35,
+        80,
+        -155
+      ],
+      "look": [
+        0,
+        0,
+        -120
+      ],
+      "yaw": 135,
+      "pitch": -58.2542,
+      "hfov": 62
+    },
+    {
+      "n": 3,
+      "name": "south-east aerial",
+      "eye": [
+        35,
+        80,
+        -155
+      ],
+      "look": [
+        0,
+        0,
+        -120
+      ],
+      "yaw": -135,
+      "pitch": -58.2542,
+      "hfov": 62
+    },
+    {
+      "n": 4,
+      "name": "left / west",
+      "eye": [
+        0,
+        40,
+        -120
+      ],
+      "look": [
+        -40,
+        40,
+        -120
+      ],
+      "yaw": -90,
+      "pitch": 0,
+      "hfov": 62
+    },
+    {
+      "n": 5,
+      "name": "hero / forward",
+      "eye": [
+        0,
+        40,
+        -120
+      ],
+      "look": [
+        0,
+        0,
+        -60
+      ],
+      "yaw": 180,
+      "pitch": -33.6901,
+      "hfov": 62
+    },
+    {
+      "n": 6,
+      "name": "right / east",
+      "eye": [
+        0,
+        40,
+        -120
+      ],
+      "look": [
+        40,
+        40,
+        -120
+      ],
+      "yaw": 90,
+      "pitch": 0,
+      "hfov": 62
+    },
+    {
+      "n": 7,
+      "name": "back to paired stand",
+      "eye": [
+        0,
+        40,
+        -120
+      ],
+      "look": [
+        0,
+        40,
+        -300
+      ],
+      "yaw": 0,
+      "pitch": 0,
+      "hfov": 62
+    },
+    {
+      "n": 8,
+      "name": "look down",
+      "eye": [
+        0,
+        40,
+        -120
+      ],
+      "look": [
+        0,
+        0,
+        -119.75
+      ],
+      "yaw": 180,
+      "pitch": -89.6419,
+      "hfov": 62
+    },
+    {
+      "n": 9,
+      "name": "north aerial back",
+      "eye": [
+        0,
+        100,
+        -60
+      ],
+      "look": [
+        0,
+        0,
+        -120
+      ],
+      "yaw": 0,
+      "pitch": -59.0362,
+      "hfov": 62
+    }
+  ]
+}

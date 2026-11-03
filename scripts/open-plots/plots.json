@@ -12,6 +12,11 @@
       "cameras": "art/open-plots/ember-forge/domes"
     },
     {
+      "slug": "open-plot-fossil-badlands",
+      "instance": "open-plot-1-0",
+      "cameras": "art/open-plots/fossil-badlands/domes"
+    },
+    {
       "slug": "open-plot-frostline-peaks",
       "instance": "open-plot-sw",
       "cameras": "art/open-plots/frostline-peaks/domes"
