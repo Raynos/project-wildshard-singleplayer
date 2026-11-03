@@ -159,7 +159,7 @@ does not close a Z row.
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Qualified five-file slice (2026-11-03, sp-x6), source `7cc93a3856`: −5 / −57,213 custom bytes; three one-user documents remain charged for Jake's batch. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
-| **Z12** | **In flight (2026-11-03, sp-x2): census 1 dead / 8 live.** G872 approves deleting only unread Pine landmark-view (5,510 B); byte/pack/native/G998/physics-walk qualification pending. Eight complete live files remain charged with [per-file evidence](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2). Far/Sun SceneBuffers are real shared fields but a different whole root from Pine floor/cave/forest and Nalati geography/water; no fake field-root credit | **1 candidate; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
+| **Z12** | **One unread copy retired (2026-11-03, sp-x2); eight live files remain charged for Jake’s one-user batch.** Delete only Pine landmark-view, 5,510 B, while the original ForestPage/native models retain its facts. All other 880 Pine bodies / 154,020,452 B and 78 old/new packs reconstruct exactly. Strict native 24 frames / 8 A/A + 8 A/B all zero; Pine 24/24 green in Chromium and WebKit. Seven native physics route legs pass, zero stuck/bounds failures. [Per-file census and qualification](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2); no fake field-root credit | **1 of 9 retired; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **One approved unread copy retired (2026-11-03, sp-x1); nine live one-user roots remain charged for Jake’s batch.** Nalati ride/rules removes 31,569 B. All other bodies/ordered packs retain exact proof with the independently reconstructed map source stamp; strict native 24 frames / 8 A/A + 8 A/B all zero. Nalati G998 24/24 green in Chromium and WebKit. Titan decisions already compile from shard AS; no new family is registered. [Per-file evidence and qualification below](#z14-census-encounters-riding-and-one-unread-copy-2026-11-03-sp-x1) | **1 of 10 retired; 9 charged:** Nalati room-entry, timed-encounters, titan-fight, titan-geometry, cloud-specimen, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page. Cloud overlaps Z7 and is charged once | Codex (G958) | 4.5 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
@@ -3084,7 +3084,7 @@ zero. The DW world golden is owned by sp-ci-deploy and is untouched here.
 | **CS3-E9 — Building-life envelope/site owner — ported** | `d3b32d2003`: complete `BuildingLifeDocumentSchema` registers DW `world/building-life.json`; the inline private defining copy is retired. The original native site/cloud/resource owner and retirement fences remain. Immutable `71c1451716` → `d3b32d2003` keeps the 510 B document and all 485,148,116 B of the six CS3 products byte-exact. All 224 old/new packs / 5,580 entries reconstruct exactly. Only the defining schema metadata changes, adding the native initial-dusk bounds. Both tiers, pier/beach/wreck plus the affected shrine: eight strict A/A and eight strict A/B comparisons, zero differing pixels (24 native Metal portrait frames); all native readiness/frame/error guards pass. Original/native plus registered tests: 32 pass; root types/fast lint pass. No cap, guard, collider or loading path changes. Raw results: `tmp/sp-x2-cs3-exits/e9-{audit.json,pixels/reading.json}`. |
 | **CS3-E10 — Native dressing rows and colliders — source port landed, qualification open** | The original sixteen Nalati arrays have been retired into five complete `world/dressing-pages/{0,1,2,3,4}.json` `SceneScatterPageSchema` documents, final source reapply `dab6b3b9d9`; the below dated record supersedes this row’s old loose-peer wording. All sixteen canonical lists reconstruct exactly, including 9,706 rows, doubles, numeric resources and original native owners/refusals; the original 50 focused cases pass. Fixed AFTER `af6f2f8eb3` has both-tier P1–P3 A/A0, with Jake explicitly accepting P1/P3. Clean warm `3221e06306` is 22.560400 s. **No A/B or clean matched cold+warm no-worse pair exists**: the unchanged BEFORE was prohibited by the shared audio P0. Jake’s no-rerun instruction stands. Keep comparative qualification open; do not fabricate a baseline or retire any further copy. No E10 code, collider, loading or browser rerun in this port turn. **2026-11-03 Z9:** G872 separately approves deletion of the three now-proven unread support pages (2/3/4); two live pages and both complete books stay charged. The [Z9 proof](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2) qualifies only that current deletion. Historical missing E10 A/B/loading proof is not retroactively closed. |
 | **CS3-E11 — Island placement-plan contract — ported** | `ea6ad1472a`: complete `BakedPlacementPlanSchema` registers DW `world/island/plan-{phone,desktop}.json`, retaining all families, partitions, small-rock matrices and unclaimed collider rows. The shard-local return interface is retired; the original `BakedPlanSchema`, byte counts, family/table/resource refusals and collider owners are unchanged. Original phone/desktop hashes survive (297,521 / 353,953 B); three actual-plan/refusal cases, registration originals, root types and fast lint pass. Immutable `d3b32d2003` → `ea6ad1472a`: all 485,148,116 B of the six CS3 products remain exact; 224 old/new packs / 5,580 ordered entries reconstruct exactly; only the two defining schema metadata entries change. Both tiers at pier/beach/wreck/shrine: eight strict A/A + eight strict A/B comparisons, zero differing pixels across 24 native Metal portrait frames, original readiness/frame/error guards intact. No cap, collider or streaming/loading change. Raw results: `tmp/sp-x2-cs3-exits/e11-{audit.json,pixels/reading.json}`. |
-| **CS3-E12 — Landmark native-view derivation** | **Skipped in this port turn: Pine.** Pine `world/landmark-view.json`, jointly recorded by CS9: exact board/site/stone/dam/canoe/view/book fields and native owners remain local to `forestPage.ts`/`timberWorldRows.ts`. Require a whole native projection/reconstruction, not a child alias. |
+| **CS3-E12 — Landmark native-view derivation** | **Skipped in this port turn: Pine.** Pine `world/landmark-view.json`, jointly recorded by CS9: exact board/site/stone/dam/canoe/view/book fields and native owners remain local to `forestPage.ts`/`timberWorldRows.ts`. Require a whole native projection/reconstruction, not a child alias. **2026-11-03 Z12:** fresh census proves this 5,510 B file has no reader or emitted reference; G872 approves retiring only that copy. Original ForestPage/native model facts and all eight live Z12 files remain. Exact qualification is [below](#z12-qualification-exact-pine-retirement-2026-11-03). |
 | **CS3-E13 — Spray packet/resource owner** | **Skipped in this port turn: Pine.** Pine `scenes/streams-spray.bin`, historical 1,012 B. Retain f32 matrices/seeds/sizes, byte offsets/counts and the native instanced resource lifetime. Recipe registration does not retire or convert this packet. |
 
 The expanded remainder tables above additionally close the two Nalati
@@ -3507,7 +3507,7 @@ mentions are its generator and output. The original `timberWorld`
 landmarks still feed ForestPage's lamps/ordered landmark placements and
 the native scene models. Its board/site/stone/dam/canoe/view/book facts
 stay in those unchanged owners; no one-user wrapper replaces the copy.
-**Retirement is pending exact body/pack/native proof, G998 and walk.**
+**Retirement qualified below: exact body/pack/native proof, G998 and seven-leg walk.**
 
 Eight files remain live and charged for Jake's one-user batch:
 
@@ -3725,3 +3725,48 @@ census: Nalati **34 / 8,153,207 B to 33 / 8,121,638 B**, total
 rifle-model removal remains charged here until its owner lands it; the
 candidate's lower count is not used to grant that unlanded reduction.
 Nine live Z14 roots (**2,004,340 B**) stay charged for Jake's batch.
+
+### Z12 qualification: exact Pine retirement (2026-11-03)
+
+Frozen ordinary working-tree BEFORE `7cc93a3856-mw0wm9t1` (:4409) and
+AFTER `ab9dc0a003-mw0wq1j2` (:4410) include the same peer Pine candidate
+source, including Z6's separate dead finishes cut. Neither is called a
+clean committed build. The only own change removes the unused landmark
+blob's construction, result field and output emission; ForestPage's
+actual composition and every native scene/collider owner remain intact.
+
+Bodies **881 → 880**, **154,025,962 → 154,020,452 B**. The exact one
+removed hash is the 5,510 B landmark copy recorded above. Every other
+body and metadata record is byte-identical; all **78 old/new packs /
+1,719 ordered entries** independently verify hashes, lengths, offsets,
+body slices and original order after only that hash's removal. Admission
+removes only the dead library/late entry and its exact costs. Index
+**1,711,534 → 1,711,047 B**, under the unchanged cap. There is no map
+source-stamp difference, reconstructed exception or general tolerance.
+All eight retained roots / **4,390,922 B** also match the census exactly.
+
+Strict native Metal: **24 iPhone-portrait frames, 8 A/A + 8 A/B, every
+changed-pixel count zero**, actual phone and desktop tiers, four canonical
+poses each. The native one-frame/zero-budget settlement, exact frame,
+camera and clock checks and empty-error requirements stay unchanged.
+
+**G998:** every LEGACY / SHARDFILE / NOW row read, Pine **24/24 green in
+Chromium and 24/24 green in WebKit**, actual AFTER build
+`ab9dc0a003-mw0wq1j2`, all settled and no page/harness errors. Static
+terrain, buildings, landmark props, waterfall, sky and hands remain;
+clouds/smoke/vegetation/creatures/hand sway move between visits. No red
+camera, waiver or golden promotion.
+
+- [Chromium board](../../../art/golden-runs/pine-hollow/2026-11-03-ab9dc0a003-z12-chromium-board.jpg)
+- [WebKit board](../../../art/golden-runs/pine-hollow/2026-11-03-ab9dc0a003-z12-webkit-board.jpg)
+
+The original four focused files pass **17 cases** (11.36 s), root types
+and touched fast lint pass. Native physics
+`node scripts/physics-baseline.mjs --no-build --mode=walk --shard=pine-hollow`
+passes **all seven Pine route legs, zero stuck or bounds failures**
+(12 s), through the original current-product checks. An earlier unscoped
+walk correctly refused stale unrelated open-plot products and supplies
+no walk claim; no guard is bypassed. No runtime, collider, schema/family,
+cap or guard changes are part of this retirement. Combined downward
+ceilings belong to sp-x1. Eight live roots remain charged; this closes
+only Z12's approved one-copy reduction.

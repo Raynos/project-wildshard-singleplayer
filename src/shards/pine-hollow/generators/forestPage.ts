@@ -23,7 +23,6 @@ const looks = pineLookMaterials();
 
 /** The rows `forestPage` makes. */
 export interface ForestPage {
-  readonly LANDMARK_VIEW_BLOB: NamedBlobType;
   readonly FOREST_PAGE: ForestPageRowsType;
   readonly FOREST_PAGE_BLOB: NamedBlobType;
 }
@@ -39,7 +38,6 @@ export const forestPage: (sources: PineSources) => Promise<ForestPage> = perSour
     ['moss', 'moss-patch', 'Moss patch'], ['reeds', 'reeds', 'Reeds']] as const;
   const groundSources = wholePartitionFiles(timbers.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash),
     hash => sources.bytes(`assets/${hash}`), kinds.map(([id]) => `pine-undergrowth-${id}`));
-  const LANDMARK_VIEW_BLOB: NamedBlobType = nameBlob('world/landmark-view.json', 'json', new TextEncoder().encode(JSON.stringify(timbers.landmarks)));
   const FOREST_PAGE: ForestPageRowsType = forestPageRows({
     treeLooks: [{ look: FOREST_LOOKS.bark, band: 'trunk' }, { look: FOREST_LOOKS.needles, band: 'cards' }, { look: FOREST_LOOKS.twigs, band: 'twigs' }, { look: FOREST_LOOKS.far, band: 'far' }].map(row => ({ look: row.look, band: row.band, fade: 'fade', viewer: 'viewer' })),
     water: { object: 'pond', look: water.looks.pond, looks: Object.values(water.looks), ripples: 'ripples', skyline: 'skyline', centre: 'skyC', probe: 'waterSkyline' },
@@ -68,5 +66,5 @@ export const forestPage: (sources: PineSources) => Promise<ForestPage> = perSour
         .concat([{ object: `crags.${tier}`, tier }]))],
   });
   const FOREST_PAGE_BLOB: NamedBlobType = nameBlob('world/forest-page.json', 'json', new TextEncoder().encode(JSON.stringify(FOREST_PAGE)), { jsonSchema: registeredJsonSchema('world/forest-page.json') });
-  return { FOREST_PAGE, FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB };
+  return { FOREST_PAGE, FOREST_PAGE_BLOB };
 });
