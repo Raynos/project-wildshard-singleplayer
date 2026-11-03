@@ -274,6 +274,6 @@ separate from frame timing. Native samples add no timing credit. The
 Simulator is Mac-backed regression evidence.
 
 J1 is lattice `(1.5, -0.5)` and J2 `(-1.5, -1.5)`, converted with the
-served grid pitch (555 m today); verify their four neighbour identities.
+served grid pitch (562.5 m at `fd7f01690e`); verify their four neighbour identities.
 Measure four diagonal headings at each road corner using a `grid` standing
 file. Junction acceptance is ≤150 draws, 30 fps floor and no crash.
