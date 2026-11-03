@@ -1,5 +1,6 @@
 // Fixed pendant buffers and bounded per-vertex flutter coefficients, baked in weapon space.
 import { BufferAttribute, type BufferGeometry, Quaternion, Vector3 } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ClothSheet, StrandTassel } from './clothRest';
 import arms from '../data/arms.json' with { type: 'json' };
 import motion from '../data/clothMotion.json' with { type: 'json' };
@@ -82,4 +83,16 @@ export function buildViewmodelParts(): { knot: BufferGeometry; tassel: BufferGeo
   }
   knot.setAttribute('aHullN', knot.getAttribute('normal').clone());
   return { knot, tassel: tassel.geo, sheet: sheet.geo, cord: sheet.cordGeo };
+}
+
+/** EP6: the pendants' same-look draws as one buffer each, in the scene's draw order: the silk strands (tassel, then
+ *  cord) and the thin ink hulls (sheet, then cord). The tassel keeps its own buffer for its hair hull, the sheet for its body. */
+export function mergedPendantParts(parts: { tassel: BufferGeometry; sheet: BufferGeometry; cord: BufferGeometry }): { silk: BufferGeometry; thin: BufferGeometry } {
+  const merge = (geometries: BufferGeometry[]): BufferGeometry => {
+    const merged = mergeGeometries(geometries, false);
+    if (merged === null) throw new Error('Pendant channel layouts differ');
+    merged.computeBoundingSphere();
+    return merged;
+  };
+  return { silk: merge([parts.tassel, parts.cord]), thin: merge([parts.sheet, parts.cord]) };
 }

@@ -9,11 +9,9 @@
         "knot-hull",
         "knot",
         "tassel-hull",
-        "tassel",
-        "sheet-hull",
+        "silk-strands",
+        "thin-hulls",
         "sheet",
-        "cord-hull",
-        "cord",
         "edge"
       ]
     },
@@ -45,16 +43,16 @@
     },
     {
       "kind": "mesh",
-      "id": "tassel",
-      "geometry": "tassel",
+      "id": "silk-strands",
+      "geometry": "silk-strands",
       "material": "silk",
       "frustumCulled": false,
       "missing": "empty"
     },
     {
       "kind": "mesh",
-      "id": "sheet-hull",
-      "geometry": "sheet",
+      "id": "thin-hulls",
+      "geometry": "thin-hulls",
       "material": "thin-hull",
       "frustumCulled": false,
       "renderOrder": -1,
@@ -65,23 +63,6 @@
       "id": "sheet",
       "geometry": "sheet",
       "material": "cloth",
-      "frustumCulled": false,
-      "missing": "empty"
-    },
-    {
-      "kind": "mesh",
-      "id": "cord-hull",
-      "geometry": "cord",
-      "material": "thin-hull",
-      "frustumCulled": false,
-      "renderOrder": -1,
-      "missing": "empty"
-    },
-    {
-      "kind": "mesh",
-      "id": "cord",
-      "geometry": "cord",
-      "material": "silk",
       "frustumCulled": false,
       "missing": "empty"
     },

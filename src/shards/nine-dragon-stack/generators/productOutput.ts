@@ -25,7 +25,7 @@ import aim from '../data/grapple.json' with { type: 'json' };
 import { layoutBlobs } from './layoutBlobs';
 import { nameBlob, emitNamedBlobs, type BlobOptions, type NamedBlob } from '@wildshard/sdk/blobs';
 import { buildHalo } from './jianHalo';
-import { buildViewmodelParts } from './viewmodelParts';
+import { buildViewmodelParts, mergedPendantParts } from './viewmodelParts';
 import { headlessConstants } from './headless';
 import headlessAssembly from '../data/headlessAssembly.json' with { type: 'json' };
 import { lightVolumeBlobs } from './lightVolumes';
@@ -74,7 +74,9 @@ type PlatformDataSectionName = Parameters<typeof emitPlatformSections>[0] extend
 const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value, (_key, entry: unknown) => typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
 const halo = buildHalo();
 /** Original float32 channels and material settings; the live halo shaders stay in fpArms. */
-const viewmodel = buildViewmodelParts();
+const viewmodel = buildViewmodelParts(), merged = mergedPendantParts(viewmodel);
+// the drawn pendant buffers: the cord draws only inside the merged silk and thin-hull buffers (EP6)
+const pendantDraws = { knot: viewmodel.knot, tassel: viewmodel.tassel, sheet: viewmodel.sheet, 'silk-strands': merged.silk, 'thin-hulls': merged.thin };
 /** Emit owned module bytes directly while the remaining legacy adapters are migrated. */
 export function nineOutput(movers: { readonly hash: string } & ({ readonly bytes: Uint8Array } | { readonly source: string }),
   inputs: NineOutputInputs): NineOutput {
@@ -99,7 +101,7 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, v
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedPractice({ practice: grappleCourseScene(course, inputs.courseProgram) })),{jsonSchema:namedJsonSchema(FixedPracticeFileSchema)}),
-  nameBlob('weapons/jian-cloth.json', 'json', json(Object.fromEntries(Object.entries(viewmodel).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])))),
+  nameBlob('weapons/jian-cloth.json', 'json', json(Object.fromEntries(Object.entries(pendantDraws).map(([name, geometry], i) => [name, { ...geometry.toJSON(), uuid: `96d3a000-0000-4000-8000-00000000002${i}` }])))),
   nameBlob('sim/headless-assembly.json', 'json', json(headlessAssembly)),
   nameBlob('sim/headless-constants.json', 'json', json({ ...headlessConstants, entryProof })),
   nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, view: heldView(inputs.held), look: { vm: viewmodelUniforms, post: { ...postGraphRow(postRows()), channels: { group: NINE_FRAME_GROUP, programs: NINE_FRAME_CHANNELS } } } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look', 'view'], additionalProperties: false, properties: { view: inputs.graphArmsSchema, look: { type: 'object', required: ['vm', 'post'], additionalProperties: false, properties: { vm: { type: 'object' }, post: { type: 'object', required: ['passes', 'sides', 'composite', 'inputs', 'uniforms', 'sky'] } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
