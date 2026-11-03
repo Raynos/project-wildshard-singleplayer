@@ -164,7 +164,8 @@ def main():
     xs, ys = [v.co.x for v in near.data.vertices], [v.co.y for v in near.data.vertices]
     cx, cy, f = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, HEIGHT / top
     with open(os.path.join(out, 'hooks.json'), 'w') as fh:
-        json.dump([[round(hx * f - cx, 2), round(hz * f, 2), round(-(hy * f - cy), 2)] for hx, hy, hz in hooks], fh)
+        # + 0.0 turns a rounded -0.0 into 0.0 (admission's JSON refuses negative zero)
+        json.dump([[round(hx * f - cx, 2) + 0.0, round(hz * f, 2) + 0.0, round(-(hy * f - cy), 2) + 0.0] for hx, hy, hz in hooks], fh)
     image = atlas_image(SWATCHES, 'cypress-atlas')
     print(f'cypress near: {triangles(near)} triangles')
     export(near, image, os.path.join(out, 'landmark.glb'))

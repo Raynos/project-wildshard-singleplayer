@@ -268,7 +268,8 @@ def export_family(path, family, objects, emitters, extras, trims, floor=0.42):
                 'indices': np.arange(len(pos), dtype=np.uint32), 'material': 0,
             }))
     out = {'family': family, 'variants': len(objects),
-           'emitters': [[[round(x, 4), round(z, 4), round(-y, 4), slot] for (x, y, z), slot in group] for group in emitters]}
+           # + 0.0: a game z of -0.0 (an emitter on Blender's y = 0) is refused by the world reader's finite-JSON check
+           'emitters': [[[round(x, 4) + 0.0, round(z, 4) + 0.0, round(-y, 4) + 0.0, slot] for (x, y, z), slot in group] for group in emitters]}
     out.update(extras)
     # one material: the SDK's world reader (kitGlb.mjs decodes through it) maps every primitive by material name
     write_glb(path, meshes, extras=out, materials=['kit'])
