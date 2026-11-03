@@ -153,8 +153,14 @@ source-derived tilesHash. Served phone bytes increase by 702,751:
 2,758,968 → 3,461,719 B. The explicitly approved 3,506,012 B ceiling
 preserves the old 44,293 B margin. No visual source changes.
 
-Fairground's OB8 readings are in flight against committed activation
-source, following final visual board `80ba3ebf58`. Jungle activation,
-bar 10 and readings await its real output/final board/walk boundary;
-sp-o1 reports it parked under G999 while Nine release QA finishes.
-No activation onto the committed placeholder is claimed.
+Fairground's [OB8 readings](open-plots-wave-a-readings.md) complete on
+committed activation `8bdf53f635`, following final visual board
+`80ba3ebf58`: Chromium matched pair 240 s, separate memory 65 s,
+maintained walk 166 s (0 stuck / 0 out), official quiet Simulator
+95 s. Fairground and its four junction headings report 30 fps floor,
+p95 34 ms; conservative native+GPU peaks are 263/491 MB playing/loading
+for Fairground and 863/832 MB for the grid visit. Matched Chromium
+30 µs/draw misses, strict timing flags and home-grid p95 35 ms remain
+visible. All owned browsers, Simulator, quiet and preview uses released.
+Jungle activation/bar 10/readings still await its real output/final
+board/walk boundary under G999. No placeholder activation is claimed.
