@@ -39,3 +39,10 @@ a clipping defect unless an 8 m-behind diagnostic finds intersection.
 The separate supplemental D1 manifest selects only view 7 from
 (-22,1.7,-32), inside the cleared strip; it never replaces the core frame.
 Its capture and result remain pending.
+
+Frostline's intentionally moved plaza board (z -54 to -62) places the
+fixed-original front 8 m eye under its new plane. Those original frames
+remain flagged as unable to prove clearance. The separately approved
+D1 plaza-follow manifest translates all nine views and their physical
+anchor 8 m south, keeping every relative distance and angle. Its result
+is supplementary and never replaces the core set. Capture pending.

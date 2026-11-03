@@ -1,0 +1,168 @@
+{
+  "dome": "D1-plaza-follow",
+  "type": "look",
+  "pair": "D1-plaza-follow",
+  "mockup": "art/open-plots/billboard-review-2026-11-03/frostline-peaks-board.jpg",
+  "layout": "src/shards/open-plots/data/layouts/frostline-peaks.json",
+  "anchor": [
+    -22,
+    1.7,
+    -53
+  ],
+  "convention": "SUPPLEMENTAL follow-board diagnostic approved by wildshard-new: entire old plaza set translated8m south to the intentionally moved board centre(-22,-62). All relative distances/angles, bottom2.5m and width20m retained. Fixed-original core frames remain flagged and are never replaced. No geometry/visibility changes.",
+  "views": [
+    {
+      "n": 1,
+      "name": "supplemental-front-8m",
+      "eye": [
+        -22,
+        1.7,
+        -70
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": 180.0,
+      "pitch": 38.768818357551645,
+      "hfov": 62
+    },
+    {
+      "n": 2,
+      "name": "supplemental-front-25m",
+      "eye": [
+        -22,
+        1.7,
+        -87
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": 180.0,
+      "pitch": 14.413095404040593,
+      "hfov": 62
+    },
+    {
+      "n": 3,
+      "name": "supplemental-front-left-45deg",
+      "eye": [
+        -31.899494936611667,
+        1.7,
+        -71.89949493661166
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": 135.0,
+      "pitch": 24.6517424587001,
+      "hfov": 62
+    },
+    {
+      "n": 4,
+      "name": "supplemental-front-right-45deg",
+      "eye": [
+        -12.100505063388335,
+        1.7,
+        -71.89949493661166
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": -135.0,
+      "pitch": 24.6517424587001,
+      "hfov": 62
+    },
+    {
+      "n": 5,
+      "name": "supplemental-edge-left",
+      "eye": [
+        -36,
+        1.7,
+        -62
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": 90.0,
+      "pitch": 24.651742458700102,
+      "hfov": 62
+    },
+    {
+      "n": 6,
+      "name": "supplemental-edge-right",
+      "eye": [
+        -8,
+        1.7,
+        -62
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": -90.0,
+      "pitch": 24.651742458700102,
+      "hfov": 62
+    },
+    {
+      "n": 7,
+      "name": "supplemental-behind-12m",
+      "eye": [
+        -22,
+        1.7,
+        -50
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": 0.0,
+      "pitch": 28.165338701230294,
+      "hfov": 62
+    },
+    {
+      "n": 8,
+      "name": "supplemental-above-20m",
+      "eye": [
+        -22,
+        20,
+        -76
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": 180.0,
+      "pitch": -40.30508572074898,
+      "hfov": 62
+    },
+    {
+      "n": 9,
+      "name": "supplemental-south-lane-approach",
+      "eye": [
+        0,
+        1.7,
+        -132
+      ],
+      "look": [
+        -22,
+        8.125,
+        -62
+      ],
+      "yaw": -162.5528115767178,
+      "pitch": 5.004226486128699,
+      "hfov": 62
+    }
+  ]
+}
