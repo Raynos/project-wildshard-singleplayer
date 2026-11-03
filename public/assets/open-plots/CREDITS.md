@@ -8,6 +8,7 @@ These landmarks were generated with **Tencent Hunyuan 3D 2.1** (image to 3D) and
 | `night-market/landmark.glb`, `landmark-far.glb` (the gate) | Night Market | `night-market-gate.json` |
 | `mosslight-ruins/landmark.glb`, `landmark-far.glb` (the tower) | Mosslight Ruins | `art/mosslight-ruins/round-1-landmark/` |
 | `ember-forge/landmark.glb`, `landmark-far.glb` (the furnace hall) | Ember Forge | `ember-furnace.json` |
+| `coral-drift/landmark.glb`, `landmark-far.glb` (the coral arch) | Coral Drift | `coral-arch.json` |
 
 Powered by Tencent Hunyuan.
 
