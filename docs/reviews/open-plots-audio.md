@@ -14,7 +14,7 @@ The measured recommendation ships; the other take stays available for comparison
 | Frostline Peaks | B, seed 702 | 1.22 MB | pass, `b51eee2ce3` |
 | Ember Forge | A, seed 701 | 1.56 MB | pass, `a723810b29` |
 | Mosslight Ruins | A, seed 701 | 1.06 MB | pending playback |
-| Coral Drift | pending | — | open |
+| Coral Drift | B, seed 702 | 1.42 MB | pending playback |
 
 Bayou A passes the voice check at 0.01% separated vocal energy. B measures
 28.79%, so it is labelled comparison-only and cannot become the active score.
@@ -73,3 +73,8 @@ Ember passes on `a723810b29` at phone 2×: its recorded score sustains
 a positive gain after all spot visits, all six loops decode, the bed
 stays active and five positional gains measure 0.390–0.394 with heading
 pan flips near −0.698 / +0.696. No page errors or performance claim.
+
+Coral B wins the score comparison; both takes measure zero separated
+vocal energy. Three chosen sounds use MOSS and three use Stable Audio.
+Four rank first; palm rustle and pier creak rank second. The pier uses
+paired 702 retakes focused on dry timber rather than lagoon water.
