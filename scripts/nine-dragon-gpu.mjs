@@ -3,7 +3,7 @@
 // scripts/pine-hollow-gpu.mjs, read its header for why it is built this way).
 //
 //   node scripts/nine-dragon-gpu.mjs --url=http://localhost:4173 [--poses=A,B,C,D|none] [--domes=all|A1,B2] [--rounds=10]
-//     [--subtract=all|none|a,b] [--gate=<ms>] [--debug=key:value,…]
+//     [--subtract=all|none|a,b] [--gate=<ms>] [--debug=key:value,…] [--standing=<frame-floor standing file>]
 //
 // --debug: pause ▸ Settings ▸ Debug options set before the load (scripts/debug-settings.mjs), `key:value` pairs: a Debug ▸
 // Performance row measured on, against a run with it off.
@@ -89,6 +89,34 @@ function installProbe() {
   P.toggles.set('null', () => undefined);
   const vm = [...g.camera.children];
   P.toggles.set('vm', (on) => { for (const o of vm) o.visible = !on; });
+  // the viewmodel's ink hulls (the outline meshes, named *_hull or drawn by a hull graph) apart from its bodies
+  const hulls = [];
+  for (const o of vm) o.traverse((m) => { if (m.isMesh && (m.name.endsWith('_hull') || /hull/u.test(m.material?.name ?? ''))) hulls.push(m); });
+  if (hulls.length > 0) P.toggles.set('vm:hulls', (on) => { for (const m of hulls) m.visible = !on; });
+  // the composite's terms, each set to its off value while toggled: the unsharp mask, the ink lines, the drizzle, the grain
+  // and the LUT, in every post material that reads them (`wsP_<name>`) and in the post inputs' rows that feed them
+  const slots = [];
+  composer.passes.forEach((pass) => {
+    for (const m of [pass.screen?.material, ...Object.entries(pass).filter(([k]) => k.startsWith('material')).map(([, v]) => v)]) if (m?.uniforms) slots.push({ u: m.uniforms, prefix: 'wsP_' });
+    if (pass.row?.uniforms) slots.push({ row: pass.row.uniforms });
+  });
+  const component = { x: 0, y: 1, z: 2, w: 3 };
+  for (const [key, name, axis] of [['post:sharp', 'uSharp'], ['post:lines', 'uLines'], ['post:rain', 'uRain', 'x'], ['post:grain', 'uGrade', 'y'], ['post:lut', 'uLutAmt']]) {
+    const sets = [];
+    for (const post of slots) {
+      if (post.u?.[`wsP_${name}`] !== undefined) {
+        const u = post.u[`wsP_${name}`], saved = axis === undefined ? u.value : u.value[axis];
+        sets.push((on) => { if (axis === undefined) u.value = on ? 0 : saved; else u.value[axis] = on ? 0 : saved; });
+      }
+      const held = post.row?.[name];
+      if (typeof held === 'number') { const saved = held; sets.push((on) => { post.row[name] = on ? 0 : saved; }); }
+      else if (held !== undefined && axis !== undefined) {
+        const list = held.v4 ?? held.v3 ?? held.v2, i = component[axis], saved = list?.[i];
+        if (list !== undefined && saved !== undefined) sets.push((on) => { list[i] = on ? 0 : saved; });
+      }
+    }
+    if (sets.length > 0) P.toggles.set(key, (on) => { for (const set of sets) set(on); });
+  }
   const root = g.scene.getObjectByName('nine-dragon-stack');
   const byName = (list, prefix) => {
     const m = new Map();
@@ -163,6 +191,13 @@ try {
     const yaw = (c.yaw * Math.PI) / 180, pitch = (c.pitch * Math.PI) / 180;
     return { id: `mockup ${k}`, eye: c.eye, look: [c.eye[0] + Math.sin(yaw) * Math.cos(pitch) * 20, c.eye[1] + Math.sin(pitch) * 20, c.eye[2] - Math.cos(yaw) * Math.cos(pitch) * 20] };
   });
+  // --standing=<file>: frame-floor standing poses ({ "nine-dragon-stack": [{ name, x, y, z, yaw, pitch }] }, feet and the
+  // engine's radians, yaw = -the mockups' heading): the eye 1.68 m over the feet, as frame-floor stands the player
+  const standing = flag('standing', '');
+  if (standing !== '') for (const s of JSON.parse(readFileSync(standing, 'utf8'))['nine-dragon-stack'] ?? []) {
+    const heading = -s.yaw, eye = [s.x, s.y + 1.68, s.z];
+    poses.push({ id: s.name, eye, look: [eye[0] + Math.sin(heading) * Math.cos(s.pitch) * 20, eye[1] + Math.sin(s.pitch) * 20, eye[2] - Math.cos(heading) * Math.cos(s.pitch) * 20] });
+  }
   // --domes: the eight domes' nine cameras each (art/nine-dragon-stack/round-15-eight-domes/<dome>/cameras.json), on the
   // phone frame at the game's own portrait FOV
   const DOMES = ['A1-spawn-stand', 'A2-gate-look', 'B1-well-edge-stand', 'B2-well-edge-look', 'C1-stair-stand', 'C2-stair-look', 'D1-well-down-stand', 'D2-well-down-look'];
