@@ -91,6 +91,9 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     Wave 1 cross-references them and sequences around them, never duplicating. **West toys save personal bests and
     have feats** (no other reward). **The showcase stays behind Developer** until Jake's phone pass; the public build
     keeps the hologram plot at (0,2).
+19m. **Miss chance: 12 % at equal level, rising to 90 % at 8 levels above you** (Jake 11-02: *"not aggressive enough on
+    the level scaling"*), about +9.75 % a level. **Zone recipes live in the showcase's own source:** each zone is a
+    self-contained, copyable section of the Showcase Template shardfile source (Template 3), not a separate doc.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
@@ -113,9 +116,26 @@ landscape HUD, loading screen, Explore tabs, bot playtest).
 
 ## 3. The map
 
-Detail and round 2 in [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md). Round 1 blockout
-(`art/showcase-template/round-1-blockout/`, 8094bf351f): **it fits with no cuts**. West 47 % used, east 78 %,
-22.7 % of the cell free; the interiors sit under the cell at 0 m².
+Detail in [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md). **Round 2 blockout with the full content
+census** (`art/showcase-template/round-2-blockout/`, c6063ad0ce; `node placement.js` prints the fit tables): **it all
+fits, after three fixes.** West 42 % used, east 79 %, 24.9 % of the cell free; the interiors sit under the cell at 0 m².
+
+- **Census:** 54 packs (3 per level in every band), 117 commons by day, 12 night-shift points on the day spawns, rare
+  variants as a roll among commons; 6 elites + the Titan; 12 chests + the vault chest, 36 crates, 20 Gold 1×1s (10
+  west, 10 east), 24 quest targets, 13 contracts, 4 hub NPCs + the stable hand, 4 storm beacons (on band 5's corners).
+- **The three fixes:** at 40 m pack spacing the east was short (band 2 fit 5 of its 9–10 packs). Fixed with 3 m walls
+  between close packs in bands 2–4 (spacing 28–33 m, no aggro through them), a smaller gauntlet (r 36) against the
+  seam, and band 5's Riveters living inside the stealth yard. Band 1 is exactly full.
+- **Grind timing:** respawn ~90 s vs a 116–176 s walk back to a tier's first pack, so no waiting; all six bands
+  take ~154 min (the 2.5–3 h target). **Gap:** no daytime L19 enemies; make band 6's top tier L18–19.
+- **Phone load (estimated, not measured):** up to 13 enemies in one portrait view, 29 within 60 m, 85 within 150 m.
+  No enemy cap exists today: proposed full AI within ~60 m and at most 16 animated on screen (Wave 1 row; first check
+  on the iPhone).
+- Hub r 28 with services ≤ 29 m apart; cover every ~12 m in the bands; distinct west silhouettes.
+- The blockout calls the band-3 night elite "Nailbiter L11"; the names stay Jake's picks (Sir Nibbles, Hot Mess,
+  Riveting Rita), so the lair placements are re-labelled in Wave 2's K1.
+
+Round 1 (`round-1-blockout/`, 8094bf351f) had fit the zones alone with 22.7 % free.
 
 | Half | Zones |
 |---|---|
@@ -135,11 +155,15 @@ feature today** (Driftwood, Pine Hollow, Nalati, Nine Dragon, Sky Reach, Signal 
 same row, deletes the shard's custom section, named JSON, shard-shaped schema or shard-named game code, and proves the
 shard unchanged (its focused tests and a look in the game). Logic that is truly per-shard moves to AssemblyScript on
 the WASM host. The loot/economy rows normalise Driftwood's, Pine's and Nalati's economies onto one host. A per-area
-migration map is being drawn up and lands as [wave-1-migration-map.md](kitchen-sink-v2/wave-1-migration-map.md).
+migration map is [wave-1-migration-map.md](kitchen-sink-v2/wave-1-migration-map.md): every area, every shard, today →
+target, the parity proof per shard.
 
+**Size: about 1,040 h.** Planned host rows ≈ 675 h (W1–W21 ≈ 389, LE 104, LV 50, HUD 19, QC 41, EB 28, DG 44) plus
+new migration rows ≈ 365 h (M0–M9, including a shared parity kit and fresh-seat host scoring). **Recommended: 3 Opus +
+3 Codex lanes for about 6 weeks**; Codex is the critical path. Codex lanes need Jake to name Wave 1 a lane plan
+(AGENTS.md). Also needed: an enemy-count cap on the phone (full AI within ~60 m, ≤ 16 animated on screen).
 
-Full rows in [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md). About **380 h** of host work
-(audit 11-02) plus the levels system (LV rows), the economy (LE rows) and the shrine host (DG rows). Order:
+Full host rows in [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md). Order:
 
 1. **Make the ruler honest** (HOST-AUDIT HA0/HA1/HA5), so "0 % custom TS" means something.
 2. **Shared sections:** interactables (benches, chests, doors, levers, plates, barrels), commons AS prefabs (plates,

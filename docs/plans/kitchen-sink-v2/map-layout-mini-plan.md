@@ -37,7 +37,11 @@ zipline 22 m/s; Driftwood's arena r 22; Nalati's oval (120 m straights); 8 m edg
 70 × 70 · bands 8,160–21,888 m² each · stealth yard 100 × 104 · gauntlet ⌀84 · boss ⌀76 + approach 39 × 16 · three
 mini-boss pits ~616 m² each · dungeon portal 16 × 16.
 
-## Round 2 (to do)
+## Round 2 (done, c6063ad0ce: `art/showcase-template/round-2-blockout/`)
+
+Verdict: everything fits after three fixes (walls between close packs in bands 2–4, a smaller gauntlet against the
+seam, Riveters inside the stealth yard); 24.9 % of the cell free. Full census and fit tables in its README and
+`node placement.js`. The parent §3 summarises it. The list below was its spec.
 
 Everything Jake ruled after round 1, plus what the eye-height views showed:
 
@@ -60,5 +64,6 @@ Everything Jake ruled after round 1, plus what the eye-height views showed:
 
 | Row | What | Effort |
 |---|---|---|
-| ML1 | Round 2 blockout (the list above) | 0.5 d |
+| ML1 | Round 2 blockout (the list above) | done |
+| ML3 | Band 6 top tier L18–19 (closes the L19 gap); re-label the night-elite lairs to Jake's names | in K1 |
 | ML2 | The round 2 layout becomes K1's skeleton data (`layout.js` → shard rows) | in K1 |
