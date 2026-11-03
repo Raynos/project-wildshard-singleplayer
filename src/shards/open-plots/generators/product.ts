@@ -12,6 +12,7 @@ import landmarkDusk from '../data/landmarkDusk.graph.json' with { type: 'json' }
 import landmarkNoon from '../data/landmarkNoon.graph.json' with { type: 'json' };
 import kitPlanks from '../data/kitPlanks.graph.json' with { type: 'json' };
 import lava from '../data/lava.graph.json' with { type: 'json' };
+import lagoon from '../data/lagoon.graph.json' with { type: 'json' };
 import mapSettings from '../data/map.json' with { type: 'json' };
 import audioBindings from '../data/audioBindings.json' with { type: 'json' };
 import { generatePlotAudioProject, type PlotAudioBinding } from './audioProject';
@@ -33,7 +34,7 @@ const { why: _why, ...tiledMaterials } = source.tiledMaterials;
 // NM10: the lanterns, windows and their light pools flicker a little, each on its own phase (world position), unlit as the
 // emissive family drew them (glow x2.4 +-12 %, pool additive x1.2 +-8 %); the glow also moves and lights the marked
 // fireflies and sky lanterns (kit.mjs `mover`)
-const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicker; }; pool: { family: string; graph: typeof poolFlicker; }; paving: { family: string; graph: typeof paving; }; kit: { family: string; graph: typeof kit; }; landmark: { family: string; graph: typeof landmark; }; water: (typeof look)["materials"]["frame"] | { family: string; graph: typeof lava; }; hologram: (typeof look)["materials"]["hologram"]; billboard: (typeof look)["materials"]["billboard"]; floor: (typeof look)["materials"]["floor"]; kerb: (typeof look)["materials"]["frame"]; plinth: (typeof look)["materials"]["frame"]; frame: (typeof look)["materials"]["frame"]; rim: (typeof look)["materials"]["rim"]; sign: (typeof look)["materials"]["sign"]; }; grade: (typeof look)["grade"]; clock: string; familyLooks: (typeof look)["familyLooks"]; families: (typeof look)["families"]; day: (typeof look)["day"]; dayOverride: number; keys: (typeof look)["keys"]; } = { ...look, materials: { ...look.materials, ...tiledMaterials,
+const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicker; }; pool: { family: string; graph: typeof poolFlicker; }; paving: { family: string; graph: typeof paving; }; kit: { family: string; graph: typeof kit; }; landmark: { family: string; graph: typeof landmark; }; water: (typeof look)["materials"]["frame"] | { family: string; graph: typeof lava | typeof lagoon; }; hologram: (typeof look)["materials"]["hologram"]; billboard: (typeof look)["materials"]["billboard"]; floor: (typeof look)["materials"]["floor"]; kerb: (typeof look)["materials"]["frame"]; plinth: (typeof look)["materials"]["frame"]; frame: (typeof look)["materials"]["frame"]; rim: (typeof look)["materials"]["rim"]; sign: (typeof look)["materials"]["sign"]; }; grade: (typeof look)["grade"]; clock: string; familyLooks: (typeof look)["familyLooks"]; families: (typeof look)["families"]; day: (typeof look)["day"]; dayOverride: number; keys: (typeof look)["keys"]; } = { ...look, materials: { ...look.materials, ...tiledMaterials,
   glow: { family: 'graph', graph: glowFlicker }, pool: { family: 'graph', graph: poolFlicker },
   // RM5.1: the paving ruled in its material (flagstones, joints, per-stone shade and wear; no texture), over its vertex colours
   paving: { family: 'graph', graph: paving },
@@ -79,7 +80,10 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   const lit = daylit === undefined ? tiledLook : { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: daylit } } };
   // OB4: a row's `water: "lava"` draws its water as molten lava (data/lava.graph.json: unlit, its vertex colour as the
   // molten colour, dark crust plates drifting over it in world metres), the lava kind any volcanic plot shares
-  const molten = row.water === 'lava' ? { ...lit, materials: { ...lit.materials, water: { family: 'graph', graph: lava } } } : lit;
+  // OB5: `water: "lagoon"` draws it as a shallow lagoon (data/lagoon.graph.json: its vertex colour lifted, a slow swell and
+  // a bright caustic web where two drifting world-metre noise fields cross), the lagoon kind any tropical plot shares
+  const waterGraph = row.water === 'lava' ? lava : row.water === 'lagoon' ? lagoon : undefined;
+  const molten = waterGraph === undefined ? lit : { ...lit, materials: { ...lit.materials, water: { family: 'graph', graph: waterGraph } } };
   // OB2: a row's `kitGround: "planks"` rules its ground as boardwalk boards in place of flagstones (data/kitPlanks.graph.json:
   // the kit graph with its own ground rule, scripts/open-plots/ruled-graphs.py)
   const tiled = row.kitGround === 'planks' ? { ...molten, materials: { ...molten.materials, kit: { family: 'graph', graph: kitPlanks } } } : molten;
