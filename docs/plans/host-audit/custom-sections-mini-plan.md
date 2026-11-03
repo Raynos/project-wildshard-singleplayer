@@ -4416,3 +4416,28 @@ Together with Jian/Nalati `ecec5f75eb`, Z6 retires **4 files /
 one-user roots remain explicitly charged for Jake's approved batch,
 **484,106 B** including the necessary 651 B Jian reference increase;
 no fabricated second user or private-root host credit is claimed.
+
+### Final Pine ceiling and exact batch census (2026-11-03, sp-x1)
+
+The fresh normal pinned preview of `00699619f47568914cacf498274fd3c82842731b`
+(`0069961-mw14r5z3`, :4401) builds all 28 products and the app.
+Native `outputSections` admission and an independent pinned-registry/body-hash
+census agree at **67 / 13,998,526 B**. All 28 complete defining-family
+selectors, sources and readers match the committed registry; every section
+and named file is hash/size verified. An exact shard/name/byte comparison
+matches all 67 unique rows in [Jake's batch](../../reviews/custom-sections-one-user-batch.md).
+**No residual outside the batch.**
+
+Pine finishes `00699619f4` is now landed and qualified separately by Z6;
+its **1 / 4,197 B** is the only difference from the preceding `bf7094417d`
+census. Only Pine's two custom ceilings decrease: **20 / 4,637,093 →
+19 / 4,632,896**. Combined ceilings therefore fall **68 / 14,002,723 →
+67 / 13,998,526**. Driftwood stays **16 / 861,590**, Nalati **29 / 7,850,293**,
+Nine **3 / 653,747**, and every other product/source group stays **0 / 0**.
+
+The original baseline, name freeze and every other ceiling are unchanged.
+Existing custom-growth/freeze suites and direct shrink-only/product-fit
+checks pass. This metadata-only change touches no rendered body, collider,
+contract or registration. Jake's 67 files remain charged until their full
+named contracts, approval and production integration requirements are met;
+Z15 stays unactivated.

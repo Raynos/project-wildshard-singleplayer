@@ -89,11 +89,12 @@ The batch totals by source row are: E9 **1 / 510 B**; E11/Z3 **2 / 651,474 B**; 
 By shard: Driftwood **16 / 861,590 B**; Pine **19 / 4,632,896 B**; Nalati **29 / 7,850,293 B**; Nine **3 / 653,747 B**. The recommended Accept group is **65 / 13,980,212 B**. The two production-integration cases total **2 / 18,314 B**.
 
 The authoritative current census is the clean committed all-product preview of
-`bf7094417d9ccd289f7dfa73cd10a2269eb6c64c`: `bf70944-mw141i0i`. Native defining-family admission
-and an independent pinned-registry/body-hash census agree at **68 files /
-14,002,723 B**. This includes the qualified Z12, Z7, Z6 and all six Z13
-retirements. It excludes the loose Pine finishes cut: **1 / 4,197 B** remains
-charged outside this 67-file batch. The original post-Z14 reference was
+`00699619f47568914cacf498274fd3c82842731b`: `0069961-mw14r5z3`. Native defining-family
+admission and an independent pinned-registry/body-hash census agree at
+**67 files / 13,998,526 B**. Every charged file's shard, name and byte count
+matches this table exactly. This includes Pine finishes retirement
+`00699619f4`, the qualified Z12/Z7/Z6 work and all six Z13 retirements.
+**No residual outside the batch.** The original post-Z14 reference was
 82 / 19,090,940 B; that historical snapshot is not the current inventory.
 
 Z6 `ecec5f75eb` changed only the Jian row's qualified transport references:
@@ -103,16 +104,17 @@ The table and totals include that growth. Its full admission and native held
 owner remain unchanged; the original hash stays historical evidence in Z6.
 
 If Jake accepts the recommendation and the 65 Accept files are fully
-implemented and registered, this current snapshot becomes **3 / 22,511 B**:
-the two production-integration cases plus Pine finishes. If he approves the
-whole lot and all 67 files meet their named implementation/owner requirements,
-it becomes **1 / 4,197 B**. Approval alone changes neither count. These are
-charged JSON bytes being reclassified; they are not download, runtime-memory
-or disk-space savings.
+implemented and registered, this current snapshot becomes **2 / 18,314 B**:
+the two production-integration cases. If he approves the whole lot and all
+67 files meet their named implementation/owner requirements, it becomes
+**0 / 0 B**. Approval alone changes neither count. These are charged JSON
+bytes being reclassified; they are not download, runtime-memory or disk-space
+savings.
 
-Zero additionally requires Pine's separately qualified finishes retirement.
-The current six Z13 envelopes and Z7's qualified candidates are already out
-of the charged inventory. **Approving this batch alone does not produce zero.**
+There is **no residual outside the batch**. Pine finishes, all six Z13
+envelopes and Z7's qualified candidates are retired. Zero now requires the
+67 files to meet their complete contract, approval and production-owner
+requirements; **approval alone does not produce zero**.
 
 After those rows and the approved contracts land, zero means: no `custom/` section; every remaining named JSON file admitted by its exact registered complete type, with two real shard users or Jake's named exception; unchanged malformed-data, resource, range, lifecycle and native-owner refusals; and shard decisions still running through their existing AS/Script ABI owners. Z15 then deletes the compatibility/custom path and locks the total at zero. A renamed private envelope, a permissive union or an opaque JSON payload in a binary file does not satisfy that result.
 
