@@ -2,7 +2,7 @@
  {
   "id": "e01",
   "title": "Band 1: Crate Mites, L1–3",
-  "caption": "Through the band 1 road gate: Crate Mite packs (Lv 1–3) among crate-stack cover.",
+  "caption": "Through the band 1 road gate: a Crate Mite pack (Lv 1) at its dock among crate-stack cover; the band 2 arch beyond.",
   "camera": {
    "pos": [
     88,
@@ -21,7 +21,7 @@
  {
   "id": "e02",
   "title": "Band 2: Pallet Jacks, L4–6",
-  "caption": "Through the band 2 arch: Pallet Jack chargers (Lv 4–6) in walled lanes between wall cover.",
+  "caption": "Band 2: two Pallet Jacks (Lv 4) at their dock, one lifting its tines over a red charge lane.",
   "camera": {
    "pos": [
     34,
@@ -40,7 +40,7 @@
  {
   "id": "e03",
   "title": "Band 3: Plumb Drones, L7–9",
-  "caption": "Band 3: Plumb Drones (Lv 7–9) kite at 12 m, 3 m up, between pillar gates; a loot chest.",
+  "caption": "Band 3: Plumb Drones (Lv 7) hover 3 m up among pillar screens, one aiming its plumb-line laser.",
   "camera": {
    "pos": [
     154,
@@ -59,7 +59,7 @@
  {
   "id": "e04",
   "title": "Band 4: Welder Units, L10–12",
-  "caption": "Band 4: Welder Units (Lv 10–12) in welding bays, flame cones and slag decals; a loot chest.",
+  "caption": "Band 4: a Welder Unit (Lv 10) by its dock, flame cone and slag puddles on the floor.",
   "camera": {
    "pos": [
     150,
@@ -78,7 +78,7 @@
  {
   "id": "e05",
   "title": "Band 5: the stealth yard, L13–15",
-  "caption": "From the road crossing into band 5: the walled stealth yard, Riveter pairs (Lv 13–15) and the beacon towers on its corners.",
+  "caption": "Inside band 5, the walled stealth yard: a Riveter (Lv 13) behind its riot plate; a beacon tower beyond.",
   "camera": {
    "pos": [
     184,
@@ -173,7 +173,7 @@
  {
   "id": "e10",
   "title": "Stealth yard: the keycard",
-  "caption": "Inside the stealth yard: Riveter lamp cones sweep the lanes; the keycard shed in the far corner.",
+  "caption": "Crouched in the stealth yard by the keycard shed: a patrol lamp cone on the floor, beacon tower 3 beyond.",
   "camera": {
    "pos": [
     198,
@@ -192,7 +192,7 @@
  {
   "id": "e11",
   "title": "The gauntlet: waves",
-  "caption": "The elite gauntlet (Lv 16–18): five waves on a 56 m floor, tiered walls all round.",
+  "caption": "The elite gauntlet (Lv 16–18), wave 3 of 5: Riveters and Arc Sentries inside the stepped walls.",
   "camera": {
    "pos": [
     40,
@@ -267,18 +267,18 @@
  },
  {
   "id": "s01",
-  "title": "Level up",
-  "caption": "LEVEL UP 7: attributes grow on their own (no points to spend); a full heal.",
+  "title": "Level up: the card (out of combat)",
+  "caption": "Out of combat, 5 s after the last hit, on the road home: the level-up card ticks each attribute up; nothing to spend.",
   "camera": {
    "pos": [
-    108,
+    60,
     1.7,
-    -221
+    -4
    ],
    "look": [
-    122,
-    3.5,
-    -224
+    0,
+    2,
+    0
    ],
    "fov": 70
   },
@@ -286,8 +286,8 @@
  },
  {
   "id": "s02",
-  "title": "The XP bar",
-  "caption": "The XP bar above the controls: LV chip, XP to next, +70 XP from a Lv 7 Plumb Drone.",
+  "title": "Level up mid-fight: the XP bar",
+  "caption": "In combat the level-up is a beat: a ring burst, the LV chip flips 6 to 7, full HP, \"LEVEL 7 · +11 VIT\" by the XP bar.",
   "camera": {
    "pos": [
     154,
@@ -306,7 +306,7 @@
  {
   "id": "s03",
   "title": "Storm hour",
-  "caption": "Lights Out: the whole cell in an evening storm, night-shift robots out, until the four beacons are lit.",
+  "caption": "Lights Out: the cell in an evening storm; beacon 1 on the stealth yard corner just lit, 1 / 4.",
   "camera": {
    "pos": [
     150,

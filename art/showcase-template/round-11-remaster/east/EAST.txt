@@ -14,4 +14,8 @@ EAST HUD (same HUD as COMMON, plus the combat parts)
 - LOCK: when a robot is in sword reach, a round "LOCK" button sits up-left of DODGE. If the shot says no LOCK, draw none.
 - VITALS: hidden at full health. When the shot says you are hurt, a thin green health bar with a small heart icon and the HP number appears top-left between the PAUSE chip and the Scrip chip.
 - The SWAP ring shows a sword icon. The player's own sword is visible in first person at the lower right: a plain steel dev-sword with an orange grip.
-- Floating combat words appear exactly as quoted: "DEFLECT" (silver, with silver sparks), "DODGE" (pale blue), "PARRY" (gold, with a gold ring); hit numbers are wordless (white clean, orange crit).
+- Floating combat numbers are wordless: white for hits, big yellow for crits, small grey for glances. Failed hits show only the words, exactly as quoted: "DEFLECT" (silver, with silver sparks), "DODGE" (pale blue), "PARRY" (gold, with a gold ring).
+- Beacon braziers are unlit (dark amber box, no flame) unless the shot says a beacon is lit.
+- The XP bar is only partly filled (about 40 % cyan unless the shot gives another fill; never full) and carries no text or percentage unless the shot quotes one.
+- A small purple capsule far in the distance is a distant elite: a small orange-and-grey block robot, not a purple shape.
+- The Scrip chip shows only the gold coin icon and the number, no word.
