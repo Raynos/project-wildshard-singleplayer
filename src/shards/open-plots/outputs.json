@@ -391,6 +391,17 @@
             "x": 0,
             "z": 26
           }
+        ],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.lantern-bayou",
+          "score": "score.lantern-bayou",
+          "bed": "none"
+        },
+        "assetGlobs": [
+          "public/assets/open-plots/**",
+          "public/assets/music/lantern-bayou/**",
+          "public/assets/sfx/lantern-bayou/**"
         ]
       }
     },

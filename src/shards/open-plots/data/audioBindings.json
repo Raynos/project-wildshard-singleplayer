@@ -1,1 +1,51 @@
-{}
+{
+  "lantern-bayou": {
+    "idea": "lantern-bayou",
+    "source": {
+      "dir": "/assets/music/lantern-bayou/",
+      "manifestKey": "lantern-bayou"
+    },
+    "sfxDir": "/assets/sfx/lantern-bayou/",
+    "files": {
+      "score": "take-a-e259636eca92.m4a",
+      "ambience": "ambience-908d31a41d40.m4a",
+      "boardwalk-creak": "boardwalk-creak-c04235c6f19e.m4a",
+      "house-wind-chimes": "house-wind-chimes-8d3a6a7a604e.m4a",
+      "distant-owl": "distant-owl-25a3cbfe9be7.m4a",
+      "lantern-boat-bump": "lantern-boat-bump-7208440d90bb.m4a",
+      "cypress-rustle": "cypress-rustle-5782212b0b90.m4a"
+    },
+    "spots": [
+      {
+        "id": "boardwalk-creak",
+        "x": 0,
+        "z": -220,
+        "reach": 28
+      },
+      {
+        "id": "house-wind-chimes",
+        "x": -156.25,
+        "z": -218.75,
+        "reach": 24
+      },
+      {
+        "id": "distant-owl",
+        "x": -218.75,
+        "z": -218.75,
+        "reach": 45
+      },
+      {
+        "id": "lantern-boat-bump",
+        "x": -156.25,
+        "z": -156.25,
+        "reach": 24
+      },
+      {
+        "id": "cypress-rustle",
+        "x": 0,
+        "z": 0,
+        "reach": 45
+      }
+    ]
+  }
+}

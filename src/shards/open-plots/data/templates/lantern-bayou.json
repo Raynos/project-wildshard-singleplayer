@@ -36,7 +36,18 @@
           "practice": "/src/shards/open-plots/thumbs/lantern-bayou.jpg"
         }
       },
-      "pois": []
+      "pois": [],
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.lantern-bayou",
+        "score": "score.lantern-bayou",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/lantern-bayou/**",
+        "public/assets/sfx/lantern-bayou/**"
+      ]
     },
     "layout": "lantern-bayou",
     "scaffold": true,
