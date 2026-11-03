@@ -10,6 +10,11 @@ import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDec
 import { GAME_STRINGS } from '../src/game/strings';
 import { SHARDS, LEGACY_SHARDS } from '../src/shards.generated';
 import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
+import productBootSources from '../src/shards/open-plots/data/nightMarketBootSources.json' with { type: 'json' };
+import { chunkFiles } from '../src/engine/boot/manifest';
+import { bootSourceFiles } from '../src/engine/boot/filePolicy';
+import { bootFetches } from '../src/engine/boot/prefetch';
+import { installAssetFixture } from './fixtures/bootSetup';
 
 // G531: SHARD SELECT shows one entry per shard, its shardfile; the Developer-tools row Legacy shard buttons brings LEGACY back.
 const card = (slug: TitleCard['slug'], legacy: boolean): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '',
@@ -148,12 +153,24 @@ test('SHARD SELECT exposes the five build-outs publicly and retains the full gri
 });
 
 test.each(buildOutPlots)('%s uses its existing card and enters its standalone public shardfile', async idea => {
+  await installAssetFixture();
   installShards([...SHARDS, ...LEGACY_SHARDS]);
   setDev(false);
   const slug = `open-plot-${idea}`, choice = titleCards(false).find(item => item.slug === slug);
   const manifest = SHARDS.find(item => item.slug === slug);
   if (choice === undefined || manifest === undefined) throw new Error('Missing public plot card');
+  const boot = manifest.boot;
+  if (boot?.sources === undefined) throw new Error('Missing authored native-product boot inventory');
+  // These levels load world bytes through their admitted shardfile, exactly as
+  // Night Market does. They have no predecessor's eager public-asset pack.
+  for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
+    const sources = bootSourceFiles(boot.sources, tier, mode);
+    expect(sources).toEqual(productBootSources.tiers[tier]);
+    expect(bootFetches(manifest, sources)).toEqual([]);
+  }
+  expect(chunkFiles(manifest)).toEqual(productBootSources.tiers.desktop);
   expect(choice.entries).toEqual({ legacy: false, shardfile: true });
+  expect(manifest.load).toBeUndefined();
   expect(manifest.shardfile).toBe(`/shardfiles/${slug}/shard.json`);
   expect(choice.thumbnail).toBe(manifest.card.thumb);
   expect(choice.heroPortrait).toBe(manifest.card.portrait);
@@ -169,6 +186,10 @@ test.each(buildOutPlots)('%s uses its existing card and enters its standalone pu
   play(built.root); await paintFrames();
   expect(entered).toEqual([[slug, 'shardfile']]);
   installShards([]);
+});
+
+test('a playable level without authored boot sources still refuses before pack construction', () => {
+  expect(() => chunkFiles({})).toThrow('Level boot has no authored asset sources');
 });
 
 test('the backdrop is the hero over the card\'s own thumbnail, so a late hero never leaves it black', () => {

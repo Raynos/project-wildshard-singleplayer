@@ -233,7 +233,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 
 | Row | What | Lane | Size | Done when |
 |---|---|---|---|---|
-| OB0 | **In flight (2026-11-03, sp-x1; source + unit controls qualified, five WebKit entries pending). On SHARD SELECT (G984).** Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift each get a SHARD SELECT card (existing thumbs) that enters the plot standalone, public build too | Codex | 0.5 | Each of the five enters from SHARD SELECT on WebKit (iPhone 16 Pro); a test pins the five cards |
+| OB0 | **In flight (2026-11-03, sp-x1; source + guarded boot inventory qualified, five WebKit entries pending). On SHARD SELECT (G984).** Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift each get a SHARD SELECT card (existing thumbs) that enters the plot standalone, public build too | Codex | 0.5 | Each of the five enters from SHARD SELECT on WebKit (iPhone 16 Pro); a test pins the five cards |
 | OB1 | **done (2026-11-03, G972; `ffb6270346` + `913b810625`).** **G972, one grid.** `src/game/grid/singleplayer.json`: `nine-dragon-stack` takes (1,-1) in `grid.cells` (it replaces that Lantern Bayou copy), and `grid.developer` is deleted along with every reader of it (`src/game/grid/catalogue.ts`, `assembly.ts`, `copyIdentity.ts`, `entryDownloads.ts`, the grid tests, and the scripts that read it: `public-grid.mjs`, `frame-floor.mjs`, soak, parity, the world-map atlas and others; grep before deleting). Blender-template, pastel-plain and ink-cel-valley leave the grid. Fold the now-redundant `devserver` Nine entry if nothing else needs it | Codex | 1 d | One grid for public and Developer. Nine enters from its cell on a public build. The grid tests, `vitest related` and the boot smoke pass. Net lines are negative |
 | OB2 | **Pilot: Lantern Bayou** through pipeline steps 1–8. Template additions that every later plot reuses (Codex): audio rows from the template, the bar-7 life check (pixel change per 500 ms in the 5 s clip), the bar-5 three-way board maker, and the per-plot tiling report (G950). Opus: the plot itself, and holding the landmark for the whole cell (§6) | Opus 2 + Codex 1.5 | 3.5 lane-days (was 5.5) | Board sent; the four hero views read as the 2 × 2 board, by eye; the layout is mirror-symmetric kit tiles plus ≤ 3 theme tile variants and one landmark (G978); the three-way board reads "better"; life visible; audio plays; ≤ 130 draws, ≤ 600k triangles, ≤ 1.0 GB in the Chromium reading; 0 stuck; the plot replaces its hologram |
 | OB3 | **Frostline Peaks** (wave 2; builds the shared pines, snow and ice) | Opus 2 + Codex 0.5 | 2.5 (was 6) | As OB2. The peak lodge and lift are readable from the road entry and from the Far Reach side |
@@ -445,3 +445,31 @@ introduced. No geometry build, payload or collider change is claimed.
 landed-SHA WebKit iPhone 16 Pro turn, with Developer off. Unit/source
 qualification is not native-entry or whole-OB0 completion. Reuse a joined
 immutable HEAD preview where possible; preserve active native cohorts.
+
+
+### OB0: authored boot-inventory fix (2026-11-03)
+
+The first public-card landing missed the authored boot-inventory binding.
+The exact normal `bake-packs --check` refused with `Level boot has no
+authored asset sources`; a normal Mosslight product build passed. Thus the
+newly public level lacked its bootstrap declaration, rather than its real
+product/world assets.
+
+All five now bind the existing Night Market native-product files/sources
+JSON through their own manifest overrides. This established native contract
+has no predecessor eager public-asset pack: `manifestFromShardfile` and
+`compiledPageBoot` consume the admitted product's world assets. Five ordinary
+product builds passed, each with real files and no legacy runtime. No new
+empty inventory, invented asset URL, fallback, engine guard or cache policy
+is introduced. G872 exact native-contract classification is self-applied.
+
+The public-card tests now exercise the actual authored boot-source resolver
+in both tiers/texture modes, the real pack-fetch list and all five ordinary
+ENTER WORLD callbacks. The original missing-sources guard remains negative.
+Real generated asset tables are installed through the maintained fixture.
+The three focused suites pass (26 cases); root types and typed lint pass.
+Normal pack publication passes, followed by its independent strict check.
+An earlier strict check reached the existing stale-publication guard after
+passing source admission; normal publication refreshed it without relaxing
+either guard. All other plot metadata and bake fields stay exact, including
+X8's four appended NU3 rows. The five real WebKit entries remain queued.

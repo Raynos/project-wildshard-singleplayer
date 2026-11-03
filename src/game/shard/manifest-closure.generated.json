@@ -367,6 +367,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-coral-drift.generated.ts",
     "src/shards/open-plots/thumbs/coral-drift.jpg"
   ],
@@ -423,6 +425,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-ember-forge.generated.ts",
     "src/shards/open-plots/thumbs/ember-forge.jpg"
   ],
@@ -479,6 +483,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-frostline-peaks.generated.ts",
     "src/shards/open-plots/thumbs/frostline-peaks.jpg"
   ],
@@ -535,6 +541,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-lantern-bayou.generated.ts",
     "src/shards/open-plots/thumbs/lantern-bayou.jpg"
   ],
@@ -563,6 +571,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-mosslight-ruins.generated.ts",
     "src/shards/open-plots/thumbs/mosslight-ruins.jpg"
   ],

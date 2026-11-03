@@ -96,7 +96,17 @@
         "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Frostline Peaks hologram, a world still to be built.",
         "bindings": {
-          "accent": "periwinkle"
+          "accent": "periwinkle",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
@@ -140,7 +150,17 @@
         "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Ember Forge hologram, a world still to be built.",
         "bindings": {
-          "accent": "ember"
+          "accent": "ember",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/ember-forge.jpg",
@@ -184,7 +204,17 @@
         "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Lantern Bayou hologram, a world still to be built.",
         "bindings": {
-          "accent": "marigold"
+          "accent": "marigold",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
@@ -270,7 +300,17 @@
         "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Coral Drift hologram, a world still to be built.",
         "bindings": {
-          "accent": "coral"
+          "accent": "coral",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/coral-drift.jpg",
@@ -398,7 +438,17 @@
         "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Mosslight Ruins hologram, a world still to be built.",
         "bindings": {
-          "accent": "moss"
+          "accent": "moss",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
