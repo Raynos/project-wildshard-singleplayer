@@ -115,6 +115,9 @@ front of it).
 - 2026-11-03, Coral Drift 1: refreshed from OP26's run on `12ca83e456`
   (`../../golden-runs/open-plot-coral-drift/2026-11-03-12ca83e456-op26-board.jpg`): the road and kerb in front are G993's
   grid move (`109ef326d6`, Coral to (-2, 0)); the entry board stands higher and further from the lane (OP26).
+- 2026-11-03, Saltwind Lighthouse: first set, from its activation `e28e863753` (preview `e28e863-mw130re0`), cameras
+  Patchwork's plot-local set moved to Saltwind's cell (0, 2) (instance `open-plot-2-4`); final board
+  `../saltwind-lighthouse/round-3-final/board.jpg` (its README lists the known gaps).
 - 2026-11-03, Patchwork Fairground (OP7): first set, shot on `15efc85eee` through `capture.mjs` (grid entry, its cell by
   slug); cameras are Coral's eight plot-local views. Scored against round 75: the helter-skelter road entry and the
   wheel read; the plaza is bare and the rides small from the air (`../../patchwork-fairground/round-3-final/`).
