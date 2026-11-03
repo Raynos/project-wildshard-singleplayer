@@ -32,13 +32,13 @@ test('smoke downloads each exact source-run leg directly without a full-dist rel
   expect(phone).not.toContain('needs: prepare');
   expect(central).toContain('timeout-minutes: 20');
   const parts=/part: \[([^\]]+)\]/u.exec(central)?.[1]?.split(',').map(part=>part.trim());
-  const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+  const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer-a','explorer-b'];
   expect(parts).toHaveLength(core.length);expect(new Set(parts)).toEqual(new Set(core));
   expect(phone).toContain('SMOKE_PART: phone-route');
   expect(phone).toContain(`name: boot-dist-\${{ steps.phone-manifest.outputs.artifact }}`);
   expect(phone).toContain("['worlds', 'phone-route'].includes(artifact)");
   expect(phone).toContain("const artifact = proof.legs['phone-route']?.artifact;");
-  expect(workflow).toMatch(/SMOKE_PART: \$\{\{ matrix\.part \}\}/u);
+  expect(central).toContain(`SMOKE_PART: \${{ (matrix.part == 'explorer-a' || matrix.part == 'explorer-b') && 'explorer' || matrix.part }}`);
   expect(workflow).not.toContain('title-quarantine');
   const runner = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
   expect(runner).not.toContain('quarantinedTitle');

@@ -310,6 +310,33 @@ function mergedBootSource(source) {
   return true;
 }
 
+/** Exact physical jobs for the source's logical SIX. The split is an explicit
+ * reviewed lineage, never a blanket 37-or-38 job allowance. Historical sources
+ * keep their original single Explorer job. @param {string} source */
+function sourceJourneyParts(source) {
+  const original=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+  const ship=/\n {2}build-and-deploy:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1]??'';
+  const journeys=/\n {2}journeys:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1]??'';
+  const parts=/^\s+part: \[([^\]]+)\]/mu.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
+  const marked=/^ {6}EXPLORER_PROOF: 'split-v1'$/mu.test(ship);
+  if(!marked){
+    if(parts?.some(part=>part.startsWith('explorer-')) || /EXPLORER_PROOF:/u.test(ship))
+      throw new Error('Source Explorer split marker differs');
+    return original;
+  }
+  const split=['explorer-a','explorer-b','boot-public','boot-developer','hover-webkit','boot-grid','hover-chromium'];
+  if(!stagedBootSource(source) || parts?.length!==split.length || new Set(parts).size!==split.length
+    || !split.every(part=>parts.includes(part))
+    || !/^ {4}needs: prepare$/mu.test(journeys) || !/^ {4}runs-on: macos-15$/mu.test(journeys)
+    || !/^ {4}timeout-minutes: 20$/mu.test(journeys) || !/^ {6}fail-fast: false$/mu.test(journeys)
+    || !/^ {6}max-parallel: 5$/mu.test(journeys)
+    || !journeys.includes("if: matrix.part == 'explorer-a' || matrix.part == 'explorer-b'")
+    || !journeys.includes(`run: node scripts/parity/explorer-smoke.mjs --case-group=\${{ matrix.part }}`)
+    || !journeys.includes(`SMOKE_PART: \${{ (matrix.part == 'explorer-a' || matrix.part == 'explorer-b') && 'explorer' || matrix.part }}`))
+    throw new Error('Source Explorer split topology differs');
+  return split;
+}
+
 /** No asynchronous work or synthetic verdict can stand in for the real first
  * publisher step. @param {SourceJob[]} details @param {number} run @param {number} attempt @param {string} sha */
 function mergedBootJob(details, run, attempt, sha) {
@@ -411,9 +438,10 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     throw new Error('Independent native routes require the reviewed merged topology');
   if (merged && (matrix.length !== 24 || ![2,3,4].includes(nativeJobs.length)))
     throw new Error('Merged source requires the reviewed full behavior and native topology');
+  const journeyParts=sourceJourneyParts(source);
   const required = new Set(['prepare','typecheck-lint','derived-docs',...(merged ? [] : ['boot-verdict']),
     ...matrix.map(index=>`behaviour (${index})`),
-    ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`),
+    ...journeyParts.map(name=>`journeys (${name})`),
     ...nativeJobs]);
   const jobsPath = merged ? `repos/${REPO}/actions/runs/${runId}/attempts/${run.run_attempt}/jobs?per_page=100`
     : `repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`;
@@ -442,7 +470,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   }
   if (stagedBootSource(source)) optional.add('stage-prebuilt');
   const essential = new Set(['prepare',...(merged ? [] : ['boot-verdict']),
-    ...['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'].map(name=>`journeys (${name})`)]);
+    ...journeyParts.map(name=>`journeys (${name})`)]);
   /** @type {{name:string,status:string,conclusion:string}[]} */
   const jobs = [];
   for (const row of rows) {
@@ -477,7 +505,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   if (publisher !== null && details !== null) {
     const six = details.filter(job => job.name.startsWith('journeys (') && job.name !== 'journeys (phone-route)');
     const completed = six.map(job => Date.parse(job.completed_at ?? ''));
-    if (completed.length !== 6 || completed.some(at => !Number.isFinite(at)))
+    if (completed.length !== journeyParts.length || completed.some(at => !Number.isFinite(at)))
       throw new SourceGateError('Merged source SIX completion times are unreadable');
     sixCompletedAt = new Date(Math.max(...completed)).toISOString();
     const boot = mergedBootStatus(sha, query);

@@ -8,6 +8,8 @@ export function explorerCards(): ExplorerCardSample[];
 /** Read the displayed catalogue's existing canvases without rendering or reading pixels. */
 export function explorerState(): {fatal:(string|null)[];document:ExplorerDocument;empty:boolean;ready:boolean;readyIds:string[]};
 export function explorerCases(catalogue:readonly {slug:string;status:string;legacy:boolean;shardSelect?:boolean}[]):string[];
+/** Exact even/odd route partition; unknown groups or duplicate routes refuse. */
+export function explorerPartition(cases:readonly string[],group?:string):string[];
 export function explorerFailures(cards:readonly ExplorerCardSample[]):string[];
 /** Sweep every real card with a 180-second no-progress hang guard, including stuck page reads; retain pixel/fatal checks. */
 export function sweepExplorer(browser:Browser,base:string,slug:string,out:string):Promise<void>;

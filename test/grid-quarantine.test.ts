@@ -7,7 +7,7 @@ test('D13 returns the repaired full grid case to the blocking leg before quarant
   const source = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
   const reporting = workflow.split('\n').find(line => line.includes('continue-on-error:'));
   expect(reporting).toBeDefined();
-  for (const part of ['boot-public', 'boot-developer', 'boot-grid', 'hover-chromium', 'hover-webkit', 'explorer']) expect(reporting).not.toContain(`'${part}'`);
+  for (const part of ['boot-public', 'boot-developer', 'boot-grid', 'hover-chromium', 'hover-webkit', 'explorer', 'explorer-a', 'explorer-b']) expect(reporting).not.toContain(`'${part}'`);
   expect(workflow).toContain("if: matrix.part == 'boot-grid'\n        run: node scripts/parity/boot-smoke.mjs --case-group=grid");
   expect(workflow).not.toContain('grid-quarantine');
   expect(source).not.toContain('quarantinedGrid');

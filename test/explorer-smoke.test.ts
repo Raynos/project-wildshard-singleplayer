@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { explorerCards, explorerCapture, explorerCases, explorerFailures, explorerState, sweepExplorer, openExplorerSession, verifyExplorerDocument, explorerDiagnostics } from '../scripts/parity/explorer-smoke.mjs';
+import { explorerCards, explorerCapture, explorerCases, explorerPartition, explorerFailures, explorerState, sweepExplorer, openExplorerSession, verifyExplorerDocument, explorerDiagnostics } from '../scripts/parity/explorer-smoke.mjs';
 import type { Browser, BrowserContext, CDPSession, Page } from 'playwright';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual required workflow leg, without dispatching it.
@@ -116,13 +116,13 @@ test('the Explorer leg retains every primary, including Signal and Developer-onl
   if(journeys===undefined||phone===undefined)throw new Error('Missing browser or native journey');
   const parts=/part: \[([^\]]+)\]/u.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
   if(parts===undefined)throw new Error('Missing browser journey matrix');
-  expect(parts).toEqual(expect.arrayContaining(['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer']));
+  expect(parts).toEqual(expect.arrayContaining(['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer-a','explorer-b']));
   expect(new Set(parts).size).toBe(parts.length);expect(parts).not.toContain('phone-route');
   expect(journeys).not.toContain('continue-on-error:');
   expect(phone).toContain('continue-on-error: true');
   expect(phone).toContain('run: node scripts/parity/phone-route-runner.mjs --route=entry');
-  expect(workflow).toContain("if: matrix.part == 'explorer'");
-  expect(workflow).toContain('run: node scripts/parity/explorer-smoke.mjs');
+  expect(workflow).toContain("if: matrix.part == 'explorer-a' || matrix.part == 'explorer-b'");
+  expect(workflow).toContain(`run: node scripts/parity/explorer-smoke.mjs --case-group=\${{ matrix.part }}`);
   expect(workflow).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, stage-prebuilt]');
 });
 
@@ -430,4 +430,23 @@ test('a changed final roster still refuses and retains its exact witness',async(
     const receipt:unknown=JSON.parse(readFileSync(`${out}/fixture.json`,'utf8'));
     expect(receipt).toMatchObject({captureBefore:{readyIds:['old']},captureAfter:{readyIds:['replacement']}});
   }finally{rmSync(out,{recursive:true,force:true});}
+});
+
+
+test('the two serial Explorer groups exactly partition every freshly discovered route',()=>{
+  for(const extra of [[],[{slug:'future-route',status:'hidden',legacy:false,shardSelect:false}],
+    [{slug:'future-public',status:'live',legacy:false},{slug:'future-dev',status:'experimental',legacy:false}]]){
+    const cases=explorerCases([...catalogue,...extra]);
+    const a=explorerPartition(cases,'explorer-a'),b=explorerPartition(cases,'explorer-b');
+    expect(a.flatMap((slug,index)=>b[index]===undefined?[slug]:[slug,b[index]])).toEqual(cases);
+    expect(new Set([...a,...b]).size).toBe(cases.length);
+    expect(a.some(slug=>b.includes(slug))).toBe(false);
+    expect(explorerPartition(cases)).toEqual(cases);
+    expect(explorerPartition(cases,'all')).not.toBe(cases);
+  }
+  expect(explorerPartition([],'explorer-a')).toEqual([]);
+  expect(explorerPartition(['only'],'explorer-b')).toEqual([]);
+  for(const group of ['explorer','foreign','explorer-c',''])expect(()=>explorerPartition([],group)).toThrow('group');
+  expect(()=>explorerPartition(['duplicate','duplicate'],'explorer-a')).toThrow('inventory');
+  expect(()=>explorerPartition([''],'explorer-b')).toThrow('inventory');
 });

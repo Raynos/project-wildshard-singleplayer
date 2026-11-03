@@ -3480,11 +3480,19 @@ commands refuse. Stage/protected promotion, source/artifact/run/hash validation 
 unchanged. X2 confirms no shared workflow/controller hunk; sp-ci-deploy reviews the exact new implementation/lineage
 before activation and pins the defining landing for release verification. No blanket37-or38 admission.
 
-**Implementation state at this evidence landing:** the six-path split/controller/test packet remains **off-tree**
-until sp-ci-deploy's strict38 implementation review. X2's independent source review is clear: all six hashes match,
-the9777-byte session/sweep/retirement region, native4 block, stage block and BOTH HOVER commands are byte-identical.
-Focused maintained Explorer/source-admission tests, root/scripts/test types, typed lint and Actionlint are still
-required before the source landing. No actual after runtime or CI gain is claimed by this evidence commit.
+**Implementation landed (2026-11-03, sp-x9):** the eight-path dynamic split/controller/test packet is
+reviewed by X2 and sp-ci-deploy. The9777-byte session/sweep/retirement region, native4 block, stage block and BOTH
+HOVER commands remain byte-identical. Root's source/live/historical verifiers independently preserve historical
+35/36/37 and accept the exact new seven-physical-leg lineage only after binding its defining SHA. Six offline
+refusal groups and the retained real6838 full37/SIX proof pass; no blanket37-or38 admission.
+
+All four maintained suites pass75 cases (3.9s), root and scripts types pass, named typed lint and Actionlint pass.
+The first focused attempt retained one negative-driver failure: it changed an earlier job's20min timeout instead of
+the journeys timeout. The corrected driver targets the journeys occurrence; all production caps remain unchanged.
+Literal GitHub expressions use escaped template literals with identical string values. Root's exact V4 review is
+clear. Correctness gates/commit overlap the active PF13 turn; no timing or isolated-host acceptance is inferred.
+No app build, browser, native visit or workflow dispatch was attached. Actual ordinary containing CI38/SIX and
+wall time remain OPEN; the historical route interval model is not an after result.
 
 **Evidence:** root fetched the completed raw log once and the720,398B result ZIP once; no duplicate API read.
 `tmp/sp-ci-deploy-qa-refresh/job-124732861180-log.txt`, `qa-5c72-attempt-jobs.json`,

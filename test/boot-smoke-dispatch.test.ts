@@ -142,7 +142,7 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   expect(journeys).toContain('needs: prepare');expect(journeys).toContain('fail-fast: false');
   expect(journeys).toContain('max-parallel: 5');
   const parts=/part: \[([^\]]+)\]/u.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
-  const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
+  const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer-a','explorer-b'];
   expect(parts).toHaveLength(core.length);expect(new Set(parts)).toEqual(new Set(core));
   expect(journeys).not.toContain('run watch');expect(journeys).not.toContain('vercel build');
 });
@@ -1030,4 +1030,69 @@ test('completed historical35 and36 stay valid while completed36 plus staging is 
   const twelve=stagedReadyFixture();complete(twelve);
   twelve.state.source=twelve.state.source.replace('vitest-plan.ts --shards 24','vitest-plan.ts --shards 12');
   expect(()=>recoverySource('123',twelve.state.query)).toThrow('stage topology');
+});
+
+
+function splitExplorerReadyFixture(){
+  const f=stagedReadyFixture();
+  const journeys=/\n {2}journeys:\n[\s\S]*?(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(deploy)?.[0];
+  if(journeys===undefined)throw new Error('Missing reviewed Explorer groups');
+  f.state.source=f.state.source.replace("      MERGED_BOOT_PROOF: 'v1'", "      MERGED_BOOT_PROOF: 'v1'\n      EXPLORER_PROOF: 'split-v1'")+journeys;
+  const explorer=f.details.find(row=>row.name==='journeys (explorer)');
+  if(explorer===undefined)throw new Error('Missing original Explorer fixture');
+  explorer.name='journeys (explorer-a)';
+  f.details.push({...explorer,name:'journeys (explorer-b)',steps:[]});
+  return f;
+}
+
+test('reviewed split Explorer requires both exact jobs in the 38-gate source',()=>{
+  const f=splitExplorerReadyFixture();
+  const proof=readySource('123',liveBuild,f.state.query,readyNow);
+  expect(proof.jobs.filter(row=>row.name.startsWith('journeys ('))).toHaveLength(7);
+  expect(proof.jobs.filter(row=>!['stage-prebuilt','phone-route','build-and-deploy'].includes(row.name))).toHaveLength(38);
+  for(const group of ['explorer-a','explorer-b']){
+    for(const verdict of ['failure','cancelled','skipped','timed_out',null]){
+      const broken=splitExplorerReadyFixture(),row=broken.details.find(item=>item.name===`journeys (${group})`);
+      if(row===undefined)throw new Error('Missing actual Explorer model');
+      row.conclusion=verdict;
+      expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow();
+    }
+    for(const status of ['queued','in_progress']){
+      const pending=splitExplorerReadyFixture(),row=pending.details.find(item=>item.name===`journeys (${group})`);
+      if(row===undefined)throw new Error('Missing actual Explorer model');
+      row.status=status;row.conclusion=null;
+      expect(()=>readySource('123',liveBuild,pending.state.query,readyNow)).toThrow();
+    }
+    const missing=splitExplorerReadyFixture();missing.state.details=missing.details.filter(row=>row.name!==`journeys (${group})`);
+    expect(()=>readySource('123',liveBuild,missing.state.query,readyNow)).toThrow('inventory');
+  }
+  const duplicate=splitExplorerReadyFixture(),model=duplicate.details.find(row=>row.name==='journeys (explorer-a)');
+  if(model===undefined)throw new Error('Missing actual Explorer model');
+  duplicate.details.push({...model});expect(()=>readySource('123',liveBuild,duplicate.state.query,readyNow)).toThrow('inventory');
+  const old=stagedReadyFixture(),oldModel=old.details.find(row=>row.name==='journeys (explorer)');
+  if(oldModel===undefined)throw new Error('Missing historical Explorer model');
+  old.details.push({...oldModel,name:'journeys (explorer-b)'});
+  expect(()=>readySource('123',liveBuild,old.state.query,readyNow)).toThrow('inventory');
+});
+
+test('split Explorer refuses foreign, hybrid and changed-guard source topologies',()=>{
+  for(const [before,after]of [
+    ["      EXPLORER_PROOF: 'split-v1'\n",''],["EXPLORER_PROOF: 'split-v1'","EXPLORER_PROOF: 'foreign'"],
+    ['part: [explorer-a, explorer-b,','part: [explorer-a, explorer-a,'],
+    ['part: [explorer-a, explorer-b,','part: [explorer-a, explorer,'],
+    ['part: [explorer-a, explorer-b,','part: [explorer-a, foreign,'],
+    ['max-parallel: 5','max-parallel: 6'],['timeout-minutes: 20','timeout-minutes: 21'],
+    [`--case-group=\${{ matrix.part }}`,'--case-group=explorer-a'],
+    ['group: [escape-titan, stories-qara, chapter-one, native-routes]','group: [escape-titan, stories-qara, chapter-one]'],
+  ] as const){
+    const f=splitExplorerReadyFixture();expect(f.state.source).toContain(before);
+    const index=f.state.source.lastIndexOf(before);
+    f.state.source=f.state.source.slice(0,index)+after+f.state.source.slice(index+before.length);
+    expect(()=>readySource('123',liveBuild,f.state.query,readyNow),`Source mutation: ${before}`).toThrow();
+  }
+  const f=splitExplorerReadyFixture();f.state.run.status='completed';f.state.run.conclusion='success';
+  f.ship.status='completed';f.ship.conclusion='success';f.ship.completed_at='2026-10-30T21:31:00Z';
+  f.ship.steps.push({name:'Publish exact-SHA proof outcome',status:'completed',conclusion:'success',number:2});
+  f.state.boot='success\thttps://github.com/Raynos/project-wildshard-singleplayer/actions/runs/123';
+  expect(recoverySource('123',f.state.query)).toEqual({sha,run:'123'});
 });

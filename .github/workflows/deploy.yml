@@ -146,6 +146,7 @@ jobs:
     env:
       DEPLOY: 'true'
       MERGED_BOOT_PROOF: 'v1'
+      EXPLORER_PROOF: 'split-v1'
       STAGED_RELEASE_PROOF: 'v1'
       RELEASE_ALLOWED: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.native-escape.result == 'success' && needs.journeys.result == 'success') }}
     runs-on: ubuntu-latest
@@ -1384,7 +1385,7 @@ jobs:
       matrix:
         # Longest measured macOS work is created first. This is a scheduling
         # hint, not a guaranteed runner priority or a change to the SIX guards.
-        part: [explorer, boot-public, boot-developer, hover-webkit, boot-grid, hover-chromium]
+        part: [explorer-a, explorer-b, boot-public, boot-developer, hover-webkit, boot-grid, hover-chromium]
     runs-on: macos-15
     timeout-minutes: 20
     steps:
@@ -1461,7 +1462,7 @@ jobs:
         env:
           TESTED_SHA: ${{ github.sha }}
           SOURCE_RUN: ${{ github.run_id }}
-          SMOKE_PART: ${{ matrix.part }}
+          SMOKE_PART: ${{ (matrix.part == 'explorer-a' || matrix.part == 'explorer-b') && 'explorer' || matrix.part }}
         run: |
           test "$(git rev-parse HEAD)" = "$TESTED_SHA"
           python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part "$SMOKE_PART"
@@ -1496,8 +1497,8 @@ jobs:
         if: matrix.part == 'hover-webkit'
         run: scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist=dist
       - name: Every primary Model Explorer draws its actual catalogue
-        if: matrix.part == 'explorer'
-        run: node scripts/parity/explorer-smoke.mjs
+        if: matrix.part == 'explorer-a' || matrix.part == 'explorer-b'
+        run: node scripts/parity/explorer-smoke.mjs --case-group=${{ matrix.part }}
       - name: Record smoke queue and run timings
         if: always()
         env:

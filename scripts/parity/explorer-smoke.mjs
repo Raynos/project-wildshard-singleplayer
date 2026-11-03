@@ -33,6 +33,17 @@ export function explorerCases(catalogue) {
     ...catalogue.filter(row=>!row.legacy && row.shardSelect===false).map(row=>row.slug)])];
 }
 
+/** Split the actual discovered route order, retaining every route exactly once.
+ * Each runner remains serial; the default local command still covers all routes.
+ * @param {readonly string[]} cases @param {string} [group] */
+export function explorerPartition(cases,group='all') {
+  if (!['all','explorer-a','explorer-b'].includes(group)) throw new Error('Unknown Explorer case group');
+  if (new Set(cases).size !== cases.length || cases.some(slug=>slug.length===0)) throw new Error('Invalid Explorer route inventory');
+  if (group==='all') return [...cases];
+  const half=group==='explorer-a'?0:1;
+  return cases.filter((_slug,index)=>index%2===half);
+}
+
 /** @param {readonly {id:string,ready:boolean,pixels:number,darkShare:number}[]} cards */
 export function explorerFailures(cards) {
   const seen=new Set(), failures=[];
@@ -277,6 +288,8 @@ async function main(){
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const option=(/** @type {string} */name)=>process.argv.find(value=>value.startsWith(`--${name}=`))?.slice(name.length+3);
   const out=resolve(option('out')??'boot-smoke-results/explorer');mkdirSync(out,{recursive:true});
+  const group=option('case-group')??'all';
+  explorerPartition([],group); // Refuse an unknown group before owning a preview or browser.
   const external=option('url');
   if(external===undefined && !existsSync(join(root,'dist/index.html')))throw new Error('Build dist before Explorer smoke');
   const preview=external===undefined?await serve(root,'',true):null,base=external??preview?.url;
@@ -285,10 +298,10 @@ async function main(){
   // shader compilation. Each case retains a bounded no-progress hang guard.
   const pool=browserPool(root,1,process.platform==='darwin'?'metal':'swiftshader');
   try{
-    const catalogue=await discoverCatalogue(await pool.browser(0),base),cases=explorerCases(catalogue);
-    writeFileSync(join(out,'cases.json'),`${JSON.stringify({catalogue,cases},null,2)}\n`);
+    const catalogue=await discoverCatalogue(await pool.browser(0),base),cases=explorerCases(catalogue),selected=explorerPartition(cases,group);
+    writeFileSync(join(out,'cases.json'),`${JSON.stringify({catalogue,cases,selection:{group,cases:selected}},null,2)}\n`);
     const session=await openExplorerSession(await pool.browser(0),base);
-    try{for(const slug of cases)await session.sweep(slug,out);}finally{await session.close();}
+    try{for(const slug of selected)await session.sweep(slug,out);}finally{await session.close();}
   }finally{try{await pool.close();}finally{preview?.close();}}
 }
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url)await main();
