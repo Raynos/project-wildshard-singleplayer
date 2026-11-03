@@ -42,7 +42,7 @@ def sfx_files(raw: Path, plot: str) -> list[Path]:
         for model in ("moss", "medium"):
             takes = sorted((raw / model / family).glob("*.wav"))
             if not takes:
-                raise ValueError(f"{plot}: both engines for all six sounds are required")
+                raise ValueError(f"{plot}: both engines for every sound are required")
             files.extend(takes)
     return files
 
@@ -261,9 +261,9 @@ def activation(raw: Path, plot: str) -> None:
     selected = [row for row in music['takes'] if row['id'] == music['recommendation'] and row['qualified']]
     if len(selected) != 1 or music['slots']['score']['calm'] != selected[0]['encoded']['file']:
         raise ValueError('Only the qualified recommended score may be activated')
-    if len(sfx["provenance"]) != 6 or any(set(row["comparison"]) != {"moss", "medium"} for row in sfx["provenance"]):
-        raise ValueError("Both engines must be compared for all six sounds")
     anchors = json.loads((REPO / "src/shards/open-plots/data/audioAnchors.json").read_text())[plot]
+    if len(sfx["provenance"]) != len(anchors) + 1 or any(set(row["comparison"]) != {"moss", "medium"} for row in sfx["provenance"]):
+        raise ValueError("Both engines must be compared for the bed and every spot")
     files = {"score": music["slots"]["score"]["calm"], "ambience": sfx["beds"][f"{plot}.ambience"]["file"],
              **{row["id"]: sfx["hums"][f"{plot}.{row['id']}"]["file"] for row in anchors}}
     for key, file in files.items():
@@ -298,7 +298,10 @@ def activation(raw: Path, plot: str) -> None:
         manifest(rows[0])
 
     edit("src/shards/open-plots/outputs.json", output)
-    edit(f"src/shards/open-plots/data/templates/{plot}.json", lambda data: manifest(data["output"]))
+    template = f"src/shards/open-plots/data/templates/{plot}.json"
+    # The original Night Market pilot is authored directly in outputs.json.
+    if (REPO / template).is_file():
+        edit(template, lambda data: manifest(data["output"]))
     destination = raw / f"{plot}-activation.patch"
     destination.write_text(''.join(patches))
     print(f"Exact activation patch: {destination}; native playback bar remains open")

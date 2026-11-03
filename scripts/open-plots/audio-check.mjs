@@ -9,7 +9,7 @@ import { observeAudioGraph, audioSnapshot } from './audio-observer.mjs';
 const { values } = parseArgs({ options: Object.fromEntries(['base', 'pin', 'plot'].map(key => [key, { type: 'string' }])) });
 if (!values.base || !/^[a-f0-9]{40}$/u.test(values.pin ?? '') || !/^[a-z]+(?:-[a-z]+)*$/u.test(values.plot ?? '')) throw new Error('Requires --base, full --pin and --plot');
 const anchors = JSON.parse(readFileSync('src/shards/open-plots/data/audioAnchors.json', 'utf8'))[values.plot];
-if (!Array.isArray(anchors) || anchors.length !== 5) throw new Error('Requires five real plot anchors');
+if (!Array.isArray(anchors) || anchors.length < 4 || anchors.length > 8) throw new Error('Requires four to eight real plot anchors');
 const version = await (await fetch(new URL('/version.json', values.base))).json();
 if (!version.build?.startsWith(values.pin.slice(0, 7))) throw new Error('Served source differs');
 if (existsSync('.git/quiet')) throw new Error('Official Simulator quiet is active');
@@ -34,7 +34,7 @@ try {
   }, undefined, { timeout: 120000 });
   const initial = await page.evaluate(audioSnapshot);
   if (initial.scoreId !== values.plot || !initial.ready || !initial.muted || initial.renderScale !== 2 || initial.tier !== 'phone'
-    || initial.mode !== 'live' || initial.viewport.join(',') !== '402,874' || initial.bank.length !== 6 || !initial.loops.some(row => row.id === 'score')) throw new Error(`Native phone playback profile refused: ${JSON.stringify(initial)}`);
+    || initial.mode !== 'live' || initial.viewport.join(',') !== '402,874' || initial.bank.length !== anchors.length + 1 || !initial.loops.some(row => row.id === 'score')) throw new Error(`Native phone playback profile refused: ${JSON.stringify(initial)}`);
   const spots = [];
   for (const anchor of anchors) {
     const id = `hum.${values.plot}.${anchor.id}`, reads = [];

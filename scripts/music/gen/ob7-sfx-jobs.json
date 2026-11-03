@@ -210,6 +210,55 @@
       "duration": 10,
       "desc": "Small clear lagoon waves softly lapping against a timber pier",
       "prompt": "Small clear lagoon waves softly lapping against a timber pier. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "bed.night-market.ambience": {
+      "kind": "bed",
+      "into": "night-market",
+      "duration": 30,
+      "desc": "Quiet night insects and a soft breeze beside an outdoor canal market",
+      "prompt": "Quiet night insects and a soft breeze beside an outdoor canal market. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.night-market.gate-wind-chimes": {
+      "kind": "hum",
+      "into": "night-market",
+      "duration": 10,
+      "desc": "Small bronze wind chimes ringing gently beneath a wooden pagoda gate",
+      "prompt": "Small bronze wind chimes ringing gently beneath a wooden pagoda gate. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.night-market.canal-lap": {
+      "kind": "hum",
+      "into": "night-market",
+      "duration": 10,
+      "desc": "Quiet canal water gently lapping against stone walls",
+      "prompt": "Quiet canal water gently lapping against stone walls. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.night-market.food-sizzle": {
+      "kind": "hum",
+      "into": "night-market",
+      "duration": 10,
+      "desc": "Food frying and softly sizzling on a small market stall griddle",
+      "prompt": "Food frying and softly sizzling on a small market stall griddle. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.night-market.teacup-clink": {
+      "kind": "hum",
+      "into": "night-market",
+      "duration": 10,
+      "desc": "Small ceramic teacups gently clinking on a wooden market counter",
+      "prompt": "Small ceramic teacups gently clinking on a wooden market counter. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.night-market.awning-flutter": {
+      "kind": "hum",
+      "into": "night-market",
+      "duration": 10,
+      "desc": "A loose cloth market awning softly flapping in a light breeze",
+      "prompt": "A loose cloth market awning softly flapping in a light breeze. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.night-market.garden-crickets": {
+      "kind": "hum",
+      "into": "night-market",
+      "duration": 10,
+      "desc": "A few nearby crickets chirping in a sheltered courtyard garden",
+      "prompt": "A few nearby crickets chirping in a sheltered courtyard garden. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
     }
   }
 }

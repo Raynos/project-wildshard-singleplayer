@@ -42,6 +42,14 @@
       "lyrics": "loop",
       "bpm": 104,
       "prompt": "Instrumental video game score, 104 BPM, 4/4. Bright turquoise tropical noon, light steel drum melody and gently strummed ukulele with rounded acoustic bass and restrained hand percussion. Friendly sunlit lagoon village, airy joyful instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "ob7/night-market": {
+      "style": "ob7",
+      "slot": "night-market",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 88,
+      "prompt": "Instrumental video game score, 88 BPM, 4/4. A red-and-gold lantern night market beside quiet canals at warm dusk. Delicate plucked pipa and guzheng trade a short pentatonic melody with a gentle bamboo flute, rounded acoustic bass and restrained wooden percussion. Welcoming, curious, gently bustling instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no vocals, no dialogue."
     }
   }
 }

@@ -31,12 +31,15 @@ function context(missing = false): Pick<ProjectGenerationContext, 'cached'> {
   })))) };
 }
 
-test('every plot has five separate bounded probes and preserves deferred own audio', () => {
+test('every plot has its separate bounded probes and preserves deferred own audio', () => {
   for (const [idea, spots] of Object.entries(anchors)) {
     const audio = plotAudioData(idea, spots, { dir: `/assets/music/${idea}/`, manifestKey: idea });
     expect(audio.scene?.probes).toHaveProperty(spots[0]?.id ?? 'missing');
-    expect(Object.keys(audio.scene?.probes ?? {})).toHaveLength(5);
-    expect(audio.zones?.sampleMix?.beds.filter(row => row.panned)).toHaveLength(5);
+    expect(spots.length).toBeGreaterThanOrEqual(4);
+    expect(spots.length).toBeLessThanOrEqual(8);
+    expect(Object.keys(audio.scene?.probes ?? {})).toHaveLength(spots.length);
+    expect(audio.zones?.sampleMix?.beds.filter(row => row.panned)).toHaveLength(spots.length);
+    expect(audio.samples?.catalogue?.loopOrder).toHaveLength(spots.length + 1);
     expect(audio.cues).toEqual([]); expect(audio.routing).toEqual([]);
     expect(audio.samples?.bed).toBe('none'); expect(audio.music?.bootSlots).toEqual(['title']);
     expect(audio.music?.setPlayback?.waitForBank).toBe(true);
