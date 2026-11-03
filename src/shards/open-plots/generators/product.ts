@@ -47,7 +47,7 @@ const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicke
   landmark: { family: 'graph', graph: landmark } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly coarseLandmark?: string; readonly kitGround?: string; readonly pool?: string; readonly water?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly coarseLandmark?: string; readonly kitGround?: string; readonly pool?: string; readonly water?: string; readonly lookKeys?: (typeof source)["look"]["keys"]; readonly lookGrade?: (typeof source)["look"]["grade"]; readonly lookDay?: { readonly day: (typeof source)["look"]["day"]; readonly dayOverride: number } }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
     spawn: (typeof source)["spawn"];
@@ -71,6 +71,9 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   const identity = { slug: row.slug, name: `Open Plot · ${row.name}`, author: source.author, revision: source.revision, seed: source.seed };
   // D111: a row's own look key (its sky, fog, sun and fill) replaces the shared one for that idea alone
   const keys = row.lookKeys ?? source.look.keys;
+  // OB5: a row's own grade (its saturation and contrast) and its own sun clock (its hour and arc) replace the shared ones for
+  // that idea alone (Coral Drift's high noon sun, where the shared 17:17 sun lit its pale boards grey)
+  const grade = row.lookGrade ?? source.look.grade, day = row.lookDay?.day ?? source.look.day, dayOverride = row.lookDay?.dayOverride ?? source.look.dayOverride;
   // NU3: unbuilt themes declare only their existing survey scaffold materials.
   if (row.placeholder === true) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...look, keys },
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', materials: { Floor: 'floor', Kerb: 'kerb' } } };
@@ -93,7 +96,7 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   // OB2: a row's `pool: "streaks"` draws its pools in the streak pool graph (data/poolStreaks.graph.json: the pool flicker,
   // plus the lanterns' reflections the bake lays on its water, kit.mjs waterStreaks, stretched toward the camera)
   const tiled = row.pool === 'streaks' ? { ...planked, materials: { ...planked.materials, pool: { family: 'graph', graph: poolStreaks } } } : planked;
-  if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...tiled, keys },
+  if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...tiled, keys, grade, day, dayOverride },
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
     // RM8.2: its kit models draw only at L0 (`detail_`); their boxes stand in at L1 (`coarse_`)
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', detail: 'detail_', coarse: 'coarse_', farMode: 'replace', near: 'coarse',
