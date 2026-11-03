@@ -36,7 +36,18 @@
           "practice": "/src/shards/open-plots/thumbs/ember-forge.jpg"
         }
       },
-      "pois": []
+      "pois": [],
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.ember-forge",
+        "score": "score.ember-forge",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/ember-forge/**",
+        "public/assets/sfx/ember-forge/**"
+      ]
     },
     "layout": "ember-forge",
     "scaffold": true,

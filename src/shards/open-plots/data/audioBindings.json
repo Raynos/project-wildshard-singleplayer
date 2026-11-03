@@ -96,5 +96,54 @@
         "reach": 28
       }
     ]
+  },
+  "ember-forge": {
+    "idea": "ember-forge",
+    "source": {
+      "dir": "/assets/music/ember-forge/",
+      "manifestKey": "ember-forge"
+    },
+    "sfxDir": "/assets/sfx/ember-forge/",
+    "files": {
+      "score": "take-a-5eb521de9407.m4a",
+      "ambience": "ambience-04688340a792.m4a",
+      "anvil-strikes": "anvil-strikes-e3381c76f4ab.m4a",
+      "bellows": "bellows-feccf2e42cf7.m4a",
+      "crane-chain": "crane-chain-5cdb56dc4f34.m4a",
+      "steam-hiss": "steam-hiss-4fe9fd27c023.m4a",
+      "ember-crackle": "ember-crackle-7db68d592ed4.m4a"
+    },
+    "spots": [
+      {
+        "id": "anvil-strikes",
+        "x": -156.25,
+        "z": -218.75,
+        "reach": 30
+      },
+      {
+        "id": "bellows",
+        "x": -31.25,
+        "z": -218.75,
+        "reach": 25
+      },
+      {
+        "id": "crane-chain",
+        "x": -93.75,
+        "z": -218.75,
+        "reach": 25
+      },
+      {
+        "id": "steam-hiss",
+        "x": -31.25,
+        "z": -156.25,
+        "reach": 25
+      },
+      {
+        "id": "ember-crackle",
+        "x": 20,
+        "z": -20,
+        "reach": 30
+      }
+    ]
   }
 }
