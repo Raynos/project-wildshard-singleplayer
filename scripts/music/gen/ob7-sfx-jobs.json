@@ -648,7 +648,7 @@
       "into": "alien-plain",
       "duration": 30,
       "desc": "Low breathy alien night wind over an open plain with a faint distant sub hum and sparse glassy insect chirps",
-      "prompt": "A soft steady alien night field recording: low breathy wind crossing an open dry plain, a very faint distant low resonant hum and sparse delicate glassy insect chirps. Quiet spacious continuous atmosphere with irregular tiny chirps. No birds, no water, no rain, no music, no melody, no voices or speech."
+      "prompt": "Quiet outdoor night wind flowing over an empty open plain, with a faint steady low air resonance far away. Occasional tiny dry high glassy insect clicks and short chirps appear at wide irregular intervals. Soft continuous breathy air remains dominant, low and calm. Natural environmental background, no rhythmic pulses, no melody, no music, no voices, no birds, no rain, no water."
     },
     "hum.alien-plain.monolith": {
       "kind": "hum",
