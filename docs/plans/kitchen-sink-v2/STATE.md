@@ -1,16 +1,16 @@
 # KITCHEN-SINK v2: state
 
-**Updated:** 2026-11-03 (E523 session). **Phase:** planning with Jake, ~92 % decided; nothing built.
+**Updated:** 2026-11-03 (E523 session). **Phase:** planning with Jake, ~96 % decided; nothing built.
 
-**Settled:** the parent §2 (rulings 1–19z), the layout (blockout round 3; round 4 reworks the west only), seven
-attributes (VIT, STR, DEX, AGI, DEF, MDEF, LUK), the golden-ratio XP curve, the VIT growth model, option E miss look,
-Wave 1 ≈ 1,040 h (up to 5 Opus + 5 Codex when built), other shards keep simple combat.
+**Settled:** the parent §2 (rulings 1–19aa), the layout (blockout round 4, Jake: "the block out looks good"), seven
+attributes and the whole combat maths (19aa; levels-combat §15: WoW-classic armour, VIT ×6, six growth shapes, LUK
+crits + lucky saves, crits/glances, pacing, parry, stagger, floating numbers, level-up never blocks a fight), the
+golden-ratio XP curve, option E miss look, Wave 1 ≈ 1,040 h (up to 5 Opus + 5 Codex when built), other shards keep
+simple combat.
 
-**Layout:** blockout round 4 (a 120 m town, every west toy laid out; the east as round 3).
+**In progress:** the round-11 mockup remaster (`art/showcase-template/round-11-remaster/`): all 40 mockups redone from
+grey-blockout frames of round 4 (Jake 11-03: "give it a screenshot of the gray blocks in engine … remaster it mockup
+style"), so they share one 500 m layout. West + map in `west/`, east + systems in `east/`. It replaces round-4-v2-layout.
 
-**Ready for Jake:** [Combat Maths](https://claude.ai/artifact/YAVYVe7uPQ3GNxTiFL7B6y) (levels-combat §13): 7 real MMO models,
-an interactive calculator; recommends WoW-classic-style armour, steep STR/DEX (20 → 120), and asks whether VIT's span
-should grow from ×3 to ×6 (100 → 600) so enemy hits can grow with yours.
-
-**Waiting on Jake (morning):** the damage formula and per-attribute growth shapes (from the calculator); the round 4 west
-layout.
+**Still open:** the loot redesign may be revisited (Jake called loot under-thought); the hover park reads flat at eye
+height (taller ramps in a later blockout pass if Jake wants).

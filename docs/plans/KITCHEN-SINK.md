@@ -146,6 +146,20 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     no attributes at all outside the showcase, not even hidden at level 1 (*"making everything level 1 is messy"*).
     They keep flat damage, flat stats and flat HP. The levels/attributes system is opt-in per shard, used only by the
     showcase; upgrading other shards is later work. Wave 1's levels rows must leave the existing combat path untouched.
+19aa. **Combat maths and attributes locked** (Jake, 11-03 grill; every recommended option except the level-up card;
+    full formulas in [levels-combat §15](kitchen-sink-v2/levels-combat-mini-plan.md)). Damage is **WoW-classic style**
+    (armour takes a share, `K / (K + DEF)`). **VIT grows ×6** (100 → 600, cap 660). Growth shapes: STR/DEX steep 20 → 120,
+    AGI front-loaded 20 → 80, DEF linear 20 → 80, MDEF late 10 → 80, LUK flat 10 → 20. LUK sets crit size
+    ×(1.5 + LUK/100) and gives lucky saves (LUK × 0.2 %, both ways, cap 6 %). DEX vs AGI nudges the fail roll ±8 at most.
+    DEF vs AGI picks DEFLECT or DODGE. Crits 10 % base, cap 40 % (DEX for melee, AGI for ranged). Glances 5 % a level,
+    half damage. Pacing: a common dies in ~7 swings (~9 s) and kills you in ~11 strikes; elites have ×7 HP and the Titan
+    ×22; ranged does 10 % less DPS than melee. Floating numbers (white, yellow crit, grey glance, the miss words). Burn,
+    shock and blast status effects. Rares are +1 / +2 levels with ×1.5 / ×2.5 HP. Enemy stats are fixed per species.
+    Parry is a timed skill (0.15 s, Parry Gyro 0.22 s) with a riposte crit. STR fills a stagger bar.
+    **Level-up never blocks a fight** (Jake: the card *"would break the combat loop and be unsafe mid combat"*): in
+    combat a ring, the sting, the LV chip and a one-line gain chip; the Fire Emblem tick-up card waits until you're out
+    of combat. A level-up refills HP. Regen starts 5 s after the last hit and fills in 12 s; commons leash and reset.
+    The Character tab shows the attributes, par, ▲▼ aptitudes and derived numbers.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
@@ -163,8 +177,7 @@ contracts board's rotating hunts, war fan, whip, mounted combat, lightning, hove
 puzzle, happenings, time trials, thin ice, glide shaft, daily seed. **Not yet:** tooling demos (third-person camera,
 landscape HUD, loading screen, Explore tabs, bot playtest).
 
-**Waiting on Jake:** the attribute list and the growth-roll details (he is reading the
-[levels page](https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s)); the loot redesign.
+**Waiting on Jake:** nothing on levels, attributes or combat (19aa); the loot redesign stays open to revisit.
 
 ## 3. The map
 

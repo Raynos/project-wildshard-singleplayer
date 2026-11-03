@@ -209,13 +209,12 @@ engine says `grade`, never "level" (its word for a map).
 
 ## 8. Open questions for Jake
 
-1. **The eight attributes** (VIT STR DEX PRE AGI TGH RES POI)? Recommended: take them as proposed.
+1. ~~The eight attributes~~: decided 11-03, seven (§12), locked with the maths in §15.
 2. ~~Miss bounds~~: decided 11-02: 12 % at equal level, +9.75 % a level up to 90 % at +8. Worked examples in §2
    still use the old 8 % base and need redoing in Wave 1's LV design pass. No streak guard (Jake 11-02).
 3. ~~Death cost~~: decided 11-02, 25 % of the level's span.
 4. ~~Enemies roll misses~~: decided 11-02, yes.
-5. **Rare variants** (Jake 11-02: Pine and Driftwood have rarer, tougher variants of each enemy type): fold them in with
-   the elites-vs-mini-bosses page.
+5. ~~Rare variants~~: decided 11-03, +1 / +2 levels with ×1.5 / ×2.5 HP (§15).
 
 ## 9. Miss feel (draft, 11-02)
 
@@ -303,7 +302,7 @@ Old jobs: PRE → DEX (hit, melee crit), AGI (ranged crit); TGH → level × pla
 Insulation; POI → stagger bar per body, stagger dealt by STR, parry window fixed 0.15 s + Parry Gyro. The Arc Sentry
 parries by the §9 dress (LV9's "by PRE" drops). §8 Q1 is superseded by Q1 below.
 
-**Open (Jake):** 1. The four with these links? Rec: yes. 2. Armour from level × plating, no DEF attribute (option B)
+**Superseded by §12 and §15, was open:** 1. The four with these links? Rec: yes. 2. Armour from level × plating, no DEF attribute (option B)
 and no armour Forge? Rec: yes; B is the fallback after a phone pass. 3. Aptitude 1.2 / 1.0 / 1.0 / 0.8? Rec: yes.
 4. DEX and AGI move the roll 0.5 pt per 1 % over par, max ±8 (under one level)? Rec: yes. 5. RES and POI become data
 as above? Rec: yes.
@@ -348,7 +347,7 @@ Weapons (base ×, cadence s in a fight): sword 1.0 / 1.25, spear 1.2 / 1.5, bow 
 
 **The tension:** your hits grow ~10× over 1–20, VIT only 3×; enemies would hit 10 → 30 with a shrinking level factor.
 
-**Open (Jake):** 1. WoW-classic style? Rec: yes (GW1 the fallback). 2. VIT span ×3 / ×6 / ×10? Rec: ×6, 100 → 600,
+**Decided 11-03 (§15), was open:** 1. WoW-classic style? Rec: yes (GW1 the fallback). 2. VIT span ×3 / ×6 / ×10? Rec: ×6, 100 → 600,
 cap 660 (WoW's 1–20 ratio; enemies hit 10 → 60 by the same rule). 3. The six shapes above? Rec: yes. 4. LUK: crit
 ×(1.5 + LUK/100), lucky saves LUK × 0.2 %? Rec: yes. 5. Cadence and DPS (melee 0.8, ranged ~0.72 a second), elites ×7,
 Titan ×22? Rec: yes, retune after the first playable fight.
@@ -359,3 +358,62 @@ No levels or attributes outside the showcase, not even hidden at level 1: other 
 and HP on the existing combat path. The levels system is an opt-in per shard (only the showcase opts in); §5's
 "hidden level 1 with a flat profile" becomes "the system isn't installed", and the LV12 parity test checks the
 existing path is untouched.
+
+## 15. Locked (Jake, 2026-11-03 grill): the combat maths and attributes
+
+Supersedes the open lists in §8, §11 and §13 and the formula lines of §2 and §11. Every pick was the recommended option,
+except the level-up card. The Wave 1 LV design pass tunes constants against these targets; it doesn't reopen them.
+
+**Attributes** (average character, L1 → L10 → L20, cap ~10 % over the L20 average; gain per level =
+round(step × aptitude × swing), swing uniform 0.4–1.6, aptitude two 1.2 / three 1.0 / two 0.8 shuffled per shard):
+
+| Attr | Job | Shape | L1 | L10 | L20 | Cap |
+|---|---|---|---|---|---|---|
+| VIT | max HP = VIT | exponential ×6 | 100 | 234 | 600 | 660 |
+| STR | melee ATK; fills the stagger bar | steep exponential, +9.9 %/level | 20 | 47 | 120 | 132 |
+| DEX | ranged ATK; nudges your fail roll (all weapons); melee crit chance | steep exponential | 20 | 47 | 120 | 132 |
+| AGI | nudges fails on you; DODGE share; ranged crit chance | front-loaded | 20 | 68 | 80 | 88 |
+| DEF | physical armour; DEFLECT share | linear, +3.2/level | 20 | 48 | 80 | 88 |
+| MDEF | resists energy (burn, shock, blast) | late bloomer | 10 | 27 | 80 | 88 |
+| LUK | crit size; lucky saves | flat, +0.5/level | 10 | 15 | 20 | 22 |
+
+VIT's average is now A(L) = 100 × 6^((L−1)/19) (§10's ×3 numbers and its simulation are superseded; the same model
+and balanced aptitude apply). Enemies: fixed per species, no per-spawn swing (one lean at 1.2, one at 0.8; kind multipliers as on the Combat Maths
+page). Rares: uncommon +1 level and ×1.5 HP; rare +2 levels, ×2.5 HP and a guaranteed part.
+
+**One hit, in order:**
+
+```
+FAIL   clamp(12 + 9.75·max(0,g) − 2·max(0,−g) + clamp(50·(e(AGI_def) − e(DEX_att)), −8, 8), 2, 90)   g = target L − attacker L
+       lucky save: LUK × 0.2 % (cap 6 %) flips your fail into a hit, or a hit on you into a fail
+DRESS  PARRY 25 % of fails if the defender parries and faces you; DODGE = AGI / (AGI + DEF) − 0.1·max(0,g), floor 0.1;
+       DEFLECT the rest
+GLANCE min(40, 5·max(0,g)) % of landed hits do half damage
+CRIT   clamp(10 + 50·(e(C) − 1) − 2·max(0,g), 0, 40) %, C = DEX melee / AGI ranged; size ×(1.5 + LUK/100)
+DMG    hit = weapon × Forge × ATK × K / (K + DEF),  K = 2.5 × parDEF(attacker L);  ATK = STR melee / DEX ranged;
+       energy hits use MDEF in place of DEF
+STATUS burn = damage over 3 s · shock = 0.4 s stagger · blast = knockback; no stacking, a nameplate tint only
+```
+
+`e(X)` = X ÷ par(X) at its owner's level. Weapons (base × / s a hit): sword 1.0 / 1.25, spear 1.2 / 1.5, bow 1.3 / 1.8,
+crossbow 1.75 / 2.4, rifle 2.0 / 2.8 (ranged ≈ −10 % DPS). Forge I–IV ×1.0 / 1.2 / 1.4 / 1.6.
+
+**Pacing targets** (average character, equal level): a common dies in ~7 swings (~9 s; rifle 4 shots) and kills you in
+~11 strikes; +3 ≈ 50 % wins, +6 0 %; elites ×7 a common's HP (~60 s); the Crate Titan ×22 (~18,700 HP, ~3.6 min).
+Enemy HP 88 → 849 (+12.6 %/level × kind); enemy strike fitted to the 11-strike target, so it grows 10 → 60 with VIT.
+
+**Active defence:** your parry is a timed skill: block within 0.15 s of a strike landing (Parry Gyro: 0.22 s) for no
+damage, PARRY, and a guaranteed crit on your next hit within 1 s. Attributes don't move the window. **Stagger:** every
+body has a bar (Mite small, Riveter big); hits fill it, STR faster; full = 1.5 s stun taking ×1.25; it drains when idle;
+shown as a thin bar under the nameplate HP.
+
+**What you see:** floating numbers: white hits, big yellow crits with a short shake, small grey glances, the words DEFLECT /
+DODGE / PARRY on fails, red on you near the vitals; 0.7 s; at most 6 on screen. **Level-up never blocks a fight** (Jake:
+the card *"would break the combat loop and be unsafe mid combat"*): in combat a ring burst, the sting, the LV chip flips
+and a one-line chip by the XP bar ("LEVEL 7 · +11 VIT"); the Fire Emblem tick-up card (each gain in turn, gold on a big
+roll, grey on 0, tap to skip) plays once you're out of combat, and not if a new fight starts. A level-up refills HP.
+The read-only Character tab shows the seven attributes with par, the ▲▼ aptitudes and the derived numbers (HP, armour %,
+MDEF %, crit chance and size, dodge share, fail chance vs an equal foe).
+
+**Regen and reset:** out of combat 5 s after the last hit dealt or taken; HP then refills fully in 12 s. Every enemy
+that loses you walks home and resets to full.

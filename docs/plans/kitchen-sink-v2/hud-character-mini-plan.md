@@ -34,12 +34,12 @@ All of it is data-driven from the levels rows; none of it shows when a shard's l
 | Row | What | h |
 |---|---|---|
 | HC1 | XP bar + LV chip (hidden by default) | 3 |
-| HC2 | Level-up toast + sting hook | 2 |
-| HC3 | Floating MISS / GLANCE / CRIT numbers | 3 |
-| HC4 | Nameplates with con colours, 25 m, rarity tint | 4 |
-| HC5 | Character tab (read-only) | 4 |
+| HC2 | Level-up: in-combat chip ("LEVEL 7 · +11 VIT") + ring + sting; the tick-up card only out of combat (levels-combat §15) | 4 |
+| HC3 | Floating numbers: white hit, yellow crit + shake, grey glance, DEFLECT / DODGE / PARRY words, red on you; ≤ 6 on screen | 3 |
+| HC4 | Nameplates with con colours, 25 m, rarity tint, stagger bar under HP, status tint (burn/shock) | 5 |
+| HC5 | Character tab (read-only): 7 attributes with par, ▲▼ aptitudes, derived numbers (§15) | 5 |
 | HC6 | Quest-giver grey/yellow "!" markers | 2 |
 | HC7 | Death card XP-loss line | 1 |
 
-Each lands behind the shard's level range (hidden at 1–1) and goes through the E332 herdr notice. Mockups to check
-against: S1, S2, E1–E6, W3, S6.
+Each shows only on a shard that opts into levels (the showcase; other shards have no levels, ruling 19z) and goes
+through the E332 herdr notice. Mockups to check against: round-11 remaster S1, S2, E1–E6, W3, S6.
