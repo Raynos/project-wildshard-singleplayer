@@ -11,7 +11,7 @@ import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiBakeBlob } from '../src/shards/nalati-grasslands/generators/placeBlobProgram';
 import { prepareOutput, prepareSpecies } from '../src/shards/nalati-grasslands/generators/output';
 import cragOriginal from './fixtures/nalati-crag-blob.json' with { type: 'json' };
-import assemblyOriginal from './fixtures/nalati-headless-assembly.json' with { type: 'json' };
+import { nalatiNativeAssembly } from './fixtures/nalati-native-assembly';
 import * as v from 'valibot';
 
 import { coldOutputFixture } from './fixtures/nalati-output-cache';
@@ -77,12 +77,14 @@ test('the owned places source stays in one config-safe author chunk', async () =
 test('the output hook consumes supplied shelters and refuses malformed native metadata', async () => {
   const { context } = coldOutputFixture;
     const readShelters = (output: Awaited<ReturnType<typeof prepareOutput>>) => {
-      const file = output.namedFiles.find(row => row.name === assemblyOriginal.name);
+      const file = output.namedFiles.find(row => row.name === 'world/forest-weather.json');
       const bytes = file === undefined ? undefined : output.assets.get(file.hash);
-      if (bytes === undefined) throw new Error('Missing owned native assembly');
-      return v.parse(v.object({ constants: v.object({ nativeShelters: v.array(v.tuple([v.number(), v.number(), v.number()])) }) }),
-        JSON.parse(new TextDecoder().decode(bytes))).constants.nativeShelters;
+      if (bytes === undefined) throw new Error('Missing defining weather shelter carrier');
+      expect(output.namedFiles.some(row => row.name === 'sim/headless-assembly.json')).toBe(false);
+      return v.parse(v.object({ storm: v.object({ shelters: v.array(v.tuple([v.number(), v.number(), v.number()])) }) }),
+        JSON.parse(new TextDecoder().decode(bytes))).storm.shelters;
     };
+    expect(readShelters(coldOutputFixture.output)).toEqual((await nalatiNativeAssembly()).constants.nativeShelters);
     const suppliedContext = context();
     const supplied = await prepareOutput({ ...suppliedContext, cached: async (step, make) => {
       const files = await suppliedContext.cached(step, make);

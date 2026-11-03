@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the original compiler in its native Node realm.
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Copy only verified native cache output while holding its read lease.
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All compiler inputs remain repository-relative.
@@ -35,13 +35,17 @@ export async function nativeProgramFixture(spec: {
     tools: { cwd: memo.root, nodeOptions: process.env['NODE_OPTIONS'] ?? '' },
   }, {
     inputHashes: memo, ...(spec.cacheDir === undefined ? {} : { cacheDir: spec.cacheDir }),
-    generate: directory => {
-      const text = execFileSync(process.execPath, command.slice(1), { cwd: root, encoding: 'utf8', maxBuffer: MAX_BYTES });
+    generate: async directory => {
+      const text = await new Promise<string>((done, fail) => {
+        execFile(process.execPath, command.slice(1), { cwd: root, encoding: 'utf8', maxBuffer: MAX_BYTES }, (error, stdout) => {
+          if (error !== null) fail(error);
+          else done(stdout);
+        });
+      });
       const value: unknown = JSON.parse(text);
       if (value === null || typeof value !== 'object') throw new Error('Missing native compiler envelope');
       if (JSON.stringify(inventory()) !== JSON.stringify(paths)) throw new Error('Native compiler input inventory changed');
       writeFileSync(resolve(directory, output), text);
-      return Promise.resolve();
     },
   });
   try {

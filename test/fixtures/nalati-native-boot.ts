@@ -4,7 +4,7 @@ import { nalatiNativeBootInputs } from './nalati-native-boot-inputs';
 /** Exact independent native oracle, admitted only after a fresh source-fenced
  * constructor reproduces its complete original canonical value. */
 export function nalatiNativeBoot(): Promise<ReturnType<typeof nalatiNativeBootInputs>> {
-  return fencedNativeOracle({ id: 'nalati-native-boot', script: 'test/fixtures/nalati-native-boot-compile.mjs',
+  return fencedNativeOracle({ id: 'nalati-native-boot', loader: 'simulation', script: 'test/fixtures/nalati-native-boot-compile.mjs',
     inputs: ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons',
       'src/shards/nalati-grasslands', 'package.json', 'pnpm-lock.yaml',
       'test/fixtures/nalati-native-boot.ts', 'test/fixtures/nalati-native-boot-inputs.ts',
