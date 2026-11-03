@@ -102,7 +102,7 @@ h1{color:#f08a24;font-size:30px;margin:0 0 6px}h2{color:#f08a24;margin:34px 0 8p
 .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}figure{margin:0}figure img{width:100%;display:block;cursor:zoom-in;border-radius:4px}
 .toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px}.toc a{color:#8fe3ff;font-size:14px}.pair p.cut{color:#ffb36b;font-weight:600}
 figcaption{font-size:11px;color:#9aa3a8;text-align:center;padding-top:3px}
-#z{position:fixed;inset:0;background:#000e;display:none;overflow:auto;touch-action:pinch-zoom}#z img{width:100%;max-width:700px;display:block;margin:0 auto}
+#z{position:fixed;inset:0;background:#000e;display:none;align-items:center;justify-content:center;touch-action:pinch-zoom}#z img{max-width:100vw;max-height:100vh;max-height:100dvh;width:auto;height:auto;object-fit:contain;display:block}
 </style></head><body><main><h1>Kitchen Sink v2 · every UI change, in engine</h1>
 <p>Round 12 (2026-11-03). Every frame is the real game on a phone in portrait, from a served build of main. BEFORE is the live page as it is today. AFTER is the same live page with the new element added, built from the engine's own HUD classes. Driftwood Isle's crabs, Wendell and Maren stand in for the showcase's robots and NPCs. The names and numbers are the showcase's. Nalati and Pine Hollow are used where their live component is the one the showcase extends. Only the personal-best board (a 3D sign) is a generated edit. Tap a frame to see it big.</p>
 <p>Each HUD change still needs your pick before it is built (the HUD rule).</p>
@@ -111,7 +111,7 @@ figcaption{font-size:11px;color:#9aa3a8;text-align:center;padding-top:3px}
 ${SECTIONS.map(([name, blurb, ids], i) => `<h2 id="s${i + 1}">${esc(name)}</h2><p>${esc(blurb)}</p><div class="pairs">${ids.map((id) => fig(BY_ID.get(id))).join('')}</div>`).join('\n')}
 </main><div id="z"><img alt=""></div><script>
 const z=document.getElementById('z'),zi=z.querySelector('img');
-for(const i of document.querySelectorAll('figure img'))i.onclick=()=>{zi.src=i.src;z.style.display='block';};
+for(const i of document.querySelectorAll('figure img'))i.onclick=()=>{zi.src=i.src;z.style.display='flex';};
 z.onclick=()=>{z.style.display='none';};
 </script></body></html>
 `;
