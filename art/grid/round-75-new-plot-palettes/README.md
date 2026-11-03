@@ -3,7 +3,7 @@
 The four new open plots (G974, G977) in the round-62 format: one 2 × 2 board each (1 ABOVE NEIGHBOUR, 2 ROAD ENTRY,
 3 TOP-DOWN, 4 PLAZA), blocky, mirror-symmetric and tile-built around one landmark, each with its own palette.
 `00-board.jpg` shows the four road entries with the cell each takes. Plan:
-`docs/plans/open-plots/new-unique-plots-mini-plan.md` §3 and §5; build bar: `project/archive/2026-11-03-open-plots-build-out.md`.
+`docs/plans/OPEN-PLOTS.md` §4b; build bar: `project/archive/2026-11-03-open-plots-build-out.md`.
 
 | File | Palette line | Round-62 sheet it edits |
 |---|---|---|

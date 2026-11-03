@@ -1,5 +1,7 @@
 # New unique open plots: mini plan (E522, G970–G973)
 
+> **Archived 2026-11-03 (Jake: the four new plots go back into the open plots plan).** Themes, mockups and the open rows now live in [OPEN-PLOTS](../../docs/plans/OPEN-PLOTS.md) §4b, OP7 / OP9 / OP13 / OP21 / OP25.
+
 > **Re-pointed 2026-11-02 to the tile approach and the round-75 boards (G978).** Jake: *"We need the 2x2 mockup for …
 > all the new open plot zones we just approved. Feel free to change the theme and style and colors … the open plots
 > idea is for them to be blocky and symmetric … made out of tiles so that you can mix and match."* What changed: the

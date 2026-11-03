@@ -1,6 +1,6 @@
 # Plan: OPEN-PLOTS — build the other 18 open plots the way Night Market was built
 
-**State:** `parked` (rows re-pointed 11-02: the five build-outs are archived in [open-plots build-out](../../project/archive/2026-11-03-open-plots-build-out.md) and [open-plots/new-unique-plots-mini-plan.md](open-plots/new-unique-plots-mini-plan.md), G971–G977; play loops dropped, G971) — was `parked (draft, 2026-10-28): starts on Jake's word, after SHARD-PLATFORM archives (G824)`
+**State:** `parked` (rows re-pointed 11-02: the five build-outs are archived in [open-plots build-out](../../project/archive/2026-11-03-open-plots-build-out.md) and §4b below (the four new plots; the new-unique-plots mini plan is folded in and archived as [2026-11-03-new-unique-plots](../../project/archive/2026-11-03-new-unique-plots.md), Jake 11-03), G971–G977; play loops dropped, G971) — was `parked (draft, 2026-10-28): starts on Jake's word, after SHARD-PLATFORM archives (G824)`
 
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
@@ -118,29 +118,138 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP3 | **done (2026-11-03, sp-x8; G872 self-applied). Per-plot template generator.** One script: slug → layout stub, style row, `outputs.json` row, look key, map row, dome cameras from the round-62 sheet, cell swap for new ideas. Its first output is Showcase Template | Codex | 0.5 d | A new idea goes from nothing to a building plot (shared families, its palette) in one command |
 | OP4 | **Batching — done (2026-11-03, sp-x9). [24 sheets + junction](../../art/open-plots/op4-b616c06/README.md).** One dome-capture run and one board-maker over any list of plots; one Chromium reading at a ring junction with all built neighbours in view | Codex | 0.5 d | One command captures 3 plots × 8 domes and makes their labelled sheets |
 | OP5 | Showcase Template (wave 1; the template's proof) | Opus + Codex | 8 / 4 h | Pipeline steps 1–8 met (§3) |
-| OP6 | Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
-| OP7 | Patchwork Fairground (wave 1; new idea, reuses stalls and strings) | Opus + Codex | 12 / 4 h | Steps 1–8; takes a repeat cell |
+| OP6 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
+| OP7 | Patchwork Fairground (wave 1; new idea, reuses stalls and strings) — look target [round 75](../../art/grid/round-75-new-plot-palettes/03-patchwork-fairground.jpg), cell (-2,0), theme in §4b | Opus + Codex | 12 / 4 h | Steps 1–8; takes a repeat cell |
 | OP8 | ~~Mushroom Hollow~~ **dropped (G977)**: Jungle Ziggurat (OP13) takes its cell (-2,2) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
-| OP9 | Saltwind Lighthouse (wave 2; new) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
-| OP10 | Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
+| OP9 | Saltwind Lighthouse (wave 2; new) — look target [round 75](../../art/grid/round-75-new-plot-palettes/04-saltwind-lighthouse.jpg), cell (-2,1), G982, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP10 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP11 | Sky Harbor (wave 3) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP12 | Desert Ruin (wave 3; reuses the palms) | Opus + Codex | 16 / 5 h | Steps 1–8 |
-| OP13 | Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
-| OP14 | Ember Forge (wave 4; adds the lava water kind) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
+| OP13 | Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) — look target [round 75](../../art/grid/round-75-new-plot-palettes/02-jungle-ziggurat.jpg), cell (-2,2), G977, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP14 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Ember Forge (wave 4; adds the lava water kind) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
 | OP15 | Starfall Observatory (wave 4) | Opus + Codex | 16 / 5 h | Steps 1–8 |
-| OP16 | Frostline Peaks (wave 4; builds the shared pines and snow) | Opus + Codex | 22 / 6 h | Steps 1–8; frees a repeat cell |
-| OP17 | Mosslight Ruins (wave 5) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
+| OP16 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Frostline Peaks (wave 4; builds the shared pines and snow) | Opus + Codex | 22 / 6 h | Steps 1–8; frees a repeat cell |
+| OP17 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Mosslight Ruins (wave 5) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
 | OP18 | Thin Ice (wave 5; reuses pines and snow) | Opus + Codex | 20 / 6 h | Steps 1–8 |
 | OP19 | Clockwork Canyon (wave 5) | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP20 | Pastel Alien Plain (wave 6) | Opus + Codex | 22 / 6 h | Steps 1–8 |
-| OP21 | Fossil Badlands (wave 6; new, the last repeat cell) | Opus + Codex | 22 / 6 h | Steps 1–8; all 19 cells unique |
+| OP21 | Fossil Badlands (wave 6; new, the last repeat cell) — look target [round 75](../../art/grid/round-75-new-plot-palettes/06-fossil-badlands.jpg), cell (-1,-2), G982, theme in §4b | Opus + Codex | 22 / 6 h | Steps 1–8; all 19 cells unique |
 | OP22 | Floating Island Race (wave 6) | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP23 | **Plan-end readings.** The official Simulator reading on the grid with every plot built: inside three plots and at a ring junction | Codex (Sim lane) + Opus fixes | 0.5 d | Every plot ≤ 1.2 GB, 30 fps floor; the page does not crash |
 | OP24 | **Delete the hologram path (RP4, R3).** `hologram.graph.json`, `beam.graph.json`, the hologram, sign and old billboard assets and code, `farMode: 'add'`, `batch-holograms.sh`, `holo_post.py`, the old look materials | Codex | 2 h | No hologram code or asset left; net lines negative; push gate green |
+| OP25 | **Placeholder art for the four new plots (was NU2) (Opus: the player sees it, G848).** `holo-subjects.tsv` rows from §4b's landmarks; refs and Hunyuan3D-2 holograms (`gen-refs.sh`, `batch-holograms.sh`, `clay-review.mjs`) taking the round-75 board's road-entry panel as the reference; `billboard.webp`, `sign.webp` and `thumbs/<idea>.jpg` from the round-75 boards (`make-art.sh` given that source). Into `public/assets/open-plots/<idea>/` | Opus | Four holograms pass clay review; the art matches the other ideas' sizes (billboard ≤ 250 KB) |
 | — | Jake plays the plots on live | Jake | — | His word |
 
 Order: OP1 ∥ OP2 → OP3 → OP4, then waves 1–6 (OP5–OP22), then OP23 → OP24. OP1 goes first because every
 later plot reuses its lantern and rope.
+
+## 4b. The four new plots (folded in from the new-unique-plots mini plan, 2026-11-03)
+
+Jake, 2026-11-03: the four new open plots go back into this plan; the mini plan is finished and archived ([2026-11-03-new-unique-plots](../../project/archive/2026-11-03-new-unique-plots.md)). Its grid rows are done (NU1 one grid, NU3 data and the cell swap; NU4 dropped with Mushroom Hollow). Its art row is OP25 above; building the four is OP7, OP9, OP13 and OP21, parked with the rest of this plan.
+
+### Themes (final, G977 / G978)
+
+Graphics only (G971): theme, identity, signature landmark, look, dressing and audio. No play loop, quest, verb or
+encounter. Each keeps its own look (AGENTS.md). Accents are the free slots of `src/game/grid/catalogue.ts`.
+
+**Built from tiles (G978).** Each plot is a mirror-symmetric 8 × 8 of 62.5 m tiles: a cross of straight avenues, four
+identical quadrants, ONE landmark on a square plinth at the centre. The tiles are the shared kit (paving, kerbs, lamp
+posts, bridges, props, trees, water, gate, strings) retinted by the plot's palette row, plus the 2–3 **theme tiles**
+listed below. A theme tile another plot can use lands in the shared kit. The look target is the plot's round-75 board;
+the palette line below is burned into it. G978 sharpened every round-1 and round-62 look so no two plots share a
+palette: the round-62 lines of the other plots and the centre shards were checked.
+
+#### Saltwind Lighthouse (`open-plot-saltwind-lighthouse`, accent `rose`) → (-2,1) · `04-saltwind-lighthouse.jpg`
+
+**Palette (board):** *pewter squall, slate-green sea, whitewash and black tar, one red-banded light.*
+
+- **Theme:** a northern fishing harbour on black basalt in a passing squall, late afternoon, one cold silver break on
+  the horizon, slanting rain, wet reflective stone. The grid's only storm. Coral Drift is the turquoise lagoon and Sky
+  Harbor the blue-sky timber docks; Saltwind has no turquoise, no sand, no blue sky, no timber docks or cranes.
+- **G978 change:** black basalt and black tarred timber replace round 1's granite and ochre; the sea is slate green;
+  the lighthouse is the only strong colour.
+- **Landmark:** a white lighthouse with bold signal-red bands on a stepped basalt plinth; a cold white lantern room and
+  a beam through the rain.
+- **Theme tiles:** harbour-basin tile (square slate-green basin, basalt quay walls, bollards, two moored boats);
+  cottage-terrace tile (a row of whitewashed black-roofed cottages); net-and-pot tile (drying racks, lobster pots,
+  buoy posts). Corner boathouses are the cottage tile's variant; a basalt sea wall with surf closes the far edge.
+- **Audio:** rain on slate, gulls, rigging creak, a far foghorn; a low fiddle-and-drone ambience.
+
+#### Patchwork Fairground (`open-plot-patchwork-fairground`, accent `citron`) → (-2,0) · `03-patchwork-fairground.jpg`
+
+**Palette (board):** *buttermilk morning, toy primaries on a clover, mustard and lavender quilt.*
+
+- **Theme:** a toy-box travelling fair pitched on a quilt of square fields, a fresh morning under a warm buttermilk haze.
+  Night Market is the dusk street market of stalls and lanterns; this is rides and tents in daylight.
+- **G978 change:** toy primaries (tomato red, sunflower yellow, royal blue, white trim) replace round 62's candy pastels
+  (pink, mint, baby blue), and the buttermilk sky keeps it off Sky Race's cobalt noon. The quilt fields are literal
+  square tiles.
+- **Landmark:** a giant Ferris wheel on a square plinth, white lattice spokes, gondolas alternating red, yellow, blue.
+- **Theme tiles:** quilt-field tile (3 × 3 coloured field squares with box hedges and hay bales); carousel tile;
+  big-top tile (corners). Striped booths, bunting and the helter-skelter pair at the entry are kit stalls and strings
+  retinted, plus the helter-skelter as the entry gate's variant.
+- **Audio:** a distant band organ, carousel bells, flags snapping; a bright waltz-time ambience.
+
+#### Fossil Badlands (`open-plot-fossil-badlands`, accent `apricot`) → (-1,-2) · `06-fossil-badlands.jpg`
+
+**Palette (board):** *lavender blue hour, oxblood and mustard strata, bone-white skeleton.*
+
+- **Theme:** a palaeontology dig camp cut into banded clay badlands just after sunset. Not a desert: no dunes, no palms,
+  no sandstone temple (Sunscar Dunes and Desert Ruin own those), no orange sunset.
+- **G978 change:** a lavender blue hour replaces round 1's pearl overcast and round 62's bone-and-ochre noon, and the
+  strata are bold painted-hills bands (oxblood, mustard, cream, charcoal), so it reads nothing like Desert Ruin's
+  white-gold noon or Sunscar's orange dusk.
+- **Landmark:** a colossal bone-white dragon skeleton in a square stepped excavation pit, ribs arching high, timber
+  scaffolding and ladders.
+- **Theme tiles:** dig-trench tile (a square terraced trench with a string grid); banded-mesa tile (a flat-topped
+  stepped block, edges and corners); camp tile (canvas tents, sorting tables, crates). Hand cranes and mine-cart rails
+  are kit props.
+- **Audio:** dry wind through the mesas, trowel scrape, canvas flap, a far hawk; a sparse guitar-and-marimba ambience.
+
+#### Jungle Ziggurat (`open-plot-jungle-ziggurat`, accent `jade`) → (-2,2) · `02-jungle-ziggurat.jpg`
+
+**Palette (board):** *rain-washed teal afternoon, cinnabar-red temple, jade pools, saffron bands.*
+
+- **Theme:** a living, freshly painted Mesoamerican temple town just after a tropical rain: a teal sky clearing behind
+  white cumulus, a faint rainbow, wet glossy stone. G977 took it off the spare list for Mushroom Hollow's cell.
+- **G978 change:** to stay clear of Mosslight Ruins (grey-green overcast, ivy, glowing emerald), the temple is painted
+  cinnabar red with turquoise and saffron bands, intact and clean; no moss, no ivy, no glow, no misty morning (round
+  62's green mist is gone).
+- **Landmark:** a stepped pyramid on the central plinth, cinnabar tiers with turquoise and saffron bands, a cream
+  stair, a flat-topped temple house with a roof comb on top.
+- **Theme tiles:** jade-pool tile (a square reflecting pool fed by small stepped waterfalls); stilt-house tile
+  (thatched house on a square platform); painted-stele tile (patterns only). Round-canopy trees, causeways with rope
+  rails and lamp posts are the kit, retinted.
+- **Audio:** rain-forest birds, falling water, wooden wind chimes; a hand-drum and flute ambience.
+
+#### Dropped: Mushroom Hollow (G977)
+
+Jake, 11-02: *"having two open plots that are mushroom-based feels silly."* Alien Plain already carries glowing
+mushrooms. Its round-1 mockup stays in `art/` as history; nothing is built.
+
+### Mockups
+
+#### Round 75: the look target (G978)
+
+`art/grid/round-75-new-plot-palettes/`: one round-62-style 2 × 2 board per plot (1 ABOVE NEIGHBOUR, 2 ROAD ENTRY,
+3 TOP-DOWN, 4 PLAZA; title and palette line burned in), each a codex `image_gen` edit of a round-62 sheet so the
+cameras, road, kerbs and blocky tile look match the other plots. Blocky, mirror-symmetric, tile-built, one landmark;
+no billboards (OP24 retires them). Prompts in its `README.md`.
+
+| File | What it shows |
+|---|---|
+| `00-board.jpg` | The four road entries side by side, with the cell each takes |
+| `02-jungle-ziggurat.jpg` | Jade pools in four quadrants, stilt houses and steles in rows, the cinnabar step pyramid |
+| `03-patchwork-fairground.jpg` | Quilt-field quadrants with a carousel each, big tops at the corners, the Ferris wheel |
+| `04-saltwind-lighthouse.jpg` | Four slate-green harbour basins with moored boats, cottage rows, the red-banded lighthouse in the rain |
+| `06-fossil-badlands.jpg` | Terraced dig trenches, banded mesa blocks at the corners, tents in rows, the dragon skeleton in its pit |
+
+#### Round 1: direction (history)
+
+`art/open-plots/new-unique-plots/round-1/`, codex `image_gen`, each an edit of the in-game Night Market aerial (RM9,
+`art/grid/round-68-night-market-gate/ingame-D1.jpg` panel 2): one painterly hero view per theme and an overview, with
+the prompts in its `README.md`. Jake approved the themes from these (G974, G977). G978 replaced them as the look target:
+they read as bespoke 500 m zones, not as a tile kit.
 
 ## 5. Waves
 
