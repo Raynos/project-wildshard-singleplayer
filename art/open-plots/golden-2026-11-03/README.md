@@ -48,6 +48,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Lantern Bayou](lantern-bayou/board.jpg) | 4 | 5 | 4 | 6 | 6 | 6 | 5 | 4 | **5.00** | NOT YET |
 | [Ember Forge](ember-forge/board.jpg) | 5 | 6 | 5 | 6 | 6 | 4 | 4 | 4 | **5.00** | NOT YET |
 | [Mosslight Ruins](mosslight-ruins/board.jpg) | 4 | 5 | 4 | 6 | 5 | 4 | 5 | 4 | **4.62** | NOT YET |
+| [Jungle Ziggurat](jungle-ziggurat/board.jpg) (OP13, 11-03 afternoon, `87d9973`; views 5 and 6 moved off the 66 m stair) | 5 | 7 | 7 | 8 | 7 | 7 | 6 | 6 | **6.62** | GOOD ENOUGH |
 | [Patchwork Fairground](patchwork-fairground/) | 6 | 5 | 5 | 6 | 5 | 6 | 5 | 6 | **5.50** | NOT YET |
 
 The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
