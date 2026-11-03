@@ -5,7 +5,7 @@ const pose = v.strictObject({
   name: v.pipe(v.string(), v.regex(/^[a-zA-Z0-9_.-]{1,128}$/u)),
   x: finite, y: finite, z: finite, yaw: finite, pitch: finite,
 });
-const catalogue = v.record(v.pipe(v.string(), v.regex(/^[a-z0-9-]+$/u)), v.pipe(v.array(pose), v.minLength(1), v.maxLength(8)));
+const catalogue = v.record(v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u)), v.pipe(v.array(pose), v.minLength(1), v.maxLength(8)));
 
 /** Fixed caller-authored world poses; every requested shard must be covered.
  * Angles are radians, as in the existing live pose API. No camera override.
