@@ -125,6 +125,10 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     centre plaza), and the west toys are rebalanced around it. **NE quadrant:** bands L1–3, 4–6, 7–9, 10–12. **SE
     quadrant:** no L1–3; its top half is band L13–15 (the stealth yard doubles as it) and band L16–18, each its own
     section; its bottom half is only the gauntlet arena (L16–18) and the Crate Titan, at the very bottom right.
+19v. **Attributes page** ([Attributes](https://claude.ai/artifact/1vKjyhEmkmRQCV4vFNuXEq), levels-combat §11): recommended
+    VIT, STR, DEX, AGI and nothing else; armour from level × per-body plating. Jake 11-03: **aptitude for four is one
+    1.2, two 1.0, one 0.8**; **RES and POI become data** (energy hits count half your armour; stagger per body; parry
+    window 0.15 s plus the Parry Gyro). The four-attribute lock and the armour rule wait on his read.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
