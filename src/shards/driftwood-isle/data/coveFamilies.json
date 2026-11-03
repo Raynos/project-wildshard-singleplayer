@@ -16,8 +16,9 @@
     "look": "cast",
     "far": true,
     "fold": {
+      "palm1": "palm0",
       "palm2": "palm0",
-      "palm3": "palm1",
+      "palm3": "palm0",
       "palm4": "palm0"
     }
   },
@@ -33,8 +34,9 @@
     "look": "cast",
     "far": true,
     "fold": {
+      "bpalm1": "bpalm0",
       "bpalm2": "bpalm0",
-      "bpalm3": "bpalm1"
+      "bpalm3": "bpalm0"
     }
   },
   "cliff": {
