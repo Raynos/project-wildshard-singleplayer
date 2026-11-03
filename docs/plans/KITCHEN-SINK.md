@@ -121,6 +121,10 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     are in doubt; RES and POI are likely out. **AGI is added** (Jake 11-03). The cross-links: STR → melee damage;
     VIT → HP; DEX → ranged damage, hit chance for melee and ranged, and melee crit; AGI → dodge, and ranged crit. A
     20-game attributes study settles whether anything else earns a place (at most 8).
+19u. **Layout round 3** (Jake 11-03): the hub becomes a **town** (a village taking a big share of the west, not a small
+    centre plaza), and the west toys are rebalanced around it. **NE quadrant:** bands L1–3, 4–6, 7–9, 10–12. **SE
+    quadrant:** no L1–3; its top half is band L13–15 (the stealth yard doubles as it) and band L16–18, each its own
+    section; its bottom half is only the gauntlet arena (L16–18) and the Crate Titan, at the very bottom right.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
