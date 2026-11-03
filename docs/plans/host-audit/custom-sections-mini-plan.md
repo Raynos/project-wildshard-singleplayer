@@ -111,7 +111,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS0** | **done (2026-10-24, sp-x6):** measured ceilings 387 / 33,613,009 B; shrink-only existing-name inventory, new custom sections refused, new named JSON requires an exact defining format schema. **Ceilings to actuals and a schema freeze** (free, can land now): set every `custom-sections/<slug>` ceiling to the measured value (549 → 387, 62 MB → 33.6 MB); refuse a new `custom/` section and any new named JSON whose schema is defined in a shard folder | 0.5 day, Codex |
 | **CS1** | **done (2026-10-31, sp-x1):** `9a616b4b82` inventories all 24 products in 4.56 s: 1,406 rows / 11 source projects; six inventory controls pass. `b13ad77350` fixes exclusive compiler ownership, with the original owner assertion, six controls and root/scripts types passing. Hash-bound source/reader evidence stays explicit; no ruler or inferred host credit. | 0.5–1 day, Codex |
 | **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
-| **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Pine's 112-placement consolidation is qualified in `5c72cf6cf0` below; remaining implementation: other streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
+| **CS3** | **done (2026-11-03, sp-x2, qualified-slice-or-named-explicit-exit bar):** Pine112 and DW12 have qualified bounded-page slices; catalogues/recipes retain exact render-input proofs and Nalati dressing retains twelve zero-pixel comparisons. All 318 historical rows and the expanded remainder have a qualified slice or named **CS3-E1–E13** exit in the [completion ledger](#cs3-completion-bar-and-named-implementation-exits). Tier/shadow derivation remains source-only; no file retirement, all-pose streaming, new host score or CS10 deletion is inferred. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** the five field descriptors, common Pine physics, floor/cave contracts and two ground aliases have their recorded exact payload/native proofs; maintained Pine walk is **75/75, 0 stuck/bounds/pending**. Pine owner-only physics, G667 tests 2–6 and the named terrain/bake/shelter/recipe/grid-collision owner configurations remain explicit exits, without host or CS10 deletion credit. See the [completion bar](#cs4--cs7-completion-bar). | 2–3 days, Codex (Opus memory reading) |
 | **CS5** | **done (2026-11-02, sp-x1, Jake accepted `9507499224`):** eight historical quest names now have qualified exact slices: the earlier DW three, Pine native-story/native-spots/contracts, Nalati carried and the shared whole-panel catalogue. The one fresh-baseline combined proof retains all target bodies, 226 old wire contracts and original owners; only the exact G872 Nalati source-stamp case differs (self-applied under the 2026-11-02 standing rule, with explicit concurrence). Six presentation/figure/discovery/finds/story/guest families and live `custom/questRuntime` retain their explicit exits, without host or CS10 deletion credit. See the [qualified slice](#cs5-four-native-aliases-and-the-whole-panel-catalogue). | 4–6 days, Opus design + Codex port |
 | **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
@@ -2570,3 +2570,66 @@ six-product 461-name census is not a fresh full-product zero-user proof.
 merely because ten redundant copies retire. Compact evidence is retained in
 tmp/sp-x1-cs10 and tmp/sp-x9-cs10; no extra native/browser/walk is required
 for unchanged collider, geometry and native assembly bytes.
+
+## CS3 completion bar and named implementation exits
+
+**2026-11-03, sp-x2; coordinator's qualified-slice-or-named-explicit-exit
+instruction.** This completion bar supersedes the earlier requirement to
+keep CS3 open until every consolidation and tier-copy retirement ships.
+It closes the row's disposition work. The exits below remain unbuilt
+implementation work in this plan; none becomes a migration, host approval
+or CS10 deletion by being named here. G963's identical-capture bar and all
+native guards/caps still apply to any later implementation.
+
+The source audit is pinned to `ca8561f3bfc64976c8fdbf01bcc882bc7a496912`:
+15 committed defining producer/format/consumer files were checked, without
+adopting loose peer changes or rebuilding products. The unchanged historical
+inventory SHA `b08f048f…7768` has **318 distinct product/name rows**, each
+assigned once: six existing platform roots, **124 qualified page rows**
+(Pine112 + DW12), **70 Nine placement exits**, three qualified catalogues,
+41 qualified recipe metadata rows, 60 Pine weld exits, eight living exits,
+one binary exit and five source-envelope exits. Sum: **318**. This is the
+historical inventory's coverage, not a new all-24 CURRENT assertion.
+
+Qualified slices retain their original evidence: Pine `5c72cf6cf0`
+(four A/A + four A/B zero-pixel comparisons); DW `f84fb23bf3` (six A/A +
+six A/B zero-pixel comparisons), with ordered native read-ahead/owner fixes
+`61cacd3f58` / `241f1d9cdb` and the recorded no-worse loading at `53dd955063`;
+Nalati phone/desktop `1fadd8e67a` / `d83676a5d4` (twelve strict zero-pixel
+comparisons). Catalogue/recipe metadata proofs remain scoped to exact
+render-consumed bytes under G872. The later cross-G5 wreck one-pixel
+refusal remains raw and separately classified above; it does not become
+zero. The DW world golden is owned by sp-ci-deploy and is untouched here.
+
+| Named exit, retained in CS3 | Exact family and remaining implementation condition |
+|---|---|
+| **CS3-E1 — Nine placement-page qualification** | All **70** historical `world/placements/*.json` rows. `nine-dragon-stack/generators/worldScenes.ts` still emits SET/MOVER/LAYOUT individual references; the shared page helper is not adopted there. Retain the requested Nine QA deferral. A later complete slice must reconstruct every ordered row/tier, pass normal/strict admission and all original native resource/collider checks, then qualify immutable affected-pose A/A and A/B plus changed-streaming loading. Pine/DW qualification is not Nine evidence. |
+| **CS3-E2 — Complete recipe transport** | DW's eleven and Pine's three `scenes/*.json`, Nine's three `world/scenes/*.json`, Far's fifteen and Sun's nine recipes (**41** historical rows). Their complete roots are already qualified; they are ordered step recipes, not `WorldScenePlacementRow` documents. `game/shardfile/worldScenes.ts` still reads each complete `step.scene`/variant. Any further packing needs its own bounded complete-recipe grammar and consumer, exact step/publication/instance-packet/resource lifetime and native refusal proof, then strict landed-SHA pixels/loading. Do not pass recipes through the placement-page parser. Nalati/Far have zero placement-page candidates in the retained source audit. |
+| **CS3-E3 — Weld registration and projected-root integration** | The **whole 62-name** withdrawn slice: four Pine cabin tier/shadow roots, 56 Pine specimen roots and Nine casts/fabric. Keep the historical 1,703,170 → 3,120,670 B refusal; it is not a current index measurement. No full-slice admissible index or projected-root runtime has been qualified after compaction. `WorldSceneWeldSourceSchema` still accepts complete file/tier/knob choices, and the native consumer admits all branches before selecting resources. Four source-only cabin projections reconstruct 339,196 B exactly and pass nine refusal controls, but do not supply this port. Preserve true/false shadow geometry and casting-distance distinctions; require a complete typed derivation, all-branch admission/selected-owner proof, unchanged caps and strict captures at both tiers and both shadow modes before retiring any file. |
+| **CS3-E4 — Living whole-root registration and owner qualification** | All eight `scenes/cabins/living/{phone,desktop}-{false,true}-{false,true}.json` envelopes. The complete `LivingPageInputSchema` and `{graph,life,geometry}` producer are real; `forestPage.ts` selects the exact tier/shadow/shared branch and borrows shell geometry under the resident owner. The old 1,984,106 B projection predates Pine112 compaction: it is **not a current index blocker**. No fresh full defining-schema/index admission or combined native owner proof is qualified. Register the complete root, retain all eight branches and owner retirement/shared-light/late-hydration behavior, prove exact payloads/packs and remeasure the unchanged index limit. Any copy retirement additionally requires complete derivation and strict affected-branch captures/loading. |
+| **CS3-E5 — Complete source envelopes** | Far `world/sources/{bakes,heroes,sky}.json` and Sun `world/sources/{bakes,models}.json` (five product/name rows). Native `SceneBakeSource`/`SceneModelSource` interfaces cover runtime fields, not the whole author envelopes and GLB/hull/rig/rail/disc/anchor leftovers. Establish a complete shared root and preserve source-resource ownership; no partial fields, unknown-extension wrapper or inferred schema. |
+| **CS3-E6 — Fixed geometry contracts** | Nine `geometry/{fixed-kits,layout}.json`, DW `models/fixed-geometry.json`. Shard-local `FixedPracticeFileSchema`, `GeometryBootSchema` and `FixedGeometryGroupsSchema` remain authoritative. A shared/approved complete root must retain negative-zero, layout/practice and original geometry/resource refusal checks. |
+| **CS3-E7 — Whole specimen-book genericity/owner** | Nalati `models/cover-{phone,desktop}.json` and `models/gear-book.json`. Whole `SpecimenBookSchema` users demonstrated in the source remain Nalati-only. Require an actual second whole-book shard user or exact one-user approval, plus unchanged native model/material ownership. Child catalogue use elsewhere supplies neither. |
+| **CS3-E8 — Sign atlas/resource contract** | Nine `signs/atlas-{phone,desktop}.json`. Preserve shard-local `SignAtlasSchema`, glyph/light/pool/channel bindings until a complete shared contract or the existing approved shader/model exit is qualified. |
+| **CS3-E9 — Building-life envelope/site owner** | DW `world/building-life.json`. `namedSchemas.ts` still composes `{look,life,initialDusk}` inline; the two native child schemas are not the whole root. Establish the complete life-document contract and retain its original site owner before adoption. |
+| **CS3-E10 — Native dressing rows and colliders** | Nalati's sixteen named `world/dressing-{boulder,slab,juniper,rose,willow,lupin,reed,logs,stumps,ovoos,poles,fences,gates,drifts,colliders,clutter}.json` arrays. `dressingSchemas.ts` owns distinct instance/spot/log/fence/gate/drift/collider/clutter grammars; the numeric stone/daisy packets are separate binary resources. Require complete shared rows/owner admission with exact doubles/resources; collider ownership stays with CS4. Qualified phone/desktop scene metadata does not migrate these arrays. Loose peer page work is not credited as landed or pixel-qualified. |
+| **CS3-E11 — Island placement-plan contract** | DW `world/island/plan-{phone,desktop}.json`. Local `IslandPlacementPlan`/`bakeIslandPlan` still own families/sets/small rocks/unclaimed boxes. Establish a complete native root retaining collider/resource checks; the interface alone grants no admission. |
+| **CS3-E12 — Landmark native-view derivation** | Pine `world/landmark-view.json`, jointly recorded by CS9: exact board/site/stone/dam/canoe/view/book fields and native owners remain local to `forestPage.ts`/`timberWorldRows.ts`. Require a whole native projection/reconstruction, not a child alias. |
+| **CS3-E13 — Spray packet/resource owner** | Pine `scenes/streams-spray.bin`, historical 1,012 B. Retain f32 matrices/seeds/sizes, byte offsets/counts and the native instanced resource lifetime. Recipe registration does not retire or convert this packet. |
+
+The expanded remainder tables above additionally close the two Nalati
+scene metadata names and the existing Pine building-sites/forest-page and
+Nalati shape-book aliases on their original byte/native proofs. Every
+remaining expanded family maps to E3–E12; none is discarded as a duplicate
+of the historical census. The six `world/scenes` roots and three model
+catalogues remain already-admitted complete families; their consumers do
+not need a second migration just to close this row.
+
+Validation of this closeout: the 318-row/hash/unique-disposition check and
+15 pinned source-contract checks pass. The retained off-tree cabin
+prototype again reconstructs all four exact roots and passes nine refusal
+controls through the normal bake loader. A first plain-Node invocation
+refused the extensionless SDK import before verification; no runtime or
+guard changed to make it run. No product, browser, loading run or new
+capture was needed for this documentation-only disposition. Caps, live
+files, private readers and the remaining CS10 work retain their authority.
