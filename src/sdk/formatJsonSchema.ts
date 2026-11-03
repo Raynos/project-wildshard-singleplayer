@@ -1,5 +1,6 @@
 
 
+import { SceneModelSourceSchema, SceneBakeSourceSchema } from '@wildshard/format/sceneSources';
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { AudioSceneSchema } from '@wildshard/format/audioScene';
@@ -131,7 +132,7 @@ import { NavigationSchema } from '@wildshard/format/navigation';
 import { NativeGroundSchema } from '@wildshard/format/nativeGround';
 import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
-import { ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
+import { HeldMeleeActionSchema, ClientChannelsSchema, ClientChannelProgramSchema, PrivateSceneSchema, WorldSceneSchema, NumericPoseSchema } from '@wildshard/format/clientChannels';
 
 import { ForestLifeSchema, AmbientFlockSchema, AmbientPerchesSchema, ForagerContinuation } from '@wildshard/format/ambientLife';
 
@@ -161,6 +162,7 @@ const customSchemas = new Map<object, JsonSchema>([
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
 ]);
+customSchemas.set(HeldMeleeActionSchema, { type: 'string', pattern: '^[a-z][a-zA-Z0-9-]*\\.[a-zA-Z0-9.-]+$' });
 const bowVariant = BowVariantSchema.pipe[2].entries;
 customSchemas.set(bowVariant.id, { type: 'string', pattern: '^weapon\\.[a-z0-9.-]+$' });
 customSchemas.set(bowVariant.sourceTag, { type: 'string', pattern: '^[^.]+\\..+$' });
@@ -432,6 +434,8 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'sceneDressing.SceneScatterPage': SceneScatterPageSchema,
   'buildings.BuildingLifeDocument': BuildingLifeDocumentSchema,
   'bakedTiles.BakedPlacementPlan': BakedPlacementPlanSchema,
+  'sceneSources.SceneModelSource': SceneModelSourceSchema,
+  'sceneSources.SceneBakeSource': SceneBakeSourceSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

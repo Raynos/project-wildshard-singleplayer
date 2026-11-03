@@ -2,6 +2,7 @@ import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServ
 import {ContractCatalogueSchema,parseContractCatalogue} from './contracts';
 import { BuildingLifeDocumentSchema } from './buildings';
 import { BakedPlacementPlanSchema } from './bakedTiles';
+import { SceneModelSourceSchema, SceneBakeSourceSchema } from './sceneSources';
 import { WorldSceneWeldSchema, parseWorldSceneWeld } from './worldSceneWeld';
 
 import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue} from './panelTemplate';
@@ -110,6 +111,10 @@ export interface RegisteredJsonContracts {
   readonly 'world/island/plan-desktop.json': { readonly schema: typeof BakedPlacementPlanSchema; readonly source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' };
   readonly 'world/casts.json': { readonly schema: typeof WorldSceneWeldSchema; readonly source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' };
   readonly 'world/fabric.json': { readonly schema: typeof WorldSceneWeldSchema; readonly source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' };
+  readonly 'world/sources/bakes.json': { readonly schema: typeof SceneBakeSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneBakeSourceSchema' };
+  readonly 'world/sources/models.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
+  readonly 'world/sources/heroes.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
+  readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
@@ -183,6 +188,10 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'world/island/plan-desktop.json': { schema: BakedPlacementPlanSchema, source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' },
   'world/casts.json': { schema: WorldSceneWeldSchema, source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' },
   'world/fabric.json': { schema: WorldSceneWeldSchema, source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' },
+  'world/sources/bakes.json': { schema: SceneBakeSourceSchema, source: '@wildshard/format/sceneSources#SceneBakeSourceSchema' },
+  'world/sources/models.json': { schema: SceneModelSourceSchema, source: '@wildshard/format/sceneSources#SceneModelSourceSchema' },
+  'world/sources/heroes.json': { schema: SceneModelSourceSchema, source: '@wildshard/format/sceneSources#SceneModelSourceSchema' },
+  'world/sources/sky.json': { schema: SceneModelSourceSchema, source: '@wildshard/format/sceneSources#SceneModelSourceSchema' },
 };
 export type RegisteredJsonName=keyof typeof REGISTERED_JSON;
 /** JSON decoding preserves the wire input; defaults belong to its consumer. */
@@ -253,6 +262,10 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'world/sources/bakes.json':v.parse(SceneBakeSourceSchema,value);break;
+    case 'world/sources/models.json':
+    case 'world/sources/heroes.json':
+    case 'world/sources/sky.json':v.parse(SceneModelSourceSchema,value);break;
     case 'world/island/plan-phone.json':
     case 'world/island/plan-desktop.json':v.parse(BakedPlacementPlanSchema,value);break;
     case 'world/casts.json':

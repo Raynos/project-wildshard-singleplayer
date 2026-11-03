@@ -280,6 +280,8 @@ const phaseSeconds = v.pipe(v.number(), v.finite(), v.minValue(0.000001), v.maxV
 const phaseMove = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(15));
 const heldPhase = v.strictObject({ id: name, move: phaseMove, seconds: phaseSeconds, channel: name });
 const heldAction = v.pipe(v.custom<`${string}.${string}`>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9-]*\.[a-zA-Z0-9.-]+$/u.test(value)), v.maxLength(128));
+/** The native dotted action predicate; schema projection retains this exact grammar. */
+export const HeldMeleeActionSchema: v.GenericSchema<`${string}.${string}`> = heldAction.pipe[0];
 const heldPhaseCommon = {
   version: v.literal(1), phases: v.tuple([heldPhase, heldPhase]), charge: phaseSeconds,
   spring: v.strictObject({ gain: v.pipe(coefficient, v.minValue(0)), clampYaw: v.pipe(coefficient, v.minValue(0)),

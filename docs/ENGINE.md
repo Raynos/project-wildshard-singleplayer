@@ -6485,7 +6485,9 @@ grammar; runtime weld admission retains its immutable result.
 `privateSceneRows` admits complete private node/material records without
 a runtime scene host or any file reads.
 
-`sceneDrawRows` checks draws. `modelSceneSourceFile`/`bakedSceneSourceFile` keep native limits and JSON spelling. `format/sceneSources` defines complete `SceneModelSourceSchema`/`SceneBakeSourceSchema`; `items.ItemEquipmentSchema` retains equipment grammar. Resources stay native.
+`sceneDrawRows` checks draws. `modelSceneSourceFile`/`bakedSceneSourceFile` keep wire/native limits.
+`format/sceneSources` defines `SceneModelSourceSchema`/`SceneBakeSourceSchema`.
+`items.ItemEquipmentSchema`/`clientChannels.HeldMeleeActionSchema` retain native predicates.
 `worldSceneTileGroups` admits strict source tile-file groups with their resident
 flags, preserving group/file order and duplicates while owning the output arrays.
 `worldSceneTileFiles` admits ordered main/additional source file names, preserving

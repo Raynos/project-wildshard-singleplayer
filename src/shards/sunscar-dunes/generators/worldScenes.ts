@@ -19,7 +19,7 @@ export interface SignalWorldSceneFiles { blobs: NamedBlob[]; worldScenes: Return
 /** Assemble the original scene files and bindings from the same explicit bake rows as their libraries. */
 export function signalWorldScenes(world: SceneWorldBakes, sources: readonly NamedBlob[], bindings: ReturnType<typeof placeBindings>): SignalWorldSceneFiles {
   const blobs = [...sources, ...SIGNAL_SKIRT_BLOBS, ...SIGNAL_EMBER_BLOBS.filter(blob => emitterFiles.has(blob.file.name ?? '') || emitterDependencies.has(blob.file.hash))];
-  const steps: unknown[] = [], effects: { readonly part: string; readonly pool: string | null; readonly rows: unknown }[] = [];
+  const steps: unknown[] = [];
   /** Original order, native hierarchy and fields. Sources remain the existing
    * model libraries and kind bakes; this only declares their assembly bindings. */
   const definitions = [
@@ -50,7 +50,6 @@ export function signalWorldScenes(world: SceneWorldBakes, sources: readonly Name
     for (const node of recipe.scene.nodes) if (node.id !== recipe.scene.root && !(node.id in publish)) Object.assign(publish, {
       [node.id]: { kind: node.kind === 'mesh' ? 'mesh' : node.kind === 'group' ? 'group' : 'object', part: node.id },
     });
-    for (const effect of [...source?.lamps ?? [], ...source?.fires ?? []]) effects.push({ ...effect, part: `${id}.${effect.part}` });
     steps.push({ id, scene: file, lights: source?.lights ?? [], publish,
       geometry: Object.fromEntries(recipe.scene.nodes.flatMap(node => node.kind === 'mesh' ? [[node.geometry, { library: 'models', model: node.geometry }]] : [])),
       models: Object.fromEntries(recipe.imports.flatMap(row => row.kind === 'model' ? [[row.model, { library: 'models', model: row.model }]] : [])),
@@ -59,7 +58,6 @@ export function signalWorldScenes(world: SceneWorldBakes, sources: readonly Name
       registry: [{ id: metadata.id, name: metadata.name, file: metadata.file, category: metadata.category, surface: metadata.surface, part: recipe.scene.root, colliders }],
     });
   }
-  blobs.push(json('world/places-effects.json', effects));
   const worldScenes = parseWorldScenes({ version: 1, libraries: [...SIGNAL_SOURCE_LIBRARIES, SIGNAL_SKIRT_LIBRARY],
     materials: [{ id: 'sand', kind: 'look', look: 'pbr' }], steps: [...SIGNAL_SKIRT_STEPS, ...steps] });
 

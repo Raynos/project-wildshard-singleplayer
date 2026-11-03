@@ -1,5 +1,7 @@
 /** Client-only data sources shared by world scenes, held models and Explorer
  * specimens. Descriptors retain the existing library and baked-kind formats. */
+import { parse } from 'valibot';
+import { SceneModelSourceSchema, SceneBakeSourceSchema } from '@wildshard/format/sceneSources';
 import { loadRigAtlas } from '@wildshard/engine/anim/rig';
 import { sceneScalar, sceneVectors } from './sceneInputs';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -70,6 +72,7 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
         if (result.status === 'rejected') throw result.reason;
         const declared = result.value;
         if (!isJsonData(declared) || declared.rows.meshes.length > 256 || declared.rows.hd.length > 256) throw new Error('Invalid declared model source');
+        parse(SceneModelSourceSchema, declared);
         const source = { ...declared, rows: sceneRigFiles(declared.rows, product) };
         const name = key(product.slug, row.id);
         modelRows.set(name, source);
@@ -93,6 +96,7 @@ export function prepareSceneSources(product: ShardProduct): Promise<void> {
         if (result.status === 'rejected') throw result.reason;
         const declared = result.value;
         if (!isJsonData(declared) || Object.keys(declared.rows).length > 128) throw new Error('Invalid declared bake source');
+        parse(SceneBakeSourceSchema, declared);
         const source = sceneBakeFiles(declared, product);
         const name = key(product.slug, row.id), surfaces = inputs(product.slug, source.inputs);
         bakeRows.set(name, source);

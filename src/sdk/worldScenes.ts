@@ -1,3 +1,4 @@
+import { SceneModelSourceSchema, SceneBakeSourceSchema } from '@wildshard/format/sceneSources';
 import type { BakedPlacementPlan } from '@wildshard/format/bakedTiles';
 import { isJsonData } from '@wildshard/format/json';
 import { namedJsonSchema, registeredJsonSchema } from './formatJsonSchema';
@@ -185,12 +186,12 @@ export function sceneDrawRows(input: unknown): SceneDrawsRows { return parse(Sce
  * Preserve JSON property order and numeric spelling; runtime resource admission stays authoritative. */
 export function modelSceneSourceFile(name: string, input: SceneModelSource): NamedBlob {
   if (input.rows.meshes.length > 256 || input.rows.hd.length > 256) throw new Error('Invalid declared model source');
-  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)));
+  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)), { jsonSchema: namedJsonSchema(SceneModelSourceSchema, { provenance: true }) });
 }
 /** Publish source-owned baked kinds, bindings and contacts with the native kind-table limit. */
 export function bakedSceneSourceFile(name: string, input: SceneBakeSource): NamedBlob {
   if (Object.keys(input.rows).length > 128) throw new Error('Invalid declared bake source');
-  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)));
+  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)), { jsonSchema: namedJsonSchema(SceneBakeSourceSchema, { provenance: true }) });
 }
 
 /** Complete admitted living-scene profile, before any geometry or door owner is installed. */

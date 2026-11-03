@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import type { GraphNode, GraphRef } from './materialGraph';
 import type { SurfaceLook } from './surfaceLooks';
 import { isJsonData } from './json';
 import { ClientChannelsSchema, HeldMeleePhaseSchema, PrivateSceneSchema, type ClientChannelProgram, type HeldMeleePhaseRows, type PrivateScene } from './clientChannels';
@@ -149,9 +150,28 @@ const clips = v.array(v.union([
 const dims = v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, halfWidth: finite });
 const standIn = v.strictObject({ bones: v.array(v.strictObject({ name: text, parent: v.nullable(text), pos: triple })), dims });
 const clipName = v.pipe(text, v.regex(/^(?:idle|walk|run|attack|hit|die|turn|swim|fly)(?:\..*)?$/u));
+// The complete pure-colour graph wire has a structural grammar and still
+// runs ColourFunctionSchema's original graph/type/budget admission. Its native
+// raw transform is not replaced by an opaque JSON-schema conversion allowance.
+const graphLiteral = v.union([finite, v.array(finite)]);
+const graphRef: v.GenericSchema<unknown, GraphRef> = v.union([text, graphLiteral]);
+const graphNode: v.GenericSchema<unknown, GraphNode> = v.lazy(sourceGraphNode);
+const graphNodeBody: v.GenericSchema<unknown, GraphNode> = v.strictObject({ op: text, in: v.exactOptional(v.array(graphRef)),
+    value: v.exactOptional(graphLiteral), param: v.exactOptional(text), mask: v.exactOptional(text), count: v.exactOptional(finite),
+    body: v.exactOptional(v.strictObject({ nodes: v.record(text, graphNode), out: graphRef })), name: v.exactOptional(text),
+    type: v.exactOptional(v.picklist(['float', 'vec2', 'vec3', 'vec4', 'bool'])), default: v.exactOptional(graphLiteral),
+    interpolation: v.exactOptional(v.literal('flat')) });
+function sourceGraphNode(): v.GenericSchema<unknown, GraphNode> { return graphNodeBody; }
+const colourSource: v.GenericSchema<unknown, ColourFunctionRow> = v.pipe(v.strictObject({ name: text, input: text, locals: v.array(text),
+    layout: v.picklist(['compact', 'lines', 'spaced']), graph: v.strictObject({ version: v.literal(1), kind: v.literal('material'), model: v.literal('unlit'),
+        budget: v.exactOptional(v.strictObject({ nodes: finite, samplers: finite, instructions: finite })), primitive: v.exactOptional(v.picklist(['mesh', 'points'])),
+        doubleSided: v.exactOptional(v.boolean()), flipBackfaceNormals: v.exactOptional(v.boolean()), toonCaustics: v.exactOptional(v.boolean()), flatShading: v.exactOptional(v.boolean()),
+        params: v.record(text, v.strictObject({ type: v.literal('vec3'), value: triple, min: v.exactOptional(finite), max: v.exactOptional(finite), role: v.exactOptional(v.picklist(['colour', 'data', 'lent'])) })),
+        arrays: v.exactOptional(v.strictObject({})), nodes: v.record(text, graphNode), stages: v.strictObject({ surface: v.strictObject({ colour: graphRef }) }),
+    }) }), v.check(value => v.safeParse(ColourFunctionSchema, value).success, 'Original native colour graph admission'));
 const rigs = v.strictObject({ bodies: v.strictObject({ creatures: list(text, 1024), urls: strings, standIns: v.record(text, standIn), fault: text,
         releaseDecoded: v.exactOptional(v.boolean()) }), looks: v.array(v.strictObject({ body: text, look: v.strictObject({ id: text, species: text, kind: text,
-            dims: v.exactOptional(dims), skeleton: text, sockets: v.array(text), clipNames: v.array(clipName), colourTransform: v.exactOptional(v.strictObject({ id: text, row: ColourFunctionSchema })) }), clips })) });
+            dims: v.exactOptional(dims), skeleton: text, sockets: v.array(text), clipNames: v.array(clipName), colourTransform: v.exactOptional(v.strictObject({ id: text, row: colourSource })) }), clips })) });
 const geometryPool = v.strictObject({ url: text, parts: v.array(text), native: v.exactOptional(v.strictObject({ first: v.exactOptional(v.boolean()), requireIndex: v.boolean(),
         white: v.exactOptional(v.boolean()), disposeSource: v.exactOptional(v.boolean()) })),
     channels: v.exactOptional(v.array(v.strictObject({ name: text, source: text, width: natural, parts: v.exactOptional(v.array(text)) }))),
