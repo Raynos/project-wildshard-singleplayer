@@ -72,8 +72,8 @@ quadrant reads polished (no grids, no size labels).
    whole cell, like `blender-template`; (c) image-to-3D pieces. **Recommended (b):** polished modelled walls and roads
    from a script we can re-run; the data rows still copy `_template`. (a) reads as dev boxes, (c) is slow and uneven.
 2. **Which grid cell, and when.** The hologram plot it replaces sits at [−1,−1], not (0,2), and G972 forbids a
-   Developer-only cell. (a) keep the showcase out of the grid until W12 (Developer reaches it from Select a shard, the
-   public grid keeps the hologram at [−1,−1]); (b) put it in [−1,−1] now for everyone. **Recommended (a):** the public
-   build keeps the hologram (19l) and W12 swaps the cell after your phone pass.
+   Developer-only cell. (a) keep the showcase out of the grid while it is built (Developer reaches it from Select a
+   shard, the public grid keeps the hologram at [−1,−1]); (b) put it in [−1,−1] now for everyone. **Recommended (a):**
+   the public build keeps the hologram (19l); the swap is W12's question (after the west pass, or after the east).
 3. **Look family.** (a) toon (Driftwood's); (b) PBR (Pine's); (c) painterly (Nalati's). **Recommended (a) toon:** it
    matches the remastered mockups' simple polished style and is the cheapest family on the phone.
