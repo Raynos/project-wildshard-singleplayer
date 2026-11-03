@@ -5,13 +5,13 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 17e15e8-mw0gdtdj** (04:25 Cancun, 5 plots + grid; before it 2f1f8c4; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 3f18b9d-mw0iuyme** (05:30 Cancun, full verify 05:56; before it 17e15e8; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**05:10:** final boards all 5 plots + NM, OB9 hero B 48b08331c0. OB8: plots + J1/J2 pass Sim 30 fps; CI9 43.8 min (open). Open: Nalati warm +52 %, DW home 181.
+**06:10:** OB8 closed bar Bayou/Frost refresh: plots, J1/J2, DW home 131 pass Sim 30 fps; DW <=150 met (144 grid, 138 solo). Audio bar 10: Bayou, Frost. Open: CI9 43.8 min, CI10 phone.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
@@ -28,7 +28,7 @@ NF18 (QA). PF12 closed measured.
 - GLSL programs accepted: Nine 72 (bar 70), Pine 111 (bar 100; distinct states). EP3 / NF22 / PF15 closed (sort ~1-4).
 - PF4 closes at the leather-grip merge (skins). PF6 holstered bow freezes (lever trade rejected). PF5 far idle elites
   pause (bca6ac13c7; ~4 m drift at 132 m removed, wake identical).
-- Not built: cabin merge, Rapier skip, EP11, PF17. Nine flake pixels (569,1139) / (591,715) ruled exact.
+- Not built: cabin merge, Rapier skip, EP11, PF17. Nine flake pixels (569,1139), (591,715), (635,1097; any source, 06:00) ruled exact.
 - Staged deploy (G872): prepare stages --skip-domain behind SSO, ship promotes; fallback = today's path.
 - EP9 kept, cell re-chunk ships (boards 6c23d7d7a6, 4152abcd85); toon gloss gate stays off.
 
