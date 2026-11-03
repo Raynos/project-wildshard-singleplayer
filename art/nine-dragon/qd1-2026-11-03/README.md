@@ -30,7 +30,7 @@ both fixes) has no facade behind the balconies, so the view runs through to the 
 windows and pale gaps (Jake's street shot); on `54771ba` the walls are back and it matches LEGACY. Cams 10, 17, 18 and
 21 look the same before and after: the hidden walls sit behind other geometry from those cameras.
 
-Jake's 7 QA spots: [jake7-chromium-board.jpg](jake7-chromium-board.jpg), JAKE'S PHONE · LIVE `8057f4f` · FIX `54771ba` after 60 s
+Jake's 7 QA spots: [jake7-chromium-board.jpg](jake7-chromium-board.jpg) and [jake7-webkit-board.jpg](jake7-webkit-board.jpg) (FIX in WebKit, LIVE in Chromium), JAKE'S PHONE · LIVE `8057f4f` · FIX `54771ba` after 60 s
 at each pose. His poses were not recorded; [cameras-jake7.json](cameras-jake7.json) reads them from his shots and
 minimaps. **They land near his spots but not on his exact views, and LIVE already looks whole there in Chromium**, so
 this board shows the spots are whole after the fix, not the defect itself: cam 20 above is the before / after evidence.
