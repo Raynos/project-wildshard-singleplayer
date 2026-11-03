@@ -2,6 +2,11 @@
   "schema": "open-plot-captures/1",
   "plots": [
     {
+      "slug": "open-plot-frostline-peaks",
+      "instance": "open-plot-sw",
+      "cameras": "art/open-plots/frostline-peaks/domes"
+    },
+    {
       "slug": "open-plot-lantern-bayou",
       "instance": "open-plot-0-1",
       "cameras": "art/open-plots/lantern-bayou/domes"

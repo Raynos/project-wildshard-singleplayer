@@ -45,21 +45,21 @@
         "time": 0,
         "sky": {
           "zenith": [
-            0.2,
-            0.22,
-            0.42
+            0.1,
+            0.28,
+            0.74
           ],
           "horizon": [
-            0.86,
-            0.62,
-            0.58
+            0.72,
+            0.84,
+            0.97
           ]
         },
         "fog": {
           "colour": [
-            0.62,
-            0.58,
-            0.7
+            0.8,
+            0.87,
+            0.97
           ],
           "density": 0,
           "near": 300,
@@ -68,26 +68,35 @@
         "sun": {
           "colour": [
             1,
-            0.82,
-            0.68
+            0.95,
+            0.86
           ],
-          "intensity": 1.5
+          "intensity": 1.7
         },
         "ambient": {
           "sky": [
-            0.66,
-            0.62,
-            0.86
+            0.6,
+            0.72,
+            0.95
           ],
           "ground": [
-            0.55,
-            0.36,
-            0.24
+            0.86,
+            0.89,
+            0.94
           ],
-          "intensity": 1
+          "intensity": 1.1
         }
       }
-    ]
+    ],
+    "worldMaterials": {
+      "Paving": "paving",
+      "Kit": "kit",
+      "Glow": "glow",
+      "Pool": "pool",
+      "Landmark": "landmark",
+      "Water": "water",
+      "Poster": "billboard"
+    }
   },
   "map": {
     "style": {
@@ -96,124 +105,140 @@
       "shade": 0.3,
       "classes": [
         {
-          "match": "#baa8a7",
-          "fill": "#baa8a7"
+          "match": "#dfe7ef",
+          "fill": "#dfe7ef"
         },
         {
-          "match": "#c8b7b2",
-          "fill": "#c8b7b2"
+          "match": "#e9eff5",
+          "fill": "#e9eff5"
         },
         {
-          "match": "#a3959a",
-          "fill": "#a3959a"
+          "match": "#c9d3de",
+          "fill": "#c9d3de"
         },
         {
-          "match": "#b6a5a3",
-          "fill": "#b6a5a3"
+          "match": "#e3eaf2",
+          "fill": "#e3eaf2"
         },
         {
-          "match": "#d5c3be",
-          "fill": "#d5c3be"
+          "match": "#eef3f8",
+          "fill": "#eef3f8"
         },
         {
-          "match": "#c1b0af",
-          "fill": "#c1b0af"
+          "match": "#e6edf4",
+          "fill": "#e6edf4"
         },
         {
-          "match": "#e9d6b0",
-          "fill": "#e9d6b0"
+          "match": "#7a5234",
+          "fill": "#7a5234"
         },
         {
-          "match": "#24358c",
-          "fill": "#24358c"
+          "match": "#f2f6fa",
+          "fill": "#f2f6fa"
         },
         {
-          "match": "#5b3a24",
-          "fill": "#5b3a24"
+          "match": "#6b4529",
+          "fill": "#6b4529"
         },
         {
-          "match": "#c0222b",
-          "fill": "#c0222b"
+          "match": "#8c2f24",
+          "fill": "#8c2f24"
         },
         {
-          "match": "#7a1218",
-          "fill": "#7a1218"
+          "match": "#5a1d16",
+          "fill": "#5a1d16"
         },
         {
-          "match": "#8a5a34",
-          "fill": "#8a5a34"
+          "match": "#7a5232",
+          "fill": "#7a5232"
         },
         {
-          "match": "#3a9fc0",
-          "fill": "#3a9fc0"
+          "match": "#4aa8d8",
+          "fill": "#4aa8d8"
         },
         {
-          "match": "#8a8a94",
-          "fill": "#8a8a94"
+          "match": "#8fd0ee",
+          "fill": "#8fd0ee"
         },
         {
-          "match": "#a6a6b0",
-          "fill": "#a6a6b0"
+          "match": "#e6f6ff",
+          "fill": "#e6f6ff"
         },
         {
-          "match": "#5c9e3e",
-          "fill": "#5c9e3e"
+          "match": "#8d97a3",
+          "fill": "#8d97a3"
         },
         {
-          "match": "#457f34",
-          "fill": "#457f34"
+          "match": "#e8eef4",
+          "fill": "#e8eef4"
         },
         {
-          "match": "#4e9a3c",
-          "fill": "#4e9a3c"
+          "match": "#3f6d55",
+          "fill": "#3f6d55"
         },
         {
-          "match": "#387a30",
-          "fill": "#387a30"
+          "match": "#2f6a4f",
+          "fill": "#2f6a4f"
         },
         {
-          "match": "#5a4030",
-          "fill": "#5a4030"
+          "match": "#1f4f3c",
+          "fill": "#1f4f3c"
         },
         {
-          "match": "#ffb347",
-          "fill": "#ffb347"
+          "match": "#4f3727",
+          "fill": "#4f3727"
         },
         {
-          "match": "#ffc96a",
-          "fill": "#ffc96a"
+          "match": "#ffc070",
+          "fill": "#ffc070"
         },
         {
-          "match": "#918489",
-          "fill": "#918489"
+          "match": "#ffcf7a",
+          "fill": "#ffcf7a"
         },
         {
-          "match": "#14203f",
-          "fill": "#14203f"
+          "match": "#b8c3cf",
+          "fill": "#b8c3cf"
         },
         {
-          "match": "#9a4a14",
-          "fill": "#9a4a14"
+          "match": "#132a5a",
+          "fill": "#132a5a"
         },
         {
-          "match": "#ff7a2e",
-          "fill": "#ff7a2e"
+          "match": "#ffb060",
+          "fill": "#ffb060"
         },
         {
-          "match": "#ff4a3a",
-          "fill": "#ff4a3a"
+          "match": "#c4532f",
+          "fill": "#c4532f"
         },
         {
-          "match": "#c2361c",
-          "fill": "#c2361c"
+          "match": "#ff7a4a",
+          "fill": "#ff7a4a"
         },
         {
-          "match": "#1f7fff",
-          "fill": "#1f7fff"
+          "match": "#7fb6ff",
+          "fill": "#7fb6ff"
         },
         {
-          "match": "#2a1d14",
-          "fill": "#2a1d14"
+          "match": "#3fa0ff",
+          "fill": "#3fa0ff"
+        },
+        {
+          "match": "#2a2018",
+          "fill": "#2a2018"
+        },
+        {
+          "match": "#f4f8fc",
+          "fill": "#f4f8fc"
+        },
+        {
+          "match": "#c8d8ec",
+          "fill": "#c8d8ec"
+        },
+        {
+          "match": "#2b2b33",
+          "fill": "#2b2b33"
         }
       ]
     },
@@ -223,5 +248,5 @@
       "coarse_standins"
     ]
   },
-  "activated": false
+  "activated": true
 }

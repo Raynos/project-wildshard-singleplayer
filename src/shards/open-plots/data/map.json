@@ -324,6 +324,156 @@
         "detail_pool",
         "coarse_standins"
       ]
+    },
+    "open-plot-frostline-peaks": {
+      "style": {
+        "kind": "ground",
+        "smooth": 2,
+        "shade": 0.3,
+        "classes": [
+          {
+            "match": "#dfe7ef",
+            "fill": "#dfe7ef"
+          },
+          {
+            "match": "#e9eff5",
+            "fill": "#e9eff5"
+          },
+          {
+            "match": "#c9d3de",
+            "fill": "#c9d3de"
+          },
+          {
+            "match": "#e3eaf2",
+            "fill": "#e3eaf2"
+          },
+          {
+            "match": "#eef3f8",
+            "fill": "#eef3f8"
+          },
+          {
+            "match": "#e6edf4",
+            "fill": "#e6edf4"
+          },
+          {
+            "match": "#7a5234",
+            "fill": "#7a5234"
+          },
+          {
+            "match": "#f2f6fa",
+            "fill": "#f2f6fa"
+          },
+          {
+            "match": "#6b4529",
+            "fill": "#6b4529"
+          },
+          {
+            "match": "#8c2f24",
+            "fill": "#8c2f24"
+          },
+          {
+            "match": "#5a1d16",
+            "fill": "#5a1d16"
+          },
+          {
+            "match": "#7a5232",
+            "fill": "#7a5232"
+          },
+          {
+            "match": "#4aa8d8",
+            "fill": "#4aa8d8"
+          },
+          {
+            "match": "#8fd0ee",
+            "fill": "#8fd0ee"
+          },
+          {
+            "match": "#e6f6ff",
+            "fill": "#e6f6ff"
+          },
+          {
+            "match": "#8d97a3",
+            "fill": "#8d97a3"
+          },
+          {
+            "match": "#e8eef4",
+            "fill": "#e8eef4"
+          },
+          {
+            "match": "#3f6d55",
+            "fill": "#3f6d55"
+          },
+          {
+            "match": "#2f6a4f",
+            "fill": "#2f6a4f"
+          },
+          {
+            "match": "#1f4f3c",
+            "fill": "#1f4f3c"
+          },
+          {
+            "match": "#4f3727",
+            "fill": "#4f3727"
+          },
+          {
+            "match": "#ffc070",
+            "fill": "#ffc070"
+          },
+          {
+            "match": "#ffcf7a",
+            "fill": "#ffcf7a"
+          },
+          {
+            "match": "#b8c3cf",
+            "fill": "#b8c3cf"
+          },
+          {
+            "match": "#132a5a",
+            "fill": "#132a5a"
+          },
+          {
+            "match": "#ffb060",
+            "fill": "#ffb060"
+          },
+          {
+            "match": "#c4532f",
+            "fill": "#c4532f"
+          },
+          {
+            "match": "#ff7a4a",
+            "fill": "#ff7a4a"
+          },
+          {
+            "match": "#7fb6ff",
+            "fill": "#7fb6ff"
+          },
+          {
+            "match": "#3fa0ff",
+            "fill": "#3fa0ff"
+          },
+          {
+            "match": "#2a2018",
+            "fill": "#2a2018"
+          },
+          {
+            "match": "#f4f8fc",
+            "fill": "#f4f8fc"
+          },
+          {
+            "match": "#c8d8ec",
+            "fill": "#c8d8ec"
+          },
+          {
+            "match": "#2b2b33",
+            "fill": "#2b2b33"
+          }
+        ]
+      },
+      "exclude": [
+        "collide_",
+        "detail_pool",
+        "coarse_standins"
+      ]
     }
   },
   "inputs": [

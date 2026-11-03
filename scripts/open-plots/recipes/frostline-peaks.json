@@ -5,40 +5,116 @@
   "plot": "frostline-peaks",
   "reference": "art/grid/round-62-open-plot-palettes/16-frostline-peaks.jpg",
   "palette": {
-    "paving": "#baa8a7",
-    "lane": "#c8b7b2",
-    "ring": "#a3959a",
-    "court": "#b6a5a3",
-    "plaza": "#d5c3be",
-    "forecourt": "#c1b0af",
-    "wall": "#e9d6b0",
-    "roof": "#24358c",
-    "wood": "#5b3a24",
-    "stall": "#c0222b",
-    "stallDark": "#7a1218",
-    "crate": "#8a5a34",
-    "water": "#3a9fc0",
-    "stone": "#8a8a94",
-    "stoneTop": "#a6a6b0",
-    "lawn": "#5c9e3e",
-    "hedge": "#457f34",
-    "foliage": "#4e9a3c",
-    "foliageDark": "#387a30",
-    "trunk": "#5a4030",
-    "lantern": "#ffb347",
-    "window": "#ffc96a",
-    "kerb": "#918489",
-    "board": "#14203f",
-    "pool": "#9a4a14",
-    "awning": "#ff7a2e",
-    "bulbRed": "#ff4a3a",
-    "gatePool": "#c2361c",
-    "canalGlow": "#1f7fff",
-    "rope": "#2a1d14"
+    "paving": "#dfe7ef",
+    "lane": "#e9eff5",
+    "ring": "#c9d3de",
+    "court": "#e3eaf2",
+    "plaza": "#eef3f8",
+    "forecourt": "#e6edf4",
+    "wall": "#7a5234",
+    "roof": "#f2f6fa",
+    "wood": "#6b4529",
+    "stall": "#8c2f24",
+    "stallDark": "#5a1d16",
+    "crate": "#7a5232",
+    "water": "#4aa8d8",
+    "ice": "#8fd0ee",
+    "iceCrack": "#e6f6ff",
+    "stone": "#8d97a3",
+    "stoneTop": "#e8eef4",
+    "lawn": "#eef3f8",
+    "hedge": "#3f6d55",
+    "foliage": "#2f6a4f",
+    "foliageDark": "#1f4f3c",
+    "trunk": "#4f3727",
+    "lantern": "#ffc070",
+    "window": "#ffcf7a",
+    "kerb": "#b8c3cf",
+    "board": "#132a5a",
+    "pool": "#ffb060",
+    "awning": "#c4532f",
+    "bulbRed": "#ff7a4a",
+    "gatePool": "#7fb6ff",
+    "canalGlow": "#3fa0ff",
+    "rope": "#2a2018",
+    "snow": "#f4f8fc",
+    "snowShade": "#c8d8ec",
+    "iron": "#2b2b33"
   },
   "kit": [
-    "trees",
+    "lodges",
+    "pines",
+    "lift",
+    "lanterns",
     "props",
-    "lanterns"
-  ]
+    "bridges",
+    "canal"
+  ],
+  "rows": [
+    "F0 D0 F0 N0 N3 F0 D0 F0",
+    "D1 F0 L0 C1 C1 L1 F0 D3",
+    "F0 D1 C0 F0 F0 C0 D3 F0",
+    "N2 D1 C0 P0 P1 C0 D3 N1",
+    "N3 D1 C0 P3 P2 C0 D3 N0",
+    "F0 D1 C0 F0 F0 C0 D3 F0",
+    "D1 F0 L3 C1 C1 L2 F0 D3",
+    "F0 D2 F0 N1 N2 F0 D2 F0"
+  ],
+  "lookKeys": [
+    {
+      "time": 0,
+      "sky": {
+        "zenith": [
+          0.1,
+          0.28,
+          0.74
+        ],
+        "horizon": [
+          0.72,
+          0.84,
+          0.97
+        ]
+      },
+      "fog": {
+        "colour": [
+          0.8,
+          0.87,
+          0.97
+        ],
+        "density": 0,
+        "near": 300,
+        "far": 1400
+      },
+      "sun": {
+        "colour": [
+          1.0,
+          0.95,
+          0.86
+        ],
+        "intensity": 1.7
+      },
+      "ambient": {
+        "sky": [
+          0.6,
+          0.72,
+          0.95
+        ],
+        "ground": [
+          0.86,
+          0.89,
+          0.94
+        ],
+        "intensity": 1.1
+      }
+    }
+  ],
+  "worldMaterials": {
+    "Paving": "paving",
+    "Kit": "kit",
+    "Glow": "glow",
+    "Pool": "pool",
+    "Landmark": "landmark",
+    "Water": "water",
+    "Poster": "billboard"
+  }
 }
