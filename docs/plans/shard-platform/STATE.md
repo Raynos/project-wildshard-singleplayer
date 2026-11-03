@@ -5,13 +5,13 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 0b5d27d-mw0zj8ty** (13:34 Cancun, verified 13:46; all Nine QA fixes; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 8bdf53f-mw10wsjy** (13:57 Cancun; all Nine QA fixes + Patchwork audio; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**14:00:** QD1-QD11 live; waiting on Jake QD6, then QD7 (patches in tmp/qd7). G999 lifted: o1 Jungle, o2 Fossil, o3 Saltwind. Zero: 81->~70; batch page 67 files.
+**15:00:** waiting on Jake QD6. QD8 a9c15e13f2 (p95 39.4->36.6) ships next run. Plots: Jungle (walk red), Fossil, Saltwind, Sky, Starfall done; Clockwork, Thin Ice, Desert in work.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
