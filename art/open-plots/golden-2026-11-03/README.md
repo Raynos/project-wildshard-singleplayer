@@ -53,6 +53,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Fossil Badlands](fossil-badlands/) (OP21) | 5 | 6 | 5 | 7 | 6 | 7 | 5 | 5 | **5.75** | NOT YET |
 | [Sky Harbor](sky-harbor/) (OP11) | 4 | 6 | 5 | 7 | 6 | 7 | 5 | 6 | **5.75** | NOT YET |
 | [Thin Ice](thin-ice/) (OP18) | 5 | 6 | 5 | 7 | 6 | 7 | 6 | 5 | **5.88** | NOT YET |
+| [Floating Island Race](sky-race/) (OP22) | 5 | 6 | 6 | 7 | 6 | 7 | 5 | 6 | **6.00** | NOT YET |
 
 The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
 level, where the mockups show one huge landmark framed by dense dressing and the builds show a small landmark over wide
@@ -137,6 +138,11 @@ front of it).
   are the Fairground's eight, moved to its cell (-1, 2). Scored against round 62: the top-down's ice quadrants, lanes and
   plaza match and the crystal reads from the plaza and its foot; the road entry shows the poster before a small crystal,
   the ice is flat colour and the banks' pines draw near only (`../../thin-ice/round-3-final/`).
+- 2026-11-03, Floating Island Race (OP22): first set, shot on the pinned preview of `16f7d79701` through `capture.mjs`;
+  cameras are the Fairground's eight, moved to its cell (0, -2). Scored against round 62: the top-down's four circuits,
+  stands and paddocks sit in the board's places and the tower and arch read from the plaza and under the arch; the road
+  entry shows the poster before a small tower, and the build's four loops stand for the board's one long circuit
+  (`../../sky-race/round-3-final/`).
 - 2026-11-03, Starfall Observatory: first set, from its activation `d4d4b17674` (preview `d4d4b17-mw13gps7`), cameras
   Patchwork's plot-local set moved to Starfall's cell (1, 2) (instance `open-plot-3-4`); final board
   `../starfall-observatory/round-3-final/board.jpg` (its README lists the known gaps).

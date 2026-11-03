@@ -1548,8 +1548,8 @@
         ],
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/sky-race.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/sky-race.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/sky-race.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/sky-race-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/sky-race-landscape.jpg"
         },
         "explore": {
           "art": {

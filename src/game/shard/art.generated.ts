@@ -89,33 +89,35 @@ import art86 from "../../shards/open-plots/thumbs/showcase-template.jpg";
 import art87 from "../../shards/open-plots/thumbs/sky-harbor-landscape.jpg";
 import art88 from "../../shards/open-plots/thumbs/sky-harbor-portrait.jpg";
 import art89 from "../../shards/open-plots/thumbs/sky-harbor.jpg";
-import art90 from "../../shards/open-plots/thumbs/sky-race.jpg";
-import art91 from "../../shards/open-plots/thumbs/starfall-observatory-landscape.jpg";
-import art92 from "../../shards/open-plots/thumbs/starfall-observatory-portrait.jpg";
-import art93 from "../../shards/open-plots/thumbs/starfall-observatory.jpg";
-import art94 from "../../shards/open-plots/thumbs/thin-ice-landscape.jpg";
-import art95 from "../../shards/open-plots/thumbs/thin-ice-portrait.jpg";
-import art96 from "../../shards/open-plots/thumbs/thin-ice.jpg";
-import art97 from "../../shards/pine-hollow/explore/models-pine-hollow.webp";
-import art98 from "../../shards/pine-hollow/explore/pine-den-live.jpg";
-import art99 from "../../shards/pine-hollow/explore/pine-den-target.jpg";
-import art100 from "../../shards/pine-hollow/explore/pine-hamlet-live.jpg";
-import art101 from "../../shards/pine-hollow/explore/pine-hamlet-target.jpg";
-import art102 from "../../shards/pine-hollow/explore/pine-ridge-live.jpg";
-import art103 from "../../shards/pine-hollow/explore/pine-ridge-target.jpg";
-import art104 from "../../shards/pine-hollow/explore/practice-pine-hollow.webp";
-import art105 from "../../shards/pine-hollow/explore/sets-pine-hollow.webp";
-import art106 from "../../shards/pine-hollow/explore/world-pine-hollow.webp";
-import art107 from "../../shards/pine-hollow/thumbs/pine-hollow-landscape.jpg";
-import art108 from "../../shards/pine-hollow/thumbs/pine-hollow-portrait.jpg";
-import art109 from "../../shards/pine-hollow/thumbs/pine-hollow.jpg";
-import art110 from "../../shards/sunscar-dunes/explore/models-sunscar-dunes.webp";
-import art111 from "../../shards/sunscar-dunes/explore/practice-sunscar-dunes.webp";
-import art112 from "../../shards/sunscar-dunes/explore/sets-sunscar-dunes.webp";
-import art113 from "../../shards/sunscar-dunes/explore/world-sunscar-dunes.webp";
-import art114 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-landscape.jpg";
-import art115 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-portrait.jpg";
-import art116 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes.jpg";
+import art90 from "../../shards/open-plots/thumbs/sky-race-landscape.jpg";
+import art91 from "../../shards/open-plots/thumbs/sky-race-portrait.jpg";
+import art92 from "../../shards/open-plots/thumbs/sky-race.jpg";
+import art93 from "../../shards/open-plots/thumbs/starfall-observatory-landscape.jpg";
+import art94 from "../../shards/open-plots/thumbs/starfall-observatory-portrait.jpg";
+import art95 from "../../shards/open-plots/thumbs/starfall-observatory.jpg";
+import art96 from "../../shards/open-plots/thumbs/thin-ice-landscape.jpg";
+import art97 from "../../shards/open-plots/thumbs/thin-ice-portrait.jpg";
+import art98 from "../../shards/open-plots/thumbs/thin-ice.jpg";
+import art99 from "../../shards/pine-hollow/explore/models-pine-hollow.webp";
+import art100 from "../../shards/pine-hollow/explore/pine-den-live.jpg";
+import art101 from "../../shards/pine-hollow/explore/pine-den-target.jpg";
+import art102 from "../../shards/pine-hollow/explore/pine-hamlet-live.jpg";
+import art103 from "../../shards/pine-hollow/explore/pine-hamlet-target.jpg";
+import art104 from "../../shards/pine-hollow/explore/pine-ridge-live.jpg";
+import art105 from "../../shards/pine-hollow/explore/pine-ridge-target.jpg";
+import art106 from "../../shards/pine-hollow/explore/practice-pine-hollow.webp";
+import art107 from "../../shards/pine-hollow/explore/sets-pine-hollow.webp";
+import art108 from "../../shards/pine-hollow/explore/world-pine-hollow.webp";
+import art109 from "../../shards/pine-hollow/thumbs/pine-hollow-landscape.jpg";
+import art110 from "../../shards/pine-hollow/thumbs/pine-hollow-portrait.jpg";
+import art111 from "../../shards/pine-hollow/thumbs/pine-hollow.jpg";
+import art112 from "../../shards/sunscar-dunes/explore/models-sunscar-dunes.webp";
+import art113 from "../../shards/sunscar-dunes/explore/practice-sunscar-dunes.webp";
+import art114 from "../../shards/sunscar-dunes/explore/sets-sunscar-dunes.webp";
+import art115 from "../../shards/sunscar-dunes/explore/world-sunscar-dunes.webp";
+import art116 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-landscape.jpg";
+import art117 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes-portrait.jpg";
+import art118 from "../../shards/sunscar-dunes/thumbs/sunscar-dunes.jpg";
 export const ART_URL_BYTES: Readonly<Record<string, number>> = {
   [art0]: 84067,
   [art1]: 352881,
@@ -207,31 +209,33 @@ export const ART_URL_BYTES: Readonly<Record<string, number>> = {
   [art87]: 109220,
   [art88]: 84745,
   [art89]: 28251,
-  [art90]: 41981,
-  [art91]: 84130,
-  [art92]: 56940,
-  [art93]: 23479,
-  [art94]: 71410,
-  [art95]: 51276,
-  [art96]: 18688,
-  [art97]: 33030,
-  [art98]: 98192,
-  [art99]: 319169,
-  [art100]: 87503,
-  [art101]: 279188,
-  [art102]: 88266,
-  [art103]: 311965,
-  [art104]: 34658,
-  [art105]: 52592,
-  [art106]: 47938,
-  [art107]: 244511,
-  [art108]: 211789,
-  [art109]: 46844,
-  [art110]: 18878,
-  [art111]: 29650,
-  [art112]: 10346,
-  [art113]: 11874,
-  [art114]: 116503,
-  [art115]: 192736,
-  [art116]: 27410,
+  [art90]: 85542,
+  [art91]: 58990,
+  [art92]: 24595,
+  [art93]: 84130,
+  [art94]: 56940,
+  [art95]: 23479,
+  [art96]: 71410,
+  [art97]: 51276,
+  [art98]: 18688,
+  [art99]: 33030,
+  [art100]: 98192,
+  [art101]: 319169,
+  [art102]: 87503,
+  [art103]: 279188,
+  [art104]: 88266,
+  [art105]: 311965,
+  [art106]: 34658,
+  [art107]: 52592,
+  [art108]: 47938,
+  [art109]: 244511,
+  [art110]: 211789,
+  [art111]: 46844,
+  [art112]: 18878,
+  [art113]: 29650,
+  [art114]: 10346,
+  [art115]: 11874,
+  [art116]: 116503,
+  [art117]: 192736,
+  [art118]: 27410,
 };
