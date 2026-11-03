@@ -13,10 +13,11 @@ import { coralDriftPlot } from './coral.mjs';
 import { jungleZigguratPlot } from './jungle.mjs';
 import { patchworkFairgroundPlot } from './fairground.mjs';
 import { saltwindPlot } from './saltwind.mjs';
+import { starfallPlot } from './starfall.mjs';
 import { fossilBadlandsPlot } from './badlands.mjs';
 import { skyHarborPlot } from './skyharbor.mjs';
 
-export const plotBuilders = { 'night-market': nightMarketPlot, 'lantern-bayou': lanternBayouPlot, 'frostline-peaks': frostlinePlot, 'mosslight-ruins': mosslightPlot, 'ember-forge': emberForgePlot, 'coral-drift': coralDriftPlot, 'jungle-ziggurat': jungleZigguratPlot, 'patchwork-fairground': patchworkFairgroundPlot, 'saltwind-lighthouse': saltwindPlot, 'fossil-badlands': fossilBadlandsPlot, 'sky-harbor': skyHarborPlot, scaffold: scaffoldPlot };
+export const plotBuilders = { 'night-market': nightMarketPlot, 'lantern-bayou': lanternBayouPlot, 'frostline-peaks': frostlinePlot, 'mosslight-ruins': mosslightPlot, 'ember-forge': emberForgePlot, 'coral-drift': coralDriftPlot, 'jungle-ziggurat': jungleZigguratPlot, 'patchwork-fairground': patchworkFairgroundPlot, 'saltwind-lighthouse': saltwindPlot, 'starfall-observatory': starfallPlot, 'fossil-badlands': fossilBadlandsPlot, 'sky-harbor': skyHarborPlot, scaffold: scaffoldPlot };
 
 /** Select a plot's own construction hooks; missing `plot` preserves existing Night Market bytes.
  * A Frostline tower may specify its sheave height after its three coordinates. */
