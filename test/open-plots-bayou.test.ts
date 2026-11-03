@@ -35,3 +35,17 @@ assert.equal(lanternBayouPlot.builders({builders:letters}).tiles.T.sockets,'pppp
 console.log('ok');`;
   expect(execFileSync(process.execPath, ['--input-type=module', '-e', program], { encoding: 'utf8' }).trim()).toBe('ok');
 });
+
+test('no committed open-plot kit or layout carries a negative zero (the world preflight refuses -0)', () => {
+  const program = `import assert from 'node:assert/strict';
+import {readdirSync,readFileSync} from 'node:fs';
+const minus=(v,at)=>{if(typeof v==='number')assert.ok(!Object.is(v,-0),'-0 at '+at);else if(v&&typeof v==='object')for(const [k,x] of Object.entries(v))minus(x,at+'.'+k);};
+const kit='public/assets/open-plots/kit/',layouts='src/shards/open-plots/data/layouts/';
+for(const name of readdirSync(kit).filter(n=>n.endsWith('.glb'))){
+  const b=readFileSync(kit+name),length=b.readUInt32LE(12);
+  assert.equal(b.readUInt32LE(16),0x4e4f534a);minus(JSON.parse(b.subarray(20,20+length).toString('utf8')),name);
+}
+for(const name of readdirSync(layouts).filter(n=>n.endsWith('.json')))minus(JSON.parse(readFileSync(layouts+name,'utf8')),name);
+console.log('ok');`;
+  expect(execFileSync(process.execPath, ['--input-type=module', '-e', program], { encoding: 'utf8' }).trim()).toBe('ok');
+});
