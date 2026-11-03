@@ -25,8 +25,8 @@ each have MOSS-SoundEffect v2 and Stable Audio 3 Medium takes. The chosen set
 uses two MOSS and four Stable Audio recordings. Five winners rank first;
 cypress rustle ranks second against the sound briefs and music/speech/silence
 foils. All pass the existing top-five bar. The boat needed
-paired retakes to produce a clear wooden knock; the original takes remain
-documented in generation provenance.
+paired retakes to produce a clear wooden knock; the catalogue records
+the final engine comparison, seed and generation provenance.
 
 The package includes both score comparisons, the active score reference and
 all six sound loops. Every loop boundary was checked after AAC decoding.
@@ -78,3 +78,12 @@ Coral B wins the score comparison; both takes measure zero separated
 vocal energy. Three chosen sounds use MOSS and three use Stable Audio.
 Four rank first; palm rustle and pier creak rank second. The pier uses
 paired 702 retakes focused on dry timber rather than lagoon water.
+
+Exact package totals (including both score takes and catalogue JSON):
+Bayou 1,668,813 B; Frostline 1,217,361 B; Ember 1,560,660 B;
+Mosslight 1,058,164 B; Coral 1,416,553 B. All are below 3,000,000 B.
+
+Final focused audio/native and legacy compatibility checks pass, including
+Pine’s existing path, Nine’s frozen score-set inventory and Synth gates,
+Nalati’s scene-loop inventory regression and strict missing-inventory
+refusal. Every published AAC candidate passes native packet admission.
