@@ -22,13 +22,14 @@ const GROVE = [-INNER + 0.5, -INNER + 0.5, INNER - 0.5, INNER - 0.5];
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
 
-/** OB5 (bar 7): a gull, a 0.35 m mover in the glow graph's steady mode (red seed in [0.5, 1), no green: drifting slowly,
- *  never blinking to black) at full blue, which the graph lights frost white (sp-o3's tint, frost.mjs `glint`). High
+/** OB5 (bar 7): a gull, a 0.6 m mover in the glow graph's steady mode (red seed in [0.5, 1), no green: drifting slowly,
+ *  never blinking to black) at full blue, which the graph lights frost white (sp-o3's tint, frost.mjs `glint`); 0.35 m read
+ *  1-2 px from the road entry (sp-o3's bar-7 clip at acc0a955d6). High
  *  over the lagoons, so they are the noon plot's motion seen from the road entry with the lamps' flicker. */
 let seeds = 0;
 function gull(w, x, y, z) {
   seeds++;
-  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 1], s = 0.35;
+  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 1], s = 0.6;
   const top = [x, y + s * 1.4, z], a = [x - s, y - s, z - s], b = [x + s, y - s, z - s], d = [x, y - s, z + s * 1.4];
   w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
 }
