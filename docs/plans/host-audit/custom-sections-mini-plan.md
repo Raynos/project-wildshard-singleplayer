@@ -158,7 +158,7 @@ does not close a Z row.
 | **Z8** | **Eligible slice done (2026-11-03, sp-x9), 2/14 removed.** Exact shared ChapterStoryPresentation family (6/6, real complete Nalati/DW/Pine users), plus the 149 B reader-less DW steps deletion `98bab03828`. Original native owners and all Pine bytes remain; all six shards qualify 24/24 Chromium + WebKit through the shared cohort, with Nalati re-shot after QD11. Twelve per-file blockers / 93,379 B below remain charged for the one-user batch; Pine lead already runs as AS. | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
-| **Z11** | **In flight (2026-11-03, sp-x6): candidate reduction 5; three one-user roots stay charged. G998 qualification pending; evidence below. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
+| **Z11** | **Qualified five-file slice (2026-11-03, sp-x6), source `7cc93a3856`: −5 / −57,213 custom bytes; three one-user documents remain charged for Jake's batch. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
 | **Z12** | **In flight (2026-11-03, sp-x2): census 1 dead / 8 live.** G872 approves deleting only unread Pine landmark-view (5,510 B); byte/pack/native/G998/physics-walk qualification pending. Eight complete live files remain charged with [per-file evidence](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2). Far/Sun SceneBuffers are real shared fields but a different whole root from Pine floor/cave/forest and Nalati geography/water; no fake field-root credit | **1 candidate; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **In flight (2026-11-03, sp-x1): census one approved unread copy / nine live one-user roots.** G872 approves retiring Nalati ride/rules (31,569 B); body/pack and strict native parity qualified, G998 pending. The original CS8 cloud specimen plus the added Pine ranged page make ten files in the union; cloud overlaps Z7. Titan decisions already compile from shard AS. [Per-file hashes, routes and exact scope below](#z14-census-encounters-riding-and-one-unread-copy-2026-11-03-sp-x1) | **1 candidate; 9 charged:** Nalati room-entry, timed-encounters, titan-fight, titan-geometry, cloud-specimen, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page | Codex (G958) | 4.5 |
@@ -228,66 +228,90 @@ when a peer changed `src/format/worldScenePages.ts` during the native
 fixture recorder; no freshness retry, bypass or semantic pass is claimed.
 No golden, loading or collider evidence is inferred from these checks.
 
-### Z11 candidate boundary (2026-11-03, sp-x6)
+### Z11 five-file qualification (2026-11-03, sp-x6)
 
-Runtime source is still uncommitted, awaiting G998. The eligible reduction
-is **5**, not 8: delete reader-less Pine `world/ambience.json`; register
-the complete weather document used by Pine and Nalati, the existing
-shared audio-scene grammar, and the G599 post-graph document used by
-Nine and Nalati. Native executors retain allocation and ownership guards.
-Pine's live forest-page floor/fire bodies and their order are pinned.
+Source **`7cc93a385631220f7b15b16415e23e9e302e1a31`** is pushed with
+local gates green. The exact reduction is **5 / 57,213 custom bytes**:
+Pine's reader-less ambience (1,564 B) and weather (2,108 B), plus Nalati
+weather (10,531 B), audio scene (23,554 B) and G599 post (19,456 B).
+Only ambience is physically deleted. Every retained payload remains
+native; live Pine forest-page floors/fire bodies and order are pinned.
+The complete weather wires have Pine and Nalati users; audio also has
+the real open-plot scene, and post has Nine's complete native look row.
+Fresh sp-x2 HOST-BAR: **6/6 for each of these three families**.
 
-G988 exact-type ruling: Nalati `world/weather-fx.json`, Pine
-`world/rain.json` and Pine `world/weather-observations.json` remain
-charged one-user documents. Their complete grammars are admitted but
-have **no platform-family entry**. G571's host approval is not a second
-whole-file user; all three join Jake's one-user batch. No fake second
-emitter or waiver is claimed.
+**Three one-user documents remain charged; no G571 waiver supplies a
+second whole-file user.** Their complete grammars are admitted, with no
+platform-family entry, and join Jake's G988 one-user batch:
 
-Focused native/converter checks: **42/42 across 8 files, 9.4 s**; touched
-types and typed lint pass. Pine's isolated emission comparison removes
-only the 1,564 B dead ambience: all 718 other named bodies and 19
-sections are exact. Combined frozen candidate `d4c2e8d15d-mw0u2vw4`
-includes Z3 and Z8: its Pine index is **1,712,988 B**, under the unchanged
-2,000,000 B cap. Local schema definitions preserve complete branch
-constraints; their focused regression passes. Combined family census is
-Pine 24 and Nalati 37 custom names; these are not Z11-only reductions.
+| Document | Actual bytes | Exact contract |
+|---|---:|---|
+| Nalati `world/weather-fx.json` | 1,050,151 | `WeatherEffectsSchema`: native geometry, sky and numeric tables |
+| Pine `world/rain.json` | 2,195 | `RainPresentationSchema` |
+| Pine `world/weather-observations.json` | 69 | `ForestWeatherObservationSchema` |
 
-Nalati raw byte comparison **FAILS** at the 164 B `look/map` stamp:
-all 338 named bodies and 50/51 sections are exact; map.image remains
-`80afaa55b292b48c93694dbc7ac95557ecb96714b2c159cd467ff3fa0caff2d6`.
-Only tilesHash changes `28158e1c1c99e7d4ab7f74fecf0a4e433672cf8fe18f7ce37288ed5ba24d0967`
-to `0251e8cae02598c70fe00c4652f8840b54f6fc9c0924d0aea1c7d3ac2b9692a8`
-from output.ts defining metadata. Coordinator explicitly accepted this
-exact G872 source-stamp class; no literal whole-product byte bar is claimed.
+Post admission validates every original scaled-post graph and painted
+child before ownership; executors retain their original guards. The
+JSON projection admits only the exact native header predicate and four
+original readonly identity actions. Arbitrary predicates/transforms
+still refuse. Local schema definitions keep complete constraints under
+the unchanged 2 MB index cap. Native/converter checks: **42/42 across
+8 files, 10.5 s** after QD11; root types and touched typed lint pass.
+The independent four-file native/storage review also passes in 2.3 s.
 
-Fresh sp-x2 HOST-BAR review: **6/6 for exactly the three credited
-patterns**, with real complete weather, audio and post roots; no generic
-custom-predicate or transform waiver. Four independent focused native /
-storage / registration suites pass in 2.3 s. FX, rain and observations
-remain charged.
+Isolated Pine emission removes only the 1,564 B dead copy: all 718 other
+named bodies and 19 sections are exact. Nalati's original raw byte
+comparison **FAILS** only at the 164 B `look/map` source stamp. Its image
+stays `80afaa55b292b48c93694dbc7ac95557ecb96714b2c159cd467ff3fa0caff2d6`.
+The coordinator explicitly accepts this exact G872 source-stamp class;
+no literal whole-product byte bar is claimed. Source metadata changes
+tilesHash; the first Z11 transition is `28158e1c…` → `0251e8ca…`, and the
+post-Z9 candidate is `70daef29…`, with the same map image throughout.
 
-Sp-x9 independently sealed the old Nalati product against this exact B0
-inventory. Each side's **22 packs / 377 entries / 62,322,835 B** fully
-reconstructs with hashes checked. The 376 retained entries have identical
-order and bytes except the separate map-stamp entry above. The complete
-4,645 B chapter body is exact. This is reconstruction evidence, not a
-literal whole-pack byte claim. Protocol and audit:
-`tmp/sp-x9-z8/nalati-pack-audit.{py,json}`.
+Independent pack reconstruction seals the old B0 inventory. Post-QD11:
+**22 packs / 377→374 entries / 62,322,835→62,031,703 B**; 373 retained
+ordered entries, all 335 retained named bodies and 50 sections are exact.
+The only excluded bodies are Z9's separately approved three dead pages
+and the map-stamp entry. The 4,645 B chapter body/descriptor is exact.
+This is native reconstruction, not a literal whole-pack byte claim.
 
-G998 on frozen `d4c2e8d15d-mw0u2vw4`: **Pine 24/24 green in Chromium
-and WebKit**, all 48 individual panels read. Native read-only observation
-identifies the camera 11/20 obstructions as moving `SkinnedMesh` actors
-under `animals` (0.9–3.1 m per 60 frames), covered by G998's explicit
-moving-creature exception. Coordinator accepted this verdict. No actor
-was hidden or paused; no golden was promoted. Driftwood is 24/24 green
-in both engines; Nine Chromium is 24/24 green, WebKit pending.
+**G998: all six shards 24/24 green in Chromium and WebKit.** Every
+individual panel was read by its assigned reviewer. Pine and Nine use
+`d4c2e8d15d-mw0u2vw4`; Driftwood shares sp-x1's qualified source/boards
+`c98d1cffe0`. Far/Sun Chromium use the same frozen candidate and WebKit
+uses `a0614245af-mw0vl5br`; their indexes/bodies are identical, and their
+four boards are committed in `67aae61a47`. Far's two moving-owner
+occlusions clear ordinary same-camera re-shots with no actors hidden
+or clock, camera, threshold or settlement guards changed. Pine 11/20
+are native moving animals, verified read-only (0.9–3.1 m / 60 frames)
+and accepted under G998's explicit creature exception.
 
-**Z11 does not receive a pre-existing-red waiver for Nalati QD11.**
-Coordinator requires sp-o1's colour-space fix to land, the candidate to
-be rebuilt on that source, and Nalati's 24 cameras re-shot in Chromium
-and WebKit expecting the golden match. Z3 lands first, then Z11 only
-after that visual bar passes. The remaining cohort stays explicit.
+Nalati is re-qualified **after QD11 `2d4405a27c`**, on the actual shared
+`5b5922e263-mw0vipws` candidate containing all Z11 changes. All eight
+relevant look/format/shader source-map bodies match source exactly;
+its product index matches the independently rebuilt six-shard candidate.
+Chromium **315 s**, WebKit **310 s**: 24 settled poses and no errors
+each; sp-x6 independently reads all 48 panels. Opus also reads snow
+cameras 12/15 green, no promotion (painted cloud shade is plausible,
+not a proven cause). No pre-existing-red waiver is used. Six reviewed
+Pine/Nine/Nalati boards accompany the Z11 source commit.
+
+The all-product working preview first refuses unrelated parked OP26
+Night Market tile caps; the raw failure is retained, without a cap
+raise. The official six-main-shard scope then passes. The subsequently
+committed a209d3e37e normal all-28/app preview and native/pinned-selector
+census pass: **83 / 19,122,509 custom bytes**; Pine 22 / 4,706,698 and
+Nalati 34 / 8,153,207 include the separately landed Z3/Z8/Z9 cuts.
+Only the five-document delta above belongs to Z11.
+
+The historical exact-7cc HEAD preview separately finishes all 28
+products (22 built, six reused), then refuses Driftwood currentness in
+the app's read-only selector. Its failed mirror root was not retained;
+the exact recipe/input mismatch is **UNKNOWN**, not assigned to weather.
+Builder and reader share `productRecipe`; their later seal/key checks
+can refuse a missing recipe, changed recorded input or unavailable
+matching product. The retained generic error does not distinguish them.
+The newer successful census is contrast evidence, not an attributed fix.
 
 ### Z5 complete-source qualification (2026-11-03, sp-x2)
 
