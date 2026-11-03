@@ -4,9 +4,8 @@ import { packDressingTable } from '../src/shards/nalati-grasslands/generators/dr
 import * as v from 'valibot';
 import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';
 import { readSceneNumericTable as readDressingTable } from '../src/game/shardfile/sceneDressing';
-import { nalatiDressingPageReference } from '../src/shards/nalati-grasslands/generators/dressingPages';
 import { DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';
-import { SceneScatterPoseSchema, parseSceneScatterPage } from '../src/format/sceneDressing';
+import { SceneScatterPoseSchema } from '../src/format/sceneDressing';
 import { nalatiCover } from './fixtures/nalati-cover';
 import { AmbientGroup } from '../src/game/ambient/flock';
 import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
@@ -47,14 +46,7 @@ test('Nalati admits every shipping dressing groups and camp keep-out population'
     return bytes;
   };
   const product = { file: (name: string) => Promise.resolve(read(name)) };
-  const readRows = async (key: string): Promise<unknown> => {
-    if(key==='stone'||key==='daisy')return readDressingTable(await product.file(`world/dressing-${key}.bin`));
-    const reference=nalatiDressingPageReference(`world/dressing-${key}.json`);
-    if(reference===undefined)throw new Error('Missing original dressing page identity');
-    const page=parseSceneScatterPage(JSON.parse(new TextDecoder().decode(await product.file(reference.file))));
-    const member=page.members.find(row=>row.id===key);if(member===undefined)throw new Error('Missing original dressing list');
-    return member.rows;
-  };
+  const readRows = async (key: string): Promise<unknown> => key === 'stone' || key === 'daisy' ? readDressingTable(await product.file(`world/dressing-${key}.bin`)) : JSON.parse(new TextDecoder().decode(await product.file(`world/dressing-${key}.json`)));
   const scatter = { parse: (input: unknown): readonly unknown[] => v.parse(v.array(SceneScatterPoseSchema), input) };
   const schemas:Readonly<Record<string,{ readonly parse: (input: unknown) => readonly unknown[] }>> = { ...DRESSING_SCHEMAS, stone: scatter, daisy: scatter };
   const plan:Record<string,readonly unknown[]> = Object.fromEntries(await Promise.all(Object.entries(schemas).filter(([key]) => key !== 'clutter').map(async ([key,schema]):Promise<readonly[string,readonly unknown[]]> => [key,schema.parse(await readRows(key))])));

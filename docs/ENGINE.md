@@ -923,13 +923,12 @@ distinct complete output; omitted arguments restore all words.
 dictionary-free Zstd frame with declared output/window ≤64MiB borrows the existing
 serialized texture worker, checks exact decoded length and restores identical
 words. URL-only readers retain zlib. No geometry changes.
-'`SceneDressing` baked-file rows use admitted files, address tables and bounded
-geometry (optional sphere); Nalati cloth tiers share a file.
-Page-lived `fetchLaneBytes(url)` restores four-byte lanes in bounded frame-budget
-batches, shared by lazy SDK `fetchLaneBake(url)`, crags/species/place/dressing.
-JSON layer `member` selects `SceneScatterPageSchema` (up to four complete
-lists,100k rows each). Owner reads overlap; validation/publication stays ordered.
-Binary tables stay direct.
+`SceneDressing` baked-file rows use an admitted file, address table and bounded
+geometry row with an optional sphere. Both Nalati cloth tiers share one file.
+Lane restoration shares that page lifetime. `fetchLaneBytes(url)` restores
+four-byte lanes in bounded batches under the shared frame budget; the SDK's lazy
+`fetchLaneBake(url)` facade shares it with the existing geometry reader. Species,
+place and dressing bakes use the same paced reader as crags and other shards.
 `AnimalFactory.prepareModels(rows)` prepares each declared kind/variant with its
 original key seed and cache, under the calling construction scope. A null or
 omitted variant prepares all declared variants without rolling placement RNG.
