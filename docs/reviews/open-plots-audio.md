@@ -1,6 +1,6 @@
 # Open plots: morning listening batch
 
-**Status:** `unread` 2026-11-03 — Bayou, Frostline and Ember pass native playback. Mosslight and Coral remain open.
+**Status:** `unread` 2026-11-03 — All five plots pass native bar 10; both score takes are on the shared listening list.
 **Link:** https://wildshard-singleplayer.vercel.app/assets/music/ob7-listening.html (ships with the automatic deployment)
 **Plan:** OPEN-PLOTS, [build-out OB7](../plans/open-plots/build-out-mini-plan.md)
 **Made by:** E521, sp-x2 / Codex
@@ -13,8 +13,8 @@ The measured recommendation ships; the other take stays available for comparison
 | Lantern Bayou | A, seed 701 | 1.67 MB | pass, `d649309a52` |
 | Frostline Peaks | B, seed 702 | 1.22 MB | pass, `b51eee2ce3` |
 | Ember Forge | A, seed 701 | 1.56 MB | pass, `a723810b29` |
-| Mosslight Ruins | A, seed 701 | 1.06 MB | pending playback |
-| Coral Drift | B, seed 702 | 1.42 MB | pending playback |
+| Mosslight Ruins | A, seed 701 | 1.06 MB | pass, `a6c5ce99cc` |
+| Coral Drift | B, seed 702 | 1.42 MB | pass, `aa2ef8558f` |
 
 Bayou A passes the voice check at 0.01% separated vocal energy. B measures
 28.79%, so it is labelled comparison-only and cannot become the active score.
@@ -87,3 +87,18 @@ Final focused audio/native and legacy compatibility checks pass, including
 Pine’s existing path, Nine’s frozen score-set inventory and Synth gates,
 Nalati’s scene-loop inventory regression and strict missing-inventory
 refusal. Every published AAC candidate passes native packet admission.
+
+Mosslight passes on `a6c5ce99cc` at phone 2×: sustained recorded score,
+six decoded loops, active bed and five positional gains 0.390–0.396,
+with heading pan flips near −0.698 / +0.696 and no page errors.
+
+Coral passes on `aa2ef8558f` (activation `27b857779a`) at phone 2×:
+sustained recorded score, six decoded loops, active bed and five spot
+gains 0.390–0.398, with heading pan flips near −0.698 / +0.696 and no
+page errors. All check browsers and borrowed previews are closed.
+
+Publication commits: Bayou `87efa08854`; Frostline `8821f3600a`;
+Ember `49f5db5c90`; Mosslight `5f9e506c7b`; Coral `2a4ad076fc`.
+Native activations include Ember `699ac2968c`, Mosslight `a6c5ce99cc`
+and Coral `27b857779a`. The Nalati compatibility fix is `af6f2f8eb3`;
+the explicit scene-owner client gate is `658a62b688`.
