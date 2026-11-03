@@ -132,3 +132,6 @@ front of it).
   against round 62: the top-down's basins, wharves and corner cottages match and the airship reads from the plaza and
   under its gondola; the road entry shows the poster before a small airship, and the basins are square ponds where the
   board joins canals round its docks (`../../sky-harbor/round-3-final/`).
+- 2026-11-03, Starfall Observatory: first set, from its activation `d4d4b17674` (preview `d4d4b17-mw13gps7`), cameras
+  Patchwork's plot-local set moved to Starfall's cell (1, 2) (instance `open-plot-3-4`); final board
+  `../starfall-observatory/round-3-final/board.jpg` (its README lists the known gaps).
