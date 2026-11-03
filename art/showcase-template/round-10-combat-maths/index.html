@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Combat Maths: Three Damage Formulas</title>
+<style>
+:root {
+  /* Dev-map world like rounds 3-9: grey grid floor, orange stencil. */
+  --floor: #2b2d30; --panel: #35383c; --line: #4a4e54; --ink: #eceae6; --muted: #a7abb1;
+  --orange: #f08a24; --good: #6fcf8a; --bad: #ef6b5b; --warn: #f2c14e;
+  --display: "Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif;
+  --body: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--floor);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px; background-attachment: fixed;
+  color: var(--ink); font: 16px/1.55 var(--body);
+}
+main { max-width: 860px; margin: 0 auto; padding: 24px 14px 56px; display: grid; gap: 18px; }
+h1 { font: 38px/1.05 var(--display); color: var(--orange); margin: 0; letter-spacing: 0.02em; }
+.sub { color: var(--muted); font: 13px var(--mono); }
+section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 16px; display: grid; gap: 10px; min-width: 0; }
+h2 { font: 24px/1.1 var(--display); color: var(--orange); margin: 0; letter-spacing: 0.02em; }
+h3 { font: 600 17px/1.2 var(--body); margin: 6px 0 0; }
+p, li { max-width: 70ch; } p { margin: 0; }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11.5px var(--mono); color: var(--muted); text-transform: uppercase; }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.wide { min-width: 640px; }
+.rec { border-left-color: var(--good); } .rec h2 { color: var(--good); }
+.q { border-left-color: var(--warn); } .q h2 { color: var(--warn); }
+code, .m { font: 13px var(--mono); color: var(--muted); }
+.formula { font: 13px/1.5 var(--mono); background: #2b2d30; border: 1px solid var(--line); padding: 8px 10px; white-space: pre-wrap; color: var(--ink); }
+.fam { border-left-width: 6px; }
+.tag { display: inline-block; font: 600 11px var(--mono); padding: 1px 6px; border: 1px solid var(--line); color: var(--muted); margin-right: 4px; }
+.heat td { text-align: center; font: 12px/1.25 var(--mono); padding: 5px 3px; border: 1px solid #2b2d30; }
+.heat td b { font-size: 14px; display: block; color: #111; }
+.heat td span { color: #222; }
+.heat th { text-align: center; }
+.heat td.lv { background: none; color: var(--muted); text-align: left; }
+.heat td.ext { opacity: 0.55; font-style: italic; }
+.heat td.na { background: none; color: var(--line); }
+.legend span { display: inline-block; padding: 1px 8px; margin: 2px 4px 2px 0; font: 12px var(--mono); color: #111; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+label { display: grid; gap: 3px; font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; }
+select, input, button { max-width: 100%; min-width: 0; font: 15px var(--body); color: var(--ink); background: #2b2d30; border: 1px solid var(--line); padding: 8px; border-radius: 0; min-height: 40px; }
+button { background: var(--orange); color: #111; font-weight: 700; border: 0; cursor: pointer; }
+button.ghost { background: #2b2d30; color: var(--ink); border: 1px solid var(--line); }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.out { display: grid; gap: 10px; }
+.big { font: 28px/1 var(--display); color: var(--orange); }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.kv div { background: #2b2d30; border: 1px solid var(--line); padding: 8px; }
+.kv small { display: block; font: 11px var(--mono); color: var(--muted); text-transform: uppercase; }
+.good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+svg { width: 100%; height: auto; font-family: var(--mono); }
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>COMBAT MATHS: THREE DAMAGE FORMULAS</h1>
+<div class="sub">Kitchen Sink v2 · levels-combat §13 · 2026-11-03 · seven real MMOs, three families, one calculator</div>
+</header>
+
+<section class="rec">
+<h2>THE SHORT ANSWER</h2>
+<p><b>Jake asked:</b> <i>"What are the best 3 options available? I think raw addition and subtraction might be a bad idea."</i> and then <i>"look at real MMORPG designs … as you get stronger, number goes up, numbers get bigger."</i></p>
+<ul>
+<li><b>You're right about subtraction.</b> Fire Emblem's ATK − DEF works for 2–4 blows a fight. With dozens of hits a fight and seven rolled attributes, it makes walls (1-damage hits), lets the rifle out-damage the sword 2:1 early, and loses elite fights to the dice. It stays on this page only as the control.</li>
+<li><b>The three best, all from real MMOs:</b> <b>WoW-classic style</b> (armour takes a share, scaled by the attacker's level), <b>GW1 style</b> (damage doubles or halves per 40 points of strike-minus-armour), <b>GW2 / Lineage 2 style</b> (attack ÷ armour).</li>
+<li><b>Recommended: WoW-classic style.</b> Your sword hits for <b>14 at level 1 and 137 at level 20</b>; a common has <b>88 HP at level 1 and 849 at level 20</b>; the Titan has <b>18,700</b>. It hits every target in the brief and is the only family with no breaks: no walls, no one-shots, DEF-heavy foes stay fair.</li>
+<li><b>A tension you need to settle:</b> your hits grow about 10× from level 1 to 20, but VIT is locked at 100 → 300 (3×). So enemies would have to hit you for 10 at level 1 and only 30 at level 20 while you hit for 137. <b>Recommended: VIT 100 → 600</b> (6×, what WoW's levels 1–20 do), so their numbers go up too. Q2 below.</li>
+</ul>
+</section>
+
+<section>
+<h2>SEVEN REAL MMOS: HOW THEIR NUMBERS GO UP</h2>
+<p>How each game scales damage, enemy HP, armour and level gaps. Numbers are from the games' wikis and server data; "≈" marks a rounded or community-measured value.</p>
+<div class="scroll"><table class="wide">
+<tr><th>Game, levels</th><th>Damage</th><th>Armour</th><th>Enemy HP</th><th>Level gap</th><th>What players feel / what breaks</th></tr>
+<tr><td><b>WoW Classic</b><br>1–60</td><td>weapon + attack power; hits ≈5 at L1, ≈40 at L20, hundreds at 60</td><td>DR = A / (A + 400 + 85 × attacker level), cap 75 %. Mob armour 8 at L1, 836 at L20 (≈28 % DR at L20)</td><td>Warrior-class mobs: <b>42</b> L1, 198 L10, <b>484</b> L20, 3,052 L60 (×11.5 over 1–20)</td><td>misses, parries, glancing blows vs higher mobs; grey mobs pay no XP</td><td>Steady number-goes-up; armour is never a wall because K grows with the attacker. The model for our 1–20.</td></tr>
+<tr><td><b>Guild Wars 1</b><br>1–20</td><td>base × 2<sup>(strike − armour)/40</sup>; weapon strike = 5 × attribute; skills 3 × level</td><td>Monster armour = 3 × level + 0/10/20 by profession; every 40 armour halves damage</td><td>20 × level + 80: <b>100</b> L1, 280 L10, <b>480</b> L20 (×4.8). Players the same, 480 at L20</td><td>built into armour: 3 points a level ≈ 5 % damage a level each way</td><td>Numbers stay small (hits of 10–40). Heavy armour classes feel distinctly tough. Our only reference game with exactly levels 1–20.</td></tr>
+<tr><td><b>Guild Wars 2</b><br>1–80, scaled</td><td>weapon strength × Power × skill coefficient ÷ armour. At L80 the benchmark is Power 1,000 vs armour 2,597</td><td>a straight divisor: double armour = half damage</td><td>scales with level; you are down-scaled to the zone's level</td><td>down-scaling: old zones stay fair, never trivial</td><td>Ratio maths is easy to reason about. The divisor punishes stacked armour hard, so GW2 caps it through gear, not stats.</td></tr>
+<tr><td><b>Lineage 2</b><br>1–85+</td><td>77 × (P.Atk + skill power) × bonuses ÷ P.Def (70 for ranged; Interlude used 70)</td><td>P.Def as the divisor</td><td>rises steeply with level; raid bosses in the millions</td><td>large level penalties to hit and damage</td><td>Gear grades make numbers jump in big steps. A ratio: tanks with stacked P.Def become nearly unkillable.</td></tr>
+<tr><td><b>Old School RuneScape</b><br>1–99</td><td>max hit = ⌊0.5 + effective Str × (Str bonus + 64) / 640⌋, damage 0…max</td><td>armour lowers your <b>hit chance</b> (attack roll vs defence roll), never the damage</td><td>goblin 5, hill giant 35, lesser demon 79, black demon 157; your HP = Hitpoints level, 10 → 99</td><td>through the rolls: defence level and bonus</td><td>Lots of 0 splats; small numbers. Not for us: Jake's fail roll already owns hit chance, so DEF there would double-dip.</td></tr>
+<tr><td><b>Ragnarok Online</b><br>1–99/175</td><td>ATK from weapon + STR</td><td>two layers: hard DEF cuts a %, then soft DEF (VIT) subtracts</td><td>Poring-to-MVP spread is huge (tens to hundreds of thousands)</td><td>HIT vs FLEE: hit % = 80 + HIT − FLEE</td><td>Two layers are opaque; players use calculators. A soft-DEF subtraction is FE's wall again, softened by the % layer.</td></tr>
+<tr><td><b>FFXIV</b><br>1–100</td><td>potency × f(AP) × f(DET) × f(weapon damage); each f reads the stat against a <b>per-level baseline</b> (MAIN, SUB, DIV tables)</td><td>defence as a % via the same level tables</td><td>rises with level; level sync scales you down</td><td>under-level: heavy damage and hit penalties</td><td>Reading a stat against its level's baseline is our "edge = stat ÷ par(level)". It keeps rolls meaningful at every level.</td></tr>
+<tr><td><b>Fire Emblem</b><br>(control, not an MMO)</td><td>(STR + Might) − DEF</td><td>subtracted</td><td>20–60 HP</td><td>none (stats only)</td><td>Works for 2–4 blows a fight. "Armour knight takes 0" is the famous wall.</td></tr>
+</table></div>
+<p class="m">Sources: Warcraft Wiki (Armor, Damage reduction); AzerothCore creature_classlevelstats (mob HP, armour); Guild Wars Wiki (Monster, Armor rating; GWGuru damage threads); Guild Wars 2 Wiki (Damage); masterwork.wiki (Lineage 2 physical damage); OSRS DPS formula guides; iRO Wiki (DEF); Akhmorning "How to be a Math Wizard" (FFXIV).</p>
+</section>
+
+<section>
+<h2>THE SHARED PIPELINE (EVERY FAMILY)</h2>
+<p>Only step 3 changes between families. Steps 1–2 are Jake's rulings, unchanged.</p>
+<div class="formula">1 FAIL   fail % = clamp(12 + 9.75·max(0,g) − 2·max(0,−g) − DEXshift, 2, 90)   g = its level − yours
+         DEXshift = clamp(50 × (DEX ÷ par DEX − 1), −8, +8)
+         dressed as PARRY (25 % if it owns one) · DODGE (AGI vs DEF share, −0.1 a level up) · DEFLECT
+         lucky save: LUK × 0.2 % of YOUR fails land as a glance
+2 HIT    glance min(40, 5·max(0,g)) % ×0.5 · crit clamp(10 + 50·(edge − 1) − 2·max(0,g), 0, 40) % ×(1.5 + LUK/100)
+         crit edge: DEX for melee, AGI for ranged · lucky save: the DEFENDER's LUK × 0.2 % of clean/crit hits become glances
+3 DAMAGE the family's formula below, rounded, at least 1
+         ATK = STR (sword, spear) or DEX (bow, crossbow, rifle) · DEF for physical, MDEF for burn/shock/blast</div>
+<p>Each family's enemy HP curve and enemy strike size are <b>fitted</b> so an average character at equal level kills a common in about 7 sword swings and dies to about 11 of its strikes. So all four agree at equal level by construction; they differ in what happens off it: level gaps, armoured kinds, lucky rolls and weapon choice.</p>
+</section>
+
+<div id="families" class="out"></div>
+
+<section>
+<h2>NUMBER GOES UP</h2>
+<p>An average character with the Forge tier its level can buy (I at 1–5, II 6–10, III 11–15, IV 16–20), against an equal-level common. Pick the VIT span to see what it does to the enemy's hit.</p>
+<label style="max-width:260px">VIT span (your HP 1 → 20)<select id="numVit"><option value="x3">×3: 100 → 300 (locked today)</option><option value="x6" selected>×6: 100 → 600 (recommended)</option><option value="x10">×10: 100 → 1,000</option></select></label>
+<div class="scroll"><table class="wide" id="numTable"></table></div>
+<p class="m">Elite = common × 7 HP; Titan = level-20 common × 22 HP (its own DEF ×1.4 makes its TTK longer still).</p>
+</section>
+
+<section>
+<h2>THE TENSION: 10× DAMAGE, 3× HP</h2>
+<p>Your hit grows about <b>10×</b> from level 1 to 20 (STR 6× and Forge 1.6×). Common HP grows with it (88 → 849): enemies' HP curves are steeper, as ruled. But your own HP is VIT, locked at 100 → 300. For an equal-level enemy to still need ~11 strikes, its strike must grow only 3× while its STR grows 6×, so an <b>enemy level factor has to shrink its strikes</b> about 3.5 % a level (×0.96). It works, but the two sides stop following the same rules, and an enemy hitting you for 30 while you hit it for 137 reads as "they're weak".</p>
+<ul>
+<li><b>A. Keep ×3</b> (100 → 300): enemies hit 10 → 30, with a hidden shrink factor. Lowest numbers on you.</li>
+<li><b>B. ×6 (100 → 600, +9.9 % a level, cap 660)</b>: VIT grows like STR and DEX, so the enemy's strike needs no fudge (fitted factor 1.00). Enemies hit 10 → 60. WoW's 1–20 does about this.</li>
+<li><b>C. ×10 (100 → 1,000)</b>: big numbers both ways (10 → 99), but now enemies need a growing fudge (×1.03 a level).</li>
+</ul>
+</section>
+
+<section>
+<h2>SEVEN GROWTH SHAPES</h2>
+<p>Every attribute grows by Jake's rule: each level adds round(average step × aptitude × swing), aptitude two 1.2, three 1.0, two 0.8, swing 0.4–1.6, cap ~10 % over the level-20 average. What differs is each one's <b>average curve</b>. The chart shows each as a share of its level-20 average so the shapes compare.</p>
+<div id="growthSvg"></div>
+<div class="scroll"><table class="wide" id="growthTable"></table></div>
+<p class="m">Enemies use the same curves × their kind's leans (no swing): Riveter DEF ×1.8, Plumb Drone DEF ×0.6 and HP ×0.6, Welder MDEF ×1.5, and so on (calculator).</p>
+</section>
+
+<section>
+<h2>WEAPONS AND FORGE</h2>
+<p>Animation and attack speed are fixed (no speed from AGI). "Cadence" is one attempt per that many seconds in a real fight, footwork included: the TTK tables use it. Melee trades safety for about 10 % more damage a second.</p>
+<div class="scroll"><table class="wide" id="weaponTable"></table></div>
+<p><b>Forge I–IV:</b> ×1.0 / ×1.2 / ×1.4 / ×1.6 on every weapon (one-off buys at levels 1, 6, 11, 16). Each buy cuts swings per kill by about 15 %; the HP curves are fitted to the smooth average, so a fresh Forge feels strong and wears off over five levels (7.9 swings just before a buy, 6.7 after).</p>
+</section>
+
+<section>
+<h2>TIME-TO-KILL HEAT TABLES</h2>
+<p>Monte Carlo, 600 fights a cell: a freshly rolled character (aptitude and every level's swing), the fail roll, crits, glances and lucky saves both ways, against the reference common (every kind factor 1.0) at your level + the gap. Enemies connect once every 3 s (your footwork beats the rest). Big number: <b>median seconds to kill</b>; then median swings and how often you win the duel.</p>
+<div class="legend"><span style="background:#6fcf8a">win ≥ 95 %</span><span style="background:#c9e27a">70–95 %</span><span style="background:#f2c14e">30–70 %</span><span style="background:#f08a24">5–30 %</span><span style="background:#ef6b5b">&lt; 5 %</span> <span style="background:#4a4e54;color:#ccc">italic: enemy above level 20, formulas extrapolated</span></div>
+<label style="max-width:300px">Family<select id="heatFam"></select></label>
+<div id="heat" class="grid2"></div>
+<div id="heatNotes"></div>
+</section>
+
+<section>
+<h2>KINDS, ELITES, THE TITAN</h2>
+<p>Equal level, median swings to kill each band robot at its band's middle level, and elite and Titan fights (elites connect every 10 s, the Titan every 40 s: big telegraphs). Targets: commons 6–8 sword swings, elites ~60 s, the Titan 3–4 min.</p>
+<div class="scroll"><table class="wide" id="kindTable"></table></div>
+<div class="scroll"><table class="wide" id="bossTable"></table></div>
+</section>
+
+<section>
+<h2>CALCULATOR</h2>
+<div class="controls">
+<label>Family<select id="cFam"></select></label>
+<label>VIT span<select id="cVit"><option value="x3">×3 (100 → 300)</option><option value="x6" selected>×6 (100 → 600)</option><option value="x10">×10 (100 → 1,000)</option></select></label>
+<label>Your level<input id="cL" type="number" min="1" max="20" value="10" inputmode="numeric"></label>
+<label>Aptitude<select id="cApt"><option value="even">Average (all 1.0, no swing)</option><option value="rand">Random roll</option><option value="STR">Glass cannon (STR, DEX 1.2)</option><option value="DEF">Tank (DEF, VIT 1.2)</option></select></label>
+<label>Weapon<select id="cW"></select></label>
+<label>Forge<select id="cF"><option value="0">I (×1.0)</option><option value="1" selected>II (×1.2)</option><option value="2">III (×1.4)</option><option value="3">IV (×1.6)</option></select></label>
+<label>Enemy<select id="cE"></select></label>
+<label>Its level<input id="cEL" type="number" min="1" max="28" value="10" inputmode="numeric"></label>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="cSim">Simulate 1,000 fights</button><button id="cRe" class="ghost">Reroll character</button></div>
+<div id="cOut" class="out"></div>
+</section>
+
+<section class="rec">
+<h2>RECOMMENDATION</h2>
+<div id="recBody"></div>
+</section>
+
+<section class="q">
+<h2>OPEN QUESTIONS FOR JAKE</h2>
+<ol>
+<li><b>Damage formula:</b> WoW-classic style (armour takes a share; K = 2.5 × the attacker's level DEF), GW1 style or GW2 / Lineage 2 style? <b>Recommended: WoW-classic.</b> Fallback: GW1 if you want armoured robots to feel much tougher.</li>
+<li><b>VIT span:</b> keep 100 → 300, or 100 → 600, or 100 → 1,000? <b>Recommended: 100 → 600 (cap 660)</b>, so enemies hit 10 → 60 and both sides follow one rule.</li>
+<li><b>Growth shapes:</b> STR and DEX steep (20 → 120), DEF linear (20 → 80, GW1's 3 a level), AGI front-loaded (20 → 80), MDEF late (10 → 80), LUK flat (10 → 20)? <b>Recommended: yes.</b></li>
+<li><b>LUK's numbers:</b> crit damage ×(1.5 + LUK/100), so ×1.6 → ×1.7, and lucky saves LUK × 0.2 % (2 % → 4 %, cap 6 %) both ways? <b>Recommended: yes</b>; a 1.2 LUK roll is felt, never decisive.</li>
+<li><b>Weapon cadence and DPS:</b> melee about 0.8 damage-units a second, ranged about 0.72 (safer); rifle 2.8 s and twice a sword's hit; elites 7× a common's HP, the Titan 22×? <b>Recommended: yes</b>, then retune after the first playable fight.</li>
+</ol>
+</section>
+</main>
+<script>
+// Combat maths model: shared by the page (inline) and the Node table generator.
+var CM = (function () {
+  var ATTRS = ['VIT', 'STR', 'DEX', 'AGI', 'DEF', 'MDEF', 'LUK'];
+  // Average curve per attribute (aptitude 1.0). shape: exp = constant %, lin = constant points,
+  // front = fast early then flattens, VIT span is a page option.
+  var SHAPES = {
+    VIT: { l1: 100, l20: 600, shape: 'exp', cap: 660, note: 'exponential' },
+    STR: { l1: 20, l20: 120, shape: 'exp', cap: 132, note: 'steep exponential, +9.9 %/level' },
+    DEX: { l1: 20, l20: 120, shape: 'exp', cap: 132, note: 'steep exponential, +9.9 %/level' },
+    AGI: { l1: 20, l20: 80, shape: 'front', cap: 88, note: 'front-loaded: most of it by L10' },
+    DEF: { l1: 20, l20: 80, shape: 'lin', cap: 88, note: 'linear, +3.2 a level (GW1: 3 a level)' },
+    MDEF: { l1: 10, l20: 80, shape: 'exp', cap: 88, note: 'late bloomer: energy foes start at L10' },
+    LUK: { l1: 10, l20: 20, shape: 'lin', cap: 22, note: 'flat: +0.5 a level' }
+  };
+  var VIT_SPANS = { x3: { l20: 300, cap: 330 }, x6: { l20: 600, cap: 660 }, x10: { l20: 1000, cap: 1100 } };
+  function setVit(key) { var v = VIT_SPANS[key]; SHAPES.VIT.l20 = v.l20; SHAPES.VIT.cap = v.cap; CM.vit = key; }
+
+  function par(a, L) {
+    var s = SHAPES[a], t = (L - 1) / 19;
+    if (s.shape === 'exp') return s.l1 * Math.pow(s.l20 / s.l1, t);
+    if (s.shape === 'lin') return s.l1 + (s.l20 - s.l1) * t;
+    var k = 0.85; // front-loaded
+    if (L < 1) return s.l1 + (s.l20 - s.l1) * (L - 1) * (1 - k) / (1 - Math.pow(k, 19));
+    return s.l1 + (s.l20 - s.l1) * (1 - Math.pow(k, L - 1)) / (1 - Math.pow(k, 19));
+  }
+
+  function rng(seed) { // mulberry32
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0; var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function rollApt(r) {
+    var pool = [1.2, 1.2, 1, 1, 1, 0.8, 0.8];
+    for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    var apt = {}; ATTRS.forEach(function (a, i) { apt[a] = pool[i]; }); return apt;
+  }
+  function evenApt() { var apt = {}; ATTRS.forEach(function (a) { apt[a] = 1; }); return apt; }
+
+  // A player character at level L. r = null gives the average character (par values, no swing).
+  function player(L, apt, r) {
+    var st = { L: L, side: 'you', apt: apt };
+    ATTRS.forEach(function (a) {
+      var s = SHAPES[a];
+      if (!r) { st[a] = Math.min(s.cap, Math.round(s.l1 + (par(a, L) - s.l1) * apt[a])); return; }
+      var x = Math.round(par(a, 1));
+      for (var l = 1; l < L; l++) {
+        var step = par(a, l + 1) - par(a, l);
+        x = Math.min(s.cap, x + Math.round(step * apt[a] * (0.4 + 1.2 * r())));
+      }
+      st[a] = x;
+    });
+    st.hp = st.VIT; return st;
+  }
+
+  // Enemy kinds: leans on the shared attributes; hp/def/mdef are body factors; str is the strike multiplier.
+  var KINDS = {
+    ref: { name: 'Common (all ×1.0)', lean: {}, hp: 1, def: 1, mdef: 1, str: 1, atk: 'STR', crit: 'DEX', type: 'phys', cad: 3 },
+    mite: { name: 'Crate Mite', band: '1–3', L: 2, lean: { AGI: 1.2, VIT: 0.8 }, hp: 0.85, def: 0.7, mdef: 0.8, str: 0.9, atk: 'STR', crit: 'DEX', type: 'phys', cad: 2.5 },
+    jack: { name: 'Pallet Jack', band: '4–6', L: 5, lean: { STR: 1.2, AGI: 0.8 }, hp: 1.1, def: 1.3, mdef: 1.0, str: 1.1, atk: 'STR', crit: 'DEX', type: 'phys', cad: 3.5 },
+    drone: { name: 'Plumb Drone', band: '7–9', L: 8, lean: { DEX: 1.2, AGI: 1.2, VIT: 0.8 }, hp: 0.6, def: 0.6, mdef: 0.8, str: 1.0, atk: 'DEX', crit: 'AGI', type: 'phys', cad: 3 },
+    welder: { name: 'Welder Unit', band: '10–12', L: 11, lean: { VIT: 1.2, AGI: 0.8 }, hp: 1.25, def: 1.0, mdef: 1.5, str: 1.0, atk: 'STR', crit: 'DEX', type: 'energy', cad: 3 },
+    riveter: { name: 'Riveter', band: '13–15', L: 14, lean: { STR: 1.2, AGI: 0.7 }, hp: 1.0, def: 1.8, mdef: 1.0, str: 1.0, atk: 'STR', crit: 'DEX', type: 'phys', cad: 3.5 },
+    sentry: { name: 'Arc Sentry', band: '16–18', L: 17, lean: { DEX: 1.2, AGI: 1.2 }, hp: 0.95, def: 0.9, mdef: 1.2, str: 1.0, atk: 'STR', crit: 'DEX', type: 'energy', cad: 3, parry: true },
+    bigpallet: { name: 'Big Pallet (elite)', band: 'elite', L: 6, base: 'jack', elite: 7, cad: 10 },
+    nibbles: { name: 'Sir Nibbles (night elite)', band: 'elite', L: 4, base: 'mite', elite: 7, cad: 10 },
+    warden: { name: 'Vault Warden (elite)', band: 'elite', L: 12, base: 'riveter', elite: 7, cad: 10, def: 1.6, mdef: 1.2 },
+    hotmess: { name: 'Hot Mess (night elite)', band: 'elite', L: 13, base: 'welder', elite: 7, cad: 10 },
+    rita: { name: 'Riveting Rita (night elite)', band: 'elite', L: 16, base: 'riveter', elite: 7, cad: 10 },
+    foreman: { name: 'Foreman Unit 7 (elite)', band: 'elite', L: 18, base: 'drone', elite: 7, cad: 10, hp: 1.0, def: 1.0 },
+    titan: { name: 'The Crate Titan (boss)', band: 'boss', L: 20, base: 'ref', elite: 22, cad: 40, def: 1.4, mdef: 1.2, strMul: 1.5 }
+  };
+  function kindOf(key) {
+    var k = KINDS[key]; if (!k.base) return k;
+    var b = KINDS[k.base], o = {};
+    for (var p in b) o[p] = b[p];
+    for (var q in k) if (q !== 'base') o[q] = k[q];
+    o.str = (b.str) * (k.strMul || 1.25); return o;
+  }
+
+  // Families. Each returns the clean damage of one hit before rounding.
+  var FAMILIES = {
+    wow: {
+      name: 'WoW-classic style', short: 'WoW',
+      src: 'World of Warcraft Classic; also Diablo III, League of Legends',
+      plain: 'Armour takes a share off every hit. The share is DEF / (DEF + K), and K grows with the attacker\'s level, so the same DEF protects less against higher-level foes. Each DEF point is worth the same extra effective HP; it can never reach 100 %.',
+      formula: 'hit = c · weapon · Forge · ATK · K / (K + DEF),  K = 2.5 · parDEF(attacker level)',
+      c: 1.0,
+      dmg: function (A, D, Kpar, w, F, La, atkPar) { var K = 2.5 * Kpar; return this.c * w.b * F * A * K / (K + D); }
+    },
+    gw1: {
+      name: 'GW1 style', short: 'GW1',
+      src: 'Guild Wars 1 (levels 1–20)',
+      plain: 'Damage doubles or halves with the DIFFERENCE between the attacker\'s strike rating and your armour: every 40 points halves it. It keeps the "attack minus defence" idea, but as a multiplier, so it can never hit zero.',
+      formula: 'hit = c · weapon · Forge · ATK · 2^((strike − DEF) / 40),  strike = parDEF(attacker level)',
+      c: 0.7,
+      dmg: function (A, D, Kpar, w, F) { return this.c * w.b * F * A * Math.pow(2, (Kpar - D) / 40); }
+    },
+    ratio: {
+      name: 'GW2 / Lineage 2 style', short: 'Ratio',
+      src: 'Guild Wars 2, Lineage 2 (also Pokémon)',
+      plain: 'Damage is weapon strength × your attack ÷ its armour. Weapon strength grows with your level (GW2\'s level-scaled weapons), so double the armour means half the damage, and the numbers climb fastest.',
+      formula: 'hit = c · weapon · Forge · strength(L) · ATK / DEF,  strength = parATK(attacker level)',
+      c: 0.7,
+      dmg: function (A, D, Kpar, w, F, La, atkPar) { return this.c * w.b * F * atkPar * A / Math.max(1, D); }
+    },
+    fe: {
+      name: 'Fire Emblem style (control)', short: 'FE',
+      src: 'Fire Emblem (not an MMO): Jake\'s earlier pick, kept as the control',
+      plain: 'Attack minus defence, floor 1. Simple to read, but a DEF close to your attack is a wall, and a small DEF change swings the hit by a lot.',
+      formula: 'hit = max(1, Forge · (weapon · 2 · ATK + Might) − DEF)',
+      c: 1,
+      dmg: function (A, D, Kpar, w, F) { return F * (w.b * 2 * A + (w.M || 0)) - D; }
+    }
+  };
+
+  var WEAPONS = {
+    sword: { name: 'Sword', b: 1.0, M: 2, stat: 'STR', crit: 'DEX', cad: 1.25, anim: 0.5, type: 'phys', note: '3-hit combo, parry' },
+    spear: { name: 'Spear', b: 1.2, M: 4, stat: 'STR', crit: 'DEX', cad: 1.5, anim: 0.7, type: 'phys', note: 'reach' },
+    bow: { name: 'Bow (full draw)', b: 1.3, M: 6, stat: 'DEX', crit: 'AGI', cad: 1.8, anim: 0.9, type: 'phys', note: 'draw 0.9 s' },
+    xbow: { name: 'Crossbow, iron', b: 1.75, M: 10, stat: 'DEX', crit: 'AGI', cad: 2.4, anim: 1.6, type: 'phys', note: 'reload 1.6 s' },
+    xbowPitch: { name: 'Crossbow, pitch', b: 1.65, M: 9, stat: 'DEX', crit: 'AGI', cad: 2.4, anim: 1.6, type: 'energy', note: 'burn: hits MDEF' },
+    xbowBroad: { name: 'Crossbow, broadhead', b: 2.1, M: 12, stat: 'DEX', crit: 'AGI', cad: 2.4, anim: 1.6, type: 'phys', defMul: 1.3, note: 'big vs soft, DEF counts ×1.3' },
+    rifle: { name: 'Lever rifle', b: 2.0, M: 16, stat: 'DEX', crit: 'AGI', cad: 2.8, anim: 1.2, type: 'phys', note: 'slowest, hardest' }
+  };
+  var FORGE = [1.0, 1.2, 1.4, 1.6];
+  function forgeFor(L) { return L <= 5 ? 0 : L <= 10 ? 1 : L <= 15 ? 2 : 3; }
+
+  var FIT = {}; // FIT[vit][fam] = { h1, r, s1, q }
+  function hpOf(fam, L) { var f = FIT[CM.vit][fam]; return f.h1 * Math.pow(f.r, L - 1); }
+  function strikeOf(fam, L) { var f = FIT[CM.vit][fam]; return f.s1 * Math.pow(f.q, L - 1); }
+
+  function enemy(fam, key, L) {
+    var k = kindOf(key), st = { L: L, side: 'it', key: key, kind: k };
+    ATTRS.forEach(function (a) { st[a] = Math.round(par(a, L) * (k.lean[a] || 1)); });
+    st.DEF = Math.round(par('DEF', L) * k.def); st.MDEF = Math.round(par('MDEF', L) * k.mdef);
+    st.LUK = Math.round(par('LUK', L));
+    st.hp = Math.round(hpOf(fam, L) * k.hp * (k.elite || 1)); st.VIT = st.hp;
+    st.weapon = { name: 'strike', b: strikeOf(fam, L) * k.str, M: 0, stat: k.atk, crit: k.crit, type: k.type };
+    st.cad = k.cad; st.parry = !!k.parry; return st;
+  }
+
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function edge(st, a) { return st[a] / par(a, st.L); }
+
+  // The odds and the three damages for one attacker → defender pair.
+  function odds(fam, at, de, w, F) {
+    var g = de.L - at.L;
+    var dexShift = clamp(50 * (edge(at, 'DEX') - 1), -8, 8);
+    var fail = clamp(12 + 9.75 * Math.max(0, g) - 2 * Math.max(0, -g) - dexShift, 2, 90) / 100;
+    var glance = Math.min(40, 5 * Math.max(0, g)) / 100;
+    var crit = clamp(10 + 50 * (edge(at, w.crit) - 1) - 2 * Math.max(0, g), 0, 40) / 100;
+    var luckA = Math.min(6, at.LUK * 0.2) / 100, luckD = Math.min(6, de.LUK * 0.2) / 100;
+    var energy = w.type === 'energy';
+    var D = energy ? de.MDEF : de.DEF * (w.defMul || 1);
+    var Kpar = par(energy ? 'MDEF' : 'DEF', at.L);
+    var fn = FAMILIES[fam];
+    var raw = fn.dmg(at[w.stat], D, Kpar, w, F, at.L, par(w.stat, at.L));
+    var critMul = 1.5 + at.LUK / 100;
+    var clean = Math.max(1, Math.round(raw)), gl = Math.max(1, Math.round(raw * 0.5)), cr = Math.max(1, Math.round(raw * critMul));
+    if (raw < 1) { clean = gl = cr = 1; }
+    var parryShare = de.parry ? 0.25 : 0;
+    var dodge = clamp(edge(de, 'AGI') / (edge(de, 'AGI') + edge(de, 'DEF')) - 0.1 * Math.max(0, g), 0.1, 0.9);
+    var split = { parry: parryShare, dodge: (1 - parryShare) * dodge, deflect: (1 - parryShare) * (1 - dodge) };
+    var hit = 1 - fail;
+    var e = hit * (glance * gl + (1 - glance) * (crit * ((1 - luckD) * cr + luckD * gl) + (1 - crit) * ((1 - luckD) * clean + luckD * gl))) + fail * luckA * gl;
+    return { g: g, fail: fail, glance: glance, crit: crit, luckA: luckA, luckD: luckD, raw: raw, clean: clean, gl: gl, cr: cr, split: split, exp: e, wall: raw < 1 };
+  }
+
+  function swing(o, r) {
+    if (r() < o.fail) return r() < o.luckA ? o.gl : 0;
+    if (r() < o.glance) return o.gl;
+    var isCrit = r() < o.crit;
+    if (r() < o.luckD) return o.gl;
+    return isCrit ? o.cr : o.clean;
+  }
+
+  // One fight. Returns attempts and seconds to kill (ignoring your death) and whether you won.
+  function fight(fam, you, it, w, F, r) {
+    var oy = odds(fam, you, it, w, F), oi = odds(fam, it, you, it.weapon, 1);
+    var hpY = you.hp, hpI = it.hp, ty = w.cad, ti = it.cad, n = 0, dead = false, tDead = 0, taken = 0;
+    while (hpI > 0 && n < 3000) {
+      if (ty <= ti) { n++; hpI -= swing(oy, r); if (hpI <= 0) break; ty += w.cad; }
+      else { if (!dead) { var d = swing(oi, r); hpY -= d; taken++; if (hpY <= 0) { dead = true; tDead = ti; } } ti += it.cad; }
+    }
+    return { n: n, t: n * w.cad, win: !dead, tDead: tDead };
+  }
+  // Attempts it needs to kill you (ignoring your attacks).
+  function hitsToKillYou(fam, you, it, r) {
+    var oi = odds(fam, it, you, it.weapon, 1), hp = you.hp, n = 0;
+    while (hp > 0 && n < 3000) { n++; hp -= swing(oi, r); } return n;
+  }
+
+  function fitAll() {
+    ['x3', 'x6', 'x10'].forEach(function (v) {
+      setVit(v); FIT[v] = {};
+      Object.keys(FAMILIES).forEach(function (fam) {
+        FIT[v][fam] = { h1: 1, r: 1, s1: 1, q: 1 };
+        var xs = [], hs = [], ss = [];
+        for (var L = 1; L <= 20; L++) {
+          var you = player(L, evenApt(), null);
+          var refStats = enemy(fam, 'ref', L);
+          var Fc = 1 + 0.6 * (L - 1) / 19;
+          var e = odds(fam, you, refStats, WEAPONS.sword, Fc).exp;
+          hs.push(Math.log(6.6 * e));
+          // strike scale s so that 11 attempts kill an average you
+          var lo = 0.001, hi = 100;
+          for (var it = 0; it < 60; it++) {
+            var mid = Math.sqrt(lo * hi);
+            var en = refStats; en.weapon = { b: mid, M: 0, stat: 'STR', crit: 'DEX', type: 'phys' };
+            var ee = odds(fam, en, you, en.weapon, 1).exp;
+            if (11 * ee > you.hp) hi = mid; else lo = mid;
+          }
+          ss.push(Math.log(lo)); xs.push(L - 1);
+        }
+        function lsq(ys) {
+          var n = xs.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+          for (var i = 0; i < n; i++) { sx += xs[i]; sy += ys[i]; sxx += xs[i] * xs[i]; sxy += xs[i] * ys[i]; }
+          var b = (n * sxy - sx * sy) / (n * sxx - sx * sx), a = (sy - b * sx) / n; return [Math.exp(a), Math.exp(b)];
+        }
+        var h = lsq(hs), s = lsq(ss);
+        FIT[v][fam] = { h1: h[0], r: h[1], s1: s[0], q: s[1] };
+      });
+    });
+    setVit('x6');
+  }
+
+  var CM = { ATTRS: ATTRS, SHAPES: SHAPES, VIT_SPANS: VIT_SPANS, setVit: setVit, par: par, rng: rng, rollApt: rollApt, evenApt: evenApt,
+    player: player, KINDS: KINDS, kindOf: kindOf, FAMILIES: FAMILIES, WEAPONS: WEAPONS, FORGE: FORGE, forgeFor: forgeFor,
+    FIT: FIT, hpOf: hpOf, strikeOf: strikeOf, enemy: enemy, odds: odds, swing: swing, fight: fight, hitsToKillYou: hitsToKillYou, fitAll: fitAll, vit: 'x6' };
+  return CM;
+})();
+
+var R = {"heat":{"wow":{"sword":[[null,null,{"n":7,"t":8.75,"win":1,"k":11,"clean":14,"wall":false},{"n":18,"t":22.5,"win":0.515,"k":8,"clean":13,"wall":false},{"n":64,"t":80,"win":0,"k":5,"clean":11,"wall":false},{"n":249,"t":311.25,"win":0,"k":4,"clean":11,"wall":false}],[null,{"n":5,"t":6.25,"win":1,"k":28,"clean":23,"wall":false},{"n":8,"t":10,"win":1,"k":12,"clean":21,"wall":false},{"n":20,"t":25,"win":0.398,"k":8,"clean":19,"wall":false},{"n":65,"t":81.25,"win":0,"k":6,"clean":18,"wall":false},{"n":221,"t":276.25,"win":0,"k":5,"clean":17,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":82,"clean":45,"wall":false},{"n":5,"t":6.25,"win":1,"k":27,"clean":43,"wall":false},{"n":7,"t":8.75,"win":1,"k":12,"clean":40,"wall":false},{"n":18,"t":22.5,"win":0.538,"k":8,"clean":38,"wall":false},{"n":58,"t":72.5,"win":0,"k":6,"clean":36,"wall":false},{"n":190,"t":237.5,"win":0,"k":5,"clean":35,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":78,"clean":82,"wall":false},{"n":5,"t":6.25,"win":1,"k":27,"clean":78,"wall":false},{"n":7,"t":8.75,"win":1,"k":11,"clean":75,"wall":false},{"n":18,"t":22.5,"win":0.588,"k":8,"clean":72,"wall":false},{"n":56,"t":70,"win":0,"k":6,"clean":69,"wall":false},{"n":165,"t":206.25,"win":0,"k":5,"clean":68,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":74,"clean":147,"wall":false},{"n":5,"t":6.25,"win":1,"k":25,"clean":142,"wall":false},{"n":7,"t":8.75,"win":1,"k":11,"clean":137,"wall":false},{"n":18,"t":22.5,"win":0.562,"k":8,"clean":133,"wall":false},{"n":56,"t":70,"win":0,"k":6,"clean":128,"wall":false},{"n":171,"t":213.75,"win":0,"k":5,"clean":126,"wall":false}]],"rifle":[[null,null,{"n":4,"t":11.2,"win":1,"k":11,"clean":29,"wall":false},{"n":10,"t":28,"win":0.272,"k":8,"clean":25,"wall":false},{"n":33,"t":92.4,"win":0,"k":5,"clean":22,"wall":false},{"n":122,"t":341.6,"win":0,"k":4,"clean":21,"wall":false}],[null,{"n":3,"t":8.4,"win":1,"k":28,"clean":45,"wall":false},{"n":4,"t":11.2,"win":1,"k":12,"clean":41,"wall":false},{"n":10,"t":28,"win":0.258,"k":8,"clean":38,"wall":false},{"n":35,"t":98,"win":0,"k":6,"clean":35,"wall":false},{"n":108,"t":302.4,"win":0,"k":5,"clean":34,"wall":false}],[{"n":2,"t":5.6,"win":1,"k":82,"clean":91,"wall":false},{"n":3,"t":8.4,"win":1,"k":27,"clean":85,"wall":false},{"n":4,"t":11.2,"win":1,"k":11,"clean":81,"wall":false},{"n":9,"t":25.2,"win":0.382,"k":8,"clean":76,"wall":false},{"n":30,"t":84,"win":0,"k":6,"clean":73,"wall":false},{"n":93,"t":260.4,"win":0,"k":5,"clean":70,"wall":false}],[{"n":2,"t":5.6,"win":1,"k":75,"clean":164,"wall":false},{"n":3,"t":8.4,"win":1,"k":26,"clean":156,"wall":false},{"n":4,"t":11.2,"win":1,"k":11,"clean":150,"wall":false},{"n":9,"t":25.2,"win":0.442,"k":8,"clean":144,"wall":false},{"n":28,"t":78.4,"win":0,"k":6,"clean":138,"wall":false},{"n":88,"t":246.4,"win":0,"k":5,"clean":135,"wall":false}],[{"n":2,"t":5.6,"win":1,"k":73,"clean":294,"wall":false},{"n":3,"t":8.4,"win":1,"k":25,"clean":283,"wall":false},{"n":4,"t":11.2,"win":0.998,"k":11,"clean":274,"wall":false},{"n":9,"t":25.2,"win":0.387,"k":8,"clean":266,"wall":false},{"n":28,"t":78.4,"win":0,"k":6,"clean":257,"wall":false},{"n":87,"t":243.6,"win":0,"k":5,"clean":252,"wall":false}]]},"gw1":{"sword":[[null,null,{"n":7,"t":8.75,"win":1,"k":11,"clean":14,"wall":false},{"n":19,"t":23.75,"win":0.292,"k":7,"clean":12,"wall":false},{"n":71,"t":88.75,"win":0,"k":5,"clean":10,"wall":false},{"n":276,"t":345,"win":0,"k":4,"clean":9,"wall":false}],[null,{"n":5,"t":6.25,"win":1,"k":29,"clean":24,"wall":false},{"n":8,"t":10,"win":1,"k":12,"clean":20,"wall":false},{"n":22,"t":27.5,"win":0.168,"k":7,"clean":17,"wall":false},{"n":76,"t":95,"win":0,"k":5,"clean":15,"wall":false},{"n":282,"t":352.5,"win":0,"k":4,"clean":13,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":95,"clean":55,"wall":false},{"n":4,"t":5,"win":1,"k":30,"clean":46,"wall":false},{"n":8,"t":10,"win":1,"k":12,"clean":40,"wall":false},{"n":20,"t":25,"win":0.285,"k":7,"clean":33,"wall":false},{"n":72,"t":90,"win":0,"k":5,"clean":29,"wall":false},{"n":257,"t":321.25,"win":0,"k":3,"clean":25,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":96,"clean":103,"wall":false},{"n":4,"t":5,"win":1,"k":29,"clean":86,"wall":false},{"n":7,"t":8.75,"win":1,"k":11,"clean":74,"wall":false},{"n":20,"t":25,"win":0.333,"k":7,"clean":62,"wall":false},{"n":72,"t":90,"win":0,"k":5,"clean":53,"wall":false},{"n":233,"t":291.25,"win":0,"k":3,"clean":48,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":95,"clean":187,"wall":false},{"n":4,"t":5,"win":1,"k":28,"clean":157,"wall":false},{"n":7,"t":8.75,"win":1,"k":11,"clean":134,"wall":false},{"n":20,"t":25,"win":0.253,"k":7,"clean":115,"wall":false},{"n":73,"t":91.25,"win":0,"k":4,"clean":97,"wall":false},{"n":232,"t":290,"win":0,"k":3,"clean":87,"wall":false}]],"rifle":[[null,null,{"n":4,"t":11.2,"win":1,"k":11,"clean":28,"wall":false},{"n":10,"t":28,"win":0.173,"k":7,"clean":24,"wall":false},{"n":35,"t":98,"win":0,"k":5,"clean":20,"wall":false},{"n":148,"t":414.4,"win":0,"k":4,"clean":18,"wall":false}],[null,{"n":2,"t":5.6,"win":1,"k":30,"clean":48,"wall":false},{"n":4,"t":11.2,"win":1,"k":12,"clean":40,"wall":false},{"n":11,"t":30.8,"win":0.118,"k":7,"clean":35,"wall":false},{"n":40,"t":112,"win":0,"k":5,"clean":29,"wall":false},{"n":140,"t":392,"win":0,"k":4,"clean":26,"wall":false}],[{"n":2,"t":5.6,"win":1,"k":96,"clean":111,"wall":false},{"n":2,"t":5.6,"win":1,"k":30,"clean":93,"wall":false},{"n":4,"t":11.2,"win":1,"k":11,"clean":80,"wall":false},{"n":11,"t":30.8,"win":0.182,"k":7,"clean":67,"wall":false},{"n":36,"t":100.8,"win":0,"k":4,"clean":57,"wall":false},{"n":130,"t":364,"win":0,"k":3,"clean":51,"wall":false}],[{"n":2,"t":5.6,"win":1,"k":96,"clean":205,"wall":false},{"n":2,"t":5.6,"win":1,"k":29,"clean":172,"wall":false},{"n":4,"t":11.2,"win":1,"k":12,"clean":148,"wall":false},{"n":10,"t":28,"win":0.223,"k":7,"clean":124,"wall":false},{"n":34,"t":95.2,"win":0,"k":4,"clean":106,"wall":false},{"n":125,"t":350,"win":0,"k":3,"clean":96,"wall":false}],[{"n":2,"t":5.6,"win":1,"k":93,"clean":374,"wall":false},{"n":2,"t":5.6,"win":1,"k":28,"clean":314,"wall":false},{"n":4,"t":11.2,"win":0.997,"k":11,"clean":269,"wall":false},{"n":10,"t":28,"win":0.168,"k":7,"clean":230,"wall":false},{"n":37,"t":103.6,"win":0,"k":4,"clean":193,"wall":false},{"n":117,"t":327.6,"win":0,"k":3,"clean":174,"wall":false}]]},"ratio":{"sword":[[null,null,{"n":6,"t":7.5,"win":1,"k":11,"clean":14,"wall":false},{"n":21,"t":26.25,"win":0.048,"k":6,"clean":10,"wall":false},{"n":96,"t":120,"win":0,"k":4,"clean":7,"wall":false},{"n":435,"t":543.75,"win":0,"k":3,"clean":6,"wall":false}],[null,{"n":4,"t":5,"win":1,"k":32,"clean":26,"wall":false},{"n":8,"t":10,"win":1,"k":12,"clean":18,"wall":false},{"n":25,"t":31.25,"win":0.048,"k":7,"clean":14,"wall":false},{"n":106,"t":132.5,"win":0,"k":4,"clean":11,"wall":false},{"n":408,"t":510,"win":0,"k":3,"clean":10,"wall":false}],[{"n":2,"t":2.5,"win":1,"k":112,"clean":64,"wall":false},{"n":4,"t":5,"win":1,"k":33,"clean":47,"wall":false},{"n":8,"t":10,"win":1,"k":12,"clean":38,"wall":false},{"n":24,"t":30,"win":0.14,"k":7,"clean":32,"wall":false},{"n":90,"t":112.5,"win":0,"k":5,"clean":28,"wall":false},{"n":331,"t":413.75,"win":0,"k":3,"clean":25,"wall":false}],[{"n":2,"t":2.5,"win":1,"k":104,"clean":122,"wall":false},{"n":4,"t":5,"win":1,"k":32,"clean":100,"wall":false},{"n":7,"t":8.75,"win":1,"k":12,"clean":86,"wall":false},{"n":21,"t":26.25,"win":0.208,"k":7,"clean":74,"wall":false},{"n":78,"t":97.5,"win":0,"k":4,"clean":66,"wall":false},{"n":250,"t":312.5,"win":0,"k":3,"clean":62,"wall":false}],[{"n":2,"t":2.5,"win":1,"k":91,"clean":264,"wall":false},{"n":4,"t":5,"win":1,"k":26,"clean":227,"wall":false},{"n":7,"t":8.75,"win":1,"k":10,"clean":202,"wall":false},{"n":19,"t":23.75,"win":0.148,"k":6,"clean":181,"wall":false},{"n":67,"t":83.75,"win":0,"k":4,"clean":163,"wall":false},{"n":217,"t":271.25,"win":0,"k":3,"clean":154,"wall":false}]],"rifle":[[null,null,{"n":3,"t":8.4,"win":1,"k":10,"clean":28,"wall":false},{"n":11,"t":30.8,"win":0.027,"k":6,"clean":19,"wall":false},{"n":49,"t":137.2,"win":0,"k":4,"clean":14,"wall":false},{"n":218,"t":610.4,"win":0,"k":3,"clean":12,"wall":false}],[null,{"n":2,"t":5.6,"win":1,"k":33,"clean":51,"wall":false},{"n":4,"t":11.2,"win":1,"k":12,"clean":36,"wall":false},{"n":14,"t":39.2,"win":0.022,"k":7,"clean":28,"wall":false},{"n":51,"t":142.8,"win":0,"k":4,"clean":23,"wall":false},{"n":207,"t":579.6,"win":0,"k":3,"clean":20,"wall":false}],[{"n":1,"t":2.8,"win":1,"k":110,"clean":127,"wall":false},{"n":2,"t":5.6,"win":1,"k":33,"clean":95,"wall":false},{"n":4,"t":11.2,"win":0.998,"k":12,"clean":77,"wall":false},{"n":12,"t":33.6,"win":0.102,"k":7,"clean":64,"wall":false},{"n":44,"t":123.2,"win":0,"k":5,"clean":55,"wall":false},{"n":167,"t":467.6,"win":0,"k":3,"clean":50,"wall":false}],[{"n":1,"t":2.8,"win":1,"k":105,"clean":245,"wall":false},{"n":2,"t":5.6,"win":1,"k":31,"clean":200,"wall":false},{"n":4,"t":11.2,"win":0.998,"k":12,"clean":172,"wall":false},{"n":11,"t":30.8,"win":0.183,"k":7,"clean":149,"wall":false},{"n":39,"t":109.2,"win":0,"k":4,"clean":133,"wall":false},{"n":135,"t":378,"win":0,"k":3,"clean":124,"wall":false}],[{"n":1,"t":2.8,"win":1,"k":91,"clean":529,"wall":false},{"n":2,"t":5.6,"win":1,"k":26,"clean":454,"wall":false},{"n":3,"t":8.4,"win":0.998,"k":10,"clean":403,"wall":false},{"n":10,"t":28,"win":0.122,"k":6,"clean":362,"wall":false},{"n":33,"t":92.4,"win":0,"k":4,"clean":326,"wall":false},{"n":109,"t":305.2,"win":0,"k":3,"clean":307,"wall":false}]]},"fe":{"sword":[[null,null,{"n":7,"t":8.75,"win":1,"k":9,"clean":22,"wall":false},{"n":27,"t":33.75,"win":0,"k":5,"clean":13,"wall":false},{"n":362,"t":452.5,"win":0,"k":4,"clean":3,"wall":false},{"n":3000,"t":3750,"win":0,"k":3,"clean":1,"wall":true}],[null,{"n":4,"t":5,"win":1,"k":81,"clean":37,"wall":false},{"n":10,"t":12.5,"win":1,"k":13,"clean":27,"wall":false},{"n":35,"t":43.75,"win":0.008,"k":6,"clean":18,"wall":false},{"n":271,"t":338.75,"win":0,"k":4,"clean":8,"wall":false},{"n":3000,"t":3750,"win":0,"k":3,"clean":2,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":709,"clean":86,"wall":false},{"n":4,"t":5,"win":1,"k":86,"clean":76,"wall":false},{"n":8,"t":10,"win":1,"k":13,"clean":67,"wall":false},{"n":23,"t":28.75,"win":0.137,"k":7,"clean":57,"wall":false},{"n":94,"t":117.5,"win":0,"k":4,"clean":48,"wall":false},{"n":344,"t":430,"win":0,"k":3,"clean":41,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":1005,"clean":168,"wall":false},{"n":4,"t":5,"win":1,"k":45,"clean":158,"wall":false},{"n":7,"t":8.75,"win":1,"k":12,"clean":149,"wall":false},{"n":19,"t":23.75,"win":0.257,"k":6,"clean":139,"wall":false},{"n":70,"t":87.5,"win":0,"k":4,"clean":130,"wall":false},{"n":223,"t":278.75,"win":0,"k":3,"clean":124,"wall":false}],[{"n":3,"t":3.75,"win":1,"k":183,"clean":326,"wall":false},{"n":5,"t":6.25,"win":1,"k":29,"clean":316,"wall":false},{"n":8,"t":10,"win":1,"k":9,"clean":307,"wall":false},{"n":19,"t":23.75,"win":0.157,"k":6,"clean":298,"wall":false},{"n":65,"t":81.25,"win":0,"k":4,"clean":288,"wall":false},{"n":201,"t":251.25,"win":0,"k":3,"clean":282,"wall":false}]],"rifle":[[null,null,{"n":2,"t":5.6,"win":1,"k":9,"clean":76,"wall":false},{"n":5,"t":14,"win":0.5,"k":5,"clean":67,"wall":false},{"n":22,"t":61.6,"win":0,"k":4,"clean":57,"wall":false},{"n":90,"t":252,"win":0,"k":3,"clean":51,"wall":false}],[null,{"n":2,"t":5.6,"win":1,"k":84,"clean":109,"wall":false},{"n":3,"t":8.4,"win":1,"k":13,"clean":99,"wall":false},{"n":7,"t":19.6,"win":0.427,"k":6,"clean":90,"wall":false},{"n":27,"t":75.6,"win":0,"k":4,"clean":80,"wall":false},{"n":95,"t":266,"win":0,"k":3,"clean":74,"wall":false}],[{"n":1,"t":2.8,"win":1,"k":706,"clean":216,"wall":false},{"n":2,"t":5.6,"win":1,"k":86,"clean":206,"wall":false},{"n":3,"t":8.4,"win":1,"k":13,"clean":197,"wall":false},{"n":8,"t":22.4,"win":0.465,"k":7,"clean":187,"wall":false},{"n":24,"t":67.2,"win":0,"k":4,"clean":178,"wall":false},{"n":84,"t":235.2,"win":0,"k":3,"clean":171,"wall":false}],[{"n":1,"t":2.8,"win":1,"k":979,"clean":397,"wall":false},{"n":2,"t":5.6,"win":1,"k":48,"clean":387,"wall":false},{"n":3,"t":8.4,"win":0.998,"k":12,"clean":378,"wall":false},{"n":8,"t":22.4,"win":0.463,"k":7,"clean":368,"wall":false},{"n":25,"t":70,"win":0,"k":4,"clean":359,"wall":false},{"n":82,"t":229.6,"win":0,"k":3,"clean":353,"wall":false}],[{"n":2,"t":5.6,"win":1,"k":172,"clean":733,"wall":false},{"n":2,"t":5.6,"win":1,"k":30,"clean":723,"wall":false},{"n":3,"t":8.4,"win":0.997,"k":10,"clean":714,"wall":false},{"n":8,"t":22.4,"win":0.26,"k":6,"clean":705,"wall":false},{"n":27,"t":75.6,"win":0,"k":4,"clean":695,"wall":false},{"n":86,"t":240.8,"win":0,"k":3,"clean":689,"wall":false}]]}},"kinds":{"wow":{"mite":{"L":2,"sword":{"n":6,"t":7.5,"win":1,"k":13,"clean":17,"wall":false},"rifle":{"n":3,"t":8.4,"win":1,"k":13,"clean":34,"wall":false},"pitch":{"n":4,"t":9.6,"win":1,"k":13,"clean":27,"wall":false},"broad":{"n":3,"t":7.2,"win":1,"k":13,"clean":34,"wall":false},"iron":{"n":3,"t":7.2,"win":1,"k":13,"clean":30,"wall":false}},"jack":{"L":5,"sword":{"n":9,"t":11.25,"win":1,"k":9,"clean":19,"wall":false},"rifle":{"n":5,"t":14,"win":0.998,"k":9,"clean":38,"wall":false},"pitch":{"n":5,"t":12,"win":1,"k":9,"clean":34,"wall":false},"broad":{"n":5,"t":12,"win":1,"k":9,"clean":36,"wall":false},"iron":{"n":5,"t":12,"win":0.998,"k":9,"clean":34,"wall":false}},"drone":{"L":8,"sword":{"n":4,"t":5,"win":1,"k":9,"clean":38,"wall":false},"rifle":{"n":2,"t":5.6,"win":1,"k":9,"clean":76,"wall":false},"pitch":{"n":3,"t":7.2,"win":1,"k":9,"clean":59,"wall":false},"broad":{"n":2,"t":4.8,"win":1,"k":9,"clean":75,"wall":false},"iron":{"n":2,"t":4.8,"win":1,"k":9,"clean":66,"wall":false}},"welder":{"L":11,"sword":{"n":8,"t":10,"win":1,"k":12,"clean":51,"wall":false},"rifle":{"n":4,"t":11.2,"win":0.998,"k":12,"clean":102,"wall":false},"pitch":{"n":6,"t":14.4,"win":0.998,"k":12,"clean":74,"wall":false},"broad":{"n":4,"t":9.6,"win":0.998,"k":11,"clean":98,"wall":false},"iron":{"n":5,"t":12,"win":1,"k":12,"clean":89,"wall":false}},"riveter":{"L":14,"sword":{"n":9,"t":11.25,"win":1,"k":10,"clean":55,"wall":false},"rifle":{"n":5,"t":14,"win":0.997,"k":10,"clean":111,"wall":false},"pitch":{"n":4,"t":9.6,"win":0.998,"k":10,"clean":113,"wall":false},"broad":{"n":5,"t":12,"win":0.997,"k":10,"clean":103,"wall":false},"iron":{"n":5,"t":12,"win":1,"k":10,"clean":97,"wall":false}},"sentry":{"L":17,"sword":{"n":6,"t":7.5,"win":1,"k":10,"clean":106,"wall":false},"rifle":{"n":3,"t":8.4,"win":0.998,"k":10,"clean":212,"wall":false},"pitch":{"n":4,"t":9.6,"win":1,"k":10,"clean":161,"wall":false},"broad":{"n":3,"t":7.2,"win":1,"k":10,"clean":206,"wall":false},"iron":{"n":4,"t":9.6,"win":1,"k":10,"clean":186,"wall":false}}},"gw1":{"mite":{"L":2,"sword":{"n":5,"t":6.25,"win":1,"k":13,"clean":17,"wall":false},"rifle":{"n":3,"t":8.4,"win":1,"k":13,"clean":35,"wall":false},"pitch":{"n":4,"t":9.6,"win":1,"k":13,"clean":26,"wall":false},"broad":{"n":3,"t":7.2,"win":1,"k":13,"clean":34,"wall":false},"iron":{"n":3,"t":7.2,"win":1,"k":13,"clean":31,"wall":false}},"jack":{"L":5,"sword":{"n":10,"t":12.5,"win":1,"k":9,"clean":17,"wall":false},"rifle":{"n":5,"t":14,"win":0.998,"k":9,"clean":35,"wall":false},"pitch":{"n":5,"t":12,"win":1,"k":9,"clean":34,"wall":false},"broad":{"n":6,"t":14.4,"win":0.998,"k":9,"clean":29,"wall":false},"iron":{"n":6,"t":14.4,"win":1,"k":9,"clean":30,"wall":false}},"drone":{"L":8,"sword":{"n":3,"t":3.75,"win":1,"k":9,"clean":44,"wall":false},"rifle":{"n":2,"t":5.6,"win":1,"k":9,"clean":88,"wall":false},"pitch":{"n":3,"t":7.2,"win":1,"k":9,"clean":58,"wall":false},"broad":{"n":2,"t":4.8,"win":1,"k":9,"clean":81,"wall":false},"iron":{"n":2,"t":4.8,"win":1,"k":9,"clean":77,"wall":false}},"welder":{"L":11,"sword":{"n":8,"t":10,"win":1,"k":12,"clean":50,"wall":false},"rifle":{"n":4,"t":11.2,"win":1,"k":12,"clean":99,"wall":false},"pitch":{"n":6,"t":14.4,"win":0.997,"k":12,"clean":63,"wall":false},"broad":{"n":5,"t":12,"win":1,"k":12,"clean":80,"wall":false},"iron":{"n":5,"t":12,"win":1,"k":12,"clean":87,"wall":false}},"riveter":{"L":14,"sword":{"n":16,"t":20,"win":0.975,"k":10,"clean":29,"wall":false},"rifle":{"n":8,"t":22.4,"win":0.885,"k":10,"clean":57,"wall":false},"pitch":{"n":4,"t":9.6,"win":1,"k":10,"clean":111,"wall":false},"broad":{"n":13,"t":31.2,"win":0.563,"k":10,"clean":34,"wall":false},"iron":{"n":9,"t":21.6,"win":0.913,"k":10,"clean":50,"wall":false}},"sentry":{"L":17,"sword":{"n":6,"t":7.5,"win":1,"k":10,"clean":115,"wall":false},"rifle":{"n":3,"t":8.4,"win":1,"k":10,"clean":230,"wall":false},"pitch":{"n":5,"t":12,"win":0.998,"k":10,"clean":137,"wall":false},"broad":{"n":4,"t":9.6,"win":1,"k":10,"clean":174,"wall":false},"iron":{"n":3,"t":7.2,"win":1,"k":10,"clean":201,"wall":false}}},"ratio":{"mite":{"L":2,"sword":{"n":4,"t":5,"win":1,"k":12,"clean":21,"wall":false},"rifle":{"n":2,"t":5.6,"win":1,"k":12,"clean":42,"wall":false},"pitch":{"n":2,"t":4.8,"win":1,"k":12,"clean":62,"wall":false},"broad":{"n":3,"t":7.2,"win":1,"k":12,"clean":34,"wall":false},"iron":{"n":2,"t":4.8,"win":1,"k":12,"clean":37,"wall":false}},"jack":{"L":5,"sword":{"n":11,"t":13.75,"win":1,"k":9,"clean":14,"wall":false},"rifle":{"n":6,"t":16.8,"win":0.978,"k":9,"clean":28,"wall":false},"pitch":{"n":3,"t":7.2,"win":1,"k":9,"clean":65,"wall":false},"broad":{"n":7,"t":16.8,"win":0.993,"k":9,"clean":23,"wall":false},"iron":{"n":7,"t":16.8,"win":0.992,"k":9,"clean":25,"wall":false}},"drone":{"L":8,"sword":{"n":3,"t":3.75,"win":1,"k":9,"clean":51,"wall":false},"rifle":{"n":2,"t":5.6,"win":1,"k":9,"clean":101,"wall":false},"pitch":{"n":1,"t":2.4,"win":1,"k":9,"clean":123,"wall":false},"broad":{"n":2,"t":4.8,"win":1,"k":9,"clean":82,"wall":false},"iron":{"n":2,"t":4.8,"win":1,"k":9,"clean":89,"wall":false}},"welder":{"L":11,"sword":{"n":9,"t":11.25,"win":0.995,"k":7,"clean":49,"wall":false},"rifle":{"n":5,"t":14,"win":0.962,"k":7,"clean":99,"wall":false},"pitch":{"n":5,"t":12,"win":0.98,"k":7,"clean":94,"wall":false},"broad":{"n":6,"t":14.4,"win":0.945,"k":8,"clean":80,"wall":false},"iron":{"n":5,"t":12,"win":0.948,"k":7,"clean":86,"wall":false}},"riveter":{"L":14,"sword":{"n":13,"t":16.25,"win":0.998,"k":10,"clean":41,"wall":false},"rifle":{"n":7,"t":19.6,"win":0.973,"k":10,"clean":83,"wall":false},"pitch":{"n":3,"t":7.2,"win":1,"k":10,"clean":183,"wall":false},"broad":{"n":8,"t":19.2,"win":0.973,"k":10,"clean":67,"wall":false},"iron":{"n":8,"t":19.2,"win":0.972,"k":10,"clean":72,"wall":false}},"sentry":{"L":17,"sword":{"n":6,"t":7.5,"win":1,"k":8,"clean":145,"wall":false},"rifle":{"n":3,"t":8.4,"win":0.995,"k":8,"clean":289,"wall":false},"pitch":{"n":4,"t":9.6,"win":0.995,"k":8,"clean":218,"wall":false},"broad":{"n":4,"t":9.6,"win":0.997,"k":8,"clean":234,"wall":false},"iron":{"n":3,"t":7.2,"win":1,"k":8,"clean":253,"wall":false}}},"fe":{"mite":{"L":2,"sword":{"n":5,"t":6.25,"win":1,"k":14,"clean":30,"wall":false},"rifle":{"n":2,"t":5.6,"win":1,"k":14,"clean":88,"wall":false},"pitch":{"n":2,"t":4.8,"win":1,"k":14,"clean":73,"wall":false},"broad":{"n":2,"t":4.8,"win":1,"k":14,"clean":84,"wall":false},"iron":{"n":2,"t":4.8,"win":1,"k":14,"clean":71,"wall":false}},"jack":{"L":5,"sword":{"n":15,"t":18.75,"win":0.667,"k":6,"clean":18,"wall":false},"rifle":{"n":3,"t":8.4,"win":0.995,"k":6,"clean":90,"wall":false},"pitch":{"n":3,"t":7.2,"win":0.995,"k":6,"clean":90,"wall":false},"broad":{"n":4,"t":9.6,"win":0.992,"k":6,"clean":79,"wall":false},"iron":{"n":4,"t":9.6,"win":0.99,"k":6,"clean":70,"wall":false}},"drone":{"L":8,"sword":{"n":4,"t":5,"win":1,"k":7,"clean":71,"wall":false},"rifle":{"n":2,"t":5.6,"win":1,"k":7,"clean":181,"wall":false},"pitch":{"n":2,"t":4.8,"win":1,"k":7,"clean":148,"wall":false},"broad":{"n":2,"t":4.8,"win":1,"k":7,"clean":178,"wall":false},"iron":{"n":2,"t":4.8,"win":1,"k":7,"clean":151,"wall":false}},"welder":{"L":11,"sword":{"n":8,"t":10,"win":0.993,"k":7,"clean":94,"wall":false},"rifle":{"n":3,"t":8.4,"win":0.982,"k":7,"clean":256,"wall":false},"pitch":{"n":4,"t":9.6,"win":0.99,"k":7,"clean":203,"wall":false},"broad":{"n":3,"t":7.2,"win":0.998,"k":7,"clean":249,"wall":false},"iron":{"n":4,"t":9.6,"win":0.988,"k":7,"clean":212,"wall":false}},"riveter":{"L":14,"sword":{"n":11,"t":13.75,"win":0.957,"k":8,"clean":83,"wall":false},"rifle":{"n":3,"t":8.4,"win":0.998,"k":8,"clean":293,"wall":false},"pitch":{"n":3,"t":7.2,"win":1,"k":8,"clean":286,"wall":false},"broad":{"n":4,"t":9.6,"win":1,"k":8,"clean":274,"wall":false},"iron":{"n":4,"t":9.6,"win":0.998,"k":8,"clean":237,"wall":false}},"sentry":{"L":17,"sword":{"n":6,"t":7.5,"win":1,"k":8,"clean":228,"wall":false},"rifle":{"n":3,"t":8.4,"win":0.992,"k":8,"clean":539,"wall":false},"pitch":{"n":3,"t":7.2,"win":0.997,"k":8,"clean":421,"wall":false},"broad":{"n":3,"t":7.2,"win":1,"k":8,"clean":542,"wall":false},"iron":{"n":3,"t":7.2,"win":1,"k":8,"clean":457,"wall":false}}}},"bosses":{"wow":{"bigpallet":{"L":6,"sword":{"n":54,"t":67.5,"win":0.657,"k":7,"clean":25,"wall":false},"rifle":{"n":27,"t":75.6,"win":0.428,"k":7,"clean":50,"wall":false},"under":{"n":227,"t":283.75,"win":0,"k":4,"clean":12,"wall":false}},"warden":{"L":12,"sword":{"n":53,"t":66.25,"win":0.792,"k":8,"clean":48,"wall":false},"rifle":{"n":27,"t":75.6,"win":0.608,"k":8,"clean":95,"wall":false},"under":{"n":208,"t":260,"win":0,"k":5,"clean":25,"wall":false}},"foreman":{"L":18,"sword":{"n":46,"t":57.5,"win":0.747,"k":7,"clean":113,"wall":false},"rifle":{"n":23,"t":64.4,"win":0.598,"k":7,"clean":226,"wall":false},"under":{"n":167,"t":208.75,"win":0,"k":5,"clean":64,"wall":false}},"titan":{"L":20,"sword":{"n":173,"t":216.25,"win":0.925,"k":8,"clean":123,"wall":false},"rifle":{"n":85,"t":238,"win":0.798,"k":7,"clean":246,"wall":false},"under":{"n":534,"t":667.5,"win":0,"k":5,"clean":79,"wall":false}}},"gw1":{"bigpallet":{"L":6,"sword":{"n":61,"t":76.25,"win":0.455,"k":7,"clean":22,"wall":false},"rifle":{"n":30,"t":84,"win":0.252,"k":7,"clean":44,"wall":false},"under":{"n":268,"t":335,"win":0,"k":4,"clean":10,"wall":false}},"warden":{"L":12,"sword":{"n":80,"t":100,"win":0.16,"k":8,"clean":31,"wall":false},"rifle":{"n":41,"t":114.8,"win":0.1,"k":8,"clean":62,"wall":false},"under":{"n":348,"t":435,"win":0,"k":4,"clean":15,"wall":false}},"foreman":{"L":18,"sword":{"n":45,"t":56.25,"win":0.757,"k":7,"clean":110,"wall":false},"rifle":{"n":23,"t":64.4,"win":0.545,"k":7,"clean":221,"wall":false},"under":{"n":196,"t":245,"win":0,"k":4,"clean":53,"wall":false}},"titan":{"L":20,"sword":{"n":264,"t":330,"win":0.308,"k":7,"clean":77,"wall":false},"rifle":{"n":129,"t":361.2,"win":0.182,"k":7,"clean":154,"wall":false},"under":{"n":965,"t":1206.25,"win":0,"k":4,"clean":42,"wall":false}}},"ratio":{"bigpallet":{"L":6,"sword":{"n":69,"t":86.25,"win":0.333,"k":8,"clean":18,"wall":false},"rifle":{"n":35,"t":98,"win":0.148,"k":8,"clean":37,"wall":false},"under":{"n":361,"t":451.25,"win":0,"k":3,"clean":7,"wall":false}},"warden":{"L":12,"sword":{"n":77,"t":96.25,"win":0.273,"k":8,"clean":35,"wall":false},"rifle":{"n":38,"t":106.4,"win":0.14,"k":8,"clean":70,"wall":false},"under":{"n":394,"t":492.5,"win":0,"k":4,"clean":14,"wall":false}},"foreman":{"L":18,"sword":{"n":43,"t":53.75,"win":0.735,"k":6,"clean":149,"wall":false},"rifle":{"n":22,"t":61.6,"win":0.568,"k":6,"clean":298,"wall":false},"under":{"n":211,"t":263.75,"win":0,"k":4,"clean":61,"wall":false}},"titan":{"L":20,"sword":{"n":193,"t":241.25,"win":0.633,"k":7,"clean":144,"wall":false},"rifle":{"n":94,"t":263.2,"win":0.462,"k":7,"clean":288,"wall":false},"under":{"n":818,"t":1022.5,"win":0,"k":4,"clean":67,"wall":false}}},"fe":{"bigpallet":{"L":6,"sword":{"n":68,"t":85,"win":0.013,"k":4,"clean":32,"wall":false},"rifle":{"n":18,"t":50.4,"win":0.307,"k":4,"clean":126,"wall":false},"under":{"n":3000,"t":3750,"win":0,"k":2,"clean":1,"wall":true}},"warden":{"L":12,"sword":{"n":65,"t":81.25,"win":0.073,"k":5,"clean":72,"wall":false},"rifle":{"n":19,"t":53.2,"win":0.465,"k":5,"clean":248,"wall":false},"under":{"n":1410,"t":1762.5,"win":0,"k":3,"clean":8,"wall":false}},"foreman":{"L":18,"sword":{"n":45,"t":56.25,"win":0.217,"k":4,"clean":246,"wall":false},"rifle":{"n":19,"t":53.2,"win":0.25,"k":4,"clean":585,"wall":false},"under":{"n":188,"t":235,"win":0,"k":3,"clean":119,"wall":false}},"titan":{"L":20,"sword":{"n":170,"t":212.5,"win":0.302,"k":5,"clean":275,"wall":false},"rifle":{"n":67,"t":187.6,"win":0.475,"k":5,"clean":682,"wall":false},"under":{"n":626,"t":782.5,"win":0,"k":3,"clean":154,"wall":false}}}},"rolls":{"wow":{"strHi":6.089,"strLo":8.059,"even":6.706,"defHi":11.189,"defLo":10.465,"defEven":10.84},"gw1":{"strHi":6.043,"strLo":7.985,"even":6.671,"defHi":12.497,"defLo":8.784,"defEven":10.823},"ratio":{"strHi":5.408,"strLo":7.143,"even":5.943,"defHi":10.661,"defLo":8.225,"defEven":9.694},"fe":{"strHi":5.909,"strLo":8.413,"even":6.659,"defHi":10.637,"defLo":8.012,"defEven":9.4}},"numbers":{"x3":{"wow":[{"L":1,"sword":14,"rifle":29,"hp":88,"elite":616,"titan":1936,"its":10,"you":100},{"L":5,"sword":21,"rifle":41,"hp":142,"elite":994,"titan":3124,"its":12,"you":126},{"L":10,"sword":40,"rifle":81,"hp":258,"elite":1806,"titan":5676,"its":17,"you":168},{"L":15,"sword":75,"rifle":150,"hp":468,"elite":3276,"titan":10296,"its":22,"you":225},{"L":20,"sword":137,"rifle":274,"hp":849,"elite":5943,"titan":18678,"its":30,"you":300}],"gw1":[{"L":1,"sword":14,"rifle":28,"hp":88,"elite":616,"titan":1936,"its":10,"you":100},{"L":5,"sword":20,"rifle":40,"hp":141,"elite":987,"titan":3102,"its":12,"you":126},{"L":10,"sword":40,"rifle":80,"hp":254,"elite":1778,"titan":5588,"its":17,"you":168},{"L":15,"sword":74,"rifle":148,"hp":458,"elite":3206,"titan":10076,"its":22,"you":225},{"L":20,"sword":134,"rifle":269,"hp":826,"elite":5782,"titan":18172,"its":30,"you":300}],"ratio":[{"L":1,"sword":14,"rifle":28,"hp":73,"elite":511,"titan":1606,"its":12,"you":100},{"L":5,"sword":18,"rifle":36,"hp":130,"elite":910,"titan":2860,"its":12,"you":126},{"L":10,"sword":38,"rifle":77,"hp":265,"elite":1855,"titan":5830,"its":15,"you":168},{"L":15,"sword":86,"rifle":172,"hp":542,"elite":3794,"titan":11924,"its":22,"you":225},{"L":20,"sword":202,"rifle":403,"hp":1109,"elite":7763,"titan":24398,"its":33,"you":300}],"fe":[{"L":1,"sword":22,"rifle":76,"hp":126,"elite":882,"titan":2772,"its":14,"you":100},{"L":5,"sword":27,"rifle":99,"hp":223,"elite":1561,"titan":4906,"its":11,"you":126},{"L":10,"sword":67,"rifle":197,"hp":454,"elite":3178,"titan":9988,"its":14,"you":168},{"L":15,"sword":149,"rifle":378,"hp":926,"elite":6482,"titan":20372,"its":22,"you":225},{"L":20,"sword":307,"rifle":714,"hp":1889,"elite":13223,"titan":41558,"its":39,"you":300}]},"x6":{"wow":[{"L":1,"sword":14,"rifle":29,"hp":88,"elite":616,"titan":1936,"its":10,"you":100},{"L":5,"sword":21,"rifle":41,"hp":142,"elite":994,"titan":3124,"its":14,"you":146},{"L":10,"sword":40,"rifle":81,"hp":258,"elite":1806,"titan":5676,"its":23,"you":234},{"L":15,"sword":75,"rifle":150,"hp":468,"elite":3276,"titan":10296,"its":37,"you":374},{"L":20,"sword":137,"rifle":274,"hp":849,"elite":5943,"titan":18678,"its":60,"you":600}],"gw1":[{"L":1,"sword":14,"rifle":28,"hp":88,"elite":616,"titan":1936,"its":10,"you":100},{"L":5,"sword":20,"rifle":40,"hp":141,"elite":987,"titan":3102,"its":14,"you":146},{"L":10,"sword":40,"rifle":80,"hp":254,"elite":1778,"titan":5588,"its":23,"you":234},{"L":15,"sword":74,"rifle":148,"hp":458,"elite":3206,"titan":10076,"its":37,"you":374},{"L":20,"sword":134,"rifle":269,"hp":826,"elite":5782,"titan":18172,"its":60,"you":600}],"ratio":[{"L":1,"sword":14,"rifle":28,"hp":73,"elite":511,"titan":1606,"its":11,"you":100},{"L":5,"sword":18,"rifle":36,"hp":130,"elite":910,"titan":2860,"its":13,"you":146},{"L":10,"sword":38,"rifle":77,"hp":265,"elite":1855,"titan":5830,"its":21,"you":234},{"L":15,"sword":86,"rifle":172,"hp":542,"elite":3794,"titan":11924,"its":37,"you":374},{"L":20,"sword":202,"rifle":403,"hp":1109,"elite":7763,"titan":24398,"its":67,"you":600}],"fe":[{"L":1,"sword":22,"rifle":76,"hp":126,"elite":882,"titan":2772,"its":13,"you":100},{"L":5,"sword":27,"rifle":99,"hp":223,"elite":1561,"titan":4906,"its":12,"you":146},{"L":10,"sword":67,"rifle":197,"hp":454,"elite":3178,"titan":9988,"its":20,"you":234},{"L":15,"sword":149,"rifle":378,"hp":926,"elite":6482,"titan":20372,"its":37,"you":374},{"L":20,"sword":307,"rifle":714,"hp":1889,"elite":13223,"titan":41558,"its":69,"you":600}]},"x10":{"wow":[{"L":1,"sword":14,"rifle":29,"hp":88,"elite":616,"titan":1936,"its":10,"you":100},{"L":5,"sword":21,"rifle":41,"hp":142,"elite":994,"titan":3124,"its":16,"you":162},{"L":10,"sword":40,"rifle":81,"hp":258,"elite":1806,"titan":5676,"its":30,"you":298},{"L":15,"sword":75,"rifle":150,"hp":468,"elite":3276,"titan":10296,"its":54,"you":546},{"L":20,"sword":137,"rifle":274,"hp":849,"elite":5943,"titan":18678,"its":99,"you":1000}],"gw1":[{"L":1,"sword":14,"rifle":28,"hp":88,"elite":616,"titan":1936,"its":10,"you":100},{"L":5,"sword":20,"rifle":40,"hp":141,"elite":987,"titan":3102,"its":16,"you":162},{"L":10,"sword":40,"rifle":80,"hp":254,"elite":1778,"titan":5588,"its":30,"you":298},{"L":15,"sword":74,"rifle":148,"hp":458,"elite":3206,"titan":10076,"its":54,"you":546},{"L":20,"sword":134,"rifle":269,"hp":826,"elite":5782,"titan":18172,"its":99,"you":1000}],"ratio":[{"L":1,"sword":14,"rifle":28,"hp":73,"elite":511,"titan":1606,"its":12,"you":100},{"L":5,"sword":18,"rifle":36,"hp":130,"elite":910,"titan":2860,"its":15,"you":162},{"L":10,"sword":38,"rifle":77,"hp":265,"elite":1855,"titan":5830,"its":27,"you":298},{"L":15,"sword":86,"rifle":172,"hp":542,"elite":3794,"titan":11924,"its":53,"you":546},{"L":20,"sword":202,"rifle":403,"hp":1109,"elite":7763,"titan":24398,"its":111,"you":1000}],"fe":[{"L":1,"sword":22,"rifle":76,"hp":126,"elite":882,"titan":2772,"its":13,"you":100},{"L":5,"sword":27,"rifle":99,"hp":223,"elite":1561,"titan":4906,"its":14,"you":162},{"L":10,"sword":67,"rifle":197,"hp":454,"elite":3178,"titan":9988,"its":27,"you":298},{"L":15,"sword":149,"rifle":378,"hp":926,"elite":6482,"titan":20372,"its":54,"you":546},{"L":20,"sword":307,"rifle":714,"hp":1889,"elite":13223,"titan":41558,"its":107,"you":1000}]}}};
+</script>
+<script>
+(function () {
+  CM.fitAll();
+  var $ = function (id) { return document.getElementById(id); };
+  var FAMS = ['wow', 'gw1', 'ratio', 'fe'];
+  var COL = { wow: '#6fcf8a', gw1: '#8fd3ff', ratio: '#c77dff', fe: '#a7abb1' };
+  var fmt = function (x) { return Math.round(x).toLocaleString('en-US'); };
+  var pct = function (x) { return (x * 100).toFixed(x < 0.1 && x > 0 ? 1 : 0) + ' %'; };
+
+  var BREAKS = {
+    wow: ['<b>No breaks.</b> No walls, no one-shots at equal level, and the level gap stays the fail roll\'s job: +3 is a coin flip (about 50 % wins), +6 and +8 are lost, −6 dies in 3–4 swings.',
+      'Armoured kinds are only mildly tougher: the Riveter (DEF ×1.8) takes 9 sword swings to a common\'s 7. If Jake wants "DEF-heavy" to read louder, raise its DEF lean to ×2.5, not the formula.',
+      'Elites 58–68 s, the Titan 3.6 min, both inside the targets; a DEF 1.2 or 0.8 roll moves the hits that kill you by only ±0.4.'],
+    gw1: ['<b>Kinds spread out late.</b> The difference is in absolute DEF points, and DEF grows, so a ×1.8 Riveter at level 14 is 2× the swings (16) and the Vault Warden takes 100 s; the Titan 5.5 min.',
+      'Rolls matter more: DEF 1.2 takes 12.5 hits to kill you, DEF 0.8 takes 8.8.',
+      'The gap is a little harsher than WoW: +3 wins 12–26 %. No walls, no one-shots.'],
+    ratio: ['<b>The biggest numbers and the steepest gap.</b> Hits reach 202 at level 20, but both your strength and its armour move the result, so +3 wins only 2–15 % and −6 lets the rifle one-shot.',
+      'Armour stacking bites: the Riveter takes 13 swings, Big Pallet and the Warden 86–96 s; low-MDEF Drones die to one pitch bolt.',
+      'GW2 and Lineage 2 tame this with gear caps; we have rolled attributes, so we would need clamps.'],
+    fe: ['<b>Walls and one-shots.</b> At level 1 against +8, every hit is the 1-damage floor (the 3,000-swing cap), and at −6 enemies hit you for 1 (700 strikes to kill you).',
+      'Weapons drift: the rifle\'s Might ignores armour, so it kills an equal common in 3 shots against the sword\'s 7–9, and a Pallet Jack in 3 against 15.',
+      'Elites are lost 75–99 % of the time; a small DEF roll swings fights more than any other family.']
+  };
+
+  // Families section with one worked hit each
+  (function () {
+    var html = '';
+    var you = CM.player(10, CM.evenApt(), null), F = CM.FORGE[1], w = CM.WEAPONS.sword;
+    FAMS.forEach(function (f, i) {
+      var fam = CM.FAMILIES[f];
+      var it = CM.enemy(f, 'riveter', 10), ref = CM.enemy(f, 'ref', 10);
+      var o = CM.odds(f, you, it, w, F), o2 = CM.odds(f, you, ref, w, F);
+      var Kp = CM.par('DEF', 10), A = you.STR, D = it.DEF, step;
+      if (f === 'wow') step = '1.0 × 1.0 × 1.2 × ' + A + ' × ' + (2.5 * Kp).toFixed(0) + ' / (' + (2.5 * Kp).toFixed(0) + ' + ' + D + ')';
+      if (f === 'gw1') step = '0.7 × 1.0 × 1.2 × ' + A + ' × 2^((' + Kp.toFixed(0) + ' − ' + D + ') / 40)';
+      if (f === 'ratio') step = '0.7 × 1.0 × 1.2 × ' + CM.par('STR', 10).toFixed(0) + ' × ' + A + ' / ' + D;
+      if (f === 'fe') step = 'max(1, 1.2 × (1.0 × 2 × ' + A + ' + 2) − ' + D + ')';
+      html += '<section class="fam" style="border-left-color:' + COL[f] + '"><h2 style="color:' + COL[f] + '">' + (f === 'fe' ? 'CONTROL' : 'FAMILY ' + (i + 1)) + ': ' + fam.name.toUpperCase() + '</h2>' +
+        '<p class="m">From: ' + fam.src + '</p><p>' + fam.plain + '</p><div class="formula">' + fam.formula + '</div>' +
+        '<p><b>Worked hit.</b> You at level 10 (average roll: STR ' + A + '), sword with Forge II, against a level-10 Riveter (DEF ' + D + ', ×1.8 plating): ' + step + ' = <b>' + o.raw.toFixed(1) + ' → ' + o.clean + '</b> clean (crit ' + o.cr + ', glance ' + o.gl + '). Against a plain level-10 common (DEF ' + ref.DEF + ') the same swing hits <b>' + o2.clean + '</b>, so the plating keeps ' + Math.round(o.raw / o2.raw * 100) + ' % of your hit.</p>' +
+        '<ul>' + BREAKS[f].map(function (b) { return '<li>' + b + '</li>'; }).join('') + '</ul></section>';
+    });
+    $('families').innerHTML = html;
+  })();
+
+  // Number goes up
+  function numTable() {
+    var v = $('numVit').value, rows = '<tr><th>Family</th><th>Level</th><th>Your sword</th><th>Your rifle</th><th>Common HP</th><th>Elite HP</th><th>Its hit on you</th><th>Your HP</th></tr>';
+    ['wow', 'gw1', 'ratio'].forEach(function (f) {
+      R.numbers[v][f].forEach(function (x, i) {
+        rows += '<tr>' + (i === 0 ? '<td rowspan="5" style="color:' + COL[f] + '"><b>' + CM.FAMILIES[f].name + '</b></td>' : '') +
+          '<td>' + x.L + '</td><td><b>' + x.sword + '</b></td><td>' + x.rifle + '</td><td>' + fmt(x.hp) + '</td><td>' + fmt(x.elite) + '</td><td>' + x.its + '</td><td>' + fmt(x.you) + '</td></tr>';
+      });
+    });
+    $('numTable').innerHTML = rows;
+  }
+  $('numVit').onchange = numTable; numTable();
+
+  // Growth shapes
+  (function () {
+    var cols = { VIT: '#ef6b5b', STR: '#f08a24', DEX: '#8fd3ff', AGI: '#c9f27a', DEF: '#a7abb1', MDEF: '#c77dff', LUK: '#f2c14e' };
+    var W = 640, H = 330, x0 = 46, x1 = 600, y0 = 290, y1 = 24;
+    var sx = function (L) { return x0 + (L - 1) / 19 * (x1 - x0); }, sy = function (v) { return y0 - v * (y0 - y1); };
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Growth shapes of the seven attributes">';
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (g) { s += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + sy(g) + '" y2="' + sy(g) + '" stroke="#4a4e54"/><text x="' + (x0 - 6) + '" y="' + (sy(g) + 4) + '" font-size="11" fill="#a7abb1" text-anchor="end">' + (g * 100) + '%</text>'; });
+    [1, 5, 10, 15, 20].forEach(function (L) { s += '<text x="' + sx(L) + '" y="' + (y0 + 18) + '" font-size="11" fill="#a7abb1" text-anchor="middle">L' + L + '</text>'; });
+    CM.setVit('x6');
+    var ly = 34;
+    CM.ATTRS.forEach(function (a) {
+      var top = CM.par(a, 20), d = '';
+      for (var L = 1; L <= 20; L += 0.5) d += (L === 1 ? 'M' : 'L') + sx(L).toFixed(1) + ' ' + sy(CM.par(a, L) / top).toFixed(1) + ' ';
+      s += '<path d="' + d + '" fill="none" stroke="' + cols[a] + '" stroke-width="' + (a === 'VIT' ? 3.5 : 2.2) + '"/>';
+      s += '<rect x="' + (x0 + 10) + '" y="' + (ly - 9) + '" width="10" height="10" fill="' + cols[a] + '"/><text x="' + (x0 + 26) + '" y="' + ly + '" font-size="12" fill="#eceae6">' + a + '</text>'; ly += 16;
+    });
+    $('growthSvg').innerHTML = s + '</svg>';
+    var rows = '<tr><th>Attr</th><th>Job</th><th>Shape</th><th>L1</th><th>L10</th><th>L20</th><th>Cap</th><th>Step at L1 / L19</th></tr>';
+    var jobs = { VIT: 'HP', STR: 'melee damage', DEX: 'ranged damage, fail roll ±8, melee crit', AGI: 'dodge share, ranged crit', DEF: 'physical armour, deflect share', MDEF: 'burn, shock, blast armour', LUK: 'crit damage, lucky saves' };
+    CM.ATTRS.forEach(function (a) {
+      var sh = CM.SHAPES[a];
+      rows += '<tr><td><b style="color:' + cols[a] + '">' + a + '</b></td><td>' + jobs[a] + '</td><td>' + (a === 'VIT' ? 'exponential (×6 recommended; ×3 locked today: 100 → 300, cap 330)' : sh.note) + '</td><td>' + Math.round(CM.par(a, 1)) + '</td><td>' + Math.round(CM.par(a, 10)) + '</td><td>' + Math.round(CM.par(a, 20)) + '</td><td>' + sh.cap + '</td><td>' + (CM.par(a, 2) - CM.par(a, 1)).toFixed(1) + ' / ' + (CM.par(a, 20) - CM.par(a, 19)).toFixed(1) + '</td></tr>';
+    });
+    $('growthTable').innerHTML = rows;
+  })();
+
+  // Weapons
+  (function () {
+    var rows = '<tr><th>Weapon</th><th>Stat</th><th>Base ×</th><th>Might (FE only)</th><th>Animation</th><th>Cadence</th><th>Per second</th><th>Note</th></tr>';
+    Object.keys(CM.WEAPONS).forEach(function (k) {
+      var w = CM.WEAPONS[k];
+      rows += '<tr><td><b>' + w.name + '</b></td><td>' + w.stat + (w.type === 'energy' ? ' · burn' : '') + '</td><td>' + w.b + '</td><td>' + w.M + '</td><td>' + w.anim + ' s</td><td>' + w.cad + ' s</td><td>' + (w.b / w.cad).toFixed(2) + '</td><td>' + w.note + '</td></tr>';
+    });
+    $('weaponTable').innerHTML = rows;
+  })();
+
+  // Heat tables
+  var GAPS = [-6, -3, 0, 3, 6, 8], LVS = [1, 5, 10, 15, 20];
+  function winCol(w) { return w >= 0.95 ? '#6fcf8a' : w >= 0.7 ? '#c9e27a' : w >= 0.3 ? '#f2c14e' : w >= 0.05 ? '#f08a24' : '#ef6b5b'; }
+  function heat() {
+    var f = $('heatFam').value, html = '';
+    ['sword', 'rifle'].forEach(function (wk) {
+      var t = '<div><h3>' + CM.WEAPONS[wk].name + ' · ' + CM.FAMILIES[f].name + '</h3><div class="scroll"><table class="heat"><tr><th>You</th>' + GAPS.map(function (g) { return '<th>' + (g > 0 ? '+' : g < 0 ? '−' : '') + Math.abs(g) + '</th>'; }).join('') + '</tr>';
+      R.heat[f][wk].forEach(function (row, i) {
+        t += '<tr><td class="lv">L' + LVS[i] + '</td>';
+        row.forEach(function (c, j) {
+          if (!c) { t += '<td class="na">—</td>'; return; }
+          var out = LVS[i] + GAPS[j] > 20 ? ' ext' : '';
+          var tt = c.n >= 3000 ? 'wall' : c.t >= 600 ? Math.round(c.t / 60) + 'm' : Math.round(c.t) + 's';
+          t += '<td class="' + out + '" style="background:' + winCol(c.win) + '"><b>' + tt + '</b><span>' + (c.n >= 3000 ? '1 dmg' : c.n + ' sw') + ' · ' + Math.round(c.win * 100) + '%</span></td>';
+        });
+        t += '</tr>';
+      });
+      html += t + '</table></div></div>';
+    });
+    $('heat').innerHTML = html;
+    $('heatNotes').innerHTML = '<ul>' + BREAKS[f].map(function (b) { return '<li>' + b + '</li>'; }).join('') + '</ul>';
+  }
+  FAMS.forEach(function (f) { $('heatFam').insertAdjacentHTML('beforeend', '<option value="' + f + '">' + CM.FAMILIES[f].name + '</option>'); });
+  $('heatFam').onchange = heat; heat();
+
+  // Kinds and bosses
+  (function () {
+    var kinds = ['mite', 'jack', 'drone', 'welder', 'riveter', 'sentry'];
+    var rows = '<tr><th>Family</th>' + kinds.map(function (k) { return '<th>' + CM.KINDS[k].name + ' L' + CM.KINDS[k].L + '</th>'; }).join('') + '</tr>';
+    FAMS.forEach(function (f) {
+      rows += '<tr><td style="color:' + COL[f] + '"><b>' + CM.FAMILIES[f].short + '</b><br><span class="m">sword / rifle / pitch</span></td>' + kinds.map(function (k) { var x = R.kinds[f][k]; return '<td>' + x.sword.n + ' / ' + x.rifle.n + ' / ' + x.pitch.n + '</td>'; }).join('') + '</tr>';
+    });
+    $('kindTable').innerHTML = rows;
+    var bosses = ['bigpallet', 'warden', 'foreman', 'titan'];
+    var b = '<tr><th>Family</th>' + bosses.map(function (k) { return '<th>' + CM.KINDS[k].name.replace(/ \(.*\)/, '') + ' L' + CM.KINDS[k].L + '</th>'; }).join('') + '</tr>';
+    FAMS.forEach(function (f) {
+      b += '<tr><td style="color:' + COL[f] + '"><b>' + CM.FAMILIES[f].short + '</b><br><span class="m">sword: time · win · 4 levels under</span></td>' + bosses.map(function (k) {
+        var x = R.bosses[f][k], t = x.sword.t >= 120 ? (x.sword.t / 60).toFixed(1) + ' min' : Math.round(x.sword.t) + ' s';
+        return '<td><b>' + t + '</b> · ' + Math.round(x.sword.win * 100) + ' %<br><span class="m">' + Math.round(x.under.win * 100) + ' % at −4</span></td>';
+      }).join('') + '</tr>';
+    });
+    $('bossTable').innerHTML = b;
+  })();
+
+  // Calculator
+  var seed = 1;
+  FAMS.forEach(function (f) { $('cFam').insertAdjacentHTML('beforeend', '<option value="' + f + '">' + CM.FAMILIES[f].name + '</option>'); });
+  Object.keys(CM.WEAPONS).forEach(function (k) { $('cW').insertAdjacentHTML('beforeend', '<option value="' + k + '">' + CM.WEAPONS[k].name + '</option>'); });
+  Object.keys(CM.KINDS).forEach(function (k) { $('cE').insertAdjacentHTML('beforeend', '<option value="' + k + '"' + (k === 'ref' ? ' selected' : '') + '>' + CM.KINDS[k].name + (CM.KINDS[k].L ? ' (L' + CM.KINDS[k].L + ')' : '') + '</option>'); });
+  $('cE').onchange = function () { var k = CM.KINDS[$('cE').value]; if (k.L) $('cEL').value = k.L; calc(); };
+  $('cL').onchange = function () { $('cF').value = CM.forgeFor(clampL($('cL').value, 20)); calc(); };
+  function clampL(v, hi) { v = Math.round(+v || 1); return Math.max(1, Math.min(hi, v)); }
+  function character(L) {
+    var mode = $('cApt').value, apt = CM.evenApt();
+    if (mode === 'even') return CM.player(L, apt, null);
+    var r = CM.rng(seed);
+    if (mode === 'rand') apt = CM.rollApt(r);
+    if (mode === 'STR') { apt.STR = 1.2; apt.DEX = 1.2; apt.DEF = 0.8; apt.VIT = 0.8; }
+    if (mode === 'DEF') { apt.DEF = 1.2; apt.VIT = 1.2; apt.STR = 0.8; apt.DEX = 0.8; }
+    return CM.player(L, apt, r);
+  }
+  function statRow(label, st) {
+    return '<tr><td><b>' + label + '</b> L' + st.L + '</td>' + CM.ATTRS.map(function (a) {
+      var e = st[a] / CM.par(a, st.L), apt = st.apt ? st.apt[a] : null;
+      return '<td>' + st[a] + (apt && apt !== 1 ? ' <span class="' + (apt > 1 ? 'good' : 'bad') + '">' + apt + '</span>' : '') + '<br><span class="m">' + Math.round(e * 100) + '%</span></td>';
+    }).join('') + '</tr>';
+  }
+  function state() {
+    CM.setVit($('cVit').value);
+    var f = $('cFam').value, L = clampL($('cL').value, 20), EL = clampL($('cEL').value, 28), w = CM.WEAPONS[$('cW').value], F = CM.FORGE[+$('cF').value];
+    var you = character(L), it = CM.enemy(f, $('cE').value, EL);
+    return { f: f, you: you, it: it, w: w, F: F, oy: CM.odds(f, you, it, w, F), oi: CM.odds(f, it, you, it.weapon, 1) };
+  }
+  function calc(simHtml) {
+    var s = state(), oy = s.oy, oi = s.oi;
+    var sw = s.it.hp / Math.max(0.01, oy.exp), strikes = s.you.hp / Math.max(0.01, oi.exp);
+    var html = '<div class="scroll"><table class="wide"><tr><th></th>' + CM.ATTRS.map(function (a) { return '<th>' + a + '</th>'; }).join('') + '</tr>' + statRow('You', s.you) + statRow(s.it.kind.name, s.it) + '</table></div>' +
+      '<p class="m">Small % = the value against its level\'s average (the edge). Its VIT is its HP (' + fmt(s.it.hp) + '). Green/red = your 1.2 / 0.8 aptitudes.</p>' +
+      '<div class="kv">' +
+      '<div><small>Your clean hit</small><span class="big">' + oy.clean + '</span></div>' +
+      '<div><small>Glance / crit</small><span class="big">' + oy.gl + ' / ' + oy.cr + '</span></div>' +
+      '<div><small>Your fail chance</small><span class="big">' + pct(oy.fail) + '</span><br><span class="m">deflect ' + pct(oy.fail * oy.split.deflect) + ' · dodge ' + pct(oy.fail * oy.split.dodge) + (oy.split.parry ? ' · parry ' + pct(oy.fail * oy.split.parry) : '') + '</span></div>' +
+      '<div><small>Glance / crit odds</small><span class="big">' + pct(oy.glance) + ' / ' + pct(oy.crit) + '</span><br><span class="m">lucky saves: yours ' + pct(oy.luckA) + ', its ' + pct(oy.luckD) + '</span></div>' +
+      '<div><small>Swings to kill it</small><span class="big">' + (oy.wall && sw > 500 ? 'wall' : sw.toFixed(1)) + '</span></div>' +
+      '<div><small>Time to kill</small><span class="big">' + (sw * s.w.cad >= 120 ? (sw * s.w.cad / 60).toFixed(1) + ' min' : (sw * s.w.cad).toFixed(0) + ' s') + '</span></div>' +
+      '<div><small>Its hit on you</small><span class="big">' + oi.clean + '</span><br><span class="m">glance ' + oi.gl + ' · crit ' + oi.cr + ' · ' + (s.it.weapon.type === 'energy' ? 'energy vs your MDEF' : 'physical vs your DEF') + '</span></div>' +
+      '<div><small>Its fail chance</small><span class="big">' + pct(oi.fail) + '</span></div>' +
+      '<div><small>Strikes to kill you</small><span class="big">' + strikes.toFixed(1) + '</span><br><span class="m">one connects every ' + s.it.cad + ' s → ' + (strikes * s.it.cad).toFixed(0) + ' s</span></div>' +
+      '</div>' + (simHtml || '');
+    $('cOut').innerHTML = html;
+  }
+  $('cSim').onclick = function () {
+    var s = state(), r = CM.rng(Date.now() & 0xffffffff), ts = [], ns = [], wins = 0, N = 1000;
+    var L = s.you.L, mode = $('cApt').value;
+    for (var i = 0; i < N; i++) {
+      var apt = CM.evenApt();
+      if (mode === 'rand') apt = CM.rollApt(r);
+      if (mode === 'STR') { apt.STR = 1.2; apt.DEX = 1.2; apt.DEF = 0.8; apt.VIT = 0.8; }
+      if (mode === 'DEF') { apt.DEF = 1.2; apt.VIT = 1.2; apt.STR = 0.8; apt.DEX = 0.8; }
+      var you = mode === 'even' ? s.you : CM.player(L, apt, r);
+      var res = CM.fight(s.f, you, s.it, s.w, s.F, r);
+      ts.push(res.t); ns.push(res.n); if (res.win) wins++;
+    }
+    ts.sort(function (a, b) { return a - b; }); ns.sort(function (a, b) { return a - b; });
+    var t = function (x) { return x >= 120 ? (x / 60).toFixed(1) + ' min' : x.toFixed(0) + ' s'; };
+    calc('<div class="kv"><div><small>1,000 fights: you win</small><span class="big">' + Math.round(wins / N * 100) + ' %</span></div>' +
+      '<div><small>Median time to kill</small><span class="big">' + (ns[500] >= 3000 ? 'wall' : t(ts[500])) + '</span><br><span class="m">10–90 %: ' + t(ts[100]) + ' – ' + t(ts[900]) + '</span></div>' +
+      '<div><small>Median swings</small><span class="big">' + ns[500] + '</span><br><span class="m">10–90 %: ' + ns[100] + ' – ' + ns[900] + '</span></div></div>' +
+      '<p class="m">' + (mode === 'even' ? 'Average character every fight; only the combat dice vary.' : mode === 'rand' ? 'A new random character every fight (aptitude and every level\'s swing).' : 'This aptitude every fight, with fresh level swings.') + ' The time to kill ignores your death; the win % does not.</p>');
+  };
+  $('cRe').onclick = function () { seed = (Math.random() * 1e9) | 0; if ($('cApt').value === 'even') $('cApt').value = 'rand'; calc(); };
+  ['cFam', 'cVit', 'cApt', 'cW', 'cF', 'cEL'].forEach(function (id) { $(id).onchange = function () { calc(); }; });
+  calc();
+
+  // Recommendation (numbers from the WoW-classic rows)
+  (function () {
+    var n = R.numbers.x6.wow, b = R.bosses.wow, k = R.kinds.wow, h = R.heat.wow.sword;
+    $('recBody').innerHTML = '<ul>' +
+      '<li><b>WoW-classic style:</b> <code>hit = weapon × Forge × ATK × K / (K + DEF)</code>, K = 2.5 × the attacker\'s level-average DEF (WoW\'s 400 + 85 × level, rescaled). An equal-level common keeps 71 % of a hit; a Riveter 58 %; a Drone 81 %.</li>' +
+      '<li><b>Number goes up:</b> sword ' + n.map(function (x) { return x.sword; }).join(' → ') + ' at levels 1/5/10/15/20; rifle ' + n[0].rifle + ' → ' + n[4].rifle + '; common HP ' + n[0].hp + ' → ' + fmt(n[4].hp) + ' (+12.6 % a level); elites ×7; the Titan ' + fmt(R.numbers.x6.wow[4].hp * 22) + '.</li>' +
+      '<li><b>Targets:</b> equal-level common 7–8 sword swings, ~10 s (rifle 4 shots, 11 s); it kills you in 11 strikes; elites ' + Math.round(b.foreman.sword.t) + '–' + Math.round(b.bigpallet.sword.t) + ' s; the Titan ' + (b.titan.sword.t / 60).toFixed(1) + ' min; −6 is ' + h[2][0].n + ' swings; +8 loses every time (' + h[2][5].n + ' swings needed).</li>' +
+      '<li><b>Why not the other two:</b> GW1 style is a close second and the truest 1–20 reference, but armour in absolute points makes late armoured foes balloon (Vault Warden 100 s, Titan 5.5 min) and DEF rolls swing survival ±20 %. GW2 / Lineage 2 style gives the biggest numbers but double-counts level gaps (+3 wins under 15 %) and one-shots at −6.</li>' +
+      '<li><b>With it:</b> VIT 100 → 600 (cap 660), the seven shapes above, Forge ×1.0/1.2/1.4/1.6, elites ×7 HP, the Titan ×22.</li></ul>';
+  })();
+})();
+
+</script>
+</body>
+</html>

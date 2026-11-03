@@ -317,6 +317,42 @@ never touches spawns or drops of others; job set in the LV pass, likely crit cha
 1.2, three 1.0, two 0.8. INT and WIS are reserved for magic combat. §11's "energy hits count half your armour" is
 replaced by MDEF; its stagger-per-body and fixed parry window (+ Parry Gyro) stand.
 
+## 13. Damage formula options (draft, 11-03)
+
+Page: `art/showcase-template/round-10-combat-maths/index.html` (seven MMOs studied, three families, heat tables,
+calculator). Open until Jake picks. Families come from real MMOs: **WoW-classic style** (armour takes a share),
+**GW1 style** (×2 per 40 points of strike − armour), **GW2 / Lineage 2 style** (attack ÷ armour). Fire Emblem
+subtraction stays only as the control: walls at +8 (1-damage hits), the rifle 2× the sword's DPS early, elites lost.
+Steps 1–2 of the hit (fail roll, DEX shift, dress, glance, crit) are unchanged; the family is step 3.
+
+**Recommended: WoW-classic style.** `hit = weapon × Forge × ATK × K / (K + DEF)`, `K = 2.5 × parDEF(attacker L)`
+(WoW's 400 + 85·L rescaled); energy hits use MDEF. Crit ×(1.5 + LUK/100); lucky saves LUK × 0.2 % both ways (cap 6 %).
+Enemy HP 88 → 849 (+12.6 %/level, × kind; elites ×7, Titan ×22 ≈ 18,700); enemy strike × kind, fitted to 11 strikes.
+Average roll, equal level: sword 14 / 21 / 40 / 75 / 137 at L1/5/10/15/20 (rifle 29 → 274); a common dies in 7
+swings, ~9 s (rifle 4 shots, 11 s); it kills you in 11; +3 ≈ 50 % wins, +6/+8 0 %; −6 is 3 swings; elites 58–68 s;
+the Titan 3.6 min. No walls, no one-shots. GW1 style is second (Warden 100 s, Titan 5.5 min, DEF rolls ±20 %);
+GW2 / Lineage 2 double-counts gaps (+3 under 15 % wins) and one-shots at −6.
+
+| Attr | Shape | L1 | L10 | L20 | Cap |
+|---|---|---|---|---|---|
+| VIT | exponential (rec. ×6; locked ×3 = 100 → 300, cap 330) | 100 | 234 | 600 | 660 |
+| STR, DEX | steep exponential, +9.9 %/level | 20 | 47 | 120 | 132 |
+| AGI | front-loaded | 20 | 68 | 80 | 88 |
+| DEF | linear, +3.2/level (GW1's 3) | 20 | 48 | 80 | 88 |
+| MDEF | late bloomer, exponential | 10 | 27 | 80 | 88 |
+| LUK | flat, +0.5/level | 10 | 15 | 20 | 22 |
+
+Weapons (base ×, cadence s in a fight): sword 1.0 / 1.25, spear 1.2 / 1.5, bow 1.3 / 1.8, crossbow 1.75 / 2.4 (pitch
+= burn vs MDEF, broadhead ×1.2 with DEF ×1.3), rifle 2.0 / 2.8. Forge I–IV ×1.0 / 1.2 / 1.4 / 1.6. Kinds: Mite DEF
+×0.7, Jack ×1.3, Drone ×0.6 (HP ×0.6), Welder MDEF ×1.5, Riveter DEF ×1.8, Sentry MDEF ×1.2.
+
+**The tension:** your hits grow ~10× over 1–20, VIT only 3×; enemies would hit 10 → 30 with a shrinking level factor.
+
+**Open (Jake):** 1. WoW-classic style? Rec: yes (GW1 the fallback). 2. VIT span ×3 / ×6 / ×10? Rec: ×6, 100 → 600,
+cap 660 (WoW's 1–20 ratio; enemies hit 10 → 60 by the same rule). 3. The six shapes above? Rec: yes. 4. LUK: crit
+×(1.5 + LUK/100), lucky saves LUK × 0.2 %? Rec: yes. 5. Cadence and DPS (melee 0.8, ranged ~0.72 a second), elites ×7,
+Titan ×22? Rec: yes, retune after the first playable fight.
+
 ## 14. Other shards (Jake, 2026-11-03)
 
 No levels or attributes outside the showcase, not even hidden at level 1: other shards keep today's flat damage, stats
