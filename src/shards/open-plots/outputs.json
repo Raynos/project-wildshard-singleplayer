@@ -718,11 +718,80 @@
       "idea": "starfall-observatory",
       "name": "Starfall Observatory",
       "accent": "iris",
+      "layout": "starfall-observatory",
+      "landmarkLight": "dusk",
+      "coarseLandmark": "lit",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.02,
+              0.025,
+              0.16
+            ],
+            "horizon": [
+              0.09,
+              0.12,
+              0.36
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.06,
+              0.08,
+              0.24
+            ],
+            "density": 0,
+            "near": 420,
+            "far": 1800
+          },
+          "sun": {
+            "colour": [
+              0.72,
+              0.8,
+              1
+            ],
+            "intensity": 1.3
+          },
+          "ambient": {
+            "sky": [
+              0.52,
+              0.6,
+              0.92
+            ],
+            "ground": [
+              0.3,
+              0.32,
+              0.42
+            ],
+            "intensity": 1.8
+          }
+        }
+      ],
+      "lookGrade": {
+        "exposure": 0,
+        "saturation": 1.05,
+        "contrast": 1.06,
+        "lut": null
+      },
       "manifest": {
         "name": "Open Plot · Starfall Observatory",
-        "blurb": "An open plot of the grid: walk round the Starfall Observatory hologram, a world still to be built.",
+        "status": "earlyAccess",
+        "shardSelect": false,
+        "blurb": "An open plot of the grid: a white-stone garden town under a deep indigo starry night, blue-roofed houses and lamplit canals round a domed observatory, its telescope trained on the sky.",
         "bindings": {
-          "accent": "iris"
+          "accent": "iris",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/starfall-observatory.jpg",
@@ -753,7 +822,9 @@
             "z": 26
           }
         ],
-        "shardSelect": false
+        "assetGlobs": [
+          "public/assets/open-plots/**"
+        ]
       }
     },
     {

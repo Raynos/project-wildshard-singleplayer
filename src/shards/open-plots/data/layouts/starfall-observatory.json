@@ -80,13 +80,7 @@
   },
   "posters": {
     "image": "public/assets/open-plots/starfall-observatory/poster.webp",
-    "plaza": {
-      "x": 0,
-      "z": -40,
-      "width": 20,
-      "bottom": 2.5,
-      "offset": -22
-    },
+    "plaza": null,
     "entry": {
       "inset": 247,
       "width": 10,
