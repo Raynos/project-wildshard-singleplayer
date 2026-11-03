@@ -14,7 +14,8 @@ const inputs = ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons'
 /** One source/host-keyed construction per helper, shared across isolated suites. */
 export function nalatiNativeProgram(name: 'kokpar' | 'titan' | 'riding' | 'charge' | 'geography' | 'view'): Promise<string> {
   return runTextSnapshot(`nalati-native-${name}`, () =>
-    nativeProgramFixture({ id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs }));
+    nativeProgramFixture({ id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs,
+      loader: name === 'titan' || name === 'riding' ? 'simulation' : 'bake' }));
 }
 
 /** Fresh owned current scalar loans for isolated setup; no cached game state. */

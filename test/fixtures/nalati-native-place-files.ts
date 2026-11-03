@@ -1,14 +1,19 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Supply the exact admitted native terrain/scalars to the source producer.
-import { readFileSync } from 'node:fs';
-import { nalatiPlacesProgram } from '../../src/shards/nalati-grasslands/generators/placesProgram';
+import * as v from 'valibot';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
+import { nativeProgramFixture } from './native-program';
 import pins from './nalati-place-wires.json' with { type: 'json' };
 
-const inputs = new Map<string, Uint8Array>([
-  ['/assets/baked/nalati-grasslands/terrain.bin', readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')],
-]);
-// iPhone downloads I3: the original pins hold the 'exact' bake
-const files = await nalatiPlacesProgram({ cached: (_step, make) => Promise.resolve(make(inputs)) }, 'exact');
+// Share construction only: every source byte and the complete compiler output
+// remain fenced, and the original native binary pins still admit every loan.
+const rows = v.parse(v.array(v.tuple([v.string(), v.string()])), JSON.parse(await nativeProgramFixture({
+  id: 'nalati-native-places', script: 'test/fixtures/nalati-native-places-compile.mjs',
+  loader: 'simulation', transformTypes: true,
+  inputs: ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons', 'src/shards/nalati-grasslands',
+    'public/assets/baked/nalati-grasslands/terrain.bin', 'package.json', 'pnpm-lock.yaml',
+    'test/fixtures/native-program.ts', 'test/fixtures/nalati-native-place-files.ts', 'test/fixtures/nalati-place-wires.json'],
+})));
+const files = new Map(rows.map(([name, bytes]) => [name, Uint8Array.from(Buffer.from(bytes, 'base64'))]));
+if (files.size !== rows.length) throw new Error('Duplicate original native place file');
 for (const name of ['places', 'specimens']) {
   const pin = pins.find(row => row.path === `public/assets/nalati/baked/${name}.bin`), bytes = files.get(`${name}.bin`);
   if (pin === undefined || bytes === undefined || bytes.byteLength !== pin.bytes || hashImmutableBytes(bytes) !== pin.hash) {

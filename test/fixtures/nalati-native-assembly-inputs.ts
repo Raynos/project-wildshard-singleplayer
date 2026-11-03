@@ -11,19 +11,28 @@ import boot from '../../src/shards/nalati-grasslands/data/headlessBoot.json' wit
 import crowdNativeProjection from '../../src/shards/nalati-grasslands/data/crowdNativeProjection.json' with { type: 'json' };
 import { NALATI_PASTURE } from './nalati-titan';
 import { NALATI_ADMISSION } from './nalati-admission';
-import { nativePlaceFile } from './nalati-native-place-files';
+// oxlint-disable-next-line import/no-nodejs-modules -- The parent retains independent original collider expectations.
+import { readFileSync } from 'node:fs';
+import { hashImmutableBytes } from '../../src/sdk/immutable';
 import { canonicalNativeOracleInput } from './native-oracle';
 
 /** Original independent native facts, including policy and expectation rows.
  * No expected entry count or native policy is inferred from checked geometry. */
-export function nalatiNativeAssemblyInputs() {
+function originalPlaces(): unknown {
+  const bytes = readFileSync('test/fixtures/nalati-places-original.json');
+  if (bytes.byteLength !== 1506858 || hashImmutableBytes(bytes) !== 'fbe66ce2b4050879276a2878bb8de2ede6171625b8b1bf1b13431e8031d75384')
+    throw new Error('Original native place metadata differs');
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+}
+
+export function nalatiNativeAssemblyInputs(placed: unknown = originalPlaces()) {
   const assembly = nalatiHeadlessAssembly(NALATI_PASTURE, NALATI_ADMISSION);
   const { pageWildlife, pageGroups: _pageGroups, groupAdmission: _groupAdmission, nativeField: _nativeField,
     nativeDayClock: _nativeDayClock, nativeKnockdown: _nativeKnockdown, ...constants } = assembly.constants;
   const riding = nalatiRidingPopulation(ecology);
   const places = v.parse(v.object({ rows: v.array(v.object({ colliders: v.array(v.object({
     hw: v.number(), hd: v.number(), yTop: v.number(), yBottom: v.number(), x: v.number(), z: v.number(),
-  })) })) }), JSON.parse(new TextDecoder().decode(nativePlaceFile('places.json'))));
+  })) })) }), placed);
   return canonicalNativeOracleInput({ ...assembly, constants: { ...constants,
     groupRows: nalatiNativeGroupWire(constants.groupRows, pageWildlife.pasture),
     pageElites: { ...buildEliteEntryPageRows(), profiles: ecology.keeperElites.map(value => ({ id: value.def.id, value })) },

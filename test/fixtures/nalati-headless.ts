@@ -68,8 +68,11 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     observeWeather?:(host:SimHost,weather:{wind:Wind;storm:WeatherReactions})=>void,
     observeBindings?:(host:SimHost,bindings:NativeEliteBindings)=>void): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
-    const lendReturns = await prepareReturns(preparation);
-    const { constants: assemblyConstants } = await nalatiNativeAssembly();
+    // These independent admissions stay inside the original worker request.
+    // The same complete facts are awaited before constructing any world owner.
+    const [lendReturns, { constants: assemblyConstants }, originalBootFacts] = await Promise.all([
+      prepareReturns(preparation), nalatiNativeAssembly(), nalatiNativeBoot(),
+    ]);
     const nativeField = v.parse(PopulationFieldSchema, await product.json('world/meadow.json'));
     const forestWeather = v.parse(ForestWeatherSchema, await product.json('world/forest-weather.json'));
     const nativeDayClock = need(forestWeather.sky, 'Nalati requires its admitted painted-sky clock').clock;
@@ -104,7 +107,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
         };
         rest: NativeTamingRows["rest"];
         mountable: readonly string[];
-    } = await nalatiNativeBoot();
+    } = originalBootFacts;
     const nativeKnockdown = parsePopulationKnockdownSource(originalBoot.riding);
     const boot = encounters === undefined ? originalBoot : {
         ...originalBoot,
