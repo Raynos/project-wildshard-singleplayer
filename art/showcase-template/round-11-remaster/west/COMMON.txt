@@ -23,7 +23,7 @@ Dark navy glass panels #0d1b26 at about 80 % opacity, 1 px cyan #8fe3ff hairline
 HUD (in-world shots; identical in every shot, only the quoted values change)
 - Top-left: a small chip "❚❚ PAUSE"; under it a chip with a gold coin icon and the Scrip count.
 - Top-right: a round minimap (dark, north-up, a white arrow for the player in the centre, small "N" at the top of its ring) with a small bag icon button at its top-right corner; directly under the minimap a chip "◆ " + the current objective.
-- Left edge, vertically centred: a column of three round buttons labelled "HORSE", "HOVER" and "SWAP" (SWAP is a ring with the current weapon's icon inside).
+- Left edge, in the upper half of the screen (the column starts about 12 % from the top, just under the Scrip chip, and ends above the middle): a column of three round buttons labelled "HORSE", "HOVER" and "SWAP" (SWAP is a ring with the current weapon's icon inside).
 - Lower right: a round "ATTACK" button with the current weapon's icon, and under it two round buttons "DODGE" and "JUMP".
 - Bottom: a thin cyan XP bar across the width, about one third filled unless the shot says otherwise, with a small chip "LV n" at its left end, sitting directly above the control deck. The control deck is a dark navy strip along the bottom 18 % of the screen: a "MOVE" joystick ring at the left and a dashed square "LOOK" pad at the right.
 - Full health, so no health or vitals bar is shown. No LOCK button (nothing is targeted). No enemy nameplates in the west half.
