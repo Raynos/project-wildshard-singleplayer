@@ -149,7 +149,7 @@ does not close a Z row.
 |---|---|---|---|---:|
 | **Z0** | **done (2026-11-03, sp-x1; `e7ce1f2ba0`).** Pine 123 → 122, −8648 B; all 59 retained sections and 877 files exact. Five ceilings shrink; Nine never rises. **Ceilings to actuals and a dead section.** `custom-sections/<slug>` to measured (DW 48, Pine 123, Nalati 45, Far 19, Sun 16; record Nine at 91 / 10.9 MB, 72 over its 19). Delete Pine `custom/nativeView`: no `src/` reader and no emitted row names it; only `test/fixtures/pine-headless.ts` and Pine generators touch it | 1 (`custom/nativeView`) | Codex | 0.25 |
 | **Z1** | **done (2026-11-03, sp-x1; `890d8f05ce`, `4ac0585b6f`; G941 exact-pair capture ruling).** Nineteen shared grammars remove exactly 98 baseline files / 2459046 B. Fresh-seat sp-x8: 6/6; 52 focused cases and format/SDK types green. All 187 runtime JS/CSS assets and Pine/Nine payload/pack inventories exact (build metadata only). Pine 18 Metal frames / 12 raw-zero comparisons, both tiers. Nine canonical P1 uses only the existing approved (569,1139) RGBA pair; the extra-frame experiment at (627,1271) stays refused and grants no allowance. **Platform file families.** A registry in `@wildshard/format` beside `PLATFORM_DATA_SECTIONS`: name pattern → one format schema. The measure counts a named file only if its family is unregistered. The census follows emitted routing rows so every family has a known reader | 98 already on a shared schema: placement pages 12, scene recipes 42, scene buffers 9, world-scene models 3, quests 19, actors 9, people catalogue 2, forest weather 2 | Codex | 2 |
-| **Z2** | **Streamed scene pages: Nine.** `world/placements/*` onto `WorldScenePlacementPageSchema` (DW + Pine host `sdk/worldScenes.ts`) | 72: Nine placements 70, `world/casts`, `world/fabric` | Opus | 2.5 |
+| **Z2** | **Done (2026-11-03, sp-x8): `9a3952f83c`, `a2a0e604ff`; ratchet `a131158d0c`.** Nine streamed placement pages and complete cast/fabric weld roots; byte, refusal, strict capture and golden qualification below | **72 removed:** 70 placement files + `world/casts`, `world/fabric`; Nine custom count **82 → 10** | Codex (G958) | 2.5 |
 | **Z3** | **Streamed scene pages: Pine cabins and DW island.** Specimens and living roots become pages; tier / shadow variants derived at load | 70: Pine specimens 56, living 8, tier/shadow copies 4; DW `world/island/plan-{phone,desktop}` | Opus | 4.5 |
 | **Z4** | **In flight (2026-11-03, sp-x9), 0/13 removed.** The complete-root census below names 13 single-user/envelope blockers for Jake’s one-user batch; no shared-family registration or AS rewrite is qualified. **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
@@ -267,6 +267,69 @@ panel was read. Twenty-two are visually clear; camera 11 reports sunk
 and camera 20 drifted with a foreground obstruction, under investigation
 with Z3. No Pine 24/24 verdict or golden promotion. Nalati's independently
 identified QD11 darkness remains red until cause-directed qualification.
+
+### Z2 qualification (2026-11-03, sp-x8)
+
+Source **`9a3952f83c` + `a2a0e604ff`**, ratchet **`a131158d0c`**, and
+registration-test alignment **`fa2df0e8ed`** are pushed. Nine's measured
+custom count falls **82 → 10 (−72)** and bytes **10,841,964 → 4,488,505**.
+All **70 original placement rows / 6,328,079 B** reconstruct byte-for-byte
+from **9 adaptive native pages**. Cast/fabric bodies retain their exact
+bytes; only their defining provenance changes. The complete shared weld
+host is reuse (DW, Pine and Nine; sp-x1 fresh seat **6/6**), with native
+admission before publication and the existing client-only reader.
+
+The audio reader now follows identity-checked page members, with no file
+aliases: `cell` borrows `layout.shared.0.json`, member 3
+(`nds-lanterns-open`); `standalone` borrows `layout.shared.1.json`, member 0
+(`nds-lanterns-capped`), both under `world/placement-pages/`. Every decoded
+pose is identical. Restoring only `audio.sampledScene.points` reconstructs
+the entire old audio section exactly. The scene section changes only its
+placement references; the separate map-source stamp changes while the map
+image stays exact. All **48 old/new packs / 1,275 ordered entries** verify.
+
+The **100k aggregate page cap remains**, with at most 16 rows; adaptive
+packing isolates a complete native row that exceeds it. Only the existing
+bounded native placement contract admits that single-row case (including
+Nine's legitimate 106,361-node facade). Oversized multi-row pages,
+8,193-pose rows, oversized pose params, accessors, malformed members and
+forged provenance refuse. All **12 existing DW/Pine pages** retain exact
+bytes and identical admission through the old and new validators.
+Focused page/audio/weld/family checks, touched types and lint pass.
+
+Immutable **`d606937937` → `9a3952f83c`**: **30 strict captures**, five poses
+× actual phone/desktop tiers × baseline A/A and candidate B. All **20 A/A
+or A/B comparisons** retain identical frame, camera, clock, draw and
+triangle numbers. Native refinement publication and the real tile-refresh
+completion settle with the frame/clock/camera/player held; the maintained
+fixed renderer and GPU upload completion remain unchanged. Frame numbers
+are **94, 186, 278, 370, 462** on both tiers:
+
+| Pose | Phone draws / triangles | Desktop draws / triangles |
+|---|---:|---:|
+| P1 | 80 / 961,677 | 79 / 953,849 |
+| P2 | 81 / 982,494 | 80 / 974,666 |
+| P3 | 84 / 1,004,964 | 83 / 997,136 |
+| P4 | 86 / 1,229,254 | 85 / 1,221,426 |
+| P5 | 51 / 317,237 | 50 / 309,409 |
+
+The phone P1 A/A and A/B each have exactly one raw pixel difference:
+**(569,1139) `[14,15,15,1]` → `[15,16,15,1]`**. It qualifies under the
+explicit **G872/G941 P1-only ruling**. The other approved P1 pair is
+(635,1097), `[26,27,24,1]` ↔ `[27,27,24,1]`; it did not occur in this
+closing run. Both pairs may coexist only at P1. The comparator is
+unchanged; every other difference refuses. All remaining **18 comparisons
+are zero raw RGBA differences**. Raw: `tmp/sp-x8-z2/pixels-close/reading.json`.
+
+Current Nine G998 rerun on **`54771ba-mw0sut9p`**: **24/24 Chromium**
+(`8532216c8a`, sp-o1 capture; sp-x8 read every individual three-column row)
+and **24/24 WebKit** (`6c0a793c74`, sp-o1). The recorded historical
+SHARDFILE-reference omissions at 17/18/21 predate Z2; NOW is closer to
+LEGACY there, as the QD1 review records. Boards and receipts:
+[QD1 full golden review](../../../art/nine-dragon/qd1-2026-11-03/README.md).
+The separate pre-existing Nalati colour regression is QD11, exposed by
+`180df449c9`; it is not a Z2 payload change. Root accepted this Z2 close
+after the exact source/count/capture proof.
 
 ### Z5 complete-source qualification (2026-11-03, sp-x2)
 
