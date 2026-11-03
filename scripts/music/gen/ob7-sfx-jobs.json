@@ -618,6 +618,55 @@
       "duration": 12,
       "desc": "A cold open-road breeze with occasional crisp footsteps crunching in snow",
       "prompt": "A gentle cold breeze along a snowy road, with occasional slow crisp footstep-like snow crunches and long quiet gaps. Airy restrained winter outdoor recording, no howling wind, no music, no speech."
+    },
+    "bed.alien-plain.ambience": {
+      "kind": "bed",
+      "into": "alien-plain",
+      "duration": 30,
+      "desc": "Low breathy alien night wind over an open plain with a faint distant sub hum and sparse glassy insect chirps",
+      "prompt": "A soft steady alien night field recording: low breathy wind crossing an open dry plain, a very faint distant low resonant hum and sparse delicate glassy insect chirps. Quiet spacious continuous atmosphere with irregular tiny chirps. No birds, no water, no rain, no music, no melody, no voices or speech."
+    },
+    "hum.alien-plain.monolith": {
+      "kind": "hum",
+      "into": "alien-plain",
+      "duration": 12,
+      "desc": "A tall alien monolith emits a low resonant hum and faint electrical crackles",
+      "prompt": "Close sound of a tall alien stone monolith: a soft low resonant vibrating hum with small dry electrical crackles travelling along glowing cracks. Gentle continuous mechanical resonance, not a dramatic blast. No music, melody, voices or speech."
+    },
+    "hum.alien-plain.dome-habitat": {
+      "kind": "hum",
+      "into": "alien-plain",
+      "duration": 12,
+      "desc": "An enclosed habitat air handler hums gently with a few soft electronic beeps",
+      "prompt": "Quiet enclosed habitat machinery: a smooth low air-handler fan hum with occasional small soft electronic confirmation beeps and long quiet pauses. Restrained near-field sound, no alarm, no musical tune, no voices or speech."
+    },
+    "hum.alien-plain.crystal-bed": {
+      "kind": "hum",
+      "into": "alien-plain",
+      "duration": 12,
+      "desc": "Glassy crystals softly chime in a light alien breeze",
+      "prompt": "A cluster of small glassy crystals lightly tapping and ringing in a faint breeze. Sparse clear delicate chimes, irregular pauses and long soft resonant decay. Quiet detailed foley, not a tune, no music, no voices or speech."
+    },
+    "hum.alien-plain.rock-outcrop": {
+      "kind": "hum",
+      "into": "alien-plain",
+      "duration": 12,
+      "desc": "Breathy low wind whistles over a rough rock outcrop",
+      "prompt": "Low soft breathy wind whistling around a rough rocky outcrop on an open plain. Gentle airy resonances with subtle natural variation, continuous restrained outdoor sound. No storm roar, no birds, no music, no voices or speech."
+    },
+    "hum.alien-plain.avenue-lamp": {
+      "kind": "hum",
+      "into": "alien-plain",
+      "duration": 12,
+      "desc": "A small electric street lamp emits a faint steady electrical buzz",
+      "prompt": "Close quiet electric street lamp transformer buzz: a faint steady low electrical hum and slight fine buzzing vibration, very restrained continuous loop. No crackling fire, no insects, no music, no voices or speech."
+    },
+    "hum.alien-plain.entry-forecourt": {
+      "kind": "hum",
+      "into": "alien-plain",
+      "duration": 12,
+      "desc": "Sparse delicate high insect chirps in an alien night field",
+      "prompt": "Sparse small high glassy insect chirps across a quiet dry alien night forecourt. Delicate irregular short chirps and long still pauses, naturalistic close field recording. No birds, no frogs, no water, no music, no voices or speech."
     }
   }
 }

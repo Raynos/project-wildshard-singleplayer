@@ -74,5 +74,13 @@
     "basin-gulls",
     "slate-roof-rain",
     "quay-net-rope"
+  ],
+  "alien-plain": [
+    "monolith",
+    "dome-habitat",
+    "crystal-bed",
+    "rock-outcrop",
+    "avenue-lamp",
+    "entry-forecourt"
   ]
 }

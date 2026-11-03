@@ -412,5 +412,43 @@
       "z": 93.75,
       "reach": 28
     }
+  ],
+  "alien-plain": [
+    {
+      "id": "monolith",
+      "x": 0,
+      "z": 0,
+      "reach": 80
+    },
+    {
+      "id": "dome-habitat",
+      "x": 218.75,
+      "z": 218.75,
+      "reach": 35
+    },
+    {
+      "id": "crystal-bed",
+      "x": 156.25,
+      "z": 218.75,
+      "reach": 30
+    },
+    {
+      "id": "rock-outcrop",
+      "x": 93.75,
+      "z": 218.75,
+      "reach": 30
+    },
+    {
+      "id": "avenue-lamp",
+      "x": 4.2,
+      "z": 92,
+      "reach": 12
+    },
+    {
+      "id": "entry-forecourt",
+      "x": 218.75,
+      "z": 31.25,
+      "reach": 40
+    }
   ]
 }

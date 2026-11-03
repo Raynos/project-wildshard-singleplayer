@@ -107,6 +107,14 @@
       "lyrics": "loop",
       "bpm": 70,
       "prompt": "Instrumental video game score, 70 BPM, 4/4. Pale cyan noon above a still aqua frozen lake, small igloos, snow-covered pines and a crystalline ice spire. A calm crystalline celesta and delicate glockenspiel trade a short slow melody over soft airy pads, bowed glass harmonics and widely spaced felt-piano notes. Bright restrained winter wonder and peaceful exploration, never threatening or melancholy. No drums or heavy percussion. Clear short memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/alien-plain": {
+      "style": "ob7",
+      "slot": "alien-plain",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 70,
+      "prompt": "Instrumental video game score, 70 BPM, 4/4. A gentle bioluminescent alien night on a pastel open plain, softly glowing lime cracks in a tall monolith and small dome habitats. Warm analog synth pads, glassy bell arpeggios, a soft theremin-like instrumental lead and a restrained pulsing sub bass. Dreamy, eerie but welcoming discovery, never horror. Sparse memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed electronic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
     }
   }
 }
