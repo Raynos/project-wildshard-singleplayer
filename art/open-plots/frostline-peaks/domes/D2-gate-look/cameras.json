@@ -5,26 +5,26 @@
   "mockup": "art/grid/round-62-open-plot-palettes/16-frostline-peaks.jpg",
   "layout": "src/shards/open-plots/data/layouts/frostline-peaks.json",
   "anchor": [
-    0,
+    56,
     1.7,
-    -18
+    -10
   ],
-  "convention": "TEMPLATE camera geometry: canonical 500 m dome protocol; open-plot-frostline-peaks; art direction is not approved by this camera copy. Plot-local metres: x east, y up, z NORTH; south entry z=-250, gate at origin. Engine yaw 0 faces -z, +90 faces +x; pitch positive up. eye/look authoritative. Portrait 2:3 tiles; horizontal FOV 62 degrees; row-major 1..9.",
+  "convention": "Frostline geometry (sp-o1, OB3 look loop: the template anchor stood on / inside the 70 m peak, so the player drifted; moved to the plaza band, hero on the peak): canonical 500 m dome protocol; open-plot-frostline-peaks; art direction is not approved by this camera copy. Plot-local metres: x east, y up, z NORTH; south entry z=-250, gate at origin. Engine yaw 0 faces -z, +90 faces +x; pitch positive up. eye/look authoritative. Portrait 2:3 tiles; horizontal FOV 62 degrees; row-major 1..9.",
   "views": [
     {
       "n": 1,
       "name": "look up",
       "eye": [
-        0,
+        56,
         1.7,
-        -18
+        -10
       ],
       "look": [
-        0,
+        56,
         41.7,
-        2
+        10
       ],
-      "yaw": 180,
+      "yaw": 180.0,
       "pitch": 63.4349,
       "hfov": 62
     },
@@ -32,16 +32,16 @@
       "n": 2,
       "name": "south-west aerial",
       "eye": [
-        -35,
+        21,
         41.7,
-        -53
+        -45
       ],
       "look": [
-        0,
-        0,
-        -18
+        56,
+        0.0,
+        -10
       ],
-      "yaw": 135,
+      "yaw": 135.0,
       "pitch": -40.113,
       "hfov": 62
     },
@@ -49,16 +49,16 @@
       "n": 3,
       "name": "south-east aerial",
       "eye": [
-        35,
+        91,
         41.7,
-        -53
+        -45
       ],
       "look": [
-        0,
-        0,
-        -18
+        56,
+        0.0,
+        -10
       ],
-      "yaw": -135,
+      "yaw": -135.0,
       "pitch": -40.113,
       "hfov": 62
     },
@@ -66,84 +66,84 @@
       "n": 4,
       "name": "left / west",
       "eye": [
-        0,
+        56,
         1.7,
-        -18
+        -10
       ],
       "look": [
-        -40,
+        16,
         1.7,
-        -18
+        -10
       ],
-      "yaw": -90,
-      "pitch": 0,
+      "yaw": -90.0,
+      "pitch": 0.0,
       "hfov": 62
     },
     {
       "n": 5,
       "name": "hero / forward",
       "eye": [
-        0,
+        56,
         1.7,
-        -18
+        -10
       ],
       "look": [
-        0,
-        16,
+        7.5,
+        40,
         0
       ],
-      "yaw": 180,
-      "pitch": 38.4652,
+      "yaw": -101.6503,
+      "pitch": 37.7191,
       "hfov": 62
     },
     {
       "n": 6,
       "name": "right / east",
       "eye": [
-        0,
+        56,
         1.7,
-        -18
+        -10
       ],
       "look": [
-        40,
+        96,
         1.7,
-        -18
+        -10
       ],
-      "yaw": 90,
-      "pitch": 0,
+      "yaw": 90.0,
+      "pitch": 0.0,
       "hfov": 62
     },
     {
       "n": 7,
       "name": "back to paired stand",
       "eye": [
-        0,
+        56,
         1.7,
-        -18
+        -10
       ],
       "look": [
-        0,
+        -22,
         1.7,
-        -45
+        -58
       ],
-      "yaw": 0,
-      "pitch": 0,
+      "yaw": -58.3925,
+      "pitch": 0.0,
       "hfov": 62
     },
     {
       "n": 8,
       "name": "look down",
       "eye": [
-        0,
+        56,
         1.7,
-        -18
+        -10
       ],
       "look": [
-        0,
-        0,
-        -17.75
+        56,
+        0.0,
+        -9.75
       ],
-      "yaw": 180,
+      "yaw": 180.0,
       "pitch": -81.6341,
       "hfov": 62
     },
@@ -151,16 +151,16 @@
       "n": 9,
       "name": "north aerial back",
       "eye": [
-        0,
+        56,
         61.7,
-        42
+        50
       ],
       "look": [
-        0,
-        0,
-        -18
+        56,
+        0.0,
+        -10
       ],
-      "yaw": 0,
+      "yaw": 0.0,
       "pitch": -45.8003,
       "hfov": 62
     }
