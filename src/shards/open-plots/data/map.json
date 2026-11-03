@@ -154,6 +154,176 @@
         "detail_pool",
         "coarse_standins"
       ]
+    },
+    "open-plot-lantern-bayou": {
+      "style": {
+        "kind": "ground",
+        "smooth": 2,
+        "shade": 0.3,
+        "classes": [
+          {
+            "match": "#5c5248",
+            "fill": "#5c5248"
+          },
+          {
+            "match": "#685c50",
+            "fill": "#685c50"
+          },
+          {
+            "match": "#3c4846",
+            "fill": "#3c4846"
+          },
+          {
+            "match": "#565048",
+            "fill": "#565048"
+          },
+          {
+            "match": "#6a6156",
+            "fill": "#6a6156"
+          },
+          {
+            "match": "#5f564c",
+            "fill": "#5f564c"
+          },
+          {
+            "match": "#5a4a3c",
+            "fill": "#5a4a3c"
+          },
+          {
+            "match": "#2c3c40",
+            "fill": "#2c3c40"
+          },
+          {
+            "match": "#4a3828",
+            "fill": "#4a3828"
+          },
+          {
+            "match": "#3e5a50",
+            "fill": "#3e5a50"
+          },
+          {
+            "match": "#2c403a",
+            "fill": "#2c403a"
+          },
+          {
+            "match": "#5a4430",
+            "fill": "#5a4430"
+          },
+          {
+            "match": "#1c4a4e",
+            "fill": "#1c4a4e"
+          },
+          {
+            "match": "#4a5450",
+            "fill": "#4a5450"
+          },
+          {
+            "match": "#5a6460",
+            "fill": "#5a6460"
+          },
+          {
+            "match": "#2c4a34",
+            "fill": "#2c4a34"
+          },
+          {
+            "match": "#243e2c",
+            "fill": "#243e2c"
+          },
+          {
+            "match": "#2e5a3c",
+            "fill": "#2e5a3c"
+          },
+          {
+            "match": "#22442e",
+            "fill": "#22442e"
+          },
+          {
+            "match": "#3c3026",
+            "fill": "#3c3026"
+          },
+          {
+            "match": "#ffb347",
+            "fill": "#ffb347"
+          },
+          {
+            "match": "#ffc46a",
+            "fill": "#ffc46a"
+          },
+          {
+            "match": "#384240",
+            "fill": "#384240"
+          },
+          {
+            "match": "#14203f",
+            "fill": "#14203f"
+          },
+          {
+            "match": "#6a4620",
+            "fill": "#6a4620"
+          },
+          {
+            "match": "#4a6a5a",
+            "fill": "#4a6a5a"
+          },
+          {
+            "match": "#b07a34",
+            "fill": "#b07a34"
+          },
+          {
+            "match": "#1a9a98",
+            "fill": "#1a9a98"
+          },
+          {
+            "match": "#2a1d14",
+            "fill": "#2a1d14"
+          },
+          {
+            "match": "#4a4238",
+            "fill": "#4a4238"
+          },
+          {
+            "match": "#3a6a3a",
+            "fill": "#3a6a3a"
+          },
+          {
+            "match": "#2a5030",
+            "fill": "#2a5030"
+          },
+          {
+            "match": "#e7a3b8",
+            "fill": "#e7a3b8"
+          },
+          {
+            "match": "#5e6e38",
+            "fill": "#5e6e38"
+          },
+          {
+            "match": "#74583a",
+            "fill": "#74583a"
+          },
+          {
+            "match": "#4a3c30",
+            "fill": "#4a3c30"
+          },
+          {
+            "match": "#5a6a3a",
+            "fill": "#5a6a3a"
+          },
+          {
+            "match": "#3a4038",
+            "fill": "#3a4038"
+          },
+          {
+            "match": "#24282c",
+            "fill": "#24282c"
+          }
+        ]
+      },
+      "exclude": [
+        "collide_",
+        "detail_pool",
+        "coarse_standins"
+      ]
     }
   },
   "inputs": [
