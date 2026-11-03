@@ -77,6 +77,28 @@ function topLevel(renderer: WebGLRenderer, gen: PmremSteps, source: SkyEnvironme
   }
 }
 
+/** a stepped scene source draws its top level one cube face a step (each face its background box and the scene) */
+const sourceFaces = (source: SkyEnvironmentSource): number => source.kind === 'scene' ? 6 : 1;
+
+/**
+ * One face of a scene's top level (G913: the six faces in one frame were 12 draws above the frame's own). PMREM sets each
+ * face's rectangle as the target's viewport before it draws that face, so only the draws made while the viewport is on
+ * face `face` go through; the depth is cleared with the first face.
+ */
+function topLevelFace(renderer: WebGLRenderer, gen: PmremSteps, source: Extract<SkyEnvironmentSource, { kind: 'scene' }>, cube: WebGLRenderTarget, face: number): void {
+  const size = cubeSize(source), render: unknown = Reflect.get(renderer, 'render'), own = Object.hasOwn(renderer, 'render');
+  if (typeof render !== 'function') throw new Error('sky environment: the renderer has no render');
+  gen._setSize(size);
+  renderer.setRenderTarget(cube);
+  if (face === 0) renderer.clearDepth();
+  renderer.render = (scene, camera) => {
+    const at = Math.round(cube.viewport.x / size) + (cube.viewport.y >= size ? 3 : 0);
+    if (at === face) Reflect.apply(render, renderer, [scene, camera]);
+  };
+  try { gen._sceneToCubeUV(source.scene, source.near, source.far, cube, ORIGIN); }
+  finally { if (own) Reflect.set(renderer, 'render', render); else Reflect.deleteProperty(renderer, 'render'); }
+}
+
 /** The whole refresh: the source PMREM'd into `cube` in place (the first call, `cube` null, allocates it); returns the target. */
 export function refreshSkyEnvironment(gen: PMREMGenerator, source: SkyEnvironmentSource, cube: WebGLRenderTarget | null): WebGLRenderTarget {
   if (source.kind === 'equirect') {
@@ -100,14 +122,15 @@ export function refreshSkyEnvironment(gen: PMREMGenerator, source: SkyEnvironmen
 }
 
 /**
- * One step of a stepped refresh into `cube` (built by a whole refresh first; check `canStepSkyEnvironment`): step 0 the
- * top level from the source, step i GGX level i from the one above. Returns the next step, or -1 when the refresh is done.
+ * One step of a stepped refresh into `cube` (built by a whole refresh first; check `canStepSkyEnvironment`): the top level
+ * from the source (an equirect in one step, a scene one face a step), then one GGX level a step from the one above.
+ * Returns the next step, or -1 when the refresh is done.
  */
 export function stepSkyEnvironment(gen: PmremSteps, source: SkyEnvironmentSource, cube: WebGLRenderTarget, step: number): number {
-  const renderer = gen._renderer;
-  if (step === 0) inPlace(renderer, cube, false, () => { topLevel(renderer, gen, source, cube); });
-  else inPlace(renderer, cube, true, () => { gen._applyGGXFilter(cube, step - 1, step); });
-  return step + 1 < gen._lodMeshes.length ? step + 1 : -1;
+  const renderer = gen._renderer, faces = sourceFaces(source), level = step - faces + 1;
+  if (step < faces) inPlace(renderer, cube, false, () => { if (source.kind === 'scene') topLevelFace(renderer, gen, source, cube, step); else topLevel(renderer, gen, source, cube); });
+  else inPlace(renderer, cube, true, () => { gen._applyGGXFilter(cube, level - 1, level); });
+  return step + 1 < faces + gen._lodMeshes.length - 1 ? step + 1 : -1;
 }
 
 /** The GPU bytes held now: an equirect pass's target, the environment target and the generator's ping-pong atlas. */

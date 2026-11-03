@@ -40,8 +40,9 @@ export function toonSkyBackdrop(product: ShardProduct, row: ToonLookRow, rampFog
     const palette = { uHorizon: { value: rgb(mid.horizon) }, uCloudLit: { value: rgb(mid.cloudLit) }, uSunGlow: { value: rgb(mid.sunGlow) }, uSunDir: { value: startSun.clone() } };
     return Promise.resolve({
       clock, follow: false, horizon: rgb(mid.horizon),
-      // one owner for the environment (SF57): a grid region builds this backdrop as a layer each time it is admitted (G223)
-      environment: { source: { kind: 'scene', scene: envScene, size: style.envSize, near: row.sky.environment.near, far: row.sky.environment.far }, refresh: { every: style.envRefresh, stepped: false }, offscreenFirst: true },
+      // one owner for the environment (SF57): a grid region builds this backdrop as a layer each time it is admitted (G223).
+      // G913: stepped, one PMREM step a frame; the whole refresh drew its 6 faces and GGX passes in one frame (+22 draws)
+      environment: { source: { kind: 'scene', scene: envScene, size: style.envSize, near: row.sky.environment.near, far: row.sky.environment.far }, refresh: { every: style.envRefresh, stepped: true }, offscreenFirst: true },
       owners: new Map<string, unknown>([['preset', P], ['palette.horizon', palette.uHorizon], ['palette.cloudLit', palette.uCloudLit], ['palette.sunGlow', palette.uSunGlow], ['palette.sunDir', palette.uSunDir],
         ['light.night', dayLight.uToonNight], ['light.lift', dayLight.uToonLift], ['light.rim', dayLight.uToonRim], ['light.cloudShadow', dayLight.uCloudShadow], ['fog.near', rampFog.near], ['fog.zenith', rampFog.zenith]]),
       // the clean chain: no post the clock turns; it steps its own shadow light, so it runs after the cascades
