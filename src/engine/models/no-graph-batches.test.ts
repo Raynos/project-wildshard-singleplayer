@@ -7,7 +7,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Joins the scanned source paths.
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
-import { BatchedMesh, BoxGeometry, Color, InstancedMesh, Matrix4, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, WebGLRenderer, type Object3D } from 'three';
+import { BatchedMesh, BoxGeometry, Color, Group, InstancedMesh, Matrix4, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, WebGLRenderer, type Object3D } from 'three';
 import { defineModel, modelContext } from './model';
 import { place } from './place';
 import { graphLook, InstancedBatch } from './instancedBatch';
@@ -50,7 +50,7 @@ test('PF1 / PF13: a graph look\'s levels that share a material but not their sha
     for (let id = 0; id < bm.instanceCount; id++) bm.setVisibleAt(id, true);
     let seen: boolean[] = [];
     bm.onBeforeRender = () => { seen = Array.from({ length: bm.instanceCount }, (_, id) => bm.getVisibleAt(id)); };
-    bm.onBeforeShadow(renderer, bm, new PerspectiveCamera(), new PerspectiveCamera(), bm.geometry, new MeshDepthMaterial(), null);
+    bm.onBeforeShadow(renderer, new Scene(), new PerspectiveCamera(), new PerspectiveCamera(), bm.geometry, new MeshDepthMaterial(), new Group());
     const after = Array.from({ length: bm.instanceCount }, (_, id) => bm.getVisibleAt(id));
     expect(after.every(Boolean)).toBe(true);
     return seen;
