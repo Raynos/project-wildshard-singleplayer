@@ -137,6 +137,22 @@ browser is launched by this helper. The old dome JPEG mode is unchanged.
 
 ## Bar 5: four-camera three-way board
 
+Capture and compose the board directly for any of the five plot slugs:
+
+```sh
+scripts/browser-lane.sh --max 10 node scripts/open-plots/comparison.mjs --plot=ember-forge --base=http://127.0.0.1:4404 --pin=FULL_SHA --out=tmp/ember-comparison
+```
+
+The command reads the plot's round-62 reference from its recipe and uses the
+same four panel crops as the hand-made Mosslight/Ember boards. It captures
+both NOW columns from the same served build, with matching fixed plot-local
+cameras, a 72° vertical lens, and a 402×874 iPhone portrait viewport. Its
+`captures/` directory must be new. It writes `input.json`, `board.jpg` and
+the usual hashed sidecar, closes both muted browser contexts, and prints
+the JPEG size. The world advances on its live clock throughout capture.
+No hand-assembled input JSON is needed. Review the finished image before
+sending it; the command makes no taste verdict.
+
 ```sh
 node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/ob2.mjs board --input=tmp/bayou-board-input.json --out=art/lantern-bayou/round-2-comparison/board.jpg
 ```
