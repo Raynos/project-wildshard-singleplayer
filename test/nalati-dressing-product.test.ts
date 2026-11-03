@@ -38,7 +38,7 @@ test('prepared ambient rows keep both tier populations and finite flight at 10 H
   }
 });
 
-test('Nalati admits every shipping dressing groups and camp keep-out population', async () => {
+test('Nalati ships live scatter groups and preserves native support populations', async () => {
   const loaded=nalatiEnvelope;
   const read = (key: string): Uint8Array => {
     const file = loaded.output.namedFiles?.find(row => row.name === key);
@@ -47,10 +47,17 @@ test('Nalati admits every shipping dressing groups and camp keep-out population'
     return bytes;
   };
   const product = { file: (name: string) => Promise.resolve(read(name)) };
+  const support = new Set(['logs','stumps','ovoos','poles','fences','gates','drifts','colliders','clutter']);
   const readRows = async (key: string): Promise<unknown> => {
     if(key==='stone'||key==='daisy')return readDressingTable(await product.file(`world/dressing-${key}.bin`));
     const reference=nalatiDressingPageReference(`world/dressing-${key}.json`);
     if(reference===undefined)throw new Error('Missing original dressing page identity');
+    if(support.has(key)){
+      // These complete native inputs are compiled into the unchanged static
+      // recipes/contacts, not shipped a second time as reader-less pages.
+      expect(loaded.output.namedFiles?.some(row=>row.name===reference.file)).toBe(false);
+      return nativeDressingRows(key);
+    }
     const page=parseSceneScatterPage(JSON.parse(new TextDecoder().decode(await product.file(reference.file))));
     const member=page.members.find(row=>row.id===key);if(member===undefined)throw new Error('Missing original dressing list');
     return member.rows;

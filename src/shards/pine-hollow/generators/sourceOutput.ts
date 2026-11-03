@@ -78,7 +78,6 @@ import { cabinScene, lendCabinPacking } from './cabinSceneContribution';
 import { pineFigureCatalogue } from './figureCatalogue';
 import { pineNpcSkins } from './npcSkinInputs';
 import { WEAPON_FINISHES } from './weaponFinishes';
-import { pineProps } from './bake-pine-props.mjs';
 import { timberWorld } from './timberWorldRows';
 import { pineFloorLayout } from './bake-pine-floor.mjs';
 import { PINE_OUTPUT, CROSSBOW_BLOB } from './outputInputs';
@@ -149,8 +148,8 @@ export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSect
 /** D65: the output rows over the program's sources (the scene, page and story rows, the props, the floor, the keyed sky);
  *  the platform rows go to `prepareOutput`, which adds the compiled return and spawn scripts. */
 async function outputRows(sources: PineSources, readImagePixels: ProjectGenerationContext['readImagePixels'], encodeGainKey?: ProjectGenerationContext['encodeGainKey']): Promise<{ output: PineStaticOutput; platformRows: Map<PlatformDataSectionName, unknown> }> {
-  const props = await pineProps(sources), { rows: keyedSky, blobs: skyKeys } = await pineKeyedSky(sources, readImagePixels, encodeGainKey);
-  const world = timberWorld(sources), timbers = { propShapes: world.propShapes, cabinSeeds: world.cabins.seeds, poolGround: world.poolGround };
+  const { rows: keyedSky, blobs: skyKeys } = await pineKeyedSky(sources, readImagePixels, encodeGainKey);
+  const world = timberWorld(sources), timbers = { cabinSeeds: world.cabins.seeds, poolGround: world.poolGround };
   v.parse(CabinSeedsSchema, timbers.cabinSeeds);
   v.parse(PoolGroundSchema, timbers.poolGround);
   const { FOREST_STORY_BLOB } = forestStory(sources), { PINE_QUEST_PAGE_BLOB } = questPage(sources), { RANGED_PAGE_BLOBS } = await rangedPage(sources), { FOREST_PAGE_BLOB, LANDMARK_VIEW_BLOB } = await forestPage(sources);
@@ -169,7 +168,7 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY)), { jsonSchema: registeredJsonSchema('quests/story.json') }),
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows))), { jsonSchema: registeredJsonSchema('quests/achievements.json') }),
   nameBlob('quests/mill-door.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_MILL_DOOR))), { jsonSchema: registeredJsonSchema('quests/mill-door.json') }),
-nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE))),{jsonSchema:registeredJsonSchema('quests/lanterns.json')}),nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(pineFloorLayout(sources)), (key: string, value: unknown) => key === 'matrix' ? undefined : typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value)), { jsonSchema: registeredJsonSchema('world/floor.json') }), nameBlob('world/prop-shapes.json','json',new TextEncoder().encode(JSON.stringify(timbers.propShapes))), nameBlob('world/props.json','json',new TextEncoder().encode(JSON.stringify(props))), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES)))]);
+nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE))),{jsonSchema:registeredJsonSchema('quests/lanterns.json')}),nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(pineFloorLayout(sources)), (key: string, value: unknown) => key === 'matrix' ? undefined : typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value)), { jsonSchema: registeredJsonSchema('world/floor.json') }), nameBlob('loadout/finishes.json','json',new TextEncoder().encode(JSON.stringify(WEAPON_FINISHES)))]);
   const PLATFORM_ROWS = new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['world/physics', pineWorldPhysics()],['world/trees', TREE_SET],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]]);
   return { platformRows: PLATFORM_ROWS, output: { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom: emitCustom(), namedFiles: clientJson.files, assets: clientJson.assets, blobs: pinePhysicsSources().map(meshoptSource).map(sourceBlob) } };
 }

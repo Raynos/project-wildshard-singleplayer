@@ -291,7 +291,11 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   // assembling the scene. Invalid inputs never need those unrelated outputs.
   const placementRows=await nalatiDressingPlacementProgram(ctx);
   const originalPlacementBlobs=nalatiDressingPlacementBlobs(placementRows);
-  const placements=emitNamedBlobs(nalatiDressingPages(placementRows,originalPlacementBlobs.filter(blob=>blob.file.kind==='bin')));
+  // All sixteen original support lists still validate in the native packer.
+  // Only the two live pose pages and numeric tables have runtime readers;
+  // static geometry and contacts already carry the other lists' results.
+  const placements=emitNamedBlobs(nalatiDressingPages(placementRows,originalPlacementBlobs.filter(blob=>blob.file.kind==='bin'))
+    .filter(({file})=>file.name!=='world/dressing-pages/2.json'&&file.name!=='world/dressing-pages/3.json'&&file.name!=='world/dressing-pages/4.json'));
   const placeFiles = await nalatiPlacesProgram(ctx, 'i3');
   const decorativeFiles = await nalatiDecorativeProgram(ctx);
   const renderFiles = await nalatiRenderTileProgram(ctx);

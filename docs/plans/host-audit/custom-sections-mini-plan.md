@@ -156,7 +156,7 @@ does not close a Z row.
 | **Z6** | **In flight (2026-11-03, sp-x8): exact native-type/user audit and byte-preserving transport.** Weapon pages into `held/*`; Jian cloth / halo ship as GLB. One-user complete contracts go to Jake's G988 batch; G958 parity, G998 goldens and held-view captures required | 10 targets: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Codex (G958) | 3 |
 | **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
 | **Z8** | **In flight (2026-11-03, sp-x9), 1/14 landed.** The 149 B zero-reader DW steps copy is deleted with exact reconstruction and 48 green G998 panels. Shared ChapterPresentation (6/6) awaits the Nalati QD11 fix and all-six qualification. Twelve per-file blockers below go to the one-user batch; Pine lead already runs as AS. **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
-| **Z9** | **Instanced scatter rows.** Nalati's scatter pages become the generic dressing host with Pine props as user two | 9: Nalati dressing-pages 5, dressing-{phone,desktop}; Pine props, prop-shapes | Opus | 3 |
+| **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **In flight (2026-11-03, sp-x6): candidate reduction 5; three one-user roots stay charged. G998 qualification pending; evidence below. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
 | **Z12** | **Ground pages.** `world/ground` family: layout, caves, collision; big grids as `.bin` with row headers, sharing the fields host with Far / Sun | 9: Pine floor, crag-cave, cave-interior, forest-page, building-sites, landmark-view, physics.generated; Nalati meadow, water | Opus | 3.5 |
@@ -3023,7 +3023,7 @@ zero. The DW world golden is owned by sp-ci-deploy and is untouched here.
 | **CS3-E7 — Whole specimen-book genericity/owner** | **Retained: current whole-book producer remains Nalati-only; neither a second whole-book user nor exact Jake approval is established.** Nalati `models/cover-{phone,desktop}.json` and `models/gear-book.json`. Whole `SpecimenBookSchema` users demonstrated in the source remain Nalati-only. Require an actual second whole-book shard user or exact one-user approval, plus unchanged native model/material ownership. Child catalogue use elsewhere supplies neither. |
 | **CS3-E8 — Sign atlas/resource contract** | **Skipped in this port turn: Nine.** Nine `signs/atlas-{phone,desktop}.json`. Preserve shard-local `SignAtlasSchema`, glyph/light/pool/channel bindings until a complete shared contract or the existing approved shader/model exit is qualified. |
 | **CS3-E9 — Building-life envelope/site owner — ported** | `d3b32d2003`: complete `BuildingLifeDocumentSchema` registers DW `world/building-life.json`; the inline private defining copy is retired. The original native site/cloud/resource owner and retirement fences remain. Immutable `71c1451716` → `d3b32d2003` keeps the 510 B document and all 485,148,116 B of the six CS3 products byte-exact. All 224 old/new packs / 5,580 entries reconstruct exactly. Only the defining schema metadata changes, adding the native initial-dusk bounds. Both tiers, pier/beach/wreck plus the affected shrine: eight strict A/A and eight strict A/B comparisons, zero differing pixels (24 native Metal portrait frames); all native readiness/frame/error guards pass. Original/native plus registered tests: 32 pass; root types/fast lint pass. No cap, guard, collider or loading path changes. Raw results: `tmp/sp-x2-cs3-exits/e9-{audit.json,pixels/reading.json}`. |
-| **CS3-E10 — Native dressing rows and colliders — source port landed, qualification open** | The original sixteen Nalati arrays have been retired into five complete `world/dressing-pages/{0,1,2,3,4}.json` `SceneScatterPageSchema` documents, final source reapply `dab6b3b9d9`; the below dated record supersedes this row’s old loose-peer wording. All sixteen canonical lists reconstruct exactly, including 9,706 rows, doubles, numeric resources and original native owners/refusals; the original 50 focused cases pass. Fixed AFTER `af6f2f8eb3` has both-tier P1–P3 A/A0, with Jake explicitly accepting P1/P3. Clean warm `3221e06306` is 22.560400 s. **No A/B or clean matched cold+warm no-worse pair exists**: the unchanged BEFORE was prohibited by the shared audio P0. Jake’s no-rerun instruction stands. Keep comparative qualification open; do not fabricate a baseline or retire any further copy. No E10 code, collider, loading or browser rerun in this port turn. |
+| **CS3-E10 — Native dressing rows and colliders — source port landed, qualification open** | The original sixteen Nalati arrays have been retired into five complete `world/dressing-pages/{0,1,2,3,4}.json` `SceneScatterPageSchema` documents, final source reapply `dab6b3b9d9`; the below dated record supersedes this row’s old loose-peer wording. All sixteen canonical lists reconstruct exactly, including 9,706 rows, doubles, numeric resources and original native owners/refusals; the original 50 focused cases pass. Fixed AFTER `af6f2f8eb3` has both-tier P1–P3 A/A0, with Jake explicitly accepting P1/P3. Clean warm `3221e06306` is 22.560400 s. **No A/B or clean matched cold+warm no-worse pair exists**: the unchanged BEFORE was prohibited by the shared audio P0. Jake’s no-rerun instruction stands. Keep comparative qualification open; do not fabricate a baseline or retire any further copy. No E10 code, collider, loading or browser rerun in this port turn. **2026-11-03 Z9:** G872 separately approves deletion of the three now-proven unread support pages (2/3/4); two live pages and both complete books stay charged. The [Z9 proof](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2) qualifies only that current deletion. Historical missing E10 A/B/loading proof is not retroactively closed. |
 | **CS3-E11 — Island placement-plan contract — ported** | `ea6ad1472a`: complete `BakedPlacementPlanSchema` registers DW `world/island/plan-{phone,desktop}.json`, retaining all families, partitions, small-rock matrices and unclaimed collider rows. The shard-local return interface is retired; the original `BakedPlanSchema`, byte counts, family/table/resource refusals and collider owners are unchanged. Original phone/desktop hashes survive (297,521 / 353,953 B); three actual-plan/refusal cases, registration originals, root types and fast lint pass. Immutable `d3b32d2003` → `ea6ad1472a`: all 485,148,116 B of the six CS3 products remain exact; 224 old/new packs / 5,580 ordered entries reconstruct exactly; only the two defining schema metadata entries change. Both tiers at pier/beach/wreck/shrine: eight strict A/A + eight strict A/B comparisons, zero differing pixels across 24 native Metal portrait frames, original readiness/frame/error guards intact. No cap, collider or streaming/loading change. Raw results: `tmp/sp-x2-cs3-exits/e11-{audit.json,pixels/reading.json}`. |
 | **CS3-E12 — Landmark native-view derivation** | **Skipped in this port turn: Pine.** Pine `world/landmark-view.json`, jointly recorded by CS9: exact board/site/stone/dam/canoe/view/book fields and native owners remain local to `forestPage.ts`/`timberWorldRows.ts`. Require a whole native projection/reconstruction, not a child alias. |
 | **CS3-E13 — Spray packet/resource owner** | **Skipped in this port turn: Pine.** Pine `scenes/streams-spray.bin`, historical 1,012 B. Retain f32 matrices/seeds/sizes, byte offsets/counts and the native instanced resource lifetime. Recipe registration does not retire or convert this packet. |
@@ -3338,3 +3338,97 @@ All custom compatibility, native validation, provenance/freeze guards and
 caps remain. This proof grants no global zero-user, loading, memory or
 frame-time claim. The coordinator explicitly accepted scoped E1/E2 after
 the zero-pixel and 61/61 Explorer results.
+
+### Z9: dead copies and four real one-user roots (2026-11-03, sp-x2)
+
+The fresh nine-file census does not find a second whole-root shard user.
+Pine's live props already use `WorldSceneModels` and
+`WorldScenePlacementPage` in `generators/sceneModelRows.ts:93–115`:
+original hull/sphere/capsule facts, native materials, quaternion matrices,
+selection, culling and collider owners survive there. Its two separate
+JSON files have zero source readers and zero exact references in any
+emitted section or JSON body. Nalati’s support pages 2–4 are also unread;
+the native author still validates all sixteen original lists and compiles
+support geometry/contacts into the complete, unchanged dressing books.
+
+**G872 coordinator-approved retirement: five reader-less copies, 397,308 B.**
+
+| File | Bytes | Original SHA-256 |
+|---|---:|---|
+| Pine `world/props.json` | 80,532 | `ef7c22ff43873e4fb32d0869e98a388078e3f87c63099db71b204c29f72f06d3` |
+| Pine `world/prop-shapes.json` | 25,644 | `d9eb2ba63d54be68081307300e1592840268e86434d1bf9f0bd0aebf62a10e17` |
+| Nalati `world/dressing-pages/2.json` | 4,142 | `b2c3fde9ece3190310002f19082482872bafa74a68faaecb834745bafd4ef952` |
+| Nalati `world/dressing-pages/3.json` | 283,048 | `2cef7b6221fd2dd9eaec9b1d26a876115ad27346f43d4d83e70edfae31ac0f40` |
+| Nalati `world/dressing-pages/4.json` | 3,942 | `72f57481ccf6457a462157c556b75c2d3831a467c582f5b10c44d141ae781307` |
+
+**Four remain charged for Jake’s one-user batch, no platform family credit:**
+
+| Actual complete root | Bytes / exact body SHA-256 | Live reader / reason it stays |
+|---|---|---|
+| Nalati `world/dressing-pages/0.json` — `SceneScatterPageSchema` | 1,207,078 / `047ac1c4b4513b28cd0cf0b4bbf53da933e03e8033d71a4e33a1d66dbecdccf0` | Both tier books name it for boulder (including tall selection), slab and juniper. `SceneScatterPages` admits the complete page before `SceneDressing` consumes its ordered poses. Only Nalati emits/reads the whole page. |
+| Nalati `world/dressing-pages/1.json` — `SceneScatterPageSchema` | 1,252,812 / `cecc60613cfe21030862a6c891e9e3feda904adcb688f43f3d4e9c3b3e059451` | Both tier books name it for rose, willow, lupin and reed; same full-page/native owner. Pine's live placement-page format is different and is not a second user. |
+| Nalati `world/dressing-phone.json` — `SceneDressingSchema` | 872,977 / `2a932d4e032a401d44a1deec828bcaaa6ab45e1dba17d595521e8044875b5434` | `world/scenes.dressing.phone` selects the complete book; `SceneDressing` consumes model/material/geometry/scatter/static/ambient/contact rows. Only Nalati drives the whole host. |
+| Nalati `world/dressing-desktop.json` — `SceneDressingSchema` | 951,607 / `9196ef04e004539d758cb2549b35939fb32919f24fc27a4a7715fc9d080a8dd1` | `world/scenes.dressing.desktop` selects the complete desktop book; same native owners. No exact second whole-book user or one-user approval is established. |
+
+These four fail HOST-BAR test 1’s actual two-user requirement for new
+family credit. No child-schema user, fixture, optional wrapper or name
+pattern is substituted. No format/SDK/runtime code, cap or guard changes.
+The original sixteen-list exact packing/refusal checks stay; the maintained
+product fixture keeps all population/camp keep-out assertions, reads live
+poses from the actual admitted product, and explicitly verifies retired
+pages absent while checking offline support lists from their native source.
+
+Frozen working-tree BEFORE `837066a073-mw0u4ne6` (:4407) and AFTER
+`b625930020-mw0ug72f` (:4403) both include the same other lanes’ candidate
+source; these are actual served artifacts, not falsely labelled clean
+commit builds. Pine bodies 884→882, 154,136,335→154,030,159 B; Nalati
+389→386, 88,577,793→88,286,661 B. Every unrelated **242,316,656 B** body
+is exact; all **122 old/new packs / 2,475 ordered entries** reconstruct
+exactly after only the five removals and the attributed map-stamp change.
+Admission removes only the dead library/late hashes and exact costs.
+Indexes 1,712,988→1,712,018 B (Pine), 1,166,641→1,153,110 B (Nalati)
+remain under unchanged caps.
+
+The one other raw-body difference is Nalati’s 164 B `look/map` source
+stamp: independent aggregate reconstruction over all 327 declared input
+occurrences proves only the authorized `generators/output.ts` emitter
+cut. Map image remains
+`80afaa55b292b48c93694dbc7ac95557ecb96714b2c159cd467ff3fa0caff2d6`;
+restoring the old stamp reconstructs the original map bytes/hash exactly.
+This is explicit source-stamp attribution, not a raw all-body parity claim.
+
+Strict native Metal proof: **48 phone-portrait frames, 16 A/A + 16 A/B, every changed-pixel count zero**, actual phone and desktop tiers at four poses in each shard. Original native frame gate, exact camera/clock/frame comparisons and empty-error requirements remain. Both frozen sides contain the same pre-existing QD11.
+
+Fresh ordinary QD11-fixed candidate `5b5922e263-mw0vipws` (:4409)
+contains landed `2d4405a27c`. Independent bridge checks both full indexes,
+all **1,268 bodies / 242,316,820 B** and all **122 old/new packs /
+2,470 ordered entries** byte-identical to the earlier AFTER artifact.
+Thus the original five-copy/body/native proof transfers without a source
+overlay, stale-product bypass or tolerance.
+
+**G998 qualified before landing:** every LEGACY / SHARDFILE / NOW row
+read, all 24 cameras green per shard per engine, empty errors and all
+settled. Pine Chromium and WebKit use AFTER `b625930020-mw0ug72f`;
+Nalati Chromium and WebKit use QD11-fixed `5b5922e263-mw0vipws`.
+Pine WebKit 11/20 have close moving creatures (the automatic camera 11
+colour flag remains visible and is explicitly classified as creature
+motion). Nalati's earlier 24-camera exposure/colour red was pre-existing
+QD11, missing `<colorspace_fragment>` since `180df449c9`; the required
+post-`2d4405a27c` re-shoot is green without waiver or golden promotion.
+Terrain, buildings, native props, water, sky and hands are intact; moving
+grass, water, clouds, wildlife, crowds, projectile trails and sway remain.
+
+Committed reviewed boards:
+
+- [Pine Chromium](../../../art/golden-runs/pine-hollow/2026-11-03-b625930020-z9-chromium-board.jpg)
+- [Pine WebKit](../../../art/golden-runs/pine-hollow/2026-11-03-b625930020-z9-webkit-board.jpg)
+- [Nalati Chromium](../../../art/golden-runs/nalati-grasslands/2026-11-03-5b5922e263-z9-chromium-board.jpg)
+- [Nalati WebKit](../../../art/golden-runs/nalati-grasslands/2026-11-03-5b5922e263-z9-webkit-board.jpg)
+
+The five focused scatter/native-owner/contract files pass (18.7 s), the
+maintained actual-product cases pass (9.9 s), root types and touched fast
+lint pass. Browser cohorts close before reporting. Historical E10's
+missing old A/B/loading pair remains history; Z9 qualifies only its
+current five-copy deletion, not that old missing proof. Remaining target
+count is **4**, explicitly pending Jake's one-user batch; no ceiling is
+edited here (sp-x1 owns the combined downward ratchet).
