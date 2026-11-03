@@ -243,6 +243,7 @@
       "name": "Lantern Bayou",
       "accent": "marigold",
       "layout": "lantern-bayou",
+      "landmarkLight": "dusk",
       "lookKeys": [
         {
           "time": 0,

@@ -70,7 +70,13 @@
     "moss": "#5a6a3a",
     "bank": "#3a4038",
     "iron": "#24282c",
-    "paper": "#ffb347"
+    "paper": "#ffb347",
+    "banner": "#3e5a50",
+    "cloth": "#4a6a5a",
+    "stallRoof": "#2c3c40",
+    "flowerRed": "#e7a3b8",
+    "fruit": "#c8a050",
+    "greens": "#4a7a3a"
   },
   "landmark": {
     "near": "public/assets/open-plots/lantern-bayou/landmark.glb",

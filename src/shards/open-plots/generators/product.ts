@@ -8,6 +8,7 @@ import poster from '../data/poster.graph.json' with { type: 'json' };
 import paving from '../data/paving.graph.json' with { type: 'json' };
 import kit from '../data/kit.graph.json' with { type: 'json' };
 import landmark from '../data/landmark.graph.json' with { type: 'json' };
+import landmarkDusk from '../data/landmarkDusk.graph.json' with { type: 'json' };
 import mapSettings from '../data/map.json' with { type: 'json' };
 import type { OutputProgramResult, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
@@ -38,7 +39,7 @@ const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicke
   landmark: { family: 'graph', graph: landmark } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
     spawn: (typeof source)["spawn"];
@@ -66,7 +67,10 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   if (row.placeholder === true) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...look, keys },
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', materials: { Floor: 'floor', Kerb: 'kerb' } } };
   // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
-  if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...tiledLook, keys },
+  // OB2: a row's `landmarkLight: "dusk"` lights its landmark by a neutral dusk fill (a natural landmark: bark and moss)
+  // in place of the gate's warm lilac fill (RM6.4), the same graph and size with its own light
+  const tiled = row.landmarkLight === 'dusk' ? { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: landmarkDusk } } } : tiledLook;
+  if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...tiled, keys },
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
     // RM8.2: its kit models draw only at L0 (`detail_`); their boxes stand in at L1 (`coarse_`)
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', detail: 'detail_', coarse: 'coarse_', farMode: 'replace', near: 'coarse',
