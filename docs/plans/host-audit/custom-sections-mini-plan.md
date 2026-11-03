@@ -3612,3 +3612,38 @@ claimed here.
 Retirement qualification and landing remain open until the candidate’s
 Nalati Chromium and WebKit G998 rows are all read and green. No ceiling
 is changed in this census commit.
+
+### Combined ceilings after Z3/Z5/Z8/Z9/Z11 (2026-11-03, sp-x1)
+
+The ordinary clean committed preview of
+`a209d3e37e9ae0c9f61af3b939a13ba22cb9573a` builds all 28 products and
+the app successfully: `a209d3e-mw0ww4tm` (:4408). This includes Z11
+`7cc93a3856`, Z8 chapter `a209d3e37e` and dead steps `98bab03828`, Z9
+`abedbc1d76`, and the preceding Z3/Z5 family landings. It excludes every
+uncommitted Z6/Z12/Z14 cut. The preview's owner lease is released.
+
+Native `outputSections` admission and a separate pinned-registry selector /
+body-hash census agree for all products. The 27 complete family selectors
+(pattern, defining source and reader) match that exact committed registry.
+The name freeze, original baseline, native validation and identity guards
+stay unchanged. Both existing custom-growth/freeze test files pass.
+
+| Shard | Previous ceilings count / bytes | Exact committed count / bytes |
+|---|---:|---:|
+| Driftwood | 18 / 1,782,116 | **17 / 1,774,099** |
+| Pine | 94 / 6,549,163 | **22 / 4,706,698** |
+| Nalati | 41 / 8,502,525 | **34 / 8,153,207** |
+| Nine | 10 / 4,488,505 | **10 / 4,488,505** (unchanged) |
+| Far Reach | 3 / 352,691 | **0 / 0** |
+| Sunscar | 3 / 55,515 | **0 / 0** |
+| Every other product / source group | 0 / 0 | **0 / 0** |
+| **Total** | **169 / 21,730,515** | **83 / 19,122,509** |
+
+Only the ten downward ceiling values change. The 86-count and
+2,608,006-byte cap shrink records already-landed work, not 86 newly
+deleted bodies or an invented zero-user claim. Z14's approved one-copy
+retirement remains a separate candidate awaiting G998; the nine live
+Z14 whole roots remain fully charged. This clean successful boundary
+does not identify the cause of the historical `7cc93a3856` preview's
+current-product refusal; that separate retained-source question stays
+with the input-receipt owner.
