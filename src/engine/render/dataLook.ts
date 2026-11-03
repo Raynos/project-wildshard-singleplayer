@@ -164,7 +164,9 @@ export function dataLook(spec: DataLookSpec): LookStrategy {
       if (lut !== null) scope.own(lut);
       return { chain: engineChain('clean') };
     },
-    sky: { clouds: false, planet: false },
+    // G992: no sun disc or corona over the gradient dome. A 1° disc read as a blurred speck with a halo ("half-assed moon
+    // or sun", Jake), and a crisp disc alone as a 3 px dot (art/open-plots/sun-disc-g992/board.jpg); the key light is unchanged.
+    sky: { clouds: false, planet: false, sun: { disc: false, halo: false } },
     backdrop: async ({ sky }) => {
       const clock = dataLookClock(spec.day, spec.dayOverride), now = lookSample();
       const { dome, zenith, horizon } = gradientDome();
