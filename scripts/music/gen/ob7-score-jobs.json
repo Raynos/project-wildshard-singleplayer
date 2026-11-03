@@ -1,0 +1,47 @@
+{
+  "lyrics": {
+    "loop": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]"
+  },
+  "jobs": {
+    "ob7/lantern-bayou": {
+      "style": "ob7",
+      "slot": "lantern-bayou",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 72,
+      "prompt": "Instrumental video game score, 72 BPM, 4/4. Slow blue-green dusk swamp village, intimate slide dobro melody answered by soft accordion, warm upright bass and brushes. Spacious, gentle mystery, relaxed unhurried instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "ob7/frostline-peaks": {
+      "style": "ob7",
+      "slot": "frostline-peaks",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 96,
+      "prompt": "Instrumental video game score, 96 BPM, 4/4. Bright alpine morning, delicate zither melody, glockenspiel answering motifs and soft chamber strings. Fresh clear mountain air, cosy timber village, light optimistic instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "ob7/ember-forge": {
+      "style": "ob7",
+      "slot": "ember-forge",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 84,
+      "prompt": "Instrumental video game score, 84 BPM, 4/4. Deep-blue night dwarven foundry, low warm brass motif over a steady restrained musical anvil rhythm, resonant bass and dark strings. Industrious, grounded and majestic, gentle exploration rather than combat. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "ob7/mosslight-ruins": {
+      "style": "ob7",
+      "slot": "mosslight-ruins",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 68,
+      "prompt": "Instrumental video game score, 68 BPM, 4/4. Misty ancient ruined stone city, wordless low choir pad underneath delicate harp and widely spaced distant bronze bells. Green pools, ivy and quiet discovery, contemplative and mysterious without horror. No words or solo singer. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "ob7/coral-drift": {
+      "style": "ob7",
+      "slot": "coral-drift",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 104,
+      "prompt": "Instrumental video game score, 104 BPM, 4/4. Bright turquoise tropical noon, light steel drum melody and gently strummed ukulele with rounded acoustic bass and restrained hand percussion. Friendly sunlit lagoon village, airy joyful instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    }
+  }
+}

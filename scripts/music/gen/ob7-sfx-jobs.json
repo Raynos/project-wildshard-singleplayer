@@ -1,0 +1,215 @@
+{
+  "_doc": "OB7: one ambience bed and five positional loops per plot; generate each with MOSS v2 and Stable Audio 3 Medium, then rank both with CLAP. No recording is qualified merely by these briefs.",
+  "families": {
+    "bed.lantern-bayou.ambience": {
+      "kind": "bed",
+      "into": "lantern-bayou",
+      "duration": 30,
+      "desc": "Frogs and crickets over quiet lapping swamp water at dusk",
+      "prompt": "Frogs and crickets over quiet lapping swamp water at dusk. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.lantern-bayou.boardwalk-creak": {
+      "kind": "hum",
+      "into": "lantern-bayou",
+      "duration": 8,
+      "desc": "An old damp wooden boardwalk gently creaking under weight",
+      "prompt": "An old damp wooden boardwalk gently creaking under weight. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.lantern-bayou.wind-chimes": {
+      "kind": "hum",
+      "into": "lantern-bayou",
+      "duration": 10,
+      "desc": "Small metal wind chimes ringing softly on a wooden stilt house",
+      "prompt": "Small metal wind chimes ringing softly on a wooden stilt house. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.lantern-bayou.distant-owl": {
+      "kind": "hum",
+      "into": "lantern-bayou",
+      "duration": 10,
+      "desc": "A distant owl hooting across a quiet swamp",
+      "prompt": "A distant owl hooting across a quiet swamp. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.lantern-bayou.boat-bump": {
+      "kind": "hum",
+      "into": "lantern-bayou",
+      "duration": 8,
+      "desc": "A small wooden boat gently bumping a timber jetty and water lapping",
+      "prompt": "A small wooden boat gently bumping a timber jetty and water lapping. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.lantern-bayou.cypress-rustle": {
+      "kind": "hum",
+      "into": "lantern-bayou",
+      "duration": 10,
+      "desc": "Soft hanging cypress moss and leaves rustling in a light breeze",
+      "prompt": "Soft hanging cypress moss and leaves rustling in a light breeze. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "bed.frostline-peaks.ambience": {
+      "kind": "bed",
+      "into": "frostline-peaks",
+      "duration": 30,
+      "desc": "Steady alpine breeze and a distant smooth chair lift motor hum",
+      "prompt": "Steady alpine breeze and a distant smooth chair lift motor hum. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.frostline-peaks.lift-wheel": {
+      "kind": "hum",
+      "into": "frostline-peaks",
+      "duration": 10,
+      "desc": "An alpine chairlift pulley wheel slowly creaking and gently rattling",
+      "prompt": "An alpine chairlift pulley wheel slowly creaking and gently rattling. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.frostline-peaks.hearth": {
+      "kind": "hum",
+      "into": "frostline-peaks",
+      "duration": 10,
+      "desc": "A small lodge hearth crackling softly with glowing embers",
+      "prompt": "A small lodge hearth crackling softly with glowing embers. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.frostline-peaks.ice-creak": {
+      "kind": "hum",
+      "into": "frostline-peaks",
+      "duration": 10,
+      "desc": "Gentle deep ice creaks beside a frozen alpine canal",
+      "prompt": "Gentle deep ice creaks beside a frozen alpine canal. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.frostline-peaks.wind-chimes": {
+      "kind": "hum",
+      "into": "frostline-peaks",
+      "duration": 10,
+      "desc": "Delicate iron wind chimes ringing in a cool mountain breeze",
+      "prompt": "Delicate iron wind chimes ringing in a cool mountain breeze. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.frostline-peaks.pine-rustle": {
+      "kind": "hum",
+      "into": "frostline-peaks",
+      "duration": 10,
+      "desc": "Snow-dusted pine branches softly rustling and shedding tiny snow falls",
+      "prompt": "Snow-dusted pine branches softly rustling and shedding tiny snow falls. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "bed.ember-forge.ambience": {
+      "kind": "bed",
+      "into": "ember-forge",
+      "duration": 30,
+      "desc": "Distant furnace roar and low thick bubbling molten lava",
+      "prompt": "Distant furnace roar and low thick bubbling molten lava. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.ember-forge.anvil": {
+      "kind": "hum",
+      "into": "ember-forge",
+      "duration": 10,
+      "desc": "A blacksmith striking a steel anvil at an unhurried pace with ringing metallic decays",
+      "prompt": "A blacksmith striking a steel anvil at an unhurried pace with ringing metallic decays. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.ember-forge.bellows": {
+      "kind": "hum",
+      "into": "ember-forge",
+      "duration": 10,
+      "desc": "Large leather forge bellows slowly breathing and creaking with air rushing",
+      "prompt": "Large leather forge bellows slowly breathing and creaking with air rushing. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.ember-forge.crane-chain": {
+      "kind": "hum",
+      "into": "ember-forge",
+      "duration": 10,
+      "desc": "A heavy suspended crane chain slowly clanking and settling",
+      "prompt": "A heavy suspended crane chain slowly clanking and settling. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.ember-forge.steam-hiss": {
+      "kind": "hum",
+      "into": "ember-forge",
+      "duration": 10,
+      "desc": "A quiet intermittent steam vent hissing beside hot stone",
+      "prompt": "A quiet intermittent steam vent hissing beside hot stone. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.ember-forge.ember-crackle": {
+      "kind": "hum",
+      "into": "ember-forge",
+      "duration": 10,
+      "desc": "Small hot embers popping and crackling in a forge brazier",
+      "prompt": "Small hot embers popping and crackling in a forge brazier. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "bed.mosslight-ruins.ambience": {
+      "kind": "bed",
+      "into": "mosslight-ruins",
+      "duration": 30,
+      "desc": "Soft wind flowing through old stone ruins and water dripping in a courtyard",
+      "prompt": "Soft wind flowing through old stone ruins and water dripping in a courtyard. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.mosslight-ruins.pool-hum": {
+      "kind": "hum",
+      "into": "mosslight-ruins",
+      "duration": 10,
+      "desc": "A quiet low shimmering resonant hum from a mysterious still pool",
+      "prompt": "A quiet low shimmering resonant hum from a mysterious still pool. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.mosslight-ruins.ivy-birds": {
+      "kind": "hum",
+      "into": "mosslight-ruins",
+      "duration": 10,
+      "desc": "Small birds chirping gently among ivy in a quiet stone courtyard",
+      "prompt": "Small birds chirping gently among ivy in a quiet stone courtyard. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.mosslight-ruins.arch-whistle": {
+      "kind": "hum",
+      "into": "mosslight-ruins",
+      "duration": 10,
+      "desc": "Soft airy wind whistling through a broken stone arch",
+      "prompt": "Soft airy wind whistling through a broken stone arch. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.mosslight-ruins.falling-grit": {
+      "kind": "hum",
+      "into": "mosslight-ruins",
+      "duration": 8,
+      "desc": "Tiny loose stone grains softly trickling down old masonry",
+      "prompt": "Tiny loose stone grains softly trickling down old masonry. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.mosslight-ruins.pool-drip": {
+      "kind": "hum",
+      "into": "mosslight-ruins",
+      "duration": 10,
+      "desc": "Slow clear water drops falling into a small resonant stone pool",
+      "prompt": "Slow clear water drops falling into a small resonant stone pool. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "bed.coral-drift.ambience": {
+      "kind": "bed",
+      "into": "coral-drift",
+      "duration": 30,
+      "desc": "Gentle tropical surf lapping a lagoon shore and a warm sea breeze",
+      "prompt": "Gentle tropical surf lapping a lagoon shore and a warm sea breeze. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.coral-drift.gulls": {
+      "kind": "hum",
+      "into": "coral-drift",
+      "duration": 10,
+      "desc": "A few distant seagulls calling over a calm sunny lagoon",
+      "prompt": "A few distant seagulls calling over a calm sunny lagoon. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.coral-drift.palm-rustle": {
+      "kind": "hum",
+      "into": "coral-drift",
+      "duration": 10,
+      "desc": "Long palm fronds softly rustling in a warm sea breeze",
+      "prompt": "Long palm fronds softly rustling in a warm sea breeze. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.coral-drift.pier-creak": {
+      "kind": "hum",
+      "into": "coral-drift",
+      "duration": 10,
+      "desc": "A wooden seaside pier gently creaking as small waves move below",
+      "prompt": "A wooden seaside pier gently creaking as small waves move below. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.coral-drift.shell-chimes": {
+      "kind": "hum",
+      "into": "coral-drift",
+      "duration": 10,
+      "desc": "Small shell wind chimes gently clattering on a beach hut",
+      "prompt": "Small shell wind chimes gently clattering on a beach hut. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "hum.coral-drift.lagoon-lap": {
+      "kind": "hum",
+      "into": "coral-drift",
+      "duration": 10,
+      "desc": "Small clear lagoon waves softly lapping against a timber pier",
+      "prompt": "Small clear lagoon waves softly lapping against a timber pier. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+    }
+  }
+}
