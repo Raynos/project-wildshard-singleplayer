@@ -58,7 +58,7 @@ test('whole-covered fixed files leave phone play but stay available to posed and
   const source = { identity: { slug: 'fixed-selection' }, files: emitted.files,
     library: emitted.files.map(file => file.hash), critical: [] };
   const descriptor = { index: { files: emitted.files }, sections: new Map<string, unknown>([
-    ['custom/fixedLayouts', { draws: emitted.files.map(file => ({ file: file.name })) }],
+    ['models/island-library', { draws: emitted.files.map(file => ({ file: file.name })) }],
   ]) };
   const steps = tierLibrarySteps(source, 'phone', descriptor);
   let step = steps.next(); while (step.done !== true) step = steps.next();

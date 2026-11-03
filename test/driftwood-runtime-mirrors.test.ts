@@ -14,7 +14,7 @@ import { Rng } from '../src/engine/core/rng';
 import { SHORE_ROCK } from '../src/shards/driftwood-isle/generators/rockProfiles';
 
 test('only the resolved book ships; native view facts stay in their defining producers', () => {
-  const root=DRIFTWOOD_CLIENT_SECTIONS.find(row=>row.name==='custom/fixedLayouts')?.value;
+  const root=DRIFTWOOD_CLIENT_SECTIONS.find(row=>row.name==='models/island-library')?.value;
   expect(root).toMatchObject({id:'driftwood.island',figures:'people/catalogue.json'});
   expect(root).not.toHaveProperty('nativeView');
   expect(WORLD_STAGES.construction.looks?.bound).toContain(NATIVE_VIEW.SMOKE_LOOK);

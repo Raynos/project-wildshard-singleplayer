@@ -45,7 +45,7 @@ export const QuestFiguresSchema: v.GenericSchema<QuestFiguresRowsInput, QuestFig
 /** Cold Explorer kit cards reuse the live figure rows; their model has no
  * ignored params or variants and their source selects one fixed field only. */
 export const KitFigureCardsSchema: v.GenericSchema<KitFigureCardsRowsInput, KitFigureCardsRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Kit figure cards require plain JSON'), v.strictObject({
-  catalogue: id, draws: v.pipe(v.string(), v.regex(/^custom\/[A-Za-z][A-Za-z0-9_.-]*$/u)),
+  catalogue: id, draws: v.literal('models/island-library'),
   cards: v.pipe(v.record(id, v.strictObject({
     model: v.strictObject({ ...v.pick(SpecimenModelMetadataSchema, ['id', 'name', 'file', 'category', 'pipeline', 'surface']).entries, defaults: v.strictObject({}) }),
     figure: QuestFigureSchema,
@@ -216,7 +216,7 @@ export type QuestFiguresRows = { [Key in keyof QuestFiguresRowsFields]: QuestFig
 export type KitFigureCardsRowsInput = unknown;
 interface KitFigureCardsRowsFields {
     catalogue: string;
-    draws: string;
+    draws: 'models/island-library';
     cards: Record<string, {
         model: {
             defaults: Record<never, never>;

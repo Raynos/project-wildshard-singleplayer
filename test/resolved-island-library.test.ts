@@ -30,7 +30,7 @@ function fixture() {
   const source=emptyShardfile({slug:'fixture-island',name:'Test',author:'Test',revision:1,seed:1});
   const blobs=new Map([['mesh.glb',glb()],['groups.json',new TextEncoder().encode('{"native":true}')],['figures.json',new TextEncoder().encode('{"figures":{}}')]]);
   const reads=vi.fn((name:string)=>{const bytes=blobs.get(name);if(bytes===undefined)throw new Error('Missing fixture bytes');return Promise.resolve(bytes);});
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map([['custom/collections',collectionRows()]]),
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map([['collections/displays',collectionRows()]]),
     files:new Map([...blobs].map(([name])=>[name,{hash:name,url:name}])),read:reads});
   return {product,reads};
 }

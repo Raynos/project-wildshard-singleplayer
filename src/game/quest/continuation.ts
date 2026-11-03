@@ -30,7 +30,7 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
   const cosmetics = defineWorldSceneCatalogue(cosmeticRows), sources = sharedModelContext(world.sky);
   const bind = (model: ModelDef<Record<string, unknown>>): ModelDef<Record<string, unknown>> => ({ ...model,
     build: (_context, params, rng) => model.build({ ...sources, specimenScope: ctx.scope }, params, rng) });
-  const collections = v.parse(CollectionDisplaysSchema, ctx.product.section<unknown>(`custom/${row.collections}`));
+  const collections = v.parse(CollectionDisplaysSchema, ctx.product.section(row.collections));
   await installDeclaredCollectionKeepsakes(ctx, collections.keepsakes, economy,
     new Map([['collection', { adventure, world, play, swords, catalogue,
       models: new Map(Object.entries(row.cosmetics.models).map(([id, key]) => [id, bind(cosmetics.model(key))])) }]]));

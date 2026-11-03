@@ -66,7 +66,7 @@ test.each([false, true])('entered figures preserve real cold/hot meshes, poses a
   const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<Runtime>({ world: legacyDouble<World>({ sky, registry, player: legacyDouble<World['player']>(player) }) }) }), system: (row: Parameters<ShardContext['system']>[0]) => { systems.push(row); } });
   try {
     await loadFixedGeometry();
-    const draws = fixedDraws(product, product.section<{ draws: unknown }>('custom/fixedLayouts').draws); await draws.load();
+    const draws = fixedDraws(product, product.section('models/island-library').draws); await draws.load();
     const catalogue = await ProductFigureCatalogue.fromProduct(product, 'people/catalogue.json');
     const resources = new SceneHandles(sky), oldResources = new SceneHandles(sky);
     const npc = oldScope.run(() => castawayFigure(sky, place(castaway.feet), place(fire), oldResources, oldScope));

@@ -37,8 +37,8 @@ const siteCatalogue={product:'fixture-island',models:[{key:'site',id:'fixture-is
   choices:[{id:'world',params:{},size:[1,1,1],draws:[],lods:[],colliders:[]}]}]};
 function fixture(root:unknown=book,features:unknown[]=[assembly]){
   const source=emptyShardfile({slug:'fixture-island',name:'Test',author:'Test',revision:1,seed:1});
-  const sections=new Map<string,unknown>([['client/plan',{version:1,features}],['custom/fixedLayouts',root],['world/scenes',{catalogue:'models.json',version:1,libraries:[],materials:[],steps:[]}],
-    ['custom/collections',collectionRows()],['explore/catalogue',{version:1,entries:[{kind:'scene-model',library:book.id,model:'site',copies:0,drawnAs:'single'}]}]]);
+  const sections=new Map<string,unknown>([['client/plan',{version:1,features}],['models/island-library',root],['world/scenes',{catalogue:'models.json',version:1,libraries:[],materials:[],steps:[]}],
+    ['collections/displays',collectionRows()],['explore/catalogue',{version:1,entries:[{kind:'scene-model',library:book.id,model:'site',copies:0,drawnAs:'single'}]}]]);
   const reads=vi.fn((name:string)=>Promise.resolve(new TextEncoder().encode(JSON.stringify(name==='models.json'?siteCatalogue:{}))));
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections,
     files:new Map(['models.json','groups.json','figures.json','mesh.glb'].map(name=>[name,{hash:name,url:name}])),read:reads});
@@ -78,7 +78,7 @@ test('unknown, duplicated or changed declarations refuse rather than creating an
   try{
     await expect(owner.run(()=>admittedIslandBook(f.product,'missing'))).rejects.toThrow('one matching');expect(f.reads).not.toHaveBeenCalled();
     const duplicate=fixture(book,[assembly,assembly]);expect(()=>admitClientPlan(duplicate.product.section('client/plan'),duplicate.product)).toThrow('Duplicate client feature');await expect(owner.run(()=>admittedIslandBook(duplicate.product,book.id))).rejects.toThrow('Duplicate client feature');expect(duplicate.reads).not.toHaveBeenCalled();
-    await owner.run(()=>admittedIslandBook(f.product,book.id));f.sections.set('custom/fixedLayouts',{...book});
+    await owner.run(()=>admittedIslandBook(f.product,book.id));f.sections.set('models/island-library',{...book});
     await expect(owner.run(()=>admittedIslandBook(f.product,book.id))).rejects.toThrow('changed');
     owner.dispose();await expect(owner.run(()=>admittedIslandBook(f.product,book.id))).rejects.toThrow('left');
   }finally{owner.dispose();}
@@ -187,7 +187,7 @@ test('caller retirement or a replaced book during catalogue read refuses later u
     const f=fixture(),owner=new Scope('book-await');
     let release:(bytes:Uint8Array)=>void=()=>{throw new Error('No gate');};const gate=new Promise<Uint8Array>(resolve=>{release=resolve;});
     f.reads.mockImplementation(async()=>Uint8Array.from(await gate));const pending=owner.run(()=>admittedIslandBook(f.product,book.id));
-    if(replace)f.sections.set('custom/fixedLayouts',{...book});else owner.dispose();
+    if(replace)f.sections.set('models/island-library',{...book});else owner.dispose();
     release(new TextEncoder().encode(JSON.stringify(siteCatalogue)));
     try{await expect(pending).rejects.toThrow(replace?'changed':'left');}finally{owner.dispose();}
   }

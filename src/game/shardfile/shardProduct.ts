@@ -56,10 +56,10 @@ export interface SectionReader {
   /** A platform section's value, typed by `@wildshard/format/sections`. */
   <K extends PlatformSectionName>(name: K): PlatformSections[K];
   /**
-   * A custom section's value, typed by the runtime's own schema registry (`runtime/sections.ts` `SECTIONS`). The build
+   * An explicitly checked section value, typed by the consumer's schema registry (`runtime/sections.ts` `SECTIONS`). The build
    * parses the emitted JSON with that same registry entry, so the type is proven at build and trusted here.
    */
-  <R extends CustomSectionSchemas, K extends keyof R & CustomSectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
+  <R extends Readonly<Record<string, v.GenericSchema>>, K extends keyof R & SectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
 }
 
 /** A runtime's custom section schemas, keyed by section name (`runtime/sections.ts`: `export const SECTIONS = {…}`). */
@@ -143,12 +143,12 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
   // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- Match the explicit generated-type overload without a runtime schema argument.
   function section<T>(name: CustomSectionName): T;
   function section<K extends PlatformSectionName>(name: K): PlatformSections[K];
-  function section<R extends CustomSectionSchemas, K extends keyof R & CustomSectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
-  function section(name: string, schemas?: CustomSectionSchemas): unknown {
+  function section<R extends Readonly<Record<string, v.GenericSchema>>, K extends keyof R & SectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
+  function section(name: string, schemas?: Readonly<Record<string, v.GenericSchema>>): unknown {
     if (schemas === undefined) return value(name);
     const done = parsed.get(name);
     if (done !== undefined) return done;
-    const schema = schemas[name as CustomSectionName];
+    const schema = schemas[name];
     if (schema === undefined) throw new ProductError(slug, name, 'schema', `runtime/sections.ts declares no schema for ${name}`);
     const result = v.safeParse(schema, value(name));
     if (!result.success) throw new ProductError(slug, name, 'schema', `section ${name} refuses its runtime schema: ${v.summarize(result.issues)}`);
@@ -208,7 +208,7 @@ export function absentShardProduct(slug: string): ShardProduct {
   // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- An absent product retains the same generated-type overload and always refuses.
   function section<T>(name: CustomSectionName): T;
   function section<K extends PlatformSectionName>(name: K): PlatformSections[K];
-  function section<R extends CustomSectionSchemas, K extends keyof R & CustomSectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
+  function section<R extends Readonly<Record<string, v.GenericSchema>>, K extends keyof R & SectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
   function section(name: string): never { return absent(name); }
   return {
     slug, revision: 0, get shardfile(): Shardfile { return absent('shardfile'); }, section,

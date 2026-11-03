@@ -88,8 +88,7 @@ import { captureDriftwoodMovers } from './movers';
 
 import { emitPlatformSections, type PlatformSectionName as PlatformDataSectionName } from '@wildshard/sdk/platformSections';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
-import {SECTIONS,FixedGeometryGroupsSchema} from './sections';
-import {WIRE_SCHEMAS} from './sectionSchemas';
+import {FixedGeometryGroupsSchema} from './sections';
 import { emitNamedBlobs, nameBlob as nameGuestBlob } from '@wildshard/sdk/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
@@ -107,15 +106,8 @@ import { driftwoodBootProgram } from './bootProgram';
 
 const nativePhysics = driftwoodPhysics();
 
-const schemas:Readonly<Record<string,Parameters<typeof parseSectionValue>[0]>>=SECTIONS;
 const placed = enemyPlacements();
-const values = DRIFTWOOD_CLIENT_SECTIONS;
-if(values.length!==Object.keys(schemas).length)throw new Error('Incomplete Driftwood section inventory');
-const custom=emitDefinedSections(values.map(({name,value})=>{
- const schema=schemas[name],jsonSchema=WIRE_SCHEMAS[name];
- if(schema===undefined||jsonSchema===undefined)throw new Error(`Missing generated Driftwood section: ${name}`);
- return {name,jsonSchema,value:parseSectionValue(schema,value)};
-}));
+const custom=emitDefinedSections([]);
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
 const counterRows = { ...DRIFTWOOD_FEAT_COUNTERS, feats: DRIFTWOOD_FEAT_COUNTERS.feats.map(row => Object.fromEntries(Object.entries(row).filter(([key]) => ['id', 'count', 'kind', 'event', 'variant'].includes(key)))) };
@@ -192,7 +184,7 @@ function guestModuleFiles(files: ReadonlyMap<string, Uint8Array>, guests: Driftw
 function hullBook(creatures: DriftwoodCreatureBodyBank): unknown { const { fauna, ...body } = creatures.rows; return { ...fauna, body }; }
 /** The platform sections in their declared order; `world/scenes` joins once the scene banks are built (prepareOutput). */
 function platformRows(scenes: ReturnType<typeof worldScenes> | undefined, layouts?: DriftwoodFixedLayouts, facts?: DriftwoodIslandFacts, creatures?: DriftwoodCreatureBodyBank, guests?: DriftwoodGuestRows): Map<PlatformDataSectionName, unknown> {
-  return new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ...(creatures === undefined ? [] : [['look/hull-book', hullBook(creatures)] as const]), ...(guests === undefined ? [] : [['view/modules', [{ id: 'driftwood.bridge-sway', module: `blobs/wasm/${guests.bridge.compiled.hash}.wasm`, side: 'view', ...BRIDGE_SWAY_SCRIPT }]] as const]), ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), ...(layouts === undefined ? [] : [{kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',farStandIn:true,rows:driftwoodWorldStages(layouts)}]), { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, ...(facts === undefined ? [] : [{ kind: 'world.baked', rows: [driftwoodBakedCove(facts)] }]), ...(layouts === undefined ? [] : [{ kind: 'world.water', rows: [driftwoodOceanWaterRow(layouts)] }]), { kind: 'world.sets', rows: placeSetRows() }] }], ...(scenes === undefined ? [] : [['world/scenes', scenes] as const]), ...(layouts === undefined ? [] : [['held/arms', driftwoodHeldArms(layouts.wreck)] as const]), ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ...(guests === undefined ? [] : [['actors/return-scripts', [guests.returnProgram.script]] as const]), ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]]);
+  return new Map<PlatformDataSectionName, unknown>([...DRIFTWOOD_CLIENT_SECTIONS.map(({name,value}) => [name,value] as const), ['explore/catalogue', EXPLORER_CATALOGUE],['look/toon', TOON_LOOK], ...(creatures === undefined ? [] : [['look/hull-book', hullBook(creatures)] as const]), ...(guests === undefined ? [] : [['view/modules', [{ id: 'driftwood.bridge-sway', module: `blobs/wasm/${guests.bridge.compiled.hash}.wasm`, side: 'view', ...BRIDGE_SWAY_SCRIPT }]] as const]), ['client/plan', { ...clientPlan, features: [...driftwoodCatalogueFeatures(clientPlan.features), ...(layouts === undefined ? [] : [{kind:'world.assembly',library:'driftwood.island',catalogue:'models/world-scenes.json',farStandIn:true,rows:driftwoodWorldStages(layouts)}]), { kind: 'world.updates', rows: driftwoodWorldUpdates() }, { kind: 'view.program', id: 'bridge-sway', rows: driftwoodBridgeSway(), module: 'views/bridge-sway.wasm' }, { kind: 'world.movers', ...driftwoodMoverOwners() }, ...(facts === undefined ? [] : [{ kind: 'world.baked', rows: [driftwoodBakedCove(facts)] }]), ...(layouts === undefined ? [] : [{ kind: 'world.water', rows: [driftwoodOceanWaterRow(layouts)] }]), { kind: 'world.sets', rows: placeSetRows() }] }], ...(scenes === undefined ? [] : [['world/scenes', scenes] as const]), ...(layouts === undefined ? [] : [['held/arms', driftwoodHeldArms(layouts.wreck)] as const]), ['ui/strings', strings], ['ui/completion', completionRows()], ['actors/species-programs', DRIFTWOOD_SPECIES_PROGRAMS], ...(guests === undefined ? [] : [['actors/return-scripts', [guests.returnProgram.script]] as const]), ['sim/scripts', [...CAPTAIN_DECISION, ...BARREL_DECISION]], ['sim/bodies', BARREL_BODIES], ['actors/moves', CAPTAIN_MOVES], ['actors/strikes', CAPTAIN_STRIKES], ['world/targets',CAPTAIN_TARGETS]]);
 }
 export const output: { blobs: ({ name: string; kind: string; source: string; } | { name: string; kind: "wasm"; source: string; options: { script: { abi: 0; }; }; })[]; platform: ReturnType<typeof emitDefinedSections>; namedFiles: readonly { path: string; kind: "audio" | "glb" | "ktx2" | "json" | "wasm" | "image" | "tile" | "bin"; name?: string; commons?: true; jsonSchema?: Record<string, unknown>; critical: boolean; hash: string; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; dependencies: ReturnType<typeof emitNamedBlobs>["files"][number]["dependencies"]; }[]; assets: ReadonlyMap<string, Uint8Array>; custom: ReturnType<typeof emitDefinedSections>; } = { ...DRIFTWOOD_OUTPUT, blobs: [...DRIFTWOOD_OUTPUT.blobs, ...driftwoodPhysicsSources()], platform: emitPlatformSections(platformRows(undefined)), namedFiles: placements.files, assets: placements.assets, custom };
 

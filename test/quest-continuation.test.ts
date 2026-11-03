@@ -24,7 +24,7 @@ import { collectionRows } from '../src/shards/driftwood-isle/generators/collecti
 import { DRIFTWOOD_LOOT as loot } from '../src/shards/driftwood-isle/generators/loot';
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-const rows = { quest: 'orchard.chapter', collection: 'orchard.collection', collections: 'keepsakes',
+const rows = { quest: 'orchard.chapter', collection: 'orchard.collection', collections: 'collections/displays',
   cosmetics: { file: 'cosmetics.json', models: {} }, loot: { id: 'orchard.loot', shop: 'shop.json', minimap: true, before: ['main.world'] } };
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 const cosmeticBytes = encode({ product: 'orchard', models: [] }), shopBytes = encode({ name: 'Lena' });
@@ -46,7 +46,7 @@ function fixture(read: (hash: string) => Promise<Uint8Array>, parent?: Scope) {
   const shardfile = emptyShardfile({ slug: 'orchard', name: 'Orchard', author: 'Fixture', seed: 1, revision: 1 });
   const admitted = parseRows({ strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [loot] }), collections = collectionRows();
   const product = createShardProduct({ slug: 'orchard', revision: 1, shardfile,
-    sections: new Map<string, unknown>([['economy/loot', { rows: { loot: admitted.loot } }], ['custom/keepsakes', { models: {},
+    sections: new Map<string, unknown>([['economy/loot', { rows: { loot: admitted.loot } }], ['collections/displays', { models: {},
       keepsakes: { ...collections.keepsakes, placements: [], trophies: {}, wardrobe: [], restore: [] } }]]),
     files: new Map([['continuation.json', { hash: 'continuation', url: '/continuation.json' }], ['cosmetics.json', { hash: 'cosmetics', url: '/cosmetics.json' }], ['shop.json', { hash: 'shop', url: '/shop.json' }]]), read });
   const world = legacyDouble<NonNullable<ShardRuntime['world']>>({ sky: SkyRig.prototype, game: new FakeGame().asGame(), registry: new WorldRegistry(),
@@ -94,6 +94,7 @@ test.each(['cosmetics', 'shop'].flatMap(phase => [false, true].map(ancestor => (
 test('continuation intake refuses callbacks, reflected paths and invalid collection ids', () => {
   expect(v.parse(QuestContinuationSchema, rows)).toEqual(rows);
   for (const input of [{ ...rows, run: () => 1 }, { ...rows, collection: { owner: 'view', path: ['catalogue'] } },
+    { ...rows, collections: 'collections' }, { ...rows, collections: 'custom/keepsakes' },
     { ...rows, collections: '../invalid?' }]) expect(() => v.parse(QuestContinuationSchema, input)).toThrow();
 });
 

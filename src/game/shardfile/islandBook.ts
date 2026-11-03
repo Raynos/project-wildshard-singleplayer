@@ -40,7 +40,7 @@ export function preflightIslandBook(product: ShardProduct, row: AssemblyRow): vo
     return;
   }
   if (row.catalogue === undefined) throw new Error('Island book requires its catalogue');
-  const book = v.parse(ResolvedIslandLibrarySchema, product.section('custom/fixedLayouts'));
+  const book = v.parse(ResolvedIslandLibrarySchema, product.section('models/island-library'));
   if (book.id !== row.library || product.section('world/scenes').catalogue !== row.catalogue) throw new Error('Island book identity or catalogue differs');
   if (construction.publish === undefined) throw new Error('Island entry requires construction looks and publications');
   if (new Set(book.draws.map(draw => draw.slot)).size !== book.draws.length) throw new Error('Repeated island fixed draw slot');
@@ -63,7 +63,7 @@ export async function admittedIslandBook(product: ShardProduct, id: string): Pro
   const [row] = matching;
   if (row?.catalogue === undefined || matching.length !== 1) throw new Error('Island book requires one matching assembly');
   preflightIslandBook(product, row);
-  const root = product.section('custom/fixedLayouts'), recipe = JSON.stringify(row);
+  const root = product.section('models/island-library'), recipe = JSON.stringify(row);
   let byId = books.get(product);
   if (byId === undefined) { byId = new Map(); books.set(product, byId); }
   let record = byId.get(id);
@@ -73,7 +73,7 @@ export async function admittedIslandBook(product: ShardProduct, id: string): Pro
     const pending = (async () => {
       const [{ IslandLibrary }, { defineWorldSceneCatalogue }] = await Promise.all([import('../models/islandLibrary'), import('../models/worldSceneCatalogue')]);
       live();
-      if (product.section('custom/fixedLayouts') !== root) throw new Error('Island book declaration changed during module read');
+      if (product.section('models/island-library') !== root) throw new Error('Island book declaration changed during module read');
       const library = new IslandLibrary<unknown>(root, product);
       return product.json<unknown>(catalogue).then(input => ({ library, sites: defineWorldSceneCatalogue(input, product) }));
     })();
@@ -82,6 +82,6 @@ export async function admittedIslandBook(product: ShardProduct, id: string): Pro
     void pending.catch(() => { if (inventory.get(id) === current) inventory.delete(id); });
   }
   const value = await record.pending; live();
-  if (product.section('custom/fixedLayouts') !== root) throw new Error('Island book declaration changed during read');
+  if (product.section('models/island-library') !== root) throw new Error('Island book declaration changed during read');
   return value;
 }

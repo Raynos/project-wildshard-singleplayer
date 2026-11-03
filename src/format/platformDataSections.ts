@@ -1,3 +1,5 @@
+import { CollectionDisplaysSchema, type CollectionDisplaysRows } from './collectionDisplay';
+import { ResolvedIslandLibrarySchema, type ResolvedIslandLibraryRows } from './islandLibrary';
 import { DeclaredBodyOpsSchema, type DeclaredBodyOpsRows } from './bodySlots';
 import {StealthRowsSchema,type StealthRows} from './stealth';
 import { PaintedLookSchema, type PaintedLookRow } from './paintedLook';
@@ -31,6 +33,8 @@ import { TreeSetSchema, type TreeSetRows } from './treeSetRows';
 
 /** New plain-value sections supplement the unchanged v1 model assembled from the older section envelopes. */
 export interface PlatformDataSections {
+  'collections/displays': CollectionDisplaysRows;
+  'models/island-library': ResolvedIslandLibraryRows;
   'player/stealth':StealthRows;
   'explore/catalogue': ExplorerCatalogue;
   'look/rigged-hulls': RiggedHullBook;
@@ -64,6 +68,8 @@ export interface PlatformDataSections {
 
 /** Defining parsers for the first independently authored platform sections. */
 export const PLATFORM_DATA_SECTIONS: Readonly<{ [Name in keyof PlatformDataSections]: { readonly schema: v.GenericSchema<unknown, PlatformDataSections[Name]> } }> = {
+  'collections/displays': { schema: CollectionDisplaysSchema },
+  'models/island-library': { schema: ResolvedIslandLibrarySchema },
   'player/stealth':{schema:StealthRowsSchema},
   'explore/catalogue': { schema: ExplorerCatalogueSchema },
   'look/rigged-hulls': { schema: RiggedHullBookSchema },
@@ -103,6 +109,8 @@ export const CLIENT_ENVELOPE_SECTIONS: { readonly 'world/movers': { readonly sch
 export type PlatformDataSectionName = keyof PlatformDataSections;
 
 /** Parse the named section without treating its plain payload as fields of the v1 Shardfile. */
+export function parsePlatformDataSection(name: 'collections/displays', value: unknown): CollectionDisplaysRows;
+export function parsePlatformDataSection(name: 'models/island-library', value: unknown): ResolvedIslandLibraryRows;
 export function parsePlatformDataSection(name:'player/stealth',value:unknown):StealthRows;
 export function parsePlatformDataSection(name: 'explore/catalogue', value: unknown): ExplorerCatalogue;
 export function parsePlatformDataSection(name: 'look/rigged-hulls', value: unknown): RiggedHullBook;

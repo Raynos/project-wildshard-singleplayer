@@ -30,11 +30,11 @@ function section(name:string):unknown{
 }
 
 test('the resolved book retains every original fixed byte reference and the original bound wire-order look list',()=>{
-  const current=v.parse(ResolvedIslandLibrarySchema,DRIFTWOOD_CLIENT_SECTIONS.find(row=>row.name==='custom/fixedLayouts')?.value);
+  const current=v.parse(ResolvedIslandLibrarySchema,DRIFTWOOD_CLIENT_SECTIONS.find(row=>row.name==='models/island-library')?.value);
   const old=v.parse(originalSchemas['custom/fixedLayouts'],original.find(row=>row.name==='custom/fixedLayouts')?.value);
   expect(current.draws).toEqual(old.fixedDraws);expect(current).toMatchObject({id:'driftwood.island',groups:'models/fixed-geometry.json',figures:'people/catalogue.json'});
   expect(Object.keys(current).sort()).toEqual(['collections','draws','figures','groups','id']);
-  expect(DRIFTWOOD_CLIENT_SECTIONS.some(row=>row.name==='custom/worldStages')).toBe(false);
+  expect(DRIFTWOOD_CLIENT_SECTIONS.some(row=>Object.is(row.name,'custom/worldStages'))).toBe(false);
   const wire:unknown=JSON.parse(encodeCanonicalJson(NATIVE_VIEW));
   const looks=v.parse(v.object({CASCADE_LOOKS:v.record(v.string(),v.string()),CREATURE_LOOKS:v.record(v.string(),v.string())}),wire);
   expect(WORLD_STAGES.construction.looks).toEqual({unbound:['driftwood-kit-moor'],bound:[...Object.values(looks.CASCADE_LOOKS),NATIVE_VIEW.SMOKE_LOOK,NATIVE_VIEW.FIREFLY_LOOK,NATIVE_VIEW.REEF_LOOK,NATIVE_VIEW.POOL_LOOK,NATIVE_VIEW.SHRINE_POOL_LOOK,NATIVE_VIEW.OCEAN_LOOK,NATIVE_VIEW.GULL_GRAPH_LOOK,...NATIVE_VIEW.COVER_LOOKS,...Object.values(looks.CREATURE_LOOKS),'driftwood-kit-moor']});

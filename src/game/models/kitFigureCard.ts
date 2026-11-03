@@ -21,8 +21,7 @@ import { questFigure } from '../quest/figures';
  * installs a world service; its source catalogue retains its original owner. */
 export function kitFigureCard(product: ShardProduct, input: KitFigureCardsRows, key: string): ModelDef<Record<string, never>> {
   const book = v.parse(KitFigureCardsSchema, input), card = book.cards[key];
-  const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');
-  if (card === undefined || !custom(book.draws) || !product.has(book.draws) || !product.hasFile(book.catalogue)) throw new Error('Kit card requires its declared figure, draws and catalogue');
+  if (card === undefined || !product.has(book.draws) || !product.hasFile(book.catalogue)) throw new Error('Kit card requires its declared figure, draws and catalogue');
   if (new Set(Object.values(book.cards).map(row => row.model.id)).size !== Object.keys(book.cards).length) throw new Error('Repeated kit card model identity');
   const source = v.parse(ResolvedIslandLibrarySchema, product.section(book.draws)), sourceOwner = resourceScope();
   const row = card.figure, slots = [...new Set([...Object.values(row.parts), ...row.objects.map(object => object.draw), ...row.publish.map(publication => publication.draw)])];

@@ -25,7 +25,7 @@ export function driftwoodOceanWaterRow(layouts: DriftwoodFixedLayouts): { readon
 }
 
 /** Build-only client row assembly; the canonical registry validates it at publication. */
-export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] = [
-  {name:'custom/collections',value:collectionRows()},
-  {name:'custom/fixedLayouts', value:{id:'driftwood.island', draws:FIXED_DRAW_ROWS.map(({ slot, channels }) => ({ slot, file: named(`fixed:${slot}`), channels })), groups:'models/fixed-geometry.json', figures:'people/catalogue.json', collections:{chime:'chime',trophyPlaques:'trophyPlaques',trophyDrop:'trophyDrop'}}},
+export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name: 'collections/displays' | 'models/island-library';value:unknown}[] = [
+  {name:'collections/displays',value:collectionRows()},
+  {name:'models/island-library', value:{id:'driftwood.island', draws:FIXED_DRAW_ROWS.map(({ slot, channels }) => ({ slot, file: named(`fixed:${slot}`), channels })), groups:'models/fixed-geometry.json', figures:'people/catalogue.json', collections:{chime:'chime',trophyPlaques:'trophyPlaques',trophyDrop:'trophyDrop'}}},
 ];

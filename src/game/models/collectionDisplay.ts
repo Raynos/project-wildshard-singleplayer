@@ -114,7 +114,7 @@ export class CollectionCatalogue {
         await Promise.all([...this.geometry.values()].map(handle => handle.load()));
         check();
         const product = pinned ?? await loadFirstPartyProduct(this.slug, owner); check();
-        const rows = product.section('custom/collections', { 'custom/collections': CollectionDisplaysSchema }).models;
+        const rows = product.section('collections/displays', { 'collections/displays': CollectionDisplaysSchema }).models;
         const entries = Object.fromEntries(Object.entries(rows).map(([key, row]) => {
           const { id, name, file, surface, defaults, variants } = row;
           return [key, collectionModel({ id, name, file, surface, defaults, variants }, () => this.row(key), this.ports)];

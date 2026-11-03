@@ -1,7 +1,7 @@
 import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 /**
- * G586: a shard's Blender-built island library, declared as data (`IslandLibrarySchema`): its fixed draws (the rows in a
- * custom section field, `FixedDrawRowsSchema`), their named groups file, the figure catalogue that shares their intake
+ * G586: a shard's Blender-built island library, declared as data (`IslandLibrarySchema`): its fixed draws (the complete platform
+ * section root, `FixedDrawRowsSchema`), their named groups file, the figure catalogue that shares their intake
  * and the collection cards drawn from its slots. One library per declaration, made on its first use: the page's resident
  * loader admits the product and loads every slot from the world's whole-geometry assembly; a cold Explorer card opens the
  * product itself and loads the same slots by file. Handles are inert until that one load settles. Client-only.
@@ -32,7 +32,7 @@ export const IslandLibrarySchema: v.GenericSchema<BoundedIslandLibraryInput, Bou
 
 /** One shard's island library (see the module note); `Groups` is its groups file's generated type. */
 export class IslandLibrary<Groups> {
-  private readonly rows: v.InferOutput<typeof IslandLibrarySchema>;
+  private readonly rows: Omit<BoundedIslandLibrary, 'draws'> & { readonly draws: { readonly section: CustomSectionName | 'models/island-library'; readonly field: string } };
   private readonly resolved: v.InferOutput<typeof ResolvedIslandLibrarySchema> | undefined;
   private admitted: ShardProduct | null = null;
   private intake: Promise<void> | undefined;
@@ -47,7 +47,7 @@ export class IslandLibrary<Groups> {
   constructor(input: unknown, product?: ShardProduct) {
     this.resolved = product === undefined ? undefined : v.parse(ResolvedIslandLibrarySchema, input);
     this.rows = this.resolved === undefined ? v.parse(IslandLibrarySchema, input) : {
-      product: product?.slug ?? '', draws: { section: 'custom/fixedLayouts', field: 'draws' },
+      product: product?.slug ?? '', draws: { section: 'models/island-library', field: 'draws' },
       groups: this.resolved.groups, figures: this.resolved.figures, collections: this.resolved.collections,
     };
     this.admitted = product ?? null;
@@ -75,7 +75,7 @@ export class IslandLibrary<Groups> {
 
   private draws(): FixedDraws {
     const { section, field } = this.rows.draws;
-    this.library ??= fixedDraws(this.product, this.resolved?.draws ?? this.product.section<Readonly<Record<string, unknown>>>(section)[field]);
+    this.library ??= fixedDraws(this.product, this.resolved?.draws ?? (section === 'models/island-library' ? this.product.section(section).draws : this.product.section<Readonly<Record<string, unknown>>>(section)[field]));
     return this.library;
   }
   /** A slot's inert owned handle: loading it before the library loads loads the whole library. */

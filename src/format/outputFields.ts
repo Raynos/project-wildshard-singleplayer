@@ -48,6 +48,8 @@ export const OUTPUT_SECTIONS:readonly SectionMapping[]=OUTPUT_SECTION_FIELDS;
 export type OutputHostSectionName = (typeof OUTPUT_SECTION_FIELDS)[number]['name'];
 
 const DATA_SECTION_NAMES: Readonly<Record<keyof PlatformDataSections, true>> = {
+  'collections/displays': true,
+  'models/island-library': true,
   "player/stealth": true,
   "explore/catalogue": true,
   "look/rigged-hulls": true,

@@ -1,8 +1,6 @@
 import { defineNamedRows, type NamedRowValue, authorFormatSchema , type NamedRows } from '@wildshard/sdk/formatJsonSchema';
 
-const CollectionDisplaysSchema: ReturnType<typeof authorFormatSchema<'collectionDisplay.CollectionDisplaysSchema'>> = authorFormatSchema('collectionDisplay.CollectionDisplaysSchema');
 const BodySlotsSchema: ReturnType<typeof authorFormatSchema<'bodySlots.BodySlotsSchema'>> = authorFormatSchema('bodySlots.BodySlotsSchema');
-const ResolvedIslandLibrarySchema: ReturnType<typeof authorFormatSchema<'islandLibrary.ResolvedIslandLibrarySchema'>> = authorFormatSchema('islandLibrary.ResolvedIslandLibrarySchema');
 const text = ({ ...({ kind: "string" } as const), max: 512 } as const);
 const number = ({ kind: "number" } as const);
 const natural = ({ ...({ kind: "number" } as const), integer: true, min: 0 } as const);
@@ -26,13 +24,7 @@ export const FixedGeometryGroupsSchema: NamedRows<{ cargo: { barrel: string; lyi
         entryDecks: ({ kind: "object", mode: "strict", entries: { world: text, deep: text, shallow: text } } as const),
         cover: ({ kind: "record", key: text, value: text } as const), piers: ({ kind: "record", key: text, value: ({ kind: "object", mode: "strict", entries: { deck: text, cloth: ({ kind: "nullable", item: text } as const) } } as const) } as const),
     } } as const)).schema;
-export const SECTIONS: {
-  'custom/collections': typeof CollectionDisplaysSchema;
-  'custom/fixedLayouts': typeof ResolvedIslandLibrarySchema;
-} = {
-  'custom/collections': defineNamedRows(CollectionDisplaysSchema).schema,
-  'custom/fixedLayouts': defineNamedRows(ResolvedIslandLibrarySchema).schema,
-} as const;
+export const SECTIONS: Readonly<Record<never, never>> = {};
 const bridgeSpan = ({ kind: "object", mode: "strict", entries: { a: ({ kind: "tuple", items: [number, number] } as const), b: ({ kind: "tuple", items: [number, number] } as const), sag: number } } as const);
 export const FILE_SCHEMAS: { 'data/bridgeRows.json': NamedRows<{ world: { a: [number, number]; b: [number, number]; sag: number }; specimen: { a: [number, number]; b: [number, number]; sag: number } }>['schema'] } = { 'data/bridgeRows.json': defineNamedRows(({ kind: "object", mode: "strict", entries: { world: bridgeSpan, specimen: bridgeSpan } } as const)).schema };
 /** Admit authored bridge endpoints through their defining grammar without an erased JSON shim. */

@@ -7,7 +7,7 @@ const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
  * model, economy and scheduling choice is an admitted data identity. */
 export const QuestContinuationSchema: v.GenericSchema<QuestContinuationRowsInput, QuestContinuationRows> = v.pipe(v.unknown(), v.check(isJsonData, 'Quest continuation requires JSON rows'), v.strictObject({
   quest: id, collection: id,
-  collections: v.pipe(id, v.regex(/^[a-zA-Z0-9_./-]+$/u)),
+  collections: v.literal('collections/displays'),
   cosmetics: v.strictObject({ file: id, models: v.pipe(v.record(id, id), v.maxEntries(32)) }),
   loot: v.strictObject({ bag: v.exactOptional(LootBagSchema), id, shop: id, minimap: v.boolean(), before: v.pipe(v.array(id), v.maxLength(64)) }),
 }));
@@ -26,7 +26,7 @@ export type QuestContinuationRowsInput = unknown;
 interface QuestContinuationRowsFields {
     quest: string;
     collection: string;
-    collections: string;
+    collections: 'collections/displays';
     cosmetics: {
         file: string;
         models: Record<string, string>;

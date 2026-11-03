@@ -1,7 +1,7 @@
 {
   "quest": "driftwood.adventure",
   "collection": "driftwood.collections",
-  "collections": "collections",
+  "collections": "collections/displays",
   "cosmetics": { "file": "models/world-scenes.json", "models": { "hat": "captainHat", "cape": "sailclothCape" } },
   "loot": {
     "id": "driftwood.loot", "shop": "quests/stall.json", "minimap": true,

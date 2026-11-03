@@ -8,7 +8,8 @@ import { builtProduct } from './fixtures/builtProduct';
 import { parseRows } from '../src/format/rows';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { LootEconomySchema } from '../src/format/lootEconomy';
-import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
+import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
+import { CollectionDisplaysSchema } from '../src/format/collectionDisplay';
 import { parseToonLook } from '../src/format/toonLook';
 import cumulusPuffs from '../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
@@ -32,12 +33,11 @@ function emittedProduct(): ReturnType<typeof loadHeadlessProduct> {
 test('Driftwood client reads resolve against the emitted output', async () => {
   const loaded = await emittedProduct(), custom = outputDescriptor(loaded.shardfile)?.index;
   if (custom === undefined) throw new Error('Driftwood output descriptor absent');
-  const value = <K extends keyof typeof SECTIONS>(name: K): v.InferOutput<(typeof SECTIONS)[K]> => v.parse(SECTIONS[name], loaded.section<unknown>(name));
   const puffs = parseToonLook(loaded.section('look/toon')).sky.clouds.puffs;
   expect(puffs.length).toBeGreaterThan(0);
   expect(puffs).toEqual(cumulusPuffs);
   expect(loaded.has('custom/cumulusPuffs')).toBe(false);
-  const layouts = value('custom/fixedLayouts');
+  const layouts = v.parse(ResolvedIslandLibrarySchema, loaded.section('models/island-library'));
   expect(layouts.id).toBe('driftwood.island');
   const named=async(name:string):Promise<unknown>=>{
     const bytes=await loaded.file(name);
@@ -51,7 +51,7 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   const anchors=(model:string,choice:string)=>catalogue.models.find(row=>row.key===model)?.choices.find(row=>row.id===choice)?.site?.anchors??{};
   const native=v.parse(v.object({constants:v.object({physics:v.object({solids:v.array(v.unknown())})})}),await named('sim/headless-assembly.json'));
   expect(native.constants.physics.solids).toEqual(nativePhysics.solids);
-  const collections = value('custom/collections');
+  const collections = v.parse(CollectionDisplaysSchema, loaded.section('collections/displays'));
   expect(collections.models['chime']?.ranges.length).toBe(CHIME_PIECES + 1);
   for (const kind of ['world', 'specimen'] as const) expect(anchors('shrine',kind)['altar'], kind).toBeDefined();
   expect(Object.keys(collections.models['plaques']?.trophies?.full ?? {})).toHaveLength(2);

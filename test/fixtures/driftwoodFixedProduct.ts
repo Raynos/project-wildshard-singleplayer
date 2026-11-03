@@ -55,7 +55,8 @@ export async function driftwoodFixedProduct(legacy = false): Promise<ReturnType<
   const assets = new Map(blobs.map(row => [row.hash, row.bytes]));
   return createShardProduct({slug: 'driftwood-isle', revision: 1, jsonCheck: fixtureJsonCheck,
     shardfile: { ...emptyShardfile({slug: 'driftwood-isle', name: 'Test', author: 'Test', revision: 1, seed: 1}), clientChannels: NPC_FOCUS_PROGRAMS },
-    sections: new Map<string, unknown>((legacy ? LEGACY_SECTIONS : DRIFTWOOD_CLIENT_SECTIONS).map(row => [row.name, row.value] as const)),
+    sections: new Map<string, unknown>((legacy ? [...LEGACY_SECTIONS,
+      ...DRIFTWOOD_CLIENT_SECTIONS.filter(row => row.name === 'collections/displays')] : DRIFTWOOD_CLIENT_SECTIONS).map(row => [row.name, row.value] as const)),
     files: new Map(blobs.map(row => [row.name, fixtureProductFile(row.name, {hash: row.hash, url: `/${row.source}`}) ])),
     read: hash => { const bytes = assets.get(hash); return bytes === undefined ? Promise.reject(new Error('Missing fixed bytes')) : Promise.resolve(bytes); }, check: true});
 }

@@ -10,7 +10,7 @@ export function driftwoodKitFigureCards(): KitFigureCardsRows {
   const castaway = driftwoodQuestFigures().figures.find(row => row.id === 'castaway');
   if (castaway === undefined) throw new Error('Missing castaway card bindings');
   return authorFormatRows('questFigures.KitFigureCardsSchema', {
-    catalogue: 'people/catalogue.json', draws: 'custom/fixedLayouts',
+    catalogue: 'people/catalogue.json', draws: 'models/island-library',
     cards: { castaway: {
       model: { id: 'driftwood-isle/castaway', name: 'Wendell, the castaway', category: 'people', pipeline: 'code',
         file: 'src/shards/driftwood-isle/generators/kitFigureCards.ts', surface: 'flesh', defaults: {} },

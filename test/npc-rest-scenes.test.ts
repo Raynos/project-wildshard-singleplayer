@@ -1,6 +1,6 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, ShaderMaterial } from 'three';
 import * as v from 'valibot';
-import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
+import { SECTIONS } from './fixtures/driftwoodLegacySections';
 import { driftwoodRows } from './fixtures/driftwoodLegacyRows';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { expect, test } from 'vitest';

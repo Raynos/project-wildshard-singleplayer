@@ -1,3 +1,5 @@
+import type { CollectionDisplaysRows } from './collectionDisplay';
+import type { ResolvedIslandLibraryRows } from './islandLibrary';
 import type {StealthRows} from './stealth';
 import type { ColourFunctionBook } from './colourFunction';
 import type { PaintedLookRow } from './paintedLook';
@@ -42,6 +44,10 @@ type Spawns = NonNullable<NonNullable<Shardfile['runtime']>['spawns']>;
  * trusts it. Adding a platform section = one entry here, its schema in this package and its row in the writer's table.
  */
 export interface PlatformSections {
+  /** Complete client display catalogue and native keepsake rows. */
+  'collections/displays': CollectionDisplaysRows;
+  /** Synchronous product-owned fixed draws, figures and collection slots. */
+  'models/island-library': ResolvedIslandLibraryRows;
   'player/stealth':StealthRows;
   'view/modules': ViewModuleRow[];
   /** Client-only ordered model references, ignored by simulation. */

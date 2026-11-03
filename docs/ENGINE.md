@@ -10495,14 +10495,14 @@ references, never a registry or event that hides a per-shard TypeScript hook.
 
 ### Collections and display (G474/G475/G477)
 
-Client-only presentation: `format/collectionDisplay` admits baked collection cards, bounded vertex
-ranges, paired empty/full trophy slots, count reveals, mount packs, chalk
-atlases and keepsake presentation rows. `game/models/collectionDisplay` defines
-cold Explorer cards and `CollectionDisplay`: the existing engine
-`engine/models/slots.SlotGeometry` rewrites the same index in place.
-`collectionTrophy` uses the
-same baked loose geometry and authored mounting offset as its wall plaque.
-Geometry, materials, names and placements remain the shard's rows.
+Client-only `format/collectionDisplay` admits cards, bounded ranges, trophy
+slots, count reveals, mounts, chalk and keepsakes. `collections/displays`
+carries its complete display root; `models/island-library` carries resolved
+draws, figures and slots. Both are synchronous; checked section reads retain
+validation, caching and deep freeze.
+`CollectionDisplay` uses `SlotGeometry` to rewrite the index in place;
+cold Explorer cards and `collectionTrophy` retain geometry, materials,
+names, placements and plaque mounting offsets from shard rows.
 
 `game/compendium/keepsakes.installCollectionKeepsakes` owns count-to-display
 synchronization, quiet
