@@ -17,6 +17,7 @@
 // `gh workflow run deploy`.
 
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -259,6 +260,23 @@ class SourceGateError extends Error { name = 'SourceGateError'; }
 /** @typedef {{name:string,status:string,conclusion:string|null,created_at:string|null,started_at:string|null,completed_at:string|null,
  * run_id?:number,run_attempt?:number,head_sha?:string,steps?:SourceStep[]}} SourceJob */
 
+/** The required native input publisher is a distinct reviewed source shape.
+ * Historical sources keep their optional fixture policy unchanged. @param {string} source */
+function nativeFixtureSource(source) {
+  const native = /\n {2}native-escape:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1] ?? '';
+  const fixtures = /\n {2}fixtures:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1] ?? '';
+  if (!native.includes('NATIVE_INPUT_PROOF:')) {
+    if (native.includes('ci-native-fixtures.mjs') || /^ {4}needs:.*fixtures/mu.test(native))
+      throw new Error('Source native fixture policy lacks authority');
+    return false;
+  }
+  const hash = createHash('sha256').update(native).update('\0').update(fixtures).digest('hex');
+  if (!/^ {6}NATIVE_INPUT_PROOF: 'cache-v1'$/mu.test(native)
+    || hash !== 'bca0fd2e164ba1412ccc5195d8e46e574f9cfeba352bae768e314828da69af86')
+    throw new Error('Source native fixture publisher topology differs');
+  return true;
+}
+
 /** The optional stage cannot replace any gate or authorize historical sources.
  * @param {string} source */
 function stagedBootSource(source) {
@@ -438,6 +456,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   const source = query([`repos/${REPO}/contents/.github/workflows/deploy.yml?ref=${sha}`,
     '-H','Accept: application/vnd.github.raw+json']);
   const merged = mergedBootSource(source);
+  const nativeFixtures = nativeFixtureSource(source);
   if (merged && (!Number.isSafeInteger(run.run_attempt) || run.run_attempt < 1))
     throw new Error('Merged source attempt identity is unreadable');
   // The complete behavior wave owned the native file before its dedicated job.
@@ -512,10 +531,10 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     const ship = /\n {2}build-and-deploy:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
     const needs = /^\s+needs: \[([^\]]+)\]/mu.exec(ship ?? '')?.[1]?.split(',').map(name => name.trim());
     if (needs === undefined) throw new Error('Ready source ship has no reviewed prerequisite list');
-    (needs.includes('fixtures') ? required : optional).add('fixtures');
+    (needs.includes('fixtures') || nativeFixtures ? required : optional).add('fixtures');
   }
   if (stagedBootSource(source)) optional.add('stage-prebuilt');
-  const essential = new Set(['prepare',...(merged ? [] : ['boot-verdict']),
+  const essential = new Set(['prepare',...(nativeFixtures ? ['fixtures'] : []),...(merged ? [] : ['boot-verdict']),
     ...journeyParts.map(name=>`journeys (${name})`)]);
   /** @type {{name:string,status:string,conclusion:string}[]} */
   const jobs = [];
@@ -544,6 +563,20 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     jobs.push({name,status,conclusion});
   }
   if (required.size > 0 || optional.size > 0) throw new SourceGateError('Recovery job inventory differs');
+  if (nativeFixtures) {
+    if (details === null) throw new SourceGateError('Native fixture input jobs lack exact metadata');
+    for (const [name, expectedStep] of [['fixtures','Publish source-host native constructor inputs'],
+      ...nativeJobs.map(jobName => [jobName,'Restore source-host native constructor inputs'])]) {
+      const matches = details.filter(job => job.name === name), job = matches[0];
+      if (matches.length !== 1 || job === undefined || job.run_id !== Number(runId)
+        || job.run_attempt !== run.run_attempt || job.head_sha !== sha)
+        throw new SourceGateError(`Native fixture input job has foreign metadata: ${name}`);
+      const steps = job.steps?.filter(step => step.name === expectedStep), step = steps?.[0];
+      if (steps?.length !== 1 || step === undefined || step.status !== 'completed' || step.conclusion !== 'success')
+        throw new SourceGateError(`Native fixture input step did not succeed: ${name}`);
+    }
+  }
+
   const publisher = merged && details !== null ? mergedBootJob(details, Number(runId), run.run_attempt, sha) : null;
   let bootPublishRequired = false, bootAlreadyPublished = false;
   /** @type {string|null} */

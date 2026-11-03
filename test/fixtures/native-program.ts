@@ -5,6 +5,7 @@ import { readFileSync, statSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All compiler inputs remain repository-relative.
 import { resolve } from 'node:path';
 import { bakeInputHashes, InputHashMemo } from '../../scripts/bake-input-hashes.mjs';
+import type { RecorderTask } from '../../scripts/native-recorder-cache.mjs';
 import { runNativeRecorder } from '../../scripts/native-recorder-cache.mjs';
 
 const memos = new Map<string, InputHashMemo>();
@@ -15,11 +16,16 @@ const LOADER = 'scripts/bake-loader.mjs';
  * binds exact input bytes, tool/host identity and every output hash, coalesces
  * cold producers and fences source changes before publishing. Callers still
  * admit the full compiler envelope and run every original oracle themselves. */
-export async function nativeProgramFixture(spec: {
+export interface NativeProgramSpec {
   readonly id: string; readonly script: string; readonly inputs: readonly string[];
   readonly root?: string; readonly cacheDir?: string; readonly transformTypes?: boolean;
   readonly loader?: 'bake' | 'simulation';
-}): Promise<string> {
+}
+
+/** Describe exactly the source/tool/host-fenced construction used by every loan. */
+export function nativeProgramJob(spec: NativeProgramSpec): {
+  root: string; memo: InputHashMemo; paths: string[]; inventory: () => string[]; job: RecorderTask;
+} {
   const root = resolve(spec.root ?? '.'), memo = memos.get(root) ?? new InputHashMemo(root);
   memos.set(root, memo);
   // Data-only proof constructors need no app identity or discovery-table preload.
@@ -29,11 +35,18 @@ export async function nativeProgramFixture(spec: {
   const inventory = (): string[] => [...new Set([spec.script, LOADER, loader, ...loaderInputs, ...spec.inputs.flatMap(path => memo.paths(path, true))])].sort();
   const paths = inventory(), inputs = bakeInputHashes(root, paths, memo);
   const command = [process.execPath, ...(spec.transformTypes === true ? ['--experimental-transform-types'] : []), '--import', `./${loader}`, '--', spec.script];
-  const output = 'fixture.json';
-  const result = await runNativeRecorder(root, {
-    id: `fixture-${spec.id}`, inputs, command, outputs: [output], platform: 'native',
+  return { root, memo, paths, inventory, job: {
+    id: `fixture-${spec.id}`, inputs, command, outputs: ['fixture.json'], platform: 'native',
     tools: { cwd: memo.root, nodeOptions: process.env['NODE_OPTIONS'] ?? '' },
-  }, {
+  } };
+}
+
+/** Loan only complete output after the original source and output validation. */
+export async function nativeProgramFixture(spec: NativeProgramSpec): Promise<string> {
+  const {root, memo, paths, inventory, job} = nativeProgramJob(spec);
+  const command = job.command;
+  const output = 'fixture.json';
+  const result = await runNativeRecorder(root, job, {
     inputHashes: memo, ...(spec.cacheDir === undefined ? {} : { cacheDir: spec.cacheDir }),
     generate: async directory => {
       const text = await new Promise<string>((done, fail) => {

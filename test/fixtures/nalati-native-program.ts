@@ -1,3 +1,4 @@
+import type { NativeProgramSpec } from './native-program';
 import { nativeProgramFixture } from './native-program';
 import { runTextSnapshot } from './runSnapshot';
 import * as v from 'valibot';
@@ -11,11 +12,16 @@ const inputs = ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons'
   'node_modules/@typescript/typescript6/package.json', 'scripts/bake-loader.mjs',
   'test/fixtures/native-program.ts', 'test/fixtures/nalati-native-program.ts'];
 
+/** The defining source/tool/host specification, shared with the CI input publisher. */
+export function nalatiNativeProgramSpec(name: 'kokpar' | 'titan' | 'riding' | 'charge' | 'geography' | 'view'): NativeProgramSpec {
+  return { id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs,
+    loader: name === 'titan' || name === 'riding' ? 'simulation' : 'bake' };
+}
+
 /** One source/host-keyed construction per helper, shared across isolated suites. */
 export function nalatiNativeProgram(name: 'kokpar' | 'titan' | 'riding' | 'charge' | 'geography' | 'view'): Promise<string> {
   return runTextSnapshot(`nalati-native-${name}`, () =>
-    nativeProgramFixture({ id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs,
-      loader: name === 'titan' || name === 'riding' ? 'simulation' : 'bake' }));
+    nativeProgramFixture(nalatiNativeProgramSpec(name)));
 }
 
 /** Fresh owned current scalar loans for isolated setup; no cached game state. */

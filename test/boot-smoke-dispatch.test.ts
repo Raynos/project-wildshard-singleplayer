@@ -1243,3 +1243,57 @@ test('split Explorer refuses foreign, hybrid and changed-guard source topologies
   f.state.boot='success\thttps://github.com/Raynos/project-wildshard-singleplayer/actions/runs/123';
   expect(recoverySource('123',f.state.query)).toEqual({sha,run:'123'});
 });
+
+
+function nativeFixtureReadyFixture(){
+  const f=fourJourneyReadyFixture();
+  for(const name of ['native-escape','fixtures']){
+    const pattern=new RegExp(`\\n {2}${name}:\\n[\\s\\S]*?(?=\\n {2}[a-z][a-z0-9-]*:\\n|$)`,'u');
+    const block=pattern.exec(deploy)?.[0];if(block===undefined)throw new Error('Missing current native input publisher');
+    f.state.source=pattern.test(f.state.source)?f.state.source.replace(pattern,block):f.state.source+block;
+  }
+  const model=f.state.details[0];if(model===undefined)throw new Error('Missing exact-run source model');
+  f.state.details.push({...model,name:'fixtures',status:'completed',conclusion:'success',steps:[{name:'Publish source-host native constructor inputs',status:'completed',conclusion:'success',number:1}]});
+  for(const row of f.state.details)if(row.name.startsWith('native-escape ('))row.steps=[{name:'Restore source-host native constructor inputs',status:'completed',conclusion:'success',number:1}];
+  return f;
+}
+
+test('required native constructor publication adds one qualifying input gate and preserves the historical23',()=>{
+  const f=nativeFixtureReadyFixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);
+  expect(proof.jobs.filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(24);
+  for(const verdict of ['failure','cancelled','skipped','in_progress']){
+    const broken=nativeFixtureReadyFixture(),publisher=broken.state.details.find(row=>row.name==='fixtures');
+    if(publisher===undefined)throw new Error('Missing required input publisher');
+    publisher.status=verdict==='in_progress'?'in_progress':'completed';publisher.conclusion=verdict==='in_progress'?null:verdict;
+    expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow(verdict==='in_progress'?'completed verdict':'source gate');
+  }
+  for(const [before,after]of [['needs: [prepare, fixtures]','needs: prepare'],['NATIVE_INPUT_PROOF: \'cache-v1\'','NATIVE_INPUT_PROOF: \'foreign\''],
+    ['scripts/ci-native-fixtures.mjs restore','scripts/ci-native-fixtures.mjs build'],['timeout-minutes: 20','timeout-minutes: 21']] as const){
+    const broken=nativeFixtureReadyFixture();
+    const pattern=/\n {2}native-escape:\n[\s\S]*?(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u;
+    const block=pattern.exec(broken.state.source)?.[0];if(block===undefined)throw new Error('Missing native block');
+    const changed=block.replace(before,after);expect(changed).not.toBe(block);broken.state.source=broken.state.source.replace(pattern,changed);
+    expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow();
+  }
+  const old=fourJourneyReadyFixture();expect(readySource('123',liveBuild,old.state.query,readyNow).jobs
+    .filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(23);
+});
+
+
+test('native fixture authority requires observed successful publication and restore steps on the exact attempt',()=>{
+  for(const name of ['fixtures','native-escape (escape-titan)','native-escape (stories-qara)','native-escape (chapter-one)','native-escape (native-routes)']){
+    for(const defect of ['missing','duplicate','skipped','failed','run','attempt','sha']){
+      const f=nativeFixtureReadyFixture(),row=f.state.details.find(job=>job.name===name);
+      if(row===undefined)throw new Error('Missing exact input job');
+      if(defect==='missing')row.steps=[];
+      else if(defect==='duplicate')row.steps=[...row.steps,...row.steps];
+      else if(defect==='skipped'||defect==='failed'){
+        const step=row.steps[0];if(step===undefined)throw new Error('Missing input step');
+        step.conclusion=defect==='failed'?'failure':'skipped';
+      }else if(defect==='run')row.run_id=124;
+      else if(defect==='attempt')row.run_attempt=2;
+      else row.head_sha='b'.repeat(40);
+      expect(()=>readySource('123',liveBuild,f.state.query,readyNow)).toThrow('Native fixture input');
+    }
+  }
+});

@@ -1,4 +1,5 @@
 import { encodeCanonicalJson } from '../../src/sdk/immutable';
+import type { NativeProgramSpec } from './native-program';
 import { nativeProgramFixture } from './native-program';
 
 /** Match a canonical JSON reader's original object iteration order while
@@ -20,10 +21,13 @@ export function canonicalNativeOracleInput<T>(input: T): T {
 /** Keep typed oracle facts only when a fresh source-fenced child reconstructs
  * their complete canonical wire. No parsed JSON is cast into the parent type.
  * The spec must name the raw constructor and all defining input roots. */
+export function nativeOracleProgramSpec(spec: NativeProgramSpec): NativeProgramSpec {
+  return {...spec, inputs: [...spec.inputs, 'test/fixtures/native-oracle.ts', 'test/fixtures/native-program.ts']};
+}
+
 export async function fencedNativeOracle<T>(spec: Parameters<typeof nativeProgramFixture>[0], make: () => T | Promise<T>): Promise<T> {
   const [text, value] = await Promise.all([
-    nativeProgramFixture({ ...spec, inputs: [...spec.inputs,
-      'test/fixtures/native-oracle.ts', 'test/fixtures/native-program.ts'] }),
+    nativeProgramFixture(nativeOracleProgramSpec(spec)),
     Promise.resolve().then(make),
   ]);
   const child: unknown = JSON.parse(text);
