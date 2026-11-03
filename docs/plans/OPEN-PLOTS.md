@@ -60,7 +60,7 @@ Mosslight Ruins fill two cells each. The five new ideas (G653) replace those rep
 |---|---|---|---|---|---|
 | Lantern Bayou | 2 → 1 | marigold dusk swamp, boardwalks, moss | lantern-hung cypress tree | high | 12 / 4 |
 | Patchwork Fairground | 0 → 1 (new) | bright noon fair, striped tents, bunting | Ferris wheel | high | 12 / 4 |
-| Showcase Template | 1 | clean teal expo, white paving, pools, hedges | glass-domed expo pavilion | med | 8 / 4 |
+| Showcase Template | 1 | Source dev-map orange and grey, 1 m grid floors (KITCHEN-SINK G523; Jake, E523, 2026-11-02: not teal expo) | hub obelisk | med | 8 / 4 |
 | Mushroom Hollow | 0 → 1 (new) | neon pink and teal night, glowing caps | toadstool tower | med | 16 / 5 |
 | Saltwind Lighthouse | 0 → 1 (new) | grey rain, wet stone, fishing cottages | red-and-white lighthouse | med | 16 / 5 |
 | Coral Drift | 1 | turquoise lagoon, sand, beach huts, palms | coral arch over the lagoon | med | 16 / 5 |

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kitchen Sink v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* One visual world: the Source dev map. Grey grid floor, orange blocks, stencilled labels. Single theme by choice. */
+  --floor: #2b2d30;
+  --panel: #35383c;
+  --line: #4a4e54;
+  --ink: #eceae6;
+  --muted: #a7abb1;
+  --orange: #f08a24;
+  --good: #6fcf8a;
+  --warn: #f2c14e;
+  --bad: #ef6b5b;
+  --display: "Saira Stencil One", "Impact", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--floor);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-attachment: fixed;
+  color: var(--ink);
+  font: 16px/1.55 var(--body);
+}
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 20px; }
+header { display: grid; gap: 6px; }
+h1 { font: 44px/1 var(--display); color: var(--orange); margin: 0; letter-spacing: 1px; text-wrap: balance; }
+.sub { color: var(--muted); font-family: var(--mono); font-size: 13px; }
+section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 16px 18px; display: grid; gap: 10px; }
+h2 { font: 22px/1.1 var(--display); color: var(--orange); margin: 0; letter-spacing: .5px; }
+h3 { font-size: 15px; margin: 6px 0 0; }
+p, li { max-width: 68ch; }
+p { margin: 0; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.tag { display: inline-block; font: 600 11px/1 var(--mono); padding: 3px 6px; border: 1px solid currentColor; margin-right: 4px; vertical-align: 1px; white-space: nowrap; }
+.done { color: var(--good); } .wait { color: var(--warn); } .gap { color: var(--bad); } .src { color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; }
+td.n { font-family: var(--mono); color: var(--orange); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+figure { margin: 0; display: grid; gap: 6px; }
+img { max-width: 100%; display: block; border: 1px solid var(--line); }
+figcaption { font: 13px var(--mono); color: var(--muted); }
+.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.chip { background: var(--floor); border: 1px solid var(--line); padding: 10px; display: grid; gap: 4px; }
+.chip b { font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>KITCHEN SINK v2</h1>
+  <div class="sub">Showcase Template · plan docs/plans/KITCHEN-SINK.md · ask E523 · updated 2026-11-02</div>
+  <p>We're working out v2 of the showcase plan together: what the main shards and the other plans have that it lacks, and whether all of it fits in one 500 × 500 m cell. This page is the running record. The plan file changes only when Jake says what goes in.</p>
+</header>
+
+<section>
+  <h2>WHERE WE ARE</h2>
+  <div class="status">
+    <div class="chip"><b>v1 plan</b><span><span class="tag wait">parked</span> K0 done, nothing built</span></div>
+    <div class="chip"><b>Shard audit</b><span><span class="tag done">done</span> 6 shards + host catalogue</span></div>
+    <div class="chip"><b>Plans mined</b><span><span class="tag done">done</span> ~35 ideas</span></div>
+    <div class="chip"><b>Grey blockout</b><span><span class="tag wait">running</span> does it fit in 500 m?</span></div>
+    <div class="chip"><b>Jake's pass</b><span><span class="tag wait">in progress</span> core kept, water skipped</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>DECISIONS</h2>
+  <table>
+    <tr><th>Date</th><th>Decision</th></tr>
+    <tr><td class="n">11-02</td><td><b>The cell stays 500 × 500 m.</b> The size is fixed; the job is to fit as much as we can by being strategic (stacking, interiors, shared spaces).</td></tr>
+    <tr><td class="n">11-02</td><td><b>The look stays the dev map</b> (orange and grey, stencilled labels, 1 m grid; G523). OPEN-PLOTS' teal-expo line for this plot now points at KITCHEN-SINK.</td></tr>
+    <tr><td class="n">11-02</td><td><b>Jake picks the additions himself.</b> The lists below are the menu; his picks so far are in the next section.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>JAKE'S PICKS (11-02, IN PROGRESS)</h2>
+  <h3>In</h3>
+  <ul>
+    <li>Quests, dialogue, vendor</li>
+    <li>Sword, spear, bow, crossbow, <b>plus the gun</b> (the gun already exists)</li>
+    <li><b>Mounts only, no taming</b>; riding course</li>
+    <li>Movers and lifts; grapple and zipline; stealth</li>
+    <li>Elites, waves, boss</li>
+    <li>Weather, day/night</li>
+    <li>Physics props, hoverboard, pressure plates</li>
+    <li>Portal vault <b>if it fits</b></li>
+  </ul>
+  <h3>Skipped</h3>
+  <ul>
+    <li>Swimming, diving, boats (so no water zone)</li>
+  </ul>
+</section>
+
+<section>
+  <h2>OPEN QUESTIONS</h2>
+  <ul>
+    <li><b>Does it all fit?</b> 12 zones plus the candidates below in 500 × 500 m. The clean-room grey blockout is answering this.</li>
+    <li><b>Can weather and night be per zone?</b> The weather host and day clock look cell-wide, so a storm zone 100 m from a sunny weapon range may be impossible. That changes zone 10.</li>
+    <li><b>Which additions go in</b>, and which go into portal interiors so they cost no ground area.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>v1 MOCKUPS</h2>
+  <figure>
+    <img src="v1-board.jpg" alt="Thirteen phone-portrait mockups of the dev-map showcase: hub, weapon range, creature pen, riding course, movers park, grapple tower, stealth yard, elite gauntlet, Crate Titan boss, storm and beacons, hoverboard park, Training Vault portal, overview.">
+    <figcaption>Round 5, look C (2026-10-20). Art in art/blender-template/round-5-content/.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>v1 ZONES</h2>
+  <div class="scroll"><table>
+    <tr><th>#</th><th>Zone</th><th>Features</th></tr>
+    <tr><td class="n">01</td><td>Hub</td><td>quests, dialogue, journal, vendor</td></tr>
+    <tr><td class="n">02</td><td>Weapon range</td><td>sword, spear, bow, crossbow, hit numbers</td></tr>
+    <tr><td class="n">03</td><td>Creature pen</td><td>wildlife, taming, mounts</td></tr>
+    <tr><td class="n">04</td><td>Riding course</td><td>rings, lap timer</td></tr>
+    <tr><td class="n">05</td><td>Movers park</td><td>lifts, spinners, rails, conveyors, jump pads</td></tr>
+    <tr><td class="n">06</td><td>Grapple tower</td><td>grapple, zipline, checkpoints</td></tr>
+    <tr><td class="n">07</td><td>Stealth yard</td><td>detection, patrols, vision cones</td></tr>
+    <tr><td class="n">08</td><td>Elite gauntlet</td><td>waves, named elites</td></tr>
+    <tr><td class="n">09</td><td>Boss arena</td><td>the Crate Titan: phases, telegraphs, hazards</td></tr>
+    <tr><td class="n">10</td><td>Weather and night</td><td>storm, day/night, four beacons</td></tr>
+    <tr><td class="n">11</td><td>Physics and hover</td><td>physics props, hoverboard tricks</td></tr>
+    <tr><td class="n">12</td><td>Portal vault</td><td>walk-in portal, interior, pressure plates</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>MISSING: WHAT THE MAIN SHARDS HAVE</h2>
+  <h3>Water (the biggest gap: none at all)</h3>
+  <ul>
+    <li>Swim, dive, held-breath feat <span class="tag src">Driftwood · Nalati</span></li>
+    <li>Canoe ferry to an islet <span class="tag src">Pine Hollow</span>; a moored boat that bobs and you can stand on <span class="tag src">Driftwood</span></li>
+    <li>Push a barrel onto plates to drain the tide cave <span class="tag src">Driftwood</span>; dam logs and the sluice <span class="tag src">Pine Hollow</span></li>
+  </ul>
+  <h3>Economy and meta (only a vendor in v1)</h3>
+  <ul>
+    <li>Currency and shop upgrades (Whetstone, Sturdy Heart) <span class="tag src">Driftwood</span></li>
+    <li>Collectibles that pay perks: every 5 sea glass make a charm <span class="tag src">Driftwood</span></li>
+    <li>Trophies with perks on a wall; a 7-slot pack <span class="tag src">Driftwood · Pine Hollow</span></li>
+    <li>Skins and finishes from elites; a legendary weapon per boss <span class="tag src">Nalati · Pine Hollow</span></li>
+    <li>Joke-title feats, FINDS places, compendium and journal <span class="tag src">all</span></li>
+    <li>Rotating lodge contracts <span class="tag src">Pine Hollow</span></li>
+    <li>"Killed by…" card, respawn at last place, shard-complete card <span class="tag src">Driftwood</span></li>
+  </ul>
+  <h3>Weapons and verbs</h3>
+  <ul>
+    <li>Lever rifle; crossbow ammo types (iron, pitch, broadhead) <span class="tag src">Pine Hollow</span></li>
+    <li>Bow draw with drop and wind drift; thrown spear and lance <span class="tag src">Nalati</span></li>
+    <li>War fan GUST that knocks creatures off edges <span class="tag src">Sky Reach</span></li>
+    <li>Bullwhip: crack, pull, light braziers, crank the well <span class="tag src">Signal Dunes</span></li>
+    <li>Sword combo and parry <span class="tag src">Nine Dragon</span>; mounted shooting <span class="tag src">Nalati</span></li>
+  </ul>
+  <h3>Creatures</h3>
+  <ul>
+    <li>Full taming: trust and alert meters, the wind, the bucking break, naming, whistle <span class="tag src">Nalati</span></li>
+    <li>Herd life: sheep and sheepdog, wolf raids, herds that shelter from rain <span class="tag src">Nalati · Pine Hollow</span></li>
+    <li>Night-only enemies and elites gated by weather or time <span class="tag src">Driftwood · Nalati · Pine Hollow</span></li>
+    <li>Follow a creature as a quest step (the Ghost Stag) <span class="tag src">Pine Hollow</span></li>
+  </ul>
+  <h3>Hazards and terrain</h3>
+  <ul>
+    <li>Lightning: crouch or shelter; grass fire <span class="tag src">Nalati</span></li>
+    <li>Hover-only bridges, updraft, falling into the void <span class="tag src">Sky Reach</span></li>
+    <li>Ladders, scramble climbs, swaying rope bridges <span class="tag src">Signal Dunes · Nalati · Driftwood</span></li>
+    <li>Cave and dungeon interiors with their own reverb <span class="tag src">Pine Hollow · Nalati</span></li>
+  </ul>
+  <h3>Minigames and audio</h3>
+  <ul>
+    <li>Kokpar: carry the goat to the goal on horseback <span class="tag src">Nalati</span></li>
+    <li>Zoned ambience, music per zone, boss stems, stings. v1 never mentions audio <span class="tag src">all main shards</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>IDEAS FROM THE OTHER PLANS</h2>
+  <h3>New zones</h3>
+  <ul>
+    <li>Happenings plaza: a timed event with a countdown, a fail branch and a reward <span class="tag src">GW2 Zones · WorldClaw E7</span></li>
+    <li>Time-trial strip with ghost runs and bronze, silver, gold medals <span class="tag src">GW2 Zones</span></li>
+    <li>Thin-ice lane: unlit ice cracks, a rope grab is the safe crossing <span class="tag src">Thin Ice</span></li>
+    <li>Glide drop shaft: umbrella glide, nets, laundry-line zips <span class="tag src">Nine Dragon P2</span></li>
+    <li>Mini dungeon / shrine room, about 10 minutes <span class="tag src">GW2 Zones</span></li>
+    <li>Vista and secrets ring: bench views, squeeze caves, hidden caches <span class="tag src">WorldClaw · Pine Hollow</span></li>
+  </ul>
+  <h3>Chain and meta</h3>
+  <ul>
+    <li>Boss intro as an in-engine cutscene <span class="tag src">In-Game Cutscenes</span></li>
+    <li>Daily seed that changes the target or route <span class="tag src">GW2 Zones</span></li>
+    <li>Chain legs under 15 minutes, each ending on a checkpoint card <span class="tag src">GW2 Zones</span></li>
+    <li>Breadcrumb guide: gulls or ravens fly toward unvisited places (built twice, needs one host) <span class="tag src">Driftwood · Pine Hollow</span></li>
+    <li>Crates and chests (in G523's list, no zone yet) <span class="tag src">G523</span></li>
+  </ul>
+  <h3>Tooling showcase</h3>
+  <ul>
+    <li>Third-person debug camera; landscape HUD <span class="tag src">October backlog OB2 · OB4</span></li>
+    <li>Detailed loading screen for everyone <span class="tag src">October backlog OB8</span></li>
+    <li>Explore tabs: Beats (PLAY FROM HERE), Coverage, Composition <span class="tag src">WorldClaw Tools</span></li>
+    <li>Bot or AI playtest across the 9-step chain <span class="tag src">Shard Platform Next</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>PLAN FIXES</h2>
+  <ul>
+    <li><span class="tag gap">gap</span> No shared host yet for a wave-spawn director, jump pads or pressure plates, and the boss arena room has only a test user. v1 marks most of these "—".</li>
+    <li><span class="tag gap">gap</span> Weather and night are probably cell-wide, so zone 10 needs a rethink.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>GREY BLOCKOUT</h2>
+  <p><span class="tag wait">running</span> A clean-room level designer is blocking the cell out in grey, with zone sizes taken from real speeds and arena sizes in the game data. It reports whether everything fits, spills over or needs cuts, and how the chain routes. The captures land in art/showcase-template/round-1-blockout/ and on this page.</p>
+</section>
+</main>
+</body>
+</html>
