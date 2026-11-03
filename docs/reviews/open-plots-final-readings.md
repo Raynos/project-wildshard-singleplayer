@@ -560,7 +560,16 @@ bar 10 scope, as described for Sky above.
 
 Raw result, paired draw-budget report and standing source hash are under
 `tmp/sp-x1-open-plots/starfall-final/`. The real road `(0,1.7,-241,pi,0)`
-and plaza `(0,1.7,-62,pi,0)` match the control. The browser is closed;
-the own preview lease remains for the maintained walk and eight-view golden
-bridge after X8's model-free official window. Those scopes remain open.
+and plaza `(0,1.7,-62,pi,0)` match the control. The browser is closed. X8's separate official window subsequently completed;
+the own maintained walk started only after its literal release and a clear
+`.git/quiet` preflight. O2 then announced an already-active official census.
+The new walk was stopped immediately through its owned browser-lane TERM
+trap, exit 143; no `walk.json` or golden capture was produced, so no walk or
+golden credit is claimed. The conservative command-log-to-TERM interval is
+**22:02:01.691–22:02:42.726 UTC** on 2026-11-03; Chromium's exact launch was
+not separately timestamped. O2 retains that overlap and will re-read any
+affected official window. All own browser processes are verified absent.
+The walk/golden scopes remain open until O2's literal release. The own shared
+preview lease remains retained. Raw interruption evidence is
+`tmp/sp-x1-open-plots/starfall-final/interrupted-walk.json`.
 No visual source changes.
