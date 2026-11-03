@@ -1,6 +1,6 @@
 # Open plots: morning listening batch
 
-**Status:** `unread` 2026-11-03 — Bayou passes native playback; Frostline recordings are ready for activation. Three plots follow.
+**Status:** `unread` 2026-11-03 — Bayou and Frostline pass native playback. Ember, Mosslight and Coral remain open.
 **Link:** https://wildshard-singleplayer.vercel.app/assets/music/ob7-listening.html (ships with the automatic deployment)
 **Plan:** OPEN-PLOTS, [build-out OB7](../plans/open-plots/build-out-mini-plan.md)
 **Made by:** E521, sp-x2 / Codex
@@ -11,7 +11,7 @@ The measured recommendation ships; the other take stays available for comparison
 | Plot | Recommended score | Package | Native bar 10 |
 |---|---|---:|---|
 | Lantern Bayou | A, seed 701 | 1.67 MB | pass, `d649309a52` |
-| Frostline Peaks | B, seed 702 | 1.22 MB | pending playback |
+| Frostline Peaks | B, seed 702 | 1.22 MB | pass, `b51eee2ce3` |
 | Ember Forge | pending | — | open |
 | Mosslight Ruins | pending | — | open |
 | Coral Drift | pending | — | open |
@@ -53,3 +53,7 @@ scripts/browser-lane.sh --max 10 node scripts/open-plots/audio-check.mjs --base=
 
 It uses the native pause/resume owner, actual source buffers and clock,
 and normal player placement. It does not add an audio graph or fake ticks.
+
+Frostline passes the same real phone check on `b51eee2ce3`: own score
+recording, six decoded loops, active bed and five positional gains
+0.390–0.396 with heading pan flips near −0.698 / +0.696; no page errors.
