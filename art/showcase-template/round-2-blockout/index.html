@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Showcase Template: 500 m grey blockout (round 2)</title>
+<!-- Served from the repo root (capture.mjs does it), so three resolves from node_modules. No build step. -->
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+<style>
+  html, body { margin: 0; height: 100%; background: #202326; overflow: hidden;
+    font-family: "DIN Alternate", "Arial Narrow", Helvetica, Arial, sans-serif; color: #f2f2f2; }
+  canvas { position: absolute; left: 0; display: block; }
+  #cap { position: absolute; left: 0; right: 0; top: 0; padding: 7px 10px 6px; background: #111315e6; z-index: 3;
+    border-bottom: 2px solid #e8772e; }
+  #cap b { color: #ff9a4a; font-size: 15px; letter-spacing: .02em; }
+  #cap span { display: block; font-size: 11px; color: #cfd2d4; margin-top: 2px; line-height: 1.3; }
+  #labels { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; z-index: 2; }
+  .lb { position: absolute; transform: translate(-50%, -50%); text-align: center; white-space: nowrap;
+    font-size: 7.4px; line-height: 1.12; color: #111; font-weight: 700; text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff; }
+  .lb i { font-style: normal; font-weight: 400; display: block; font-size: 6.6px; }
+  .lb.cand { color: #064d57; } .lb.shared { color: #3d4a12; }
+  .tick { position: absolute; font-size: 6.5px; color: #e9e9e9; transform: translate(-50%, -50%); }
+  .step { position: absolute; transform: translate(-50%, -50%); width: 12px; height: 12px; border-radius: 6px;
+    background: #c3249b; color: #fff; font-size: 7px; font-weight: 700; text-align: center; line-height: 12px; border: 1px solid #fff; }
+  #panel { position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 10px 8px; background: #16181a; z-index: 3;
+    font-size: 9px; line-height: 1.32; color: #dadcde; }
+  #panel h3 { margin: 2px 0 3px; font-size: 11px; color: #ff9a4a; }
+  #panel table { border-collapse: collapse; width: 100%; }
+  #panel td { padding: 0 4px 0 0; vertical-align: top; }
+  #panel .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sw { display: inline-block; width: 9px; height: 9px; vertical-align: -1px; margin-right: 3px; border: 1px solid #000; }
+  #foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 5px 10px 7px; background: #111315d9; z-index: 3;
+    font-size: 10px; line-height: 1.3; color: #d6d8da; }
+  .tag { position: absolute; left: 8px; z-index: 5; background: #e8772e; color: #111; font-weight: 700; font-size: 13px; padding: 2px 7px; }
+  #ui { position: absolute; right: 6px; top: 60px; z-index: 4; }
+</style>
+</head>
+<body>
+<div id="cap"></div>
+<div id="labels"></div>
+<div id="panel" hidden></div>
+<div id="foot" hidden></div>
+<div id="r1" hidden style="position:absolute;background-image:url(../round-1-blockout/01-plan.jpg);background-repeat:no-repeat;z-index:1"></div>
+<div id="t1" class="tag" hidden></div><div id="t2" class="tag" hidden></div>
+<select id="ui"></select>
+<script type="module" src="./lab.js"></script>
+</body>
+</html>
