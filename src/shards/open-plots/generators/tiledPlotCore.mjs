@@ -222,8 +222,9 @@ export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
     Pool: doc.createMaterial('Pool').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Water: doc.createMaterial('Water').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.12).setMetallicFactor(0.2),
     Landmark: doc.createMaterial('Landmark').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0).setBaseColorTexture(nearImage === null ? null : await texture('landmark', nearImage)),
-    // OB10: the coarse landmark in its landmark graph without a texture (meshMap colourOrVertex reads its vertex colours)
-    LandmarkCoarse: doc.createMaterial('LandmarkCoarse').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0),
+    // OB10: the coarse landmark in its landmark graph without a texture (meshMap colourOrVertex reads its vertex colours);
+    // only a lit row has it, so another plot's world holds no material its template leaves unmapped
+    LandmarkCoarse: litCoarse ? doc.createMaterial('LandmarkCoarse').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0) : null,
     Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(posterBytes === null ? null : await texture('poster', await tools.readImagePixels(posterBytes))),
   };
   for (const material of [materials.Landmark, materials.Poster]) material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
