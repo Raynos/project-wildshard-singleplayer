@@ -2827,3 +2827,44 @@ The next comparison requires an explicitly reviewed executable baseline,
 not a fabricated metric or silent repin. Numbers, all source/version
 checks, twelve frame hashes and raw paths are retained in
 `tmp/sp-x6-cs3-nalati-pages/paired-requalification/after-only/summary.json`.
+
+### Nalati loading reference: warm question OPEN (2026-11-03)
+
+Jake accepts the recorded **P1 and P3 A/A0 on both tiers**. Keep the
+full measured P2A/A0 reading too, without broadening the scope of that
+explicit acceptance or inventing A/B evidence.
+
+The latest older Nalati cold/warm files retained for the same maintained
+`pnpm phone-loading` reader family/Chromium phone preset are build
+`7d3c0ee-mvu4kk8v`,2026-10-29T22:50:37.422Z. Profile fields and applied
+notes match the current reading:10× page CPU,10 Mbps down/2 Mbps up,
+100 ms latency, worker network applied,3 s title/4 s post-control dwell.
+This is a historical reference, not an identical-source paired run.
+
+| Nalati tap-to-qualified-control | Last retained reference7d3 | Fixed afteraf6 | Observed difference |
+| --- | ---: | ---: | ---: |
+| Cold |102.350300 s |99.055500 s |−3.294800 s (−3.22%) |
+| Warm |36.281500 s |55.007900 s |**+18.726400 s (+51.61%)** |
+
+Both historical native controls qualify. Retain their real errors:
+cold has local telemetryHTTP405 plus one incomplete request-size record;
+warm has two telemetryHTTP405s. The current pair has errors[] and
+complete accounting. Do not call the older pair clean or remove those
+refusals. The older WebKit10.358/9.647 s readings are unthrottled Mac
+WebKit and are **not** substituted for phone10× Chromium.
+
+The explicit bar for this paging slice is a **clean matched pair, cold
+AND warm no worse**, not merely entry before the unchanged240 s failure
+deadline. No Nalati-specific absolute loading SLO is established here.
+**OPEN loading question:** warm55.0079 s is18.7264 s above the last
+same-preset36.2815 s reference. Source/date and the acknowledged X2 model
+and audio-QA overlap differ, so this does not establish a page-regression
+cause or an isolated slowdown. Contention remains a possible contributor,
+not a measured explanation. Jake explicitly requests no rerun now.
+
+Old raw files:
+`tmp/phone-loading/2026-10-29T22-50-37-422Z-7d3c0ee-mvu4kk8v/`.
+Current raw files:
+`tmp/phone-loading/2026-11-03T09-50-08-303Z-af6f2f8-mw0i9u28/`.
+Exact-profile comparison, raw digests and limits:
+`tmp/sp-x6-cs3-nalati-pages/paired-requalification/reference-comparison.json`.
