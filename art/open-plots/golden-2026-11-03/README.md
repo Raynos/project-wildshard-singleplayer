@@ -55,6 +55,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Desert Ruin](desert-ruin/board.jpg) (OP12) | 5 | 6 | 5 | 7 | 6 | 6 | 5 | 6 | **5.75** | NOT YET |
 | [Thin Ice](thin-ice/) (OP18) | 5 | 6 | 5 | 7 | 6 | 7 | 6 | 5 | **5.88** | NOT YET |
 | [Floating Island Race](sky-race/) (OP22) | 5 | 6 | 6 | 7 | 6 | 7 | 5 | 6 | **6.00** | NOT YET |
+| [Showcase Template](showcase-template/) (OP5) | 5 | 6 | 6 | 7 | 6 | 6 | 6 | 7 | **6.12** | NOT YET |
 
 The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
 level, where the mockups show one huge landmark framed by dense dressing and the builds show a small landmark over wide
@@ -144,6 +145,11 @@ front of it).
   stands and paddocks sit in the board's places and the tower and arch read from the plaza and under the arch; the road
   entry shows the poster before a small tower, and the build's four loops stand for the board's one long circuit
   (`../../sky-race/round-3-final/`).
+- 2026-11-03, Showcase Template (OP5): first set, shot on the pinned preview of `300a65548b` through `capture.mjs`;
+  cameras are the Fairground's eight, moved to its cell (-1, -1). Scored against the plot's own direction (19ab's orange
+  and grey workshop, not round 62's teal expo): the top-down shows every shared family round the canal ring and the
+  obelisk reads from the plaza and its foot; the road entry shows the poster before a small obelisk
+  (`../../showcase-template/op5-round-3-final/`).
 - 2026-11-03, Desert Ruin (OP12): first set, from `bf48edbf7c` (`--rev` preview `bf48edb-mw153fwp`, its activation `cad1dbd0a2` with the draw and wire rows `af4b65d614`, `d90343121c`); cameras are Jungle's eight moved to its cell (1, -2), view 5 at 60 m south of the gateway and view 6 under its lintel. Scored against round 62: the top-down's four oases, paved cross, tent rows and edge ruins match; at eye level the gateway is small from the road over wide paving, and Nine Dragon's far silhouette floats behind it (`../../nine-dragon/qa-far-silhouette/`) (`../../desert-ruin/round-2-final/`).
 - 2026-11-03, Jungle Ziggurat: re-shot on `9c82257231` (the four-stair ziggurat, G872), frames stored at the set's 402 x 603.
 - 2026-11-03, Starfall Observatory: first set, from its activation `d4d4b17674` (preview `d4d4b17-mw13gps7`), cameras

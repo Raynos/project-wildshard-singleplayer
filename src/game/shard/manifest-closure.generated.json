@@ -722,6 +722,8 @@
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-showcase-template.generated.ts",
+    "src/shards/open-plots/thumbs/showcase-template-landscape.jpg",
+    "src/shards/open-plots/thumbs/showcase-template-portrait.jpg",
     "src/shards/open-plots/thumbs/showcase-template.jpg"
   ],
   "open-plot-sky-harbor": [

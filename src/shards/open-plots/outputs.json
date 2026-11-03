@@ -96,8 +96,8 @@
         ],
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/showcase-template.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/showcase-template.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/showcase-template.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/showcase-template-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/showcase-template-landscape.jpg"
         },
         "explore": {
           "art": {
