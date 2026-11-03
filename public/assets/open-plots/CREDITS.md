@@ -15,3 +15,18 @@ Notice: Tencent Hunyuan 3D 2.1 is licensed under the Tencent Hunyuan 3D 2.1 Comm
 2025 Tencent. All Rights Reserved. The trademark rights of "Tencent Hunyuan" are owned by Tencent or its affiliate.
 
 These files were changed from the model's output: reduced, re-textured to a game atlas and scaled.
+
+## Audio
+
+Lantern Bayou uses **Music: MiniMax-Music3** (MiniMax-Music3 Community License).
+Its sound effects compare **MOSS-SoundEffect v2** (Apache-2.0) and
+**Stable Audio 3 Medium** (Stability AI Community License and Gemma terms);
+**Powered by Stability AI**.
+
+Both score takes and their recommendation are in
+`public/assets/music/lantern-bayou/music.json`. Per-sound winning engines,
+paired comparisons and generation records are in
+`public/assets/sfx/lantern-bayou/sfx.json`. Sources are trimmed, looped,
+loudness-normalized and encoded as AAC; the model outputs are modified.
+
+The shared morning listening list is `public/assets/music/ob7-listening.html`.
