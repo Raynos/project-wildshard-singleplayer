@@ -12,7 +12,7 @@ After the normal pinned preview is READY and the machine turn is granted:
 scripts/browser-lane.sh --max 45 node scripts/open-plots/capture.mjs \
   --base=http://127.0.0.1:4400 --pin=FULL_40_CHARACTER_SOURCE_SHA \
   --plots=open-plot-night-market,open-plot-lantern-bayou,open-plot-showcase-template \
-  --junction=-1.5,-1.5 --out=tmp/open-plots-capture
+  --junction=-0.5,1.5 --out=tmp/open-plots-capture
 ```
 
 One Chromium process captures 3 × 8 × 9 live views, creates 24 labelled 3×3
@@ -20,11 +20,23 @@ sheets, and makes the junction reading. All eight domes are required by the
 batch command. A plot or dome failure stops the command and retains the partial
 receipt. Existing output refuses, so a partial run cannot silently gain stale
 screenshots. No automatic rerun or continuation changes the source boundary.
+After a refusal, `--domes=B1,B2,C1,C2,D1,D2` explicitly selects only the
+unfinished domes into a new output directory. `requestedDomes` records that
+scope; the old refused batch stays unchanged. Combining qualified receipts
+requires the identical full source pin and admitted camera/image hashes, with
+their original paths and refusals retained as provenance. If the same source
+must be rebuilt after normal preview teardown, retain both actual build IDs
+and versions separately; never present them as one running build.
 
 The protocol retains normal title/grid entry, declared entry routes, physical
 streaming anchors, shipping tiles/LOD/far plane, phone tier, 2× render scale,
 62° horizontal cameras, 402×603 portrait viewport and 120 real drawn frames per
-view. Each dome has its own context and a separate page-wide Chromium memory
+view. Before sampling and before accepting each image, the normal grid pending
+list, crossing and ring queues must settle within the existing 180-second
+readiness bound. The original post-sample anchor, residency, camera and document
+guards still run; the 120-draw sample keeps its original 15-second cap. Samples
+may include admission work that begins during their window; they are not a
+steady-state performance claim. Each dome has its own context and a separate page-wide Chromium memory
 sample. Counts and memory are descriptive, not an official frame-floor pass.
 
 `--junction=x,z` names half-integer lattice coordinates between four actual

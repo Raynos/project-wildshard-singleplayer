@@ -6,7 +6,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine generated fixtures to an owned repository scratch root.
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
-import { parseDomeCameras } from '../scripts/dome-cameras.mjs';
+import { domeResidencySettled, parseDomeCameras } from '../scripts/dome-cameras.mjs';
 import { readCapturePlans, ringJunctionPlan, selectCapturePlots } from '../scripts/open-plots/capture-inputs.mjs';
 import { admitBoardCapture, boardText, makeDomeBoards } from '../scripts/open-plots/boards.mjs';
 
@@ -31,6 +31,16 @@ const capture = {
   domes: [{ dome: 'A1-road-stand', complete: true, errors: [], cameras:{convention:'TEMPLATE camera method'},
     views: Array.from({ length: 9 }, (_, index) => ({ n: index + 1, name: `View ${index + 1}`, imageSha256: 'b'.repeat(64) })) }],
 } as const;
+
+test('late neighbour admission must drain before an image, with crossing and ring guards intact', () => {
+  const ready = {live:{live:{gameplayReady:true,pending:[]},crossing:{phase:'settled',issue:null}},rings:{inFlight:0,queued:0}};
+  expect(domeResidencySettled(ready)).toBe(true);
+  expect(domeResidencySettled({...ready,live:{...ready.live,live:{...ready.live.live,pending:['pine-hollow']}}})).toBe(false);
+  expect(domeResidencySettled({...ready,live:{...ready.live,live:{...ready.live.live,gameplayReady:false}}})).toBe(false);
+  for (const crossing of [{phase:'preparing',issue:null},{phase:'settled',issue:'refused'}])
+    expect(domeResidencySettled({...ready,live:{...ready.live,crossing}})).toBe(false);
+  for (const rings of [{inFlight:1,queued:0},{inFlight:0,queued:1}]) expect(domeResidencySettled({...ready,rings})).toBe(false);
+});
 
 test('board admission cannot turn a partial, duplicate, failed or reordered capture into a sheet', () => {
   expect(admitBoardCapture(capture)).toEqual(capture);

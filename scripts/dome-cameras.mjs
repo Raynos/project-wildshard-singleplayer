@@ -65,3 +65,13 @@ export function assertDomeAnchorReady(grid, anchor) {
     throw new Error('Dome anchor requires normal ready grid entry before posing');
   }
 }
+
+/** Normal background admission can start after entry, including while a camera samples.
+ * Wait for it before accepting the image; never suppress it or change the anchor guard.
+ * This pure predicate is also serialized into the browser's bounded readiness wait.
+ * @param {import('./dome-cameras.mjs').DomeResidencyState} grid */
+export function domeResidencySettled(grid) {
+  return grid.live.live.gameplayReady && grid.live.live.pending.length === 0
+    && grid.live.crossing.phase === 'settled' && grid.live.crossing.issue === null
+    && grid.rings.inFlight === 0 && grid.rings.queued === 0;
+}

@@ -17,3 +17,11 @@ export function domeWorldCamera(camera: DomeView, origin: { x: number; z: number
 };
 export function domeGroundAnchor(cameras: DomeCameras, grid: Pick<FloorGridState, 'pitch' | 'cells'>, instance: string): DomeGroundAnchor;
 export function assertDomeAnchorReady(grid: Pick<FloorGridState, 'inside' | 'live'>, anchor: DomeGroundAnchor): void;
+export interface DomeResidencyState {
+  readonly live: {
+    readonly live: {readonly gameplayReady: boolean; readonly pending: readonly string[]};
+    readonly crossing: {readonly phase: string; readonly issue: string | null};
+  };
+  readonly rings: {readonly inFlight: number; readonly queued: number};
+}
+export function domeResidencySettled(grid: DomeResidencyState): boolean;

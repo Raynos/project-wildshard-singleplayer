@@ -8,7 +8,7 @@ import { readCapturePlans, ringJunctionPlan } from './open-plots/capture-inputs.
 import { makeDomeBoards } from './open-plots/boards.mjs';
 import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
 import { saveFixture, harnessPins } from './debug-settings.mjs';
-import { domeGroundAnchor, domeWorldCamera, assertDomeAnchorReady } from './dome-cameras.mjs';
+import { domeGroundAnchor, domeWorldCamera, assertDomeAnchorReady, domeResidencySettled } from './dome-cameras.mjs';
 import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
 import { FLOOR_GRID_ENTER, floorGridBenchmarkUrl } from './frame-floor-navigation.mjs';
 import { gridFloorPlans, gridFloorDeclaredPlan, gridFloorDocumentIdentity, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, floorGridEntryRoute } from './frame-floor-grid.mjs';
@@ -34,7 +34,7 @@ const label = milestone === 'RM2' ? 'RM2 BASELINE' : milestone === 'RM3' ? 'RM3 
 const version = await (await fetch(new URL('/version.json', base))).json();
 if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served SHA differs');
 mkdirSync(out, { recursive: true });
-const batch = {source: pin, version, complete: false, plots: []};
+const batch = {source: pin, version, requestedDomes: domes, complete: false, plots: []};
 const saveBatch = () => writeFileSync(join(out, 'batch.json'), JSON.stringify(batch, null, 2));
 saveBatch();
 function noQuiet() { if (existsSync('.git/quiet')) throw new Error('Official Simulator quiet is active; capture refuses'); }
@@ -48,7 +48,7 @@ try {
   const report = { source: pin, version, slug, instance, milestone, protocol: {
     device: 'iPhone 16 Pro', tier: 'phone', renderScale: 2, viewport: [402, 603], horizontalFov: 62,
     framing: '2:3 portrait dome viewport; exact committed eye/look, physical anchor at its ground projection',
-    scene: 'Shipping tiles and LOD; normal grid entry before an in-cell pose; existing freeCamera suspends fixed gameplay',
+    scene: 'Shipping tiles and LOD; normal grid entry and physical anchor; camera override leaves normal streaming live',
     counts: '120 live drawn frames per view, whole composer calls/triangles; descriptive camera reading, no frame-floor acceptance',
     memory: 'Effective plot residency claims per view; separate page-wide Chromium CDP private-footprint sample after each dome; no forced GC',
   }, domes: [] };
@@ -121,7 +121,9 @@ try {
         const camera = domeWorldCamera(view, origin, 2 / 3);
         await page.evaluate(pose => { window.__plotDome = pose; }, camera);
         await page.waitForTimeout(2000);
+        const beforeSample = await waitForDomeResidency(page);
         const sample = await page.evaluate(sampleDomeFrames);
+        const beforeImage = await waitForDomeResidency(page);
         const state = await page.evaluate(({ownInstance, ownSlug}) => {
           const api = window.__wildshard, world = api.requireWorld(), grid = api.shard.grid.state();
           const live = grid.live.live, renderOrigin = grid.live.renderOrigin, position = world.game.camera.position;
@@ -136,14 +138,15 @@ try {
         if (state.renderScale !== 2 || state.tier !== 'phone' || state.clock !== 'live') throw new Error('Phone profile changed');
         if (state.camera.world.some((word, index) => Math.abs(word - camera.eye[index]) > 1e-4)
           || Math.abs(state.camera.fov - camera.fov) > 1e-4 || Math.abs(state.camera.aspect - 2 / 3) > 1e-6) throw new Error('Dome camera framing changed');
-        assertDomeAnchorReady(state.grid, anchor);
+        try { assertDomeAnchorReady(state.grid, anchor); }
+        catch (error) { row.refusal = {phase:'post-sample-anchor',view:view.n,sample,state,document:current}; save(); throw error; }
         if (Math.hypot(state.grid.live.live.worldFeet.x - anchor.x, state.grid.live.live.worldFeet.z - anchor.z) > 0.5) throw new Error('Physical dome streaming anchor drifted');
         const ownBytes = ownedResidencyBytes(state.claims, instance, market.slug);
         if (ownBytes <= 0) throw new Error(`Missing ${slug} residency claims`);
         await page.evaluate(text => { document.querySelector('#dome-caption').textContent = text; },
           `${label} · ${slug} · ${plan.dome} · ${view.n} ${view.name} · ${pin.slice(0, 7)}\n${sample.maxCalls} draws · ${sample.maxTriangles} tris · ${(ownBytes / 1048576).toFixed(1)} MiB claims`);
         await page.screenshot({ path: join(folder, `view-${view.n}.jpg`), type: 'jpeg', quality: 74, scale: 'css' });
-        row.views.push({ n: view.n, name: view.name, requestedCamera: camera, sample, state, ownedResidencyBytes: ownBytes,
+        row.views.push({ n: view.n, name: view.name, requestedCamera: camera, sample, settledWaits: {beforeSample,beforeImage}, state, ownedResidencyBytes: ownBytes,
           imageSha256: createHash('sha256').update(readFileSync(join(folder, `view-${view.n}.jpg`))).digest('hex') });
         if (view.n === clip) for (let k = 0; k < 10; k++) {
           await page.waitForTimeout(500);
@@ -209,8 +212,9 @@ async function captureRingJunction(browser, session, options, noQuiet) {
       const camera = domeWorldCamera(view, {x:0,z:0}, 2/3);
       await page.evaluate(pose => {window.__plotDome = pose;}, camera);
       await page.waitForTimeout(2000);
-      await page.waitForFunction(() => {const state = window.__wildshard.shard.grid.state(); return state.rings.inFlight === 0 && state.rings.queued === 0;});
+      const beforeSample = await waitForDomeResidency(page);
       const sample = await page.evaluate(sampleDomeFrames);
+      const beforeImage = await waitForDomeResidency(page);
       const state = await page.evaluate(({target, neighbours:targets, pitch:latticePitch}) => {
         const api = window.__wildshard, world = api.requireWorld(), grid = api.shard.grid.state(), renderedCamera = world.game.camera;
         const live = grid.live.live, origin = grid.live.renderOrigin;
@@ -242,7 +246,7 @@ async function captureRingJunction(browser, session, options, noQuiet) {
       await page.evaluate(text => {document.querySelector('#dome-caption').textContent=text;}, `OP4 JUNCTION · ${neighbour.instance} · ${pin.slice(0,7)} · 62° HFOV · phone 2×`);
       const file = join(folder, `${neighbour.instance}.jpg`);
       await page.screenshot({path:file,type:'jpeg',quality:74,scale:'css'});
-      report.views.push({instance:neighbour.instance,requestedCamera:camera,sample,state,ownedResidencyBytes:ownBytes,imageSha256:createHash('sha256').update(readFileSync(file)).digest('hex')}); save();
+      report.views.push({instance:neighbour.instance,requestedCamera:camera,sample,settledWaits:{beforeSample,beforeImage},state,ownedResidencyBytes:ownBytes,imageSha256:createHash('sha256').update(readFileSync(file)).digest('hex')}); save();
     }
     report.coverage = neighbours.map(neighbour => ({instance:neighbour.instance,covered:report.views.some(view => view.state.coverage.some(row => row.instance === neighbour.instance && row.drawnLayer && row.centreInFrustum))}));
     report.allCentresInOneFrame = report.views.some(view => view.state.coverage.every(row => row.drawnLayer && row.centreInFrustum));
@@ -252,6 +256,14 @@ async function captureRingJunction(browser, session, options, noQuiet) {
     return report;
   } catch(error) {report.errors.push(String(error));save();throw error;}
   finally {await context.close();}
+}
+
+/** Use the existing 180-second readiness bound; samples retain their separate 15-second cap. */
+async function waitForDomeResidency(page) {
+  const start = Date.now();
+  const ready = await page.waitForFunction(`(${domeResidencySettled.toString()})(window.__wildshard.shard.grid.state())`, undefined, {timeout:180000});
+  await ready.dispose();
+  return {wallMs:Date.now()-start,pending:[],crossing:'settled',inFlight:0,queued:0};
 }
 
 /** Same world-to-render-origin conversion as the existing hero capture; no scene or streamer mutation. */
