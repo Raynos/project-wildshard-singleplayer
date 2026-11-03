@@ -54,19 +54,49 @@ entry and plaza are unchanged.
 
 **Ruling (G941 / G872): R2 ships.**
 
+## Look loop R3: crimson gate, plaza fill (`sheet-r3.jpg`, `board-loop-r3.jpg`)
+
+The same nine angles, against round 49's 2 × 2 (`bb-b.jpg`) for the hero views and T0 for the nine.
+
+- **Gaps:**
+  - **Gate:** the pillars measure sRGB (199, 102, 79) in the plaza view, coral; round 49's measure (160-170, 53-64,
+    31-40). The shared landmark graph's lilac fill lifts the red's green and blue.
+  - **Plaza:** each quarter was open paving with two rings of lanterns. The first-person side views saw bare floor to the
+    canals, where round 49 lines its plaza with stalls up to the gate.
+- **Fixes:**
+  - **Gate:** the row's `landmarkLight: "crimson"` draws it in `landmarkCrimson.graph.json`, the shared graph plus a
+    pass that tints only its reds (red over 2.2× its green and blue) toward crimson. The white plinths, the navy roofs
+    and the gold keep their light. Every other plot keeps the shared graph, byte for byte.
+  - **Plaza quarter:** in place of the rings, benches and planters, an L of the kit's row stalls 22 m off both lanes,
+    facing them, five a lane. Each stall has a light pool, there's a lantern at the L's corner, and three kiosks stand in
+    the far corner. The beds and their trees stay. The quarter is symmetric about the gate's diagonal, so the four
+    turned quarters mirror.
+- **Result:**
+  - **Gate:** pillars at (164, 60, 50). The remaining blue doesn't move with the graph's tint, so it comes after the
+    graph.
+  - **Bars:**
+    - plaza tiles at 13,960-14,700 triangles (L0 max still 14,852; mean 8,913);
+    - draws unchanged (road 116, plaza 110);
+    - phone wire 7.94 → 7.90 MB.
+  - **Physics walk:** 0 stuck and 0 out of bounds on the build-out route plus both stall aisles of a plaza quarter.
+
+**Ruling (G941 / G872): R3 ships.** Kept gap: round 49 packs its stalls tight round the gate. The plaza tiles sit at the
+15k tile bar, so a denser plaza needs triangles from elsewhere.
+
 ## The final board (`board-final.jpg`)
 
-Round 49's mockup, the plot before OB10 (`05f1661521`) and now, at the four hero cameras, all on the phone tier at 2x as
-an iPhone 16 Pro.
+Round 49's mockup, the plot before OB10 (`05f1661521`) and now (after look loop R3), at the four hero cameras, all on
+the phone tier at 2x as an iPhone 16 Pro.
 
 - **Meets the build-out bar:**
   - bar 1: the gate reads lit from the road entry and from above the neighbour, at 18k triangles near;
   - bar 6: L0 max 14,852 and mean 8,910 triangles;
   - bar 12: 110-116 draws in the plot (road entry and plaza);
   - bar 15: 282k-495k triangles in view in the plot;
-  - phone wire 7.94 MB (was 8.13).
+  - phone wire 7.90 MB (was 8.13);
+  - look loop R3: the gate crimson, stalls lining the plaza.
 - **Gaps kept:**
-  - The gate is coral where round 49 is crimson. Its landmark graph is shared with other plots.
-  - The plaza is wide and open where round 49 is tight round the gate, the 500 m cell's scale gap shared by every plot.
+  - The plaza is still wider than round 49's, which packs its stalls tight round the gate. That's the 500 m cell's scale
+    gap, which every plot shares, and the plaza tiles sit at the 15k bar.
   - The aerials draw 186-264, past the in-plot bar. They also see the neighbouring cells.
   - Audio comes with OB7.

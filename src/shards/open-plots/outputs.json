@@ -930,6 +930,7 @@
         ]
       },
       "layout": "night-market",
+      "landmarkLight": "crimson",
       "coarseLandmark": "lit",
       "lookKeys": [
         {

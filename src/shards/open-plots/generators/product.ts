@@ -11,6 +11,7 @@ import kit from '../data/kit.graph.json' with { type: 'json' };
 import landmark from '../data/landmark.graph.json' with { type: 'json' };
 import landmarkDusk from '../data/landmarkDusk.graph.json' with { type: 'json' };
 import landmarkNoon from '../data/landmarkNoon.graph.json' with { type: 'json' };
+import landmarkCrimson from '../data/landmarkCrimson.graph.json' with { type: 'json' };
 import kitPlanks from '../data/kitPlanks.graph.json' with { type: 'json' };
 import lava from '../data/lava.graph.json' with { type: 'json' };
 import lagoon from '../data/lagoon.graph.json' with { type: 'json' };
@@ -77,7 +78,8 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   // OB2: a row's `landmarkLight: "dusk"` lights its landmark by a neutral dusk fill (a natural landmark: bark and moss)
   // in place of the gate's warm lilac fill (RM6.4), the same graph and size with its own light
   // OB5: `landmarkLight: "noon"` lights it by a bright noon fill (Coral Drift's arch), the same graph and size again
-  const daylit = row.landmarkLight === 'dusk' ? landmarkDusk : row.landmarkLight === 'noon' ? landmarkNoon : undefined;
+  // OB10: `landmarkLight: "crimson"` keeps the gate's dusk light and deepens its reds to crimson (Night Market's gate)
+  const daylit = row.landmarkLight === 'dusk' ? landmarkDusk : row.landmarkLight === 'noon' ? landmarkNoon : row.landmarkLight === 'crimson' ? landmarkCrimson : undefined;
   const lit = daylit === undefined ? tiledLook : { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: daylit } } };
   // OB4: a row's `water: "lava"` draws its water as molten lava (data/lava.graph.json: unlit, its vertex colour as the
   // molten colour, dark crust plates drifting over it in world metres), the lava kind any volcanic plot shares

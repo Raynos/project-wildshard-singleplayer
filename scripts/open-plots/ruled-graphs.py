@@ -7,7 +7,8 @@ drawn analytically from metres, no texture). python3 scripts/open-plots/ruled-gr
                                                 the face's trim band (data/trim.json)
   src/shards/open-plots/data/kitPlanks.graph.json  the kit with its ground ruled as boardwalk planks (Lantern Bayou, OB2)
   src/shards/open-plots/data/landmarkDusk.graph.json  the landmark under a neutral dusk fill (a natural landmark, OB2)
-  src/shards/open-plots/data/landmarkNoon.graph.json  the landmark under a bright noon fill (Coral Drift, OB5)"""
+  src/shards/open-plots/data/landmarkNoon.graph.json  the landmark under a bright noon fill (Coral Drift, OB5)
+  src/shards/open-plots/data/landmarkCrimson.graph.json  the landmark with its reds deepened to crimson (Night Market, OB10)"""
 import json, os
 ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'shards', 'open-plots', 'data')
 TRIM = json.load(open(os.path.join(ROOT, 'trim.json')))
@@ -127,7 +128,7 @@ def kit(ground=None):
          "stages": {"vertex.offset": {"offset": "offset"}, "surface": {"colour": "colour", "roughness": "rough", "metalness": 0}}}
     return g
 
-def landmark(light=None):
+def landmark(light=None, crimson=None):
     """RM6.4: the landmark (the gate) in its own texture, shaded by the sun and a warm dusk fill, its gold trim glowing and its
     foot warmed by its light pools. Unlit, so the static world transport binds its colour map (meshMap colourOrVertex)."""
     N, n = graph()
@@ -158,7 +159,17 @@ def landmark(light=None):
     # the pools' light on the gate's foot, fading up its pillars
     n("wp", "positionWorld"); n("wy", "swizzle", "wp", mask="y"); n("up0", "smoothstep", 0, "uplightHeight", "wy"); n("up1", "oneMinus", "up0")
     n("upc", "mul", "uplight", "up1"); n("upl", "mul", "upc", "rgb")
-    n("e", "add", "glow", "upl"); n("colour", "add", "lit", "e")
+    n("e", "add", "glow", "upl")
+    if crimson is None: n("colour", "add", "lit", "e")
+    else:
+        # OB10: the reds (red over 2.2x its green and blue, ramped by `crimsonEdge`) take the `crimson` tint over their
+        # light, so the dusk fill that turns the gate's red coral leaves it crimson; the white plinths, the navy roof and
+        # the gold keep their light
+        P["crimson"] = {"type": "colour", "value": crimson["tint"]}
+        P["crimsonEdge"] = {"type": "float", "value": crimson["edge"], "min": 0, "max": 200}
+        n("crimson", "param", param="crimson"); n("crimsonEdge", "param", param="crimsonEdge")
+        n("gb0", "max", "g", "b"); n("gb", "mul", "gb0", 2.2); n("red0", "sub", "r", "gb"); n("red1", "mul", "red0", "crimsonEdge"); n("red", "saturate", "red1")
+        n("deep", "mul", "lit", "crimson"); n("litc", "mix", "lit", "deep", "red"); n("colour", "add", "litc", "e")
     return {"version": 1, "kind": "material", "model": "unlit", "doubleSided": False, "params": P, "nodes": N,
             "stages": {"surface": {"colour": "colour"}}}
 
@@ -175,3 +186,6 @@ write('landmarkDusk.graph.json', landmark({'trim': 0.4, 'ambient': [0.46, 0.56, 
 # no gold glow: the coral's peach is not trim)
 write('landmarkNoon.graph.json', landmark({'trim': 0, 'ambient': [0.8, 0.8, 0.86], 'skyFill': [1.35, 1.4, 1.5], 'sunGain': 0.85,
                                           'sunColour': [1.3, 1.22, 1.1], 'uplight': [0, 0, 0], 'uplightHeight': 16}))
+# OB10 Night Market: its gate under the shared dusk light, its reds deepened to round 49's crimson (the lilac fill alone
+# draws them coral); every other plot on the shared graph keeps it unchanged
+write('landmarkCrimson.graph.json', landmark(crimson={'tint': [0.62, 0.12, 0.07], 'edge': 80}))

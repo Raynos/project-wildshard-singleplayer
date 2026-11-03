@@ -422,44 +422,50 @@ function forecourt(w, p) {
   for (let i = 0; i < 6; i++) { const a = Math.PI + (i + 0.5) / 6 * Math.PI / 2, r = 26; lantern(w, HALF + r * Math.cos(a), HALF + r * Math.sin(a), p, 2.6); }
   w.floor('Kit', -22, -22, 27, 27, 0.03, p.forecourt);
   // NM9: a little market of kiosks on the forecourt's open paving, clear of the entry corner
-  for (const [x, z] of [[-12, -12], [-2, -12], [8, -12], [-12, -2], [-12, 8], [-2, -2]]) {
-    w.box('Kit', [x - 2, 0, z - 2], [x + 2, 1.1, z + 2], p.wood);
-    for (const [dx, dz] of [[-2.2, -2.2], [2.2, -2.2], [-2.2, 2.2], [2.2, 2.2]]) w.box('Kit', [x + dx - 0.12, 0, z + dz - 0.12], [x + dx + 0.12, 3, z + dz + 0.12], p.wood);
-    frustum(w, 'Kit', x, z, 4, 3.6, 0, 3, 4.6, p.stall, Math.PI / 4);
-    w.lanternEmitter?.([x, 2.5, z], [...p.lantern]);
-    w.box('Glow', [x - 0.25, 2.2, z - 0.25], [x + 0.25, 2.8, z + 0.25], p.lantern, p.lantern);
-    pool(w, x, z, 4.5, p.pool);
-    // RM10.2: the kiosks cook too: steam off each roof's peak (the road entry's side views look across them)
-    steam(w, x, 4.8, z);
-    w.solid([x - 2, 0, z - 2], [x + 2, 1.1, z + 2]);
-  }
+  for (const [x, z] of [[-12, -12], [-2, -12], [8, -12], [-12, -2], [-12, 8], [-2, -2]]) kiosk(w, p, x, z);
 }
-/** P plaza quarter: the plaza's paving with rings of lanterns about its centre corner (south-east), a planter far from it. */
+/** NM9: a kiosk: a 4 m counter under a red pyramid roof on four posts, a lantern under it and its pool. */
+function kiosk(w, p, x, z) {
+  w.box('Kit', [x - 2, 0, z - 2], [x + 2, 1.1, z + 2], p.wood);
+  for (const [dx, dz] of [[-2.2, -2.2], [2.2, -2.2], [-2.2, 2.2], [2.2, 2.2]]) w.box('Kit', [x + dx - 0.12, 0, z + dz - 0.12], [x + dx + 0.12, 3, z + dz + 0.12], p.wood);
+  frustum(w, 'Kit', x, z, 4, 3.6, 0, 3, 4.6, p.stall, Math.PI / 4);
+  w.lanternEmitter?.([x, 2.5, z], [...p.lantern]);
+  w.box('Glow', [x - 0.25, 2.2, z - 0.25], [x + 0.25, 2.8, z + 0.25], p.lantern, p.lantern);
+  pool(w, x, z, 4.5, p.pool);
+  // RM10.2: the kiosks cook too: steam off each roof's peak (the road entry's side views look across them)
+  steam(w, x, 4.8, z);
+  w.solid([x - 2, 0, z - 2], [x + 2, 1.1, z + 2]);
+}
+/** OB10 R3: the plaza quarter's L of stalls: its arms `off` m off the lanes, a stall every `step` m past the corner */
+const PLAZA_STALLS = { off: 22, step: 5.5, count: 5 };
+/** the plaza quarter's kiosks (diagonal-symmetric) and its beds, a raised lawn along each lane into the gate */
+const PLAZA_KIOSKS = [[-16, 16], [-4, 16], [-16, 4]];
+const PLAZA_BEDS = [[HALF - 16, -HALF + 16, HALF - 9, -HALF + 34], [HALF - 34, -HALF + 9, HALF - 16, -HALF + 16]];
+
+/** P plaza quarter: the plaza's paving round the gate (the tile's south-east corner, (HALF, -HALF)), a raised bed either
+ *  side of each lane into it, and (OB10 look loop R3, round 49's tight plaza) an L of stalls `PLAZA_STALLS.off` m off both
+ *  lanes facing them, kiosks in the far corner. Symmetric about the corner's diagonal, so the four turned quarters mirror. */
 function plaza(w, p) {
   w.floor('Kit', -HALF + 0.02, -HALF + 0.02, HALF - 0.02, HALF - 0.02, 0.03, p.plaza);
-  // the rings stay clear of the gate (its half-width ~26 m) and of the seams (the plaza board stands on one)
-  for (const [r, n] of [[36, 4], [52, 6]]) for (let i = 0; i < n; i++) {
-    const a = Math.PI / 2 + (i + 0.5) / n * Math.PI / 2;
-    lantern(w, HALF + r * Math.cos(a), -HALF + r * Math.sin(a), p, 2.6);
-  }
-  w.box('Kit', [-27, 0, 19], [-19, 0.8, 27], p.stone, p.lawn); w.solid([-27, 0, 19], [-19, 0.8, 27]);
-  tree(w, -23, 23, 6.5, p, 1);
-  // RM4.6 (opt-in): a flower planter beside the first and last inner-ring lanterns (OB10: was all four; with the 18k gate a
-  // plaza tile went past 15k triangles), benches between the outer ring's facing the gate
-  if (w.hasModel('props')) {
-    for (const i of [0, 3]) {
-      const a = Math.PI / 2 + (i + 0.5) / 4 * Math.PI / 2, x = HALF + 37.8 * Math.cos(a), z = -HALF + 37.8 * Math.sin(a);
-      w.placeModel('props', 0, x, z); w.solid([x - 0.9, 0, z - 0.9], [x + 0.9, 0.65, z + 0.9]);
-    }
-    for (let i = 1; i < 6; i++) {
-      const a = Math.PI / 2 + i / 6 * Math.PI / 2, x = HALF + 50 * Math.cos(a), z = -HALF + 50 * Math.sin(a);
-      w.placeModel('props', 1, x, z, { yaw: Math.atan2(HALF - x, -HALF - z) }); w.solid([x - 0.8, 0, z - 0.8], [x + 0.8, 0.5, z + 0.8]);
+  // OB10 R3: the L replaced two rings of lanterns, benches and planters on open paving (round 49's plaza is lined with
+  // stalls up to the gate). The kit's row stalls, 5 a lane (a plaza tile holds to the 15k bar), each with the pool of
+  // light the rings had (8 triangles); a lantern at the L's corner
+  const { off, step, count } = PLAZA_STALLS, cx = HALF - off, cz = -HALF + off;
+  lantern(w, cx, cz, p, 2.6);
+  if (w.hasModel('stalls')) for (let i = 1; i <= count; i++) {
+    // the arm along the north-south lane (east edge), facing east, and its mirror along the south lane, facing south
+    for (const [x, z, yaw, hx, hz] of [[cx, cz + i * step, Math.PI / 2, 1.5, 2.1], [cx - i * step, cz, Math.PI, 2.1, 1.5]]) {
+      w.placeModel('stalls', 1, x, z, { yaw });
+      w.solid([x - hx, 0, z - hz], [x + hx, 1.1, z + hz]);
+      pool(w, x + Math.sin(yaw) * 3.4, z + Math.cos(yaw) * 3.4, 5, p.pool);
     }
   }
-  // RM8.4: r7's plaza beds, a raised lawn either side of each lane into the gate (the gate's corner is (HALF, -HALF)):
-  // one along the tile's east lane, one along its south; with the kit, round trees on them and lanterns at their outer
-  // corners (RM8.5: planters at their ends put a plaza tile over 15k triangles with every family on)
-  for (const [x0, z0, x1, z1] of [[HALF - 16, -HALF + 16, HALF - 9, -HALF + 34], [HALF - 34, -HALF + 9, HALF - 16, -HALF + 16]]) {
+  // three kiosks in the far corner, behind the L
+  for (const [x, z] of PLAZA_KIOSKS) kiosk(w, p, x, z);
+  // RM8.4: r7's plaza beds, a raised lawn either side of each lane into the gate: one along the tile's east lane, one
+  // along its south; with the kit, round trees on them and lanterns at their outer corners (RM8.5: planters at their
+  // ends put a plaza tile over 15k triangles with every family on)
+  for (const [x0, z0, x1, z1] of PLAZA_BEDS) {
     w.box('Kit', [x0, 0, z0], [x1, 0.45, z1], p.stone, p.lawn); w.solid([x0, 0, z0], [x1, 0.45, z1]);
     const along = z1 - z0 > x1 - x0, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
     if (w.hasModel('trees')) for (const t of [-0.25, 0.25]) {
@@ -469,7 +475,6 @@ function plaza(w, p) {
     if (w.hasModel('lanterns')) for (const [x, z] of along ? [[x0 - 0.8, z0], [x0 - 0.8, z1]] : [[x0, z1 + 0.8], [x1, z1 + 0.8]]) lantern(w, x, z, p, 2.6);
   }
 }
-
 /** RM11: a far tree crown about (x, y, z), `r` wide: a five-sided double cone (10 triangles). */
 function farCrown(w, x, y, z, r, colour) {
   frustum(w, 'far', x, z, 5, r, 0, y, y + r * 0.9, colour); frustum(w, 'far', x, z, 5, r, 0, y, y - r * 0.5, colour);
@@ -515,8 +520,15 @@ function farTile(w, p, type, variant) {
     for (const [x, z] of [[-12, -12], [-2, -12], [8, -12], [-12, -2], [-12, 8], [-2, -2]]) frustum(w, 'far', x, z, 4, 3.6, 0, 3, 4.6, p.stall, Math.PI / 4);
   }
   if (type === 'P') {
-    w.box('far', [-27, 0, 19], [-19, 0.8, 27], p.stone, p.lawn); farCrown(w, -23, 4.6, 23, 2.8, p.foliage);
-    for (const [x0, z0, x1, z1] of [[HALF - 16, -HALF + 16, HALF - 9, -HALF + 34], [HALF - 34, -HALF + 9, HALF - 16, -HALF + 16]]) {
+    // OB10 R3: the L of stalls as a red gable run along each lane, and the kiosks' roofs
+    const { off, step, count } = PLAZA_STALLS, cx = HALF - off, cz = -HALF + off, near = step * 0.5, far = step * (count + 0.5);
+    const h = 2.6, ridge = 3.8, half = 1.6;
+    w.quad('far', [cx - half, h, cz + far], [cx, ridge, cz + far], [cx, ridge, cz + near], [cx - half, h, cz + near], p.stall);
+    w.quad('far', [cx + half, h, cz + near], [cx, ridge, cz + near], [cx, ridge, cz + far], [cx + half, h, cz + far], p.stall);
+    w.quad('far', [cx - far, h, cz - half], [cx - far, ridge, cz], [cx - near, ridge, cz], [cx - near, h, cz - half], p.stall);
+    w.quad('far', [cx - near, h, cz + half], [cx - near, ridge, cz], [cx - far, ridge, cz], [cx - far, h, cz + half], p.stall);
+    for (const [x, z] of PLAZA_KIOSKS) frustum(w, 'far', x, z, 4, 3.6, 0, 3, 4.6, p.stall, Math.PI / 4);
+    for (const [x0, z0, x1, z1] of PLAZA_BEDS) {
       w.box('far', [x0, 0, z0], [x1, 0.45, z1], p.stone, p.lawn);
       const along = z1 - z0 > x1 - x0, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2;
       for (const t of [-0.25, 0.25]) { const [x, z] = along ? [mx, mz + t * (z1 - z0)] : [mx + t * (x1 - x0), mz]; farCrown(w, x, 4.6, z, 2.8, p.foliage); }
