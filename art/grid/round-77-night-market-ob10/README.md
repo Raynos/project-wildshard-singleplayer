@@ -29,3 +29,19 @@ the phone tier at 2x as an iPhone 16 Pro, at the round-62 hero cameras plus the 
   the same, with one cart fewer per tile.
 
 **Ruling (G941 / G872): R2 ships.**
+
+## Look loop R1 (G983; `sheet-r0.jpg`, `sheet-t0.jpg`, `sheet-r1.jpg`, `board-loop-r1.jpg`)
+
+LOOK-LOOP's nine angles about the plaza anchor P = (0, -40), 40 m south of the gate. T0 is codex `image_gen` edits of R0
+with the round-49 board (`art/grid/round-49-night-market-billboards-2x2/bb-b.jpg`) as the style reference.
+
+- **Gaps (R0 against T0), by area:** cold lilac-grey paving where the targets have warm dusk paving; a flat lilac sky
+  where they have lavender above and peach at the horizon; dim pink lantern pools; a coral gate where they have crimson.
+- **Fixes:** the six ground colours warmed in linear light (two steps of 70 % of the measured gap); a bluer zenith and
+  an orange-peach horizon, with the fog matched to it; the lantern pools 1.4x brighter.
+- **Check against round 49:** the floor now measures sRGB (146, 103, 88) at eye level, against round 49's
+  (130-142, 84-92, 85-88). Codex's T0 overshoots to orange, so the loop stops at round 49's floor.
+- **Gap kept:** the gate stays coral. Its landmark graph is shared with other plots.
+
+**Ruling (G941 / G872): R1 ships.** Phone wire 7,940,254 → 7,944,062 B, and seven window rows grow 4–28 B (standing
+rule). Draws are unchanged.
