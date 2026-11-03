@@ -142,6 +142,10 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     interactive calculator and simulation are being built.
 19y. **Six town NPCs** (three quest givers, Tinker Rook, the weapons-shop keeper, the stable hand); the empty shopfronts
     get keepers only when shops are added. **Keep the road gate into band 6** for the long high-level grind (Jake 11-03).
+19z. **Other shards keep today's simple combat** (Jake 11-03, superseding 19 and 19a's "level 1 everywhere"): no levels and
+    no attributes at all outside the showcase, not even hidden at level 1 (*"making everything level 1 is messy"*).
+    They keep flat damage, flat stats and flat HP. The levels/attributes system is opt-in per shard, used only by the
+    showcase; upgrading other shards is later work. Wave 1's levels rows must leave the existing combat path untouched.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

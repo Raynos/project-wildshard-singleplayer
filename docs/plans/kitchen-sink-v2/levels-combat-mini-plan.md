@@ -316,3 +316,10 @@ failures into DEFLECT) · MDEF (energy attacks now: burn, shock, blast; magic la
 never touches spawns or drops of others; job set in the LV pass, likely crit chance and crit damage). Aptitude: two
 1.2, three 1.0, two 0.8. INT and WIS are reserved for magic combat. §11's "energy hits count half your armour" is
 replaced by MDEF; its stagger-per-body and fixed parry window (+ Parry Gyro) stand.
+
+## 14. Other shards (Jake, 2026-11-03)
+
+No levels or attributes outside the showcase, not even hidden at level 1: other shards keep today's flat damage, stats
+and HP on the existing combat path. The levels system is an opt-in per shard (only the showcase opts in); §5's
+"hidden level 1 with a flat profile" becomes "the system isn't installed", and the LV12 parity test checks the
+existing path is untouched.
