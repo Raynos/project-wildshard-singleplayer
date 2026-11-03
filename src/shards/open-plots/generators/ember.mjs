@@ -30,21 +30,22 @@ const ORE_BOXES = [
 const STACKS = { 0: [[1.6, -0.9, 7.4]], 1: [[-2.4, -1.2, 10.6], [2.4, -1.2, 9.8]] };
 
 let seeds = 0;
-/** NM10's moving-light marking (nightMarket.mjs): a 12 cm tetrahedron in Glow whose colour has red alone, red in [0, 0.5)
- *  its seed; the glow graph wanders and blinks it: an ember or a spark here. */
-function spark(w, x, y, z) {
+/** NM10's moving-light marking (nightMarket.mjs): a tetrahedron (12 cm by default) in Glow whose colour has red alone,
+ *  red in [0, 0.5) its seed; the glow graph wanders and blinks it: an ember or a spark here. `steady` marks red in
+ *  [0.5, 1), the graph's sky-lantern mode: always lit warm orange, drifting slowly (an ember that never blinks to black). */
+function spark(w, x, y, z, s = 0.12, steady = false) {
   seeds++;
-  const c = [((seeds * 0.6180339887) % 1) * 0.5, 0, 0], s = 0.12;
+  const c = [((seeds * 0.6180339887) % 1) * 0.5 + (steady ? 0.5 : 0), 0, 0];
   const top = [x, y + s * 1.4, z], a = [x - s, y - s, z - s], b = [x + s, y - s, z - s], d = [x, y - s, z + s * 1.4];
   w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
 }
 
 /** RM10.2's steam marking (nightMarket.mjs `steam`): three small octahedra in the additive Pool draw, coloured blue with no
  *  red and seeded by green, which the pool graph lifts 2.4 m on a ~3 s loop, drifting and fading: smoke off a stack. */
-function smoke(w, x, y, z) {
+function smoke(w, x, y, z, r = 0.4) {
   for (let k = 0; k < 3; k++) {
     seeds++;
-    const c = [0, (seeds * 0.6180339887) % 1, 1], r = 0.4, at = [x + (k - 1) * 0.2, y, z];
+    const c = [0, (seeds * 0.6180339887) % 1, 1], at = [x + (k - 1) * r / 2, y, z];
     const tip = [[0, r, 0], [0, -r, 0]], ring = [[r, 0, 0], [0, 0, r], [-r, 0, 0], [0, 0, -r]];
     const v = d => [at[0] + d[0], at[1] + d[1], at[2] + d[2]];
     for (let i = 0; i < 4; i++) {
@@ -161,8 +162,16 @@ export const emberForgePlot = {
   builders: layout => emberForgeBuilders(layout.builders),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
   ringInKit: true,
-  models() {
-    // the furnace needs no plot-drawn windows: its lit door, slits and stack mouths are warm texels the landmark graph lights
+  // the furnace needs no plot-drawn windows: its lit door, slits and stack mouths are warm texels the landmark graph lights.
+  // OB4 (bar 7): smoke and sparks off its stack mouths (the layout's `landmark.stacks`, plot metres, read off the model).
+  // The smoke draws near only (the Pool draw); the sparks are Glow, which the coarse tiles keep, so they are the furnace's
+  // motion seen from the road entry: 0.5 m embers glowing and drifting up a 6 m column over each mouth
+  models(parts, _kit, layout) {
+    const writer = { tri: (part, a, b, c, colour) => parts[part].tri(part, a, b, c, colour) };
+    for (const [x, y, z] of layout.landmark.stacks ?? []) {
+      smoke(writer, x, y + 1.2, z, 1.1);
+      for (let i = 0; i < 8; i++) spark(writer, x + Math.sin(i * 2.4) * 0.9, y + 1 + i * 0.75, z + Math.cos(i * 2.4) * 0.9, 0.5, true);
+    }
   },
   pools(parts, palette) {
     const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };

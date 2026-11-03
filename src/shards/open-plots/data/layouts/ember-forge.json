@@ -71,7 +71,8 @@
     "near": "public/assets/open-plots/ember-forge/landmark.glb",
     "far": "public/assets/open-plots/ember-forge/landmark-far.glb",
     "height": 35,
-    "turn": 2
+    "turn": 2,
+    "stacks": [[-8.96, 32.21, -12.27], [4.83, 35.0, -12.56], [11.29, 31.64, -12.82], [-7.41, 32.09, 21.38]]
   },
   "posters": {
     "image": "public/assets/open-plots/ember-forge/poster.webp",

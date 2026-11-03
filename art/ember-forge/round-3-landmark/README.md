@@ -33,3 +33,17 @@ Past 150 m the furnace drew as its coarse stand-in in the kit's standard materia
 at 200 m and from above the neighbour (bar 1). The row's `coarseLandmark: "lit"` (as the Night Market's) draws it in its
 own dusk landmark graph with no texture, so its stone trim, stacks and lit door read from the road. The four plaza L1
 tiles draw 3 instead of 2 (approved, wildshard-new); road entry 106 to 114 draws; phone wire 4,291,954 to 4,284,102 B.
+
+## Life at the road entry (`board-life.jpg`, bar 7)
+
+sp-x1's live check found no motion at the furnace from the road entry. The forge courts' smoke and sparks are 12-40 cm
+and sit in tiles the road sees only as coarse stand-ins. The layout now marks the furnace's four stack mouths
+(`landmark.stacks`, plot metres, read off the model), and the plot adds two things over each mouth:
+
+- smoke, near only (the Pool draw);
+- a 6 m column of 0.5 m embers in Glow, which the coarse tiles keep. They use the glow graph's steady sky-lantern mode:
+  always lit warm orange and drifting, never blinking to black. The firefly mode turned half of them into soot specks.
+
+`scripts/open-plots/life-capture.mjs` at the road entry: the stack embers change 190-210 px per 500 ms (0 before), the
+furnace lamps 260-300 and the cranes 2-20. That gives two distinct visible sources, embers and lamp flicker.
+Phone wire +5,564 B; three plaza tiles grow 1-2.5 KB (standing rule).
