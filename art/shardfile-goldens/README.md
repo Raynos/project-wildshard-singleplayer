@@ -21,3 +21,7 @@ label strip naming the shard, the camera and the source.
   from data-look skies). The halo washed the bridge white whenever the live clock's low sun stood behind it; without it
   the frame is stable. Cam 16 (rim crown north) is kept: its delta is the storm crown animating between visits, equal
   before and after G992. Board: `../golden-runs/far-reach/2026-11-03-0d7a022fbb-g992-board.jpg`.
+- 2026-11-03, nine-dragon-stack 01-08, 14, 19, 23, 24: refreshed for QD3 (G995, ruled B under G941: the wet-ground
+  neon streaks sit at each light's own mirror point, only for lights on screen, as a short gloss fading from 15 m to
+  nothing at 50 m; board `../nine-dragon-stack/round-51-qd3-streaks/`). Captured on `592dc655ea` + the QD3 change,
+  Chromium; WebKit matched. Boards: `../golden-runs/nine-dragon-stack/2026-11-03-592dc655ea-qd3{,-webkit}-board.jpg`.

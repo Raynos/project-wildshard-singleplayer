@@ -38,7 +38,10 @@ export function streakGraph(): GraphIr {
   const ndc = div(mul(vec(op('dot', [relative, right]), op('dot', [relative, up])), projection), max(depth, 1e-4));
   const onScreen = mul(op('step', [0, depth]), sub(1, smooth(0.8, 1, max(op('abs', [sw(ndc, 'x')]), op('abs', [sw(ndc, 'y')])))));
   const screenGain = mix(1, g.p('cardOn', 'float', 1), onScreen);
-  const col = mul(rawCol, screenGain);
+  // QD3 (G995, art/nine-dragon-stack/round-51-qd3-streaks): a streak is the reflection of a light the player sees above
+  // it, so a light off screen leaves none, and it dims from 15 m to nothing at 50 m (the near ones carry the street)
+  const reach = mul(sub(1, clamp(div(sub(distance, 15), 35))), 1.3);
+  const col = mul(mul(rawCol, screenGain), mul(onScreen, reach));
   const perf = g.p('perf', 'vec4', [2.5, 0.3, 0, 0]), gm = mul(max(sw(col, 'x'), max(sw(col, 'y'), sw(col, 'z'))), sw(k, 'x'));
   const tailK = op('select', [op('gt', [sw(perf, 'x'), 0]), clamp(div(gm, sw(perf, 'x')), 0.15, 1), 1]);
   const s0 = mix(sn, sw(spread, 'w'), clamp(mul(mul(sw(spread, 'x'), tail), tailK))), s1 = mix(sf, distance, clamp(mul(sw(spread, 'y'), tail)));

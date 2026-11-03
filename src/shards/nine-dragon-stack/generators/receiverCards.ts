@@ -23,7 +23,9 @@ export function receiverCards(receivers: readonly Receiver[]): Mesh {
   let count = 0;
   for (const r of receivers) {
     const plane = { aPlaneO: r.origin.toArray(), aPlaneU: r.u.clone().normalize().toArray(), aPlaneN: r.n.clone().normalize().toArray(), aClip: r.clip.toArray(), aHole: r.hole.toArray(),
-      aSpread: [0.9, 0.95, r.stair ? 0.12 : 0.3, 0.6], aCardK: [1.15 * (r.stair ? 1.3 : 1), r.stair ? 0.8 : 0.6, 0.45, 1], aLift: [r.lift] };
+      // QD3 (G995): a short gloss run round each mirror point (12 % of the way toward the eye, 25 % away), not a tail to
+      // the player's feet
+      aSpread: [0.12, 0.25, r.stair ? 0.12 : 0.3, 0.6], aCardK: [1.15 * (r.stair ? 1.3 : 1), r.stair ? 0.8 : 0.6, 0.45, 1], aLift: [r.lift] };
     for (const e of r.emitters) {
       put('aE', e.at.toArray()); put('aCol', e.color.toArray()); put('aSize', [e.w, e.h, e.power]);
       for (const [name, value] of Object.entries(plane)) put(name, value);
