@@ -160,7 +160,8 @@ misses or blocked blocks. This is reusable logical capacity, not another
 resident-memory charge or a claim about unused physical pages.
 
 **Grid scope refused.** The same finite command then hit the original
-**240 s grid-loading deadline**, with repeated Inspector target changes.
+**240 s grid-loading deadline**, with repeated Inspector timeout/reconnect
+messages. Their target-swap label does not prove an actual target change.
 The grid GPU log has **zero samples and 29 Inspector errors**, including
 an evaluation timeout; grading refuses `Missing native/GPU samples`.
 Native process sampling alone cannot provide the missing GPU/readiness
