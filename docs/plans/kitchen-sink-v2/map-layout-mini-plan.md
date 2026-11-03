@@ -65,6 +65,12 @@ Everything Jake ruled after round 1, plus what the eye-height views showed:
 Jake 11-03: the hub becomes a town; NE = bands 1–4; SE top = bands 5 (stealth yard) and 6; SE bottom = gauntlet and
 Titan only. Result: fits (19.0 % free); a 176 m walled town; the west rebalanced; see the parent §3 and its README.
 
+## Round 4 (done, 4c06e22346: `art/showcase-template/round-4-blockout/`)
+
+Jake 11-03: the town was too big; spend the space on the non-combat content and show it all. Result: a 120 m town, every
+west toy laid out and labelled (plus a new physics yard and climb yard), 16.3 % free; the east unchanged. The parent §3
+holds the census. Open for round 5 if wanted: taller hover-park ramps so it reads at eye height.
+
 ## Rows
 
 | Row | What | Effort |

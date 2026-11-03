@@ -170,7 +170,18 @@ landscape HUD, loading screen, Explore tabs, bot playtest).
 
 Detail in [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md).
 
-**Round 3 blockout, the current layout** (`art/showcase-template/round-3-blockout/`, c292cc13e6): **fits**, west 61 %
+**Round 4 blockout, the current layout** (`art/showcase-template/round-4-blockout/`, 4c06e22346; the east is round 3's):
+the **town shrinks to 120 × 120 m** (5.8 % of the cell; 40 m gate plaza, 72 m Main Street with four shopfronts, all six
+NPCs inside, six gates, only the East Gate to combat) and **the west toys grow from 18 % to 27 % of the cell**, each
+laid out and labelled: weapon range 78 × 102 (dummies, bow/crossbow lanes 10–50 m, ammo practice, rifle to 75 m); a new
+physics yard 78 × 54 (3 plates → gate, crates, see-saws, ball run); riding course 208 × 88 with 8 rings, 4 jumps, a
+lap-timer gantry and a 48 × 60 paddock; a straight six-station movers run 98 × 58; a grapple course (5 hooks ≤ 38 m
+apart, a 99 m zip to the town); a new climb yard (scramble wall, ladders, rope bridges); the Rock with a 60 m squeeze
+cave; the hover park 134 × 122 (kickers, halfpipe, quarter pipes, rails, bowl); personal-best boards at all five
+courses; 6 west vistas, 4 caches, 10 Gold 1×1s. 16.3 % of the cell is still free. Weakest at eye height: the hover park
+(low ramps read flat).
+
+Round 3 (`round-3-blockout/`, c292cc13e6) had the 176 m town: **fits**, west 61 %
 used, east 71 %, 19.0 % free. The hub is a **walled town, 176 × 176 m** (12.4 % of the cell; a 48 m gate plaza with
 the three tier givers, contracts, trophy wall, market stalls and a 22 m obelisk; Main Street with Tinker Rook, the
 weapons shop and three empty fronts; six gates, only the east one crosses into combat; the stable at the north gate).
