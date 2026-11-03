@@ -4316,3 +4316,38 @@ Root types, touched lint and **33 focused cases / 6 suites** pass,
 including actual GLB channel/index/bounds reconstruction, unchanged
 non-geometry Jian rows, native pool refusals, finish ownership and held
 slot admission. No cap, schema guard or shader/material was weakened.
+
+### Combined committed ceilings after the residual wave (2026-11-03, sp-x1)
+
+The normal pinned all-product preview of `bf7094417d9ccd289f7dfa73cd10a2269eb6c64c`
+(`bf70944-mw141i0i`, :4403) completes all 28 products and the app.
+Native `outputSections` admission and an independent selector/body-hash census
+agree; the complete defining-family selectors, sources and readers match the
+exact committed registry (28 families). Every named file and section
+is hash/size checked. No working-tree producer cut receives credit.
+
+| Shard | Previous count / bytes ceilings | Committed count / bytes |
+|---|---:|---:|
+| Driftwood | 17 / 1,774,099 | **16 / 861,590** |
+| Pine | 22 / 4,706,698 | **20 / 4,637,093** |
+| Nalati | 33 / 8,121,638 | **29 / 7,850,293** |
+| Nine | 10 / 4,488,505 | **3 / 653,747** |
+| All other products / source groups | 0 / 0 | **0 / 0** |
+| **Total** | **82 / 19,090,940** | **68 / 14,002,723** |
+
+Only eight custom count/byte ceiling values decrease: **14 / 5,088,217 B**
+less unused capacity. This records landed Z12 `9ae08a50ba`, Z7 `50267bfcd2`,
+Z6 `ecec5f75eb`, Z13 `0b5d27d384`, `81df546620`, `e2f6254c99` and
+`bf7094417d`, in addition to the earlier Z11/Z8/Z9 already reflected in the
+preceding combined census. Original baseline/name freeze, defining parsers,
+native admission, rendering and every other ceiling remain unchanged.
+Existing custom-growth/freeze suites and the direct shrink-only/fit checks pass.
+
+[The single-user batch](../../reviews/custom-sections-one-user-batch.md) remains
+**67 / 13,998,526 B** charged, including Jian's qualified +651 B references.
+Its 65 Accept cases require their complete contracts and named approval; two
+production-integration cases remain charged until their real routes exist.
+The sole remaining residual outside that batch is Pine `loadout/finishes.json`,
+**1 / 4,197 B**, owned and qualifying separately under Z6. No loose finish cut
+is counted. With this evidence, final Z13 is **6/6** shipping envelopes retired;
+the custom inventory is not zero and Z15 is not activated.
