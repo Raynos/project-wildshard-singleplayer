@@ -4085,3 +4085,33 @@ Retained evidence: `8a1-grid-refusal-state.json`,
 `8a1-road-completion-state.json`, `8a1-grid-artifact/grid.json` and
 `0b5-grid-artifact/grid.json` with their source/archive bindings under
 `tmp/sp-ci-deploy-qa-refresh/`. No blind rebuild, extra fetch or watcher.
+
+
+### Retained 03b chapter cancellation: bounded capacity review
+
+Run41698702271, source03b16712a59a1b02bd678574a73baf4de1aa2c13,
+job126144315794 is **CANCELLED**, not an assertion failure. Exact job
+metadata spans19:14:04–19:34:21Z (**1217 s**). Checkout succeeds in290s;
+setup/artifact restore reach the native tape at19:19:22Z. The tape runs
+**895 s** until operation-canceled at19:34:17Z, with ten stage summaries
+through king-entry/tick32324 at19:33:59Z. The three later King stages
+have no completion verdict; no result files are uploaded. Do not infer
+a cancellation actor or claim a native pass from partial progress.
+
+Retained checkout groups isolate17.443s initial fetch, then **268.386s
+inside git checkout before the first file-progress line**; final file
+materialization takes about3s. Internal fetch/decompression/I/O attribution
+is unknown. The duration fits the existing20min job envelope, but elapsed
+time alone does not prove who cancelled it. The native job block is
+byte-identical across G989 f1cfa3 parent/commit (5090 B, SHA256
+4a69c8b81a52a295c7cd823994d90dd4127b6b43db084f47e4dfbb6606f9d29f).
+No native timeout, setup or test command changed in that grouping cut.
+
+A chapter-only checkout projection is a possible future headroom control,
+not an implemented fix: prove its actual product/source/Rapier closure
+first. The prepared archive retains some unchanged tracked inputs in the
+checkout rather than copying them; simply excluding public would risk
+missing native files. No sparse policy, workflow, test, cap, retry/query
+or native rerun changed in this review. Evidence stays with the sole
+watcher:03b-chapter-jobs.json and job-126144315794-log.txt under
+`tmp/sp-ci-deploy-qa-refresh/`. The cancelled source remains unqualified.
