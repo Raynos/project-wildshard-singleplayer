@@ -147,7 +147,7 @@ jobs:
       MERGED_BOOT_PROOF: 'v1'
       PHONE_PROOF: 'retired-g989'
       BEHAVIOUR_PROOF: 'twelve-g989'
-      EXPLORER_PROOF: 'split-v1'
+      JOURNEYS_PROOF: 'four-g989'
       STAGED_RELEASE_PROOF: 'v1'
       RELEASE_ALLOWED: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.native-escape.result == 'success' && needs.journeys.result == 'success') }}
     runs-on: ubuntu-latest
@@ -1209,11 +1209,11 @@ jobs:
     # generation/build is repeated inside the smoke workflow.
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 4
       matrix:
-        # Longest measured macOS work is created first. This is a scheduling
-        # hint, not a guaranteed runner priority or a change to the SIX guards.
-        part: [explorer-a, explorer-b, boot-public, boot-developer, hover-webkit, boot-grid, hover-chromium]
+        # G989: four admissions carry every original logical SIX case.
+        # Each case keeps its own guards inside the shared twenty-minute job.
+        part: [explorer, boot-public, developer-webkit, grid-chromium]
     runs-on: macos-15
     timeout-minutes: 20
     steps:
@@ -1268,9 +1268,8 @@ jobs:
           import { readFileSync } from 'node:fs';
           const proof = JSON.parse(readFileSync('boot-dist-manifest.json', 'utf8'));
           const core = ['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer'];
-          // An older successful push can dispatch while this dry-run lands.
-          // Its original six exact artifacts remain usable; its phone leg
-          // reports missing support and cannot count as the G745 trial.
+          // Local phone captures can still consume the optional phone part.
+          // Hosted CI runs all six logical browser cases in four exact jobs.
           const parts = Object.hasOwn(proof.legs, 'phone-route') ? [...core, 'phone-route'] : core;
           const prefix = proof.version.build.split('-')[0];
           if (proof.sha !== process.env.TESTED_SHA || proof.run !== process.env.SOURCE_RUN
@@ -1282,15 +1281,16 @@ jobs:
           NODE
       - uses: actions/download-artifact@v4
         with:
-          name: boot-dist-${{ (matrix.part == 'boot-public' || matrix.part == 'boot-developer') && matrix.part || 'worlds' }}
+          name: boot-dist-${{ matrix.part == 'boot-public' && 'boot-public' || 'worlds' }}
           github-token: ${{ github.token }}
           run-id: ${{ github.run_id }}
           path: boot-dist-parts
       - name: Unpack and verify the tested dist
+        id: inputs
         env:
           TESTED_SHA: ${{ github.sha }}
           SOURCE_RUN: ${{ github.run_id }}
-          SMOKE_PART: ${{ (matrix.part == 'explorer-a' || matrix.part == 'explorer-b') && 'explorer' || matrix.part }}
+          SMOKE_PART: ${{ matrix.part == 'boot-public' && 'boot-public' || matrix.part == 'developer-webkit' && 'hover-webkit' || matrix.part == 'grid-chromium' && 'boot-grid' || 'explorer' }}
         run: |
           test "$(git rev-parse HEAD)" = "$TESTED_SHA"
           python3 scripts/boot-dist.py restore --sha "$TESTED_SHA" --run "$SOURCE_RUN" --part "$SMOKE_PART"
@@ -1307,26 +1307,26 @@ jobs:
           mkdir -p public/assets/physics
           cp dist/assets/physics/rapier.wasm public/assets/physics/rapier.wasm
       - name: Every public shard reaches real page-ready
-        if: matrix.part == 'boot-public'
+        if: ${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'boot-public' }}
         run: node scripts/parity/boot-smoke.mjs --case-group=public
       - name: Experimental shards reach real page-ready
-        if: matrix.part == 'boot-developer'
+        if: ${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'developer-webkit' }}
         run: node scripts/parity/boot-smoke.mjs --case-group=developer
       - name: Grid home and Signal road entry reach real page-ready
-        if: matrix.part == 'boot-grid'
+        if: ${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'grid-chromium' }}
         run: node scripts/parity/boot-smoke.mjs --case-group=grid
       - name: Chromium touch HOVER mounts in the template and on the grid road
-        if: matrix.part == 'hover-chromium'
+        if: ${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'grid-chromium' }}
         run: node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
       - name: WebKit touch HOVER mounts in the template and on the grid road
-        if: matrix.part == 'hover-webkit'
+        if: ${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'developer-webkit' }}
         run: scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit
       - name: WebKit world and held-item rendering
-        if: matrix.part == 'hover-webkit'
+        if: ${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'developer-webkit' }}
         run: scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist=dist
       - name: Every primary Model Explorer draws its actual catalogue
-        if: matrix.part == 'explorer-a' || matrix.part == 'explorer-b'
-        run: node scripts/parity/explorer-smoke.mjs --case-group=${{ matrix.part }}
+        if: ${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'explorer' }}
+        run: node scripts/parity/explorer-smoke.mjs --case-group=all
       - name: Record smoke queue and run timings
         if: always()
         env:
@@ -1340,7 +1340,6 @@ jobs:
           name: boot-smoke-${{ matrix.part }}
           path: |
             boot-smoke-results/
-            ${{ runner.temp }}/phone-preparation/
           retention-days: 7
           if-no-files-found: warn
 

@@ -140,9 +140,9 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   expect(ship).toContain(`production-source-maps-\${{ steps.pin.outputs.sha }}`);
   expect(deploy).not.toContain('dispatch-boot-smoke:');expect(deploy).not.toContain('gh workflow run boot-smoke');
   expect(journeys).toContain('needs: prepare');expect(journeys).toContain('fail-fast: false');
-  expect(journeys).toContain('max-parallel: 5');
+  expect(journeys).toContain('max-parallel: 4');
   const parts=/part: \[([^\]]+)\]/u.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
-  const core=['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer-a','explorer-b'];
+  const core=['explorer','boot-public','developer-webkit','grid-chromium'];
   expect(parts).toHaveLength(core.length);expect(new Set(parts)).toEqual(new Set(core));
   expect(journeys).not.toContain('run watch');expect(journeys).not.toContain('vercel build');
 });
@@ -261,6 +261,7 @@ const readyNow=Date.parse('2026-10-30T22:00:00Z'),liveBuild=`${'b'.repeat(7)}-li
 interface ReadyJob {
   name: string; status: string; conclusion: string | null;
   created_at: string; started_at: string | null; completed_at: string | null;
+  steps?: PublisherStep[];
 }
 function readyFixture(runId='123') {
   const base=splitNativeRecoveryFixture();
@@ -1036,8 +1037,26 @@ test('completed historical35 and36 stay valid while completed36 plus staging is 
 
 function splitExplorerReadyFixture(){
   const f=stagedReadyFixture();
-  const journeys=/\n {2}journeys:\n[\s\S]*?(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(deploy)?.[0];
-  if(journeys===undefined)throw new Error('Missing reviewed Explorer groups');
+  // Freeze the old reviewed shape: today's four-job workflow cannot supply
+  // the historical seven-job source proof used by these recovery controls.
+  const journeys=`
+  journeys:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        part: [explorer-a, explorer-b, boot-public, boot-developer, hover-webkit, boot-grid, hover-chromium]
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Unpack and verify the tested dist
+        env:
+          SMOKE_PART: \${{ (matrix.part == 'explorer-a' || matrix.part == 'explorer-b') && 'explorer' || matrix.part }}
+      - name: Every primary Model Explorer draws its actual catalogue
+        if: matrix.part == 'explorer-a' || matrix.part == 'explorer-b'
+        run: node scripts/parity/explorer-smoke.mjs --case-group=\${{ matrix.part }}
+`;
   f.state.source=f.state.source.replace("      MERGED_BOOT_PROOF: 'v1'", "      MERGED_BOOT_PROOF: 'v1'\n      EXPLORER_PROOF: 'split-v1'")+journeys;
   const explorer=f.details.find(row=>row.name==='journeys (explorer)');
   if(explorer===undefined)throw new Error('Missing original Explorer fixture');
@@ -1086,6 +1105,52 @@ function twelveBehaviourReadyFixture(){
   f.state.details=f.state.details.filter(row=>!row.name.startsWith('behaviour (')||Number(/\((\d+)\)/u.exec(row.name)?.[1])<=12);
   return f;
 }
+
+const packedCases=[
+  ['boot-public','Every public shard reaches real page-ready'],
+  ['developer-webkit','Experimental shards reach real page-ready'],
+  ['grid-chromium','Grid home and Signal road entry reach real page-ready'],
+  ['grid-chromium','Chromium touch HOVER mounts in the template and on the grid road'],
+  ['developer-webkit','WebKit touch HOVER mounts in the template and on the grid road'],
+  ['developer-webkit','WebKit world and held-item rendering'],
+  ['explorer','Every primary Model Explorer draws its actual catalogue'],
+] as const;
+
+function fourJourneyReadyFixture(){
+  const f=twelveBehaviourReadyFixture(),journeys=deploy.split('\n  journeys:\n')[1];
+  if(journeys===undefined)throw new Error('Missing current four-job source');
+  f.state.source=f.state.source.replace("      EXPLORER_PROOF: 'split-v1'","      JOURNEYS_PROOF: 'four-g989'")
+    .replace(/\n {2}journeys:\n[\s\S]*$/u,`\n  journeys:\n${journeys}`);
+  const model=f.state.details.find(row=>row.name==='journeys (explorer-a)');
+  if(model===undefined)throw new Error('Missing journey fixture');
+  f.state.details=f.state.details.filter(row=>!row.name.startsWith('journeys ('));
+  for(const group of ['explorer','boot-public','developer-webkit','grid-chromium'])f.state.details.push({...model,
+    name:`journeys (${group})`,steps:packedCases.filter(([owner])=>owner===group).map(([,name],index)=>({
+      name,status:'completed',conclusion:'success',number:index+1,
+    }))});
+  return f;
+}
+
+test('four packed jobs keep every logical SIX case and reject skipped or red steps behind a green job',()=>{
+  const f=fourJourneyReadyFixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);
+  expect(proof.jobs.filter(row=>row.name.startsWith('journeys ('))).toHaveLength(4);
+  expect(proof.jobs.filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(23);
+  for(const [group,name]of packedCases)for(const verdict of ['failure','skipped','cancelled',null]){
+    const broken=fourJourneyReadyFixture(),step=broken.state.details.find(row=>row.name===`journeys (${group})`)?.steps?.find(row=>row.name===name);
+    if(step===undefined)throw new Error('Missing original logical check');
+    step.conclusion=verdict;
+    expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow('Packed journey case');
+  }
+  for(const [before,after]of [["JOURNEYS_PROOF: 'four-g989'","JOURNEYS_PROOF: 'foreign'"],
+    ['max-parallel: 4','max-parallel: 5'],['timeout-minutes: 20','timeout-minutes: 21'],
+    ['--case-group=all','--case-group=explorer-a'],["steps.inputs.outcome == 'success'","steps.inputs.outcome == 'failure'"]] as const){
+    const broken=fourJourneyReadyFixture();
+    const at=broken.state.source.lastIndexOf(before);
+    if(at===-1)throw new Error('Missing real source guard');
+    broken.state.source=broken.state.source.slice(0,at)+after+broken.state.source.slice(at+before.length);
+    expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow();
+  }
+});
 
 test('G989 twelve-shard source requires all twelve exact verdicts and never relaxes historical24',()=>{
   const f=twelveBehaviourReadyFixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);

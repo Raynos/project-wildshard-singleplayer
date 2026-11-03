@@ -64,11 +64,18 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   source runs retain their original report-only phone policy and exact job
   inventory; the new source declares `PHONE_PROOF: retired-g989` and rejects
   unexpected phone jobs. The required browser journeys still gate shipping.
-- **Automatic push proofs coalesce as whole workflows**, with one active six-leg
-  cohort and the newest pending cohort. An active proof finishes all six legs;
-  a newer push may replace a pending workflow, never individual legs from
-  different exact SHAs. Browser legs have no independent cancellation groups. All
-  original case, fatal, pixel and deadline checks remain within each exact run.
+- **G989 packs the logical SIX into four required macOS jobs:** `explorer`
+  runs the whole catalogue, `boot-public` runs public entry,
+  `developer-webkit` runs Developer entry plus WebKit HOVER/rendering, and
+  `grid-chromium` runs grid entry plus Chromium HOVER. Case steps continue
+  independently after a sibling failure once their exact input restore passed;
+  a skipped or failed logical case cannot qualify a green physical job.
+  Per-case deadlines and the shared twenty-minute job bound stay unchanged.
+  The public job restores its own exact archive; the other groups restore
+  the complete-world archive with their exact source/run/part proof.
+- **Only pending prepare jobs coalesce.** A running wave finishes; a newer
+  source can replace pending preparation, never mix browser legs from different
+  exact SHAs. Shipping remains serialized and requires every actual verdict.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /

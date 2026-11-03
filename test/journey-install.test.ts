@@ -80,7 +80,7 @@ test('only dependency storage changes while source, browser cache and all SIX ga
   expect(journeys).toContain('path: ~/Library/Caches/ms-playwright');
   expect(journeys).toContain('pnpm exec playwright install chromium webkit');
   expect(journeys).toContain('timeout-minutes: 20');
-  expect(journeys).toContain('max-parallel: 5');
+  expect(journeys).toContain('max-parallel: 4');
   expect(journeys).toContain('needs: prepare');
   expect(journeys).toContain('name: Verify the exact push manifest');
   expect(journeys).toContain(`run-id: \${{ github.run_id }}`);

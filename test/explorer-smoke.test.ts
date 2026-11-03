@@ -116,11 +116,11 @@ test('the Explorer leg retains every primary, including Signal and Developer-onl
   expect(workflow).not.toContain('\n  phone-route:\n');
   const parts=/part: \[([^\]]+)\]/u.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
   if(parts===undefined)throw new Error('Missing browser journey matrix');
-  expect(parts).toEqual(expect.arrayContaining(['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer-a','explorer-b']));
+  expect(parts).toEqual(['explorer','boot-public','developer-webkit','grid-chromium']);
   expect(new Set(parts).size).toBe(parts.length);expect(parts).not.toContain('phone-route');
   expect(journeys).not.toContain('continue-on-error:');
-  expect(workflow).toContain("if: matrix.part == 'explorer-a' || matrix.part == 'explorer-b'");
-  expect(workflow).toContain(`run: node scripts/parity/explorer-smoke.mjs --case-group=\${{ matrix.part }}`);
+  expect(workflow).toContain(`if: \${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == 'explorer' }}`);
+  expect(workflow).toContain('run: node scripts/parity/explorer-smoke.mjs --case-group=all');
   expect(workflow).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, stage-prebuilt]');
 });
 

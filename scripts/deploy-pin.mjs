@@ -314,6 +314,16 @@ function mergedBootSource(source) {
   return true;
 }
 
+const packedJourneyCases = [
+  ['boot-public','Every public shard reaches real page-ready','node scripts/parity/boot-smoke.mjs --case-group=public'],
+  ['developer-webkit','Experimental shards reach real page-ready','node scripts/parity/boot-smoke.mjs --case-group=developer'],
+  ['grid-chromium','Grid home and Signal road entry reach real page-ready','node scripts/parity/boot-smoke.mjs --case-group=grid'],
+  ['grid-chromium','Chromium touch HOVER mounts in the template and on the grid road','node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium'],
+  ['developer-webkit','WebKit touch HOVER mounts in the template and on the grid road','scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit'],
+  ['developer-webkit','WebKit world and held-item rendering','scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist=dist'],
+  ['explorer','Every primary Model Explorer draws its actual catalogue','node scripts/parity/explorer-smoke.mjs --case-group=all'],
+];
+
 /** Exact physical jobs for the source's logical SIX. The split is an explicit
  * reviewed lineage, never a blanket 37-or-38 job allowance. Historical sources
  * keep their original single Explorer job. @param {string} source */
@@ -322,6 +332,22 @@ function sourceJourneyParts(source) {
   const ship=/\n {2}build-and-deploy:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1]??'';
   const journeys=/\n {2}journeys:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1]??'';
   const parts=/^\s+part: \[([^\]]+)\]/mu.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
+  const packed=/^ {6}JOURNEYS_PROOF: 'four-g989'$/mu.test(ship);
+  if(/JOURNEYS_PROOF:/u.test(ship)&&!packed)throw new Error('Source packed journey marker differs');
+  if(packed){
+    const groups=['explorer','boot-public','developer-webkit','grid-chromium'];
+    const cases=packedJourneyCases.every(([group,name,command])=>journeys.includes(`      - name: ${name}\n        if: \${{ !cancelled() && steps.inputs.outcome == 'success' && matrix.part == '${group}' }}\n        run: ${command}\n`));
+    if(!stagedBootSource(source)||!/BEHAVIOUR_PROOF: 'twelve-g989'/u.test(ship)||/EXPLORER_PROOF:/u.test(ship)
+      ||parts?.length!==groups.length||new Set(parts).size!==groups.length||!groups.every(group=>parts.includes(group))
+      ||!/^ {4}needs: prepare$/mu.test(journeys)||!/^ {4}runs-on: macos-15$/mu.test(journeys)
+      ||!/^ {4}timeout-minutes: 20$/mu.test(journeys)||!/^ {6}fail-fast: false$/mu.test(journeys)
+      ||!/^ {6}max-parallel: 4$/mu.test(journeys)||!cases
+      ||!journeys.includes('      - name: Unpack and verify the tested dist\n        id: inputs\n')
+      ||!journeys.includes(`SMOKE_PART: \${{ matrix.part == 'boot-public' && 'boot-public' || matrix.part == 'developer-webkit' && 'hover-webkit' || matrix.part == 'grid-chromium' && 'boot-grid' || 'explorer' }}`)
+      ||!journeys.includes(`name: boot-dist-\${{ matrix.part == 'boot-public' && 'boot-public' || 'worlds' }}`))
+      throw new Error('Source packed journey topology differs');
+    return groups;
+  }
   const marked=/^ {6}EXPLORER_PROOF: 'split-v1'$/mu.test(ship);
   if(!marked){
     if(parts?.some(part=>part.startsWith('explorer-')) || /EXPLORER_PROOF:/u.test(ship))
@@ -459,6 +485,12 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     ? '[.[].jobs[] | {name,status,conclusion,created_at,started_at,completed_at,run_id,run_attempt,head_sha,steps:[.steps[]|{name,status,conclusion,number}]}]'
     : '[.[].jobs[] | {name,status,conclusion,created_at,started_at,completed_at}]'])) : null;
   if ((ready || merged) && !Array.isArray(details)) throw new Error('Ready source job inventory is unreadable');
+  if(details!==null&&/^ {6}JOURNEYS_PROOF: 'four-g989'$/mu.test(source))for(const [group,name]of packedJourneyCases){
+    const jobs=details.filter(job=>job.name===`journeys (${group})`);
+    const steps=jobs[0]?.steps?.filter(step=>step.name===name);
+    if(jobs.length!==1||steps?.length!==1||steps[0]?.status!=='completed'||steps[0].conclusion!=='success')
+      throw new SourceGateError(`Packed journey case has no successful exact-run verdict: ${name}`);
+  }
   const rows = details !== null ? details.map(job => [job.name, job.status, job.conclusion ?? ''].join('\t'))
     : query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
       '.jobs[] | [.name, .status, .conclusion] | @tsv']).split(/\r?\n/u).filter(Boolean);
