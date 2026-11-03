@@ -488,6 +488,10 @@
     "pine-hollow": {
       "tile/0/4/7/compressed": 359636
     },
-    "sunscar-dunes": {}
+    "sunscar-dunes": {},
+    "open-plot-fossil-badlands": {},
+    "open-plot-patchwork-fairground": {},
+    "open-plot-saltwind-lighthouse": {},
+    "open-plot-jungle-ziggurat": {}
   }
 }

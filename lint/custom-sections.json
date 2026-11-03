@@ -41,6 +41,22 @@
     "sunscar-dunes": {
       "count": 0,
       "bytes": 0
+    },
+    "open-plot-fossil-badlands": {
+      "count": 0,
+      "bytes": 0
+    },
+    "open-plot-patchwork-fairground": {
+      "count": 0,
+      "bytes": 0
+    },
+    "open-plot-saltwind-lighthouse": {
+      "count": 0,
+      "bytes": 0
+    },
+    "open-plot-jungle-ziggurat": {
+      "count": 0,
+      "bytes": 0
     }
   },
   "freeze": {
@@ -547,7 +563,11 @@
         "world/scenes/well.json",
         "world/sources/bakes.json",
         "world/sources/models.json"
-      ]
+      ],
+      "open-plot-fossil-badlands": [],
+      "open-plot-patchwork-fairground": [],
+      "open-plot-saltwind-lighthouse": [],
+      "open-plot-jungle-ziggurat": []
     }
   }
 }

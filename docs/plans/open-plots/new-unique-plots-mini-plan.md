@@ -10,11 +10,11 @@
 > + its palette + ONE landmark + 2–3 theme tile variants in a mirror-symmetric 8 × 8 (build-out plan §2, G978), about
 > 1.5 Opus + 0.5 Codex lane-days a plot. Mushroom Hollow is dropped (G977).
 
-**State:** `open` (grilled 11-02 ~23:20, G974 / G976; **G977: Jungle Ziggurat replaces Mushroom Hollow at (-2,2), Mushroom Hollow dropped**: art builds start after SHARD-PLATFORM archives; grid data rows now); was `draft` 2026-11-02 for Jake. Four themes approved (G974, G977); round-75 2 × 2 boards made (G978). Nothing built.
+**State:** `open` (grilled 11-02 ~23:20, G974 / G976; **G977: Jungle Ziggurat replaces Mushroom Hollow at (-2,2), Mushroom Hollow dropped**: art builds start after SHARD-PLATFORM archives; grid data rows now); was `draft` 2026-11-02 for Jake. Four themes approved (G974, G977); round-75 2 × 2 boards made (G978). NU1 and NU3 data are done; all art remains deferred to its rows.
 
 **G981 / G982 (11-03 ~00:00):** the round-75 boards are approved; **Fossil Badlands moves to (-1,-2) and Saltwind Lighthouse to (-2,1)** (swapped so Fossil's lavender dusk no longer shares an edge with the Night Market's dusk). Patchwork Fairground (-2,0) and Jungle Ziggurat (-2,2) stay.
 
-The grid is not edited by this plan's draft.
+NU3 places its four asset-free data placeholders at the G981/G982 coordinates; the theme art remains deferred.
 
 Jake, 2026-11-02 ~22:55 Cancun (G970): *"I don't understand why Lantern Bayou is in there twice. I thought we had
 enough unique open plots. If we don't have enough unique open plots for the 5x5 grid, use a subagent to come up with
@@ -45,9 +45,9 @@ better than Night Market", G971), and puts four of them on the grid now; the fif
 | Idea | Kept cell | Second cell | What happens to the second cell |
 |---|---|---|---|
 | Lantern Bayou | (-2,-1) | (1,-1) | **Nine Dragon**, permanently, for everyone (G972); `grid.developer` is deleted |
-| Night Market | (-1,1) (the built plot) | (-1,-2) | **Saltwind Lighthouse** (new) |
+| Night Market | (-1,1) (the built plot) | (-1,-2) | **Fossil Badlands** (new; G981/G982) |
 | Ember Forge | (2,-1) | (-2,0) | **Patchwork Fairground** (new) |
-| Mosslight Ruins | (2,0) | (-2,1) | **Fossil Badlands** (new) |
+| Mosslight Ruins | (2,0) | (-2,1) | **Saltwind Lighthouse** (new; G981/G982) |
 | Frostline Peaks | (-1,-1) | (-2,2) | **Jungle Ziggurat** (new; G977, was Mushroom Hollow) |
 
 Showcase Template (0,2) stays for later (G973). G972 also takes blender-template, pastel-plain and ink-cel-valley off
@@ -66,7 +66,7 @@ listed below. A theme tile another plot can use lands in the shared kit. The loo
 the palette line below is burned into it. G978 sharpened every round-1 and round-62 look so no two plots share a
 palette: the round-62 lines of the other plots and the centre shards were checked.
 
-### 3.1 Saltwind Lighthouse (`open-plot-saltwind-lighthouse`, accent `rose`) → (-1,-2) · `04-saltwind-lighthouse.jpg`
+### 3.1 Saltwind Lighthouse (`open-plot-saltwind-lighthouse`, accent `rose`) → (-2,1) · `04-saltwind-lighthouse.jpg`
 
 **Palette (board):** *pewter squall, slate-green sea, whitewash and black tar, one red-banded light.*
 
@@ -97,7 +97,7 @@ palette: the round-62 lines of the other plots and the centre shards were checke
   retinted, plus the helter-skelter as the entry gate's variant.
 - **Audio:** a distant band organ, carousel bells, flags snapping; a bright waltz-time ambience.
 
-### 3.3 Fossil Badlands (`open-plot-fossil-badlands`, accent `apricot`) → (-2,1) · `06-fossil-badlands.jpg`
+### 3.3 Fossil Badlands (`open-plot-fossil-badlands`, accent `apricot`) → (-1,-2) · `06-fossil-badlands.jpg`
 
 **Palette (board):** *lavender blue hour, oxblood and mustard strata, bone-white skeleton.*
 
@@ -141,26 +141,20 @@ Rows are the cell's z (-2 at the top, the Far Reach side); columns its x. `*` = 
 ```
  z\x |      -2          |      -1          |       0          |       1          |       2
 -----+------------------+------------------+------------------+------------------+------------------
- -2  | Coral Drift      | *Saltwind Lthse  | Sky Race         | Desert Ruin      | Alien Plain
+ -2  | Coral Drift      | *Fossil Badlands | Sky Race         | Desert Ruin      | Alien Plain
  -1  | Lantern Bayou    | Frostline Peaks  | [Far Reach]      | [Nine Dragon]    | Ember Forge
   0  | *Patchwork Fair  | [Sunscar Dunes]  | [Driftwood]      | [Nalati]         | Mosslight Ruins
-  1  | *Fossil Badlands | Night Market     | [Pine Hollow]    | [Template 2]     | Clockwork Canyon
+  1  | *Saltwind Lthse  | Night Market     | [Pine Hollow]    | [Template 2]     | Clockwork Canyon
   2  | *Jungle Ziggurat | Thin Ice         | Showcase Tmpl    | Starfall Obs.    | Sky Harbor
 ```
 
 Why these neighbours (palettes from the round-75 boards, G978):
 
-- **Saltwind (-1,-2)** sits on the top edge beside Coral Drift: one coast in two weathers, turquoise calm next to a
-  pewter squall. Sky Race (cobalt noon) and Frostline (snow) are its other edges; none is grey or wet.
-- **Patchwork Fairground (-2,0)** is a buttermilk morning between Lantern Bayou's blue-green dusk and Fossil's lavender
-  blue hour, beside Sunscar's dusk dunes. It replaces an Ember Forge copy that put a second warm night next to the dunes
-  (G712's "too much orange glow").
-- **Fossil Badlands (-2,1)** is a lavender blue hour between the fair's morning and the jungle's teal afternoon, beside
-  Night Market's red-gold dusk. It touches Sunscar only at a corner, so the two arid looks never share an edge.
-- **Jungle Ziggurat (-2,2)** (G977) is a rain-washed teal afternoon of cinnabar and jade beside Thin Ice's pale cyan
-  noon. It replaces a Frostline copy that put snow beside snow.
-- The west column becomes a run of three new worlds (morning fair, blue-hour dig, rain-washed jungle), with the storm
-  coast on the top edge.
+- **Fossil Badlands (-1,-2)** takes the top edge between Coral Drift and Sky Race, above Frostline. Its lavender blue hour no longer shares an edge with Night Market (G981/G982).
+- **Patchwork Fairground (-2,0)** stays between Lantern Bayou and Saltwind, beside Sunscar. Its buttermilk morning separates their darker skies.
+- **Saltwind Lighthouse (-2,1)** sits between Patchwork and Jungle, beside Night Market: the pewter squall replaces the earlier adjacent dusk pairing.
+- **Jungle Ziggurat (-2,2)** stays beside Thin Ice at the west corner. Mushroom Hollow remains dropped.
+
 
 ## 5. Mockups
 
@@ -192,7 +186,7 @@ they read as bespoke 500 m zones, not as a tile kit.
 |---|---|---|---|
 | NU1 | **done (2026-11-03, G972; `ffb6270346` + `913b810625`).** **One grid (G972).** Delete `grid.developer` (and `devserver` if it only repeats Nine Dragon); Nine Dragon's cell row at (1,-1) replaces the Lantern Bayou copy in `grid.cells`. Folded into G972's own row if the coordinator already queued one | Codex | Developer on and off load the same 25 cells; Nine Dragon at (1,-1) for everyone; push gate green |
 | NU2 | **Placeholder art for the four (Opus: the player sees it, G848).** `holo-subjects.tsv` rows from §3's landmarks; refs and Hunyuan3D-2 holograms (`gen-refs.sh`, `batch-holograms.sh`, `clay-review.mjs`) taking the round-75 board's road-entry panel as the reference; `billboard.webp`, `sign.webp` and `thumbs/<idea>.jpg` from the round-75 boards (`make-art.sh` given that source). Into `public/assets/open-plots/<idea>/` | Opus | Four holograms pass clay review; the art matches the other ideas' sizes (billboard ≤ 250 KB) |
-| NU3 | **Data and grid swap.** Four `outputs.json` rows (slug, idea, name, accent, manifest overrides like the others); the four `grid.cells` slug swaps of §2 (instances keep their names); regenerate discovery and the registries that list every open-plot product (`scripts/source-generation-outputs.json`, `scripts/test-products.json`, `budgets/ceiling-sources.json`, `lint/ratchet.json` wire and custom-sections rows, `lint/custom-sections.json`, `lint/tile-bake-debt.json`). A grid test refuses a repeated slug in `grid.cells` | Codex, after NU1 and NU2 | 25 distinct slugs in `grid.cells`; the four new outputs build; the new test fails on a repeat; push gate green |
+| NU3 | **done (2026-11-03, sp-x8; G977/G981/G982).** **Data and grid swap.** Four `outputs.json` rows (slug, idea, name, accent, manifest overrides like the others); the four `grid.cells` slug swaps of §2 (instances keep their names); regenerate discovery and the registries that list every open-plot product (`scripts/source-generation-outputs.json`, `scripts/test-products.json`, `budgets/ceiling-sources.json`, `lint/ratchet.json` wire and custom-sections rows, `lint/custom-sections.json`, `lint/tile-bake-debt.json`). A grid test refuses a repeated slug in `grid.cells` | Codex; data now, art deferred (G976) | 25 distinct slugs in `grid.cells`; the four new outputs build; the new test fails on a repeat; push gate green |
 | NU4 | ~~**No twin holograms.**~~ **Dropped with Mushroom Hollow (G977):** Alien Plain's glowing-mushroom hologram no longer has a twin on the grid | — | — |
 | NU5 | Saltwind Lighthouse, built (wave per the build-out plan): the shared kit + its palette row + the lighthouse + its 3 theme tiles (§3.1), mirror-symmetric 8 × 8 (G978); about Opus 1.5 + Codex 0.5 lane-days | Opus + Codex | The build-out pipeline's done-when; its four hero views read as its round-75 board and beat Night Market's |
 | NU6 | Patchwork Fairground, built | Opus + Codex | As NU5 |
@@ -222,3 +216,5 @@ ruled, so they are not asked.
    fairytale night beside Thin Ice's bright noon; it replaces snow-next-to-snow.*
 
 A skipped question stays `needs pick`; lanes build the recommended answer meanwhile (G872).
+
+NU3 qualification: all 25 shipped slugs are distinct in public and Developer modes. Four independent ordinary products build and admit with real survey-floor/kerb collision and four open entries; no new art or borrowed theme assets. Their new tile/custom-section policies carry zero grandfathered debt, wire ceilings are the actual measured phone bytes, and budget derivations use the existing calibration. The maintained 75-route walk passes with zero stuck/bounds failures. Existing instance names stay. Self-applied G872 placeholder/source-stamp rulings: full original source and ordered packs reconstruct exactly after replacing only the current map namespace stamp; the image and every other payload hash remain exact. Initial material-shape and stale-map refusals remain retained. NU2/NU4–NU8 and the art build-outs remain deferred; OP3 is next, OP4 is X9.

@@ -40,10 +40,10 @@ it('reports each plot placement separately and retains per-product criterion evi
  const input=rows();
  const plots:Record<string,NonNullable<Parameters<typeof planProgress>[1]>[string]>={};
  for(const cell of M2_GRID_PLOT_CELLS)plots[cell.slug]={verdict:'pass',criteria:{memory:{verdict:'pass',evidence:'Latched measured source'}}};
- const night=plots['open-plot-night-market'];if(night===undefined)throw new Error('Missing repeated plot');
+ const night=plots['open-plot-night-market'];if(night===undefined)throw new Error('Missing plot');
  night.verdict='fail';
  const progress=planProgress(input,plots);
- expect(progress.m2.plotReadiness).toEqual({ready:16,fail:2,unknown:0,total:18});
+ expect(progress.m2.plotReadiness).toEqual({ready:17,fail:1,unknown:0,total:18});
  expect(progress.m2.ready).toBe(7);
 
 });

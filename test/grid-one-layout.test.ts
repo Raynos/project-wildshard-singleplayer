@@ -23,12 +23,14 @@ test('G972: no alternate Developer catalogue or template swaps remain in the shi
   expect(Object.hasOwn(catalogue.grid, 'developer')).toBe(false);
   const slugs = catalogue.grid.cells.map(cell => cell.slug);
   for (const slug of ['blender-template', 'pastel-plain', 'ink-cel-valley']) expect(slugs).not.toContain(slug);
-  // G973 owns the remaining duplicate designs; this change removes only the displaced Lantern Bayou copy.
   expect(catalogue.grid.cells.filter(cell => cell.slug === 'open-plot-lantern-bayou').map(cell => cell.cell)).toEqual([[-2, -1]]);
-  const counts = new Map<string, number>(); for (const slug of slugs) counts.set(slug, (counts.get(slug) ?? 0) + 1);
-  expect([...counts].filter(([, count]) => count > 1).sort(([a], [b]) => a.localeCompare(b))).toEqual([
-    ['open-plot-ember-forge', 2], ['open-plot-frostline-peaks', 2], ['open-plot-mosslight-ruins', 2], ['open-plot-night-market', 2],
-  ]);
+  // NU3: changing any cell to an already used slug fails this shipped-grid invariant.
+  expect(new Set(slugs).size).toBe(25);
+  for (const [slug, cell] of [
+    ['open-plot-fossil-badlands', [-1, -2]], ['open-plot-patchwork-fairground', [-2, 0]],
+    ['open-plot-saltwind-lighthouse', [-2, 1]], ['open-plot-jungle-ziggurat', [-2, 2]],
+  ]) expect(catalogue.grid.cells.find(row => row.slug === slug)?.cell).toEqual(cell);
+  expect(slugs).not.toContain('open-plot-mushroom-hollow');
 });
 
 for (const developer of [false, true]) test(`G972: the real cell lookup crosses from the road into Nine (Developer=${developer})`, async () => {

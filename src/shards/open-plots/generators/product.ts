@@ -38,7 +38,7 @@ const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicke
   landmark: { family: 'graph', graph: landmark } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
     spawn: (typeof source)["spawn"];
@@ -52,10 +52,19 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
     look: typeof look;
     // G608: the `far_` stand-ins draw only in the far proxy
     world: { glb: string; colliders: string; far: string; materials: { Floor: string; Kerb: string; Plinth: string; Rim: string; Frame: string; Billboard: string; Sign: string; Hologram: string; Glow: string; Paving?: never; Kit?: never; Water?: never; Pool?: never; Landmark?: never; Poster?: never; }; farMode?: never; near?: never; };
+}) | (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+    identity: { slug: string; name: string; author: string; revision: number; seed: number; };
+    accent: string;
+    spawn: (typeof source)["spawn"];
+    look: typeof look;
+    world: { glb: string; colliders: string; far: string; materials: { Floor: string; Kerb: string } };
 }) {
   const identity = { slug: row.slug, name: `Open Plot · ${row.name}`, author: source.author, revision: source.revision, seed: source.seed };
   // D111: a row's own look key (its sky, fog, sun and fill) replaces the shared one for that idea alone
   const keys = row.lookKeys ?? source.look.keys;
+  // NU3: unbuilt themes declare only their existing survey scaffold materials.
+  if (row.placeholder === true) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...look, keys },
+    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', materials: { Floor: 'floor', Kerb: 'kerb' } } };
   // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
   if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...tiledLook, keys },
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
@@ -94,6 +103,7 @@ const decoded = (bytes: Uint8Array | undefined): unknown => {
 /** Every file one idea's plot bake reads (repo-relative): a showroom's hologram, billboard and sign; a tiled plot's layout,
  *  its kit families, its landmark near / far models and its poster picture. */
 async function bakeInputs(ctx: Pick<ProjectGenerationContext, 'cached'>, row: PlotIdea): Promise<string[]> {
+  if (row.placeholder === true) return ['src/shards/open-plots/data/plot.json'];
   if (row.layout === undefined) return ['hologram.glb', 'billboard.webp', 'sign.webp'].map(file => `public/assets/open-plots/${row.idea}/${file}`);
   const file = `src/shards/open-plots/data/layouts/${row.layout}.json`;
   const read = await ctx.cached({ id: `layout-${row.idea}`, inputs: [inputName(file)] }, inputs => inputs);

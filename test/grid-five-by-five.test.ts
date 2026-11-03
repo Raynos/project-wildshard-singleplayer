@@ -14,7 +14,7 @@ const modes = [{ developer: false, devserver: false }, { developer: true, devser
 for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`, () => {
   const assembly = new GridAssembly(mode), placements = assembly.cells;
   expect(placements).toHaveLength(25);
-  // G538 (SF88g P7): every cell is a shardfile; the open plots are the open-plots outputs, and all 14 stand on the grid
+  // G538 (SF88g P7): every cell is a shardfile; the open plots are the open-plots outputs, and all 18 stand on the grid
   const ideas = openPlots.outputs.map(row => row.slug).sort();
   expect([...new Set(assembly.cells.filter(row => row.slug.startsWith('open-plot-')).map(row => row.slug))].sort()).toEqual(ideas);
   expect(new Set(placements.map(row => row.cell.join(','))).size).toBe(25);
@@ -26,9 +26,9 @@ for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`
   }
   {
     const ring = (cell: readonly [number, number]): boolean => Math.abs(cell[0]) === 2 || Math.abs(cell[1]) === 2;
-    // G972 retains the two outer duplicates until G973 replaces their designs.
+    // NU3: every outer plot is distinct; the two inner plots remain on the inner ring.
     expect(assembly.cells.filter(row => ring(row.cell) && row.slug.startsWith('open-plot-')).map(row => row.slug).sort())
-      .toEqual([...ideas, 'open-plot-ember-forge', 'open-plot-mosslight-ruins'].sort());
+      .toEqual(ideas.filter(slug => !['open-plot-night-market', 'open-plot-frostline-peaks'].includes(slug)).sort());
   }
   const road = roadLayout(assembly, slug => slug);
   expect(road.segments).toHaveLength(60);

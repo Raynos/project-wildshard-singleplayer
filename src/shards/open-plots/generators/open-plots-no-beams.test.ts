@@ -25,7 +25,11 @@ test('all baked plot worlds omit corner beacons and near/far beam geometry', asy
     const bytes = await ideaWorld(row, read, { readImagePixels, writeImagePixels, normalizeWorldGlb });
     const doc = await io.readBinary(bytes), nodes = doc.getRoot().listNodes(), names = nodes.map(node => node.getName());
     // G641: a tiled plot (a row with a layout) stands its landmark and its tiles in the far proxy instead of a hologram
-    for (const name of 'layout' in row ? ['far_landmark', 'far_tiles'] : ['far_hologram']) expect(names, row.slug).toContain(name);
+    for (const name of 'placeholder' in row && row.placeholder ? ['far_placeholder'] : 'layout' in row ? ['far_landmark', 'far_tiles'] : ['far_hologram']) expect(names, row.slug).toContain(name);
+    if ('placeholder' in row && row.placeholder) {
+      expect(names, row.slug).not.toContain('far_hologram');
+      expect(doc.getRoot().listMaterials().map(material => material.getName()).sort()).toEqual(['Floor', 'Kerb']);
+    }
     expect(names, row.slug).toContain('ws_terrain_floor');
     expect(names, row.slug).toContain('collide_plot');
     expect(names.some(name => /beam|beacon/iu.test(name)), row.slug).toBe(false);

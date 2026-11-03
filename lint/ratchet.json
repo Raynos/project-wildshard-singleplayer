@@ -147,7 +147,19 @@
     "sim-in-runtime/open-plots": 0,
     "sim-in-runtime/pastel-plain": 0,
     "sim-in-runtime/pine-hollow": 0,
-    "sim-in-runtime/sunscar-dunes": 0
+    "sim-in-runtime/sunscar-dunes": 0,
+    "wire/open-plot-fossil-badlands/phone": 87679,
+    "custom-sections/open-plot-fossil-badlands/count": 0,
+    "custom-sections/open-plot-fossil-badlands/bytes": 0,
+    "wire/open-plot-patchwork-fairground/phone": 87584,
+    "custom-sections/open-plot-patchwork-fairground/count": 0,
+    "custom-sections/open-plot-patchwork-fairground/bytes": 0,
+    "wire/open-plot-saltwind-lighthouse/phone": 87776,
+    "custom-sections/open-plot-saltwind-lighthouse/count": 0,
+    "custom-sections/open-plot-saltwind-lighthouse/bytes": 0,
+    "wire/open-plot-jungle-ziggurat/phone": 87805,
+    "custom-sections/open-plot-jungle-ziggurat/count": 0,
+    "custom-sections/open-plot-jungle-ziggurat/bytes": 0
   },
   "debugRows": {
     "max": 4,

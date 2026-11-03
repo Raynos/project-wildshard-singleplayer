@@ -18,7 +18,7 @@ test('the open-plots entry is declaration-only and declares one product per idea
 test('Night Market road B lowers only its layout curtain and keeps road A posters', () => {
   const grid = new GridAssembly({ developer: false, devserver: false });
   const low = grid.cells.filter(cell => cell.edgeLook !== undefined);
-  expect(low.map(cell => cell.slug)).toEqual(['open-plot-night-market', 'open-plot-night-market']);
+  expect(low.map(cell => cell.slug)).toEqual(['open-plot-night-market']);
   for (const cell of low) expect(cell.edgeLook).toEqual({ height: 1.2 });
   expect(layout.posters.entry).toMatchObject({ width: 10, bottom: 0.6, inset: 247, posts: 4, offset: 12.5 });
 });

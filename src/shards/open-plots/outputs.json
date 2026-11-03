@@ -687,6 +687,66 @@
           }
         ]
       }
+    },
+    {
+      "slug": "open-plot-fossil-badlands",
+      "idea": "fossil-badlands",
+      "name": "Fossil Badlands",
+      "accent": "apricot",
+      "placeholder": true,
+      "manifest": {
+        "name": "Open Plot · Fossil Badlands",
+        "blurb": "Fossil Badlands placeholder: survey floor and open entries; theme art is not built yet.",
+        "bindings": {
+          "accent": "apricot"
+        },
+        "pois": []
+      }
+    },
+    {
+      "slug": "open-plot-patchwork-fairground",
+      "idea": "patchwork-fairground",
+      "name": "Patchwork Fairground",
+      "accent": "citron",
+      "placeholder": true,
+      "manifest": {
+        "name": "Open Plot · Patchwork Fairground",
+        "blurb": "Patchwork Fairground placeholder: survey floor and open entries; theme art is not built yet.",
+        "bindings": {
+          "accent": "citron"
+        },
+        "pois": []
+      }
+    },
+    {
+      "slug": "open-plot-saltwind-lighthouse",
+      "idea": "saltwind-lighthouse",
+      "name": "Saltwind Lighthouse",
+      "accent": "rose",
+      "placeholder": true,
+      "manifest": {
+        "name": "Open Plot · Saltwind Lighthouse",
+        "blurb": "Saltwind Lighthouse placeholder: survey floor and open entries; theme art is not built yet.",
+        "bindings": {
+          "accent": "rose"
+        },
+        "pois": []
+      }
+    },
+    {
+      "slug": "open-plot-jungle-ziggurat",
+      "idea": "jungle-ziggurat",
+      "name": "Jungle Ziggurat",
+      "accent": "jade",
+      "placeholder": true,
+      "manifest": {
+        "name": "Open Plot · Jungle Ziggurat",
+        "blurb": "Jungle Ziggurat placeholder: survey floor and open entries; theme art is not built yet.",
+        "bindings": {
+          "accent": "jade"
+        },
+        "pois": []
+      }
     }
   ]
 }
