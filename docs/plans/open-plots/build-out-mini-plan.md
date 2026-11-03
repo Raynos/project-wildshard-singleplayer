@@ -242,7 +242,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 | OB6 | **Mosslight Ruins** (first free Opus lane; builds the ruin-stone tile). **In flight (2026-11-03, sp-o3): activated `38b95ef7fd` + `3748dcc5b1`.** Ruin-stone kit `330bed66fc` (ruins: arch, L wall, terrace; rubble: heap, columns; Desert Ruin reuses them), plot `f5b29be288` (R ruin court, E emerald pool, tower windows as emerald Glow), landmark A Hunyuan3D 2.1 picked (G872, `eba2a44862`, art/mosslight-ruins/round-1-landmark). Chromium phone: road 110 draws / 249k tris, plaza 114 / 327k. G983 look loop R1 `d3f8c7cc97`, R2 `e164db2efb`, R3 `def30fc8f4` (art/mosslight-ruins/round-2-look-loop), final three-way board art/mosslight-ruins/round-3-final (G872). Open: life clip (bar 7), audio (OB7), the open-plot walk route (0 stuck), density toward round 62 | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2 |
 | OB6b | **done (2026-11-03).** **Trim Mosslight's phone wire** toward Night Market's: 8,947,522 B against 8,225,190 (+9 %, approved G872 with this row). `def30fc8f4` brought it to 8,828,397 B (tower texture 768 px). It now serves **8,222,060 B**, and the ceiling is ratcheted to that: a 576 px poster in place of the 1024 px billboard, and the tower texture at 704 px. Before and after board: art/mosslight-ruins/round-4-wire-trim (hero views 0–0.5 % of pixels changed, same draws). Mosslight's tile debt shrinks to 26 rows | Opus | S | ≤ 8.23 MB, look unchanged |
 | OB7 | **Audio batch** under the model lock. Pilot first, then the four: 5 scores (two MiniMax Music 3 takes each, on one listening page in the morning batch; the lane ships its recommended take), 5 ambience beds, about 25 spot SFX (MOSS v2 vs Stable Audio 3, the better take ships). Files go in `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`, with credits | Codex | 1.5 | Every plot meets bar 10; the credits file is updated; the audio stays within its ≤ 3 MB budget |
-| OB8 | **Plan-end readings.** The official Simulator reading inside each plot, plus junctions J1 and J2 (§6) | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
+| OB8 | **In flight (2026-11-03, sp-x1).** Mosslight and Ember Chromium readings on joined HEAD preview `fd7f01690e`: road/plaza max draws 55/61 and 53/58; triangles 125k/174k and 104k/167k (medians). Spawn process peaks about 738.2/725.6 MB decimal. Mosslight live walk 0 stuck/0 bounds. Matched Night Market control shows the same CPU-per-draw baseline; no plot-specific CPU ask routed. Simulator, Ember walk, final Coral/Bayou/Frostline readings and J1/J2 remain open. Exact readings below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
 | OB9 | **Title hero re-shoot board.** After G972 and OB2–OB6, the 5 × 5 hero shows three of these plots, plus Nine Dragon at (1,-1). One labelled A / B / C board of re-shoots of the same NW-b framing | Opus | 0.5 | Board sent. Jake's pick ships, or the current hero stays |
 | OB10 | **Night Market catch-up (G980)**: after OB2–OB6, bring the Night Market to the same tile-kit bar (landmark, dressing density, audio, phone perf). **In flight (2026-11-03, sp-o3).** R1, the gate (art/grid/round-77-night-market-ob10): the coarse gate is drawn in its landmark graph (`coarseLandmark: "lit"`), so it reads red and gold from the road entry instead of dark; near 12k → 18k triangles; road entry 116 draws. Open: stall tiles 17.9k → ≤ 15k, top-down 682k → ≤ 600k triangles, the look loop, the final board. Audio goes with OB7 | Opus + Codex | — | Same bar as OB2 |
 | — | Jake plays the plots on live | Jake | — | His word |
@@ -517,3 +517,61 @@ observations and captures are beside it. The cohort exited 0, every browser
 context closed, and the ordinary joined 4407 preview borrow was released
 with exit 0. No extra app build, physics change, physical-phone, CI timing
 or whole open-plot art/completion claim follows. This meets OB0 only.
+
+### OB8 readings, 2026-11-03
+
+**Open, sp-x1.** The first two final looks are Mosslight `dacd146b65` and
+Ember `dd271faebc`. One joined immutable HEAD preview, source
+`fd7f01690e2b91900a78255c7d41bf1e403e43d4`, supplies this batch. Its initial
+predecessor `82c361bc78` refused Coral's 5,676,044 B phone wire against
+5,676,036 B; coordinator-approved budget-only `fd7f01690e` admits the exact
++8 B from shared graph changes. No look, Pine or Nine source changed.
+
+Chromium: Metal M5 Max, phone CSS 402 × 874, canvas 804 × 1748, live clock,
+2× render scale, boot 1× CPU then measurement 4× CPU, 120 paired drawn
+frames at each ordinary player pose. Road: `(0,1.7,-241,pi,0)`; plaza:
+`(0,1.7,-62,pi,0)`, angles in radians. These are live player-camera readings,
+not the OP4 free-camera hero images. All six windows have p95 **33.4 ms**,
+p5 about **29.94 fps**, and **0 sampled intervals >100 ms**.
+
+| Plot / pose | Maximum draws | Triangles (median) | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Mosslight road | 55 | 124,718 | 44.015 / 85.455 |
+| Mosslight plaza | 61 | 174,439 | 32.869 / 50.820 |
+| Ember road | 53 | 103,542 | 42.437 / 64.151 |
+| Ember plaza | 58 | 167,399 | 37.658 / 55.172 |
+| Night Market road (control) | 54 | 147,182 | 44.043 / 62.963 |
+| Night Market plaza (control) | 59 | 305,256 | 37.641 / 50.847 |
+
+The 30 µs-per-draw target misses on Night Market too. Per wildshard-new's
+matched-control ruling, this is the common baseline at this setting;
+`OB8-MOSSLIGHT-CPU` and `OB8-EMBER-CPU` are not plot-specific misses and are
+not routed to Opus. The raw target and numbers stay visible. Both new
+plots meet ≤130 observed draws, ≤600k reported triangles and the matched
+Night Market frame-cost test at these poses. The reader retains median
+triangles, not an all-frame maximum. Chromium is diagnostic; Simulator
+acceptance remains separate.
+
+Independent Chromium spawn memory: three settled samples, no forced GC,
+real renderer plus GPU process footprints. Mosslight peaks at **704 MiB
+(about 738.2 MB decimal)**; Ember **692 MiB (about 725.6 MB)**, both under
+the 1.0 GB aim. Source fields are rounded MiB. All six samples have 0 page
+errors. These are spawn samples, not a loading or every-pose memory proof.
+
+Walk: the normal `physics-baseline.mjs --no-build --mode=walk` correctly
+refused products invalidated by loose peer edits. No guard was bypassed.
+`open-plots/walk.mjs` instead reads the exact pinned maintained route and
+runs `walkLeg` on that preview's actual resident with real fixed steps.
+Mosslight completes all entry, bridge-approach, plaza-perimeter and
+landmark-base waypoints: **0 stuck / 0 bounds failures**. Ember is running.
+
+Tooling: `074102c745` adds validated fixed standing inputs to the maintained
+frame reader; `376bf851c0` adds the same-preview live walk and accurate
+native quiet metadata. The native reader recognises standalone entered,
+unpaused, frame-ready play. Focused controls, scripts types and named lint
+pass. Raw readings stay in `tmp/sp-x1-ob8/`; the numbers above are durable.
+
+Still open: official Simulator road/plaza/native memory for Mosslight and
+Ember; final-board Coral, Bayou and Frostline; then the two junctions, at
+≤150 draws and a 30 fps Simulator floor. Each miss goes to the coordinator
+as a named request for its owning lane. Nothing here qualifies all of OB8.

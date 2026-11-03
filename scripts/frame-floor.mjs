@@ -9,6 +9,7 @@
 // Owns a clean, pinned HEAD preview, browser/simulator lanes and their cleanup. Exit 2 = floor misses;
 // exit 3 = incomplete measurement. --regrade=<baseline> reapplies current floor policy without rerendering.
 // --surface=sim --quiet: the official worker holds bounded quiet only while reading, after the build.
+// --standing-file=<json>: exactly the measured shards, each with 1–8 {name,x,y,z,yaw,pitch} world poses (radians).
 // EP10 CI reporting: --surface=desktop --chromium-phone --chromium-cpu=4 --draw-budget-report-only
 // On Linux add explicit --chromium-angle=swiftshader (report-only, never official floor credit).
 // Bounded Linux delivery: --software-draw-census --frames=4 uses CSS201x437 at 2x,
@@ -776,7 +777,7 @@ async function measureShard(driver, shard, deadline) {
     if (safariWindow !== null && !rows.some(row => row.pose.name === `grid-${safariWindow.route}-drive` && row.scriptProfile)) throw new Error(`Selected sampling window was not reached: ${safariWindow.route}`);
     const errors = await driver.errors();
     return { shard, complete: true, pass: rows.every((r) => r.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
-      floorMs, evaluationOriginDriftMaxMs, cpuPhase: driver.cpuPhase?.() ?? null, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, lastRoute: driver.progress(), errors };
+      floorMs, evaluationOriginDriftMaxMs, cpuPhase: driver.cpuPhase?.() ?? null, metadata: meta, cameraSource: suppliedStanding !== null ? 'caller fixed world poses; source and hash retained' : declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, lastRoute: driver.progress(), errors };
   } catch (error) {
     console.error(`${surface} ${shard}: ${errorText(error)}`);
     const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { documentOrigin: performance.timeOrigin, lastEnd: saved.keys?.['life.lastEnd']?.data, lastUnload: saved.keys?.['life.lastUnload']?.data, url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);

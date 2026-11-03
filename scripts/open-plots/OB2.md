@@ -221,3 +221,59 @@ only after the entire route completes; missing CURRENT products refuse.
 `node scripts/vitest-tmp.ts run test/physics-open-plots-headless.test.ts`
 runs the five together. These routes cover the shared lanes and landmark
 approach, not every optional house or every tile interior.
+
+## OB8 readings on one pinned preview
+
+Join one `scripts/serve-build.sh --head --name ob8-readings` preview and
+retain its full SHA. Use the same source for the Chromium, memory, live
+walk and Simulator readings. Release the joined use when the batch ends.
+
+`frame-floor.mjs --standing-file=<json>` takes a map from exactly the
+measured shard slugs to 1–8 fixed world poses. Each pose has `name`, `x`,
+`y`, `z`, `yaw` and `pitch`; angles are radians. It uses the existing live
+pose API, retains the input and SHA-256, samples every supplied pose, and
+keeps position, document, live-clock and drawn-frame guards. A plot's road
+pose is `(0, 1.7, -241, pi, 0)` and plaza `(0, 1.7, -62, pi, 0)`.
+
+```sh
+node scripts/frame-floor.mjs --shards=open-plot-mosslight-ruins \
+  --surface=desktop --chromium-phone --chromium-cpu=4 \
+  --draw-budget-report-only --frames=120 --standing-file=<poses.json> \
+  --serve-base=<url> --rev=<sha> --scratch-dir=tmp/ob8/scratch \
+  --output-dir=tmp/ob8/chromium
+```
+
+The maintained reader owns its browser lane, mutes Chromium, and uses
+402 × 874 phone / 804 × 1748 render pixels. Use the same poses and flags
+for Night Market as the matched control. The separate
+`shard-phone-memory.mjs` reads real renderer and GPU process footprints;
+its `rendererMB` and `gpuMB` fields are MiB, so convert their sum to decimal
+bytes before comparing it with 1.0 GB. Those samples are at spawn.
+
+When loose peer edits invalidate the ordinary checked-product Node walk,
+keep its refusal. This live runner reads the maintained route from the
+preview's exact source and drives the actual resident through that route:
+
+```sh
+scripts/browser-lane.sh --max 5 node scripts/open-plots/walk.mjs \
+  --base=<url> --pin=<full-sha> --plot=mosslight-ruins \
+  --out=tmp/ob8/mosslight-walk.json
+```
+
+It refuses any snag, bounds failure, absent last-waypoint witness or
+unfinished endpoint. It uses real fixed steps and the live clock. Its
+trace stays in scratch; numbers and verdicts go in OB8 and the commit.
+
+For the official Simulator reading, change the floor surface to `sim`,
+remove Chromium/draw-budget flags, and add `--quiet
+--device=wildshard-iphone --native-memory=<existing-empty-directory>`.
+The reader enters `scripts/sim-lane.sh` itself; do not wrap it in a second
+lease. Start after active browsers close. The kernel native interval highs
+and the GPU ledger peak remain a labelled conservative memory envelope,
+separate from frame timing. Native samples add no timing credit. The
+Simulator is Mac-backed regression evidence.
+
+J1 is lattice `(1.5, -0.5)` and J2 `(-1.5, -1.5)`, converted with the
+served grid pitch (555 m today); verify their four neighbour identities.
+Measure four diagonal headings at each road corner using a `grid` standing
+file. Junction acceptance is ≤150 draws, 30 fps floor and no crash.
