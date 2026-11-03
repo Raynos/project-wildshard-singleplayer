@@ -99,6 +99,11 @@ test('producer condition waiting spends the existing job deadline and never star
 
 test('the actual preparation pipeline propagates failure before installs or transfer',()=>{
   const workflow=readFileSync('.github/workflows/deploy.yml','utf8');
+  const compile=workflow.split('      - name: Build the native transport diagnostic\n')[1]?.split('\n      - ')[0];
+  if(compile===undefined)throw new Error('Missing native transport compile step');
+  const compileRun=compile.split('        run: |\n')[1];if(compileRun===undefined)throw new Error('Missing native compile command');
+  const compileBody=compileRun.split('\n').map(line=>line.startsWith('          ')?line.slice(10):line).join('\n');
+  expect(compile).toContain('timeout-minutes: 1');
   const step=workflow.split('      - name: Prepare isolated Safari while the build runs\n')[1]?.split('\n      - ')[0];
   if(step===undefined)throw new Error('Missing native preparation step');
   const run=step.split('        run: |\n')[1];if(run===undefined)throw new Error('Missing native preparation command');
@@ -107,11 +112,16 @@ test('the actual preparation pipeline propagates failure before installs or tran
   const args=step.includes('        shell: bash\n')?['--noprofile','--norc','-e','-o','pipefail']:['-e'];
   const f=fixture();const bin=join(f.path,'..','bin');mkdirSync(bin);
   writeFileSync(join(bin,'node'),'#!/bin/sh\nprintf "native refused\\n"\nexit 124\n',{mode:0o755});
+  const developer=join(f.path,'..','developer'),tools=join(developer,'Toolchains/XcodeDefault.xctoolchain/usr/bin');
+  mkdirSync(tools,{recursive:true});
+  writeFileSync(join(tools,'clang'),'#!/bin/sh\nexit 0\n',{mode:0o755});
+  writeFileSync(join(bin,'xcrun'),'#!/bin/sh\nprintf "/fixture/sdk\\n"\n',{mode:0o755});
   try {
     const continued=join(f.path,'..','continued');
-    const result=spawnSync('/bin/bash',[...args,'-c',`${body}\nprintf continued > "$FOLLOWUP"`],{
+    const result=spawnSync('/bin/bash',[...args,'-c',`${compileBody}\nset -a\nsource "$GITHUB_ENV"\nset +a\n${body}\nprintf continued > "$FOLLOWUP"`],{
       encoding:'utf8',timeout:5000,env:{...process.env,PATH:`${bin}:${process.env['PATH']??''}`,RUNNER_TEMP:join(f.path,'..'),
-        GITHUB_RUN_ID:'123',GITHUB_RUN_ATTEMPT:'1',GITHUB_ENV:join(f.path,'..','env'),FOLLOWUP:continued}});
+        DEVELOPER_DIR:developer,GITHUB_RUN_ID:'123',GITHUB_RUN_ATTEMPT:'1',GITHUB_ENV:join(f.path,'..','env'),FOLLOWUP:continued}});
+    expect(readFileSync(join(f.path,'..','env'),'utf8')).toContain('PHONE_SIMULATOR_PREPARATION=');
     expect(result.status,result.stderr).toBe(124);expect(existsSync(continued)).toBe(false);
     expect(readFileSync(join(f.path,'..','phone-preparation/native.log'),'utf8')).toContain('native refused');
   }finally{f.close();}
