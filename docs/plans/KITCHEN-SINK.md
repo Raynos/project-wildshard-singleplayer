@@ -231,10 +231,10 @@ Data and AS only, on the Wave 1 hosts.
 | **K8** | Economy: shop, pack, collectibles → perks, trophies, skins, feats, FINDS | 1–2 d |
 | **K9** | Audio: orchestral score (hub, west, combat bands, elite themes, boss stems), SFX, ambience, stings | 2 d |
 | **K10** | Grid-ready (memory ≤ 1.2 GB Explorer, one-frame looks, baked tiles, entries, edge profile) and seamless travel | 1 d |
-| **K11** | Balance pass: time to L20 (~2.5–3 h target), fight lengths, soft-gate brutality | 1 d |
+| **K11** | Balance pass: the golden-ratio XP curve (~60 h to L20), fight lengths, the miss curve, soft-gate brutality | 2 d |
 | **K12** | Jake plays it on the phone; his notes are the verdict | — |
 
-About 20–22 lane-days (estimate): Opus for everything the player sees (G848), Codex for rows, AS and balance tables.
+About 30 lane-days (estimate; the enemies, audio and loot mini plans each came in above their first budgets): Opus for everything the player sees (G848), Codex for rows, AS and balance tables.
 
 ## 6. Mini plans
 

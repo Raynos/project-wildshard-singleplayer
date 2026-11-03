@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* One visual world: the Source dev map. Grey grid floor, orange blocks, stencilled labels. Single theme by choice. */
+  /* The Source dev map: grey grid floor, orange stencil. Single theme by choice. A plan brief, read top to bottom. */
   --floor: #2b2d30;
   --panel: #35383c;
   --line: #4a4e54;
@@ -17,7 +17,6 @@
   --orange: #f08a24;
   --good: #6fcf8a;
   --warn: #f2c14e;
-  --bad: #ef6b5b;
   --display: "Saira Stencil One", "Impact", sans-serif;
   --body: "IBM Plex Sans", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -27,288 +26,121 @@
 html, body { margin: 0; }
 body {
   background-color: var(--floor);
-  background-image:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: 48px 48px;
-  background-attachment: fixed;
-  color: var(--ink);
-  font: 16px/1.55 var(--body);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px; background-attachment: fixed;
+  color: var(--ink); font: 16px/1.55 var(--body);
 }
-main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 20px; }
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 18px; }
 header { display: grid; gap: 6px; }
-h1 { font: 44px/1 var(--display); color: var(--orange); margin: 0; letter-spacing: 1px; text-wrap: balance; }
-.sub { color: var(--muted); font-family: var(--mono); font-size: 13px; }
+h1 { font: 44px/1 var(--display); color: var(--orange); margin: 0; letter-spacing: 1px; }
+.sub { color: var(--muted); font: 13px var(--mono); }
 section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 16px 18px; display: grid; gap: 10px; }
 h2 { font: 22px/1.1 var(--display); color: var(--orange); margin: 0; letter-spacing: .5px; }
-h3 { font-size: 15px; margin: 6px 0 0; }
-p, li { max-width: 68ch; }
-p { margin: 0; }
-ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
-.tag { display: inline-block; font: 600 11px/1 var(--mono); padding: 3px 6px; border: 1px solid currentColor; margin-right: 4px; vertical-align: 1px; white-space: nowrap; }
-.done { color: var(--good); } .wait { color: var(--warn); } .gap { color: var(--bad); } .src { color: var(--muted); }
-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+p, li { max-width: 70ch; } p { margin: 0; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 5px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; }
-td.n { font-family: var(--mono); color: var(--orange); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .scroll { overflow-x: auto; }
-figure { margin: 0; display: grid; gap: 6px; }
 img { max-width: 100%; display: block; border: 1px solid var(--line); }
 figcaption { font: 13px var(--mono); color: var(--muted); }
-.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
-.chip { background: var(--floor); border: 1px solid var(--line); padding: 10px; display: grid; gap: 4px; }
-.chip b { font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; }
+figure { margin: 0; display: grid; gap: 6px; }
+a { color: var(--orange); }
+.meter { height: 14px; background: var(--floor); border: 1px solid var(--line); }
+.meter > div { height: 100%; width: 92%; background: var(--good); }
+.open { border-left-color: var(--warn); }
+.open h2 { color: var(--warn); }
 </style>
 </head>
 <body>
 <main>
 <header>
   <h1>KITCHEN SINK v2</h1>
-  <div class="sub">Showcase Template · plan docs/plans/KITCHEN-SINK.md · ask E523 · updated 2026-11-02</div>
-  <p>We're working out v2 of the showcase plan together: what the main shards and the other plans have that it lacks, and whether all of it fits in one 500 × 500 m cell. This page is the running record. The plan file changes only when Jake says what goes in.</p>
+  <div class="sub">The Showcase Template (Template 3) · docs/plans/KITCHEN-SINK.md · planning, nothing built · 2026-11-03</div>
+  <p>A levelled, MMO-style test shard in the orange-and-grey dev-map look. Every engine feature in one 500 × 500 m cell, built only from shared hosts, data rows and AssemblyScript. You arrive at level 1 and grind to a level-20 boss.</p>
+  <div class="meter" aria-label="Plan about 92 percent decided"><div></div></div>
+  <div class="sub">Plan ≈ 92 % decided. Open: the attribute list beyond VIT, STR, DEX and AGI (study running); the other attributes' growth curves (Wave 1 design pass).</div>
 </header>
 
 <section>
-  <h2>WHERE WE ARE</h2>
-  <div class="status">
-    <div class="chip"><b>Plan</b><span><span class="tag done">near final</span> docs/plans/KITCHEN-SINK.md + 11 mini plans</span></div>
-    <div class="chip"><b>Blockout</b><span><span class="tag done">round 2 fits</span> after 3 fixes, 24.9 % free</span></div>
-    <div class="chip"><b>Wave 1</b><span><span class="tag done">mapped</span> ~1,040 h, up to 5 Opus + 5 Codex</span></div>
-    <div class="chip"><b>Mockups</b><span><span class="tag done">40 frames</span> west / east</span></div>
-    <div class="chip"><b>Jake to read</b><span><span class="tag wait">levels page</span> lock the 8 attributes</span></div>
-    <div class="chip"><b>Miss feel</b><span><span class="tag wait">researching</span> how a miss looks and feels</span></div>
-  </div>
-  <p>Pages: <a style="color:var(--orange)" href="https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s">Levels 1 to 20</a> · <a style="color:var(--orange)" href="https://claude.ai/artifact/BEQrDR1Ti1WUyY7pVRphYR">Loot and Economy</a> · <a style="color:var(--orange)" href="https://claude.ai/artifact/X1RZboFagn5EuHpQXkdWG5">Elites vs Mini-Bosses</a> · <a style="color:var(--orange)" href="https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj">Mockups</a> · <a style="color:var(--orange)" href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ">Mini Dungeon</a></p>
-</section>
-
-<section>
-  <h2>LATER RULINGS (11-02)</h2>
-  <ul>
-    <li><b>Levels are per shard:</b> level 1 on the road and in every new shard; you return to your level in each shard. <b>Attributes grow automatically</b>, no choosing.</li>
-    <li><b>Misses:</b> real dice, 12 % at equal level, up to 90 % at +8 levels, no streak guard; enemies miss you by the same rules. How a miss looks and feels is being researched.</li>
-    <li><b>Death</b> costs 25 % of the level's XP. <b>No mid-fight heals</b>, out-of-combat regen only.</li>
-    <li><b>Enemies:</b> commons → rare variants → <b>elites</b> (no "mini-bosses": Big Pallet L6, Vault Warden L12, Foreman Unit 7 L18, plus night elites Sir Nibbles, Hot Mess, Riveting Rita) → the Crate Titan L20 (first-time skippable cutscene, the Titan Cleaver). Storm hour counts as night. Packs respawn ~90 s after you leave. Grey kills pay nothing.</li>
-    <li><b>Economy:</b> Scrip; one salvage part per robot type; Tinker Rook's upgrades and ammo bench; Forge I–IV; several level-locked shops incl. a weapons shop; a 20-slot pack.</li>
-    <li><b>Quests:</b> 12 (4 per tier) from three tier givers; kill-contracts pay Scrip + a trophy + a title. <b>HUD:</b> a bottom XP bar with an LV chip; nameplates within 25 m.</li>
-    <li><b>World:</b> 20 + 4 minute days; storm-hour quest plus rare natural storms; west toys save personal bests and feats; Developer-only until Jake's phone pass.</li>
-    <li><b>Wave 1</b> normalises every host it touches and migrates Driftwood, Pine Hollow, Nalati and the rest onto it in the same row; HOST-AUDIT and SHARD-PLATFORM-NEXT keep their own rows. An enemy cap (AI within 60 m, at most 16 animated) joins it. <b>Zone recipes</b> live in the showcase's own source.</li>
-  </ul>
-</section>
-
-<section>
-  <h2>DECISIONS</h2>
-  <table>
-    <tr><th>Date</th><th>Decision</th></tr>
-    <tr><td class="n">11-02</td><td><b>The cell stays 500 × 500 m.</b> The size is fixed; the job is to fit as much as we can by being strategic (stacking, interiors, shared spaces).</td></tr>
-    <tr><td class="n">11-02</td><td><b>The look stays the dev map</b> (orange and grey, stencilled labels, 1 m grid; G523). OPEN-PLOTS' teal-expo line for this plot now points at KITCHEN-SINK.</td></tr>
-    <tr><td class="n">11-02</td><td><b>v2 runs in two waves.</b> Wave 1 front-loads every engine, game and host change the showcase needs: new hosts through the host bar, making single-shard hosts generic, cleanup from HOST-AUDIT and other plans, and removing custom JSON from shardfiles (all approved). Wave 2 builds the showcase on top, with no host work left.</td></tr>
-    <tr><td class="n">11-02</td><td><b>West half is non-combat, east half is combat only.</b> West: hub, quest givers, vendors, a kill-contract board, the weapon practice range (nothing hostile), the hoverboard playground, the grapple tower and zipline, the movers park and lifts, the riding course. East: every enemy, the mini-bosses and the boss.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Guild Wars-style levels 1 to 20.</b> You arrive at level 1 and gain XP only from kills. Player and enemies share at most 8 attributes. 6+ enemy types in bands 1–3, 4–6, 7–9, 10–12, 13–15, 16–18; mini-bosses at 6, 12 and 18; the boss at 20 is the final quest. Real combat maths replaces fixed damage. <span class="tag wait">system design running</span></td></tr>
-    <tr><td class="n">11-02</td><td><b>Quests come from several NPCs</b>, plus a simple contract board with kill contracts for the enemies, mini-bosses and boss.</td></tr>
-    <tr><td class="n">11-02</td><td><b>The creature pen, taming and mounts are cut.</b></td></tr>
-    <tr><td class="n">11-02</td><td><b>Storm hour:</b> one chain step turns the whole cell to an evening storm until the beacons are lit. No per-zone weather.</td></tr>
-    <tr><td class="n">11-02</td><td><b>In:</b> checkpoint cards per chain leg; crates and loot chests. <b>Out:</b> happenings, time trials, thin ice, glide shaft, daily seed. <b>Not yet:</b> tooling demos (third-person camera, landscape, loading screen, Explore tabs).</td></tr>
-    <tr><td class="n">11-02</td><td><b>The Training Vault is the mini dungeon:</b> a 4-room shrine (puzzle, fight, climb, Vault Warden, chest) behind its portal in the east half. A shared dungeon host joins Wave 1. Dying restarts the room you died in; solved puzzles stay solved.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Riding uses a loaner horse:</b> a stable hand hands you a dev-bot horse at the course start, for the course only.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Quests are freeform but level-locked.</b> A quest you're too low for shows a grey "!" (like WoW), which turns yellow when you reach its level.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Soft gate</b> on the mini-bosses and the boss: always open, and brutal when you're under-levelled.</td></tr>
-    <tr><td class="n">11-02</td><td><b>The west half pays nothing</b>: no XP, no coins. It is there for fun and practice.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Orchestral score</b> (MiniMax Music 3), against the dev-map look.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Economy so far:</b> coins from kills, chests and contracts; the shop sells flat one-off upgrades (no item levels); loot is fixed rewards only (no random gear); a 20-slot pack. Jake calls loot under-thought, so a loot and economy design is running.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Combat:</b> attacks can really miss (dice rolls). <b>Death costs XP</b> toward the next level and never delevels. The attribute list and allocation wait on Jake reading the <a href="https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s" style="color:var(--orange)">levels page</a>.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Existing shards:</b> levels touch the engine, so every shard gets them, but at level 1 with every enemy level 1 and levels hidden. The full 1–20 rollout to other shards is future work.</td></tr>
-    <tr><td class="n">11-02</td><td><b>v2 is a mega plan</b> with a folder of mini plans (docs/plans/kitchen-sink-v2/): levels and combat, loot and economy, the mini dungeon, and more.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Wave 1 front-loads all of it</b> (~380 h plus the levels system) and runs as its own lane plan.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Every shard gets a shard-complete card</b>, and a shardfile validator requires it.</td></tr>
-    <tr><td class="n">11-02</td><td><b>Jake picks the additions himself.</b> The lists below are the menu; his picks so far are in the next section.</td></tr>
-  </table>
-</section>
-
-<section>
-  <h2>JAKE'S PICKS (11-02, IN PROGRESS)</h2>
-  <h3>In</h3>
-  <ul>
-    <li>Quests, dialogue, vendor</li>
-    <li>Sword, spear, bow, crossbow, <b>plus the gun</b> (the gun already exists)</li>
-    <li>Riding course (west half); <s>mounts and taming</s> cut with the creature pen</li>
-    <li>Movers and lifts; grapple and zipline; stealth</li>
-    <li>Elites, waves, boss</li>
-    <li>Weather, day/night</li>
-    <li>Physics props, hoverboard, pressure plates</li>
-    <li>Portal vault <b>if it fits</b></li>
-    <li><b>Economy:</b> currency and an upgrade shop behind the vendor</li>
-    <li>Collectibles that pay perks; trophies; a pack inventory</li>
-    <li>Skins and finishes as elite drops; a legendary weapon from the boss</li>
-    <li>Feats and achievements with joke titles ("100 %"); the FINDS tab</li>
-    <li><b>Weapons:</b> the lever rifle; crossbow ammo types (iron, pitch, broadhead)</li>
-    <li>Sword combo and parry (Nine Dragon's), if the engine has them: build them in</li>
-    <li>Night-only enemies</li>
-    <li>Ladders, scramble climbs, swaying rope bridges, a cave or dungeon interior, <b>where they fit the mockups and the layout</b></li>
-    <li>The vistas and secrets ring (bench views, squeeze caves, hidden caches)</li>
-    <li><b>An in-engine cutscene for the boss intro</b></li>
-    <li>A mini dungeon / shrine room: <a href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ" style="color:var(--orange)">explainer and 10 mockups</a> <span class="tag wait">Jake to decide</span></li>
-    <li><b>Full audio:</b> a music plan, an SFX plan, zone ambience, mini-boss (elite) music, boss music, stings. It is the kitchen sink, so it gets all of it</li>
-  </ul>
-  <h3>Skipped</h3>
-  <ul>
-    <li>Swimming, diving, boats (so no water zone); the canoe ferry; the dam and sluice puzzle</li>
-    <li><s>Contracts board</s>: back in as a simple kill-contract board</li>
-    <li>War fan GUST; bullwhip; mounted combat</li>
-    <li>Taming, mounts, the creature pen; herd life</li>
-    <li>Lightning; hover-only bridges</li>
-    <li>Kokpar (Nalati's own)</li>
-  </ul>
-  <h3>Generic, not showcase content</h3>
-  <ul>
-    <li><b>Every shard needs a shard-complete card</b>, enforced by a shardfile validator. The card exists (src/game/complete/ShardComplete.ts, rows in src/format/completion.ts), but only Driftwood seems to declare it and nothing requires it. <span class="tag gap">add the validator</span></li>
-    <li><b>The "Killed by…" card</b> belongs in the engine. It is already there (src/engine/ui/HurtArc.ts; a shard can name the verb, e.g. "Gored by"). <span class="tag done">exists</span></li>
-    <li><b>Respawn at the last discovered place</b> belongs in the game layer. It is already there (src/game/LastPlace.ts, wired in session/play.ts for every shard with named places). <span class="tag done">exists</span></li>
-  </ul>
-</section>
-
-<section>
-  <h2>OPEN QUESTIONS</h2>
-  <ul>
-    <li><b>Does it all fit?</b> 12 zones plus the candidates below in 500 × 500 m. The clean-room grey blockout is answering this.</li>
-    <li><b>Can weather and night be per zone?</b> The weather host and day clock look cell-wide, so a storm zone 100 m from a sunny weapon range may be impossible. That changes zone 10.</li>
-    <li><b>Which additions go in</b>, and which go into portal interiors so they cost no ground area.</li>
-  </ul>
-</section>
-
-<section>
-  <h2>v1 MOCKUPS</h2>
+  <h2>THE MAP</h2>
   <figure>
-    <img src="v1-board.jpg" alt="Thirteen phone-portrait mockups of the dev-map showcase: hub, weapon range, creature pen, riding course, movers park, grapple tower, stealth yard, elite gauntlet, Crate Titan boss, storm and beacons, hoverboard park, Training Vault portal, overview.">
-    <figcaption>Round 5, look C (2026-10-20). Art in art/blender-template/round-5-content/.</figcaption>
+    <img src="blockout-plan.jpg" alt="Grey blockout of the 500 m cell, round 2: non-combat west, level bands snaking through the east to the boss in the south-east.">
+    <figcaption>Round 2 blockout: everything fits, 24.9 % of the cell still free.</figcaption>
   </figure>
+  <ul>
+    <li><b>West: no enemies, no rewards.</b> The hub (r 28 m: three quest givers, Tinker Rook's shop, a weapons shop, the kill-contract board, the trophy wall); the weapon range; the hoverboard and physics park; the grapple tower and zipline; the movers park; the riding course on a loaner horse; the cave hill, vistas and caches. Courses save personal bests and award feats.</li>
+    <li><b>East: combat only.</b> Six level bands run from the hub's east gate (L1–3) out to the Crate Titan (L20) in the far south-east. Also elite lairs, the stealth yard, the gauntlet and the Training Vault portal. 54 packs, 117 commons by day, 13 chests, 36 crates, 20 Gold 1×1 collectibles.</li>
+    <li><b>Underneath, at 0 m²:</b> the Training Vault mini dungeon and the cave.</li>
+  </ul>
 </section>
 
 <section>
-  <h2>v1 ZONES</h2>
+  <h2>LEVELS AND YOUR CHARACTER</h2>
+  <ul>
+    <li><b>Levels 1–20, per shard.</b> Each shard keeps its own level; the road and every new shard start you at 1. Other shards run at level 1 with levels hidden, for now.</li>
+    <li><b>XP only from kills.</b> An enemy pays 10 × its level, less when it's below you, nothing at 6 under. The XP to the next level grows ×1.618 a level (RuneScape's curve squeezed into 20): 10 kills for level 2, ~110 for 11→12, ~3,000 for 19→20. About 60 h to level 20.</li>
+    <li><b>Attributes grow automatically.</b> Each shard rolls you a new character with a balanced aptitude spread: some strong attributes, some weak, never a worse total. Each level-up rolls average step × aptitude × a swing, so late levels can jump +10 or more. Each attribute has a cap just above its average.</li>
+    <li><b>Attributes so far:</b> VIT = HP (100 → 300 on average at +6 % a level, cap 330) · STR = melee damage · DEX = ranged damage, hit chance for every weapon, melee crit · AGI = dodge, ranged crit.</li>
+    <li><b>Death</b> costs 25 % of the level's XP and never delevels. <b>No mid-fight heals</b>; regen only out of combat.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>COMBAT</h2>
+  <ul>
+    <li><b>Weapons</b> are bought at a level-locked weapons shop: sword with combo and parry, spear, bow, crossbow with iron, pitch and broadhead ammo, lever rifle. Forge I–IV upgrades raise every weapon.</li>
+    <li><b>Real dice.</b> 12 % of attacks fail at equal level, rising to 90 % when the target is 8 levels above you. No streak guard. Enemies fail against you by the same rules.</li>
+    <li><b>A failed hit is something the enemy did:</b> a DEFLECT (sparks, clang, recoil), a DODGE (it slips aside) or a PARRY. "MISS" means only a shot you aimed wrong. Hits show grey glances, white hits, orange crits.</li>
+    <li><b>HUD:</b> a bottom XP bar with an LV chip; nameplates within 25 m, coloured by level gap; a read-only Character tab. An enemy cap keeps the phone smooth: full AI within 60 m, at most 16 animated.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>ENEMIES</h2>
   <div class="scroll"><table>
-    <tr><th>#</th><th>Zone</th><th>Features</th></tr>
-    <tr><td class="n">01</td><td>Hub</td><td>quests, dialogue, journal, vendor</td></tr>
-    <tr><td class="n">02</td><td>Weapon range</td><td>sword, spear, bow, crossbow, hit numbers</td></tr>
-    <tr><td class="n">03</td><td>Creature pen</td><td>wildlife, taming, mounts</td></tr>
-    <tr><td class="n">04</td><td>Riding course</td><td>rings, lap timer</td></tr>
-    <tr><td class="n">05</td><td>Movers park</td><td>lifts, spinners, rails, conveyors, jump pads</td></tr>
-    <tr><td class="n">06</td><td>Grapple tower</td><td>grapple, zipline, checkpoints</td></tr>
-    <tr><td class="n">07</td><td>Stealth yard</td><td>detection, patrols, vision cones</td></tr>
-    <tr><td class="n">08</td><td>Elite gauntlet</td><td>waves, named elites</td></tr>
-    <tr><td class="n">09</td><td>Boss arena</td><td>the Crate Titan: phases, telegraphs, hazards</td></tr>
-    <tr><td class="n">10</td><td>Weather and night</td><td>storm, day/night, four beacons</td></tr>
-    <tr><td class="n">11</td><td>Physics and hover</td><td>physics props, hoverboard tricks</td></tr>
-    <tr><td class="n">12</td><td>Portal vault</td><td>walk-in portal, interior, pressure plates</td></tr>
+    <tr><th>Tier</th><th>Who</th></tr>
+    <tr><td>Commons</td><td>Crate Mite L1–3 · Pallet Jack L4–6 · Plumb Drone L7–9 · Welder Unit L10–12 · Riveter L13–15 · Arc Sentry L16–18. At night and in storms each swaps to a night-shift variant (+1 level). Packs respawn ~90 s after you leave.</td></tr>
+    <tr><td>Rare variants</td><td>Spawn at random among the commons: uncommon 8 % (+1 level), rare 2 % (+2 levels, a trophy).</td></tr>
+    <tr><td>Elites</td><td>Big Pallet L6 · the Vault Warden L12 (inside the Training Vault) · Foreman Unit 7 L18 (the gauntlet finale) · night elites Sir Nibbles, Hot Mess, Riveting Rita.</td></tr>
+    <tr><td>Boss</td><td>The Crate Titan L20: three phases and a cutscene intro that plays the first time (skippable); drops the Titan Cleaver sword.</td></tr>
+  </table></div>
+  <p>Every robot is a Blender-script model with LODs. Elites and the boss are a soft gate: always open, brutal when you're under-levelled.</p>
+</section>
+
+<section>
+  <h2>QUESTS, ECONOMY, WORLD</h2>
+  <ul>
+    <li><b>12 quests</b>, four per tier, freeform and level-locked (a grey "!" until you're high enough): kill, collect, explore, elite hunts and set pieces (storm hour, the keycard, the Training Vault, the gauntlet, the Titan). Each quest leg ends on a checkpoint card; the shard ends on a shard-complete card.</li>
+    <li><b>Kill contracts</b> for every enemy type, elite and the Titan: Scrip, a trophy and a joke title the first time.</li>
+    <li><b>Scrip</b> comes from kills, chests and contracts; grey kills pay nothing. Every kill drops one salvage part for its robot type. Tinker Rook sells one-off upgrades and turns parts into ammo. Forge I–IV; a 20-slot pack. Collectibles pay perks, elites drop finishes, trophies fill the hub wall.</li>
+    <li><b>The Training Vault:</b> a four-room shrine (puzzle, fight, climb, the Vault Warden, a chest). Dying restarts the room; solved puzzles stay solved.</li>
+    <li><b>World:</b> 20 + 4 minute days. Storm hour turns the whole cell stormy until four beacons are lit; rare natural storms after that.</li>
+    <li><b>Audio:</b> an orchestral score (hub, west, two east themes that build band by band, elite themes, the Titan's phase stems), 8 stings, ~95 new sounds added to the shared set, ambience zones.</li>
+    <li><b>Developer-only</b> until your phone pass. Each zone is written as a copyable recipe in the shard's own source.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>HOW IT GETS BUILT</h2>
+  <div class="scroll"><table>
+    <tr><th>Wave</th><th>What</th><th>Size</th></tr>
+    <tr><td><b>Wave 1</b></td><td>All engine, game and shared-host work first. Every host it touches is normalised, and Driftwood, Pine Hollow, Nalati, Nine Dragon, Sky Reach, Signal Dunes and the templates move onto it in the same row, each proved unchanged. It covers:<ul><li>levels and the combat maths</li><li>loot and economy; quests and contracts</li><li>held weapons with ammo and parry</li><li>one boss path; the cutscene timeline; the shrine host</li><li>conveyors and jump pads; weather; audio</li><li>the required shard-complete card; the enemy cap</li></ul></td><td>~1,040 h · up to 5 Opus + 5 Codex lanes</td></tr>
+    <tr><td><b>Wave 2</b></td><td>The showcase itself, as data and AssemblyScript only: skeleton, west, east bands, elites, the vault, the Titan, quests, economy, audio, grid-ready, balance, then your phone pass.</td><td>~30 lane-days</td></tr>
   </table></div>
 </section>
 
 <section>
-  <h2>MISSING: WHAT THE MAIN SHARDS HAVE</h2>
-  <h3>Water (the biggest gap: none at all)</h3>
-  <ul>
-    <li>Swim, dive, held-breath feat <span class="tag src">Driftwood · Nalati</span></li>
-    <li>Canoe ferry to an islet <span class="tag src">Pine Hollow</span>; a moored boat that bobs and you can stand on <span class="tag src">Driftwood</span></li>
-    <li>Push a barrel onto plates to drain the tide cave <span class="tag src">Driftwood</span>; dam logs and the sluice <span class="tag src">Pine Hollow</span></li>
-  </ul>
-  <h3>Economy and meta (only a vendor in v1)</h3>
-  <ul>
-    <li>Currency and shop upgrades (Whetstone, Sturdy Heart) <span class="tag src">Driftwood</span></li>
-    <li>Collectibles that pay perks: every 5 sea glass make a charm <span class="tag src">Driftwood</span></li>
-    <li>Trophies with perks on a wall; a 7-slot pack <span class="tag src">Driftwood · Pine Hollow</span></li>
-    <li>Skins and finishes from elites; a legendary weapon per boss <span class="tag src">Nalati · Pine Hollow</span></li>
-    <li>Joke-title feats, FINDS places, compendium and journal <span class="tag src">all</span></li>
-    <li>Rotating lodge contracts <span class="tag src">Pine Hollow</span></li>
-    <li>"Killed by…" card, respawn at last place, shard-complete card <span class="tag src">Driftwood</span></li>
-  </ul>
-  <h3>Weapons and verbs</h3>
-  <ul>
-    <li>Lever rifle; crossbow ammo types (iron, pitch, broadhead) <span class="tag src">Pine Hollow</span></li>
-    <li>Bow draw with drop and wind drift; thrown spear and lance <span class="tag src">Nalati</span></li>
-    <li>War fan GUST that knocks creatures off edges <span class="tag src">Sky Reach</span></li>
-    <li>Bullwhip: crack, pull, light braziers, crank the well <span class="tag src">Signal Dunes</span></li>
-    <li>Sword combo and parry <span class="tag src">Nine Dragon</span>; mounted shooting <span class="tag src">Nalati</span></li>
-  </ul>
-  <h3>Creatures</h3>
-  <ul>
-    <li>Full taming: trust and alert meters, the wind, the bucking break, naming, whistle <span class="tag src">Nalati</span></li>
-    <li>Herd life: sheep and sheepdog, wolf raids, herds that shelter from rain <span class="tag src">Nalati · Pine Hollow</span></li>
-    <li>Night-only enemies and elites gated by weather or time <span class="tag src">Driftwood · Nalati · Pine Hollow</span></li>
-    <li>Follow a creature as a quest step (the Ghost Stag) <span class="tag src">Pine Hollow</span></li>
-  </ul>
-  <h3>Hazards and terrain</h3>
-  <ul>
-    <li>Lightning: crouch or shelter; grass fire <span class="tag src">Nalati</span></li>
-    <li>Hover-only bridges, updraft, falling into the void <span class="tag src">Sky Reach</span></li>
-    <li>Ladders, scramble climbs, swaying rope bridges <span class="tag src">Signal Dunes · Nalati · Driftwood</span></li>
-    <li>Cave and dungeon interiors with their own reverb <span class="tag src">Pine Hollow · Nalati</span></li>
-  </ul>
-  <h3>Minigames and audio</h3>
-  <ul>
-    <li>Kokpar: carry the goat to the goal on horseback <span class="tag src">Nalati</span></li>
-    <li>Zoned ambience, music per zone, boss stems, stings. v1 never mentions audio <span class="tag src">all main shards</span></li>
-  </ul>
+  <h2>DETAIL PAGES</h2>
+  <p><a href="https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj">Mockups (40)</a> · <a href="https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf">XP Curve and Growth</a> · <a href="https://claude.ai/artifact/R7BU7ErLT9Vi5wkYd3EsZR">How a Miss Feels</a> · <a href="https://claude.ai/artifact/BEQrDR1Ti1WUyY7pVRphYR">Loot and Economy</a> · <a href="https://claude.ai/artifact/X1RZboFagn5EuHpQXkdWG5">Enemy Tiers</a> · <a href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ">Mini Dungeon</a> · <a href="https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s">Levels 1 to 20 (first draft, partly superseded)</a></p>
+  <p class="sub">Mini plans: docs/plans/kitchen-sink-v2/ (levels-combat, loot-economy, enemies-bosses, quests-contracts, hud-character, audio, mini-dungeon, map-layout, wave-1-hosts, wave-1-migration-map, STATE).</p>
 </section>
 
-<section>
-  <h2>IDEAS FROM THE OTHER PLANS</h2>
-  <h3>New zones</h3>
+<section class="open">
+  <h2>STILL OPEN</h2>
   <ul>
-    <li>Happenings plaza: a timed event with a countdown, a fail branch and a reward <span class="tag src">GW2 Zones · WorldClaw E7</span></li>
-    <li>Time-trial strip with ghost runs and bronze, silver, gold medals <span class="tag src">GW2 Zones</span></li>
-    <li>Thin-ice lane: unlit ice cracks, a rope grab is the safe crossing <span class="tag src">Thin Ice</span></li>
-    <li>Glide drop shaft: umbrella glide, nets, laundry-line zips <span class="tag src">Nine Dragon P2</span></li>
-    <li>Mini dungeon / shrine room, about 10 minutes <span class="tag src">GW2 Zones</span></li>
-    <li>Vista and secrets ring: bench views, squeeze caves, hidden caches <span class="tag src">WorldClaw · Pine Hollow</span></li>
-  </ul>
-  <h3>Chain and meta</h3>
-  <ul>
-    <li>Boss intro as an in-engine cutscene <span class="tag src">In-Game Cutscenes</span></li>
-    <li>Daily seed that changes the target or route <span class="tag src">GW2 Zones</span></li>
-    <li>Chain legs under 15 minutes, each ending on a checkpoint card <span class="tag src">GW2 Zones</span></li>
-    <li>Breadcrumb guide: gulls or ravens fly toward unvisited places (built twice, needs one host) <span class="tag src">Driftwood · Pine Hollow</span></li>
-    <li>Crates and chests (in G523's list, no zone yet) <span class="tag src">G523</span></li>
-  </ul>
-  <h3>Tooling showcase</h3>
-  <ul>
-    <li>Third-person debug camera; landscape HUD <span class="tag src">October backlog OB2 · OB4</span></li>
-    <li>Detailed loading screen for everyone <span class="tag src">October backlog OB8</span></li>
-    <li>Explore tabs: Beats (PLAY FROM HERE), Coverage, Composition <span class="tag src">WorldClaw Tools</span></li>
-    <li>Bot or AI playtest across the 9-step chain <span class="tag src">Shard Platform Next</span></li>
-  </ul>
-</section>
-
-<section>
-  <h2>WAVE 1 DRAFT: HOST WORK FIRST</h2>
-  <p>About 380 h (~48 lane-days), measured before the levels system was added. Most picked features already have a host. The work is moving hosts out of the plugin scaffolding, generalising one-shard schemas, and building what's missing.</p>
-  <ul>
-    <li><b>First:</b> make the host ruler honest (HOST-AUDIT HA0, HA1, HA5), so "0 % custom TS" means something.</li>
-    <li><b>Missing, to build:</b> conveyor and jump pad, trick scoring, see-saw, scramble climb, parry, the cutscene timeline (IN-GAME-CUTSCENES IC1–IC4), the completion validator, and now levels, attributes and XP.</li>
-    <li><b>To generalise:</b> an interactables section (benches, chests, doors, plates) to replace Driftwood's own JSON; held weapons (the schema is Pine-shaped); one boss path instead of four; weather kinds still named "forest"; a generic interior split from Pine's forest page; a given-mount row with no taming.</li>
-    <li><b>To move out of the plugin:</b> movers, the wave director, firearms.</li>
-    <li><b>Folds in:</b> HOST-AUDIT HA0/1/4/5 and H110; custom sections CS5–CS8; SHARD-PLATFORM-NEXT N2/N5 slices; BURN-DAMAGE D53.</li>
-    <li><span class="tag gap">riskiest</span> boss unification plus cutscenes; moving firearms and movers out of the plugin; the completion validator (backfill every shard first, then turn the rule on).</li>
-  </ul>
-</section>
-
-<section>
-  <h2>PLAN FIXES</h2>
-  <ul>
-    <li><span class="tag gap">gap</span> No shared host yet for a wave-spawn director, jump pads or pressure plates, and the boss arena room has only a test user. v1 marks most of these "—".</li>
-    <li><span class="tag gap">gap</span> Weather and night are probably cell-wide, so zone 10 needs a rethink.</li>
-  </ul>
-</section>
-
-<section>
-  <h2>GREY BLOCKOUT</h2>
-  <p><span class="tag done">round 1 done</span> <b>It fits with no cuts.</b> West 47 % used, east 78 %, 22.7 % of the cell free. The interiors (mini dungeon, cave) sit under the cell behind portals at 0 m² of surface. Zone sizes come from real game numbers: walk 4.3, sprint 7.2, gallop 13, hoverboard 14 m/s; grapple reach 38 m; Driftwood's boss arena r 22.</p>
-  <figure>
-    <img src="blockout-plan.jpg" alt="Top-down grey blockout of the 500 m cell: non-combat zones on the west, six level bands snaking to the L20 boss in the south-east.">
-    <figcaption>art/showcase-template/round-1-blockout/ (commit 8094bf351f): a standalone three.js page, measured at 1 m.</figcaption>
-  </figure>
-  <ul>
-    <li>The hub sits on the centre line, and its east gate is the only way into the combat half. A seam wall runs north to south; the east road is walled, so arrivals from the east neighbour land on a safe road.</li>
-    <li>The six bands snake outward to the L20 boss in the far south-east corner, about 270 m from the hub. The mini-bosses sit where the bands change.</li>
-    <li><b>Round 2 notes:</b> shrink the hub to a radius of 25–30 m (80 m reads empty at eye height); add cover and props between enemy packs; merge the west vault into the east mini dungeon (Jake's ruling); drop the fixed 9-leg chain for freeform level-locked quests.</li>
+    <li>Whether a fifth attribute earns a place (a source of armour and deflects), or armour comes from Forge tiers and level. The 20-game attributes study is running.</li>
+    <li>The average curves and caps for STR, DEX and AGI, tuned the way VIT was. That's part of Wave 1's levels design pass.</li>
   </ul>
 </section>
 </main>
