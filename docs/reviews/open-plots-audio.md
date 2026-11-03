@@ -405,9 +405,20 @@ The ordinary producer first refuses the old ceiling. Phone wire measures
 **2,927,540 → 3,838,831 B**; the coordinator approves only the exact
 **+911,291 B** audio change, retaining the **0 B** margin. The candidate
 then builds normally in 39 s, with no bypass. Activation remains local
-under the release push hold. The ensuing immutable source goes to X1 for
-matched Chromium/control, walk and eight goldens, and X8 for separate
-memory and the official Simulator. Those final scopes remain open.
+under the release push hold.
+
+The final immutable source is **0e0f1ba1c35e2ff4ea16ac25260a29cf5f0a6e47**,
+build `0e0f1ba-mw1c0i2g`. Its ordinary all-product build takes **74 s**;
+full native bar 10 passes again on that committed runtime in **18 s**,
+with the same seven decoded loops and all six positional controls. All
+**200/201** candidate bodies are exact; only the native map source stamp
+moves, with its image unchanged. Four final packs reconstruct all 200
+entries and 7,615,459 B; phone wire remains exactly 3,838,831 B.
+`tmp/wave-a-audio/fossil-readings/final-bridge.json` binds the raw index,
+canonical parsed index, bodies, packs and playback result. X1 has this
+source for matched Chromium/control, walk and eight goldens; X8 has it
+for separate memory and the official Simulator. Those final scopes
+remain open, and no performance or memory clearance is implied.
 
 Thin Ice publication `68e91f6a7f` keeps both qualified MiniMax scores.
 **A, seed 701** ships: 47.21 s, zero measured vocal energy, clipping
