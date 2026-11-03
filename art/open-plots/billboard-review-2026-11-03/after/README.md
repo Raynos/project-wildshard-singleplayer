@@ -31,3 +31,11 @@ board maker still refuses anything except all nine hash-bound views.
 Final labelled before/after boards and their by-eye verdicts will follow
 here. No capture, clipping-clearance or full-nine-view pass is claimed by
 these camera inputs alone.
+
+Night Market plaza requested view 7 (12 m behind) is retained with its
+occluded flag. sp-o3 traces its eye (-22,1.7,-28) to the retained stall
+at (-22,-27.5), outside the keep-out. The coordinator rules this is not
+a clipping defect unless an 8 m-behind diagnostic finds intersection.
+The separate supplemental D1 manifest selects only view 7 from
+(-22,1.7,-32), inside the cleared strip; it never replaces the core frame.
+Its capture and result remain pending.

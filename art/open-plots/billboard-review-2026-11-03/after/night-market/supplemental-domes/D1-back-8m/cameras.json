@@ -1,0 +1,168 @@
+{
+  "dome": "D1-back-8m",
+  "type": "look",
+  "pair": "D1-back-8m",
+  "mockup": "art/open-plots/billboard-review-2026-11-03/night-market-board.jpg",
+  "layout": "src/shards/open-plots/data/layouts/night-market.json",
+  "anchor": [
+    -22,
+    1.7,
+    -31
+  ],
+  "convention": "SUPPLEMENTAL diagnostic requested by sp-o3 and approved by wildshard-new: keep original12m view7 occluded, do not replace it. View7 eye moves to(-22,1.7,-32),8m behind the board inside the cleared strip. All other views remain unrequested original camera data. No geometry/visibility changes.",
+  "views": [
+    {
+      "n": 1,
+      "name": "front-8m",
+      "eye": [
+        -22,
+        1.7,
+        -48
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": 180.0,
+      "pitch": 38.768818357551645,
+      "hfov": 62
+    },
+    {
+      "n": 2,
+      "name": "front-25m",
+      "eye": [
+        -22,
+        1.7,
+        -65
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": 180.0,
+      "pitch": 14.413095404040593,
+      "hfov": 62
+    },
+    {
+      "n": 3,
+      "name": "front-left-45deg",
+      "eye": [
+        -31.899494936611667,
+        1.7,
+        -49.89949493661167
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": 135.0,
+      "pitch": 24.6517424587001,
+      "hfov": 62
+    },
+    {
+      "n": 4,
+      "name": "front-right-45deg",
+      "eye": [
+        -12.100505063388335,
+        1.7,
+        -49.89949493661167
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": -135.0,
+      "pitch": 24.6517424587001,
+      "hfov": 62
+    },
+    {
+      "n": 5,
+      "name": "edge-left",
+      "eye": [
+        -36,
+        1.7,
+        -40
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": 90.0,
+      "pitch": 24.651742458700102,
+      "hfov": 62
+    },
+    {
+      "n": 6,
+      "name": "edge-right",
+      "eye": [
+        -8,
+        1.7,
+        -40
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": -90.0,
+      "pitch": 24.651742458700102,
+      "hfov": 62
+    },
+    {
+      "n": 7,
+      "name": "supplemental-back-8m",
+      "eye": [
+        -22,
+        1.7,
+        -32
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": 0,
+      "pitch": 38.768818357551645,
+      "hfov": 62
+    },
+    {
+      "n": 8,
+      "name": "above-20m",
+      "eye": [
+        -22,
+        20,
+        -54
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": 180.0,
+      "pitch": -40.30508572074898,
+      "hfov": 62
+    },
+    {
+      "n": 9,
+      "name": "south-lane-approach",
+      "eye": [
+        0,
+        1.7,
+        -110
+      ],
+      "look": [
+        -22,
+        8.125,
+        -40
+      ],
+      "yaw": -162.5528115767178,
+      "pitch": 5.004226486128699,
+      "hfov": 62
+    }
+  ]
+}
