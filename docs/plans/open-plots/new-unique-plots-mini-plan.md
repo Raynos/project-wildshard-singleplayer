@@ -1,6 +1,6 @@
 # New unique open plots: mini plan (E522, G970–G973)
 
-**State:** `draft` 2026-11-02 for Jake. Four themes to approve, one spare; mockups made (round 1). Nothing built.
+**State:** `open` (grilled 11-02 ~23:20, G974 / G976: art builds start after SHARD-PLATFORM archives; grid data rows now); was `draft` 2026-11-02 for Jake. Four themes to approve, one spare; mockups made (round 1). Nothing built.
 The grid is not edited by this plan's draft.
 
 Jake, 2026-11-02 ~22:55 Cancun (G970): *"I don't understand why Lantern Bayou is in there twice. I thought we had

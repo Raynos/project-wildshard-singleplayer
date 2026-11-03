@@ -1,6 +1,6 @@
 # Open plots build-out: five hero-image plots, graphically better than the Night Market
 
-**State:** `draft` 2026-11-02 for Jake's grill. A mini plan under [OPEN-PLOTS](../OPEN-PLOTS.md), which is parked
+**State:** `open` (grilled 11-02 ~23:20, G975 / G976: art builds start after SHARD-PLATFORM archives; grid data rows now); was `draft` 2026-11-02 for Jake's grill. A mini plan under [OPEN-PLOTS](../OPEN-PLOTS.md), which is parked
 until SHARD-PLATFORM archives (G824) unless Jake pulls it forward. Ask E521. Written by wildshard-v's planning
 subagent at HEAD d795fa9dfe. G971–G973 are applied: no gameplay, Nine Dragon at (1,-1), one grid, and Showcase
 Template later.
