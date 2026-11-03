@@ -472,8 +472,8 @@
         ]
       },
       {
-        "instance": "open-plot-se",
-        "slug": "open-plot-lantern-bayou",
+        "instance": "nine-dragon-stack",
+        "slug": "nine-dragon-stack",
         "cell": [
           1,
           -1
@@ -608,40 +608,6 @@
         "cell": [
           2,
           2
-        ]
-      }
-    ],
-    "developer": [
-      {
-        "instance": "blender-template-1",
-        "slug": "blender-template",
-        "cell": [
-          -1,
-          -1
-        ]
-      },
-      {
-        "instance": "pastel-plain-1",
-        "slug": "pastel-plain",
-        "cell": [
-          -2,
-          0
-        ]
-      },
-      {
-        "instance": "ink-cel-valley-1",
-        "slug": "ink-cel-valley",
-        "cell": [
-          2,
-          0
-        ]
-      },
-      {
-        "instance": "nine-dragon-stack",
-        "slug": "nine-dragon-stack",
-        "cell": [
-          1,
-          -1
         ]
       }
     ],

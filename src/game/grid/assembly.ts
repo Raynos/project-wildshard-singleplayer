@@ -30,7 +30,6 @@ export class GridAssembly {
   private readonly byCell: ReadonlyMap<string, GridCell>;
   constructor(mode: GridMode, input: unknown = catalogue.grid) {
     const data = parseGridCatalogue(input), selected = new Map(data.cells.map((row) => [row.cell.join(','), row]));
-    if (mode.developer) for (const row of data.developer) selected.set(row.cell.join(','), row);
     if (mode.devserver && mode.nineDragon !== false) for (const row of data.devserver) selected.set(row.cell.join(','), row);
     if (new Set([...selected.values()].map((row) => row.instance)).size !== selected.size) throw new Error('Duplicate assembled grid identity');
     this.pitch = data.pitch;

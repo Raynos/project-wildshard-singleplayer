@@ -15,7 +15,10 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const { shard: source, assets } = await readProjectAssets('src/shards/blender-template');
-const assembly = new GridAssembly({ developer: true, devserver: false }, catalogue.grid);
+// This is an explicit regional-mechanism fixture, not a Developer placement in the shipped grid.
+const assembly = new GridAssembly({ developer: false, devserver: false }, { ...catalogue.grid, devserver: [],
+  cells: catalogue.grid.cells.map(cell => cell.cell[0] === -1 && cell.cell[1] === -1
+    ? { instance: 'blender-template-proof', slug: 'blender-template', cell: cell.cell } : cell) });
 const instance = assembly.cells.find((cell) => cell.slug === 'blender-template').instance, allocator = new ResidencyAllocator();
 const quest = { fact: () => { assert.fail('Readiness proof must not complete a quest'); }, coins: () => { assert.fail('Readiness proof must not grant coins'); } };
 const blender = () => createShardfileSim(source, assets, { rapier, quest });

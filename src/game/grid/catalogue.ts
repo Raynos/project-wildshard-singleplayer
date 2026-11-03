@@ -25,7 +25,7 @@ const colour = v.tuple([channel, channel, channel]);
 const distance = v.pipe(v.number(), v.finite(), v.minValue(0));
 /** Platform placement data, independent of package content and standalone shard coordinates. */
 export const GridCatalogueSchema: v.GenericSchema<BoundedGridCatalogueInput, BoundedGridCatalogue> = v.pipe(v.strictObject({ version: v.literal(0), pitch: v.literal(CONTENT_CAPS.pitch),
-  cells: v.pipe(v.array(placement), v.minLength(1), v.maxLength(GRID_CELL_COUNT)), developer: v.pipe(v.array(placement), v.maxLength(GRID_CELL_COUNT)), devserver: v.pipe(v.array(placement), v.maxLength(GRID_CELL_COUNT)),
+  cells: v.pipe(v.array(placement), v.minLength(1), v.maxLength(GRID_CELL_COUNT)), devserver: v.pipe(v.array(placement), v.maxLength(GRID_CELL_COUNT)),
   emptyNeighbour: v.strictObject({ kind: v.literal('sea'), level: v.literal(0), edgeColour: colour,
     fog: v.pipe(v.strictObject({ colour, near: distance, far: distance }), v.check((row) => row.far > row.near, 'increasing fog distance')) }),
 }), v.check((rows) => {
@@ -33,8 +33,8 @@ export const GridCatalogueSchema: v.GenericSchema<BoundedGridCatalogueInput, Bou
   // the base layout is complete: shardfiles fill every cell once (G538: an open plot is its open-plots output); an
   // override replaces a base cell
   const base = rows.cells;
-  return valid(base) && base.length === GRID_CELL_COUNT && valid(rows.developer) && valid(rows.devserver)
-    && [...rows.developer, ...rows.devserver].every((row) => base.some((at) => at.cell[0] === row.cell[0] && at.cell[1] === row.cell[1]));
+  return valid(base) && base.length === GRID_CELL_COUNT && valid(rows.devserver)
+    && rows.devserver.every((row) => base.some((at) => at.cell[0] === row.cell[0] && at.cell[1] === row.cell[1]));
 }, 'unique stable instance identities and complete signed cell layout'));
 /** Admitted assembly input; a cell remains a mutable placement attribute, never a save namespace. */
 export type GridCatalogue = v.InferOutput<typeof GridCatalogueSchema>;
@@ -42,7 +42,7 @@ export type GridCatalogue = v.InferOutput<typeof GridCatalogueSchema>;
 export type CopyIdentity = v.InferOutput<typeof identity>;
 /** Placement-only curtain appearance; collision and readiness keep their independent rules. */
 export type GridEdgeLook = v.InferOutput<typeof edgeLook>;
-/** Runtime switches originate from Settings and build-time DEVSERVER; unfinished cells require Developer; DEVSERVER can override independently. */
+/** Audience remains available to entry accounting; Developer never changes cells. Only build-time DEVSERVER overrides are read. */
 export interface GridMode { developer: boolean; devserver: boolean; nineDragon?: boolean }
 /** Reject malformed or duplicate placement data before allocating an assembly. */
 export function parseGridCatalogue(input: unknown): GridCatalogue { return v.parse(GridCatalogueSchema, input); }
@@ -95,35 +95,6 @@ interface BoundedGridCatalogueInputFields {
     version: 0;
     pitch: 562.5;
     cells: {
-        instance: string;
-        slug: string;
-        cell: [
-            number,
-            number
-        ];
-        identity?: {
-            accent: string;
-            marks: {
-                x: number;
-                y: number;
-                z: number;
-                yaw: number;
-                size: number;
-            }[];
-            layout?: {
-                seed: number;
-                plots: {
-                    x: number;
-                    z: number;
-                    half: number;
-                }[];
-            } | undefined;
-        } | undefined;
-        edgeLook?: {
-            height: number;
-        };
-    }[];
-    developer: {
         instance: string;
         slug: string;
         cell: [
@@ -205,35 +176,6 @@ interface BoundedGridCatalogueFields {
     version: 0;
     pitch: 562.5;
     cells: {
-        instance: string;
-        slug: string;
-        cell: [
-            number,
-            number
-        ];
-        identity?: {
-            accent: "ember" | "coral" | "tangerine" | "apricot" | "marigold" | "citron" | "lime" | "moss" | "jade" | "mint" | "teal" | "azure" | "cornflower" | "periwinkle" | "iris" | "lilac" | "orchid" | "pink" | "rose" | "sand";
-            marks: {
-                x: number;
-                y: number;
-                z: number;
-                yaw: number;
-                size: number;
-            }[];
-            layout?: {
-                seed: number;
-                plots: {
-                    x: number;
-                    z: number;
-                    half: number;
-                }[];
-            } | undefined;
-        } | undefined;
-        edgeLook?: {
-            height: number;
-        };
-    }[];
-    developer: {
         instance: string;
         slug: string;
         cell: [

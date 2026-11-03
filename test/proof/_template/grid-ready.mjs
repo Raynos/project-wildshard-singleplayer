@@ -16,7 +16,7 @@ assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefin
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const assets = templateAssets();
 const assembly = new GridAssembly({ developer: false, devserver: false }, { ...catalogue.grid,
-  cells: catalogue.grid.cells.map((cell) => ({ instance: `template-proof-${cell.instance}`, slug: '_template', cell: cell.cell })), developer: [], devserver: [],
+  cells: catalogue.grid.cells.map((cell) => ({ instance: `template-proof-${cell.instance}`, slug: '_template', cell: cell.cell })), devserver: [],
 });
 const instance = assembly.cells.find((cell) => cell.cell[0] === 0 && cell.cell[1] === 0).instance, allocator = new ResidencyAllocator();
 const quest = { fact: () => { assert.fail('Readiness proof must not complete a quest'); }, coins: () => { assert.fail('Readiness proof must not grant coins'); } };

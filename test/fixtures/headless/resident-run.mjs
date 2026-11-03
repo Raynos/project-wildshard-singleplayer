@@ -53,7 +53,7 @@ try {
 // 4. A grid region: the lease precedes the world, the fence gates readiness, saves wait for durability, and the
 //    controller's continuation (its tick counter) survives eviction and re-entry through the same entry.
 const assembly = new GridAssembly({ developer: false, devserver: false }, { ...catalogue.grid,
-  cells: catalogue.grid.cells.map(cell => ({ instance: `fixture-${cell.instance}`, slug: 'trusted-fixture', cell: cell.cell })), developer: [], devserver: [] });
+  cells: catalogue.grid.cells.map(cell => ({ instance: `fixture-${cell.instance}`, slug: 'trusted-fixture', cell: cell.cell })), devserver: [] });
 const instance = assembly.cells[0].instance, allocator = new ResidencyAllocator(), store = new Map();
 let region, durable = false, admitted = false, loads = 0;
 const counter = host => snapshotSimHost(host).adapters.find(row => row.id === 'fixture.controller')?.state;

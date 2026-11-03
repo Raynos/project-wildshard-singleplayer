@@ -10,29 +10,29 @@ function rows():Parameters<typeof planProgress>[0] {
  return result;
 }
 
-it('covers all ten authored playable grid shards and counts fifteen plot cells separately',()=>{
- expect(M2_GRID_SHARDS).toEqual(['_template','blender-template','driftwood-isle','far-reach','ink-cel-valley',
-  'nalati-grasslands','nine-dragon-stack','pastel-plain','pine-hollow','sunscar-dunes']);
- expect(M2_GRID_PLOTS).toBe(15);
- const input=rows(),native=input['pastel-plain'];
+it('G972 covers the seven shared grid shards and eighteen unchanged plot placements',()=>{
+ expect(M2_GRID_SHARDS).toEqual(['_template','driftwood-isle','far-reach',
+  'nalati-grasslands','nine-dragon-stack','pine-hollow','sunscar-dunes']);
+ expect(M2_GRID_PLOTS).toBe(18);
+ const input=rows(),native=input['nine-dragon-stack'];
  if(native===undefined)throw new Error('Missing native fixture');
- input['pastel-plain']={...native,gridReady:{...native.gridReady,verdict:'fail'}};
- delete input['ink-cel-valley'];
+ input['nine-dragon-stack']={...native,gridReady:{...native.gridReady,verdict:'fail'}};
+ delete input['_template'];
  input['open-plots']={...native,gridReady:{...native.gridReady,verdict:'pass'}};
  input['open-plot-night-market']={...native,gridReady:{...native.gridReady,verdict:'fail'}};
  const progress=planProgress(input);
- expect(progress.m2).toMatchObject({ready:8,unknown:1,total:10,plots:15,lower:.8,upper:.9});
+ expect(progress.m2).toMatchObject({ready:5,unknown:1,total:7,plots:18,lower:5/7,upper:6/7});
  expect(progress.m3).toMatchObject({cut:480,mustGo:600,fraction:.8,shards:6});
- expect(progress.plan?.lower).toBeCloseTo(.8);
- expect(progress.plan?.upper).toBeCloseTo(.84);
+ expect(progress.plan?.lower).toBeCloseTo(.7657142857142857);
+ expect(progress.plan?.upper).toBeCloseTo(.8228571428571428);
 });
 
 it('keeps missing native evidence unknown and retains the six legacy M3 denominators',()=>{
  const input=rows();
  for(const slug of M2_GRID_SHARDS)if(!MILESTONE_SHARDS.includes(slug))delete input[slug];
  const progress=planProgress(input);
- expect(progress.m2).toMatchObject({ready:6,unknown:4,total:10,lower:.6,upper:1});
- expect(progress.frameFloor).toEqual({ready:6,fail:0,unknown:4,total:10});
+ expect(progress.m2).toMatchObject({ready:6,unknown:1,total:7,lower:6/7,upper:1});
+ expect(progress.frameFloor).toEqual({ready:6,fail:0,unknown:1,total:7});
  expect(progress.m3.shards).toBe(6);
 });
 
@@ -43,8 +43,8 @@ it('reports each plot placement separately and retains per-product criterion evi
  const night=plots['open-plot-night-market'];if(night===undefined)throw new Error('Missing repeated plot');
  night.verdict='fail';
  const progress=planProgress(input,plots);
- expect(progress.m2.plotReadiness).toEqual({ready:13,fail:2,unknown:0,total:15});
- expect(progress.m2.ready).toBe(10);
+ expect(progress.m2.plotReadiness).toEqual({ready:16,fail:2,unknown:0,total:18});
+ expect(progress.m2.ready).toBe(7);
 
 });
 
@@ -56,14 +56,14 @@ it('G567 measures the recorded baseline toward zero with the original 98,854 lin
   const original=input[slug];if(original===undefined)throw new Error('Missing legacy fixture');
   input[slug]={...original,m3:m3Progress(slug,{basis:'source',legacyLines,customLines})};
  }
- for(const slug of ['_template','blender-template','far-reach','sunscar-dunes']){
+ for(const slug of ['_template','far-reach','sunscar-dunes']){
   const original=input[slug];if(original===undefined)throw new Error('Missing grid fixture');
   input[slug]={...original,gridReady:{verdict:'fail',criteria:{}}};
  }
  const progress=planProgress(input);
  expect(progress.m3).toMatchObject({cut:89880,mustGo:98854});
  expect(Number(((progress.m3.fraction??0)*100).toFixed(1))).toBe(90.9);
- expect(Number(((progress.plan?.lower??0)*100).toFixed(1))).toBe(78.6);
+ expect(Number(((progress.plan?.lower??0)*100).toFixed(1))).toBe(77.4);
 
 });
 

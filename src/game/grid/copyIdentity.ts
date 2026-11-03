@@ -26,7 +26,7 @@ let shipped: ReadonlyMap<string, CopyIdentity> | null = null;
 function shippedIdentities(): ReadonlyMap<string, CopyIdentity> {
   if (shipped !== null) return shipped;
   const data = parseGridCatalogue(catalogue.grid), out = new Map<string, CopyIdentity>();
-  for (const row of [...data.cells, ...data.developer, ...data.devserver]) if (row.identity !== undefined) out.set(row.instance, row.identity);
+  for (const row of [...data.cells, ...data.devserver]) if (row.identity !== undefined) out.set(row.instance, row.identity);
   shipped = out;
   return out;
 }

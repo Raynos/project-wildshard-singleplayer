@@ -9,11 +9,11 @@ import catalogue from '../src/game/grid/singleplayer.json' with {type:'json'};
 import plotOutputs from '../src/shards/open-plots/outputs.json' with {type:'json'};
 
 export const MILESTONE_SHARDS=['far-reach','sunscar-dunes','pine-hollow','driftwood-isle','nalati-grasslands','nine-dragon-stack'];
-// M2 covers the complete authored grid, including Developer placements. M3
+// M2 covers the complete authored grid, shared by public and Developer. M3
 // retains its six frozen denominators. Plot products occupy cells separately.
 /** @type {Map<string,{slug:string,instance:string}>} */
 const gridCells=new Map();
-for(const cell of [...catalogue.grid.cells,...catalogue.grid.developer,...catalogue.grid.devserver])gridCells.set(cell.cell.join(','),cell);
+for(const cell of [...catalogue.grid.cells,...catalogue.grid.devserver])gridCells.set(cell.cell.join(','),cell);
 const plotSlugs=new Set(plotOutputs.outputs.map(row=>row.slug));
 export const M2_GRID_SHARDS=[...new Set([...gridCells.values()].filter(cell=>!plotSlugs.has(cell.slug)).map(cell=>cell.slug))].sort();
 export const M2_GRID_PLOT_CELLS=[...gridCells.values()].filter(cell=>plotSlugs.has(cell.slug));

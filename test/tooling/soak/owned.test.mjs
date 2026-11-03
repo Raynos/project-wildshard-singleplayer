@@ -13,6 +13,12 @@ import { circuitPlans } from '../../../scripts/soak/boundary.mjs';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
 
+test('G972 both audience settings use the same full 25-cell soak catalogue', () => {
+  const shipped = soakCatalogue(catalogue, 'shipped');
+  assert.equal(shipped.length, 25);
+  assert.deepEqual(soakCatalogue(catalogue, 'dev'), shipped);
+});
+
 test('T9 soak plans follow the served pitch and retain the historical fallback', () => {
   const cells = soakCatalogue(catalogue, 'shipped'), state = { cells, home: 'driftwood-isle' };
   const historical = ownedSoakPlans(state, 'road');
@@ -144,7 +150,7 @@ test('SF57 prepared-cell rehearsal records open coverage and refuses qualifying 
   const cells = soakCatalogue(catalogue, 'dev');
   const route = ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', soakRouteScope('prepared'));
   assert.deepEqual(route.plans.map(plan => plan.to), ['pine-hollow', 'nalati-grasslands', 'template-2', 'driftwood-isle']);
-  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['blender-template-1', 'far-reach', 'ink-cel-valley-1', 'nine-dragon-stack', 'pastel-plain-1', 'sunscar-dunes']);
+  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['far-reach', 'nine-dragon-stack', 'sunscar-dunes']);
   assert.equal(new Set(route.coveragePlans.map(plan => plan.crossroads).filter(Boolean)).size, 36);
   assert.throws(() => soakRouteScope('prepared', true), /rehearsal only/u);
   assert.throws(() => soakRouteScope('typo'), /Unknown soak route/u);
@@ -165,7 +171,10 @@ for (const layout of ['dev', 'shipped']) test(`SF57 ${layout} enters every produ
   const cells = soakCatalogue(catalogue, layout), route = ownedSoakPlans({ cells, home: 'driftwood-isle' });
   assert.deepEqual(route.plans.slice(0, 2).map(p => p.to), ['pine-hollow', 'nalati-grasslands']);
   if (layout === 'shipped') {
-    assert.deepEqual(route.plans.map(plan => plan.to).sort(), ['driftwood-isle', 'far-reach', 'nalati-grasslands', 'pine-hollow', 'sunscar-dunes', 'template-2']);
+    assert.deepEqual(route.plans.map(plan => plan.to).sort(), ['driftwood-isle', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'pine-hollow', 'sunscar-dunes', 'template-2']);
+    assert.deepEqual(route.plans.find(plan => plan.to === 'nine-dragon-stack')?.requiredResidents, ['nine-dragon-stack']);
+    // G972 preserves Nine's existing Developer route lifecycle; it joins the same public route now.
+    assert.deepEqual(route.plans.find(plan => plan.from === 'nine-dragon-stack')?.retiredResidents, []);
     const missing = cells.filter(cell => cell.slug !== 'pine-hollow' && cell.slug !== 'nalati-grasslands');
     assert.throws(() => ownedSoakPlans({ cells: missing, home: 'driftwood-isle' }, 'cells', 'prepared'), /requires Pine and Nalati/u);
     for (const native of ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'far-reach', 'sunscar-dunes']) {

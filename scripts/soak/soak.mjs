@@ -3,7 +3,7 @@
 // --content-cut=<JSON receipt with receipt/sourceRevision/approvedBy=Jake> selects G186; invisible savings never do.
 // --qualifying is supplied only after the layout conversions are prepared; all route/refusal gates still apply.
 // --dry-run runs five minutes and never qualifies; --legs=cells selects just the cell leg.
-// --layouts=shipped runs the M2 layout; the default shipped,dev also prepares the M3 Developer evidence.
+// --layouts=shipped runs the M2 layout; the default shipped,dev also prepares Developer-mode evidence on the same cells.
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
 // --borrowed-preview with --prepared retains another owner's explicitly shared preview after cleanup.

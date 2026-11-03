@@ -19,14 +19,16 @@ for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`
   expect([...new Set(assembly.cells.filter(row => row.slug.startsWith('open-plot-')).map(row => row.slug))].sort()).toEqual(ideas);
   expect(new Set(placements.map(row => row.cell.join(','))).size).toBe(25);
   expect(assembly.cell('driftwood-isle').cell).toEqual([0, 0]);
-  expect(assembly.cells.some(row => row.slug === 'nine-dragon-stack')).toBe(mode.developer || mode.devserver);
+  expect(assembly.cell('nine-dragon-stack').cell).toEqual([1, -1]);
+  expect(placements).toEqual(new GridAssembly({ developer: false, devserver: false }).cells);
   for (const slug of ['blender-template', 'pastel-plain', 'ink-cel-valley']) {
-    expect(assembly.cells.some(row => row.slug === slug)).toBe(mode.developer);
+    expect(assembly.cells.some(row => row.slug === slug)).toBe(false);
   }
-  if (mode.developer) {
+  {
     const ring = (cell: readonly [number, number]): boolean => Math.abs(cell[0]) === 2 || Math.abs(cell[1]) === 2;
-    // G529: the 14 outer open plots show each of the 14 ideas once
-    expect(assembly.cells.filter(row => ring(row.cell) && row.slug.startsWith('open-plot-')).map(row => row.slug).sort()).toEqual(ideas);
+    // G972 retains the two outer duplicates until G973 replaces their designs.
+    expect(assembly.cells.filter(row => ring(row.cell) && row.slug.startsWith('open-plot-')).map(row => row.slug).sort())
+      .toEqual([...ideas, 'open-plot-ember-forge', 'open-plot-mosslight-ruins'].sort());
   }
   const road = roadLayout(assembly, slug => slug);
   expect(road.segments).toHaveLength(60);
@@ -44,8 +46,9 @@ test('refuses holes, duplicate placements and cells beyond the declared square',
   expect(() => parseGridCatalogue({ ...grid, cells: [...grid.cells.slice(1), { instance: 'duplicate', slug: 'open-plot-thin-ice', cell: [0, 0] }] })).toThrow();
   expect(() => parseGridCatalogue({ ...grid, cells: grid.cells.map((row, i) => i === 0 ? { instance: row.instance, slug: row.slug, cell: [3, 0] } : row) })).toThrow();
   const assembly = new GridAssembly({ developer: true, devserver: true, nineDragon: false });
-  expect(assembly.cell('nine-dragon-stack').cell).toEqual([1, -1]); // Developer is independent of DEVSERVER.
-  expect(new GridAssembly({ developer: false, devserver: true, nineDragon: false }).cells.some(row => row.slug === 'nine-dragon-stack')).toBe(false);
+  expect(assembly.cell('nine-dragon-stack').cell).toEqual([1, -1]); // Permanent even when the DEVSERVER override is disabled.
+  expect(new GridAssembly({ developer: false, devserver: true, nineDragon: false }).cell('nine-dragon-stack').cell).toEqual([1, -1]);
+  expect(() => parseGridCatalogue({ ...grid, developer: [] })).toThrow();
 });
 
 test('retains every cell continuation within the unchanged byte pool', () => {

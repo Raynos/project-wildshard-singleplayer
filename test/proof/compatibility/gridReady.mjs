@@ -20,8 +20,8 @@ import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 import { createTrustedHeadlessResident } from '../../../src/sdk/headlessRuntime.ts';
 import { createNativeProofResident } from '../../fixtures/headless-native.ts';
 
-/** The Developer grid, where the catalogue places the native shards' cells. */
-const DEVELOPER = Object.freeze({ developer: true, devserver: false });
+/** The same catalogue grid is used in public and Developer modes (G972). */
+const CATALOGUE_MODE = Object.freeze({ developer: false, devserver: false });
 const ROOT = new URL('../../../', import.meta.url);
 const bytes = (slug, hash) => new Uint8Array(readFileSync(new URL(`src/shards/${slug}/assets/${hash}`, ROOT)));
 /** The active region's own continuation: its clock, bodies and every runtime controller (the traveller's body is the page's, not the region's). */
@@ -39,7 +39,7 @@ const bodies = (host) => JSON.stringify([host.state.tick, ...[...host.entities].
  * through the same trusted entry. The template's door/script step (natives declare no script door) becomes play on the
  * region's own clock: a hurt creature, or a lent weapon swing where the region has no fauna (Nine Dragon Stack).
  */
-export async function proveTrustedGridReady(source, mode = DEVELOPER, prepare = null, sourceAssets = null) {
+export async function proveTrustedGridReady(source, mode = CATALOGUE_MODE, prepare = null, sourceAssets = null) {
   assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
   installAppIdentity(WILDSHARD_IDENTITY);
   const slug = source.identity.slug;

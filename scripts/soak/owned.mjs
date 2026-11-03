@@ -70,7 +70,7 @@ export function soakWitnessFailures(witness) {
  * outer road. The extent is the catalogue's (every layout fills the same 5 × 5).
  * @param {number} pitch @returns {{x:number,z:number}[]} */
 export function soakRoadTour(pitch) {
-  const grid = catalogue.grid, ring = Math.max(...[...grid.cells, ...grid.developer].flatMap(row => row.cell.map(Math.abs)));
+  const grid = catalogue.grid, ring = Math.max(...grid.cells.flatMap(row => row.cell.map(Math.abs)));
   const roads = Array.from({ length: 2 * ring + 2 }, (_, n) => (n - ring - 0.5) * pitch), inner = roads.slice(1, -1), points = [];
   for (const [row, z] of inner.entries()) for (const x of row % 2 ? [...inner].reverse() : inner) points.push({ x, z });
   const edge = roads.at(-1), last = points.at(-1);

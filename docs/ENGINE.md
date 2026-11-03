@@ -7840,7 +7840,7 @@ kinds, gaps and out-of-range indices refuse before the view is installed.
 ### Retained grid map pixels
 
 The Bag world map uses one app-build atlas of all declared cell products,
-including Developer overrides. It loads and charges that one RGBA image before
+including build-time DEVSERVER rows. It loads and charges that one RGBA image before
 play; opening the map never admits a region to obtain its picture. A product
 without a declared map has an explicit plain-plot diagram; declared missing or
 corrupt image bytes refuse the build. Repeated placements share their tile.

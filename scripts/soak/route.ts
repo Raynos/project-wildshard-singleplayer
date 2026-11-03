@@ -99,10 +99,9 @@ export function soakRoute(cells: readonly Cell[], pitch = 555, leg: 'cells' | 'r
   return { reference, steps };
 }
 
-/** Production catalogues exclude DEVSERVER additions in both gate layouts. */
-export function soakCatalogue(grid: { readonly cells: readonly Cell[]; readonly developer: readonly Cell[] }, layout: 'shipped' | 'dev'): readonly Cell[] {
+/** One production catalogue serves both audiences; DEVSERVER additions are excluded. */
+export function soakCatalogue(grid: { readonly cells: readonly Cell[] }, _layout: 'shipped' | 'dev'): readonly Cell[] {
   const selected = new Map(grid.cells.map((cell) => [cell.cell.join(','), cell]));
-  if (layout === 'dev') for (const cell of grid.developer) selected.set(cell.cell.join(','), cell);
   const cells = [...selected.values()];
   if (new Set(cells.map((cell) => cell.instance)).size !== cells.length) throw new Error('Soak requires unique catalogue instances');
   return cells;
