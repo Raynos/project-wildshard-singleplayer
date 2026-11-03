@@ -581,7 +581,8 @@ export class ShardfileClient {
     }
     if (ctx.product.has('ui/completion') && ctx.product.section('ui/completion').trigger === 'quest') installCompletion(ctx, sim.host.flags, play.progress);
     runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
-    if (this.bindings.audioOwner !== 'runtime') installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
+    // An admitted scene installs its own declared profiles once in the play phase.
+    if (this.bindings.audioOwner !== 'runtime' && !this.plan?.features.some(row => row.kind === 'audio.scene')) installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,
       // Read actual live views; an authored spawn or a detached model alone cannot satisfy the author view proof.
       equipmentEvidence: () => {
