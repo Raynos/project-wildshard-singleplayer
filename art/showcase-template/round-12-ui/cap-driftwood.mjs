@@ -161,18 +161,19 @@ const ITEMS = [
       window.__P.add(d.querySelector('.ws-combat-death-card'), '<div class="ws-combat-death-cost"><b>−340 XP</b>25 % of level 7<small>never below level 7 · Scrip and parts kept</small></div>');
     }),
     teardown: (page) => page.evaluate(() => { const d = document.querySelector('.ws-combat-death'); d.style.removeProperty('--ws-death-veil'); }) },
-  { id: 'UI-10', slug: 'character-tab', title: 'Character tab (read-only): 7 attributes vs par, ▲▼ aptitude, derived (E0f · HC5)',
+  { id: 'UI-10', slug: 'character-tab', title: 'Character tab: GEAR folded in as a sub-tab (E0f · HC5)', note: 'five tabs · opens on CHARACTER',
     setup: (page) => menu(page, 'gear'),
     inject: (page) => page.evaluate(() => {
       const tabs = document.querySelector('.ws-gmenu-tabs'); window.__P.cls(tabs, ['review']);
       for (const b of tabs.querySelectorAll('.ws-gmenu-tab.active')) window.__P.cls(b, [], ['active']);
       const gear = tabs.querySelector('[data-tab=gear]'), icon = gear.querySelector('.ws-gmenu-ticon').innerHTML;
       void icon; const btn = document.createElement('div'); btn.innerHTML = `<button class="ws-gmenu-tab active" type="button" data-tab="character"><i class="ws-gmenu-ticon"><svg viewBox="0 0 64 64" fill="currentColor"><circle cx="32" cy="18" r="11"/><path d="M10 58 C10 40 20 32 32 32 C44 32 54 40 54 58 Z"/></svg></i><span class="ws-gmenu-tword">Character</span></button>`;
-      const b = btn.firstElementChild; b.dataset.proto = '1'; gear.after(b);
+      const b = btn.firstElementChild; b.dataset.proto = '1'; gear.after(b); window.__P.gone(gear); // Jake 11-03: Gear and Character are one of five tabs
       const old = document.querySelector('.ws-gmenu-panel.active'); window.__P.cls(old, [], ['active']);
       const A = [['VIT', 184, 176, 660, 'up', '▲ 1.2', 'HP'], ['STR', 33, 35, 132, '', '1.0', 'melee damage'], ['DEX', 37, 35, 132, 'up', '▲ 1.2', 'ranged damage · hit chance · melee crit'], ['AGI', 41, 45, 88, 'down', '▼ 0.8', 'dodge · ranged crit'], ['DEF', 40, 39, 88, '', '1.0', 'physical armour · more DEFLECTs on you'], ['MDEF', 17, 18, 88, '', '1.0', 'burn · shock · blast'], ['LUK', 12, 13, 22, 'down', '▼ 0.8', 'crit size · lucky saves']];
       const rows = A.map(([k, v, par, cap, cls, apt, what]) => `<div class="ws-char-row"><span>${k}</span><span class="bar"><i style="width:${(v / cap * 100).toFixed(1)}%"></i><u style="left:${(par / cap * 100).toFixed(1)}%"></u></span><b>${v}</b><em class="${cls}">${cls === 'up' ? '▲ ' : cls === 'down' ? '▼ ' : ''}par ${par}</em><div class="ws-char-what">${what}</div></div>`).join('');
       window.__P.add(old.parentElement, `<div class="ws-gmenu-panel scroll active" data-scroll="">
+        <div style="display:flex;gap:8px;margin:0 0 14px">${[['Character', 1], ['Gear', 0]].map(([w, on]) => `<span style="flex:1;text-align:center;padding:9px 0;font-size:13px;letter-spacing:.22em;text-transform:uppercase;border:1px solid ${on ? 'var(--ws-cyan)' : '#ffffff26'};color:${on ? 'var(--ws-cyan)' : '#c9ccd1'};background:${on ? '#7fd8ff1a' : 'transparent'}">${w}</span>`).join('')}</div>
         <div class="ws-gmenu-label">Level 7 · this shard only</div>
         <div class="ws-gmenu-card"><div class="ws-gmenu-cardtitle">LV 7 · 64 / 2,890 XP</div><div class="ws-bar"><i style="width:2.2%"></i></div><div class="ws-gmenu-note">Your level and attributes belong to this shard. They grow by themselves each level: nothing to spend.</div></div>
         <div class="ws-gmenu-label">Attributes · white tick = par at LV 7 · ▲▼ aptitude</div>${rows}
@@ -221,7 +222,7 @@ const ITEMS = [
       });
     }),
     teardown: async (page) => { await page.keyboard.press('Escape').catch(() => {}); await page.evaluate(() => { document.querySelector('.ws-quest-talk.show')?.click(); }); await sleep(600); } },
-  { id: 'UI-14', slug: 'quest-list', title: 'Quest list on the map tab: all 12 active, one tracked (W1b · D13 / D14)',
+  { id: 'UI-14', slug: 'quest-list', title: 'Map tab: MAP | QUESTS sub-tabs, the quest list (W1b · D13)', note: 'QUESTS sub-tab shown',
     setup: (page) => menu(page, 'map'),
     inject: (page) => page.evaluate(() => {
       const Q = [['tracked', 'Drone Season', 'LV 7 · 3 / 8 drones', 'Tracked'], ['', 'Clock In', 'LV 1 · done', 'done'], ['', 'Spare Servos', 'LV 2 · 4 / 6 servos', 'T1'], ['', 'Survey the Yard', 'LV 4 · 3 / 4 places', 'T1'], ['', 'Big Pallet', 'LV 6 · hunt', 'T1'], ['', 'Lights Out', 'LV 9 · storm hour', 'T2'], ['locked', 'Keycard', 'needs LV 10', 'T2']];
@@ -230,6 +231,13 @@ const ITEMS = [
       const list = document.createElement('div'); list.className = 'ws-gmenu-qlist'; list.dataset.proto = '1';
       list.innerHTML = `<div class="ws-gmenu-label">Quests · 11 active · 1 done</div>${rows}<div class="ws-gmenu-qmore">+ 5 more · tap a quest to track it</div>`;
       card.before(list);
+      // Jake 11-03: map and quests share the tab, toggled by two nested sub-tabs
+      const panel = list.closest('.ws-gmenu-panel') ?? list.parentElement;
+      for (const k of [...panel.children]) if (k !== list && !k.contains(list)) window.__P.gone(k);
+      for (const k of [...list.parentElement.children]) if (k !== list) window.__P.gone(k);
+      const tabs = document.createElement('div'); tabs.dataset.proto = '1'; tabs.style.cssText = 'display:flex;gap:8px;margin:0 0 14px';
+      tabs.innerHTML = [['Map', 0], ['Quests', 1]].map(([w, on]) => `<span style="flex:1;text-align:center;padding:9px 0;font-size:13px;letter-spacing:.22em;text-transform:uppercase;border:1px solid ${on ? 'var(--ws-cyan)' : '#ffffff26'};color:${on ? 'var(--ws-cyan)' : '#c9ccd1'};background:${on ? '#7fd8ff1a' : 'transparent'}">${w}</span>`).join('');
+      list.before(tabs);
       window.__P.swap(card, (c) => {
         c.querySelector('.ws-gmenu-mapquest-title').textContent = 'Drone Season · tracked';
         c.querySelector('.ws-gmenu-mapquest-obj').innerHTML = '<i></i>Down 8 Plumb Drones in band 3 · 3 / 8';
@@ -310,7 +318,7 @@ const ITEMS = [
       await page.evaluate(() => { window.__wildshard.world.hud.toast('The doors seal · clear the room'); window.__P.restack(document.querySelector('.ws-game-weather')); });
       await sleep(400);
     }, teardown: async (page) => { await chipOff(page); await clearToasts(page); } },
-  { id: 'UI-30', slug: 'shrine-complete', title: 'SHRINE COMPLETE card: time, deaths, rooms (DG3, the complete card’s layout)',
+  { id: 'UI-30', slug: 'shrine-complete', title: 'SHRINE COMPLETE: one Continue; leave by the real portal (DG3)', note: 'no exit or rerun buttons',
     setup: async (page) => { await atPier(page); await page.evaluate(() => { window.__wildshard.shard['driftwood.adventure'].complete.open(); }); await sleep(1600); },
     inject: (page) => page.evaluate(() => {
       const c = document.querySelector('.ws-complete.show .ws-complete-card');
@@ -320,8 +328,9 @@ const ITEMS = [
       const stats = [['Time', '11:42'], ['Best', '11:42 · new'], ['Deaths', '2'], ['Rooms', '4 / 4', 1], ['Chest', '150 Scrip · Plate Core'], ['Trophy', 'Warden’s Plate']];
       c.querySelector('.ws-complete-grid').innerHTML = stats.map(([l, v, f]) => `<div class="ws-complete-stat"><div class="ws-complete-lab">${l}</div><div class="ws-complete-val${v.length > 9 ? ' sm' : ''}">${v}</div>${f !== undefined ? `<div class="ws-complete-bar"><i style="width:${f * 100}%"></i></div>` : ''}</div>`).join('');
       for (const n of c.querySelectorAll('.ws-complete-todo, .ws-complete-rule + .ws-complete-lab')) n.style.display = 'none';
-      c.querySelector('[data-act=keep]').innerHTML = 'Through the exit portal<b>▸</b>';
-      c.querySelector('.ws-complete-row2').innerHTML = '<button type="button" class="ws-complete-btn sec">Run it again</button><button type="button" class="ws-complete-btn sec">Best times</button>';
+      // Jake 11-03: leaving is walking through the real exit portal and a rerun starts in the world, so the card only closes
+      c.querySelector('[data-act=keep]').innerHTML = 'Continue<b>▸</b>';
+      c.querySelector('.ws-complete-row2').outerHTML = '<p style="margin:10px 0 0;text-align:center;font-size:13px;letter-spacing:.06em;color:#c9ccd1">The exit portal is open behind the chest.<br>Walk through it to leave · walk back in to run it again.</p>';
     }),
     teardown: async (page) => { await page.evaluate(() => { document.querySelector('.ws-complete [data-act=keep]')?.click(); }); await sleep(900); } },
   { id: 'UI-31', slug: 'trick-score', title: 'Hover park: trick words + the score in the quest chip’s place, in the park only (W5b)', note: 'quest chip hidden in the park',
