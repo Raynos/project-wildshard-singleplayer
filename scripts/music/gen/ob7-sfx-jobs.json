@@ -131,8 +131,8 @@
       "kind": "bed",
       "into": "mosslight-ruins",
       "duration": 30,
-      "desc": "Soft wind flowing through old stone ruins and water dripping in a courtyard",
-      "prompt": "Soft wind flowing through old stone ruins and water dripping in a courtyard. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+      "desc": "Quiet woodland ambience with light wind in leafy trees and distant small birds",
+      "prompt": "Continuous quiet outdoor woodland ambience. Soft breeze rustles a leafy tree canopy, with a few very distant small bird chirps. Constant airy foliage rustle is dominant. Wide gentle background environmental sound suitable for a loop. No melody, no voices, no resonant hum, no heavy wind, no rain."
     },
     "hum.mosslight-ruins.pool-hum": {
       "kind": "hum",
@@ -152,8 +152,8 @@
       "kind": "hum",
       "into": "mosslight-ruins",
       "duration": 10,
-      "desc": "Soft airy wind whistling through a broken stone arch",
-      "prompt": "Soft airy wind whistling through a broken stone arch. Natural spacious field recording, restrained volume, continuous texture with irregular gentle events, suitable for looping. No music, no melody, no human speech, no distortion."
+      "desc": "Wind whistling and blowing through a hollow stone passage",
+      "prompt": "Nonmusical wind heard from inside a small stone doorway. A soft low hollow wind howl and airy whistle, with irregular gentle gusts and brief whooshes through the sheltered stone passage. Environmental wind recording, suitable for a loop. No birds, no chimes, no music, no voices, no rain."
     },
     "hum.mosslight-ruins.falling-grit": {
       "kind": "hum",
