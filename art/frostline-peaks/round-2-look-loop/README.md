@@ -51,7 +51,20 @@ falls from 6.31 MB to 5.98 MB (the peak texture and the strings), and its ceilin
 
 **Ruling (G872): R4 ships.** Light only: no bytes, no draws.
 
+## R5 gap list (R4 against T0) and fixes
+
+| File | What |
+|---|---|
+| `sheet-r5.jpg` | R5: after this round |
+| `board-r5.jpg` | R5's BEFORE (R4) · AFTER · TARGET for four of the angles |
+
+- **Bare dark pines** (T0: snow on every tier). The kit's pine (`scripts/blender/open-plots/frost.py`) keeps its
+  three lathed tiers and their rings; each tier's snow line moves from 45 % of its width, high on the cone, to 70 % of
+  its width, 30 % up, so a short needle skirt shows under a snow-laden tier from the ground and from above.
+
+**Ruling (G872): R5 ships.** The same triangles; the phone wire goes 5,979,891 -> 5,913,455 B.
+
 ## Still open
 
-- **Bare dark pines** (T0: snow on every tier): the kit's pine model, a mesh change.
 - **No long blue shadows on the snow** and the sky still lighter than T0's cobalt.
+- The pines' snow reads grey on the shaded side in first person.

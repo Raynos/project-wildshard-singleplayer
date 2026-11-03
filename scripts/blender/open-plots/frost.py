@@ -112,7 +112,9 @@ def cabin():
 def pine(p, x, y, h, spin):
     p.prism(x, y, 0.18 * h / 7, 0.12 * h / 7, 0, h * 0.3, 5, 'Kit.wood')
     for k, (lo, hi, w) in enumerate(((0.2, 0.6, 0.4), (0.42, 0.82, 0.3), (0.64, 1.0, 0.2))):
-        p.lathe(x, y, [(h * w, h * lo), (h * w * 0.45, h * (lo + hi) / 2 + 0.05 * h), (0.0, h * hi)], 7,
+        # OB3 look round 5 (Frostline's T0: snow on every tier): the snow line sits low on each tier, a short needle
+        # skirt under it, so the tiers read snow-laden from the ground as well as from above (the same rings)
+        p.lathe(x, y, [(h * w, h * lo), (h * w * 0.7, h * (lo + 0.3 * (hi - lo))), (0.0, h * hi)], 7,
                 ['Kit.pineDark' if k == 0 else 'Kit.pine', 'Kit.snow'], spin=spin + k * 0.4, cap_bottom=True)
 
 
