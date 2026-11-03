@@ -1,6 +1,6 @@
 # Open plots: morning listening batch
 
-**Status:** `unread` 2026-11-03 — All six plots pass native bar 10; both score takes are on the shared listening list.
+**Status:** `unread` 2026-11-03 — Published sets below carry native bar-10 proofs; both score takes and ambience beds are on the shared listening list.
 **Link:** https://wildshard-singleplayer.vercel.app/assets/music/ob7-listening.html (ships with the automatic deployment)
 **Plan:** OPEN-PLOTS, [build-out OB7 and OB10](../../project/archive/2026-11-03-open-plots-build-out.md)
 **Made by:** E521, sp-x2 / Codex
@@ -305,3 +305,51 @@ Raw bridge and native records: `tmp/sp-x2-ob7/`. X1/X8's final matched
 Chromium/control, maintained walk, golden bridge, separate memory and
 official Simulator remain open on the ensuing immutable audio source.
 This audio landing makes no performance, memory or full OP11 close claim.
+
+Starfall Observatory publication `aa4523e79a` selects **B, seed 702**:
+68.16 s, 0.22% separated vocal energy, no clipping or internal silence.
+A is 56.54 s but measures 39.89% vocal energy, above the unchanged 10%
+limit, and stays comparison-only. Both candidates and the canonical
+bed can be auditioned on the listening page; no agent ear verdict is
+claimed. Six local spots pass the pinned 94-description comparison bar
+at ranks **4 / 1 / 3 / 1 / 1 / 2**. Both engines and all four failed
+own-bed takes retain their exact wave and metadata hashes.
+
+G872 and O3 accept the measured/described fit of Lantern Bayou's
+canonical frogs, crickets and lapping water for the night canal ring
+and garden ponds. That exact **224,980 B** recording is referenced
+without copying. Its original loop remains 8.25–26.25 s with catalogue
+duration 27.25 s; ffmpeg reads 27.30 s, **-24.22 LUFS**, LRA **1.70 LU**,
+peak **-7.04 dBFS**. Original paired comparisons both rank first. Keep
+the named **no continuous fountain or chimes in the bed** gap; the canal,
+pavilion chimes and four other local spots remain. The normal -24 LUFS
+bed target, native 0.45 bed mix and -20 LUFS score target are retained.
+Source licence, exact hashes, measured fit and the gap are recorded in
+the reuse credit bundle. This is a descriptive fit, not an ear check.
+
+Package **1,425,196 B**, including the shared bed; **1,200,216 B** newly
+published, each file below 1 MB. Eight active AAC bodies total
+**1,058,353 B**. Native packet admission and decoded loop bounds pass.
+Full source-bound native bar 10 passes in **17 s** before landing on
+ordinary candidate `060198eb6c-mw17gbp0`: own B recording, seven decoded
+cue loops, sustained score/bed, native pause/resume, six positional gains
+0.392454–0.398463 and heading pans -0.698204–+0.696526, no page errors.
+Muted iPhone 16 Pro, 402 × 874, phone tier and 2× render scale; browser
+closed. An earlier receipt with an incorrect full pin was discarded;
+only the fresh check bound to verified commit
+`060198eb6cee7d32cb7a1938ecd80497a1322ee6` qualifies.
+
+Against immutable BEFORE `300a65548b`, all **158 prior file bodies,
+9,173,791 B**, and **32/34 old sections** stay exact, with no removals.
+Only audio/audio and the defining-source map tilesHash stamp differ;
+the map image stays exact. Eight audio bodies and the exact native
+242 B audio-only client plan join. Complete candidate index, bodies
+and packs match the ordinary producer. Phone wire is
+**4,873,412 → 5,911,520 B**: G872 approves the exact **+1,038,108 B**
+audio ceiling change, preserving the old **0 B margin**. The original
+old-ceiling refusal remains; no admission or verification is skipped.
+
+Raw records: `tmp/sp-x2-ob7/starfall-*`. X1/X8's final matched/control,
+walk, golden bridge, separate memory and official Simulator remain
+open on the ensuing immutable audio source. No final performance,
+memory or full OP15 close is claimed by this audio landing.

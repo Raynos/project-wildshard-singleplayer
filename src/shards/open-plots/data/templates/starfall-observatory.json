@@ -25,7 +25,19 @@
         }
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.starfall-observatory",
+        "score": "score.starfall-observatory",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/starfall-observatory/**",
+        "public/assets/sfx/starfall-observatory/**",
+        "public/assets/sfx/lantern-bayou/ambience-99496e6be1b8.m4a"
+      ]
     },
     "layout": "starfall-observatory",
     "scaffold": true,

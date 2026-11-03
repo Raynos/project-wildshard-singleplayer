@@ -510,5 +510,65 @@
         "reach": 50
       }
     ]
+  },
+  "starfall-observatory": {
+    "idea": "starfall-observatory",
+    "source": {
+      "dir": "/assets/music/starfall-observatory/",
+      "manifestKey": "starfall-observatory"
+    },
+    "sfxDir": "/assets/sfx/starfall-observatory/",
+    "files": {
+      "score": "take-b-14c36abd5346.m4a",
+      "ambience": {
+        "set": "lantern-bayou",
+        "file": "ambience-99496e6be1b8.m4a",
+        "dir": "/assets/sfx/lantern-bayou/"
+      },
+      "dome-motor": "dome-motor-c40a8a4133b7.m4a",
+      "canal-lap": "canal-lap-b50de9cf4079.m4a",
+      "pavilion-chimes": "pavilion-chimes-995b4a756734.m4a",
+      "garden-frogs": "garden-frogs-b84c5197a74d.m4a",
+      "window-lute": "window-lute-27fa05e57684.m4a",
+      "kiosk-murmur": "kiosk-murmur-0b464681052b.m4a"
+    },
+    "spots": [
+      {
+        "id": "dome-motor",
+        "x": 0,
+        "z": 0,
+        "reach": 60
+      },
+      {
+        "id": "canal-lap",
+        "x": 93.75,
+        "z": 0,
+        "reach": 40
+      },
+      {
+        "id": "pavilion-chimes",
+        "x": 156.25,
+        "z": 31.25,
+        "reach": 35
+      },
+      {
+        "id": "garden-frogs",
+        "x": 218.75,
+        "z": 93.75,
+        "reach": 30
+      },
+      {
+        "id": "window-lute",
+        "x": 156.25,
+        "z": 218.75,
+        "reach": 30
+      },
+      {
+        "id": "kiosk-murmur",
+        "x": 218.75,
+        "z": 31.25,
+        "reach": 40
+      }
+    ]
   }
 }
