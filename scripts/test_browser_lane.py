@@ -114,7 +114,9 @@ print('entered',flush=True);sys.stdin.read(1);sys.exit(7)
                                     "import sys;print('entered',flush=True);sys.stdin.read(1)"], self.env)
         self.entered(child)
         child.send_signal(signal.SIGTERM)
-        child.communicate(timeout=3)
+        # Keep stdin open until the forwarded signal ends the command. Closing
+        # it in communicate() can instead let the blocked reader exit zero.
+        child.wait(timeout=3)
         self.assertEqual(child.returncode, 128 + signal.SIGTERM)
         after = subprocess.run([*helper, sys.executable, '-c', 'raise SystemExit(9)'],
                                capture_output=True, text=True, timeout=2, check=False)
