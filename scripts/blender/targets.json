@@ -239,6 +239,18 @@
    "copy": [["lanterns.glb", "public/assets/open-plots/kit/lanterns.glb"], ["stalls.glb", "public/assets/open-plots/kit/stalls.glb"], ["houses.glb", "public/assets/open-plots/kit/houses.glb"], ["bridges.glb", "public/assets/open-plots/kit/bridges.glb"], ["strings.glb", "public/assets/open-plots/kit/strings.glb"], ["props.glb", "public/assets/open-plots/kit/props.glb"], ["canal.glb", "public/assets/open-plots/kit/canal.glb"], ["trees.glb", "public/assets/open-plots/kit/trees.glb"], ["figures.glb", "public/assets/open-plots/kit/figures.glb"]],
    "outputs": ["public/assets/open-plots/kit/lanterns.glb", "public/assets/open-plots/kit/stalls.glb", "public/assets/open-plots/kit/houses.glb", "public/assets/open-plots/kit/bridges.glb", "public/assets/open-plots/kit/strings.glb", "public/assets/open-plots/kit/props.glb", "public/assets/open-plots/kit/canal.glb", "public/assets/open-plots/kit/trees.glb", "public/assets/open-plots/kit/figures.glb"],
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
+  "open-plots/bayou": {
+   "about": "Lantern Bayou's theme kit families (open-plots build-out OB2, G978): stilt houses and marsh dressing in the kit's format, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/bayou.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["stilts.glb", "marsh.glb"],
+   "copy": [["stilts.glb", "public/assets/open-plots/kit/stilts.glb"], ["marsh.glb", "public/assets/open-plots/kit/marsh.glb"]],
+   "outputs": ["public/assets/open-plots/kit/stilts.glb", "public/assets/open-plots/kit/marsh.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   }
  }
 }
