@@ -3477,3 +3477,47 @@ rows, an f32 round-trip changes **240,975 of 244,750 numbers** (maximum
 7.626953134831638e-6). That is not an exact reconstruction; an opaque u8
 JSON payload or a fresh one-user decoder would not fix the whole-root
 bar. Existing binary ground and collider sources remain unchanged.
+
+### Z6 census: held roots and two unread copies (2026-11-03, sp-x8)
+
+The ten target bodies total **1,910,790 B** in immutable
+`54771ba-mw0sut9p`; this is a payload census, not a visual baseline for
+Nalati (QD11 subsequently fixed its exposure). Every named JSON body and
+platform section was walked for exact references, separately from source
+reader and whole-root producer searches. The target bodies and original
+`held/*` sections are preserved for reconstruction checks.
+
+G872 authorizes deleting two exact reader-less copies, **39,941 B**:
+
+| File / bytes / SHA-256 | Canonical owner and refusal boundary |
+|---|---|
+| Nalati `weapons/rifle-model.json`, **35,744 B**, `9814f8b49a28acc52d77d137b2fb1dd0859ab7407f0f7bf07da9e19ccc46893e` | Zero emitted references and zero source readers. Its complete value equals `weapons/rifle-page.json.rows`; that unchanged page retains `HeldFirearmPageSchema`, original native firearm playback/profile/view admission and resource ownership. |
+| Pine `loadout/finishes.json`, **4,197 B**, `2ebca6078a5b850f15d93a3c52dd2f8f6afa6687e093d4f8777e76c628ecb57e` | Zero emitted references and zero source readers. Its complete value equals the existing platform `held/finishes.rows`; native finish metadata, materials, drop ownership and malformed/atomic failure checks remain there. |
+
+Both cuts are authored but **not landed or capture-qualified** at this
+census boundary. G998 goldens and additional held-view captures remain
+required. No payload alias or replacement private envelope is introduced.
+
+Six complete live roots remain charged for Jake's G988 one-user batch:
+
+| Complete file / bytes / SHA-256 | Actual route, native owner and whole-user evidence |
+|---|---|
+| Nalati `weapons/bow-page.json`, **22,780 B**, `46d521bd3a3936c6702ebde4d7fa083c4b042b05dec0deb55ab1b52bc597ed84` | `held/slots.json.slots[2].file` → `HeldClaims.loadBow` → original `bindHeldBow` and native model-pool owner. Full `HeldBowFileSchema` includes pool/bow/base; only Nalati emits and drives this whole document. Pine's nested bow definition/pool inside a different equipment root is not a second complete file user. Existing channel, geometry, profile, presentation and native input refusals remain. |
+| Nalati `weapons/rifle-page.json`, **36,302 B**, `4a31a2b080284dea17f1b27ef0f97bdbff455ae6f249251c1b405e62d3623ef9` | `held/slots.json.slots[3].file` → `HeldClaims` firearm construction → original `HeldFirearm` owner. Full `HeldFirearmPageSchema` contains feel/rows/view and the entire playback/model/presentation table. Pine's lever firearm shares native children but does not emit or consume this complete page. Existing firearm/profile/view admission is unchanged. |
+| Nalati `weapons/sabre.json`, **17,348 B**, `a6897b67bd447645beaf4663029a932e22637727788a20b5d0ced1b28244c398` | `held/slots.json.slots[0].source.file` → `mountedBlade` → original full `BladeRowsSchema` and mounted blade/pass/decision-program owners. Pool, rig, blade, moves, power, program and parts form the complete root; one real whole-root shard producer. Pine's distinct held-equipment root is not another blade page. |
+| Nalati `weapons/spear.json`, **8,883 B**, `b35efe728409cd896cbb0b4d16a02406da3ab8c16ad3b150ed65944e028116a4` | `held/slots.json.slots[1].file` → `heldPolearm` → original full `PolearmRowsSchema`, native pool, throw/recover/lance and decision-program owners. Pool/presentation/profile/program/view are all retained. No second whole-root producer exists. |
+| Nalati `held/slots.json`, **7,696 B**, `951be9afac0629f2197cbd6bba2914bc8cc02202c6d825844a39ec156d9a1b11` | Actual `client/plan` held.claims.prepare source.slots → `HeldClaims` → `parseHeldSlots`. Complete finite slots/registration/equipment/selection/mount/refills/upgrades grammar retains duplicate-item/slot, coverage, destination-kind and native owner/refusal checks. Nine's declared-primary envelope and Pine's equipment envelope are distinct roots, not second users. |
+| Nine `weapons/jian-row.json`, **390,446 B**, `a7830f4f47d5172ed7eaa4caa805e7cc3437806366a2c666e3e122a85d858b84` | Actual `held/arms.primary.file`, `client/plan` grapple.presentation, `ui/level` render/sword bindings and held cards all read this same one-shard envelope. Native `HeldView.fromProduct`/`GraphArmsSchema`, grapple and graph-look owners retain their existing admissions. The entire portraitFov/aim/bursts/view/look envelope has no second whole-root producer; its shared children and multiple consumers do not earn complete-root credit. Its quoted hash is the census baseline; a later GLB reference change must be shown separately. |
+
+These six total **483,455 B**. No new platform-family registration or
+count credit is claimed for them. Routing them into `held/*` without a
+real second complete native-type user would merely rename a private root.
+
+Nine's two remaining targets are the cloth collection (**1,362,188 B**)
+and halo (**25,206 B**). The read-only spike admits both replacement GLB
+collections through the existing `worldScenePool`/`createModelLibrary`
+host. All six original parts retain exact typed attribute/index bytes,
+normalization, widths, groups, draw range and authored bounds, including
+signed zero. This is a transport proof only: source wiring, refusal
+controls, Nine's 24 goldens and identical Jian views in Chromium/WebKit
+remain open. No GLB count reduction is claimed at this census boundary.
