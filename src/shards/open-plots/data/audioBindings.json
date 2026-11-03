@@ -457,5 +457,58 @@
         "reach": 28
       }
     ]
+  },
+  "sky-harbor": {
+    "idea": "sky-harbor",
+    "source": {
+      "dir": "/assets/music/sky-harbor/",
+      "manifestKey": "sky-harbor"
+    },
+    "sfxDir": "/assets/sfx/sky-harbor/",
+    "files": {
+      "score": "take-a-0f10cfca8bab.m4a",
+      "ambience": {
+        "set": "coral-drift",
+        "file": "ambience-6243d1442260.m4a",
+        "dir": "/assets/sfx/coral-drift/"
+      },
+      "basin-water": "basin-water-f02c555ed561.m4a",
+      "dock-crane": "dock-crane-6afae223008b.m4a",
+      "wharf-gulls": "wharf-gulls-cc38849616fe.m4a",
+      "corner-cottages": "corner-cottages-604677496f75.m4a",
+      "road-entry": "road-entry-d8754561c5d7.m4a"
+    },
+    "spots": [
+      {
+        "id": "basin-water",
+        "x": -94,
+        "z": 94,
+        "reach": 35
+      },
+      {
+        "id": "dock-crane",
+        "x": -76,
+        "z": 117,
+        "reach": 30
+      },
+      {
+        "id": "wharf-gulls",
+        "x": -31,
+        "z": 156,
+        "reach": 45
+      },
+      {
+        "id": "corner-cottages",
+        "x": -219,
+        "z": 219,
+        "reach": 40
+      },
+      {
+        "id": "road-entry",
+        "x": 0,
+        "z": -230,
+        "reach": 50
+      }
+    ]
   }
 }

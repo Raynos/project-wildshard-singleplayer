@@ -254,3 +254,54 @@ the old **10 B** margin. The normal producer first refused the old cap;
 no admission bypass. Raw records: `tmp/wave-a-audio/saltwind-readings/`.
 X1/X8 final readings remain open on the ensuing immutable audio source;
 this is no official timing/memory or row-close claim.
+
+Sky Harbor audio publication is `38e01a3407`; source roster `5307fd5d8f`
+keeps five qualified spots and the named **no airship hum, rigging or
+tower flag** gap. A measures 27.06 s, zero separated vocal energy and
+0.00465% clipped samples, passing the existing checks. B measures 20.77 s
+and 0.01987% clipped samples, so it remains comparison-only. Both MiniMax
+takes stay on the listening page. There is no ear-reviewed taste claim.
+
+Three paired bed and airship attempts remain in the catalogue with all
+12 raw-wave and metadata hashes. The five shipping winners rank
+3 / 3 / 1 / 1 / 1 against the pinned 94-description comparison roster
+(`d6092e34c4`): basin water and dock crane use Stable Audio, wharf gulls
+and cottage chimes use MOSS, and road entry uses Stable Audio. All meet
+the unchanged top-five bar. No failed cue or rank allowance ships.
+
+G872 accepts Coral's canonical `ambience-6243d1442260.m4a`, 231,398 B,
+through the native shared reference, with **no copied bed file**. O2's
+fit is measured/descriptive: 28 s, -24.9 LUFS integrated, LRA 4.9 LU,
+peak -6.7 dBFS; 59% energy at 500 Hz–2 kHz, 21% at 2–6 kHz, less than
+1% below 150 Hz, spectral flatness 0.21 without tonal peaks, envelope
+CV 0.66. Soft irregular water and breeze match Sky's open harbour basins;
+local spots supply harbour clutter. This is not an agent ear check.
+The exact canonical hash, original paired provenance, licence, measured
+fit and missing airship layers are in the reuse credit bundle. The
+listening page now exposes the actual bed and source credits as well as
+both scores, so Jake can judge it by ear.
+
+The package is **800,979 B including the shared bed**, with only
+**569,581 B newly published**. Each file stays below 1 MB and the package
+below 3 MB. Seven active AAC bodies total 629,636 B; native packet
+admission and decoded loop bounds pass. Full native bar 10 passes in
+15 s before landing on ordinary working candidate
+`3dbfcb0fc1-mw16svtm`: own recorded A, six decoded cue loops, sustained
+score and bed, native pause/resume, five positional gains
+0.392995–0.397831 and heading pans -0.698945–+0.696033; no page errors.
+The muted phone profile is 402 × 874 at 2× render scale. Browser closed.
+
+Immutable BEFORE `300a65548b` and the actual candidate reconstruct all
+**158 prior file bodies, 8,822,239 B, exactly**, with no removals;
+**32/34 old sections** are exact. Only audio/audio and the defining-source
+tilesHash stamp change; the map image stays exact. Seven audio files and
+the exact 242 B native audio-only client plan join. All served candidate
+index, body and pack bytes match the normal producer. Phone wire moves
+**3,768,825 → 4,384,382 B**, exactly **+615,557 B** audio; G872 approves
+that exact ceiling while preserving the prior **0 B margin**. The old-cap
+refusal is retained; no verification or admission is skipped.
+
+Raw bridge and native records: `tmp/sp-x2-ob7/`. X1/X8's final matched
+Chromium/control, maintained walk, golden bridge, separate memory and
+official Simulator remain open on the ensuing immutable audio source.
+This audio landing makes no performance, memory or full OP11 close claim.

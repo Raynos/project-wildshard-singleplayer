@@ -25,7 +25,19 @@
         }
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.sky-harbor",
+        "score": "score.sky-harbor",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/sky-harbor/**",
+        "public/assets/sfx/sky-harbor/**",
+        "public/assets/sfx/coral-drift/ambience-6243d1442260.m4a"
+      ]
     },
     "layout": "sky-harbor",
     "scaffold": true,
