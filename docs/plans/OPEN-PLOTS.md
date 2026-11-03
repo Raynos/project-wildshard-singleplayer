@@ -197,6 +197,21 @@ readings and reviewed board](../reviews/open-plots-final-readings.md#sky-harbor-
 The complete reading cohort is 2/10; the audio owner integrates OP11's other
 requirements separately. No visual source changes or new look claim.
 
+
+**Starfall final audio readings (2026-11-03, sp-x1 + sp-x8; locally held).**
+Exact `aa33a361f5` / build `aa33a36-mw17vdnh`: six ×120 matched Chromium/control
+frames (Starfall draws 47/54/54, p95 33.4 ms; original CPU/strict misses retained).
+Maintained walk all 14 waypoints, 0 stuck/out in 164.4107 s under the original
+180 s bound. Eight golden rows read green; sp-o3 classifies view 8 as the existing
+Pine far-proxy state / D220, no fix or promotion. Original interruption and
+quiet preflight refusal remain retained. X8's `c4adc34b31` has all eight official
+windows floor-pass, standalone native 272.540/874.985 MB playing/loading and
+pooled page 904.077/1,047.916 MB with all four junctions near/pending empty/settled.
+[Full source-bound readings and reviewed board](../reviews/open-plots-final-readings.md#starfall-observatory--walk-and-golden-bridge-sp-x1).
+Three of ten final cohorts are qualified; only two are published while Jake's
+push hold remains. Audio-owner OP15 integration stays separate. No visual
+source or golden promotion; the G994 look gaps remain.
+
 **Clockwork walk qualification (2026-11-03, sp-x9).** Ordinary pinned
 all-product admission passed for `f1d64e700c019186e175e15aa7c1442d7babc883`,
 actual build `f1d64e7-mw14grkc`. The maintained `walk.mjs` ran under the browser

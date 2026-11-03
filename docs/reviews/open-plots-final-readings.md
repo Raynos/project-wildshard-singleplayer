@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **2/10 complete: Saltwind and Sky Harbor; original refusals retained**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **3/10 qualified; 2 published, Starfall closure held locally under Jake's push hold**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -24,7 +24,7 @@ not qualify a later audio candidate. Saltwind's final admitted candidate is
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Chromium/control complete; walk/goldens open | Memory + standalone/grid official Sim complete |
+| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Qualified locally: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
@@ -643,7 +643,57 @@ golden credit is claimed. The conservative command-log-to-TERM interval is
 **22:02:01.691–22:02:42.726 UTC** on 2026-11-03; Chromium's exact launch was
 not separately timestamped. O2 retains that overlap and will re-read any
 affected official window. All own browser processes are verified absent.
-The walk/golden scopes remain open until O2's literal release. The own shared
-preview lease remains retained. Raw interruption evidence is
+That interrupted attempt remains unqualified. The later successful walk and
+golden closure is recorded below. Raw interruption evidence is
 `tmp/sp-x1-open-plots/starfall-final/interrupted-walk.json`.
 No visual source changes.
+
+## Starfall Observatory — walk and golden bridge (sp-x1)
+
+The final admitted audio source **aa33a361f5 / aa33a36-mw17vdnh** completes
+the maintained `road-avenue-plaza-scaffold` walk: **14/14 waypoints,
+0 stuck, 0 out, 164.4107 s**, endpoint **(0.001,0.020,-61.970)**,
+maximum Y **2.283 m**, final trace waypoint 13. The original 180 s allowance,
+continuous native controller, live clock and complete waypoint/endpoint
+checks remain intact. This is walk qualification, not a frame-floor reading.
+Route source is the exact pin's `scripts/physics-route.json`, SHA-256
+`f0f88e6a0ab42ce7f52380a79792dd3e64818f32b31337f15a5dd45a9b351fa9`.
+
+The first interrupted attempt above retains zero credit. The subsequent
+walk followed O2's literal release. Its queued golden wrapper then correctly
+refused another official quiet window **before creating a capture directory**.
+That raw refusal is retained. After O2's next literal release, the maintained
+capture completes **all eight views**, settled/pending empty, zero ring work,
+phone 2×, no page errors or context loss. No quiet guard is bypassed. The
+eight rows are individually read **8/8 green**. Cameras match exact source
+SHA-256 `46feb3b78fa5d81ba9370d51ea901840c9e43fcb8934a55f49faa958bdadfdf3`;
+all committed reference bodies also match the admitted pin.
+
+The [reviewed final-audio board](../../art/golden-runs/open-plot-starfall-observatory/2026-11-03-aa33a361f5-final-audio-board.jpg)
+retains the original GOLDEN/NOW comparison. Sp-o3 explicitly classifies
+view 8's changed pale distant band as **Pine Hollow's far proxy drawn in
+another state**, the existing Pine-owned **D220 / G908** family. Its bearing
+spans −18° to +4° around Pine cell (0,1); Nine is +38°, outside the ±31°
+frame. No Pine visual byte changes between the reference and this candidate;
+retiring unread `loadout/finishes.json` does not change its visual bodies.
+Starfall's observatory, gardens, canals, roofs and lanes hold in all views.
+No fix or golden promotion is made. SSIM 0.972–0.995 is descriptive only.
+G994's mid-blue sky without stars/Milky Way, missing plaza billboard and
+plaza-ring rather than avenue canals remain explicit.
+
+Together with the matched Chromium/control and X8's `c4adc34b31`
+memory/official Simulator results above, **Starfall's third final reading
+cohort is qualified**. All eight official windows meet the existing floor;
+standalone native envelopes are **272.540 / 874.985 MB** playing/loading,
+and pooled page **904.077 / 1,047.916 MB**. Per-shard memory limits and G556
+pooled-page scope remain separate. Strict 33.3 ms and render-CPU target
+misses stay visible; no physical-phone clearance is claimed. The audio
+owner retains native bar 10, body/wire proof and plan-row integration.
+
+The closure is **committed locally under Jake's push hold**, not yet a
+published third cohort. No audio/plot/docs push is requested. All own
+browsers are closed; the own shared preview use releases after recording.
+Raw walk, quiet refusal, successful capture, eight comparison rows, source
+bindings and explicit classification stay in
+`tmp/sp-x1-open-plots/starfall-final/finish-after-quiet/`. No visual source,
+collider, controller, budget, tolerance or verification rule changes.
