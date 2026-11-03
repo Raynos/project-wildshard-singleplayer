@@ -324,39 +324,45 @@ parity, or an explicitly approved Opus look change meets it.
 **Met (2026-11-03, Opus; G872 ruling, G844 board
 `art/driftwood-grid-draws/round-1-g913/before-after-board.jpg`).**
 Native draws a frame, Chromium ANGLE Metal, iPhone 16 Pro 402 × 714 at
-2×, phone tier, Developer, seed 357, 120 frames after 20 s settle per
-pose. HEAD `0c3e3ca` preview → the same tree with the cuts:
+2×, phone tier, Developer, seed 357, live clock, after a 20 s settle.
+Before: HEAD `0c3e3ca`, 120 frames a pose. After: `13bbae2567`,
+1440 frames at spawn and 360 at each other pose.
 
 | Pose | Before max (p50) | After max (p50) |
 |---|---:|---:|
-| Spawn (0, −194, yaw π) | 191 (191) | **150 (150)** |
-| Cove (spawn, yaw −2.2) | 199 (177) | 166 (144) |
-| Trail (−22, −90, yaw 0.75π) | 153 (153) | 128 (128) |
+| Spawn (0, −194, yaw π) | 191 (191) | **144 (142)** |
+| Cove (spawn, yaw −2.2) | 199 (177) | 137 (135) |
+| Trail (−22, −90, yaw 0.75π) | 153 (153) | 126 (124) |
 
-The cove maximum is one streaming frame after the pose jump, in both
-builds. Simulator before, same SHA (sp-x1 OB8-GRID-HOME-DRAWS, official
-window on `0c3e3ca16b`): home spawn 181 max draws, 1,055,435 median
-triangles, p95 35 / max 47 ms, with 6 residents still pending. The cuts
-removed 41 Chromium draws at spawn. No Simulator after reading is
-claimed yet: it belongs to the next milestone Simulator run. Three cuts, all Driftwood-only (Pine and Nine untouched, G908;
-no multi-draw, E271):
-- **Grid double L1 (exact in intent, ~10 draws):** Driftwood's
-  `farStandIn` assembly installed every coarse L1 props tile itself
-  (`wholeRefinementCover`) while the grid's T8 ring drew the same tiles
-  (same bounds and index counts, 0.8 m apart). In a grid cell the
-  stand-in is now skipped (`clientWorldAssembly.ts`); standalone keeps it.
-  No difference shows at the three poses.
-- **Cove variant folds (look trade, ruled):** `coveFamilies.json`
-  `fold` draws a folded prototype's copies as a kept one of its family.
-  Every copy, tint, scale and collider stays; only the shape repeats.
-  Palms 5 → 2 and broad palms 4 → 2 (each kept variant is 2 LODs × main +
-  shadow), shell / star / pebble / beach grass / yellow / white / fern /
-  hibiscus / bush / flowering bush → 1, tufts 4 → 2. Ruling: it hides
-  best of the listed trades. Low-poly toon copies differ by rotation,
-  scale and tint, so the trail close-up still reads as a varied grove;
-  cover density and the ground wear are unchanged. Kit-still merge and
-  ring coverage were not needed.
-- No margin at spawn (150). Next lever, if content grows: phone-only
-  far-LOD palm shadows (palms past 110 m are outside the phone's 80 m
-  cascade, −4 draws). It needs a per-tier LOD shadow field, because
-  desktop's cascade reaches 220 m.
+The before cove maximum is one streaming frame after the pose jump.
+Simulator before, same SHA (sp-x1 OB8-GRID-HOME-DRAWS, official window
+on `0c3e3ca16b`): home spawn 181 max draws, 1,055,435 median triangles,
+p95 35 / max 47 ms, with 6 residents still pending. No Simulator after
+reading is claimed: it belongs to the next milestone Simulator run.
+Four cuts, all Driftwood-only (Pine and Nine untouched, G908; no
+multi-draw, E271):
+- **Grid double L1 (`afddc7b6f9`, ~10 draws, no visible change):**
+  Driftwood's `farStandIn` assembly installed every coarse L1 props tile
+  itself (`wholeRefinementCover`) while the grid's T8 ring drew the same
+  tiles (same bounds and index counts, 0.8 m apart). A grid cell now
+  skips the stand-in (`clientWorldAssembly.ts`); standalone keeps it.
+- **Cove variant folds (`afddc7b6f9` + `13bbae2567`, look trade,
+  ruled):** `coveFamilies.json` `fold` draws a folded prototype's copies
+  as a kept one of its family. Every copy, tint, scale and collider
+  stays; only the shape repeats. Palms 5 → 1 and broad palms 4 → 1 (each
+  kept variant costs 2 LODs × main + shadow), shell / star / pebble /
+  beach grass / yellow / white / fern / hibiscus / bush / flowering bush
+  → 1, tufts 4 → 2. Ruling: these hide best of the listed trades.
+  Low-poly toon copies differ in lean, scale and tint, so the trail
+  close-up still reads as a grove. Cover density and the ground wear are
+  unchanged. Kit-still merges and ring coverage were not needed.
+- **Sky env rebuild spike (`af99979cd0`, exact):** a 120-frame window
+  missed it. Every 15 s the toon sky rebuilt its PMREM environment whole
+  in one frame (6 faces × box + dome, 10 GGX passes: +22 draws, 172 after
+  the first cut). It now uses the stepped refresh, with a scene source's
+  top level one cube face a step (`skyEnvironment.ts`). Pine's equirect
+  keyed sky keeps its steps. The env-step frames now add ≤ 2.
+- Margin 6 at spawn. Next lever, if content grows: phone-only far-LOD
+  palm shadows (palms past 110 m are outside the phone's 80 m cascade,
+  −2 draws now). It needs a per-tier LOD shadow field, because desktop's
+  cascade reaches 220 m.
