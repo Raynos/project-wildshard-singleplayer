@@ -273,6 +273,12 @@ and the GPU ledger peak remain a labelled conservative memory envelope,
 separate from frame timing. Native samples add no timing credit. The
 Simulator is Mac-backed regression evidence.
 
+A multi-shard `--shards=a,b` Simulator cohort holds one bounded quiet
+window, restarts Safari for each shard, and retains each native result in
+`results[].nativeReadings` as `{shard, reading}`. Each gets its own fresh
+subdirectory under `--native-memory`; a pre-existing run refuses. The old
+top-level `nativeMemory` remains the last reading for single-shard callers.
+
 J1 is lattice `(1.5, -0.5)` and J2 `(-1.5, -1.5)`, converted with the
 served grid pitch (562.5 m at `fd7f01690e`); verify their four neighbour identities.
 Measure four diagonal headings at each road corner using a `grid` standing

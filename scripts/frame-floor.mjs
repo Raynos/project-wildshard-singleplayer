@@ -961,6 +961,7 @@ async function worker() {
   // Native memory owns a bounded Simulator window, not time spent queued for it.
   const deadline = nativeDirectory === '' ? Number(flag('deadline', '0')) : Date.now() + 570_000;
   let browser, context, page, proxy, inspector, nativeMemory, wasmProbeResult;
+  const nativeReadings = [];
   const timelineSession = createWebKitTimelineSession();
   /** @type {ReturnType<typeof startFloorNative> | undefined} */
   let stopNative;
@@ -1086,7 +1087,14 @@ async function worker() {
           xcrun(['openurl', udid, `${base}version.json`]);
           await connect(`${base}version.json`);
           if (!wasmMemoryProbe) await retryEvaluate(`(() => { ${fixture('phone')}; return true; })()`);
-          if (nativeDirectory !== '') stopNative = startFloorNative(ROOT, nativeDirectory, udid, expression => inspector?.raw(expression), () => { inspector?.close(); }, quietSample);
+          if (nativeDirectory !== '') {
+            const directory = shards.length === 1 ? nativeDirectory : join(nativeDirectory, shard);
+            if (shards.length > 1) mkdirSync(directory);
+            const stop = startFloorNative(ROOT, directory, udid, expression => inspector?.raw(expression), () => { inspector?.close(); }, quietSample);
+            stopNative = async () => {
+              const reading = await stop(); nativeReadings.push({shard, reading}); return reading;
+            };
+          }
           // Reconnect after navigation: an inspector evaluation envelope can disappear in a WebContent process swap.
           // The helper sets live pose pins before the clean build's modules boot.
           inspector.close(); inspector = undefined;
@@ -1136,7 +1144,7 @@ async function worker() {
     try { timelineSession.close(); inspector?.close(); proxy?.kill('SIGTERM'); await context?.close(); await browser?.close(); }
     finally { try { if (stopJscGc !== undefined) await stopJscGc(); } finally { if (quietHeld) quiet('release'); } }
   }
-  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], ...(nativeMemory === undefined ? {} : { nativeMemory }), ...(wasmProbeResult === undefined ? {} : { wasmMemoryProbe: wasmProbeResult }) }));
+  writeFileSync(flag('worker-out', ''), JSON.stringify({ surface, rows, memoryJourney: [...memoryJourney.values()], nativeReadings, ...(nativeMemory === undefined ? {} : { nativeMemory }), ...(wasmProbeResult === undefined ? {} : { wasmMemoryProbe: wasmProbeResult }) }));
 }
 function run(command, argv, options = {}) {
   return new Promise((resolve, reject) => {
