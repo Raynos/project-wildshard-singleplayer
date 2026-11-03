@@ -564,6 +564,10 @@ had filled in. So the steady spawn peak is **≈ 129 + 19 + 62 = 210** (≈ 250 
 40 main-pass cuts as well as the far-slice trades: one row of its own (cover kinds sharing tables per LOD, the cove's
 families) rather than an overnight cut.
 
+| Row | What | Owner | State |
+|---|---|---|---|
+| DW | **Driftwood draw budget ≤ 150** at the settled native spawn: today ≈ 129 main + 19 near + 62 far ≈ 210 a far tick (≈ 250 in a sun-step crossfade). Trades, each a board and its own pick (G872): (1) the far cascade draws chunked casters whole, exact; (2) the phone's far shadows end at 60 m (look); (3) fade ghosts redraw only on free ticks (motion); (4) the ~40 main-pass cuts (ground-cover kinds sharing tables per LOD, the cove's families) | sp-o2 | **in flight (2026-11-03, sp-o2):** (1) `10594ec8bd`, (2) `e809b8a5ee`, (3) `d297b8231b` landed on focused tests (Driftwood product build exit 0); the spawn count, the P1 A/B and the 60 m board wait for a sp-ci-deploy browser turn. (4) open |
+
 Retained raw: `tmp/sp-x6-driftwood-draws/native-ledger-corrected.json`,
 SHA256`d6876b84b2ae89c51744ca8d203fd27d70094b2781f2e4364e29d56ed624a9d8`;
 original driver `spawn-ledger.mjs` and hook `ledger-page.mjs` in that
