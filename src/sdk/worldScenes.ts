@@ -1,12 +1,13 @@
+import { parseWorldScenePage } from '@wildshard/format/worldScenePages';
 import { SceneModelSourceSchema, SceneBakeSourceSchema } from '@wildshard/format/sceneSources';
 import type { BakedPlacementPlan } from '@wildshard/format/bakedTiles';
 import { isJsonData } from '@wildshard/format/json';
 import { namedJsonSchema, registeredJsonSchema } from './formatJsonSchema';
-import type { RegisteredPlacementPageJsonName } from '@wildshard/format/registeredJson';
+import type { RegisteredScenePageJsonName, RegisteredPlacementPageJsonName } from '@wildshard/format/registeredJson';
 import { parseWorldScene, parseWorldSceneBindings, parsePrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { CaveInteriorSchema, type CaveInteriorRows } from '@wildshard/format/caveInterior';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
-import { WorldSceneWeldSchema, parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { WorldSceneWeldSchema, parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
@@ -15,7 +16,7 @@ import { parse, record, string, strictObject, array, boolean, object, exactOptio
 import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
 import { nameBlob, type NamedBlob } from './blobs';
-import { ForestPageSchema, type ForestPageRows } from '@wildshard/format/forestPage';
+import { ForestPageSchema, LivingPageInputSchema, type LivingPageInputRows, type ForestPageRows } from '@wildshard/format/forestPage';
 import { AdmissionLateSchema, type LateFile } from '@wildshard/format/admissionLate';
 import { BakedBuildingLookSchema, parseBuildingLifeRows as nativeBuildingLifeRows, emptyBuildingLifeRows as nativeEmptyBuildingLifeRows,
   admitBuildingAssembly, type BuildingAssemblyRows, type BakedBuildingLookRows, type BuildingCloudRow } from '@wildshard/format/buildings';
@@ -268,3 +269,40 @@ export function worldScenePlacementPages(id: string, input: readonly unknown[]):
 
 /** Complete authored baked placement data; no geometry or collider is allocated. */
 export type AuthorBakedPlacementPlan = BakedPlacementPlan;
+
+/** Pack complete native variants into streamed pages. Equal nodes share storage;
+ * loading expands the original ordered graphs before native admission. */
+export function worldSceneGraphPages(id: string, kind: 'weld' | 'living', input: readonly { name: string; row: WorldSceneWeld | LivingPageInputRows }[]): {
+  files: NamedBlob[]; references: ReadonlyMap<string, { file: string; member: number }>;
+} {
+  if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,140}$/u.test(id) || input.length > 128 || new Set(input.map(row => row.name)).size !== input.length)
+    throw new Error('Native graph pages require bounded unique identities');
+  const rows = input.map(entry => {
+    if (kind === 'weld') parseWorldSceneWeld(entry.row); else parse(LivingPageInputSchema, entry.row);
+    return entry;
+  });
+  const pack = (entries: typeof rows): unknown => {
+    const nodes: WorldSceneWeld['nodes'] = [], identities = new Map<string, number>();
+    const graph = (value: WorldSceneWeld) => ({ ...value, nodes: value.nodes.map(node => {
+      const key = JSON.stringify(node), previous = identities.get(key);
+      if (previous !== undefined) return previous;
+      const at = nodes.length; nodes.push(node); identities.set(key, at); return at;
+    }) });
+    const members = entries.map(({ row }) => 'graph' in row ? { ...row, graph: graph(row.graph) } : graph(row));
+    return { version: 1, kind, nodes, rows: members };
+  };
+  const files: NamedBlob[] = [], references = new Map<string, { file: string; member: number }>();
+  for (let at = 0, part = 0; at < rows.length; part++) {
+    let count = Math.min(16, rows.length - at), wire = pack(rows.slice(at, at + count));
+    while (count > 1 && !isJsonData(wire)) { count--; wire = pack(rows.slice(at, at + count)); }
+    parseWorldScenePage(wire);
+    const name: RegisteredScenePageJsonName = `world/scene-pages/${id}.${part}.json`;
+    files.push(nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(wire)), { jsonSchema: registeredJsonSchema(name) }));
+    for (let member = 0; member < count; member++) {
+      const entry = rows[at + member]; if (entry === undefined) throw new Error('Missing native graph page member');
+      references.set(entry.name, { file: name, member });
+    }
+    at += count;
+  }
+  return { files, references };
+}

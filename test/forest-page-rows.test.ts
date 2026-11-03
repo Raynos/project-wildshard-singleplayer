@@ -1,3 +1,4 @@
+import { sceneLivingBytes } from '../src/format/worldScenePages';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ForestPageSchema, ForestGroundLayoutSchema, forestGroundLayoutSteps } from '../src/format/forestPage';
@@ -5,12 +6,11 @@ import { RangedPageSchema, ForestWeatherObservationSchema } from '../src/format/
 import { ForestRoofMask } from '../src/game/looks/forestRoofMask';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { cabinLiving } from '../src/shards/pine-hollow/generators/cabinLivingContribution';
-import { BuildingLifeRowsSchema } from '../src/format/buildings';
 import { forestPage } from '../src/shards/pine-hollow/generators/forestPage';
 import { rangedPage, WEATHER_OBSERVATIONS } from '../src/shards/pine-hollow/generators/rangedPage';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 
-const { FOREST_STORY } = forestStory(PINE_SOURCES), { FOREST_PAGE } = forestPage(PINE_SOURCES), { RANGED_PAGE } = await rangedPage(PINE_SOURCES);
+const { FOREST_STORY } = forestStory(PINE_SOURCES), { FOREST_PAGE } = await forestPage(PINE_SOURCES), { RANGED_PAGE } = await rangedPage(PINE_SOURCES);
 
 test('an orchard shelter uses its own rotated decks and cave frame', () => {
   const mask = new ForestRoofMask({ floors: [{ x: 20, y: 3, z: -10, hw: 4, hd: 1, rot: Math.PI / 2 }],
@@ -67,10 +67,12 @@ test('an orchard page declares its own lanterns, bounded and numeric', () => {
 
 test('the admitted quest mill door resolves in all eight living topologies', async () => {
   expect(FOREST_STORY.door.id).toBe('cabin-7-door');
-  const { CABIN_LIVING_BLOBS } = await cabinLiving(PINE_SOURCES);
-  expect(CABIN_LIVING_BLOBS).toHaveLength(8);
-  for (const blob of CABIN_LIVING_BLOBS) {
-    const topology = v.parse(v.object({ life: BuildingLifeRowsSchema }), JSON.parse(new TextDecoder().decode(blob.bytes)));
+  const { CABIN_LIVING_BLOBS, CABIN_LIVING_REFERENCES } = await cabinLiving(PINE_SOURCES);
+  expect(CABIN_LIVING_REFERENCES.size).toBe(8);
+  for (const reference of CABIN_LIVING_REFERENCES.values()) {
+    const blob = CABIN_LIVING_BLOBS.find(entry => entry.file.name === reference.file);
+    if (blob === undefined) throw new Error('Missing living topology page');
+    const topology = sceneLivingBytes(blob.bytes, reference);
     expect(topology.life.doors.filter(door => door.id === FOREST_STORY.door.id)).toHaveLength(1);
   }
 });

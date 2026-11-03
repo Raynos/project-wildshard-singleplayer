@@ -1,3 +1,4 @@
+import { sceneLivingBytes } from '@wildshard/format/worldScenePages';
 /** Client-only forest fields, living buildings and their native resource lifetime. */
 import type { FieldModelsContext } from '../shard/manifest';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Matrix4, MeshStandardMaterial, Object3D, Points, PointsMaterial, Quaternion, Vector3 } from 'three';
@@ -13,7 +14,7 @@ import { defineModel, sharedModelContext, type ModelDef, type Placement } from '
 import { placeSliced } from '@wildshard/engine/models/place';
 import { productTreePool, treeSetModel, TreeSetFactory, type TreeSetParams } from '../models/treeSet';
 import { farStandIn } from './farStandIn';
-import { ForestPageSchema, LivingPageInputSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
+import { ForestPageSchema, LivingPageSitesSchema, type ForestPageRows } from '@wildshard/format/forestPage';
 import { ForestGround } from '../looks/forestGround';
 import { productCoverAppearance } from '../looks/coverAppearance';
 import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
@@ -82,7 +83,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
     const row = rows.buildings, tier = buildTier(), knob = (id: string): boolean => plumbingKnob(ctx.product.shardfile.plumbing, tier, id, 'boolean', TIER_CONFIG);
     const shadow = knob(row.shadow), shared = knob(row.shared), variant = row.variants.find(entry => entry.tier === tier && entry.shadow === shadow && entry.shared === shared);
     if (variant === undefined) throw new Error('Missing declared living topology');
-    const topology = v.parse(LivingPageInputSchema, await ctx.product.json(variant.file)), group = new Group(); resources.publish(row.root, group);
+    const topology = sceneLivingBytes(await ctx.product.file(variant.file), variant), group = new Group(); resources.publish(row.root, group);
     const geometry = new Map(topology.geometry.map(entry => [entry.key, resources.geometry(entry.id)]));
     const life = ctx.scope.run(() => new LivingBuildings(resources, row.life)), owner = residentWorldScope(ctx);
     const sites = v.parse(LivingPageSitesSchema, await ctx.product.json(row.sites));

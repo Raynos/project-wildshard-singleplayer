@@ -1,3 +1,5 @@
+import { sceneWeldBytes } from '@wildshard/format/worldScenePages';
+import { sceneFileKey, type SceneFileReference, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { playLibrarySteps } from '@wildshard/format/admissionControl';
 import { stringsSteps, tierLibrarySteps, entryFileSteps } from '@wildshard/format/tierSelection';
 import { parseImageAsset } from '@wildshard/format/stillImage';
@@ -16,7 +18,6 @@ import {postStackCost,type PostStackCost} from '@wildshard/format/postStack';
 import { isPlatformDataSection } from '@wildshard/format/outputFields';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources } from '@wildshard/format/worldSceneModels';
-import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { plumbingKnob } from '../shard/declaredPlumbing';
 import { recordSceneProfile } from './sceneProfile';
 
@@ -78,17 +79,20 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
   // Keep only the most recent graph within this projection, never a growing
   // parsed copy of the whole wire bank or a cache across admissions.
   const decoder = new TextDecoder('utf-8', { fatal: true });
-  let recentWeld: { hash: string; value: ReturnType<typeof parseWorldSceneWeld> } | undefined;
+  let recentWeld: { hash: string; value: WorldSceneWeld } | undefined;
   const read = (name: string): unknown => {
     const hash = names.get(name), bytes = hash === undefined ? undefined : assets.get(hash);
     if (hash === undefined || bytes === undefined) throw new Error(`Missing specimen cost bytes: ${name}`);
     return JSON.parse(decoder.decode(bytes));
   };
-  const checkedWeld = (name: string): ReturnType<typeof parseWorldSceneWeld> => {
-    const hash = names.get(name);
+  const checkedWeld = (reference: SceneFileReference): WorldSceneWeld => {
+    const name = reference.file, hash = names.get(name);
     if (hash === undefined) throw new Error(`Missing specimen cost bytes: ${name}`);
-    if (recentWeld?.hash === hash) return recentWeld.value;
-    const value = parseWorldSceneWeld(read(name)); recentWeld = { hash, value }; return value;
+    const key = sceneFileKey(reference);
+    if (recentWeld?.hash === key) return recentWeld.value;
+    const bytes = assets.get(hash);
+    if (bytes === undefined) throw new Error(`Missing specimen cost bytes: ${name}`);
+    const value = sceneWeldBytes(bytes, reference); recentWeld = { hash: key, value }; return value;
   };
   const catalogue = parseWorldSceneModels(read(scenes.catalogue));
   yield;
@@ -116,7 +120,7 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
         if (!assets.has(hash) && model.load === 'demand') unread = true;
       }
       if (unread) { unreadDemand = true; yield; continue; }
-      const graphs = leaves.map(leaf => 'file' in leaf ? checkedWeld(leaf.file) : leaf);
+      const graphs = leaves.map(leaf => 'file' in leaf ? checkedWeld(leaf) : leaf);
       const resources = worldSceneModelResources({ ...catalogue, models: [{ ...model, choices: [choice] }] }, graphs);
       const hashes = new Set(resources.geometry.flatMap(ref => refs(ref.library, ref.model)));
       if (model.assembly !== 'scene') { for (const hash of hashes) retained.add(hash); yield; continue; }
@@ -164,11 +168,14 @@ function* specimenCosts(source: Shardfile, assets: ReadonlyMap<string, Uint8Arra
   for (const weld of scenes.welds) {
     if (quality !== undefined) {
       const file = typeof weld.file === 'object' && 'knob' in weld.file ? weld.file[plumbingKnob(source.plumbing, quality.tier, weld.file.knob, 'boolean', quality.overrides) ? 'true' : 'false'] : weld.file;
-      const selected = typeof file === 'string' ? file : file[quality.tier];
-      selectedFiles.push(selected); visit(checkedWeld(selected)); yield; continue;
+      const selected = typeof file === 'string' || 'file' in file ? file : file[quality.tier];
+      const reference = typeof selected === 'string' ? { file: selected } : selected;
+      selectedFiles.push(sceneFileKey(reference)); visit(checkedWeld(reference)); yield; continue;
     }
     const variants = typeof weld.file === 'object' && 'knob' in weld.file ? [weld.file.false, weld.file.true] : [weld.file];
-    for (const variant of variants) for (const name of typeof variant === 'string' ? [variant] : Object.values(variant)) { visit(checkedWeld(name)); yield; }
+    for (const variant of variants) for (const name of typeof variant === 'string' || 'file' in variant ? [variant] : [variant.phone, variant.desktop]) {
+      visit(checkedWeld(typeof name === 'string' ? { file: name } : name)); yield;
+    }
   }
   if (quality !== undefined) recordSceneProfile(source, selectedFiles);
   for (const file of source.files) for (const dependency of file.dependencies) retained.add(dependency);

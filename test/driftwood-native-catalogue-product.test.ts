@@ -6,6 +6,7 @@ import { parseWorldSceneModels, WorldSceneModelsSchema, worldSceneModelResources
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { driftwoodFixedFiles, driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { driftwoodModelCatalogue } from './fixtures/driftwoodModelCatalogue';
+import { admitWorldSceneModelGraphs } from '../src/game/shardfile/worldSceneWeld';
 
 test('native cards bind the same catalogue and owned sources at boot and product admission', async () => {
   const boot=parse(object({siteCatalogue:WorldSceneModelsSchema}),
@@ -26,7 +27,15 @@ test('native cards bind the same catalogue and owned sources at boot and product
   for (const card of cards.models) expect(catalogue.models.filter(row => row.id === card.id)).toEqual([card]);
   const library = world.libraries.find(row => row.id === 'native-specimens');
   if (library?.kind !== 'owned') throw new Error('Native cards require their declared owned library');
-  const resources = worldSceneModelResources(cards);
+  const pages = new Map(native.pages.map(blob => [blob.file.name, blob.bytes]));
+  const graphs = await admitWorldSceneModelGraphs({ hasFile: name => pages.has(name), file: name => {
+    const bytes = pages.get(name);
+    if (bytes === undefined) throw new Error('Missing native trader page');
+    return Promise.resolve(bytes);
+  } }, cards);
+  expect(graphs.size).toBe(1);
+  expect([...graphs.values()][0]?.id).toBe('native-trader');
+  const resources = worldSceneModelResources(cards, [...graphs.values()]);
   for (const ref of resources.geometry) {
     expect(ref.library).toBe(library.id);
     const model = library.models.find(row => row.id === ref.model);

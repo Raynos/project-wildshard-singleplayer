@@ -1,9 +1,10 @@
+import { sceneLivingBytes } from '../src/format/worldScenePages';
 // @vitest-environment node
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {openProductSession} from './fixtures/headless/productSession';
 import type {HeadlessTapeObservation} from '../src/sdk/headlessTape';
-import {ForestPageSchema,LivingPageInputSchema} from '../src/format/forestPage';
+import {ForestPageSchema} from '../src/format/forestPage';
 import VERBS from '../docs/plans/foundations/verbs/pine-hollow.json' with {type:'json'};
 
 const doorsSchema=v.array(v.object({id:v.string(),open:v.boolean(),t:v.number(),enabled:v.boolean(),handle:v.number()}));
@@ -18,7 +19,7 @@ test('Pine walks from spawn and opens and closes the actual cabin leaf; remote u
     const page=v.parse(ForestPageSchema,await fixture.product.json('world/forest-page.json'));
     const profile=page.buildings.variants.find(row=>row.tier==='phone'&&!row.shadow&&!row.shared);
     if(profile===undefined)throw new Error('Missing phone cabin profile');
-    const living=v.parse(LivingPageInputSchema,await fixture.product.json(profile.file));
+    const living=sceneLivingBytes(await fixture.product.file(profile.file),profile);
     const target=VERBS.verbs.find(verb=>verb.id==='door')?.at;
     if(target===undefined||target===null)throw new Error('Missing listed door');
     const index=living.life.doors.findIndex(row=>Math.hypot(row.at[0]-target.x,row.at[2]-target.z)<2);

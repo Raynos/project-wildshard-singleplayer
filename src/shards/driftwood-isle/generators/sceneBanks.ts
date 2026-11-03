@@ -79,7 +79,7 @@ export async function driftwoodSceneBanksFrom(read: (url: string) => Uint8Array,
 /** The banks' product files, named as their sources were: cargo's and the reef's GLBs as `meshopt: true` sources
  *  (assets.ts), the desktop rocks plain (they were SCENE_MODEL_BLOBS sources). */
 export async function driftwoodSceneBankOutput(banks: DriftwoodSceneBanks): Promise<EmittedBlobs> {
-  return emitNamedBlobs([...await Promise.all([...banks.cargo.glbs].map(([name, bytes]) => nameMeshoptBlob(name, bytes))),
+  return emitNamedBlobs([...banks.native.pages, ...await Promise.all([...banks.cargo.glbs].map(([name, bytes]) => nameMeshoptBlob(name, bytes))),
     ...[...banks.rocks.glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),
     // the trail specimens' Explorer GLBs, as the product files their catalogue rows name (worldScenes)
     ...[...trailSpecimenBank().glbs].map(([name, bytes]) => nameBlob(name, 'glb', bytes)),

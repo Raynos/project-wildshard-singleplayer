@@ -1,3 +1,4 @@
+import { sceneLivingBytes } from '../../../src/format/worldScenePages';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only declared paths in the admitted native product.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Assertions concern actual execution in the bounded Node runner.
@@ -14,7 +15,7 @@ import {installWalkRopeBodies} from './ropeBodies';
 import {installNativeWalkBounds} from './nativeBounds';
 import {installAppIdentity} from '../../../src/engine/app/identity';
 import {WILDSHARD_IDENTITY} from '../../../src/game/identity';
-import {ForestPageSchema,LivingPageInputSchema} from '../../../src/format/forestPage';
+import {ForestPageSchema} from '../../../src/format/forestPage';
 import {prepareHeadlessRuntime} from '../pine-verbs';
 import {pineHeadlessAssets} from '../pine-headless';
 import CONTROLLER_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with {type:'json'};
@@ -40,7 +41,7 @@ try{
   retireRopes=installWalkRopeBodies(host,product);installNativeWalkBounds(host);
   const page=v.parse(ForestPageSchema,await product.json('world/forest-page.json'));
   const variant=page.buildings.variants.find(row=>row.tier==='phone'&&!row.shadow&&!row.shared);assert.ok(variant);
-  const doors=v.parse(LivingPageInputSchema,await product.json(variant.file)).life.doors;
+  const doors=sceneLivingBytes(await product.file(variant.file),variant).life.doors;
   const door=doors[0];assert.ok(door);
   const statesSchema=v.array(v.object({open:v.boolean()}));
   const loadoutInput=product.shardfile.items.loadout.native?.input;assert.ok(loadoutInput);

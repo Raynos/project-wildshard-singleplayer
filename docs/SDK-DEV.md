@@ -106,6 +106,18 @@ rows retain the original resident model/collider owner. References
 without `member` preserve the individual-file path. No model, draw,
 collider or lifetime policy is introduced by grouping transport.
 
+`worldSceneGraphPages(id, kind, rows)` packs complete weld or living
+variants under `world/scene-pages/`. Its pages contain at most sixteen
+native rows and one table of equal nodes. A `{file, member}` reference
+expands the original node order at load, then runs the complete native
+weld or living grammar before the existing reader installs resources.
+Tier and Debug choices select members independently of the transport
+file; specimen lookup and memory admission include the member identity.
+The ordinary 100,000-node aggregate JSON ceiling applies to every page,
+and packing reduces the row count to fit. Payload property order and
+numbers survive reconstruction. No geometry, material or collider owner
+changes. Individual native documents remain supported.
+
 The cache lives at `~/.cache/wildshard/gen/<folder>/<step>/<key>/`. Keys include
 the complete bundled entry (a conservative superset of each step's import
 closure), selected output, explicit input hashes, the Node version, and platform/architecture

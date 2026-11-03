@@ -4,7 +4,7 @@ import { Matrix4 } from 'three';
 import { registeredJsonSchema, defineNamedRows, type NamedRows } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
-import { worldSceneWeldRows as parseWorldSceneWeld, worldScenePlacement as parseWorldScenePlacement } from '@wildshard/sdk/worldScenes';
+import { worldSceneWeldRows as parseWorldSceneWeld, worldScenePlacement as parseWorldScenePlacement, worldSceneGraphPages, type AuthorWorldScenes } from '@wildshard/sdk/worldScenes';
 import { cabinSceneBake } from './bake-cabin-scenes.mjs';
 import { pineCabins } from './bake-pine-cabins.mjs';
 import logKit from '../data/logKit.json' with { type: 'json' };
@@ -81,7 +81,7 @@ function sourceGraph(metadata: CabinSceneRows, file: string): WorldSceneWeld {
 export interface CabinScene {
   readonly CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[];
   readonly CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[];
-  readonly CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; late: { at: [number, number] }; }[];
+  readonly CABIN_WELDS: NonNullable<AuthorWorldScenes['welds']>;
   /** I2: independent specimen documents and late shell shapes; actual living/placement demand stays authoritative. */
   readonly CABIN_LATE: { hash: string; at: [number, number] }[];
   readonly CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[];
@@ -98,7 +98,8 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   const authored = timberWorld(sources);
   const CABIN_PLACEMENTS: ReturnType<typeof parseWorldScenePlacement>[] = [];
   const CABIN_JSON_BLOBS: ReturnType<typeof nameBlob>[] = [...living.CABIN_LIVING_BLOBS, nameBlob('world/building-sites.json', 'json', new TextEncoder().encode(JSON.stringify(cabinSites(sources))), { jsonSchema: registeredJsonSchema('world/building-sites.json') })];
-  const encode = (file: string, row: unknown) => nameBlob(file, 'json', new TextEncoder().encode(JSON.stringify(row)));
+  const graphs: { name: string; row: WorldSceneWeld }[] = [];
+  const encode = (file: string, row: WorldSceneWeld) => ({ name: file, row });
   for (const world of metadata.worlds) {
     const prefix = `cabins.${world.tier}.${String(world.shadow)}`, placements: string[] = [], hamlet: string[] = [];
     for (const [index, row] of world.registrations.entries()) {
@@ -129,17 +130,36 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
       CABIN_PLACEMENTS.push(parseWorldScenePlacement(input));
     }
     const row = sourceGraph(metadata, world.file);
-    CABIN_JSON_BLOBS.push(encode(world.file, parseWorldSceneWeld({ ...row, id: 'cabins.shells', resources: living.cabinLivingResources(world.tier, world.shadow), placements,
+    graphs.push(encode(world.file, parseWorldSceneWeld({ ...row, id: 'cabins.shells', resources: living.cabinLivingResources(world.tier, world.shadow), placements,
       sets: [{ id: 'pine-hollow/mill-hamlet', name: 'Mill hamlet', file: 'data/cabinScenes.generated.json', place: 'pine-hollow/hamlet', members: hamlet }] })));
   }
-  for (const specimen of metadata.specimens) CABIN_JSON_BLOBS.push(encode(specimen.file, sourceGraph(metadata, specimen.file)));
-  const worldFile = (tier: 'phone' | 'desktop', shadow: boolean): string => {
+  for (const specimen of metadata.specimens) graphs.push(encode(specimen.file, sourceGraph(metadata, specimen.file)));
+  // Keep one model's tier/shadow variants together. A cold Explorer card never
+  // fetches another family's topology, and shell admission never reads cards.
+  const groups = new Map<string, typeof graphs>();
+  for (const graph of graphs) {
+    const specimen = metadata.specimens.find(row => row.file === graph.name);
+    const id = specimen === undefined ? 'cabins.world' : `cabins.${specimen.key}.${specimen.choice}`;
+    const entries = groups.get(id) ?? []; entries.push(graph); groups.set(id, entries);
+  }
+  const pages = { files: [] as NamedBlob[], references: new Map<string, { file: string; member: number }>() };
+  for (const [id, entries] of groups) {
+    const page = worldSceneGraphPages(id, 'weld', entries); pages.files.push(...page.files);
+    for (const [name, member] of page.references) pages.references.set(name, member);
+  }
+  CABIN_JSON_BLOBS.push(...pages.files);
+  const reference = (name: string): { file: string; member: number } => {
+    const row = pages.references.get(name);
+    if (row === undefined) throw new Error(`Missing cabin page reference: ${name}`);
+    return row;
+  };
+  const worldFile = (tier: 'phone' | 'desktop', shadow: boolean): { file: string; member: number } => {
     const row = metadata.worlds.find(entry => entry.tier === tier && entry.shadow === shadow);
-    if (row === undefined) throw new Error('Missing cabin world topology'); return row.file;
+    if (row === undefined) throw new Error('Missing cabin world topology'); return reference(row.file);
   };
   // I2: the cabins build after the player has control. None of them shows from the spawn (a probe hid the whole weld at
   // four headings on the phone: only wind motion changed), so they never pop in where the player starts
-  const CABIN_WELDS: { id: string; file: { knob: string; false: { phone: string; desktop: string; }; true: { phone: string; desktop: string; }; }; late: { at: [number, number] }; }[] = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
+  const CABIN_WELDS: NonNullable<AuthorWorldScenes['welds']> = [{ id: 'cabins.shells', file: { knob: 'pine.cabinDetailShadows',
     false: { phone: worldFile('phone', false), desktop: worldFile('desktop', false) }, true: { phone: worldFile('phone', true), desktop: worldFile('desktop', true) } }, late: { at: [HAMLET.x, HAMLET.z] } }];
   const CABIN_LIBRARIES: { id: string; kind: "owned"; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[] = [...living.CABIN_LIVING_LIBRARIES, ...[...new Set(metadata.geometry.map(row => row.library))].map(id => ({ id, kind: 'owned' as const,
     models: metadata.geometry.filter(row => row.library === id).map(({ library: _library, ...row }) => row) }))];
@@ -158,7 +178,7 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   const livingFiles = new Set([...living.CABIN_LIVING_SHAPES.map(([name]) => name), ...living.CABIN_LIVING_LIBRARIES.flatMap(library => library.models.map(model => model.file))]);
   const resident = new Set(CABIN_PACKED_MODELS.filter(blob => blob.file.name !== undefined && livingFiles.has(blob.file.name)).map(blob => blob.file.hash));
   const CABIN_LATE = [...new Set([...CABIN_PACKED_MODELS.map(blob => blob.file.hash).filter(hash => !resident.has(hash)),
-    ...CABIN_JSON_BLOBS.filter(blob => blob.file.name?.startsWith('scenes/cabins/') === true).map(blob => blob.file.hash)])]
+    ...CABIN_JSON_BLOBS.filter(blob => blob.file.name?.startsWith('world/scene-pages/cabins.') === true).map(blob => blob.file.hash)])]
     .map(hash => ({ hash, at: [HAMLET.x, HAMLET.z] as [number, number] }));
   const CABIN_MATERIALS: unknown[] = metadata.sourceMaterials.map(row => ({ id: slot(row.id), kind: 'source', load: 'placement', url: row.url,
     aliases: authored.propMaterials, part: row.part, ...(row.id.includes('.pit.') ? { publishObject: 'cabins.source.pit' } : row.id.includes('.lantern.') ? { publishObject: 'cabins.source.lantern' } : {}), ...(row.id.includes('.prop.') ? { anisotropy: 8, anisotropyMaps: ['map', 'normalMap', 'roughnessMap', 'aoMap'] } : {}) }));
@@ -175,7 +195,7 @@ export const cabinScene: (sources: PineSources) => Promise<CabinScene> = perSour
   const variants = [{ id: 'hollow', label: "The ranger's (the Hollow)", params: { site: 0 } }, { id: 'east', label: 'East', params: { site: 1 } }, { id: 'ridge', label: 'Ridge', params: { site: 2 } }];
   const specimenFile = (key: string, choice: string, tier: 'phone' | 'desktop', shadow: boolean) => {
     const row = metadata.specimens.find(entry => entry.key === key && entry.choice === choice && entry.tier === tier && entry.shadow === shadow);
-    if (row === undefined) throw new Error(`Missing complete cabin specimen: ${key}/${choice}/${tier}/${String(shadow)}`); return { file: row.file };
+    if (row === undefined) throw new Error(`Missing complete cabin specimen: ${key}/${choice}/${tier}/${String(shadow)}`); return reference(row.file);
   };
   const CABIN_MODEL_ROWS: unknown[] = [];
   for (const family of families) {

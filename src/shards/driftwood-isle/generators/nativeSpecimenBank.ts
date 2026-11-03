@@ -1,3 +1,5 @@
+import { worldSceneGraphPages } from '@wildshard/sdk/worldScenes';
+import type { NamedBlob } from '@wildshard/sdk/blobs';
 import { Mesh, type BufferGeometry } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
@@ -6,6 +8,7 @@ import { nativeSpecimenCatalogue } from './nativeSpecimens';
 /** The trader's and the captain's native Explorer cards (GR7: the `driftwood-native-specimens` job's rows): the world-scene
  *  catalogue over their fixed draws and the owned library naming each draw's fixed blob. */
 export interface DriftwoodNativeSpecimenBank {
+  readonly pages: NamedBlob[];
   readonly catalogue: ReturnType<typeof nativeSpecimenCatalogue>;
   readonly library: { readonly id: 'native-specimens'; readonly kind: 'owned'; readonly models: { id: string; file: string; attributes: Record<string, string> }[] };
 }
@@ -58,6 +61,16 @@ export async function driftwoodNativeSpecimenBank(fixed: ReadonlyMap<string, Uin
       geometry.set(slot, shape);
       library.models.push({ id: slot, file: name, attributes });
     }
-    return { catalogue: nativeSpecimenCatalogue(geometry, groups), library };
+    const catalogue = nativeSpecimenCatalogue(geometry, groups);
+    const graphs = catalogue.models.flatMap(model => model.choices.flatMap(choice => choice.scene !== undefined && 'nodes' in choice.scene
+      ? [{ name: model.key, row: choice.scene }] : []));
+    const pages = worldSceneGraphPages('native-specimens', 'weld', graphs);
+    for (const model of catalogue.models) for (const choice of model.choices) {
+      if (choice.scene === undefined || !('nodes' in choice.scene)) continue;
+      const reference = pages.references.get(model.key);
+      if (reference === undefined) throw new Error('Missing native specimen page member');
+      choice.scene = reference;
+    }
+    return { catalogue, library, pages: pages.files };
   } finally { for (const shape of geometry.values()) shape.dispose(); }
 }

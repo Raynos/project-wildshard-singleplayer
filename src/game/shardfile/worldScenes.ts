@@ -1,3 +1,4 @@
+import { sceneWeldBytes } from '@wildshard/format/worldScenePages';
 import { TileDriver, tileRing } from './tileDriver';
 import { StreamingCamera } from './streamingView';
 import { ring, ringRadius, type TileContent } from './tileContent';
@@ -26,8 +27,8 @@ import { wholeRefinementCover } from './wholeRefinementCover';
 import { lendWorldSceneTextures } from './worldSceneTextures';
 import { lendWorldSceneUniforms } from './worldSceneUniforms';
 import { WorldSceneBatch } from './worldSceneBatch';
-import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs, weldSceneMaterial } from './worldSceneWeld';
-import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { WorldSceneWeldAssembly, worldSceneWeldReference, worldSceneWeldReferences, worldSceneWeldFiles, admitWorldSceneModelGraphs, weldSceneMaterial } from './worldSceneWeld';
+import { sceneFileKey, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
 import { readWorldSceneGeometries, readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
@@ -91,7 +92,7 @@ export function installWorldScenes(ctx: ShardContext, input: WorldScenesSection,
 }
 
 async function build(ctx: ShardContext, section: WorldScenesSection, resident: Scope): Promise<SceneHandles> {
-  assertSceneProfile(ctx.product.shardfile, (section.welds ?? []).map(row => worldSceneWeldFile(row, ctx.product.shardfile.plumbing)));
+  assertSceneProfile(ctx.product.shardfile, (section.welds ?? []).map(row => sceneFileKey(worldSceneWeldReference(row, ctx.product.shardfile.plumbing))));
   // Unpositioned metadata is critical; placement references already carry the
   // producer's order (spawn tile/ring first when the product streams by tiles).
   const files = [
@@ -192,19 +193,19 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     const id = `${row.publish}.${part}`; if (published.has(id)) throw new Error(`Duplicate world scene publication: ${id}`); published.add(id);
   }
   const welds: WorldSceneWeld[] = [], deferredPlacements = new Set<string>(), latePlacements = new Set<string>(), lateWelds = new Map<string, readonly [number, number]>();
-  assertSceneProfile(product.shardfile, (section.welds ?? []).map(row => worldSceneWeldFile(row, product.shardfile.plumbing)));
+  assertSceneProfile(product.shardfile, (section.welds ?? []).map(row => sceneFileKey(worldSceneWeldReference(row, product.shardfile.plumbing))));
   for (const declared of section.welds ?? []) {
-    const selected = worldSceneWeldFile(declared, product.shardfile.plumbing);
+    const selected = sceneFileKey(worldSceneWeldReference(declared, product.shardfile.plumbing));
     let row: WorldSceneWeld | undefined;
-    for (const file of worldSceneWeldFiles(declared)) {
-      requireFile(file);
-      const candidate = parseWorldSceneWeld(JSON.parse(decoder.decode(await reads.file(file))));
+    for (const graphReference of worldSceneWeldReferences(declared)) {
+      requireFile(graphReference.file);
+      const candidate = sceneWeldBytes(await reads.file(graphReference.file), graphReference);
       if (candidate.id !== declared.id) throw new Error('Frozen scene blob identity differs');
       for (const id of candidate.placements) {
         deferredPlacements.add(id);
         if (declared.late !== undefined) latePlacements.add(id);
       }
-      if (file === selected) row = candidate;
+      if (sceneFileKey(graphReference) === selected) row = candidate;
     }
     if (row === undefined) throw new Error('Missing selected frozen scene');
     if (declared.late !== undefined) lateWelds.set(row.id, declared.late.at);

@@ -1,3 +1,4 @@
+import { sceneWeldBytes } from '@wildshard/format/worldScenePages';
 import { Box3, BufferAttribute, BufferGeometry, Group, InstancedMesh, type Material, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PointLight, Sphere, Texture, Vector3 } from 'three';
 import { WeldBatch, WeldView, shadowProxyMaterial } from '@wildshard/engine/models/weld';
 import { WeldCull } from '@wildshard/engine/models/cull';
@@ -9,7 +10,7 @@ import { ownSceneResource } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { buildTier, TIER_CONFIG } from '@wildshard/engine/core/tier';
-import { parseWorldSceneWeld, type WorldSceneWeld, type WorldSceneWeldNode, type WorldSceneDistanceSchema, type WorldSceneWeldMaterialSchema, type WorldSceneWeldSourceSchema } from '@wildshard/format/worldSceneWeld';
+import { parseWorldSceneWeld, sceneFileKey, type SceneFileReference, type WorldSceneWeld, type WorldSceneWeldNode, type WorldSceneDistanceSchema, type WorldSceneWeldMaterialSchema, type WorldSceneWeldSourceSchema } from '@wildshard/format/worldSceneWeld';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { InferOutput } from 'valibot';
 import type { PlumbingData } from '@wildshard/format/plumbing';
@@ -58,25 +59,34 @@ const keyOf = (ref: { readonly library: string; readonly model: string }): strin
 const mesh3 = (value: unknown): value is Mesh => value instanceof Mesh;
 const distance = (row: Distance, sources: FrozenSceneSources): number => typeof row === 'number' ? row
   : plumbingKnob(sources.plumbing, sources.quality?.tier ?? buildTier(), row.knob, 'number', sources.quality?.overrides ?? TIER_CONFIG) * row.multiply + row.add;
-/** All bounded file choices are admitted; only the resolved graph allocates resources. */
-export function worldSceneWeldFiles(row: InferOutput<typeof WorldSceneWeldSourceSchema>): string[] {
+/** All bounded quality members are admitted before a selected graph allocates. */
+export function worldSceneWeldReferences(row: InferOutput<typeof WorldSceneWeldSourceSchema>): SceneFileReference[] {
   const branches = typeof row.file === 'object' && 'knob' in row.file ? [row.file.false, row.file.true] : [row.file];
-  return [...new Set(branches.flatMap(file => typeof file === 'string' ? [file] : [file.phone, file.desktop]))];
+  const references = branches.flatMap(file => typeof file === 'string' || 'file' in file ? [file] : [file.phone, file.desktop])
+    .map(file => typeof file === 'string' ? { file } : file);
+  return [...new Map(references.map(reference => [sceneFileKey(reference), reference])).values()];
 }
-/** Choose geometry independently of the nominal tier when Debug overrides its topology knob. */
-export function worldSceneWeldFile(row: InferOutput<typeof WorldSceneWeldSourceSchema>, plumbing?: PlumbingData | null): string {
+export function worldSceneWeldFiles(row: InferOutput<typeof WorldSceneWeldSourceSchema>): string[] {
+  return [...new Set(worldSceneWeldReferences(row).map(reference => reference.file))];
+}
+/** Resolve geometry independently of the nominal tier when Debug overrides it. */
+export function worldSceneWeldReference(row: InferOutput<typeof WorldSceneWeldSourceSchema>, plumbing?: PlumbingData | null): SceneFileReference {
   const source = typeof row.file === 'object' && 'knob' in row.file
     ? row.file[plumbingKnob(plumbing, buildTier(), row.file.knob, 'boolean', TIER_CONFIG) ? 'true' : 'false'] : row.file;
-  return typeof source === 'string' ? source : source[buildTier()];
+  const reference = typeof source === 'string' || 'file' in source ? source : source[buildTier()];
+  return typeof reference === 'string' ? { file: reference } : reference;
+}
+export function worldSceneWeldFile(row: InferOutput<typeof WorldSceneWeldSourceSchema>, plumbing?: PlumbingData | null): string {
+  return worldSceneWeldReference(row, plumbing).file;
 }
 /** Admit bounded specimen blobs separately from the small catalogue, before geometry intake. */
 export async function admitWorldSceneModelGraphs(product: Pick<ShardProduct, 'hasFile' | 'file'>, catalogue: WorldSceneModels): Promise<ReadonlyMap<string, WorldSceneWeld>> {
-  const result = new Map<string, WorldSceneWeld>(), decoder = new TextDecoder('utf-8', { fatal: true });
+  const result = new Map<string, WorldSceneWeld>();
   const seen = new Set<string>();
   const leaves = catalogue.models.flatMap(model => model.choices.flatMap(worldSceneModelGraphs)).filter(leaf => {
     if (!('file' in leaf)) return true;
-    if (seen.has(leaf.file)) return false;
-    seen.add(leaf.file); return true;
+    if (seen.has(sceneFileKey(leaf))) return false;
+    seen.add(sceneFileKey(leaf)); return true;
   });
   // Descriptors are independently verified product files. Read a bounded group,
   // then admit in authored order; even a refused first graph drains its group.
@@ -85,14 +95,19 @@ export async function admitWorldSceneModelGraphs(product: Pick<ShardProduct, 'ha
     const ready = await Promise.allSettled(batch.map(async leaf => {
       if (!('file' in leaf)) return { row: leaf };
       if (!product.hasFile(leaf.file)) throw new Error('Missing frozen specimen blob');
-      return { bytes: await product.file(leaf.file) };
+      return { bytes: await product.file(leaf.file), reference: leaf };
     }));
     for (const [index, leaf] of batch.entries()) {
       const loaded = ready[index]; if (loaded === undefined) throw new Error('Missing frozen specimen read');
       if (loaded.status === 'rejected') throw loaded.reason;
-      const row = 'bytes' in loaded.value ? parseWorldSceneWeld(JSON.parse(decoder.decode(loaded.value.bytes))) : loaded.value.row;
+      let row: WorldSceneWeld;
+      if ('bytes' in loaded.value) {
+        const { bytes, reference } = loaded.value;
+        if (reference === undefined) throw new Error('Missing frozen specimen byte reference');
+        row = sceneWeldBytes(bytes, reference);
+      } else row = loaded.value.row;
       if (row.culls.length > 0 || row.placements.length > 0 || row.sets.length > 0 || row.resources.length > 0) throw new Error('Frozen specimens cannot install world services');
-      if ('file' in leaf) result.set(leaf.file, row);
+      if ('file' in leaf) result.set(sceneFileKey(leaf), row);
     }
   }
   return result;

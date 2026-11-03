@@ -16,7 +16,7 @@ function wholeMesh(node: Object3D): node is Mesh {
 
 test('Pine cover source selection retains every original channel, index and transform', async () => {
   const before = timberWorld(PINE_SOURCES).shardfile.files.filter(row => row.kind === 'glb').map(row => row.hash);
-  const rows = forestPage(PINE_SOURCES).FOREST_PAGE.ground, after = rows.sources;
+  const rows = (await forestPage(PINE_SOURCES)).FOREST_PAGE.ground, after = rows.sources;
   expect(after.length).toBeLessThan(before.length);
   expect(after.every(hash => before.includes(hash))).toBe(true);
   const loader = (await prepareRigLoader()).createRigLoader();

@@ -1,3 +1,4 @@
+import { WorldScenePageSchema } from '@wildshard/format/worldScenePages';
 
 
 import { SceneModelSourceSchema, SceneBakeSourceSchema } from '@wildshard/format/sceneSources';
@@ -75,7 +76,7 @@ import { StateSchema } from '@wildshard/format/state';
 import {QuestStepRowsSchema,QuestServiceActionsSchema,QuestKillRowsSchema,QuestHintRowsSchema,CarriedQuestSchema} from '@wildshard/format/questSteps';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
 import { BuildingLifeDocumentSchema, BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema, BuildingCloudPoseSchema } from '@wildshard/format/buildings';
-import { WorldSceneWeldSchema } from '@wildshard/format/worldSceneWeld';
+import { WorldSceneWeldSchema, WorldSceneWeldNodeSchema } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { WorldScenePlacementSchema, WorldScenePlacementPageSchema } from '@wildshard/format/worldScenePlacement';
 import { CommonsCostsSchema } from '@wildshard/format/commonsCosts';
@@ -436,6 +437,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'bakedTiles.BakedPlacementPlan': BakedPlacementPlanSchema,
   'sceneSources.SceneModelSource': SceneModelSourceSchema,
   'sceneSources.SceneBakeSource': SceneBakeSourceSchema,
+  'worldScenePages.WorldScenePage': WorldScenePageSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
@@ -486,6 +488,9 @@ wireChecks.set(wakeCheck, '@wildshard/format/bossEncounter#WakeEncounterSchema.p
 export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'draft-2020-12' = 'draft-2020-12'): FormatJsonSchema {
   return toJsonSchema(schema, {
     target, errorMode: 'throw', typeMode: 'output',
+    // Both page kinds share the complete node grammar. A local definition
+    // retains every constraint without repeating that grammar per branch.
+    ...(schema === WorldScenePageSchema ? { definitions: { sceneNode: WorldSceneWeldNodeSchema } } : {}),
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
       // Exact one-pass sample transforms retain the original wire grammar; JSON numbers are finite.

@@ -1,3 +1,4 @@
+import { WorldScenePageSchema } from './worldScenePages';
 import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServiceSpotsSchema,parseNativeQuestServiceSpots} from './nativeQuestComposition';
 import {ContractCatalogueSchema,parseContractCatalogue} from './contracts';
 import { BuildingLifeDocumentSchema } from './buildings';
@@ -200,13 +201,18 @@ export type RegisteredJsonValues={readonly[Name in RegisteredJsonName]:v.InferIn
 /** Existing streamed placement names; no shard identity or draw policy. */
 export type RegisteredPlacementJsonName = `world/placements/${string}.json`|`scenes/placements/${string}.json`
   |`world/foliage/${string}.json`|`world/piers/${string}.json`;
+export type RegisteredScenePageJsonName=`world/scene-pages/${string}.json`;
 export type RegisteredPlacementPageJsonName=`world/placement-pages/${string}.json`;
 export type RegisteredFieldJsonName=`world/fields/${string}.json`;
 export type RegisteredWorldSceneJsonName=`world/scenes/${string}.json`;
-export type RegisteredSchemaJsonName=RegisteredJsonName|RegisteredPlacementJsonName|RegisteredPlacementPageJsonName|RegisteredFieldJsonName|RegisteredWorldSceneJsonName;
+export type RegisteredSchemaJsonName=RegisteredJsonName|RegisteredScenePageJsonName|RegisteredPlacementJsonName|RegisteredPlacementPageJsonName|RegisteredFieldJsonName|RegisteredWorldSceneJsonName;
 export interface RegisteredPlacementContract {
   readonly schema:typeof WorldScenePlacementSchema;
   readonly source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema';
+}
+export interface RegisteredScenePageContract {
+  readonly schema:typeof WorldScenePageSchema;
+  readonly source:'@wildshard/format/worldScenePages#WorldScenePageSchema';
 }
 export interface RegisteredPlacementPageContract {
   readonly schema:typeof WorldScenePlacementPageSchema;
@@ -220,7 +226,8 @@ export interface RegisteredWorldSceneContract {
   readonly schema:typeof WorldSceneSchema;
   readonly source:'@wildshard/format/clientChannels#WorldSceneSchema';
 }
-export type RegisteredJsonContract=RegisteredJsonContracts[RegisteredJsonName]|RegisteredPlacementContract|RegisteredPlacementPageContract|RegisteredFieldContract|RegisteredWorldSceneContract;
+export type RegisteredJsonContract=RegisteredJsonContracts[RegisteredJsonName]|RegisteredScenePageContract|RegisteredPlacementContract|RegisteredPlacementPageContract|RegisteredFieldContract|RegisteredWorldSceneContract;
+const scenePageContract:RegisteredScenePageContract={schema:WorldScenePageSchema,source:'@wildshard/format/worldScenePages#WorldScenePageSchema'};
 const worldSceneContract:RegisteredWorldSceneContract={schema:WorldSceneSchema,source:'@wildshard/format/clientChannels#WorldSceneSchema'};
 const fieldContract:RegisteredFieldContract={schema:SceneBuffersSchema,source:'@wildshard/format/sceneBuffers#SceneBuffersSchema'};
 const placementContract:RegisteredPlacementContract={schema:WorldScenePlacementSchema,source:'@wildshard/format/worldScenePlacement#WorldScenePlacementSchema'};
@@ -232,6 +239,11 @@ export function registeredJsonContract(name:RegisteredSchemaJsonName):Registered
 export function registeredJsonContract(name:string):RegisteredJsonContract|undefined;
 export function registeredJsonContract(name:string):RegisteredJsonContract|undefined{
   if(isRegisteredJsonName(name))return REGISTERED_JSON[name];
+  if(name.endsWith('.json')&&name.startsWith('world/scene-pages/')){
+    if(!/^world\/scene-pages\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u.test(name))
+      throw new Error('Scene page JSON requires one bounded platform id');
+    return scenePageContract;
+  }
   if(name.endsWith('.json')&&name.startsWith('world/placement-pages/')){
     if(!/^world\/placement-pages\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u.test(name))
       throw new Error('Placement page JSON requires one bounded platform id');
@@ -338,6 +350,11 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'quests/mill-door.json':
     case 'quests/lanterns.json':parseQuestPageInteractions(value);break;
     default:
+      if(name.startsWith('world/scene-pages/')) {
+        const contract=registeredJsonContract(name);
+        if(contract===undefined)throw new Error(`Unregistered JSON name: ${name}`);
+        v.parse(WorldScenePageSchema,value);return;
+      }
       if(registeredJsonContract(name)===worldSceneContract){parseWorldScene(value);break;}
       if(registeredJsonContract(name)===fieldContract){parseSceneBuffers(value);break;}
       if(registeredJsonContract(name)===placementPageContract){parseWorldScenePlacementPage(value);break;}

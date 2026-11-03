@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from './buildings';
-import { WorldSceneWeldSchema } from './worldSceneWeld';
+import { BuildingLifeLookSchema, BuildingLifeRowsSchema, type BuildingLifeRows } from './buildings';
+import { WorldSceneWeldSchema, SceneFileReferenceSchema, type WorldSceneWeld } from './worldSceneWeld';
 import { PageWaterBindingSchema } from './pagePreparation';
 import { isJsonData } from './json';
 
@@ -22,7 +22,7 @@ export const ForestPageSchema: v.GenericSchema<ForestPageRowsInput, ForestPageRo
   buildings: v.strictObject({ id, root: id, shells: id, life: BuildingLifeLookSchema,
     shared: id, shadow: id, sites: id,
     late: v.exactOptional(v.strictObject({ at: v.tuple([n, n]), materials: v.pipe(v.array(id), v.maxLength(128), v.check(rows => new Set(rows).size === rows.length)) })),
-    variants: v.pipe(v.array(v.strictObject({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), shared: v.boolean(), file: id })), v.maxLength(8)),
+    variants: v.pipe(v.array(v.strictObject({ tier: v.picklist(['phone', 'desktop']), shadow: v.boolean(), shared: v.boolean(), ...SceneFileReferenceSchema.entries })), v.maxLength(8)),
     light: v.strictObject({ count: v.pipe(count, v.maxValue(4)), color: n, intensity: n, distance: n, decay: n }),
     hearth: id, sunParam: id, lampsParam: id, shadeParam: id, nightShade: n, sightSlack: n,
     material: id, save: id, floors: v.pipe(v.array(floor), v.maxLength(128)), firePits: v.pipe(v.array(v.strictObject(point)), v.maxLength(16)),
@@ -84,8 +84,10 @@ export function* forestGroundLayoutSteps(input: unknown): Generator<void, Forest
   }
   return { counts: shell.counts, layout };
 }
-export const LivingPageInputSchema: v.GenericSchema<LivingPageInputRowsInput, LivingPageInputRows> = v.object({ graph: WorldSceneWeldSchema, life: BuildingLifeRowsSchema,
+/** Native living fields shared by direct documents and bounded graph pages. */
+export const LivingPageFieldsSchema: v.ObjectSchema<{ readonly graph: v.GenericSchema<unknown, WorldSceneWeld>; readonly life: v.GenericSchema<unknown, BuildingLifeRows>; readonly geometry: v.ArraySchema<v.ObjectSchema<{ readonly key: v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MinLengthAction<string, 1, undefined>, v.MaxLengthAction<string, 512, undefined>]>; readonly id: v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MinLengthAction<string, 1, undefined>, v.MaxLengthAction<string, 512, undefined>]>; readonly source: v.ObjectSchema<{ readonly library: v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MinLengthAction<string, 1, undefined>, v.MaxLengthAction<string, 512, undefined>]>; readonly model: v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.MinLengthAction<string, 1, undefined>, v.MaxLengthAction<string, 512, undefined>]>; }, undefined>; }, undefined>, undefined>; }, undefined> = v.object({ graph: WorldSceneWeldSchema, life: BuildingLifeRowsSchema,
   geometry: v.array(v.object({ key: id, id, source: v.object({ library: id, model: id }) })) });
+export const LivingPageInputSchema: v.GenericSchema<LivingPageInputRowsInput, LivingPageInputRows> = LivingPageFieldsSchema;
 export const LivingPageSitesSchema: v.GenericSchema<LivingPageSitesRowsInput, LivingPageSitesRows> = v.strictObject({ buildings: v.array(v.strictObject({ id, index: count, root: id, standalone: v.boolean() })),
   roofs: v.array(v.strictObject({ x: n, z: n, rot: n, w: n, d: n })) });
 
@@ -142,6 +144,7 @@ interface ForestPageRowsFields {
             shadow: boolean;
             shared: boolean;
             file: string;
+            member?: number;
         })[];
         light: {
             count: number;

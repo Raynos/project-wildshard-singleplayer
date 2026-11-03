@@ -1,7 +1,8 @@
+import { sceneLivingBytes } from '../../src/format/worldScenePages';
 import {Euler,Matrix4,Quaternion,Vector3} from 'three';
 import * as v from 'valibot';
 import {KinematicMover} from '../../src/engine/physics/mover';
-import {ForestPageSchema,LivingPageInputSchema} from '../../src/format/forestPage';
+import {ForestPageSchema} from '../../src/format/forestPage';
 import {buildingDoor,toggleBuildingDoor,stepBuildingDoor,buildingDoorYaw,buildingDoorCollides} from '../../src/game/shardfile/buildingDoor';
 import {eyeReaches} from '../../src/game/quest/interactionRows';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
@@ -15,7 +16,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
   const base=await preparePine(preparation),page=v.parse(ForestPageSchema,await preparation.product.json('world/forest-page.json'));
   const variant=page.buildings.variants.find(row=>row.tier==='phone'&&!row.shadow&&!row.shared);
   if(variant===undefined)throw new Error('Missing admitted phone cabins');
-  const living=v.parse(LivingPageInputSchema,await preparation.product.json(variant.file));
+  const living=sceneLivingBytes(await preparation.product.file(variant.file),variant);
   const nodes=new Map(living.graph.nodes.map(row=>[row.id,row]));
   const worldMatrix=(id:string,seen=new Set<string>()):Matrix4=>{
     if(id===living.graph.root)return new Matrix4();

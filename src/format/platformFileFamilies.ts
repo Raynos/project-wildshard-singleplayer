@@ -1,3 +1,4 @@
+import { WorldScenePageSchema } from './worldScenePages';
 import * as v from 'valibot';
 import { SceneModelSourceSchema, SceneBakeSourceSchema } from './sceneSources';
 import { WorldScenePlacementPageSchema } from './worldScenePlacement';
@@ -35,6 +36,8 @@ export interface PlatformFileFamily {
  * Names stay streamed and payloads stay verbatim. Private placement, cabin,
  * ground and encounter grammars remain outside this registry. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^world\/scene-pages\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u, schema: WorldScenePageSchema,
+    source: '@wildshard/format/worldScenePages#WorldScenePageSchema', reader: 'src/game/shardfile/worldSceneWeld.ts' },
   { pattern: /^world\/sources\/bakes\.json$/u, schema: SceneBakeSourceSchema,
     source: '@wildshard/format/sceneSources#SceneBakeSourceSchema', reader: 'src/game/shardfile/sceneSources.ts' },
   { pattern: /^world\/sources\/(?:models|heroes|sky)\.json$/u, schema: SceneModelSourceSchema,

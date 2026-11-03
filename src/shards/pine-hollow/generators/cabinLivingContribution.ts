@@ -1,8 +1,8 @@
 
 
 /** Native living graphs are separate from the sealed shell/specimen inventory. */
-import { type worldSceneWeldData, worldSceneLivingBakeRows, type AuthorLivingSceneProfile } from '@wildshard/sdk/worldScenes';
-import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { type worldSceneWeldData, worldSceneLivingBakeRows, worldSceneGraphPages, type AuthorLivingSceneProfile } from '@wildshard/sdk/worldScenes';
+import type { NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
 import { cabinLivingBake } from './bake-cabin-living.mjs';
 import { pineCabins } from './bake-pine-cabins.mjs';
 import { perSources, type PineSources } from './pineSources';
@@ -25,6 +25,7 @@ export type CabinLivingProfile = AuthorLivingSceneProfile;
 export interface CabinLiving {
   readonly CABIN_LIVING_LIBRARIES: { id: string; kind: 'owned'; models: { id: string; file: string; attributes: Record<string, string>; }[]; }[];
   readonly CABIN_LIVING_BLOBS: NamedBlobType[];
+  readonly CABIN_LIVING_REFERENCES: ReadonlyMap<string, { file: string; member: number }>;
   readonly CABIN_LIVING_SHAPES: [string, Uint8Array][];
   readonly cabinLivingResources: (tier: 'phone' | 'desktop', shadow: boolean) => WorldSceneWeld['resources'];
 }
@@ -32,10 +33,12 @@ export interface CabinLiving {
 export const cabinLiving: (sources: PineSources) => Promise<CabinLiving> = perSources(async (sources: PineSources): Promise<CabinLiving> => {
   const bake = await cabinLivingBake(sources), rows = worldSceneLivingBakeRows(bake.rows);
   if (rows.profiles.length !== 8 || new Set(rows.profiles.map(row => `${row.tier}/${String(row.shadow)}/${String(row.shared)}`)).size !== 8) throw new Error('Missing complete cabin living topology');
+  const pages = worldSceneGraphPages('cabins.living', 'living', rows.profiles.map(row => ({ name: row.file, row: { graph: row.graph, life: row.life, geometry: row.geometry } })));
   return {
+    CABIN_LIVING_REFERENCES: pages.references,
     CABIN_LIVING_LIBRARIES: [...new Set(rows.geometry.map(row => row.library))].map(library => ({ id: library, kind: 'owned' as const,
       models: rows.geometry.filter(row => row.library === library).map(({ library: _library, ...row }) => row) })),
-    CABIN_LIVING_BLOBS: rows.profiles.map(row => nameBlob(row.file, 'json', new TextEncoder().encode(JSON.stringify({ graph: row.graph, life: row.life, geometry: row.geometry })))),
+    CABIN_LIVING_BLOBS: pages.files,
     CABIN_LIVING_SHAPES: rows.blobs.filter(row => row.kind === 'glb').map((row): [string, Uint8Array] => {
       const bytes = bake.glbs.get(row.source);
       if (bytes === undefined) throw new Error(`Missing baked living cabin shape: ${row.source}`);

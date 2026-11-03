@@ -1,3 +1,4 @@
+import { cabinLiving } from './cabinLivingContribution';
 
 
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
@@ -27,8 +28,13 @@ export interface ForestPage {
   readonly FOREST_PAGE_BLOB: NamedBlobType;
 }
 /** D65: the forest page rows (their cabin floors and fire pits over the program's sources), made once per sources. */
-export const forestPage: (sources: PineSources) => ForestPage = perSources((sources: PineSources): ForestPage => {
-  const timbers = timberWorld(sources);
+export const forestPage: (sources: PineSources) => Promise<ForestPage> = perSources(async (sources: PineSources): Promise<ForestPage> => {
+  const timbers = timberWorld(sources), living = await cabinLiving(sources);
+  const reference = (name: string): { file: string; member: number } => {
+    const row = living.CABIN_LIVING_REFERENCES.get(name);
+    if (row === undefined) throw new Error(`Missing living page member: ${name}`);
+    return row;
+  };
   const kinds = [['ferns', 'fern', 'Fern'], ['shrubs', 'bilberry-shrub', 'Bilberry shrub'], ['litter', 'needle-litter', 'Needle litter'], ['stones', 'pebbles', 'Pebbles'],
     ['moss', 'moss-patch', 'Moss patch'], ['reeds', 'reeds', 'Reeds']] as const;
   const groundSources = wholePartitionFiles(timbers.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash),
@@ -45,8 +51,10 @@ export const forestPage: (sources: PineSources) => ForestPage = perSources((sour
     buildings: { id: 'pine.cabins', root: 'cabins.root', shells: 'cabins.shells', life: CABIN_LIFE,
       late: { at: [HAMLET.x, HAMLET.z], materials: ['cabin.pit.0', 'cabin.lantern.0', 'cabin.lantern.1', 'timber.door'] },
       shared: 'pine.sharedCabinLights', shadow: 'pine.cabinDetailShadows', sites: 'world/building-sites.json',
-      variants: ['phone', 'desktop'].flatMap(tier => [false, true].flatMap(shadow => [false, true].map(shared => ({ tier, shadow, shared,
-        file: `scenes/cabins/living/${tier}-${String(shadow)}-${String(shared)}.json` })))),
+      variants: ['phone', 'desktop'].flatMap(tier => [false, true].flatMap(shadow => [false, true].map(shared => {
+        const variant = { tier, shadow, shared };
+        return Object.assign(variant, reference(`scenes/cabins/living/${tier}-${String(shadow)}-${String(shared)}.json`));
+      }))),
       light: CABIN_LIGHT, hearth: HEARTH_LOOKS.smoke, sunParam: 'sunColour', lampsParam: 'lamps', shadeParam: 'shade', nightShade: .8, sightSlack: .75,
       material: 'materials.', save: 'cabins', ...cabinAmbienceRows(sources),
     }, props: ['props.rocks', 'props.stumps', 'props.log'],

@@ -18,7 +18,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { isJsonData } from '@wildshard/format/json';
 import { parseWorldSceneModels, worldSceneModelGraphs, worldSceneModelResources, type WorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { hydrateWorldSceneWeld, admitWorldSceneModelGraphs, weldSceneMaterial } from '../shardfile/worldSceneWeld';
-import type { WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
+import { sceneFileKey, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { SceneHandles } from '../shardfile/sceneHandles';
 import { hasLentLook, lendLooks, lentLook } from '../shardfile/lentLooks';
 import { loadFirstPartyProduct, runtimeLookMaterials } from '../shardfile/runtimeProduct';
@@ -107,7 +107,7 @@ function selectedResources(catalogue: WorldSceneModels, selection: Selection, so
   const selected = { ...catalogue, models: [{ ...selection.model, choices: [choice] }] };
   const graphs = worldSceneModelGraphs(choice).flatMap(leaf => {
     if (!('file' in leaf)) return [];
-    const graph = sources.scenes?.get(leaf.file);
+    const graph = sources.scenes?.get(sceneFileKey(leaf));
     if (graph === undefined) throw new Error('Missing admitted frozen specimen');
     return [graph];
   });
@@ -115,7 +115,7 @@ function selectedResources(catalogue: WorldSceneModels, selection: Selection, so
 }
 function ready(sources: Sources | undefined, catalogue: WorldSceneModels, selection: Selection): boolean {
   if (sources === undefined) return false;
-  if (worldSceneModelGraphs(selection.choice).some(leaf => 'file' in leaf && !sources.scenes?.has(leaf.file))) return false;
+  if (worldSceneModelGraphs(selection.choice).some(leaf => 'file' in leaf && !sources.scenes?.has(sceneFileKey(leaf)))) return false;
   const needed = selectedResources(catalogue, selection, sources);
   return needed.geometry.every(ref => sources.geometries.has(JSON.stringify([ref.library, ref.model]))) && needed.materials.every(id => sources.materials.has(id));
 }
@@ -264,7 +264,7 @@ export function defineWorldSceneCatalogue(input: unknown, pinnedProduct?: ShardP
             if (scene === undefined || quality === undefined) throw new Error('Frozen specimen resources are not ready');
             const topology = 'knob' in scene ? scene[plumbingKnob(sources.plumbing, quality.tier, scene.knob, 'boolean', quality.overrides) ? 'true' : 'false'] : scene;
             const leaf = 'nodes' in topology || 'file' in topology ? topology : topology[TIER];
-            const recipe = 'file' in leaf ? sources.scenes?.get(leaf.file) : leaf;
+            const recipe = 'file' in leaf ? sources.scenes?.get(sceneFileKey(leaf)) : leaf;
             if (recipe === undefined) throw new Error('Missing admitted frozen specimen');
             if (recipe.culls.length > 0 || recipe.placements.length > 0 || recipe.sets.length > 0 || recipe.resources.length > 0) throw new Error('Frozen specimens cannot install world services');
             const handles = new SceneHandles(ctx.sky), root = new Group(); handles.publish(recipe.root, root);
