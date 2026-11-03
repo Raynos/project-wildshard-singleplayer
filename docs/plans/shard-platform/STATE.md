@@ -11,7 +11,7 @@ table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**03:10:** live 2f1f8c4. Final boards for Jake: Mosslight dacd146b65, Ember Forge dd271faebc; Coral active 729325dfa3; CS3 done 1c7584e683. CI: wrapper red (02:33) fixed f342365f64; 6 stale tests fixed by 3211f02e4b, run 41599296357 has them.
+**04:10:** live 2f1f8c4; 17e15e8d42 staged (run 41605229499, B7 green, 38 jobs running). Final boards: Moss, Ember, Frost b07a842976, NM 21820aa947. OB8 Sim 30 fps on Coral/Moss/Ember. o1: Driftwood <=150 draws.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
