@@ -223,11 +223,12 @@ boot() {
     native_stage 'device boot' xcrun simctl boot "$1" >/dev/null || return "$?"
     started=1
   fi
-  # Let the owned cold device finish native migration before starting the
-  # selected Simulator GUI. The helper keeps both prerequisites on the SAME
-  # original admission clock, then starts the unchanged Safari proof.
+  # CI drives the booted device headlessly: Inspector uses its RWI socket,
+  # route captures use Page.snapshotRect, and diagnostics use simctl io.
+  # A desktop presentation host is not a native Safari/frame prerequisite.
+  # Local interactive calls retain presentation after native migration.
   local developer="${DEVELOPER_DIR:-}" presentation=0
-  if [ "$started" -eq 1 ] && [[ "$developer" = /* ]] && [ -f "$developer/usr/bin/simctl" ] && [ -x "$developer/usr/bin/simctl" ]; then
+  if [ "${GITHUB_ACTIONS:-}" != true ] && [ "$started" -eq 1 ] && [[ "$developer" = /* ]] && [ -f "$developer/usr/bin/simctl" ] && [ -x "$developer/usr/bin/simctl" ]; then
     presentation=1
   fi
   # Preserve migration/system-app progress in the native failure artifact.

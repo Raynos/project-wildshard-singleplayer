@@ -47,7 +47,7 @@ class SimulatorReadinessTests(unittest.TestCase):
         (self.bin / 'python3').symlink_to(PYTHON)
         self.env = {**os.environ, 'PATH': f'{self.bin}:{os.environ["PATH"]}',
             'SIM_LANE_DIR': str(self.root / 'lane'), 'SIM_FIXTURE': str(self.root),
-            'SIM_SAFARI_READY_TIMEOUT': '5',
+            'SIM_SAFARI_READY_TIMEOUT': '5', 'GITHUB_ACTIONS': '',
             'DEVELOPER_DIR': str(self.root / 'unavailable-developer')}
         self.env.pop('PHONE_SIMULATOR_PREPARATION', None)
         self.command('xcrun', '''import json,os,pathlib,sys,time
@@ -227,6 +227,30 @@ sys.exit(int(os.environ.get('SIM_PRESENTATION_RC','0')))
         self.assertIn(f'preparing runtime {RUNTIME} for owned device {UDID}', result.stderr)
         self.assertIn('Owned runtime cache readiness', result.stderr)
         self.assertIn('owned launch and owned two-frame callback confirmed', result.stderr)
+
+    def test_ci_boot_proves_owned_safari_frames_without_a_gui_request(self):
+        developer = self.developer_simctl()
+        self.command('open', "raise RuntimeError('CI must not request a desktop window')\n")
+        result = self.lane(DEVELOPER_DIR=str(developer), GITHUB_ACTIONS='true')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = self.calls()
+        order = [row[1] for row in calls]
+        self.assertLess(order.index('runtime'), order.index('boot'))
+        self.assertLess(order.index('boot'), order.index('bootstatus'))
+        self.assertLess(order.index('bootstatus'), order.index('launch'))
+        self.assertIn('openurl', order)
+        self.assertTrue((self.root / 'child-ran').exists())
+        self.assertIn('owned launch and owned two-frame callback confirmed', result.stderr)
+        self.assertNotIn('selected Simulator presentation', result.stderr)
+        self.assertFalse((self.root / 'presentation-request').exists())
+
+    def test_ci_without_frames_still_refuses_after_skipping_presentation(self):
+        result = self.lane(DEVELOPER_DIR=str(self.developer_simctl()), GITHUB_ACTIONS='true',
+                           SIM_OPEN_NO_FRAME='1', SIM_SAFARI_READY_TIMEOUT='.3')
+        self.assertEqual(result.returncode, 124, result.stderr)
+        self.assertNotIn('selected Simulator presentation', result.stderr)
+        self.assert_not_handed_over()
+        self.assertFalse((self.root / 'booted').exists())
 
     def test_presentation_failure_and_timeout_preserve_admission_and_owned_cleanup(self):
         source = (ROOT / 'scripts/sim-lane.sh').read_text()
