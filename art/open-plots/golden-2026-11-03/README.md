@@ -135,3 +135,6 @@ front of it).
 - 2026-11-03, Starfall Observatory: first set, from its activation `d4d4b17674` (preview `d4d4b17-mw13gps7`), cameras
   Patchwork's plot-local set moved to Starfall's cell (1, 2) (instance `open-plot-3-4`); final board
   `../starfall-observatory/round-3-final/board.jpg` (its README lists the known gaps).
+- 2026-11-03, Clockwork Canyon: first set, from `c40e60e600` (activation `9091bc1c56` plus lamp-lined avenues; preview
+  `c40e60e-mw142b9e`), cameras Patchwork's plot-local set moved to Clockwork's cell (2, 1) (instance `open-plot-4-3`);
+  final board `../clockwork-canyon/round-3-final/board.jpg` (its README lists the known gaps).
