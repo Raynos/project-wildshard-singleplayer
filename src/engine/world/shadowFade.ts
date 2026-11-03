@@ -32,7 +32,7 @@ const GHOST_RADIUS = 0.6;
 const MAX_FADE = 5 * Math.PI / 180;
 
 const _origin = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _center = new THREE.Vector3();
-const _lo = new THREE.Matrix4(), _loInv = new THREE.Matrix4(), _c2l = new THREE.Matrix4();
+const _lo = new THREE.Matrix4(), _loInv = new THREE.Matrix4(), _c2l = new THREE.Matrix4(), _swap = new THREE.Matrix4();
 const _box = new THREE.Box3();
 
 /**
@@ -108,7 +108,7 @@ export class ShadowFade {
 
   /** a fade is running: the clock holds its next step */
   get busy(): boolean { return this.t < 1; }
-  /** the fade began this frame: the ghosts must draw now, to catch the shadow from before the step */
+  /** the fade began this frame and the ghosts must draw now, to catch the shadow from before the step (`adopt` refused) */
   started = false;
 
   /**
@@ -130,7 +130,7 @@ export class ShadowFade {
     if (!dir.equals(this.last)) {
       const turn = dir.angleTo(this.last);
       // a step starts a fade from where the last one ended; a jump (or a step mid-fade) moves at once
-      if (turn < MAX_FADE && this.t >= 1) { this.from.copy(this.last); this.t = 0; this.started = true; } else this.t = 1;
+      if (turn < MAX_FADE && this.t >= 1) { this.from.copy(this.last); this.t = 0; this.started = !this.adopt(); } else this.t = 1;
       this.last.copy(dir);
     }
     if (this.t < 1) this.t = Math.min(1, this.t + dt / SUN_FADE_S);
@@ -138,6 +138,26 @@ export class ShadowFade {
     sunFadeUniform.value = k * k * (3 - 2 * k);
     const on = this.t < 1;
     this.ghosts.forEach((g, i) => { g.shadow.autoUpdate = on; if (on) this.place(g, i); });
+  }
+
+  /**
+   * G913: a fade's first frame redrew every ghost at once (+~40 draws on the phone, 164-172 a frame). Each cascade's map
+   * already holds its shadow from before the step, with the matrix it was drawn with: the ghost takes that pair and the
+   * cascade takes the ghost's, redrawn at the new direction on its own tick (weighted uSunFade, ~0 by then). False, and
+   * nothing swapped, unless every pair is drawn at one size.
+   */
+  private adopt(): boolean {
+    const pairs = this.ghosts.map((g, i) => ({ ghost: g.shadow, cascade: this.csm.lights[i]?.shadow }));
+    for (const { ghost, cascade } of pairs) {
+      if (cascade === undefined || ghost.map === null || cascade.map === null) return false;
+      if (ghost.map.width !== cascade.map.width || ghost.map.height !== cascade.map.height) return false;
+    }
+    for (const { ghost, cascade } of pairs) {
+      if (cascade === undefined) continue;
+      const map = ghost.map; ghost.map = cascade.map; cascade.map = map;
+      _swap.copy(ghost.matrix); ghost.matrix.copy(cascade.matrix); cascade.matrix.copy(_swap);
+    }
+    return true;
   }
 
   /** CSM.update for cascade i, at the old direction: the same square, snapped to its own texel grid */

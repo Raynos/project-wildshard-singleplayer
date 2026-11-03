@@ -476,7 +476,8 @@ export class SkyRig {
       const redraw = cascadeRedraws(this.farTick, this.csm.lights.length);
       this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
       // DW: a running fade's ghosts redraw on the ticks no far or middle cascade does (2 and 6 of the 8, 7.5 Hz at the
-      // phone's 30), and all at once on the fade's first frame; they had redrawn every frame of every fade (+~40 draws)
+      // phone's 30); on the fade's first frame they take their cascades' maps (ShadowFade.adopt) and draw only if that
+      // was refused. They had redrawn every frame of every fade (+~40 draws), then all at once on its first (G913)
       const fade = this.shadowFade;
       if (fade?.busy === true && !fade.started && this.farTick % 4 !== 2) for (const ghost of fade.ghosts) ghost.shadow.autoUpdate = false;
     } else if (TIER_CONFIG.shadowEvery > 1) {
