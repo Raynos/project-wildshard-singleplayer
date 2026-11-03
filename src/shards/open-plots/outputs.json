@@ -964,6 +964,17 @@
             "x": -247,
             "z": -12.5
           }
+        ],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.night-market",
+          "score": "score.night-market",
+          "bed": "none"
+        },
+        "assetGlobs": [
+          "public/assets/open-plots/**",
+          "public/assets/music/night-market/**",
+          "public/assets/sfx/night-market/**"
         ]
       },
       "layout": "night-market",

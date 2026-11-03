@@ -243,5 +243,61 @@
         "reach": 30
       }
     ]
+  },
+  "night-market": {
+    "idea": "night-market",
+    "source": {
+      "dir": "/assets/music/night-market/",
+      "manifestKey": "night-market"
+    },
+    "sfxDir": "/assets/sfx/night-market/",
+    "files": {
+      "score": "take-a-cf750c3f44ac.m4a",
+      "ambience": "ambience-fc4acd723b85.m4a",
+      "gate-wind-chimes": "gate-wind-chimes-4d46fe12f13f.m4a",
+      "canal-lap": "canal-lap-99b97ffab725.m4a",
+      "food-sizzle": "food-sizzle-e95a5399c9c9.m4a",
+      "teacup-clink": "teacup-clink-0ea9d5e3623c.m4a",
+      "awning-flutter": "awning-flutter-5a760678625f.m4a",
+      "garden-crickets": "garden-crickets-501383239921.m4a"
+    },
+    "spots": [
+      {
+        "id": "gate-wind-chimes",
+        "x": 0,
+        "z": 0,
+        "reach": 35
+      },
+      {
+        "id": "canal-lap",
+        "x": -93.75,
+        "z": -93.75,
+        "reach": 28
+      },
+      {
+        "id": "food-sizzle",
+        "x": -31.25,
+        "z": -93.75,
+        "reach": 24
+      },
+      {
+        "id": "teacup-clink",
+        "x": 31.25,
+        "z": -93.75,
+        "reach": 22
+      },
+      {
+        "id": "awning-flutter",
+        "x": 156.25,
+        "z": -93.75,
+        "reach": 24
+      },
+      {
+        "id": "garden-crickets",
+        "x": -156.25,
+        "z": -156.25,
+        "reach": 30
+      }
+    ]
   }
 }
