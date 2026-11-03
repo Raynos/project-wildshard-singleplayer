@@ -143,6 +143,32 @@ test('a select branches only on an expensive side, and the operands both sides s
   expect(body.match(/mx_perlin_noise_float/g)).toHaveLength(2);
 });
 
+test('selects on one condition that share an operand branch together, so the operand runs only in their branch', () => {
+  // G5: a kit kind's cell read by its colour and its emit select hoisted over every pixel when each select branched alone
+  const graph = { version: 1, kind: 'material', model: 'unlit', nodes: {
+    b: { op: 'lt', in: [0.1, 0.2] }, cell: { op: 'noise', in: [[5, 6]] }, col: { op: 'mul', in: ['cell', 3] }, glow: { op: 'add', in: ['cell', 1] },
+    colour: { op: 'select', in: ['b', 'col', 0.5] }, emit: { op: 'select', in: ['b', 'glow', 0] }, other: { op: 'noise', in: [[7, 8]] },
+    alone: { op: 'select', in: ['b', 'other', 0.25] }, c: { op: 'combine', in: ['colour', 'emit', 'alone'] },
+  }, stages: { surface: { colour: 'c' } } };
+  const body = emitGraphGlsl(graph).program?.fragment.body ?? '';
+  const first = body.indexOf('if (');
+  // the shared cell is built once, inside the first branch, with both selects' values assigned there
+  expect(body.match(/vec2\(5\.0, 6\.0\)/g)).toHaveLength(1);
+  expect(body.indexOf('vec2(5.0, 6.0)')).toBeGreaterThan(first);
+  expect(body.slice(first, body.indexOf('} else {')).match(/t\d+_(colour|emit) =/g)).toHaveLength(2);
+  // a select sharing nothing with them keeps its own branch
+  expect(body.match(/if \(/g)).toHaveLength(2);
+});
+
+test('a select on the same condition that reads another one is not pulled into its branch', () => {
+  const graph = { version: 1, kind: 'material', model: 'unlit', nodes: {
+    b: { op: 'lt', in: [0.1, 0.2] }, cell: { op: 'noise', in: [[5, 6]] }, own: { op: 'noise', in: [[7, 8]] }, first: { op: 'select', in: ['b', 'cell', 0] },
+    after: { op: 'mul', in: ['first', 'own'] }, second: { op: 'select', in: ['b', 'after', 1] }, c: { op: 'combine', in: ['first', 'second', 0] },
+  }, stages: { surface: { colour: 'c' } } };
+  const body = emitGraphGlsl(graph).program?.fragment.body ?? '';
+  expect(body.match(/if \(/g)).toHaveLength(2);
+});
+
 test('a value first built inside one arm is built again where the other arm reads it, never read out of its block', () => {
   const graph = { version: 1, kind: 'material', model: 'unlit', nodes: {
     b: { op: 'lt', in: [0.1, 0.2] }, heavy: { op: 'noise', in: [[3, 4]] }, x: { op: 'mul', in: ['heavy', 3] },

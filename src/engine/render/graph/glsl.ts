@@ -145,6 +145,8 @@ const LIGHT_CTX: ReadonlySet<Ctx> = new Set(['sun', 'ambient', 'grade']);
 /** the ops a lighting function reads from its call (or the lighting globals): a node reading one is built inside it */
 const LATE_OPS: ReadonlySet<string> = new Set([...SUN_OPS, 'irradiance', 'radiance', 'environmentIrradiance', 'environmentIrradianceAt', 'litColour', 'normalView', 'viewDirection', 'albedo']);
 const SAMPLE_OPS: ReadonlySet<string> = new Set(['texture', 'texture3D', 'textureArray', 'textureLod', 'textureGrad', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
+/** the ops whose value reads the neighbouring pixels of its quad (a branch they move into may leave a neighbour out) */
+const DERIVATIVE_OPS: ReadonlySet<string> = new Set(['dFdx', 'dFdy', 'fwidth']);
 const LEN: Readonly<Record<GraphValueType, number>> = { float: 1, vec2: 2, vec3: 3, vec4: 4, bool: 1 };
 const vecOf = (n: number): GraphValueType => (n <= 1 ? 'float' : n === 2 ? 'vec2' : n === 3 ? 'vec3' : 'vec4');
 const widest = (vals: readonly V[]): GraphValueType => vals.reduce<GraphValueType>((t, v) => (LEN[v.t] > LEN[t] ? v.t : t), 'float');
@@ -431,29 +433,76 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       }
       return false;
     };
-    /** the operands a branched select's arms share, or that something outside them reads: built before the branch */
-    const branchShared = (n: GraphNode, self: string, scope: Scope): string[] => {
+    /** every node `from` reads in `scope`, itself included (a varying ends the walk: its input is the vertex stage's) */
+    const reach = (scope: Scope, from: readonly (GraphRef | undefined)[]): Set<string> => {
+      const out = new Set<string>(), stack = [...from];
+      while (stack.length > 0) {
+        const r = stack.pop();
+        if (typeof r !== 'string' || out.has(r)) continue;
+        const node = scope.nodes[r]; if (node === undefined) continue;
+        out.add(r); if (node.op !== 'varying') stack.push(...(node.in ?? []));
+      }
+      return out;
+    };
+    /** the operands a branched select's arms (and its group's: `sameCondition`) share, or that something outside them
+     *  reads: built before the branch. A derivative or a sample two members read stays before it, as one select's did */
+    const branchShared = (members: readonly (readonly [string, GraphNode])[], scope: Scope): string[] => {
       const back = new Map<string, string[]>();
       for (const [id, node] of Object.entries(scope.nodes)) for (const r of node.in ?? []) if (typeof r === 'string') back.set(r, [...(back.get(r) ?? []), id]);
-      const reach = (from: readonly (GraphRef | undefined)[]): Set<string> => {
-        const out = new Set<string>(), stack = [...from];
-        while (stack.length > 0) {
-          const r = stack.pop();
-          if (typeof r !== 'string' || out.has(r)) continue;
-          const node = scope.nodes[r]; if (node === undefined) continue;
-          out.add(r); if (node.op !== 'varying') stack.push(...(node.in ?? []));
-        }
-        return out;
-      };
-      const x = reach([n.in?.[1]]), y = reach([n.in?.[2]]), arms = new Set([...x, ...y]), uses = readers(scope);
+      const own = members.map(([, m]) => reach(scope, [m.in?.[1], m.in?.[2]])), ids = new Set(members.map(([id]) => id));
+      const x = reach(scope, members.map(([, m]) => m.in?.[1])), y = reach(scope, members.map(([, m]) => m.in?.[2])), arms = new Set([...x, ...y]), uses = readers(scope);
       const frontier = [...arms].filter(k => {
         const node = scope.nodes[k]; if (node === undefined || node.op === 'varying' || (node.in ?? []).length === 0) return false;
         if (x.has(k) && y.has(k)) return true;
-        const inside = (back.get(k) ?? []).filter(reader => reader === self || arms.has(reader)).length;
+        if (members.length > 1 && (DERIVATIVE_OPS.has(node.op) || (SAMPLE_OPS.has(node.op) && own.filter(set => set.has(k)).length > 1))) return true;
+        const inside = (back.get(k) ?? []).filter(reader => ids.has(reader) || arms.has(reader)).length;
         return (uses.get(k) ?? 0) > inside;
       });
-      const below = reach(frontier.flatMap(k => scope.nodes[k]?.in ?? []));
+      const below = reach(scope, frontier.flatMap(k => scope.nodes[k]?.in ?? []));
       return frontier.filter(k => !below.has(k));
+    };
+    /** the estimated instructions a group's branch would hold: its arms' nodes that nothing outside the group reads */
+    const groupCost = (members: readonly (readonly [string, GraphNode])[], scope: Scope): number => {
+      const arms = reach(scope, members.flatMap(([, m]) => [m.in?.[1], m.in?.[2]])), hoisted = reach(scope, branchShared(members, scope));
+      let inside = 0;
+      for (const k of arms) {
+        const node = scope.nodes[k]; if (node === undefined || hoisted.has(k)) continue;
+        inside += (GRAPH_OPS[node.op]?.cost ?? 0) + (node.op === 'loop' && node.body !== undefined ? Object.keys(node.body.nodes).length * (node.count ?? 1) * 2 : 0);
+      }
+      return inside;
+    };
+    /** G5: the other selects of the fragment root on the same condition node, emitted in one branch with `n` so a cone only
+     *  they read stays inside it (a kit kind's cell read by its colour, emit and glass selects hoisted over every pixel). Not
+     *  one already built, one whose sides both sample, or one with a path to or from another member (it is built first) */
+    const sameCondition = (n: GraphNode, self: string, scope: Scope, b: Block): (readonly [string, GraphNode])[] => {
+      const cond = n.in?.[0];
+      if (typeof cond !== 'string') return [];
+      // a late select (it reads the lighting calls' results) never groups: building a lighting call inside a branch writes
+      // its exported globals into the root while the branch is open, so pixels outside it would read them unassigned
+      if (late(scope.nodes, self)) return [];
+      const candidates = Object.entries(scope.nodes).filter(([id, m]) => id !== self && m.op === 'select' && m.in?.[0] === cond
+        && !late(scope.nodes, id)
+        && find(`${scope.path}/${id}`, b) === undefined && !(samples(m.in?.[1], scope) && samples(m.in?.[2], scope))
+        && typeOfRef(m.in?.[1] ?? 0, scope) !== 'bool' && typeOfRef(m.in?.[2] ?? 0, scope) !== 'bool');
+      const reaches = new Map<string, Set<string>>([[self, reach(scope, [n.in?.[1], n.in?.[2]])], ...candidates.map(([id, m]) => [id, reach(scope, [m.in?.[1], m.in?.[2]])] as const)]);
+      let members: (readonly [string, GraphNode])[] = candidates;
+      for (;;) {
+        const all = [self, ...members.map(([id]) => id)];
+        const next = members.filter(([id]) => all.every(other => other === id || (!(reaches.get(id)?.has(other) ?? false) && !(reaches.get(other)?.has(id) ?? false))));
+        if (next.length === members.length) break;
+        members = next;
+      }
+      // only a select that shares an operand with the group joins it (one with nothing in common keeps its own policy)
+      const shared = new Set(reaches.get(self)), joined: (readonly [string, GraphNode])[] = [];
+      for (let grew = true; grew;) {
+        grew = false;
+        for (const member of members) {
+          const own = reaches.get(member[0]);
+          if (joined.includes(member) || own === undefined || ![...own].some(k => shared.has(k))) continue;
+          joined.push(member); for (const k of own) shared.add(k); grew = true;
+        }
+      }
+      return joined;
     };
 
     function ref(r: GraphRef, scope: Scope, b: Block, ctx: Ctx): V {
@@ -792,28 +841,38 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       const sampleX = samples(rx, scope), sampleY = samples(ry, scope), bothSample = sampleX && sampleY;
       const bool = tx === 'bool' && ty === 'bool';
       const pureLoop = scope.parent !== null && !sampleX && !sampleY && !Object.values(scope.nodes).some(node => node.op === 'fwidth' || node.op === 'dFdx' || node.op === 'dFdy');
+      // G5: the fragment root's other selects on this condition that share an operand with it branch with it (their memo
+      // is this block's); together they branch when the work only they read is heavy, though each alone reads light
+      const group = !bool && !bothSample && ctx === 'fragment' && b === fragmentRoot && scope.parent === null ? sameCondition(n, id, scope, b) : [];
       const branch = bool ? !bothSample
-        : (scope.parent === null || pureLoop) && !bothSample && Math.max(ownCost(rx, scope), ownCost(ry, scope)) > GLSL_BRANCH_LIGHT_COST;
+        : (scope.parent === null || pureLoop) && !bothSample && (Math.max(ownCost(rx, scope), ownCost(ry, scope)) > GLSL_BRANCH_LIGHT_COST
+          || (group.length > 0 && groupCost([[id, n], ...group], scope) > GLSL_BRANCH_LIGHT_COST));
       const t: GraphValueType = bool ? 'bool' : vecOf(Math.max(LEN[tx], LEN[ty]));
       if (!branch) {
         const cond = ref(rc, scope, b, ctx), x = ref(rx, scope, b, ctx), y = ref(ry, scope, b, ctx);
         selects.light++;
         return bind(b, id, t, bool ? `bool(mix(float(${y.e}), float(${x.e}), float(${cond.e})))` : `mix(${widen(y, t)}, ${widen(x, t)}, float(${cond.e}))`);
       }
-      selects.branch++;
-      for (const k of branchShared(n, id, scope)) ref(k, scope, b, ctx);
-      const cond = ref(rc, scope, b, ctx), name = temp(id);
-      emit(b, `${t} ${name};`);
+      const members = [[id, n] as const, ...group].map(([mid, m]) => {
+        const mt: GraphValueType = mid === id ? t : vecOf(Math.max(LEN[typeOfRef(m.in?.[1] ?? 0, scope)], LEN[typeOfRef(m.in?.[2] ?? 0, scope)]));
+        return { mid, m, t: mt, name: temp(mid) };
+      });
+      selects.branch += members.length;
+      for (const k of branchShared(members.map(({ mid, m }) => [mid, m] as const), scope)) ref(k, scope, b, ctx);
+      const cond = ref(rc, scope, b, ctx);
+      for (const member of members) emit(b, `${member.t} ${member.name};`);
       emit(b, `if (${cond.e}) {`);
-      const yes = block(b, true), x = ref(rx, scope, yes, ctx);
-      emit(yes, `${name} = ${bool ? x.e : widen(x, t)};`);
+      const yes = block(b, true);
+      for (const member of members) { const x = ref(member.m.in?.[1] ?? 0, scope, yes, ctx); emit(yes, `${member.name} = ${bool ? x.e : widen(x, member.t)};`); }
       b.lines.push(...yes.lines);
       emit(b, '} else {');
-      const no = block(b, true), y = ref(ry, scope, no, ctx);
-      emit(no, `${name} = ${bool ? y.e : widen(y, t)};`);
+      const no = block(b, true);
+      for (const member of members) { const y = ref(member.m.in?.[2] ?? 0, scope, no, ctx); emit(no, `${member.name} = ${bool ? y.e : widen(y, member.t)};`); }
       b.lines.push(...no.lines);
       emit(b, '}');
-      return { t, e: name };
+      for (const member of members) if (member.mid !== id) b.memo.set(`${scope.path}/${member.mid}`, { t: member.t, e: member.name });
+      const leader = members[0];
+      return { t, e: leader?.name ?? temp(id) };
     }
 
     function loop(n: GraphNode, id: string, scope: Scope, b: Block, ctx: Ctx): V {

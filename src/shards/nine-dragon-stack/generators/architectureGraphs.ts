@@ -457,12 +457,16 @@ function architecture(cut: boolean, nr13: boolean, only?: number, paired = false
   // multiplies and kind 1's window light beside it, so the chain samples nothing and branches per kind, and the one paint
   // is sampled after it with the kind's parameters (none where its strength is 0, past the detail range)
   let colour: Ref = base, emit: Ref = mul(base, sw(misc, 'x'));
-  // G5: a kind's colour and ink ride one select chain (rgb, ink), so each kind's terms have that select as their one reader
-  // and the compiler branches them; two chains read every kind's cone twice and hoisted it over every pixel. A kind's
-  // pixel passes every other select through, so its running ink is the edge lines' (`edges`)
-  const edges = lines;
-  let chain: Ref = g.vec(base, edges);
-  const use = (k: number, col: Ref, ink: Ref): void => { chain = choose(g.eq(kind, k), g.vec(col, max(edges, ink)), chain); };
+  // G5: a kind's colour and ink are one select (rgb, ink) on its kind, 0 on every other, and the kinds' values add up: each
+  // select stands in the fragment root, so the compiler branches it together with the kind's other selects (kind 1's
+  // emit and glass, kind 3's wet pool), and its terms run on that kind's pixels only. Kinds are exclusive, so the sum is
+  // the one kind's value (the sum and its selects stay in the root: a select around it would nest them); a pixel of no listed
+  // kind adds the base instead (`settled`). Its running ink is the edge lines' (`edges`)
+  const edges = lines, unkinded = g.vec(base, edges), parts: Ref[] = [];
+  const use = (k: number, col: Ref, ink: Ref): void => { parts.push(choose(g.eq(kind, k), g.vec(col, max(edges, ink)), [0, 0, 0, 0])); };
+  /** the colour and ink of kinds 1 … `last` (the kinds `use` has seen so far), the base elsewhere */
+  const settled = (last: number): string => add(parts.reduce<Ref>((sum, part) => add(sum, part), [0, 0, 0, 0]),
+    choose(g.op('and', [g.gt(kind, 0.5), g.lt(kind, last + 0.5)]), [0, 0, 0, 0], unkinded));
   const grid = div(q, g.vec(sw(pat, 'z'), sw(pat, 'y'))), cell = g.floor(grid), local = g.fract(grid), gridFw = max(g.op('fwidth', [grid]), [1e-6, 1e-6]), seed = sw(pat, 'w');
   // kind 1's unpainted share, built after the paint (the predecessor's node order)
   let glassAdd: () => Ref;
@@ -549,14 +553,14 @@ function architecture(cut: boolean, nr13: boolean, only?: number, paired = false
       strength: choose(board, mul(mul(pk, sw(g.u('uPaintK'), 'w')), choose(timber, 1, 0.6)),
         mul(mul(pk, sw(g.u('uPaintK'), 'z')), choose(frieze, sw(g.u('uPaintStone'), 'y'), sw(g.u('uPaintStone'), 'x')))) };
   } else use(5, mul(base, mix(1, 0.9, mul(g.step(0.12, inset), density))), panelLines);
-  const rq = mul(g.vec(add(Qx, Qy), sub(Qx, Qy)), 0.7071), gr = max(footprint(sw(rq, 'x')), footprint(sw(rq, 'y'))), meshCoverage = max(max(g.rule(sw(rq, 'x'), cp, gr, mul(Wr, 0.8)), g.rule(sw(rq, 'y'), cp, gr, mul(Wr, 0.8))), sw(chain, 'w'));
+  const rq = mul(g.vec(add(Qx, Qy), sub(Qx, Qy)), 0.7071), gr = max(footprint(sw(rq, 'x')), footprint(sw(rq, 'y'))), meshCoverage = max(max(g.rule(sw(rq, 'x'), cp, gr, mul(Wr, 0.8)), g.rule(sw(rq, 'y'), cp, gr, mul(Wr, 0.8))), sw(settled(5), 'w'));
   use(6, base, meshCoverage);
   const leaf = div(g.projected(g.world), 0.24), leafCell = g.floor(leaf), leafLocal = g.fract(leaf), leafFw = max(g.op('fwidth', [sw(leaf, 'x')]), g.op('fwidth', [sw(leaf, 'y')]));
   // A jittered cell boundary gives the same fine gongbi ruling without nine unrolled neighbour copies.
   const leafEdge = min(min(sw(leafLocal, 'x'), sub(1, sw(leafLocal, 'x'))), min(sw(leafLocal, 'y'), sub(1, sw(leafLocal, 'y'))));
   use(7, mul(base, add(0.72, mul(g.hash(leafCell), 0.55))), mul(g.line(leafEdge, leafFw, mul(Wr, 0.6)), mul(g.smooth(2.5, 6, div(1, leafFw)), 0.45)));
   use(8, mix(base, [0.86, 0.84, 0.78], mul(g.cover(g.fract(div(Qx, cp)), 0, 0.5, div(gu, cp)), sw(pat, 'y'))), 0);
-  colour = sw(chain, 'xyz'); lines = sw(chain, 'w');
+  const chain = settled(8); colour = sw(chain, 'xyz'); lines = sw(chain, 'w');
   const surfaceLayer = choose(g.eq(surf, 4), 6, choose(g.eq(surf, 5), 7, choose(g.op('or', [g.eq(surf, 3), g.eq(surf, 6)]), 4, 2)));
   const own = (k: number, value: Ref, other: Ref): string => choose(g.eq(kind, k), value, other);
   const paintAt = own(3, p, panel === null ? q : own(5, panel.at, q)), paintLayer = own(1, 4, own(2, 5, own(3, 0, own(5, panelLayer, surfaceLayer))));
