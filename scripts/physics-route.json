@@ -4297,28 +4297,16 @@
           "z": -66
         },
         {
-          "x": -64,
+          "x": 64,
           "z": -64
-        },
-        {
-          "x": -64,
-          "z": 64
         },
         {
           "x": 64,
           "z": 64
         },
         {
-          "x": 64,
-          "z": -64
-        },
-        {
           "x": 123,
-          "z": -64
-        },
-        {
-          "x": 123,
-          "z": 60
+          "z": 64
         },
         {
           "x": 125,
@@ -4338,7 +4326,7 @@
         }
       ],
       "timeout": 240,
-      "notes": "OP13 four-stair ziggurat (sp-o1, after the 87d997316d walk's four stuck records): continuous fixed-step south road approach, up the south stair's 36.5 deg ramp to the platform (y about 31), back down, the plaza ring outside the four stair feet (+-64), the east avenue's tile border (x 123) between the pools, the NE garden's cross paths. Legs scanned clear of every tile collider (capsule + 0.3 m). Finite 240 s bound; 2 s stuck detection and every waypoint/endpoint guard unchanged. No hovering or per-waypoint teleport may qualify; any stuck climb remains a failure reported to the visual owner."
+      "notes": "OP13 four-stair ziggurat (sp-o1, after the 87d997316d walk's four stuck records): continuous fixed-step south road approach, up the south stair's 36.5 deg ramp to the platform (y about 31), back down, the plaza's east half outside the stair feet (+-64), the east tile border (x 123-125) between the pools, the NE garden's cross paths. Legs scanned clear of every tile collider (capsule + 0.3 m). Finite 240 s bound; 2 s stuck detection and every waypoint/endpoint guard unchanged. No hovering or per-waypoint teleport may qualify; any stuck climb remains a failure reported to the visual owner."
     }
   ]
 }
