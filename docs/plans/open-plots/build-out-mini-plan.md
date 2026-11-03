@@ -242,7 +242,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 | OB6 | **Mosslight Ruins** (first free Opus lane; builds the ruin-stone tile). **In flight (2026-11-03, sp-o3): activated `38b95ef7fd` + `3748dcc5b1`.** Ruin-stone kit `330bed66fc` (ruins: arch, L wall, terrace; rubble: heap, columns; Desert Ruin reuses them), plot `f5b29be288` (R ruin court, E emerald pool, tower windows as emerald Glow), landmark A Hunyuan3D 2.1 picked (G872, `eba2a44862`, art/mosslight-ruins/round-1-landmark). Chromium phone: road 110 draws / 249k tris, plaza 114 / 327k. G983 look loop R1 `d3f8c7cc97`, R2 `e164db2efb`, R3 `def30fc8f4` (art/mosslight-ruins/round-2-look-loop), final three-way board art/mosslight-ruins/round-3-final (G872). Open: life clip (bar 7), audio (OB7), the open-plot walk route (0 stuck), density toward round 62 | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2 |
 | OB6b | **done (2026-11-03).** **Trim Mosslight's phone wire** toward Night Market's: 8,947,522 B against 8,225,190 (+9 %, approved G872 with this row). `def30fc8f4` brought it to 8,828,397 B (tower texture 768 px). It now serves **8,222,060 B**, and the ceiling is ratcheted to that: a 576 px poster in place of the 1024 px billboard, and the tower texture at 704 px. Before and after board: art/mosslight-ruins/round-4-wire-trim (hero views 0–0.5 % of pixels changed, same draws). Mosslight's tile debt shrinks to 26 rows | Opus | S | ≤ 8.23 MB, look unchanged |
 | OB7 | **Audio batch** under the model lock. Pilot first, then the four: 5 scores (two MiniMax Music 3 takes each, on one listening page in the morning batch; the lane ships its recommended take), 5 ambience beds, about 25 spot SFX (MOSS v2 vs Stable Audio 3, the better take ships). Files go in `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`, with credits | Codex | 1.5 | Every plot meets bar 10; the credits file is updated; the audio stays within its ≤ 3 MB budget |
-| OB8 | **In flight (2026-11-03, sp-x1).** On accepted source `fd7f01690e`, Mosslight + Ember pass measured Chromium/Simulator bars at road/plaza and their full live walks (0 stuck/0 bounds). Simulator max draws 65/64, both 30.303 fps / p95 34 ms; playing envelopes 237.2/238.5 MB. Coral Simulator also passes: max 71 draws, same cadence, 236.4 MB. Night Market control explains the common Chromium CPU-per-draw baseline; no plot-specific miss routed. **Open:** final Frostline/Bayou readings; J1/J2. Coral Chromium and full live walk now pass on `25f6429733` (66 max draws, about 742.4 MB spawn processes, 0 stuck/0 bounds). **OB8-RENDER-CPU (G908, after Jake QA):** engine submission/ownership, uniform and static-matrix bookkeeping; expected 0.07–0.20 ms/frame at 4× (about 1–3.5 µs/draw), estimated from sampled exclusive costs, unproven; no engine/game cut landed. Exact numbers and source limits below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
+| OB8 | **In flight (2026-11-03, sp-x1).** On accepted source `fd7f01690e`, Mosslight + Ember pass measured Chromium/Simulator bars at road/plaza and their full live walks (0 stuck/0 bounds). Simulator max draws 65/64, both 30.303 fps / p95 34 ms; playing envelopes 237.2/238.5 MB. Coral Simulator also passes: max 71 draws, same cadence, 236.4 MB. Night Market control explains the common Chromium CPU-per-draw baseline; no plot-specific miss routed. **Open:** Bayou and J1/J2 official window; Coral after its final board. Frostline final `b07a842976` now passes on `0c3e3ca16b`: 65 max Sim draws, 30.303 fps / p95 34 ms, 248.7 MB playing envelope, 0 stuck/0 bounds. Coral Chromium and full live walk now pass on `25f6429733` (66 max draws, about 742.4 MB spawn processes, 0 stuck/0 bounds). **OB8-RENDER-CPU (G908, after Jake QA):** engine submission/ownership, uniform and static-matrix bookkeeping; expected 0.07–0.20 ms/frame at 4× (about 1–3.5 µs/draw), estimated from sampled exclusive costs, unproven; no engine/game cut landed. Exact numbers and source limits below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
 | OB9 | **Title hero re-shoot board.** After G972 and OB2–OB6, the 5 × 5 hero shows three of these plots, plus Nine Dragon at (1,-1). One labelled A / B / C board of re-shoots of the same NW-b framing | Opus | 0.5 | Board sent. Jake's pick ships, or the current hero stays |
 | OB10 | **Night Market catch-up (G980)**: after OB2–OB6, bring the Night Market to the same tile-kit bar (landmark, dressing density, audio, phone perf). **In flight (2026-11-03, sp-o3).** R1, the gate (art/grid/round-77-night-market-ob10): the coarse gate is drawn in its landmark graph (`coarseLandmark: "lit"`), so it reads red and gold from the road entry instead of dark; near 12k → 18k triangles; road entry 116 draws (`a8f1f940c7`). R2, density: L0 max 17,886 → 14,852 triangles, mean 8,910; wire 7.94 MB. Top-down 624k triangles, mostly the neighbouring cells; road 282k, plaza 495k (`8925472ace`). Look loop R1 (G983): warm dusk ground on round 49's floor colour, a lavender-to-peach sky and warmer lantern pools. Loop R2: fog 600-1800 m, so the aerials read clear. Final board art/grid/round-77-night-market-ob10/board-final.jpg (round 49 · before · now). Open: the gate's coral (its landmark graph is shared), the plaza's scale. Audio goes with OB7 | Opus + Codex | — | Same bar as OB2 |
 | — | Jake plays the plots on live | Jake | — | His word |
@@ -744,3 +744,54 @@ renderer plus GPU process footprint, separate from the accepted Simulator
 native-plus-ledger envelope. The exact-source full Coral walk completes in **164.1 s**, with
 **0 stuck / 0 bounds failures**, every maintained waypoint and the final
 endpoint verified on its actual resident. No collision/source change was made.
+
+
+### OB8 final Frostline, board b07a842976
+
+The final labelled board and its R2–R5 gap record were read before this
+measurement. One HEAD preview **`0c3e3ca16b`** contains that final look.
+All standing poses and live 2× phone contracts remain as above.
+
+| Surface / pose | Max draws | Triangles (median) | Median fps | p95 / worst ms | Mean / max render µs per draw |
+|---|---:|---:|---:|---:|---:|
+| Chromium spawn | 50 | 154,038 | 30.03 | 33.4 / — | 42.100 / 110.000 |
+| Chromium road | 52 | 105,957 | 30.03 | 33.4 / — | 37.885 / 59.615 |
+| Chromium plaza | 63 | 183,844 | 30.03 | 33.4 / — | 28.677 / 46.032 |
+| Simulator spawn | 58 | 168,295 | 30.303 | 34 / 34 | — |
+| Simulator road | 56 | 106,749 | 30.303 | 34 / 34 | — |
+| Simulator plaza | 65 | 184,803 | 30.303 | 34 / 34 | — |
+
+Chromium: 120 paired frames/pose at 4× Metal, boot at 1× and an acknowledged
+measurement fence; no profiler. p5 about 29.94 fps; 0 intervals over 100 ms.
+The absolute CPU-per-draw target stays a shared-control follow-up, not an
+Opus look change. Spawn process-memory peak **687 MiB**, about **720.4 MB
+decimal**, with 0 page errors (rounded source MiB fields).
+
+The full maintained live walk completes in **164.4 s**, every
+waypoint and endpoint verified: **0 stuck / 0 bounds failures**. No collider
+edit or per-waypoint teleport. The official Simulator cohort completes in
+**45.2 s**, exit 0, one G670 window. p5 **29.412 fps**; native playing
+**248,716,560 B**, loading **1,030,303,816 B**, including GPU ledger peak
+**32,739,312 B**. Native phase coverage **221 playing / 66 loading** (287
+samples), 47 GPU reads; one navigation Inspector gap retained. No page or
+runtime fault, context loss, crash or sampled interval over 100 ms.
+
+Frostline meets the measured draw/frame/memory/triangle bars. Quiet clears
+and the Simulator shuts down immediately. The same preview is reused for
+Bayou and the two newly unblocked junctions; it is not rebuilt for them.
+
+Bayou's final board **`e7266ada94`** was read (look source `02f325dade`).
+Its plot-specific layout, template, generator and landmark inputs are
+unchanged through `0c3e3ca16b`. sp-o2's ordinary checked-product native walk
+at `e7266ada94` passed its one maintained leg with 0 stuck / bounds
+failures. The actual JSON report
+`tmp/physics/native-walk-2026-11-03T09-12-31.464Z-42110.json` was independently
+read: success, 1 passed, 0 failed, the Bayou route present. This is a
+companion native-product proof, not claimed as a browser-preview walk; no
+identical walk is repeated without a new collider change.
+
+The fixed-pose reader now also retains actual grid pitch, assembled cells
+and residency **after** each timed sample. Junction identity can therefore
+be checked from the measured page itself rather than inferred from the
+input file. This adds no scene walk, gameplay change or frame observer;
+focused controls, scripts types and named lint pass.

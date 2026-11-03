@@ -476,7 +476,17 @@ async function standingSample(driver, pose) {
   const cpuProfile = raw === undefined ? undefined : summarizeTravelProfile(raw, started, await driver.evaluate('window.__frameFloorLongTasks ?? []'), pose.name);
   const scriptProfile = script === undefined ? undefined : await saveSafariProfile(pose.name, script, result.sampleRange);
   const { glFrames, ...value } = result;
+  // Fixed grid poses retain the actual assembly after timing, so a junction
+  // reading can prove its pitch/neighbours without another browser or scene walk.
+  const gridContext = suppliedStanding === null ? undefined : await driver.evaluate(`(() => {
+    const grid = window.__wildshard.shard.grid?.state();
+    if (grid === undefined) return null;
+    const live = grid.live?.live;
+    return { pitch: grid.pitch, home: grid.home, cells: grid.cells,
+      current: live?.current ?? null, residents: live?.residents ?? [], pending: live?.pending ?? [], crossing: grid.live?.crossing?.phase ?? null };
+  })()`);
   return { pose, ...value, ...assess(value, surface), ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, []) }),
+    ...(gridContext === undefined ? {} : {gridContext}),
     ...(cpuProfile === undefined ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }) };
 }
 
