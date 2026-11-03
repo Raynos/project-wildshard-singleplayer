@@ -1,0 +1,28 @@
+// Prototype glyphs, drawn in the engine's icon idiom (src/engine/ui/icons.ts: 64 × 64, fill currentColor; HUD discs 24 × 24
+// strokes). A real row would register them through registerIcons(); here they are inlined into the injected DOM.
+export const G = {
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 L20 5.5 V11 C20 16 16.5 19.6 12 21.5 C7.5 19.6 4 16 4 11 V5.5 Z"/><path d="M12 6.5 V17.5" stroke-width="1.4"/></svg>',
+  watch: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5 L15.5 10 M9.5 2.5 H14.5 M12 2.5 V6"/></svg>',
+  swords: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20 L18 6 M15 4 H20 V9 M20 20 L6 6 M9 4 H4 V9"/></svg>',
+  vault: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="1"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5 V5.5 M12 15.5 V18.5 M8.5 12 H5.5 M15.5 12 H18.5"/></svg>',
+  board: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 14 C3 11 5 10 8 10 H18 C20 10 21 11 21 12.5 C21 14 20 15 18 15 H6"/><circle cx="8" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>',
+  beacon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 C15 7 16 9 16 11.5 A4 4 0 0 1 8 11.5 C8 9 9 7 12 3 Z"/><path d="M7 21 H17 M9 21 L10 16 H14 L15 21"/></svg>',
+  scrip: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 5.8 L13.4 8.6 L16.4 8.2 L15.2 11 L17.3 13.2 L14.3 13.9 L13.9 17 L12 15 L10.1 17 L9.7 13.9 L6.7 13.2 L8.8 11 L7.6 8.2 L10.6 8.6 Z" fill="currentColor"/></svg>',
+  servo: '<svg viewBox="0 0 64 64" fill="currentColor"><path fill-rule="evenodd" d="M28 6h8l2 8 6 3 7-4 6 6-4 7 3 6 8 2v8l-8 2-3 6 4 7-6 6-7-4-6 3-2 8h-8l-2-8-6-3-7 4-6-6 4-7-3-6-8-2v-8l8-2 3-6-4-7 6-6 7 4 6-3z M32 22a10 10 0 1 0 .01 0z"/></svg>',
+  tine: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M12 6 h7 v28 h5 V6 h7 v28 h5 V6 h7 v30 c0 8 -6 13 -13 13 v9 h-7 v-9 c-7 0 -11 -5 -11 -13 Z"/></svg>',
+  rotor: '<svg viewBox="0 0 64 64" fill="currentColor"><circle cx="32" cy="32" r="6"/><path d="M32 26 C30 14 34 6 40 6 C44 8 40 18 35 27Z M38 32 C50 30 58 34 58 40 C56 44 46 40 37 35Z M32 38 C34 50 30 58 24 58 C20 56 24 46 29 37Z M26 32 C14 34 6 30 6 24 C8 20 18 24 27 29Z"/></svg>',
+  nozzle: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M6 24 H30 L50 14 V50 L30 40 H6 Z"/><rect x="51" y="20" width="7" height="24"/></svg>',
+  rivet: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M8 12 H56 V52 H8 Z M16 18 a4 4 0 1 0 .01 0 Z M48 18 a4 4 0 1 0 .01 0 Z M16 38 a4 4 0 1 0 .01 0 Z M48 38 a4 4 0 1 0 .01 0 Z" fill-rule="evenodd"/></svg>',
+  coil: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5"><path d="M10 32 C10 20 22 20 22 32 C22 44 34 44 34 32 C34 20 46 20 46 32 C46 44 58 44 58 32"/><path d="M4 32 H10 M58 32 H62"/></svg>',
+  core: '<svg viewBox="0 0 64 64" fill="currentColor"><path fill-rule="evenodd" d="M32 4 L56 18 V46 L32 60 L8 46 V18 Z M32 20 L44 27 V41 L32 48 L20 41 V27 Z"/></svg>',
+  keycard: '<svg viewBox="0 0 64 64" fill="currentColor"><path fill-rule="evenodd" d="M8 14 H56 V50 H8 Z M14 20 V30 H28 V20 Z"/><rect x="14" y="38" width="34" height="4" fill="#0b1520"/></svg>',
+  cube: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M32 6 L56 18 V46 L32 58 L8 46 V18 Z"/><path d="M32 30 L56 18 M32 30 L8 18 M32 30 V58" stroke="#0b1520" stroke-width="2.5" opacity="0.5"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 12 L15 10.5 V9 L21 12 L15 15 V13.5 L3 12 Z"/><path d="M3 12 L6 9 M3 12 L6 15" stroke="currentColor" stroke-width="1.6"/></svg>',
+  flame: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 C16 7 18 10 18 14 A6 6 0 0 1 6 14 C6 11 8 9 9 7 C10 10 11 11 12 11 C12 8 11 5 12 2 Z"/></svg>',
+  broad: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 12 H13 M13 12 L17 7 L22 12 L17 17 Z" stroke="currentColor" stroke-width="1.8"/></svg>',
+  sword: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M50 6 L58 6 L58 14 L28 44 L20 36 Z"/><path d="M14 34 L30 50 L26 54 L22 50 L14 58 L10 54 L18 46 L10 38 Z"/></svg>',
+  spear: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M56 4 L60 8 L50 26 L44 20 Z"/><rect x="-3" y="0" width="6" height="56" transform="translate(46 22) rotate(45)"/></svg>',
+  crossbow: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M8 20 C20 10 44 10 56 20"/><path d="M8 20 L32 32 L56 20"/><path d="M32 14 V58"/></svg>',
+  bow: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M18 6 C46 18 46 46 18 58"/><path d="M18 6 V58" stroke-width="1.5"/><path d="M14 32 H54 M48 26 L54 32 L48 38"/></svg>',
+  rifle: '<svg viewBox="0 0 64 64" fill="currentColor"><path d="M4 30 H44 L48 26 H60 V32 H50 L46 36 H30 L26 44 H18 L20 36 H4 Z"/></svg>',
+};

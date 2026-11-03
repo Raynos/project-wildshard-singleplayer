@@ -1,0 +1,11 @@
+The attached image is a real in-game screenshot (a 2:3 band cut from an iPhone portrait frame) of Wildshard, a low-poly stylized first-person game: a wooden pier running to a tropical beach, palms and grey rocks, flat toon shading, soft shadows, a sword held in the first-person hands at the bottom. It must stay a real print-screen of that same game, not concept art: same camera, same lighting, same low-poly toon materials, no device frame, no watermark, no new UI overlay.
+
+EDIT: add ONE world object, the personal-best board for a course, standing on the sand at the right-hand end of the pier where the pier meets the beach, about 14 m from the camera, facing the camera and slightly turned toward the pier. It is a free-standing painted sign about 2.4 m wide and 1.6 m tall on two stout posts, built in the same low-poly toon style as the pier (chunky timber frame) with a dark slate board face and a warm orange (#f08a24) header strip. The board face carries large, clean, perfectly legible painted lettering, white on dark slate, exactly these lines and nothing else:
+MOVERS RUN
+BEST 1:05.8
+LAST 1:12.4
+Below the board, a round flat start pad on the sand (1.5 m across) with a cyan ring glowing faintly.
+
+Keep every other pixel the same: the pier, the beach, the palms, the clouds, the sword and hands, the small hover tab on the left edge and the crosshair in the middle stay exactly where they are. No people, no extra text anywhere else.
+
+TASK FOR CODEX: Use the built-in image_gen tool to EDIT the attached reference image into exactly ONE portrait 2:3 image as described above. One generation only. Then copy the PNG that YOUR image_gen call produced into OUT_PATH. Create or modify no other file.

@@ -1,0 +1,201 @@
+/* ─── Round 12 UI prototypes: the NEW rules only ───
+   Injected into a live page next to the engine's own stylesheets. Every rule below is something a Wave 1 row would add to
+   the named engine / game stylesheet (README.md lists which); everything else in the prototypes is the engine's existing
+   classes. Tokens only from base.css (--ws-cyan, --ws-amber, --ws-red, --ws-glass-deep, --ws-display, --ws-mono). */
+
+/* ── UI-01 game.css: the generic bottom "meter" (XP) on the touch bar's top edge, its chip at the left ── */
+.ws-game-meter { position: absolute; left: 0; right: 0; bottom: calc(var(--bar) - 2px); height: 4px; background: rgba(6, 10, 18, 0.7); pointer-events: none; z-index: 1; }
+.ws-game-meter > i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #c98a2a, var(--ws-amber)); box-shadow: 0 0 8px rgba(255, 181, 71, 0.65); }
+.ws-game-meter > u { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(6, 10, 18, 0.9); }
+.ws-game-meter-chip { position: absolute; left: 12px; bottom: calc(var(--bar) + 4px); display: flex; align-items: baseline; gap: 6px; height: 20px; padding: 2px 8px 2px 7px; background: var(--ws-glass-deep); border: 1px solid rgba(255, 181, 71, 0.55); pointer-events: none; white-space: nowrap; z-index: 1; }
+.ws-game-meter-chip b { font-family: var(--ws-display); font-weight: 700; font-size: 15px; line-height: 15px; letter-spacing: 0.06em; color: #fff; }
+.ws-game-meter-chip b small { font-size: 9px; letter-spacing: 0.2em; color: var(--ws-amber); margin-right: 3px; }
+.ws-game-meter-chip span { font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 210, 150, 0.75); font-variant-numeric: tabular-nums; }
+.ws-game-meter.flash > i { background: #fff4c2; box-shadow: 0 0 14px rgba(255, 220, 120, 0.95); }
+
+/* ── UI-02 game.css: the level-up burst (a ring off the chip + the one-line gain chip), never blocking ── */
+.ws-game-burst-ring { position: absolute; left: 34px; bottom: calc(var(--bar) + 14px); width: 120px; height: 120px; margin: 0 0 -60px -60px; border-radius: 50%; border: 2px solid var(--ws-amber); box-shadow: 0 0 18px rgba(255, 181, 71, 0.7), inset 0 0 18px rgba(255, 181, 71, 0.45); opacity: 0.75; transform: scale(1.15); pointer-events: none; z-index: 1; }
+.ws-game-burst-ring.inner { width: 64px; height: 64px; margin: 0 0 -32px -32px; opacity: 0.9; transform: scale(1); border-width: 1.5px; }
+.ws-game-burst-chip { position: absolute; left: 12px; bottom: calc(var(--bar) + 30px); height: 20px; display: flex; align-items: center; gap: 7px; padding: 2px 10px 2px 8px; background: rgba(26, 18, 4, 0.82); border: 1px solid var(--ws-amber); box-shadow: 0 0 14px rgba(255, 181, 71, 0.35); font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #ffe2a8; white-space: nowrap; pointer-events: none; z-index: 1; }
+.ws-game-burst-chip b { font-family: var(--ws-display); font-weight: 700; font-size: 13px; letter-spacing: 0.12em; color: #fff4c2; }
+.ws-game-meter-chip.flip { border-color: var(--ws-amber); box-shadow: 0 0 16px rgba(255, 181, 71, 0.75); }
+.ws-game-vitals.refill { border-color: var(--ws-amber); box-shadow: 0 0 14px rgba(255, 181, 71, 0.45); }
+.ws-game-vitals.refill .ws-game-vbar i { background: #fff4c2; box-shadow: 0 0 10px rgba(255, 220, 120, 0.9); }
+
+/* ── UI-03 game src/game/progression/level.css: the out-of-combat tick-up card ── */
+.ws-lvcard { position: absolute; left: 50%; top: calc(var(--ws-top) + 34vw + 58px); width: min(300px, calc(100% - 40px)); transform: translateX(-50%); padding: 14px 16px 12px; background: rgba(13, 27, 38, 0.86); border: 1px solid rgba(255, 181, 71, 0.6); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 10px 40px rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 181, 71, 0.18); font-family: var(--ws-mono); color: var(--ws-text); pointer-events: auto; z-index: 8; }
+.ws-lvcard > .cb { position: absolute; width: 14px; height: 14px; border: 0 solid var(--ws-amber); }
+.ws-lvcard > .cb.tl { left: -1px; top: -1px; border-width: 2px 0 0 2px; } .ws-lvcard > .cb.br { right: -1px; bottom: -1px; border-width: 0 2px 2px 0; }
+.ws-lvcard-kicker { text-align: center; font-size: 9.5px; letter-spacing: 0.42em; text-indent: 0.42em; color: var(--ws-amber); }
+.ws-lvcard-level { text-align: center; margin: 2px 0 10px; font-family: var(--ws-display); font-weight: 700; font-size: 40px; line-height: 1; letter-spacing: 0.08em; color: #fff4dc; text-shadow: 0 0 20px rgba(255, 190, 110, 0.55); }
+.ws-lvcard-level small { font-size: 16px; letter-spacing: 0.2em; color: var(--ws-amber); margin-right: 6px; }
+.ws-lvcard-row { display: grid; grid-template-columns: 46px 1fr 34px 44px; align-items: center; gap: 8px; height: 25px; border-top: 1px solid rgba(143, 227, 255, 0.1); font-size: 11px; letter-spacing: 0.14em; font-variant-numeric: tabular-nums; }
+.ws-lvcard-row > span:first-child { color: var(--ws-cyan); letter-spacing: 0.2em; }
+.ws-lvcard-row .bar { position: relative; height: 3px; background: rgba(143, 227, 255, 0.12); }
+.ws-lvcard-row .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ws-cyan-dim); }
+.ws-lvcard-row .bar i + i { background: var(--ws-amber); box-shadow: 0 0 6px rgba(255, 181, 71, 0.7); }
+.ws-lvcard-row b { text-align: right; font-weight: 500; color: #fff; }
+.ws-lvcard-row em { font-style: normal; text-align: right; font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.04em; color: var(--ws-cyan); }
+.ws-lvcard-row.big em { color: #ffd76a; text-shadow: 0 0 10px rgba(255, 200, 90, 0.8); font-size: 17px; }
+.ws-lvcard-row.zero em, .ws-lvcard-row.zero b, .ws-lvcard-row.zero > span:first-child { color: var(--ws-text-dim); }
+.ws-lvcard-row.pending { opacity: 0.32; }
+.ws-lvcard-row.pending em { color: var(--ws-text-dim); }
+.ws-lvcard-foot { margin-top: 9px; display: flex; justify-content: space-between; font-size: 8.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-lvcard-foot b { color: var(--ws-cyan); font-weight: 400; padding: 3px 9px; margin: -3px -4px; border: 1px solid var(--ws-cyan-line); background: rgba(143, 227, 255, 0.08); }
+
+/* ── UI-04 combat.css: nameplates (level prefix in con colour, rarity tag, stagger bar, status tint) ── */
+.ws-combat-hp .lv { font-weight: 700; margin-right: 0.5em; letter-spacing: 0.14em; }
+.ws-combat-hp .lv.con-grey { color: #9aa3a8; } .ws-combat-hp .lv.con-blue { color: #79b8ff; } .ws-combat-hp .lv.con-green { color: #7be38a; }
+.ws-combat-hp .lv.con-yellow { color: #ffe066; } .ws-combat-hp .lv.con-orange { color: #ff9a3c; } .ws-combat-hp .lv.con-red { color: #ff5a4a; }
+.ws-combat-hp .lv.con-skull { color: #ff5a4a; }
+.ws-combat-hp .lv.con-skull::before { content: '☠ '; }
+.ws-combat-hp.grey .ws-combat-hp-kind { color: rgba(196, 220, 232, 0.55); }
+.ws-combat-hp.grey .ws-combat-hp-fill { background: #8f979c; box-shadow: none; }
+.ws-combat-hp-tag { display: block; width: max-content; margin: 0 auto 2px; padding: 1px 5px; font-size: 7px; letter-spacing: 0.26em; text-transform: uppercase; color: #1a0d02; background: #ff9a3c; box-shadow: 0 0 8px rgba(255, 154, 60, 0.6); }
+.ws-combat-hp.rare .ws-combat-hp-track { border-color: #ff9a3c; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 8px rgba(255, 154, 60, 0.55); }
+.ws-combat-hp-stagger { position: relative; height: 2px; margin-top: 2px; background: rgba(6, 10, 18, 0.72); overflow: hidden; }
+.ws-combat-hp-stagger i { position: absolute; left: 0; top: 0; bottom: 0; background: #f4f0e6; box-shadow: 0 0 4px rgba(255, 255, 255, 0.7); }
+.ws-combat-hp.burn .ws-combat-hp-fill { background: linear-gradient(90deg, #ff5a1f, #ffb547); box-shadow: 0 0 8px rgba(255, 110, 40, 0.85); }
+.ws-combat-hp.shock .ws-combat-hp-fill { background: linear-gradient(90deg, #b9a4ff, #8fe3ff); box-shadow: 0 0 8px rgba(185, 164, 255, 0.85); }
+.ws-combat-hp-status { display: inline-block; margin-left: 4px; font-size: 7px; letter-spacing: 0.2em; }
+.ws-combat-hp.burn .ws-combat-hp-status { color: #ff9a3c; } .ws-combat-hp.shock .ws-combat-hp-status { color: #c8b8ff; }
+
+/* ── UI-05 combat.css: outcome floats (crit, glance, the fail words) and the red numbers on you ── */
+.ws-combat-float.crit b { font-size: 40px; color: #ffd84a; text-shadow: 0 0 16px rgba(255, 200, 60, 0.85), 0 0 2px rgba(0, 0, 0, 1), 0 2px 3px rgba(0, 0, 0, 0.9); transform: rotate(-4deg); }
+.ws-combat-float.crit i { color: #ffd84a; }
+.ws-combat-float.glance b { font-size: 16px; font-weight: 600; color: rgba(196, 220, 232, 0.7); text-shadow: 0 0 2px rgba(0, 0, 0, 1), 0 2px 3px rgba(0, 0, 0, 0.9); }
+.ws-combat-float.fail b { font-size: 17px; font-weight: 700; letter-spacing: 0.22em; color: #dfe8ee; text-shadow: 0 0 10px rgba(220, 235, 245, 0.7), 0 0 2px rgba(0, 0, 0, 1), 0 2px 3px rgba(0, 0, 0, 0.9); }
+.ws-combat-float.fail.parry b { color: var(--ws-cyan); text-shadow: 0 0 12px rgba(143, 227, 255, 0.85), 0 0 2px #000, 0 2px 3px rgba(0, 0, 0, 0.9); }
+.ws-combat-float.onyou b { font-size: 20px; color: #ff6a58; text-shadow: 0 0 10px rgba(255, 70, 50, 0.7), 0 0 2px #000, 0 2px 3px rgba(0, 0, 0, 0.9); }
+.ws-combat-float.onyou.fail b { font-size: 12px; color: #dfe8ee; }
+
+/* ── UI-06 touch.css: the GUARD disc (hudSlots disc at `up0`, sword held only) ── */
+.ws-touch-disc.ws-touch-guard svg { width: 36%; height: 36%; }
+.ws-touch-disc.ws-touch-guard span { font-size: 7.5px; letter-spacing: 0.16em; }
+.ws-touch-disc.ws-touch-guard.window { border-color: var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 18px rgba(143, 227, 255, 0.55), inset 0 0 0 3px rgba(6, 10, 18, 0.6); }
+
+/* ── UI-07 / UI-08: a level tag on the elite / boss bars ── */
+.ws-elite-lv, .ws-boss-lv { display: inline-block; margin-left: 0.6em; padding: 1px 6px 0; font-family: var(--ws-mono); font-weight: 600; font-size: 0.62em; letter-spacing: 0.16em; text-indent: 0; vertical-align: 0.2em; color: #1a0d02; background: #ff5a4a; }
+.ws-boss-lv { background: var(--gold); }
+.ws-boss-bar-pips { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+.ws-boss-bar-pips i { width: 9px; height: 9px; transform: rotate(45deg); border: 1.5px solid var(--gold); background: rgba(12, 8, 4, 0.8); }
+.ws-boss-bar-pips i.done { background: var(--gold); box-shadow: 0 0 6px rgba(233, 180, 76, 0.8); }
+
+/* ── UI-09 combat.css: the death card's cost line ── */
+.ws-combat-death-cost { margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(255, 90, 74, 0.3); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #ff8a7e; }
+.ws-combat-death-cost b { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.08em; color: #ffb0a6; margin-right: 6px; }
+.ws-combat-death-cost small { display: block; margin-top: 3px; font-size: 8.5px; letter-spacing: 0.18em; color: var(--ws-text-dim); }
+
+/* ── UI-10 game bag tab: the read-only Character tab (only the attribute rows are new; the rest is gmenu.css) ── */
+.ws-char-row { display: grid; grid-template-columns: 38px 1fr 34px 76px; align-items: center; gap: 8px; padding: 7px 10px; margin-bottom: 4px; background: rgba(143, 227, 255, 0.05); border: 1px solid rgba(143, 227, 255, 0.14); font-size: 10px; letter-spacing: 0.14em; font-variant-numeric: tabular-nums; }
+.ws-char-row > span:first-child { color: var(--ws-cyan); font-weight: 600; letter-spacing: 0.2em; }
+.ws-char-row .bar { position: relative; height: 4px; background: rgba(143, 227, 255, 0.1); }
+.ws-char-row .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ws-cyan); box-shadow: 0 0 6px rgba(143, 227, 255, 0.5); }
+.ws-char-row .bar u { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: #fff; opacity: 0.8; }
+.ws-char-row b { text-align: right; font-family: var(--ws-display); font-weight: 700; font-size: 16px; color: #fff; letter-spacing: 0.02em; }
+.ws-char-row em { font-style: normal; text-align: right; font-size: 9px; color: var(--ws-text-dim); white-space: nowrap; }
+.ws-char-row em.up { color: #7be38a; } .ws-char-row em.down { color: #ff9a8e; }
+.ws-char-what { grid-column: 1 / -1; margin-top: -2px; font-size: 8px; letter-spacing: 0.12em; color: var(--ws-text-dim); text-transform: uppercase; }
+.ws-char-derived { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.ws-char-derived div { padding: 6px 9px; background: rgba(143, 227, 255, 0.04); border: 1px solid rgba(143, 227, 255, 0.12); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-char-derived b { display: block; margin-top: 2px; font-family: var(--ws-display); font-weight: 700; font-size: 16px; letter-spacing: 0.04em; color: #fff; text-transform: none; }
+
+/* ── UI-12 quest.css: quest-giver markers (world, projected like the elite bar) and the minimap pips ── */
+.ws-quest-giver { position: absolute; left: 0; top: 0; width: 40px; margin-left: -20px; text-align: center; pointer-events: none; }
+.ws-quest-giver b { display: block; font-family: var(--ws-display); font-weight: 700; font-size: 40px; line-height: 1; color: #ffd54a; -webkit-text-stroke: 1.5px #2a1a02; text-shadow: 0 0 14px rgba(255, 200, 60, 0.85), 0 2px 3px rgba(0, 0, 0, 0.8); }
+.ws-quest-giver span { display: block; margin-top: 1px; font-size: 8px; letter-spacing: 0.2em; color: var(--ws-text); text-shadow: 0 0 6px #000, 0 1px 2px #000; white-space: nowrap; }
+.ws-quest-giver.grey b { color: #a7aeb2; -webkit-text-stroke-color: #1b1f22; text-shadow: 0 0 8px rgba(0, 0, 0, 0.6), 0 2px 3px rgba(0, 0, 0, 0.8); }
+.ws-quest-giver.turnin b { color: #ffd54a; }
+.ws-quest-mappip { position: absolute; width: 12px; height: 14px; margin: -7px 0 0 -6px; font-family: var(--ws-display); font-weight: 700; font-size: 14px; line-height: 14px; text-align: center; color: #ffd54a; text-shadow: 0 0 3px #000, 0 0 6px rgba(255, 200, 60, 0.8); pointer-events: none; }
+.ws-quest-mappip.grey { color: #a7aeb2; text-shadow: 0 0 3px #000; }
+
+/* ── UI-13 quest.css: the dialogue's accept row (a level-locked accept) ── */
+.ws-quest-talk-gate { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(143, 227, 255, 0.16); }
+.ws-quest-talk-gate .quest { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-quest-talk-gate .quest b { display: block; margin-top: 2px; font-family: var(--ws-display); font-weight: 700; font-size: 14px; letter-spacing: 0.06em; color: var(--ws-text); }
+.ws-quest-talk-gate .btn { flex: none; padding: 8px 12px; border: 1px solid rgba(196, 220, 232, 0.3); background: rgba(196, 220, 232, 0.06); font-size: 9.5px; letter-spacing: 0.2em; color: var(--ws-text-dim); }
+.ws-quest-talk-gate .btn.go { border-color: var(--ws-cyan); color: var(--ws-cyan); background: rgba(143, 227, 255, 0.12); }
+
+/* ── UI-14 gmenu.css: the quest list on the map tab, above the quest card ── */
+.ws-gmenu .ws-gmenu-qlist { flex: none; margin-bottom: 8px; }
+.ws-gmenu .ws-gmenu-qrow { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 8px; padding: 5px 9px; border-bottom: 1px solid rgba(143, 227, 255, 0.08); font-size: 10px; letter-spacing: 0.1em; color: var(--ws-text); }
+.ws-gmenu .ws-gmenu-qrow i { width: 6px; height: 6px; margin-left: 3px; transform: rotate(45deg); border: 1px solid var(--ws-cyan-dim); }
+.ws-gmenu .ws-gmenu-qrow.tracked { background: rgba(143, 227, 255, 0.08); border: 1px solid rgba(143, 227, 255, 0.35); }
+.ws-gmenu .ws-gmenu-qrow.tracked i { background: var(--ws-cyan); border-color: var(--ws-cyan); box-shadow: 0 0 6px rgba(143, 227, 255, 0.8); }
+.ws-gmenu .ws-gmenu-qrow em { font-style: normal; font-size: 8px; letter-spacing: 0.18em; color: var(--ws-cyan-dim); text-transform: uppercase; }
+.ws-gmenu .ws-gmenu-qrow.tracked em { color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-qrow.locked { color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-qrow.locked i { border-color: rgba(196, 220, 232, 0.3); }
+.ws-gmenu .ws-gmenu-qrow.locked em { color: rgba(196, 220, 232, 0.45); }
+.ws-gmenu .ws-gmenu-qrow.done { color: var(--ws-text-dim); text-decoration: line-through rgba(143, 227, 255, 0.4); }
+.ws-gmenu .ws-gmenu-qmore { padding: 5px 9px 0; font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+
+/* ── UI-17 quest.css: the checkpoint card (the reward caption's type, a SAVED tick) ── */
+.ws-quest-reward.checkpoint { top: calc(var(--ws-top) + 34vw + 64px); }
+.ws-quest-reward.checkpoint .ws-quest-reward-title { font-size: 26px; }
+.ws-quest-saved { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; padding: 3px 10px; border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.24em; color: var(--ws-cyan); }
+.ws-quest-saved i { width: 9px; height: 5px; border: solid var(--ws-cyan); border-width: 0 0 2px 2px; transform: rotate(-45deg) translateY(-1px); }
+
+/* ── UI-20 / UI-22 / UI-24 / UI-29 reuse .ws-game-weather (the chip under the minimap); only its icon differs ── */
+.ws-game-weather.clock .ws-game-wt { letter-spacing: 0.08em; font-size: 15px; }
+.ws-game-weather.wave { border-color: rgba(255, 181, 71, 0.7); }
+.ws-game-weather.wave .ws-game-wicon { color: var(--ws-amber); }
+.ws-game-weather.storm.hour .ws-game-ws { color: #d9ccff; }
+
+/* ── UI-22 minimap.css: storm beacons on the minimap ── */
+.ws-minimap-beacon { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; transform: rotate(45deg); border: 1.5px solid #d9ccff; background: rgba(6, 10, 18, 0.85); box-shadow: 0 0 6px rgba(185, 164, 255, 0.7); pointer-events: none; }
+.ws-minimap-beacon.lit { background: #ffd54a; border-color: #fff4c2; box-shadow: 0 0 10px rgba(255, 210, 80, 0.95); }
+
+/* ── UI-24 game.css: the wave banner reuses the boundary warning's type; a court line under it ── */
+.ws-game-boundary.wave { opacity: 1; top: 30%; }
+.ws-game-boundary.wave .ws-game-bt { font-size: 30px; letter-spacing: 0.3em; }
+
+/* ── UI-27 map heat map (map tab overlay) and the minimap band border ── */
+.ws-gmenu-heat { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: normal; }
+.ws-gmenu-heat i { position: absolute; border-radius: 40%; opacity: 0.38; filter: blur(6px); }
+.ws-gmenu-heat span { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px; font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.16em; color: #fff; background: rgba(6, 10, 18, 0.72); border: 1px solid rgba(255, 255, 255, 0.25); white-space: nowrap; }
+.ws-gmenu-heatkey { display: flex; gap: 3px; align-items: center; font-size: 8px; letter-spacing: 0.14em; color: var(--ws-text-dim); }
+.ws-gmenu-heatkey i { width: 14px; height: 6px; }
+.ws-minimap-band { position: absolute; inset: -3px; border-radius: 50%; pointer-events: none; border: 3px solid transparent; border-top-color: #ff9a3c; border-right-color: #ff9a3c; transform: rotate(-20deg); filter: drop-shadow(0 0 5px rgba(255, 154, 60, 0.85)); }
+.ws-minimap-bandtag { position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); padding: 1px 7px; font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.16em; white-space: nowrap; color: #ffcf9a; background: rgba(26, 14, 4, 0.85); border: 1px solid rgba(255, 154, 60, 0.75); pointer-events: none; }
+
+/* ── UI-31 / UI-32 shop.css: the two-tab header and the level lock on a tile ── */
+.ws-shop .ws-shop-tabs { display: grid; grid-template-columns: 1fr 1fr; margin: -2px 0 10px; border: 1px solid color-mix(in srgb, var(--ws-shop-a) 40%, transparent); }
+.ws-shop .ws-shop-tabs span { padding: 8px 0 7px; text-align: center; font-family: var(--ws-mono); font-size: 11px; letter-spacing: 0.26em; color: var(--ws-text-dim); }
+.ws-shop .ws-shop-tabs span.on { color: #06121a; background: var(--ws-shop-a); font-weight: 700; }
+.ws-icard-lv { position: absolute; left: 5px; top: 5px; padding: 1px 5px; font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.14em; color: #06121a; background: var(--ws-amber); }
+.ws-icard-tile.locked .ws-icard-lv { background: rgba(196, 220, 232, 0.5); }
+.ws-icard-parts { display: block; font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.12em; color: var(--ws-text-dim); text-transform: uppercase; white-space: nowrap; }
+
+/* ── UI-33 gmenu.css: unfound pack kinds as silhouettes ── */
+.ws-gmenu .ws-gmenu-grid.twenty { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ws-gmenu .ws-gmenu-slot.unfound .ws-gmenu-sicon { color: rgba(143, 227, 255, 0.16); filter: none; }
+.ws-gmenu .ws-gmenu-slot.unfound .ws-gmenu-sname { color: rgba(196, 220, 232, 0.35); }
+.ws-gmenu .ws-gmenu-slot.unfound { border-style: dashed; background: rgba(143, 227, 255, 0.02); }
+
+/* ── UI-34 touch.css: pouch counters on the bolts chip; the ammo pie reuses .ws-touch-pie ── */
+.ws-game-pouch { display: flex; gap: 6px; margin-left: 2px; }
+.ws-game-pouch span { font-size: 8px; letter-spacing: 0.12em; color: var(--ws-text-dim); }
+.ws-game-pouch span.on { color: var(--ws-cyan); }
+.ws-game-pouch span b { font-family: var(--ws-display); font-weight: 700; font-size: 12px; color: #fff; margin-left: 2px; }
+
+/* ── UI-30 W5b: trick words over the board (the float's type) ── */
+.ws-combat-float.trick b { font-size: 30px; color: #fff; letter-spacing: 0.1em; }
+.ws-combat-float.trick i { color: var(--ws-cyan); letter-spacing: 0.24em; }
+
+/* ── UI-36: LOAN tags on the weapon pie ── */
+.ws-touch-pie-label .loan { display: block; margin-top: 1px; font-size: 6.5px; letter-spacing: 0.2em; color: #06121a; background: var(--ws-amber); padding: 0 4px; width: max-content; }
+
+/* ── UI-11: the levelled first hint, a FirstHints tag under the crosshair ── */
+.ws-hint-tag.proto-show { display: block !important; }
+
+/* ── round-12 fit fixes: the levelled plate is wider than a kind label; long words never wrap ── */
+.ws-combat-hp.lvl { left: -60px; width: 120px; }
+.ws-combat-hp.lvl .ws-combat-hp-kind { white-space: nowrap; letter-spacing: 0.16em; }
+.ws-combat-hp.lvl .ws-combat-hp-track { margin: 0 16px; }
+.ws-combat-hp.lvl .ws-combat-hp-stagger { margin: 2px 16px 0; }
+.ws-combat-float.fail b, .ws-combat-float.trick b { white-space: nowrap; }
+.ws-game-boundary.wave .ws-game-bt, .ws-game-boundary.wave .ws-game-bs { white-space: nowrap; }
+.ws-hint-tag.proto-wide { white-space: normal; width: max-content; max-width: 300px; line-height: 1.5; text-align: center; }
+.ws-quest-reward.checkpoint { left: 8%; right: 8%; padding: 12px 0 14px; background: radial-gradient(ellipse at center, rgba(6, 10, 18, 0.72) 0%, rgba(6, 10, 18, 0.5) 50%, rgba(6, 10, 18, 0) 75%); }
+.ws-gmenu-heat { z-index: 2; }
