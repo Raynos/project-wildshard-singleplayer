@@ -264,24 +264,10 @@
       "tile/1/2/2/draws": 6
     },
     "open-plot-ember-forge": {
-      "tile/0/3/4/resident": 4059648,
-      "tile/0/3/4/compressed": 1232238,
-      "tile/0/3/4/draws": 11,
-      "tile/0/4/3/resident": 4574796,
-      "tile/0/4/3/compressed": 318152,
-      "tile/0/4/3/draws": 11,
-      "tile/0/4/4/compressed": 1123874,
-      "tile/0/4/4/draws": 11,
-      "tile/1/1/1/draws": 4,
-      "tile/1/1/2/resident": 4072380,
-      "tile/1/1/2/compressed": 1238610,
-      "tile/1/1/2/draws": 6,
-      "tile/1/2/1/resident": 4579360,
-      "tile/1/2/1/compressed": 320436,
-      "tile/1/2/1/draws": 6,
-      "tile/1/2/2/resident": 3853252,
-      "tile/1/2/2/compressed": 1129042,
-      "tile/1/2/2/draws": 6
+      "tile/0/3/4/compressed": 444541,
+      "tile/0/4/3/compressed": 478693,
+      "tile/0/4/4/compressed": 445197,
+      "tile/0/3/3/compressed": 472021
     },
     "open-plot-frostline-peaks": {
       "tile/0/0/3/compressed": 933018,
