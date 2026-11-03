@@ -156,10 +156,10 @@ does not close a Z row.
 | **Z4** | **In flight (2026-11-03, sp-x9), 0/13 removed.** The complete-root census below names 13 single-user/envelope blockers for Jake’s one-user batch; no shared-family registration or AS rewrite is qualified. **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **In flight (2026-11-03, sp-x8): exact native-type/user audit and byte-preserving transport.** Weapon pages into `held/*`; Jian cloth / halo ship as GLB. One-user complete contracts go to Jake's G988 batch; G958 parity, G998 goldens and held-view captures required | 10 targets: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Codex (G958) | 3 |
-| **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
+| **Z7** | **In flight (2026-11-03, sp-x9), census first.** Two prior DW ports (`3c42144c50`) are already platform; 12 remaining / 3,625,429 B. Four exact candidates below: one existing two-shard fixed-draw family and three reader-less Nine copies; no new source landing yet. Eight live roots remain one-user, including cloud already in the batch. **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
 | **Z8** | **Eligible slice done (2026-11-03, sp-x9), 2/14 removed.** Exact shared ChapterStoryPresentation family (6/6, real complete Nalati/DW/Pine users), plus the 149 B reader-less DW steps deletion `98bab03828`. Original native owners and all Pine bytes remain; all six shards qualify 24/24 Chromium + WebKit through the shared cohort, with Nalati re-shot after QD11. Twelve per-file blockers / 93,379 B below remain charged for the one-user batch; Pine lead already runs as AS. | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
-| **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
+| **Z10** | **Census complete (2026-11-03, sp-x9), 0/3 removed.** All three / 1,669 B have original live readers and only DW as a complete emitter; per-file evidence below. E9 building-life is already in Jake’s batch, not new credit. **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Qualified five-file slice (2026-11-03, sp-x6), source `7cc93a3856`: −5 / −57,213 custom bytes; three one-user documents remain charged for Jake's batch. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
 | **Z12** | **One unread copy retired (2026-11-03, sp-x2); eight live files remain charged for Jake’s one-user batch.** Delete only Pine landmark-view, 5,510 B, while the original ForestPage/native models retain its facts. All other 880 Pine bodies / 154,020,452 B and 78 old/new packs reconstruct exactly. Strict native 24 frames / 8 A/A + 8 A/B all zero; Pine 24/24 green in Chromium and WebKit. Seven native physics route legs pass, zero stuck/bounds failures. [Per-file census and qualification](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2); no fake field-root credit | **1 of 9 retired; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
@@ -361,6 +361,65 @@ and the preview lease was released (sp-x9 retains its own use).
 
 Raw protocol/readings: `tmp/sp-x2-cs3-exits/z5/{audit.json,map-audit.json,
 pixels/reading.json}`. No Pine/Nine source changed in this slice.
+
+### Z7 / Z10 complete-root census (2026-11-03, sp-x9)
+
+The original Z7 list has **14** entries. DW’s collections and fixed layouts
+already moved in `3c42144c50`: current `collections/displays` (**2,698 B**)
+and `models/island-library` (**7,855 B**) retain their qualified hashes and
+native owner/identity checks. They are not new work or new ceiling credit.
+Z7’s remaining **12 / 3,625,429 B** and Z10’s **3 / 1,669 B** are all still
+charged at this census boundary. Cloud (**962,762 B**) and building-life
+(**510 B**) already appear in the one-user batch; excluding those overlaps
+leaves **13 active targets**, not 15 new batch entries.
+
+Every target body’s byte length and SHA-256 was verified against the sealed
+admitted `a0614245af-mw0vl5br` product and then against its current on-disk
+body before retaining the source data under `tmp/sp-x9-z7-z10/`. This is a
+manifest-verified census, not a CURRENT claim for moving HEAD or a new
+native/pack/pixel qualification. No schema, runtime, producer, guard or
+ceiling edit accompanies this preflight.
+
+| Exact candidate | Bytes | Complete producer and original reader |
+|---|---:|---|
+| Nalati `models/shape-book.json` | 12,854 | Already emitted with the exact defining `FixedDrawRowsSchema` metadata. Nalati’s complete 50-row value routes through `client/plan` world assembly `construction.prelude.draws` → `WorldAssembly.nativePrelude` → `productFixedDraws` → complete `fileRows` admission. DW emits its complete 90-row array in `models/island-library.draws`; `ResolvedIslandLibrarySchema` uses the same defining object and `IslandLibrary.draws` passes the whole array to `fixedDraws`. Fresh sp-x2 **6/6**: two real complete-root users, no shard branches, rows-only author API, client-only, deletion test both ways. Actual values parse unchanged, unknown/channel/callback refusals pass; three original native guard suites / **21 cases** pass, including binary-only, resource and product-reader identity checks. Register only this exact existing file family; no new schema, wrapper, SDK root, metadata or payload conversion. |
+| Nine `geometry/layout.json` | 1,000,236 | No production reader or other emitted JSON value names the file. `layoutBlobs` emits the old rows/library/negativeZeros/world restoration document; runtime world welds, placement pages and model pools now carry the retained real data. References are producer/demand bookkeeping and the maintained offline float64/signed-zero oracle, not a whole-file runtime route. Candidate removes only production emission; preserve the source bake and original oracle. |
+| Nine `signs/atlas-phone.json` | 673,739 | No runtime or other emitted JSON reference. Build-time `signsProgram` reads the original atlas bytes into complete `SignAtlasSchema` rows, then `worldScenes` embeds their actual sign keys/copies and declares the native GLB pools/KTX2. Keep that authoring admission and data, all pool parts, atlas textures, glyph layout, gains, picking and native publication; remove only the unread shipped metadata copy. Two tiers are not two shards. |
+| Nine `signs/atlas-desktop.json` | 673,741 | Same complete source/reader trace as phone; no runtime file route. The original native glyph/neon tests retain their authoring `nineSignBlobs` reader, so their bounds/channel/gain oracles are not replaced with a weaker assertion. |
+
+The recursive reference census reads and hash-verifies every indexed Nine
+JSON body. `geometry/fixed-kits.json` is actually named by the practice
+feature in `client/plan`; `models/held-cards.json` is named by the Explorer.
+The layout and two atlas copies have **zero** such references. A source
+scan covers game, engine, SDK, shard runtime and headless owners, including
+their original authoring-only readers. Removal requires exact retained
+body/metadata and ordered-pack reconstruction, native proof and G998 before
+landing. No missing reader is invented to register a family.
+
+| Live Z7 whole file retained for the batch | Bytes | Exact blocker and owner |
+|---|---:|---|
+| DW `models/fixed-geometry.json` | 1,338 | `FixedGeometryGroupsSchema` is the closed cargo/cover/driftLogs/entryDecks/npc/piers inventory. The resolved island library still reads the declared groups file. No second shard emits this whole grouping grammar; a generic specimen/draw child does not replace it byte-for-byte. |
+| Nalati `models/cover-phone.json` | 13,676 | `nameSpecimenBook` emits a full `SpecimenBookSchema`; Explorer `kind:specimen` reads/adopts its rows, packed source and materials. Only Nalati emits this whole book. DW specimen catalogue arrays lack this complete packed/materials root; they do not supply user two. Keep tier, binaries, material/palette and native model identities. |
+| Nalati `models/cover-desktop.json` | 13,687 | The second quality tier is the same Nalati user, not a second shard. Its complete book and source dependency/tier metadata remain owned and live. |
+| Nalati `models/gear-book.json` | 8,840 | Complete `GEAR_BOOK` from `defineSpecimenCatalogue`; entered arsenal and cold Explorer share its original packed gear/model owners. Multiple books in one shard do not meet G988’s two-real-shard bar. Z6 leaves these specimen references unchanged. |
+| Nalati `models/cloud-specimen.json` | 962,762 | Whole name/pose/ports/phone/desktop root is read by the Storm Titan Explorer’s `CloudSpecimen` factory. Only Nalati emits it; CloudBody poses are not fully closed. Already recorded in Z14 / Jake’s batch (`d4b0727222dff41bab3d2079cb3574ecee3ad1ce65996dadda7b3be5625bcc33`); charge and batch it once. |
+| Nine `geometry/fixed-kits.json` | 262,184 | Complete `{practice}` root from `FixedPracticeFileSchema`; real practice-card feature names it. Its grapple-course geometry, owner, program and resource contract has no second complete-root producer. Keep the native playground and offline geometry checks. |
+| Nine `models/held-cards.json` | 466 | Actual Explorer held entry names this full cards/file/kind/slug envelope and it names `weapons/jian-row.json`. Z6’s native pendant-pool transport does not delete or alter this book. No second full producer or licence to replace the whole view envelope with a child. |
+| Pine `look/cover-appearance.json` | 1,906 | Actual `forest-page.ground.appearance` → `readForestGroundInputs` / `productCoverAppearance` → `ForestGround.prepare` retains geometry/material mapping, textures, trample/fade/shadows. Only Pine emits this full kinds/params/textures document. DW’s runtime adaptation from its different streamed-cover root (omitting textures and Pine’s mapped attributes) is not a second complete authored book. Z12 leaves it live and unchanged. |
+
+| Live Z10 whole file retained for the batch | Bytes | Exact blocker and owner |
+|---|---:|---|
+| DW `people/cards.json` | 1,060 | `KitFigureCardsSchema` is the full catalogue/draws/cards root. Explorer `kind:kit-figure` and `kitFigureCard` parse the same file and retain original figure, source and card-scope owners; its draws point to the already-ported island library. Only DW emits this complete kit-card book. |
+| DW `world/building-life.json` | 510 | E9’s complete initialDusk/life/look document and original native building-life parser remain live. Already charged as a one-user row in Jake’s batch; no new family credit or double count. |
+| DW `world/cover-composition.json` | 99 | Complete name/placement/mesh/userData `CoverCompositionSchema`; the live streamed-cover stage reads the exact declared file through its original product/owner/geometry/looks checks, then parses this root. Pine’s forest construction is a different whole grammar, not user two. |
+
+Projected new slice: **four removals**—one family registration plus three
+dead-copy cuts (**2,347,716 B** physically retired, **12,854 B** still
+transported identically on the platform family). Including the two earlier
+DW ports would make Z7 **6/14**, with **8 / 1,264,859 B** still charged;
+Z10 remains **0/3 / 1,669 B**. Those eleven retained live files include
+cloud and building-life already in the batch, so only nine new per-file
+batch blockers are proposed. These are candidates, not landed counts.
 
 ### Z8 whole-quest candidates and batch (2026-11-03, sp-x9)
 
