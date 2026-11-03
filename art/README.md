@@ -108,6 +108,7 @@ when the images were generated.
 | `open-plots/` | `new-unique-plots/round-1` (11-02) | E522 / G970–G973: five new open-plot themes, one labelled portrait board each (`1-saltwind-lighthouse` … `5-jungle-ziggurat`, the spare) + `0-overview.jpg`; prompts in its README; [plan](../docs/plans/open-plots/new-unique-plots-mini-plan.md) |
 | `lantern-bayou/` | `round-1-landmark` (11-02) | OB2 (open-plots build-out pilot): the giant cypress landmark: round 62's crop, two codex references, `board.jpg` (Hunyuan3D 2.1 · TRELLIS.2 · Blender script, the stilts / marsh theme families and OP1's hero lanterns); C, the script, ships (G872). README has the detail list and numbers |
 | `lantern-bayou/` | `round-3-open-items` (11-03) | OB2's open items: the lanterns mirrored in the ponds (streaks in the Pool draw) and a fuller crown (72 lanterns at 2.1x); `board.jpg` BEFORE · AFTER · TARGET; R2 ships (G872) |
+| `frostline-peaks/` | `round-4-open-items` (11-03) | OB3's open items: baked blue snow shadows, a cobalt sky, pines round the plaza; `board.jpg` BEFORE · AFTER · TARGET; R2 ships (G872) |
 | `grid/` | `round-76-night-market-op1` (11-03) | OPEN-PLOTS OP1 (G827): Night Market NOW vs AFTER at three dome cameras: sky lanterns gone, thick ropes, hero lanterns; README has the numbers |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
