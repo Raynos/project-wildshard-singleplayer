@@ -17,6 +17,7 @@ import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/g
 import { DRIFTWOOD_EFFECTS, GOODS } from '../src/shards/driftwood-isle/generators/economy';
 import { DRIFTWOOD_PLACES, GUIDE } from '../src/shards/driftwood-isle/generators/discovery';
 import { SEA_GLASS_COUNT, SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';
+import { readDriftwoodNativeOracle } from './fixtures/driftwood-headless';
 
 const nativePhysics=v.parse(v.object({solids:v.array(v.unknown())}),
   driftwoodPhysics());
@@ -49,7 +50,8 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   expect(await named('quests/discovery.json')).toEqual({ places: DRIFTWOOD_PLACES, guide: GUIDE,
     glassCount: SEA_GLASS_COUNT, shardFlags: SHARD_FLAGS });
   const anchors=(model:string,choice:string)=>catalogue.models.find(row=>row.key===model)?.choices.find(row=>row.id===choice)?.site?.anchors??{};
-  const native=v.parse(v.object({constants:v.object({physics:v.object({solids:v.array(v.unknown())})})}),await named('sim/headless-assembly.json'));
+  const native=v.parse(v.object({constants:v.object({physics:v.object({solids:v.array(v.unknown())})})}),{constants:await readDriftwoodNativeOracle()});
+  expect(loaded.hasFile('sim/headless-assembly.json')).toBe(false);
   expect(native.constants.physics.solids).toEqual(nativePhysics.solids);
   const collections = v.parse(CollectionDisplaysSchema, loaded.section('collections/displays'));
   expect(collections.models['chime']?.ranges.length).toBe(CHIME_PIECES + 1);

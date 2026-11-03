@@ -1,7 +1,6 @@
 import { expect, test } from 'vitest';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { emptyShardfile } from '../src/sdk/author';
-import { nameBlob } from '../src/sdk/blobs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import type { ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { controlFiles, lateFiles } from '../src/game/shardfile/controlFiles';
@@ -26,21 +25,20 @@ test('owned proof hull publication keeps original bytes, names and decoded charg
 
 test('proof timing excludes the entire family but critical and dependency readers win', async () => {
   const owned = await driftwoodPhysicsOwnedSources({ cached });
-  const metadata = nameBlob('sim/headless-assembly.json', 'json', new TextEncoder().encode('{"constants":{}}'));
-  const files = [metadata.file, driftwoodPhysicsFloor().file, ...owned.files];
+  const files = [driftwoodPhysicsFloor().file, ...owned.files];
   const source = emptyShardfile({ slug: 'proof-bank', name: 'Proof', author: 'Fixture', seed: 1, revision: 1 });
   source.files = files.map(row => ({ ...row, kind: row.kind === 'bin' || row.kind === 'tile' ? 'binary' : row.kind }));
   source.library = files.map(row => row.hash);
   source.late = driftwoodProofLateRoots(files);
-  expect(source.late).toHaveLength(3);
+  expect(source.late).toHaveLength(2);
   expect(controlFiles(source, source.files)).toEqual([]);
   expect(lateFiles(source, source.files).map(row => row.hash)).toEqual(source.library);
-  const headless = source.files[0], floor = source.files[1];
-  if (headless === undefined || floor === undefined) throw new Error('Missing proof fixture');
-  source.critical.push(headless.hash); headless.dependencies.push(floor.hash);
-  expect(controlFiles(source, source.files).map(row => row.hash)).toEqual([headless.hash, floor.hash]);
-  expect(lateFiles(source, source.files).map(row => row.hash)).toEqual(owned.files.map(row => row.hash));
-  expect(() => driftwoodProofLateRoots(files.filter(row => row.name !== 'sim/headless-assembly.json'))).toThrow('Missing Driftwood proof file');
+  const floor = source.files[0], hull = source.files[1];
+  if (hull === undefined || floor === undefined) throw new Error('Missing proof fixture');
+  source.critical.push(hull.hash); hull.dependencies.push(floor.hash);
+  expect(controlFiles(source, source.files).map(row => row.hash)).toEqual([floor.hash, hull.hash]);
+  expect(lateFiles(source, source.files).map(row => row.hash)).toEqual([]);
+  expect(() => driftwoodProofLateRoots(files.filter(row => row.name !== 'data/physics-ground.generated.bin'))).toThrow('Missing Driftwood proof file');
 });
 
 test('missing tracked hull inputs refuse rather than minting a late-file pin', async () => {

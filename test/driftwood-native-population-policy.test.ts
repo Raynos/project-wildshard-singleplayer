@@ -14,20 +14,19 @@ import { driftwoodOutputRows } from '../src/shards/driftwood-isle/generators/out
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
+import { readDriftwoodNativeOracle } from './fixtures/driftwood-headless';
 
-test('authored native population policy and emitted value retain the original native turn law', () => {
+test('authored native population policy and fenced oracle retain the original native turn law', async () => {
   expect(policy).toEqual({ attackTurnCap: ATTACK_TURN });
   expect(policy.attackTurnCap).toBe(1.5);
   const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS, DRIFTWOOD_GUEST_ROWS);
-  const file = output.namedFiles.find(row => row.name === 'sim/headless-assembly.json');
-  const bytes = file === undefined ? undefined : output.assets.get(file.hash);
-  if (bytes === undefined) throw new Error('Missing real emitted headless assembly');
-  const value = v.parse(v.object({ constants: v.object({ mixedPopulation: v.object({ attackTurnCap: v.literal(ATTACK_TURN) }) }) }), JSON.parse(new TextDecoder().decode(bytes)));
+  const value = v.parse(v.object({ constants: v.object({ mixedPopulation: v.object({ attackTurnCap: v.literal(ATTACK_TURN) }) }) }), { constants: await readDriftwoodNativeOracle() });
+  expect(output.namedFiles.some(row => row.name === 'sim/headless-assembly.json')).toBe(false);
   expect(value.constants.mixedPopulation.attackTurnCap).toBe(policy.attackTurnCap);
 });
 
 
-test('the quest page consumes only the exact native interaction projection', () => {
+test('the quest page consumes only the exact native interaction projection', async () => {
   const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS, DRIFTWOOD_GUEST_ROWS);
   const read = (name: string): { readonly value: unknown; readonly bytes: Uint8Array } => {
     const file = output.namedFiles.find(row => row.name === name), bytes = file === undefined ? undefined : output.assets.get(file.hash);
@@ -35,7 +34,8 @@ test('the quest page consumes only the exact native interaction projection', () 
     validateDefinedJson(new TextEncoder().encode(encodeCanonicalJson(file.jsonSchema)), bytes);
     return { value: JSON.parse(new TextDecoder().decode(bytes)), bytes };
   };
-  const original = read('sim/headless-assembly.json');
+  const originalValue = { constants: await readDriftwoodNativeOracle() };
+  const original = { value: originalValue, bytes: new TextEncoder().encode(encodeCanonicalJson(originalValue)) };
   const projection = read(page.files.assembly);
   const constants = { interact: DRIFTWOOD_INTERACT, interactSpots: spots.rows };
   expect(original.value).not.toHaveProperty('constants.interact');
