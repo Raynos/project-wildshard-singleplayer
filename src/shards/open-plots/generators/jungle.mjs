@@ -15,9 +15,9 @@ import { nightMarketBuilders } from './nightMarket.mjs';
 const DEPTH = 0.6;
 /** J's pool (x0, z0, x1, z1): the tile's middle inside its coping, its north side short of the waterfall */
 const POOL = [-22, -22, 22, 17];
-/** the ziggurat's half footprint on the plaza (ziggurat.py at 55 m, `stand()` centred: about 35 m wide, 37.6 m to the
- *  stair's foot), plus the walk round it: the plaza quarter dresses only outside it */
-const ZIGGURAT = 40;
+/** the ziggurat's half footprint on the plaza (ziggurat.py at the layout's 66 m, `stand()` centred: about 42 m wide, 45 m
+ *  to the stair's foot), plus the walk round it: the plaza quarter dresses only outside it */
+const ZIGGURAT = 48;
 
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
@@ -105,7 +105,8 @@ function stele(w, p, x, z, face) {
  *  egrets over the water. `variant` moves the pads and egrets. */
 function jadePool(w, p, variant) {
   const [x0, z0, x1, z1] = POOL;
-  w.floor('Kit', -INNER, -INNER, INNER, INNER, 0.03, p.court);
+  // the court round the pool, never over it: a floor across the whole tile hid the sunken water (R1)
+  for (const [a, b, c, d] of [[-INNER, -INNER, INNER, z0], [-INNER, z1, INNER, INNER], [-INNER, z0, x0, z1], [x1, z0, INNER, z1]]) w.floor('Kit', a, b, c, d, 0.03, p.court);
   w.floor('Water', x0, z0, x1, z1, -DEPTH, p.water);
   for (const [xa, za, xb, zb] of [[x0, z1, x0, z0], [x0, z0, x1, z0], [x1, z0, x1, z1], [x1, z1, x0, z1]]) {
     w.quad('Kit', [xa, -DEPTH, za], [xb, -DEPTH, zb], [xb, 0, zb], [xa, 0, za], p.stone);
@@ -204,7 +205,7 @@ function farJungle(w, p, type, variant) {
 
 /** A lane seam (in place of Night Market's strings and banners): on the four avenues (the x = 0 and z = 0 seams) a stone
  *  lamp either side every 26 m, clear of the road entries and the ziggurat; on the other seams a lamp at each crossing
- *  corner. Egrets low over the avenues, the road entry's motion with the lamps' flicker. */
+ *  corner. (R1: no egrets here: a white mover over an avenue read as a floating paper diamond against the stair.) */
 function jungleLane(w, p, side, centre) {
   const along = (u, off) => (side === 0 ? [u, HALF + off] : [HALF + off, -u]);
   const world = (x, z) => [centre[0] + x, centre[1] + z];
@@ -217,10 +218,6 @@ function jungleLane(w, p, side, centre) {
   for (const u of spots) for (const off of [-4.5, 4.5]) {
     const [x, z] = along(u, off);
     if (!blocked(x, z)) lamp(w, p, x, z);
-  }
-  if (avenue) for (const [u, off, y] of [[-HALF * 0.5, -2.5, 9], [HALF * 0.4, 2.5, 11]]) {
-    const [x, z] = along(u, off);
-    if (!blocked(x, z)) egret(w, x, y, z);
   }
 }
 
