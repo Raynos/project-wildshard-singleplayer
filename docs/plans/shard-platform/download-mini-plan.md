@@ -1,6 +1,6 @@
 # Download and load: a runtime build from the shardfile (mini plan)
 
-**State:** `open` 2026-11-03 18:45 Cancun, written by wildshard-v; Jake said *"build it"*, handed to wildshard-new
+**State:** `open` 2026-11-03 18:40 Cancun, written by wildshard-v; Jake said *"build it"*, handed to wildshard-new
 (G1000). Ask E525. Builds on the two spikes, [download-speed-mini-spike.md](../download-speed-mini-spike.md) and
 [bulk-download-mini-spike.md](../bulk-download-mini-spike.md); Jake's brief:
 [Download Speed Plan](https://claude.ai/artifact/24CcAJ4uMT32DFt4sVj83e).
@@ -12,7 +12,7 @@ file into something that is really fucking good, efficient, useful, fast, baked,
 execute, run, etc. I think we have completely missed a step. … There's all kinds of optimizations that can be done
 outside of the JavaScript main thread of the actual game running in the browser, and that needs to go into the plan."*
 
-Jake, ~18:40: *"Yes, build it, but be very, very fucking careful with start playing the level before you finish
+Jake, ~18:35: *"Yes, build it, but be very, very fucking careful with start playing the level before you finish
 downloading it. You're going to turn a download problem into a loading problem. … Every attempt that the agents have
 made of streaming content in-game over the last 5 weeks have like basically been a shitty experience … texture popping,
 texture loading, walking around and seeing a bunch of placeholder or far view assets before the real high fidelity stuff
@@ -20,7 +20,7 @@ comes in … especially when you hit the hoverboard, especially when you hit boo
 downloading and loading optimizations that can be done to make the game start faster. We're not looking at playing the
 game before it's ready … I don't want to leave it up to fucking luck."*
 
-Jake, ~18:50: *"I don't want the game fucking rereading stuff. It already has. It should just do a fucking handshake …
+Jake, ~18:38: *"I don't want the game fucking rereading stuff. It already has. It should just do a fucking handshake …
 an endpoint on the server where there's a handshake. And it just gets told of these 1,200 things. Only 400 of them needs
 to be invalidated … minimal messages over HTTP, HTTP2, or WebSockets. Use the correct fucking protocol. Use HTTP2 when
 it's available. Use WebSockets if necessary. Again, dialing only the 5 megabytes you need and streaming the rest is
@@ -81,6 +81,31 @@ download on top: ≈ 15.5 s for 18.4 MB, plus +19 s when the worker's 24 MB prec
 | Application modules (JS) | 3,506 | 108 JS chunks evaluated | 3 chunks (DL14) |
 | 86 long tasks | 10,036 total | main thread blocked > 50 ms | workers (DL11) |
 
+## Impact on the engine and the game (measured 11-03)
+
+Two phases with very different blast radius:
+
+- **Phase A: the byte layer only (DL0–DL3, DL5, DL13–DL15, DL17, DL18).** The packs carry the *same* bytes as today
+  (the same GLBs, section JSON, bins and textures), only grouped, pre-validated and fetched once. Every byte read in
+  the game funnels through about ten files: `firstPartyRead` (`src/game/grid/products.ts`,
+  `src/game/shardfile/product.ts`, `runtimeProduct.ts`, `clientAssets.ts`), `readContent`
+  (`src/engine/boot/contentRead.ts`, 8 callers), `packReads.ts`, `spawnDownload.ts` and `sw.js`. Nothing above them
+  changes: they still hand out the same bytes. **Small to medium, low risk**, and it takes the download wins (−19 s of
+  worker contention, the 761 re-reads, ≤ 10 requests, the handshake).
+- **Phase B: baked results replace runtime work (DL6–DL12).** This changes what the consumers *receive*. GLB parsing
+  sits in 23–31 engine and game files (`src/engine/core/assets.ts`, `anim/rig*.ts`, `render/families/pbr.ts`,
+  `entities/AnimalFactory.ts` …); scene building from sections is the 23,000-line `src/game/shardfile/` client, and
+  130 files in `src/game/` import from it; world assembly and colliders live in `src/game/grid/`. **This is the big
+  rewrite**: weeks, not days, and every step can change the look, the physics or memory.
+
+**How Phase B stays a loader rewrite, not an engine rewrite:** each bake writes *exactly the in-memory result the
+runtime builds today* at one seam (the scene-library entry after intake, the instance tables after assembly, the joined
+collider set, the native modules' memory after init), and the code above that seam is left alone. One seam per row,
+biggest measured cost first (scene-library intake 7.8 s, `world.world.scenes` 6.2 s, `product.read` 4.0 s), each behind
+the shardfile fallback and the `Loading: runtime packs / shardfile` Debug row until it passes the goldens on every
+shard + WebKit, the physics walk, the memory caps and DL17. A seam that can't be snapshotted without changing the
+consumer is reported to Jake before anything above it is rewritten.
+
 ## Bars
 
 - **The whole level downloads at the wire floor**: ≤ 10 requests, no competing traffic before control, within 1 s of
@@ -99,27 +124,27 @@ download on top: ≈ 15.5 s for 18.4 MB, plus +19 s when the worker's 24 MB prec
 
 | Row | What | Done when | Lane | Size |
 | --- | --- | --- | --- | --- |
-| DL0 | **Measure the truth.** `phone-loading` throttles the service worker on the page's own link (today it gets a second 10 Mb/s, so the 24 MB precache never shows); the daily runs against `--rev` and adds `download-bench spawn` (DS6) | A cold run shows the worker's requests and bytes in its totals; the hourly check-in's daily line updated | Codex | S |
-| DL1 | **Nothing competes with the level's download** (BP1): the worker registers at boot as now, but its offline precache of *other* files (other shards, the unused `grid-strip-mesh` bins) waits until after control; hashed `/assets/*` `immutable` in `vercel.json`. Everything the level needs is still in the level's own download | Cold phone-loading (DL0) −15 s or more; warm second visit no slower (watch 039d's uncontrolled-document trap); DL17 green | Codex | S |
-| DL2 | **Start the level's download on the title screen for first visits** (DS3), not only for a saved last shard | Download starts at the title on a fresh profile; −3 s at a 3 s dwell | Codex | S |
-| DL3 | **Trace the +1.9 MB `grid-strip-mesh` bin** that entered the set after `8bdf53f` (DS7) | Its owner commit named; dropped if the level never reads it, kept if it does | Codex | S |
+| DL0 | **Measure the truth.** `phone-loading` throttles the service worker on the page's own link (today it gets a second 10 Mb/s, so the 24 MB precache never shows); the daily runs against `--rev` and adds `download-bench spawn` (DS6) | A cold run shows the worker's requests and bytes in its totals; the hourly check-in's daily line updated | Opus | S |
+| DL1 | **Nothing competes with the level's download** (BP1): the worker registers at boot as now, but its offline precache of *other* files (other shards, the unused `grid-strip-mesh` bins) waits until after control; hashed `/assets/*` `immutable` in `vercel.json`. Everything the level needs is still in the level's own download | Cold phone-loading (DL0) −15 s or more; warm second visit no slower (watch 039d's uncontrolled-document trap); DL17 green | Opus | S |
+| DL2 | **Start the level's download on the title screen for first visits** (DS3), not only for a saved last shard | Download starts at the title on a fresh profile; −3 s at a 3 s dwell | Opus | S |
+| DL3 | **Trace the +1.9 MB `grid-strip-mesh` bin** that entered the set after `8bdf53f` (DS7) | Its owner commit named; dropped if the level never reads it, kept if it does | Opus | S |
 | DL4 | **Inventory, then sort**: every boot step in the table above (and the cold run) marked *build*, *worker* or *main thread*, with its inputs and measured ms; nothing stays *main thread* without a reason (GPU upload, DOM, input) | One table in this file; the rows below re-sized from it | Opus | S |
-| DL5 | **The runtime build and its pack format.** `scripts/runtime-build/` reads each built shardfile and writes, per shard × tier × entry, **the whole level** in ≤ 12 MB parts (extend I5's `blobs/pack`: 16-byte aligned members, offset table in the module bank; BP2). Validation (sha256, admission, schema, ceilings) happens here, once; the runtime trusts the part hash | Driftwood grid/phone: ≤ 10 requests to control, same content as today; pack build ≤ 30 s in CI; loose-URL fallback on a 404 | Codex | L |
+| DL5 | **The runtime build and its pack format.** `scripts/runtime-build/` reads each built shardfile and writes, per shard × tier × entry, **the whole level** in ≤ 12 MB parts (extend I5's `blobs/pack`: 16-byte aligned members, offset table in the module bank; BP2). Validation (sha256, admission, schema, ceilings) happens here, once; the runtime trusts the part hash | Driftwood grid/phone: ≤ 10 requests to control, same content as today; pack build ≤ 30 s in CI; loose-URL fallback on a 404 | Opus | L |
 | DL6 | **GPU-ready geometry**: the build writes final interleaved, quantized vertex and index buffers in the engine's attribute layout, grouped by material family (feeds EP6 / EP8's baked batches), so loading is view → `bufferData` with no GLB parse and no scene-library intake | Scene-library intake and its owned cascades (7.8 s) → ≤ 1 s at 10×; goldens green on all shards + WebKit | Opus | L |
 | DL7 | **Pre-resolved world**: placements, instance matrices, LOD tables, cull cells, bounds, the compiled grid page and the road as flat typed arrays; `world.world.scenes` and assembly become reads | `world.world.scenes` + assembly + compiled page (11.4 s) → ≤ 2 s at 10×; goldens green | Opus | L |
-| DL8 | **Pre-joined physics**: colliders per cell joined at build (heightfields, trimeshes, compounds) in Rapier's input form; try Rapier world snapshots | `collider-join` (1.2 s) → ≤ 0.1 s; physics walk 0 stuck | Codex | M |
+| DL8 | **Pre-joined physics**: colliders per cell joined at build (heightfields, trimeshes, compounds) in Rapier's input form; try Rapier world snapshots | `collider-join` (1.2 s) → ≤ 0.1 s; physics walk 0 stuck | Opus | M |
 | DL9 | **Textures per tier**: measure shipping the phone tier's KTX2 already transcoded to ASTC against Basis transcoding in a worker; keep whichever loads faster at equal or better memory and the same look | A measured verdict in this file; the winner lands; goldens green | Opus | M |
 | DL10 | **Shaders compiled while the bytes arrive**: the build writes each entry's program variant list (with NF13–NF18's GLSL); the loader compiles them with `KHR_parallel_shader_compile` behind the loading screen during the download, not after the world | Shader + program-link steps (3.6 s) mostly hidden under the download; first world frame has 0 new programs | Opus | M |
-| DL11 | **Loading in workers, overlapped with the download** (the loader half of DS4 only): decompress, parse and physics build run in workers as each part arrives, behind the loading screen; the main thread only uploads and adds to the scene. Control still waits for the last part and the last build | Long tasks before control: 86 → ≤ 20; cold ≈ the larger of download and loading; DL17 green | Codex | L |
-| DL12 | **Native memory images**: the AssemblyScript modules' post-init state (`native.foundation`, `native.inputs`) written at build as a memory image and loaded directly | 2.8 s → ≤ 0.3 s at 10×; native tests and journeys pass | Codex | M |
-| DL13 | **Read once**: product reads (`firstPartyRead`, `products.ts`, `product.ts`) answered from the parts' member views; the 761 cache re-reads and per-blob checks go (BP3); one Cache Storage put per part (BP4 delta updates after) | 0 Cache Storage reads of level members after the download | Codex | M |
-| DL14 | **Three JS chunks before control** (BP5): title, game, after control | Application modules 3.5 s → ≤ 1.5 s at 10×; title first paint no later | Codex | M |
-| DL15 | **Brotli 11** on parts if one preview deploy shows Vercel serving `.br` with `Content-Encoding: br` intact (BP6 / DS5); otherwise closed as measured | −3.6 MB on Driftwood, or a measured "no" | Codex | S |
+| DL11 | **Loading in workers, overlapped with the download** (the loader half of DS4 only): decompress, parse and physics build run in workers as each part arrives, behind the loading screen; the main thread only uploads and adds to the scene. Control still waits for the last part and the last build | Long tasks before control: 86 → ≤ 20; cold ≈ the larger of download and loading; DL17 green | Opus | L |
+| DL12 | **Native memory images**: the AssemblyScript modules' post-init state (`native.foundation`, `native.inputs`) written at build as a memory image and loaded directly | 2.8 s → ≤ 0.3 s at 10×; native tests and journeys pass | Opus | M |
+| DL13 | **Read once**: product reads (`firstPartyRead`, `products.ts`, `product.ts`) answered from the parts' member views; the 761 cache re-reads and per-blob checks go (BP3); one Cache Storage put per part (BP4 delta updates after) | 0 Cache Storage reads of level members after the download | Opus | M |
+| DL14 | **Three JS chunks before control** (BP5): title, game, after control | Application modules 3.5 s → ≤ 1.5 s at 10×; title first paint no later | Opus | M |
+| DL15 | **Brotli 11** on parts if one preview deploy shows Vercel serving `.br` with `Content-Encoding: br` intact (BP6 / DS5); otherwise closed as measured | −3.6 MB on Driftwood, or a measured "no" | Opus | S |
 | DL16 | **Every shard and the grid**: the runtime build covers every shardfile and open plot; Debug row `Loading: runtime packs / shardfile` (default off until a phone reading, then on and the row deleted, E451) | Bars met on the phone preset; Simulator reading; goldens green on every shard | Opus | M |
 | DL17 | **Complete-at-control gate**, built first and run on every row: at the control event, 0 pending or post-control requests for the level's content (`phone-loading` `postControl`), every model within boost range of spawn at its full LOD with full textures resident, 0 placeholder or far-proxy draws in reach; plus a recorded hoverboard boost lap from spawn with 0 pops on the Simulator | The gate fails today's build if it streams any level content after control, and passes before each DL row lands; the boost lap clip is in the row's commit | Opus | M |
 
-| DL18 | **One handshake, then only what changed.** At boot the client makes one request: its build id plus a digest of the parts it already holds (a small index kept beside Cache Storage). The answer lists the parts to fetch (or "nothing"), and only those are fetched, in parallel on one HTTP/2 connection. No per-file revalidation, no 304s, no re-reads. Server side, first choice: the runtime build precomputes static delta files per previous build (`handshake/<from-build>-<to-build>.json`, CDN-cached, no server code), with the full part list as the fallback; an edge function only if delta files grow too many. **Protocol:** HTTP/2 (Vercel already serves h2/h3); WebSockets measured and rejected unless they win, because the whole exchange is one request and one response, a socket gets no CDN caching, and Vercel's static hosting does not serve sockets | Warm visit, same build: 1 request before the world loads, 0 re-reads; after a one-model deploy: the handshake plus 1 part; the decision on WebSockets recorded here with its number | Codex | M |
-| DL19 | **Phone-speed loading leftovers, folded in** (Jake, ~18:50: *"anything else in phone speed loading, you can fold into this"*): D210 Home region warm 12.3 → 24.8 s after PL15 / PL17 (19.9 s today); D208 product admission +6.2 s cold; D209 Region world +2.6 s cold; D199 the 8.8 s frozen frame in "Sky · lighting" on Jake's phone; PL13's +2.9 s warm from the title prefetch; PL1 / PL3 / PL13 "landed, partial". Each is fixed by its DL row (named in the fix commit) or closed as measured, and leaves BURN-DAMAGE-LIST | Every item has a fix commit or a measured close; D199, D208–D210 are marked closed in the damage list | Codex | M |
+| DL18 | **One handshake, then only what changed.** At boot the client makes one request: its build id plus a digest of the parts it already holds (a small index kept beside Cache Storage). The answer lists the parts to fetch (or "nothing"), and only those are fetched, in parallel on one HTTP/2 connection. No per-file revalidation, no 304s, no re-reads. Server side, first choice: the runtime build precomputes static delta files per previous build (`handshake/<from-build>-<to-build>.json`, CDN-cached, no server code), with the full part list as the fallback; an edge function only if delta files grow too many. **Protocol:** HTTP/2 (Vercel already serves h2/h3); WebSockets measured and rejected unless they win, because the whole exchange is one request and one response, a socket gets no CDN caching, and Vercel's static hosting does not serve sockets | Warm visit, same build: 1 request before the world loads, 0 re-reads; after a one-model deploy: the handshake plus 1 part; the decision on WebSockets recorded here with its number | Opus | M |
+| DL19 | **Phone-speed loading leftovers, folded in** (Jake, ~18:38: *"anything else in phone speed loading, you can fold into this"*): D210 Home region warm 12.3 → 24.8 s after PL15 / PL17 (19.9 s today); D208 product admission +6.2 s cold; D209 Region world +2.6 s cold; D199 the 8.8 s frozen frame in "Sky · lighting" on Jake's phone; PL13's +2.9 s warm from the title prefetch; PL1 / PL3 / PL13 "landed, partial". Each is fixed by its DL row (named in the fix commit) or closed as measured, and leaves BURN-DAMAGE-LIST | Every item has a fix commit or a measured close; D199, D208–D210 are marked closed in the damage list | Opus | M |
 
 Today's build also loads some things after control on purpose (PL16's distant coverage, the ring speculation of PL10).
 DL17 lists them; each one either loads before control or is shown to be out of reach at boost speed.
@@ -128,9 +153,7 @@ DL17 lists them; each one either loads before control or is shown to be out of r
 (the format everything else writes into) with DL18 (the handshake that serves it). DL6–DL13 and DL19 run in parallel
 on top of DL5. DL14 and DL15 any time. DL16 closes.
 
-**Lanes:** rows that change what is drawn or checked by eye (DL4, DL6, DL7, DL9, DL10, DL16, DL17) are Opus (G848);
-the rest are Codex. Jake's CI ask and Nine's QA rows (qa 11-03) come first; this plan takes idle lanes, never a lane
-off those.
+**Lanes (Jake, ~18:40, G1001): an Opus 5.5 plan, every row.** *"I think this is definitely an Opus 5.5 plan. I don't trust Codex on this plan. It's too fucking hard. Codex 6.1 can review and assist."* Every DL row is built and landed by an Opus lane. Codex lanes review Opus commits, write tests and run measurements (phone-loading, download-bench, goldens runs) when asked, and land nothing of this plan themselves. The Opus ladder (G853) sets the pace. Jake's CI ask and Nine's QA rows (qa 11-03) come first; this plan takes idle Opus lanes, never a lane off those.
 
 **Out of scope:** streaming level content during play, in any form (Jake, above); the shardfile format itself (G934
 keeps it); one-world crossings (G828, Jake's plan).
