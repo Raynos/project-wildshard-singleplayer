@@ -40,18 +40,24 @@ memory, maintained walk (0 stuck / 0 out), official quiet Simulator
 (plot and four junction headings report 30 fps, p95 34 ms; memory caps
 hold). The raw CPU-target and home-grid strict timing misses stay
 visible in [the readings](../reviews/open-plots-wave-a-readings.md).
-Jungle audio activation `1c287c7c4b` now passes full native bar 10,
-after final geometry `87d997316d` / board `90957ed671`. The approved
-wire delta is +802,376 B, preserving 2,365 B margin. **OP13 remains
-open:** the maintained walk records four stuck sites (stair maximum
-height 2.418 m, not the expected ~42 m); O1 owns the visual/collider
-response. The fixed road-entry clip has only one semantically verified
-motion source (lamps); two changing rectangles do not establish a
-second distinct source. Raw failures stay retained; heavy final readings
-await the corrected final boundary. G999 lifted after verified Nine
-release `0b5d27d384`; Saltwind/Fossil model preparation continues under
-the single-model lock, skipping loads during official quiet. Details and body
-comparison limits are in [the audio review](../reviews/open-plots-audio.md).
+Jungle's Codex half is complete on **61a326a292** / build
+`61a326a-mw14hipi`: audio activation `1c287c7c4b`, O1 corrected geometry
+`9c82257231`, eight-view board/goldens `42fd0da110`, and both maintained
+walk legs (188.043 / 74.297 s, all 14 waypoints, 0 stuck / 0 out under
+240 s each). Fixed road bar 7 identifies native egret drift and lamp
+flicker; O1 confirms both. Full native bar 10 passes again in 19 s.
+Chromium pair 53.431 s, separate memory 66 s and official quiet Simulator
+95.159 s are whole: plot and four actual junction headings report 30 fps,
+p95 34 ms; native memory caps hold. CPU/draw and strict timing misses
+remain in [the readings](../reviews/open-plots-wave-a-readings.md).
+Original walk/life failures remain in the audio review. Final phone wire
+5,937,673 B stays below 5,981,239 B. No caps or verification rules change.
+G999 lifted after verified Nine release `0b5d27d384`; Saltwind/Fossil
+preparation continues under the single-model lock, skipping official quiet.
+Saltwind's failed bed takes stay unshipped; the coordinator directs a
+shared reference to Coral's qualified coastal bed if its ear/rank check
+fits, otherwise spots ship with a named bed gap. Details and byte-proof
+limits are in [the audio review](../reviews/open-plots-audio.md).
 
 **Wave B Codex stubs (`8035bdf6ec`, 2026-11-03, sp-x9): historical source-preparation boundary.**
 Fossil Badlands already has sp-o2's real OP3 source `d54dacb946` and
@@ -279,7 +285,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP10 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP11 | **Visual work complete (2026-11-03, sp-o2); audio and Codex readings open.** Sky Harbor geometry `c6d4f23295`, [final board](../../art/sky-harbor/round-3-final/board.jpg), eight goldens and cards `f5aa4028e3` (published). Opus's maintained route completes one leg, 0 stuck / 0 out. Reported phone 2× hero draws above/road/top/plaza 66/51/99/53; wire 3,768,825 B. These are visual-boundary numbers, not final audio-containing performance/memory clearance. Actual instance `open-plot-4-4`, cell (2,2). X9/X6 qualify the joint audio candidate before closing | Opus + Codex | 16 / 5 h | Final audio/native bar 10, matched readings and official Simulator remain open |
 | OP12 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Desert Ruin: real instance `open-plot-3-0`, cell (1,-2); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs; final theme reuses the palms | Opus + Codex | 16 / 5 h | Steps 1–8 |
-| OP13 | **Built (2026-11-03, sp-o1); audio, walk and readings with sp-x6.** Landmark `1e9ac5a848` (ziggurat.py, now 66 m), builders `58dba85134`, activation `6f3683f9c5` (approved debt: entry tiles ~633 KB, plaza L1 3 draws, wire 5,178,863 B), look round R1 `87d997316d` (pools uncovered, ziggurat 55 → 66 m, avenue egrets out, deeper sky). [Final board](../../art/jungle-ziggurat/round-2-final/board.jpg) and 8 goldens `90957ed671`: 5 7 7 8 7 7 6 6, mean 6.62, GOOD ENOUGH. In-engine card art `d2e077f684` + `b0642bd794` (card off, G991). Player-view draws 86–112, ≤ 253k triangles (Chromium phone 2×). Open: sp-x6 binds audio `add58749da` and runs the walk route, bar 7 life and OB8 readings on the final geometry. Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) — look target [round 75](../../art/grid/round-75-new-plot-palettes/02-jungle-ziggurat.jpg), cell (-2,2), G977, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP13 | **Done (2026-11-03, sp-o1 + sp-x6).** Audio `1c287c7c4b`; corrected geometry `9c82257231`, final board/goldens `42fd0da110`, both walk legs and full Codex readings on `61a326a292` (all 14 waypoints, 0 stuck / 0 out; bar 7 two owner-confirmed sources; bar 10 pass; quiet Simulator plot/junction 30 fps, p95 34 ms; native caps hold). Original failures and raw strict/CPU misses remain in the linked readings. Historical build boundary follows: Landmark `1e9ac5a848` (ziggurat.py, now 66 m), builders `58dba85134`, activation `6f3683f9c5` (approved debt: entry tiles ~633 KB, plaza L1 3 draws, wire 5,178,863 B), look round R1 `87d997316d` (pools uncovered, ziggurat 55 → 66 m, avenue egrets out, deeper sky). [Final board](../../art/jungle-ziggurat/round-2-final/board.jpg) and 8 goldens `90957ed671`: 5 7 7 8 7 7 6 6, mean 6.62, GOOD ENOUGH. In-engine card art `d2e077f684` + `b0642bd794` (card off, G991). Player-view draws 86–112, ≤ 253k triangles (Chromium phone 2×). Those original qualification gaps close on the corrected source above. Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) — look target [round 75](../../art/grid/round-75-new-plot-palettes/02-jungle-ziggurat.jpg), cell (-2,2), G977, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP14 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Ember Forge (wave 4; adds the lava water kind) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
 | OP15 | **Built and on the grid (2026-11-03, sp-o3): landmark `bfe58c53e7` (Blender script), stars kit `647d7e7532`, tiles and layout `b316849cdc`, activation `d4d4b17674` (wire 4,873,412 B approved by wildshard-new; plaza poster dropped for tile 0/3/3 draws), 8 golden views and final board `ef737e7295` (road entry 123 draws, plaza 97), in-engine card art `47e3c11f9a`. Known gaps on the board: a mid-blue sky without stars, no plaza billboard, canals ring the plaza.** **Walk qualified (sp-x9):** exact `d4d4b17674` / `d4d4b17-mw13gps7`, one continuous leg / all 14 waypoints, 0 stuck / 0 out, complete. **Open:** audio/native bar 10 (sp-x6), matched performance/memory and official Simulator readings on the audio-containing candidate. Original inert OP3 stub `b725870570` is historical; actual instance `open-plot-3-4`, cell (1,2) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP16 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Frostline Peaks (wave 4; builds the shared pines and snow) | Opus + Codex | 22 / 6 h | Steps 1–8; frees a repeat cell |

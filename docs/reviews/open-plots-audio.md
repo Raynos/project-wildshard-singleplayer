@@ -193,3 +193,17 @@ refuses the broader claim. O1 has both failures for its visual/native
 response. No actor/camera change or visual-source edit by this lane.
 Raw records: `tmp/wave-a-audio/jungle-readings/`. The row and final
 performance milestone remain open until the corrected source boundary.
+
+
+Jungle's corrected boundary now qualifies on **61a326a292**: O1 geometry
+`9c82257231`, final eight-view board/goldens `42fd0da110`, and the western
+plaza leg `61a326a292`. Both maintained legs reach every waypoint with
+0 stuck / 0 out under 240 s each (188.043 / 74.297 s; command 268 s).
+The fixed road clip proves a drifting white egret and separate lamp
+flicker, both owner-confirmed. Final full native bar 10 passes in 19 s;
+all eight audio bodies and the audio section remain exact. Matched
+Chromium, separate memory and the official quiet Simulator window are
+whole; raw CPU/draw and strict timing misses remain explicit in the
+[readings](open-plots-wave-a-readings.md#jungle-corrected-source-qualification).
+The original four-stuck and unproven-life records above remain historical
+failures. This completes Jungle's Codex half without changing a gate.
