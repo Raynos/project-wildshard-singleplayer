@@ -158,7 +158,7 @@ does not close a Z row.
 | **Z8** | **In flight (2026-11-03, sp-x9), 0/14 landed.** Two approved candidates await exact reconstruction and G998 goldens: shared ChapterPresentation (6/6) and the zero-reader DW steps copy. Twelve per-file blockers below go to the one-user batch; Pine lead already runs as AS. **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Instanced scatter rows.** Nalati's scatter pages become the generic dressing host with Pine props as user two | 9: Nalati dressing-pages 5, dressing-{phone,desktop}; Pine props, prop-shapes | Opus | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
-| **Z11** | **Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | 8: Nalati weather, weather-fx, audio/scene, look/post; Pine weather, rain, weather-observations, ambience | Opus fx, Codex audio | 3 |
+| **Z11** | **In flight (2026-11-03, sp-x6): candidate reduction 5; three one-user roots stay charged. G998 qualification pending; evidence below. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
 | **Z12** | **Ground pages.** `world/ground` family: layout, caves, collision; big grids as `.bin` with row headers, sharing the fields host with Far / Sun | 9: Pine floor, crag-cave, cave-interior, forest-page, building-sites, landmark-view, physics.generated; Nalati meadow, water | Opus | 3.5 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **Encounters and riding (was CS8).** Arena room, timed encounter and riding-profile rows (`game/boss/arenaRoom.ts`, `game/riding/*`); Titan fight to AS | 9: Nalati room-entry, timed-encounters, titan-fight, titan-geometry, ride/rules, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page | Opus | 4.5 |
@@ -227,6 +227,46 @@ actor interfaces). Mixed-population and projection suites refused setup
 when a peer changed `src/format/worldScenePages.ts` during the native
 fixture recorder; no freshness retry, bypass or semantic pass is claimed.
 No golden, loading or collider evidence is inferred from these checks.
+
+### Z11 candidate boundary (2026-11-03, sp-x6)
+
+Runtime source is still uncommitted, awaiting G998. The eligible reduction
+is **5**, not 8: delete reader-less Pine `world/ambience.json`; register
+the complete weather document used by Pine and Nalati, the existing
+shared audio-scene grammar, and the G599 post-graph document used by
+Nine and Nalati. Native executors retain allocation and ownership guards.
+Pine's live forest-page floor/fire bodies and their order are pinned.
+
+G988 exact-type ruling: Nalati `world/weather-fx.json`, Pine
+`world/rain.json` and Pine `world/weather-observations.json` remain
+charged one-user documents. Their complete grammars are admitted but
+have **no platform-family entry**. G571's host approval is not a second
+whole-file user; all three join Jake's one-user batch. No fake second
+emitter or waiver is claimed.
+
+Focused native/converter checks: **42/42 across 8 files, 9.4 s**; touched
+types and typed lint pass. Pine's isolated emission comparison removes
+only the 1,564 B dead ambience: all 718 other named bodies and 19
+sections are exact. Combined frozen candidate `d4c2e8d15d-mw0u2vw4`
+includes Z3 and Z8: its Pine index is **1,712,988 B**, under the unchanged
+2,000,000 B cap. Local schema definitions preserve complete branch
+constraints; their focused regression passes. Combined family census is
+Pine 24 and Nalati 37 custom names; these are not Z11-only reductions.
+
+Nalati raw byte comparison **FAILS** at the 164 B `look/map` stamp:
+all 338 named bodies and 50/51 sections are exact; map.image remains
+`80afaa55b292b48c93694dbc7ac95557ecb96714b2c159cd467ff3fa0caff2d6`.
+Only tilesHash changes `28158e1c1c99e7d4ab7f74fecf0a4e433672cf8fe18f7ce37288ed5ba24d0967`
+to `0251e8cae02598c70fe00c4652f8840b54f6fc9c0924d0aea1c7d3ac2b9692a8`
+from output.ts defining metadata. Coordinator explicitly accepted this
+exact G872 source-stamp class; no literal whole-product byte bar is claimed.
+
+G998 is pending on the frozen candidate, all six shards in both engines.
+Pine Chromium completed 24 settled poses with no capture errors; every
+panel was read. Twenty-two are visually clear; camera 11 reports sunk
+and camera 20 drifted with a foreground obstruction, under investigation
+with Z3. No Pine 24/24 verdict or golden promotion. Nalati's independently
+identified QD11 darkness remains red until cause-directed qualification.
 
 ### Z5 complete-source qualification (2026-11-03, sp-x2)
 
