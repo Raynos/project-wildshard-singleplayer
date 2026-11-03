@@ -3,6 +3,8 @@
 // a runtime user. Metadata-only sections have no independent executable host.
 const hosts = {
   'explore/catalogue': ['game/models/explorerCatalogue#explorerRoster'],
+  'collections/displays': ['game/models/collectionDisplay#CollectionCatalogue'],
+  'models/island-library': ['game/models/islandLibrary#IslandLibrary'],
   'world/trees': ['game/models/treeSet#productTreeSet', 'game/shardfile/forestPage#placeForestPageModels'],
   'look/rigged-hulls': ['game/looks/riggedHulls#productRiggedHulls'],
   'look/hull-book': ['game/looks/speciesBook#productHullBook'],

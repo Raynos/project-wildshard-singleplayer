@@ -52,6 +52,28 @@ it('attributes body sections to defining hosts without a native barrel adapter',
  expect(roots).not.toContain('nativeBodyScripts');
 });
 
+it('attributes portable collection and island roots to their defining native owners',()=>{
+ const roots=sectionHostImports([{name:'collections/displays'},{name:'models/island-library'},{name:'collections/displays'}]);
+ expect(roots.split('\n')).toEqual([
+  "import { CollectionCatalogue as host0 } from '../../src/game/models/collectionDisplay'; void host0;",
+  "import { IslandLibrary as host1 } from '../../src/game/models/islandLibrary'; void host1;",
+ ]);
+ const root=mkdtempSync(join('tmp/','platform-island-hosts-'));
+ const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
+ try{
+  put('src/game/models/collectionDisplay.ts','export class CollectionCatalogue { prepare() { return 1; } }\nexport function authorOnly() { return 2; }');
+  put('src/game/models/islandLibrary.ts',"import {CollectionCatalogue} from './collectionDisplay'; export class IslandLibrary { collections=new CollectionCatalogue(); }");
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const entry=1;'},
+   {'collections/displays':'{}','models/island-library':'{}'});
+  const charge=outputShardLines(root)['driftwood-isle']?.conversion.gameSystemAttribution;
+  expect(charge?.modules.map(row=>row.path)).toEqual(expect.arrayContaining(['src/game/models/collectionDisplay.ts','src/game/models/islandLibrary.ts']));
+  // Classes retain whole-module charges; their native owners must not vanish
+  // merely because no explicit copied runtime import names them.
+  expect(charge?.modules.filter(row=>row.lines>0)).toHaveLength(2);
+  expect(sourceProgressLines(root)['driftwood-isle']?.customLines).toBeGreaterThan(1);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+
 it('attributes declared moves and decisions to their defining sim hosts',()=>{
  const roots=sectionHostImports([{name:'actors/moves'},{name:'sim/scripts'}]);
  expect(roots).toContain('engine/ai/moves');
