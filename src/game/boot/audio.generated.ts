@@ -3076,6 +3076,231 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
     }
    }
   ]
+ },
+ "thin-ice": {
+  "genre": "thin-ice",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-a-23d54ac1a617.m4a",
+    "loopStart": 18.75,
+    "loopEnd": 42.43,
+    "duration": 43.43,
+    "gain": 1,
+    "seamScore": 0.514,
+    "calm": "take-a-23d54ac1a617.m4a",
+    "bpm": 172.3,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-701",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.311719,
+    "metrics": {
+     "duration_s": 47.21,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -17.2,
+      "lra": 9.8,
+      "true_peak_dbfs": -1.1
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.8828
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 1.01,
+      "total_silence_s": 1.01
+     },
+     "spectrum": {
+      "centroid_hz": 1578.9,
+      "rolloff95_hz": 6842.4,
+      "flatness": 0.0004,
+      "hf_above_12k": 0.00001,
+      "sub_below_60": 0.0007,
+      "stereo_corr": 0.337
+     },
+     "tempo": {
+      "estimated_bpm": 172.3,
+      "brief_bpm": 70,
+      "rel_err": 0.23
+     },
+     "key": {
+      "best_key": "C major",
+      "best_r": 0.87,
+      "d_major_r": 0.307,
+      "d_major_rank": 7,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.514,
+      "similarity": 0.536,
+      "level_match": 0.866,
+      "start_s": 18.75,
+      "end_s": 42.43,
+      "bars": 17,
+      "loop_s": 23.68,
+      "beats_per_bar": 4,
+      "grid_bpm": 172.3
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0,
+       "bass": 0,
+       "other": 1,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.021,
+      "drums_active_frac": 0
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 5,
+     "p": 0.027588,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-23d54ac1a617.m4a",
+     "loopStart": 18.75,
+     "loopEnd": 42.43,
+     "duration": 43.43,
+     "gain": 1,
+     "seamScore": 0.514
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "thin-ice",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 70 BPM, 4/4. Pale cyan noon above a still aqua frozen lake, small igloos, snow-covered pines and a crystalline ice spire. A calm crystalline celesta and delicate glockenspiel trade a short slow melody over soft airy pads, bowed glass harmonics and widely spaced felt-piano notes. Bright restrained winter wonder and peaceful exploration, never threatening or melancholy. No drums or heavy percussion. Clear short memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 149.7,
+     "model_load_s": 9.7,
+     "mps_driver_gb": 26.78
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.19807750000000002,
+    "metrics": {
+     "duration_s": 35.43,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -18.1,
+      "lra": 13.4,
+      "true_peak_dbfs": -2.7
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.7305
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2020.8,
+      "rolloff95_hz": 9260.3,
+      "flatness": 0.0005,
+      "hf_above_12k": 0.00002,
+      "sub_below_60": 0.0015,
+      "stereo_corr": 0.299
+     },
+     "tempo": {
+      "estimated_bpm": 152,
+      "brief_bpm": 70,
+      "rel_err": 0.086
+     },
+     "key": {
+      "best_key": "F# minor",
+      "best_r": 0.777,
+      "d_major_r": 0.3,
+      "d_major_rank": 7,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.28,
+      "similarity": 0.294,
+      "level_match": 0.848,
+      "start_s": 3.75,
+      "end_s": 17.96,
+      "bars": 9,
+      "loop_s": 14.21,
+      "beats_per_bar": 4,
+      "grid_bpm": 152
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.0001,
+       "bass": 0,
+       "other": 0.9999,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.057,
+      "drums_active_frac": 0.086
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 5,
+     "p": 0.023005,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-9ae5323c6fe1.m4a",
+     "loopStart": 3.75,
+     "loopEnd": 17.96,
+     "duration": 18.96,
+     "gain": 1,
+     "seamScore": 0.28
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "thin-ice",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 70 BPM, 4/4. Pale cyan noon above a still aqua frozen lake, small igloos, snow-covered pines and a crystalline ice spire. A calm crystalline celesta and delicate glockenspiel trade a short slow melody over soft airy pads, bowed glass harmonics and widely spaced felt-piano notes. Bright restrained winter wonder and peaceful exploration, never threatening or melancholy. No drums or heavy percussion. Clear short memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 122,
+     "model_load_s": 9.7,
+     "mps_driver_gb": 26.78
+    }
+   }
+  ]
  }
 };
 export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
@@ -7310,6 +7535,203 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
        "cfg": 1,
        "gen_time_s": 2.81,
        "model_load_s": 8.2,
+       "mps_driver_gb": 11.44
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "thin-ice": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI; shared bed from mosslight-ruins",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "thin-ice.ambience": {
+    "file": {
+     "set": "mosslight-ruins",
+     "file": "ambience-f54e832bc4cf.m4a"
+    },
+    "loopStart": 3.5,
+    "loopEnd": 22.5,
+    "duration": 23.5,
+    "gain": 1,
+    "seamScore": 0.729
+   }
+  },
+  "hums": {
+   "thin-ice.ice-crystal": {
+    "file": "ice-crystal-d6e759423e2a.m4a",
+    "loopStart": 2,
+    "loopEnd": 4,
+    "duration": 5,
+    "gain": 1,
+    "seamScore": 0.368
+   },
+   "thin-ice.open-ice": {
+    "file": "open-ice-12624660f3f7.m4a",
+    "loopStart": 4.25,
+    "loopEnd": 6.25,
+    "duration": 7.25,
+    "gain": 1,
+    "seamScore": 0.648
+   },
+   "thin-ice.fishing-hole": {
+    "file": "fishing-hole-4b8df53470f4.m4a",
+    "loopStart": 2,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.454
+   },
+   "thin-ice.pine-bank": {
+    "file": "pine-bank-9171fe200280.m4a",
+    "loopStart": 4.75,
+    "loopEnd": 6.75,
+    "duration": 7.75,
+    "gain": 1,
+    "seamScore": 0.513
+   },
+   "thin-ice.igloos": {
+    "file": "igloos-46dd7cdb9711.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 8.5,
+    "duration": 9.5,
+    "gain": 1,
+    "seamScore": 0.528
+   },
+   "thin-ice.road-entry": {
+    "file": "road-entry-ec379f04bc47.m4a",
+    "loopStart": 4.75,
+    "loopEnd": 6.75,
+    "duration": 7.75,
+    "gain": 1,
+    "seamScore": 0.651
+   }
+  },
+  "oneshots": {},
+  "rejected": [
+   {
+    "family": "bed.thin-ice.ambience",
+    "reason": "Own bed failed; canonical qualified bed reused",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 41,
+       "p": 0.000034,
+       "best": "A light warm breeze carries fine sand past an open desert road entry",
+       "seed": "701",
+       "sourceWaveSha256": "90d661e3410bb0043ebee0682501b02d3c7f2b2c248012868e5210b7609074a9",
+       "sourceMetadataSha256": "f89f4996093803c95d0cbd1982e2a2e6f91e2ef0172195a6e7a312645b03efc6"
+      },
+      "sourceWaveSha256": "90d661e3410bb0043ebee0682501b02d3c7f2b2c248012868e5210b7609074a9",
+      "sourceMetadataSha256": "f89f4996093803c95d0cbd1982e2a2e6f91e2ef0172195a6e7a312645b03efc6",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.thin-ice.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "Quiet frozen lake atmosphere: soft cold wind across smooth ice, very occasional distant deep ice creaks and clear small pings, faint distant winter birds and subtle snow crunch. Spacious restrained field recording, no music, no melody, no voices, no storm roar.",
+       "desc": "Still cold air over a frozen lake with soft wind, deep ice creaks and distant birds",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 44.88,
+       "model_load_s": 7.5,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 41,
+       "p": 0.000017,
+       "best": "A light warm breeze carries fine sand past an open desert road entry",
+       "seed": "702",
+       "sourceWaveSha256": "b5418d22dbf0fb67146f975453105c64bce8fdc79aa973781ec2a48f4379dfd3",
+       "sourceMetadataSha256": "d8db7084b5d6d6d18c860ca646ca7476271e4b1749dd1cc173b4377e53b6be14"
+      },
+      "sourceWaveSha256": "b5418d22dbf0fb67146f975453105c64bce8fdc79aa973781ec2a48f4379dfd3",
+      "sourceMetadataSha256": "d8db7084b5d6d6d18c860ca646ca7476271e4b1749dd1cc173b4377e53b6be14",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.thin-ice.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "Soft cold breeze on a frozen lake. Several distant deep resonant ice creaks and a few small sharp ice pings sound across the lake, with sparse faint winter bird chirps over still cold air. Quiet spacious natural winter ambience with long calm pauses. No music, no melody, no voices or speech.",
+       "desc": "Still cold air over a frozen lake with soft wind, deep ice creaks and distant birds",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 44.49,
+       "model_load_s": 8.4,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 28,
+       "p": 0.000182,
+       "best": "Water softly sloshes in a small ice fishing hole with an occasional fishing line plink",
+       "seed": "701",
+       "sourceWaveSha256": "81d317d4d21c9c31ac9dcb320c021835e1f4d3a902779748fdeff0db5b1798b9",
+       "sourceMetadataSha256": "6e6569fb0662cb7178337da74e3ca60b9f70ed00021a4a6b5711d1fead31f4c3"
+      },
+      "sourceWaveSha256": "81d317d4d21c9c31ac9dcb320c021835e1f4d3a902779748fdeff0db5b1798b9",
+      "sourceMetadataSha256": "6e6569fb0662cb7178337da74e3ca60b9f70ed00021a4a6b5711d1fead31f4c3",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.thin-ice.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "Quiet frozen lake atmosphere: soft cold wind across smooth ice, very occasional distant deep ice creaks and clear small pings, faint distant winter birds and subtle snow crunch. Spacious restrained field recording, no music, no melody, no voices, no storm roar.",
+       "desc": "Still cold air over a frozen lake with soft wind, deep ice creaks and distant birds",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 3.29,
+       "model_load_s": 8.2,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 42,
+       "p": 0.00001,
+       "best": "Water softly sloshes in a small ice fishing hole with an occasional fishing line plink",
+       "seed": "702",
+       "sourceWaveSha256": "6b827342491733c8f973b7b61217e1df9cf8f3a375f55399ebed0c24d4f409aa",
+       "sourceMetadataSha256": "2d8957664b405f63719348eb3815c582860e5559bb209e7784920cd20dc888ba"
+      },
+      "sourceWaveSha256": "6b827342491733c8f973b7b61217e1df9cf8f3a375f55399ebed0c24d4f409aa",
+      "sourceMetadataSha256": "2d8957664b405f63719348eb3815c582860e5559bb209e7784920cd20dc888ba",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.thin-ice.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "Soft cold breeze on a frozen lake. Several distant deep resonant ice creaks and a few small sharp ice pings sound across the lake, with sparse faint winter bird chirps over still cold air. Quiet spacious natural winter ambience with long calm pauses. No music, no melody, no voices or speech.",
+       "desc": "Still cold air over a frozen lake with soft wind, deep ice creaks and distant birds",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 3.67,
+       "model_load_s": 8.8,
        "mps_driver_gb": 11.44
       }
      }
