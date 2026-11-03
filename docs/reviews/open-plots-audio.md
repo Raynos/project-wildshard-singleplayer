@@ -12,7 +12,7 @@ The measured recommendation ships; the other take stays available for comparison
 |---|---|---:|---|
 | Lantern Bayou | A, seed 701 | 1.67 MB | pass, `d649309a52` |
 | Frostline Peaks | B, seed 702 | 1.22 MB | pass, `b51eee2ce3` |
-| Ember Forge | pending | — | open |
+| Ember Forge | A, seed 701 | 1.56 MB | pending playback |
 | Mosslight Ruins | pending | — | open |
 | Coral Drift | pending | — | open |
 
@@ -57,3 +57,9 @@ and normal player placement. It does not add an audio graph or fake ticks.
 Frostline passes the same real phone check on `b51eee2ce3`: own score
 recording, six decoded loops, active bed and five positional gains
 0.390–0.396 with heading pan flips near −0.698 / +0.696; no page errors.
+
+Ember A measures 0.29% separated vocal energy; B measures 28.1% and
+remains comparison-only. Five chosen sounds use MOSS and the crane chain
+uses Stable Audio. Five winners rank first and ember crackle ranks second.
+The bellows received a clearer brief and paired retakes; the comparison
+selects the original MOSS 701 over Stable 702.

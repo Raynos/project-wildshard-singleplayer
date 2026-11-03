@@ -51,6 +51,8 @@ try {
   }
   const final = await page.evaluate(audioSnapshot);
   if (!final.loops.some(row => row.id === `bed.${values.plot}.ambience` && row.gains[0] > .4)) throw new Error('Ambience bed did not remain active');
+  if (!final.loops.some(row => row.id === 'score' && row.context === 'running' && row.gains[0] > .1)
+    || final.stems.source !== 'stems' || final.stems.slot !== 'score') throw new Error('Owned score did not remain active');
   console.info(JSON.stringify({ pin: values.pin, plot: values.plot, verdict: 'PASS', device: 'iPhone 16 Pro', renderScale: 2,
     score: { id: final.scoreId, slot: final.stems.slot, source: final.stems.source }, bank: final.bank, spots, errors: final.errors }));
 } finally { await browser.close(); }
