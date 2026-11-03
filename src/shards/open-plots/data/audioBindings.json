@@ -404,5 +404,58 @@
         "reach": 60
       }
     ]
+  },
+  "saltwind-lighthouse": {
+    "idea": "saltwind-lighthouse",
+    "source": {
+      "dir": "/assets/music/saltwind-lighthouse/",
+      "manifestKey": "saltwind-lighthouse"
+    },
+    "sfxDir": "/assets/sfx/saltwind-lighthouse/",
+    "files": {
+      "score": "take-b-6533451204d4.m4a",
+      "ambience": {
+        "set": "coral-drift",
+        "file": "ambience-6243d1442260.m4a",
+        "dir": "/assets/sfx/coral-drift/"
+      },
+      "lighthouse-foghorn": "lighthouse-foghorn-195fbaedb647.m4a",
+      "se-boat-rigging": "se-boat-rigging-a9b8ad0d1613.m4a",
+      "basin-gulls": "basin-gulls-33a2c0cccece.m4a",
+      "slate-roof-rain": "slate-roof-rain-e992201c4301.m4a",
+      "quay-net-rope": "quay-net-rope-6f857686854b.m4a"
+    },
+    "spots": [
+      {
+        "id": "lighthouse-foghorn",
+        "x": 0,
+        "z": 0,
+        "reach": 100
+      },
+      {
+        "id": "se-boat-rigging",
+        "x": 93.75,
+        "z": -156.25,
+        "reach": 32
+      },
+      {
+        "id": "basin-gulls",
+        "x": 156.25,
+        "z": 93.75,
+        "reach": 55
+      },
+      {
+        "id": "slate-roof-rain",
+        "x": -156.25,
+        "z": 237,
+        "reach": 28
+      },
+      {
+        "id": "quay-net-rope",
+        "x": -31.25,
+        "z": 93.75,
+        "reach": 28
+      }
+    ]
   }
 }

@@ -1940,8 +1940,17 @@
         },
         "pois": [],
         "assetGlobs": [
-          "public/assets/open-plots/**"
-        ]
+          "public/assets/open-plots/**",
+          "public/assets/music/saltwind-lighthouse/**",
+          "public/assets/sfx/saltwind-lighthouse/**",
+          "public/assets/sfx/coral-drift/ambience-6243d1442260.m4a"
+        ],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.saltwind-lighthouse",
+          "score": "score.saltwind-lighthouse",
+          "bed": "none"
+        }
       }
     },
     {
