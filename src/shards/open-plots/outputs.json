@@ -1221,7 +1221,7 @@
       "accent": "sand",
       "manifest": {
         "name": "Open Plot · Desert Ruin",
-        "blurb": "An open plot of the grid: walk round the Desert Ruin hologram, a world still to be built.",
+        "blurb": "Desert Ruin: a sandstone temple gateway over a paved cross, deep blue oasis pools ringed by palms, blue-awning tents along the avenues and broken ruins round the edge.",
         "bindings": {
           "accent": "sand"
         },
@@ -1238,23 +1238,75 @@
             "practice": "/src/shards/open-plots/thumbs/desert-ruin.jpg"
           }
         },
-        "pois": [
-          {
-            "id": "hologram",
-            "name": "Desert Ruin hologram",
-            "r": 12,
-            "x": 0,
-            "z": 0
-          },
-          {
-            "id": "billboard",
-            "name": "Billboard",
-            "r": 14,
-            "x": 0,
-            "z": 26
-          }
-        ],
+        "pois": [],
         "shardSelect": false
+      },
+      "layout": "desert-ruin",
+      "landmarkLight": "noon",
+      "coarseLandmark": "lit",
+      "water": "lagoon",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.05,
+              0.3,
+              0.78
+            ],
+            "horizon": [
+              0.86,
+              0.84,
+              0.74
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.9,
+              0.86,
+              0.74
+            ],
+            "density": 0,
+            "near": 500,
+            "far": 2400
+          },
+          "sun": {
+            "colour": [
+              1,
+              0.96,
+              0.84
+            ],
+            "intensity": 2.8
+          },
+          "ambient": {
+            "sky": [
+              0.62,
+              0.74,
+              0.92
+            ],
+            "ground": [
+              0.86,
+              0.76,
+              0.56
+            ],
+            "intensity": 1.5
+          }
+        }
+      ],
+      "lookGrade": {
+        "exposure": 0,
+        "saturation": 1.08,
+        "contrast": 1.06,
+        "lut": null
+      },
+      "lookDay": {
+        "day": {
+          "minutes": 12,
+          "start": 0.5,
+          "maxElevation": 72,
+          "azimuth": 71
+        },
+        "dayOverride": 0.5
       }
     },
     {

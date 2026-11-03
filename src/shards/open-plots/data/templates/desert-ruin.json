@@ -85,124 +85,176 @@
       "shade": 0.3,
       "classes": [
         {
-          "match": "#baa8a7",
-          "fill": "#baa8a7"
+          "match": "#e6d3a8",
+          "fill": "#e6d3a8"
         },
         {
-          "match": "#c8b7b2",
-          "fill": "#c8b7b2"
+          "match": "#eddcb4",
+          "fill": "#eddcb4"
         },
         {
-          "match": "#a3959a",
-          "fill": "#a3959a"
+          "match": "#d2bd8e",
+          "fill": "#d2bd8e"
         },
         {
-          "match": "#b6a5a3",
-          "fill": "#b6a5a3"
+          "match": "#e9d8b0",
+          "fill": "#e9d8b0"
         },
         {
-          "match": "#d5c3be",
-          "fill": "#d5c3be"
+          "match": "#efe0bc",
+          "fill": "#efe0bc"
         },
         {
-          "match": "#c1b0af",
-          "fill": "#c1b0af"
+          "match": "#e8d6ad",
+          "fill": "#e8d6ad"
         },
         {
-          "match": "#e9d6b0",
-          "fill": "#e9d6b0"
+          "match": "#e4cc96",
+          "fill": "#e4cc96"
         },
         {
-          "match": "#24358c",
-          "fill": "#24358c"
+          "match": "#1f3f9a",
+          "fill": "#1f3f9a"
         },
         {
-          "match": "#5b3a24",
-          "fill": "#5b3a24"
+          "match": "#7a5634",
+          "fill": "#7a5634"
         },
         {
-          "match": "#c0222b",
-          "fill": "#c0222b"
+          "match": "#2a4fb0",
+          "fill": "#2a4fb0"
         },
         {
-          "match": "#7a1218",
-          "fill": "#7a1218"
+          "match": "#1a3478",
+          "fill": "#1a3478"
         },
         {
-          "match": "#8a5a34",
-          "fill": "#8a5a34"
+          "match": "#a5794a",
+          "fill": "#a5794a"
         },
         {
-          "match": "#3a9fc0",
-          "fill": "#3a9fc0"
+          "match": "#1a62c8",
+          "fill": "#1a62c8"
         },
         {
-          "match": "#8a8a94",
-          "fill": "#8a8a94"
+          "match": "#d9bd84",
+          "fill": "#d9bd84"
         },
         {
-          "match": "#a6a6b0",
-          "fill": "#a6a6b0"
+          "match": "#ead2a0",
+          "fill": "#ead2a0"
         },
         {
-          "match": "#5c9e3e",
-          "fill": "#5c9e3e"
+          "match": "#8aa850",
+          "fill": "#8aa850"
         },
         {
-          "match": "#457f34",
-          "fill": "#457f34"
+          "match": "#5f8a3a",
+          "fill": "#5f8a3a"
         },
         {
-          "match": "#4e9a3c",
-          "fill": "#4e9a3c"
+          "match": "#4f9a3a",
+          "fill": "#4f9a3a"
         },
         {
-          "match": "#387a30",
-          "fill": "#387a30"
+          "match": "#33762c",
+          "fill": "#33762c"
         },
         {
-          "match": "#5a4030",
-          "fill": "#5a4030"
+          "match": "#8a6a44",
+          "fill": "#8a6a44"
         },
         {
-          "match": "#ffb347",
-          "fill": "#ffb347"
+          "match": "#ffe0a0",
+          "fill": "#ffe0a0"
         },
         {
-          "match": "#ffc96a",
-          "fill": "#ffc96a"
+          "match": "#ffe6b8",
+          "fill": "#ffe6b8"
         },
         {
-          "match": "#918489",
-          "fill": "#918489"
+          "match": "#c8b080",
+          "fill": "#c8b080"
         },
         {
-          "match": "#14203f",
-          "fill": "#14203f"
+          "match": "#14306a",
+          "fill": "#14306a"
         },
         {
-          "match": "#9a4a14",
-          "fill": "#9a4a14"
+          "match": "#c8a060",
+          "fill": "#c8a060"
         },
         {
-          "match": "#ff7a2e",
-          "fill": "#ff7a2e"
+          "match": "#ffd890",
+          "fill": "#ffd890"
         },
         {
-          "match": "#ff4a3a",
-          "fill": "#ff4a3a"
+          "match": "#e8d4a0",
+          "fill": "#e8d4a0"
         },
         {
-          "match": "#c2361c",
-          "fill": "#c2361c"
+          "match": "#3a8aff",
+          "fill": "#3a8aff"
         },
         {
-          "match": "#1f7fff",
-          "fill": "#1f7fff"
+          "match": "#8a7050",
+          "fill": "#8a7050"
         },
         {
-          "match": "#2a1d14",
-          "fill": "#2a1d14"
+          "match": "#f0dfb4",
+          "fill": "#f0dfb4"
+        },
+        {
+          "match": "#dcc08a",
+          "fill": "#dcc08a"
+        },
+        {
+          "match": "#ecd4a2",
+          "fill": "#ecd4a2"
+        },
+        {
+          "match": "#b49460",
+          "fill": "#b49460"
+        },
+        {
+          "match": "#c8ae78",
+          "fill": "#c8ae78"
+        },
+        {
+          "match": "#9a9a58",
+          "fill": "#9a9a58"
+        },
+        {
+          "match": "#7a7a44",
+          "fill": "#7a7a44"
+        },
+        {
+          "match": "#d8b878",
+          "fill": "#d8b878"
+        },
+        {
+          "match": "#6a5034",
+          "fill": "#6a5034"
+        },
+        {
+          "match": "#6a4a2a",
+          "fill": "#6a4a2a"
+        },
+        {
+          "match": "#e0c896",
+          "fill": "#e0c896"
+        },
+        {
+          "match": "#c0a470",
+          "fill": "#c0a470"
+        },
+        {
+          "match": "#f4ead0",
+          "fill": "#f4ead0"
+        },
+        {
+          "match": "#3a3a40",
+          "fill": "#3a3a40"
         }
       ]
     },
@@ -212,5 +264,5 @@
       "coarse_standins"
     ]
   },
-  "activated": false
+  "activated": true
 }

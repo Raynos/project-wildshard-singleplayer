@@ -3,7 +3,7 @@
   "type": "stand",
   "pair": "B2-40m-look",
   "mockup": "art/grid/round-62-open-plot-palettes/14-desert-ruin.jpg",
-  "layout": "src/shards/open-plots/outputs.json",
+  "layout": "src/shards/open-plots/data/layouts/desert-ruin.json",
   "anchor": [
     0,
     40,
