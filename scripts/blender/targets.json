@@ -300,6 +300,18 @@
    "outputs": ["public/assets/open-plots/kit/stars.glb"],
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   },
+  "open-plots/clockwork": {
+   "about": "Clockwork Canyon's theme kit family (OPEN-PLOTS OP19): 0 a brass-rimmed waterwheel of timber paddles on its sandstone piers, 1 a verdigris boiler banded in brass with a tall brass smokestack and a lit gauge, 2 two meshing brass gears on a verdigris frame under an arching pipe; retinted by palette slot",
+   "script": "scripts/blender/open-plots/clockwork.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["clockwork.glb"],
+   "copy": [["clockwork.glb", "public/assets/open-plots/kit/clockwork.glb"]],
+   "outputs": ["public/assets/open-plots/kit/clockwork.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
   "open-plots/harbour": {
    "about": "Saltwind Lighthouse's theme kit family (OPEN-PLOTS OP9): 0 a moored fishing boat (red hull, white wheelhouse, mast and lamp), 1 a whitewashed fisher's cottage with a black gable roof and two chimneys (the corner boathouse turned), 2 a net-drying rack with lobster pots and a buoy post; retinted by palette slot",
    "script": "scripts/blender/open-plots/harbour.py",
