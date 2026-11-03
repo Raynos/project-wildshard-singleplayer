@@ -18,7 +18,7 @@ function observe(value: unknown): { bytes: number; hash: string } {
   return { bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) };
 }
 
-test('retains every native world, loot/continuation and quest declaration byte', async () => {
+test('reconstructs native declaration bytes across the approved collection reference', async () => {
   const world = worldScenes(await driftwoodSceneBanks());
   // f84fb23 pages only these twelve references; restoring their old addresses
   // must reproduce the complete pre-page world hash, not a normalized subset.
@@ -41,8 +41,13 @@ test('retains every native world, loot/continuation and quest declaration byte',
     const file = oldFiles.get(row.id);
     return file === undefined ? row : { id: row.id, file };
   }) };
+  const bag = driftwoodLootBag(), continuation = driftwoodQuestContinuation();
+  // G872 / 3c42144c50 permits this exact +9-byte reference rewrite only.
+  // Reconstruct the complete historical wire; keep the original golden intact.
+  expect(continuation.collections).toBe('collections/displays');
+  expect(observe({ bag, continuation }).bytes).toBe(original.loot.bytes + 9);
   const result = { world: observe(restored),
-    loot: observe({ bag: driftwoodLootBag(), continuation: driftwoodQuestContinuation() }), quest: observe(driftwoodQuestRows()) };
+    loot: observe({ bag, continuation: { ...continuation, collections: 'collections' } }), quest: observe(driftwoodQuestRows()) };
   expect(result).toEqual(original);
 });
 

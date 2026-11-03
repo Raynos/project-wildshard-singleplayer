@@ -6,6 +6,8 @@ import { SceneDressingSchema } from '../src/format/sceneDressing';
 import type { CatalogueEconomySchema } from '../src/format/catalogueEconomy';
 import { QuestFiguresSchema, type KitFigureCardsSchema } from '../src/format/questFigures';
 import { driftwoodFigureCommerceObservation } from './fixtures/driftwood-figure-commerce-observation';
+import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
+import { hashImmutableBytes } from '../src/sdk/immutable';
 import original from './fixtures/driftwood-figure-commerce-original.json' with { type: 'json' };
 
 function outcome(run: () => unknown): unknown {
@@ -43,6 +45,19 @@ test('native defaults are admitted without adding fields to the author input', (
   expect(draft).not.toHaveProperty('instances'); expect(draft).not.toHaveProperty('staticModels');
 });
 
-test('every original figure, quest card, economy and trader wire remains unchanged', () => {
-  expect(driftwoodFigureCommerceObservation()).toEqual(original);
+test('reconstructs original commerce wires across the approved island reference', () => {
+  const observe = (value: unknown) => {
+    const bytes = new TextEncoder().encode(JSON.stringify(value));
+    return { bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) };
+  };
+  const cards = driftwoodKitFigureCards(), actual = driftwoodFigureCommerceObservation();
+  const historical = original.find(row => row.name === 'cards');
+  if (historical === undefined) throw new Error('Missing original card wire');
+  // G872 / 3c42144c50 permits only this +2-byte address change. Bind the
+  // observed current row before reconstructing every historical payload byte.
+  expect(cards.draws).toBe('models/island-library');
+  expect(actual.filter(row => row.name === 'cards')).toEqual([{ name: 'cards', ...observe(cards) }]);
+  expect(observe(cards).bytes).toBe(historical.bytes + 2);
+  const restored = observe({ ...cards, draws: 'custom/fixedLayouts' });
+  expect(actual.map(row => row.name === 'cards' ? { name: row.name, bytes: restored.bytes, hash: restored.hash } : row)).toEqual(original);
 });
