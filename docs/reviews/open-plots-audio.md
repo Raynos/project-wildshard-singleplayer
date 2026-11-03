@@ -383,3 +383,54 @@ It measures 26.5 s, -23.8 LUFS, LRA 1.5 LU and peak -11.4 dBFS. Keep
 the explicit **no dry wind layer** gap. The rejected Frostline fallback
 is a near-tonal motor drone; it is not used. Source and comparison context
 are retained under `tmp/wave-a-audio/fossil-readings/`.
+
+Thin Ice publication `68e91f6a7f` keeps both qualified MiniMax scores.
+**A, seed 701** ships: 47.21 s, zero measured vocal energy, clipping
+and internal silence. B is 35.43 s and also passes those checks. Six
+local spots qualify at ranks **1 / 3 / 5 / 1 / 1 / 5** against the
+unchanged 122 descriptions plus three foils. The paired open-ice 702
+retake supplies its rank-three winner; every source take is retained.
+All four own-bed takes fail (41 / 41 / 28 / 42), without a rank waiver.
+
+O2 and G872 accept canonical **Mosslight** wind, leafy rustle and distant
+small birds as a measured/described fit: **-25.5 LUFS, LRA 4.9 LU,
+flatness 0.30**, irregular broadband 20 Hz–11 kHz. The exact original
+**193,966 B** body and its 3.5–22.5 s loop are referenced without copying;
+catalogue duration 23.5 s, original paired ranks four and one. Named
+mismatch and gap: **leaf rustle in an icy plot; no ice creaks or pings
+in the bed**. The six local spots carry the ice details. No ear claim;
+Jake judges the actual recording on the listening page.
+
+The initially proposed Frostline bed was refused by O2, not shipped:
+75% of its energy lies below 150 Hz, 21% at 150–500 Hz, under 2% above
+500 Hz; flatness 0.001, -24.1 LUFS, LRA 0.5 LU and peak -9.1 dBFS.
+That steady near-tonal machinery drone mismatches a plot with no
+chairlift. This refusal and the accepted Mosslight measurements/gaps
+are retained in the published reuse credit bundle.
+
+Package **1,112,919 B** including the canonical bed; newly published
+**918,953 B**, each file under 1 MB. All source hashes, AAC packet
+admission and decoded loop bounds pass. Full native bar 10 passes in
+**17 s** before landing on `b218735623-mw1bc2bp`, bound to full pin
+`b21873562365ce9cfc361e7086a6454ad0377927`: own A recording, seven
+decoded cue loops, native pause/resume, sustained score and bed,
+six positional gains **0.358182–0.398463** and heading pans
+**-0.699414–+0.696525**, no page errors; browser closed. Muted iPhone
+16 Pro, 402 × 874, actual phone tier and 2× render scale.
+
+Against immutable BEFORE `300a65548b`, all **158 prior file bodies,
+4,349,661 B**, and **32/34 old sections** stay exact, with no removals.
+Only audio/audio and the defining-source map tilesHash stamp differ;
+the map image remains exact. Eight active AAC bodies total **926,035 B**
+and the exact 242 B audio-only native client plan joins. Complete
+candidate bodies, index hashes and ordered pack entries verify.
+Phone wire **2,053,521 → 2,961,101 B**: G872 approves the exact
+**+907,580 B** audio delta, retaining the original **0 B margin**.
+The original old-ceiling refusal is retained. O2's duplicate stand-in
+metadata cleanup `b218735623` is a separate source change.
+
+Raw records: `tmp/sp-x2-ob7/thin-*`. X1/X8's matched/control, maintained
+walk, golden bridge, memory and official Simulator stay open on the
+ensuing immutable audio source. This native playback proof makes no
+performance, memory or complete OP18 claim. Committed locally while
+Jake's audio/plots/docs push hold remains in effect.

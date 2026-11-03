@@ -570,5 +570,65 @@
         "reach": 40
       }
     ]
+  },
+  "thin-ice": {
+    "idea": "thin-ice",
+    "source": {
+      "dir": "/assets/music/thin-ice/",
+      "manifestKey": "thin-ice"
+    },
+    "sfxDir": "/assets/sfx/thin-ice/",
+    "files": {
+      "score": "take-a-23d54ac1a617.m4a",
+      "ambience": {
+        "set": "mosslight-ruins",
+        "file": "ambience-f54e832bc4cf.m4a",
+        "dir": "/assets/sfx/mosslight-ruins/"
+      },
+      "ice-crystal": "ice-crystal-d6e759423e2a.m4a",
+      "open-ice": "open-ice-12624660f3f7.m4a",
+      "fishing-hole": "fishing-hole-4b8df53470f4.m4a",
+      "pine-bank": "pine-bank-9171fe200280.m4a",
+      "igloos": "igloos-46dd7cdb9711.m4a",
+      "road-entry": "road-entry-ec379f04bc47.m4a"
+    },
+    "spots": [
+      {
+        "id": "ice-crystal",
+        "x": 0,
+        "z": 0,
+        "reach": 60
+      },
+      {
+        "id": "open-ice",
+        "x": -94,
+        "z": 94,
+        "reach": 60
+      },
+      {
+        "id": "fishing-hole",
+        "x": -86,
+        "z": 90,
+        "reach": 12
+      },
+      {
+        "id": "pine-bank",
+        "x": -219,
+        "z": 94,
+        "reach": 40
+      },
+      {
+        "id": "igloos",
+        "x": -219,
+        "z": 219,
+        "reach": 35
+      },
+      {
+        "id": "road-entry",
+        "x": 0,
+        "z": -230,
+        "reach": 50
+      }
+    ]
   }
 }

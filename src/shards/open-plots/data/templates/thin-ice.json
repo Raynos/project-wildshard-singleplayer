@@ -25,7 +25,19 @@
         }
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.thin-ice",
+        "score": "score.thin-ice",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/thin-ice/**",
+        "public/assets/sfx/thin-ice/**",
+        "public/assets/sfx/mosslight-ruins/ambience-f54e832bc4cf.m4a"
+      ]
     },
     "layout": "thin-ice",
     "scaffold": true,
