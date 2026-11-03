@@ -515,6 +515,26 @@ function buildVault() {
   box(.4, 2.6, 5, cx - 8, 0, cz - 8, M.white); sign('4 ROOMS · ELITE · ~10 MIN', 'puzzle · fight · climb · Vault Warden L12', cx - 8, 4, cz - 8, 20);
   sign('TRAINING VAULT', 'the mini dungeon · rooms at y −40', cx, 14, cz, 24);
 }
+// Round 11 (east remaster): room 4 of the Training Vault, under band 4 at y -40 (INTERIORS: 32 x 32 m, the Vault Warden
+// L12, enemies-bosses §4: r 12 m fight ring, sealed door, two wall hatches for the Mites, a 3 m walking vault door with
+// clamp arms and a cyan core). Below the cell floor, so no existing view sees it; only lab.cam frames from inside do.
+function buildVaultRoom4() {
+  const X = 203, Y = -40, Z = -47, S = 32, H = 10;
+  const t = floorTex.clone(); t.needsUpdate = true; t.repeat.set(S / 10, S / 10);
+  const fl = new THREE.PlaneGeometry(S, S); fl.rotateX(-Math.PI / 2);
+  add(fl, new THREE.MeshStandardMaterial({ map: t, roughness: .95 }), X, Y, Z, { shadow: false });
+  box(S, H, 1, X, Y, Z - S / 2, M.grey); box(1, H, S, X - S / 2, Y, Z, M.grey); box(1, H, S, X + S / 2, Y, Z, M.grey);
+  box(13, H, 1, X - 9.5, Y, Z + S / 2, M.grey); box(13, H, 1, X + 9.5, Y, Z + S / 2, M.grey); box(6, H - 5, 1, X, Y + 5, Z + S / 2, M.grey);
+  box(6, 5, .6, X, Y, Z + S / 2 - .2, M.orangeDark);                                    // the sealed door (DG1)
+  box(S + 2, 1, S + 2, X, Y + H, Z, M.dark, { shadow: false });                         // ceiling
+  flatDisc(X, Z, 12.4, Y + .03, M.hazard, 12);                                          // the r 12 m ring
+  for (const s of [-1, 1]) box(.4, 2.4, 2.4, X + s * (S / 2 - .7), Y, Z - 2, M.dark);   // wall hatches
+  const wz = Z - 4;                                                                     // the Vault Warden
+  box(2.6, 3, 1.2, X, Y, wz, M.elite);
+  add(new THREE.CylinderGeometry(1.1, 1.1, .2, 24), M.grey, X, Y + 1.6, wz + .7, { rx: Math.PI / 2 });
+  add(new THREE.CylinderGeometry(.45, .45, .25, 16), M.cyan, X, Y + 1.6, wz + .85, { rx: Math.PI / 2 });
+  for (const s of [-1, 1]) { box(.5, .5, 1.8, X + s * 1.6, Y + 1.8, wz + .6, M.dark); box(.6, .9, .4, X + s * 1.6, Y + 1.4, wz + 1.6, M.dark); }
+}
 
 // enemies: one silhouette per type so the bands read apart at eye height
 function enemy(kind, x, z, night) {
@@ -592,7 +612,7 @@ place(buildRiding, -252, -21);
 buildRange(); buildMovers(); buildGrapple(); buildClimb(); buildRock(); buildHover(); buildPhysics();
 buildStealth(); buildGauntlet();
 place(buildArena, 245, 352, -Math.PI / 2);
-buildVault(); buildEast(); buildSecrets();
+buildVault(); buildVaultRoom4(); buildEast(); buildSecrets();
 
 // ---------- plan overlays ----------
 const planOnly = new THREE.Group(), budgetOnly = new THREE.Group(); scene.add(planOnly, budgetOnly);
