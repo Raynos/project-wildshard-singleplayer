@@ -679,6 +679,202 @@
       "duration": 12,
       "desc": "Sparse delicate high insect chirps in an alien night field",
       "prompt": "Sparse small high glassy insect chirps across a quiet dry alien night forecourt. Delicate irregular short chirps and long still pauses, naturalistic close field recording. No birds, no frogs, no water, no music, no voices or speech."
+    },
+    "bed.clockwork-canyon.ambience": {
+      "kind": "bed",
+      "into": "clockwork-canyon",
+      "duration": 30,
+      "desc": "Workshop canal ambience with soft steam hiss, boiler thrum and distant clock ticks",
+      "prompt": "A continuous restrained daylight workshop-town ambience: low boiler thrum and soft airy steam hiss behind water flowing in a canal, with faint distant clock ticks. No loud machine rhythm, no music, no intelligible speech."
+    },
+    "hum.clockwork-canyon.clock-tick": {
+      "kind": "hum",
+      "into": "clockwork-canyon",
+      "duration": 12,
+      "desc": "A large clock steadily ticks and plays a short bell chime phrase",
+      "prompt": "Clear steady mechanical clock ticks, with a sparse warm resonant bell chime phrase and long quiet gaps. Outdoor clock tower, no music, no speech."
+    },
+    "hum.clockwork-canyon.waterwheel": {
+      "kind": "hum",
+      "into": "clockwork-canyon",
+      "duration": 12,
+      "desc": "A wooden waterwheel splashes in a canal and creaks as it turns",
+      "prompt": "A slow wooden waterwheel turns through shallow canal water, with distinct repeated gentle splashes and dry wooden axle creaks. Close natural foley, no music, no speech."
+    },
+    "hum.clockwork-canyon.boiler": {
+      "kind": "hum",
+      "into": "clockwork-canyon",
+      "duration": 12,
+      "desc": "A small steam boiler softly rumbles and releases short hissing puffs",
+      "prompt": "Low steady boiler vibration with small irregular steam-valve hisses and puffs. Restrained close mechanical foley, no engines accelerating, no music or voices."
+    },
+    "hum.clockwork-canyon.gear-ratchet": {
+      "kind": "hum",
+      "into": "clockwork-canyon",
+      "duration": 12,
+      "desc": "A hand-powered gear works turns with small ratchet clanks",
+      "prompt": "Slow brass gears and a hand ratchet turning in a quiet workshop, with small metallic clicks, short clanks and pauses. No motor, no voices, no music."
+    },
+    "hum.clockwork-canyon.garden-birds": {
+      "kind": "hum",
+      "into": "clockwork-canyon",
+      "duration": 12,
+      "desc": "Small garden birds call over a quiet leafy courtyard",
+      "prompt": "Sparse clear small songbirds calling in a quiet garden courtyard, with a little soft leaf movement. Natural field recording, no music or speech."
+    },
+    "hum.clockwork-canyon.kiosk-murmur": {
+      "kind": "hum",
+      "into": "clockwork-canyon",
+      "duration": 12,
+      "desc": "A distant daytime market crowd murmurs around small kiosks",
+      "prompt": "Soft distant outdoor market crowd murmur, with indistinct conversation and occasional small object movement. No intelligible words, no close voice, no music."
+    },
+    "bed.desert-ruin.ambience": {
+      "kind": "bed",
+      "into": "desert-ruin",
+      "duration": 30,
+      "desc": "Dry warm desert wind with fine sand hiss and faint palm frond rustle",
+      "prompt": "Continuous gentle warm desert wind and a fine dry sand hiss, with very faint palm frond movement. Open quiet noon, no insects, no rain, no machinery, no music, no voices."
+    },
+    "hum.desert-ruin.gateway-wind": {
+      "kind": "hum",
+      "into": "desert-ruin",
+      "duration": 12,
+      "desc": "Wind moans through a huge sandstone gateway with small grit trickles",
+      "prompt": "Warm desert wind resonates softly through a tall sandstone gateway opening, with occasional fine grit trickling off stone. Low natural airy moan, not spooky, no music or voices."
+    },
+    "hum.desert-ruin.oasis-ne": {
+      "kind": "hum",
+      "into": "desert-ruin",
+      "duration": 12,
+      "desc": "Still oasis water laps sandstone coping under palms with sparse birds",
+      "prompt": "Gentle still oasis water softly laps a sandstone pool edge, with light palm frond rustle and a rare distant bird call. Quiet warm noon, no surf roar, no music or speech."
+    },
+    "hum.desert-ruin.tents-south": {
+      "kind": "hum",
+      "into": "desert-ruin",
+      "duration": 12,
+      "desc": "Tent awnings flap beside small pottery knocks and distant camp murmur",
+      "prompt": "A dry breeze softly flaps canvas tent awnings, with occasional light pottery clinks and a very distant indistinct camp murmur. No close voice, no intelligible words, no music."
+    },
+    "hum.desert-ruin.ruins-west": {
+      "kind": "hum",
+      "into": "desert-ruin",
+      "duration": 12,
+      "desc": "Wind whistles through broken sandstone arches and sand slides over rubble",
+      "prompt": "Dry warm wind whistles softly through broken stone arches and column stumps, with occasional light sand sliding down rubble. Natural outdoor stone resonance, no voices or music."
+    },
+    "hum.desert-ruin.palms-south": {
+      "kind": "hum",
+      "into": "desert-ruin",
+      "duration": 12,
+      "desc": "Palm fronds rustle in a warm breeze beside a softly calling dove",
+      "prompt": "Close dry palm fronds rubbing and rustling gently in a warm breeze, with a sparse soft distant dove call. Quiet natural field recording, no music or speech."
+    },
+    "hum.desert-ruin.entry": {
+      "kind": "hum",
+      "into": "desert-ruin",
+      "duration": 12,
+      "desc": "A light warm breeze carries fine sand past an open desert road entry",
+      "prompt": "A thin airy warm breeze over a bare desert road edge, with very light fine sand hiss and long quiet spaces. Sparse open noon, no footsteps, no insects, no music or speech."
+    },
+    "bed.sky-race.ambience": {
+      "kind": "bed",
+      "into": "sky-race",
+      "duration": 30,
+      "desc": "Distant race engines pass with crowd cheers, a sparse PA chime and wind",
+      "prompt": "An open-air race circuit ambience: distant small racing engines passing with Doppler pitch, low distant grandstand cheering, a rare short PA chime and a steady soft breeze. No intelligible announcements or music."
+    },
+    "hum.sky-race.race-tower": {
+      "kind": "hum",
+      "into": "sky-race",
+      "duration": 12,
+      "desc": "A race tower PA chime sounds over distant crowd murmur and flag flaps",
+      "prompt": "A short clean public-address notification chime at a race tower, with long quiet gaps, distant crowd murmur and occasional cloth flag flap. No spoken announcements, no music."
+    },
+    "hum.sky-race.circuit": {
+      "kind": "hum",
+      "into": "sky-race",
+      "duration": 12,
+      "desc": "Small racing karts pass rapidly around an outdoor circuit",
+      "prompt": "Several restrained small racing kart engine passes with clear approach and receding Doppler pitch. Outdoor track, no collision or tire screams, no music or speech."
+    },
+    "hum.sky-race.grandstand": {
+      "kind": "hum",
+      "into": "sky-race",
+      "duration": 12,
+      "desc": "A distant grandstand crowd cheers intermittently during a race",
+      "prompt": "Distant small grandstand crowd cheers and claps in short bursts, with soft crowd murmur between. No intelligible words, no close shouting, no music."
+    },
+    "hum.sky-race.paddock": {
+      "kind": "hum",
+      "into": "sky-race",
+      "duration": 12,
+      "desc": "Small engines idle in a paddock beside occasional tool clinks",
+      "prompt": "Quiet restrained racing-paddock foley: one small engine idles softly while metal tools clink occasionally. No revving close-up, no voices or music."
+    },
+    "hum.sky-race.pit-garages": {
+      "kind": "hum",
+      "into": "sky-race",
+      "duration": 12,
+      "desc": "A pit garage air wrench rattles briefly with a small enclosed echo",
+      "prompt": "Short sparse pneumatic air-wrench bursts in a small garage, with light tool movement and a modest indoor echo. Long pauses, no voices, no music."
+    },
+    "hum.sky-race.road-entry": {
+      "kind": "hum",
+      "into": "sky-race",
+      "duration": 12,
+      "desc": "A clear open breeze carries faint distant racing engines",
+      "prompt": "Soft steady wind over an open approach road with very faint distant racing engine passes. Spacious quiet gaps, no close motor, no music or speech."
+    },
+    "bed.showcase-template.ambience": {
+      "kind": "bed",
+      "into": "showcase-template",
+      "duration": 30,
+      "desc": "Canal water and birds under distant light workshop tools and market murmur",
+      "prompt": "A quiet sunny workshop-town ambience: gentle canal water, sparse birds, very distant light hammer taps and ratchets, a soft market murmur and a faint clock chime. No close machinery, no intelligible speech, no music."
+    },
+    "hum.showcase-template.obelisk": {
+      "kind": "hum",
+      "into": "showcase-template",
+      "duration": 12,
+      "desc": "A small clock ticks beside a soft courtyard fountain",
+      "prompt": "Steady small clock ticks and gentle fountain water in an open courtyard, with long calm intervals. Natural restrained mechanical and water foley, no music or speech."
+    },
+    "hum.showcase-template.canal-ring": {
+      "kind": "hum",
+      "into": "showcase-template",
+      "duration": 12,
+      "desc": "Water flows quietly through a canal beneath small bridges",
+      "prompt": "Gentle continuous canal water flowing underneath a small bridge, with soft ripples and occasional tiny splashes against stone. No ocean surf, no voices or music."
+    },
+    "hum.showcase-template.stalls": {
+      "kind": "hum",
+      "into": "showcase-template",
+      "duration": 12,
+      "desc": "A distant sunny market murmurs among small workshop stalls",
+      "prompt": "Soft distant outdoor market murmur with little object movements and light footsteps, no intelligible words or close voices, no music."
+    },
+    "hum.showcase-template.gardens": {
+      "kind": "hum",
+      "into": "showcase-template",
+      "duration": 12,
+      "desc": "Small birds call among leaves rustling in a courtyard garden",
+      "prompt": "Clear sparse garden bird calls with gentle leafy rustle in a mild breeze. Sunny peaceful field recording, no music or speech."
+    },
+    "hum.showcase-template.houses": {
+      "kind": "hum",
+      "into": "showcase-template",
+      "duration": 12,
+      "desc": "Distant light hammer taps and occasional doors move in a workshop row",
+      "prompt": "Sparse distant gentle hand-hammer taps from a workshop row, a soft door latch and occasional door movement. Quiet open air, no power tools, no voices, no music."
+    },
+    "hum.showcase-template.road-entry": {
+      "kind": "hum",
+      "into": "showcase-template",
+      "duration": 12,
+      "desc": "A soft sunny breeze crosses an open workshop-town approach",
+      "prompt": "Gentle airy breeze over an open paved approach, with quiet spaces and very faint distant town activity. No close footsteps, no motor, no music or intelligible speech."
     }
   }
 }

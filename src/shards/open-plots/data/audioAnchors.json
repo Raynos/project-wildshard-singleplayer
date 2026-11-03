@@ -444,5 +444,157 @@
       "z": 31.25,
       "reach": 40
     }
+  ],
+  "clockwork-canyon": [
+    {
+      "id": "clock-tick",
+      "x": 0,
+      "z": 0,
+      "reach": 100
+    },
+    {
+      "id": "waterwheel",
+      "x": 93.75,
+      "z": 31.25,
+      "reach": 30
+    },
+    {
+      "id": "boiler",
+      "x": 218.75,
+      "z": 218.75,
+      "reach": 30
+    },
+    {
+      "id": "gear-ratchet",
+      "x": 156.25,
+      "z": 218.75,
+      "reach": 20
+    },
+    {
+      "id": "garden-birds",
+      "x": 218.75,
+      "z": 93.75,
+      "reach": 35
+    },
+    {
+      "id": "kiosk-murmur",
+      "x": 218.75,
+      "z": 31.25,
+      "reach": 40
+    }
+  ],
+  "desert-ruin": [
+    {
+      "id": "gateway-wind",
+      "x": 0,
+      "z": 0,
+      "reach": 30
+    },
+    {
+      "id": "oasis-ne",
+      "x": 125,
+      "z": 125,
+      "reach": 55
+    },
+    {
+      "id": "tents-south",
+      "x": 0,
+      "z": -156,
+      "reach": 45
+    },
+    {
+      "id": "ruins-west",
+      "x": -219,
+      "z": 125,
+      "reach": 45
+    },
+    {
+      "id": "palms-south",
+      "x": 0,
+      "z": -94,
+      "reach": 35
+    },
+    {
+      "id": "entry",
+      "x": 0,
+      "z": -219,
+      "reach": 30
+    }
+  ],
+  "sky-race": [
+    {
+      "id": "race-tower",
+      "x": 0,
+      "z": 0,
+      "reach": 60
+    },
+    {
+      "id": "circuit",
+      "x": -125,
+      "z": 125,
+      "reach": 70
+    },
+    {
+      "id": "grandstand",
+      "x": -31,
+      "z": 94,
+      "reach": 45
+    },
+    {
+      "id": "paddock",
+      "x": -219,
+      "z": 156,
+      "reach": 40
+    },
+    {
+      "id": "pit-garages",
+      "x": -219,
+      "z": 219,
+      "reach": 35
+    },
+    {
+      "id": "road-entry",
+      "x": 0,
+      "z": -230,
+      "reach": 50
+    }
+  ],
+  "showcase-template": [
+    {
+      "id": "obelisk",
+      "x": 0,
+      "z": 0,
+      "reach": 40
+    },
+    {
+      "id": "canal-ring",
+      "x": -94,
+      "z": 0,
+      "reach": 50
+    },
+    {
+      "id": "stalls",
+      "x": -31,
+      "z": 94,
+      "reach": 40
+    },
+    {
+      "id": "gardens",
+      "x": -156,
+      "z": 156,
+      "reach": 45
+    },
+    {
+      "id": "houses",
+      "x": -219,
+      "z": 219,
+      "reach": 40
+    },
+    {
+      "id": "road-entry",
+      "x": 0,
+      "z": -230,
+      "reach": 50
+    }
   ]
 }

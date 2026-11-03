@@ -115,6 +115,38 @@
       "lyrics": "loop",
       "bpm": 70,
       "prompt": "Instrumental video game score, 70 BPM, 4/4. A gentle bioluminescent alien night on a pastel open plain, softly glowing lime cracks in a tall monolith and small dome habitats. Warm analog synth pads, glassy bell arpeggios, a soft theremin-like instrumental lead and a restrained pulsing sub bass. Dreamy, eerie but welcoming discovery, never horror. Sparse memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed electronic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/clockwork-canyon": {
+      "style": "ob7",
+      "slot": "clockwork-canyon",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 96,
+      "prompt": "Instrumental video game score, 96 BPM, 4/4. Bright busy daylight steampunk workshop town. Pizzicato strings, music box and marimba with ticking woodblock percussion and light brass swells. Whimsical, nimble and warm, never grim. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/desert-ruin": {
+      "style": "ob7",
+      "slot": "desert-ruin",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 68,
+      "prompt": "Instrumental video game score, 68 BPM, 4/4. Harsh white-gold noon over a desert oasis. Slow open sparse plucked oud or saz phrases over a soft frame drum pulse and held drone. Sun-baked and calm at the water, never mysterious or threatening. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/sky-race": {
+      "style": "ob7",
+      "slot": "sky-race",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 128,
+      "prompt": "Instrumental video game score, 128 BPM, 4/4. Bright cobalt high noon at a floating-island race circuit. Upbeat sporty pop-rock with driving bass, bright synth lead and hand claps. Festive, playful and energetic, never aggressive. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/showcase-template": {
+      "style": "ob7",
+      "slot": "showcase-template",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 108,
+      "prompt": "Instrumental video game score, 108 BPM, 4/4. Bright clear day in a polished orange-and-grey workshop town of canals, gardens and stalls. Cheerful toy-box workshop music with marimba, pizzicato strings, light brass stabs and woodblock clock ticks. Playful and inviting, not silly. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
     }
   }
 }

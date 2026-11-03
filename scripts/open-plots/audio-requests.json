@@ -81,5 +81,37 @@
     "rock-outcrop",
     "avenue-lamp",
     "entry-forecourt"
+  ],
+  "clockwork-canyon": [
+    "clock-tick",
+    "waterwheel",
+    "boiler",
+    "gear-ratchet",
+    "garden-birds",
+    "kiosk-murmur"
+  ],
+  "desert-ruin": [
+    "gateway-wind",
+    "oasis-ne",
+    "tents-south",
+    "ruins-west",
+    "palms-south",
+    "entry"
+  ],
+  "sky-race": [
+    "race-tower",
+    "circuit",
+    "grandstand",
+    "paddock",
+    "pit-garages",
+    "road-entry"
+  ],
+  "showcase-template": [
+    "obelisk",
+    "canal-ring",
+    "stalls",
+    "gardens",
+    "houses",
+    "road-entry"
   ]
 }
