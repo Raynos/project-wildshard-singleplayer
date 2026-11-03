@@ -252,9 +252,10 @@ export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
   };
   for (const material of [materials.Landmark, materials.Poster]) material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
   const accessor = (values, type) => doc.createAccessor().setType(type).setArray(new Float32Array(values)).setBuffer(buffer);
-  // each part welded (corners sharing position, normal, colour and uv become one indexed vertex)
+  // each part welded (corners sharing position, normal, colour and uv become one indexed vertex); an empty part writes no
+  // node (its interleaved view would be 0 bytes under accessor offsets the world reader refuses: Alien Plain has no water)
   const node = (name, part, material, { uv = false, normals = true, parent = scene } = {}) => {
-    if (idea.scaffold === true && part.positions.length === 0) return;
+    if (part.positions.length === 0) return;
     const welded = { positions: [], normals: [], colours: [], uvs: [] }, index = [], seen = new Map(), n = part.positions.length / 3;
     for (let i = 0; i < n; i++) {
       const corner = [part.positions.slice(i * 3, i * 3 + 3), normals ? part.normals.slice(i * 3, i * 3 + 3) : [], part.colours.slice(i * 3, i * 3 + 3), uv ? part.uvs.slice(i * 2, i * 2 + 2) : []];

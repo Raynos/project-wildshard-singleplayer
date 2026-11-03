@@ -1,12 +1,12 @@
 """alien.py <out-dir>: Pastel Alien Plain's theme kit family (OPEN-PLOTS OP20), in kit.py's format (kitlib.py), retinted by a
 layout's palette like every kit family. Target: art/grid/round-62-open-plot-palettes/13-alien-plain.jpg.
 
-`alien`, four variants in the plain's obsidian, violet and acid lime:
+`alien`, three variants in the plain's obsidian, violet and acid lime (a family holds at most three; the glow plants are
+the generator's own leaf fans, alien.mjs):
 - 0 crystal cluster: violet hexagonal crystals and two glowing lime ones fanning out of a low dark rock, 3.6 m tall;
 - 1 dome habitat: a 20 m faceted pale dome on a dark ring base, a band of lit lime windows round it and a lit door to
   the front (Blender -y, glTF +z), a small mast on its crown;
-- 2 rock spire: a 7 m leaning dark faceted rock split by a glowing lime crack, violet crystals at its foot;
-- 3 glow plant: a 2.4 m fan of pointed leaves in deep green, their tips lit lime (the plain's bushes; no mushrooms).
+- 2 rock spire: a 7 m leaning dark faceted rock split by a glowing lime crack, violet crystals at its foot.
 Run: bash scripts/blender/build.sh open-plots/alien.
 """
 import math
@@ -20,7 +20,7 @@ from kit import SLOTS, TRIMS  # noqa: E402
 
 # Slots a layout may not define (sRGB); the palette's own colour wins.
 ALIEN_SLOTS = {**SLOTS, 'obsidian': '#2c2638', 'crystal': '#9a58e0', 'glowLime': '#c4f040', 'shell': '#c8c4d8',
-               'shellDark': '#3a3448', 'leaf': '#2e6a3a'}
+               'shellDark': '#3a3448'}
 ALIEN_TRIMS = {**TRIMS, 'obsidian': 'stone', 'shellDark': 'stone'}
 
 
@@ -116,32 +116,11 @@ def spire():
     return p
 
 
-def plant():
-    """Variant 3: the glow plant, a fan of pointed leaves with lit tips."""
-    p = Piece()
-    rng = random.Random(5)
-    for k in range(9):
-        a = 2 * math.pi * k / 9 + rng.uniform(-0.2, 0.2)
-        tilt = rng.uniform(0.5, 0.95)
-        length = rng.uniform(1.8, 2.5)
-        d = (math.cos(a) * math.cos(tilt), math.sin(a) * math.cos(tilt), math.sin(tilt))
-        side = (-math.sin(a) * 0.32, math.cos(a) * 0.32, 0.0)
-        base = (0.0, 0.0, 0.1)
-        mid = tuple(base[i] + d[i] * length * 0.55 for i in range(3))
-        neck = tuple(base[i] + d[i] * length * 0.8 for i in range(3))
-        tip = tuple(base[i] + d[i] * length for i in range(3))
-        l, r = tuple(mid[i] - side[i] for i in range(3)), tuple(mid[i] + side[i] for i in range(3))
-        nl, nr = tuple(neck[i] - side[i] * 0.5 for i in range(3)), tuple(neck[i] + side[i] * 0.5 for i in range(3))
-        p.panel([base, r, nr, nl, l][::-1], 'Kit.leaf')
-        p.panel([nl, nr, tip], 'Glow.glowLime')
-    return p
-
-
 def main():
     out = sys.argv[sys.argv.index('--') + 1]
     os.makedirs(out, exist_ok=True)
     reset_scene()
-    build_family(out, 'alien', [cluster, dome, spire, plant], ALIEN_TRIMS, {'slots': ALIEN_SLOTS})
+    build_family(out, 'alien', [cluster, dome, spire], ALIEN_TRIMS, {'slots': ALIEN_SLOTS})
 
 
 if __name__ == '__main__':

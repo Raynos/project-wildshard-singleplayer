@@ -1105,11 +1105,80 @@
       "idea": "alien-plain",
       "name": "Pastel Alien Plain",
       "accent": "lilac",
+      "layout": "alien-plain",
+      "landmarkLight": "dusk",
+      "coarseLandmark": "lit",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.05,
+              0.02,
+              0.16
+            ],
+            "horizon": [
+              0.2,
+              0.1,
+              0.4
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.14,
+              0.08,
+              0.28
+            ],
+            "density": 0,
+            "near": 420,
+            "far": 1800
+          },
+          "sun": {
+            "colour": [
+              0.78,
+              0.7,
+              1.0
+            ],
+            "intensity": 1.3
+          },
+          "ambient": {
+            "sky": [
+              0.6,
+              0.5,
+              0.95
+            ],
+            "ground": [
+              0.3,
+              0.4,
+              0.3
+            ],
+            "intensity": 1.8
+          }
+        }
+      ],
+      "lookGrade": {
+        "exposure": 0,
+        "saturation": 1.1,
+        "contrast": 1.06,
+        "lut": null
+      },
       "manifest": {
         "name": "Open Plot · Pastel Alien Plain",
-        "blurb": "An open plot of the grid: walk round the Pastel Alien Plain hologram, a world still to be built.",
+        "status": "earlyAccess",
+        "shardSelect": false,
+        "blurb": "An open plot of the grid: a violet colony on an alien plain under a green-violet night, faceted dome habitats and beds of glowing crystals between lime lamps, round a dark monolith split by acid-lime cracks.",
         "bindings": {
-          "accent": "lilac"
+          "accent": "lilac",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/alien-plain.jpg",
@@ -1140,7 +1209,9 @@
             "z": 26
           }
         ],
-        "shardSelect": false
+        "assetGlobs": [
+          "public/assets/open-plots/**"
+        ]
       }
     },
     {

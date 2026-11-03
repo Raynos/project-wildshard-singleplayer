@@ -46,7 +46,20 @@ function alien(w, variant, x, z, y, scale, yaw, r, h) {
   if (r > 0) w.solid([x - r * scale, y, z - r * scale], [x + r * scale, y + h * scale, z + r * scale]);
 }
 const cluster = (w, x, z, y, scale) => alien(w, 0, x, z, y, scale, x * 0.7 + z, 0.9, 3.4);
-const plant = (w, x, z, y, scale) => alien(w, 3, x, z, y, scale, x + z * 0.3, 0, 0);
+
+/** A glow plant at (x, z) raised `y`: a walk-through fan of seven pointed deep green leaves, their tips lit lime (the
+ *  plain's bushes; no mushrooms). Drawn here, not as a kit model: a family holds at most three variants. */
+function plant(w, p, x, z, y, scale) {
+  const leaf = p.leaf ?? p.foliage, tip = p.glowLime ?? p.lantern;
+  for (let k = 0; k < 7; k++) {
+    const a = (k / 7 + pick(x, z, 5, k) * 0.03) * Math.PI * 2, tilt = 0.55 + pick(z, x, 4, k) * 0.12, length = (1.9 + pick(x, z, 3, k * 3) * 0.3) * scale;
+    const d = [Math.cos(a) * Math.cos(tilt), Math.sin(tilt), Math.sin(a) * Math.cos(tilt)], side = [-Math.sin(a) * 0.3 * scale, 0, Math.cos(a) * 0.3 * scale];
+    const at = (t, s) => [x + d[0] * length * t + side[0] * s, y + 0.1 + d[1] * length * t, z + d[2] * length * t + side[2] * s];
+    const base = at(0, 0), l = at(0.55, -1), r = at(0.55, 1), nl = at(0.8, -0.5), nr = at(0.8, 0.5), end = at(1, 0);
+    for (const [u, v, q] of [[base, r, l], [l, r, nr], [l, nr, nl]]) { w.tri('Kit', u, v, q, leaf); w.tri('Kit', u, q, v, leaf); }
+    w.tri('Glow', nl, nr, end, tip); w.tri('Glow', nl, end, nr, tip);
+  }
+}
 
 /** A raised violet bed from (x0, z0) to (x1, z1), its dark kerb, and its collider (low enough to step onto). */
 function bed(w, p, x0, z0, x1, z1) {
@@ -65,7 +78,7 @@ function crystalBed(w, p, variant) {
     const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, d = sx * sz * m;
     cluster(w, cx - 5 * d, cz - 5, y, 1.6 + pick(cx, cz, 3) * 0.3);
     cluster(w, cx + 6 * d, cz + 6, y, 1.2 + pick(cz, cx, 3) * 0.3);
-    for (const [dx, dz] of [[6, -6], [-6, 5], [1, 1]]) plant(w, cx + dx * d, cz + dz, y, 1.3);
+    for (const [dx, dz] of [[6, -6], [-6, 5], [1, 1]]) plant(w, p, cx + dx * d, cz + dz, y, 1.3);
     for (const [dx, dz] of [[-2, -1], [3, 4], [-7, 7]]) mote(w, cx + dx, 1.4 + pick(dx, dz, 3) * 0.6, cz + dz);
   }
   for (const [x, z] of [[-2.6, -INNER + 1], [2.6, -INNER + 1], [-2.6, INNER - 1], [2.6, INNER - 1]]) { lamp(w, p, x, z); lamp(w, p, z, x); }
@@ -79,7 +92,7 @@ function outcrop(w, p, variant) {
   bed(w, p, -INNER + 2, -INNER + 2, INNER - 2, INNER - 2);
   for (const [x, z, scale] of [[-6, 4, 1.9], [9, -5, 1.3]]) alien(w, 2, m * x, z, y, scale, Math.PI, 1.8, 7);
   for (const [x, z, scale] of [[-15, -12, 1.8], [14, 12, 1.6], [2, 14, 1.4], [-16, 15, 1.3], [17, -16, 1.5]]) cluster(w, m * x, z, y, scale);
-  for (const [x, z] of [[-10, -6], [4, -12], [12, 2], [-4, 16], [-18, 4], [18, -6], [0, -2]]) plant(w, m * x, z, y, 1.4);
+  for (const [x, z] of [[-10, -6], [4, -12], [12, 2], [-4, 16], [-18, 4], [18, -6], [0, -2]]) plant(w, p, m * x, z, y, 1.4);
   for (const [x, z] of [[-2, -8], [6, 6], [-12, 10], [14, -12], [-8, -16]]) mote(w, m * x, 1.5 + pick(x, z, 3) * 0.7, z);
 }
 
@@ -94,7 +107,7 @@ function habitat(w, p) {
   for (const sx of [-1, 1]) {
     bed(w, p, sx > 0 ? 10 : -INNER + 1, -INNER + 1, sx > 0 ? INNER - 1 : -10, -9);
     cluster(w, sx * 18, -18, y, 1.7);
-    for (const [x, z2] of [[13, -13], [23, -21], [21, -12]]) plant(w, sx * x, z2, y, 1.3);
+    for (const [x, z2] of [[13, -13], [23, -21], [21, -12]]) plant(w, p, sx * x, z2, y, 1.3);
     mote(w, sx * 16, 1.6, -14);
   }
   for (const [x, z2] of [[-20, 18], [20, 18], [-20, 6], [20, 6]]) cluster(w, x, z2, 0, 1.3);
