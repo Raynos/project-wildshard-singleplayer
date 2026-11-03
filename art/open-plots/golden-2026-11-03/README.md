@@ -1,0 +1,83 @@
+# Golden views, 2026-11-03
+
+Jake (2026-11-03): *"let's go and make 8 golden images for all of the open plots. And then you can score them about,
+like, are they fucking good enough or not."*
+
+Eight fixed, repeatable cameras per built plot: the regression set. Each plot folder holds the eight frames
+(`<n>-<name>.jpg`), `cameras.json` (exact plot-local and world eye / look, FOV, aspect and the player's ground pose) and
+`board.jpg` with each view's score burned in.
+
+**Capture.** Preview `d3b32d2-mw0ppw9a` (runtime-identical to HEAD `fd04f55`: docs-only diff). Chromium as iPhone 16 Pro
+portrait 402×603, phone tier, 2× render scale, 62° horizontal FOV, live clock, muted, through `scripts/browser-lane.sh`.
+Normal grid entry into the plot, the player posed at the view's `player` point (streaming anchor, so the near tiles draw
+at L0), then the free camera (the dome harness's `onLate` override) at `eye` → `look` once the grid's residency settles.
+World = plot-local + `origin` in `cameras.json`. To re-shoot, use the same harness with these numbers.
+
+The eight views: 1 road entry, eye level (292 m south on the lane) · 2 40 m over the road · 3 100 m over the southern
+neighbour · 4 top-down (430 m) · 5 plaza facing the landmark (62 m south) · 6 beside the landmark looking up (24 m south;
+Frostline 58 m, its peak's base is ~50 m across, so the 24 m eye stood inside the mesh) · 7 east avenue, eye level
+(175 m out) · 8 far NE corner, 15 m up, back to the landmark.
+
+**Scoring.** 1–10 per view against the plot's approved mockup (round 62 for five plots, round 46 / the round-58 board
+for Night Market), weighing theme read, landmark quality, density / dressing, light / colour and defects. GOOD ENOUGH
+needs a mean of at least 6.5 and no view under 5.
+
+## Scores
+
+| Plot | 1 road | 2 40 m | 3 100 m | 4 top | 5 plaza | 6 up | 7 avenue | 8 corner | Mean | Verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+| [Night Market](night-market/board.jpg) | 6 | 7 | 6 | 7 | 7 | 6 | 5 | 6 | **6.25** | NOT YET |
+| [Frostline Peaks](frostline-peaks/board.jpg) | 6 | 7 | 6 | 7 | 5 | 5 | 6 | 7 | **6.12** | NOT YET |
+| [Coral Drift](coral-drift/board.jpg) | 4 | 6 | 5 | 6 | 6 | 6 | 4 | 5 | **5.25** | NOT YET |
+| [Lantern Bayou](lantern-bayou/board.jpg) | 4 | 5 | 4 | 6 | 6 | 6 | 5 | 4 | **5.00** | NOT YET |
+| [Ember Forge](ember-forge/board.jpg) | 5 | 6 | 5 | 6 | 6 | 4 | 4 | 4 | **5.00** | NOT YET |
+| [Mosslight Ruins](mosslight-ruins/board.jpg) | 4 | 5 | 4 | 6 | 5 | 4 | 5 | 4 | **4.62** | NOT YET |
+
+The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
+level, where the mockups show one huge landmark framed by dense dressing and the builds show a small landmark over wide
+bare paving. Every road-entry view also carries the billboard defects in
+[../billboard-review-2026-11-03/](../billboard-review-2026-11-03/README.md) (poster cut by the road wall, a road sign in
+front of it).
+
+## Per plot: three biggest gaps, smallest fix each
+
+**Night Market — NOT YET (6.25), closest.**
+1. Plaza and avenues are wide bare terracotta (views 3, 5, 7). Fix: a stall or lantern-post row down each avenue's
+   middle third (`nightMarket.mjs` lane life, already gated by `D112`'s gate clear radius).
+2. Plaza billboard collides with the plaza stall L (billboard review). Fix: the poster keep-out.
+3. Road-entry poster cut by the road wall. Fix: `posters.entry.bottom` 3.0.
+
+**Frostline Peaks — NOT YET (6.12).**
+1. The peak's texture is smeary and low-res at plaza range (views 5, 6). Fix: a higher-res near texture for
+   `landmark.glb` (re-bake at 2K) or a detail-noise term in the landmark graph.
+2. Snow glints read as floating white paper triangles round the lodge (5, 6). Fix: shrink them ~4× and fade them by
+   distance (`landmark.glints`).
+3. Plaza billboard: pines in front, peak slope behind (billboard review). Fix: drop the (-14, -57) pine mirror and move
+   the board to z = -62.
+
+**Coral Drift — NOT YET (5.25).**
+1. The coral arch is ~3× too small against the mockup's (views 1, 5, 8): it vanishes from the road. Fix: `landmark.height`
+   25 → 60.
+2. Lagoons are a grid of identical square pools (3, 4). Fix: round the pool corners / vary the pool sizes in
+   `coral.mjs` (one radius parameter).
+3. Long empty boardwalk at eye level (7). Fix: palms and lantern posts every ~20 m along the avenues.
+
+**Lantern Bayou — NOT YET (5.00).**
+1. The cypress is small and low next to the mockup's giant tree (1, 3, 8). Fix: `landmark.height` 40 → 70 (lanterns
+   scale with it).
+2. Lit like daytime teal: no dusk, no mist (1, 3). Fix: the bayou's `look.day` key toward dusk plus distance fog.
+3. Flat and sparse between ponds (2, 7). Fix: stilt houses and reed clumps on the empty pads (the kit has them).
+
+**Ember Forge — NOT YET (5.00).**
+1. Everything outside the lava reads as flat navy black (2, 3, 7, 8). Fix: raise the kit's ambient / albedo for the
+   night key (the buildings are lit only by their windows).
+2. Close-up landmark texture blurry (6). Fix: re-bake the forge's near texture at 2K.
+3. Bare dark ground at eye level (7, 8). Fix: lava-lit props (ingots, carts, ember braziers) along the avenues.
+
+**Mosslight Ruins — NOT YET (4.62), furthest.**
+1. Ruins and trees render near-black: no mossy grey stone, no green foliage (2, 5, 7). Fix: lift the stone / foliage
+   palette values and the overcast fill so the kit reads grey-green, not silhouette.
+2. The tower is small and pale (3, 5, 6, 8); its motes read as paper cards. Fix: `landmark.height` 35 → 55, motes at
+   half size.
+3. The plaza billboard has a tree through it (Jake's shot) and the entries' posters are swamped. Fix: the poster
+   keep-out (billboard review, fix 1).
