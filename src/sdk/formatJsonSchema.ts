@@ -34,7 +34,7 @@ import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/enc
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
-import { SceneDressingSchema, SceneBakedGeometrySchema, SceneFloorSchema, SceneDressingContactsSchema } from '@wildshard/format/sceneDressing';
+import { SceneScatterPageSchema, SceneDressingSchema, SceneBakedGeometrySchema, SceneFloorSchema, SceneDressingContactsSchema } from '@wildshard/format/sceneDressing';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
 import { ExchangeSchema } from '@wildshard/format/exchange';
 import { LootBagSchema } from '@wildshard/format/lootBag';
@@ -429,6 +429,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'nativeQuestComposition.NativeQuestComposition': NativeQuestCompositionSchema,
   'nativeQuestComposition.NativeQuestServiceSpots': NativeQuestServiceSpotsSchema,
   'panelTemplate.QuestPanelCatalogue': QuestPanelCatalogueSchema,
+  'sceneDressing.SceneScatterPage': SceneScatterPageSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
@@ -836,6 +837,7 @@ interface AuthorFormatObjects {
   readonly 'paintedLook.PaintedLookSchema': typeof PaintedLookSchema;
   readonly 'materials.MaterialsSchema': typeof MaterialsSchema;
   readonly 'sceneDressing.SceneDressingSchema': typeof SceneDressingSchema;
+  readonly 'sceneDressing.SceneScatterPageSchema': typeof SceneScatterPageSchema;
   readonly 'sceneDressing.SceneBakedGeometrySchema': typeof SceneBakedGeometrySchema;
   readonly 'sceneDressing.SceneFloorSchema': typeof SceneFloorSchema;
   readonly 'sceneDressing.SceneDressingContactsSchema': typeof SceneDressingContactsSchema;
@@ -888,6 +890,7 @@ const authorFormats: AuthorFormatObjects = {
   'paintedLook.PaintedLookSchema': PaintedLookSchema,
   'materials.MaterialsSchema': MaterialsSchema,
   'sceneDressing.SceneDressingSchema': SceneDressingSchema,
+  'sceneDressing.SceneScatterPageSchema': SceneScatterPageSchema,
   'sceneDressing.SceneBakedGeometrySchema': SceneBakedGeometrySchema,
   'sceneDressing.SceneFloorSchema': SceneFloorSchema,
   'sceneDressing.SceneDressingContactsSchema': SceneDressingContactsSchema,

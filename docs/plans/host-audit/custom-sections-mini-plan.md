@@ -2676,3 +2676,75 @@ refused the extensionless SDK import before verification; no runtime or
 guard changed to make it run. No product, browser, loading run or new
 capture was needed for this documentation-only disposition. Caps, live
 files, private readers and the remaining CS10 work retain their authority.
+
+## CS3: Nalati bounded typed scatter pages (2026-11-03)
+
+**In flight: source/payload qualified; clean loading and landed strict
+P1–P3 A/A and A/B remain required.** Jake approved this separate
+scatter transport after the existing placement-page eligibility audit.
+It extends the existing dressing host, not the world-scene-placement
+reader. No Nine streaming or legacy source changes.
+
+Sixteen differently typed JSON lists become five complete native pages,
+at most four lists and four MiB per page, each list bounded at100,000
+rows. Every original `DRESSING_SCHEMAS` parser still runs before packing;
+the independent full native `SceneScatterPageSchema` covers every field
+and kind. The 9,706-row physical corpus reconstructs all sixteen canonical
+JSON bodies byte-exact:2,750,287→2,751,022 B (+735 B page envelopes).
+Both numeric tables remain independent and exact:2,058,320/916,400 B.
+The two live pages contain existing layer lists in original first-use
+order; the nine unused support lists never ride those live pages. Within
+lists, every original row, double, selection index and ordering remains.
+
+`SceneScatterPages` starts distinct demanded pages in parallel once,
+fully parses each bounded page on arrival and retains errors until the
+original ordered layer cursor. Scope/product/reader changes and retirement
+refuse after awaited reads. Owned parsed pose lists freeze before reuse;
+every layer still makes its original independent output poses and keeps
+its modulo selection, pauses and publication order. Complete native
+validation runs once per page rather than again at every consumer. Both
+unchanged numeric-table readers retain their original admission.
+The SDK root is appended after existing roots to preserve shared-check
+identities. The two dressing-book schemas differ only by the optional
+member reference; every original body grammar and default survives.
+
+Physical native/transport/lifetime and original root/grammar controls,
+root types and named typed lint pass. The first normal selected build
+exits0 (0 built/6 program-bound products reused); selected Nalati admits
+CURRENT. Its original50-case focus catches two genuine default-API
+regressions: books with no page members must not access a JSON port.
+Only the runtime reader changes to bypass page-owner construction there;
+original tests stay unchanged. Actual post-repair currentness refuses as
+expected; retain that raw refusal. One cause-directed normal refresh
+restores ordinary CURRENT, then the **full50 focused cases pass14.1s**
+on the final frozen15-source/compiler/selector tuple. Neither refresh is
+an author timing gain. OP4/root entry overlaps are labelled shared-host
+ordinary correctness, not isolated performance.
+
+The final full audit verifies400→389 bodies: all16 old lists reconstruct
+exact,381 unrelated bodies/84,002,023 B and both numeric tables remain
+exact. The two dressing books differ only by declared file/member binds;
+their schemas differ only by the new optional member property. Both old
+and new ordered packs reconstruct all767 entries with exact offsets,
+lengths and digests. Library/late rebinding changes only the retired
+sixteen/list and two/book identities to the five/pages and two/books;
+every unrelated identity/order and all other index/admission fields are
+exact. Total body growth is1,039 B (735 page envelopes +304 book binds).
+Index1,116,451 B remains below the unchanged2,000,000 B limit.
+
+**Self-applied G872, established exact source-stamp class:** only the164B
+`look/map` source stamp changes38d54efb→28158e1c, equal to the current
+full Nalati source aggregate. Image stays
+`80afaa55b292b48c93694dbc7ac95557ecb96714b2c159cd467ff3fa0caff2d6`;
+all other unrelated bodies/descriptors are exact. Raw comparison remains
+FAIL for that one stamp, separately retained; no tolerance, comparator
+allowance or source guard is weakened.
+
+Next use G612 immutable parent/landed commits with the same renderer for
+one original clean phone loading pair, no-worse cold and warm, plus strict
+native Metal P1–P3 A/A and A/B in both quality tiers. No loading or pixel
+qualification, gain, broader CS3 closure or Nine change is credited yet.
+The earlier eligibility exit applied to Pine's existing placement-row
+helper; this separately approved complete scatter transport fits its
+actual owner. Retained full audit, raw failures, hashes and protocol:
+`tmp/sp-x6-cs3-nalati-pages/`.
