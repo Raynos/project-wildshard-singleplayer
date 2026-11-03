@@ -55,6 +55,12 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 16. Attacks **can miss** (dice rolls). **Death costs XP** toward the next level and never delevels.
 17. Quests are **freeform but level-locked**: a grey "!" when you're too low (like WoW), yellow when eligible.
 18. Mini-bosses and boss are a **soft gate**: always open, brutal when under-levelled.
+19a. **Level per shard** (Jake 11-02: *"really important to me"*): your level is locked to the shard you're in. On
+    the road between shards you're level 1; entering a shard puts you back at your level in that shard; every shard
+    starts you at level 1. Level and XP are saved per shard.
+19b. **Attributes are allocated automatically.** No choosing, no respec (*"really annoying to choose your attributes
+    every single time as you go shard by shard"*). The attribute list itself waits on Jake.
+19c. Reaching level 20 takes about 2.5–3 hours. Kill contracts pay coins plus a trophy and a joke title the first time.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
@@ -72,7 +78,7 @@ contracts board's rotating hunts, war fan, whip, mounted combat, lightning, hove
 puzzle, happenings, time trials, thin ice, glide shaft, daily seed. **Not yet:** tooling demos (third-person camera,
 landscape HUD, loading screen, Explore tabs, bot playtest).
 
-**Waiting on Jake:** the attribute list and the hybrid allocation (he is reading the
+**Waiting on Jake:** the attribute list (he is reading the
 [levels page](https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s)); the loot redesign.
 
 ## 3. The map
@@ -144,14 +150,17 @@ About 20–22 lane-days (estimate): Opus for everything the player sees (G848), 
 | [mini-dungeon-mini-plan.md](kitchen-sink-v2/mini-dungeon-mini-plan.md): the shrine host and the Training Vault | written |
 | [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md): every Wave 1 host row | written (draft) |
 | [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md): blockout rounds and the zone table | written |
-| Proposed: enemies and bosses (roster art, behaviours, the cutscene intro); quests and contracts; audio; HUD and the Character screen | Jake to confirm |
+| enemies-bosses-mini-plan.md: the 6 enemy types, night variants, 3 mini-bosses, the Crate Titan, the cutscene intro | Jake ordered 11-02; to write |
+| quests-contracts-mini-plan.md: givers, freeform level-locked quests, grey/yellow "!", the kill-contract board, storm hour, checkpoint cards | Jake ordered 11-02; to write |
+| audio-mini-plan.md: orchestral score, SFX, ambience, mini-boss and boss music | Jake ordered 11-02; to write |
+| hud-character-mini-plan.md: level, XP bar, nameplates, Character screen (E332 HUD coordination) | Jake ordered 11-02; to write |
 
 ## 7. Pages for Jake
 
 - Tracker: [Kitchen Sink v2](https://claude.ai/artifact/KAK7qkdYt3a3K5JGkpPzUD)
 - [Mini Dungeon / Shrine Room](https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ) (`art/showcase-template/round-2-mini-dungeon/`)
 - [Levels 1 to 20](https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s) (`art/showcase-template/round-3-levels/`)
-- West / east layout mockups (`art/showcase-template/round-4-v2-layout/`, in progress)
+- [Kitchen Sink v2 Mockups](https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj): 40 frames, west / east (`art/showcase-template/round-4-v2-layout/`)
 
 ## 8. Done when
 
