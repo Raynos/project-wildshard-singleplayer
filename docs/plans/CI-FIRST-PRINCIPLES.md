@@ -4005,4 +4005,3 @@ the previous a887 pending observation: exact-a887 run41595148921 was
 ineligible due to required behavior failures. The older 2f1f8c4 release's
 2080.132 s receipt remains authoritative for that older source. No workflow,
 gate, retry or deadline changes follow; CI9 remains open at the 15-minute bar.
-
