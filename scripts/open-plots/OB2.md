@@ -62,6 +62,20 @@ fallback is reported as working audio.
 
 ## Bar 7: pixel evidence for two motion sources
 
+Capture and check a live plot in one command (the destination must be new):
+
+```sh
+scripts/browser-lane.sh --max 10 node scripts/open-plots/life-capture.mjs --plot=ember-forge --base=http://127.0.0.1:4404 --pin=FULL_SHA --sources=tmp/regions.json --out=tmp/ember-life
+```
+
+`regions.json` is the `sources` array below. Select its two disjoint regions
+from the actual road-entry view. The command owns a muted Chromium browser,
+uses the iPhone 16 Pro 402×874 portrait viewport at 2× render scale, checks
+the served pin and live clock, and closes its browser in `finally`.
+It prints **PASS** or **FAIL** and all ten changed-pixel counts per region;
+pixel failure exits 2. It uses normal standalone entry and a fixed free
+camera, with no manual ticks, extra render, scene mutation or forced tiles.
+
 ```sh
 node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/ob2.mjs life --input=tmp/bayou-life-input.json --out=tmp/bayou-life.json
 ```

@@ -19,5 +19,6 @@ export interface BoardReading {protocol:string;idea:string;width:number;height:n
 export function plotAudioRows(input:unknown,root?:string):Promise<AudioTemplate>;
 export function captureLifeClip(page:Pick<Page,'screenshot'>,readCamera:()=>Promise<PlotCamera>,input:unknown,folder:string):Promise<LifeReading>;
 export function lifeCheck(input:unknown):Promise<LifeReading>;
+export function lifeSummary(reading:LifeReading):string;
 export function makeComparisonBoard(input:unknown):Promise<{jpeg:Buffer;reading:BoardReading}>;
 export function plotTilingReport(idea:string,root?:string):Promise<{report:TilingReport;markdown:string}>;

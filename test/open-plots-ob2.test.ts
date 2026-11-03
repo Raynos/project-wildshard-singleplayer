@@ -4,7 +4,7 @@ import {mkdirSync,mkdtempSync,rmSync,writeFileSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import sharp from 'sharp';
 import {beforeAll,afterAll,expect,test} from 'vitest';
-import {plotAudioRows,lifeCheck,captureLifeClip,makeComparisonBoard,plotTilingReport,type PlotCamera} from '../scripts/open-plots/ob2.mjs';
+import {plotAudioRows,lifeCheck,lifeSummary,captureLifeClip,makeComparisonBoard,plotTilingReport,type PlotCamera} from '../scripts/open-plots/ob2.mjs';
 import {parseAudioData} from '../src/format/audio';
 import {plotAudioRequest} from '../scripts/open-plots/audio-template.mjs';
 
@@ -53,6 +53,8 @@ test('audio refuses a short/duplicate spot catalogue, escaping slug and out-of-c
 
 test('life measures all ten 500ms intervals of two separately named regions exactly',async()=>{
   const report=await lifeCheck(life());
+  expect(lifeSummary(report)).toContain('PASS bar-7 pixels: 2');
+  expect(lifeSummary(report)).toContain('0-500ms=400px');
   expect(report.passesPixelCheck).toBe(true);expect(report.observedMotionSources).toBe(2);
   for(const source of report.sources){expect(source.intervals).toHaveLength(10);for(const row of source.intervals)expect(row).toMatchObject({changedPixels:400,maxChannelDelta:1});}
   expect(report.frames).toHaveLength(11);expect(report.frames[10]?.atMs).toBe(5000);
@@ -63,6 +65,7 @@ test('global changes outside the declared regions and a static clip do not pass 
   expect((await lifeCheck(one)).observedMotionSources).toBe(1);expect((await lifeCheck(one)).passesPixelCheck).toBe(false);
   const fixed=life();for(const frame of fixed.frames)frame.file=resolve(folder,'frame-0.png');
   const report=await lifeCheck(fixed);expect(report.observedMotionSources).toBe(0);expect(report.passesPixelCheck).toBe(false);
+  expect(lifeSummary(report)).toContain('FAIL bar-7 pixels: 0');
 });
 
 test('life refuses overlap, missing endpoint, camera drift, wrong cadence and lossy images',async()=>{

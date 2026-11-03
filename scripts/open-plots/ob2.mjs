@@ -141,6 +141,14 @@ export async function lifeCheck(input){
     frames:frames.map((row,i)=>({atMs:row.atMs,file:row.file,sha256:row.sha256,targetMs:i*500})),sources,observedMotionSources,passesPixelCheck:observedMotionSources>=2};
 }
 
+/** Human-readable interval counts; a negative pixel result is explicit.
+ * @param {import('./ob2.mjs').LifeReading} reading */
+export function lifeSummary(reading){
+  return [`${reading.passesPixelCheck?'PASS':'FAIL'} bar-7 pixels: ${reading.observedMotionSources} changing declared regions`,
+    ...reading.sources.map(source=>`${source.id}: ${source.intervals.map(row=>`${Math.round(row.fromMs)}-${Math.round(row.toMs)}ms=${row.changedPixels}px`).join(' | ')}`),
+    'Pixel evidence only; the plot owner verifies two distinct visible motion sources.'].join('\n');
+}
+
 /** Four matching-camera rows, three labelled columns; actual captures are
  * contained without cropping or stretching. Only MOCKUP has an explicit crop.
  * @param {unknown} input */
@@ -198,7 +206,7 @@ if(process.argv[1]!==undefined&&pathToFileURL(resolve(process.argv[1])).href===i
     if(values.input!==undefined&&values.plot!==undefined)throw new Error('Use audio --input or --plot, not both');
     save(out,await plotAudioRows(values.plot===undefined?input:plotAudioRequest(values.plot)));
   }
-  else if(command==='life'){const report=await lifeCheck(input);save(out,report);if(!report.passesPixelCheck)process.exitCode=2;}
+  else if(command==='life'){const report=await lifeCheck(input);save(out,report);console.info(lifeSummary(report));if(!report.passesPixelCheck)process.exitCode=2;}
   else if(command==='board'){
     const result=await makeComparisonBoard(input);if(extname(out).toLowerCase()!=='.jpg')throw new Error('Board output must be JPEG .jpg');
     if(values.input!==undefined&&`${out}.json`===resolve(values.input))throw new Error('Sidecar cannot overwrite input');
