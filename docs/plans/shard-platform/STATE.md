@@ -11,7 +11,7 @@ table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**18:00:** push hold (Jake). CI fix d44c394df8 pushed; ship = first green run with it. fps census: desktop 75/75 >=60, Sim 18/18 >=30. Build-mirror bisect exception (x1) for Jake review.
+**19:00:** push hold. Ship run 41740555164 (54573d2778, cache-v2 batch): entry qualified, CI pending. Download plan (G1000/G1001, Opus): o2 DL17, o3 D223 then DL0/DL3.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
