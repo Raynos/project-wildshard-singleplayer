@@ -6,6 +6,7 @@ import { residentTileEntry } from './tileEntry';
 import { tileBufferedDraws } from './tileBufferedDraws';
 import type { SceneBuffers } from '@wildshard/format/sceneBuffers';
 import { WorldSceneReads } from './worldSceneReads';
+import { WorldScenePlacementPages } from './worldScenePlacementPages';
 import { prepareSceneSources, sceneModelSource, sceneBakeSource, sceneSourceDeclares } from './sceneSources';
 import { drawSceneRows, prepareSceneDrawRows } from './sceneDraws';
 import { admitWorldSceneStepSources, worldSceneStepSources } from './worldSceneStepSources';
@@ -27,7 +28,7 @@ import { lendWorldSceneUniforms } from './worldSceneUniforms';
 import { WorldSceneBatch } from './worldSceneBatch';
 import { WorldSceneWeldAssembly, worldSceneWeldFile, worldSceneWeldFiles, admitWorldSceneModelGraphs, weldSceneMaterial } from './worldSceneWeld';
 import { parseWorldSceneWeld, type WorldSceneWeld } from '@wildshard/format/worldSceneWeld';
-import { parseWorldScenePlacement,parseWorldScenePlacementPage,type WorldScenePlacementPage, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
+import { parseWorldScenePlacement, type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import { poseOf, placeCollider, readColliderRows } from '@wildshard/engine/models/colliders';
 import { readWorldSceneGeometries, readWorldSceneGeometry, type WorldSceneGeometry } from './worldSceneGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -106,6 +107,8 @@ async function build(ctx: ShardContext, section: WorldScenesSection, resident: S
 }
 
 async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, resident: Scope, reads: WorldSceneReads): Promise<SceneHandles> {
+  const placementPages = new WorldScenePlacementPages(reads,
+    (section.placements ?? []).flatMap(row => 'file' in row && row.member !== undefined ? [row.file] : []));
   const registry = () => ctx.game.runtime?.world?.registry ?? ctx.app.registry;
   const product = ctx.product, recipes = new Map<string, WorldSceneRecipe>(), packets = new Map<string, Uint8Array>(), libraryRows = new Map(section.libraries.map(row => [row.id, row]));
   const geometryNames = new Map<string, ReadonlySet<string>>(), paintedNames = new Map<string, ReadonlySet<string>>();
@@ -224,7 +227,6 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
     for (const source of row.geometry) { reference(source); if (libraryRows.get(source.library)?.kind !== 'owned') throw new Error('Scene batch requires owned geometry'); }
     published.add(row.id); reservations.set(row.id, row.fixed.length);
   }
-  const placementPages = new Map<string, { readonly bytes: Uint8Array; readonly page: WorldScenePlacementPage }>();
   const placements: WorldScenePlacementRow[] = [], declaredModels = new Map((catalogue?.models ?? []).map(model => [model.key, model]));
   const specimenKeys = new Set((section.specimens ?? []).map(model => model.key));
   const admissionSlice = workSlice(undefined, resident);
@@ -236,12 +238,8 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
       let row: WorldScenePlacementRow;
       if ('file' in declared && declared.member !== undefined) {
         if (bytes === undefined) throw new Error('Missing placement page bytes');
-        let entry = placementPages.get(declared.file);
-        if (entry === undefined) {
-          entry = { bytes, page: parseWorldScenePlacementPage(JSON.parse(decoder.decode(bytes))) };
-          placementPages.set(declared.file, entry);
-        } else if (entry.bytes !== bytes) throw new Error('Scene placement page owner changed');
-        const member = entry.page.rows[declared.member];
+        const page = await placementPages.read(declared.file, bytes);
+        const member = page.rows[declared.member];
         if (member === undefined || member.tier !== declared.tier) throw new Error('Scene placement page member differs');
         row = member;
       } else row = 'file' in declared ? parseWorldScenePlacement(JSON.parse(decoder.decode(bytes))) : declared;
