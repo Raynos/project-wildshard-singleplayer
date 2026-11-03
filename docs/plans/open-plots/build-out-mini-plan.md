@@ -242,7 +242,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 | OB6 | **Mosslight Ruins** (first free Opus lane; builds the ruin-stone tile). **In flight (2026-11-03, sp-o3): activated `38b95ef7fd` + `3748dcc5b1`.** Ruin-stone kit `330bed66fc` (ruins: arch, L wall, terrace; rubble: heap, columns; Desert Ruin reuses them), plot `f5b29be288` (R ruin court, E emerald pool, tower windows as emerald Glow), landmark A Hunyuan3D 2.1 picked (G872, `eba2a44862`, art/mosslight-ruins/round-1-landmark). Chromium phone: road 110 draws / 249k tris, plaza 114 / 327k. G983 look loop R1 `d3f8c7cc97`, R2 `e164db2efb`, R3 `def30fc8f4` (art/mosslight-ruins/round-2-look-loop), final three-way board art/mosslight-ruins/round-3-final (G872). Open: life clip (bar 7), audio (OB7), the open-plot walk route (0 stuck), density toward round 62 | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2 |
 | OB6b | **done (2026-11-03).** **Trim Mosslight's phone wire** toward Night Market's: 8,947,522 B against 8,225,190 (+9 %, approved G872 with this row). `def30fc8f4` brought it to 8,828,397 B (tower texture 768 px). It now serves **8,222,060 B**, and the ceiling is ratcheted to that: a 576 px poster in place of the 1024 px billboard, and the tower texture at 704 px. Before and after board: art/mosslight-ruins/round-4-wire-trim (hero views 0–0.5 % of pixels changed, same draws). Mosslight's tile debt shrinks to 26 rows | Opus | S | ≤ 8.23 MB, look unchanged |
 | OB7 | **Audio batch** under the model lock. Pilot first, then the four: 5 scores (two MiniMax Music 3 takes each, on one listening page in the morning batch; the lane ships its recommended take), 5 ambience beds, about 25 spot SFX (MOSS v2 vs Stable Audio 3, the better take ships). Files go in `public/assets/music/<slug>/` and `public/assets/sfx/<slug>/`, with credits | Codex | 1.5 | Every plot meets bar 10; the credits file is updated; the audio stays within its ≤ 3 MB budget |
-| OB8 | **In flight (2026-11-03, sp-x1).** On accepted source `fd7f01690e`, Mosslight + Ember pass measured Chromium/Simulator bars at road/plaza and their full live walks (0 stuck/0 bounds). Simulator max draws 65/64, both 30.303 fps / p95 34 ms; playing envelopes 237.2/238.5 MB. Coral Simulator also passes: max 71 draws, same cadence, 236.4 MB. Night Market control explains the common Chromium CPU-per-draw baseline; no plot-specific miss routed. **Open:** Coral Chromium/walk; final Bayou/Frostline readings; J1/J2. Exact numbers and source limits below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
+| OB8 | **In flight (2026-11-03, sp-x1).** On accepted source `fd7f01690e`, Mosslight + Ember pass measured Chromium/Simulator bars at road/plaza and their full live walks (0 stuck/0 bounds). Simulator max draws 65/64, both 30.303 fps / p95 34 ms; playing envelopes 237.2/238.5 MB. Coral Simulator also passes: max 71 draws, same cadence, 236.4 MB. Night Market control explains the common Chromium CPU-per-draw baseline; no plot-specific miss routed. **Open:** final Frostline/Bayou readings; J1/J2. Coral Chromium and full live walk now pass on `25f6429733` (66 max draws, about 742.4 MB spawn processes, 0 stuck/0 bounds). **OB8-RENDER-CPU (G908, after Jake QA):** engine submission/ownership, uniform and static-matrix bookkeeping; expected 0.07–0.20 ms/frame at 4× (about 1–3.5 µs/draw), estimated from sampled exclusive costs, unproven; no engine/game cut landed. Exact numbers and source limits below | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
 | OB9 | **Title hero re-shoot board.** After G972 and OB2–OB6, the 5 × 5 hero shows three of these plots, plus Nine Dragon at (1,-1). One labelled A / B / C board of re-shoots of the same NW-b framing | Opus | 0.5 | Board sent. Jake's pick ships, or the current hero stays |
 | OB10 | **Night Market catch-up (G980)**: after OB2–OB6, bring the Night Market to the same tile-kit bar (landmark, dressing density, audio, phone perf). **In flight (2026-11-03, sp-o3).** R1, the gate (art/grid/round-77-night-market-ob10): the coarse gate is drawn in its landmark graph (`coarseLandmark: "lit"`), so it reads red and gold from the road entry instead of dark; near 12k → 18k triangles; road entry 116 draws (`a8f1f940c7`). R2, density: L0 max 17,886 → 14,852 triangles, mean 8,910; wire 7.94 MB. Top-down 624k triangles, mostly the neighbouring cells; road 282k, plaza 495k (`8925472ace`). Look loop R1 (G983): warm dusk ground on round 49's floor colour, a lavender-to-peach sky and warmer lantern pools. Loop R2: fog 600-1800 m, so the aerials read clear. Final board art/grid/round-77-night-market-ob10/board-final.jpg (round 49 · before · now). Open: the gate's coral (its landmark graph is shared), the plaza's scale. Audio goes with OB7 | Opus + Codex | — | Same bar as OB2 |
 | — | Jake plays the plots on live | Jake | — | His word |
@@ -660,3 +660,87 @@ Frostline after final-board SHAs; J1 and J2 after those looks. Their verified
 lattice pitch is 562.5 m: J1 `(843.75, -281.25)`, Nine / Ember / Nalati /
 Mosslight; J2 `(-843.75, -843.75)`, Frostline / Bayou / Coral / Fossil
 Badlands. No junction result is implied. Pine and Nine source stay untouched.
+
+
+### OB8 render CPU attribution and Coral Chromium
+
+One HEAD preview of **`25f6429733`**, containing the admitted material fix
+`17e15e8d42`, supplies both this profile and Coral. Ordinary road/plaza
+player poses, Metal M5 Max, phone 402 × 874 / 804 × 1748, 2×, live clock,
+120 drawn frames per pose. The maintained `frame-floor.mjs` control uses
+its original Chromium channel and a **250 µs CDP sampling interval**.
+Native completed-frame counters remain paired. Mean Night Market render
+CPU is **44.325 / 36.737 µs per draw**, consistent with the first control;
+58 / 59 draws, p95 frame interval 33.4 ms. The strict 30 µs CPU target
+still misses, as retained by the coordinator's common-baseline ruling.
+
+Private source maps resolve sampled program locations, then the matching
+source AST restores original function names. The table partitions samples
+under the actual render stack, counts each sample once, and excludes idle,
+physics and update-only work. These are **sampled ms per drawn frame at
+4×**, not GPU time or measured savings. Inclusive stack totals overlap and
+are not added to the partition.
+
+| Cost | Road ms/frame | Plaza ms/frame | Source owner (matching Three 0.186.0) |
+|---|---:|---:|---|
+| Scene traversal/culling | 0.391 | 0.357 | `node_modules/three/src/renderers/WebGLRenderer.js:1860`, `projectObject` (mapped build line 17897) |
+| Vertex/buffer binding setup | 0.366 | 0.236 | `node_modules/three/src/renderers/webgl/WebGLBindingStates.js:13`, `setup`; native `bindVertexArray` self 0.105 / 0.047 |
+| Uniform cache/flatten/upload path | 0.369 | 0.380 | `node_modules/three/src/renderers/webgl/WebGLUniforms.js:74` and `:329`, `flatten` / `setValueM4`; engine `src/engine/render/uniformCaches.ts:26` |
+| Program selection excluding the uniform path | 0.240 | 0.089 | `node_modules/three/src/renderers/WebGLRenderer.js:2370`, `setProgram` (mapped build line 18407) |
+| Object/camera matrix work | 0.124 | 0.088 | `node_modules/three/src/core/Object3D.js:1176`, `updateMatrixWorld`; `node_modules/three/src/math/Matrix4.js:562`, `multiplyMatrices`; `src/engine/render/staticMatrices.ts:68` |
+| GL state/material changes | 0.118 | 0.062 | `node_modules/three/src/renderers/webgl/WebGLState.js:754`, `setMaterial`; `:566`, `useProgram`; binding/depth/texture state |
+| Remaining render submission, shadows and bookkeeping | 0.933 | 0.816 | Includes `src/engine/render/drawHooks.ts:54` and `src/engine/render/uploadOwnership.ts:131` |
+| Total sampled render stack | 2.541 | 2.029 | Compare paired native mean render time 2.571 / 2.167 ms |
+
+A separate diagnostic window, with its hooks restored before sampling,
+observes **186.1 / 128.3 actual uniform GL calls per frame**, **34 / 14
+useProgram calls**, **13 / 12 distinct programs**, and **34 / 17 material
+switches** at road/plaza. It uses the existing `drawFrames` census; it is
+not acceptance timing. It ran in the phone-device headless-shell context,
+whose own baseline was slower, so those timing values are excluded from
+the matched control above. The original channel's CPU profile is the
+attribution authority. First symbol decoding hit an unmapped Rapier WASM
+frame; that raw capture is retained, not called a game failure. Non-JS
+frames are subsequently kept separate rather than assigned JS source.
+
+**No runtime cut landed.** The generated kit already batches by material;
+ring residents already use the static-matrix hold. Scene traversal, VAO
+binding, program selection, uniform caching and ownership observation are
+implemented in engine/game/Three code. No source-only data/generator edit
+was proved both pixel-identical and cheaper. Removing motion, changing
+material families or altering tile/LOD grouping would not establish that
+proof. G908 keeps engine/game and Pine/Nine untouched.
+
+The **single follow-up line is on OB8 above: `OB8-RENDER-CPU`**. The five
+sampled engine bookkeeping files have exclusive self totals **0.396 /
+0.269 ms/frame**: draw hooks, GPU labels, upload ownership, uniform caches,
+static-matrix checks. An expected 25–50% reduction is **0.07–0.20 ms/frame
+at 4×**, about **1–3.5 µs/draw**. This is a provisional sizing estimate,
+not a demonstrated saving, and cannot alone promise the 30 µs target.
+Detailed entry points are `drawHooks.ts:54` / `:136`, `gpuLabels.ts:258` /
+`:422`, `uploadOwnership.ts:131`, `uniformCaches.ts:98` and
+`staticMatrices.ts:40` / `:68`. Implement only after Jake's QA releases
+G908; preserve pixels, upload/ownership lifecycle and mutable transforms.
+
+**Coral Chromium on the same `25f6429733` preview:** Metal, ordinary fixed
+poses, 1× boot then an acknowledged 4× measurement fence, 120 paired drawn
+frames each, no profiler or GL wrappers. Spawn / road / plaza max draws
+**59 / 59 / 66**; median triangles **177,440 / 115,023 / 209,317**. All
+median **30.03 fps**, p95 **33.4 ms**, p5 about **29.94 fps**, 0 sampled
+intervals over 100 ms. Mean render CPU **37.444 / 38.729 / 39.508 µs per
+draw**; road/plaza worst **67.797 / 57.576**. The absolute CPU target
+misses at the shared-control scale; no plot-specific CPU ask is routed.
+
+Coral work p95 is **4.3 / 4.7 ms** road/plaza; the profiled Night Market
+control is **5.0 / 3.8 ms**. Mean render is **2.285 / 2.608 ms** versus
+**2.571 / 2.167 ms**. The plaza's CPU work is higher in this diagnostic
+comparison, while observed frame cadence is equal; a profiled control is
+not an uninstrumented CPU-work acceptance comparison. These figures stay
+visible rather than treating identical cadence as identical work.
+
+Independent spawn process-memory samples peak at **708 MiB**, about
+**742.4 MB decimal** (rounded source fields), with 0 page errors. This is
+renderer plus GPU process footprint, separate from the accepted Simulator
+native-plus-ledger envelope. The exact-source full Coral walk completes in **164.1 s**, with
+**0 stuck / 0 bounds failures**, every maintained waypoint and the final
+endpoint verified on its actual resident. No collision/source change was made.
