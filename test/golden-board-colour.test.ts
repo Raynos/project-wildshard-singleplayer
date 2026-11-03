@@ -4,8 +4,13 @@ import { spawnSync } from 'node:child_process';
 
 test('golden colour guard flags exposure and saturation shifts without flagging small motion', () => {
   const result = spawnSync('python3', ['-c', `
-import runpy
-guard = runpy.run_path('art/legacy-goldens/compare/colour_shift.py')
+import runpy, sys
+# Match the ordinary CI checkout: this guard cannot depend on anything in art/.
+def refuse_art(event, args):
+ if event == 'open' and 'art' in str(args[0]).replace(chr(92), '/').split('/'):
+  raise AssertionError('Colour guard must run without art checkout')
+sys.addaudithook(refuse_art)
+guard = runpy.run_path('scripts/goldens/colour_shift.py')
 shift = guard['colour_shift']
 assert not shift([(128, 128, 128)], [(128, 128, 128)])['red']
 assert shift([(128, 128, 128)], [(64, 64, 64)])['red']

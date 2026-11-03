@@ -24,9 +24,10 @@ import argparse, io, json, os, sys
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'art', 'legacy-goldens', 'compare'))
 from compare import ssim  # noqa: E402  (luma SSIM at 402 x 681, the G859 page's measure)
-from colour_shift import colour_shift  # noqa: E402
+from scripts.goldens.colour_shift import colour_shift  # noqa: E402
 
 SET = os.path.join(ROOT, 'art', 'legacy-goldens', 'compare', 'cameras24.json')
 PLOTS = os.path.join(ROOT, 'art', 'open-plots', 'golden-2026-11-03')
