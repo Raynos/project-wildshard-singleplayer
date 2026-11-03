@@ -1335,12 +1335,94 @@
       "idea": "sky-race",
       "name": "Floating Island Race",
       "accent": "mint",
+      "layout": "sky-race",
+      "landmarkLight": "noon",
+      "coarseLandmark": "lit",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.0,
+              0.16,
+              0.88
+            ],
+            "horizon": [
+              0.36,
+              0.62,
+              0.98
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.5,
+              0.7,
+              1.0
+            ],
+            "density": 0,
+            "near": 500,
+            "far": 2200
+          },
+          "sun": {
+            "colour": [
+              1,
+              0.98,
+              0.94
+            ],
+            "intensity": 2.6
+          },
+          "ambient": {
+            "sky": [
+              0.6,
+              0.72,
+              0.95
+            ],
+            "ground": [
+              0.84,
+              0.84,
+              0.86
+            ],
+            "intensity": 1.6
+          }
+        }
+      ],
+      "lookGrade": {
+        "exposure": 0,
+        "saturation": 1.12,
+        "contrast": 1.06,
+        "lut": null
+      },
+      "lookDay": {
+        "day": {
+          "minutes": 12,
+          "start": 0.5,
+          "maxElevation": 66,
+          "azimuth": 95
+        },
+        "dayOverride": 0.5
+      },
       "manifest": {
         "name": "Open Plot · Floating Island Race",
-        "blurb": "An open plot of the grid: walk round the Floating Island Race hologram, a world still to be built.",
+        "status": "earlyAccess",
+        "shardSelect": false,
+        "blurb": "An open plot of the grid: a race circuit at a cobalt high noon, kart loops with red-and-white kerbs, grandstands, paddocks of race cars and pit garages round the race tower and its start arch.",
         "bindings": {
-          "accent": "mint"
+          "accent": "mint",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
+        "pois": [],
+        "assetGlobs": [
+          "public/assets/open-plots/**"
+        ],
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/sky-race.jpg",
           "portrait": "/src/shards/open-plots/thumbs/sky-race.jpg",
