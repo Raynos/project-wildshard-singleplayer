@@ -19,7 +19,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 - **New in v2: it plays like an MMO zone.** Guild Wars-style **levels 1 to 20**: you arrive at level 1 and level up only
   by killing enemies, through six level bands to a level-20 boss.
 - **Two halves** (Jake 11-02): the **west is non-combat** (hub, practice, traversal toys; no enemies, no XP, no
-  coins). The **east is combat only** (level bands, mini-bosses, the boss, the mini dungeon).
+  coins). The **east is combat only** (level bands, elites, the boss, the mini dungeon).
 
 ## 2. Decisions (Jake, 2026-11-02, E523)
 
@@ -32,7 +32,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 
 **Content in**
 4. Hub with several quest givers, vendors and a simple **kill-contract board** (contracts for the enemy types,
-   mini-bosses and boss).
+   elites and boss).
 5. Weapons: sword (combo and **parry**), spear, bow, crossbow with **ammo types** (iron, pitch, broadhead), the **lever
    rifle**. The weapon range is practice only.
 6. Riding course with a **loaner horse** from a stable hand. Movers and lifts; grapple and zipline; physics props;
@@ -46,7 +46,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     pack; skins and finishes from elites; a legendary weapon from the boss; joke-title feats; the FINDS tab.
 11. Ladders, scramble climbs, swaying rope bridges and a cave where they suit the layout.
 12. Checkpoint cards per quest leg; crates and loot chests.
-13. Full audio: a music plan, an SFX plan, zone ambience, mini-boss music, boss music, stings. **Orchestral score.**
+13. Full audio: a music plan, an SFX plan, zone ambience, elite music, boss music, stings. **Orchestral score.**
 
 **Levels and combat** (detail in [levels-combat-mini-plan.md](kitchen-sink-v2/levels-combat-mini-plan.md))
 14. Levels 1–20. XP **only from kills**. **At most 8 attributes**, shared by player and enemies.
@@ -54,7 +54,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     Warden), L18**; the **Crate Titan at L20** is the final quest.
 16. Attacks **can miss** (dice rolls). **Death costs XP** toward the next level and never delevels.
 17. Quests are **freeform but level-locked**: a grey "!" when you're too low (like WoW), yellow when eligible.
-18. Mini-bosses and boss are a **soft gate**: always open, brutal when under-levelled.
+18. Elites and the boss are a **soft gate**: always open, brutal when under-levelled.
 19a. **Level per shard** (Jake 11-02: *"really important to me"*): your level is locked to the shard you're in. On
     the road between shards you're level 1; entering a shard puts you back at your level in that shard; every shard
     starts you at level 1. Level and XP are saved per shard.
@@ -62,7 +62,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     every single time as you go shard by shard"*). The attribute list itself waits on Jake.
 19c. Reaching level 20 takes about 2.5–3 hours. Kill contracts pay coins plus a trophy and a joke title the first time.
 19d. **Roster kept:** Crate Mite L1–3, Pallet Jack L4–6, Plumb Drone L7–9, Welder Unit L10–12, Riveter L13–15, Arc
-    Sentry L16–18; mini-bosses Big Pallet L6, Vault Warden L12, Foreman Unit 7 L18; the Crate Titan L20. **Night
+    Sentry L16–18; elites Big Pallet L6, Vault Warden L12, Foreman Unit 7 L18; the Crate Titan L20. **Night
     enemies are night-shift variants**: each band's enemy swaps to a tougher variant at night (+1 level).
 19e. **Hub NPCs:** 4–5 dev-bot NPCs: a quest giver per level tier (1–6, 7–12, 13–20), the shop keeper, the stable
     hand; their lines change as you level. **The legendary is the Titan Cleaver sword.**
@@ -81,6 +81,9 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19i. **Quests:** 12, four per tier, from three tier givers; kinds are kill + collect, explore + elite hunt, set pieces.
     **HUD:** a bottom XP bar with an LV chip; enemy nameplates within ~25 m in con colours. **No heal button or
     potions.**
+19j. **Shops:** weapons are **bought, level-locked**. Several shops, including a **dedicated weapons shop**; each shop's
+    stock opens up by level. **Day/night like Driftwood** (20 min day + 4 min night). The Titan's **cutscene plays the
+    first time, skippable**. **Storms:** the storm-hour quest plus rare natural storms.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
@@ -110,9 +113,23 @@ Detail and round 2 in [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-
 | Half | Zones |
 |---|---|
 | West (no enemies) | hub (r 25–30 m in round 2) with quest givers, vendor, upgrade shop, contract board, trophy wall · weapon range 75 × 100 m · physics + hoverboard park 140 × 90 m · movers park 78 × 80 m + cistern · grapple tower 45 m + zipline · riding oval 208 × 88 m + mount post · cave hill with the squeeze cave · vistas and caches |
-| East (combat) | band 1 L1–3 at the east gate → bands 2–6 snaking outward → L20 boss arena (r 28 m, 39 m intro approach) in the far south-east; mini-boss pits at the band changes (L6, L12, L18); stealth yard (band 5, storm hour); elite gauntlet (band 6); the Training Vault portal (band 4) |
+| East (combat) | band 1 L1–3 at the east gate → bands 2–6 snaking outward → L20 boss arena (r 28 m, 39 m intro approach) in the far south-east; elite lairs at the band changes (L6, L12, L18) and three night-elite lairs; stealth yard (band 5, storm hour); elite gauntlet (band 6); the Training Vault portal (band 4) |
 
 ## 4. Wave 1: engine, game and host work first
+
+**Jake, 2026-11-02:** *"While you're doing that, you need to normalise all the existing custom-section hosts in the
+engine around all of these features, and try and get them all shared. That means refactoring Driftwood Isle and Pine
+Hollow and Nalati Grasslands … when we're touching shared hosts, you have to go and fix all the other shards that use
+the shared hosts, and that's fine … the first wave should be all the engine and game and shared hosts, maybe even WASM
+hosts, everything we need to touch."*
+
+**The Wave 1 rule:** every row that creates or changes a shared host also **migrates every shard that implements that
+feature today** (Driftwood, Pine Hollow, Nalati, Nine Dragon, Sky Reach, Signal Dunes, the templates) onto it in the
+same row, deletes the shard's custom section, named JSON, shard-shaped schema or shard-named game code, and proves the
+shard unchanged (its focused tests and a look in the game). Logic that is truly per-shard moves to AssemblyScript on
+the WASM host. The loot/economy rows normalise Driftwood's, Pine's and Nalati's economies onto one host. A per-area
+migration map is being drawn up and lands as [wave-1-migration-map.md](kitchen-sink-v2/wave-1-migration-map.md).
+
 
 Full rows in [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md). About **380 h** of host work
 (audit 11-02) plus the levels system (LV rows), the economy (LE rows) and the shrine host (DG rows). Order:
@@ -149,12 +166,12 @@ Data and AS only, on the Wave 1 hosts.
 | **K1** | Skeleton from `src/shards/_template/`: the cell from the round 2 blockout, the seam wall, roads, hub, dev-map materials, grid slot (0,2), edge entries | 2 d |
 | **K2** | West: weapon range, hoverboard park, movers park, grapple tower + zipline, riding course + loaner horse, cave hill, vistas and caches | 3 d |
 | **K3** | East bands 1–6: six enemy types + night variants, spawns, cover, crates and chests, level-banded XP and coins | 3 d |
-| **K4** | Mini-bosses L6 and L18, the stealth yard, the elite gauntlet | 2 d |
+| **K4** | Elites (Big Pallet L6, Foreman Unit 7 L18, three night elites), the stealth yard, the gauntlet | 2 d |
 | **K5** | The Training Vault shrine (four rooms + the Vault Warden L12) | 2 d |
 | **K6** | The Crate Titan L20: arena, phases, the cutscene intro, the legendary reward | 2 d |
 | **K7** | Quests: givers, grey/yellow "!", the contract board, storm hour and the beacons, checkpoint cards, the shard-complete card | 2 d |
 | **K8** | Economy: shop, pack, collectibles → perks, trophies, skins, feats, FINDS | 1–2 d |
-| **K9** | Audio: orchestral score (hub, west, combat bands, three mini-boss themes, boss stems), SFX, ambience, stings | 2 d |
+| **K9** | Audio: orchestral score (hub, west, combat bands, elite themes, boss stems), SFX, ambience, stings | 2 d |
 | **K10** | Grid-ready (memory ≤ 1.2 GB Explorer, one-frame looks, baked tiles, entries, edge profile) and seamless travel | 1 d |
 | **K11** | Balance pass: time to L20 (~2.5–3 h target), fight lengths, soft-gate brutality | 1 d |
 | **K12** | Jake plays it on the phone; his notes are the verdict | — |
@@ -170,9 +187,9 @@ About 20–22 lane-days (estimate): Opus for everything the player sees (G848), 
 | [mini-dungeon-mini-plan.md](kitchen-sink-v2/mini-dungeon-mini-plan.md): the shrine host and the Training Vault | written |
 | [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md): every Wave 1 host row | written (draft) |
 | [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md): blockout rounds and the zone table | written |
-| enemies-bosses-mini-plan.md: the 6 enemy types, night variants, 3 mini-bosses, the Crate Titan, the cutscene intro | Jake ordered 11-02; to write |
+| [enemies-bosses-mini-plan.md](kitchen-sink-v2/enemies-bosses-mini-plan.md): 6 robot types, rare and night variants, 6 elites, the Crate Titan, the cutscene intro, Blender-script models | written |
 | [quests-contracts-mini-plan.md](kitchen-sink-v2/quests-contracts-mini-plan.md): 12 quests (4 per tier), kinds, the kill-contract board, checkpoint cards | written |
-| audio-mini-plan.md: orchestral score, SFX, ambience, mini-boss and boss music | Jake ordered 11-02; to write |
+| [audio-mini-plan.md](kitchen-sink-v2/audio-mini-plan.md): 11 orchestral cues, 8 stings, ~95 SFX, ambience zones, budgets | written |
 | [hud-character-mini-plan.md](kitchen-sink-v2/hud-character-mini-plan.md): bottom XP bar + LV chip, nameplates within 25 m, a read-only Character tab (E332) | written |
 
 ## 7. Pages for Jake
