@@ -62,8 +62,11 @@ function silhouette(s: Ctx): Layer {
   };
   const wc = g.inv(uv), z = div(1, max(wc, 1e-6)), silPx = g.v2('uSilPx', [2.1, 1.2]), silFade = g.v2('uSilFade', [60, 170]), gain = g.scalar('uSilGain', 0.35);
   const near = lt(z, 1.6), r = mul(mul(mul(mix(sw(silPx, 'x'), sw(silPx, 'y'), smooth(4, 60, z)), g.scalar('uDpr', 1)), choose(near, 1.6, 1)), g.scalar('uLineScale', 1));
-  let e: GraphRef = mul(0.5, add(clamp(div(fold(wc, sub(r, 0.5)), gain)), clamp(div(fold(wc, add(r, 0.5)), gain))));
-  e = mul(max(e, clamp(div(fold(wc, max(mul(r, 0.5), 1)), gain))), sub(1, smooth(sw(silFade, 'x'), sw(silFade, 'y'), z)));
+  const both = mul(0.5, add(clamp(div(fold(wc, sub(r, 0.5)), gain)), clamp(div(fold(wc, add(r, 0.5)), gain))));
+  // the fold's 24 depth taps only where a line can show: past the fade's far end (z ≥ uSilFade.y) and on the sky the
+  // coverage is exactly 0, so the select branches the taps away there (from the decks and the hover, most of the frame)
+  const fade = sub(1, smooth(sw(silFade, 'x'), sw(silFade, 'y'), z));
+  const e: GraphRef = choose(g.and(gt(wc, 1e-5), gt(fade, 0)), mul(max(both, clamp(div(fold(wc, max(mul(r, 0.5), 1)), gain))), fade), 0);
   const vr = g.matrix('invProj', g.vec(sub(mul(uv, 2), 1), 1, 1)), pv0 = div(sw(vr, 'xyz'), sw(vr, 'w'));
   const pv = mul(pv0, div(z, max(g.neg(sw(pv0, 'z')), 1e-4))), wp = sw(g.matrix('world', g.vec(pv, 1)), 'xyz');
   const ink = mix(g.v3('uInk'), g.v3('uInk1'), smooth(4, g.scalar('uInkMid', 30), z));
