@@ -110,8 +110,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/frostline-peaks.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/frostline-peaks.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/frostline-peaks-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/frostline-peaks-landscape.jpg"
         },
         "explore": {
           "art": {
@@ -271,8 +271,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/ember-forge.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/ember-forge.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/ember-forge.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/ember-forge-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/ember-forge-landscape.jpg"
         },
         "explore": {
           "art": {
@@ -388,8 +388,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/lantern-bayou.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/lantern-bayou.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/lantern-bayou-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/lantern-bayou-landscape.jpg"
         },
         "explore": {
           "art": {
@@ -562,8 +562,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/coral-drift.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/coral-drift.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/coral-drift.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/coral-drift-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/coral-drift-landscape.jpg"
         },
         "explore": {
           "art": {
@@ -761,8 +761,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/mosslight-ruins.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/mosslight-ruins-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/mosslight-ruins-landscape.jpg"
         },
         "explore": {
           "art": {
@@ -910,8 +910,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/night-market.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/night-market.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/night-market.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/night-market-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/night-market-landscape.jpg"
         },
         "explore": {
           "art": {
