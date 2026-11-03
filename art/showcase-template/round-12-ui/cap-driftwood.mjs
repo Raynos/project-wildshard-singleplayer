@@ -93,10 +93,10 @@ const floats = (page, rows) => page.evaluate((list) => {
   const crabs = [...placed, ...all.filter((c) => placed.every((q) => Math.hypot(q.p.x - c.p.x, q.p.y - c.p.y) > 60))];
   for (const r of list) {
     let p;
-    if (r.at === 'you') { const v = document.querySelector('.ws-touch-status'); const b = v.getBoundingClientRect(); p = { x: b.left + 150, y: b.top + 14 }; }
+    if (r.at === 'you') { const v = document.querySelector('.ws-touch-status'); const b = v.getBoundingClientRect(); p = { x: b.left + 196, y: b.top + 14 }; }
     else { const c = crabs[r.at]; if (!c) continue; p = c.p; }
     const el = window.__P.add(layer, `<div class="ws-combat-float show ${r.cls}"><b>${r.text}</b><i>${r.label ?? ''}</i></div>`);
-    el.style.transform = `translate3d(${(p.x + (r.dx ?? 0)).toFixed(1)}px,${(p.y - 34 - 16 + (r.dy ?? 0)).toFixed(1)}px,0)`;
+    el.style.transform = `translate3d(${(p.x + (r.dx ?? 0)).toFixed(1)}px,${(p.y - (r.at === 'you' ? -6 : 50) + (r.dy ?? 0)).toFixed(1)}px,0)`;
   }
 }, rows);
 
@@ -137,10 +137,10 @@ const ITEMS = [
       await floats(page, [
         { at: 0, cls: 'crit', text: '38', label: 'Crit', dy: -18 },
         { at: 1, cls: 'fail', text: 'DEFLECT', dy: -14 },
-        { at: 2, cls: 'glance', text: '9', label: '', dy: -12 },
-        { at: 3, cls: 'fail parry', text: 'PARRY', dy: -12 },
+        { at: 2, cls: 'glance', text: '9', label: '', dx: 46, dy: -12 },
+        { at: 2, cls: 'fail parry', text: 'PARRY', dx: 24, dy: -64 },
         { at: 'you', cls: 'onyou', text: '−12' },
-        { at: 'you', cls: 'onyou fail', text: 'DODGE', dx: 52, dy: 2 },
+        { at: 'you', cls: 'onyou fail', text: 'DODGE', dx: -4, dy: 24 },
       ]);
     } },
   { id: 'UI-06', slug: 'guard-button', title: 'GUARD button, only while the sword is held (W3d · D6)', setup: atBeach,

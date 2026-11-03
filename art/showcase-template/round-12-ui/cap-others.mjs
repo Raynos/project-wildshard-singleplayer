@@ -142,12 +142,10 @@ const PINE = [
     setup: async (page) => { await at(page); await page.evaluate(() => { window.__wildshard.combat.equip('crossbow'); }); await sleep(1500); await clearToasts(page); },
     inject: async (page) => {
       await page.evaluate(() => {
-        window.__P.swap(document.querySelector('.ws-game-bolts'), (c) => {
-          const t = c.querySelector('.ws-game-weapon'); if (t) t.textContent = 'Crossbow · iron';
-          const pouch = document.createElement('span'); pouch.className = 'ws-game-pouch';
-          pouch.innerHTML = '<span class="on">IRON<b>12</b></span><span>PITCH<b>4</b></span><span>BROAD<b>0</b></span>';
-          c.append(pouch);
-        });
+        window.__P.swap(document.querySelector('.ws-game-bolts'), (c) => { const t = c.querySelector('.ws-game-weapon'); if (t) t.textContent = 'Crossbow · iron'; });
+        // the pouch: a status row under the bolts chip (hudSlots.row), one counter a kind, never pack slots (D17)
+        const row = window.__P.add('.ws-touch-status', '<div class="ws-touch-row ws-game-pouch"><span class="on">IRON<b>12</b></span><span>PITCH<b>4</b></span><span>BROAD<b>0</b></span></div>');
+        document.querySelector('.ws-game-bolts[data-proto]').after(row);
       });
       const list = [{ name: 'Iron', n: 12, held: true, svg: G.bolt }, { name: 'Pitch', n: 4, svg: G.flame }, { name: 'Broadhead', n: 0, svg: G.broad }];
       list.hub = G.bolt; await pie(page, list, 'bolts');
