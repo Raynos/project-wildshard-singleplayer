@@ -5,13 +5,13 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 3f18b9d-mw0iuyme** (05:30 Cancun, full verify 05:56; before it 17e15e8; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 92611f4-mw0kzhar** (06:52 Cancun; 5 verified since 04:25; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**06:10:** OB8 closed bar Bayou/Frost refresh: plots, J1/J2, DW home 131 pass Sim 30 fps; DW <=150 met (144 grid, 138 solo). Audio bar 10: Bayou, Frost. Open: CI9 43.8 min, CI10 phone.
+**07:10:** OB7 audio done (5/5 bar 10, docs/reviews/open-plots-audio.md); OB8 all plots pass. Codex x6/x8 idle: no open Codex row; CI9 queue + CI10 prebuild are Jake calls.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
