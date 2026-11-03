@@ -86,3 +86,26 @@ test('a slotted batch gives each slot a data bone holding its member data', () =
     expect([0, 1, 2].map((s) => page.skeleton.bones[cap + s]?.matrixWorld.elements.slice(0, 2))).toEqual([[0, 0.5], [2, 0.5], [1, 0.5]]);
   } finally { herd.dispose(); for (const rig of rigs) rig.mesh.skeleton.dispose(); source.dispose(); material.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); }
 });
+
+// PF13: a family whose members came and went drew from two half-empty pages; members that stay in view move to an
+// earlier page with room, one a frame, until the last page empties (one draw fewer), each keeping its bones and tint
+test('members gather on the earliest pages, one a frame, and the emptied page stops drawing', () => {
+  noteFrameDrawn(performance.now());
+  const source = geometry(64, true), material = new MeshBasicMaterial(), herd = new FarHerd(() => material);
+  const rigs = Array.from({ length: 20 }, (_, i) => { const mesh = new SkinnedMesh(source, material); mesh.bind(new Skeleton([new Bone()])); return { mesh, tint: new Color(i / 20, 0.5, 0.25) }; });
+  const frame = (members: typeof rigs): void => { herd.begin(null); for (const rig of members) expect(herd.take(rig, new Vector3(), 1)).toBe(true); herd.end(); };
+  const page = (i: number): SkinnedMesh => { const p = herd.group.children[i]; if (!isSkinnedMesh(p)) throw new Error('Missing page'); return p; };
+  try {
+    for (const rig of rigs) herd.reserve(rig);
+    frame(rigs); // 16 + 4
+    const stay = rigs.slice(10); // 6 on the first page leave; 6 + 4 stay
+    frame(stay);
+    expect(page(1).visible).toBe(true);
+    for (let i = 0; i < 4; i++) frame(stay);
+    expect(page(1).visible).toBe(false); expect(page(0).geometry.drawRange.count).toBe(10 * 64);
+    // every member draws its own tint from its slot on the first page
+    const color = page(0).geometry.getAttribute('color'), drawn = new Set<string>();
+    for (let s = 0; s < 10; s++) drawn.add(color.getX(s * 64).toFixed(3));
+    expect(drawn).toEqual(new Set(stay.map(rig => (rig.tint.r).toFixed(3))));
+  } finally { herd.dispose(); for (const rig of rigs) rig.mesh.skeleton.dispose(); source.dispose(); material.dispose(); noteFrameDrawn(Number.NEGATIVE_INFINITY); }
+});

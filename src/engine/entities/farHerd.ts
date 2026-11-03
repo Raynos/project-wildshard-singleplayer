@@ -303,6 +303,8 @@ export class FarHerd<M extends FarMember = FarMember> {
   private readonly batches = new Map<object, FarPages | null>();
   /** pages opened since the last `end` while paced (at most one a frame) */
   private opened = 0;
+  /** members moved to an earlier page this frame (PF13: at most one a frame, `pageFor`) */
+  private moved = 0;
   /** the view's azimuth / pitch and its half-width at the horizon (rad), from begin(); cull = false: every far animal */
   private cull = false;
   private yaw = 0;
@@ -411,7 +413,18 @@ export class FarHerd<M extends FarMember = FarMember> {
   /** The page `m` draws in this frame: its own, else one with room, else a new one; null = no room this frame (paced). */
   private pageFor(b: FarPages, m: M): FarBatch | null {
     const held = b.pageOf.get(m);
-    if (held?.has(m) === true) return held;
+    if (held?.has(m) === true) {
+      // PF13: a member that stays in view keeps its page, so a family whose members came and went drew from two half-empty
+      // pages (Pine's cabins: 8 + 2 slots, one draw more). One member a frame moves to an earlier page with room, so the
+      // family gathers and its last page empties; the member draws the same pixels from its new slot (its bones, tint, data)
+      if (this.moved >= 1) return held;
+      const at = b.pages.indexOf(held), lower = b.pages.findIndex((p, k) => k < at && p.room() > 0);
+      const to = b.pages[lower];
+      if (to === undefined) return held;
+      this.moved++;
+      b.pageOf.set(m, to);
+      return to;
+    }
     let page = b.pages.find((p) => p.room() > 0);
     if (page === undefined) {
       // A late frame must not grow a bounded page as if it were a loading-screen batch.
@@ -432,7 +445,7 @@ export class FarHerd<M extends FarMember = FarMember> {
 
   end(): void {
     for (const b of this.batches.values()) for (const page of b?.pages ?? []) page.flush();
-    this.opened = 0;
+    this.opened = 0; this.moved = 0;
   }
 
   /** The draws the herd holds (its pages), for tests and the budget readouts. */
