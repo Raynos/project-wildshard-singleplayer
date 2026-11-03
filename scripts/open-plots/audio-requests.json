@@ -43,5 +43,29 @@
     "wheel-creak",
     "crowd-murmur",
     "big-top-drum"
+  ],
+  "sky-harbor": [
+    "airship-tower",
+    "basin-water",
+    "dock-crane",
+    "wharf-gulls",
+    "corner-cottages",
+    "road-entry"
+  ],
+  "starfall-observatory": [
+    "dome-motor",
+    "canal-lap",
+    "pavilion-chimes",
+    "garden-frogs",
+    "window-lute",
+    "kiosk-murmur"
+  ],
+  "thin-ice": [
+    "ice-crystal",
+    "open-ice",
+    "fishing-hole",
+    "pine-bank",
+    "igloos",
+    "road-entry"
   ]
 }

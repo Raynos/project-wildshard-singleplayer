@@ -464,6 +464,153 @@
       "duration": 10,
       "desc": "A small mine cart rolls slowly on rails with loose gravel crunch",
       "prompt": "A small hand-pushed mine cart slowly rolls a short distance over old rails, with light wheel clicks, a soft metal rattle and dry gravel crunch beneath. Quiet restrained outdoor foley, no motor, no voices, no music."
+    },
+    "bed.sky-harbor.ambience": {
+      "kind": "bed",
+      "into": "sky-harbor",
+      "duration": 30,
+      "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
+      "prompt": "A spacious sunny wooden quay atmosphere: gentle water lapping, occasional distant gull calls, light timber and rope creaks, soft wind and a faint faraway mechanical airship hum. Quiet natural layered ambience, no music, no melody, no voices or intelligible speech."
+    },
+    "hum.sky-harbor.airship-tower": {
+      "kind": "hum",
+      "into": "sky-harbor",
+      "duration": 12,
+      "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
+      "prompt": "Close harbour tower and moored airship foley: a soft steady low propeller machinery hum, occasional taut rope rigging creaks and gentle canvas flag flaps. Restrained continuous loop, no helicopter roar, no music, no speech."
+    },
+    "hum.sky-harbor.basin-water": {
+      "kind": "hum",
+      "into": "sky-harbor",
+      "duration": 12,
+      "desc": "Water gently laps against a harbour quay with an occasional wooden rowboat knock",
+      "prompt": "Close gentle water sloshing and lapping against stone quay walls, with an occasional hollow wooden rowboat bump against the dock. Quiet sheltered harbour basin, no rushing river, no music, no speech."
+    },
+    "hum.sky-harbor.dock-crane": {
+      "kind": "hum",
+      "into": "sky-harbor",
+      "duration": 12,
+      "desc": "A small dock crane winch turns with rope strain and timber creaks",
+      "prompt": "A small hand-operated harbour cargo crane slowly winds a winch: short restrained ratchet clicks, soft rope tension squeaks, wooden dock creaks and a light pulley rattle. Repeated irregularly with quiet gaps, no industrial engine roar, no music, no voices."
+    },
+    "hum.sky-harbor.wharf-gulls": {
+      "kind": "hum",
+      "into": "sky-harbor",
+      "duration": 12,
+      "desc": "Gulls call above a wooden wharf with a few distant cargo thuds",
+      "prompt": "A few natural seagulls call over an open harbour wharf, with very occasional muffled wooden cargo crates setting down in the distance. Outdoor field recording, light airy atmosphere, no music, no dialogue."
+    },
+    "hum.sky-harbor.corner-cottages": {
+      "kind": "hum",
+      "into": "sky-harbor",
+      "duration": 12,
+      "desc": "A sheltered harbour cottage yard has soft wind chimes and distant gull calls",
+      "prompt": "Quiet sheltered cottage courtyard beside a harbour: a small metal wind chime rings sparsely in a light breeze with very faint distant gull calls. Gentle irregular resonant chimes, no musical performance, no speech."
+    },
+    "hum.sky-harbor.road-entry": {
+      "kind": "hum",
+      "into": "sky-harbor",
+      "duration": 12,
+      "desc": "A harbour entrance breeze moves a flag with a distant dock bell",
+      "prompt": "An airy harbour road entrance: a soft breeze, occasional dry canvas flag flaps and one distant mellow harbour bell at long irregular intervals. Spacious restrained outdoor recording, no music, no voices, no loud wind roar."
+    },
+    "bed.starfall-observatory.ambience": {
+      "kind": "bed",
+      "into": "starfall-observatory",
+      "duration": 30,
+      "desc": "Quiet night garden crickets with a small fountain and occasional soft wind chimes",
+      "prompt": "A calm night garden: sparse crickets chirp around a gently trickling ornamental fountain, with a few faint delicate wind chimes in a soft breeze. Natural spacious ambience, no music, no melody, no voices or intelligible speech."
+    },
+    "hum.starfall-observatory.dome-motor": {
+      "kind": "hum",
+      "into": "starfall-observatory",
+      "duration": 12,
+      "desc": "A large observatory dome slowly rotates with a soft electric motor and a subdued gear whirr",
+      "prompt": "A telescope observatory dome mechanism slowly rotating: quiet smooth low electric motor hum and a soft finely geared mechanical whirr, gentle starts and stops. Restrained close machinery recording, no alarms, no spaceship effects, no music, no voices."
+    },
+    "hum.starfall-observatory.canal-lap": {
+      "kind": "hum",
+      "into": "starfall-observatory",
+      "duration": 12,
+      "desc": "Still canal water gently laps against smooth stone walls",
+      "prompt": "Close gentle canal water lapping against smooth stone edging, tiny ripples and occasional soft hollow water plops in an otherwise quiet garden. No waterfall, no crashing waves, no birds, no music, no speech."
+    },
+    "hum.starfall-observatory.pavilion-chimes": {
+      "kind": "hum",
+      "into": "starfall-observatory",
+      "duration": 12,
+      "desc": "Small glass wind chimes ring sparsely beside a garden pavilion",
+      "prompt": "Delicate small glass wind chimes ringing a few clear isolated notes in a light garden breeze, natural irregular pauses and soft decay. Quiet night pavilion foley, no tune or musical performance, no voices."
+    },
+    "hum.starfall-observatory.garden-frogs": {
+      "kind": "hum",
+      "into": "starfall-observatory",
+      "duration": 12,
+      "desc": "A few small frogs croak intermittently in a quiet wet garden",
+      "prompt": "Several small garden frogs make restrained low croaks and occasional soft chirps beside still water at night. Natural close field recording with irregular quiet gaps, no music, no human speech, no monster sounds."
+    },
+    "hum.starfall-observatory.window-lute": {
+      "kind": "hum",
+      "into": "starfall-observatory",
+      "duration": 12,
+      "desc": "A distant softly plucked lute plays a few quiet notes through an open window",
+      "prompt": "A distant acoustic lute heard through an open garden-facing window, just a few gently finger-plucked resonant string notes and short soft phrases with long pauses. Intimate quiet instrumental diegetic sound, no other instruments, no vocals or dialogue."
+    },
+    "hum.starfall-observatory.kiosk-murmur": {
+      "kind": "hum",
+      "into": "starfall-observatory",
+      "duration": 12,
+      "desc": "A small distant group murmurs quietly near a garden kiosk with no intelligible words",
+      "prompt": "A small group of distant people murmuring softly at a night garden kiosk: low indistinct conversational babble with gentle pauses, no discernible words, no close speaker, no shouting, no music."
+    },
+    "bed.thin-ice.ambience": {
+      "kind": "bed",
+      "into": "thin-ice",
+      "duration": 30,
+      "desc": "Still cold air over a frozen lake with soft wind, deep ice creaks and distant birds",
+      "prompt": "Quiet frozen lake atmosphere: soft cold wind across smooth ice, very occasional distant deep ice creaks and clear small pings, faint distant winter birds and subtle snow crunch. Spacious restrained field recording, no music, no melody, no voices, no storm roar."
+    },
+    "hum.thin-ice.ice-crystal": {
+      "kind": "hum",
+      "into": "thin-ice",
+      "duration": 12,
+      "desc": "A large ice crystal softly shimmers with delicate glassy chimes and a low resonant hum",
+      "prompt": "A large crystalline ice formation resonates softly: a faint steady low airy hum underneath isolated delicate glassy chimes and shimmering ice pings with long quiet decays. Gentle naturalistic icy resonance, no tune, no dramatic magic blast, no music or voices."
+    },
+    "hum.thin-ice.open-ice": {
+      "kind": "hum",
+      "into": "thin-ice",
+      "duration": 12,
+      "desc": "Wind moves over a frozen lake with deep ice creaks and occasional sharp pings",
+      "prompt": "Soft wind over a wide frozen lake with irregular deep flexing ice groans, quiet cracking creaks and a few small bright pings traveling across the ice. Restrained natural winter field recording, not a breaking disaster, no music, no voices."
+    },
+    "hum.thin-ice.fishing-hole": {
+      "kind": "hum",
+      "into": "thin-ice",
+      "duration": 10,
+      "desc": "Water softly sloshes in a small ice fishing hole with an occasional fishing line plink",
+      "prompt": "Very close small ice fishing hole foley: tiny sheltered water sloshes and plops beneath an ice rim, with an occasional light taut fishing line plink. Sparse quiet detailed sounds, no pouring stream, no music, no voices."
+    },
+    "hum.thin-ice.pine-bank": {
+      "kind": "hum",
+      "into": "thin-ice",
+      "duration": 12,
+      "desc": "A gentle winter breeze rustles pine needles and small clumps of snow slide off branches",
+      "prompt": "Soft winter wind rustles pine needles beside a frozen lake, with occasional subdued powdery snow sliding off a branch and landing below. Natural restrained outdoor foley, no footsteps, no roaring storm, no music, no voices."
+    },
+    "hum.thin-ice.igloos": {
+      "kind": "hum",
+      "into": "thin-ice",
+      "duration": 12,
+      "desc": "Muffled soft wind outside snow shelters with occasional dry snow crunch",
+      "prompt": "Quiet muffled winter shelter courtyard: a soft breeze brushes rounded snow walls with a few slow isolated dry snow crunches nearby. Restrained detailed foley with long still pauses, no human speech, no music, no engine."
+    },
+    "hum.thin-ice.road-entry": {
+      "kind": "hum",
+      "into": "thin-ice",
+      "duration": 12,
+      "desc": "A cold open-road breeze with occasional crisp footsteps crunching in snow",
+      "prompt": "A gentle cold breeze along a snowy road, with occasional slow crisp footstep-like snow crunches and long quiet gaps. Airy restrained winter outdoor recording, no howling wind, no music, no speech."
     }
   }
 }

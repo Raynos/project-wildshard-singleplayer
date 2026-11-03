@@ -83,6 +83,30 @@
       "lyrics": "loop",
       "bpm": 72,
       "prompt": "Instrumental video game score, 72 BPM, 4/4. Lavender blue hour at a quiet palaeontology dig in banded clay badlands, lanterns lit in the dry wind. Low marimba and kalimba answer a distant wooden flute over soft bowed strings. Slow, dusty, wondering and warmly curious, never spooky or threatening. Sparse acoustic motifs and gentle open harmonies for unhurried discovery. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/sky-harbor": {
+      "style": "ob7",
+      "slot": "sky-harbor",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 96,
+      "prompt": "Instrumental video game score, 96 BPM, 4/4. A sunny high-sky harbour with cornflower blue skies, timber docks, small cranes and a moored airship. A warm concertina and accordion carry a short adventurous melody, answered by a clear wooden flute hook, buoyant pizzicato strings, rounded acoustic bass and restrained shaker and frame drum. Airy, welcoming and gently adventurous exploration, no brass fanfare. Clear memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "ob7/starfall-observatory": {
+      "style": "ob7",
+      "slot": "starfall-observatory",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 60,
+      "prompt": "Instrumental video game score, 60 BPM, 4/4. A hushed iris-blue night garden surrounding a white domed observatory, a telescope and quiet canals. Celesta and glass harmonica carry sparse luminous notes above a very soft sustained string pad, occasional delicate harp plucks and a barely audible low wordless ooh choir texture far behind the instruments. Gentle astronomical wonder and peaceful discovery, never ominous. No drums or percussion, no solo singer, no words. The instruments dominate and the distant choral texture is subtle. Clear short memorable theme, consistent quiet dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no intelligible vocals or dialogue."
+    },
+    "ob7/thin-ice": {
+      "style": "ob7",
+      "slot": "thin-ice",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 70,
+      "prompt": "Instrumental video game score, 70 BPM, 4/4. Pale cyan noon above a still aqua frozen lake, small igloos, snow-covered pines and a crystalline ice spire. A calm crystalline celesta and delicate glockenspiel trade a short slow melody over soft airy pads, bowed glass harmonics and widely spaced felt-piano notes. Bright restrained winter wonder and peaceful exploration, never threatening or melancholy. No drums or heavy percussion. Clear short memorable instrumental theme, consistent dynamics from the second bar to the end, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
     }
   }
 }

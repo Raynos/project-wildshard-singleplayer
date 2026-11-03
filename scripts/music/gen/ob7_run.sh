@@ -6,7 +6,7 @@ repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 model=${1:?model required: score, moss, medium, clap or vocals}
 plot=${2:?plot required}
 case "$plot" in
-  lantern-bayou|frostline-peaks|ember-forge|mosslight-ruins|coral-drift|night-market|jungle-ziggurat|patchwork-fairground|saltwind-lighthouse|fossil-badlands) ;;
+  lantern-bayou|frostline-peaks|ember-forge|mosslight-ruins|coral-drift|night-market|jungle-ziggurat|patchwork-fairground|saltwind-lighthouse|fossil-badlands|sky-harbor|starfall-observatory|thin-ice) ;;
   *) echo "Unknown OB7 plot: $plot" >&2; exit 2 ;;
 esac
 shift 2

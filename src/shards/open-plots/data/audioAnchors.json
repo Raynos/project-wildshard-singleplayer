@@ -266,5 +266,119 @@
       "z": -220,
       "reach": 45
     }
+  ],
+  "sky-harbor": [
+    {
+      "id": "airship-tower",
+      "x": 0,
+      "z": 0,
+      "reach": 60
+    },
+    {
+      "id": "basin-water",
+      "x": -94,
+      "z": 94,
+      "reach": 35
+    },
+    {
+      "id": "dock-crane",
+      "x": -76,
+      "z": 117,
+      "reach": 30
+    },
+    {
+      "id": "wharf-gulls",
+      "x": -31,
+      "z": 156,
+      "reach": 45
+    },
+    {
+      "id": "corner-cottages",
+      "x": -219,
+      "z": 219,
+      "reach": 40
+    },
+    {
+      "id": "road-entry",
+      "x": 0,
+      "z": -230,
+      "reach": 50
+    }
+  ],
+  "starfall-observatory": [
+    {
+      "id": "dome-motor",
+      "x": 0,
+      "z": 0,
+      "reach": 60
+    },
+    {
+      "id": "canal-lap",
+      "x": 93.75,
+      "z": 0,
+      "reach": 40
+    },
+    {
+      "id": "pavilion-chimes",
+      "x": 156.25,
+      "z": 31.25,
+      "reach": 35
+    },
+    {
+      "id": "garden-frogs",
+      "x": 218.75,
+      "z": 93.75,
+      "reach": 30
+    },
+    {
+      "id": "window-lute",
+      "x": 156.25,
+      "z": 218.75,
+      "reach": 30
+    },
+    {
+      "id": "kiosk-murmur",
+      "x": 218.75,
+      "z": 31.25,
+      "reach": 40
+    }
+  ],
+  "thin-ice": [
+    {
+      "id": "ice-crystal",
+      "x": 0,
+      "z": 0,
+      "reach": 60
+    },
+    {
+      "id": "open-ice",
+      "x": -94,
+      "z": 94,
+      "reach": 60
+    },
+    {
+      "id": "fishing-hole",
+      "x": -86,
+      "z": 90,
+      "reach": 12
+    },
+    {
+      "id": "pine-bank",
+      "x": -219,
+      "z": 94,
+      "reach": 40
+    },
+    {
+      "id": "igloos",
+      "x": -219,
+      "z": 219,
+      "reach": 35
+    },
+    {
+      "id": "road-entry",
+      "x": 0,
+      "z": -230,
+      "reach": 50
+    }
   ]
 }
