@@ -8,8 +8,9 @@ import { lanternBayouPlot } from './bayou.mjs';
 import { scaffoldPlot } from './scaffold.mjs';
 import { frostlinePlot } from './frost.mjs';
 import { mosslightPlot } from './mosslight.mjs';
+import { coralDriftPlot } from './coral.mjs';
 
-export const plotBuilders = { 'night-market': nightMarketPlot, 'lantern-bayou': lanternBayouPlot, 'frostline-peaks': frostlinePlot, 'mosslight-ruins': mosslightPlot, scaffold: scaffoldPlot };
+export const plotBuilders = { 'night-market': nightMarketPlot, 'lantern-bayou': lanternBayouPlot, 'frostline-peaks': frostlinePlot, 'mosslight-ruins': mosslightPlot, 'coral-drift': coralDriftPlot, scaffold: scaffoldPlot };
 
 /** Select a plot's own construction hooks; missing `plot` preserves existing Night Market bytes.
  * A Frostline tower may specify its sheave height after its three coordinates. */

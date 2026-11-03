@@ -2,6 +2,11 @@
   "schema": "open-plot-captures/1",
   "plots": [
     {
+      "slug": "open-plot-coral-drift",
+      "instance": "open-plot-0-0",
+      "cameras": "art/open-plots/coral-drift/domes"
+    },
+    {
       "slug": "open-plot-frostline-peaks",
       "instance": "open-plot-sw",
       "cameras": "art/open-plots/frostline-peaks/domes"

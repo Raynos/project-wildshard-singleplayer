@@ -33,7 +33,7 @@ Run the ordinary producer and retain its actual admission, wire and physics
 results before calling that plot qualified.
 
 `layout.plot` chooses `night-market`, `lantern-bayou`, `frostline-peaks`,
-`mosslight-ruins` or `scaffold`. Omission keeps the original Night Market behavior. Only a declared
+`mosslight-ruins`, `coral-drift` or `scaffold`. Omission keeps the original Night Market behavior. Only a declared
 `scaffold: true` output may omit its landmark or posters with explicit `null`.
 Frostline lift towers accept `[x,y,z]` or `[x,y,z,sheaveHeight]`; an explicit
 height must be positive. The generated Bayou and Frostline layouts are inactive
