@@ -1767,7 +1767,6 @@
   "test/phone-loading-post-control.test.ts": 0.034026691,
   "test/phone-loading.test.ts": 0.593719533,
   "test/phone-route.test.ts": 1.230498897,
-  "test/phone-simulator-preparation.test.ts": 0.085838996,
   "test/physics-grid-admission.test.ts": 0.052505645,
   "test/physics-headless.test.ts": 13.311575139,
   "test/physics-native-cli.test.ts": 0.225968737,
