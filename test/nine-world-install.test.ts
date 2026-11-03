@@ -101,7 +101,7 @@ test('facade window packets preserve bounded native channels', async () => {
   for (const blob of facadeWindowBlobs(layout)) {
     expect(blob.file.kind).toBe('bin'); expect(blob.bytes.length).toBeLessThanOrEqual(1_000_000);
     const words = new Float32Array(Uint8Array.from(blob.bytes).buffer), count = words.length / 26;
-    expect(Number.isInteger(count)).toBe(true); expect(count).toBeGreaterThan(0); expect(count).toBeLessThanOrEqual(4096);
+    expect(Number.isInteger(count)).toBe(true); expect(count).toBeGreaterThan(0); expect(count).toBeLessThanOrEqual(8192);
     expect(words.every(Number.isFinite)).toBe(true);
     for (const i of [0, count - 1]) {
       const original = Float32Array.from(layout.records.slice(start + (windows + i) * 26, start + (windows + i + 1) * 26).map(Number));

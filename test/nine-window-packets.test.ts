@@ -5,9 +5,9 @@ import { facadeWindowBlobs } from '../src/shards/nine-dragon-stack/generators/fa
 import { addWindowNodes } from '../src/shards/nine-dragon-stack/generators/facadeWindowRecipe';
 import { parseWorldScene } from '../src/format/clientChannels';
 
-test('binary window rows cover each original packet exactly in its existing three draws', () => {
+test('binary window rows cover each original packet exactly in its two draws', () => {
   const packets = facadeWindowBlobs(layout), rows = facadeWindowPackets(layout);
-  expect(rows.map(row => row.count)).toEqual([4096, 4096, 1720]);
+  expect(rows.map(row => row.count)).toEqual([8192, 1720]);
   for (const [i, row] of rows.entries()) {
     const packet = packets[i]; if (packet === undefined) throw new Error('Missing source window packet');
     let end = 0;
@@ -24,14 +24,14 @@ test('binary window rows cover each original packet exactly in its existing thre
 
 test('the window draws fit the two existing recipe envelopes without embedded matrix arrays', () => {
   const empty = parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } });
-  const dressing = addWindowNodes(empty, [0, 1], layout), cards = addWindowNodes(empty, [2], layout);
+  const dressing = addWindowNodes(empty, [0], layout), cards = addWindowNodes(empty, [1], layout);
   const copies = (recipe: typeof empty): number => recipe.scene.nodes.reduce((sum, node) => sum + (node.kind === 'mesh' ? node.instances ?? 0 : 0), 0);
   expect(copies(dressing)).toBe(8192); expect(copies(cards)).toBe(1720);
   for (const node of [...dressing.scene.nodes, ...cards.scene.nodes]) if (node.kind === 'mesh') expect(node.matrices).toBeUndefined();
 });
 
 test('admitted window steps keep independent mutable geometry ports and the original packet bindings', () => {
-  for (const [id, indices] of [['dressing', [0, 1]], ['cards-open', [2]], ['cards-capped', [2]]] as const) {
+  for (const [id, indices] of [['dressing', [0]], ['cards-open', [1]], ['cards-capped', [1]]] as const) {
     const step = NINE_WORLD_SCENES.steps.find(row => row.id === id);
     if (step === undefined) throw new Error(`Missing window step ${id}`);
     const rows = facadeWindowPackets(layout).filter((_, index) => indices.some(value => value === index));

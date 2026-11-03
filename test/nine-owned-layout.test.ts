@@ -21,7 +21,7 @@ test('owned layout rows preserve every original projection and facade packet byt
   }));
   expect(packets(layout)).toEqual(packets(originalLayout));
   expect(facadeWindowPackets(layout)).toEqual(facadeWindowPackets(originalLayout));
-  expect(windowStep([0, 1, 2], layout)).toEqual(windowStep([0, 1, 2], originalLayout));
+  expect(windowStep([0, 1], layout)).toEqual(windowStep([0, 1], originalLayout));
   expect(bakedLayoutProjection(layout, { lanterns: [] }).fixed.lanterns).toEqual([]);
   expect(() => bakedLayout({ ...layout, count: layout.count + 1 })).toThrow('record inventory');
   expect(() => bakedLayout({ ...layout, records: [undefined, ...layout.records.slice(1)] })).toThrow('record inventory');

@@ -4,7 +4,7 @@ import type { NineWindowLayout } from './facadeWindows';
 
 type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;
 
-/** Extend the existing dressing/cards recipes; two draws fit dressing's original instance cap. */
+/** Extend the existing dressing/cards recipes; one 8,192-copy draw fills dressing's original instance cap. */
 export function addWindowNodes(input: WorldSceneRecipe, indices: readonly number[], source: NineWindowLayout): WorldSceneRecipe {
   const selected = facadeWindowPackets(source).filter((_, i) => indices.includes(i));
   return parseWorldScene({ ...input, scene: { ...input.scene,

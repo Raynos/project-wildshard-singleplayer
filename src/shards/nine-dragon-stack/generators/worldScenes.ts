@@ -194,7 +194,7 @@ dressing.push(dress('signs', 'world', 'neon', 0, 'signs'), dress('neon-boards', 
 const recipe = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [],
   nodes: [{ kind: 'group', id: 'root', children: dressing.map(row => row.id) },
     ...dressing.map(row => ({ kind: 'mesh', id: row.id, geometry: row.model, material: row.material, missing: 'omit', name: row.name, renderOrder: row.order, frustumCulled: row.culled, ...row.pose }))],
-  materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } }), [0, 1], layout);
+  materials: [...new Set(dressing.map(row => row.material))].map(material => ({ kind: 'port', id: material, source: material })) } }), [0], layout);
 
 const look = (id: string, name: string) => ({ id, kind: 'look', look: name });
 const library = (id: keyof typeof aliases) => ({ id, kind: 'whole', ...(id === 'native' ? {} : { load: id === 'native-refine' ? 'refine' : 'explorer' }), models: [...aliases[id].values()] });
@@ -205,7 +205,7 @@ const publishCardBuffer = (bytes: Uint8Array): string => {
   if (!cardBuffers.has(file)) cardBuffers.set(file, nameBlob(file, 'bin', source.bytes));
   return file;
 };
-const cards = presentationData(layout, worldRows, publishCardBuffer, signs.atlas), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [2], layout);
+const cards = presentationData(layout, worldRows, publishCardBuffer, signs.atlas), empty = addWindowNodes(parseWorldScene({ imports: [], scene: { version: 1, root: 'root', textures: [], materials: [], nodes: [{ kind: 'group', id: 'root', children: [] }] } }), [1], layout);
 // one file per distinct buffer: an ending whose cards match the other's reads the same file
 const cardFiles = new Map<string, string>();
 const cardDependencies = new Map<string, string[]>();
@@ -222,7 +222,7 @@ const cardFile = (caps: 'open' | 'capped', kind: 'streaks' | 'halos'): string =>
 const cardSteps = (['open', 'capped'] as const).map(caps => {
   const step = { id: `cards-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/cards.json',
     draws: [{ kind: 'buffered', file: cardFile(caps, 'streaks'), material: 'streaks', order: 4 }, { kind: 'buffered', file: cardFile(caps, 'halos'), material: 'halo', order: 5, tier: 'phone' }] };
-  return Object.assign(step, windowStep([2], layout));
+  return Object.assign(step, windowStep([1], layout));
 });
 const CARD_BLOBS = [...cardFiles].map(([text, file]) => {
   const dependencies = cardDependencies.get(file);
@@ -417,9 +417,9 @@ const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${ca
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
 const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-refine'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [look('crowd', CROWD_LOOK), ...castMaterials(hookMaterial), ...portalLook.scenes.materials, ...NINE_MATERIAL_LOOKS.map(([id, name]) => look(id, name))],
-  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0, 1], layout).geometry },
-    instanceAttributes: windowStep([0, 1], layout).instanceAttributes,
-    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0, 1], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
+  steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0], layout).geometry },
+    instanceAttributes: windowStep([0], layout).instanceAttributes,
+    materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
 /** the layout placements' files (LAYOUT_PLACEMENTS) */
 const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)), { jsonSchema: registeredJsonSchema(layoutPlacementFile(row.id)) })),
   nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE), {jsonSchema:registeredJsonSchema('world/scenes/fixed.json')})];

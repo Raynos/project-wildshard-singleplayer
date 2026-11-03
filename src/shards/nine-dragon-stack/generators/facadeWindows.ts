@@ -8,13 +8,13 @@ export interface NineWindowLayout {
 }
 
 /** Unit quads keep their original instance bases for interior mapping.
- * Native float32 packets split the 9,912 windows below the host cap. */
+ * Native float32 packets split the 9,912 windows at the host's 8,192-copy cap: two draws (EP6). */
 export function facadeWindowBlobs(source: NineWindowLayout): NamedBlob[] {
   const c = source.rows.counts, start = (c.walkers + c.sitters + c.lanterns + c.acs) * 16
     + c.hooks * 3 + c.hookMounts * 6 + c.steam * 3 + c.pieces * 19;
   const records = source.records.map(value => value === '-0' ? -0 : Number(value));
-  return Array.from({ length: Math.ceil(c.windows / 4096) }, (_, index) => {
-    const first = index * 4096, count = Math.min(4096, c.windows - first);
+  return Array.from({ length: Math.ceil(c.windows / 8192) }, (_, index) => {
+    const first = index * 8192, count = Math.min(8192, c.windows - first);
     const packet = new Float32Array(count * 26);
     for (let i = 0; i < count; i++) {
       const at = start + (first + i) * 26;
