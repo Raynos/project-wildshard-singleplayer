@@ -43,7 +43,7 @@ th{font:600 12px var(--mono);color:var(--muted);text-transform:uppercase} .scrol
 <ul>
 <li><b>VIT points are HP</b> (VIT 100 = 100 HP). Average curve: A(L) = 100 × 3<sup>(L−1)/19</sup>.</li>
 <li><b>Each level-up</b> adds <b>gain = round(average step × aptitude × swing)</b>. The average step is A(L+1) − A(L): about 6 at level 1, 10 at level 10, 17 at level 19. So <b>the level is part of the roll</b>, and gains grow as you level.</li>
-<li><b>Aptitude</b> is rolled per shard (the Fire Emblem "who is this character" roll): each attribute gets one of 0.8, 0.9, 1.0, 1.0, 1.0, 1.0, 1.1, 1.2, shuffled.</li>
+<li><b>Aptitude is balanced, not random luck</b> (Jake): every character gets exactly <b>two 1.2s, four 1.0s and two 0.8s</b>, shuffled across the 8 attributes per shard. Nobody rolls 0.8 on everything; the roll only decides <i>which</i> attributes are your strong and weak ones.</li>
 <li><b>Swing</b> is the per-level dice: a uniform draw from 0.4 to 1.6. At aptitude 1.0 a level-up gives 2–10 VIT at level 1, 4–16 at level 10, 7–27 at level 19.</li>
 <li><b>Cap 330</b>, just above the average: once you hit it, you're done.</li>
 </ul>
@@ -51,7 +51,7 @@ th{font:600 12px var(--mono);color:var(--muted);text-transform:uppercase} .scrol
 <tr><td>Aptitude 0.8 (frail)</td><td>155</td><td>260</td><td>238–282</td><td>0 %</td></tr>
 <tr><td>Aptitude 1.0 (typical)</td><td>168</td><td>300</td><td>273–328</td><td>4 %</td></tr>
 <tr><td>Aptitude 1.2 (tank)</td><td>182</td><td>326</td><td>307–330</td><td>70 %</td></tr>
-<tr><td>Any roll</td><td>168</td><td>298</td><td>254–330</td><td>14 %</td></tr></table></div>
+<tr><td>Any character (VIT can be any of the 8 slots)</td><td>168</td><td>297</td><td>249–330</td><td>20 %</td></tr></table></div>
 <p class="sub">20,000 simulated characters per row.</p>
 <p><b>The other 7 attributes use the same model</b>: each has its own average curve and a cap about 10 % above its level-20 average. Their curves get tuned in Wave 1's levels design pass, starting from VIT.</p>
 </section>

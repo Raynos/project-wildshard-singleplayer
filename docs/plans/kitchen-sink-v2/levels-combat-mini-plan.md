@@ -257,3 +257,7 @@ gain = round((A(L+1) − A(L)) × aptitude × swing); aptitude is rolled per sha
 averages 298 at L20 (5–95 %: 254–330), 14 % reach the cap; aptitude 1.2 caps 70 % of the time. The other seven
 attributes use the same model with their own curves and a cap ~10 % over their L20 average; tuned in the LV design pass.
 This replaces the "+1 at growth %" Fire Emblem proposal.
+
+**Aptitude is balanced** (Jake 11-02): every character gets exactly two 1.2s, four 1.0s and two 0.8s, shuffled across
+the 8 attributes per shard; the roll picks which attributes are strong or weak, never a worse total. VIT over any
+character: average 297 at L20 (5–95 %: 249–330), 20 % reach the cap.

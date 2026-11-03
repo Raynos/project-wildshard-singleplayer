@@ -115,7 +115,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     on you show as a silver hurt arc and a small word. Odds are never shown as a %.
 19s. **Growth model:** no flat HP per level; **HP = VIT**. VIT averages 100 → 300 (+6 % a level), **cap 330**. Each
     level-up gains round(average step × aptitude × swing): the step grows with the level (≈6 at L1, 17 at L19), aptitude
-    is a per-shard roll per attribute (0.8–1.2), swing is per-level dice (0.4–1.6), so late levels can give +10 or more.
+    is a balanced per-shard roll (exactly two 1.2s, four 1.0s, two 0.8s, shuffled across the 8 attributes), swing is per-level dice (0.4–1.6), so late levels can give +10 or more.
     Every attribute uses this model with its own curve and a cap ~10 % over its average.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
