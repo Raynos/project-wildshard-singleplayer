@@ -191,22 +191,23 @@
  },
  {
   "id": "e11",
-  "title": "The gauntlet: waves",
-  "caption": "The elite gauntlet (Lv 16–18), wave 3 of 5: Riveters and Arc Sentries inside the stepped walls.",
+  "title": "The gauntlet: wave 3, The Pit",
+  "caption": "Round 5: court C2 The Pit, wave 3 of 5: the named elite Shift Supervisor (Lv 17) rises on the reveal lift among Riveters and Arc Sentries.",
   "camera": {
    "pos": [
     40,
-    1.7,
-    192
+    4.2,
+    194
    ],
    "look": [
-    56,
-    1.2,
-    175
+    55,
+    3,
+    229
    ],
    "fov": 70
   },
-  "notes": ""
+  "notes": "",
+  "blockout": "round-5-blockout"
  },
  {
   "id": "e12",
@@ -230,40 +231,44 @@
  {
   "id": "e13",
   "title": "The Crate Titan: intro",
-  "caption": "In-engine intro at the arena gate: HUD hidden, letterbox, the title card.",
+  "caption": "Round 5: the intro plays inside the hidden arena on arrival: HUD hidden, letterbox, the title card, the 15 m Titan.",
   "camera": {
    "pos": [
-    150,
-    1.7,
-    192
+    182,
+    -147,
+    183
    ],
    "look": [
-    190,
-    5,
-    192
+    150,
+    -141,
+    165
    ],
    "fov": 60
   },
-  "notes": ""
+  "notes": "",
+  "blockout": "round-5-blockout",
+  "hidden": true
  },
  {
   "id": "e14",
   "title": "The Crate Titan fight, L20",
-  "caption": "The Crate Titan (Lv 20) on the r 28 m floor: slam rings, crate rain, the boss bar.",
+  "caption": "Round 5: the 15 m Crate Titan (Lv 20) in the hidden ⌀104 m arena at y −150: slam rings, crate rain, the boss bar.",
   "camera": {
    "pos": [
-    174,
-    1.7,
-    203
+    165.2,
+    -147.4,
+    180.2
    ],
    "look": [
-    190,
-    6,
-    192
+    150,
+    -144,
+    165
    ],
    "fov": 70
   },
-  "notes": ""
+  "notes": "",
+  "blockout": "round-5-blockout",
+  "hidden": true
  },
  {
   "id": "s01",
@@ -363,20 +368,22 @@
  {
   "id": "s06",
   "title": "Shard complete",
-  "caption": "After the Crate Titan: the shard-complete card with the Titan Cleaver.",
+  "caption": "Round 5: after the Crate Titan, the shard-complete card in the hidden arena, the victory portal open at its centre.",
   "camera": {
    "pos": [
-    204,
-    1.7,
+    184,
+    -146,
     176
    ],
    "look": [
-    190,
-    2,
-    192
+    150,
+    -146,
+    165
    ],
    "fov": 70
   },
-  "notes": ""
+  "notes": "",
+  "blockout": "round-5-blockout",
+  "hidden": true
  }
 ]

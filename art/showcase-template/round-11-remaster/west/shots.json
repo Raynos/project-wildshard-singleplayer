@@ -329,24 +329,25 @@
   {
    "id": "m03",
    "title": "Aerial from the east",
-   "caption": "The whole cell from the east: the bands, the stealth yard, the gauntlet and the Titan's amphitheatre near, the town far.",
+   "caption": "Round 5: the whole cell from the east: the bands, the stealth yard, the three gauntlet courts and the small Titan gate near, the town far.",
    "camera": {
     "pos": [
-     440,
-     300,
-     -40
+     455,
+     320,
+     75
     ],
     "look": [
-     20,
+     10,
      0,
-     0
+     80
     ],
-    "fov": 60
+    "fov": 66
    },
-   "notes": "v2 fresh, first take.",
-   "screen": "SCREEN: a high 3/4 aerial view over the whole showcase cell from the east, like a beautiful finished game's world overview. Keep the whole layout exactly where the screenshot has it: nearest, the four coloured combat band squares as finished terrain (red, sand, clay and rust ground with ruins, crates, cover walls and props, keeping their colours), the stealth yard (the hex-patterned square, lower left) with cover walls and yellow searchlight cones, the round arena at the left edge is the Crate Titan's stone amphitheatre (tiered seating, a sand floor); the seam road and SEAM WALL down the middle; beyond, the walled town (orange tiled roofs, cream walls, THE OBELISK), THE GRAPPLE TOWER, THE WATER TANK, THE ROCK, the weapon range and the riding course oval far right. Grass, trees and paths between the west zones; the plain grey ground outside the cell becomes soft rolling countryside fading into light haze. Small floating labels with dark backing: \"EAST · COMBAT\" over the near half, \"WEST · CALM\" over the far half, \"CRATE TITAN · LV 20\" over the round amphitheatre. HUD values: Scrip \"310\", objective \"◆ LIGHT THE FOUR BEACONS\", \"LV 14\"; SWAP shows a sword.",
+   "notes": "v2 fresh; redone on blockout round 5 (11-03): the SE bottom is the gauntlet courts and the Titan gate.",
+   "screen": "SCREEN (blockout round 5): a high 3/4 aerial view over the whole showcase cell from the east, like a beautiful finished game's world overview. Keep the whole layout exactly where the screenshot has it:\n- NEAR, CENTRE AND RIGHT: the combat band squares as finished terrain keeping their colours (the red band and, below it, the stealth yard, the hex-patterned square, with cover walls and yellow searchlight cones; on the right the sand and clay/rust bands) with ruins, crates, cover walls, props and small robot packs; the seam road and SEAM WALL running down between them.\n- NEAR LEFT (the south-east corner of the cell), THE GAUNTLET and THE TITAN GATE, exactly where the screenshot has them: at the top of that column two walled rectangular combat courts side by side (court 1 the Loading Yard with a raised entry terrace, court 2 The Pit with a raised elite lift under a hanging orange banner), with crate stacks, half walls and pillars inside and heavy bay doors in their walls; below them a big round walled court with stepped terraces and a small foreman's office with a balcony on its rim (the Foreman's Floor); a forecourt strip and gates linking the three courts. At the bottom-left corner, a narrow walled lane leading into a small paved plaza holding THE TITAN GATE: a tall orange steel portal arch with a glowing swirling orange-and-cyan portal inside it, and a small glowing cyan return pad beside it. There is NO Titan amphitheatre and NO Titan anywhere on the surface: the Titan fights in a hidden arena behind that portal.\n- FAR: the walled town (orange tiled roofs, cream walls, THE OBELISK), THE GRAPPLE TOWER, THE WATER TANK, THE ROCK, the weapon range and the riding course oval at the right. Grass, trees and paths between the west zones; the plain grey ground outside the cell becomes soft rolling countryside fading into light haze.\n- Small floating labels with dark backing, exactly these and no others: \"EAST · COMBAT\" over the near half, \"WEST · CALM\" over the far half, \"THE GAUNTLET\" over the three courts, \"CRATE TITAN · LV 20\" over the portal arch.\n- HUD: as COMMON, no vitals, no LOCK. Scrip \"310\", objective \"◆ LIGHT THE FOUR BEACONS\", \"LV 14\"; SWAP shows a sword. The MOVE joystick sits inside its ring at the left of the control deck and LOOK inside its dashed square pad at the right.",
    "mode": "fresh",
-   "pick": "p1"
+   "pick": "r5",
+   "blockout": "round-5-blockout"
   },
   {
    "id": "m04",

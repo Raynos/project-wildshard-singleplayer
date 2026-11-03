@@ -15,3 +15,8 @@ placeholder boxes). Jake then judged most of v1 good and asked to "push it a bit
 - **keep v1** (m01, m04, m06): the top-down map and BAG > MAP frames, kept as they were.
 
 `<id>-grey.jpg` are the round-4 blockout frames (`grey.mjs`). Every v2 shot was a first take; none needed a re-roll.
+
+**Round 5 redo (11-03):** m03 is redone fresh on `../../round-5-blockout/` (its `"blockout"` in `shots.json`; the
+camera re-aimed a little south so the whole SE bottom shows): the three gauntlet courts and the small Titan gate with
+its portal arch, no surface Titan amphitheatre. First take. `finish.mjs` now keeps a frame's own aspect (image_gen
+returned a tall frame) and takes `OUT=<dir>`.

@@ -17,4 +17,20 @@ The look comes from `../COMMON-v2.txt` (shared with the west half). How each v2 
 | e08, e09 (Training Vault entrance, Vault Warden) | none: original mockups | designed from `docs/plans/kitchen-sink-v2/mini-dungeon-mini-plan.md` and enemies-bosses §4 |
 | e01–e06, e10–e12, s01–s05 | the v1 mockup, edited | a polish pass: same composition, robots, effects and HUD; every stencil, dev label and grid line gone; each band a designed biome (loading dock, pallet yard, scaffolding plaza, foundry, floodlit stealth yard, arc-lit electrical yard, the stepped gauntlet) |
 
-`e<nn>-grey.jpg` are the blockout frames (`grey.mjs`); `EAST.txt` is v1's prompt block, kept for history.
+**Round 5 redo (11-03).** Blockout round 5 moved the Titan fight behind a boss portal into a hidden ⌀104 m arena at
+y −150 (a 15 m Titan) and gave the gauntlet three sealed courts. e11, e13, e14 and s06 were redone fresh from new grey
+frames of `../../round-5-blockout/` (layout only, per COMMON-v2):
+
+| Shot | Now |
+|---|---|
+| e11 | inside court C2 The Pit, wave 3: Shift Supervisor (NAMED ELITE · LV 17) rising on the reveal lift, Riveters and Arc Sentries |
+| e14 | the fight in the hidden arena at the 15 m scale (blockout 07's camera), the Titan's design kept from the old e14 |
+| e13 | the intro inside the hidden arena on arrival, same Titan, letterbox and title card |
+| s06 | the shard-complete card in the hidden arena, the Titan fallen, the victory portal open at its centre |
+
+e13, e14 and s06 took the old e14 (caption strip cropped) as a second image, the Titan design reference only. e13, e14
+and s06 were first takes; e11 took two re-rolls (the first drifted the HUD: MOVE under its ring, vitals and LOCK
+moved to the bottom).
+
+`e<nn>-grey.jpg` are the blockout frames (`grey.mjs`; a shot with `"blockout": "round-5-blockout"` is shot there,
+`"hidden": true` frames the hidden arena); `EAST.txt` is v1's prompt block, kept for history.
