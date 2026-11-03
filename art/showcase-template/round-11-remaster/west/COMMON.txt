@@ -1,0 +1,29 @@
+GAME AND LOOK
+This is a real in-game print-screen of Wildshard's "Showcase Template" shard, a first-person / third-person action game played on an iPhone in portrait. Look: a Source-engine developer map. Every surface is orange or light-grey dev-texture blocks with thin 1 m grid lines and bolder 4 m major lines, slightly chamfered edges, and black stencil markings on some faces (sizes like "1x1", "2x3", "4x8" and labels like "MK II"). Soft late-morning daylight, real cast shadows, light blue sky with a faint haze at the horizon. Clean real-time game rendering, not concept art, not a painting, no device frame, no browser chrome, no watermark, no caption.
+
+HARD RULE: THIS IS AN EDIT OF THE ATTACHED GREY BLOCKOUT SCREENSHOT
+Keep the camera, the field of view, the horizon line and the framing exactly. Keep every block's position, size, height and silhouette and the whole layout exactly as in the screenshot; a box stays the same box in the same place. Only add surface detail (dev-texture grid, stencils, chamfers, trim), materials, lighting and shadows, small props at ground level (crates, cones, lamp posts, barrels), characters standing where the screenshot has capsules, and the HUD. Do not add, move, remove, resize or restyle any building or structure, and do not add new buildings, towers or walls. Flat coloured plain-colour areas in the screenshot are the same objects with dev-textures applied: orange stays orange, light grey stays light grey, dark grey stays dark grey, cyan stays glowing cyan.
+
+LANDMARK STYLE SHEET (identical wording in every shot; only draw a landmark where the screenshot shows it)
+- THE OBELISK: a 22 m four-sided tapering spire of orange dev-texture blocks on a low light-grey square plinth, a glowing cyan octahedron crystal at its tip, black stencil "22M" low on one face.
+- THE GRAPPLE TOWER (hook 5): a 45 m open scaffold tower, 16 m square: four orange dev-block corner posts, a dark-orange steel deck every 9 m, a dark ladder up one face, a glowing cyan box cap on top, black stencil "HOOK 5" on a deck edge.
+- THE WATER TANK (hook 3): a wide 18 m tall off-white riveted cylinder with an orange band round its top rim and a dark ladder up its side, black stencil "HOOK 3".
+- HOOK POLES AND THE MAST: dark-grey square steel poles, each topped with a glowing cyan ball (the grapple hook point).
+- THE ZIPLINE: one thin dark steel cable with a slight sag.
+- THE TOWN WALL: a 5 m light-grey dev-block wall with a dark-orange cap, walkable on top. TOWN GATES: two 9 m dark-orange square posts and a dark-orange lintel. The East Gate is flanked by two 11 m light-grey gatehouse towers with dark-orange caps.
+- THE SEAM WALL: a 3 m orange dev-block wall running north-south; the seam gate is two 8 m dark-orange square posts with black stencil "SEAM GATE".
+- TOWN BUILDINGS: houses are light-grey or off-white dev-block boxes with orange or dark-orange gable or flat roofs, small dark window recesses and doors; shops are orange dev-block buildings with flat cyan awnings; TO LET fronts are grey with a "TO LET" stencil; the zip house is light grey with a cyan roof edge.
+- THE ROCK: a 16 m grey faceted six-sided crag of rough grey dev-blocks.
+- TOWN NPCs: friendly dev-bot workers, about 1.8 m: light-grey chamfered block bodies, an orange hi-vis vest, a yellow visor eye. Combat robots (east only) are orange and grey chamfered block robots with cyan eyes.
+- PERSONAL-BEST BOARDS: a small free-standing glowing cyan display board on two dark legs, title on top and "PERSONAL BEST" under it.
+
+UI LANGUAGE
+Dark navy glass panels #0d1b26 at about 80 % opacity, 1 px cyan #8fe3ff hairlines with small corner brackets, letter-spaced monospace uppercase labels in white and cyan, no gradients, no emoji. Every quoted string below appears exactly as written, spelled correctly, and no other text is invented.
+
+HUD (in-world shots; identical in every shot, only the quoted values change)
+- Top-left: a small chip "❚❚ PAUSE"; under it a chip with a gold coin icon and the Scrip count.
+- Top-right: a round minimap (dark, north-up, a white arrow for the player in the centre, small "N" at the top of its ring) with a small bag icon button at its top-right corner; directly under the minimap a chip "◆ " + the current objective.
+- Left edge, vertically centred: a column of three round buttons labelled "HORSE", "HOVER" and "SWAP" (SWAP is a ring with the current weapon's icon inside).
+- Lower right: a round "ATTACK" button with the current weapon's icon, and under it two round buttons "DODGE" and "JUMP".
+- Bottom: a thin cyan XP bar across the width with a small chip "LV n" at its left end, sitting directly above the control deck. The control deck is a dark navy strip along the bottom 18 % of the screen: a "MOVE" joystick ring at the left and a dashed square "LOOK" pad at the right.
+- Full health, so no health or vitals bar is shown. No LOCK button (nothing is targeted). No enemy nameplates in the west half.
