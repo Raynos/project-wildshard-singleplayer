@@ -9,6 +9,7 @@ import paving from '../data/paving.graph.json' with { type: 'json' };
 import kit from '../data/kit.graph.json' with { type: 'json' };
 import landmark from '../data/landmark.graph.json' with { type: 'json' };
 import landmarkDusk from '../data/landmarkDusk.graph.json' with { type: 'json' };
+import lava from '../data/lava.graph.json' with { type: 'json' };
 import mapSettings from '../data/map.json' with { type: 'json' };
 import type { OutputProgramResult, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
@@ -28,7 +29,7 @@ const { why: _why, ...tiledMaterials } = source.tiledMaterials;
 // NM10: the lanterns, windows and their light pools flicker a little, each on its own phase (world position), unlit as the
 // emissive family drew them (glow x2.4 +-12 %, pool additive x1.2 +-8 %); the glow also moves and lights the marked
 // fireflies and sky lanterns (kit.mjs `mover`)
-const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicker; }; pool: { family: string; graph: typeof poolFlicker; }; paving: { family: string; graph: typeof paving; }; kit: { family: string; graph: typeof kit; }; landmark: { family: string; graph: typeof landmark; }; water: (typeof look)["materials"]["frame"]; hologram: (typeof look)["materials"]["hologram"]; billboard: (typeof look)["materials"]["billboard"]; floor: (typeof look)["materials"]["floor"]; kerb: (typeof look)["materials"]["frame"]; plinth: (typeof look)["materials"]["frame"]; frame: (typeof look)["materials"]["frame"]; rim: (typeof look)["materials"]["rim"]; sign: (typeof look)["materials"]["sign"]; }; grade: (typeof look)["grade"]; clock: string; familyLooks: (typeof look)["familyLooks"]; families: (typeof look)["families"]; day: (typeof look)["day"]; dayOverride: number; keys: (typeof look)["keys"]; } = { ...look, materials: { ...look.materials, ...tiledMaterials,
+const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicker; }; pool: { family: string; graph: typeof poolFlicker; }; paving: { family: string; graph: typeof paving; }; kit: { family: string; graph: typeof kit; }; landmark: { family: string; graph: typeof landmark; }; water: (typeof look)["materials"]["frame"] | { family: string; graph: typeof lava; }; hologram: (typeof look)["materials"]["hologram"]; billboard: (typeof look)["materials"]["billboard"]; floor: (typeof look)["materials"]["floor"]; kerb: (typeof look)["materials"]["frame"]; plinth: (typeof look)["materials"]["frame"]; frame: (typeof look)["materials"]["frame"]; rim: (typeof look)["materials"]["rim"]; sign: (typeof look)["materials"]["sign"]; }; grade: (typeof look)["grade"]; clock: string; familyLooks: (typeof look)["familyLooks"]; families: (typeof look)["families"]; day: (typeof look)["day"]; dayOverride: number; keys: (typeof look)["keys"]; } = { ...look, materials: { ...look.materials, ...tiledMaterials,
   glow: { family: 'graph', graph: glowFlicker }, pool: { family: 'graph', graph: poolFlicker },
   // RM5.1: the paving ruled in its material (flagstones, joints, per-stone shade and wear; no texture), over its vertex colours
   paving: { family: 'graph', graph: paving },
@@ -39,7 +40,7 @@ const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicke
   landmark: { family: 'graph', graph: landmark } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly water?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
     spawn: (typeof source)["spawn"];
@@ -69,7 +70,10 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
   // OB2: a row's `landmarkLight: "dusk"` lights its landmark by a neutral dusk fill (a natural landmark: bark and moss)
   // in place of the gate's warm lilac fill (RM6.4), the same graph and size with its own light
-  const tiled = row.landmarkLight === 'dusk' ? { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: landmarkDusk } } } : tiledLook;
+  const lit = row.landmarkLight === 'dusk' ? { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: landmarkDusk } } } : tiledLook;
+  // OB4: a row's `water: "lava"` draws its water as molten lava (data/lava.graph.json: unlit, its vertex colour as the
+  // molten colour, dark crust plates drifting over it in world metres), the lava kind any volcanic plot shares
+  const tiled = row.water === 'lava' ? { ...lit, materials: { ...lit.materials, water: { family: 'graph', graph: lava } } } : lit;
   if (row.layout !== undefined) return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...tiled, keys },
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
     // RM8.2: its kit models draw only at L0 (`detail_`); their boxes stand in at L1 (`coarse_`)
