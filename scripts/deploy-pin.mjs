@@ -423,7 +423,11 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     nativeJobs = groups.map(group => `native-escape (${group})`);
   }
   const phone = /\n {2}phone-route:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
-  if (phone === undefined ? !source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`)
+  const retiredPhone = /^ {6}PHONE_PROOF: 'retired-g989'$/mu.test(source);
+  if (retiredPhone && (!merged || !stagedBootSource(source)))
+    throw new Error('Retired phone policy requires the reviewed staged source');
+  if (retiredPhone ? phone !== undefined || source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`)
+    : phone === undefined ? !source.includes(`continue-on-error: \${{ matrix.part == 'phone-route' }}`)
     : !/(?:^|\n) {4}continue-on-error: true(?:\n|$)/u.test(phone))
     throw new Error('Recovery source lacks the reviewed report-only phone policy');
   // Recovery must use the selected source's reviewed topology, not today's
@@ -453,7 +457,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   const rows = details !== null ? details.map(job => [job.name, job.status, job.conclusion ?? ''].join('\t'))
     : query([`repos/${REPO}/actions/runs/${runId}/jobs?per_page=100`, '--paginate', '--jq',
       '.jobs[] | [.name, .status, .conclusion] | @tsv']).split(/\r?\n/u).filter(Boolean);
-  const optional = new Set(['build-and-deploy',phone === undefined ? 'journeys (phone-route)' : 'phone-route']);
+  const optional = new Set(['build-and-deploy',...retiredPhone ? [] : [phone === undefined ? 'journeys (phone-route)' : 'phone-route']]);
   const drawBudget = /\n {2}draw-budget:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
   if (drawBudget !== undefined) {
     if (!/(?:^|\n) {4}continue-on-error: true(?:\n|$)/u.test(drawBudget))

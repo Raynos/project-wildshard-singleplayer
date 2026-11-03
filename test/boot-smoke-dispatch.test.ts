@@ -147,7 +147,7 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   expect(journeys).not.toContain('run watch');expect(journeys).not.toContain('vercel build');
 });
 
-test('only pending producer and native admission coalesce while running waves and releases keep their keys',()=>{
+test('only pending preparation coalesces while running waves and releases keep their keys',()=>{
   const top=deploy.split('\njobs:\n')[0]??'';
   const section=(name:string)=>deploy.split(`\n  ${name}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0]??'';
   const group=(source:string,github:{event_name:string;run_id:string;sha:string;ref:string})=>{
@@ -162,7 +162,7 @@ test('only pending producer and native admission coalesce while running waves an
   const old={event_name:'push',run_id:'1',sha:'a'.repeat(40),ref:'refs/heads/main'};
   const next={...old,run_id:'2',sha:'b'.repeat(40)};
   expect(group(top,old)).not.toBe(group(top,next));
-  for(const name of ['prepare','phone-route']) {
+  for(const name of ['prepare']) {
     const job=section(name);
     expect(group(job,old)).toBe(group(job,next));
     expect(group(job,old)).not.toBe(group(job,{...next,ref:'refs/heads/other'}));
@@ -173,7 +173,8 @@ test('only pending producer and native admission coalesce while running waves an
   expect(group(top,manual)).not.toBe(group(top,old));
   expect(section('build-and-deploy')).toContain("'production-release'");
   expect(section('build-and-deploy')).toContain('cancel-in-progress: false');
-  expect(section('phone-route')).not.toContain('needs:');
+  expect(deploy).not.toContain('\n  phone-route:\n');
+  expect(deploy).toContain("PHONE_PROOF: 'retired-g989'");
   for(const name of ['behaviour','native-escape','journeys'])expect(section(name)).not.toContain('concurrency:');
 });
 
@@ -1044,6 +1045,33 @@ function splitExplorerReadyFixture(){
   f.details.push({...explorer,name:'journeys (explorer-b)',steps:[]});
   return f;
 }
+
+test('G989 retires only the optional phone job and keeps every required exact-source verdict',()=>{
+  const fixture=()=>{
+    const f=splitExplorerReadyFixture();
+    f.state.source=f.state.source.replace("      MERGED_BOOT_PROOF: 'v1'",
+      "      MERGED_BOOT_PROOF: 'v1'\n      PHONE_PROOF: 'retired-g989'")
+      .replace(/\n {2}phone-route:\n[\s\S]*?(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u,'');
+    f.state.details=f.details.filter(row=>row.name!=='phone-route');
+    return f;
+  };
+  const f=fixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);
+  expect(proof.jobs.some(row=>row.name==='phone-route')).toBe(false);
+  expect(proof.jobs.filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(38);
+  for(const job of f.state.details.filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))){
+    const broken=fixture(),row=broken.state.details.find(candidate=>candidate.name===job.name);
+    if(row===undefined)throw new Error('Missing required source gate');
+    row.conclusion='failure';expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow();
+  }
+  const unmarked=fixture();unmarked.state.source=unmarked.state.source.replace("      PHONE_PROOF: 'retired-g989'\n",'');
+  expect(()=>readySource('123',liveBuild,unmarked.state.query,readyNow)).toThrow('phone policy');
+  const unexpected=fixture(),phone=unexpected.details.find(row=>row.name==='phone-route');
+  if(phone===undefined)throw new Error('Missing historical phone fixture');
+  unexpected.state.details.push(phone);
+  expect(()=>readySource('123',liveBuild,unexpected.state.query,readyNow)).toThrow('inventory');
+  const hybrid=fixture();hybrid.state.source+='\n  phone-route:\n    continue-on-error: true\n';
+  expect(()=>readySource('123',liveBuild,hybrid.state.query,readyNow)).toThrow('phone policy');
+});
 
 test('reviewed split Explorer requires both exact jobs in the 38-gate source',()=>{
   const f=splitExplorerReadyFixture();

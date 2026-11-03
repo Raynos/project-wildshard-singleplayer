@@ -57,33 +57,13 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   every behavior shard, native Escape, types/lint/docs, all six browser journeys and their exact-SHA verdict to pass. Local/full/nightly configuration stays
   unchanged. G923 removed quarantine workflows, registry and exclusions; Native Escape, headless and every other
   real behavior case remain blocking. Each job finishes its own verdict independently of peer failures.
-- **G745 phone route rollout:** the exact push build also publishes a separate
-  `boot-dist-phone-route` bundle. Its dedicated report-only macOS job starts
-  alongside Linux prepare. It selects the matching Xcode and inventories iOS
-  once, then boots and warms Safari in the foreground before dependency or
-  artifact IO. A real native failure refuses; WebKit is used only when no iOS
-  runtime exists. The route awaits the original atomic ready/failed receipt.
-  Native readiness serves a fresh loopback document and requires its signal
-  after two animation-frame callbacks within the same 120-second budget.
-  A successful URL command alone cannot grant readiness. An already proven
-  document can retire its stuck owned `openurl` client; Safari stays running.
-  A missing, foreign or late signal still refuses the lease. Boot/bootstatus
-  progress and separate URL-acceptance, document-request and owned-frame clocks
-  remain in the native artifact; successful frame proof is never labelled as
-  a URL timeout. Native command transcripts use unlinked files, so an
-  inherited output handle cannot make client completion wait for service EOF.
-  The log pipeline propagates a failed preparation before installs/transfer.
-  Before transfer, a condition wait requires this exact run's prepare job to
-  succeed, within the phone job's original twenty-minute budget. It never
-  waits on its own aggregate or retries a failed producer. SHA/run/archive
-  validation still happens before any artifact bytes are served.
-  Homebrew proxy bottles and the pnpm store are restored after Safari is ready;
-  unused Playwright browser binaries are not installed for native Safari.
-  The route follows title → SHARD SELECT → grid/Driftwood → road → Night Market,
-  retaining every first-paint, resident-tile, board/wall, draw/pill, grain, fatal
-  and pixel guard. The six required journeys alone decide release. The native
-  readiness bound stays 120 s; entry, route and twenty-minute job caps stay.
-  The prepared device is released even after transfer or route failure.
+- **G989 (Jake, 2026-11-03) retires the push Simulator job.** CI10 closes by
+  deleting `phone-route`, reversing G921. This is a retired diagnostic, not
+  a native readiness pass. Local Simulator milestone checks keep their native
+  startup, original deadlines, owned-frame proof and cleanup controls. Old
+  source runs retain their original report-only phone policy and exact job
+  inventory; the new source declares `PHONE_PROOF: retired-g989` and rejects
+  unexpected phone jobs. The required browser journeys still gate shipping.
 - **Automatic push proofs coalesce as whole workflows**, with one active six-leg
   cohort and the newest pending cohort. An active proof finishes all six legs;
   a newer push may replace a pending workflow, never individual legs from

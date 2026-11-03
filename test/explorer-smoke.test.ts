@@ -112,15 +112,13 @@ test('the Explorer leg retains every primary, including Signal and Developer-onl
   expect(explorerCases(catalogue)).toEqual(['driftwood-isle','nine-dragon-stack','sunscar-dunes','_template','open-plot-alien-plain']);
   const workflow = readFileSync('.github/workflows/deploy.yml','utf8');
   const journeys=workflow.split('\n  journeys:\n')[1]?.split('\n  boot-verdict:\n')[0];
-  const phone=workflow.split('\n  phone-route:\n')[1]?.split('\n  journeys:\n')[0];
-  if(journeys===undefined||phone===undefined)throw new Error('Missing browser or native journey');
+  if(journeys===undefined)throw new Error('Missing browser journey');
+  expect(workflow).not.toContain('\n  phone-route:\n');
   const parts=/part: \[([^\]]+)\]/u.exec(journeys)?.[1]?.split(',').map(part=>part.trim());
   if(parts===undefined)throw new Error('Missing browser journey matrix');
   expect(parts).toEqual(expect.arrayContaining(['boot-public','boot-developer','boot-grid','hover-chromium','hover-webkit','explorer-a','explorer-b']));
   expect(new Set(parts).size).toBe(parts.length);expect(parts).not.toContain('phone-route');
   expect(journeys).not.toContain('continue-on-error:');
-  expect(phone).toContain('continue-on-error: true');
-  expect(phone).toContain('run: node scripts/parity/phone-route-runner.mjs --route=entry');
   expect(workflow).toContain("if: matrix.part == 'explorer-a' || matrix.part == 'explorer-b'");
   expect(workflow).toContain(`run: node scripts/parity/explorer-smoke.mjs --case-group=\${{ matrix.part }}`);
   expect(workflow).toContain('needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys, stage-prebuilt]');

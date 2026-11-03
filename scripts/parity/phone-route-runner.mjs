@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { preparePhoneSimulator, waitPhonePreparation, waitPhoneProducer } from './phone-route-preparation.mjs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -23,30 +22,18 @@ function inventoriedPhoneEngine(out) {
   return engine;
 }
 
-async function main() {
-  if (process.argv.includes('--wait-for-prepare')) {
-    await waitPhoneProducer(process.env.GITHUB_REPOSITORY ?? '', process.env.GITHUB_RUN_ID ?? '');
-    return;
-  }
-  const preparation = process.env.PHONE_SIMULATOR_PREPARATION;
-  const preparing = process.argv.includes('--prepare-simulator');
-  const prepared = !preparing && preparation !== undefined && !process.argv.includes('--select-engine')
-    ? await waitPhonePreparation(preparation) : null;
+function main() {
+  if (process.argv.includes('--wait-for-prepare') || process.argv.includes('--prepare-simulator'))
+    throw new Error('CI phone preparation was retired by G989; run the local route through sim-lane');
   const out = resolve('boot-smoke-results/phone-route'); mkdirSync(out,{recursive:true});
-  const engine = prepared?.engine ?? inventoriedPhoneEngine(out);
-  if (preparing) {
-    if (preparation === undefined) throw new Error('Simulator preparation requires PHONE_SIMULATOR_PREPARATION');
-    preparePhoneSimulator(preparation, engine);
-    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `engine=${engine}\n`);
-    return;
-  }
+  const engine = inventoriedPhoneEngine(out);
   if (process.argv.includes('--select-engine')) { console.log(`engine=${engine}`); return; }
   const started = performance.now();
   const route = process.argv.find(arg => arg.startsWith('--route=')) ?? '--route=entry';
   const args = ['node','scripts/parity/phone-route.mjs',`--engine=${engine}`,`--sha=${process.env.TESTED_SHA??''}`,route];
   const command = engine === 'simulator' ? 'scripts/sim-lane.sh' : 'scripts/browser-lane.sh';
   const child = spawnSync(command, engine === 'simulator' ? ['run','--max','15','wildshard-iphone',...args] : ['--max','15',...args], {stdio:'inherit'});
-  writeFileSync(resolve(out,'leg-timing.json'), JSON.stringify({engine, preparation:prepared,route,wallMs:performance.now()-started,status:child.status}));
+  writeFileSync(resolve(out,'leg-timing.json'), JSON.stringify({engine, preparation:null,route,wallMs:performance.now()-started,status:child.status}));
   process.exitCode = child.status ?? 1;
 }
-if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) await main();
+if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) main();
