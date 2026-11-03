@@ -271,11 +271,15 @@ function stagedBootSource(source) {
   const reviewed = new Set(['escape-titan','stories-qara','chapter-one','native-routes']);
   const behaviour = /\n {2}behaviour:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
   const matrix = /^\s+shard: \[([\d, ]+)\]/mu.exec(behaviour ?? '')?.[1]?.split(',').map(Number);
+  const packed = /^ {6}BEHAVIOUR_PROOF: 'twelve-g989'$/mu.test(ship);
+  const shards = packed ? 12 : 24;
   if (!marked || stage === undefined
+    || (/BEHAVIOUR_PROOF:/u.test(ship) && !packed)
+    || (packed && !/^ {6}PHONE_PROOF: 'retired-g989'$/mu.test(ship))
     || groups?.length !== 4 || new Set(groups).size !== 4 || !groups.every(name => reviewed.has(name))
-    || matrix?.length !== 24 || matrix.some((index, i) => index !== i + 1)
-    || !source.includes('node scripts/vitest-plan.ts --shards 24 --workers 2')
-    || !behaviour?.includes(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/24 --bail=0`)
+    || matrix?.length !== shards || matrix.some((index, i) => index !== i + 1)
+    || !source.includes(`node scripts/vitest-plan.ts --shards ${shards} --workers 2`)
+    || !behaviour?.includes(`--config scripts/vitest-ci.config.ts --shard=\${{ matrix.shard }}/${shards} --bail=0`)
     || !/^ {6}MERGED_BOOT_PROOF: 'v1'$/mu.test(ship)
     || !/^ {4}needs: prepare$/mu.test(stage)
     || !/^ {4}if: \$\{\{ github.event_name == 'push' && needs.prepare.result == 'success' \}\}$/mu.test(stage)
@@ -440,7 +444,8 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     throw new Error('Recovery source has an unreviewed behavior topology');
   if (nativeJobs.length === 4 && !merged)
     throw new Error('Independent native routes require the reviewed merged topology');
-  if (merged && (matrix.length !== 24 || ![2,3,4].includes(nativeJobs.length)))
+  const packedBehaviour = /^ {6}BEHAVIOUR_PROOF: 'twelve-g989'$/mu.test(source);
+  if (merged && (matrix.length !== (packedBehaviour ? 12 : 24) || ![2,3,4].includes(nativeJobs.length)))
     throw new Error('Merged source requires the reviewed full behavior and native topology');
   const journeyParts=sourceJourneyParts(source);
   const required = new Set(['prepare','typecheck-lint','derived-docs',...(merged ? [] : ['boot-verdict']),

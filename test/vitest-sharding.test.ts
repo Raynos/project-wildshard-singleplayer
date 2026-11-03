@@ -13,7 +13,7 @@ import {relative,resolve} from 'node:path';
 test('duration partitions retain every file once, including unmeasured files', () => {
   const paths = Array.from({ length: 137 }, (_, i) => `test/fixture-${i}.test.ts`);
   const durations = new Map(paths.slice(0, 120).map((path, i) => [path, i % 9]));
-  for (const count of [1, 10, 16, 32]) {
+  for (const count of [1, 10, 12, 16, 24, 32]) {
     const parts = packShards(paths, durations, count);
     expect(parts).toHaveLength(count);
     expect(parts.flat().sort()).toEqual([...paths].sort());

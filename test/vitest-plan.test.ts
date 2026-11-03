@@ -114,18 +114,16 @@ test('malformed, duplicate or unbounded history listings refuse', () => {
 });
 
 
-test('the measured wave retains every file while spreading work below the job budget', () => {
-  // The former twelve jobs cannot process this work in 300 seconds even
-  // with perfect packing; complete-module costs include collection/setup.
+test('twelve larger jobs preserve the complete old24 inventory and refuse an old plan', () => {
+  // G989 trades per-job modeled time for fewer runner admissions. This is
+  // synthetic work, not a passing CI wall-clock or balance measurement.
   const paths = Array.from({ length: 2284 }, (_, index) => `test/work-${index}.test.ts`);
   const weights = new Map(paths.map((path, index) => [path, index < 12 ? 100 : 4]));
   const options = { ...source, workers: 2, fallbackSeconds: 4, measuredFiles: paths.length };
-  const previous = createShardPlan(paths, weights, { ...options, count: 12 });
+  const previous = createShardPlan(paths, weights, { ...options, count: 24 });
   const current = createShardPlan(paths, weights, { ...options, count: CI_SHARD_COUNT });
-  expect(previous.expectedSeconds).toBeGreaterThan(300);
-  expect(current.expectedSeconds).toBeLessThanOrEqual(250);
-  const mean = current.shards.reduce((sum, shard) => sum + shard.expectedSeconds, 0) / current.shardCount;
-  expect(current.expectedSeconds / mean).toBeLessThanOrEqual(1.2);
+  expect(current.expectedSeconds).toBeGreaterThan(previous.expectedSeconds);
+  expect(() => readShardPlan(previous, paths, CI_SHARD_COUNT, source)).toThrow('count');
   expect(current.shards.flatMap(shard => shard.files).sort()).toEqual([...paths].sort());
   expect(new Set(current.shards.flatMap(shard => shard.files)).size).toBe(paths.length);
 });

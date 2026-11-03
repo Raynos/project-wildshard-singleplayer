@@ -4,8 +4,8 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 
 export const DURATIONS_FILE = 'test/durations.json';
-/** Complete-module CI work exceeds twelve two-worker jobs' five-minute capacity. */
-export const CI_SHARD_COUNT = 24;
+/** G989 prefers twelve longer two-worker jobs to a larger runner burst. */
+export const CI_SHARD_COUNT = 12;
 /** Fallback only: old isolated runs measured six seconds of setup/imports. */
 export const LEGACY_FILE_OVERHEAD = 6;
 

@@ -1046,15 +1046,17 @@ function splitExplorerReadyFixture(){
   return f;
 }
 
-test('G989 retires only the optional phone job and keeps every required exact-source verdict',()=>{
-  const fixture=()=>{
+function retiredPhoneReadyFixture(){
     const f=splitExplorerReadyFixture();
     f.state.source=f.state.source.replace("      MERGED_BOOT_PROOF: 'v1'",
       "      MERGED_BOOT_PROOF: 'v1'\n      PHONE_PROOF: 'retired-g989'")
       .replace(/\n {2}phone-route:\n[\s\S]*?(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u,'');
     f.state.details=f.details.filter(row=>row.name!=='phone-route');
     return f;
-  };
+}
+
+test('G989 retires only the optional phone job and keeps every required exact-source verdict',()=>{
+  const fixture=retiredPhoneReadyFixture;
   const f=fixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);
   expect(proof.jobs.some(row=>row.name==='phone-route')).toBe(false);
   expect(proof.jobs.filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(38);
@@ -1071,6 +1073,37 @@ test('G989 retires only the optional phone job and keeps every required exact-so
   expect(()=>readySource('123',liveBuild,unexpected.state.query,readyNow)).toThrow('inventory');
   const hybrid=fixture();hybrid.state.source+='\n  phone-route:\n    continue-on-error: true\n';
   expect(()=>readySource('123',liveBuild,hybrid.state.query,readyNow)).toThrow('phone policy');
+});
+
+function twelveBehaviourReadyFixture(){
+  const f=retiredPhoneReadyFixture();
+  f.state.source=f.state.source.replace("      PHONE_PROOF: 'retired-g989'",
+    "      PHONE_PROOF: 'retired-g989'\n      BEHAVIOUR_PROOF: 'twelve-g989'")
+    .replace('vitest-plan.ts --shards 24','vitest-plan.ts --shards 12')
+    .replace(`--shard=\${{ matrix.shard }}/24`,`--shard=\${{ matrix.shard }}/12`)
+    .replace(`shard: [${Array.from({length:24},(_,i)=>i+1).join(', ')}]`,
+      `shard: [${Array.from({length:12},(_,i)=>i+1).join(', ')}]`);
+  f.state.details=f.state.details.filter(row=>!row.name.startsWith('behaviour (')||Number(/\((\d+)\)/u.exec(row.name)?.[1])<=12);
+  return f;
+}
+
+test('G989 twelve-shard source requires all twelve exact verdicts and never relaxes historical24',()=>{
+  const f=twelveBehaviourReadyFixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);
+  expect(proof.jobs.filter(row=>row.name.startsWith('behaviour ('))).toHaveLength(12);
+  expect(proof.jobs.filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(26);
+  for(let index=1;index<=12;index++){
+    const broken=twelveBehaviourReadyFixture(),row=broken.state.details.find(job=>job.name===`behaviour (${index})`);
+    if(row===undefined)throw new Error('Missing behaviour shard');
+    row.conclusion='failure';expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow();
+  }
+  for(const marker of ["      BEHAVIOUR_PROOF: 'twelve-g989'\n","      PHONE_PROOF: 'retired-g989'\n"]){
+    const unmarked=twelveBehaviourReadyFixture();unmarked.state.source=unmarked.state.source.replace(marker,'');
+    expect(()=>readySource('123',liveBuild,unmarked.state.query,readyNow)).toThrow();
+  }
+  const partial=twelveBehaviourReadyFixture();partial.state.details=partial.state.details.filter(row=>row.name!=='behaviour (12)');
+  expect(()=>readySource('123',liveBuild,partial.state.query,readyNow)).toThrow('inventory');
+  const old=retiredPhoneReadyFixture();old.state.details=old.state.details.filter(row=>row.name!=='behaviour (24)');
+  expect(()=>readySource('123',liveBuild,old.state.query,readyNow)).toThrow('inventory');
 });
 
 test('reviewed split Explorer requires both exact jobs in the 38-gate source',()=>{
