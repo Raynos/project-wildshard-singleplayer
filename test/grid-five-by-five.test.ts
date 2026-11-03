@@ -26,10 +26,9 @@ for (const mode of modes) test(`complete 25-cell layout ${JSON.stringify(mode)}`
   }
   {
     const ring = (cell: readonly [number, number]): boolean => Math.abs(cell[0]) === 2 || Math.abs(cell[1]) === 2;
-    // NU3: every outer plot is distinct; G986: four built plots stand on the inner ring, in the title hero's big cells.
+    // NU3: every outer plot is distinct; G993: Night Market and the Showcase Template are the inner ring's two plots.
     expect(assembly.cells.filter(row => ring(row.cell) && row.slug.startsWith('open-plot-')).map(row => row.slug).sort())
-      .toEqual(ideas.filter(slug => !['open-plot-night-market', 'open-plot-frostline-peaks', 'open-plot-ember-forge',
-        'open-plot-coral-drift'].includes(slug)).sort());
+      .toEqual(ideas.filter(slug => !['open-plot-night-market', 'open-plot-showcase-template'].includes(slug)).sort());
   }
   const road = roadLayout(assembly, slug => slug);
   expect(road.segments).toHaveLength(60);
