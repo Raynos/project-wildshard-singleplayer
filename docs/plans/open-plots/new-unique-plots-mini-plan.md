@@ -11,6 +11,9 @@
 > 1.5 Opus + 0.5 Codex lane-days a plot. Mushroom Hollow is dropped (G977).
 
 **State:** `open` (grilled 11-02 ~23:20, G974 / G976; **G977: Jungle Ziggurat replaces Mushroom Hollow at (-2,2), Mushroom Hollow dropped**: art builds start after SHARD-PLATFORM archives; grid data rows now); was `draft` 2026-11-02 for Jake. Four themes approved (G974, G977); round-75 2 × 2 boards made (G978). Nothing built.
+
+**G981 / G982 (11-03 ~00:00):** the round-75 boards are approved; **Fossil Badlands moves to (-1,-2) and Saltwind Lighthouse to (-2,1)** (swapped so Fossil's lavender dusk no longer shares an edge with the Night Market's dusk). Patchwork Fairground (-2,0) and Jungle Ziggurat (-2,2) stay.
+
 The grid is not edited by this plan's draft.
 
 Jake, 2026-11-02 ~22:55 Cancun (G970): *"I don't understand why Lantern Bayou is in there twice. I thought we had
