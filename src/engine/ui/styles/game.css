@@ -213,6 +213,9 @@
 .ws-game-vitals { transition: opacity 0.12s; }
 .ws-game-vitals.hp-fade, #hud .ws-game-health.hp-fade { opacity: 0; transition: opacity 0.4s ease; }
 .ws-game-vitals.hp-gone, #hud .ws-game-health.hp-gone { display: none; }
+/* HUD.warmGlass: drawn once as the player enters, under half an 8-bit step, so the glass's compositor pipeline compiles
+   there and not on the first hit taken (desktop fps census, 2026-11-03) */
+#hud .ws-game-health.hp-warm { display: block; opacity: 0.002; transition: none; }
 /* the left column on touch (E47: the frame meter moved onto PAUSE's row): status (VITALS / BOLTS) +30, ✎ NOTE disc +90 (feedback.css),
    boss bar +130 (quest.css), then the feed (the toasts are top-right under the quest chip, A1) */
 @media (max-width: 700px) {

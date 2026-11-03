@@ -133,6 +133,7 @@ export class HUD {
   get entered(): boolean { return this._entered; }
   set entered(value: boolean) {
     this._entered = value;
+    if (value) this.warmGlass();
     if (app.input.hasContext('title')) { if (value) app.input.pop('title'); else app.input.push('title', app.levelScope ?? app.engineScope); }
     if (app.state !== 'loading') app.setState(value ? 'play' : 'title');
   }
@@ -443,6 +444,19 @@ export class HUD {
     this.canReloadChip = canReload;
     const label = magazine ? `${s.weaponUi.name} · ${engineString(s.reloading ? 's_a4b350a14964' : 's_4027f515418b')}` : s.weaponUi.name;
     if (b.bolts.getAttribute('aria-label') !== label) b.bolts.setAttribute('aria-label', label);
+  }
+
+  /** The VITALS panel's glass (a backdrop blur over the live game canvas) compiles a compositor pipeline the first time
+   *  it draws. Hidden at full health (E319), it first drew on the first hit taken, where a cold desktop Chromium GPU
+   *  process spent one 83.4 ms frame compiling it (desktop fps census, 2026-11-03). Drawn once as the player enters, at
+   *  opacity 0.002 (under half an 8-bit step, so no pixel changes) for about nine frames, the compile happens there. */
+  private static glassWarmed = false;
+  private warmGlass(): void {
+    const panel: unknown = this.healthPanel;
+    if (HUD.glassWarmed || !(panel instanceof HTMLElement) || this.hpShown === 'show') return;
+    HUD.glassWarmed = true;
+    panel.classList.add('hp-warm');
+    this.scope.timeout(150, () => { panel.classList.remove('hp-warm'); });
   }
 
   /** E319: the desktop VITALS panel and the touch VITALS strip follow `hpShown` (fading out, then out of the layout) */
