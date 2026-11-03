@@ -57,7 +57,7 @@ try {
   console.log('stats', JSON.stringify({ budget: st.budget, gauntlet: st.gauntlet, gauntletView: st.gauntletView, se: st.se, titanArena: st.titanArena }));
   for (const [name, view, edge, q, cap] of SHOTS) {
     if (only && !only.includes(view)) continue;
-    await page.evaluate(v => window.lab.show(v), view);
+    await page.evaluate(async v => { await window.lab.show(v); document.getElementById('ui').style.display = 'none'; }, view);
     await page.waitForTimeout(400);
     const raw = join(scratch, name + '.png');
     await page.screenshot({ path: raw });

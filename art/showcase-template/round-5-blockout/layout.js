@@ -91,7 +91,7 @@ export const ZONES = [
     why: 'R5: waves 3-4 (L17-18); entry ledge at +2.5 m, floor 82 x 37 m; the elite reveal lift; spawn doors D3, D4', stack: 'gate G2 in its east wall' },
   { id: '08C', name: "C3 · FOREMAN'S FLOOR", kind: 'set', shape: 'disc', x: 146, z: 186, r: 42,
     why: "R5: wave 5, Foreman Unit 7 (L18): r 28 floor, terraces +1.5 m (to r 34) and +3 m (to r 40), 6 m wall; the Foreman's balcony", stack: 'gate G3 east to the Titan gate' },
-  { id: 'TG', name: 'TITAN GATE', kind: 'set', shape: 'rects', list: [[208, 222, 136, 197], [188, 208, 182, 190], [196, 235, 197, 235]],
+  { id: 'TG', name: 'TITAN GATE', kind: 'set', shape: 'rects', dims: 'lane + plaza', list: [[208, 222, 136, 197], [188, 208, 182, 190], [196, 235, 197, 235]],
     why: 'R5: a 14 m walled lane off the Titan road (and the G3 spur) into a 39 x 38 m plaza: checkpoint, the portal arch, the return pad', stack: 'portal -> the hidden Titan arena, y -150' },
   { id: 'M6', name: 'BIG PALLET L6', kind: 'set', shape: 'disc', x: 96, z: -206, r: 14, why: 'band-gate elite: its pit at band 2\'s exit to band 3', stack: '' },
   { id: 'TV', name: 'TRAINING VAULT', kind: 'set', shape: 'rect', x0: 204, x1: 226, z0: -72, z1: -50,
@@ -368,7 +368,7 @@ export const GAUNTLET = {
 // arch (the boss fog), the return pad. The 12 s intro plays INSIDE the hidden arena on arrival (lab README says why).
 export const TITAN_GATE = {
   lane: [208, 222, 136, 197], plaza: [196, 235, 197, 235],
-  stake: [215, 204], plaque: [204, 222], returnPad: [228, 209],
+  stake: [211, 210], plaque: [209, 222], returnPad: [222, 214],
   arch: { x: 216, z: 229, w: 16, h: 18, portalR: 6 },
 };
 

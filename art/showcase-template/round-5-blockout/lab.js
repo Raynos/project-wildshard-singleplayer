@@ -205,6 +205,7 @@ const P = placeContent();
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const cobble = mat(0xd3cbb9), street = mat(0xa79f8f), wallC = mat(0xcf8a52);
 function zoneDims(zn) {
+  if (zn.dims) return zn.dims;
   if (zn.shape === 'rect') return `${zn.x1 - zn.x0}×${zn.z1 - zn.z0} m`;
   if (zn.shape === 'disc') return `⌀${2 * zn.r} m`;
   if (zn.shape === 'stadium') return `${2 * (zn.halfLen + zn.r)}×${2 * zn.r} m`;
@@ -598,9 +599,9 @@ function buildTitanGate() {
   box(A.w + 6, 3, 3, A.x, A.h - 3, A.z, M.orangeDark);
   add(new THREE.TorusGeometry(A.portalR, .6, 10, 48), M.portal, A.x, A.portalR + 1.2, A.z - .5);
   add(new THREE.CircleGeometry(A.portalR - .3, 40), M.portal, A.x, A.portalR + 1.2, A.z - .7, { ry: Math.PI, shadow: false });
-  sign('TITAN GATE · PORTAL', 'into the hidden arena · y −150', A.x, A.h + 5, A.z, 22);
+  sign('TITAN PORTAL', 'into the hidden arena · y −150', A.x, A.h + 5, A.z, 22);
   stake(...T.stake, 0, 'the last camp · L20');
-  box(5, 2.6, .4, T.plaque[0], 0, T.plaque[1], M.white, { ry: Math.PI / 2 });
+  box(5, 2.6, .4, T.plaque[0], 0, T.plaque[1], M.white);
   sign('THE CRATE TITAN · L20', 'THE LAST CONTRACT', T.plaque[0], 6, T.plaque[1], 16);
   flatDisc(T.returnPad[0], T.returnPad[1], 3, .07, M.portal); sign('RETURN PAD', 'you come back out here', T.returnPad[0], 5, T.returnPad[1], 12);
   sign('TITAN GATE', '14 m lane · 39 × 38 m plaza', 215, 12, 168, 20);
@@ -657,8 +658,10 @@ function buildTitanArena() {
   sign('EXIT PORTAL', '→ the Titan gate', X + 4, Y + 10, az1 - 1, 12);
   sign('FOG GATE', 'onto the floor', X, Y + 7.5, Z + A.floorR + 1, 10);
   // the Titan (chosen height), P2 mites, the 4 x 8 block in the SE lane, a player for scale
-  titanModel(TITAN.chosen, X, Y, Z);
-  for (const [dx, dz] of [[-9, 8], [8, 9], [-5, 13], [12, 3]]) { box(.9, .8, .9, X + dx, Y + .05, Z + dz, M.hazard); }
+  titanModel(TITAN.chosen, X, Y, Z, Math.PI / 4);
+  for (const [dx, dz] of [[6, 2], [2, 7], [9, 6], [5, 10]]) { box(.9, .8, .9, X + dx, Y + .05, Z + dz, M.hazard); }
+  for (const [dx, dz] of [[13, 6], [5, 14]]) flatDisc(X + dx, Z + dz, 2.6, Y + .07, M.hazard, 1.9);
+  lift(capsule(X + 11.3, Z + 11.3, 1.8, .35, M.white), Y);
   const la = A.lanes[3], br = 26; place2(() => box(8, 4, 4, 0, 0, 0, M.orangeDark), X + Math.cos(la) * br, Y, Z - Math.sin(la) * br, la + Math.PI / 2);
   sign('4 × 8 BLOCK', 'P3: rolled down a lane · 1.0 s', X + Math.cos(la) * br, Y + 8, Z - Math.sin(la) * br, 12);
   sign('THE CRATE TITAN · 15 m', 'L20 · P1 Stacked → P2 Unpacked → P3 Overflow', X, Y + 21, Z, 26);
@@ -858,7 +861,7 @@ function setFrame(x0, x1, z0, z1) { frame = { x0, x1, z0, z1 }; Object.assign(or
 function project(x, z, size) { const [w, h] = Array.isArray(size) ? size : [size, size]; return [(x - frame.x0) / (frame.x1 - frame.x0) * w, (z - frame.z0) / (frame.z1 - frame.z0) * h]; }
 function mark(L, x, z, size, text, color, fs = 9, cls = 'tick') { const [px, pz] = project(x, z, size), [sw_, sh_] = Array.isArray(size) ? size : [size, size]; if (px < 0 || pz < 0 || px > sw_ || pz > sh_) return; const d = document.createElement('div'); d.className = cls; d.style.color = color; d.style.fontSize = fs + 'px'; d.style.fontWeight = '700'; d.style.textShadow = '0 0 2px #000, 0 0 2px #000'; d.innerHTML = text; d.style.left = px + 'px'; d.style.top = pz + 'px'; L.appendChild(d); }
 const G0 = GRAPPLE;
-const OFF = { '08A': [0, 0], '08B': [0, 0], '08C': [0, 0], '08F': [0, 0], 'TG': [0, 0], '01': [0, -38], '05': [0, -12], '06': [0, 0], 'K': [0, -22], '09': [0, 10], '08': [0, 0], '11': [0, 0], 'B1': [0, 0], 'B6': [0, -6], 'B4': [-30, 0], 'B5': [0, -38], 'B2': [-22, 34], 'M6': [0, 18], 'TV': [-10, 18], 'MP': [0, 0], 'H': [0, 46], '07': [0, 30], '04': [0, 0], '02': [0, 0], 'B3': [0, 0], '03': [0, 0], '10': [0, 0] };
+const OFF = { '08A': [0, 0], '08B': [0, 0], '08C': [-8, 14], '08F': [0, 0], 'TG': [-4, 0], '01': [0, -38], '05': [0, -12], '06': [0, 0], 'K': [0, -22], '09': [0, 10], '08': [0, 0], '11': [0, 0], 'B1': [0, 0], 'B6': [0, -6], 'B4': [-30, 0], 'B5': [0, -38], 'B2': [-22, 34], 'M6': [0, 18], 'TV': [-10, 18], 'MP': [0, 0], 'H': [0, 46], '07': [0, 30], '04': [0, 0], '02': [0, 0], 'B3': [0, 0], '03': [0, 0], '10': [0, 0] };
 // R4: on the whole-cell plan every west zone also lists what is in it
 const WEST_SUB = {
   '01': 'plaza · Main St · 6 NPCs · 6 gates', '02': 'dummies · 2 bow · 2 xbow + ammo · rifle 75 m', '03': 'plates · crates · see-saws · balls',
@@ -966,6 +969,7 @@ function westLabels(size, top) {
   westNo.c.forEach((q, i) => mark(L, q.x, q.z, size, `◆${i + 1}`, '#1fd3e8', 9));
   westNo.g.forEach((g, i) => mark(L, g.x + 3, g.z + 3, size, `●${i + 1}`, '#ffd000', 8));
 }
+function panelAt(top) { const p = $('panel'); p.style.top = top + 'px'; p.style.bottom = 'auto'; }
 function layoutCanvas(w, h, top) { renderer.setSize(w, h); renderer.domElement.style.top = top + 'px'; }
 let current = null;
 function render(cam) { if (cam === persp) persp.updateProjectionMatrix(); renderer.render(scene, cam); }
@@ -1027,8 +1031,8 @@ const SE_TAGS = [
   [184, 143.5, "FOREMAN'S OFFICE<i>balcony +6 m: he drops in</i>", 5.4, '#5a1a8a'], [163, 191, 'TROPHY CHEST', 5, '#7a5a00'],
   [198, 178, 'G3<i>after wave 5</i>', 5.4, MAG],
   [172, 130, 'TITAN ROAD 12 m · forecourt → Titan gate', 5.4, '#eee', ''],
-  [229, 160, 'LANE<br>14 m', 5.2], [215, 200.5, 'CHECKPOINT · the last camp', 5.2, TEAL], [204, 216, 'PLAQUE<i>L20</i>', 5],
-  [229, 214, 'RETURN<br>PAD', 5, '#1238c8'], [216, 225, 'PORTAL ARCH 18 m<i>→ hidden arena, y −150</i>', 5.6, '#1238c8'],
+  [229, 160, 'LANE<br>14 m', 5.2], [211, 205.5, 'CHECKPOINT · the last camp', 5.2, TEAL], [205, 222, 'PLAQUE<i>L20</i>', 5],
+  [229, 218, 'RETURN<br>PAD', 5, '#1238c8'], [216, 225, 'PORTAL ARCH 18 m<i>→ hidden arena, y −150</i>', 5.6, '#1238c8'],
   [215, 186.5, 'TG TITAN GATE<i>2,496 m²</i>', 6.4, DK, '#ffffffe0'],
 ];
 const WAVE_AT = [[38, 168, 'W1'], [72, 168, 'W2'], [30, 214, 'W3'], [82, 214, 'W4'], [134, 200, 'W5']];
@@ -1090,12 +1094,11 @@ const VIEWS = {
   plan() {
     const W = VW(); setFrame(-262, 262, -262, 262); signs.visible = false; planOnly.visible = true; budgetOnly.visible = false; placeOnly.visible = false;
     scene.fog = null; $('cap').innerHTML = '<b>ROUND 5 · 500 m CELL · TOP-DOWN PLAN</b><span>North up. Only the SE BOTTOM (dashed orange) and the HIDDEN LAYERS changed. The Titan fight is behind a portal (⊙) in a hidden arena under the SE (dashed blue circle, floor y −150); the gauntlet takes the ground as three courts. Dashed blue squares = the Training Vault (y −40). Magenta = the gauntlet run, dashed = the Titan road.</span>';
-    const top = $('cap').offsetHeight; layoutCanvas(W, W, top); planLabels(W, top, 'plan');
+    const top = $('cap').offsetHeight; layoutCanvas(W, W, top); planLabels(W, top, 'plan'); panelAt(top + W + 4);
     const L = $('labels'), fr = [frame.x0, frame.x1, frame.z0, frame.z1];
     mark(L, TITAN_GATE.arch.x, TITAN_GATE.arch.z - 3, W, '⊙', '#7fb0ff', 13); mark(L, 208.7, -61, W, '⊙', '#7fb0ff', 13);
-    tagIn(L, fr, [W, W], 0, 226, 92, 'HIDDEN ARENA<i>y −150 · r 70</i>', 6.2, '#fff', '#1238c8d0');
+    tagIn(L, fr, [W, W], 0, 92, 238, 'HIDDEN TITAN ARENA ⌀140 · y −150 (dashed circle)', 6.2, '#fff', '#1238c8d0');
     tagIn(L, fr, [W, W], 0, 186, -24, 'HIDDEN VAULT<i>y −40</i>', 6.2, '#fff', '#1238c8d0');
-    tagIn(L, fr, [W, W], 0, 120, 243, 'R5 · SE BOTTOM', 6.6, '#111', '#ff9a4ae0');
     $('panel').hidden = false; $('foot').hidden = true;
     $('panel').innerHTML = `<h3>IT FITS: the gauntlet gets ${(gauntletM2 / R4_SE.gauntlet).toFixed(1)}× its round-4 ground; the Titan fights in a hidden ⌀104 m arena; ${(B_.free / 2500).toFixed(1)} % of the cell still free (was 16.3)</h3>
       <b>Titan gate</b> (surface, ${fmt(tgM2)} m²; the amphitheatre + approach were ${fmt(R4_SE.titan + R4_SE.approach)}): a 14 m walled lane off the Titan road into a 39 × 38 m plaza: the last checkpoint, the L20 plaque, the 18 m portal arch, the return pad. The 12 s intro plays inside, on arrival.<br>
@@ -1117,7 +1120,7 @@ const VIEWS = {
   budget() {
     const W = VW(); setFrame(-262, 262, -262, 262); signs.visible = false; planOnly.visible = false; budgetOnly.visible = true; placeOnly.visible = false;
     scene.fog = null; $('cap').innerHTML = '<b>ROUND 5 · AREA BUDGET (used vs free)</b><span>Blue = the town · orange = west toys · teal = paddock · yellow→red = level bands · maroon = combat set pieces (now the gauntlet courts, its forecourt and the Titan gate) · slate = roads · bare grid = free. Round 4 in brackets. Hidden layers cost 0 m² of surface.</span>';
-    const top = $('cap').offsetHeight; layoutCanvas(W, W, top); planLabels(W, top, 'budget');
+    const top = $('cap').offsetHeight; layoutCanvas(W, W, top); planLabels(W, top, 'budget'); panelAt(top + W + 4);
     const pct = n => (n / 2500).toFixed(1) + ' %', r = SE_.r5, q = SE_.r4;
     $('panel').hidden = false; $('foot').hidden = true;
     const row = (c, name, n, b) => `<tr><td>${sw(c)}${name}</td><td class="num">${fmt(n)}</td><td class="num">${pct(n)}</td><td class="num">(${b})</td></tr>`;
@@ -1156,7 +1159,7 @@ const VIEWS = {
     const top = $('cap').offsetHeight, fr = [0, 250, 112, 250], h = Math.round(W * (fr[3] - fr[2]) / (fr[1] - fr[0]));
     const r1 = $('r1'); r1.hidden = false;
     Object.assign(r1.style, { top: top + 'px', left: '0px', width: W + 'px', height: h + 'px', backgroundImage: 'url(/tmp/ks-blockout-r5/raw/r4-se.png)', backgroundSize: `${W}px ${h}px`, backgroundPosition: '0 0' });
-    setFrame(...fr); layoutCanvas(W, h, top + h + 6); render(ortho);
+    setFrame(...fr); layoutCanvas(W, h, top + h + 6); render(ortho); panelAt(top + 2 * h + 12);
     const L = $('labels'); L.innerHTML = ''; L.style.top = '0px';
     const t = (row, x, z, html, fs = 7) => tagIn(L, fr, [W, h], top + row * (h + 6), x, z, html, fs, '#111', '#ffffffd8');
     t(0, 62, 182, `08 GAUNTLET<i>⌀84 · ${fmt(R4_SE.gauntlet)} m² · floor ⌀56</i>`); t(0, 134, 206, `BOSS APPROACH<i>39 × 16 · 624 m²</i>`, 6);
@@ -1186,32 +1189,32 @@ const VIEWS = {
     for (const [x, z, html, fs, color, bg] of SE_TAGS) { const i = x < 122 ? 0 : 1; tagIn(L, rows[i], [W, rh], top + i * (rh + 4), x, z, html, fs, color ?? '#111', bg ?? '#ffffffc8'); }
     for (const [x, z, w] of WAVE_AT) { const i = x < 122 ? 0 : 1; stepIn(L, rows[i], [W, rh], top + i * (rh + 4), x, z, w); }
     for (const q of [...SECRETS, ...GOLD.map(g => ({ ...g, k: 'g' }))].filter(q => q.x > 100 && q.z > 120)) { const i = q.x < 122 ? 0 : 1; tagIn(L, rows[i], [W, rh], top + i * (rh + 4), q.x + 4, q.z - 4, q.k === 'b' ? '★' : '●', 9, q.k === 'b' ? '#fff' : '#ffd000', ''); }
-    for (const [id, i] of [['t1', 0], ['t2', 1]]) { const d = $(id); d.hidden = false; d.textContent = i ? 'EAST HALF · x 118–240' : 'WEST HALF · x 4–126'; d.style.fontSize = '10px'; d.style.top = top + i * (rh + 4) + rh - 18 + 'px'; d.style.left = (i ? W - 132 : 4) + 'px'; }
+    for (const [id, i] of [['t1', 0], ['t2', 1]]) { const d = $(id); d.hidden = false; d.textContent = i ? 'EAST HALF · x 118–240' : 'WEST HALF · x 4–126'; d.style.fontSize = '10px'; d.style.top = top + i * (rh + 4) + (i ? 14 : rh - 18) + 'px'; d.style.left = '4px'; }
   },
   section() {
     const W = VW(); full(); renderer.domElement.style.visibility = 'hidden'; $('foot').hidden = false;
     $('cap').innerHTML = '<b>ROUND 5 · SECTION (ELEVATION), LOOKING WEST</b><span>North left, south right, true scale. The surface (east half projected), the Training Vault interior (y −40) and the hidden Crate Titan arena (floor y −150, its own sky to y −80). Dashed blue = portals (a teleport, no shaft). Red dashed = CELL_BELOW, −250.</span>';
     const top = $('cap').offsetHeight, w = W - 12;
-    const a = sectionSvg(-250, 250, 55, -262, w, { labels: (T, Ln) => {
+    const a = sectionSvg(-250, 250, 50, -258, w, { labels: (T, Ln) => {
       T(-61, 14, 'vault gatehouse ⊙', 7, '#111'); T(-64, -50, 'TRAINING VAULT · y −40', 7.4, '#fff'); T(165, 26, 'Titan gate arch 18 m ⊙', 7, '#111');
       T(165, -63, 'hidden TITAN ARENA · y −150', 7.4, '#fff'); T(165, -172, 'x 80–220 · z 95–235', 6.6, '#ddd');
       T(-150, 10, 'bands 3–4 (NE)', 6.6, '#111'); T(66, 10, 'band 5 · stealth yard', 6.6, '#111'); T(-246, -256, 'CELL_BELOW −250: nothing deeper', 6.8, '#ff8a8a', 'start');
       for (const [y, t] of [[0, '0'], [-40, '−40'], [-80, '−80'], [-150, '−150'], [-250, '−250']]) T(-249, y + 2, t, 6.4, '#fff', 'start');
     } });
-    const b = sectionSvg(84, 246, 26, -166, w, { labels: (T, Ln) => {
-      T(122, 5, 'SE wall', 6.2, '#111'); T(130, 1.6, 'Titan road', 5.6, '#fff'); T(186, 9, "C3 · Foreman's floor (x 146)", 6.6, '#111');
-      T(222, 21.5, 'portal arch 18 m', 6.6, '#111'); T(165, 3, 'TG lane walls 4 m (projected, x 208–222)', 5.6, '#111');
+    const b = sectionSvg(84, 246, 24, -160, w, { labels: (T, Ln) => {
+      T(122, 21, 'beacon 20 m', 6.2, '#111'); T(126, 4.5, 'SE wall', 6.2, '#111'); T(130, 1.6, 'Titan road', 5.6, '#fff'); T(186, 9, "C3 · Foreman's floor (x 146)", 6.6, '#111');
+      T(222, 21.5, 'portal arch 18 m', 6.6, '#111'); T(170, -3.5, 'TG lane walls 4 m, projected (x 208–222)', 5.8, '#fff');
       T(124, -38, '74 m of rock: surface (−6) → arena sky (−80)', 7, '#fff', 'start'); Ln(120, -6, 120, -80, '#fff', '', 1.2);
       T(165, -84, 'arena volume top · its own sky · y −80', 6.6, '#bff4ff'); T(102, -112, 'floodlight', 5.6, '#fff');
       T(165, -133, 'Titan 15 m (dashed: 9 m blue, 20 m magenta)', 6.4, '#fff'); T(181, -146.5, 'you 1.8 m', 5.6, '#fff', 'start');
       T(100, -122, 'stands +24 m', 6, '#111'); T(228, -146, 'alcove', 5.8, '#111'); T(213, -154.6, 'fog gate · floor ⌀104', 5.6, '#fff', 'end');
-      T(165, -159.5, 'slab −156', 5.6, '#ddd'); T(240, -60, 'portal', 6.2, '#9fc0ff', 'end');
+      T(165, -158.6, 'slab −156', 5.6, '#ddd'); T(240, -60, 'portal', 6.2, '#9fc0ff', 'end');
       for (const [y, t] of [[18, '+18'], [6, '+6'], [0, '0'], [-80, '−80'], [-126, '−126'], [-150, '−150']]) T(85, y + 1.5, t, 6, '#fff', 'start');
     } });
     let d = $('sec'); if (!d) { d = document.createElement('div'); d.id = 'sec'; document.body.appendChild(d); }
     Object.assign(d.style, { position: 'absolute', left: '6px', top: top + 4 + 'px', zIndex: 3, color: '#ff9a4a', fontSize: '10px', fontWeight: '700' });
-    d.innerHTML = `A · THE WHOLE CELL (z −250 → 250, y +55 → −262)${a}<div style="height:6px"></div>B · THE SE, ZOOMED 3× (z 84 → 246)${b}`;
-    $('foot').innerHTML = `Layers: surface −6…+45 · vault −40…−30 · Titan arena −156…−80. Vault and arena footprints don't overlap (x 151–221 / z −99…−29 vs x 80–220 / z 95–235); the arena sits 74 m under the surface's deepest point. All inside ±250, above −250.`;
+    d.innerHTML = `A · THE WHOLE CELL (z −250 → 250, y +50 → −258)${a}<div style="height:6px"></div>B · THE SE, ZOOMED 3× (z 84 → 246)${b}`;
+    $('foot').innerHTML = `Surface −6…+45 · vault −40…−30 (x 151–221, z −99…−29) · Titan arena −156…−80 (x 80–220, z 95–235): no overlaps, all inside ±250, above −250.`;
   },
   arenaplan() {
     const W = VW(), H = VH(); full(); world.visible = false; hiddenG.visible = true; arenaOv.visible = true; signs.visible = false; scene.fog = null;
@@ -1231,18 +1234,18 @@ const VIEWS = {
     sv.push(`<line x1="0" y1="${g - 24 * pk}" x2="${W - 16}" y2="${g - 24 * pk}" stroke="#5a5f65" stroke-dasharray="4 3"/><text x="${W - 18}" y="${g - 24 * pk - 2}" font-size="7" text-anchor="end" fill="#333" font-weight="700">stands top 24 m</text>`);
     [[9, 60], [15, 170], [20, 300]].forEach(([Hh, xc], i) => { sv.push(titanFrontSvg(Hh, xc, g, pk, ['#7aa6f0', '#e2782c', '#e07acb'][i], Hh === TITAN.chosen)); sv.push(`<text x="${xc}" y="${g + 11}" font-size="8.5" text-anchor="middle" font-weight="700" fill="#fff">${Hh} m · ${(Hh / 1.8).toFixed(1)}× you${Hh === TITAN.chosen ? ' · CHOSEN' : ''}</text>`); });
     sv.push(`<rect x="${110}" y="${g - 1.8 * pk}" width="${.5 * pk}" height="${1.8 * pk}" fill="#fff" stroke="#111" stroke-width=".6"/><text x="114" y="${g - 9}" font-size="7" fill="#111" font-weight="700">you 1.8 m</text></svg>`);
-    $('panel').hidden = false; $('foot').hidden = true;
+    $('panel').hidden = false; $('foot').hidden = true; panelAt(top + W + 4);
     $('panel').innerHTML = sv.join('') + `<table style="font-size:8.2px;margin-top:3px"><tr><td><b>Titan</b></td><td class="num"><b>sweep r</b></td><td class="num"><b>escape</b></td><td class="num"><b>tell 0.9 / ×√(H/9)</b></td><td class="num"><b>both fists</b></td><td class="num"><b>arena 7H</b></td><td class="num"><b>sprint across</b></td><td class="num"><b>4×8 block</b></td></tr>
       ${TS.map(q => `<tr><td>${q.H} m${q.H === TITAN.chosen ? ' ✔' : ''}</td><td class="num">${q.sweepM} m</td><td class="num">${q.escapeM} m · ${q.escapeS} s</td><td class="num">${q.fairAt09 ? 'fair' : '<b style="color:#ff6a6a">unfair</b>'} / ${q.tellScaledS} s fair</td><td class="num">≥ ${q.readM} m</td><td class="num">⌀${q.arenaD}</td><td class="num">${q.crossS} s</td><td class="num">${Math.round(q.blockVsH * 100)} % of H</td></tr>`).join('')}</table>
       <b>Chosen: 15 m, arena floor ⌀104</b> (7 H). From fighting range (13–16 m) it overfills a portrait frame and you lose its head when you close in: massive. It stays fair at the written tells (0.76 s to clear the sweep against 0.9 s) and the 4 × 8 block still reads as a thrown crate. 9 m reads as a big elite; at 20 m the sweep needs a 1.34 s tell, the fists leave the frame inside 18 m and the arena grows to ⌀140 (19 s to cross).`;
     render(ortho);
   },
-  tgate() { full(); persp.fov = 72; persp.position.set(214, EYE, 186); persp.lookAt(216, 8, 229); signsWithin(60); caption('GROUND VIEW · THE TITAN GATE · eye 1.7 m, from the lane', 'Out of the 14 m lane (from the Titan road or G3) into the 39 × 38 m plaza: the last checkpoint, the L20 plaque on the left, the return pad on the right and the 18 m portal arch: the boss fog. Walk in and you are in the hidden arena; the intro plays there.'); render(persp); },
-  gentry() { full(); persp.fov = 76; persp.position.set(61, 3 + EYE, 144.5); persp.lookAt(42, 0, 178); signsWithin(75); caption('GROUND VIEW · ENTERING THE GAUNTLET · C1 entry terrace, +3 m', 'Through the entry onto C1\'s terrace: the floor below with wave 2 coming in (Riveters, Arc Sentries out of spawn doors D1 and D2), half walls, crates and a 6 m pillar for cover, two ramps down. G1 (far left) opens after wave 2 and climbs to C2.'); render(persp); },
+  tgate() { full(); persp.fov = 72; persp.fov = 80; persp.position.set(216, EYE, 194); persp.lookAt(216, 6, 229); signsWithin(60); caption('GROUND VIEW · THE TITAN GATE · eye 1.7 m, from the lane', 'Stepping out of the 14 m lane (from the Titan road or G3) into the 39 × 38 m plaza, facing south: the last checkpoint and the L20 plaque on the right, the return pad (where you come back out) on the left, the 18 m portal arch ahead: the boss fog. Walk in and you are in the hidden arena; the intro plays there.'); render(persp); },
+  gentry() { full(); persp.fov = 76; persp.fov = 84; persp.position.set(63, 3 + EYE, 148.6); persp.lookAt(57, -2, 180); signsWithin(75); caption('GROUND VIEW · ENTERING THE GAUNTLET · C1 entry terrace, +3 m', 'Through the entry onto C1\'s terrace, facing south over the 82 × 34 m floor: wave 2 Riveters among the crate stacks and half walls (D1 is out of frame right, D2 left), the 5 m south wall, and beyond it C2\'s elite-reveal banner. G1, out of frame right, opens after wave 2 and climbs to C2.'); render(persp); },
   arena() {
     full(); world.visible = false; hiddenG.visible = true; const A = TITAN_ARENA;
-    persp.fov = 70; persp.position.set(A.cx + 2, A.y + 2.6, A.cz + 21.5); persp.lookAt(A.cx, A.y + 6, A.cz); signsWithin(60);
-    caption('GROUND VIEW · THE HIDDEN ARENA (y −150) · the 15 m Crate Titan', 'Third-person camera 5 m behind you, you 16 m from its axis (both fists in frame): four P2 Mites at its feet, crate-rain rings, the 4 × 8 block in a rolling lane, the 24 m stands and floodlights behind. Its own sky: the arena is a hidden region, 74 m under the SE.'); render(persp);
+    persp.fov = 70; persp.position.set(A.cx + 15.2, A.y + 2.6, A.cz + 15.2); persp.lookAt(A.cx, A.y + 6, A.cz); signsWithin(60);
+    caption('GROUND VIEW · THE HIDDEN ARENA (y −150) · the 15 m Crate Titan', 'Third-person camera 5 m behind you (white), you 16 m from its axis, the nearest spot that keeps both fists in frame, standing in the SE rolling lane: four P2 Mites at its feet, crate-rain rings, the 24 m stands and a floodlight behind. Its own sky: the arena is a hidden region, 74 m under the SE.'); render(persp);
   },
 };
 // a clear eye-height shot of `at` from about `d` m away in direction `a` (cover-aware), looking through it
@@ -1274,7 +1277,7 @@ function caption(title, text) {
 const ui = $('ui'); for (const k of [...Object.keys(VIEWS), 'orbit']) { const o = document.createElement('option'); o.textContent = k; ui.appendChild(o); }
 ui.onchange = () => show(ui.value);
 function show(name) {
-  current = name; controls.enabled = name === 'orbit';
+  current = name; controls.enabled = name === 'orbit'; $('panel').style.top = ''; $('panel').style.bottom = '';
   world.visible = true; hiddenG.visible = false; arenaOv.visible = false; renderer.domElement.style.visibility = 'visible'; $('sec')?.remove(); $('t1').style.fontSize = '';
   for (const id of ['r1', 't1', 't2']) $(id).hidden = true; renderer.domElement.style.left = '0px'; $('labels').style.left = '0px';
   if (name === 'orbit') { full(); caption('ORBIT · drag to look around', ''); persp.position.set(0, 220, 380); controls.target.set(0, 0, 0); controls.update(); return; }

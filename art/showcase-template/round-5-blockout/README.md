@@ -161,7 +161,7 @@ plus one interior; that peak needs a measured reading once it's built.
   they were; both now open into the forecourt.
 - **New:** the Titan road (12 m, the shortcut to the gate), spawn closets behind six doors, the elite reveal lift, the
   Foreman's office and balcony, the run board, three checkpoints (forecourt, Titan gate, arena alcove).
-- **Didn't fit:** nothing. 8,499 m² of the SE bottom stays free; C3 could grow to ⌀96 in it if a playtest wants more.
+- **Didn't fit:** nothing. 8,499 m² of the SE bottom stays free, but in scraps (round C3, behind the closets, east of the lane); a bigger court would come from pushing C1 and C2 west to x 8.
 - **Proposed, not decided:** the Titan road opens from the inside after the first gauntlet clear (a Souls shortcut), so
   the Titan is first reached through G3; the named elite in wave 3 needs a name (EB's call); the threat sizes (r 8 ring,
   7 m lunge, 4.3 m/s) are assumptions until EB tunes them.
