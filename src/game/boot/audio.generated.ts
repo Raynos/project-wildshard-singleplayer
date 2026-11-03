@@ -38,6 +38,231 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-332f81db.m4a"
   }
  },
+ "lantern-bayou": {
+  "genre": "lantern-bayou",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-a-e259636eca92.m4a",
+    "loopStart": 22,
+    "loopEnd": 66.58,
+    "duration": 67.58,
+    "gain": 1,
+    "seamScore": 0.465,
+    "calm": "take-a-e259636eca92.m4a",
+    "bpm": 86.1,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-701",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.313739,
+    "metrics": {
+     "duration_s": 75.08,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -14.3,
+      "lra": 12.1,
+      "true_peak_dbfs": 0.1
+     },
+     "clipping": {
+      "clipped_samples": 106,
+      "clipped_frac": 0.000016006745786299675,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2143.3,
+      "rolloff95_hz": 9506.3,
+      "flatness": 0.0027,
+      "hf_above_12k": 0.00084,
+      "sub_below_60": 0.0757,
+      "stereo_corr": 0.682
+     },
+     "tempo": {
+      "estimated_bpm": 86.1,
+      "brief_bpm": 72,
+      "rel_err": 0.196
+     },
+     "key": {
+      "best_key": "A# major",
+      "best_r": 0.912,
+      "d_major_r": -0.1,
+      "d_major_rank": 14,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.465,
+      "similarity": 0.473,
+      "level_match": 0.945,
+      "start_s": 22,
+      "end_s": 66.58,
+      "bars": 16,
+      "loop_s": 44.58,
+      "grid_bpm": 86.1
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0001,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.1813,
+       "bass": 0.2162,
+       "other": 0.6024,
+       "vocals": 0.0001
+      },
+      "groove_active_frac": 0.8,
+      "drums_active_frac": 0.747
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 6,
+     "p": 0.001978,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-e259636eca92.m4a",
+     "loopStart": 22,
+     "loopEnd": 66.58,
+     "duration": 67.58,
+     "gain": 1,
+     "seamScore": 0.465
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "lantern-bayou",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 72 BPM, 4/4. Slow blue-green dusk swamp village, intimate slide dobro melody answered by soft accordion, warm upright bass and brushes. Spacious, gentle mystery, relaxed unhurried instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 269.2,
+     "model_load_s": 9.1,
+     "mps_driver_gb": 27.32
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.24127549999999998,
+    "metrics": {
+     "duration_s": 75.08,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15.2,
+      "lra": 7.8,
+      "true_peak_dbfs": 0
+     },
+     "clipping": {
+      "clipped_samples": 3,
+      "clipped_frac": 4.530211071594248e-7,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2168.8,
+      "rolloff95_hz": 8806.9,
+      "flatness": 0.0018,
+      "hf_above_12k": 0.00014,
+      "sub_below_60": 0.0184,
+      "stereo_corr": 0.659
+     },
+     "tempo": {
+      "estimated_bpm": 86.1,
+      "brief_bpm": 72,
+      "rel_err": 0.196
+     },
+     "key": {
+      "best_key": "A# minor",
+      "best_r": 0.512,
+      "d_major_r": -0.301,
+      "d_major_rank": 23,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.258,
+      "similarity": 0.302,
+      "level_match": 0.519,
+      "start_s": 28.25,
+      "end_s": 72.83,
+      "bars": 16,
+      "loop_s": 44.58,
+      "grid_bpm": 86.1
+     },
+     "vocals": {
+      "vocal_energy_share": 0.2879,
+      "vocal_active_frac": 0.453,
+      "stem_share": {
+       "drums": 0.0402,
+       "bass": 0.1601,
+       "other": 0.5119,
+       "vocals": 0.2879
+      },
+      "groove_active_frac": 0.96,
+      "drums_active_frac": 0.653
+     }
+    },
+    "qualified": false,
+    "failedChecks": [
+     "vocal check 28.8% exceeds 10%"
+    ],
+    "clap": {
+     "rank": 3,
+     "p": 0.001951,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-4a122c6b5e26.m4a",
+     "loopStart": 28.25,
+     "loopEnd": 72.83,
+     "duration": 73.83,
+     "gain": 1,
+     "seamScore": 0.258
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "lantern-bayou",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 72 BPM, 4/4. Slow blue-green dusk swamp village, intimate slide dobro melody answered by soft accordion, warm upright bass and brushes. Spacious, gentle mystery, relaxed unhurried instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 269.6,
+     "model_load_s": 9.1,
+     "mps_driver_gb": 27.47
+    }
+   }
+  ]
+ },
  "nalati": {
   "style": "nalati",
   "model": "MiniMax-Music3",
@@ -751,6 +976,64 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "gain": 1
    }
   }
+ },
+ "lantern-bayou": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "lantern-bayou.ambience": {
+    "file": "ambience-908d31a41d40.m4a",
+    "loopStart": 8.25,
+    "loopEnd": 26.25,
+    "duration": 27.25,
+    "gain": 1,
+    "seamScore": 0.368
+   }
+  },
+  "hums": {
+   "lantern-bayou.boardwalk-creak": {
+    "file": "boardwalk-creak-c04235c6f19e.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 4.25,
+    "duration": 5.25,
+    "gain": 1,
+    "seamScore": 0.538
+   },
+   "lantern-bayou.house-wind-chimes": {
+    "file": "house-wind-chimes-8d3a6a7a604e.m4a",
+    "loopStart": 3.75,
+    "loopEnd": 5.75,
+    "duration": 6.75,
+    "gain": 1,
+    "seamScore": 0.258
+   },
+   "lantern-bayou.distant-owl": {
+    "file": "distant-owl-25a3cbfe9be7.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 5.5,
+    "duration": 6.5,
+    "gain": 1,
+    "seamScore": 0.508
+   },
+   "lantern-bayou.lantern-boat-bump": {
+    "file": "lantern-boat-bump-7208440d90bb.m4a",
+    "loopStart": 3,
+    "loopEnd": 5,
+    "duration": 6,
+    "gain": 1,
+    "seamScore": 0.607
+   },
+   "lantern-bayou.cypress-rustle": {
+    "file": "cypress-rustle-5782212b0b90.m4a",
+    "loopStart": 3.25,
+    "loopEnd": 5.25,
+    "duration": 6.25,
+    "gain": 1,
+    "seamScore": 0.484
+   }
+  },
+  "oneshots": {}
  },
  "nalati-grasslands": {
   "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",

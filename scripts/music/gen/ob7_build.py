@@ -11,7 +11,9 @@ import difflib
 import hashlib
 import html
 import json
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -145,11 +147,16 @@ def encode_loop(wav: Path, target: Path, lufs: float, kbps: int, scratch: Path, 
 
 
 def publish(raw: Path, plot: str) -> None:
+    with tempfile.TemporaryDirectory(prefix=f'encode-{plot}-', dir=raw) as folder:
+        publish_checked(raw, plot, Path(folder))
+
+
+def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
     comparisons = json.loads((raw / f"{plot}-clap.json").read_text())
-    music = REPO / "public/assets/music" / plot
-    sfx = REPO / "public/assets/sfx" / plot
-    scratch = raw / f"encode-{plot}"
-    scratch.mkdir(exist_ok=True)
+    music = scratch / 'music'
+    sfx = scratch / 'sfx'
+    music.mkdir()
+    sfx.mkdir()
     candidates = []
     for index, wav in enumerate(score_files(raw, plot)):
         metrics = json.loads(wav.with_suffix(".metrics.json").read_text())
@@ -200,7 +207,10 @@ def publish(raw: Path, plot: str) -> None:
     total = sum(path.stat().st_size for folder in (music, sfx) for path in folder.iterdir() if path.is_file())
     if total > 3_000_000 or any(path.stat().st_size > 1_000_000 for folder in (music, sfx) for path in folder.iterdir()):
         raise ValueError(f"{plot}: audio byte budget refused ({total})")
-    scratch.rmdir()
+    for staged, destination in [(music, REPO / 'public/assets/music' / plot), (sfx, REPO / 'public/assets/sfx' / plot)]:
+        destination.mkdir(parents=True, exist_ok=True)
+        for path in staged.iterdir():
+            shutil.copyfile(path, destination / path.name)
     print(f"{plot}: {total} bytes, recommended {winner['id']}; native playback bar still open", flush=True)
 
 
