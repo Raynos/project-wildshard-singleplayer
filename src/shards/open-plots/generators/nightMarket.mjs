@@ -491,7 +491,9 @@ function stringLights(w, p, side, centre) {
     return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin); };
   laneLife(w, along, (x, z) => clear(x, z) || Math.hypot(centre[0] + x, centre[1] + z) < GATE_CLEAR);
   // RM8.5: the kit's round bulbs hang every 3 m (the tetrahedra's 2.5 m with every family on put an S tile over 15k)
-  if (w.hasModel('strings')) { modelStrings(w, p, along, ends, clear, top, sag, 3); return; }
+  // OP1: every other seam (by its tile's column, row and side) carries a hero lantern
+  const alternate = (Math.floor((centre[0] + 250) / (2 * HALF)) + Math.floor((250 - centre[1]) / (2 * HALF)) + side) % 2 === 0;
+  if (w.hasModel('strings')) { modelStrings(w, p, along, ends, clear, top, sag, 3, alternate); return; }
   for (const off of [-3, 3]) {
     for (const u of ends) {
       const [x, , z] = along(u, off, 0);
@@ -529,10 +531,11 @@ function laneLife(w, along, clear) {
 
 /** RM4.3 (opt-in, the layout's kit): a seam's strings from the kit: a lane post with its banner along the lane
  *  at each crossing corner, a thick dark rope sagging between them (OP1, G827: "connected by a very visible rope") with
- *  round gold bulbs on it, and two hero paper lanterns hung from it a third of the way in from each post (the kit's
- *  `hero` take A; without it the old small paper lantern every fourth point). Each model emits its own light. */
-function modelStrings(w, p, along, ends, clear, top, sag, step) {
-  const yaw = along(1, 0, 0)[0] === 1 ? 0 : Math.PI / 2, hero = w.hasModel('hero');
+ *  round gold bulbs on it, and on every other seam one hero paper lantern, hung from the middle of one of its two ropes
+ *  where it sags lowest (the kit's `hero` take A, about 55 on the lanes: 2.6 KB of phone wire each; without it the old
+ *  small paper lantern every fourth point). Each model emits its own light. */
+function modelStrings(w, p, along, ends, clear, top, sag, step, alternate) {
+  const yaw = along(1, 0, 0)[0] === 1 ? 0 : Math.PI / 2, hero = w.hasModel('hero'), heroOff = yaw === 0 ? -3 : 3;
   for (const off of [-3, 3]) {
     for (const u of ends) {
       const [x, , z] = along(u, off, 0);
@@ -540,25 +543,25 @@ function modelStrings(w, p, along, ends, clear, top, sag, step) {
       w.placeModel('strings', 2, x, z, { yaw });
       w.solid([x - 0.15, 0, z - 0.15], [x + 0.15, top, z + 0.15]);
     }
-    const span = ends[1] - ends[0], count = Math.floor(span / step), cord = [], heroAt = new Set([Math.round(count / 3), Math.round(count * 2 / 3)]);
+    const span = ends[1] - ends[0], count = Math.floor(span / step), cord = [], heroAt = new Set([Math.round(count / 2)]);
     for (let i = 0; i <= count; i++) {
       const t = i / count, u = ends[0] + span * t, y = top - sag * 4 * t * (1 - t), point = along(u, off, y);
       if (i % 2 === 0 || i === count) cord.push(point);
       if (i === 0 || i === count || clear(point[0], point[2])) continue;
       if (hero) {
-        if (heroAt.has(i)) w.placeModel('hero', 0, point[0], point[2], { y, yaw, scale: HERO_SCALE });
+        if (alternate && off === heroOff && heroAt.has(i)) w.placeModel('hero', 0, point[0], point[2], { y, yaw, scale: HERO_SCALE });
         else w.placeModel('strings', 0, point[0], point[2], { y: y - 0.16, yaw });
       } else w.placeModel('strings', i % 4 === 0 ? 1 : 0, point[0], point[2], { y: y - (i % 4 === 0 ? 0 : 0.16), yaw });
     }
-    // the rope: a 7 cm square-section rope between its points, its four faces out (seen from the lane and from above)
+    // the rope: a 7 cm three-sided rope between its points, its faces out (a closed tube: no back faces), its flat
+    // underside toward the lane below and its ridge up
     for (let k = 0; k + 1 < cord.length; k++) {
       const a = cord[k], b = cord[k + 1];
       if (a === undefined || b === undefined || clear(a[0], a[2]) || clear(b[0], b[2])) continue;
-      const r = 0.035, across = yaw === 0 ? [0, 0, r] : [r, 0, 0];
+      const r = 0.04, across = yaw === 0 ? [0, 0, r] : [r, 0, 0];
       const at = (q, s, t) => [q[0] + across[0] * s, q[1] + r * t, q[2] + across[2] * s];
-      for (const [s0, t0, s1, t1] of [[-1, 1, 1, 1], [1, 1, 1, -1], [1, -1, -1, -1], [-1, -1, -1, 1]]) {
+      for (const [s0, t0, s1, t1] of [[-1, -0.6, 0, 1], [0, 1, 1, -0.6], [1, -0.6, -1, -0.6]]) {
         w.quad('Kit', at(a, s0, t0), at(a, s1, t1), at(b, s1, t1), at(b, s0, t0), p.rope ?? p.wood);
-        w.quad('Kit', at(b, s0, t0), at(b, s1, t1), at(a, s1, t1), at(a, s0, t0), p.rope ?? p.wood);
       }
     }
   }

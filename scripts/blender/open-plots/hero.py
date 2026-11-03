@@ -50,9 +50,9 @@ def tassel(p, z, length, sides):
 
 
 def round_lantern(lod=0):
-    """A: the round paper lantern, 0.7 m across: 12 ribs on a 24-facet body (LOD0) or 6 on 8 (LOD1)."""
+    """A: the round paper lantern, 0.7 m across: 6 ribs on a 12-facet body (LOD0) or 4 on 8 (LOD1)."""
     p = Piece()
-    sides, ribs, n = (24, 8, 10) if lod == 0 else (8, 4, 4)
+    sides, ribs, n = (12, 6, 7) if lod == 0 else (8, 4, 4)
     top, bottom, r = -0.18, -1.0, 0.36
     profile = [(r * math.sin(math.pi * (0.12 + 0.76 * k / n)), top - (top - bottom) * k / n) for k in range(n + 1)][::-1]
     ribbed(p, profile, sides, ribs, 'Glow.paper', 'Kit.gold', 0.04)
