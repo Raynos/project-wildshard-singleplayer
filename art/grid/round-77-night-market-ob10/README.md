@@ -45,3 +45,28 @@ with the round-49 board (`art/grid/round-49-night-market-billboards-2x2/bb-b.jpg
 
 **Ruling (G941 / G872): R1 ships.** Phone wire 7,940,254 → 7,944,062 B, and seven window rows grow 4–28 B (standing
 rule). Draws are unchanged.
+
+## Look loop R2: clear aerials
+
+The two aerial hero views sit about 470 m up, and the fog began at 300 m: a pink veil over the whole plot where round 49
+is crisp. The row's fog now runs from 600 to 1800 m. The top-down reads its blue canals and green beds; the road
+entry and plaza are unchanged.
+
+**Ruling (G941 / G872): R2 ships.**
+
+## The final board (`board-final.jpg`)
+
+Round 49's mockup, the plot before OB10 (`05f1661521`) and now, at the four hero cameras, all on the phone tier at 2x as
+an iPhone 16 Pro.
+
+- **Meets the build-out bar:**
+  - bar 1: the gate reads lit from the road entry and from above the neighbour, at 18k triangles near;
+  - bar 6: L0 max 14,852 and mean 8,910 triangles;
+  - bar 12: 110-116 draws in the plot (road entry and plaza);
+  - bar 15: 282k-495k triangles in view in the plot;
+  - phone wire 7.94 MB (was 8.13).
+- **Gaps kept:**
+  - The gate is coral where round 49 is crimson. Its landmark graph is shared with other plots.
+  - The plaza is wide and open where round 49 is tight round the gate, the 500 m cell's scale gap shared by every plot.
+  - The aerials draw 186-264, past the in-plot bar. They also see the neighbouring cells.
+  - Audio comes with OB7.
