@@ -10,16 +10,17 @@ type ReadAsset = (url: string) => Uint8Array;
 interface BridgeSpan { id: string; deckGeometry: string; deck: number[]; posts: number[]; ropes: string[] }
 export interface BridgeRestRows { pool: { url: string; parts: string[] }; spans: (BridgeSpan & { scene: PrivateScene })[] }
 
-function partNames(index: number): { deck: string; rails: string } {
+function partNames(index: number): { deck: string; ropes: string; ties: string } {
   const prefix = `bridge-${String(index)}`;
-  return { deck: `${prefix}-deck`, rails: `${prefix}-rails` };
+  return { deck: `${prefix}-deck`, ropes: `${prefix}-ropes`, ties: `${prefix}-ties` };
 }
 /** Derive the native pool inventory from the same authored spans and names as the geometry builder. */
 export function bridgeRestPool(): BridgeRestRows['pool'] {
   const parts: string[] = [];
-  for (const index of ropeSpans().keys()) {
+  for (const [index, span] of ropeSpans().entries()) {
     const names = partNames(index);
-    parts.push(names.deck, names.rails);
+    parts.push(names.deck, names.ropes);
+    if (span.length - 1.2 > 2.5) parts.push(names.ties);
   }
   return { url: BRIDGE_REST_URL, parts };
 }
@@ -49,26 +50,28 @@ async function make(read: ReadAsset): Promise<{ glb: Uint8Array; rows: BridgeRes
     const geometry = pack.geometry(source.deck), [sx, sy, sz] = span.deck.scale;
     geometry.scale(sx, sy, sz); geometry.computeVertexNormals(); geometry.computeBoundingBox(); owned.push(geometry);
     const deck = new Mesh(geometry, material); deck.name = deckGeometry; root.add(deck);
-    // Far Reach's phone draw cap (5c72 Simulator census): both sides' top and mid ropes and their ties in one indexed
-    // geometry, one draw a span (was six); the same triangles in the span's space and the same flat-shaded rails material
-    const rails: BufferGeometry[] = [];
+    // Far Reach's phone draw cap (5c72 Simulator census): both sides' top and mid ropes in one indexed geometry and both
+    // sides' ties in one non-indexed one, two draws a span (was six); the same triangles in the span's space and the same
+    // flat-shaded rails material. The ties stay non-indexed and apart from the tubes: indexed and merged they cost the
+    // phone 19 KB more at the deploy's brotli (quality 3) for one draw less
+    const tubes: BufferGeometry[] = [], ties: BufferGeometry[] = [];
     for (const side of span.sides) {
       for (const row of [side.top, side.mid]) {
         const points = Array.from({ length: row.at.length / 3 }, (_, i) => new Vector3(row.at[i * 3], row.at[i * 3 + 1], -(row.at[i * 3 + 2] ?? 0)));
-        const tube = new TubeGeometry(new CatmullRomCurve3(points), 48, row.r, 6, false);
-        rails.push(tube);
+        tubes.push(new TubeGeometry(new CatmullRomCurve3(points), 48, row.r, 6, false));
       }
       for (let i = 0; i + 3 < side.ties.length; i += 4) {
         const tie = new CylinderGeometry(0.009, 0.009, side.ties[i + 3], 4, 1);
-        tie.translate(side.ties[i] ?? 0, side.ties[i + 1] ?? 0, -(side.ties[i + 2] ?? 0)); rails.push(tie);
+        tie.translate(side.ties[i] ?? 0, side.ties[i + 1] ?? 0, -(side.ties[i + 2] ?? 0)); ties.push(tie.toNonIndexed()); tie.dispose();
       }
     }
-    if (rails.length > 0) {
-      const combined = mergeGeometries(rails);
-      for (const piece of rails) piece.dispose();
+    for (const [name, parts] of [[names.ropes, tubes], [names.ties, ties]] as const) {
+      if (parts.length === 0) continue;
+      const combined = mergeGeometries(parts);
+      for (const piece of parts) piece.dispose();
       if (combined === null) throw new Error('Sky bridge rails do not merge');
       owned.push(combined);
-      const mesh = new Mesh(combined, material); mesh.name = names.rails; root.add(mesh); ropes.push(mesh.name);
+      const mesh = new Mesh(combined, material); mesh.name = name; root.add(mesh); ropes.push(mesh.name);
     }
     const row = { id: span.id, deckGeometry, deck: Array.from(pack.floats(span.deck.at)), posts: Array.from(pack.floats(span.posts)), ropes };
     return Object.assign(row, { scene: bridgeScene(row) });
