@@ -74,8 +74,8 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
     <div class="chip"><b>v1 plan</b><span><span class="tag wait">parked</span> K0 done, nothing built</span></div>
     <div class="chip"><b>Shard audit</b><span><span class="tag done">done</span> 6 shards + host catalogue</span></div>
     <div class="chip"><b>Plans mined</b><span><span class="tag done">done</span> ~35 ideas</span></div>
-    <div class="chip"><b>Wave 1 host audit</b><span><span class="tag wait">running</span> what hosts must exist first</span></div>
-    <div class="chip"><b>Grey blockout</b><span><span class="tag wait">running</span> does it fit in 500 m?</span></div>
+    <div class="chip"><b>Wave 1 host audit</b><span><span class="tag done">drafted</span> what hosts must exist first</span></div>
+    <div class="chip"><b>Grey blockout</b><span><span class="tag done">fits</span> 22.7 % of the cell free</span></div>
     <div class="chip"><b>Jake's pass</b><span><span class="tag wait">in progress</span> core kept, water skipped</span></div>
   </div>
 </section>
@@ -93,6 +93,13 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
     <tr><td class="n">11-02</td><td><b>The creature pen, taming and mounts are cut.</b></td></tr>
     <tr><td class="n">11-02</td><td><b>Storm hour:</b> one chain step turns the whole cell to an evening storm until the beacons are lit. No per-zone weather.</td></tr>
     <tr><td class="n">11-02</td><td><b>In:</b> checkpoint cards per chain leg; crates and loot chests. <b>Out:</b> happenings, time trials, thin ice, glide shaft, daily seed. <b>Not yet:</b> tooling demos (third-person camera, landscape, loading screen, Explore tabs).</td></tr>
+    <tr><td class="n">11-02</td><td><b>The Training Vault is the mini dungeon:</b> a 4-room shrine (puzzle, fight, climb, Vault Warden, chest) behind its portal in the east half. A shared dungeon host joins Wave 1. Dying restarts the room you died in; solved puzzles stay solved.</td></tr>
+    <tr><td class="n">11-02</td><td><b>Riding uses a loaner horse:</b> a stable hand hands you a dev-bot horse at the course start, for the course only.</td></tr>
+    <tr><td class="n">11-02</td><td><b>Quests are freeform but level-locked.</b> A quest you're too low for shows a grey "!" (like WoW), which turns yellow when you reach its level.</td></tr>
+    <tr><td class="n">11-02</td><td><b>Soft gate</b> on the mini-bosses and the boss: always open, and brutal when you're under-levelled.</td></tr>
+    <tr><td class="n">11-02</td><td><b>The west half pays nothing</b>: no XP, no coins. It is there for fun and practice.</td></tr>
+    <tr><td class="n">11-02</td><td><b>Orchestral score</b> (MiniMax Music 3), against the dev-map look.</td></tr>
+    <tr><td class="n">11-02</td><td><b>Wave 1 front-loads all of it</b> (~380 h plus the levels system) and runs as its own lane plan.</td></tr>
     <tr><td class="n">11-02</td><td><b>Every shard gets a shard-complete card</b>, and a shardfile validator requires it.</td></tr>
     <tr><td class="n">11-02</td><td><b>Jake picks the additions himself.</b> The lists below are the menu; his picks so far are in the next section.</td></tr>
   </table>
@@ -274,7 +281,16 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
 
 <section>
   <h2>GREY BLOCKOUT</h2>
-  <p><span class="tag wait">running</span> A clean-room level designer is blocking the cell out in grey, with zone sizes taken from real speeds and arena sizes in the game data. It reports whether everything fits, spills over or needs cuts, and how the chain routes. The captures land in art/showcase-template/round-1-blockout/ and on this page.</p>
+  <p><span class="tag done">round 1 done</span> <b>It fits with no cuts.</b> West 47 % used, east 78 %, 22.7 % of the cell free. The interiors (mini dungeon, cave) sit under the cell behind portals at 0 m² of surface. Zone sizes come from real game numbers: walk 4.3, sprint 7.2, gallop 13, hoverboard 14 m/s; grapple reach 38 m; Driftwood's boss arena r 22.</p>
+  <figure>
+    <img src="blockout-plan.jpg" alt="Top-down grey blockout of the 500 m cell: non-combat zones on the west, six level bands snaking to the L20 boss in the south-east.">
+    <figcaption>art/showcase-template/round-1-blockout/ (commit 8094bf351f): a standalone three.js page, measured at 1 m.</figcaption>
+  </figure>
+  <ul>
+    <li>The hub sits on the centre line, and its east gate is the only way into the combat half. A seam wall runs north to south; the east road is walled, so arrivals from the east neighbour land on a safe road.</li>
+    <li>The six bands snake outward to the L20 boss in the far south-east corner, about 270 m from the hub. The mini-bosses sit where the bands change.</li>
+    <li><b>Round 2 notes:</b> shrink the hub to a radius of 25–30 m (80 m reads empty at eye height); add cover and props between enemy packs; merge the west vault into the east mini dungeon (Jake's ruling); drop the fixed 9-leg chain for freeform level-locked quests.</li>
+  </ul>
 </section>
 </main>
 </body>
