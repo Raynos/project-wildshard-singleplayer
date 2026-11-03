@@ -164,9 +164,9 @@ def landmark(light=None):
 write('paving.graph.json', paving())
 write('kit.graph.json', kit())
 write('landmark.graph.json', landmark())
-# OB2 Lantern Bayou: its boardwalk in 2.4 x 0.25 m planks (rows across z, ends staggered, each board its own shade, dark
+# OB2 Lantern Bayou: its boardwalk in 4 x 0.3 m planks (rows across z, ends staggered, each board its own shade, dark
 # gaps) where the kit rules flagstones; its cypress under a neutral teal dusk fill (~1.1x, a softer sun, a warm lantern
 # uplight under the crown) where the gate's warm lilac fill (x 2.8-3.6) would turn bark lilac and moss white
-write('kitPlanks.graph.json', kit({'flag': 2.4, 'row': 0.25, 'joint': 0.012, 'spread': 0.3, 'jointShade': 0.45}))
+write('kitPlanks.graph.json', kit({'flag': 4.0, 'row': 0.3, 'joint': 0.012, 'spread': 0.36, 'jointShade': 0.6}))
 write('landmarkDusk.graph.json', landmark({'trim': 0.4, 'ambient': [0.46, 0.56, 0.56], 'skyFill': [0.95, 1.12, 1.16], 'sunGain': 0.55,
                                           'sunColour': [1.2, 1.0, 0.82], 'uplight': [0.95, 0.58, 0.26], 'uplightHeight': 16}))

@@ -162,28 +162,28 @@
         "shade": 0.3,
         "classes": [
           {
-            "match": "#5c5248",
-            "fill": "#5c5248"
+            "match": "#6e5640",
+            "fill": "#6e5640"
           },
           {
-            "match": "#685c50",
-            "fill": "#685c50"
+            "match": "#7a6148",
+            "fill": "#7a6148"
           },
           {
-            "match": "#3c4846",
-            "fill": "#3c4846"
+            "match": "#4c4034",
+            "fill": "#4c4034"
           },
           {
-            "match": "#565048",
-            "fill": "#565048"
+            "match": "#68523e",
+            "fill": "#68523e"
           },
           {
-            "match": "#6a6156",
-            "fill": "#6a6156"
+            "match": "#7e664c",
+            "fill": "#7e664c"
           },
           {
-            "match": "#5f564c",
-            "fill": "#5f564c"
+            "match": "#725a44",
+            "fill": "#725a44"
           },
           {
             "match": "#5a4a3c",
@@ -258,16 +258,16 @@
             "fill": "#14203f"
           },
           {
-            "match": "#6a4620",
-            "fill": "#6a4620"
+            "match": "#9a6428",
+            "fill": "#9a6428"
           },
           {
             "match": "#4a6a5a",
             "fill": "#4a6a5a"
           },
           {
-            "match": "#b07a34",
-            "fill": "#b07a34"
+            "match": "#c88a3c",
+            "fill": "#c88a3c"
           },
           {
             "match": "#1a9a98",
