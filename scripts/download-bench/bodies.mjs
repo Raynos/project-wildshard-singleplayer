@@ -23,7 +23,7 @@ function fetchRaw(url) {
     const u = new URL(url), request = u.protocol === 'https:' ? httpsRequest : httpRequest;
     const req = request(u, { headers: { 'accept-encoding': 'br, gzip', 'user-agent': 'wildshard-download-bench' } }, res => {
       /** @type {Buffer[]} */ const parts = [];
-      res.on('data', chunk => parts.push(chunk));
+      res.on('data', chunk => { parts.push(chunk); });
       res.on('end', () => resolve({ status: res.statusCode ?? 0, headers: res.headers, raw: Buffer.concat(parts) }));
       res.on('error', reject);
     });
