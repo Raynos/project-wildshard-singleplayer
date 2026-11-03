@@ -55,19 +55,13 @@ const NALATI = [
       await sleep(900);
     },
     teardown: (page) => page.evaluate(() => { window.__wildshard.shard['nalati.boss'].ui.hideNameCard(); }) },
-  { id: 'UI-22', slug: 'storm-hour', title: 'Storm hour: the storm chip as STORM HOUR + four beacons on the minimap (QC · 8 · W11a)',
+  { id: 'UI-22', slug: 'storm-hour', title: 'Storm hour: one line as it starts (QC · 8 · W11a)',
     setup: async (page) => { await at(page); await page.evaluate(() => { window.__wildshard.world.hud.setWeather({ chip: { title: 'Storm', sub: 'Lightning · get low', tone: 'storm' }, getLow: false }); }); },
-    inject: async (page) => {
-      await page.evaluate(() => {
-        window.__wildshard.world.hud.setWeather({ chip: { title: 'Storm hour', sub: 'Lights Out · beacons 1 / 4', tone: 'storm' }, getLow: false });
-        document.querySelector('.ws-game-weather').classList.add('hour');
-        const mm = document.querySelector('.ws-minimap'), w = mm.getBoundingClientRect().width;
-        for (const [x, y, lit] of [[0.3, 0.28, true], [0.74, 0.34, false], [0.26, 0.72, false], [0.7, 0.76, false]]) { const b = window.__P.add(mm, `<i class="ws-minimap-beacon${lit ? ' lit' : ''}"></i>`); b.style.left = `${x * w}px`; b.style.top = `${y * w}px`; }
-        window.__wildshard.world.hud.toast('Lights Out · beacon 1 lit · the storm holds until all four burn');
-        window.__P.restack(document.querySelector('.ws-game-weather'));
-      });
-      await sleep(400);
-    },
+    // Jake 11-03: "way too busy … a really more minimalist, lightweight" storm hour. No minimap beacons, no toast, the storm
+    // chip unchanged: one centred line as the hour starts (the wave banner's type), fading after ~2 s; the beacons are found
+    // by eye in the world, and lighting one flashes the same line (BEACON 2 / 4).
+    note: 'fades after ~2 s',
+    inject: (page) => page.evaluate(() => { window.__P.swap(document.querySelector('.ws-game-boundary'), (c) => { c.classList.add('wave'); c.querySelector('.ws-game-bt').textContent = 'Storm hour'; const s = c.querySelector('.ws-game-bs'); s.textContent = 'light the four beacons'; s.style.cssText = 'color:#fff;opacity:1;text-shadow:0 1px 2px #000,0 0 8px #000c'; }); }),
     teardown: async (page) => { await page.evaluate(() => { const c = document.querySelector('.ws-game-weather'); c.classList.remove('hour'); for (const k of ['top', 'right', 'left', 'transform']) c.style.removeProperty(k); window.__wildshard.world.hud.setWeather({ chip: null, getLow: false }); }); await clearToasts(page); } },
   { id: 'UI-23', slug: 'stealth-unseen', title: 'Stealth yard: the stealth layer’s hidden state as UNSEEN (exists in Nalati) (QC Keycard)',
     setup: async (page) => {

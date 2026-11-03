@@ -143,8 +143,11 @@ const ITEMS = [
         { at: 'you', cls: 'onyou fail', text: 'DODGE', dx: -4, dy: 24 },
       ]);
     } },
-  { id: 'UI-06', slug: 'guard-button', title: 'GUARD button, only while the sword is held (W3d · D6)', setup: atBeach,
-    inject: (page) => page.evaluate((svg) => { window.__P.add('.ws-touch', `<button class="ws-touch-disc at at-up0 ws-touch-guard show window" type="button">${svg}<span>Guard</span></button>`); }, G.shield) },
+  // Jake 11-03: four in a row, GUARD in the slot the spear's THROW takes (GUARD · LOCK · DODGE · JUMP). LOCK is shown as it
+  // is with an enemy in reach, in both frames, so the row reads at its fullest.
+  { id: 'UI-06', slug: 'guard-button', title: 'GUARD button in the row, only while the sword is held (W3d · D6)', note: 'LOCK shown as with a target',
+    setup: async (page) => { await atBeach(page); await page.evaluate(() => { window.__P.cls(document.querySelector('.ws-touch'), [], ['lock-idle']); window.__P.cls(document.querySelector('.ws-touch-disc.lock'), ['available']); }); },
+    inject: (page) => page.evaluate((svg) => { window.__P.add('.ws-touch', `<button class="ws-touch-disc at at-r3 ws-touch-guard show window" type="button">${svg}<span>Guard</span></button>`); }, G.shield) },
   { id: 'UI-09', slug: 'death-card', title: 'Death card + the XP-loss line (E0e · HC7)', setup: async (page) => {
       await atBeach(page);
       await page.evaluate(() => {
@@ -273,15 +276,16 @@ const ITEMS = [
       c.querySelector('[data-act=next]').innerHTML = '<small>Next shard:</small>Driftwood Isle';
     }),
     teardown: async (page) => { await page.evaluate(() => { document.querySelector('.ws-complete [data-act=keep]')?.click(); }); await sleep(900); } },
-  { id: 'UI-20', slug: 'course-clock', title: 'Course clock chip under the minimap, during a run only (W6d · D22)', setup: atPier,
-    inject: (page) => chipWith(page, { title: '0:42.3', sub: 'Movers run · 3/6 · PB 1:05.8', tone: 'plain' }, G.watch, ['clock']),
+  // Jake 11-03: during a run the clock takes the quest chip's place (the quest chip hides), and the quest chip comes back
+  // when the run ends, so the slot never shows both.
+  { id: 'UI-20', slug: 'course-clock', title: 'Course clock in the quest chip’s place, during a run only (W6d · D22)', setup: atPier,
+    note: 'quest chip hidden during the run',
+    inject: async (page) => { await page.evaluate(() => { window.__P.gone(document.querySelector('.ws-quest-obj')); }); await chipWith(page, { title: '0:42.3', sub: 'Movers run · 3/6 · PB 1:05.8', tone: 'plain' }, G.watch, ['clock']); },
     teardown: chipOff },
-  { id: 'UI-24', slug: 'wave-banner', title: 'Gauntlet wave banner + wave chip (EB · E11c)', setup: atBeach,
-    note: 'crabs stand in for robots',
-    inject: async (page) => {
-      await page.evaluate(() => { window.__P.swap(document.querySelector('.ws-game-boundary'), (c) => { c.classList.add('wave'); c.querySelector('.ws-game-bt').textContent = 'Wave 2 / 5'; c.querySelector('.ws-game-bs').textContent = 'C1 Loading Yard · 6 robots'; }); });
-      await chipWith(page, { title: 'Wave 2/5', sub: 'C1 Loading Yard · 6 left', tone: 'plain' }, G.swords, ['wave']);
-    }, teardown: chipOff },
+  // Jake 11-03: only the big WAVE 2 / 5 in the middle as a wave starts (it fades); no wave chip that stays on screen.
+  { id: 'UI-24', slug: 'wave-banner', title: 'Gauntlet wave banner, only as a wave starts (EB · E11c)', setup: atBeach,
+    note: 'fades after ~2 s',
+    inject: (page) => page.evaluate(() => { window.__P.swap(document.querySelector('.ws-game-boundary'), (c) => { c.classList.add('wave'); c.querySelector('.ws-game-bt').textContent = 'Wave 2 / 5'; c.querySelector('.ws-game-bs').style.display = 'none'; }); }) },
   { id: 'UI-25', slug: 'portal-enter', title: 'Portal prompt: ENTER on the USE band (19ac · DG)', setup: async (page) => { await pose(page, WENDELL, 2600); await clearToasts(page); },
     inject: (page) => page.evaluate(() => { window.__P.swap(document.querySelector('.ws-touch-use'), (c) => { c.classList.add('show'); c.textContent = 'Enter the Training Vault'; }); }) },
   { id: 'UI-27', slug: 'map-heat', title: 'Map heat map: the level bands on the map tab (map plan)', setup: (page) => menu(page, 'map'),

@@ -12,7 +12,7 @@ const GROUPS = [
     ['UI-03', 'levelup-card', 'Level-up card, out of combat', 'new', 'After 5 s calm: each gain ticks up in turn, gold on a big roll, grey on +0, TAP TO SKIP.'],
     ['UI-04', 'nameplates', 'Enemy nameplates within 25 m', 'extends Combat.ts', '"Lv n Name" in the con colour (grey, green, yellow, orange, red, skull), a stagger bar, burn / shock tint, a RARE tag. Crabs stand in for robots.'],
     ['UI-05', 'floating-text', 'Floating combat text', 'extends Combat.ts', 'A big yellow crit, a small grey glance, the DEFLECT and PARRY words, red −12 and DODGE by your vitals. Six on screen, the cap.'],
-    ['UI-06', 'guard-button', 'GUARD button (D6)', 'new', 'A disc in the existing slot over JUMP, only while the sword is held; its rim lights in the parry window.'],
+    ['UI-06', 'guard-button', 'GUARD button (D6)', 'new', 'Four in a row: GUARD · LOCK · DODGE · JUMP, GUARD in the slot the spear’s THROW takes, only while the sword is held; its rim lights in the parry window.'],
     ['UI-07', 'elite-banner', 'Named elite: NAMED ELITE · LV 6', 'extends EliteBar', 'Nalati’s real banner and pinned bar, with the showcase’s Big Pallet and an LV tag.'],
     ['UI-08', 'boss-bar', 'Boss bar with phases', 'extends BossBar', 'Today’s bar already has phase notches and the PHASE caption; the Crate Titan adds LV 20 and three phase pips.'],
     ['UI-09', 'death-card', 'Death card + XP loss', 'extends DeathFade', 'The same card with one more line: −340 XP, 25 % of level 7, never below level 7.'],
@@ -28,11 +28,11 @@ const GROUPS = [
     ['UI-17', 'checkpoint-card', 'Checkpoint card (QC6)', 'new', 'A quest leg done and saved: the reward caption’s type with a CHECKPOINT SAVED tick.'],
     ['UI-18', 'feat-finds-toasts', 'Feat toast + FINDS toast', 'content only', 'Today’s toast with the showcase’s Gold 1×1 / Calibration Chip and a west feat.'],
     ['UI-19', 'shard-complete', 'Shard-complete card', 'content only', 'The real card with the Titan Cleaver and the showcase’s stats.'],
-    ['UI-20', 'course-clock', 'Course clock chip (D22)', 'reuses the weather chip', 'Under the quest chip only during a run: time, checkpoint, PB. The toasts step down under it.'],
+    ['UI-20', 'course-clock', 'Course clock chip (D22)', 'reuses the weather chip', 'Only during a run, in the quest chip’s place (the quest chip hides and comes back when the run ends): time, checkpoint, PB.'],
     ['UI-21', 'pb-board', 'Personal-best board', 'new world sign', 'A 3D sign, so a codex edit of the world band only; the live HUD laid back on top pixel for pixel.'],
-    ['UI-22', 'storm-hour', 'Storm hour + beacons', 'extends the storm chip', 'Nalati’s real storm chip reading STORM HOUR, four beacons on the minimap, one lit.'],
+    ['UI-22', 'storm-hour', 'Storm hour', 'the wave banner’s line', 'One centred line as the hour starts, fading after ~2 s; lighting a beacon flashes BEACON 2 / 4 the same way. No minimap beacons, no toast; the storm chip is today’s.'],
     ['UI-23', 'stealth-unseen', 'Stealth: UNSEEN', 'content only', 'Nalati’s stealth layer; the hidden state’s label is data.'],
-    ['UI-24', 'wave-banner', 'Gauntlet wave banner', 'new', 'WAVE 2 / 5 in the boundary warning’s type, and the wave chip under the quest chip.'],
+    ['UI-24', 'wave-banner', 'Gauntlet wave banner', 'new', 'WAVE 2 / 5 big in the middle as a wave starts, in the boundary warning’s type, fading after ~2 s. Nothing stays on screen.'],
     ['UI-25', 'portal-enter', 'Portal ENTER prompt', 'content only', 'The real USE band, reading Enter the Training Vault.'],
     ['UI-26', 'cutscene-card', 'Boss intro title card', 'content only', 'The real letterbox, name card and HOLD TO SKIP ring: THE CRATE TITAN · LV 20.'],
     ['UI-27', 'map-heat', 'Map heat map', 'new', 'The level bands tinted on the map tab, a CON key in the legend.'],
@@ -87,15 +87,16 @@ if (listed.length !== BY_ID.size || new Set(listed).size !== BY_ID.size) throw n
 
 // Jake's picks: docs/plans/kitchen-sink-v2/UI-PICKS.md is the source (its Status column).
 const PICKS = new Map(readFileSync(new URL('../../../docs/plans/kitchen-sink-v2/UI-PICKS.md', import.meta.url), 'utf8')
-  .split('\n').map((l) => l.split('|').map((c) => c.trim())).filter((c) => /^UI-\d\d$/.test(c[1] ?? '')).map((c) => [c[1], c[4]]));
-const tally = (st) => [...PICKS.values()].filter((v) => v === st).length;
+  .split('\n').map((l) => l.split('|').map((c) => c.trim())).filter((c) => /^UI-\d\d$/.test(c[1] ?? '')).map((c) => [c[1], { st: c[4], notes: c.slice(5, -1).join('|').trim() }]));
+const tally = (st) => [...PICKS.values()].filter((v) => v.st === st).length;
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const fig = ([id, slug, title, kind, cap]) => {
   const f = `${id.toLowerCase()}-${slug}`;
-  const st = PICKS.get(id) ?? 'pending';
+  const pick = PICKS.get(id) ?? { st: 'pending', notes: '' }, st = pick.st;
   const badge = `<b class="st ${st}">${st.toUpperCase()}</b>`;
-  const cut = WHY_CUT[id] ? `<p class="cut">Why cut: ${esc(WHY_CUT[id])}</p>` : '';
+  const cut = (WHY_CUT[id] ? `<p class="cut">Why cut: ${esc(WHY_CUT[id])}</p>` : '')
+    + (pick.notes ? `<p class="notes">Your notes: ${esc(pick.notes.replace(/^\d{4}-\d\d-\d\d: /, ''))}</p>` : '');
   return `<section class="pair"><h3>${badge} ${id} · ${esc(title)} <span>${esc(kind)}</span></h3><p>${esc(cap)}</p>${cut}<div class="two">`
     + `<figure><img loading="lazy" src="${f}-before.jpg" alt="${id} before"><figcaption>BEFORE · live</figcaption></figure>`
     + `<figure><img loading="lazy" src="${f}-after.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div></section>`;
@@ -108,7 +109,7 @@ h1{color:#f08a24;font-size:30px;margin:0 0 6px}h2{color:#f08a24;margin:34px 0 8p
 .pair h3{margin:0 0 4px;font-size:15px;color:#eceae6}.pair h3 span{font-weight:400;font-size:12px;color:#8fe3ff;margin-left:4px}.pair p{font-size:13px;margin:0 0 8px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}figure{margin:0}figure img{width:100%;display:block;cursor:zoom-in;border-radius:4px}
 .st{font-size:11px;padding:1px 6px;border-radius:3px;margin-right:4px;vertical-align:2px}.st.approved{background:#2f9e5a;color:#fff}.st.pending{background:#555a60;color:#ddd}.st.changes{background:#f08a24;color:#111}.st.cut{background:#a33;color:#fff}
-.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px}.toc a{color:#8fe3ff;font-size:14px}.pair p.cut{color:#ffb36b;font-weight:600}
+.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px}.toc a{color:#8fe3ff;font-size:14px}.pair p.cut{color:#ffb36b;font-weight:600}.pair p.notes{color:#9fe0b4;font-weight:600}
 figcaption{font-size:11px;color:#9aa3a8;text-align:center;padding-top:3px}
 #z{position:fixed;inset:0;background:#000e;display:none;align-items:center;justify-content:center;touch-action:pinch-zoom}#z img{max-width:100vw;max-height:100vh;max-height:100dvh;width:auto;height:auto;object-fit:contain;display:block}
 </style></head><body><main><h1>Kitchen Sink v2 · every UI change, in engine</h1>
