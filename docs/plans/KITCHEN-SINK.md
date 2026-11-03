@@ -332,7 +332,8 @@ About 30 lane-days (estimate; the enemies, audio and loot mini plans each came i
 - Tracker: [Kitchen Sink v2](https://claude.ai/artifact/KAK7qkdYt3a3K5JGkpPzUD)
 - [Mini Dungeon / Shrine Room](https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ) (`art/showcase-template/round-2-mini-dungeon/`)
 - [Levels 1 to 20](https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s) (`art/showcase-template/round-3-levels/`)
-- [Kitchen Sink v2 Mockups](https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj): 40 frames, west / east (`art/showcase-template/round-4-v2-layout/`)
+- [Kitchen Sink v2 Mockups](https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj): the 40 frames remastered from the round-4
+  grey blockout in the polished look (`art/showcase-template/round-11-remaster/`; replaces `round-4-v2-layout/`)
 
 ## 8. Done when
 
