@@ -51,6 +51,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Jungle Ziggurat](jungle-ziggurat/board.jpg) (OP13, 11-03 afternoon, `87d9973`; views 5 and 6 moved off the 66 m stair) | 5 | 7 | 7 | 8 | 7 | 7 | 6 | 6 | **6.62** | GOOD ENOUGH |
 | [Patchwork Fairground](patchwork-fairground/) | 6 | 5 | 5 | 6 | 5 | 6 | 5 | 6 | **5.50** | NOT YET |
 | [Fossil Badlands](fossil-badlands/) (OP21) | 5 | 6 | 5 | 7 | 6 | 7 | 5 | 5 | **5.75** | NOT YET |
+| [Sky Harbor](sky-harbor/) (OP11) | 4 | 6 | 5 | 7 | 6 | 7 | 5 | 6 | **5.75** | NOT YET |
 
 The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
 level, where the mockups show one huge landmark framed by dense dressing and the builds show a small landmark over wide
@@ -126,3 +127,8 @@ front of it).
   floor inside the skeleton's rim. Scored against round 75: the top-down's trenches, sumps, camps and corner mesas match
   and the bone-white skeleton reads from its floor; the road entry shows the poster before a small skeleton, and the
   avenue and corner views are wide paving with Night Market's banner poles (`../../fossil-badlands/round-3-final/`).
+- 2026-11-03, Sky Harbor (OP11): first set, shot on the working-tree preview of `32d153f7b1` (the activation
+  `c6d4f23295` as landed) through `capture.mjs`; cameras are the Fairground's eight, moved to its cell (2, 2). Scored
+  against round 62: the top-down's basins, wharves and corner cottages match and the airship reads from the plaza and
+  under its gondola; the road entry shows the poster before a small airship, and the basins are square ponds where the
+  board joins canals round its docks (`../../sky-harbor/round-3-final/`).

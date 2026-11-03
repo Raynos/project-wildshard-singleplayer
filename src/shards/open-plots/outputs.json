@@ -521,8 +521,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/sky-harbor.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/sky-harbor.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/sky-harbor.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/sky-harbor-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/sky-harbor-landscape.jpg"
         },
         "explore": {
           "art": {

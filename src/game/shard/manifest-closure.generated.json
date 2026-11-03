@@ -740,6 +740,8 @@
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/discovery.open-plot-sky-harbor.generated.ts",
+    "src/shards/open-plots/thumbs/sky-harbor-landscape.jpg",
+    "src/shards/open-plots/thumbs/sky-harbor-portrait.jpg",
     "src/shards/open-plots/thumbs/sky-harbor.jpg"
   ],
   "open-plot-sky-race": [
