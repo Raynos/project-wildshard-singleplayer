@@ -2748,3 +2748,40 @@ The earlier eligibility exit applied to Pine's existing placement-row
 helper; this separately approved complete scatter transport fits its
 actual owner. Retained full audit, raw failures, hashes and protocol:
 `tmp/sp-x6-cs3-nalati-pages/`.
+
+### Nalati immutable turn: common build/runtime miss (2026-11-03)
+
+After verified B7-containing17e15e8d42, use ordinary main reverse/reapply
+commits for the **complete nine-code/test paths and API paragraph**.
+Every pair has exactly that contrast; no other source byte differs,
+no renderer interleaves and the final nine paths equal qualified61d894.
+No overlay, source-equivalence build or old known-bad app pin is used.
+
+| Fixed committed pair | Actual result, not loading time |
+| --- | --- |
+| `01a6752cfe` → `7a7e3336e4` | Both contain17e15. Both immutable builders exit1: open-plots `Invalid generation file name`. |
+| `1686089c57` → `676e9288e3` | Both also contain filename1c1e and AAC98f7 repairs. Generation succeeds; both app admissions exit1 at Bayou6,422,853 B against its pre-audio5,481,557 B wire ceiling. |
+| `a5a8ec880eb093c750a6564fecd5cc3624cd6fd6` → `dab6b3b9d9d26888df4d9f56c997e38825626c97` | Both include authorized audio accountingbbda after the owner's actual app-greena2de boundary. BEFORE builder was already active when a separate required runtime P0 arrived; AFTER builder/browser remain unstarted. |
+
+An accidental moving-HEAD preview at1c1e is explicitly unused; it fails
+strict AAC indexing. Keep that raw failure separately, with no timing or
+pixel sample. The audio owner fixes the filename, continuous AAC timestamp
+and authorized-content accounting causes; this slice changes no limit.
+
+Before the third pair enters a browser, ordinary061 run41610290549
+boot-public/job125837201300 reports Nalati `Missing declared audio
+profile: scene loop inventory`. Root routes that common audio frontier
+to its owner and prohibits a known-bad runtime launch. Preserve the
+already-running builder naturally, release its own lease at closure,
+and do not infer a runtime result for these unvisited pins from app
+build success. No unchanged retry, source bypass or extra product
+refresh is authorized by a failed build.
+
+**Miss: loading and strict both-tier native P1–P3 A/A and A/B remain
+OPEN, with zero browser samples.** The source/body/original50 proof
+stands; no no-worse result, regression or pixel pass is invented. Final
+scatter reapply is `dab6b3b9d9`; all owned runtime bytes are restored.
+A later resumed turn needs the checked common runtime fix in both exact
+pins and the same complete-cut/non-cut equality. Failed logs, exact
+full-SHA bindings and protocols remain under
+`tmp/sp-x6-cs3-nalati-pages/paired-requalification/`.
