@@ -59,7 +59,7 @@ Instruments / Metal System Trace on the Simulator stays optional, only if G1's p
 |---|---|---|---|---|---|---|
 | G1–G5 | above | above | x8, o2, o1 | | **1** | above |
 | NF11 | **done (2026-10-31, sp-x8; G872 / G941)**: serialized hidden first draws, complete native upload reserve and covered loading; `e853b2f8e8` privately prepares grapple fonts during loadout | Cold Chromium 4x / WebKit 1x routes: 1,758 drawn frames each, native max **36 / 47 ms**, work 17.9 / 13 ms; upload **582,944 / 3,999,982 B**; 49 chunks / 704,182 triangles retained, no errors or missed samples. Whole-packet five-pose hashes match parent repeats (G941 known P2 pixel only); font-cut five-pose A/B and real grapple mark/chip A/A + A/B are zero pixels. G872 uses native Clock delta: separate WebKit observer's 52 ms gap remains a diagnostic (native 33 / work 3), not a miss. Explicit NF1 between-leg board starts retained; no physical-phone claim. Both bars pass; full detail in nine-fix NF11 | Codex (x8) | S | 2 | No native frame > 50 ms; no upload > 4 MB after reveal; 0 union rebuilds; board `4152abcd85` stands |
-| NF17 (the "NF17½" close-out) | Parity done for every shard (Sunscar pass, Sky Reach accepted, Nalati 7/8 + crag, Driftwood and Pine). The frame half of the done-when has no per-shard readings | One `draw-census` (`scripts/perf/draw-census.mjs`) work p50 per shard at its golden P1: Driftwood, Nalati, Far Reach, Sunscar, TSL `180df449c9^` vs GLSL HEAD (legacy where it exists) | Codex | S | 3 | Each shard ≤ legacy + 0.5 ms where legacy exists, else ≥ 25 % under TSL, or a miss logged as its own row |
+| NF17 (the "NF17½" close-out) | **closed, measured (2026-11-02, sp-x6; E518 / G872)**: parity stands and all requested current work readings are present. | Reserved committed HEAD `f5537e3c07` / `f5537e3-mw04gryl`, golden P1, Chromium Metal phone 2× / CPU4×, 180 native frames each: Driftwood **11.2 ms**, Nalati **11.6**, Pine **12.5**, Far Reach / Sky Reach **13.2**, Sunscar **5.8**. Far/Sky are one product, not two independent readings. | sp-x6; measured close | S | closed | NF17c retains the historical TSL reference; current numerical misses are recorded in NF17d/f/g and the table below, not waived or reported as universal CPU-bar passes. |
 | NF16 remainder | = G4 | | o2 | M | 1 | as G4 |
 | NF18 | **Waits for Jake's QA (G933, G935).** Prepare without landing: list the import graph of `EngineNodesHandler` (`render/nodes/*`, the TSL half of `graph/compile.ts`, the `three/webgpu` chunk) and the measured gzip saving | Read-only inventory in the row; nothing deleted | Opus | M | after QA | As the row |
 | NF19 | **closed, measured / not viable in scope (G963; `a9cadc076b`)** | Immutable a2dc storage census: 82,099,948 B native channels/indices; true-float-only halving saves 10,359,220 B and still leaves 71,740,728 B before other geometry. Packed/fractional aMisc cannot be silently converted. | sp-x8; closed | S | closed | 56 MB bar not met; no production half-float edit or relaxed pixel/storage guard. [Full verdict](nine-fix-mini-plan.md) |
@@ -75,12 +75,12 @@ Instruments / Metal System Trace on the Simulator stays optional, only if G1's p
 | PF19 (new) | **closed measured miss (2026-10-31, sp-x8; G872)** | Final ground merge/EP2 included in `4fb407395b`: P1 LEGACY/SF pooled **78.897/79.328 µs**, 180 native pairs each; SF hooks only ~11.175 µs/profile draw. Remaining stock matrix/submission/program/uniform/bind work has no safe exact skip. Full call table and shared-host qualifier: engine-performance §9 | Codex (x8) | S | 3 | ≤ 48 µs a draw at P1 missed; no waiver |
 | PF17 | "After Jake's QA" is not a decision. The design in the row is exact (flat per-vertex roughness / metalness / tint, layered normal and ORM arrays; `render/layeredMaps.ts` from PF7b) | Build it on the cabin unit at author time | Opus (o1, after G5) | M | 5 | Cabin textured parts ≤ 2 draws; P4 −0.4 ms; captures identical at P4 and a cabin close-up |
 | EP2 | = NF21 | | x2 | | 2 | |
-| EP4 | = NF13–NF18: all done but NF17 (close-out) and NF18 (QA) | Mark EP4 "done but NF18" when NF17 closes | coordinator | — | 3 | — |
+| EP4 | **done but NF18 (waits for Jake's Nine QA)** (2026-11-02, sp-x6): NF17 HEAD P1 readings are recorded below; GLSL implementation/parity is complete. | Keep NF18 TSL deletion open under G933/G935; no runtime deletion or new QA claim. | sp-x6; closed except NF18 | — | closed | NF18 is the sole QA dependency, not a completed deletion. |
 | EP6 | Pine met (120.3). Nine P4 main draws ≤ 110 not re-read since the cell slabs (NF15 reads 91–139 frame draws) | `draw-census` Nine P4 on HEAD. If over: merge the remaining static one-copy draws per cell (sp-o2's lane today) | Opus (o2, after G4) / Codex reading **Read 2026-10-30 22:08 (sp-o2, 18c89c2 GLSL, Chromium phone): Nine P4 main draws 135.** The largest share is the NF11 slab chunks, each a one-instance `InstancedMesh` under its key's anchor (`slabLibrary.ts` `bind` → `publications`): `kit:paifang` 14, `kit:stair-terraces` 3, `kit:well-l-deep` 3 (+ `kit:cut` 1); the viewmodel is ~20 draws. Design: one `BatchedMesh` per anchor (its key's material and flags, `perObjectFrustumCulled` = the key's `frustumCulled`, castShadow / receiveShadow / layers / renderOrder from the key), each published chunk `addGeometry` + one identity instance with a white colour, retired chunks `deleteInstance` / `deleteGeometry`, capacity grown with `setGeometrySize`; chunks of one key must share an attribute layout (else keep instanced). ~−15 to −17 draws, per-chunk culling kept, pixel-identical. Costs: a batched program variant per slab material (warm it in precompile, or the first draw links in play) and programs 72 → ~75. Hard rule (wildshard-new): no facade multi-draw (E271 / E272): any anchor whose key is a facade stays instanced and `scripts/test-facade-instancing.mjs` keeps passing. Alone it leaves P4 ~118–120; ≤ 110 also needs the viewmodel's rigid hull draws. **Closed as measured (G872, wildshard-new)**: (a) adds programs and a hitch risk and still lands ~118–120; per-tile merging costs GPU while the phone is GPU-bound | S | 4 | Nine P4 main ≤ 110 |
 | EP7 | **closed, measured (G963; `ad3571fe2e`, `32142e8928`, `bbc01a75b5`)** | Nine 44 accepted by G872. Pine P1–P4 submitted programs 53 / 54 / 55 / 59; unused opaque-depth map flags removed, remaining native side/layout states are distinct. Old 45 miss retained; accepted four-pose bar ≤59. | sp-x9; closed | S | closed | Both Pine modes: 16 A/A +16 A/B full-RGBA comparisons exact; camera/clock/calls/triangles match. No FPS claim. |
 | EP8 | **done (G963; `433030231b`)** | `4c5501a6ea` pairs original crowd colourways per family/LOD; fixes `7f50179cc2` + `3d493a97c1` restore ordinary-kit vertex slots and live crowd uniforms. All eight raw/packed source contracts remain (`d7d292fb2d`). | sp-x1 / sp-o5; closed | M | closed | ≤8 plain crowd draws enforced by placed-source controls. Immutable P1–P5 A/A exact; A/B exact except the explicit G941 P4 palette edge. No widened tolerance or GPU-time claim. |
 | EP10 | **closed measured miss (2026-10-31, sp-x8; G872)**; gate/counter/mean/software delivery retained | Historical all-pose Nine/Pine **49.854/99.705 µs** remains distinct. Fresh `4fb407395b` Pine P1 native pooled LG/SF **78.897/79.328 µs**, max draws 87/93; separate SF call split: stock remainder 2.948, hooks 0.985, setProgram 0.861, uniforms 0.746, onBeforeRender 0.498, textures 0.200 ms/frame. Hooks ~11.175 µs/profile draw cannot bridge 79 to 30; no safe exact lever left. Detailed method/overlap/table in engine-performance §9; no official physical-phone claim | Codex (x8) | S | 4 | ≤ 150 draws retained; ≤ 30 µs missed, not waived |
-| EP11 | Not started; throwaway spike | `tmp/ep11-cluster/`: Nine kit fabric as one instanced draw that pulls vertices from a data texture by cluster id | Opus (any lane free at the end) | M | 7 | A go / no-go note in the row: draws, vertex ms, memory on Chromium and the Simulator |
+| EP11 | **closed, measured no-go** (2026-11-02, sp-x6; existing 2026-10-30 sp-o1 spike, HEAD `4f68386`) | 21 slab meshes / 643,210 triangles became one 5,026-cluster draw. P4/P1 work p50: slabs 8.4/8.6 ms (repeat 8.2/7.7), cluster+cull 10.0/10.2, no-cull 7.8/8.2; JS cull alone 3.4–4.2 ms. Float textures 61.8 MB versus 75.9 MB slab buffers. | sp-x6; measured close | — | closed | No-go: marginal noisy no-cull saving, costly JS cull, GPU vertex-fetch cost unmeasured, no Simulator injection. No runtime change or new experiment; full original limits remain in engine-performance EP11. |
 | EP12 + NT4 look | NT4's geometry landed (`8b5c3d946d`: L1 17.4 %, 19.3 MB). Its look bar ≤ 10 is EP12's fix: L1 draws with `nine-coarse-facade` (diff 18.7); L0's own graphs give 6.85 in-page | The bake keeps each coarse set's look (kit / kit-cut / shell) and names its materials in `props.materials`. Name the unnamed L0 tile materials in the Nine bake first | Opus (o5, after PF13) | M | 6 | Forced-L1 capture at cams 17 / 18 / 22 ≤ 10 per channel mean vs L0; G844 board; NT4 and EP12 done |
 | NT5 | Measured, not built (sp-o1): the 1 px rule flips no tile; forcing L1 gives no frame win (130 vs 128 draws, 11.2 vs 11.1 ms) | Close as **measured / no value** (G872, the NT3 precedent). No Debug row (G952) | coordinator | — | now | Closed with its numbers |
 
@@ -208,3 +208,45 @@ Retained evidence: `tmp/sp-x6-g4/post-pixels/reading.json`,
 `post-cause-software-rtz/reading.json` and
 `five-linked-post/reading.json` under the same task root. No timing
 acceptance is inferred from these shared-host, non-timing captures.
+
+## NF17 HEAD work census (2026-11-02, sp-x6)
+
+**Closed as measured, not universal acceptance of the original speed bar.**
+The sole run used committed HEAD at reservation
+`f5537e3c07fe5e889e17cf86cc82ab02c94d293b`, immutable build
+`f5537e3-mw04gryl`, through `scripts/perf/draw-census.mjs` unchanged:
+SHARDFILE only, golden midday/clear, iPhone 16 Pro PWA 402×874 CSS /
+804×1748 canvas (2×), Chromium ANGLE Metal and CPU4×. Each product has
+180 original completed native frames before its separate 180-frame GL
+attribution and sampled profile; all five original guards passed with no
+page errors or zero-draw baseline frames. No runtime or look change.
+
+| Requested shard | Actual product / P1 | Work p50 ms | Render p50 ms | Native draws p50 | Retained reference and limit |
+|---|---|---:|---:|---:|---|
+| Driftwood | driftwood-isle / pier | 11.2 | 7.3 | 142 | TSL 14.4 → target ≤10.8: this point misses; shared-host overlap retained. |
+| Nalati | nalati-grasslands / camp | 11.6 | 5.3 | 77 | TSL 12.0 → target ≤9.0: measured miss (NF17d). |
+| Pine | pine-hollow / maintained P1 | 12.5 | 7.9 | 90 | Legacy retired; historical Pine-plan P1 13.5 is context, not a new matched legacy acceptance. |
+| Far Reach | far-reach / spawn | 13.2 | 9.3 | 154 | TSL 15.8 → target ≤11.85: current point misses; historical exact HUD cut NF17e stays done. |
+| Sunscar | sunscar-dunes / spawn | 5.8 | 3.3 | 61 | TSL 5.8 → target ≤4.35: measured miss (NF17f). |
+| Sky Reach | same far-reach product / same spawn row | 13.2 | 9.3 | 154 | Display-name alias, not an independent sixth product or duplicate sample. |
+
+The four non-Pine poses are camera 1 from the maintained golden table.
+Pine uses the maintained census `--pine-pose=P1` at x=0, z=−235,
+yaw=π, pitch=0; it is explicitly not the legacy golden gate at z=−200.
+`far-reach` is authored and displayed as Sky Reach in the current product
+and loading catalogue. No deleted legacy was revived or substituted.
+
+Actual cohort: **2026-11-03 03:30:26.344–03:33:53.373 UTC**. PF13's
+second count-only browser overlapped until its literal 03:31:09 closure:
+this includes Driftwood's whole leg and Nalati's initial entry, so retain
+shared-host provenance and make no isolated-host or compiler-causal gain
+claim. The old TSL and legacy values above are retained references across
+many runtime changes, not a new matched before/after experiment. All own
+browsers closed, browser lane 0/4, and own 4402 lease normally released;
+the other owner's immutable server remains available. No Simulator run.
+
+Raw source/version/pose/180-frame rows and separate profiles:
+`tmp/sp-x6-nf17-close/{reading.json,state.json,binding.json,census.log}`
+and `<slug>/census.json`. Each raw census has its SHA-256 in `reading.json`.
+The G872 established measured-close class is self-applied: keep numerical
+misses explicit; do not waive the old limits or invent a pass.
