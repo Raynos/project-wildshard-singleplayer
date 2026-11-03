@@ -161,7 +161,7 @@ does not close a Z row.
 | **Z11** | **In flight (2026-11-03, sp-x6): candidate reduction 5; three one-user roots stay charged. G998 qualification pending; evidence below. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
 | **Z12** | **In flight (2026-11-03, sp-x2): census 1 dead / 8 live.** G872 approves deleting only unread Pine landmark-view (5,510 B); byte/pack/native/G998/physics-walk qualification pending. Eight complete live files remain charged with [per-file evidence](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2). Far/Sun SceneBuffers are real shared fields but a different whole root from Pine floor/cave/forest and Nalati geography/water; no fake field-root credit | **1 candidate; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
-| **Z14** | **Encounters and riding (was CS8).** Arena room, timed encounter and riding-profile rows (`game/boss/arenaRoom.ts`, `game/riding/*`); Titan fight to AS | 9: Nalati room-entry, timed-encounters, titan-fight, titan-geometry, ride/rules, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page | Opus | 4.5 |
+| **Z14** | **In flight (2026-11-03, sp-x1): census one approved unread copy / nine live one-user roots.** G872 approves retiring Nalati ride/rules (31,569 B); body/pack and strict native parity qualified, G998 pending. The original CS8 cloud specimen plus the added Pine ranged page make ten files in the union; cloud overlaps Z7. Titan decisions already compile from shard AS. [Per-file hashes, routes and exact scope below](#z14-census-encounters-riding-and-one-unread-copy-2026-11-03-sp-x1) | **1 candidate; 9 charged:** Nalati room-entry, timed-encounters, titan-fight, titan-geometry, cloud-specimen, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page | Codex (G958) | 4.5 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
 
 Kills: 1 + 98 + 72 + 70 + 13 + 6 + 10 + 14 + 14 + 9 + 3 + 8 + 9 + 6 + 9 = **342**. Z0–Z3 remove 241 (70 %) in
@@ -3556,3 +3556,59 @@ normalization, widths, groups, draw range and authored bounds, including
 signed zero. This is a transport proof only: source wiring, refusal
 controls, Nine's 24 goldens and identical Jian views in Chromium/WebKit
 remain open. No GLB count reduction is claimed at this census boundary.
+
+### Z14 census: encounters, riding and one unread copy (2026-11-03, sp-x1)
+
+The ordinary frozen BEFORE `7cc93a3856-mw0wlkup` (:4408) verifies
+all 28 products' section and named-JSON hashes and exact routing strings.
+The original CS8 nine include `models/cloud-specimen.json`; the Z14 row
+adds Pine's ranged page but omitted that cloud entry. **The union is ten
+files: one unread copy, nine live one-user bodies.** Cloud is also in Z7,
+so this census grants no extra kill or duplicate family credit.
+
+**G872 coordinator-approved retirement:** Nalati `ride/rules.json`,
+**31,569 B**, SHA-256
+`449c2e7e3f98a429077242e69dc384768a6d49a823800cd7b5fec52705c0ff76`.
+There are no exact routing references in the 28 products and no runtime
+or headless reader. Its only source consumers are output.ts's emitter
+and the maintained `test/taming-script-admission.test.ts` assertion.
+The complete decoded wire equals `sim/headless-boot.json.riding` exactly;
+client riding retains its own admitted live session. The original ABI,
+selected module/witness hashes, sole executable inventory, ReturnProgram
+identity and wire equality checks remain; the assertion now reads the
+live boot wire and checks the redundant file is absent.
+
+**Nine remain charged, 2,004,340 B, for Jake's one-user batch:**
+
+| Complete file / bytes / exact SHA-256 | Actual native route and whole-root evidence |
+|---|---|
+| Pine `combat/roaming.json`, **11,319 B**, `f38da1c9db4198b6dcb66199e39039cacb62286aa870451e5356015eaa165bc0` | Pine `rangedPage.combat` → `game/loadout/rangedPage.ts:91` → `installRoamingCombat` (`game/combat/roamingSession.ts:41`); Explorer King sockets read the same file. Whole `RoamingCombatSchema` includes native session/projection/presentation, loadout, elite rewards, parked drops, tells and owner ordering. Only Pine calls the complete producer in `generators/roamingCombat.ts`; a shared boss profile child does not supply a second root. |
+| Pine `client/ranged-page.json`, **2,979 B**, `3b7fcc523a52199450c25212d9e2a07a9c0284f03a2d36ac8d34f59a190fb856` | Pine `client/plan` held.ranged-page → `game/shardfile/clientQuestComposition.ts:29` → native `prepareRangedPage` / `installRangedPage`. Whole `RangedPageSchema` includes menu, pickups, prewarm, collection/chalk, debug lap, actor life and shadow flags. Only Pine emits the complete page (`generators/rangedPage.ts:32–51`); common held rows are different complete roots. Existing G571 host listing does not establish a second actual file user. |
+| Nalati `combat/room-entry.json`, **46,170 B**, `7ef91a55cdb6568f415ec473c64f366af967b334fc94b34f1580b334867ee781` | Nalati `client/plan` world.assembly stage file → `game/shardfile/worldAssembly.ts:359` → `buildArenaRoomEncounter` / `ArenaRoomSchema` / `ArenaRoomEncounterSchema`. Actual envelope is `{room,encounter}` with private scene/view and King definition/program. The attached outer unknown children are not a complete shared grammar. Only Nalati authors this full room/King body. |
+| Nalati `combat/timed-encounters.json`, **12,907 B**, `ea527b416b0b73f44f4cbc54eb97c57eb061b6742fabb4ccfd2c615e957ce3fb` | Nalati `client/plan` timed.encounters and headless assembly constants.timedEntry.file → `installClientTimedEncounters` → `TimedEncounters.install` (`game/boss/timedEncounters.ts:50`). Whole body retains slots/patrol/views plus source parameters/phases/respawn/tell, AS return descriptor and contact strike. `TimedEncountersSchema` is loose; shared slot/patrol children or a fixture do not establish a second full producer. Only Nalati emits it. |
+| Nalati `combat/titan-fight.json`, **88,700 B**, `20412d9f03c08749247dff2dedd344db425b989fca26917877d782687bd894c7` | Nalati world.assembly arena-room files.fight → `readArenaScriptData` (`game/boss/openArenaFight.ts:29`), also the maintained native Titan runner. Whole body includes arenaScript, programs, arenaFire, arenaRoom and king. `ArenaScriptFightFileSchema` admits only its loose fight subset; no second whole fight/King/room producer exists. Do not register that subset as the complete envelope. |
+| Nalati `combat/titan-geometry.json`, **845,213 B**, `f727df6d5a597843eb4e21774d25cbc520533383131089d274dcc29bd6d078e6` | The same Nalati world.assembly stage files.geometry → `readArenaScriptData` → native cloud body, arena, eyes, poses, per-tier puffs and flames. `ArenaScriptGeometrySchema` has loose body and unknown eyes/poses/flames; neither a common scene child nor another boss supplies this whole contract. Only Nalati emits `titanGeometryRows()`. |
+| Nalati `models/cloud-specimen.json`, **962,762 B**, `d4b0727222dff41bab3d2079cb3574ecee3ad1ce65996dadda7b3be5625bcc33` | Nalati Explorer storm-titan json → `game/boss/encounterView.ts:371` CloudSpecimen factory. Whole name/pose/ports/phone/desktop body has both native cloud views; `CloudSpecimenSchema` still has unknown CloudBody poses. Only Nalati constructs it in output.ts. This file overlaps Z7; it stays charged once, with no invented second geometry/specimen user. |
+| Nalati `riding/mounted-figure.json`, **1,821 B**, `597b13a0028c4c7c0e6e8aef34ccfdadeaf002a88172a97263c320c8594ca1f9` | Nalati `riding/session.figure` and Explorer mounted specimen → `installClientRiding` (`game/riding/client.ts:298`) / `game/models/mountedSpecimen.ts:36`. Whole `MountedSpecimenSeatSchema` contains mount joint, private figure, material, shapes, clips, speed and gesture cues; original native seated-figure/resource preflight remains. Only Nalati produces `nalatiMountedFigure`; generic figure/clip children are not a second whole seated root. |
+| Nalati `riding/session.json`, **32,469 B**, `89cdb417cbbab6cdb255005adae10319b8ff9e037af8f5ab009ba26b268c7900` | Nalati `client/plan` riding.session file → `installClientRiding` (`game/riding/client.ts:295`). Whole `ClientRidingSessionSchema` has preset/programs/profile/roads/rest/taming/naming/figure. Build author removes compiled metadata via native schema parsing; original ReturnProgram/owner/resource admission remains. Only Nalati emits this complete session, despite shared Mount and HUD children. |
+
+All nine fail HOST-BAR test 1's actual two-whole-root-user requirement
+for new family credit. No registration, permissive union, renamed
+one-user envelope, fixture second user or child-schema substitution is
+introduced. Existing unknown/malformed/range/resource and native-owner
+checks are unchanged. This census makes no new host approval claim.
+
+The requested Titan-to-AS direction is already implemented for the
+shard's rules and decisions: `generators/stormTitanRows.mjs:31–45` compiles
+`titanCombined.as` / `titanCommands.as` and the pasture/wind AS, retaining
+the exact ABI-1 witnesses beside selected ABI-2 modules.
+`generators/scriptInventory.ts:29` publishes the attack and pasture
+projections; `OpenArenaFight` lends native simulation/view authorities.
+The remaining fight JSON is its complete wire/view envelope; renaming
+that file or duplicating its descriptor in a platform wrapper would not
+remove the one-user contract. No new WASM-HOST work or runtime move is
+claimed here.
+
+Retirement qualification and landing remain open until the candidate’s
+Nalati Chromium and WebKit G998 rows are all read and green. No ceiling
+is changed in this census commit.
