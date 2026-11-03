@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Writes index.html: the round-12 gallery (the round-11-remaster pattern), BEFORE / AFTER per change, grouped, tap to zoom.
 //   node art/showcase-template/round-12-ui/build-index.mjs
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { OUT } from './lib.mjs';
 
@@ -85,11 +85,18 @@ const WHY_CUT = {
 const listed = SECTIONS.flatMap(([, , ids]) => ids);
 if (listed.length !== BY_ID.size || new Set(listed).size !== BY_ID.size) throw new Error(`sections list ${listed.length} of ${BY_ID.size}`);
 
+// Jake's picks: docs/plans/kitchen-sink-v2/UI-PICKS.md is the source (its Status column).
+const PICKS = new Map(readFileSync(new URL('../../../docs/plans/kitchen-sink-v2/UI-PICKS.md', import.meta.url), 'utf8')
+  .split('\n').map((l) => l.split('|').map((c) => c.trim())).filter((c) => /^UI-\d\d$/.test(c[1] ?? '')).map((c) => [c[1], c[4]]));
+const tally = (st) => [...PICKS.values()].filter((v) => v === st).length;
+
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const fig = ([id, slug, title, kind, cap]) => {
   const f = `${id.toLowerCase()}-${slug}`;
+  const st = PICKS.get(id) ?? 'pending';
+  const badge = `<b class="st ${st}">${st.toUpperCase()}</b>`;
   const cut = WHY_CUT[id] ? `<p class="cut">Why cut: ${esc(WHY_CUT[id])}</p>` : '';
-  return `<section class="pair"><h3>${id} · ${esc(title)} <span>${esc(kind)}</span></h3><p>${esc(cap)}</p>${cut}<div class="two">`
+  return `<section class="pair"><h3>${badge} ${id} · ${esc(title)} <span>${esc(kind)}</span></h3><p>${esc(cap)}</p>${cut}<div class="two">`
     + `<figure><img loading="lazy" src="${f}-before.jpg" alt="${id} before"><figcaption>BEFORE · live</figcaption></figure>`
     + `<figure><img loading="lazy" src="${f}-after.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div></section>`;
 };
@@ -100,12 +107,13 @@ h1{color:#f08a24;font-size:30px;margin:0 0 6px}h2{color:#f08a24;margin:34px 0 8p
 .pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}.pair{background:#2b2d30;border-radius:8px;padding:10px 10px 12px}
 .pair h3{margin:0 0 4px;font-size:15px;color:#eceae6}.pair h3 span{font-weight:400;font-size:12px;color:#8fe3ff;margin-left:4px}.pair p{font-size:13px;margin:0 0 8px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}figure{margin:0}figure img{width:100%;display:block;cursor:zoom-in;border-radius:4px}
+.st{font-size:11px;padding:1px 6px;border-radius:3px;margin-right:4px;vertical-align:2px}.st.approved{background:#2f9e5a;color:#fff}.st.pending{background:#555a60;color:#ddd}.st.changes{background:#f08a24;color:#111}.st.cut{background:#a33;color:#fff}
 .toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px}.toc a{color:#8fe3ff;font-size:14px}.pair p.cut{color:#ffb36b;font-weight:600}
 figcaption{font-size:11px;color:#9aa3a8;text-align:center;padding-top:3px}
 #z{position:fixed;inset:0;background:#000e;display:none;align-items:center;justify-content:center;touch-action:pinch-zoom}#z img{max-width:100vw;max-height:100vh;max-height:100dvh;width:auto;height:auto;object-fit:contain;display:block}
 </style></head><body><main><h1>Kitchen Sink v2 · every UI change, in engine</h1>
 <p>Round 12 (2026-11-03). Every frame is the real game on a phone in portrait, from a served build of main. BEFORE is the live page as it is today. AFTER is the same live page with the new element added, built from the engine's own HUD classes. Driftwood Isle's crabs, Wendell and Maren stand in for the showcase's robots and NPCs. The names and numbers are the showcase's. Nalati and Pine Hollow are used where their live component is the one the showcase extends. Only the personal-best board (a 3D sign) is a generated edit. Tap a frame to see it big.</p>
-<p>Each HUD change still needs your pick before it is built (the HUD rule).</p>
+<p>Each HUD change still needs your pick before it is built (the HUD rule). <b>Picks so far: ${tally('approved')} approved · ${tally('changes')} changes asked · ${tally('cut')} cut · ${tally('pending')} pending.</b></p>
 <p><b>The 38, grouped by what kind of change each is:</b> 4 fight-HUD controls, 6 banners sharing one style, 3 chips sharing one slot, 3 end cards sharing one card, 5 menus, 7 small additions to existing screens, 2 world things, and 8 I'd suggest cutting (shown, not cut).</p>
 <nav class="toc">${SECTIONS.map(([name, , ids], i) => `<a href="#s${i + 1}">${esc(name)} (${ids.length})</a>`).join('')}</nav>
 ${SECTIONS.map(([name, blurb, ids], i) => `<h2 id="s${i + 1}">${esc(name)}</h2><p>${esc(blurb)}</p><div class="pairs">${ids.map((id) => fig(BY_ID.get(id))).join('')}</div>`).join('\n')}
