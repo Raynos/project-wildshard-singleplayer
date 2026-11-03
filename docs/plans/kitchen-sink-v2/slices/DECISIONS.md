@@ -6,7 +6,7 @@ families, the parity bar, parallel toy slices) is in [README.md](README.md).
 
 | # | Question | Jake's answer | Slice |
 |---|---|---|---|
-| D1 | AssemblyScript decision-module cap (9 per shard today) | **Raise to 32 per shard** | W0e |
+| D1 | AssemblyScript decision-module cap (9 per shard today) | **Raise to 32 per shard**; see D29 | W0e |
 | D2 | The range lends weapons? | **Lends every weapon inside its fence**, taken back on leaving | W3a |
 | D3 | When the showcase takes the hologram's grid cell [−1,−1] | **Off-grid until the east is done**; Developer reaches it from Select a shard | W0a, W12, east finish |
 | D4 | A west-only tour quest | **Yes: "Shift Orientation"** from the Yard Boss (range, a riding lap, the movers' top deck, the zip into town, then report at the East Gate), no reward | W1b |
@@ -34,3 +34,11 @@ families, the parity bar, parallel toy slices) is in [README.md](README.md).
 | D26 | Hidden caches | **A cosmetic each** (a board finish, a hard-hat colour); the west still pays no Scrip | W9b |
 | D27 | Natural storms | **1–2 a real hour, 3–5 min, day or night** | W11a |
 | D28 | A "Storm now" Debug row | **Yes, short-lived**: deleted when storm hour lands in the east | W11a |
+| D29 | The 40–80 ms iPhone freeze per script module on cell entry (`liveSession.ts`), Pine already at 9 of 9 | **Keep 32, and fix the freeze** (Jake: *"32 but fix the fucking freeze"*): W0e makes module load / compile stop blocking cell entry (precompile, cache, off the main thread or lazy on first use; W0e researches which), proved by a Simulator cell-entry reading on Pine | W0e |
+| D30 | WASM-HOST H13 (the new script ABI) vs the slices moving the same plugin modules | **Slices move hosts on today's ABI; H13's switch-over lands between the west and the east halves** | W6a, W3c, E-gauntlet |
+| D31 | Custom-sections rows overlapping slices | **Z6 and Z13 finish in their own plan; Z4 → E1, Z7 → W9b, Z8 → W1b / E1, Z11 → W11a, Z14 → W10a / the Titan** | COVERAGE.md |
+| D32 | Hosts with one user (G595) | **Registered as "showcase first user" as they land; one approval sheet to Jake per half** (end of west, end of east) | W12, east finish |
+| D33 | What touching a host family obliges | **A behaviour or shape change migrates every user in the slice; a new optional field only proves every user unchanged** | all |
+| D34 | The parity bar, precisely | **Saves, item ids and replays byte-exact** (an old-save fixture per affected shard; never bump a save key's version); **looks "similar, no glitches"** goldens (G415) | all |
+| D35 | Memory gates (report-only today; RENDERING.md still says 1.0 GB) | **At W12 measure every shard, then enforce 1,200 MB per shard** and fix the stale 1.0 GB texts | W12 |
+| D36 | The crew | **5 Opus + 5 Codex**, named in AGENTS.md as a Codex-lane plan when Jake says build | build start |
