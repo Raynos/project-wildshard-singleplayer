@@ -116,7 +116,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP1 | **done (2026-11-03, sp-o2): `43f9809f0d` + `d141a00252`, board [round 76](../../art/grid/round-76-night-market-op1/board.jpg)** (hero lantern family `e0c7a5d07b`; ~70 hero lanterns on thick ropes, sky lanterns gone, phone wire 8.13 of 8.23 MB). **Night Market lanterns (G827).** Board first: 3 takes of a hero paper lantern (ribs, paper, cap, tassel, inner glow; ~1.5k triangles LOD0, ~300 LOD1, instanced) and 3 rope styles. Then cut the lanterns to a few hundred, delete every sky lantern, hang every lantern on a thick, dark, sagging rope between posts or eaves; re-tune the light bake for fewer emitters | Opus | 6 h | Board sent; no floating lantern in the 8 domes; 30 fps and draws ≤ 154 hold; the new lantern is the shared family |
 | OP2 | **Shared-kit extraction — done (2026-11-02).** Split `kit.mjs` / `tiledPlot.mjs` into a plot-agnostic core (Soup, grid, sockets, writer, pools, posters, kerb, far, light bake, paving) and per-idea builder sets; Night Market's H/G/S/C/L/N/P move to its own set; letters map to builders per layout | Codex | 1 d | All 18 current world GLBs (99,931,412 B) and all 52 read inputs are SHA256/size exact before/after. Night Market stays 64,289,012 B; the real style-row test uses seven different letters, and all eight collision goldens plus the 5,500-emitter control remain unchanged. Core grid/writer/sockets/paving/GLB construction is separate from Night Market geometry, seams and lighting policy |
 | OP3 | **Per-plot template generator.** One script: slug → layout stub, style row, `outputs.json` row, look key, map row, dome cameras from the round-62 sheet, cell swap for new ideas. Its first output is Showcase Template | Codex | 0.5 d | A new idea goes from nothing to a building plot (shared families, its palette) in one command |
-| OP4 | **Batching.** One dome-capture run and one board-maker over any list of plots; one Chromium reading at a ring junction with all built neighbours in view | Codex | 0.5 d | One command captures 3 plots × 8 domes and makes their labelled sheets |
+| OP4 | **Batching — in flight (2026-11-03, sp-x9).** One dome-capture run and one board-maker over any list of plots; one Chromium reading at a ring junction with all built neighbours in view | Codex | 0.5 d | One command captures 3 plots × 8 domes and makes their labelled sheets |
 | OP5 | Showcase Template (wave 1; the template's proof) | Opus + Codex | 8 / 4 h | Pipeline steps 1–8 met (§3) |
 | OP6 | Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
 | OP7 | Patchwork Fairground (wave 1; new idea, reuses stalls and strings) | Opus + Codex | 12 / 4 h | Steps 1–8; takes a repeat cell |
@@ -216,3 +216,38 @@ Asked in one batch with the question tool when the plan starts; option 1 is alwa
 - **[HOST-AUDIT](HOST-AUDIT.md)** and any new host: the plots stay data plus build-time generators.
 - **Repo size and worktrees**: Jake's own.
 - Night Market's figures (G755 redo, off until his pick) and any change to the shared HUD.
+
+## OP4 batch capture tooling (2026-11-03)
+
+The shared guarded capture loop, pinned registry adapter and independent board
+maker are landed. [Capture protocol and commands](../../scripts/open-plots/CAPTURES.md)
+cover any registered ordered plot list. OP3 owns the exact
+`open-plot-captures/1` registry and camera manifests; OP4 reads both from the
+full served source pin, never loose art or a guessed camera. The original
+Night Market RM2/RM3/END CLI retains its selections and flat output layout.
+
+The batch requires all eight domes, nine ordered committed views per dome,
+normal entered-grid/physical-anchor readiness, phone tier/2×, the maintained
+portrait framing, unchanged shipping rings and120 actual drawn frames/view.
+Every image and camera source is SHA-bound. The separate board maker refuses
+partial/error/reordered/duplicate receipts, changed JPEG bytes/dimensions,
+and sheets over500KB. Plot, dome, source, view and camera provenance labels
+are burned in; Bayou and Showcase remain explicitly TEMPLATE cameras.
+
+One optional junction reading uses four fixed62° horizontal views from one
+real road anchor between four assembled cells. Drawn layers, cell-centre
+frustum tests, owned residency and full actual camera/state/frame receipts
+must cover all neighbours. This is four-view coverage, not an assertion that
+all four surrounding cells fit in one frame or a proof against occlusion.
+No forced residency, scene visibility, lens/far change or synthetic draw.
+
+Source validation:11 maintained pure controls PASS2.0s (existing dome
+semantics plus actual image/board and admission refusals), root types and
+named typed lint0. The pinned adapter independently reads the three committed
+OP3 rows at`b9165aa0b8`:24 parsed domes/216 source views with exact camera hashes.
+Correctness gates overlap PF13 explicitly; no timing acceptance follows.
+
+**Still open:** one normal checked HEAD preview, the actual single-command
+three-plot×eight-dome capture/sheets and the declared junction Chromium
+reading. No browser/build has started for OP4. These wait for PF13's literal
+whole machine boundary; this tooling landing is not the OP4 capture pass.
