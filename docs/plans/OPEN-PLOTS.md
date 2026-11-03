@@ -16,6 +16,17 @@ Jake played the overnight plots: *"good enough."* The twelve left are built the 
 - **§7's questions are answered:** all plots (G990); round 62 / 75 targets, the builder picks (G872); Night Market's budgets; no play loop (G971); the new ideas took their cells (G972–G982); Showcase last; 3 Opus lanes (G990).
 
 
+**Wave A Codex half (2026-11-03, sp-x6): in flight.** Jungle Ziggurat
+and Patchwork Fairground use the established OB7 audio path: two MiniMax
+Music 3 score takes, one bed and six positional SFX, each compared between
+MOSS v2 and Stable Audio 3 Medium; package ≤3 MB, retained credits and
+native bar 10 before closure. Briefs and offline waltz-meter checks are
+`878e5311af`; no audio is activated by that source. Plot owners supplied
+the six real horizontal probe locations. OB8 Chromium pair, separate
+memory, official Simulator window and maintained walk follow each final
+board/source. Saltwind Lighthouse's inert template stub follows these two.
+Opus owns all visual source and look rulings (G848).
+
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) until this plan has its own file. Read at HEAD 2f074203c9.
@@ -139,7 +150,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP10 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP11 | Sky Harbor (wave 3) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP12 | Desert Ruin (wave 3; reuses the palms) | Opus + Codex | 16 / 5 h | Steps 1–8 |
-| OP13 | **in flight, parked again (2026-11-03 ~11:30, sp-o1; QD1 redo first, G997).** Landed: the landmark (take C, `ziggurat.py`, 55 m, stair +z, turn 2 faces the south entry; `1e9ac5a848`) and the builders (`58dba85134`: J jade pool with waterfall, U stilt houses on the shared huts, T painted steles, its own plaza quarter, lamp-lined avenues, egrets). In the working tree, not landed: the recipe (`scripts/open-plots/recipes/jungle-ziggurat.json`), the layout (G4 J16 N8 P4 T16 U16), the activated outputs row (noon landmark light, lagoon water, teal afternoon look keys), the poster, the template's domes and map row, and the debt rows wildshard-new approved (entry tiles ~633 KB, plaza L1 draws 3, phone wire ~5.18 MB). The bytes move with sp-o3's unlanded OP26, so they are re-measured on top of it. Next: a preview (the first one's grid entry timed out), look round R1 against round 75, the 8 golden views (a cameras.json here, then sp-x9's wrapper), walk, life, SHARD SELECT card art (G987, card off per G991), audio by sp-x9. Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) — look target [round 75](../../art/grid/round-75-new-plot-palettes/02-jungle-ziggurat.jpg), cell (-2,2), G977, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP13 | **in flight, parked again (2026-11-03 ~11:30, sp-o1; QD1 redo first, G997).** Landed: the landmark (take C, `ziggurat.py`, 55 m, stair +z, turn 2 faces the south entry; `1e9ac5a848`) and the builders (`58dba85134`: J jade pool with waterfall, U stilt houses on the shared huts, T painted steles, its own plaza quarter, lamp-lined avenues, egrets). In the working tree, not landed: the recipe (`scripts/open-plots/recipes/jungle-ziggurat.json`), the layout (G4 J16 N8 P4 T16 U16), the activated outputs row (noon landmark light, lagoon water, teal afternoon look keys), the poster, the template's domes and map row, and the debt rows wildshard-new approved (entry tiles ~633 KB, plaza L1 draws 3, phone wire ~5.18 MB). The bytes move with sp-o3's unlanded OP26, so they are re-measured on top of it. Next: a preview (the first one's grid entry timed out), look round R1 against round 75, the 8 golden views (a cameras.json here, then sp-x9's wrapper), walk, life, SHARD SELECT card art (G987, card off per G991), audio and final readings by sp-x6. Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) — look target [round 75](../../art/grid/round-75-new-plot-palettes/02-jungle-ziggurat.jpg), cell (-2,2), G977, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP14 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Ember Forge (wave 4; adds the lava water kind) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
 | OP15 | Starfall Observatory (wave 4) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP16 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Frostline Peaks (wave 4; builds the shared pines and snow) | Opus + Codex | 22 / 6 h | Steps 1–8; frees a repeat cell |

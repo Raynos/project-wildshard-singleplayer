@@ -196,5 +196,81 @@
       "z": -156.25,
       "reach": 30
     }
+  ],
+  "jungle-ziggurat": [
+    {
+      "id": "waterfall-cascade",
+      "x": -125,
+      "z": 182,
+      "reach": 38
+    },
+    {
+      "id": "pool-lap",
+      "x": -125,
+      "z": 125,
+      "reach": 24
+    },
+    {
+      "id": "wooden-wind-chimes",
+      "x": -156,
+      "z": 219,
+      "reach": 28
+    },
+    {
+      "id": "canopy-birds",
+      "x": -219,
+      "z": 219,
+      "reach": 45
+    },
+    {
+      "id": "thatch-drip",
+      "x": 156,
+      "z": -219,
+      "reach": 24
+    },
+    {
+      "id": "temple-drum",
+      "x": 0,
+      "z": -3,
+      "reach": 60
+    }
+  ],
+  "patchwork-fairground": [
+    {
+      "id": "carousel-bells",
+      "x": -140,
+      "z": -140,
+      "reach": 32
+    },
+    {
+      "id": "band-organ",
+      "x": 140,
+      "z": -140,
+      "reach": 45
+    },
+    {
+      "id": "wheel-creak",
+      "x": 0,
+      "z": 0,
+      "reach": 38
+    },
+    {
+      "id": "flags-snap",
+      "x": 8.5,
+      "z": -205,
+      "reach": 24
+    },
+    {
+      "id": "crowd-murmur",
+      "x": 0,
+      "z": -120,
+      "reach": 32
+    },
+    {
+      "id": "big-top-drum",
+      "x": -220,
+      "z": -220,
+      "reach": 45
+    }
   ]
 }
