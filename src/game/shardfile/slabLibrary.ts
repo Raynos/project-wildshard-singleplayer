@@ -131,8 +131,10 @@ export class SlabLibrary {
   geometry(id: string): BufferGeometry | null { return this.whole.models.some(model => model.id === id) ? new BufferGeometry() : null; }
   bind(id: string, mesh: Mesh, lifetime: Scope): TileContent {
     const key = this.keys.get(id); if (key === undefined) throw new Error('Missing slab model');
-    // a merged anchor's triangles draw under its key's own anchor
-    if (key.sources[0] !== id) { mesh.visible = false; return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => EMPTY, ready: () => this.queue.ready, attach: () => Promise.resolve() }; }
+    // a merged anchor's triangles draw under its key's own anchor. QD1: it never draws itself, but stays visible, since
+    // a scene may hang other meshes under it (Nine's plain walls and flagstones, 3a1b02062a / 1c3b618319) and `visible`
+    // would hide them too (43 of 45 plain-wall meshes at golden cam 20)
+    if (key.sources[0] !== id) { mesh.layers.disableAll(); return { id: `slab:${this.row.id}:${id}:${mesh.uuid}`, tiles: () => EMPTY, ready: () => this.queue.ready, attach: () => Promise.resolve() }; }
     const banks = new Map<number, Set<number>>();
     for (const entry of this.row.tiles) if (chunksOf(entry).some(chunk => chunk.key === key.id)) {
       for (const logical of entry.covers ?? [entry.tile]) {

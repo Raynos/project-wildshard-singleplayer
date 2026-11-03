@@ -1,6 +1,6 @@
 // NF11: a refine library's baked slabs draw as plain chunk meshes under their key's anchor, one a frame, with no join.
 import { expect, test, vi } from 'vitest';
-import { BufferAttribute, BufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
@@ -67,8 +67,12 @@ test('a key draws its tiles\' chunks under its anchor, one instanced mesh each, 
   const f = fixture(), first = f.owner.child('first'), second = f.owner.child('second');
   try {
     expect([...f.content.tiles()]).toEqual([0, 1]); expect([...f.aliasContent.tiles()]).toEqual([]);
-    // NR4: the channel-less anchor and the merged alias stay out of the draw
-    expect(f.anchor.visible).toBe(false); expect(f.alias.visible).toBe(false);
+    // NR4: the channel-less anchor and the merged alias stay out of the draw. QD1: the alias draws on no layer but stays
+    // visible, so meshes a scene hangs under it (Nine's plain walls and flagstones) still draw
+    expect(f.anchor.visible).toBe(false); expect(f.alias.visible).toBe(true); expect(f.alias.layers.mask).toBe(0);
+    const wall = new Mesh(); f.alias.add(wall);
+    const drawn: Object3D[] = []; f.alias.traverseVisible(node => { if (node !== f.alias) drawn.push(node); });
+    expect(drawn).toEqual([wall]); wall.removeFromParent();
     const version = f.material.version;
     await f.content.attach(0, first);
     expect(f.read).toHaveBeenCalledTimes(1); expect(f.cover).toHaveBeenCalledOnce();
