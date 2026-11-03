@@ -13,7 +13,7 @@ export const MILESTONE_SHARDS=['far-reach','sunscar-dunes','pine-hollow','driftw
 // retains its six frozen denominators. Plot products occupy cells separately.
 /** @type {Map<string,{slug:string,instance:string}>} */
 const gridCells=new Map();
-for(const cell of [...catalogue.grid.cells,...catalogue.grid.devserver])gridCells.set(cell.cell.join(','),cell);
+for(const cell of catalogue.grid.cells)gridCells.set(cell.cell.join(','),cell);
 const plotSlugs=new Set(plotOutputs.outputs.map(row=>row.slug));
 export const M2_GRID_SHARDS=[...new Set([...gridCells.values()].filter(cell=>!plotSlugs.has(cell.slug)).map(cell=>cell.slug))].sort();
 export const M2_GRID_PLOT_CELLS=[...gridCells.values()].filter(cell=>plotSlugs.has(cell.slug));

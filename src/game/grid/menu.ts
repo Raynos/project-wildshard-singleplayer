@@ -41,7 +41,7 @@ export function selectExplores(slug: string, restricted: boolean, mode: MenuMode
   return (mode.developer || mode.devserver) && selectEnters(slug, restricted, mode);
 }
 
-/** Entry-accounting flags and build-time DEVSERVER rows. Developer never selects a different cell layout (G972). */
+/** Compatibility entry-accounting flags; all audiences and builds share one cell layout (G972). */
 export function gridMode(devserverCell: boolean, mode: MenuMode = menuMode()): GridMode {
   return { developer: mode.developer, devserver: mode.devserver, nineDragon: devserverCell };
 }

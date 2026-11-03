@@ -28,12 +28,11 @@ export class GridAssembly {
   readonly emptyNeighbour: EmptyNeighbour;
   private readonly byInstance: ReadonlyMap<string, GridCell>;
   private readonly byCell: ReadonlyMap<string, GridCell>;
-  constructor(mode: GridMode, input: unknown = catalogue.grid) {
-    const data = parseGridCatalogue(input), selected = new Map(data.cells.map((row) => [row.cell.join(','), row]));
-    if (mode.devserver && mode.nineDragon !== false) for (const row of data.devserver) selected.set(row.cell.join(','), row);
-    if (new Set([...selected.values()].map((row) => row.instance)).size !== selected.size) throw new Error('Duplicate assembled grid identity');
+  constructor(_mode: GridMode, input: unknown = catalogue.grid) {
+    const data = parseGridCatalogue(input);
+    if (new Set(data.cells.map((row) => row.instance)).size !== data.cells.length) throw new Error('Duplicate assembled grid identity');
     this.pitch = data.pitch;
-    this.cells = Object.freeze([...selected.values()].map((row): GridCell => Object.freeze({ instance: row.instance, slug: row.slug,
+    this.cells = Object.freeze(data.cells.map((row): GridCell => Object.freeze({ instance: row.instance, slug: row.slug,
       cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }),
       ...(row.identity === undefined ? {} : { identity: row.identity }),
       ...(row.edgeLook === undefined ? {} : { edgeLook: Object.freeze({ ...row.edgeLook }) }) })));

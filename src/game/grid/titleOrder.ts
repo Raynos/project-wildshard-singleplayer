@@ -10,9 +10,8 @@ export function prefetchRing<T extends { readonly cell: readonly [number, number
 }
 
 /** Only placement data is needed to prefetch from the title, not a world assembly. */
-export function titlePrefetchOrder(mode: GridMode, tier: Tier = 'desktop'): readonly string[] {
-  const data = parseGridCatalogue(catalogue.grid), selected = new Map(data.cells.map(row => [row.cell.join(','), row]));
-  if (mode.devserver && mode.nineDragon !== false) for (const row of data.devserver) selected.set(row.cell.join(','), row);
-  const near = [...prefetchRing([...selected.values()], [0, 0], tier)].sort((a, b) => Math.hypot(...a.cell) - Math.hypot(...b.cell));
+export function titlePrefetchOrder(_mode: GridMode, tier: Tier = 'desktop'): readonly string[] {
+  const data = parseGridCatalogue(catalogue.grid);
+  const near = [...prefetchRing(data.cells, [0, 0], tier)].sort((a, b) => Math.hypot(...a.cell) - Math.hypot(...b.cell));
   return [...new Set(near.map(row => row.slug))];
 }

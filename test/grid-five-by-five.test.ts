@@ -46,9 +46,10 @@ test('refuses holes, duplicate placements and cells beyond the declared square',
   expect(() => parseGridCatalogue({ ...grid, cells: [...grid.cells.slice(1), { instance: 'duplicate', slug: 'open-plot-thin-ice', cell: [0, 0] }] })).toThrow();
   expect(() => parseGridCatalogue({ ...grid, cells: grid.cells.map((row, i) => i === 0 ? { instance: row.instance, slug: row.slug, cell: [3, 0] } : row) })).toThrow();
   const assembly = new GridAssembly({ developer: true, devserver: true, nineDragon: false });
-  expect(assembly.cell('nine-dragon-stack').cell).toEqual([1, -1]); // Permanent even when the DEVSERVER override is disabled.
+  expect(assembly.cell('nine-dragon-stack').cell).toEqual([1, -1]); // Permanent regardless of compatibility entry-accounting flags.
   expect(new GridAssembly({ developer: false, devserver: true, nineDragon: false }).cell('nine-dragon-stack').cell).toEqual([1, -1]);
   expect(() => parseGridCatalogue({ ...grid, developer: [] })).toThrow();
+  expect(() => parseGridCatalogue({ ...grid, devserver: [] })).toThrow();
 });
 
 test('retains every cell continuation within the unchanged byte pool', () => {

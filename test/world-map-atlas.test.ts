@@ -24,12 +24,12 @@ test('missing or corrupt declared map bytes fail instead of silently substitutin
   await expect(bakeWorldMapAtlas(['broken'], () => new Uint8Array([1, 2, 3]))).rejects.toThrow();
 });
 
-test('the app build writes one atlas and its define, verifies source hashes, and includes every base and DEVSERVER map', async () => {
+test('the app build writes one atlas and its define, verifies source hashes, and includes every declared grid map', async () => {
   const root = mkdtempSync(resolve('tmp', 'world-atlas-build-'));
   const digest = (value: Uint8Array | string): string => createHash('sha256').update(value).digest('hex');
   try {
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
-    writeFileSync(resolve(root, 'src/game/grid/singleplayer.json'), JSON.stringify({ grid: { cells: [{ slug: 'base' }, { slug: 'plain' }], devserver: [{ slug: 'override' }] } }));
+    writeFileSync(resolve(root, 'src/game/grid/singleplayer.json'), JSON.stringify({ grid: { cells: [{ slug: 'base' }, { slug: 'plain' }, { slug: 'override' }] } }));
     const image = await sharp({ create: { width: 8, height: 8, channels: 3, background: '#123456' } }).webp().toBuffer();
     for (const slug of ['base', 'override', 'plain']) {
       const map = JSON.stringify(slug === 'plain' ? {} : { map: { image: digest(image) } });
@@ -63,7 +63,7 @@ test('the native command prepares products before the atlas, and a cold atlas re
   try {
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
     writeFileSync(resolve(root, 'src/game/grid/singleplayer.json'), JSON.stringify({ grid: {
-      cells: [{ slug: '_template' }], devserver: [{ slug: 'plain' }],
+      cells: [{ slug: '_template' }, { slug: 'plain' }],
     } }));
     await expect(writeWorldMapAtlas(root)).rejects.toThrow(/ENOENT.*_template/u);
   } finally { rmSync(root, { recursive: true, force: true }); }

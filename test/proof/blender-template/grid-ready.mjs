@@ -16,7 +16,7 @@ assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefin
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 const { shard: source, assets } = await readProjectAssets('src/shards/blender-template');
 // This is an explicit regional-mechanism fixture, not a Developer placement in the shipped grid.
-const assembly = new GridAssembly({ developer: false, devserver: false }, { ...catalogue.grid, devserver: [],
+const assembly = new GridAssembly({ developer: false, devserver: false }, { ...catalogue.grid,
   cells: catalogue.grid.cells.map(cell => cell.cell[0] === -1 && cell.cell[1] === -1
     ? { instance: 'blender-template-proof', slug: 'blender-template', cell: cell.cell } : cell) });
 const instance = assembly.cells.find((cell) => cell.slug === 'blender-template').instance, allocator = new ResidencyAllocator();

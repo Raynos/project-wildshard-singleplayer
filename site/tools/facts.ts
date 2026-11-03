@@ -31,11 +31,11 @@ function constant(file: string, name: string): number {
 }
 const json = (file: string): Record<string, unknown> => record(JSON.parse(readFileSync(file, 'utf8')));
 
-/** the single-player grid as the game assembles it with every shard on (the base cells, then the `devserver` row) */
+/** the one single-player grid used by public and Developer alike (G972) */
 function gridCells(repo: string): { cells: FactCell[]; pitch: number } {
   const grid = record(json(join(repo, 'src/game/grid/singleplayer.json')).grid);
   const at = new Map<string, FactCell>();
-  for (const row of [...list(grid.cells), ...list(grid.devserver)]) {
+  for (const row of list(grid.cells)) {
     const r = record(row), cell = list(r.cell), slug = String(r.slug);
     const x = number(cell[0], 'cell x'), z = number(cell[1], 'cell z');
     at.set(`${x},${z}`, { x, z, slug, plot: slug.startsWith('open-plot-') });

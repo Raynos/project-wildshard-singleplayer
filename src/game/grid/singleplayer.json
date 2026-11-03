@@ -611,16 +611,6 @@
         ]
       }
     ],
-    "devserver": [
-      {
-        "instance": "nine-dragon-stack",
-        "slug": "nine-dragon-stack",
-        "cell": [
-          1,
-          -1
-        ]
-      }
-    ],
     "emptyNeighbour": {
       "kind": "sea",
       "level": 0,
