@@ -8,6 +8,8 @@
 import { INNER, placePlotModels, pool } from './kit.mjs';
 import { nightMarketBuilders } from './nightMarket.mjs';
 
+/** sRGB hex to linear RGB (the layout's palette rows) */
+const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
 
@@ -95,15 +97,45 @@ export function frostlineBuilders(letters) {
   return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: new Set([...shared.coarseFamilies, 'lodges', 'pines']), seam: shared.seam };
 }
 
-/** Hooks at the generic construction points (tiledPlotCore.mjs): the landmark's lanterns (none by default: its lodge's
- *  windows are its light) and a cool pool of light round the peak's foot. */
+/** The chair lift's placements and cable (the layout's `landmark.lift`: `stations` [bottom, top] and `towers` as
+ *  [x, y, z] plot metres on the peak's surface, `chairs` a line): the kit's `lift` stations and towers turned across the
+ *  line, its chairs hung at their grips along the up and down cables, 1.8 m either side of the line, which sag 12 m over
+ *  the towers' feet between them. Returns the placements; the cables are written into `cable` (the Kit soup). */
+export function liftPlacements(lift, cable, colour) {
+  const { stations, towers, chairs = 12 } = lift, line = [stations[0], ...towers, stations[1]];
+  const [[x0, , z0], [x1, , z1]] = [line[0], line[line.length - 1]], yaw = Math.atan2(x1 - x0, z1 - z0);
+  const across = [Math.cos(yaw) * 1.8, 0, -Math.sin(yaw) * 1.8];
+  const height = (k) => (k === 0 || k === line.length - 1 ? 3.0 : 11.9); // a station's wheel, a tower's sheaves
+  const cablePoint = (k, s) => [line[k][0] + across[0] * s, line[k][1] + height(k), line[k][2] + across[2] * s];
+  const placements = [{ family: 'lift', variant: 2, at: stations[0], scale: 1, yaw }, { family: 'lift', variant: 2, at: stations[1], scale: 1, yaw: yaw + Math.PI },
+    ...towers.map(at => ({ family: 'lift', variant: 0, at, scale: 1, yaw }))];
+  for (const s of [-1, 1]) {
+    for (let k = 0; k + 1 < line.length; k++) {
+      const a = cablePoint(k, s), b = cablePoint(k + 1, s), r = 0.06;
+      cable.tri('Kit', [a[0], a[1] + r, a[2]], [b[0], b[1] + r, b[2]], [b[0] + across[0] * r, b[1], b[2] + across[2] * r], colour);
+      cable.tri('Kit', [a[0], a[1] + r, a[2]], [b[0] + across[0] * r, b[1], b[2] + across[2] * r], [a[0] + across[0] * r, a[1], a[2] + across[2] * r], colour);
+      cable.tri('Kit', [b[0], b[1] + r, b[2]], [a[0], a[1] + r, a[2]], [a[0] - across[0] * r, a[1], a[2] - across[2] * r], colour);
+      cable.tri('Kit', [b[0], b[1] + r, b[2]], [a[0] - across[0] * r, a[1], a[2] - across[2] * r], [b[0] - across[0] * r, b[1], b[2] - across[2] * r], colour);
+    }
+    for (let i = 0; i < chairs / 2; i++) {
+      const t = (i + (s > 0 ? 0.25 : 0.75)) / (chairs / 2) * (line.length - 1), k = Math.min(line.length - 2, Math.floor(t)), u = t - k;
+      const a = cablePoint(k, s), b = cablePoint(k + 1, s);
+      placements.push({ family: 'lift', variant: 1, at: [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u], scale: 1, yaw: s > 0 ? yaw : yaw + Math.PI });
+    }
+  }
+  return placements;
+}
+
+/** Hooks at the generic construction points (tiledPlotCore.mjs): the landmark's chair lift (`landmark.lift`) and
+ *  lanterns (none by default: its lodge's windows are its light), and a cool pool of light round the peak's foot. */
 export const frostlinePlot = {
   builders: layout => frostlineBuilders(layout.builders),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
   models(parts, kit, layout) {
-    placePlotModels(parts, kit, (layout.landmark.lanterns ?? []).map(at =>
-      ({ family: layout.landmark.lanternFamily ?? 'hero', variant: layout.landmark.lanternVariant ?? 2, at, scale: layout.landmark.lanternScale ?? 1 })),
-    new Set(['lodges', 'pines']));
+    const lift = layout.landmark.lift === undefined ? [] : liftPlacements(layout.landmark.lift, parts.Kit, linear(layout.palette.iron ?? '#2b2b33'));
+    placePlotModels(parts, kit, [...lift, ...(layout.landmark.lanterns ?? []).map(at =>
+      ({ family: layout.landmark.lanternFamily ?? 'hero', variant: layout.landmark.lanternVariant ?? 2, at, scale: layout.landmark.lanternScale ?? 1 }))],
+    new Set(['lodges', 'pines', 'lift']));
   },
   pools(parts, palette) {
     const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };

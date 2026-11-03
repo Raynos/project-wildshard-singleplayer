@@ -7,7 +7,7 @@ test('Frostline Peaks adds its lodge courts and pine woods to the shared letters
   const frost = new URL('../src/shards/open-plots/generators/frost.mjs', import.meta.url).href;
   const program = `import assert from 'node:assert/strict';
 import {buildLayout,parseLayout,Soup} from ${JSON.stringify(kit)};
-import {frostlineBuilders,frostlinePlot} from ${JSON.stringify(frost)};
+import {frostlineBuilders,frostlinePlot,liftPlacements} from ${JSON.stringify(frost)};
 const letters={N:'forecourt',P:'plaza',G:'garden'},builders=frostlineBuilders(letters);
 assert.deepEqual(Object.keys(builders.tiles).sort(),['D','F','G','N','P']);
 assert.ok(builders.coarseFamilies.has('lodges')&&builders.coarseFamilies.has('pines'));
@@ -24,6 +24,10 @@ assert.ok(tris('Kit')>64*20,'every tile draws its ground, drifts or stand-in pin
 assert.ok(tris('Glow')>0,'the lantern posts glow');
 assert.ok(tris('far')>0&&parts.solid.part('Solid').positions.length>0);
 assert.equal(frostlinePlot.builders({builders:letters}).tiles.F.sockets,'pppp');
+const cable=new Soup(),lift=liftPlacements({stations:[[40,0,30],[8,54,6]],towers:[[30,10,22],[20,26,15],[12,42,9]],chairs:12},cable,[0.1,0.1,0.1]);
+assert.deepEqual(lift.map(row=>row.variant).sort(),[0,0,0,...Array(12).fill(1),2,2],'two stations, three towers, twelve chairs');
+assert.ok(lift.every(row=>row.at.every(Number.isFinite)&&Number.isFinite(row.yaw)));
+assert.equal(cable.part('Kit').positions.length/9,2*4*4,'two cables of four spans, four triangles a span');
 console.log('ok');`;
   expect(execFileSync(process.execPath, ['--input-type=module', '-e', program], { encoding: 'utf8' }).trim()).toBe('ok');
 });

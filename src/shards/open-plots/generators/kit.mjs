@@ -169,10 +169,12 @@ export function buildLayout(grid, parts, p, seed, kit, builders) {
 }
 
 /** Kit models at plot positions outside the tiles, each placed only when the kit has
- *  its family: `placements` rows of { family, variant, at: [x, y, z] plot metres, scale }. */
+ *  its family: `placements` rows of { family, variant, at: [x, y, z] plot metres, scale, yaw? }. */
 export function placePlotModels(parts, kit, placements, coarseFamilies = new Set()) {
   const w = writer(parts, [0, 0], 0, kit, coarseFamilies);
-  for (const { family, variant, at, scale } of placements) if (w.hasModel(family)) w.placeModel(family, variant, at[0], at[2], { y: at[1], scale });
+  for (const { family, variant, at, scale, yaw } of placements) {
+    if (w.hasModel(family)) w.placeModel(family, variant, at[0], at[2], { y: at[1], scale, ...(yaw === undefined ? {} : { yaw }) });
+  }
 }
 
 /** Bake linear RGB into owned Kit colours with E = gain*(1-d²/(radius*cut)²)²/(1+d²/radius²).
