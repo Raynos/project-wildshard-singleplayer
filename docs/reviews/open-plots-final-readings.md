@@ -16,13 +16,14 @@ Every measurement binds one final admitted audio-containing SHA and actual
 build. The lanes share its normal all-product preview through separate owner
 leases. A visual-boundary walk or hero count is historical evidence; it does
 not qualify a later audio candidate. Saltwind's final admitted candidate is
-`f8a1406288`; the other nine await their audio handoff.
+`f8a1406288`; Sky Harbor's is `a8593f8ac6`. The other eight await their
+audio handoff.
 
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim complete; grid refused |
-| Sky Harbor | `open-plot-4-4` / (2,2) | Awaiting audio handoff | Open | Open |
+| Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Open | Chromium memory complete; official Sim queued |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
@@ -226,3 +227,44 @@ Raw walk, capture, eight comparison rows and explicit classification stay in
 `tmp/sp-x1-open-plots/saltwind-final/`. All own browsers are closed; the own
 shared preview use is released normally after this report lands. No visual
 source, collider, controller, contract, cap or verification rule changes.
+
+## Sky Harbor — Memory (sp-x8)
+
+Final admitted audio source **a8593f8ac61ad6906b3fec6c8e07fcf4ae0402c8**,
+normal shared immutable build **a8593f8-mw176ax3** (:4402). The served raw
+index SHA-256 is
+`cf8a5bf26e1f620d3b78945080d6ef6441982add216eeca75222226b2b79cb36`;
+all **204 listed bodies** match the owner's final disk bytes and full hashes:
+165 files, 35 sections and four packs with 199 verified entries.
+X2's native bar 10 is bridged from `3dbfcb0fc1`, rather than rerun on the
+final SHA: all 165 files and 34/35 sections are exact to that candidate;
+only the defining-source map stamp changes. Original 158 pre-audio files,
+8,822,239 B, remain exact; final wire cost is 4,384,382 B. The audio owner
+retains admission, publication and native-audio qualification.
+
+One separate maintained Chromium phone-memory command uses the original
+20 s settle and three samples without forced GC. All are phone 2×,
+52 draws, 18 textures, 82 geometries and 26 programs, with no page errors.
+The legacy `MB` fields below are **MiB**. GPU-process footprint and Chromium
+renderer/heap figures remain separate from native Simulator RAM and are
+not summed into a per-shard verdict.
+
+| Sample | Renderer MiB | GPU process MiB | JS heap MiB | FPS |
+|---|---:|---:|---:|---:|
+| 1 | 197 | 519 | 51 | 60.1 |
+| 2 | 166 | 515 | 51 | 60.0 |
+| 3 | 168 | 507 | 50 | 60.0 |
+
+The browser is closed. This command earns no official Simulator timing,
+native memory or grid-residency credit. Those values remain **unmeasured**.
+X2 released its finite model batch, but the official quiet window remains
+queued behind X1's required CI proof at its natural boundary; no quiet,
+model or Simulator lock is held by this lane. The own preview lease stays
+retained for that pending reading. No reading push is requested during the
+coordinator's release hold.
+
+Source-derived junction preparation uses Sky Harbor cell **(2,2)**,
+southwest intersection **(843.75,1.7,843.75)** and the actual neighbours
+Template, Clockwork, Starfall and Sky Harbor. This is not measured
+residency. Raw admission, memory and source-pose inputs are retained at
+`tmp/sp-x8-plot-readings/sky-final/`. The full cohort remains open.
