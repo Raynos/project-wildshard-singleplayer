@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kitchen Sink: Loot and Economy</title>
+<style>
+:root {
+  --floor: #2b2d30; --panel: #35383c; --line: #4a4e54; --ink: #eceae6; --muted: #a7abb1;
+  --orange: #f08a24; --good: #6fcf8a; --warn: #f2c14e; --bad: #ef6b5b; --grey: #8d9096; --cyan: #5fd4e6; --violet: #c49be8;
+  --display: "Saira Stencil One", Impact, "Arial Narrow", sans-serif;
+  --body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--floor);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px; background-attachment: fixed;
+  color: var(--ink); font: 16px/1.55 var(--body); -webkit-text-size-adjust: 100%;
+}
+main { max-width: 860px; margin: 0 auto; padding: 20px 12px 64px; display: grid; gap: 18px; }
+header { display: grid; gap: 8px; }
+h1 { font: 40px/1 var(--display); color: var(--orange); margin: 0; letter-spacing: 1px; text-wrap: balance; }
+.sub { color: var(--muted); font: 13px/1.4 var(--mono); }
+section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 14px 14px 16px; display: grid; gap: 10px; min-width: 0; }
+h2 { font: 22px/1.1 var(--display); color: var(--orange); margin: 0; letter-spacing: .5px; }
+h3 { font-size: 15px; margin: 4px 0 0; color: var(--ink); }
+p { margin: 0; max-width: 68ch; }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+li { max-width: 68ch; }
+b.o, .o { color: var(--orange); }
+.muted { color: var(--muted); }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 6px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--mono); color: var(--muted); text-transform: uppercase; white-space: nowrap; }
+td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--orange); }
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { background: var(--floor); border: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 6px; font-size: 14px; }
+.card h3 { margin: 0; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.card dl { margin: 0; display: grid; grid-template-columns: 74px 1fr; gap: 4px 8px; }
+.card dt { font: 600 11px/1.6 var(--mono); color: var(--muted); text-transform: uppercase; }
+.card dd { margin: 0; }
+.card .path { font: 11.5px/1.4 var(--mono); color: var(--muted); word-break: break-all; }
+.tag { display: inline-block; font: 600 11px/1 var(--mono); padding: 3px 6px; border: 1px solid currentColor; white-space: nowrap; }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+.short { background: var(--floor); border: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 6px; }
+.short li b { color: var(--orange); }
+.diagram { width: 100%; height: auto; display: block; background: var(--floor); border: 1px solid var(--line); }
+figure { margin: 0; display: grid; gap: 6px; }
+figcaption { font: 12.5px/1.4 var(--mono); color: var(--muted); }
+.q { background: var(--floor); border: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 4px; }
+.q b { color: var(--orange); }
+.rec { color: var(--good); }
+.dec { font-size: 14px; }
+.dec li { color: var(--ink); }
+.dec q { color: var(--warn); }
+@media (max-width: 420px) { h1 { font-size: 34px; } }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>LOOT AND ECONOMY</h1>
+  <p class="sub">Kitchen Sink (Showcase Template) · design proposal · 2026-11-02 · plan docs/plans/kitchen-sink-v2/loot-economy-mini-plan.md</p>
+  <p>You said loot, items and gear are under-thought, and they are. This page shows what loot actually does in each shard
+    today, what eight good games do with it, and a design for the Kitchen Sink where every kill pays something you can
+    see a use for. Six questions for you sit at the end.</p>
+</header>
+
+<section>
+  <h2>THE SHORT VERSION</h2>
+  <div class="short">
+    <ol>
+      <li><b>The east earns, the west spends.</b> Kill robots for <b>Scrip</b> (coins) and <b>parts</b>. Spend Scrip at
+        Tinker Rook's stall on one-off upgrades, a third of them toys for the west half (hover, grapple).</li>
+      <li><b>One part per robot type</b> (Servo, Tine, Rotor, Nozzle, Rivet plate, Arc coil). Every kill drops one, no
+        dice. Parts finish an upgrade's price and turn into ammo and patch kits at the bench.</li>
+      <li><b>Weapon tiers become Forge I–IV</b>: four one-off buys that raise every weapon at once. No item levels.</li>
+      <li><b>Fixed rewards everywhere</b>: every elite, mini-boss, chest and contract has a written prize. Six named
+        night elites drop weapon finishes and trophies; the Crate Titan drops the Crate Cleaver.</li>
+      <li><b>Grey kills pay nothing</b>, Scrip and XP alike, so the next band is always the best place to be.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <h2>YOUR PICKS SO FAR (ALL KEPT)</h2>
+  <ul class="dec">
+    <li><q>The west half pays nothing: no XP, no coins.</q></li>
+    <li>Coins from kills, chests and kill contracts; <q>the shop sells flat one-off upgrades (no item levels)</q>.</li>
+    <li><q>Loot is fixed rewards only (no random gear)</q>, no rarity tiers; the Crate Titan gives a legendary weapon; a 20-slot pack.</li>
+    <li>Collectibles that pay perks; trophies; skins and finishes as elite drops; joke-title feats.</li>
+    <li><q>Death costs XP toward the next level and never delevels.</q></li>
+  </ul>
+  <p class="muted">Two readings are new: the levels page's weapon tiers become one-off Forge upgrades (Q2), and coins
+    follow the XP gap rule instead of Driftwood's pay-once-per-enemy cap (Q3).</p>
+</section>
+
+<section>
+  <h2>1 · WHAT LOOT DOES TODAY, SHARD BY SHARD</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Driftwood Isle <span class="tag warn">THIN</span></h3>
+      <dl>
+        <dt>Do</dt><dd>Kill for doubloons (crab 1, boar 2, sailor 5, bear 10, captain 25). Buy Maren's 6 goods: Whetstone I/II, Sturdy Heart I/II, sea chart, cape.</dd>
+        <dt>Sink</dt><dd>Yes, but tiny: a full clear pays <b class="o">92</b>, the shop costs <b class="o">90</b>. Each enemy pays once, so after one run coins mean nothing.</dd>
+        <dt>Play</dt><dd>Yes: +50 % sword, 140 HP. Sea glass (15) makes 3 charms that work. Bear claw, boar tusk and captain's hat are trophies with perks.</dd>
+        <dt>Thin</dt><dd>Crab claws, coconuts and fur sit in the pack and nothing takes them. The pearl necklace chest is a flag with no use.</dd>
+      </dl>
+      <p class="path">generators/economy.ts · loot.ts · finds.ts · game/loot/Bounty.ts</p>
+    </div>
+    <div class="card">
+      <h3>Pine Hollow <span class="tag good">BEST LOOP</span></h3>
+      <dl>
+        <dt>Do</dt><dd>Kneel and carve a kill: venison, hides, tusks, pelts; pick up resin; win lodge ribbons. Barter with Mott (7 trades).</dd>
+        <dt>Sink</dt><dd>Yes: bolts, pitch, broadheads, cartridges, arrows, and 2 finishes. No coins at all.</dd>
+        <dt>Play</dt><dd>Yes: the hunt feeds the ammo you hunt with. Elites drop fixed weapon finishes; the King pays the rifle.</dd>
+        <dt>Thin</dt><dd>Elk harvest gives nothing (the pack refuses elk meat, hide and antlers). Coat rarity only counts for 2 contracts. Ribbons buy one finish.</dd>
+      </dl>
+      <p class="path">data/contracts.json · generators/trades.ts · nativeInventory.ts · weaponFinishes.ts</p>
+    </div>
+    <div class="card">
+      <h3>Nalati Grasslands <span class="tag">FIXED</span></h3>
+      <dl>
+        <dt>Do</dt><dd>Beat elites (some only in storm, night or dusk) for 5 skins; beat bosses for the Golden Bow and Naizagai.</dd>
+        <dt>Sink</dt><dd>None. No currency and no pack (its 12 old item kinds were never read, so they were removed).</dd>
+        <dt>Play</dt><dd>Naizagai has real powers (crescent arc, called lightning). The skins are looks.</dd>
+        <dt>Thin</dt><dd>Nothing to spend, but it is honest: what you kill gives you a named thing.</dd>
+      </dl>
+      <p class="path">data/legendaryWeapons.json · skinFinishes.json · weaponPowers.json</p>
+    </div>
+    <div class="card">
+      <h3>Shared code <span class="tag warn">HALF GENERIC</span></h3>
+      <dl>
+        <dt>Has</dt><dd>Purse, Bounty, Owned, an Exchange for both coins and barter, the shop panel, loot tables, claimed pickups, the trophy and finish hosts.</dd>
+        <dt>Gaps</dt><dd><code>OWNED</code> is a fixed list of Driftwood's item ids inside the game layer. The harvest table names deer and crabs inside <code>game/Inventory.ts</code>. Contract rewards have a Pine-only <code>bolts</code> field. Loot tables know only coins and trophies.</dd>
+      </dl>
+      <p class="path">src/game/loot/ · src/format/exchange.ts · lootEconomy.ts · contracts.ts</p>
+    </div>
+  </div>
+  <p><b class="o">The pattern:</b> Driftwood has a currency with nothing left to buy, Pine has materials with a real use
+    but no currency, Nalati has prizes with nothing to spend. The Kitchen Sink can use all three in one loop.</p>
+</section>
+
+<section>
+  <h2>2 · WHAT GOOD GAMES DO</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>Game</th><th>What it does well</th><th>What we take</th></tr>
+    <tr><td>Zelda BotW / TotK</td><td>Rupees are scarce; monster parts have a visible use (Great Fairy armour upgrades with fixed recipes).</td><td>Every part names what it is for.</td></tr>
+    <tr><td>Guild Wars 1</td><td>Max-stat gear is cheap and fast to reach; the long tail is looks (Obsidian armour). Salvage gives materials; collectors swap N drops for a fixed item.</td><td>Power caps early, cosmetics carry the end. Fixed swaps.</td></tr>
+    <tr><td>Old School RuneScape</td><td>Drop tables with famous uniques and a collection log; the Grand Exchange market.</td><td>A board of what you haven't found (pack silhouettes, trophy wall). No market yet.</td></tr>
+    <tr><td>Monster Hunter</td><td>Carve each monster for its own parts and craft its gear; every hunt's payoff is clear.</td><td>One part per robot type, so each band is on the shopping list.</td></tr>
+    <tr><td>Diablo</td><td>Rarity colours and random affixes: an endless slot machine that turns into inventory bloat.</td><td>Only the pop of a drop (beam and chime). No random gear.</td></tr>
+    <tr><td>Hollow Knight</td><td>One currency (geo) for maps, charms and upgrades; charms are perks you mostly find, not grind.</td><td>One currency; perks from trophies and collectibles.</td></tr>
+    <tr><td>Dark Souls</td><td>Souls are both XP and money; you drop them on death and get one try to recover them.</td><td>Not on a phone. Your XP rule already stings; Scrip is never lost.</td></tr>
+    <tr><td>Destiny (Lost Sectors)</td><td>A short solo dungeon with a known headline reward, worth repeating.</td><td>The Training Vault chest and named boss prizes, announced on the contract board.</td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>3 · THE LOOP</h2>
+  <figure>
+  <svg class="diagram" viewBox="-18 0 396 540" role="img" aria-label="Loot loop: east kills give Scrip, parts and fixed drops; Tinker Rook turns them into upgrades, toys and ammo; upgrades and ammo go back east, toys go west.">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#eceae6"/></marker>
+    </defs>
+    <g font-family="system-ui, -apple-system, sans-serif" text-anchor="middle">
+      <rect x="20" y="12" width="320" height="52" fill="#3d2a17" stroke="#f08a24" stroke-width="2"/>
+      <text x="180" y="34" fill="#f08a24" font-size="15" font-weight="700">EAST HALF · KILL ROBOTS</text>
+      <text x="180" y="53" fill="#eceae6" font-size="11">6 bands · night shift · 6 elites · 3 mini-bosses · the Titan</text>
+
+      <rect x="8" y="104" width="108" height="58" fill="#3a3420" stroke="#f2c14e" stroke-width="2"/>
+      <text x="62" y="126" fill="#f2c14e" font-size="14" font-weight="700">SCRIP</text>
+      <text x="62" y="142" fill="#eceae6" font-size="10.5">3–15 a kill</text>
+      <text x="62" y="155" fill="#eceae6" font-size="10.5">+ chests, contracts</text>
+
+      <rect x="126" y="104" width="108" height="58" fill="#1f3438" stroke="#5fd4e6" stroke-width="2"/>
+      <text x="180" y="126" fill="#5fd4e6" font-size="14" font-weight="700">PARTS</text>
+      <text x="180" y="142" fill="#eceae6" font-size="10.5">1 per kill, no dice</text>
+      <text x="180" y="155" fill="#eceae6" font-size="10.5">6 kinds + 3 cores</text>
+
+      <rect x="244" y="104" width="108" height="58" fill="#33283d" stroke="#c49be8" stroke-width="2"/>
+      <text x="298" y="126" fill="#c49be8" font-size="13" font-weight="700">FIXED PRIZES</text>
+      <text x="298" y="142" fill="#eceae6" font-size="10.5">finishes, trophies</text>
+      <text x="298" y="155" fill="#eceae6" font-size="10.5">hat, Crate Cleaver</text>
+
+      <path d="M62,64 L62,100" stroke="#eceae6" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M180,64 L180,100" stroke="#eceae6" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M298,64 L298,100" stroke="#eceae6" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="8" y="204" width="236" height="106" fill="#2b2d30" stroke="#eceae6" stroke-width="1.5"/>
+      <text x="126" y="297" fill="#eceae6" font-size="12.5" font-weight="700">TINKER ROOK'S STALL (HUB)</text>
+      <rect x="16" y="212" width="104" height="62" fill="#3d2a17" stroke="#f08a24" stroke-width="1.5"/>
+      <text x="68" y="232" fill="#f08a24" font-size="12.5" font-weight="700">UPGRADES</text>
+      <text x="68" y="249" fill="#eceae6" font-size="10.5">Scrip + parts</text>
+      <text x="68" y="263" fill="#eceae6" font-size="10.5">one-off, by level</text>
+      <rect x="132" y="212" width="104" height="62" fill="#1f3438" stroke="#5fd4e6" stroke-width="1.5"/>
+      <text x="184" y="232" fill="#5fd4e6" font-size="12.5" font-weight="700">BENCH</text>
+      <text x="184" y="249" fill="#eceae6" font-size="10.5">parts in,</text>
+      <text x="184" y="263" fill="#eceae6" font-size="10.5">consumables out</text>
+
+      <rect x="254" y="204" width="98" height="106" fill="#33283d" stroke="#c49be8" stroke-width="1.5"/>
+      <text x="303" y="230" fill="#c49be8" font-size="12.5" font-weight="700">TROPHY</text>
+      <text x="303" y="245" fill="#c49be8" font-size="12.5" font-weight="700">WALL</text>
+      <text x="303" y="268" fill="#eceae6" font-size="10.5">12 frames</text>
+      <text x="303" y="283" fill="#eceae6" font-size="10.5">perks always on</text>
+
+      <path d="M62,162 L64,208" stroke="#f2c14e" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M160,162 L98,208" stroke="#5fd4e6" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M190,162 L188,208" stroke="#5fd4e6" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M298,162 L302,200" stroke="#c49be8" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M262,162 L118,208" stroke="#c49be8" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+      <text x="214" y="196" fill="#c49be8" font-size="10">cores</text>
+
+      <rect x="8" y="350" width="108" height="70" fill="#3d2a17" stroke="#f08a24" stroke-width="2"/>
+      <text x="62" y="370" fill="#f08a24" font-size="12.5" font-weight="700">POWER</text>
+      <text x="62" y="386" fill="#eceae6" font-size="10.5">Forge I–IV</text>
+      <text x="62" y="399" fill="#eceae6" font-size="10.5">Hearts · Dodge</text>
+      <text x="62" y="412" fill="#eceae6" font-size="10.5">Parry · Arc</text>
+
+      <rect x="126" y="350" width="108" height="70" fill="#1e3526" stroke="#6fcf8a" stroke-width="2"/>
+      <text x="180" y="370" fill="#6fcf8a" font-size="12.5" font-weight="700">TOYS</text>
+      <text x="180" y="386" fill="#eceae6" font-size="10.5">Hover Grip</text>
+      <text x="180" y="399" fill="#eceae6" font-size="10.5">Grapple Reel</text>
+      <text x="180" y="412" fill="#eceae6" font-size="10.5">Hover Boost</text>
+
+      <rect x="244" y="350" width="108" height="70" fill="#1f3438" stroke="#5fd4e6" stroke-width="2"/>
+      <text x="298" y="370" fill="#5fd4e6" font-size="12.5" font-weight="700">AMMO + KITS</text>
+      <text x="298" y="386" fill="#eceae6" font-size="10.5">pitch · broadheads</text>
+      <text x="298" y="399" fill="#eceae6" font-size="10.5">cartridges</text>
+      <text x="298" y="412" fill="#eceae6" font-size="10.5">patch kits</text>
+
+      <path d="M62,310 L62,346" stroke="#eceae6" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M100,310 L160,346" stroke="#eceae6" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M220,310 L280,346" stroke="#eceae6" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="8" y="462" width="344" height="66" fill="#1e3526" stroke="#6fcf8a" stroke-width="2"/>
+      <text x="180" y="484" fill="#6fcf8a" font-size="14" font-weight="700">WEST HALF · PAYS NO XP, NO SCRIP</text>
+      <text x="180" y="502" fill="#eceae6" font-size="10.5">board park · grapple tower · riding · range</text>
+      <text x="180" y="518" fill="#eceae6" font-size="10.5">20 Gold 1×1 cubes (both halves) → 4 Calibration Chips (perks)</text>
+      <path d="M180,420 L180,458" stroke="#6fcf8a" stroke-width="1.8" marker-end="url(#ah)"/>
+
+      <path d="M8,385 L-6,385 L-6,38 L16,38" fill="none" stroke="#f08a24" stroke-width="1.8" marker-end="url(#ah)"/>
+      <path d="M352,385 L366,385 L366,38 L344,38" fill="none" stroke="#5fd4e6" stroke-width="1.8" marker-end="url(#ah)"/>
+      <text x="-10" y="210" fill="#f08a24" font-size="10" text-anchor="middle" transform="rotate(-90 -10 210)">harder bands</text>
+      <text x="370" y="210" fill="#5fd4e6" font-size="10" text-anchor="middle" transform="rotate(90 370 210)">burn the next band</text>
+    </g>
+  </svg>
+  <figcaption>Power and ammo go back east to the next band; toys go west. Mini-boss cores (dashed) are the key part of three upgrades.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>4 · THE PROPOSAL</h2>
+  <h3>Scrip, the one currency</h3>
+  <p>The Foreman's company scrip, on the gold coin icon the mockups already use. A kill pays its type's rate, times the
+    same gap factor as XP (grey, six levels under, pays 0), and night shift pays ×1.25. No per-enemy cap: bands respawn
+    in 90 seconds, and the gap rule is what stops farming.</p>
+  <h3>Parts, the salvage</h3>
+  <p>Every robot drops exactly one part of its type (night shift two), and you collect it by walking over it, like
+    coins. No kneeling: at 400+ kills a climb, a carve beat on every kill would wear thin on a phone (Pine keeps its
+    kneel). Mini-bosses drop a <b class="o">core</b> once each. A part's pack tile says what it is for.</p>
+  <h3>Tinker Rook's stall, two tabs</h3>
+  <p><b class="o">UPGRADES</b>: one-off buys for Scrip plus a few parts, unlocked by level, Driftwood's model.
+    <b class="o">BENCH</b>: parts into consumables, Pine's barter model. Welders give the nozzles for pitch bolts, and
+    pitch burns the Riveters in the next band, so where you farm sets what you shoot.</p>
+  <h3>The pack: 20 slots that never fill</h3>
+  <p>One slot per kind: 6 parts, 3 cores, patch kits (carry 5), the vault keycard. Kinds you haven't found yet show as
+    grey silhouettes, so the grid is also a "what's out there" board. Ammo stays in the pouch. No inventory juggling on
+    a phone.</p>
+  <h3>Trophies, finishes, collectibles, feats</h3>
+  <ul>
+    <li><b class="o">Six named night elites</b>, one per band, two levels up, out only after dark: Sir Nibbles (Crate
+      Mite), Old Forky (Pallet Jack), Nailbiter (Plumb Drone), Hot Mess (Welder), Riveting Rita (Riveter), Static Steve
+      (Arc Sentry). Each drops a weapon finish and a trophy.</li>
+    <li><b class="o">Trophy wall</b> in the hub, 12 frames: 6 elites, 3 mini-bosses, the Titan, 2 secret caches. A hung
+      trophy's small perk is always on.</li>
+    <li><b class="o">Gold 1×1s</b>: 20 gold stencilled cubes, 10 west and 10 east. Every 5 make a Calibration Chip
+      (+5 % max HP · dodge −15 % · sprint +10 % · weapons glow at night). Perks only, never XP or Scrip.</li>
+    <li><b class="o">Feats</b>: Scrap Metal Enthusiast (250 parts), Retail Therapist (every upgrade), Independent
+      Contractor (16 contracts), Interior Decorator (12 trophies), Graveyard Shift (6 elites), Cube Collector, Patch Notes.</li>
+  </ul>
+  <h3>Why kill the next pack</h3>
+  <ol>
+    <li>XP, the base.</li>
+    <li>Scrip toward the next upgrade, which the stall shows locked with its level and price.</li>
+    <li>This band's part counter on the pack tile ("Rotors 5 / 8 for Forge II").</li>
+    <li>The band's contract on the board.</li>
+    <li>Its named elite at night, and the finish it drops.</li>
+  </ol>
+  <h3>Death</h3>
+  <p>Costs XP only (your rule). Scrip, parts and the pack are never lost.</p>
+</section>
+
+<section>
+  <h2>5 · NUMBERS</h2>
+  <p>About 150 equal-level kills an hour (2.5 a minute, levels page).</p>
+  <div class="scroll">
+  <table>
+    <tr><th>Band</th><th>Robot</th><th>Scrip / kill</th><th>Night</th><th>Part</th><th>Scrip / h</th><th>Contracts</th><th>Chests</th></tr>
+    <tr><td>1–3</td><td>Crate Mite</td><td class="n">3</td><td class="n">4</td><td>Servo</td><td class="n">450</td><td class="n">20 + 30</td><td class="n">2 × 15</td></tr>
+    <tr><td>4–6</td><td>Pallet Jack</td><td class="n">5</td><td class="n">6</td><td>Tine</td><td class="n">750</td><td class="n">40 + 50</td><td class="n">2 × 25</td></tr>
+    <tr><td>7–9</td><td>Plumb Drone</td><td class="n">7</td><td class="n">9</td><td>Rotor</td><td class="n">1,050</td><td class="n">70 + 80</td><td class="n">2 × 40</td></tr>
+    <tr><td>10–12</td><td>Welder Unit</td><td class="n">9</td><td class="n">11</td><td>Nozzle</td><td class="n">1,350</td><td class="n">110 + 120</td><td class="n">2 × 60</td></tr>
+    <tr><td>13–15</td><td>Riveter</td><td class="n">12</td><td class="n">15</td><td>Rivet plate</td><td class="n">1,800</td><td class="n">160 + 170</td><td class="n">2 × 80</td></tr>
+    <tr><td>16–18</td><td>Arc Sentry</td><td class="n">15</td><td class="n">19</td><td>Arc coil</td><td class="n">2,250</td><td class="n">220 + 230</td><td class="n">2 × 100</td></tr>
+  </table>
+  </div>
+  <p class="muted">Contracts: the band's count contract + its named-elite contract. Earned on the climb to 20 (one
+    script run of the levels table): kills ≈ 4,430, contracts 2,220, chests 640, mini-boss drops 410, so
+    <b class="o">≈ 7,700 before the Titan</b>, and 1,300 more for him.</p>
+
+  <h3>Tinker Rook's UPGRADES</h3>
+  <div class="scroll">
+  <table>
+    <tr><th>Upgrade</th><th>Lvl</th><th>Scrip</th><th>Parts</th><th>Does</th><th>Bought at</th></tr>
+    <tr><td>Hover Grip (toy)</td><td class="n">2</td><td class="n">100</td><td>3 Servo</td><td>tighter board turns</td><td class="n">6</td></tr>
+    <tr><td>Sturdy Heart I</td><td class="n">3</td><td class="n">60</td><td>5 Servo</td><td>+10 % max HP</td><td class="n">3</td></tr>
+    <tr><td>Quiver Strap</td><td class="n">4</td><td class="n">60</td><td>4 Tine</td><td>+6 arrows and bolts</td><td class="n">5</td></tr>
+    <tr><td>Forge I · Iron</td><td class="n">5</td><td class="n">80</td><td>6 Tine</td><td>every weapon base 17</td><td class="n">5</td></tr>
+    <tr><td>Dodge Servo</td><td class="n">6</td><td class="n">150</td><td>Hydraulic Heart</td><td>dodge recharge −25 %</td><td class="n">7</td></tr>
+    <tr><td>Scrap Scanner</td><td class="n">7</td><td class="n">120</td><td>4 Rotor</td><td>unfound cubes and chests on the map</td><td class="n">7</td></tr>
+    <tr><td>Forge II · Steel</td><td class="n">9</td><td class="n">300</td><td>8 Rotor</td><td>base 22</td><td class="n">9</td></tr>
+    <tr><td>Sturdy Heart II</td><td class="n">10</td><td class="n">250</td><td>6 Nozzle</td><td>+10 % max HP</td><td class="n">10</td></tr>
+    <tr><td>Grapple Reel (toy)</td><td class="n">10</td><td class="n">300</td><td>4 Rotor</td><td>faster reel, +8 m reach</td><td class="n">11</td></tr>
+    <tr><td>Parry Gyro</td><td class="n">12</td><td class="n">400</td><td>Plate Core</td><td>parry window +0.05 s</td><td class="n">13</td></tr>
+    <tr><td>Forge III · Alloy</td><td class="n">13</td><td class="n">600</td><td>8 Rivet</td><td>base 26</td><td class="n">13</td></tr>
+    <tr><td>Hover Boost (toy)</td><td class="n">14</td><td class="n">500</td><td>6 Nozzle</td><td>a boost on the board</td><td class="n">14</td></tr>
+    <tr><td>Sturdy Heart III</td><td class="n">15</td><td class="n">500</td><td>6 Rivet</td><td>+10 % max HP</td><td class="n">16</td></tr>
+    <tr><td>Forge IV · Titanium</td><td class="n">17</td><td class="n">900</td><td>8 Arc coil</td><td>base 31</td><td class="n">17–18</td></tr>
+    <tr><td>Arc Insulation</td><td class="n">18</td><td class="n">600</td><td>Foreman's Capacitor</td><td>+15 % energy armour</td><td class="n">18</td></tr>
+    <tr><td>Hi-vis vest · Lamp eyes · Foreman Gold</td><td class="n">1 · 12 · 20</td><td class="n">150 · 800 · 2,500</td><td>—</td><td>looks: the late sink</td><td class="n">—</td></tr>
+  </table>
+  </div>
+  <p class="muted">"Bought at" is a buyer who puts power first and spends about 10 % on consumables. Upgrades cost
+    4,920 in all, 64 % of what the climb pays; buying the toys pushes each Forge back about a level, which is the choice.
+    Each Forge costs 20–35 minutes of its own band. The Forge bases are the levels page's tiers.</p>
+
+  <h3>BENCH (repeatable)</h3>
+  <ul>
+    <li>Patch kit (heals 40 %, carry 5) = 2 Servo + 1 Tine</li>
+    <li>Pitch bolts ×10 = 3 Nozzle · Broadheads ×8 = 3 Rivet plate · Cartridges ×14 = 2 Arc coil + 2 Rotor</li>
+    <li>Iron bolts and arrows refill free at the hub.</li>
+  </ul>
+
+  <h3>Fixed boss rewards</h3>
+  <div class="scroll">
+  <table>
+    <tr><th>Boss</th><th>First kill</th><th>Repeat</th><th>Contract</th></tr>
+    <tr><td>Big Pallet · L6</td><td>60 Scrip, Hydraulic Heart, trophy <i>Big Pallet's Tines</i> (+5 % damage to crate robots), 5 Tine</td><td class="n">60 + 5 Tine</td><td>120, title <i>Forklift Certified</i></td></tr>
+    <tr><td>Vault Warden · L12</td><td>Vault chest: 150, Plate Core, the Warden sword finish, trophy <i>Warden's Plate</i> (+5 % physical armour)</td><td class="n">50</td><td>300, <i>Plate Expectations</i></td></tr>
+    <tr><td>Foreman Unit 7 · L18</td><td>200, Foreman's Capacitor, his hard hat (worn), trophy <i>Foreman's Whistle</i> (+10 % damage to night shift)</td><td class="n">100 + 5 Arc coil</td><td>500, <i>Middle Management</i></td></tr>
+    <tr><td>Crate Titan · L20</td><td>300, the <b class="o">Crate Cleaver</b> (legendary sword, base 36; its heavy sends a shock ring that strips armour for 4 s), the Titan gold finish, trophy <i>Titan's Core</i> (+5 % all damage), Foreman Gold goes on sale</td><td class="n">300</td><td>1,000, <i>Thinks Outside the Box</i></td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>6 · WHAT IT NEEDS (WAVE 1, ~104 H)</h2>
+  <p>All data rows; the showcase writes no TypeScript. The vendor, chests and finish grants are already in Wave 1 rows
+    W5, W2 and W16.</p>
+  <ul>
+    <li><b class="o">LE1</b> a currency row (name, icon, chip) · <b class="o">LE2</b> kill payouts with the gap factor and an optional per-enemy cap (Driftwood keeps it)</li>
+    <li><b class="o">LE3</b> salvage rows moved out of the game layer (auto pickup or Pine's kneel) · <b class="o">LE4</b> pack catalogue rows, 20 slots, silhouettes</li>
+    <li><b class="o">LE5</b> shop goods with a level, Scrip + parts on one price, repeatable goods, two tabs · <b class="o">LE6</b> upgrade effects (weapon base, HP, dodge, parry, armour, board, grapple)</li>
+    <li><b class="o">LE7</b> fixed reward rows (first and repeat) for elites, bosses, chests and contracts · <b class="o">LE8</b> a fixed, level-locked contract board</li>
+    <li><b class="o">LE9</b> one trophy wall row (Driftwood's plaques and Pine's wall become rows) · <b class="o">LE10</b> a test that recomputes this page's numbers from the rows</li>
+  </ul>
+  <p>Wave 2 then fills them in: LW1–LW10 (payouts, parts, the stall, 16 contracts, 12 chests, 6 elites, boss prizes and
+    the Cleaver, the wall and cubes, feats, one balance pass).</p>
+</section>
+
+<section>
+  <h2>7 · LATER: DRIFTWOOD AND PINE HOLLOW</h2>
+  <p class="muted">No edits now; once the rows exist each shard moves onto them with no visible change, then:</p>
+  <ul>
+    <li><b class="o">Driftwood</b> keeps its 30-minute buy-out and its pay-once cap. Maren takes reef shells and silver
+      fur (for the cape and a charm dye), or the island stops dropping them. The pearl necklace hangs on the plaque
+      wall with a perk.</li>
+    <li><b class="o">Pine Hollow</b> is already the barter half of this design. Elk drop a hide Mott takes; ribbons buy a
+      second finish; rare coats give more.</li>
+    <li><b class="o">Nalati</b> stays fixed prizes with no currency: the model for a shard that needs no shop.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>8 · QUESTIONS FOR YOU</h2>
+  <div class="q"><b>1. Parts?</b> One salvage part per robot type, picked up by walking over it, used for upgrades and the bench. <span class="rec">Recommended: yes.</span></div>
+  <div class="q"><b>2. Weapon tiers as Forge I–IV?</b> Four one-off buys that raise every weapon, instead of buying each weapon's tiers. <span class="rec">Recommended: yes</span> (no item levels, and switching weapon costs nothing).</div>
+  <div class="q"><b>3. Grey kills pay 0 Scrip, with no per-enemy cap?</b> The same rule as XP, instead of Driftwood's pay-once. <span class="rec">Recommended: yes.</span></div>
+  <div class="q"><b>4. The Titan's legendary?</b> The fixed Crate Cleaver sword, or a Titan Core you forge into the weapon you use most. <span class="rec">Recommended: the Cleaver now; the core can come later.</span></div>
+  <div class="q"><b>5. Six named night elites?</b> One per band, each dropping a finish and a trophy. <span class="rec">Recommended: yes.</span></div>
+  <div class="q"><b>6. The currency's name?</b> Scrip, coins or bolts. <span class="rec">Recommended: Scrip</span> (bolts are already ammo).</div>
+</section>
+
+</main>
+</body>
+</html>
