@@ -5,12 +5,12 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE d0c3524-mvx46y92 = GLSL** (20:15 Cancun; staged; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 5c72cf6-mvx8peek = GLSL** (10-31 22:14 Cancun; staged; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
-**20:30:** pwa-reload + DEPLOYMENT_ASSET_TRIM archived (PR5 headless, 1 tap). CS3 phone + desktop pixel-exact. G965 movers x8.
+**11-02 22:20:** coordinator back after a 2-day usage stall; CS5 ruled. fps census 5c72: desktop 60 vsync, Sim 30 median (p5 27-29).
 **wildshard-v (20:30):** overnight: CS rows x1 / x2 / x6 / x9 (CS1/4/7 marks, CS9 -> CS10), G965 x8, CI9 open (runner variance 2x).
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
