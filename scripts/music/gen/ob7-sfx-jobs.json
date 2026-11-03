@@ -648,7 +648,12 @@
       "into": "alien-plain",
       "duration": 30,
       "desc": "Low breathy alien night wind over an open plain with a faint distant sub hum and sparse glassy insect chirps",
-      "prompt": "Quiet outdoor night wind flowing over an empty open plain, with a faint steady low air resonance far away. Occasional tiny dry high glassy insect clicks and short chirps appear at wide irregular intervals. Soft continuous breathy air remains dominant, low and calm. Natural environmental background, no rhythmic pulses, no melody, no music, no voices, no birds, no rain, no water."
+      "prompt": "Quiet outdoor night wind flowing over an empty open plain, with a faint steady low air resonance far away. Occasional tiny dry high glassy insect clicks and short chirps appear at wide irregular intervals. Soft continuous breathy air remains dominant, low and calm. Natural environmental background, no rhythmic pulses, no melody, no music, no voices, no birds, no rain, no water.",
+      "reuse": {
+        "set": "frostline-peaks",
+        "bed": "frostline-peaks.ambience",
+        "gap": "G872 measured/descriptive fit accepted by Alien Plain owner O3, not an ear verdict: canonical Frostline near-tonal steady sub-hum is the defining layer of the Alien brief, at -24.1 LUFS, LRA 0.5 LU, peak -9.1 dBFS, spectral flatness 0.001 and 75% of energy below 150 Hz (21% at 150–500 Hz, under 2% above 500 Hz). The canonical recording duration is 18.5 s and its original loop is 2.5–17.5 s, with paired source ranks one and one. The original source prompt names an alpine chairlift, but O3 accepts the measured low drone as alien sub-hum; no actual chairlift is claimed in the plot. Named gaps: no continuous glassy insect chirps and no breeze in the bed; the six qualified local spots carry the details. All four own-bed failing paired takes remain comparison-only with hashes and unchanged rank bar. The exact source is referenced without copying. Jake judges by ear on the listening page."
+      }
     },
     "hum.alien-plain.monolith": {
       "kind": "hum",
