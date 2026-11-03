@@ -155,7 +155,7 @@ does not close a Z row.
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **Held kits.** Weapon pages into the `held/*` platform sections; Jian cloth / halo ship as GLB | 10: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Opus | 3 |
 | **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
-| **Z8** | **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
+| **Z8** | **In flight (2026-11-03, sp-x9), 0/14 landed.** Two approved candidates await exact reconstruction and G998 goldens: shared ChapterPresentation (6/6) and the zero-reader DW steps copy. Twelve per-file blockers below go to the one-user batch; Pine lead already runs as AS. **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Instanced scatter rows.** Nalati's scatter pages become the generic dressing host with Pine props as user two | 9: Nalati dressing-pages 5, dressing-{phone,desktop}; Pine props, prop-shapes | Opus | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | 8: Nalati weather, weather-fx, audio/scene, look/post; Pine weather, rain, weather-observations, ambience | Opus fx, Codex audio | 3 |
@@ -274,6 +274,67 @@ and the preview lease was released (sp-x9 retains its own use).
 
 Raw protocol/readings: `tmp/sp-x2-cs3-exits/z5/{audit.json,map-audit.json,
 pixels/reading.json}`. No Pine/Nine source changed in this slice.
+
+### Z8 whole-quest candidates and batch (2026-11-03, sp-x9)
+
+**0/14 landed; two approved candidates, 12 retained blockers.** Existing
+manifest-verified targets total **98,173 B**: Pine **5 / 53,098 B**,
+Driftwood **5 / 13,092 B**, Nalati **4 / 31,983 B**. The named-body census
+alone is insufficient: complete shared values also live inside other
+real shipped documents, while two author emitters without a reading host
+do not establish platform eligibility. No new CURRENT, pack or pixel
+qualification is claimed by this preflight.
+
+| Candidate | Actual users / reader and exact scope |
+|---|---|
+| Nalati `quests/chapters.json`, **4,645 B** | Fresh sp-x2 **6/6**, accepted by the coordinator. The exact whole private `ChapterPresentation` is Nalati's standalone body and the complete, present `QuestStorySchema.chapters` values emitted by DW and Pine. `game/quest/chapter.ts` and `story.ts` actually call `parseChapterStoryPresentation`. Candidate exports the same defining object as `ChapterStoryPresentationSchema`, preserves its parser/checks, appends one SDK root and adds only defining schema metadata on Nalati's original encoder. No optional child or inferred wrapper substitutes for the complete body. |
+| DW `quests/steps.json`, **149 B** | Coordinator-approved zero-reader deletion, separate candidate. Fresh sp-x2 found no whole-file runtime route; a second source trace confirms only the emitter/schema declarations and producer/provenance tests name the file. `generators/heldArms.ts` reads `data/questSteps.json` directly and emits its guard into held claims; `game/loadout/claims#HeldClaimGuard` constructs its own complete guard runner. Pine's full steps still run through its original page/native owners. Delete only the unreferenced emitted copy and unused output imports, retaining source data, held guard, original shared step schema and every Pine step. No invented named-file reader credit. |
+
+Qualification still requires ordinary product admission, exact remaining
+payload/metadata contrast and ordered-pack reconstruction, then G998
+Chromium/WebKit goldens before either source candidate lands. The shared
+format edit requires all six shards. Browser work waits for QD1's hold
+to lift. The eventual target reduction is **2/14**, leaving **12 /
+93,379 B** charged; the chapter body stays exact and the sole deleted
+body is the 149 B zero-reader copy. These are projections, not landed
+counts. Candidate source controls cover three real complete chapter
+values, original duplicate/reward/limit/unknown-field refusals, defining
+metadata and private-neighbour rejection; the original native quest and
+platform-family suites pass, as do root types and touched lint.
+
+**Pine lead is already AS, not a new rewrite.** `sourceOutput.ts` compiles
+`returnModule(ctx, 'life')` from `behaviour/life.as` and `stag.as` through
+the Script ABI 1.0 decision compiler. The real `custom/questRuntime`
+lead.program, page-life program and quest-page chapter program are deeply
+identical and their script is present in `actors/return-scripts`. Its
+**9,133 B** raw module, SHA-256
+`260eee8839d76af399fadc27a383c92ef8f75a0bbab154bce727d973d24e3594`,
+is byte-identical to the frozen native oracle and the emitted declaration
+matches the original fixture. This establishes the existing AS decision
+owner; it does not close the surrounding questRuntime envelope. The
+attempted original life/native/quest/carried test group refused before
+running because ordinary CURRENT DW/Pine products were unavailable.
+No stale-product bypass, new compiler proof or semantic pass is claimed.
+
+| Retained whole file for the batch | Bytes | Exact remaining blocker |
+|---|---:|---|
+| Pine `custom/questRuntime` | 29,289 | Sole complete envelope and live quest.spawns source / forest-story content. PineQuestRowsSchema still leaves events, deaths, pageDeaths and content opaque, beyond the already-AS lead. Preserve source/content references, phase/save order, native inputs and every owner. A page/native-story child is not the whole replacement. |
+| Pine `quests/native-spots.json` | 6,692 | Complete NativeQuestServiceSpots root has only Pine as emitter. DW's authored spots have a different complete envelope; sharing a point/prompt child is insufficient. Preserve duplicate row/person identities, all cable endpoints and native prop/entry loans. |
+| Pine `quests/native-story.json` | 2,440 | DW and Pine genuinely author complete NativeQuestComposition values, but the native composition consumer traced is the fixture host; no src/game/engine reading host was found by the fresh seat. Author SDK/schema reuse alone cannot supply real runtime-user credit. Keep every saved-role/dependency/phase/reference check; any dead/duplicate retirement needs a complete routing and native reconstruction proof first. |
+| Pine `quests/contracts.json` | 6,740 | Sole complete ContractCatalogue emitter. DW's trader/loot rows are different roots. Keep catalogue/program/offer identities, guest module loan, serial/save rules and original contract admissions; a board child cannot replace the whole catalogue. |
+| Pine `quests/forest-story.json` | 7,937 | Sole whole story envelope. Existing inline board/store/talks grammar does not establish the complete world/map/pool/cable/mover contract. Preserve original fields and live custom/questRuntime content reference rather than dropping them to fit a child schema. |
+| DW `quests/discovery.json` | 1,150 | Sole complete places/guide/glassCount/shardFlags root. Its strict authored grammar and AdventureContent reader do not have a second whole emitter; other shards' places arrays are partial children. Preserve guide clocks, IDs, flags and named world anchors. |
+| DW `quests/interaction-source.json` | 9,886 | Sole closed constants.interact + interactSpots guest-input envelope. Preserve the actual ABI/input owner and original typed/native interaction-source checks. An unknown constants map or source wrapper is not a common root. |
+| DW `quests/hints.json` | 761 | Sole complete QuestHintRows root and actual page hint-file reader. Engine default hints in other shards do not emit this whole control/condition/system policy. Keep duplicate control, scan bounds, scheduling and the global learned-control save. |
+| DW `quests/wake-boss.json` | 1,146 | Sole complete ChapterWake root; Pine's elite/boss/controller children are different whole envelopes. Preserve quest/spawn/director identity, cue effects, duplicate/system separation and original native/entered encounter ownership. |
+| Nalati `quests/carried.json` | 4,718 | Sole complete CarriedQuest root. Existing G601 scope and shared effect/pose children do not add a second emitter. Keep player/mount/resource loans, AS decisions, terrain tests, state/output and event identities and the original carried/Kokpar differentials. |
+| Nalati `quests/content.json` | 20,411 | Sole complete chapter/figure envelope. Current ChapterViewSchema strips frame file/height/radius and child/cook motion.idleArm/idleHead; the emitted raw body retains them. Establish those exact owners and full contract; do not normalize away fields to fit the partial schema. |
+| Nalati `quests/finds.json` | 2,209 | Sole complete static FindsCatalogue root on the clientFinds admission path. DW's LootFinds root/binding is different. Keep flags/owned/counters and the actual catalogue owner; importing its parser does not grant the old G441 one-user host approval. |
+
+The 12 blockers stay charged for the coordinator's G988 one-user batch;
+missing complete contracts and routing proofs remain explicit, not
+silently approved by the batch label. No catch-all quest union,
+compatibility alias, guard deletion or cap increase is proposed.
 
 ### Z13: qualified cuts and retained semantic owners
 
