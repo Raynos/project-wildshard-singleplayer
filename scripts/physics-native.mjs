@@ -38,6 +38,7 @@ export function assertNativeWalkResult(report,expected){
  * @param {readonly string[]} slugs */
 export function nativeWalkTestFiles(slugs){
   return [...new Set(slugs.map(slug=>slug==='driftwood-isle'?'test/physics-headless.test.ts'
+    :slug.startsWith('open-plot-')?'test/physics-open-plots-headless.test.ts'
     :slug==='nalati-grasslands'?'test/physics-nalati-headless.test.ts':'test/physics-shards-headless.test.ts'))];
 }
 

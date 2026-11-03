@@ -151,3 +151,19 @@ hash/size checks. `.json` and `.md` include every tile's GPU, decoded,
 resident and compressed decimal MB, triangles, draws and vertical extent,
 plus the original sightline/height advice. These are verified declarations,
 not measured live RAM or a pixel/collider/performance qualification.
+
+## Walk-around: all five plots
+
+```sh
+node scripts/physics-baseline.mjs --no-build --mode=walk --shard=open-plot-ember-forge
+```
+
+Replace the slug with `open-plot-frostline-peaks`, `open-plot-lantern-bayou`,
+`open-plot-mosslight-ruins` or `open-plot-coral-drift`. The maintained
+`scripts/physics-route.json` has a continuous south-entry, bridge-approach,
+plaza-perimeter and landmark-base route for each. The normal checked-product
+Node resident runs actual fixed-step player motion. The CLI prints zero stuck
+only after the entire route completes; missing CURRENT products refuse.
+`node scripts/vitest-tmp.ts run test/physics-open-plots-headless.test.ts`
+runs the five together. These routes cover the shared lanes and landmark
+approach, not every optional house or every tile interior.

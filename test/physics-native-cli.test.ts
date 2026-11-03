@@ -38,3 +38,7 @@ test('CLI route selections use each complete resident module once after the phys
   ]);
   expect(nativeWalkTestFiles(['nalati-grasslands','nalati-grasslands',...others,...others])).toHaveLength(2);
 });
+
+test('open plots select their own admitted resident suite',()=>{
+  expect(nativeWalkTestFiles(['open-plot-frostline-peaks','open-plot-coral-drift'])).toEqual(['test/physics-open-plots-headless.test.ts']);
+});
