@@ -469,7 +469,9 @@ ${fogged ? fogEpilogue(program, fog) : ''}
 }
 
 /** a post graph's pass: a fullscreen triangle writing the graph's colour, as the TSL compile does with no scene bound (a
- *  scaled post lends its inputs as textures; a graph that reads the scene samples `wsScene` itself) */
+ *  scaled post lends its inputs as textures; a graph that reads the scene samples `wsScene` itself). Its colour goes out
+ *  through the target's encoding, as a node material's does: none into a linear target, sRGB to the screen (QD11: a
+ *  grade drawn straight to the canvas, G924, wrote linear values there and Nalati went dark and saturated) */
 function postShaders(program: GraphGlslProgram, uniforms: string, fogFunction?: string): { vertexShader: string; fragmentShader: string } {
   const colour = program.outputs.colour ?? 'vec3( 0.0 )';
   const varyingUv = program.vertex.body.includes('wsVUv') ? '' : 'varying vec2 wsVUv;';
@@ -494,6 +496,7 @@ ${fogFunction === undefined ? '' : `${fogFunction}\n`}${program.fragment.head}
 void main() {
 ${program.fragment.body}
   gl_FragColor = vec4( ${colour}, ${program.outputs.alpha ?? '1.0'} );
+#include <colorspace_fragment>
 }`,
   };
 }
