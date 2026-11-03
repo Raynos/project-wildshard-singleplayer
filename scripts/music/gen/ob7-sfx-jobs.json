@@ -533,7 +533,12 @@
       "into": "starfall-observatory",
       "duration": 30,
       "desc": "Quiet night garden crickets with a small fountain and occasional soft wind chimes",
-      "prompt": "A calm night garden: sparse crickets chirp around a gently trickling ornamental fountain, with a few faint delicate wind chimes in a soft breeze. Natural spacious ambience, no music, no melody, no voices or intelligible speech."
+      "prompt": "A calm night garden: sparse crickets chirp around a gently trickling ornamental fountain, with a few faint delicate wind chimes in a soft breeze. Natural spacious ambience, no music, no melody, no voices or intelligible speech.",
+      "reuse": {
+        "set": "lantern-bayou",
+        "bed": "lantern-bayou.ambience",
+        "gap": "G872 measured/descriptive fit, not an ear verdict: Lantern Bayou canonical night bed is 27.30 s, -24.22 LUFS integrated, LRA 1.70 LU and peak -7.04 dBFS. Original MOSS and Stable Audio comparisons both rank first. Frogs and crickets over quiet lapping water fit Starfall's night canal ring and garden ponds; O3 accepts the described fit. No continuous fountain or chimes in the bed; all six local spots remain, including the canal and pavilion chimes. Keep the normal -24 LUFS bed target, native 0.45 bed mix level and -20 LUFS score target; no extra gain or native tuning is introduced. Jake judges the actual canonical bed on the listening page."
+      }
     },
     "hum.starfall-observatory.dome-motor": {
       "kind": "hum",

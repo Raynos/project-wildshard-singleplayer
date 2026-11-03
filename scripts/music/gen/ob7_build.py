@@ -269,14 +269,14 @@ def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
             entry, proof, shared_bytes = shared_bed(row["reuse"])
             manifest["beds"][f"{plot}.ambience"] = entry
             manifest["provenance"].append(proof)
-            manifest["credit"] += f"; shared coastal bed from {row['reuse']['set']}"
+            manifest["credit"] += f"; shared bed from {row['reuse']['set']}"
             takes = comparisons.get("sfxTakes", {}).get(family, [])
             if {take["engine"] for take in takes} != {"moss", "medium"} or any(take["rank"] <= 5 for take in takes):
                 raise ValueError("Replaced bed requires the retained failing paired comparisons")
             expected = {(engine, wav.stem) for engine in ("moss", "medium") for wav in (raw / engine / family).glob("*.wav")}
             if {(take["engine"], take["seed"]) for take in takes} != expected or len(takes) != len(expected):
                 raise ValueError("Replaced bed has missing or duplicate source comparisons")
-            manifest["rejected"].append({"family": family, "reason": "Own bed failed; canonical qualified coastal bed reused",
+            manifest["rejected"].append({"family": family, "reason": "Own bed failed; canonical qualified bed reused",
                 "takes": [{"comparison": take, **read_compared_take(raw / take["engine"] / family / f"{take['seed']}.wav", take)} for take in takes]})
             continue
         if row.get("shipping", True) is False:
