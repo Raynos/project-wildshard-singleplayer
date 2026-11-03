@@ -10502,8 +10502,8 @@ slots, count reveals, mounts, chalk and keepsakes. `collections/displays`
 carries its complete display root; `models/island-library` carries resolved
 draws, figures and slots. Both are synchronous; checked section reads retain
 validation, caching and deep freeze.
-`CollectionDisplay` uses `SlotGeometry` to rewrite the index in place;
-cold Explorer cards and `collectionTrophy` retain geometry, materials,
+Index reveals use `engine/models/slots` and `game/models/collectionDisplay`;
+Explorer cards and `collectionTrophy` retain geometry, materials,
 names, placements and plaque mounting offsets from shard rows.
 
 `game/compendium/keepsakes.installCollectionKeepsakes` owns count-to-display
