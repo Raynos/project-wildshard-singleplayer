@@ -709,6 +709,233 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    }
   ]
  },
+ "jungle-ziggurat": {
+  "genre": "jungle-ziggurat",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-b-e7702c963b37.m4a",
+    "loopStart": 13.5,
+    "loopEnd": 31.89,
+    "duration": 32.89,
+    "gain": 1,
+    "seamScore": 0.295,
+    "calm": "take-b-e7702c963b37.m4a",
+    "bpm": 117.5,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-702",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.37658099999999994,
+    "metrics": {
+     "duration_s": 74.29,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -13.1,
+      "lra": 5.6,
+      "true_peak_dbfs": 0
+     },
+     "clipping": {
+      "clipped_samples": 139,
+      "clipped_frac": 0.000021213031333020785,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2214.2,
+      "rolloff95_hz": 8521.6,
+      "flatness": 0.001,
+      "hf_above_12k": 0.00027,
+      "sub_below_60": 0.0004,
+      "stereo_corr": 0.575
+     },
+     "tempo": {
+      "estimated_bpm": 123,
+      "brief_bpm": 96,
+      "rel_err": 0.282
+     },
+     "key": {
+      "best_key": "D# major",
+      "best_r": 0.732,
+      "d_major_r": 0.005,
+      "d_major_rank": 12,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.335,
+      "similarity": 0.357,
+      "level_match": 0.791,
+      "start_s": 16.5,
+      "end_s": 47.71,
+      "bars": 16,
+      "loop_s": 31.21,
+      "beats_per_bar": 4,
+      "grid_bpm": 123
+     },
+     "vocals": {
+      "vocal_energy_share": 0.1661,
+      "vocal_active_frac": 0.176,
+      "stem_share": {
+       "drums": 0.0006,
+       "bass": 0.054,
+       "other": 0.7792,
+       "vocals": 0.1661
+      },
+      "groove_active_frac": 0.838,
+      "drums_active_frac": 0.027
+     }
+    },
+    "qualified": false,
+    "failedChecks": [
+     "vocal check 16.6% exceeds 10%"
+    ],
+    "clap": {
+     "rank": 3,
+     "p": 0.218662,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-d3223d83e9a7.m4a",
+     "loopStart": 16.5,
+     "loopEnd": 47.71,
+     "duration": 48.71,
+     "gain": 1,
+     "seamScore": 0.335
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "jungle-ziggurat",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. A freshly painted Mesoamerican temple town just after tropical rain, bright warm afternoon. Gentle wooden flute melody answers warm hand drums and soft seed shakers, rounded acoustic bass and spacious plucked strings. Lively welcoming discovery, clean intact cinnabar temples beside jade pools, cheerful and unhurried rather than combat or mystery. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 273.2,
+     "model_load_s": 10,
+     "mps_driver_gb": 27.24
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.23555749999999998,
+    "metrics": {
+     "duration_s": 35.71,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -18,
+      "lra": 7.8,
+      "true_peak_dbfs": -1.3
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.8633
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1918.7,
+      "rolloff95_hz": 8363.4,
+      "flatness": 0.0006,
+      "hf_above_12k": 0.00009,
+      "sub_below_60": 0.0139,
+      "stereo_corr": 0.606
+     },
+     "tempo": {
+      "estimated_bpm": 117.5,
+      "brief_bpm": 96,
+      "rel_err": 0.223
+     },
+     "key": {
+      "best_key": "D minor",
+      "best_r": 0.857,
+      "d_major_r": 0.368,
+      "d_major_rank": 6,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.295,
+      "similarity": 0.37,
+      "level_match": 0.325,
+      "start_s": 13.5,
+      "end_s": 31.89,
+      "bars": 9,
+      "loop_s": 18.39,
+      "beats_per_bar": 4,
+      "grid_bpm": 117.5
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.0078,
+       "bass": 0.3341,
+       "other": 0.6581,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.429,
+      "drums_active_frac": 0.057
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 2,
+     "p": 0.086065,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-e7702c963b37.m4a",
+     "loopStart": 13.5,
+     "loopEnd": 31.89,
+     "duration": 32.89,
+     "gain": 1,
+     "seamScore": 0.295
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "jungle-ziggurat",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. A freshly painted Mesoamerican temple town just after tropical rain, bright warm afternoon. Gentle wooden flute melody answers warm hand drums and soft seed shakers, rounded acoustic bass and spacious plucked strings. Lively welcoming discovery, clean intact cinnabar temples beside jade pools, cheerful and unhurried rather than combat or mystery. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 130.2,
+     "model_load_s": 10,
+     "mps_driver_gb": 27.24
+    }
+   }
+  ]
+ },
  "lantern-bayou": {
   "genre": "lantern-bayou",
   "model": "MiniMax Music 3",
@@ -2266,6 +2493,72 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "duration": 5.25,
     "gain": 1,
     "seamScore": 0.571
+   }
+  },
+  "oneshots": {}
+ },
+ "jungle-ziggurat": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "jungle-ziggurat.ambience": {
+    "file": "ambience-9493f2753465.m4a",
+    "loopStart": 11.75,
+    "loopEnd": 21.75,
+    "duration": 22.75,
+    "gain": 1,
+    "seamScore": 0.712
+   }
+  },
+  "hums": {
+   "jungle-ziggurat.waterfall-cascade": {
+    "file": "waterfall-cascade-6209defcc456.m4a",
+    "loopStart": 4,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.539
+   },
+   "jungle-ziggurat.pool-lap": {
+    "file": "pool-lap-9a4327b0753e.m4a",
+    "loopStart": 2,
+    "loopEnd": 7,
+    "duration": 8,
+    "gain": 1,
+    "seamScore": 0.594
+   },
+   "jungle-ziggurat.wooden-wind-chimes": {
+    "file": "wooden-wind-chimes-6bf8e35d1bc9.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 5.75,
+    "duration": 6.75,
+    "gain": 1,
+    "seamScore": 0.534
+   },
+   "jungle-ziggurat.canopy-birds": {
+    "file": "canopy-birds-b95d191b80ba.m4a",
+    "loopStart": 4,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.405
+   },
+   "jungle-ziggurat.thatch-drip": {
+    "file": "thatch-drip-41814333cc6c.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 6.25,
+    "duration": 7.25,
+    "gain": 1,
+    "seamScore": 0.591
+   },
+   "jungle-ziggurat.temple-drum": {
+    "file": "temple-drum-f8ec4de3a891.m4a",
+    "loopStart": 3,
+    "loopEnd": 6,
+    "duration": 7,
+    "gain": 1,
+    "seamScore": 0.812
    }
   },
   "oneshots": {}
