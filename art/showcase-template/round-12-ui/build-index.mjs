@@ -99,7 +99,9 @@ const fig = ([id, slug, title, kind, cap]) => {
     + (pick.notes ? `<p class="notes">Your notes: ${esc(pick.notes.replace(/^\d{4}-\d\d-\d\d: /, ''))}</p>` : '');
   return `<section class="pair"><h3>${badge} ${id} · ${esc(title)} <span>${esc(kind)}</span></h3><p>${esc(cap)}</p>${cut}<div class="two">`
     + `<figure><img loading="lazy" src="${f}-before.jpg" alt="${id} before"><figcaption>BEFORE · live</figcaption></figure>`
-    + `<figure><img loading="lazy" src="${f}-after.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div></section>`;
+    + `<figure><img loading="lazy" src="${f}-after.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div>`
+    + (id === 'UI-29' ? '<p class="notes">New options (A · B · C), all hiding the tracked quest inside the vault:</p><figure><img loading="lazy" src="ui-29-board.jpg" alt="UI-29 options"><figcaption>A · the vault’s own quest chip · B · nothing stays · C · room pips only</figcaption></figure>' : '')
+    + '</section>';
 };
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kitchen Sink v2 · UI in engine</title><style>
