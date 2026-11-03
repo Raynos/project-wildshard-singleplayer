@@ -24,7 +24,7 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-29 | Training Vault sealed room | 3 Minimap chip | approved | 2026-11-03: "way too busy … hide the rest of the quest … a dungeon specific quest chip, but like just one … I need new ideas"; then "we can pick A for the UI 29, the vault stuff". **A:** inside the vault the tracked quest hides and one chip takes its place, TRAINING VAULT · ROOM 2/4 · 3 LEFT; the quest chip comes back on leaving (ui-29-opt-a.jpg) |
 | UI-31 | Hover park trick score | 3 Minimap chip | pending | 2026-11-03, redone for re-review: "the same kind of temporary UI … the timed racing … when we show that kind of UI, we want to hide the normal quest UI … make it tidier"; the trick score now takes the quest chip's place in the park |
 | UI-03 | Level-up card, out of combat | 4 End cards | approved | 2026-11-03: "UI 03 looks good to me" |
-| UI-19 | Shard-complete card | 4 End cards | pending | |
+| UI-19 | Shard-complete card | 4 End cards | approved | 2026-11-03: "Ui 19 approved" |
 | UI-30 | SHRINE COMPLETE card | 4 End cards | pending | |
 | UI-10 | Character tab | 5 Menus | pending | |
 | UI-14 | Quest list on the map tab | 5 Menus | pending | |
@@ -49,4 +49,4 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 13 approved · 25 pending (1 redone for re-review: UI-31).
+**Tally:** 14 approved · 24 pending (1 redone for re-review: UI-31).
