@@ -408,6 +408,18 @@
    "outputs": ["public/assets/open-plots/starfall-observatory/landmark.glb", "public/assets/open-plots/starfall-observatory/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/clocktower": {
+   "about": "Clockwork Canyon's landmark (OPEN-PLOTS OP19): the brass-and-verdigris clock tower with its gear trains as a script (gear teeth and dials smear in image-to-3D); 36 m, three verdigris stages banded in brass, a cream dial on each face, brass gears up both flanks, an open belfry and a verdigris dome, the stair up +Z; one swatch atlas",
+   "script": "scripts/blender/open-plots/clocktower.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/landmarklib.py"],
+   "inputs": [],
+   "lock": false,
+   "build": ["landmark.glb", "landmark-far.glb"],
+   "meshopt": [["landmark.glb", "public/assets/open-plots/clockwork-canyon/landmark.glb"], ["landmark-far.glb", "public/assets/open-plots/clockwork-canyon/landmark-far.glb"]],
+   "outputs": ["public/assets/open-plots/clockwork-canyon/landmark.glb", "public/assets/open-plots/clockwork-canyon/landmark-far.glb"],
+   "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
+  },
   "open-plots/lighthouse": {
    "about": "Saltwind Lighthouse's landmark (OPEN-PLOTS OP9): the red-banded lighthouse on its stepped basalt plinth as a script (turned bands and the railing smear in image-to-3D); 40 m, whitewash with three signal-red bands, a black gallery and railing, a cold glass lantern room, a black domed cap, the stair up +Z; one swatch atlas",
    "script": "scripts/blender/open-plots/lighthouse.py",
