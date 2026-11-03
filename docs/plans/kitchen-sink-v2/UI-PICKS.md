@@ -16,7 +16,7 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-06 | GUARD button | 1 Fight HUD | approved | 2026-11-03: "I think that's okay"; then "four in a row, approved": GUARD · LOCK · DODGE · JUMP, GUARD in the slot the spear's THROW takes (frame redone) |
 | UI-02 | Level-up in a fight | 2 Banners | approved | 2026-11-03: "Yeah, sure" |
 | UI-07 | Named elite banner | 2 Banners | approved | 2026-11-03: "looks very similar … nice" |
-| UI-24 | Gauntlet wave banner | 2 Banners | pending | 2026-11-03, redone for re-review (WAVE 2 / 5 in the middle only, fades; no chip): keep "WAVE 2 / 5" big in the middle of the screen when a wave starts ("kind of cool"); drop the wave chip that stays under the quest chip: "too fucking busy … we can't have those permanent banners" |
+| UI-24 | Gauntlet wave banner | 2 Banners | approved | 2026-11-03: redone frame approved, "UI 24 looks good" (WAVE 2 / 5 in the middle only, fades; no chip). First round: keep "WAVE 2 / 5" big in the middle of the screen when a wave starts ("kind of cool"); drop the wave chip that stays under the quest chip: "too fucking busy … we can't have those permanent banners" |
 | UI-26 | Boss intro title card | 2 Banners | approved | 2026-11-03: "fine … looks fine" |
 | UI-22 | Storm hour | 2 Banners | pending | 2026-11-03, redone for re-review: "way too busy … the beacons on the minimap is way too busy … a really more minimalist, lightweight" one; now one centred STORM HOUR line that fades, no minimap beacons, no toast, the storm chip unchanged |
 | UI-17 | Checkpoint card | 2 Banners | approved | 2026-11-03: "Yeah, cool. Let's do it." |
@@ -49,4 +49,4 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 9 approved · 29 pending (3 redone for re-review: UI-24, UI-22, UI-20).
+**Tally:** 10 approved · 28 pending (2 redone for re-review: UI-22, UI-20).
