@@ -209,7 +209,7 @@ sys.exit(int(os.environ.get('SIM_PRESENTATION_RC','0')))
         presentation = json.loads((self.root / 'presentation-request').read_text())
         self.assertEqual(presentation['args'], ['-a', str(developer / 'Applications/Simulator.app')])
         self.assertIn('boot', presentation['commands'])
-        self.assertNotIn('bootstatus', presentation['commands'])
+        self.assertIn('bootstatus', presentation['commands'])
         self.assertNotIn('launch', presentation['commands'])
         self.assertNotIn('openurl', presentation['commands'])
         self.assertNotIn(UDID, presentation['args'])
@@ -229,7 +229,7 @@ sys.exit(int(os.environ.get('SIM_PRESENTATION_RC','0')))
         source = (ROOT / 'scripts/sim-lane.sh').read_text()
         stages = source.split('native_stage() {', 1)[1].split('boot_in_lane() {', 1)[0]
         startup = source.split('startup() {', 1)[1].split('case "${1:-}" in', 1)[0]
-        program = ('DIR="$SIM_LANE_DIR"\n'
+        program = ('DIR="$SIM_LANE_DIR"\nSELF="$SIM_LANE_ENTRY"\n'
                    'is_booted() { return 1; }\n'
                    'wait_remaining() { echo 1; }\n'
                    'wait_failed() { echo "original admission exhausted" >&2; return 75; }\n'
@@ -238,14 +238,36 @@ sys.exit(int(os.environ.get('SIM_PRESENTATION_RC','0')))
         developer = self.developer_simctl()
         for env, expected in [({'SIM_PRESENTATION_RC': '23'}, 23), ({'SIM_PRESENTATION_DELAY': '30'}, 75)]:
             result = subprocess.run(['/bin/bash', '-c', program, 'owned-presentation', UDID, RUNTIME],
-                env={**self.env, 'DEVELOPER_DIR': str(developer), **env}, text=True,
+                env={**self.env, 'DEVELOPER_DIR': str(developer),
+                     'SIM_LANE_ENTRY': str(ROOT / 'scripts/sim-lane.sh'), **env}, text=True,
                 capture_output=True, timeout=5, check=False)
             self.assertEqual(result.returncode, expected, result.stderr)
             self.assertIn('selected Simulator presentation request', result.stderr)
-            self.assertNotIn('Safari readiness Python imports', result.stderr)
+            self.assertIn('Safari readiness Python imports', result.stderr)
             self.assertEqual((self.root / 'presentation-retired').read_text().splitlines()[-1], UDID)
-            self.assertFalse(any(row[1] in ('bootstatus', 'launch', 'openurl') for row in self.calls()))
+            presentation = json.loads((self.root / 'presentation-request').read_text())
+            self.assertIn('bootstatus', presentation['commands'])
+            self.assertFalse(any(row[1] in ('launch', 'openurl') for row in self.calls()))
             self.assert_not_handed_over()
+
+    def test_late_presentation_success_cannot_reset_the_admission_clock(self):
+        native = READY['request_selected_presentation']
+        developer = self.developer_simctl()
+        for returned, completed, expected in [(0, 2, 75), (23, 2, 23), (0, .5, 0)]:
+            clock = [0]
+            requests = []
+            def run(args, **kwargs):
+                requests.append((args, kwargs['timeout']))
+                clock[0] = completed
+                return SimpleNamespace(returncode=returned)
+            helper = FunctionType(native.__code__, {**native.__globals__,
+                'IMPORT_STARTED': 0, 'os': SimpleNamespace(environ={'DEVELOPER_DIR': str(developer)},
+                    path=os.path, access=os.access, X_OK=os.X_OK),
+                'time': SimpleNamespace(monotonic=lambda: clock[0]),
+                'subprocess': SimpleNamespace(run=run, TimeoutExpired=subprocess.TimeoutExpired)})
+            self.assertEqual(helper(1), expected)
+            self.assertEqual(requests, [(['open', '-a', str(developer / 'Applications/Simulator.app')], 1)])
+        self.assert_not_handed_over()
 
     def test_runtime_cache_error_cannot_boot_or_publish_a_lease(self):
         result = self.lane(SIM_CACHE_RC='23')
@@ -384,9 +406,11 @@ else:
         subprocess.run(['/bin/bash', '-n', str(ROOT / 'scripts/sim-lane.sh')], check=True)
 
     def test_bootstatus_failure_propagates_and_releases_new_device(self):
-        result = self.lane(SIM_STATUS_RC='23')
+        developer = self.developer_simctl()
+        result = self.lane(DEVELOPER_DIR=str(developer), SIM_STATUS_RC='23')
         self.assertEqual(result.returncode, 23, result.stderr)
         self.assertIn('Finished', result.stderr)
+        self.assertFalse((self.root / 'presentation-request').exists())
         self.assert_not_handed_over()
         self.assertFalse((self.root / 'booted').exists())
         self.assertFalse(any(row[1] == 'openurl' for row in self.calls()))

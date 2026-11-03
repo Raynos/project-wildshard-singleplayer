@@ -736,9 +736,41 @@ def wait_for_bootstatus(udid, remaining):
     return code
 
 
+def request_selected_presentation(remaining):
+    """Retain the original GUI prerequisite after native cold migration.
+
+    No new budget: imports, bootstatus and this request share the same
+    deadline supplied by the shell. Success is not Safari/frame readiness.
+    """
+    developer = os.environ.get('DEVELOPER_DIR', '')
+    executable = Path(developer) / 'usr/bin/simctl'
+    if not os.path.isabs(developer) or not executable.is_file() or not os.access(executable, os.X_OK):
+        print('sim-lane: selected Simulator presentation lost its toolchain binding', file=sys.stderr, flush=True)
+        return 64
+    presenter = str(Path(developer) / 'Applications/Simulator.app')
+    deadline = IMPORT_STARTED + remaining
+    budget = deadline - time.monotonic()
+    if budget <= 0:
+        return 75
+    started = time.monotonic()
+    print(f'sim-lane: requesting selected Simulator presentation host {presenter}', file=sys.stderr, flush=True)
+    print('sim-lane: selected Simulator presentation request started', file=sys.stderr, flush=True)
+    try:
+        result = subprocess.run(['open', '-a', presenter], stdout=sys.stderr, timeout=budget, check=False)
+        code = result.returncode if result.returncode >= 0 else 128 - result.returncode
+        if code == 0 and time.monotonic() >= deadline:
+            code = 75
+    except subprocess.TimeoutExpired:
+        code = 75
+    print(f'sim-lane: selected Simulator presentation request finished in {time.monotonic() - started:.3f}s (exit {code})',
+          file=sys.stderr, flush=True)
+    return code
+
+
 if __name__ == '__main__':
     print(f'sim-lane: Safari readiness Python imports finished in {time.monotonic() - IMPORT_STARTED:.3f}s', file=sys.stderr, flush=True)
-    if len(sys.argv) == 4 and sys.argv[2] == '--bootstatus':
+    if (len(sys.argv) in (4, 5) and sys.argv[2] == '--bootstatus'
+            and (len(sys.argv) == 4 or sys.argv[4] == '--present')):
         try:
             remaining = float(sys.argv[3])
         except ValueError:
@@ -749,6 +781,8 @@ if __name__ == '__main__':
         PREPARED_SCREENSHOTS = SafariScreenshots(sys.argv[1], 0)
         PREPARED_SCREENSHOTS.prepare(IMPORT_STARTED + remaining)
         code = wait_for_bootstatus(sys.argv[1], remaining)
+        if code == 0 and len(sys.argv) == 5:
+            code = request_selected_presentation(remaining)
         if code != 0:
             PREPARED_SCREENSHOTS.finish()
             sys.exit(code)

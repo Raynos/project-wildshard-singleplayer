@@ -223,17 +223,12 @@ boot() {
     native_stage 'device boot' xcrun simctl boot "$1" >/dev/null || return "$?"
     started=1
   fi
-  # A cold CI runner has no presentation host yet. Activate only the same
-  # explicitly selected Xcode after this startup booted its owned device.
-  # This is not foreground/Safari/frame authority and spends the existing
-  # admission budget. No GUI device argument becomes a stale driver marker.
-  local developer="${DEVELOPER_DIR:-}" presenter
+  # Let the owned cold device finish native migration before starting the
+  # selected Simulator GUI. The helper keeps both prerequisites on the SAME
+  # original admission clock, then starts the unchanged Safari proof.
+  local developer="${DEVELOPER_DIR:-}" presentation=0
   if [ "$started" -eq 1 ] && [[ "$developer" = /* ]] && [ -f "$developer/usr/bin/simctl" ] && [ -x "$developer/usr/bin/simctl" ]; then
-    presenter="$developer/Applications/Simulator.app"
-    printf 'sim-lane: requesting selected Simulator presentation host %s\n' "$presenter" >&2
-    native_stage 'selected Simulator presentation request' open -a "$presenter" >&2
-    rc=$?
-    if [ "$rc" -ne 0 ]; then shutdown_dev "$1"; return "$rc"; fi
+    presentation=1
   fi
   # Preserve migration/system-app progress in the native failure artifact.
   # Lease stdout still contains only the exact device identifier.
@@ -242,7 +237,11 @@ boot() {
   # the separate original 120 s Safari proof. No status-text interpretation.
   local remaining
   remaining=$(wait_remaining) || return "$?"
-  python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1" --bootstatus "$remaining"
+  if [ "$presentation" -eq 1 ]; then
+    python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1" --bootstatus "$remaining" --present
+  else
+    python3 "$(dirname "$SELF")/sim-safari-ready.py" "$1" --bootstatus "$remaining"
+  fi
   rc=$?
   # A failed startup owns no lease. Release only the device this call booted.
   if [ "$rc" -ne 0 ] && [ "$started" -eq 1 ]; then shutdown_dev "$1"; fi
