@@ -215,8 +215,8 @@
       "kind": "bed",
       "into": "night-market",
       "duration": 30,
-      "desc": "Quiet night insects and a soft breeze beside an outdoor canal market",
-      "prompt": "Quiet night insects and a soft breeze beside an outdoor canal market. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+      "desc": "A steady chorus of evening crickets beside soft gently flowing canal water",
+      "prompt": "Outdoor evening field recording: a steady wide chorus of tiny crickets, high dry rhythmic insect chirps in overlapping patterns, with soft gently flowing water far below. Quiet continuous night insect ambience for a canal village. No birds or bird whistles, no voices, no melody, no music, no steam, no machine hum. Thirty seconds of gentle natural insect texture."
     },
     "hum.night-market.gate-wind-chimes": {
       "kind": "hum",
@@ -250,8 +250,8 @@
       "kind": "hum",
       "into": "night-market",
       "duration": 10,
-      "desc": "A loose cloth market awning softly flapping in a light breeze",
-      "prompt": "A loose cloth market awning softly flapping in a light breeze. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+      "desc": "A loose canvas awning flapping and snapping softly in the wind",
+      "prompt": "Close isolated foley recording of loose canvas fabric on a market stall awning moving in a breeze. Distinct low flaps of thick cloth and short dry fabric snaps as the edge catches wind, irregularly repeated, a brief quiet gap between each flutter. The canvas cloth is the only foreground sound. No leafy trees, no birds, no insects, no voices, no footsteps, no music."
     },
     "hum.night-market.garden-crickets": {
       "kind": "hum",

@@ -19,7 +19,7 @@ These files were changed from the model's output: reduced, re-textured to a game
 
 ## Audio
 
-Lantern Bayou, Frostline Peaks, Ember Forge, Mosslight Ruins and Coral Drift use **Music: MiniMax-Music3** (MiniMax-Music3 Community License).
+Lantern Bayou, Frostline Peaks, Ember Forge, Mosslight Ruins, Coral Drift and Night Market use **Music: MiniMax-Music3** (MiniMax-Music3 Community License).
 Their sound effects compare **MOSS-SoundEffect v2** (Apache-2.0) and
 **Stable Audio 3 Medium** (Stability AI Community License and Gemma terms);
 **Powered by Stability AI**.
@@ -47,3 +47,8 @@ provenance and required attributions.
 Coral Drift: `public/assets/music/coral-drift/music.json` and
 `public/assets/sfx/coral-drift/sfx.json` retain both score candidates,
 paired SFX comparisons and the same model credits.
+
+Night Market: `public/assets/music/night-market/music.json` and
+`public/assets/sfx/night-market/sfx.json` retain both MiniMax score
+candidates, the ambience and six paired positional sound comparisons,
+generation records and the same required model credits.

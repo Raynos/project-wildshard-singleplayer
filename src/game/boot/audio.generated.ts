@@ -1223,6 +1223,231 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-7ebca9f6.m4a"
   }
  },
+ "night-market": {
+  "genre": "night-market",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-a-cf750c3f44ac.m4a",
+    "loopStart": 2,
+    "loopEnd": 32.46,
+    "duration": 33.46,
+    "gain": 1,
+    "seamScore": 0.264,
+    "calm": "take-a-cf750c3f44ac.m4a",
+    "bpm": 63,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-701",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.183969,
+    "metrics": {
+     "duration_s": 35.87,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -16,
+      "lra": 9.7,
+      "true_peak_dbfs": -1
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.8945
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2169.6,
+      "rolloff95_hz": 9325.7,
+      "flatness": 0.0033,
+      "hf_above_12k": 0.00101,
+      "sub_below_60": 0.0619,
+      "stereo_corr": 0.366
+     },
+     "tempo": {
+      "estimated_bpm": 63,
+      "brief_bpm": 88,
+      "rel_err": 0.284
+     },
+     "key": {
+      "best_key": "F major",
+      "best_r": 0.737,
+      "d_major_r": -0.052,
+      "d_major_rank": 15,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.264,
+      "similarity": 0.335,
+      "level_match": 0.294,
+      "start_s": 2,
+      "end_s": 32.46,
+      "bars": 8,
+      "loop_s": 30.46,
+      "grid_bpm": 63
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0002,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.0525,
+       "bass": 0.2173,
+       "other": 0.73,
+       "vocals": 0.0002
+      },
+      "groove_active_frac": 0.971,
+      "drums_active_frac": 0.714
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 2,
+     "p": 0.003788,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-cf750c3f44ac.m4a",
+     "loopStart": 2,
+     "loopEnd": 32.46,
+     "duration": 33.46,
+     "gain": 1,
+     "seamScore": 0.264
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "night-market",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 88 BPM, 4/4. A red-and-gold lantern night market beside quiet canals at warm dusk. Delicate plucked pipa and guzheng trade a short pentatonic melody with a gentle bamboo flute, rounded acoustic bass and restrained wooden percussion. Welcoming, curious, gently bustling instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no vocals, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 105.8,
+     "model_load_s": 9,
+     "mps_driver_gb": 27.58
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.262152,
+    "metrics": {
+     "duration_s": 61.03,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -14.4,
+      "lra": 6.9,
+      "true_peak_dbfs": 0.8
+     },
+     "clipping": {
+      "clipped_samples": 759,
+      "clipped_frac": 0.0001409950423245197,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2377.5,
+      "rolloff95_hz": 8682.7,
+      "flatness": 0.0021,
+      "hf_above_12k": 0.00083,
+      "sub_below_60": 0.0402,
+      "stereo_corr": 0.358
+     },
+     "tempo": {
+      "estimated_bpm": 89.1,
+      "brief_bpm": 88,
+      "rel_err": 0.013
+     },
+     "key": {
+      "best_key": "B minor",
+      "best_r": 0.681,
+      "d_major_r": 0.529,
+      "d_major_rank": 4,
+      "key_ok": true
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.296,
+      "similarity": 0.356,
+      "level_match": 0.44,
+      "start_s": 2,
+      "end_s": 45.64,
+      "bars": 16,
+      "loop_s": 43.64,
+      "grid_bpm": 88
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0112,
+      "vocal_active_frac": 0.066,
+      "stem_share": {
+       "drums": 0.0505,
+       "bass": 0,
+       "other": 0.9382,
+       "vocals": 0.0112
+      },
+      "groove_active_frac": 0.164,
+      "drums_active_frac": 0.246
+     }
+    },
+    "qualified": false,
+    "failedChecks": [
+     "clipping check"
+    ],
+    "clap": {
+     "rank": 4,
+     "p": 0.017104,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-86ffa2379547.m4a",
+     "loopStart": 2,
+     "loopEnd": 45.64,
+     "duration": 46.64,
+     "gain": 1,
+     "seamScore": 0.296
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "night-market",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 88 BPM, 4/4. A red-and-gold lantern night market beside quiet canals at warm dusk. Delicate plucked pipa and guzheng trade a short pentatonic melody with a gentle bamboo flute, rounded acoustic bass and restrained wooden percussion. Welcoming, curious, gently bustling instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no vocals, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 186.8,
+     "model_load_s": 9,
+     "mps_driver_gb": 27.61
+    }
+   }
+  ]
+ },
  "nine-dragon-stack": {
   "style": "nine-dragon-stack",
   "model": "MiniMax-Music3",
@@ -2518,6 +2743,72 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "gain": 1
    }
   }
+ },
+ "night-market": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "night-market.ambience": {
+    "file": "ambience-fc4acd723b85.m4a",
+    "loopStart": 9.5,
+    "loopEnd": 25.5,
+    "duration": 26.5,
+    "gain": 1,
+    "seamScore": 0.606
+   }
+  },
+  "hums": {
+   "night-market.gate-wind-chimes": {
+    "file": "gate-wind-chimes-4d46fe12f13f.m4a",
+    "loopStart": 3.5,
+    "loopEnd": 6.5,
+    "duration": 7.5,
+    "gain": 1,
+    "seamScore": 0.401
+   },
+   "night-market.canal-lap": {
+    "file": "canal-lap-99b97ffab725.m4a",
+    "loopStart": 3,
+    "loopEnd": 7,
+    "duration": 8,
+    "gain": 1,
+    "seamScore": 0.477
+   },
+   "night-market.food-sizzle": {
+    "file": "food-sizzle-e95a5399c9c9.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 7.75,
+    "duration": 8.75,
+    "gain": 1,
+    "seamScore": 0.521
+   },
+   "night-market.teacup-clink": {
+    "file": "teacup-clink-0ea9d5e3623c.m4a",
+    "loopStart": 2,
+    "loopEnd": 5,
+    "duration": 6,
+    "gain": 1,
+    "seamScore": 0.515
+   },
+   "night-market.awning-flutter": {
+    "file": "awning-flutter-5a760678625f.m4a",
+    "loopStart": 3.75,
+    "loopEnd": 6.75,
+    "duration": 7.75,
+    "gain": 1,
+    "seamScore": 0.6
+   },
+   "night-market.garden-crickets": {
+    "file": "garden-crickets-501383239921.m4a",
+    "loopStart": 3.5,
+    "loopEnd": 6.5,
+    "duration": 7.5,
+    "gain": 1,
+    "seamScore": 0.579
+   }
+  },
+  "oneshots": {}
  },
  "nine-dragon-stack": {
   "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",
