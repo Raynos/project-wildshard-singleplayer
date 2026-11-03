@@ -261,6 +261,7 @@ const readyNow=Date.parse('2026-10-30T22:00:00Z'),liveBuild=`${'b'.repeat(7)}-li
 interface ReadyJob {
   name: string; status: string; conclusion: string | null;
   created_at: string; started_at: string | null; completed_at: string | null;
+  run_id?: number; run_attempt?: number; head_sha?: string;
   steps?: PublisherStep[];
 }
 function readyFixture(runId='123') {
@@ -1285,10 +1286,12 @@ test('native fixture authority requires observed successful publication and rest
     for(const defect of ['missing','duplicate','skipped','failed','run','attempt','sha']){
       const f=nativeFixtureReadyFixture(),row=f.state.details.find(job=>job.name===name);
       if(row===undefined)throw new Error('Missing exact input job');
+      const steps=row.steps;
+      if(steps===undefined)throw new Error('Missing original input steps');
       if(defect==='missing')row.steps=[];
-      else if(defect==='duplicate')row.steps=[...row.steps,...row.steps];
+      else if(defect==='duplicate')row.steps=[...steps,...steps];
       else if(defect==='skipped'||defect==='failed'){
-        const step=row.steps[0];if(step===undefined)throw new Error('Missing input step');
+        const step=steps[0];if(step===undefined)throw new Error('Missing input step');
         step.conclusion=defect==='failed'?'failure':'skipped';
       }else if(defect==='run')row.run_id=124;
       else if(defect==='attempt')row.run_attempt=2;
