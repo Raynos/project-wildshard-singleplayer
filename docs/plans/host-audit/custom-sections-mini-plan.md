@@ -2868,3 +2868,52 @@ Current raw files:
 `tmp/phone-loading/2026-11-03T09-50-08-303Z-af6f2f8-mw0i9u28/`.
 Exact-profile comparison, raw digests and limits:
 `tmp/sp-x6-cs3-nalati-pages/paired-requalification/reference-comparison.json`.
+
+### Nalati clean warm follow-up: contention question closed (2026-11-03)
+
+On Jake's explicit one-reading instruction, wait for the already-active
+model, browser, release-entry and test owners to close naturally. Then
+check `lsof ~/projects/localai/.model.lock`: no holder; browser pool0,
+app builds/queue0, official Simulator quietfalse. X2 holds its next loads
+through the announced bounded window; the other owners also report whole.
+No process is interrupted, no source/runtime fix is made and no limit rises.
+
+Use one normal `--head` preview, pinned at actual build admission to
+**`3221e06306a343e113373749fea5b812011f9658`**, build
+**`3221e06-mw0itsyl`**. The maintained reader has no warm-only selector;
+a private adapter changes only the first visit label to `prime` plus
+relative import relocation and pre-warm ownership checks. The original
+cache population runs once in the original context; only the subsequent
+unchanged warm visit is accepted as the requested reading. No new cold
+comparison or CPU profile is taken. Fourteen reader/helper hashes stay
+exact across the run. Original phone10× CPU/network,240 s deadline,
+3 s title and4 s post-control dwell, native control/document/selected-world
+and request-accounting guards all remain.
+
+**Clean warm:22.560400 s**, native control qualified, errors[], completed
+request accounting. Immediate pre-warm boundary10:13:56.235Z independently
+records no model holder, no build, sole owned browser and quietfalse.
+Post-run model check again has no holder and the pool is0. The finite
+prime+warm cohort runs10:12:19.273→10:14:30.228Z; browser and normal preview
+release exit0. Literal whole is sent directly to every waiting owner.
+
+| Nalati warm | Tap to qualified control |
+| --- | ---: |
+| Historical Oct29 same-preset7d3 reference |36.281500 s |
+| Earlier shared-hostaf6 reading |55.007900 s |
+| This clean HEAD-at-build reading |**22.560400 s** |
+
+This is13.7211 s below the historical reference and32.4475 s below the
+contended reading. **The55 s result does not reproduce with competing
+model/browser work absent: close the warm contention question on Jake's
+specified branch.** Different committed pins/date mean this is not an
+isolated scatter-page speedup or a quantified allocation of lost time
+between the model and audio QA. Historical405/accounting errors remain
+in their old raws. No code fix is proposed or implemented.
+
+The raw also retains the same stage clocks for audit, with nested Home
+and assembly spans explicitly non-additive. No new cold no-worse or A/B
+pixel claim is invented by this warm-only follow-up. Previously accepted
+P1/P3 both-tier A/A0 stands. Raw warm JSON, all free-owner/version/hash
+checks and reference-stage comparison:
+`tmp/sp-x6-nalati-clean-warm/summary.json`.
