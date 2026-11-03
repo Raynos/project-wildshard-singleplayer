@@ -1,5 +1,5 @@
 import { driftwoodPlacementPages } from './placementPages';
-import { questPageCompositionRows, coverCompositionRows, questStepRows as parseQuestStepRows, questHintRows as parseQuestHintRows, questServiceRows as parseQuestServiceActions, questPageInteractionRows as parseQuestPageInteractions, achievementCounterRows as parseAchievementCounterData } from '@wildshard/sdk/rows';
+import { questPageCompositionRows, coverCompositionRows, questHintRows as parseQuestHintRows, questServiceRows as parseQuestServiceActions, questPageInteractionRows as parseQuestPageInteractions, achievementCounterRows as parseAchievementCounterData } from '@wildshard/sdk/rows';
 import { driftwoodFixedModelOutput } from './fixedModels';
 import { driftwoodSceneModelOutput } from './sceneModelProgram';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
@@ -65,7 +65,6 @@ import cascadeScene from '../data/cascadeScene.json' with { type: 'json' };
 import { driftwoodHeldArms } from './heldArms';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
 import questKillSteps from '../data/questKillSteps.json' with { type: 'json' };
-import questSteps from '../data/questSteps.json' with { type: 'json' };
 import questHints from '../data/questHints.json' with { type: 'json' };
 import { ENTRY_WALK } from './entryWalk';
 import headlessSwords from '../data/nativeSwords.json' with { type: 'json' };
@@ -152,7 +151,6 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall))),
   nameBlob('people/cards.json', 'json', new TextEncoder().encode(encodeCanonicalJson(driftwoodKitFigureCards()))),
   nameBlob('quests/trader.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(TRADER_PAGE)))),
-  nameBlob('quests/steps.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestStepRows(questSteps)))),
   nameBlob('quests/hints.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestHintRows(questHints)))),
   nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(QUEST_SERVICES)))),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY))),

@@ -155,7 +155,7 @@ does not close a Z row.
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **Held kits.** Weapon pages into the `held/*` platform sections; Jian cloth / halo ship as GLB | 10: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Opus | 3 |
 | **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
-| **Z8** | **In flight (2026-11-03, sp-x9), 0/14 landed.** Two approved candidates await exact reconstruction and G998 goldens: shared ChapterPresentation (6/6) and the zero-reader DW steps copy. Twelve per-file blockers below go to the one-user batch; Pine lead already runs as AS. **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
+| **Z8** | **In flight (2026-11-03, sp-x9), 1/14 landed.** The 149 B zero-reader DW steps copy is deleted with exact reconstruction and 48 green G998 panels. Shared ChapterPresentation (6/6) awaits the Nalati QD11 fix and all-six qualification. Twelve per-file blockers below go to the one-user batch; Pine lead already runs as AS. **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Instanced scatter rows.** Nalati's scatter pages become the generic dressing host with Pine props as user two | 9: Nalati dressing-pages 5, dressing-{phone,desktop}; Pine props, prop-shapes | Opus | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **In flight (2026-11-03, sp-x6): candidate reduction 5; three one-user roots stay charged. G998 qualification pending; evidence below. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
@@ -351,11 +351,27 @@ qualification is claimed by this preflight.
 | Nalati `quests/chapters.json`, **4,645 B** | Fresh sp-x2 **6/6**, accepted by the coordinator. The exact whole private `ChapterPresentation` is Nalati's standalone body and the complete, present `QuestStorySchema.chapters` values emitted by DW and Pine. `game/quest/chapter.ts` and `story.ts` actually call `parseChapterStoryPresentation`. Candidate exports the same defining object as `ChapterStoryPresentationSchema`, preserves its parser/checks, appends one SDK root and adds only defining schema metadata on Nalati's original encoder. No optional child or inferred wrapper substitutes for the complete body. |
 | DW `quests/steps.json`, **149 B** | Coordinator-approved zero-reader deletion, separate candidate. Fresh sp-x2 found no whole-file runtime route; a second source trace confirms only the emitter/schema declarations and producer/provenance tests name the file. `generators/heldArms.ts` reads `data/questSteps.json` directly and emits its guard into held claims; `game/loadout/claims#HeldClaimGuard` constructs its own complete guard runner. Pine's full steps still run through its original page/native owners. Delete only the unreferenced emitted copy and unused output imports, retaining source data, held guard, original shared step schema and every Pine step. No invented named-file reader credit. |
 
-Qualification still requires ordinary product admission, exact remaining
-payload/metadata contrast and ordered-pack reconstruction, then G998
-Chromium/WebKit goldens before either source candidate lands. The shared
-format edit requires all six shards. Browser work waits for QD1's hold
-to lift. The eventual target reduction is **2/14**, leaving **12 /
+**DW dead-copy cut qualified (2026-11-03).** The sealed
+`d4c2e8d15d-mw0u2vw4` candidate deletes only `quests/steps.json`
+(149 B), its unused output import and parser alias. The source data,
+held guard and all Pine steps remain. Combined Z3/Z8 reconstruction
+retains 392 DW file bodies and 58 sections exactly; its one catalogue
+routing change is Z3’s independently verified native-equivalent page.
+Both old and candidate reconstruct 13 packs / 436 ordered entries;
+434 retained entries are exact in the same order, with only the Z3
+catalogue/page transport delta and this approved deletion. Sp-x1 read
+all 48 individual Chromium/WebKit panels: both 24/24 green. Boards
+landed with Z3 `c98d1cffe0` at
+`art/golden-runs/driftwood-isle/2026-11-03-d4c2e8d15d-z3-board.jpg`
+and `2026-11-03-d4c2e8d15d-z3-webkit-board.jpg`. The original
+chapter/native/platform-family suites, root types and named lint pass.
+Current reduction is **1/14**, leaving **13 / 98,024 B** charged.
+
+The remaining chapter candidate still requires ordinary product
+admission, exact payload/metadata contrast and ordered-pack
+reconstruction, then all-six G998 Chromium/WebKit goldens before landing. The shared
+format edit requires all six shards. QD1’s hold is released; the pre-existing Nalati QD11 red has no waiver.
+The eventual target reduction is **2/14**, leaving **12 /
 93,379 B** charged; the chapter body stays exact and the sole deleted
 body is the 149 B zero-reader copy. These are projections, not landed
 counts. Candidate source controls cover three real complete chapter
