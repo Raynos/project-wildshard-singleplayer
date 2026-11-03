@@ -74,6 +74,8 @@ during Wave 1**: it re-touches all 70 AS files. H14 folds into the showcase.
 
 ## 6. Lanes
 
+**Jake 11-02: up to 5 Opus + 5 Codex for this plan when it is built.** The audit's original estimate follows.
+
 Recommended: **3 Opus + 3 Codex lanes for about 6 weeks.** Opus ~35 % (cutscenes, boss and weather captures, board and
 climb, HUD, the jian GLB); Codex ~65 % (ruler, schemas, rows, saves, parity kit, most M rows), and Codex is the
 critical path (~230 h a lane). AGENTS.md limits Codex lanes to plans Jake names, so Wave 1 needs his word to run them.
@@ -90,3 +92,7 @@ critical path (~230 h a lane). AGENTS.md limits Codex lanes to plans Jake names,
 - SHARD-PLATFORM-NEXT: N2/N5 slices ↔ W4/W6/W11; N4 / G496 ↔ W5/W6/M3.1/M9.3; stretch S2 ↔ W15, S3 ↔ W14, S4 ↔ W18,
   S8 ↔ W19b/c.
 - WASM-HOST: H6, H8, H17 via the CS plan; H9 in flight; H14 folds into the showcase.
+
+## 8. Added by Jake 11-02
+
+- **EC1 enemy cap:** full AI within 60 m, at most 16 animated on screen, the rest frozen or culled; every shard (16 h).

@@ -65,5 +65,5 @@ Everything Jake ruled after round 1, plus what the eye-height views showed:
 | Row | What | Effort |
 |---|---|---|
 | ML1 | Round 2 blockout (the list above) | done |
-| ML3 | Band 6 top tier L18–19 (closes the L19 gap); re-label the night-elite lairs to Jake's names | in K1 |
+| ML3 | Re-label the night-elite lairs to Jake's names (the L19 gap stays, Jake 11-02) | in K1 |
 | ML2 | The round 2 layout becomes K1's skeleton data (`layout.js` → shard rows) | in K1 |

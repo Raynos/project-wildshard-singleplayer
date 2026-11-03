@@ -8,7 +8,6 @@ and 2 (fits after three fixes, 24.9 % free); 40 v2 mockups; pages: tracker, mini
 economy, elites vs mini-bosses, mockup gallery; mini plans: levels-combat, loot-economy, enemies-bosses, quests-contracts,
 hud-character, audio, mini-dungeon, map-layout, wave-1-hosts, wave-1-migration-map (Wave 1 ≈ 1,040 h).
 
-**Waiting on Jake:** the 8 attributes (reading the levels page); the streak guard at high level gaps; naming Wave 1 a
-lane plan (3 Opus + 3 Codex, ~6 weeks); "build it".
+**Waiting on Jake:** the 8 attributes (reading the levels page); "build it" (crew up to 5 Opus + 5 Codex).
 
 **Next:** fold the last answers in; refresh the tracker page; then close ask E523.

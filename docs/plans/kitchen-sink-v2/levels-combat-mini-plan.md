@@ -66,8 +66,7 @@ unlocks only; toys and the west half pay nothing.
 1 HIT ROLL  (Jake 11-02: 12 % at equal level, rising to 90 % at 8 levels above you)
             miss % = clamp(12 + 0.5·(AGI_def − PRE_att) + 9.75·max(0,g) − 2·max(0,−g), 2, 90)
             g = +8 → 90 % (an L11 player on an L19, or L2 on L10); a miss deals 0 and shows MISS
-            streak guard: after 2 misses in a row on one target, the next contact hits (open: Jake confirmed
-            the guard before raising the cap to 90 %; at g ≥ +4 the guard may soften the gap too much)
+            no streak guard (Jake 11-02): pure dice
 2 ON A HIT  glance % = min(40, 5·max(0,g))                       ×0.5, grey number
             crit %   = clamp(5 + 0.8·(PRE_att − 5) − 2·max(0,g), 0, 50)  ×1.5, orange
             clean    = the rest                                   ×1
@@ -212,7 +211,7 @@ engine says `grade`, never "level" (its word for a map).
 
 1. **The eight attributes** (VIT STR DEX PRE AGI TGH RES POI)? Recommended: take them as proposed.
 2. ~~Miss bounds~~: decided 11-02: 12 % at equal level, +9.75 % a level up to 90 % at +8. Worked examples in §2
-   still use the old 8 % base and need redoing in Wave 1's LV design pass. Open: keep the streak guard at high gaps?
+   still use the old 8 % base and need redoing in Wave 1's LV design pass. No streak guard (Jake 11-02).
 3. ~~Death cost~~: decided 11-02, 25 % of the level's span.
 4. ~~Enemies roll misses~~: decided 11-02, yes.
 5. **Rare variants** (Jake 11-02: Pine and Driftwood have rarer, tougher variants of each enemy type): fold them in with

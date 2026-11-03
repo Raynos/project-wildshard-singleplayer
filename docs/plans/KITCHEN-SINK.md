@@ -94,6 +94,10 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19m. **Miss chance: 12 % at equal level, rising to 90 % at 8 levels above you** (Jake 11-02: *"not aggressive enough on
     the level scaling"*), about +9.75 % a level. **Zone recipes live in the showcase's own source:** each zone is a
     self-contained, copyable section of the Showcase Template shardfile source (Template 3), not a separate doc.
+19n. **No streak guard:** pure dice on the miss curve. **The L19 gap stays** (night elites and night-shift variants cover
+    it). **An enemy cap goes into Wave 1:** full AI within 60 m, at most 16 animated on screen; it helps every shard.
+    **Wave 1 crew when built: up to 5 Opus + 5 Codex lanes** (Jake 11-02: *"5+5 is fine for this … but we're just
+    planning, not building"*).
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
@@ -127,7 +131,7 @@ fits, after three fixes.** West 42 % used, east 79 %, 24.9 % of the cell free; t
   between close packs in bands 2–4 (spacing 28–33 m, no aggro through them), a smaller gauntlet (r 36) against the
   seam, and band 5's Riveters living inside the stealth yard. Band 1 is exactly full.
 - **Grind timing:** respawn ~90 s vs a 116–176 s walk back to a tier's first pack, so no waiting; all six bands
-  take ~154 min (the 2.5–3 h target). **Gap:** no daytime L19 enemies; make band 6's top tier L18–19.
+  take ~154 min (the 2.5–3 h target). **Gap:** no daytime L19 enemies; Jake keeps it (night variants cover it).
 - **Phone load (estimated, not measured):** up to 13 enemies in one portrait view, 29 within 60 m, 85 within 150 m.
   No enemy cap exists today: proposed full AI within ~60 m and at most 16 animated on screen (Wave 1 row; first check
   on the iPhone).
@@ -159,9 +163,9 @@ migration map is [wave-1-migration-map.md](kitchen-sink-v2/wave-1-migration-map.
 target, the parity proof per shard.
 
 **Size: about 1,040 h.** Planned host rows ≈ 675 h (W1–W21 ≈ 389, LE 104, LV 50, HUD 19, QC 41, EB 28, DG 44) plus
-new migration rows ≈ 365 h (M0–M9, including a shared parity kit and fresh-seat host scoring). **Recommended: 3 Opus +
-3 Codex lanes for about 6 weeks**; Codex is the critical path. Codex lanes need Jake to name Wave 1 a lane plan
-(AGENTS.md). Also needed: an enemy-count cap on the phone (full AI within ~60 m, ≤ 16 animated on screen).
+new migration rows ≈ 365 h (M0–M9, including a shared parity kit and fresh-seat host scoring). **Crew: up to 5 Opus + 5 Codex lanes** (Jake 11-02, named for this plan when he says build; graphical work
+Opus-only), roughly 4 weeks at that size. Also in Wave 1: an enemy-count cap on the phone (full AI within 60 m, ≤ 16
+animated on screen).
 
 Full host rows in [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md). Order:
 
