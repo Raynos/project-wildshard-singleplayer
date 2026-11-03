@@ -88,7 +88,15 @@ export interface CullView {
 /** metres: an eye shift under this (no turn, no zoom) keeps the copies chosen for the last view (`View.changed`) */
 const EYE_JITTER = 0.02;
 /** Legacy camera-driven instance thresholds. The padded view covers turns and translation between choices. */
-const VIEW_MARGIN = 7 * Math.PI / 180, VIEW_TURN = Math.cos(3.5 * Math.PI / 360), VIEW_MOVE = 1;
+const VIEW_MARGIN = 7 * Math.PI / 180, VIEW_TURN = 3.5 * Math.PI / 360, VIEW_MOVE = 1;
+/**
+ * QD8: the padded views re-choose at their own thresholds, VIEW_MOVE and VIEW_TURN times 1 to 1.875 in eight steps, each
+ * view's frustum margin its own move: walking crossed one shared metre every ~233 ms, and every culler re-chose on that one
+ * frame (+6.7 ms at phone 4x, the walk's p95); spread, they fall out of step. The padding's VIEW_MARGIN covers the
+ * widest turn. A pose held still settles to the same choice.
+ */
+const VIEW_SPREAD = 8;
+let views = 0;
 /** FC16: the camera whose world matrix the caller brought up to date for this pass of every culler (`cullFresh`) */
 let freshCamera: THREE.Camera | null = null;
 /** the current `cullFresh` pass (0: none yet) */
@@ -171,6 +179,9 @@ class View {
   private readonly widened = new THREE.Matrix4();
   private readonly expanded = new THREE.Sphere();
   private margin = 0;
+  /** this view's move (metres) and turn (cos of half its angle) thresholds when padded (VIEW_SPREAD) */
+  private readonly move: number;
+  private readonly turnLimit: number;
   /** the camera and its pose version (`poseVersion`) this view last decided for, inside a `cullFresh` pass */
   private seen: THREE.Camera | null = null;
   private seenVersion = -1;
@@ -178,6 +189,9 @@ class View {
   constructor(step = 0, buffered = false) {
     this.step = step;
     this.buffered = buffered;
+    const spread = buffered ? 1 + (views++ % VIEW_SPREAD) / VIEW_SPREAD : 1;
+    this.move = VIEW_MOVE * spread;
+    this.turnLimit = Math.cos(VIEW_TURN * spread);
   }
   changed(camera: THREE.Camera): boolean {
     // the camera's own world matrix only: `updateMatrixWorld` also walked its children (the held weapon's whole viewmodel)
@@ -202,8 +216,8 @@ class View {
       eyeAt(camera, version, this.eye);
       turnAt(camera, version, this.turn);
       if (this.primed && this.projection.equals(camera.projectionMatrix)
-        && this.eye.distanceToSquared(this.lastEye) <= VIEW_MOVE * VIEW_MOVE
-        && Math.abs(this.turn.dot(this.lastTurn)) >= VIEW_TURN) return false;
+        && this.eye.distanceToSquared(this.lastEye) <= this.move * this.move
+        && Math.abs(this.turn.dot(this.lastTurn)) >= this.turnLimit) return false;
       this.primed = true; this.lastEye.copy(this.eye); this.lastTurn.copy(this.turn);
       this.held.copy(camera.matrixWorld); this.projection.copy(camera.projectionMatrix);
       this.widened.copy(camera.projectionMatrix);
@@ -212,7 +226,7 @@ class View {
       e[5] = 1 / Math.tan(Math.min(85 * Math.PI / 180, Math.atan(1 / e[5]) + VIEW_MARGIN));
       this.inv.copy(camera.matrixWorld).invert();
       this.pv.multiplyMatrices(this.widened, this.inv);
-      this.frustum.setFromProjectionMatrix(this.pv); this.margin = VIEW_MOVE;
+      this.frustum.setFromProjectionMatrix(this.pv); this.margin = this.move;
       return true;
     }
     this.margin = 0;
