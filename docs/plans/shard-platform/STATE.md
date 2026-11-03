@@ -5,13 +5,13 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 489792e-mw085h4z = GLSL** (00:42 Cancun; staged; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
+**LIVE 2f1f8c4-mw0a28f2 = GLSL** (01:56 Cancun; staged, 38 jobs; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
 (G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
 table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
-**G979:** SHARD-PLATFORM rows first; then free Codex: CI / HA7 / OB1, NU3, OP2-4; free Opus: OB2 pilot, OB3-OB6.
-**01:15:** PF13 closed dbc459beca; Nine GPU e31e8f5672. Opus on open plots (o1 Frost, o2 Bayou+, o3 Moss). P0: OB0 bake-packs (x1).
+**Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
+**02:15:** live 2f1f8c4 = first verified 38-job release (G917 met). Open plots active: Bayou, Moss, Frost (look loops). P0: generated src wrappers (x8).
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
