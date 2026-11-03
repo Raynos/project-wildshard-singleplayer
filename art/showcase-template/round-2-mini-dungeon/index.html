@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Dungeon / Shrine Room</title>
+<style>
+:root {
+  /* The Showcase Template's dev-map look: grey grid floor, orange blocks, stencilled headings. */
+  --floor: #2b2d30;
+  --panel: #35383c;
+  --line: #4a4e54;
+  --ink: #eceae6;
+  --muted: #a7abb1;
+  --orange: #f08a24;
+  --good: #6fcf8a;
+  --bad: #ef6b5b;
+  --display: "Saira Stencil One", "Impact", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--floor);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-attachment: fixed;
+  color: var(--ink);
+  font: 16px/1.55 var(--body);
+}
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 20px; }
+header { display: grid; gap: 6px; }
+h1 { font: 40px/1.05 var(--display); color: var(--orange); margin: 0; letter-spacing: 1px; text-wrap: balance; }
+.sub { color: var(--muted); font-family: var(--mono); font-size: 13px; }
+section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 16px 18px; display: grid; gap: 12px; }
+h2 { font: 22px/1.1 var(--display); color: var(--orange); margin: 0; letter-spacing: .5px; }
+p, li { max-width: 68ch; }
+p { margin: 0; }
+ol, ul { margin: 0; padding-left: 22px; display: grid; gap: 5px; }
+b.k { font-family: var(--mono); font-size: 13px; color: var(--orange); text-transform: uppercase; letter-spacing: .5px; }
+.tag { display: inline-block; font: 600 11px/1 var(--mono); padding: 3px 6px; border: 1px solid currentColor; white-space: nowrap; }
+.ok { color: var(--good); } .gap { color: var(--bad); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; }
+code { font: 12.5px var(--mono); color: var(--muted); }
+.scroll { overflow-x: auto; }
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+figure { margin: 0; display: grid; gap: 6px; align-content: start; }
+img { max-width: 100%; height: auto; display: block; border: 1px solid var(--line); }
+figcaption { font: 12.5px/1.4 var(--mono); color: var(--muted); }
+.q { display: grid; gap: 4px; padding: 10px 12px; background: var(--floor); border: 1px solid var(--line); }
+.q p.rec { color: var(--good); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>MINI DUNGEON / SHRINE ROOM</h1>
+  <div class="sub">Showcase Template · explainer for Jake · from GW2-ZONES §7.1 · 2026-11-02 · mockups in art/showcase-template/round-2-mini-dungeon/</div>
+</header>
+
+<section>
+  <h2>WHAT IT IS</h2>
+  <p>A mini dungeon is a short, sealed side trip: you walk through a portal or into a cave, clear three or four small
+  rooms, beat a mini-boss and walk out with a reward, in about ten minutes. It is the Zelda shrine and Destiny Lost
+  Sector idea from GW2-ZONES §7.1: one bite-sized challenge that fits a phone session and doesn't keep you out of the
+  world for long. Each room tests one thing (a puzzle, a fight, a climb), and because the rooms are an interior, a lot
+  of play costs almost no map space.</p>
+  <figure><img src="board.jpg" alt="Board of all ten mockups: six Showcase Template frames and one frame each for Driftwood, Nalati, Pine Hollow and Nine Dragon"><figcaption>All ten mockups on one board. Codex image edits of real captures; not built yet.</figcaption></figure>
+</section>
+
+<section>
+  <h2>THE LOOP</h2>
+  <ol>
+    <li><b class="k">Enter</b> through a walk-in portal or a cave mouth. A plate by the door shows the rooms, the rough time and your best time.</li>
+    <li><b class="k">Puzzle room</b>: pressure plates, a crate to push, a door that opens when both plates are held.</li>
+    <li><b class="k">Fight room</b>: the doors seal, two or three small waves come, the doors open when the last enemy dies.</li>
+    <li><b class="k">Climb room</b>: ladder, scramble blocks, a rope bridge and a lift up to the last door.</li>
+    <li><b class="k">Mini-boss</b>: a boss bar, telegraphed hits, two phases.</li>
+    <li><b class="k">Reward and exit</b>: a chest, a "SHRINE COMPLETE" card (time, deaths, rooms) and an exit portal back to where you came in.</li>
+  </ol>
+  <p><b class="k">Checkpoints</b>: walking into a room makes it your checkpoint. <b class="k">Death</b>: you come back at that room's door;
+  a fight restarts its wave, a solved puzzle stays solved, the mini-boss heals to full. Nothing is lost by dying or
+  by walking out. <b class="k">Replay</b>: the chest pays once; after that it is a time trial against your best.</p>
+  <div class="shots">
+    <figure><img src="01-portal-entrance.jpg" alt="Portal entrance"><figcaption>1 · The portal in the hub wall, with the shrine plate</figcaption></figure>
+    <figure><img src="02-puzzle-room.jpg" alt="Puzzle room"><figcaption>2 · Puzzle: a crate on each plate opens the door</figcaption></figure>
+    <figure><img src="03-combat-room.jpg" alt="Combat room"><figcaption>3 · Fight: doors sealed, wave 2 of 3</figcaption></figure>
+    <figure><img src="04-traversal-room.jpg" alt="Traversal room"><figcaption>4 · Climb: ladder, rope bridge, scramble, lift</figcaption></figure>
+    <figure><img src="05-mini-boss.jpg" alt="Mini-boss room"><figcaption>5 · Mini-boss: the Vault Warden</figcaption></figure>
+    <figure><img src="06-reward-exit.jpg" alt="Reward and exit"><figcaption>6 · Chest, SHRINE COMPLETE card, exit portal</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>IN THE KITCHEN SINK</h2>
+  <ul>
+    <li><b class="k">Where</b>: it is the Training Vault, zone 12. The portal stays in the hub's orange wall (the round-5 frame);
+    the four rooms are an interior, so they take no ground in the 500 × 500 m cell. That is the v2 rule "fit more by
+    stacking and interiors".</li>
+    <li><b class="k">What it shows off</b>: walk-in portal rides, interiors, pressure plates and a pushable crate, doors on
+    flags, a wave fight in a sealed room, ladder, rope bridge and lift, the mini-boss host, a loot chest, room
+    checkpoints, respawn and a completion card. One zone, about ten engine features.</li>
+    <li><b class="k">The quest chain</b>: step 6 ("Open the Training Vault portal and solve its pressure-plate room") grows
+    into "Clear the Training Vault". The keycard stolen in step 5 opens the portal; the reward, the Warden Core, powers
+    the four storm beacons of step 7. So the dungeon sits on the main path, not off to the side.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>IN OTHER SHARDS</h2>
+  <p>The same rows, reskinned. Each shard already has a place of this shape; the host would turn it into a proper run
+  with rooms, a checkpoint per room and a completion card.</p>
+  <div class="shots">
+    <figure><img src="07-driftwood-sea-cave.jpg" alt="Driftwood sea cave shrine"><figcaption>Driftwood · toon · the sea cave tide puzzle</figcaption></figure>
+    <figure><img src="08-nalati-kurgan.jpg" alt="Nalati kurgan"><figcaption>Nalati · painterly · the Golden King's kurgan</figcaption></figure>
+    <figure><img src="09-pine-bear-cave.jpg" alt="Pine Hollow bear cave"><figcaption>Pine Hollow · photoreal · the bear cave</figcaption></figure>
+    <figure><img src="10-nine-dragon-well.jpg" alt="Nine Dragon Yamen Well"><figcaption>Nine Dragon · jiehua neon · the Yamen Well</figcaption></figure>
+  </div>
+  <div class="scroll"><table>
+    <tr><th>Shard</th><th>Dungeon</th><th>Rooms</th><th>Mini-boss</th><th>Today</th></tr>
+    <tr><td>Driftwood</td><td>Sea cave shrine</td><td>barrel-on-plate tide puzzle, the wreck hold fight, the rope walkway</td><td>the Drowned Sailor</td><td>the tide puzzle and the wreck hold exist as two separate places</td></tr>
+    <tr><td>Nalati</td><td>The kurgan</td><td>a stone-door puzzle, balbal guards, the burial shaft</td><td>the Golden King</td><td>the kurgan room and the King exist; it is the boss only</td></tr>
+    <tr><td>Pine Hollow</td><td>The bear cave</td><td>a lantern puzzle, a log bridge, ladder to a ledge</td><td>Old Blackpaw</td><td>the cave interior exists; the bear waits at its mouth</td></tr>
+    <tr><td>Nine Dragon</td><td>The Yamen Well</td><td>gong plates, a jiangshi gallery fight, a bridge and a lift down</td><td>a Lantern Tong elite</td><td>the galleries and bridges are walkable; no enemies yet</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>WHAT THE ENGINE NEEDS</h2>
+  <p>One shared <b class="k">shrine host</b> in the game layer, built from rows and checked against the host bar, with the
+  kitchen sink and one main shard as its two real users. Rows: <code>shrine</code> (name, entrance, exit, par time),
+  <code>rooms</code> (volume, checkpoint, kind), <code>doors</code> (opens on a flag), <code>plates</code> and
+  <code>pushables</code>, <code>waves</code> (room, spawn table, count), <code>miniBoss</code> (boss profile, room),
+  <code>reward</code> (loot, once) and <code>completion</code> (the card's fields).</p>
+  <div class="scroll"><table>
+    <tr><th>Piece</th><th>Today</th><th></th></tr>
+    <tr><td>Portal in and out</td><td>walk-in portal rides (<code>game/shardfile/walkInPortalRide.ts</code>, portal links)</td><td><span class="tag ok">EXISTS</span></td></tr>
+    <tr><td>Interior rooms</td><td>cave interior (Pine, <code>caveInterior.ts</code>) and the arena room (Nalati's kurgan, <code>game/boss/arenaRoom.ts</code>): two different hosts</td><td><span class="tag ok">EXISTS</span></td></tr>
+    <tr><td>Doors</td><td>quest flag gates (<code>format/questInteractions.ts</code>), building doors</td><td><span class="tag ok">EXISTS</span></td></tr>
+    <tr><td>Climb pieces</td><td>ladder, rope deck (bridges), socket lifts, movers</td><td><span class="tag ok">EXISTS</span></td></tr>
+    <tr><td>Mini-boss</td><td>the boss host (<code>game/Boss.ts</code>, <code>game/boss/</code>: profiles, phases, telegraphs) and elites</td><td><span class="tag ok">EXISTS</span></td></tr>
+    <tr><td>Chest</td><td>loot bag and loot economy rows (a "chest" sound is already declared)</td><td><span class="tag ok">EXISTS</span></td></tr>
+    <tr><td>Pressure plates</td><td>only inside Driftwood's own script (<code>barrels.as</code>, plates A and B); the pushable barrel is a quest prop</td><td><span class="tag gap">MISSING</span></td></tr>
+    <tr><td>Sealed wave room</td><td>spawn tables and scripts exist; "doors shut until the wave is dead" and a wave counter do not</td><td><span class="tag gap">MISSING</span></td></tr>
+    <tr><td>Room checkpoint and reset</td><td>respawn goes to the last named place (<code>game/LastPlace.ts</code>); nothing resets a room's fight or boss</td><td><span class="tag gap">MISSING</span></td></tr>
+    <tr><td>Shrine card and best time</td><td>the complete card is one per shard (<code>game/complete/ShardComplete.ts</code>); a run timer exists in practice courses</td><td><span class="tag gap">MISSING</span></td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>OPEN QUESTIONS FOR JAKE</h2>
+  <div class="q">
+    <p><b>1. Is the Training Vault the kitchen sink's mini dungeon?</b></p>
+    <p class="rec">Recommended: yes. Zone 12 grows from one plate room into four rooms and a mini-boss, and quest step 6 becomes "Clear the Training Vault". No new ground needed.</p>
+  </div>
+  <div class="q">
+    <p><b>2. What does dying in a mini dungeon cost?</b></p>
+    <p class="rec">Recommended: nothing but time. You come back at the door of the room you died in, the fight or boss restarts, solved puzzles stay solved, no lives limit.</p>
+  </div>
+  <div class="q">
+    <p><b>3. Which main shard is the host's second real user?</b></p>
+    <p class="rec">Recommended: Driftwood's sea cave. Its plate puzzle, wreck hold and the Drowned Sailor already exist, so it proves the host with the least new content.</p>
+  </div>
+</section>
+
+</main>
+</body>
+</html>
