@@ -1,6 +1,6 @@
 # Open plots: morning listening batch
 
-**Status:** `unread` 2026-11-03 — Bayou pilot recordings are ready; native playback is still being checked. The other four plots follow.
+**Status:** `unread` 2026-11-03 — Bayou and Frostline recordings are ready; native playback is still being checked. Three plots follow.
 **Link:** https://wildshard-singleplayer.vercel.app/assets/music/ob7-listening.html (ships with the automatic deployment)
 **Plan:** OPEN-PLOTS, [build-out OB7](../plans/open-plots/build-out-mini-plan.md)
 **Made by:** E521, sp-x2 / Codex
@@ -11,7 +11,7 @@ The measured recommendation ships; the other take stays available for comparison
 | Plot | Recommended score | Package | Native bar 10 |
 |---|---|---:|---|
 | Lantern Bayou | A, seed 701 | 1.67 MB | pending playback |
-| Frostline Peaks | pending | — | open |
+| Frostline Peaks | B, seed 702 | 1.22 MB | pending playback |
 | Ember Forge | pending | — | open |
 | Mosslight Ruins | pending | — | open |
 | Coral Drift | pending | — | open |
@@ -32,3 +32,10 @@ The package includes both score comparisons, the active score reference and
 all six sound loops. Every loop boundary was checked after AAC decoding.
 Music: MiniMax-Music3. Sound effects: MOSS-SoundEffect v2 · Stable Audio 3
 Medium — Powered by Stability AI.
+
+Frostline B has no measured separated vocal energy; A measures 0.03%.
+Its bed and hearth use MOSS; lift wheel, ice, gate chimes and pine rustle
+use Stable Audio. Five winners rank first and pine rustle ranks second.
+The MiniMax batch took 548.8 seconds (takes 287.8 / 241.8 seconds); it
+overlapped the earlier official window. Generation times are not isolated
+performance comparisons. The MOSS batch also overlapped the later X6 cohort.

@@ -18,8 +18,8 @@ These files were changed from the model's output: reduced, re-textured to a game
 
 ## Audio
 
-Lantern Bayou uses **Music: MiniMax-Music3** (MiniMax-Music3 Community License).
-Its sound effects compare **MOSS-SoundEffect v2** (Apache-2.0) and
+Lantern Bayou and Frostline Peaks use **Music: MiniMax-Music3** (MiniMax-Music3 Community License).
+Their sound effects compare **MOSS-SoundEffect v2** (Apache-2.0) and
 **Stable Audio 3 Medium** (Stability AI Community License and Gemma terms);
 **Powered by Stability AI**.
 
@@ -30,3 +30,7 @@ paired comparisons and generation records are in
 loudness-normalized and encoded as AAC; the model outputs are modified.
 
 The shared morning listening list is `public/assets/music/ob7-listening.html`.
+
+Frostline Peaks: `public/assets/music/frostline-peaks/music.json` and
+`public/assets/sfx/frostline-peaks/sfx.json` retain the same paired
+provenance and attributions.

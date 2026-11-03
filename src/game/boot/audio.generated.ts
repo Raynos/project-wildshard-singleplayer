@@ -38,6 +38,229 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-332f81db.m4a"
   }
  },
+ "frostline-peaks": {
+  "genre": "frostline-peaks",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-b-ab47fa6f0820.m4a",
+    "loopStart": 17.75,
+    "loopEnd": 41.53,
+    "duration": 42.53,
+    "gain": 1,
+    "seamScore": 0.497,
+    "calm": "take-b-ab47fa6f0820.m4a",
+    "bpm": 161.5,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-702",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.2812205,
+    "metrics": {
+     "duration_s": 69.68,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15.7,
+      "lra": 6.8,
+      "true_peak_dbfs": 0
+     },
+     "clipping": {
+      "clipped_samples": 59,
+      "clipped_frac": 0.000009599664695101632,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1893.8,
+      "rolloff95_hz": 7523.4,
+      "flatness": 0.001,
+      "hf_above_12k": 0.00006,
+      "sub_below_60": 0.0006,
+      "stereo_corr": 0.447
+     },
+     "tempo": {
+      "estimated_bpm": 161.5,
+      "brief_bpm": 96,
+      "rel_err": 0.159
+     },
+     "key": {
+      "best_key": "D major",
+      "best_r": 0.805,
+      "d_major_r": 0.805,
+      "d_major_rank": 1,
+      "key_ok": true
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.323,
+      "similarity": 0.348,
+      "level_match": 0.755,
+      "start_s": 16.5,
+      "end_s": 46.22,
+      "bars": 20,
+      "loop_s": 29.72,
+      "grid_bpm": 161.5
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0003,
+      "vocal_active_frac": 0.029,
+      "stem_share": {
+       "drums": 0.0011,
+       "bass": 0,
+       "other": 0.9985,
+       "vocals": 0.0003
+      },
+      "groove_active_frac": 0.029,
+      "drums_active_frac": 0.058
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 3,
+     "p": 0.036341,
+     "best": "Instrumental video game score, 104 BPM, 4/4. Bright turquoise tropical noon, light steel drum melody and gently strummed ukulele with rounded acoustic bass and restrained hand percussion. Friendly sunlit lagoon village, airy joyful instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue."
+    },
+    "encoded": {
+     "file": "take-a-2be1d55e412c.m4a",
+     "loopStart": 16.5,
+     "loopEnd": 46.22,
+     "duration": 47.22,
+     "gain": 1,
+     "seamScore": 0.323
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "frostline-peaks",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. Bright alpine morning, delicate zither melody, glockenspiel answering motifs and soft chamber strings. Fresh clear mountain air, cosy timber village, light optimistic instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 287.8,
+     "model_load_s": 15.4,
+     "mps_driver_gb": 27.27
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.34351299999999996,
+    "metrics": {
+     "duration_s": 64.83,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -16.1,
+      "lra": 8.3,
+      "true_peak_dbfs": -0.2
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.9727
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1826.7,
+      "rolloff95_hz": 6876,
+      "flatness": 0.0005,
+      "hf_above_12k": 0.00004,
+      "sub_below_60": 0.0183,
+      "stereo_corr": 0.501
+     },
+     "tempo": {
+      "estimated_bpm": 161.5,
+      "brief_bpm": 96,
+      "rel_err": 0.159
+     },
+     "key": {
+      "best_key": "G minor",
+      "best_r": 0.724,
+      "d_major_r": -0.139,
+      "d_major_rank": 14,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.497,
+      "similarity": 0.506,
+      "level_match": 0.945,
+      "start_s": 17.75,
+      "end_s": 41.53,
+      "bars": 16,
+      "loop_s": 23.78,
+      "grid_bpm": 161.5
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.0005,
+       "bass": 0.1591,
+       "other": 0.8404,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.344,
+      "drums_active_frac": 0.031
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 4,
+     "p": 0.039126,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-ab47fa6f0820.m4a",
+     "loopStart": 17.75,
+     "loopEnd": 41.53,
+     "duration": 42.53,
+     "gain": 1,
+     "seamScore": 0.497
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "frostline-peaks",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. Bright alpine morning, delicate zither melody, glockenspiel answering motifs and soft chamber strings. Fresh clear mountain air, cosy timber village, light optimistic instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 241.8,
+     "model_load_s": 15.4,
+     "mps_driver_gb": 27.27
+    }
+   }
+  ]
+ },
  "lantern-bayou": {
   "genre": "lantern-bayou",
   "model": "MiniMax Music 3",
@@ -976,6 +1199,64 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "gain": 1
    }
   }
+ },
+ "frostline-peaks": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "frostline-peaks.ambience": {
+    "file": "ambience-b9f79739ab4a.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 17.5,
+    "duration": 18.5,
+    "gain": 1,
+    "seamScore": 0.506
+   }
+  },
+  "hums": {
+   "frostline-peaks.lift-wheel-creak": {
+    "file": "lift-wheel-creak-5b84c80057bd.m4a",
+    "loopStart": 4,
+    "loopEnd": 7,
+    "duration": 8,
+    "gain": 1,
+    "seamScore": 0.6
+   },
+   "frostline-peaks.hearth-crackle": {
+    "file": "hearth-crackle-3a1839049eba.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 7.5,
+    "duration": 8.5,
+    "gain": 1,
+    "seamScore": 0.552
+   },
+   "frostline-peaks.ice-creak": {
+    "file": "ice-creak-33fda83c960a.m4a",
+    "loopStart": 2,
+    "loopEnd": 7,
+    "duration": 8,
+    "gain": 1,
+    "seamScore": 0.548
+   },
+   "frostline-peaks.gate-wind-chimes": {
+    "file": "gate-wind-chimes-e7a515826dfb.m4a",
+    "loopStart": 3.75,
+    "loopEnd": 5.75,
+    "duration": 6.75,
+    "gain": 1,
+    "seamScore": 0.404
+   },
+   "frostline-peaks.pine-rustle": {
+    "file": "pine-rustle-7ff7e897e215.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 4.25,
+    "duration": 5.25,
+    "gain": 1,
+    "seamScore": 0.571
+   }
+  },
+  "oneshots": {}
  },
  "lantern-bayou": {
   "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
