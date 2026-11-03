@@ -162,7 +162,7 @@ does not close a Z row.
 | **Z10** | **Census complete (2026-11-03, sp-x9), 0/3 removed.** All three / 1,669 B have original live readers and only DW as a complete emitter; per-file evidence below. E9 building-life is already in Jake’s batch, not new credit. **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Qualified five-file slice (2026-11-03, sp-x6), source `7cc93a3856`: −5 / −57,213 custom bytes; three one-user documents remain charged for Jake's batch. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
 | **Z12** | **One unread copy retired (2026-11-03, sp-x2); eight live files remain charged for Jake’s one-user batch.** Delete only Pine landmark-view, 5,510 B, while the original ForestPage/native models retain its facts. All other 880 Pine bodies / 154,020,452 B and 78 old/new packs reconstruct exactly. Strict native 24 frames / 8 A/A + 8 A/B all zero; Pine 24/24 green in Chromium and WebKit. Seven native physics route legs pass, zero stuck/bounds failures. [Per-file census and qualification](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2); no fake field-root credit | **1 of 9 retired; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
-| **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x6): 0/6 files deleted; qualified Driftwood duplicate-field cut below. Nine held for sp-o1's live-wall RCA; prerequisite semantic owners recorded below.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
+| **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **In flight (2026-11-03, sp-x1 + sp-x2): 0/6 files deleted; qualified Driftwood and Nalati duplicate-field cuts below. G872 approves proof-only shipping-copy retirement with fenced typed oracles; live semantic owners remain charged.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **One approved unread copy retired (2026-11-03, sp-x1); nine live one-user roots remain charged for Jake’s batch.** Nalati ride/rules removes 31,569 B. All other bodies/ordered packs retain exact proof with the independently reconstructed map source stamp; strict native 24 frames / 8 A/A + 8 A/B all zero. Nalati G998 24/24 green in Chromium and WebKit. Titan decisions already compile from shard AS; no new family is registered. [Per-file evidence and qualification below](#z14-census-encounters-riding-and-one-unread-copy-2026-11-03-sp-x1) | **1 of 10 retired; 9 charged:** Nalati room-entry, timed-encounters, titan-fight, titan-geometry, cloud-specimen, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page. Cloud overlaps Z7 and is charged once | Codex (G958) | 4.5 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
 
@@ -534,6 +534,55 @@ silently approved by the batch label. No catch-all quest union,
 compatibility alias, guard deletion or cap increase is proposed.
 
 ### Z13: qualified cuts and retained semantic owners
+
+**2026-11-03, sp-x1 — Nalati ordered group declarations.** The native
+assembly no longer repeats the complete pasture declaration in its three
+group guests. Before emission, `nalatiNativeGroupWire` refuses any guest
+whose full canonical declaration differs from the live wildlife owner.
+The native factory rejoins `actors/wildlife.json.pasture` and then runs the
+unchanged complete `NativeGroupRowsSchema`; it retains every group row,
+contact, guest binding, delay, adoption and their order. This is an exact
+duplicate derivation, **0/6 whole files deleted** and no new platform family.
+
+The frozen BEFORE `add58749da-mw0y33kg` and AFTER
+`204372712c-mw0yj6e1` retain the same peer rifle-model and ride/rules cuts.
+The actual assembly is **113,286 → 32,352 B (−80,934 B)**, from SHA-256
+`ddc761066239bdc9feb90bbf7428da05691a4bb94c2d1fef0b6f4d85adf10749`
+to `7975400395198f6f2e457ab997c53406368bad44bf74c9ff34fd89a94234e8b0`.
+Every original assembly value reconstructs exactly. All **382 unrelated
+bodies / 88,105,898 B** stay exact. All 44 before/after packs and their
+744 ordered entries reconstruct exactly with the one assembly substitution.
+The 164 B map body changes only its source stamp; both aggregate source
+hashes reconstruct from the 328 candidate input occurrences, and the
+original map body and raster hash `80afaa55…` reconstruct exactly.
+
+Strict native Metal phone/desktop captures retain 24 full RGBA frames:
+eight A/A and eight A/B comparisons are all **0 changed pixels**, with the
+original frame guards. Three exact-derivation/refusal cases and all seven
+original native continuation/direct-admission cases pass, including the
+native taming suffix and original closed-return refusal. Root types and
+touched-file lint pass. No collider bytes change, so no new walk is needed.
+
+Goldens: Nalati **24/24 Chromium and 24/24 WebKit green** on
+`204372712c-mw0yj6e1`, all 48 three-panel rows reviewed. The labelled
+[Chromium board](../../../art/golden-runs/nalati-grasslands/2026-11-03-204372712c-z13-chromium-board.jpg)
+and [WebKit board](../../../art/golden-runs/nalati-grasslands/2026-11-03-204372712c-z13-webkit-board.jpg)
+retain the SHARDFILE look; moving wildlife, grass, water and weapon sway are
+native motion. All capture receipts are complete, settled and error-free.
+
+**Remaining ownership and G872 ruling.** X2 owns only Driftwood/Pine's
+assemblies; sp-x1 owns Nalati's assembly/boot and Nine's assembly/constants.
+The actual `sdk/bake/headlessWorker.ts` selects a shipped native runtime
+plan when present and otherwise derives its simulation from the shardfile;
+it never reads these six named JSON copies. The coordinator approved
+retiring copies with **zero production readers** while preserving exact,
+typed oracle facts in direct test factories behind an explicit input fence,
+full old canonical reconstruction and a 240-tick restore proof. Nine's
+731 B assembly is approved on that basis. Nalati's 109,461 B boot remains
+charged until elite.construct's complete admission source is rebound to the
+unchanged live wildlife document and zero remaining production readers is
+proved. Nalati's weather/elite assembly and Nine's portal/grapple constants
+remain live and charged. No fixture-only document earns family credit.
 
 **2026-11-03, sp-x6:** Driftwood no longer duplicates `dayStyle` and
 `nativeSpecs` in its assembly. The native proof reads the entire day input

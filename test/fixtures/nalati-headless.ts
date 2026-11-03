@@ -52,6 +52,7 @@ import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, prepareReturns } from './headless-plan';
 import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './nalati-encounter-loans';
+import { nalatiGroupInputs } from './nalati-group-inputs';
 
 const physicsRows = originalNalatiPhysics();
 /** Optional encounter intake comes from the same admitted species/body book;
@@ -70,7 +71,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     observeBindings?:(host:SimHost,bindings:NativeEliteBindings)=>void): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants: assemblyConstants } = await product.json<{
-        constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission' | 'nativeField' | 'nativeDayClock' | 'nativeKnockdown'> & {
+        constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission' | 'nativeField' | 'nativeDayClock' | 'nativeKnockdown' | 'groupRows'> & {
+            groupRows: unknown;
             nativeShelters: ReturnType<typeof nalatiNativeShelters>;
             pageElites: Omit<ReturnType<typeof buildEliteEntryPageRows>, "profiles"> & {
                 profiles: {
@@ -88,7 +90,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     const nativeField = v.parse(PopulationFieldSchema, await product.json('world/meadow.json'));
     const forestWeather = v.parse(ForestWeatherSchema, await product.json('world/forest-weather.json'));
     const nativeDayClock = need(forestWeather.sky, 'Nalati requires its admitted painted-sky clock').clock;
-    const constants = { ...assemblyConstants, nativeField, nativeDayClock };
+    const groupRows = nalatiGroupInputs(assemblyConstants.groupRows, await product.json('actors/wildlife.json'));
+    const constants = { ...assemblyConstants, nativeField, nativeDayClock, groupRows };
     const tamingPoses = await (readJson<{
         poses: NativeTamingRows["poses"];
     }>(product, "sim/taming-poses.json"));
