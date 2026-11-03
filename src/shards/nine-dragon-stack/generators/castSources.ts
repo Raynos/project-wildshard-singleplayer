@@ -1,6 +1,6 @@
 import type { HookProduct } from './hookProduct';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
+import type { NamedBlob } from '@wildshard/sdk/blobs';
+import { worldSceneWeldFile, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
 import castRows from '../data/casts.json' with { type: 'json' };
 import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };
@@ -13,7 +13,6 @@ export const CAST_NAMES: string[] = [...crowd, 'lion', ...castRows.FIXED_KITS, .
   ...hookRows.lods.map(distance => `dragon-hook-mid${distance}`),
   ...crowd.flatMap(name => lodRows.MID_FROM.map(distance => `${name}-mid${distance}`).concat(`${name}-far`)), ...castRows.CROWD_TABLES];
 const names = CAST_NAMES;
-const json = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 
 /** The admitted pool files retain the existing rest reader and per-file channel declarations. */
 export const CAST_SOURCES: { id: string; kind: string; files: { file: string; parts: string[]; channels: { name: string; source: string; width: number; }[]; }[]; }[] = Array.from({ length: Math.ceil(names.length / 16) }, (_, index) => ({
@@ -46,8 +45,8 @@ export function castMaterials(material: HookProduct['material']): CastMaterialRo
 const migrated = (name: string): boolean => castRows.CROWD_TABLES.includes(name) || name === 'lion' || name.startsWith('lion-') || name.startsWith('dragon-hook-') || crowd.some(key => name === key || name.startsWith(`${key}-`));
 /** Cast and layout resources share one existing admitted scene file. */
 export function castBlobs(extraResources: WorldSceneWeld['resources'] = []): NamedBlob[] {
-  return [nameBlob('world/casts.json', 'json', json(parseWorldSceneWeld({ id: 'casts', root: 'dressing.root', nodes: [],
+  return [worldSceneWeldFile('world/casts.json', parseWorldSceneWeld({ id: 'casts', root: 'dressing.root', nodes: [],
     // the lion's, the crowd's and the hook's casts are world-scenes catalogue sources (generators/worldScenes.ts), not weld handles
-    resources: [...names.filter(name => !migrated(name)).map(name => ({ id: `casts.${name}`, kind: 'geometry', source: { library: libraries.get(name), model: name } })), ...extraResources] })))];
+    resources: [...names.filter(name => !migrated(name)).map(name => ({ id: `casts.${name}`, kind: 'geometry', source: { library: libraries.get(name), model: name } })), ...extraResources] }))];
 }
 export const CAST_BLOBS: NamedBlob[] = castBlobs();

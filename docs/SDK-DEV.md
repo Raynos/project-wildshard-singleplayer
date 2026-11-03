@@ -86,6 +86,16 @@ tier, adding a zero-based `member` within the verified named file.
 `WorldScenePlacementPageSchema` validates the complete versioned page and
 every original placement row. Individual placement files remain supported.
 
+Packing retains the 100,000-node aggregate JSON guard and uses fewer rows
+when needed. A single complete native placement may exceed that aggregate;
+its original row, pose, parameter and collider bounds still apply. Every
+row reconstructs with its authored JSON key order and numbers unchanged.
+`worldSceneWeldFile(name, rows)` publishes an unchanged complete native weld
+with defining schema provenance and retains the original runtime owner.
+Sampled audio points may name `{id, file, member}` instead of an individual
+file. The audio reader validates the whole page and selected row identity
+before borrowing its exact ordered poses.
+
 At native world admission, `member` (0–15) selects an ordered page row.
 The existing verified pool reads each file once, and its complete native
 page parses once within that admission. Every cursor validates the

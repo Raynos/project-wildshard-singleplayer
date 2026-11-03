@@ -1,5 +1,6 @@
 import type { BakedPlacementPlan } from '@wildshard/format/bakedTiles';
-import { registeredJsonSchema } from './formatJsonSchema';
+import { isJsonData } from '@wildshard/format/json';
+import { namedJsonSchema, registeredJsonSchema } from './formatJsonSchema';
 import type { RegisteredPlacementPageJsonName } from '@wildshard/format/registeredJson';
 import { parseWorldScene, parseWorldSceneBindings, parsePrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import { CaveInteriorSchema, type CaveInteriorRows } from '@wildshard/format/caveInterior';
@@ -8,7 +9,7 @@ import { WorldSceneWeldSchema, parseWorldSceneWeld } from '@wildshard/format/wor
 import { parseWorldScenes, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldSceneSurfaceSchema, type WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
-import { parseWorldScenePlacement,parseWorldScenePlacementPage,type WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
+import { parseWorldScenePlacement,parseWorldScenePlacementPage } from '@wildshard/format/worldScenePlacement';
 import { parse, record, string, strictObject, array, boolean, object, exactOptional, picklist, pipe, unknown, transform, number, finite, regex, type GenericSchema, type ArraySchema, type StrictObjectSchema, type InferOutput } from 'valibot';
 import { SceneDrawsSchema, type SceneDrawsRows } from '@wildshard/format/sceneDraws';
 import type { SceneModelSource, SceneBakeSource } from '@wildshard/game/shardfile/sceneSources';
@@ -147,6 +148,14 @@ export function worldSceneWeldRows(input: unknown): ReturnType<typeof parseWorld
 /** Admit an owned author draft with the same grammar, before runtime admission freezes it. */
 export function worldSceneWeldData(input: unknown): ReturnType<typeof parseWorldSceneWeld> { return parse(WorldSceneWeldSchema, input); }
 
+/** Publish the complete native weld without rewriting authored JSON or lending an owner. */
+export function worldSceneWeldFile(name: string, input: unknown): NamedBlob {
+  parseWorldSceneWeld(input);
+  return nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(input)), {
+    jsonSchema: namedJsonSchema(WorldSceneWeldSchema, { provenance: true }),
+  });
+}
+
 /** Admit the defining finite surface properties without inventing a material or resource owner. */
 export function worldSceneSurfaceProperties(input: unknown): WorldSceneSurface['properties'] { return parse(WorldSceneSurfaceSchema.entries.properties, input); }
 
@@ -218,22 +227,35 @@ export function worldSceneSourceRecords<Schema extends GenericSchema>(schema: Sc
 
 
 /** Ordered placement references over small complete native pages. Pages never mix
- * device membership, so the original tier filter also excludes their transport. */
-export function worldScenePlacementPages(id: string, input: readonly WorldScenePlacementRow[]): {
+ * device membership, so the original tier filter also excludes their transport.
+ * Admission checks every original row; encoding retains its authored key order. */
+export function worldScenePlacementPages(id: string, input: readonly unknown[]): {
   files: NamedBlob[]; placements: { id: string; file: string; member: number; tier?: 'phone' | 'desktop' }[];
 } {
   if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,140}$/u.test(id) || input.length > 128)
     throw new Error('Placement pages require a bounded id and at most 128 placements');
   const rows = input.map(parseWorldScenePlacement);
+  const sources = new Map(rows.map((row, index) => [row.id, input[index]]));
   if (new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Placement identities must be unique');
   const files: NamedBlob[] = [], references = new Map<string, { id: string; file: string; member: number; tier?: 'phone' | 'desktop' }>();
   for (const tier of [undefined, 'phone', 'desktop'] as const) {
     const active = rows.filter(row => row.tier === tier);
-    for (let at = 0; at < active.length; at += 16) {
-      const page = parseWorldScenePlacementPage({ version: 1, rows: active.slice(at, at + 16) });
-      const name: RegisteredPlacementPageJsonName = `world/placement-pages/${id}.${tier ?? 'shared'}.${at / 16}.json`;
-      files.push(nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(page)), { jsonSchema: registeredJsonSchema(name) }));
+    for (let at = 0, part = 0; at < active.length; part++) {
+      // Match individual JSON files: matrix arithmetic's signed zeros encode as 0.
+      let count = Math.min(16, active.length - at);
+      let encodedPage = JSON.stringify({ version: 1, rows: active.slice(at, at + count) });
+      let wirePage: unknown = JSON.parse(encodedPage);
+      while (count > 1 && !isJsonData(wirePage)) {
+        count--;
+        encodedPage = JSON.stringify({ version: 1, rows: active.slice(at, at + count) });
+        wirePage = JSON.parse(encodedPage);
+      }
+      const page = parseWorldScenePlacementPage(wirePage);
+      const name: RegisteredPlacementPageJsonName = `world/placement-pages/${id}.${tier ?? 'shared'}.${part}.json`;
+      const wire = { version: 1, rows: page.rows.map(row => sources.get(row.id)) };
+      files.push(nameBlob(name, 'json', new TextEncoder().encode(JSON.stringify(wire)), { jsonSchema: registeredJsonSchema(name) }));
       for (const [member, row] of page.rows.entries()) references.set(row.id, { id: row.id, file: name, member, ...(tier === undefined ? {} : { tier }) });
+      at += count;
     }
   }
   return { files, placements: rows.map(row => {

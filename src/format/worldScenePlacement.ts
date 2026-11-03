@@ -138,10 +138,50 @@ interface WorldScenePlacementRowFields {
 export type WorldScenePlacementRow = { [Key in keyof WorldScenePlacementRowFields]: WorldScenePlacementRowFields[Key] };
 
 
+function plainEntries(value: unknown): [string, unknown][] | undefined {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)
+    || Object.getOwnPropertySymbols(value).length > 0) return undefined;
+  const prototype: unknown = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return undefined;
+  const entries: [string, unknown][] = [];
+  for (const key of Object.getOwnPropertyNames(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (descriptor?.enumerable !== true || descriptor.get !== undefined || descriptor.set !== undefined) return undefined;
+    entries.push([key, descriptor.value]);
+  }
+  return entries;
+}
+function plainItems(value: unknown, max: number): unknown[] | undefined {
+  if (!Array.isArray(value) || value.length > max || Object.getOwnPropertySymbols(value).length > 0
+    || Object.getOwnPropertyNames(value).length !== value.length + 1) return undefined;
+  const items: unknown[] = [];
+  for (let index = 0; index < value.length; index++) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, index);
+    if (descriptor?.enumerable !== true || descriptor.get !== undefined || descriptor.set !== undefined) return undefined;
+    items.push(descriptor.value);
+  }
+  return items;
+}
+/** Each bounded pose and complete row header keeps the ordinary JSON guard.
+ * A transport page must not impose a new aggregate node cap on native rows. */
+function placementPageData(value: unknown): boolean {
+  const entries = plainEntries(value);
+  if (entries === undefined || !isJsonData(Object.fromEntries(entries.filter(([key]) => key !== 'rows')))) return false;
+  const rows = plainItems(entries.find(([key]) => key === 'rows')?.[1], 16);
+  if (rows === undefined) return false;
+  if (rows.length !== 1) return isJsonData(value);
+  return rows.every(row => {
+    const fields = plainEntries(row);
+    if (fields === undefined || !isJsonData(Object.fromEntries(fields.filter(([key]) => key !== 'poses')))) return false;
+    const poses = plainItems(fields.find(([key]) => key === 'poses')?.[1], 8192);
+    return poses !== undefined && poses.every(isJsonData);
+  });
+}
+
 /** One streamed page retains complete placements, not a projected pose subset.
  * Sixteen rows bound one decode; the world's existing 128-placement cap stays. */
 export const WorldScenePlacementPageSchema: v.GenericSchema<unknown, WorldScenePlacementPage> = v.pipe(
-  v.unknown(), v.check(isJsonData, 'Placement pages require plain JSON'),
+  v.unknown(), v.check(placementPageData, 'Placement pages require plain JSON'),
   v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(WorldScenePlacementSchema), v.minLength(1), v.maxLength(16)) }),
   v.check(page => new Set(page.rows.map(row => row.id)).size === page.rows.length, 'Placement page identities must be unique'));
 export interface WorldScenePlacementPage { version: 1; rows: WorldScenePlacementRow[] }

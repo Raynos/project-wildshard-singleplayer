@@ -1,10 +1,21 @@
 import * as v from 'valibot';
 import { AudioMixExpressionSchema as expr } from './audioProfiles';
 import { ScalarChannelSchema } from './scalarChannel';
+import { parseWorldScenePlacement, parseWorldScenePlacementPage, type WorldScenePlacementRow } from './worldScenePlacement';
 
 const n=v.pipe(v.number(),v.finite()),id=v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 const point=v.tuple([n,n]);
 const values=v.pipe(v.array(v.tuple([id,expr])),v.maxLength(64));
+const audioPointSource=v.union([id,v.strictObject({id,file:id,member:v.pipe(n,v.integer(),v.minValue(0),v.maxValue(15))})]);
+export type SampledAudioPointSource=string|{id:string;file:string;member:number};
+/** Admit the complete placement page before borrowing an identity-checked audio pose list. */
+export function parseSampledAudioPlacement(input:unknown,source:SampledAudioPointSource):WorldScenePlacementRow {
+ const checked=v.parse(audioPointSource,source);
+ if(typeof checked==='string')return parseWorldScenePlacement(input);
+ const row=parseWorldScenePlacementPage(input).rows[checked.member];
+ if(row===undefined||row.id!==checked.id)throw new Error('Audio placement page member differs');
+ return row;
+}
 /** Client-only audio scene observations, geometry, cue subscriptions and score rows. */
 export const AudioSceneSchema: v.GenericSchema<AudioSceneInput, AudioScene>=v.strictObject({
  fields:v.pipe(v.strictObject({res:v.pipe(n,v.integer(),v.minValue(2),v.maxValue(2048)),size:v.pipe(n,v.minValue(.001),v.maxValue(100000)),channels:v.pipe(v.record(id,v.union([v.pipe(v.array(v.pipe(v.string(),v.minLength(1),v.maxLength(4096))),v.minLength(1),v.maxLength(977),v.check(chunks=>chunks.reduce((sum,chunk)=>sum+chunk.length,0)<=4000000)),ScalarChannelSchema])),v.check(channels=>Object.keys(channels).length<=16))}),v.check(row=>Object.values(row.channels).every(channel=>Array.isArray(channel)||(channel.type==='f32'&&channel.count===row.res*row.res)),'Audio field requires one f32 per sample')),
@@ -32,7 +43,7 @@ export const AudioSceneSchema: v.GenericSchema<AudioSceneInput, AudioScene>=v.st
  * material aliases and positional loops at the poses of an admitted scene placement file, one per world variant
  * (standalone or a grid cell). */
 export const SampledAudioSceneSchema: v.GenericSchema<SampledAudioSceneInput, SampledAudioScene>=v.strictObject({
- system:id,tick:id,debug:id,points:v.strictObject({standalone:id,cell:id}),loopTap:id,countLabel:id,eye:n,
+ system:id,tick:id,debug:id,points:v.strictObject({standalone:audioPointSource,cell:audioPointSource}),loopTap:id,countLabel:id,eye:n,
  surfaces:v.record(id,v.picklist(['rock','planks','metal','grass','gravel','sand','wetSand','stone','water','litter','mud','wet'])),fallback:v.picklist(['rock','planks','metal','grass','gravel','sand','wetSand','stone','water','litter','mud','wet']),
  step:v.strictObject({id,voices:v.record(id,id),fallback:id,count:v.pipe(n,v.integer(),v.minValue(1),v.maxValue(16)),walkGain:n,runGain:n}),
  voices:v.pipe(v.record(id,v.strictObject({family:id,tap:id,handled:v.optional(v.boolean(),true),sequence:v.optional(v.boolean(),false),pan:v.exactOptional(n)})),v.check(rows=>Object.keys(rows).length<=128)),
@@ -266,8 +277,8 @@ interface SampledAudioSceneInputFields {
     tick: string;
     debug: string;
     points: {
-        standalone: string;
-        cell: string;
+        standalone: SampledAudioPointSource;
+        cell: SampledAudioPointSource;
     };
     loopTap: string;
     countLabel: string;
@@ -300,8 +311,8 @@ interface SampledAudioSceneFields {
     tick: string;
     debug: string;
     points: {
-        standalone: string;
-        cell: string;
+        standalone: SampledAudioPointSource;
+        cell: SampledAudioPointSource;
     };
     loopTap: string;
     countLabel: string;

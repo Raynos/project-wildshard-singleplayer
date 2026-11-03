@@ -1,5 +1,6 @@
 import { parseAudioData } from '@wildshard/sdk/audio';
 import ND_SAMPLES from '../data/audioSamples.json' with { type: 'json' };
+import type { NineWorldScenes } from './worldScenes';
 
 const BLEND = 6;
 const rectangles = [
@@ -55,3 +56,17 @@ export const ND_AUDIO: ReturnType<typeof parseAudioData> = parseAudioData({ entr
     { id: 'chime.gust', bus: 'audio', actions: [{ voice: 'nd.chime.gust' }] },
   ],
 });
+
+/** Borrow the same lantern poses through the world's published placement members. */
+export function nineAudioForScenes(scenes: NineWorldScenes): ReturnType<typeof parseAudioData> {
+  const sampledScene = ND_AUDIO.sampledScene;
+  if (sampledScene === undefined) throw new Error('Nine requires its sampled audio scene');
+  const member = (id: string) => {
+    const row = scenes.NINE_WORLD_SCENES.placements?.find(candidate => candidate.id === id);
+    if (row === undefined || !('file' in row) || row.member === undefined) throw new Error('Nine audio requires a published lantern member');
+    return { id: row.id, file: row.file, member: row.member };
+  };
+  return parseAudioData({ ...ND_AUDIO, sampledScene: { ...sampledScene, points: {
+    standalone: member('nds-lanterns-capped'), cell: member('nds-lanterns-open'),
+  } } });
+}

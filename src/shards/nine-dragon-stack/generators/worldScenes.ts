@@ -19,7 +19,7 @@ import { portalLookRows } from './portalLook';
 // and layout-set tiles. The world's banyan crown, the Well's mist, the painted sky and the scroll screen are one
 // `dressing` scene step over the same tiles and two owned shapes.
 import { parseSectionValue } from '@wildshard/sdk/sections';
-import { worldSceneTileGroups, worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
+import { worldSceneWeldFile, worldScenePlacementPages, worldSceneTileGroups, worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
 import { NINE_SHARED } from './sharedRows';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
@@ -269,8 +269,6 @@ const SET_PLACEMENTS = worldRows.rows.sets.map(({ name, frames }) => {
       return { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0, matrix, ...(name === 'pavilion' ? { params: { turn: authoredTurn(Math.atan2(matrix[8] ?? 0, matrix[0] ?? 1)) } } : {}) }; }) };
 });
 const projection = bakedLayoutProjection(layout);
-/** a layout placement's own file (world/build.ts reads the lanterns' poses from theirs) */
-const layoutPlacementFile = (id: string): `world/placements/${string}.json` => `world/placements/${id.replaceAll('@', '.')}.json`; // a blob name has no '@'
 const frame = (offset: number): number[] => Array.from({ length: 16 }, (_, k) => record(offset + k));
 // plain JSON numbers: a signed zero (three's matrix maths) is written as 0
 const posed = (words: readonly number[], color?: readonly number[]) => { const matrix = words.map(value => value + 0);
@@ -415,14 +413,15 @@ const FIXED_RECIPE = parseWorldScene({ imports: [], scene: { version: 1, root: '
   materials: [{ kind: 'port', id: 'kit', source: 'kit' }] } });
 const FIXED_STEPS = (['open', 'capped'] as const).map(caps => ({ id: `fixed-${caps}`, cube: caps === 'open' ? 'cell' : 'standalone', scene: 'world/scenes/fixed.json',
   geometry: { entries: { library: castLibrary(`entries-${caps}`), model: `entries-${caps}` }, signs: { library: castLibrary('facade-signs'), model: 'facade-signs' } }, materials: { kit: 'kit' } }));
-const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...LAYOUT_PLACEMENTS.map(row => ({ id: row.id, file: layoutPlacementFile(row.id) }))], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-refine'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
+const pages = worldScenePlacementPages('layout', LAYOUT_PLACEMENTS);
+const NINE_WORLD_SCENES = parseWorldScenes({ version: 1, catalogue: 'models/world-scenes.json', lent, uniforms: [NINE_SHARED], welds: [CAST_WELD, { id: 'fabric', file: 'world/fabric.json' }], placements: [...SET_PLACEMENTS, ...MOVER_PLACEMENTS, ...pages.placements], libraries: [...SIGN_POOL_LIBRARIES, ...CAST_LIBRARIES, ...portalLook.scenes.libraries, library('native'), library('native-refine'), library('native-explorer'), { id: 'shapes', kind: 'owned', models: shapes.map(([id]) => ({ id, file: `world/geometry/${id}.glb` })) }],
   materials: [look('crowd', CROWD_LOOK), ...castMaterials(hookMaterial), ...portalLook.scenes.materials, ...NINE_MATERIAL_LOOKS.map(([id, name]) => look(id, name))],
   steps: [{ id: 'dressing', scene: 'world/scenes/dressing.json', geometry: { ...Object.fromEntries(dressing.map(({ model }) => [model, { library: libraryOf.get(model) ?? signLibrary.get(model) ?? 'shapes', model }])), ...windowStep([0], layout).geometry },
     instanceAttributes: windowStep([0], layout).instanceAttributes,
     materials: Object.fromEntries(recipe.scene.materials.map(row => [row.id, row.id])), publish: { ...windowStep([0], layout).publish, ...Object.fromEntries(['crown-core', 'crown-cards', 'signs', 'neon-boards'].filter(id => dressing.some(row => row.id === id)).map(id => [id, { kind: 'object', part: id }])) } }, ...cardSteps, ...FIXED_STEPS, ...portalLook.scenes.steps] });
 /** the layout placements' files (LAYOUT_PLACEMENTS) */
-const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...LAYOUT_PLACEMENTS.map(row => nameBlob(layoutPlacementFile(row.id), 'json', new TextEncoder().encode(JSON.stringify(row)), { jsonSchema: registeredJsonSchema(layoutPlacementFile(row.id)) })),
-  nameBlob('world/fabric.json', 'json', json(FABRIC)), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE), {jsonSchema:registeredJsonSchema('world/scenes/fixed.json')})];
+const LAYOUT_PLACEMENT_BLOBS: NamedBlob[] = [...pages.files,
+  worldSceneWeldFile('world/fabric.json', FABRIC), nameBlob('world/scenes/fixed.json', 'json', json(FIXED_RECIPE), {jsonSchema:registeredJsonSchema('world/scenes/fixed.json')})];
 
 return { worldRows, SET_TILES, NINE_SCENE_BLOBS, SET_PLACEMENTS, LION_PLACEMENTS, LAYOUT_PLACEMENTS, NINE_WORLD_SCENES, LAYOUT_PLACEMENT_BLOBS };
 }

@@ -15,7 +15,7 @@ import { CROWD_LOOK, crowdGraphFile } from './crowdGraph';
 import { burstGraphs } from './burstGraphs';
 import { streakGraph } from './streakGraph';
 import plumbing from '../data/plumbing.json' with { type: 'json' };
-import { ND_AUDIO } from './audio';
+import { nineAudioForScenes } from './audio';
 import NINE_MODES from '../data/modes.json' with { type: 'json' };
 import NINE_DRAGON_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -77,7 +77,7 @@ const budgets = { ...base.budgets, sim: { resident: navigationResident+courseMem
 return parseShardfile({ ...base, plumbing, budgets, navigation: navigation.navigation, critical: navigation.critical,
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigationResident+courseMemory },
   files: [...worldFiles, ...navigation.files, ...heldGraphFiles.files, ...kinds.map(row => row.file), crowd.file].sort((a, b) => a.hash.localeCompare(b.hash)), tiles: nineSlabTransport(world.shardfile.tiles, world.shardfile.files, inputs.scenes.NINE_WORLD_SCENES.libraries, inputs.scenes.NINE_REFINEMENT_SOURCE), library: [...library],
-  accent: 'iris', runtime: { kind: 'client-plan', binds: ['props', 'items', 'ledger', 'modes'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
+  accent: 'iris', runtime: { kind: 'client-plan', binds: ['props', 'items', 'ledger', 'modes'], cost: NINE_DRAGON_RUNTIME_COST }, audio: nineAudioForScenes(inputs.scenes), modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
   // QC1 (E510): the city is in view from everywhere and its whole L0 is 81.6 MB of GPU, so the whole cell stays resident
   // as Far Reach's does: no tile retires in play, and no retire re-joins a held refine union mid-walk
