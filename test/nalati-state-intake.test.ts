@@ -1,9 +1,10 @@
+import { nalatiNativeAssembly } from './fixtures/nalati-native-assembly';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { ForestWeatherSchema } from '../src/format/forestWeather';
 import {parseHeldSlots} from '../src/format/heldArms';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare emitted slot metadata with its exact generated authoring input.
 import {readFileSync} from 'node:fs';
-import { NALATI_WEATHER_PAGE } from '../src/shards/nalati-grasslands/generators/weatherPage';
+import { nalatiWeatherPage } from '../src/shards/nalati-grasslands/generators/weatherPage';
 // @vitest-environment node
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
@@ -49,7 +50,7 @@ test('the shipped world assembly King intake retains its attack owner before wea
   const assembly=plan.features.find(row=>row.kind==='world.assembly');
   if(assembly?.native===undefined)throw new Error('Missing native assembly feature');
   expect(plan.features.filter(row=>row.kind==='weather.forest')).toEqual([{kind:'weather.forest',file:'world/forest-weather.json',owner:'nalati.weather',hud:true}]);
-  expect(await product.json('world/forest-weather.json')).toEqual(v.parse(ForestWeatherSchema,NALATI_WEATHER_PAGE));
+  expect(await product.json('world/forest-weather.json')).toEqual(v.parse(ForestWeatherSchema,nalatiWeatherPage((await nalatiNativeAssembly()).constants.nativeShelters)));
   const slotRows:unknown=JSON.parse(readFileSync('src/shards/nalati-grasslands/boot/mountedLoadout.json','utf8'));
   expect(parseHeldSlots(await product.json('held/slots.json'))).toEqual(parseHeldSlots(slotRows));
   const fight=v.parse(v.object({programs:v.record(v.string(),v.unknown())}),await product.json('combat/titan-fight.json'));

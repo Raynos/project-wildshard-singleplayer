@@ -5,11 +5,13 @@ const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const duration = v.tuple([v.pipe(finite, v.minValue(Number.MIN_VALUE)), v.pipe(finite, v.minValue(Number.MIN_VALUE))]);
 const fields = v.pipe(v.record(id, finite), v.check(rows => Object.keys(rows).length <= 32));
+/** Original native weather-hit tag predicate; exported for its exact JSON projection. */
+export const WeatherHitTagSchema: v.GenericSchema<`${string}.${string}`> = v.custom<`${string}.${string}`>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value));
 /** Fixed-step native wind/weather binding, including gameplay cue data. */
 export const WeatherWorldSchema: v.GenericSchema<WeatherWorldRowsInput, WeatherWorldRows> = v.strictObject({
   step: id, scareRadius: v.pipe(finite,v.minValue(0)), windReference: v.pipe(finite,v.minValue(Number.MIN_VALUE)),
   light: v.strictObject({ base: finite, storm: finite, ramps: v.pipe(v.array(v.tuple([finite,finite,finite])),v.maxLength(8)) }),
-  hit: v.strictObject({ ask: v.literal('weather.damage'), tags: v.array(v.custom<`${string}.${string}`>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value))),
+  hit: v.strictObject({ ask: v.literal('weather.damage'), tags: v.array(WeatherHitTagSchema),
     cause: v.strictObject({ kind: id,label: id,text: id }),toast: id }),
 });
 /** The physical wind's own continuation; never shared with a renderer global. */
@@ -68,11 +70,13 @@ const named = v.pipe(v.array(v.tuple([name, source])), v.maxLength(32));
  * weather "on" for its readers; `flash` names the register they may raise; `shelter` circles grow by `margin` and mark the
  * caller's `input.sheltered`.
  */
+/** The original ordered physical shelter circles, shared by storm and reaction admission. */
+export const WeatherShelterCirclesSchema: v.GenericSchema<WeatherReactionRows['shelter']['circles']> = v.pipe(v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), v.maxLength(256));
 export const WeatherReactionsSchema: v.StrictObjectSchema<WeatherReactionEntries, undefined> = v.strictObject({
   version: v.literal(1), hz: v.pipe(finite, v.minValue(1), v.maxValue(10)), script: v.unknown(), bytes: v.string(),
   actions: v.exactOptional(v.strictObject({ event: id, unless: v.exactOptional(name) })),
   active: v.pipe(v.array(id), v.maxLength(32)), flash: name,
-  shelter: v.strictObject({ margin: v.pipe(finite, v.minValue(0)), circles: v.pipe(v.array(v.tuple([finite, finite, v.pipe(finite, v.minValue(0))])), v.maxLength(256)) }),
+  shelter: v.strictObject({ margin: v.pipe(finite, v.minValue(0)), circles: WeatherShelterCirclesSchema }),
   points: v.pipe(v.array(v.tuple([finite, finite, finite])), v.maxLength(8192)),
   steps: v.pipe(v.array(v.strictObject({
     signal: name, when: v.exactOptional(source), observe: named,

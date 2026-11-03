@@ -22,6 +22,8 @@ import source from './fixtures/nine-product-inputs';
 import portalRows from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
+const declaredRows = { director: portalRows.director, trigger: portalRows.trigger, fade: portalRows.fade, veil: portalRows.veil, landings: portalRows.landings };
+
 afterEach(() => { vi.restoreAllMocks(); });
 
 async function refusal(run: Promise<unknown>): Promise<unknown> {
@@ -52,21 +54,18 @@ function ledger() {
   return { facts, bind, mount };
 }
 
-test('a leave or replaced entered owner during the admitted JSON read has no ledger, veil or system effects', async () => {
-  let finish: ((bytes: Uint8Array) => void) | undefined;
-  const pending = new Promise<Uint8Array>(resolve => { finish = resolve; });
+test('a leave or replaced entered owner during declared policy preparation has no ledger, veil or system effects', async () => {
   const { bind, mount } = ledger();
-  const fixtures = Array.from({ length: 6 }, () => fixture(pending));
-  const results = fixtures.map(f => refusal(installDeclaredPortalRide(f.ctx, f.file)));
+  const fixtures = Array.from({ length: 6 }, () => fixture());
+  const results = fixtures.map(f => refusal(installDeclaredPortalRide(f.ctx, declaredRows)));
   const [leave, product, app, world, play, progress] = fixtures;
-  if (leave === undefined || product === undefined || app === undefined || world === undefined || play === undefined || progress === undefined || finish === undefined) throw new Error('Missing owner fixtures');
+  if (leave === undefined || product === undefined || app === undefined || world === undefined || play === undefined || progress === undefined) throw new Error('Missing owner fixtures');
   leave.parent.dispose();
   Object.assign(product.ctx, { product: { ...product.ctx.product } });
   Object.assign(app.ctx, { app: legacyDouble<ShardContext['app']>({}) });
   world.runtime.world = legacyDouble<ShardWorld>({});
   play.runtime.play = legacyDouble<ShardPlayHost>({ progress: play.progress });
   progress.play.progress = legacyDouble<Progress>({});
-  finish(new TextEncoder().encode(JSON.stringify({ portalRide: portalRows })));
   try {
     for (const result of await Promise.all(results)) expect(result).toBeInstanceOf(Error);
     expect(bind).not.toHaveBeenCalled(); expect(mount).not.toHaveBeenCalled();
@@ -76,9 +75,8 @@ test('a leave or replaced entered owner during the admitted JSON read has no led
 
 test('the final UI module await refuses leave and runtime, world, source, app or progress replacement before effects', async () => {
   const fixtures = Array.from({ length: 7 }, () => fixture()), { bind, mount } = ledger();
-  for (const f of fixtures) vi.spyOn(f.ctx.product, 'json').mockResolvedValue({ portalRide: portalRows });
-  const results = fixtures.map(f => refusal(installDeclaredPortalRide(f.ctx, f.file)));
-  // Resolved JSON resumes first; the real dynamic UI imports and Promise.all still await their own reactions.
+  const results = fixtures.map(f => refusal(installDeclaredPortalRide(f.ctx, declaredRows)));
+  // The real dynamic UI imports and Promise.all retain the asynchronous owner boundary.
   await Promise.resolve();
   expect(bind).not.toHaveBeenCalled(); expect(mount).not.toHaveBeenCalled();
   const [leave, runtime, world, product, app, play, progress] = fixtures;
@@ -122,7 +120,7 @@ test('declared page entry retains the real checked transfer and reports its land
   const player = legacyDouble<ShardWorld['player']>({ position, motor, hover: false, carried: false, setHover: vi.fn<PortalPlayer['setHover']>(), spawn });
   Object.assign(f.world, { physics, player }); motor.resetAt(position);
   try {
-    const ride = await installDeclaredPortalRide(f.ctx, f.file);
+    const ride = await installDeclaredPortalRide(f.ctx, declaredRows);
     expect(bind).toHaveBeenCalledOnce(); expect(mount).toHaveBeenCalledOnce(); expect(f.system).toHaveBeenCalledOnce();
     for (let frame = 0; frame < 90; frame++) ride.step(1 / 60);
     expect(ride.refused()).toEqual([]); expect(ride.rides()).toEqual([{ from: first.road.id, to: first.destination.id, yaw: first.destination.yaw }]);

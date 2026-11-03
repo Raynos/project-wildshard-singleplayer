@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
 import {PerspectiveCamera,Vector3} from 'three';
 import {BossBrain,easeViewToward,type BossPresentation} from '../../src/engine/ai/BossBrain';
@@ -46,7 +47,7 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
   const view=plan.features.find(row=>row.kind==='view.program'&&row.id==='titan-view');
   if(view?.kind!=='view.program')throw new Error('Titan requires its admitted pose view');
   const module=await product.file(view.module),installRecords=await prepareNalatiChapterRecords(product);
-  const assembly=v.parse(v.object({constants:v.object({nativePopulation:v.object({groups:v.string()})})}),await product.json('sim/headless-assembly.json'));
+  const assembly=v.parse(v.object({constants:v.object({nativePopulation:v.object({groups:v.string()})})}),await nalatiNativeAssembly());
   const weather=new WeakMap<SimHost,{wind:Wind;storm:WeatherReactions}>();
   const shares=new WeakMap<SimHost,Map<HuntBody,(scale:number,x:number,z:number)=>number>>();
   const updates=new WeakMap<SimHost,(dt:number)=>void>();

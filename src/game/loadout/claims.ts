@@ -24,7 +24,7 @@ import { type HeldBowFileRows, MeleeWeaponProfileSchema, FirearmWeaponProfileSch
 import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
 import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
 import { GrappleTool, grappleGuard } from '../grapple/tool';
-import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
+import { parseGrappleProfile, GrappleProfileSchema, GrappleHooksSchema, type GrappleRows } from '@wildshard/format/grapple';
 import { QuestStepRunner, type QuestStepFrame } from '../quest/steps';
 
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -174,9 +174,10 @@ type Claim = ToonRows['claims'][number];
 function requireHeldOwner(context: ShardContext, reason: string): void {
   if (context.scope.disposed || context.scope.disposing) throw new Error(reason);
 }
-const HeldPlaySchema = v.strictObject({ grapple: v.strictObject({ item: v.string(), source: v.string(), presentation: v.string() }) });
-const hookCoordinate = v.pipe(v.number(), v.finite());
-const GrappleHooksSchema = v.array(v.strictObject({ x: hookCoordinate, y: hookCoordinate, z: hookCoordinate }));
+const HeldPlaySchema = v.strictObject({ grapple: v.union([
+  v.strictObject({ item: v.string(), profile: GrappleProfileSchema, hooks: GrappleHooksSchema, presentation: v.string() }),
+  v.strictObject({ item: v.string(), source: v.string(), presentation: v.string() }),
+]) });
 const PrimaryPresentationSchema = v.object({ portraitFov: v.pipe(v.number(), v.finite(), v.minValue(1), v.maxValue(179)) });
 /** A claim's guard evaluates rows over facts; no executable shard guard or notice callback is accepted. */
 export class HeldClaimGuard {
@@ -672,19 +673,20 @@ export class HeldClaims {
     if(this.originalRows===null&&this.slotRows!==null&&(this.slotRows.bindAt!=='entered'||primarySlot?.kind!=='blade'||primarySlot.source.kind!=='starter'))throw new Error('Held play requires its declared starter primary');
     this.requireUnentered(context);
     const { grapple: spec } = v.parse(HeldPlaySchema, input), source = product.shardfile, items = source.items;
-    if(this.originalRows===null&&this.slotRows!==null){const tool=this.slotRows.slots.find(row=>row.kind==='tool'&&row.item===spec.item);if(tool?.kind!=='tool'||tool.source!==spec.source||tool.presentation!==spec.presentation)throw new Error('Held play differs from its admitted tool');}
+    if(this.originalRows===null&&this.slotRows!==null){const tool=this.slotRows.slots.find(row=>row.kind==='tool'&&row.item===spec.item);if(tool?.kind!=='tool'||!('source' in spec)||tool.source!==spec.source||tool.presentation!==spec.presentation)throw new Error('Held play differs from its admitted tool');}
     if (rows.tools.length !== 1 || rows.tools[0] !== spec.item) throw new Error('Held play requires its one declared grapple');
     const declaration = items.rows.find(row => row.id === spec.item), weapon = items.rows.find(row => row.id === rows.primary.item);
     if (declaration?.kind !== 'tool' || weapon?.kind !== 'weapon') throw new Error('Held play requires its declared primary and tool');
     if (items.rows.some(row => row.id !== weapon.id && row.id !== declaration.id)) throw new Error('Held play cannot bind an undeclared equipment family');
-    if (![spec.source, spec.presentation].every(file => product.hasFile(file))) throw new Error('Held play requires its admitted grapple files');
+    if (![...('source' in spec ? [spec.source] : []), spec.presentation].every(file => product.hasFile(file))) throw new Error('Held play requires its admitted grapple files');
     const equipment = app.equipment;
     if (equipment === null) throw new Error('Held play requires its loadout');
     const melee = this.melee(context), { primary: built, profile } = melee, primary = built();
     if (primary.row.id !== rows.primary.item || !sameRuntimeProfile(weapon.profile, profile)) throw new Error('Held play primary differs from its original item');
     const equipmentRow = new ItemCatalogue(items).equipment(spec.item);
     const [content, presentation] = await Promise.all([
-      product.json<{ readonly hooks: unknown; readonly grappleProfile: unknown }>(spec.source),
+      'source' in spec ? product.json<{ readonly hooks: unknown; readonly grappleProfile: unknown }>(spec.source)
+        : Promise.resolve({ hooks: spec.hooks, grappleProfile: spec.profile }),
       product.json<GrappleRows>(spec.presentation),
     ]);
     const hooks = v.parse(GrappleHooksSchema, content.hooks), grappleProfile = parseGrappleProfile(content.grappleProfile);

@@ -11,7 +11,7 @@ import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json
 
 test.each([
   { prepare: prepareHeadlessRuntime, expectedReads: [] },
-  { prepare: prepareNalati, expectedReads: ['assembly'] },
+  { prepare: prepareNalati, expectedReads: [] },
   { prepare: preparePine, expectedReads: [] },
   { prepare: prepareDriftwood, expectedReads: [] },
 ])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async ({ prepare, expectedReads }) => {

@@ -11938,28 +11938,34 @@ HeldClaims.melee() lends the exact installed primary and profile to play, and
 refuses before install or after its owner retires. The original Toon branch
 and its Explorer cards retain their existing wire and rig owners.
 
-The entered play capability held.claims.enter names its prepared claims id and
-grapple {item, source, presentation}, at rank -50. HeldClaims.enter reads only
-the source's fixed hooks and grappleProfile fields and the presentation file,
-then adopts its original melee primary/profile and adds the original GrappleTool.
-It preflights the complete native item family and refuses a retired or replaced
-scope, product, equipment or primary across reads before binding or registration.
-The kit and play phases can be selected together on a native transition without
-replaying its world phase.
+`held.claims.enter` at play rank -50 names claims and grapple
+{item, profile, hooks, presentation}. Complete GrappleProfileSchema and
+GrappleHooksSchema admit native policy and ordered coordinates inline; only
+presentation is read. HeldClaims.enter adopts its original melee primary/profile
+and GrappleTool once. Native item-family and scope/product/equipment/
+primary checks refuse replacement across reads before binding or registration.
+Slotted tools keep original source/slot checks. Kit and
+play can run together without replaying world.
 
 game/grapple/tool.grappleGuard(scope) supplies one stable entered guard reference.
 open() is closed before binding and while the scope or an ancestor retires;
 bind(tool) accepts only a concrete GrappleTool created for that exact scope and
 refuses a duplicate binding. Collision readers use the same tool's guardOpen.
 
-The entered portal.ride {source} capability runs at play rank -40.
-game/shardfile/portalRideBinding.installDeclaredPortalRide(ctx, file) reads the
-source's fixed portalRide field. It retains the world, product, runtime, play and
-progress owners across file and UI-module reads, validates the original director,
-traversal and detached veil, then binds the existing ledger/progress projection.
-The original four-argument installPortalRide API and native ride/save contract
-remain unchanged. The veil belongs to the entered UI scope; the ride keeps its
-original update order, checked transfer and landing facts.
+`portal.ride {rows}` at play rank -40 admits complete
+format/portalRide.DeclaredPortalRideSchema: director, finite trigger/fade,
+detached veil class/styles and landing facts.
+game/shardfile/portalRideBinding.installDeclaredPortalRide(ctx, rows) retains
+world/product/runtime/play/progress identity across UI-module reads and checks
+director, traversal and detached panel before ledger/progress projection.
+The four-argument installPortalRide API and native save contract stay.
+The entered UI scope owns the veil; update order, checked transfer and landing
+facts stay.
+
+ForestWeatherSchema.storm owns the original complete WeatherWorldSchema as
+`world` and ordered WeatherShelterCirclesSchema as `shelters`. Full bundle
+program/reaction admission, entered ownership, continuation, hits and shelter
+order remain unchanged. No named-file family is registered.
 
 ### Declared quest world facts (G571)
 
@@ -13678,14 +13684,13 @@ entered scope. Fired/impact handlers retain the prior multiplier, exact
 boundary and roster order; retirement removes listeners and restores only
 its own bow wrapper. No new body, clock, save owner or Debug row is added.
 
-The G677 `elite.construct` feature parses the existing entry rows on the
-original level scope and publishes the original trophies, admission programme,
-charge catalogue, population and ledges. Weather and night patrol resolve
-late from their original entered loans; retirement or replacement refuses.
-Construction only parses/freezes rows: bodies, RNG, UI and programme execution
-remain in the original `elite.entry` play binding. Its world rank is 75,
-between declared assembly (70) and timed encounters (80); native entry selects both constructor
-features after its original assembly.
+The G677 `elite.construct` feature admits complete EliteEntryPageRowsSchema
+as `rows` on the original level scope and publishes original trophies,
+admission programme, charge catalogue, population and ledges. Weather and night
+patrol resolve from original late loans; replacement/retirement refuses.
+Construction only parses/freezes: original `elite.entry` owns bodies, RNG, UI
+and programme execution. Rank 75 lies between assembly (70) and timed encounters
+(80); native entry selects both constructors after its original assembly.
 
 `timed.encounters` names fixed draws, species programme, optional dressing
 sites, figures and weather. Scoped rider/captain copies retain the storm

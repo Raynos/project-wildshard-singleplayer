@@ -73,6 +73,7 @@
     "./eliteFeature": "./eliteFeature.ts",
     "./spawnCombat": "./spawnCombat.ts",
     "./clientPlan": "./clientPlan.ts",
+    "./portalRide": "./portalRide.ts",
     "./spawnScripts": "./spawnScripts.ts",
     "./contracts": "./contracts.ts",
     "./bossEncounter": "./bossEncounter.ts",

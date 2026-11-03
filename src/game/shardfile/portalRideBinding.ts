@@ -3,6 +3,7 @@
  * reports. The renderer-free ride (walkInPortalRide.ts) runs after the player on the page's update and on the host's
  * fixed step with exact continuation; the page draws only the veil. No shard identifier or callback enters here. */
 import * as v from 'valibot';
+import { DeclaredPortalRideSchema, type DeclaredPortalRideRows } from '@wildshard/format/portalRide';
 import type { PanelNode } from '@wildshard/engine/ui/panel';
 import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalLinkAssets';
 import { createPortalRide, PortalRideStateSchema, type PortalRideState, type PortalRideLane, type RideRings } from './walkInPortalRide';
@@ -117,12 +118,10 @@ export function installPortalRide(ctx: Pick<ShardContext, 'game' | 'system' | 's
 }
 
 /** Enter one admitted fixed portal declaration using the runtime's original ledger and progress owner. */
-export async function installDeclaredPortalRide(ctx: ShardContext, file: string): Promise<PortalRide> {
-  const owner = portalOwner(ctx, ctx), product = ctx.product, source = product.shardfile;
-  if (!product.hasFile(file)) throw new Error('Portal ride requires its admitted data file');
-  const { portalRide } = await product.json<{ readonly portalRide: PortalRideRows }>(file);
-  owner.check();
-  return installPageRide(ctx, source, portalRide, ctx);
+export async function installDeclaredPortalRide(ctx: ShardContext, input: DeclaredPortalRideRows): Promise<PortalRide> {
+  const owner = portalOwner(ctx, ctx), source = ctx.product.shardfile;
+  const rows = v.parse(DeclaredPortalRideSchema, input); owner.check();
+  return await installPageRide(ctx, source, rows, ctx);
 }
 
 async function installPageRide(ctx: Pick<ShardContext, 'game' | 'system' | 'scope'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts | ShardContext): Promise<PortalRide> {

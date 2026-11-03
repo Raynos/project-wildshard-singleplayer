@@ -1,3 +1,4 @@
+import { PageTamingBindingSchema } from '../../src/format/riding';
 import * as v from 'valibot';
 import { nalatiHeadlessAssembly } from '../../src/shards/nalati-grasslands/generators/nativeGroups';
 import { nalatiNativeGroupWire } from '../../src/shards/nalati-grasslands/generators/nativeGroupWire';
@@ -28,7 +29,9 @@ export function nalatiNativeAssemblyInputs() {
     pageElites: { ...buildEliteEntryPageRows(), profiles: ecology.keeperElites.map(value => ({ id: value.def.id, value })) },
     eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
       id: def.id, lair: def.lair, awareR: def.awareR, engageR: def.engageR, leashR: def.leashR, rule: def.rule, respawnMin: def.respawnMin,
-    }])), nativePopulation: { ...riding, driver: { ...riding.driver, projection: crowdNativeProjection } },
+    }])), nativeTaming: { ...constants.nativeTaming, binding: v.parse(PageTamingBindingSchema, constants.nativeTaming.binding) },
+    nativePopulation: { ...riding, shepherdOffset: v.parse(v.tuple([v.number(), v.number()]), riding.shepherdOffset),
+      variants: riding.variants.map(row => ({ ...row, rows: row.rows.map(variant => ({ ...variant, scale: v.parse(v.tuple([v.number(), v.number()]), variant.scale) })) })), driver: { ...riding.driver, projection: crowdNativeProjection } },
     nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, roads: boot.roads }, nativeShelters: nalatiNativeShelters(places),
   } });
 }

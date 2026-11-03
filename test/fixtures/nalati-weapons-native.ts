@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
 import {Vector3,Quaternion,Euler,MathUtils} from 'three';
 import {BowDraw} from '../../src/engine/combat/bowDraw';
@@ -82,7 +83,7 @@ export function withNalatiWeapons(prepare:PrepareHeadlessRuntime,contacts?:Nalat
   const bladeMoves={rest:bladeKey(blade.moves.rest),charge:bladeKey(blade.moves.charge),sprint:bladeKey(blade.moves.sprint),
     combo:blade.moves.combo.map(bladeMove),heavy:bladeMove(blade.moves.heavy),
     passes:{left:bladeMove(blade.moves.passes.left),right:bladeMove(blade.moves.passes.right)}};
-  const assembly=await product.json<{constants:{nativeWeather:unknown}}>('sim/headless-assembly.json');
+  const assembly=await nalatiNativeAssembly();
   const weather=v.parse(WeatherWorldSchema,assembly.constants.nativeWeather);
   const length=v.parse(v.object({length:v.pipe(finite,v.minValue(0))}),JSON.parse(bow.rows.bake.arrow)).length;
   const order=slots.equipment.order??slots.registration,available=new Set([bowSlot.id,bladeSlot.id,spearSlot.id]);

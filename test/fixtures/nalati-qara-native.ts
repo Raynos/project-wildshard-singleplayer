@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
 import {Vector3} from 'three';
 import type {HuntBody} from '../../src/engine/ai/hunt';
@@ -37,7 +38,7 @@ export function nalatiQaraOf(host:SimHost):NativeNalatiQara|undefined{return own
 const prepareQara:PrepareHeadlessRuntime=async preparation=>{
   const product=preparation.product,modules=new Map<string,Uint8Array>();
   const [assembly,actors,rows]=await Promise.all([
-    product.json<unknown>('sim/headless-assembly.json').then(input=>v.parse(v.object({constants:v.object({pageElites:v.unknown(),groupRows:v.object({id:v.string()})})}),input)),
+    nalatiNativeAssembly().then(input=>v.parse(v.object({constants:v.object({pageElites:v.unknown(),groupRows:v.object({id:v.string()})})}),input)),
     product.json<unknown>('actors/sheep.json').then(input=>v.parse(SpeciesActorsFileSchema,input)),
     readSpawnScript(product,'nalati.qara-charge',modules),
   ]);

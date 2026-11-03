@@ -1,3 +1,4 @@
+import { nineNativeConstants } from './fixtures/nine-native-constants';
 // @vitest-environment node
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
@@ -15,7 +16,7 @@ function state(row:HeadlessTapeObservation){
 async function hookTape(variant?:ProductSessionVariant){
   const f=await openProductSession('nine-dragon-stack',variant);
   try{
-    const payload=v.parse(payloadSchema,await f.product.json<unknown>('sim/headless-constants.json'));
+    const payload=v.parse(payloadSchema,await nineNativeConstants());
     const source=f.product.shardfile.spawn,p={x:source.x,y:Math.max(source.y,payload.spawnY),z:source.z};
     const profile=parseGrappleProfile(payload.grappleProfile).headless;
     // The near eastern ring is visible from the bridge; target the admitted

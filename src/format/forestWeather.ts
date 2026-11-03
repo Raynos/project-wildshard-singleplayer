@@ -1,5 +1,6 @@
 /** Data-only client weather bindings; safe for schema discovery in Node. */
 import * as v from 'valibot';
+import { WeatherWorldSchema, WeatherShelterCirclesSchema } from './weatherProgram';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1));
 const count = v.pipe(n, v.integer(), v.minValue(1), v.maxValue(16384));
@@ -24,11 +25,10 @@ const PartsSchema = v.strictObject({
  *  `distant` at the event's `distance` along its `bearing`, `reach` m out. */
 const CueSchema = v.strictObject({ event: id, patch: id, kind: v.picklist(['near', 'distant']), range: n, floor: n, reach: n });
 /** Weather reactions on the page: the bundle file (`weather` + `reactions`), struck at the world forest's crowns, sheltered
- *  by and hurting through the renderer-free host's own rows (`native`: its assembly file's `constants.<shelters>` circles and
- *  `constants.<world>` weather-world rows); held while the page answers `weather.indoors` / `weather.storm-hold`. */
+ *  by the original shelter circles and hurting through the complete weather-world rows; held while the page answers `weather.indoors` / `weather.storm-hold`. */
 const StormSchema = v.strictObject({
   /** `idle` the calm phase: no storm wind bed, and the parts lane's `active` is 0 */
-  file: id, idle: id, native: v.strictObject({ file: id, shelters: id, world: id }), cues: v.pipe(v.array(CueSchema), v.maxLength(8)),
+  file: id, idle: id, world: WeatherWorldSchema, shelters: WeatherShelterCirclesSchema, cues: v.pipe(v.array(CueSchema), v.maxLength(8)),
   /** the group's `rain` and `wind` (the steppe wind's smoothstep over `range` m/s, silent while idle) every `every` s */
   beds: v.strictObject({ group: id, every: n, rain: id, wind: id, range: v.tuple([n, n]) }),
 });
@@ -154,11 +154,8 @@ interface ForestWeatherRowsInputFields {
     storm?: {
         file: string;
         idle: string;
-        native: {
-            file: string;
-            shelters: string;
-            world: string;
-        };
+        world: v.InferOutput<typeof WeatherWorldSchema>;
+        shelters: v.InferOutput<typeof WeatherShelterCirclesSchema>;
         cues: ({
             event: string;
             patch: string;
@@ -258,11 +255,8 @@ interface ForestWeatherRowsFields {
     storm?: {
         file: string;
         idle: string;
-        native: {
-            file: string;
-            shelters: string;
-            world: string;
-        };
+        world: v.InferOutput<typeof WeatherWorldSchema>;
+        shelters: v.InferOutput<typeof WeatherShelterCirclesSchema>;
         cues: ({
             event: string;
             patch: string;

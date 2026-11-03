@@ -22,12 +22,12 @@ import { emptyShardfile } from '../src/sdk/author';
 import { admission, lendNalatiAdmission } from './fixtures/nalati-return-modules';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-const row = {kind: 'elite.construct', owner: 'quarry.elites', file: 'sim/assembly.json', admission: 'sim/admission.json', fight: 'quarry.charge',
+const row = {kind: 'elite.construct', owner: 'quarry.elites', rows: buildEliteEntryPageRows(), admission: 'sim/admission.json', fight: 'quarry.charge',
   models: 'quarry.models', program: 'elite.rules', weather: 'quarry.weather', night: 'quarry.watch', ledges: {part: 'cliffs', anchor: 'ledges'}};
 function fixture(retireOnRead = false) {
   const scope = new Scope('quarry.elites'), models = new Map<string, Object3D>(), ledges = [{x: 1, y: 2, z: 3, r: 0, facing: 0}], scene = new Scene();
   const rows = buildEliteEntryPageRows();
-  const contents = new Map<string, unknown>([[row.file, {constants: {pageElites: rows}}], [row.admission, {admission}]]);
+  const contents = new Map<string, unknown>([[row.admission, {admission}]]);
   const bytes = new Map([...contents].map(([name, value]) => [name, new TextEncoder().encode(JSON.stringify(value))]));
   const byHash = new Map([...bytes.values()].map(value => [sha256(value), value]));
   const product = createShardProduct({slug: 'quarry', revision: 1, shardfile: emptyShardfile({slug: 'quarry', name: 'Quarry', author: 'Fixture', revision: 1, seed: 1}),

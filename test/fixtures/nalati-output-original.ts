@@ -1,3 +1,4 @@
+import { nalatiNativeAssemblyInputs } from './nalati-native-assembly-inputs';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { originalNalatiScriptSections } from './nalati-script-inventory';
 import { NALATI_ADMISSION } from './nalati-admission';
@@ -18,7 +19,7 @@ import { NALATI_VIEW_BLOBS } from './nalati-view-modules';
 const rows = v.parse(v.object({ crackBytes: v.array(v.number()), looks: v.unknown(), presentation: v.unknown(), hullBook: v.unknown() }),
   originalSpeciesJson('species.json'));
 /** Existing predecessor template only; source/cache product tests call prepareOutput directly. */
-const source = nalatiOutputRows(rows, originalHeldMetadata(), paint, nalatiCover, nalatiGrass, nalatiSpear.rows, NALATI_VIEW_BLOBS, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER, NALATI_ADMISSION, NALATI_CHARGE.rows);
+const source = nalatiOutputRows(rows, originalHeldMetadata(), paint, nalatiCover, nalatiGrass, nalatiSpear.rows, NALATI_VIEW_BLOBS, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS, NALATI_TITAN_PROGRAMS, NALATI_WEATHER, NALATI_ADMISSION, NALATI_CHARGE.rows, nalatiNativeAssemblyInputs().constants.nativeShelters);
 
 // Preserve the complete predecessor section, independently of the new course admission.
 const originalSections = originalNalatiScriptSections(originalHeldMetadata().held.program.v2, NALATI_KOKPAR, NALATI_RIDING_PROGRAMS,

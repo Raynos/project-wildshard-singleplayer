@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
 import {PopulationFieldSchema} from '@wildshard/format/populationEnvironment';
 import {ForestWeatherSchema} from '@wildshard/format/forestWeather';
@@ -11,12 +12,8 @@ import type { SpeciesData } from '../../src/format/speciesPrograms';
 import {SpeciesSchema} from '../../src/format/speciesPrograms';
 import {nativeBodySchema} from '../../src/format/nativePhysics';
 import type { NativeEliteKernelLoans } from '../../src/engine/ai/eliteKernels';
-import type { Ecology } from '../../src/shards/nalati-grasslands/data/ecologyTypes';
-import type { NalatiHeadlessAssembly } from '../../src/shards/nalati-grasslands/generators/nativeGroups';
-import type { nalatiNativeShelters } from '../../src/shards/nalati-grasslands/generators/shelters';
-import type { buildEliteEntryPageRows } from '../../src/shards/nalati-grasslands/generators/eliteEntryRows';
-import type { EliteCoreDef, EliteCoreRule } from '../../src/game/eliteSystem';
-import type { NativePopulationBootRows, NativePopulationConfig } from '../../src/game/riding/nativePopulation';
+import type { EliteCoreRule } from '../../src/game/eliteSystem';
+import type { NativePopulationBootRows } from '../../src/game/riding/nativePopulation';
 import type { NativeTamingRows } from '../../src/game/riding/nativeTaming';
 import { bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import { readNavmesh } from '@wildshard/engine/physics/navmesh';
@@ -71,23 +68,8 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     observeWeather?:(host:SimHost,weather:{wind:Wind;storm:WeatherReactions})=>void,
     observeBindings?:(host:SimHost,bindings:NativeEliteBindings)=>void): Promise<Awaited<ReturnType<PrepareHeadlessRuntime>>> => {
     const { product, assets } = preparation, shard = product.shardfile;
-    const { constants: assemblyConstants } = await product.json<{
-        constants: Omit<NalatiHeadlessAssembly['constants'], 'nativePopulation' | 'nativeRide' | 'nativeTaming' | 'pageWildlife' | 'pageGroups' | 'groupAdmission' | 'nativeField' | 'nativeDayClock' | 'nativeKnockdown' | 'groupRows'> & {
-            groupRows: unknown;
-            nativeShelters: ReturnType<typeof nalatiNativeShelters>;
-            pageElites: Omit<ReturnType<typeof buildEliteEntryPageRows>, "profiles"> & {
-                profiles: {
-                    id: string;
-                    value: Ecology['keeperElites'][number];
-                }[];
-            };
-            eliteDefs: Record<'aqbars' | 'kokbori' | 'argymaq', EliteCoreDef>;
-            nativePopulation: NativePopulationConfig;
-            nativeRide: unknown;
-            nativeTaming: Omit<NativeTamingRows, "programs" | "poses" | "poseProgram" | "rest">;
-        };
-    }>('sim/headless-assembly.json');
     const lendReturns = await prepareReturns(preparation);
+    const { constants: assemblyConstants } = await nalatiNativeAssembly();
     const nativeField = v.parse(PopulationFieldSchema, await product.json('world/meadow.json'));
     const forestWeather = v.parse(ForestWeatherSchema, await product.json('world/forest-weather.json'));
     const nativeDayClock = need(forestWeather.sky, 'Nalati requires its admitted painted-sky clock').clock;

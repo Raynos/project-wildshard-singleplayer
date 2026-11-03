@@ -18,11 +18,12 @@ const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts');
 const witness = await import('./witness.ts');
 // Admission loads this exact entry in every mode, so fresh/checkpoints/replay hash the same runtime closure.
 await import('../../fixtures/nine-headless.ts');
-const { loadHeadlessProduct } = await import('../../../src/sdk/headlessProduct.ts');
-const product = await loadHeadlessProduct('out/nine-dragon-stack');
-const assemblyFiles = ['sim/headless-assembly.json', 'sim/headless-constants.json'].map(name => product.url(name));
+// Retired shipping copies are fenced typed facts in the original direct factories.
+const oracleFiles = ['test/fixtures/nine-native-oracle-inputs.ts', 'test/fixtures/nine-native-constants-inputs.ts',
+  'test/fixtures/nine-native-oracle.ts', 'test/fixtures/nine-native-constants.ts', 'test/fixtures/native-oracle.ts',
+  'test/fixtures/native-program.ts'].map(path => new URL(path, ROOT).href);
 installAppIdentity(WILDSHARD_IDENTITY);
-function inputFiles() { return [...loaded, ...assemblyFiles, ...['src/shards/nine-dragon-stack/data/headlessAssembly.json', 'test/proof/nine-dragon-stack/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]; }
+function inputFiles() { return [...loaded, ...oracleFiles, ...['src/shards/nine-dragon-stack/data/headlessAssembly.json', 'test/proof/nine-dragon-stack/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]; }
 function inputs() {
   const files = [...new Set(inputFiles())].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   const hash = createHash('sha256');

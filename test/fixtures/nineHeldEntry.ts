@@ -18,7 +18,8 @@ import bursts from '../../src/shards/nine-dragon-stack/data/burstFields.json' wi
 import { headlessConstants } from '../../src/shards/nine-dragon-stack/generators/headless';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-export const enteredRows = { grapple: { item: 'tool.fei-zhua', source: 'sim/headless-constants.json', presentation: 'weapons/jian-row.json' } };
+export const slottedEnteredRows = { grapple: { item: 'tool.fei-zhua', source: 'fixture/grapple-source.json', presentation: 'weapons/jian-row.json' } };
+export const enteredRows = { grapple: { item: 'tool.fei-zhua', profile: headlessConstants.grappleProfile, hooks: headlessConstants.hooks, presentation: 'weapons/jian-row.json' } };
 export async function heldEntry(prepare = true) {
   const app = new App(), parent = new Scope('held-parent'), scope = parent.child('held-entry');
   app.levelScope = scope;
@@ -30,8 +31,8 @@ export async function heldEntry(prepare = true) {
   const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source,
     sections: new Map<string, unknown>([['held/arms', { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: enteredRows.grapple.presentation }, tools: ['tool.fei-zhua'] }],
       ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'held.primary' }, { kind: 'held.claims.install', claims: 'held.primary' }, { kind: 'held.claims.enter', claims: 'held.primary', ...enteredRows }] }]]),
-    files: new Map([[enteredRows.grapple.presentation, { hash: '0'.repeat(64), url: '/jian-row.json' }], [enteredRows.grapple.source, { hash: '1'.repeat(64), url: '/constants.json' }]]),
-    read: hash => hash === '1'.repeat(64) ? pending ?? Promise.resolve(bytes) : Promise.resolve(presentation) });
+    files: new Map([[enteredRows.grapple.presentation, { hash: '0'.repeat(64), url: '/jian-row.json' }], [slottedEnteredRows.grapple.source, { hash: '1'.repeat(64), url: '/constants.json' }]]),
+    read: hash => pending ?? Promise.resolve(hash === '1'.repeat(64) ? bytes : presentation) });
   const native=heldSwordWorld();scope.onDispose(native.dispose);
   const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>(native.world), step: null, play: null,
     interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
@@ -44,7 +45,7 @@ export async function heldEntry(prepare = true) {
     equipment=new EquipmentService(result.primary,{scope});app.registerEquipment(equipment,scope);
   };
   if(prepare){level.openKit();await prepareHeldClaimsEntry(ctx,'held.primary');installHeldClaimsEntry(ctx,'held.primary');level.closeKit();await build();}
-  return { app, parent, scope, ctx, build, bytes, level, get primary(){return entryOwner(scope,'claims','held.primary').melee().primary();},
+  return { app, parent, scope, ctx, build, bytes: presentation, level, get primary(){return entryOwner(scope,'claims','held.primary').melee().primary();},
     get installed(){if(installed===null)throw new Error('Primary not installed');return installed;},get equipment(){if(equipment===null)throw new Error('Equipment not built');return equipment;},get held() { return entryOwner(scope, 'claims', 'held.primary'); },
     pause: (read: Promise<Uint8Array>) => { pending = read; }, dispose: () => { parent.dispose(); app.engineScope.dispose(); } };
 }

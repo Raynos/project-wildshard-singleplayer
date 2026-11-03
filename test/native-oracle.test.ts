@@ -33,3 +33,11 @@ test('the fenced typed Nalati oracle retains every former assembly byte', async 
   expect(wire.byteLength).toBe(32350);
   expect(hashImmutableBytes(wire)).toBe('fc2060b6659b3f8163a1ad393168264e8e3c4e172398bd4b6dcefcac724f2047');
 });
+
+test('the fenced typed Nine oracle retains every former constants byte', async () => {
+  const { nineNativeConstants } = await import('./fixtures/nine-native-constants');
+  const wire = new TextEncoder().encode(JSON.stringify(await nineNativeConstants(), (_key, entry: unknown) =>
+    typeof entry === 'number' && Object.is(entry, -0) ? '-0' : entry));
+  expect(wire.byteLength).toBe(99568);
+  expect(hashImmutableBytes(wire)).toBe('ec24af0a2d6507add4a5fca4a8a8714044333a6d11fe7f7484d559603a41dc05');
+});

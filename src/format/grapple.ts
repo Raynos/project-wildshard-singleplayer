@@ -62,9 +62,10 @@ const filamentSchema: v.GenericSchema<GrappleFilamentUniformsInput, GrappleFilam
 
 /** The same authored look parameters serve the native ribbon and its fixture. */
 export function parseGrappleFilament(value: unknown): GrappleFilamentUniforms { return v.parse(filamentSchema, value); }
-/** Validate identity and physics data before installing the approved native mode. */
-export function parseGrappleProfile(value: unknown): GrappleProfile {
-  return v.parse(v.strictObject({
+/** Input retains the native mode's original defaults and exact optionals. */
+export type GrappleProfileInput = Omit<GrappleProfile, 'course'> & { readonly course: Omit<GrappleProfile['course'], 'mode'> & { readonly mode?: v.InferInput<typeof GrappleModeSchema> } };
+/** The complete original native policy, independent of validator metadata. */
+export const GrappleProfileSchema: v.GenericSchema<GrappleProfileInput, GrappleProfile> = v.strictObject({
     id, course: v.strictObject({ name: id, mode: v.exactOptional(GrappleModeSchema), clearance: v.exactOptional(v.strictObject({
       axis: v.picklist(['x', 'z']), plane: finite, min: finite, max: finite, base: finite, top: finite, ceiling: finite,
       owners: v.pipe(v.array(id), v.minLength(1), v.maxLength(32)),
@@ -74,8 +75,12 @@ export function parseGrappleProfile(value: unknown): GrappleProfile {
     fact: v.exactOptional(v.strictObject({ name: id, entity: id, source: id })),
     headless: v.strictObject({ step: id, lock: id, aim: id, eye: v.pipe(finite, v.minValue(.1), v.maxValue(10)),
       aspect: v.pipe(finite, v.minValue(.1), v.maxValue(10)), portraitFov: v.pipe(finite, v.minValue(10), v.maxValue(140)) }),
-  }), value);
-}
+  });
+/** Validate identity and physics data before installing the approved native mode. */
+export function parseGrappleProfile(value: unknown): GrappleProfile { return v.parse(GrappleProfileSchema, value); }
+
+/** Original complete hook coordinates; the native tool retains their order. */
+export const GrappleHooksSchema: v.GenericSchema<readonly { readonly x: number; readonly y: number; readonly z: number }[]> = v.array(v.strictObject({ x: finite, y: finite, z: finite }));
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type GrappleFilamentUniformsInput = GrappleFilamentUniforms;

@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from './fixtures/nalati-native-assembly';
 import { expect,test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Admit the live population book without a generated JSON type edge.
 import { readFileSync } from 'node:fs';
@@ -94,16 +95,15 @@ test('the shared assembly document retains the complete page elite roster and it
   if(projection===undefined)throw new Error('Missing selected project module');
   const contracts=decisionModuleContracts(outputScriptAdmissionRows(product.output.platform),product.shard.files);
   expect(contracts.get(projection.hash)).toMatchObject({abi:2,lane:'project',pages:1});
-  const file = product.output.namedFiles?.find(row => row.name === 'sim/headless-assembly.json');
-  const bytes = file === undefined ? undefined : product.assets.get(file.hash);
-  if (bytes === undefined) throw new Error('Missing actual admitted assembly document');
-  const assembly = v.parse(v.object({ constants: v.object({ pageElites: v.unknown(),nativeRide: v.record(v.string(),v.unknown()) }) }),JSON.parse(new TextDecoder().decode(bytes)));
+  expect(product.output.namedFiles?.some(row => row.name === 'sim/headless-assembly.json')).toBe(false);
+  const assembly = await nalatiNativeAssembly();
   expect(assembly.constants.nativeRide).not.toHaveProperty('world');
-  expect(JSON.parse(new TextDecoder().decode(bytes))).not.toHaveProperty('constants.nativeField');
+  expect(assembly).not.toHaveProperty('constants.nativeField');
   const fieldFile = product.output.namedFiles?.find(row => row.name === 'world/meadow.json');
   const fieldBytes = fieldFile === undefined ? undefined : product.assets.get(fieldFile.hash);
   if (fieldBytes === undefined) throw new Error('Missing defining native field');
   const field = v.parse(PopulationFieldSchema, JSON.parse(new TextDecoder().decode(fieldBytes)));
   expect(field.world).toEqual(populationField.world);
   expect(assembly.constants.pageElites).toEqual(buildEliteEntryPageRows());
+  expect(plan.features.find(row => row.kind === 'elite.construct')).toMatchObject({ rows: assembly.constants.pageElites });
 });

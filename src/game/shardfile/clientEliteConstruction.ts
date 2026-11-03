@@ -30,8 +30,7 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   live();
   if (presentEntryOwner(scope, 'elite-entry', row.owner) !== null) throw new Error('Elite construction owner already exists');
   const {admission} = v.parse(v.object({admission: v.unknown()}), await product.json(row.admission)); live();
-  const {constants: {pageElites}} = v.parse(v.object({constants: v.object({pageElites: v.unknown()})}), await product.json(row.file)); live();
-  const rows = parseEliteEntryPageRows(pageElites), program = ReturnProgram.page(admission, scope);
+  const rows = parseEliteEntryPageRows(row.rows), program = ReturnProgram.page(admission, scope);
   const assets = clientNativeBook(ctx).decisionAssets;
   const fight = await readSpawnScript(product, row.fight, assets); live();
   const fightModule = fight.bytes === '' ? assets.get(fight.script.module.slice('blobs/wasm/'.length,-'.wasm'.length)) : undefined;

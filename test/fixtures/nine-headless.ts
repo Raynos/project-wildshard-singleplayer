@@ -1,3 +1,4 @@
+import { nineNativeConstants } from './nine-native-constants';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { trustedLevel, addBakedPieces } from '../../src/game/plugin/simulation';
 import { tagOf } from '../../src/engine/physics/surface';
@@ -18,11 +19,7 @@ return async preparation => {
   const shard = product.shardfile;
   const lendReturns = await prepareReturns(preparation);
   const { constants } = await nineNativeOracle();
-  const payload = await product.json<{
-    spawnY: number; pieces: unknown; entryProof: { lanes: number; steps: number; portalTransfers: number };
-    portalRide: Parameters<typeof installHostPortalRide>[3];
-    grappleProfile: unknown; hooks: Parameters<typeof installGrapple>[4];
-  }>('sim/headless-constants.json');
+  const payload = await nineNativeConstants();
   const grapple = shard.modes?.grapple?.find(row => row.id === 'grapple');
   if (grapple === undefined) throw new Error('Nine Dragon declares its grapple mode');
   if (portalLinkEntries(shard.entryways).length !== 4) throw new Error('Nine Dragon declares four portal-link entryways');

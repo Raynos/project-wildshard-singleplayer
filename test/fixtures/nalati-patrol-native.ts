@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
 import {Vector3,Ray} from 'three';
 import {nearestJointHit,type JointPorts} from '../../src/game/boss/jointTargets';
@@ -73,7 +74,7 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
     readNalatiPatrolIntake(product),readNalatiPatrolPoses(product),
     product.json<unknown>('combat/timed-encounters.json').then(value=>v.parse(TimedEncountersSchema,value)),
     product.json<unknown>('actors/sheep.json').then(value=>v.parse(SpeciesActorsFileSchema,value)),
-    product.json<unknown>('sim/headless-assembly.json').then(value=>v.parse(v.object({constants:v.object({nativeTaming:v.object({herds:v.string()}),pageElites:v.object({borrowed:v.array(v.unknown())})})}),value)),
+    nalatiNativeAssembly().then(value=>v.parse(v.object({constants:v.object({nativeTaming:v.object({herds:v.string()}),pageElites:v.object({borrowed:v.array(v.unknown())})})}),value)),
   ]);
   const declared=rows.patrol.actors,metadata=actors.species.lookBook.rows.find(row=>row.metadata.kind===declared?.kind);
   if(declared===undefined||metadata?.directed===undefined||actors.species.lookBook.program===undefined)throw new Error('Patrol requires its admitted directed species owner');

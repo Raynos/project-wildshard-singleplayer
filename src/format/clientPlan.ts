@@ -1,3 +1,6 @@
+import { EliteEntryPageRowsSchema } from './eliteEntryRows';
+import { GrappleHooksSchema, GrappleProfileSchema } from './grapple';
+import { DeclaredPortalRideSchema } from './portalRide';
 import { CatalogueEconomySchema } from './catalogueEconomy';
 import { PagePathRampSchema } from './pagePreparation';
 import { ViewProgramSchema } from './viewProgram';
@@ -87,7 +90,7 @@ export const ClientFeatureSchema: v.GenericSchema<ClientFeatureInput, ClientFeat
   v.strictObject({ kind: v.literal('stealth.entry'), owner: id, claims: id, riding: id, night: id, bow: id, melee: id,
     impactExclusion: v.pipe(finite, v.minValue(0)), debugRiding: v.exactOptional(id),
     frame: v.strictObject({ id, after: v.pipe(v.array(id), v.maxLength(16)), before: v.pipe(v.array(id), v.maxLength(16)) }) }),
-  v.strictObject({ kind: v.literal('elite.construct'), owner: id, file: label, admission: label, fight: id, models: id, program: id, weather: id, night: id,
+  v.strictObject({ kind: v.literal('elite.construct'), owner: id, rows: EliteEntryPageRowsSchema, admission: label, fight: id, models: id, program: id, weather: id, night: id,
     ledges: v.strictObject({part: id, anchor: id}) }),
   v.strictObject({ kind: v.literal('timed.encounters'), owner: id, file: label, draws: id, species: id, guest: id, weather: id,
     sites: v.exactOptional(id), figures: v.strictObject({rider: id, captain: id, storm: v.picklist(['rider', 'captain'])}) }),
@@ -98,8 +101,8 @@ export const ClientFeatureSchema: v.GenericSchema<ClientFeatureInput, ClientFeat
   v.strictObject({ kind: v.literal('population.hull-book') }),
   v.strictObject({ kind: v.literal('held.claims.install'), claims: id, preparation: v.exactOptional(v.picklist(['kit','world'])) }),
   v.strictObject({ kind: v.literal('held.claims.enter'), claims: id,
-    grapple: v.strictObject({ item: id, source: label, presentation: label }) }),
-  v.strictObject({ kind: v.literal('portal.ride'), source: label }),
+    grapple: v.strictObject({ item: id, profile: GrappleProfileSchema, hooks: GrappleHooksSchema, presentation: label }) }),
+  v.strictObject({ kind: v.literal('portal.ride'), rows: DeclaredPortalRideSchema }),
   v.strictObject({ kind: v.literal('held.cosmetics') }),
   v.strictObject({ kind: v.literal('held.ranged-feel') }),
   v.strictObject({kind:v.literal('bag.finds'),id,quest:id,file:label}),
@@ -165,7 +168,7 @@ export type ClientFeatureInput = { kind: 'strings.register'; } | { kind: 'conten
   undefined; x: number; z: number; r: number; mode?: 'centre' | 'bounds'; })[]; } | { kind: 'riding.session';
   file: string; owner?: string; } | { kind: 'stealth.entry'; owner: string; claims: string; riding: string;
   night: string; bow: string; melee: string; impactExclusion: number; debugRiding?: string; frame: { id: string;
-  after: (string)[]; before: (string)[]; }; } | { kind: 'elite.construct'; owner: string; file: string;
+  after: (string)[]; before: (string)[]; }; } | { kind: 'elite.construct'; owner: string; rows: v.InferInput<typeof EliteEntryPageRowsSchema>;
   admission: string; fight: string; models: string; program: string; weather: string; night: string; ledges: {
   part: string; anchor: string; }; } | { kind: 'timed.encounters'; owner: string; file: string; draws: string;
   species: string; guest: string; weather: string; sites?: string; figures: { rider: string; captain: string;
@@ -173,8 +176,8 @@ export type ClientFeatureInput = { kind: 'strings.register'; } | { kind: 'conten
   blurb: string; icon: string; art: string; file: string; } | { kind: 'held.claims.prepare'; id: string;
   source?: { slots: string; library: string; }; } | { kind: 'population.product-creatures'; } | { kind:
   'population.hull-book'; } | { kind: 'held.claims.install'; claims: string; preparation?: 'kit' | 'world'; } |
-  { kind: 'held.claims.enter'; claims: string; grapple: { item: string; source: string; presentation: string; };
-  } | { kind: 'portal.ride'; source: string; } | { kind: 'held.cosmetics'; } | { kind: 'held.ranged-feel'; } | {
+  { kind: 'held.claims.enter'; claims: string; grapple: { item: string; profile: v.InferInput<typeof GrappleProfileSchema>; hooks: v.InferOutput<typeof GrappleHooksSchema>; presentation: string; };
+  } | { kind: 'portal.ride'; rows: v.InferInput<typeof DeclaredPortalRideSchema>; } | { kind: 'held.cosmetics'; } | { kind: 'held.ranged-feel'; } | {
   kind: 'bag.finds'; id: string; quest: string; file: string; } | { kind: 'look.painterly'; shadeTint: [number,
   number, number]; rimColor: [number, number, number]; wind: { x: number; z: number; strength: number; }; } | {
   kind: 'audio.scene'; } | { kind: 'world.forest-page'; file: string; cave?: { file: string; cap: { shard: ({
@@ -229,7 +232,7 @@ export type ClientFeatureRow = { kind: 'strings.register'; } | { kind: 'content.
   number; z: number; r: number; mode?: 'centre' | 'bounds'; })[]; } | { kind: 'riding.session'; file: string;
   owner?: string; } | { kind: 'stealth.entry'; owner: string; claims: string; riding: string; night: string;
   bow: string; melee: string; impactExclusion: number; debugRiding?: string; frame: { id: string; after:
-  (string)[]; before: (string)[]; }; } | { kind: 'elite.construct'; owner: string; file: string; admission:
+  (string)[]; before: (string)[]; }; } | { kind: 'elite.construct'; owner: string; rows: v.InferOutput<typeof EliteEntryPageRowsSchema>; admission:
   string; fight: string; models: string; program: string; weather: string; night: string; ledges: { part:
   string; anchor: string; }; } | { kind: 'timed.encounters'; owner: string; file: string; draws: string;
   species: string; guest: string; weather: string; sites?: string; figures: { rider: string; captain: string;
@@ -237,8 +240,8 @@ export type ClientFeatureRow = { kind: 'strings.register'; } | { kind: 'content.
   blurb: string; icon: string; art: string; file: string; } | { kind: 'held.claims.prepare'; id: string;
   source?: { slots: string; library: string; }; } | { kind: 'population.product-creatures'; } | { kind:
   'population.hull-book'; } | { kind: 'held.claims.install'; claims: string; preparation?: 'kit' | 'world'; } |
-  { kind: 'held.claims.enter'; claims: string; grapple: { item: string; source: string; presentation: string; };
-  } | { kind: 'portal.ride'; source: string; } | { kind: 'held.cosmetics'; } | { kind: 'held.ranged-feel'; } | {
+  { kind: 'held.claims.enter'; claims: string; grapple: { item: string; profile: v.InferOutput<typeof GrappleProfileSchema>; hooks: v.InferOutput<typeof GrappleHooksSchema>; presentation: string; };
+  } | { kind: 'portal.ride'; rows: v.InferOutput<typeof DeclaredPortalRideSchema>; } | { kind: 'held.cosmetics'; } | { kind: 'held.ranged-feel'; } | {
   kind: 'bag.finds'; id: string; quest: string; file: string; } | { kind: 'look.painterly'; shadeTint: [number,
   number, number]; rimColor: [number, number, number]; wind: { x: number; z: number; strength: number; }; } | {
   kind: 'audio.scene'; } | { kind: 'world.forest-page'; file: string; cave?: { file: string; cap: { shard: ({

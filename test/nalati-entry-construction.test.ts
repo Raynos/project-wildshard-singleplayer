@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from './fixtures/nalati-native-assembly';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import metadata from '../src/shards/nalati-grasslands/manifest.json' with {type:'json'};
@@ -40,8 +41,10 @@ test('the declared plan constructs the original elite and night owners once afte
   for(const [name,kind,owner] of [['nalati.boss','arena-room','nalati.king']])
     expect(debug.find(row=>row.name===name)).toMatchObject({source:{kind,owner}});
   const constructors=selected.filter(row=>row.kind==='elite.construct'||row.kind==='timed.encounters');
-  const {constants}=v.parse(v.object({constants:v.object({eliteEntry:v.unknown(),timedEntry:v.unknown(),pageElites:v.unknown()})}),await product.json('sim/headless-assembly.json'));
-  expect(constructors).toEqual([constants.eliteEntry,constants.timedEntry]);
+  const {constants}=await nalatiNativeAssembly();
+  const {file:_file,...entryRows}=constants.eliteEntry;
+  expect(constructors).toEqual([{...entryRows,rows:constants.pageElites},constants.timedEntry]);
+  expect(product.hasFile('sim/headless-assembly.json')).toBe(false);
   const elites=parseEliteEntryPageRows(constants.pageElites),stealth=selected.find(row=>row.kind==='stealth.entry');
   expect(elites.debug).toBe('nalati.elites');expect(stealth?.debugRiding).toBe('nalati.ride');
   const audio=product.shardfile.audio,publication=audio.gameplay?.entryEnvironment?.publish.id??audio.gameplay?.environment?.publish.id;

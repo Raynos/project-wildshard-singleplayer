@@ -1,3 +1,6 @@
+import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { parseClientPlan } from '../src/format/clientPlan';
+import { nineNativeConstants } from './fixtures/nine-native-constants';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile the actual authored guest source, without generated metadata.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
@@ -27,10 +30,13 @@ test('supplied source inputs own their executable, decals and entry proof', asyn
   const supplied = emitNineOutput({ hash, bytes }, suppliedInputs);
   expect(supplied.namedFiles.some(row => row.name === 'sim/headless-assembly.json')).toBe(false);
   expect(supplied.blobs.filter(row => row.name.startsWith('looks/jian-decal-')).map(row => row.source)).toEqual(['phone.png', 'desktop.png']);
-  const constants = supplied.namedFiles.find(row => row.name === 'sim/headless-constants.json');
-  const constantsBytes = constants === undefined ? undefined : supplied.assets.get(constants.hash);
-  if (constantsBytes === undefined) throw new Error('Missing supplied headless constants');
-  expect(JSON.parse(new TextDecoder().decode(constantsBytes))).toMatchObject({ entryProof: { lanes: 1, steps: 2, portalTransfers: 3 } });
+  expect(supplied.namedFiles.some(row => row.name === 'sim/headless-constants.json')).toBe(false);
+  const policies = await nineNativeConstants();
+  const plan = parseClientPlan(outputPlatformPayloads(supplied.platform, ['client/plan']).get('client/plan'));
+  expect(plan.features.find(row => row.kind === 'held.claims.enter')).toMatchObject({
+    grapple: { profile: policies.grappleProfile, hooks: policies.hooks },
+  });
+  expect(plan.features.find(row => row.kind === 'portal.ride')).toEqual({ kind: 'portal.ride', rows: policies.portalRide });
   const mover = actual.namedFiles.find(row => row.name === 'views/movers.wasm');
   expect(mover).toMatchObject({ name: 'views/movers.wasm', hash, path: `blobs/wasm/${hash}.wasm`, compressed: bytes.byteLength, critical: true });
   const owned = actual.assets.get(hash);

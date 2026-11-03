@@ -226,7 +226,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'portal.ride': { phase: 'play', rank: -40, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'portal.ride') throw new Error('Invalid portal ride feature');
     const { installDeclaredPortalRide } = await import('./portalRideBinding');
-    await installDeclaredPortalRide(ctx, row.source);
+    await installDeclaredPortalRide(ctx, row.rows);
   } },
   'world.paths': { phase: 'kit', rank: 0, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('./pagePreparation')).installClientPathRamps) },
   'riding.session': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('../riding/client')).installClientRiding) },
@@ -380,10 +380,9 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       if (row.kind === 'held.claims.enter') {
         if (!plan.features.some(owner => owner.kind === 'held.claims.prepare' && owner.id === row.claims)
           || !plan.features.some(owner => owner.kind === 'held.claims.install' && owner.claims === row.claims && owner.preparation!=='world')) throw new Error('Held play entry requires matching declared claims');
-        if (![row.grapple.source, row.grapple.presentation].every(file => product.hasFile(file))) throw new Error('Held play entry requires its admitted grapple files');
+        if (![row.grapple.presentation].every(file => product.hasFile(file))) throw new Error('Held play entry requires its admitted grapple files');
         if (!product.shardfile.items.rows.some(item => item.id === row.grapple.item && item.kind === 'tool')) throw new Error('Held play entry requires its declared tool');
       }
-      if (row.kind === 'portal.ride' && !product.hasFile(row.source)) throw new Error('Portal ride requires its admitted data file');
     }
     if (plan.features.some(row => row.kind === 'population.hull-book')) {
       if (plan.features.some(row => row.kind === 'population.product-creatures')) throw new Error('Hull book kit cannot duplicate product creatures');

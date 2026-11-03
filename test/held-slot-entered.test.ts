@@ -7,7 +7,7 @@ import { Sword } from '../src/game/weapons/Sword';
 import { GrappleTool } from '../src/game/grapple/tool';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import type { SwordArms } from '../src/engine/combat/view/melee';
-import { heldEntry, enteredRows } from './fixtures/nineHeldEntry';
+import { heldEntry, slottedEnteredRows as enteredRows } from './fixtures/nineHeldEntry';
 
 test('starter and tool slots lend the actual native sword and original entered grapple once',async()=>{
   const f=await heldEntry(false),install=vi.spyOn(GrappleTool.prototype,'install').mockImplementation(()=>undefined);

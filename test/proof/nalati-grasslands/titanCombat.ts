@@ -1,3 +1,4 @@
+import { nalatiNativeAssembly } from '../../fixtures/nalati-native-assembly';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only real native inputs and owner transitions satisfy this proof.
 import assert from 'node:assert/strict';
 import * as v from 'valibot';
@@ -33,7 +34,7 @@ export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(comm
   assert.ok(tick===undefined||Number.isSafeInteger(tick)&&tick>=1&&tick<=9600,'the shared pilot bound must not restart');}
  const rows=v.parse(HeldBowFileSchema,await product.json('weapons/bow-page.json')),bow=heldBowBase({bow:rows.bow,base:rows.base});
  const data=await readArenaScriptData(product,{fight:'combat/titan-fight.json',geometry:'combat/titan-geometry.json'});
- const assembly=await product.json<{constants:{nativeWeather:unknown}}>('sim/headless-assembly.json');
+ const assembly=await nalatiNativeAssembly();
  const weather=v.parse(WeatherWorldSchema,assembly.constants.nativeWeather),actualWind=host.adapters.get(weather.step);assert.ok(actualWind);
  const weapon=host.adapters.get('nalati.weapons');assert.ok(weapon);
  const savedWeapon=()=>v.parse(v.object({draw:v.object({drawT:v.number(),needLift:v.boolean(),tiredT:v.number()}),bolts:v.number(),shots:v.number()}),snapshotValue(weapon));
