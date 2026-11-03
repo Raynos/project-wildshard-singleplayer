@@ -157,11 +157,22 @@ new world placements are implied by these metadata additions.
 
 G872 coordinator accepts **LD4-ND’s list gap closed**. The historical
 all-shard JSON stays an immutable record, not a claim of current Nine
-coverage. **QD9/D184 stays open for sp-o1’s named Opus read of QD1/QD4’s
-24-camera legacy/shardfile/current boards on `cc40cad706`**: walls,
-floors, ceilings, props, facade/neon colours, exposure, sky/fog and hands.
-No pre-I3 parity is claimed: that old parent cannot build and the old
-cache is pruned. No runtime change or legacy deletion in this audit.
+coverage. **QD9/D184 closed by sp-o1’s named Opus verdict** on both
+QD1 fixes (`cc40cad706` + `54771bace4`), actual build `54771ba-mw0sut9p`:
+**24/24 Chromium cameras green** against the SHARDFILE goldens. Walls,
+floors, ceilings, props and hands are present; wet neon, facade colours,
+exposure, sky and fog remain comparable. At cameras 17, 18 and 21, NOW
+matches LEGACY better than the 10-29 SHARDFILE golden’s pale voids.
+
+Committed board proof `8532216c8a`:
+[1–8](../../../art/golden-runs/nine-dragon-stack/2026-11-03-54771bace4-qd1-chromium-board-p1.jpg),
+[9–16](../../../art/golden-runs/nine-dragon-stack/2026-11-03-54771bace4-qd1-chromium-board-p2.jpg),
+[17–24](../../../art/golden-runs/nine-dragon-stack/2026-11-03-54771bace4-qd1-chromium-board-p3.jpg).
+This is the coordinator-requested current-look reconciliation, **not
+pre-I3 parity**: that old parent cannot build and the old cache is pruned.
+WebKit Nine follows under QD4; this row claims no WebKit or Simulator
+result and does not close QD1, QD4, QD6 or authorize legacy deletion.
+No runtime change in this audit.
 
 ### LD4 Node admission follow-up
 
