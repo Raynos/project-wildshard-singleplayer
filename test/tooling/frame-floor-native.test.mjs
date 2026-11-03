@@ -47,6 +47,9 @@ test('charges loading overlap, playing kernel interval highs and conservative GP
   assert.equal(row.loadingPeakBytes, 1000);
   assert.equal(row.playingPeakBytes, 700);
   assert.deepEqual(row.phaseSamples, { loading: 3, playing: 3 });
+  assert.equal(row.quiet, false);
+  assert.equal(gradeFloorNative(native, gpu, [], 0, true).quiet, true);
+  assert.equal(gradeFloorNative(native, gpu, [], 0, true).timingCredit, false);
   assert.equal(row.gpuPeakAllocations[0].asset, 'target');
 });
 

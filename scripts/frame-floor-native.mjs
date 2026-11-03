@@ -22,7 +22,7 @@ export const floorNativeExpression = `(() => {
  * Phase peaks use native maximum + GPU maximum (a conservative upper envelope,
  * not a claim those two maxima occurred simultaneously). Raw logs stay scratch.
  */
-export function startFloorNative(root, directory, device, read, interrupt) {
+export function startFloorNative(root, directory, device, read, interrupt, quiet = false) {
   const phase = join(directory, 'native.phase'), file = join(directory, 'native.jsonl');
   writeFileSync(phase, 'measure', { flag: 'wx' });
   const sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', device,
@@ -62,7 +62,7 @@ export function startFloorNative(root, directory, device, read, interrupt) {
     writeFileSync(join(directory, 'gpu.json'), JSON.stringify({ gpu, errors, preparation, preparationError }));
     const native = readFileSync(file, 'utf8').trim().split('\n').map(line => JSON.parse(line));
     if (interrupted !== undefined) throw new Error(interrupted);
-    return gradeFloorNative(native, gpu, errors, code);
+    return gradeFloorNative(native, gpu, errors, code, quiet);
   };
 }
 
@@ -71,8 +71,9 @@ export function startFloorNative(root, directory, device, read, interrupt) {
  * @param {Array<{at:number,phase:'loading'|'playing',memory:{totals:{gpu:number},unattributed:{gpu:number},allocations:Array<{domain:string,owner:string,asset:string,bytes:number}>}}>} gpu
  * @param {Array<{at:number,error:string}>} errors
  * @param {number|null} code
+ * @param {boolean} quiet
  */
-export function gradeFloorNative(native, gpu, errors = [], code = 0) {
+export function gradeFloorNative(native, gpu, errors = [], code = 0, quiet = false) {
     const samples = native.filter(row => row.type === 'sample' && row.phase === 'measure');
     if (code !== 0 || samples.length === 0 || gpu.length === 0) throw new Error('Missing native/GPU samples');
     // The game is the largest WebContent process at the final playing witness.
@@ -97,11 +98,11 @@ export function gradeFloorNative(native, gpu, errors = [], code = 0) {
     }
     if (counts.playing < 3 || counts.loading < 3) throw new Error('Incomplete native phase coverage');
     const labelled = gpuPeak.memory.allocations.filter(row => row.domain === 'gpu');
-    return { measurement: 'native-footprint+gpu', quiet: false, timingCredit: false, samples: samples.length, gamePid: Number(gamePid),
+    return { measurement: 'native-footprint+gpu', quiet, timingCredit: false, samples: samples.length, gamePid: Number(gamePid),
       playingPeakBytes: peaks.playing + gpuPeak.memory.totals.gpu,
       loadingPeakBytes: peaks.loading + gpuPeak.memory.totals.gpu,
       nativePeakBytes: peaks, phaseSamples: counts, gpuPeakBytes: gpuPeak.memory.totals.gpu,
       gpuUnattributedBytes: gpuPeak.memory.unattributed.gpu,
       gpuPeakAllocations: labelled, gpuSamples: gpu.length, inspectorErrors: errors,
-      policy: 'Not quiet; memory only. Conservative phase native interval maximum plus global GPU ledger maximum; GPU process footprint excluded. Playing includes all travel/preparation after first ready witness, even during Inspector gaps. Simulator regression evidence, not physical-phone clearance.' };
+      policy: 'Memory only; quiet records the caller window. Conservative phase native interval maximum plus global GPU ledger maximum; GPU process footprint excluded. Playing includes all travel/preparation after first ready witness, even during Inspector gaps. Simulator regression evidence, not physical-phone clearance.' };
 }
