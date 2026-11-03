@@ -4,12 +4,12 @@
     "slug": "open-plot-showcase-template",
     "idea": "showcase-template",
     "name": "Showcase Template",
-    "accent": "teal",
+    "accent": "tangerine",
     "manifest": {
       "name": "Open Plot · Showcase Template",
       "blurb": "Showcase Template: shared-kit template; landmark and theme dressing are unfinished.",
       "bindings": {
-        "accent": "teal"
+        "accent": "tangerine"
       },
       "card": {
         "thumb": "/src/shards/open-plots/thumbs/showcase-template.jpg",
@@ -85,124 +85,112 @@
       "shade": 0.3,
       "classes": [
         {
-          "match": "#baa8a7",
-          "fill": "#baa8a7"
+          "match": "#d6d0c6",
+          "fill": "#d6d0c6"
         },
         {
-          "match": "#c8b7b2",
-          "fill": "#c8b7b2"
+          "match": "#e2ddd4",
+          "fill": "#e2ddd4"
         },
         {
-          "match": "#a3959a",
-          "fill": "#a3959a"
+          "match": "#b4aea6",
+          "fill": "#b4aea6"
         },
         {
-          "match": "#b6a5a3",
-          "fill": "#b6a5a3"
+          "match": "#d2ccc2",
+          "fill": "#d2ccc2"
         },
         {
-          "match": "#d5c3be",
-          "fill": "#d5c3be"
+          "match": "#e6e0d6",
+          "fill": "#e6e0d6"
         },
         {
-          "match": "#c1b0af",
-          "fill": "#c1b0af"
+          "match": "#dad4ca",
+          "fill": "#dad4ca"
         },
         {
-          "match": "#e9d6b0",
-          "fill": "#e9d6b0"
+          "match": "#efe6d4",
+          "fill": "#efe6d4"
         },
         {
-          "match": "#24358c",
-          "fill": "#24358c"
+          "match": "#e0682a",
+          "fill": "#e0682a"
         },
         {
-          "match": "#5b3a24",
-          "fill": "#5b3a24"
+          "match": "#8a6446",
+          "fill": "#8a6446"
         },
         {
-          "match": "#c0222b",
-          "fill": "#c0222b"
+          "match": "#f08030",
+          "fill": "#f08030"
         },
         {
-          "match": "#7a1218",
-          "fill": "#7a1218"
+          "match": "#c05a1c",
+          "fill": "#c05a1c"
         },
         {
-          "match": "#8a5a34",
-          "fill": "#8a5a34"
+          "match": "#a07850",
+          "fill": "#a07850"
         },
         {
-          "match": "#3a9fc0",
-          "fill": "#3a9fc0"
+          "match": "#3ab8d8",
+          "fill": "#3ab8d8"
         },
         {
-          "match": "#8a8a94",
-          "fill": "#8a8a94"
+          "match": "#9a9ca4",
+          "fill": "#9a9ca4"
         },
         {
-          "match": "#a6a6b0",
-          "fill": "#a6a6b0"
+          "match": "#babcc4",
+          "fill": "#babcc4"
         },
         {
-          "match": "#5c9e3e",
-          "fill": "#5c9e3e"
+          "match": "#68ae48",
+          "fill": "#68ae48"
         },
         {
-          "match": "#457f34",
-          "fill": "#457f34"
+          "match": "#4a8a3a",
+          "fill": "#4a8a3a"
         },
         {
-          "match": "#4e9a3c",
-          "fill": "#4e9a3c"
+          "match": "#58a040",
+          "fill": "#58a040"
         },
         {
-          "match": "#387a30",
-          "fill": "#387a30"
+          "match": "#3e7c32",
+          "fill": "#3e7c32"
         },
         {
-          "match": "#5a4030",
-          "fill": "#5a4030"
+          "match": "#6a4a32",
+          "fill": "#6a4a32"
         },
         {
-          "match": "#ffb347",
-          "fill": "#ffb347"
+          "match": "#fff0d0",
+          "fill": "#fff0d0"
         },
         {
-          "match": "#ffc96a",
-          "fill": "#ffc96a"
+          "match": "#8a8c94",
+          "fill": "#8a8c94"
         },
         {
-          "match": "#918489",
-          "fill": "#918489"
+          "match": "#0d1b26",
+          "fill": "#0d1b26"
         },
         {
-          "match": "#14203f",
-          "fill": "#14203f"
+          "match": "#f0e4cc",
+          "fill": "#f0e4cc"
         },
         {
-          "match": "#9a4a14",
-          "fill": "#9a4a14"
+          "match": "#8fe3ff",
+          "fill": "#8fe3ff"
         },
         {
-          "match": "#ff7a2e",
-          "fill": "#ff7a2e"
+          "match": "#c8f2ff",
+          "fill": "#c8f2ff"
         },
         {
-          "match": "#ff4a3a",
-          "fill": "#ff4a3a"
-        },
-        {
-          "match": "#c2361c",
-          "fill": "#c2361c"
-        },
-        {
-          "match": "#1f7fff",
-          "fill": "#1f7fff"
-        },
-        {
-          "match": "#2a1d14",
-          "fill": "#2a1d14"
+          "match": "#5a5e66",
+          "fill": "#5a5e66"
         }
       ]
     },
