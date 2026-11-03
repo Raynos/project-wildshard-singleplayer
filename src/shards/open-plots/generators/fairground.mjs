@@ -124,8 +124,9 @@ function bigTop(w, p, variant) {
 }
 
 /** where an avenue's booths stand (plot metres from the plaza along it, either side of the lane) and where the
- *  helter-skelter pair flanks it at the road entry, short of the entry's 15 m footprint, which must stay clear */
-const BOOTHS = [62, 82, 102, 122, 142, 162, 182], GATE = 205;
+ *  helter-skelter pair flanks it at the road entry, short of the entry's 15 m footprint, which must stay clear; the first
+ *  booth stands clear of the plaza's perimeter lane at 62.5 m (the walk route's ring) */
+const BOOTHS = [82, 102, 122, 142, 162, 182], GATE = 205;
 
 /** One of the four avenues from a road entry to the wheel (the seams on x = 0 and z = 0), as round 75's top-down lines
  *  them: a striped booth either side at each of BOOTHS, its front toward the lane, and the helter-skelter pair at GATE.
