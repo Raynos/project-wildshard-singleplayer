@@ -21,7 +21,8 @@ export function parseAdventureContent(input: unknown): AdventureContent { return
 
 const markerAt = v.strictObject({ ...at.entries, y: v.exactOptional(finite), dy: v.exactOptional(finite), yaw: v.exactOptional(finite) });
 const chapterText = v.pipe(v.string(), v.maxLength(512));
-const ChapterPresentation: v.GenericSchema<ChapterStoryPresentationInput, ChapterStoryPresentation> = v.pipe(v.strictObject({
+/** Complete chapter presentation document, also embedded verbatim in shared quest stories. */
+export const ChapterStoryPresentationSchema: v.GenericSchema<ChapterStoryPresentationInput, ChapterStoryPresentation> = v.pipe(v.strictObject({
   chapters: v.pipe(v.array(v.pipe(chapterText, v.minLength(1))), v.maxLength(64)),
   talks: v.pipe(v.array(v.strictObject({ id: chapterText, figure: v.exactOptional(chapterText), label: chapterText,
     radius: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(100)) })), v.maxLength(64)),
@@ -42,10 +43,10 @@ const ChapterPresentation: v.GenericSchema<ChapterStoryPresentationInput, Chapte
 /** Immutable chapter UI policy; authored templates accept {chapter}, {title}, {objective} and {reward}. */
 
 /** Admit the presentation separately from the quest graph; it never supplies progression state. */
-export function parseChapterStoryPresentation(input: unknown): ChapterStoryPresentation { return v.parse(ChapterPresentation, input); }
+export function parseChapterStoryPresentation(input: unknown): ChapterStoryPresentation { return v.parse(ChapterStoryPresentationSchema, input); }
 
 export const QuestStorySchema: v.StrictObjectSchema<{ readonly chapters: v.ExactOptionalSchema<v.GenericSchema<Exclude<QuestStoryInput['chapters'], undefined>, Exclude<QuestStory['chapters'], undefined>>, undefined>; readonly quest: v.GenericSchema<QuestStoryInput['quest'], QuestStory['quest']>; readonly presentation: v.GenericSchema<QuestStoryInput['presentation'], QuestStory['presentation']>; readonly journal: v.GenericSchema<QuestStoryInput['journal'], QuestStory['journal']>; readonly ignoredFlagPrefixes: v.GenericSchema<QuestStoryInput['ignoredFlagPrefixes'], QuestStory['ignoredFlagPrefixes']>; readonly notices: v.GenericSchema<QuestStoryInput['notices'], QuestStory['notices']>; readonly bench: v.GenericSchema<QuestStoryInput['bench'], QuestStory['bench']>; }, undefined> = v.strictObject({
-  chapters: v.exactOptional(ChapterPresentation),
+  chapters: v.exactOptional(ChapterStoryPresentationSchema),
   quest: v.strictObject({ id: text, markers: v.record(text, markerAt) }),
   presentation: v.strictObject({ introTitle: text, worldPins: v.boolean(), mapMarkers: v.boolean(), minimapMarks: v.boolean(),
     messages: v.strictObject({ firstStep: text, started: text, objective: text, completed: text }) }),

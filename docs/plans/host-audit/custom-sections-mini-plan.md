@@ -155,7 +155,7 @@ does not close a Z row.
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **In flight (2026-11-03, sp-x8): exact native-type/user audit and byte-preserving transport.** Weapon pages into `held/*`; Jian cloth / halo ship as GLB. One-user complete contracts go to Jake's G988 batch; G958 parity, G998 goldens and held-view captures required | 10 targets: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Codex (G958) | 3 |
 | **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
-| **Z8** | **In flight (2026-11-03, sp-x9), 1/14 landed.** The 149 B zero-reader DW steps copy is deleted with exact reconstruction and 48 green G998 panels. Shared ChapterPresentation (6/6) awaits the Nalati QD11 fix and all-six qualification. Twelve per-file blockers below go to the one-user batch; Pine lead already runs as AS. **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
+| **Z8** | **Eligible slice done (2026-11-03, sp-x9), 2/14 removed.** Exact shared ChapterStoryPresentation family (6/6, real complete Nalati/DW/Pine users), plus the 149 B reader-less DW steps deletion `98bab03828`. Original native owners and all Pine bytes remain; all six shards qualify 24/24 Chromium + WebKit through the shared cohort, with Nalati re-shot after QD11. Twelve per-file blockers / 93,379 B below remain charged for the one-user batch; Pine lead already runs as AS. | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
 | **Z10** | **People and places.** Into `people/figures` / `world/places` | 3: DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **In flight (2026-11-03, sp-x6): candidate reduction 5; three one-user roots stay charged. G998 qualification pending; evidence below. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
@@ -367,17 +367,52 @@ and `2026-11-03-d4c2e8d15d-z3-webkit-board.jpg`. The original
 chapter/native/platform-family suites, root types and named lint pass.
 Current reduction is **1/14**, leaving **13 / 98,024 B** charged.
 
-The remaining chapter candidate still requires ordinary product
-admission, exact payload/metadata contrast and ordered-pack
-reconstruction, then all-six G998 Chromium/WebKit goldens before landing. The shared
-format edit requires all six shards. QD1’s hold is released; the pre-existing Nalati QD11 red has no waiver.
-The eventual target reduction is **2/14**, leaving **12 /
-93,379 B** charged; the chapter body stays exact and the sole deleted
-body is the 149 B zero-reader copy. These are projections, not landed
-counts. Candidate source controls cover three real complete chapter
-values, original duplicate/reward/limit/unknown-field refusals, defining
-metadata and private-neighbour rejection; the original native quest and
-platform-family suites pass, as do root types and touched lint.
+**Chapter family qualified (2026-11-03).** Export and register the same
+complete defining object as `ChapterStoryPresentationSchema`; the original
+`parseChapterStoryPresentation` remains the reader and retains duplicate,
+reward-reference, bounds and unknown-field refusals. Only Nalati’s
+`quests/chapters.json` defining schema metadata changes. Its **4,645 B**
+body SHA-256 stays
+`b3c75e46c9c49bba83bd9756d993e006e61f6e15d421a9f95d773d931cbda6b5`.
+The full DW and Pine chapter values remain present under their original
+story owners; every one of the 13 retained target bodies / **98,024 B**
+is byte-identical to the preflight. Pine’s lead module remains the exact
+9,133 B AS module below; no Pine envelope is deleted or normalized.
+
+All indexed Nalati bodies and ordered packs are reconstructed against a
+sealed before product matching Z11’s B0 inventory exactly. Frozen candidate:
+338 retained file bodies and 50 sections exact, one separate 164 B
+`look/map` stamp delta; 22 packs / 377 entries / 62,322,835 B per side,
+376 retained entries in the same order. Post-QD11/Z9 candidate: 335 retained
+file bodies and 50 sections exact; the three deleted dressing pages belong
+to Z9 `abedbc1d76`. Its 22 packs / 374 entries / 62,031,703 B reconstruct,
+with 373 retained entries in the original order. Chapter descriptor and
+body are exactly the frozen qualified values. These are reconstruction
+claims, not a claim that complete index or pack files stay byte-identical.
+
+**G998 shared cohort:** DW/Pine/Nine each 24/24 green on Chromium and
+WebKit on frozen `d4c2e8d15d-mw0u2vw4` (Z3 `c98d1cffe0`, Z11’s Nine
+reader); Nalati re-shot after QD11 `2d4405a27c`, 24/24 each on
+`5b5922e263-mw0vipws` (Z9 `abedbc1d76`, independently read by sp-x6).
+Far/Sun each 24/24 green Chromium on frozen d4c2 and WebKit on
+`a0614245af-mw0vl5br`; their actual product indexes are byte-identical
+across these candidates. All 96 Far/Sun panels read by sp-x9; four
+labelled boards are committed in `67aae61a47`. Far’s fully roc-obscured
+Chromium 12 and WebKit 7’s moving white foreground owner are re-shot with
+the original normal protocol on the same respective builds: exact eye,
+rotation and FOV, both settled gates, no errors, no actor hiding or colour
+threshold change. Original plus subset receipts and hashed compositions
+are retained under `tmp/sp-x9-z8/`. No pre-existing Nalati colour-red waiver.
+
+Root types, named lint and the original registered quest/platform-family
+suites plus the three-real-user chapter controls pass. The chapter SDK root
+lands after all eleven Z11 roots, preserving first-seen wire identities.
+A renewed original native run passes seven cases across Pine life authoring,
+Pine native-story admission and step/native parity. The separate carried-quest
+suite refuses before its tests because `src/game/boot/packs.generated.ts`
+changes during preparation; no stale-input bypass or carried-suite pass.
+No guard or ceiling changes. **Final slice: 2/14**, comprising one shared
+family port and one dead-copy cut; **12 / 93,379 B** remain charged below.
 
 **Pine lead is already AS, not a new rewrite.** `sourceOutput.ts` compiles
 `returnModule(ctx, 'life')` from `behaviour/life.as` and `stag.as` through

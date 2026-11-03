@@ -54,7 +54,7 @@ import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
 import { PanelDefinitionSchema,QuestPanelCatalogueSchema } from '@wildshard/format/panelTemplate';
 import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
 import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figures';
-import { QuestStorySchema } from '@wildshard/format/questStory';
+import { QuestStorySchema, ChapterStoryPresentationSchema } from '@wildshard/format/questStory';
 import { WeatherProgramSchema } from '@wildshard/format/weatherProgram';
 import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
 import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
@@ -460,6 +460,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'paintedResources.PainterKeyLight': PainterKeyLightSchema,
   'paintedResources.PainterlyWorld': PainterlyWorldSchema,
   'postGraphLook.PostGraphLook': PostGraphLookSchema,
+  'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

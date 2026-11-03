@@ -10044,7 +10044,9 @@ saved cursor, reward, timer, prompt or alternate NPC rig.
 runtime flags and completion facts. Driftwood and Nalati use
 `presentChapterStory` for the same chip, MAP card, message and discovery
 laws; the policy admits optional single-quest notices or chapter reward
-captions. Nalati emits `quests/chapters.json`. Existing world figures,
+captions. Nalati emits `quests/chapters.json`:
+`ChapterStoryPresentationSchema` is DW/Pine’s full root; native
+`parseChapterStoryPresentation` stays. Existing world figures,
 NPC dialogue, update order and saves stay with their owners. `QuestViews`
 retains the objective/captions and recreates only entered dialogue input;
 its timer cancels when the home cell exits. `installFeats` runs after the

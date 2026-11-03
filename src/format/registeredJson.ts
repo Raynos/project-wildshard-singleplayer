@@ -33,7 +33,7 @@ import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
 import { QuestPageCompositionSchema } from './questPageComposition';
 import {QuestServiceActionsSchema,parseQuestServiceActions,QuestStepRowsSchema,parseQuestStepRows,QuestHintRowsSchema,parseQuestHintRows,CarriedQuestSchema,parseCarriedQuest} from './questSteps';
-import { QuestStorySchema,parseQuestStory } from './questStory';
+import { QuestStorySchema,parseQuestStory,ChapterStoryPresentationSchema,parseChapterStoryPresentation } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector,ChapterWakeSchema,parseChapterWake } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
 import { AdventurePersistenceSchema,PageReturnRowsSchema,PosedLibrarySchema,QuestTraderSchema } from './namedJsonContracts';
@@ -47,6 +47,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'quests/chapters.json':{readonly schema:typeof ChapterStoryPresentationSchema;readonly source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'};
   readonly 'quests/native-story.json':{readonly schema:typeof NativeQuestCompositionSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'};
   readonly 'quests/native-spots.json':{readonly schema:typeof NativeQuestServiceSpotsSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'};
   readonly 'quests/contracts.json':{readonly schema:typeof ContractCatalogueSchema;readonly source:'@wildshard/format/contracts#ContractCatalogueSchema'};
@@ -129,6 +130,7 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'quests/chapters.json':{schema:ChapterStoryPresentationSchema,source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'},
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
   'quests/native-spots.json':{schema:NativeQuestServiceSpotsSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'},
   'quests/contracts.json':{schema:ContractCatalogueSchema,source:'@wildshard/format/contracts#ContractCatalogueSchema'},
@@ -363,6 +365,7 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'people/catalogue.json':v.parse(FigureCatalogueSchema,value);break;
     case 'quests/chapter-director.json':parseChapterDirector(value);break;
     case 'quests/story.json':parseQuestStory(value);break;
+    case 'quests/chapters.json':parseChapterStoryPresentation(value);break;
     case 'quests/stall.json':v.parse(QuestTraderSchema,value);break;
     case 'quests/achievements.json':parseAchievementCounterData(value);break;
     case 'quests/page-composition.json':v.parse(QuestPageCompositionSchema,value);break;

@@ -14,7 +14,7 @@ import { FigureCatalogueSchema } from './figures';
 import { QuestPageCompositionSchema } from './questPageComposition';
 import { AdventurePersistenceSchema, PosedLibrarySchema, QuestTraderSchema } from './namedJsonContracts';
 import { PackedCreatureLooksSchema } from './speciesLooks';
-import { QuestStorySchema } from './questStory';
+import { QuestStorySchema, ChapterStoryPresentationSchema } from './questStory';
 import { PageLifeSchema } from './pageLife';
 import { ChapterDirectorSchema } from './chapterDirector';
 import { QuestPageInteractionsSchema } from './questInteractions';
@@ -39,6 +39,8 @@ export interface PlatformFileFamily {
  * Names stay streamed and payloads stay verbatim. Private placement, cabin,
  * ground and encounter grammars remain outside this registry. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^quests\/chapters\.json$/u, schema: ChapterStoryPresentationSchema,
+    source: '@wildshard/format/questStory#ChapterStoryPresentationSchema', reader: 'src/game/quest/story.ts' },
   { pattern: /^world\/weather\.json$/u, schema: WeatherDocumentSchema,
     source: '@wildshard/format/weatherBundle#WeatherDocumentSchema', reader: 'src/game/weather/forest.ts' },
   { pattern: /^audio\/scene\.json$/u, schema: AudioSceneSchema,
