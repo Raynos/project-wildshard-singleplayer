@@ -100,11 +100,11 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     planning, not building"*).
 19o. **Fire Emblem growth, not hybrid** (Jake 11-02): no points, no respec, a cap. Each shard rolls you a new character
     (base values and growth rates); each level-up rolls +1 per attribute at its growth chance. Proposed: growth pool
-    85/70/60/55/45/40/35/30 % shuffled, cap 30, no blank-level protection
-    ([XP Curve and Growth](https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf)).
+    85/70/60/55/45/40/35/30 % shuffled, cap 30, no blank-level protection; **Jake: "roughly like this, but
+    more thought"**, so it gets a design pass in Wave 1 ([XP Curve and Growth](https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf)).
 19p. **XP is RuneScape-steep:** enemies pay **10 × their level** (linear), drop-off below you, 0 at 6 under; the curve
     is exponential. Jake suggested ×2 or the golden ratio; ×2 is ~2,000 h to 20, the golden ratio (×1.618) is
-    OSRS's 1–99 curve squeezed into 20 (~60 h). Proposed: golden ratio. This replaces the 2.5–3 h target.
+    OSRS's 1–99 curve squeezed into 20 (~60 h). **Jake picked the golden ratio** (11-02). This replaces the 2.5–3 h target.
 19q. **HP: 100 at level 1 to 300 at level 20, +6 % a level** (100, 126 L5, 168 L10, 225 L15, 300 L20). **VIT is the HP**
     (Jake 11-02: *"the level curve should reverse engineer into the VIT"*): HP is a function of VIT, tuned so a character
     with average VIT growth sits on that curve; a lucky VIT roll is tankier, an unlucky one frailer. **Enemies have their
@@ -130,7 +130,7 @@ contracts board's rotating hunts, war fan, whip, mounted combat, lightning, hove
 puzzle, happenings, time trials, thin ice, glide shaft, daily seed. **Not yet:** tooling demos (third-person camera,
 landscape HUD, loading screen, Explore tabs, bot playtest).
 
-**Waiting on Jake:** the attribute list (he is reading the
+**Waiting on Jake:** the attribute list and the growth-roll details (he is reading the
 [levels page](https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s)); the loot redesign.
 
 ## 3. The map
