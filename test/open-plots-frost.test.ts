@@ -12,6 +12,7 @@ const letters={N:'forecourt',P:'plaza',G:'garden'},builders=frostlineBuilders(le
 assert.deepEqual(Object.keys(builders.tiles).sort(),['D','F','G','N','P']);
 // OB3 round 1: Frostline draws its own L1 stand-ins (snow-tipped cones, white gables), not the generic coarse box
 assert.ok(!builders.coarseFamilies.has('lodges')&&!builders.coarseFamilies.has('pines'));
+assert.equal(builders.seam.name,'frostLane','its own lantern-post lanes, not the string lights and banners');
 assert.throws(()=>frostlineBuilders({D:'garden'}),/theme tile/);
 // a mirror-symmetric draft: every row reads the same from either end, the south half the north turned twice
 const rows=['F0 D0 F0 N0 N3 F0 D0 F0','D0 F0 G0 D0 D0 G0 F0 D0','F0 G0 D1 F0 F0 D3 G0 F0','N2 D0 F0 P0 P1 F0 D0 N1',

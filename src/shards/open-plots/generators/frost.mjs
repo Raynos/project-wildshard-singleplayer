@@ -5,7 +5,7 @@
 //   F pines:  a dense pine wood round a small clearing with a cabin.
 // Their models are the frost kit families (scripts/blender/open-plots/frost.py: `lodges`, `pines`), placed only when the
 // layout's kit has them, like every kit family.
-import { INNER, placePlotModels, pool } from './kit.mjs';
+import { HALF, INNER, placePlotModels, pool } from './kit.mjs';
 import { nightMarketBuilders } from './nightMarket.mjs';
 
 /** sRGB hex to linear RGB (the layout's palette rows) */
@@ -32,7 +32,7 @@ function post(w, x, z, p, yaw) {
 
 /** OB3 look round 1: Frostline's own L1 stand-ins (the generic coarse box took its top from up-facing faces, and a steep
  *  snow roof or a pine cone has almost none: the courts read as dark brown and green cubes from the road and above). A pine
- *  clump is three cones, needles below and snow on their tips; a lodge is its walls under a white gable. */
+ *  clump is one pyramid, needles below and snow on its tip; a lodge is its walls under a white gable. */
 function coarseCone(w, p, x, z, r, h) {
   const base = (i) => [x + r * Math.sin(i * Math.PI / 2), h * 0.08, z + r * Math.cos(i * Math.PI / 2)], tip = [x, h, z], snow = p.snow ?? p.foliage;
   for (let i = 0; i < 4; i++) w.triColours('coarse', base(i), base(i + 1), tip, [p.foliage, p.foliage, snow]);
@@ -112,6 +112,19 @@ function farFrost(w, p, type, variant) {
   } else for (const [x, z] of [[-20, 20], [0, 22], [20, 20], [-21, 0], [21, 1], [-20, -20], [0, -21], [20, -20], [10, 10]]) cone(variant === 0 ? x : -x, z, 3.4, 9);
 }
 
+/** OB3 look round 3: a lane seam (in place of Night Market's string lights and red banner posts, which round 62 doesn't
+ *  have): one lantern post at each end of the seam, on alternate sides, and nothing on the peak's foot or over the four
+ *  road entries. */
+function frostLane(w, p, side, centre) {
+  const along = (u, off) => (side === 0 ? [u, HALF + off] : [HALF + off, -u]);
+  const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
+    return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin) || Math.hypot(wx, wz) < 50; };
+  for (const [u, off] of [[-HALF + 4, -3], [HALF - 4, 3]]) {
+    const [x, z] = along(u, off);
+    if (!clear(x, z)) post(w, x, z, p, side === 0 ? 0 : Math.PI / 2);
+  }
+}
+
 const THEME = {
   D: { build: lodges, far: (w, p, variant) => farFrost(w, p, 'D', variant), sockets: 'pppp' },
   F: { build: wood, far: (w, p, variant) => farFrost(w, p, 'F', variant), sockets: 'pppp' },
@@ -121,7 +134,7 @@ const THEME = {
 export function frostlineBuilders(letters) {
   const shared = nightMarketBuilders(letters);
   for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`frostline-peaks: letter ${letter} is a theme tile`);
-  return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: shared.coarseFamilies, seam: shared.seam };
+  return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: shared.coarseFamilies, seam: frostLane };
 }
 
 /** The chair lift's placements and cable (the layout's `landmark.lift`: `stations` [bottom, top] and `towers` as
