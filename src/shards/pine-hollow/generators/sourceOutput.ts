@@ -42,7 +42,6 @@ import { wildlifeDraw } from './wildlifeDraw';
 import { pineBirds } from './birdInputs';
 import directorData from '../data/director.json' with { type: 'json' };
 import directorStages from '../data/watchStages.json' with { type: 'json' };
-import { cabinAmbienceRows } from './ambience';
 import { PINE_PANELS } from './panels';
 import { TRADER_STALL as traderStall } from './questShop';
 import { PINE_QUEST_PAYLOAD } from './questRuntime';
@@ -63,7 +62,7 @@ import { PINE_LANTERN_PAGE } from './questPageInteractions';
 import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS,CabinAmbienceSchema,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsOwnersSchema} from './sections';
+import {SECTIONS,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsOwnersSchema} from './sections';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlob, type NamedBlobKind } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
 import type { PineSources } from './pineSources';
@@ -160,10 +159,9 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR)), { jsonSchema: registeredJsonSchema('quests/chapter-director.json') }),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorData.module, bytes: '', file: 'behaviour/director.wasm' }, stages: directorStages, bindings: null, seed: 357 })), { jsonSchema: registeredJsonSchema('directors/main.json') }),
   nameBlob('actors/roster.json', 'json', new TextEncoder().encode(encodeCanonicalJson(POPULATION_ROSTER)), { jsonSchema: registeredJsonSchema('actors/roster.json') }),
-  nameBlob('world/ambience.json', 'json', new TextEncoder().encode(encodeCanonicalJson(v.parse(CabinAmbienceSchema, cabinAmbienceRows(sources))))),
   nameBlob('quests/panels.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_PANELS)), { jsonSchema: registeredJsonSchema('quests/panels.json') }),
   nameBlob('quests/stall.json', 'json', new TextEncoder().encode(encodeCanonicalJson(traderStall)), { jsonSchema: registeredJsonSchema('quests/stall.json') }),
-  nameBlob('world/weather.json','json',new TextEncoder().encode(encodeCanonicalJson(parseWeatherProgram(weatherProgram)))),
+  nameBlob('world/weather.json','json',new TextEncoder().encode(encodeCanonicalJson(parseWeatherProgram(weatherProgram))), { jsonSchema: registeredJsonSchema('world/weather.json') }),
   nameBlob('quests/services.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestServiceActions(PINE_QUEST_SERVICES))), { jsonSchema: registeredJsonSchema('quests/services.json') }),
   nameBlob('quests/story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_STORY)), { jsonSchema: registeredJsonSchema('quests/story.json') }),
   nameBlob('quests/achievements.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseAchievementCounterData(counterRows))), { jsonSchema: registeredJsonSchema('quests/achievements.json') }),

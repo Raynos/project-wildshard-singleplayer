@@ -18,6 +18,7 @@ import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/s
 import { cabinAmbienceRows } from '../src/shards/pine-hollow/generators/ambience';
 import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_SOURCES } from './fixtures/pine-sources';
+import { ForestPageSchema } from '../src/format/forestPage';
 
 type LookOutput = Pick<ProjectOutput, 'custom' | 'platform' | 'namedFiles' | 'assets'>;
 const outputs = new Map<string, LookOutput>([['driftwood-isle', driftwoodOutput], ['pine-hollow', pineOutput]]);
@@ -51,8 +52,6 @@ const productOf = (slug: string): ShardProduct => {
 test.each([
   { slug: 'driftwood-isle', section: 'custom/enemyPlacements', name: 'sim/enemy-placement.json',
     original: () => defineNamedRows(EnemyPlacementsSchema).parse(enemyPlacements()) },
-  { slug: 'pine-hollow', section: 'custom/cabinAmbience', name: 'world/ambience.json',
-    original: () => v.parse(CabinAmbienceSchema, cabinAmbienceRows(PINE_SOURCES)) },
 ])('$slug $name retains the original defining payload exactly', ({ slug, section, name, original }) => {
   const output = outputOf(slug);
   const named = output.namedFiles?.find(row => row.name === name);
@@ -63,6 +62,18 @@ test.each([
   expect(decoded).toEqual(expected);
   expect(namedBytes).toEqual(new TextEncoder().encode(encodeCanonicalJson(expected)));
   expect(output.custom?.sections.some(row => row.name === section)).toBe(false);
+}, 30_000);
+
+test('Pine forwards the complete admitted forest page with the original native audio rows', () => {
+  const output = outputOf('pine-hollow');
+  const file = output.namedFiles?.find(row => row.name === 'world/forest-page.json');
+  const bytes = file === undefined ? undefined : output.assets?.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing emitted live forest page');
+  const forest = v.parse(ForestPageSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+  const original = v.parse(CabinAmbienceSchema, cabinAmbienceRows(PINE_SOURCES));
+  expect(encodeCanonicalJson({ floors: forest.buildings.floors, firePits: forest.buildings.firePits })).toBe(encodeCanonicalJson(original));
+  expect(output.custom?.sections.some(row => row.name === 'custom/cabinAmbience')).toBe(false);
+  expect(output.namedFiles?.some(row => row.name === 'world/ambience.json')).toBe(false);
 }, 30_000);
 
 describe('toLevelSpec binds the product', () => {

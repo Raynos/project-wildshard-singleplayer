@@ -8,6 +8,7 @@ import { NALATI_PAINTED as paintedTextures } from '../src/shards/nalati-grasslan
 import { nalatiSpecimens as specimenData } from './fixtures/nalati-specimens';
 import { GrassPresentationSchema, grassPresentationFiles } from '../src/format/fieldPresentation';
 import { TIER } from '../src/engine/core/tier';
+import type { ScaledPostRow } from '../src/format/scaledPost';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 
@@ -44,7 +45,14 @@ test('a level builds its painted world once a page and its world wiring reads th
   expect(THREE.ShaderChunk.fog_pars_fragment.split('float pCloudShadow()').length).toBe(2);
 });
 
-const rawLook = () => ({passes:{},sides:[],composite:{pass:'frame',output:'out'},inputs:{},uniforms:{},painted:moor()});
+const frame: ScaledPostRow = {
+  name: 'MoorFrame', programs: { copy: { graph: { version: 1, kind: 'post',
+    nodes: { uv: { op: 'screenUV' }, colour: { op: 'texture', in: ['uv'], param: 'tScene' }, rgb: { op: 'swizzle', in: ['colour'], mask: 'xyz' } },
+    params: { tScene: { type: 'texture', role: 'lent', value: 'tScene' } }, stages: { post: { colour: 'rgb', alpha: 1 } } } } },
+  targets: { out: { name: 'Moor.out', of: 'input', scale: 1, filter: 'nearest' } },
+  draws: [{ program: 'copy', to: 'out', textures: { tScene: 'input' } }], settings: {}, outputs: { out: 'out' },
+};
+const rawLook = () => ({passes:{frame},sides:[],composite:{pass:'frame',output:'out'},inputs:{},uniforms:{},painted:moor()});
 test('product look awaits every selected grass file through its original receiver before publishing',async()=>{
   const reads:string[]=[],product={slug:'raw-grass-world',json:()=>Promise.resolve(rawLook()),file(name:string):Promise<Uint8Array>{
     expect(this).toBe(product);reads.push(name);const bytes=GRASS_FILES.get(name);

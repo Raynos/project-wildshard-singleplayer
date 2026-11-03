@@ -23,7 +23,11 @@ const uniform = v.union([finite, v.strictObject({ rgb: v.pipe(v.number(), v.inte
   v.strictObject({ v4s: v.pipe(v.array(tuple4), v.maxLength(64), v.transform((rows): readonly (readonly [number, number, number, number])[] => rows)) })]);
 const uniforms = v.pipe(v.record(name, uniform), v.check(rows => Object.keys(rows).length <= 256, 'At most 256 uniforms'));
 /** a scaled post row; the pass host admits its programs, targets and draws when it builds one */
-const pass = v.custom<ScaledPostRow>(row => typeof row === 'object' && row !== null && 'programs' in row && 'draws' in row && 'targets' in row && 'outputs' in row, 'A scaled post row');
+export const ScaledPostInputSchema: v.GenericSchema<ScaledPostRow, ScaledPostRow> = v.custom<ScaledPostRow>(row => typeof row === 'object' && row !== null && 'programs' in row && 'draws' in row && 'targets' in row && 'outputs' in row, 'A scaled post row');
+const pass = ScaledPostInputSchema;
+/** These four original transforms only narrow readonly types and return the
+ * identical input. The structural converter admits these exact objects. */
+export const postGraphIdentityTransforms: readonly object[] = [tuple2.pipe[1], tuple3.pipe[1], tuple4.pipe[1], uniform.options[5].entries.v4s.pipe[2]];
 /** one write into a bag uniform: a number, a vector component, or the same component of every vector in an array */
 const write: v.GenericSchema<PostGraphWriteInput, PostGraphWrite> = v.strictObject({ param: name, index: v.exactOptional(index), each: v.exactOptional(v.boolean()), value: finite });
 const effect: v.GenericSchema<PostGraphEffectInput, PostGraphEffect> = v.strictObject({

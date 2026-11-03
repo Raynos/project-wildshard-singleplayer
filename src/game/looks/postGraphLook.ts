@@ -1,3 +1,5 @@
+import { parsePostGraphDocument } from '@wildshard/format/postGraphDocument';
+import { PainterlyWorldSchema } from '@wildshard/format/paintedResources';
 /**
  * A post-graph look (G599 N1, format/postGraphLook rows): a level's whole colour chain as scaled post graph passes on the
  * engine's composer. Its side passes (on the tiers they name) draw into their own targets before the chain; a draw-free
@@ -24,7 +26,7 @@ import type { Events } from '@wildshard/engine/events/events';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { TIER, TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { PaintedWorldSchema, PostGraphLookSchema, type PostGraphEffect, type PostGraphLookRow, type PostGraphWrite } from '@wildshard/format/postGraphLook';
+import { PaintedWorldSchema, type PostGraphEffect, type PostGraphLookRow, type PostGraphWrite } from '@wildshard/format/postGraphLook';
 import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import { uniformsFrom, type UniformMap } from '../plugin/shaderFamily';
 import { ScaledPostPass, precompileScaledPost, prepareScaledPost } from './scaledPost';
@@ -206,7 +208,7 @@ export async function postGraphLook(product: { readonly slug: string; readonly j
   const live=():void=>{if(product.json!==json||product.file!==readFile)throw new Error('Painted world product reader changed');};
   let at: unknown = await json.call(product,source.file);live();
   for (const key of source.field) at = typeof at === 'object' && at !== null ? Reflect.get(at, key) : undefined;
-  const painted = v.parse(PostGraphLookSchema, at).painted;
+  const painted = parsePostGraphDocument(at).painted;
   const names=painted===undefined?[]:grassPresentationFiles(v.parse(GrassPresentationSchema,painted.grass.rows),tier);
   if(names.length>0&&readFile===undefined)throw new Error('Painted world product file reader required');
   const files=await readFileInputs(names,name=>{
@@ -243,7 +245,7 @@ class ShadowFirstRenderPass extends RenderPass {
 }
 
 export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
-  const row = v.parse(PostGraphLookSchema, input);
+  const row = parsePostGraphDocument(input);
   const lut: UniformMap = row.lut === undefined ? {} : { [row.lut.texture]: { value: neutralLut() }, [row.lut.amount]: { value: 0 } };
   if (row.lut !== undefined) {
     const { url, texture, amount } = row.lut;
@@ -339,7 +341,7 @@ export function postGraphLookOf(slug: string, input: unknown): LookStrategy {
 // page per level slug, read by the level's world wiring by its slug (`paintedWorldOf`), which `wire`s its painterly world
 // (the panorama dome, the painter's key light, the static capture, the grass's mood) from the optional `world` rows,
 // lending the grade's live uniforms the post-graph look reads.
-const real = v.pipe(v.number(), v.finite()), shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
+
 /**
  * A painterly world (the painterly look host, G478): the panorama and the painter's key over a static capture of the
  * level's `casters` (its groups by name and the caller's extra roots), swept every `sweep` s for streamed-in casters; on a
@@ -348,8 +350,7 @@ const real = v.pipe(v.number(), v.finite()), shapeId = v.pipe(v.string(), v.rege
  * (dusk over `dusk` [from, to] degrees of sun) and the storm, the rig's night sky shows only at night, and the rig's sun
  * disc stays only as the moon.
  */
-export const PainterlyWorldSchema: v.GenericSchema<BoundedPainterlyWorldInput, BoundedPainterlyWorld> = v.strictObject({ casters: v.pipe(v.array(shapeId), v.maxLength(16)), sweep: v.pipe(real, v.minValue(0.1)),
-  liveMap: v.pipe(real, v.integer(), v.minValue(64), v.maxValue(4096)), dusk: v.tuple([real, real]) });
+
 /** What the world reads each frame: the hour's look, the sun's elevation (degrees) and the storm's overcast. */
 export interface PainterlyFrame { readonly look: PainterSkyLook; readonly sunElevation: number; readonly overcast: number }
 /** The static capture as the world drives it (a `StaticCapture` from the level's capture rows, unless one is lent). */
@@ -452,16 +453,3 @@ export function paintedWorldOf(slug: string): PaintedWorldParts {
 }
 
 function v4Of(row: readonly [number, number, number, number]): Vector4 { return new Vector4(...row); }
-
-/** Complete admitted data, independent of validator implementation metadata. */
-type BoundedPainterlyWorldInput = BoundedPainterlyWorld;
-interface BoundedPainterlyWorldFields {
-    casters: string[];
-    sweep: number;
-    liveMap: number;
-    dusk: [
-        number,
-        number
-    ];
-}
-type BoundedPainterlyWorld = { [Key in keyof BoundedPainterlyWorldFields]: BoundedPainterlyWorldFields[Key] };

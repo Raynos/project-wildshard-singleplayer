@@ -9890,23 +9890,23 @@ rows as `quests/trader.json`; the existing strict page binder consumes it.
 
 ### Seeded weather programs and wind continuation (H4 continuation)
 
-`@wildshard/format/weatherProgram.parseWeatherProgram` admits bounded phase,
-mode, numeric expression and optional projectile-wind data. Expressions reuse
-`AudioMixExpressionSchema` and the server-safe scalar evaluator; they do not
-install an audio service. Ordered temporary values precede output evaluation.
-`@wildshard/engine/world/weatherContinuation.WeatherContinuation` applies these
-rows on the existing `Weather` transition loop. Pine and Nalati are real users:
-their differences are phase lengths, mode policies and numeric DATA. The host
-knows no shard names, requires no DOM, and replaces both private profile bodies.
-The optional `registers` box and bounded `actions` lists contain no functions.
-Each action assigns one declared register from a scalar expression or a two-end
-random range, gated by an optional `when`. Lists run in order; they read `t`,
-`u`, `dt`, `state.*`, `mode.*`, `output.*` and `register.*`. `enter` runs after
-the phase-length draw and before existing phase observers; `force` follows the
-forced phase position/wetness; `tick` follows numeric outputs. Native consumers
-may invoke another declared list with `applyActions`. Range actions and native
-mechanics borrow `random`, the same stream as phase lengths, so draw order is
-preserved. No shard callback enters this host.
+`format/weatherProgram.parseWeatherProgram` admits bounded phase, mode,
+numeric-expression and projectile-wind rows; ordered temporary values precede
+outputs. Expressions use `AudioMixExpressionSchema`. Engine `WeatherContinuation`
+runs the existing loop for Pine/Nalati without DOM, shard nouns or callbacks.
+Ordered actions assign declared registers from scalars or ranges using the
+phase-length RNG. Inputs: t/u/dt, state.*, mode.*, output.*, register.*. `when`
+gates writes. `enter` follows the length draw, before observers; `force` follows
+phase/wetness; `tick` follows outputs; `applyActions` invokes another list.
+
+`format/weatherBundle.parseWeatherDocument` admits either original phase or
+phase/reaction wire, including decision headers. `weatherEffects` admits native
+geometry, sky and numeric tables. `postGraphDocument.parsePostGraphDocument`
+checks G599 passes and every painted child before creating owners.
+`paintedResources` holds the unchanged native air/ground/panorama/key/world
+schemas; `scaledPostContract.parseScaledPostRow` keeps native graph budgets,
+target order and storage checks. Executors still verify before allocation.
+SDK local schema definitions share metadata, never omit validation.
 
 Pine publishes its previous wind boost through the post-cadence `step` action. Nalati declares
 its phase-entry resets, wind ramps/targets and bolt cadence as actions; strike

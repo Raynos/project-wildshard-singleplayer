@@ -1,3 +1,4 @@
+import { PaintedGroundSchema, PaintedPanoramaSchema, PainterKeyLightSchema } from '@wildshard/format/paintedResources';
 /** The painterly look host's world pieces (G478 point 3, with game/looks/paintedLook): a level that paints its own world
  * (Nalati's panorama painterly) declares them as rows; renderer construction and lifetime hooks stay here. */
 import { BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, Material, Vector3, Mesh, MeshLambertMaterial, SphereGeometry, type IUniform, type Scene, type Texture } from 'three';
@@ -28,8 +29,6 @@ import { tileRing } from '../shardfile/tileDriver';
 import { followTile, ring, tileKey } from '../shardfile/tileContent';
 import type { CellTile } from '../shardfile/tileOrder';
 
-const finite = v.pipe(v.number(), v.finite());
-const shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
 /**
  * The painted ground (the painterly look host, G478): the level's `surface` (the painted-terrain family's maps, metres,
  * snow and ice) over `layers` of tiled specimen textures (the specimen materials of those names), in a painterly material (`bands`, `rim`, `shade`), recoloured
@@ -38,10 +37,7 @@ const shapeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*$/u));
  * one the terrain answers for. With `tiles` the level's runtime-bound L0 props tiles are that mesh cut at the tile seams
  * (every painted channel kept): they draw in its place, in its material (G669 DR10).
  */
-export const PaintedGroundSchema: v.GenericSchema<BoundedPaintedGroundInput, BoundedPaintedGround> = v.strictObject({ surface: v.unknown(), layers: v.pipe(v.array(shapeId), v.minLength(1), v.maxLength(8)),
-  material: v.strictObject({ bands: finite, rim: finite, shade: finite }), colour: shapeId,
-  shapes: v.pipe(v.array(shapeId), v.minLength(1), v.maxLength(8)), recipe: v.strictObject({ file: v.string(), key: shapeId }), mesh: shapeId,
-  tiles: v.exactOptional(v.literal(true)) });
+
 function isGroundMesh(value: unknown): value is Mesh<BufferGeometry, MeshLambertMaterial> {
   return value instanceof Mesh && value.geometry instanceof BufferGeometry && value.material instanceof MeshLambertMaterial;
 }
@@ -175,8 +171,6 @@ function compactTriangles(source: BufferGeometry, triangles: readonly number[]):
   return geometry;
 }
 
-const tiers = <T extends v.GenericSchema>(schema: T) => v.strictObject({ phone: schema, desktop: schema });
-const triple = v.tuple([finite, finite, finite]);
 /**
  * The painted panorama (the painterly look host, G478): a level whose sky is one painting. The `dome` (a sphere of
  * `radius` and `segments`, drawn first at `order`, centred on the camera) wears its lent `look`, given the painting
@@ -186,14 +180,7 @@ const triple = v.tuple([finite, finite, finite]);
  * lent look, sunk to `y`, with the same LUT and sun. Each frame both looks hear the level's lent uniforms, and the `lit`
  * looks hear the painterly world's shade, rim and wet.
  */
-export const PaintedPanoramaSchema: v.GenericSchema<BoundedPaintedPanoramaInput, BoundedPaintedPanorama> = v.strictObject({
-  dome: v.strictObject({ name: shapeId, look: shapeId, image: tiers(v.pipe(v.string(), v.regex(/^\/assets\/[a-zA-Z0-9/_.-]+$/u))), pad: finite, fallbackWidth: v.pipe(finite, v.minValue(1)),
-    zenith: tiers(triple), radius: v.pipe(finite, v.minValue(1)),
-    segments: v.tuple([v.pipe(finite, v.integer(), v.minValue(3), v.maxValue(256)), v.pipe(finite, v.integer(), v.minValue(2), v.maxValue(256))]), order: v.pipe(finite, v.integer()),
-    night: v.tuple([finite, finite]), params: v.strictObject({ image: shapeId, ridge: shapeId, lut: shapeId, pad: shapeId, zenith: shapeId, sun: shapeId, night: shapeId }) }),
-  sea: v.strictObject({ name: shapeId, look: shapeId, y: finite, lut: shapeId, sun: shapeId }),
-  lit: v.strictObject({ looks: v.pipe(v.array(shapeId), v.maxLength(16)), shade: shapeId, rim: shapeId, wet: shapeId }),
-});
+
 type LentValue = number | { toArray: () => number[] };
 const shade: number[] = [0, 0, 0], rim: number[] = [0, 0, 0];
 /** The painted panorama built from its rows over the level's ridge, fog LUT and lent uniforms. */
@@ -243,8 +230,7 @@ export class PaintedPanorama {
  * goes `mix` of the way to `sky` and `ground` (linear RGB) at `fill` × the hour's intensity, and the grade's saturation
  * follows the hour's own saturation relative to the day's.
  */
-export const PainterKeyLightSchema: v.GenericSchema<BoundedPainterKeyLightInput, BoundedPainterKeyLight> = v.strictObject({ turn: finite, lift: finite, ease: v.tuple([finite, finite]), sky: triple, ground: triple,
-  mix: v.pipe(finite, v.minValue(0), v.maxValue(1)), fill: v.pipe(finite, v.minValue(0)) });
+
 /** What the key light reads of the hour's look. */
 export interface PainterSkyLook { readonly sunDir: Vector3; readonly keyColor: Color; readonly keyIntensity: number; readonly moon: number;
   readonly hemiSky: Color; readonly hemiGround: Color; readonly hemiIntensity: number; readonly saturation: number }
@@ -270,104 +256,3 @@ export class PainterKeyLight {
     this.saturation.value = Math.max(0, 1 + (look.saturation - this.daySaturation));
   }
 }
-
-/** Complete admitted data, independent of validator implementation metadata. */
-type BoundedPaintedGroundInput = BoundedPaintedGround;
-interface BoundedPaintedGroundFields {
-    surface: unknown;
-    layers: string[];
-    material: {
-        bands: number;
-        rim: number;
-        shade: number;
-    };
-    colour: string;
-    shapes: string[];
-    recipe: {
-        file: string;
-        key: string;
-    };
-    mesh: string;
-    tiles?: true;
-}
-type BoundedPaintedGround = { [Key in keyof BoundedPaintedGroundFields]: BoundedPaintedGroundFields[Key] };
-type BoundedPaintedPanoramaInput = BoundedPaintedPanorama;
-interface BoundedPaintedPanoramaFields {
-    dome: {
-        name: string;
-        look: string;
-        image: {
-            phone: string;
-            desktop: string;
-        };
-        pad: number;
-        fallbackWidth: number;
-        zenith: {
-            phone: [
-                number,
-                number,
-                number
-            ];
-            desktop: [
-                number,
-                number,
-                number
-            ];
-        };
-        radius: number;
-        segments: [
-            number,
-            number
-        ];
-        order: number;
-        night: [
-            number,
-            number
-        ];
-        params: {
-            image: string;
-            ridge: string;
-            lut: string;
-            pad: string;
-            zenith: string;
-            sun: string;
-            night: string;
-        };
-    };
-    sea: {
-        name: string;
-        look: string;
-        y: number;
-        lut: string;
-        sun: string;
-    };
-    lit: {
-        looks: string[];
-        shade: string;
-        rim: string;
-        wet: string;
-    };
-}
-type BoundedPaintedPanorama = { [Key in keyof BoundedPaintedPanoramaFields]: BoundedPaintedPanoramaFields[Key] };
-type BoundedPainterKeyLightInput = BoundedPainterKeyLight;
-interface BoundedPainterKeyLightFields {
-    turn: number;
-    lift: number;
-    ease: [
-        number,
-        number
-    ];
-    sky: [
-        number,
-        number,
-        number
-    ];
-    ground: [
-        number,
-        number,
-        number
-    ];
-    mix: number;
-    fill: number;
-}
-type BoundedPainterKeyLight = { [Key in keyof BoundedPainterKeyLightFields]: BoundedPainterKeyLightFields[Key] };

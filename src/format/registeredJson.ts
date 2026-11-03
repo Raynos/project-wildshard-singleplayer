@@ -1,3 +1,9 @@
+import { WeatherDocumentSchema, parseWeatherDocument } from './weatherBundle';
+import { WeatherEffectsSchema, parseWeatherEffects } from './weatherEffects';
+import { RainPresentationSchema } from './rainPresentation';
+import { ForestWeatherObservationSchema } from './rangedPage';
+import { PostGraphLookSchema } from './postGraphLook';
+import { parsePostGraphDocument } from './postGraphDocument';
 import { WorldScenePageSchema } from './worldScenePages';
 import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServiceSpotsSchema,parseNativeQuestServiceSpots} from './nativeQuestComposition';
 import {ContractCatalogueSchema,parseContractCatalogue} from './contracts';
@@ -83,6 +89,11 @@ export interface RegisteredJsonContracts {
   readonly 'look/gull-draw.json':{readonly schema:typeof PosedLibrarySchema;readonly source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'};
   readonly 'look/wildlife-draw.json':{readonly schema:typeof PosedLibrarySchema;readonly source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'};
   readonly 'audio/scene.json':{readonly schema:typeof AudioSceneSchema;readonly source:'@wildshard/format/audioScene#AudioSceneSchema'};
+  readonly 'world/weather.json':{readonly schema:typeof WeatherDocumentSchema;readonly source:'@wildshard/format/weatherBundle#WeatherDocumentSchema'};
+  readonly 'world/weather-fx.json':{readonly schema:typeof WeatherEffectsSchema;readonly source:'@wildshard/format/weatherEffects#WeatherEffectsSchema'};
+  readonly 'world/rain.json':{readonly schema:typeof RainPresentationSchema;readonly source:'@wildshard/format/rainPresentation#RainPresentationSchema'};
+  readonly 'world/weather-observations.json':{readonly schema:typeof ForestWeatherObservationSchema;readonly source:'@wildshard/format/rangedPage#ForestWeatherObservationSchema'};
+  readonly 'look/post.json':{readonly schema:typeof PostGraphLookSchema;readonly source:'@wildshard/format/postGraphLook#PostGraphLookSchema'};
   readonly 'people/cards.json':{readonly schema:typeof KitFigureCardsSchema;readonly source:'@wildshard/format/questFigures#KitFigureCardsSchema'};
   readonly 'quests/persistence.json':{readonly schema:typeof AdventurePersistenceSchema;readonly source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'};
   readonly 'world/forest-page.json':{readonly schema:typeof ForestPageSchema;readonly source:'@wildshard/format/forestPage#ForestPageSchema'};
@@ -160,6 +171,11 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'look/gull-draw.json':{schema:PosedLibrarySchema,source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'},
   'look/wildlife-draw.json':{schema:PosedLibrarySchema,source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema'},
   'audio/scene.json':{schema:AudioSceneSchema,source:'@wildshard/format/audioScene#AudioSceneSchema'},
+  'world/weather.json':{schema:WeatherDocumentSchema,source:'@wildshard/format/weatherBundle#WeatherDocumentSchema'},
+  'world/weather-fx.json':{schema:WeatherEffectsSchema,source:'@wildshard/format/weatherEffects#WeatherEffectsSchema'},
+  'world/rain.json':{schema:RainPresentationSchema,source:'@wildshard/format/rainPresentation#RainPresentationSchema'},
+  'world/weather-observations.json':{schema:ForestWeatherObservationSchema,source:'@wildshard/format/rangedPage#ForestWeatherObservationSchema'},
+  'look/post.json':{schema:PostGraphLookSchema,source:'@wildshard/format/postGraphLook#PostGraphLookSchema'},
   'people/cards.json':{schema:KitFigureCardsSchema,source:'@wildshard/format/questFigures#KitFigureCardsSchema'},
   'quests/persistence.json':{schema:AdventurePersistenceSchema,source:'@wildshard/format/namedJsonContracts#AdventurePersistenceSchema'},
   'world/forest-page.json':{schema:ForestPageSchema,source:'@wildshard/format/forestPage#ForestPageSchema'},
@@ -316,6 +332,11 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'look/gull-draw.json':
     case 'look/wildlife-draw.json':v.parse(PosedLibrarySchema,value);break;
     case 'audio/scene.json':v.parse(AudioSceneSchema,value);break;
+    case 'world/weather.json':parseWeatherDocument(value);break;
+    case 'world/weather-fx.json':parseWeatherEffects(value);break;
+    case 'world/rain.json':v.parse(RainPresentationSchema,value);break;
+    case 'world/weather-observations.json':v.parse(ForestWeatherObservationSchema,value);break;
+    case 'look/post.json':parsePostGraphDocument(value);break;
     case 'people/cards.json':v.parse(KitFigureCardsSchema,value);break;
     case 'directors/main.json':v.parse(DirectorProductSchema,value);break;
     case 'actors/roster.json':parseNativePopulationRows(value);break;

@@ -25,5 +25,5 @@ test('weather registration retains mutually exclusive owners and complete observ
     expect(()=>nameBlob(name,'json',encode(value),{jsonSchema:registeredJsonSchema(name)})).toThrow();
   }
   expect(()=>nameBlob(name,'json',encode(raw))).toThrow('defining schema');
-  expect(registeredJsonContract('world/weather.json')).toBeUndefined();
+  expect(registeredJsonContract('world/weather.json')?.source).toBe('@wildshard/format/weatherBundle#WeatherDocumentSchema');
 });

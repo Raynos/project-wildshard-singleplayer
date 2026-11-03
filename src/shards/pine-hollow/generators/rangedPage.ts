@@ -4,6 +4,7 @@
 import debugLap from '../data/perfLap.json' with { type: 'json' };
 import { parseRangedPage, parseForestWeatherObservation, parseRainPresentation } from '@wildshard/sdk/rows';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { PINE_OUTPUT } from './outputInputs';
 import { tradeCatalogue } from './trades';
 import { cragScene } from './cragSceneContribution';
@@ -48,7 +49,7 @@ export const rangedPage: (sources: PineSources) => Promise<RangedPage> = perSour
     bake: { phone: { url: `${baked}.phone.bin`, rows: rainBake.phone }, desktop: { url: `${baked}.bin`, rows: rainBake.desktop } },
   });
   const RANGED_PAGE_BLOBS: NamedBlobType[] = [nameBlob('client/ranged-page.json', 'json', new TextEncoder().encode(JSON.stringify(RANGED_PAGE))),
-    nameBlob('world/weather-observations.json', 'json', new TextEncoder().encode(JSON.stringify(WEATHER_OBSERVATIONS))),
-    nameBlob('world/rain.json', 'json', new TextEncoder().encode(JSON.stringify(RAIN)))];
+    nameBlob('world/weather-observations.json', 'json', new TextEncoder().encode(JSON.stringify(WEATHER_OBSERVATIONS)), { jsonSchema: registeredJsonSchema('world/weather-observations.json') }),
+    nameBlob('world/rain.json', 'json', new TextEncoder().encode(JSON.stringify(RAIN)), { jsonSchema: registeredJsonSchema('world/rain.json') })];
   return { RANGED_PAGE, RAIN, RANGED_PAGE_BLOBS };
 });

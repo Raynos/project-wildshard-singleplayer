@@ -1,3 +1,4 @@
+import { PaintedAirSchema } from '@wildshard/format/paintedResources';
 import { CircleGeometry, Group, InstancedBufferAttribute, Mesh, MeshStandardMaterial, PlaneGeometry, ShaderChunk, Vector2, Vector4, type IUniform, type Object3D, type Texture } from 'three';
 import * as v from 'valibot';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -145,15 +146,13 @@ export function productPainterLight(product: ShardProduct, root: Object3D | null
   });
 }
 
-const finite = v.pipe(v.number(), v.finite());
 /**
  * Painted air (the painterly look host, G478): soft cloud shadows sliding over the ground. The sun's light on every
  * CSM-lit material is multiplied by a drifting cloud-cover field (the sky's cloud fbm, sampled at the fragment's world
  * XZ, one tile every `tile` m): cover past `threshold` (± `softness`) takes `strength` of the light. The field drifts
  * downwind at `drift[0]` × the wind + `drift[1]` m/s, as clouds aloft do. The world paints its own sky (`ownSky`).
  */
-export const PaintedAirSchema: v.GenericSchema<BoundedPaintedAirInput, BoundedPaintedAir> = v.strictObject({ tile: v.pipe(finite, v.minValue(1)), threshold: finite, strength: v.pipe(finite, v.minValue(0), v.maxValue(1)),
-  softness: v.pipe(finite, v.minValue(0)), drift: v.tuple([finite, finite]) });
+
 const AIR_PARS = /* glsl */`
     #ifdef USE_FOG
       uniform sampler2D fogCloudTex;
@@ -196,17 +195,3 @@ export function paintedAir(input: unknown): { readonly install: () => void; read
       } },
   };
 }
-
-/** Complete admitted data, independent of validator implementation metadata. */
-type BoundedPaintedAirInput = BoundedPaintedAir;
-interface BoundedPaintedAirFields {
-    tile: number;
-    threshold: number;
-    strength: number;
-    softness: number;
-    drift: [
-        number,
-        number
-    ];
-}
-type BoundedPaintedAir = { [Key in keyof BoundedPaintedAirFields]: BoundedPaintedAirFields[Key] };

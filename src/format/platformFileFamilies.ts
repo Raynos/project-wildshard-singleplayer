@@ -1,3 +1,6 @@
+import { WeatherDocumentSchema } from './weatherBundle';
+import { AudioSceneSchema } from './audioScene';
+import { PostGraphLookSchema } from './postGraphLook';
 import { WorldScenePageSchema } from './worldScenePages';
 import * as v from 'valibot';
 import { SceneModelSourceSchema, SceneBakeSourceSchema } from './sceneSources';
@@ -36,6 +39,12 @@ export interface PlatformFileFamily {
  * Names stay streamed and payloads stay verbatim. Private placement, cabin,
  * ground and encounter grammars remain outside this registry. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^world\/weather\.json$/u, schema: WeatherDocumentSchema,
+    source: '@wildshard/format/weatherBundle#WeatherDocumentSchema', reader: 'src/game/weather/forest.ts' },
+  { pattern: /^audio\/scene\.json$/u, schema: AudioSceneSchema,
+    source: '@wildshard/format/audioScene#AudioSceneSchema', reader: 'src/game/audio/sceneDirector.ts' },
+  { pattern: /^look\/post\.json$/u, schema: PostGraphLookSchema,
+    source: '@wildshard/format/postGraphLook#PostGraphLookSchema', reader: 'src/game/looks/postGraphLook.ts' },
   { pattern: /^world\/scene-pages\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u, schema: WorldScenePageSchema,
     source: '@wildshard/format/worldScenePages#WorldScenePageSchema', reader: 'src/game/shardfile/worldSceneWeld.ts' },
   { pattern: /^world\/sources\/bakes\.json$/u, schema: SceneBakeSourceSchema,

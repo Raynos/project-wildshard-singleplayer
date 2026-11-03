@@ -1,3 +1,9 @@
+import { WeatherBundleSchema, WeatherDocumentSchema } from '@wildshard/format/weatherBundle';
+import { WeatherEffectsSchema } from '@wildshard/format/weatherEffects';
+import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
+import { ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
+import { PostGraphLookSchema, ScaledPostInputSchema, postGraphIdentityTransforms } from '@wildshard/format/postGraphLook';
+import { PaintedAirSchema, PaintedGroundSchema, PaintedPanoramaSchema, PainterKeyLightSchema, PainterlyWorldSchema } from '@wildshard/format/paintedResources';
 import { WorldScenePageSchema } from '@wildshard/format/worldScenePages';
 
 
@@ -158,11 +164,16 @@ const plumbing = PlumbingSchema.pipe[2];
 const input = plumbing.entries.input.pipe[0].item;
 const debug = plumbing.entries.debug.pipe[0].item;
 // These identities are the defining schemas, not message-based permissions for arbitrary author code.
-const customSchemas = new Map<object, JsonSchema>([
+const customSchemas = new Map<object, FormatJsonSchema>([
   [InputActionSchema.options[1], { type: 'string', maxLength: 128, pattern: '^[a-z][a-zA-Z0-9-]*(?:\\.[a-zA-Z0-9-]+)+$' }],
   [input.entries.id, { type: 'string', maxLength: 128, pattern: '^[a-z][a-z0-9-]*(?:\\.[a-z][a-zA-Z0-9-]*)+$' }],
   [debug.entries.ask, { type: 'string', pattern: '^E[1-9][0-9]*$' }],
 ]);
+// Faithful projection of the native four-field header predicate. Registered
+// post documents additionally run complete scaled-post and graph admission.
+customSchemas.set(ScaledPostInputSchema, { type: 'object', required: ['programs', 'draws', 'targets', 'outputs'],
+  'x-wildshard-checks': ['@wildshard/format/scaledPostContract#parseScaledPostRow'] } satisfies FormatJsonSchema);
+const postIdentityTransforms = new Set(postGraphIdentityTransforms);
 customSchemas.set(HeldMeleeActionSchema, { type: 'string', pattern: '^[a-z][a-zA-Z0-9-]*\\.[a-zA-Z0-9.-]+$' });
 const bowVariant = BowVariantSchema.pipe[2].entries;
 customSchemas.set(bowVariant.id, { type: 'string', pattern: '^weapon\\.[a-z0-9.-]+$' });
@@ -438,6 +449,17 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'sceneSources.SceneModelSource': SceneModelSourceSchema,
   'sceneSources.SceneBakeSource': SceneBakeSourceSchema,
   'worldScenePages.WorldScenePage': WorldScenePageSchema,
+  'weatherBundle.WeatherBundle': WeatherBundleSchema,
+  'weatherBundle.WeatherDocument': WeatherDocumentSchema,
+  'weatherEffects.WeatherEffects': WeatherEffectsSchema,
+  'rainPresentation.RainPresentation': RainPresentationSchema,
+  'rangedPage.ForestWeatherObservation': ForestWeatherObservationSchema,
+  'paintedResources.PaintedAir': PaintedAirSchema,
+  'paintedResources.PaintedGround': PaintedGroundSchema,
+  'paintedResources.PaintedPanorama': PaintedPanoramaSchema,
+  'paintedResources.PainterKeyLight': PainterKeyLightSchema,
+  'paintedResources.PainterlyWorld': PainterlyWorldSchema,
+  'postGraphLook.PostGraphLook': PostGraphLookSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
@@ -491,8 +513,11 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     // Both page kinds share the complete node grammar. A local definition
     // retains every constraint without repeating that grammar per branch.
     ...(schema === WorldScenePageSchema ? { definitions: { sceneNode: WorldSceneWeldNodeSchema } } : {}),
+    // Both existing weather wires contain the same complete phase program.
+    ...(schema === WeatherDocumentSchema ? { definitions: { weatherProgram: WeatherProgramSchema } } : {}),
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
+      if (postIdentityTransforms.has(valibotAction)) return jsonSchema;
       // Exact one-pass sample transforms retain the original wire grammar; JSON numbers are finite.
       if (valibotAction === SkinPoseLayerSchema.entries.times.pipe[1]) return { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 4097 };
       if (valibotAction === SkinPoseLayerSchema.entries.tracks.pipe[0].item.entries.values.pipe[1]) return { type: 'array', items: { type: 'number' }, maxItems: 300000 };

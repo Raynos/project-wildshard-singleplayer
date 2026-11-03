@@ -51,7 +51,7 @@ test('Pine client reads resolve against the emitted output', () => {
   const wanted = [held.firearm.pool.url, held.launcher.pool.url, ranged.collection.pack.url,
     ...Object.values(textures).map(row => row.url),
     ...Object.values(appearance.textures).map(row => row.url),
-    'world/ambience.json', 'actors/elites.json', ...['night', 'director'].map(stem => `behaviour/${stem}.wasm`),
+    'world/forest-page.json', 'actors/elites.json', ...['night', 'director'].map(stem => `behaviour/${stem}.wasm`),
     ...['ironhide', 'ghost-stag', 'blackpaw', 'imperial-bull'].map(stem => `behaviour/elites/${stem}.wasm`)];
   for (const name of wanted) expect(names.has(name), name).toBe(true);
 }, 30000);
