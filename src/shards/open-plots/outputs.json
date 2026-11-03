@@ -188,11 +188,61 @@
       "idea": "ember-forge",
       "name": "Ember Forge",
       "accent": "ember",
+      "layout": "ember-forge",
+      "water": "lava",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.01,
+              0.015,
+              0.05
+            ],
+            "horizon": [
+              0.04,
+              0.06,
+              0.14
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.03,
+              0.045,
+              0.1
+            ],
+            "density": 0,
+            "near": 300,
+            "far": 1600
+          },
+          "sun": {
+            "colour": [
+              0.6,
+              0.7,
+              1.0
+            ],
+            "intensity": 0.35
+          },
+          "ambient": {
+            "sky": [
+              0.25,
+              0.32,
+              0.6
+            ],
+            "ground": [
+              0.12,
+              0.1,
+              0.1
+            ],
+            "intensity": 0.9
+          }
+        }
+      ],
       "manifest": {
         "name": "Open Plot · Ember Forge",
         "status": "earlyAccess",
         "shardSelect": true,
-        "blurb": "An open plot of the grid: walk round the Ember Forge hologram, a world still to be built.",
+        "blurb": "An open plot of the grid: a dwarven foundry at deep-blue night, black basalt halls and cold blue lamps round a furnace hall, molten lava the only warm light.",
         "bindings": {
           "accent": "ember",
           "boot": {

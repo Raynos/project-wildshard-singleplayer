@@ -105,6 +105,12 @@ function tree(w, x, z, size, p, spin) {
     w.solid([x - 1, 0, z - 1], [x + 1, 4, z + 1]);
     return;
   }
+  // OB4 (G978, shared kit rule): a forge plot's kit has ore and no trees, so its bank trees are coal heaps
+  if (w.hasModel('ore')) {
+    w.placeModel('ore', 0, x, z, { yaw: spin, scale: 0.6 });
+    w.solid([x - 2.2, 0, z - 2.2], [x + 2.2, 1.4, z + 2.2]);
+    return;
+  }
   w.sides('Kit', [x - 0.25, 0, z - 0.25], [x + 0.25, size * 0.45, z + 0.25], p.trunk);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 1.1, p.foliage, spin);
   frustum(w, 'Kit', x, z, 6, size * 0.42, 0, size * 0.62, size * 0.32, p.foliageDark, spin);

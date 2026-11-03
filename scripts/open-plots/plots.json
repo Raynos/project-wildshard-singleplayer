@@ -7,6 +7,11 @@
       "cameras": "art/open-plots/coral-drift/domes"
     },
     {
+      "slug": "open-plot-ember-forge",
+      "instance": "open-plot-4-1",
+      "cameras": "art/open-plots/ember-forge/domes"
+    },
+    {
       "slug": "open-plot-frostline-peaks",
       "instance": "open-plot-sw",
       "cameras": "art/open-plots/frostline-peaks/domes"
