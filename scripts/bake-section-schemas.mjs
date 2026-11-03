@@ -94,7 +94,10 @@ export async function sectionSchemaTables(root,slug) {
       const type=sectionType(structural(formatJsonSchema(schema,'draft-07')),typeOptions),id=name.slice(0,-6);
       return type.startsWith('{ ')&&type.endsWith(' }')?`export interface ${id} ${type}`:`export type ${id} = ${type};`;
     });
-  tables[relative(root,typesPath)]=`${header}export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema,typeOptions)};`).join('\n')}\n}\n${declarations.join('\n')}\n`;
+  const customTypes=Object.keys(schemas).length===0
+    ? 'export type CustomSections = Readonly<Record<never, never>>;\n'
+    : `export interface CustomSections {\n${Object.entries(schemas).map(([name,schema])=>`  ${JSON.stringify(name)}: ${sectionType(schema,typeOptions)};`).join('\n')}\n}\n`;
+  tables[relative(root,typesPath)]=`${header}${customTypes}${declarations.join('\n')}\n`;
   // Validate imported authored JSON without creating companion declarations.
   // Tuple contracts live in the explicit standalone product interfaces.
   const files=namespace.FILE_SCHEMAS;

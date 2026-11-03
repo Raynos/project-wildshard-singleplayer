@@ -60,6 +60,8 @@ it('validates authored JSON without emitting companion declaration shims',async(
     writeFileSync(data,'{"at":[1,2]}');
     writeFileSync(source,"import * as v from 'valibot'; export const SECTIONS={}; export const FILE_SCHEMAS={'data/points.json':v.strictObject({at:v.tuple([v.number(),v.number()])})};");
     await writeSectionSchemaTables(root,'sample');
+    expect(readFileSync(join(root,'src/shards/sample/runtime/productSections.d.ts'),'utf8'))
+      .toContain('export type CustomSections = Readonly<Record<never, never>>;');
     expect(existsSync(data.replace('.json','.d.json.ts'))).toBe(false);
     writeFileSync(data,'{"at":[1]}');
     await expect(writeSectionSchemaTables(root,'sample')).rejects.toThrow();
