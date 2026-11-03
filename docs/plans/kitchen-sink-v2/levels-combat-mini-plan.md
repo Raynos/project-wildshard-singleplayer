@@ -216,3 +216,20 @@ engine says `grade`, never "level" (its word for a map).
 4. ~~Enemies roll misses~~: decided 11-02, yes.
 5. **Rare variants** (Jake 11-02: Pine and Driftwood have rarer, tougher variants of each enemy type): fold them in with
    the elites-vs-mini-bosses page.
+
+## 9. Miss feel (draft, 11-02)
+
+Page: `art/showcase-template/round-7-miss-feel/index.html`. Recommended **E**: the §2 roll is untouched (no streak
+guard); a failure is dressed as something the enemy did, never "MISS" (that word stays the aim miss). PARRY 25 % of
+failures if it owns a parry; dodge share `AGI/(AGI+TGH or RES) − 0.1·max(0,g)`, floor 0.1; DEFLECT the rest, 0 damage.
+Even foe: +8 = 9 % dodge, 81 % deflect. DEFLECT silver sparks, clang, 45 ms stop, blade recoil; DODGE pale-blue slip,
+whoosh, no stop; PARRY gold ring. Hits wordless: glance grey, clean white, crit orange.
+
+| Row | What | Files | h |
+|---|---|---|---|
+| LVF1 | Slip: push, no stun | `engine/entities/AnimalSim.ts` | 3 |
+| LVF2 | Deflect: clang path, recoil | `engine/combat/view/SweptMelee.ts` | 3 |
+| LVF3 | Words and colours (+LVH3) | `engine/ui/Combat.ts` | 2 |
+| LVF4 | Clang, whoosh, ring, thud, crack | `public/assets/sfx/best/` | 3 |
+| LVF5 | On you: silver arc, word | `engine/ui/HurtArc.ts` | 2 |
+| LVF6 | One-time DEFLECT hint | `engine/ui/FirstHints.ts` | 1 |
