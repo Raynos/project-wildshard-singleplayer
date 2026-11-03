@@ -17,9 +17,9 @@ export function nineHeadlessRuntime(rise: boolean): PrepareHeadlessRuntime {
 return async preparation => {
   const { product } = preparation;
   const shard = product.shardfile;
-  const lendReturns = await prepareReturns(preparation);
-  const { constants } = await nineNativeOracle();
-  const payload = await nineNativeConstants();
+  // The fenced oracle and constants each wait on their own compiler child (cold on CI); run them, and the return modules,
+  // together. Both source constructors are synchronous and still run in this order, so the values are unchanged.
+  const [lendReturns, { constants }, payload] = await Promise.all([prepareReturns(preparation), nineNativeOracle(), nineNativeConstants()]);
   const grapple = shard.modes?.grapple?.find(row => row.id === 'grapple');
   if (grapple === undefined) throw new Error('Nine Dragon declares its grapple mode');
   if (portalLinkEntries(shard.entryways).length !== 4) throw new Error('Nine Dragon declares four portal-link entryways');
