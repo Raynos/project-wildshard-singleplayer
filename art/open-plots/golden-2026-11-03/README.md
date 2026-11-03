@@ -50,6 +50,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Mosslight Ruins](mosslight-ruins/board.jpg) | 4 | 5 | 4 | 6 | 5 | 4 | 5 | 4 | **4.62** | NOT YET |
 | [Jungle Ziggurat](jungle-ziggurat/board.jpg) (OP13, 11-03 afternoon, `87d9973`; views 5 and 6 moved off the 66 m stair) | 5 | 7 | 7 | 8 | 7 | 7 | 6 | 6 | **6.62** | GOOD ENOUGH |
 | [Patchwork Fairground](patchwork-fairground/) | 6 | 5 | 5 | 6 | 5 | 6 | 5 | 6 | **5.50** | NOT YET |
+| [Fossil Badlands](fossil-badlands/) (OP21) | 5 | 6 | 5 | 7 | 6 | 7 | 5 | 5 | **5.75** | NOT YET |
 
 The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
 level, where the mockups show one huge landmark framed by dense dressing and the builds show a small landmark over wide
@@ -117,3 +118,8 @@ front of it).
 - 2026-11-03, Patchwork Fairground (OP7): first set, shot on `15efc85eee` through `capture.mjs` (grid entry, its cell by
   slug); cameras are Coral's eight plot-local views. Scored against round 75: the helter-skelter road entry and the
   wheel read; the plaza is bare and the rides small from the air (`../../patchwork-fairground/round-3-final/`).
+- 2026-11-03, Fossil Badlands (OP21): first set, shot on the working-tree preview of `e9dd800d7a` (the activation
+  `1617441602` as landed) through `capture.mjs`; cameras are the Fairground's eight, moved to its cell, view 6 on the dig
+  floor inside the skeleton's rim. Scored against round 75: the top-down's trenches, sumps, camps and corner mesas match
+  and the bone-white skeleton reads from its floor; the road entry shows the poster before a small skeleton, and the
+  avenue and corner views are wide paving with Night Market's banner poles (`../../fossil-badlands/round-3-final/`).
