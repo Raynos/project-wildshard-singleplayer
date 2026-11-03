@@ -100,6 +100,20 @@ body/wire audit and the official Simulator window. Exact source/build and
 capacity are agreed at each natural boundary; no duplicate Jungle run
 (Jungle's complete reading cohort stays with sp-x6).
 
+**Final audio-containing readings ownership (2026-11-03, sp-x1).**
+The coordinator transferred sp-x9's eight-plot readings backlog to sp-x1:
+Fossil, Saltwind, Sky Harbor, Starfall, Thin Ice, Clockwork, Floating Island
+Race and Desert Ruin. Sp-x1 owns matched Chromium/control, maintained walk
+and the eight-view golden bridge; sp-x8 owns separate memory and official
+Simulator readings. Sp-x6 owns audio/native bar 10, body/pack/wire proof,
+activation and joint row integration; sp-x2 authors Sky Harbor/Starfall/
+Thin Ice audio. All Jungle readings stay with sp-x6. Exact final SHA/build
+and shared preview leases arrive from the audio owner before any cohort.
+[The shared readings page](../reviews/open-plots-final-readings.md) records
+measured results; **0/8 final cohorts are measured at this boundary**.
+Saltwind's actual cell is **(0,2)** / `open-plot-2-4`; its missing maintained
+walk route is with the visual builder. No visual source or guard changes.
+
 **Starfall walk qualification (2026-11-03, sp-x9).** The ordinary maintained
 `scripts/open-plots/walk.mjs` ran under the browser lane on a shared lease
 of `d4d4b17674c7e80fb3beb8c16de1fbd14ff2e064`, actual build
