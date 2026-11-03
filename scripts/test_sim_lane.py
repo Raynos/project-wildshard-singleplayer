@@ -355,20 +355,50 @@ sys.exit(int(os.environ.get('SIM_PRESENTATION_RC','0')))
         source = (ROOT / 'scripts/sim-lane.sh').read_text()
         remaining = source.split('wait_remaining() {', 1)[1].split('startup() {', 1)[0]
         startup = source.split('startup() {', 1)[1].split('case "${1:-}" in', 1)[0]
-        self.command('python3', '''import os,sys,time
-time.sleep(2.1)
-os.execv(sys.executable,[sys.executable,*sys.argv[1:]])
+        # Port only the admission clock and native process result. A real 2.1s
+        # sleep under a one-second admission could expire before the native
+        # command ever ran on CI; that legitimate75 is not a hidden native23.
+        # The unmodified Bash arithmetic/startup and its actual Python program
+        # execute across the real interpreter boundary, within the same5s cap.
+        clock = self.root / 'interpreter-entry-clock'
+        called = self.root / 'interpreter-entry-native'
+        self.command('python3', '''import builtins,json,os,sys
+from pathlib import Path
+from types import SimpleNamespace
+import subprocess
+root=Path(os.environ['SIM_FIXTURE'])
+assert sys.argv[1]=='-c'
+program=sys.argv[2]
+sys.argv=['-c',*sys.argv[3:]]
+(root/'interpreter-entry-clock').write_text('2')
+native=int(os.environ['SIM_ENTRY_NATIVE'])
+def run(args,**options):
+    assert args==['/bin/sh','-c',f'exit {native}']
+    assert options=={'timeout':1,'check':False}
+    (root/'interpreter-entry-native').write_text(json.dumps({'args':args,'options':options}))
+    return SimpleNamespace(returncode=native)
+ports={'time':SimpleNamespace(monotonic=lambda:0),
+       'subprocess':SimpleNamespace(run=run,TimeoutExpired=subprocess.TimeoutExpired)}
+def import_port(name,*args,**kwargs):
+    return ports[name] if name in ports else builtins.__import__(name,*args,**kwargs)
+exec(program,{'__builtins__':{**vars(builtins),'__import__':import_port}})
 ''')
-        program = ('WAIT_SECONDS=1\nWAIT_DEADLINE=$((SECONDS+WAIT_SECONDS))\n'
+        program = ('WAIT_SECONDS=1\nWAIT_DEADLINE=1\n'
                    'wait_failed() { echo "global admission expired" >&2; return 75; }\n'
-                   'wait_remaining() {' + remaining + '\nstartup() {' + startup
+                   'wait_remaining() { SECONDS=$(<"$SIM_FIXTURE/interpreter-entry-clock")\n'
+                   + remaining + '\nstartup() {' + startup
                    + '\nstartup /bin/sh -c "exit $1"')
-        for native, expected in [('0', 75), ('23', 23)]:
-            with self.subTest(native=native):
+        for initial, native, expected, ran in [(0, '0', 75, True), (0, '23', 23, True), (2, '23', 75, False)]:
+            with self.subTest(initial=initial, native=native):
+                clock.write_text(str(initial)); called.unlink(missing_ok=True)
                 result = subprocess.run(['/bin/bash', '-c', program, 'owned-startup', native],
-                    env=self.env, text=True, capture_output=True, timeout=5, check=False)
+                    env={**self.env, 'SIM_ENTRY_NATIVE': native}, text=True, capture_output=True, timeout=5, check=False)
                 self.assertEqual(result.returncode, expected, result.stderr)
-                self.assertEqual('global admission expired' in result.stderr, native == '0')
+                self.assertEqual('global admission expired' in result.stderr, expected == 75)
+                self.assertEqual(called.exists(), ran)
+                if ran:
+                    self.assertEqual(json.loads(called.read_text()), {
+                        'args': ['/bin/sh', '-c', f'exit {native}'], 'options': {'timeout': 1, 'check': False}})
 
     def immediate_url_failure_fixture(self, process_delay=0):
         """Keep this service-error case independent of child scheduling.
