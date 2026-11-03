@@ -12,7 +12,7 @@ export function plotAudioData(idea: string, spots: readonly PlotAudioSpot[], sco
     || spots.some(row => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(row.id)
       || !Number.isFinite(row.x) || !Number.isFinite(row.z) || Math.abs(row.x) > 250 || Math.abs(row.z) > 250
       || !Number.isFinite(row.reach) || row.reach <= 0 || row.reach > 100)) throw new Error('Invalid plot audio anchors');
-  const name = (id: string): string => `${idea}.${id}`;
+  const name = (id: string): string => `${id === 'ambience' ? 'bed' : 'hum'}.${idea}.${id}`;
   const ids = ['ambience', ...spots.map(row => row.id)].map(name);
   return parseAudioData({
     cues: [], routing: [], ambience: null, score: 'default',
@@ -31,13 +31,14 @@ export function plotAudioData(idea: string, spots: readonly PlotAudioSpot[], sco
     music: {
       id: idea, base: 'score', slots: ['score'], bootSlots: ['title'], synthLead: 'pluck', minFade: 2,
       setPlayback: { scene: {}, stateMode: false, waitForBank: true },
+      setCatalogue: { inventory: 'title', priority: true, bootSynth: true, titleStings: false, baseSamples: false, cueOverlay: false },
       source: scoreSource, sets: {},
       selection: [{ slots: ['score'], when: [] }], selectMode: 'first',
     },
     // None of the plot's recordings is a first-control bed. Its six loops
     // join the ordinary deferred overlay; the own score waits for that bank.
     samples: { set: idea, bed: 'none', loopGains: Object.fromEntries(ids.map(id => [id, 1])),
-      catalogue: { ownMusic: false, priorityOwn: true, overlaySamples: true, inventoryOmitSlots: [], loopOrder: ids } },
+      catalogue: { ownMusic: false, priorityOwn: true, overlaySamples: false, inventoryOmitSlots: [], loopOrder: ids } },
     zones: {
       id: idea, smoothSeconds: 0.2, tickHz: 8, silentSeconds: 5, holdSeconds: 0, levels: {}, wet: {}, zones: [],
       sampleMix: {

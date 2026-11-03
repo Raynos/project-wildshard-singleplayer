@@ -1990,12 +1990,12 @@ floor footprints, circular regions and live zone spots. Ordered rows feed
 the existing mixer expressions; `probeFinite` holds the mix on invalid
 listener/weather input. Floor, site and point ports remain real owners.
 
-`SampledAmbience` consumes `audio.zones.sampleMix`: bounded level and pan
-expressions, zone weights and held selection, and seeded distant-call rows.
-`set()` receives scalar observations, `mix()` applies gains, and `advance()`
-advances the native frame
-clock. Mixer loops or a native `CuePlayer` supply samples. No author callback
-is installed; disposal releases the native loop owners.
+`SampledAmbience` interprets `audio.zones.sampleMix` levels, pans, held
+zones and seeded calls. `set` supplies observations; `mix` applies gains;
+`advance` ticks. Mixer or `CuePlayer` supplies loops, with no author
+callback. Set-catalogue scenes borrow their cue bank; `loopOrder` gates a
+waiting score until every loop arrives. Exit retires loops, score and
+bank listeners.
 
 | Export | What it is |
 |---|---|
