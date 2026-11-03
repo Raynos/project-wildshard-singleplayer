@@ -4,7 +4,9 @@ drawn analytically from metres, no texture). python3 scripts/open-plots/ruled-gr
   src/shards/open-plots/data/paving.graph.json  the paving: flagstones, joints, per-stone shade, wear (world metres)
   src/shards/open-plots/data/landmark.graph.json the landmark: its texture, gold trim glowing, its foot uplit
   src/shards/open-plots/data/kit.graph.json     the kit: plain / roof tile / timber / plaster / awning stripe / stone / banner by
-                                                the face's trim band (data/trim.json)"""
+                                                the face's trim band (data/trim.json)
+  src/shards/open-plots/data/kitPlanks.graph.json  the kit with its ground ruled as boardwalk planks (Lantern Bayou, OB2)
+  src/shards/open-plots/data/landmarkDusk.graph.json  the landmark under a neutral dusk fill (a natural landmark, OB2)"""
 import json, os
 ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'shards', 'open-plots', 'data')
 TRIM = json.load(open(os.path.join(ROOT, 'trim.json')))
@@ -62,7 +64,9 @@ def paving():
     return {"version": 1, "kind": "material", "model": "standard", "doubleSided": False, "params": P, "nodes": N,
             "stages": {"surface": {"colour": "colour", "roughness": "rough", "metalness": 0}}}
 
-def kit():
+def kit(ground=None):
+    """`ground` (data/trim.json `flagstone`'s keys) rules the ground-level faces; the planks twin passes boards"""
+    ground = ground or FLAG
     N, n = graph()
     BAND = TRIM['band']
     n("uv", "uv"); n("ur", "swizzle", "uv", mask="x"); n("v", "swizzle", "uv", mask="y")
@@ -104,8 +108,8 @@ def kit():
     al = line("al", "ad", 0.08); n("cream", "param", param="cream"); n("stripe", "mul", al, 0.8); n("awning", "mix", "vc", "cream", "stripe")
     # the paving: every up-facing kit face at ground level (below `FLAG['under']` m: the lanes, plaza, forecourt and court
     # floors; the lawns stand higher), ruled in world metres. No UV: a tile's bytes are raw, and its byte caps hold
-    fshade, fline = flagstones(n, "f", FLAG['flag'], FLAG['row'], FLAG['joint'], FLAG['spread'])
-    n("fstone", "mul", "vc", fshade); n("fdark", "mul", "vc", FLAG['jointShade']); n("flagstone", "mix", "fstone", "fdark", fline)
+    fshade, fline = flagstones(n, "f", ground['flag'], ground['row'], ground['joint'], ground['spread'])
+    n("fstone", "mul", "vc", fshade); n("fdark", "mul", "vc", ground['jointShade']); n("flagstone", "mix", "fstone", "fdark", fline)
     n("fnw", "normalWorld"); n("fny", "swizzle", "fnw", mask="y"); n("fup", "gt", "fny", 0.99)
     n("fwy", "swizzle", "fwp", mask="y"); n("flow", "lt", "fwy", FLAG['under']); n("fis", "and", "fup", "flow")
     n("c6", "select", "fis", "flagstone", "lit")
@@ -122,7 +126,7 @@ def kit():
          "stages": {"vertex.offset": {"offset": "offset"}, "surface": {"colour": "colour", "roughness": "rough", "metalness": 0}}}
     return g
 
-def landmark():
+def landmark(light=None):
     """RM6.4: the landmark (the gate) in its own texture, shaded by the sun and a warm dusk fill, its gold trim glowing and its
     foot warmed by its light pools. Unlit, so the static world transport binds its colour map (meshMap colourOrVertex)."""
     N, n = graph()
@@ -138,6 +142,7 @@ def landmark():
          "sunColour": {"type": "colour", "value": [1.5, 1.23, 1.02]},
          "uplight": {"type": "colour", "value": [0.55, 0.22, 0.08]},
          "uplightHeight": {"type": "float", "value": 9, "min": 0.1, "max": 100}}
+    for k, value in (light or {}).items(): P[k]["value"] = value
     for k in P: n(k, "param", param=k)
     n("map", "meshMap", name="colourOrVertex"); n("rgb", "swizzle", "map", mask="xyz")
     # the sun on the face and the dusk fill (the plot's fixed dusk: its key's ambient), sky above and warm below
@@ -159,3 +164,9 @@ def landmark():
 write('paving.graph.json', paving())
 write('kit.graph.json', kit())
 write('landmark.graph.json', landmark())
+# OB2 Lantern Bayou: its boardwalk in 2.4 x 0.25 m planks (rows across z, ends staggered, each board its own shade, dark
+# gaps) where the kit rules flagstones; its cypress under a neutral teal dusk fill (~1.1x, a softer sun, a warm lantern
+# uplight under the crown) where the gate's warm lilac fill (x 2.8-3.6) would turn bark lilac and moss white
+write('kitPlanks.graph.json', kit({'flag': 2.4, 'row': 0.25, 'joint': 0.012, 'spread': 0.3, 'jointShade': 0.45}))
+write('landmarkDusk.graph.json', landmark({'trim': 0.4, 'ambient': [0.46, 0.56, 0.56], 'skyFill': [0.95, 1.12, 1.16], 'sunGain': 0.55,
+                                          'sunColour': [1.2, 1.0, 0.82], 'uplight': [0.95, 0.58, 0.26], 'uplightHeight': 16}))
