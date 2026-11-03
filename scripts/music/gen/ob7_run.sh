@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Invoke only after sp-ci-deploy grants this model turn. One model, one plot,
-# one finite shared-lock batch; no global eviction and no automatic retry.
+# One model, one plot, one finite shared-lock batch. Honour any booked
+# official window; no global eviction and no automatic retry.
 set -euo pipefail
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 model=${1:?model required: score, moss, medium, clap or vocals}
