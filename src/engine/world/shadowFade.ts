@@ -108,6 +108,8 @@ export class ShadowFade {
 
   /** a fade is running: the clock holds its next step */
   get busy(): boolean { return this.t < 1; }
+  /** the fade began this frame: the ghosts must draw now, to catch the shadow from before the step */
+  started = false;
 
   /**
    * E153: the boot's warm-up (Sky.warmShadows): settle on the CSM's direction and draw each ghost's map on its cascade's
@@ -123,11 +125,12 @@ export class ShadowFade {
 
   /** after csm.update(): notice a step, advance the fade, and place the ghosts' shadows while it runs */
   update(dt: number): void {
+    this.started = false;
     const dir = this.csm.lightDirection;
     if (!dir.equals(this.last)) {
       const turn = dir.angleTo(this.last);
       // a step starts a fade from where the last one ended; a jump (or a step mid-fade) moves at once
-      if (turn < MAX_FADE && this.t >= 1) { this.from.copy(this.last); this.t = 0; } else this.t = 1;
+      if (turn < MAX_FADE && this.t >= 1) { this.from.copy(this.last); this.t = 0; this.started = true; } else this.t = 1;
       this.last.copy(dir);
     }
     if (this.t < 1) this.t = Math.min(1, this.t + dt / SUN_FADE_S);

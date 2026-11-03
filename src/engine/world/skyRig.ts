@@ -475,6 +475,10 @@ export class SkyRig {
       this.farTick = (this.farTick + 1) % 8;
       const redraw = cascadeRedraws(this.farTick, this.csm.lights.length);
       this.csm.lights.forEach((light, i) => { light.shadow.autoUpdate = redraw[i] ?? true; });
+      // DW: a running fade's ghosts redraw on the ticks no far or middle cascade does (2 and 6 of the 8, 7.5 Hz at the
+      // phone's 30), and all at once on the fade's first frame; they had redrawn every frame of every fade (+~40 draws)
+      const fade = this.shadowFade;
+      if (fade?.busy === true && !fade.started && this.farTick % 4 !== 2) for (const ghost of fade.ghosts) ghost.shadow.autoUpdate = false;
     } else if (TIER_CONFIG.shadowEvery > 1) {
       this.everyTick = (this.everyTick + 1) % TIER_CONFIG.shadowEvery;
       for (const light of this.csm.lights) light.shadow.autoUpdate = this.everyTick === 0;
