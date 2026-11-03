@@ -49,6 +49,23 @@ horizontal FOV, 402 x 603), each dome's hero view plus the plaza's look-up:
   planks read as short brick courses, and the warm lantern pools on the ground are faint (gap 6).
 - Peak counts (whole frame, the neighbours too): 185 calls (C2), 466k triangles (B2), no page errors.
 
+## Round 2: capture 02f325dade (sp-o2, with Coral Drift's first capture)
+
+- `sheet-r2-r0-r1-r2-target.jpg`: each angle as R0, R1, R2 and its target.
+- Closed: the boardwalks read warm brown planks, the moss olive-green, the amber pools show under the lanterns.
+- Open, beyond a look round: the water does not mirror the lanterns (gap 3: it needs a reflective water kind of its
+  own, a new material), the crown hangs 40 lanterns where the targets show more, and the road views' sky is the grid's
+  (gap 5).
+- Peak counts (whole frame, neighbours too): 185 calls (C2), 468k triangles (B2), no page errors; product phone wire
+  5.44 of 5.48 MB.
+- The capture's A1 settle wait timed out on 3 of 4 tries on a fresh preview (`capture-plot-domes.mjs:102`), where an
+  identical probe settled in 10 s every time; reported to the harness owner.
+
+## Final board
+
+`final-board.jpg`: four hero angles (road entry, 40 m toward the cypress, the plaza, under the crown), each as
+A before (the first build, cfbc0220db), B after (round 2, 02f325dade) and C target. This is the board for Jake.
+
 ## Picks (G872, logged)
 
 - **R1** (sp-o2, 2026-11-03): land gaps 1, 2 and 4, and the water colour of 3, as one round. Each row is the targets'
@@ -57,3 +74,6 @@ horizontal FOV, 402 x 603), each dome's hero view plus the plaza's look-up:
 - **R2** (sp-o2, 2026-11-03, a0c12bb98a): darker olive moss; warm plank browns for the paving, lanes, plaza,
   forecourts and ring; 4 x 0.3 m boards with softer joints and more per-board shade; brighter amber pools. The water's
   reflections (gap 3) need a water kind of their own, and the sky (gap 5) is the grid's, so neither is in this round.
+- **Finish** (sp-o2, 2026-11-03): stop the loop after round 2. What a look round can close is closed. The water's
+  reflections and a fuller crown of lanterns are new work, logged as Bayou's open items rather than more rounds of
+  palette and swatch changes.
