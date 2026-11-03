@@ -1,0 +1,250 @@
+{
+  "protocol": "open-plot-comparison/1",
+  "idea": "mosslight-ruins",
+  "width": 1206,
+  "height": 2622,
+  "quality": 84,
+  "bytes": 329308,
+  "provenance": [
+    {
+      "view": "above-neighbour",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 4,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/now-above-neighbour.png",
+      "sha256": "be95d2e3826bbb30609d16184a09b39ffa7e6bc5c9a56fa72da441791b572d39",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          140,
+          -430
+        ],
+        "look": [
+          0,
+          137.31201032186055,
+          -420.36803698666694
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/nightMarket-above-neighbour.png",
+      "sha256": "2ba9f421ee0506fd5be6aca5b313ec4cc582ca979f357061c94a237fbdd07ec2",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          140,
+          -430
+        ],
+        "look": [
+          0,
+          137.31201032186055,
+          -420.36803698666694
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 446,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/now-road-entry.png",
+      "sha256": "9b761f75fee9c53808d9cd6e0c7a9f7917683b300e6f000cbc89cc219c16b70c",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -241
+        ],
+        "look": [
+          0,
+          2.292319201384206,
+          -231.01755751513332
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/nightMarket-road-entry.png",
+      "sha256": "a58efe9e5c1fcaea818f810ea8459c56cf4d8855a9be7c02829d4ff2cd1816dc",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -241
+        ],
+        "look": [
+          0,
+          2.292319201384206,
+          -231.01755751513332
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 4,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/now-top-down.png",
+      "sha256": "a0db30a3eb30f01fc1ac1767d519cfb48e33cb758732634c34d7e53015f3153a",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          470,
+          -2
+        ],
+        "look": [
+          0,
+          460.0000905374757,
+          -1.957447193776492
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/nightMarket-top-down.png",
+      "sha256": "fcab153479b7cfd496e82962d23e740674ba7477323e6039c568858298052a16",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          470,
+          -2
+        ],
+        "look": [
+          0,
+          460.0000905374757,
+          -1.957447193776492
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 446,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/now-plaza.png",
+      "sha256": "7ab448aa503b208c92f230f148dad99adc05c99169d6c27b7163e86539e3909a",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -62
+        ],
+        "look": [
+          0,
+          3.3388293353007343,
+          -52.135202059354796
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-mosslight-ruins/captures/nightMarket-plaza.png",
+      "sha256": "c3a7d69500a29a44c64a35bf44c4f548c522d81ca6a746702611eb90e4fdac6a",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -62
+        ],
+        "look": [
+          0,
+          3.3388293353007343,
+          -52.135202059354796
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    }
+  ]
+}

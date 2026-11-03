@@ -1,0 +1,250 @@
+{
+  "protocol": "open-plot-comparison/1",
+  "idea": "ember-forge",
+  "width": 1206,
+  "height": 2622,
+  "quality": 84,
+  "bytes": 300228,
+  "provenance": [
+    {
+      "view": "above-neighbour",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 4,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/now-above-neighbour.png",
+      "sha256": "3c97a96f38399992a0d6709f402946280305b0a3de668e0c7a1422438c929c28",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          140,
+          -430
+        ],
+        "look": [
+          0,
+          137.31201032186055,
+          -420.36803698666694
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/nightMarket-above-neighbour.png",
+      "sha256": "931187261c1df4f8c455ae31b75dd7e3a15a25e8224bd907c5dc2636cba6c836",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          140,
+          -430
+        ],
+        "look": [
+          0,
+          137.31201032186055,
+          -420.36803698666694
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 446,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/now-road-entry.png",
+      "sha256": "10c4177087556af99db10367e10e2e4ff38143e15bf8ad68fd8ffdea4e777682",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -241
+        ],
+        "look": [
+          0,
+          2.292319201384206,
+          -231.01755751513332
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/nightMarket-road-entry.png",
+      "sha256": "43f12b3c1fda0a9b193cf4dd55ab77e3a0caaeb3c4fde617032d6cca4347be97",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -241
+        ],
+        "look": [
+          0,
+          2.292319201384206,
+          -231.01755751513332
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 4,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/now-top-down.png",
+      "sha256": "d2b76bb51a0a978ab76cc97d743c82fb74dd727f796843cea923268e4b663faf",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          470,
+          -2
+        ],
+        "look": [
+          0,
+          460.0000905374757,
+          -1.957447193776492
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/nightMarket-top-down.png",
+      "sha256": "b238dc8f8ee720cfb4289bee9f9c210501d131f75c2357129d55076eefa7bc41",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          470,
+          -2
+        ],
+        "look": [
+          0,
+          460.0000905374757,
+          -1.957447193776492
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/17-ember-forge.jpg",
+      "sha256": "5e9d28a52ddad3bd4a414685e201f15d2a52988c2538c8416c433854bf75f3da",
+      "crop": {
+        "left": 446,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 1,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/now-plaza.png",
+      "sha256": "5d30329cc02d9fb27a46d54e801640744e478e61a538c6817aebaf63bd442d69",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -62
+        ],
+        "look": [
+          0,
+          3.3388293353007343,
+          -52.135202059354796
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 2,
+      "file": "/Users/raynos/projects/games/wildshard-singleplayer/tmp/sp-o1-dens/final-ember-forge/captures/nightMarket-plaza.png",
+      "sha256": "a06cef9b414c68d7f416fdb6b66fadd2361ad2cb574a8ef37fdd36b3ffa95c64",
+      "pin": "9ff4a006a9a8fcf9eef233ee445f6d20f71b6041",
+      "camera": {
+        "eye": [
+          0,
+          1.7,
+          -62
+        ],
+        "look": [
+          0,
+          3.3388293353007343,
+          -52.135202059354796
+        ],
+        "fov": 72,
+        "viewport": [
+          402,
+          874
+        ]
+      }
+    }
+  ]
+}
