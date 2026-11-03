@@ -17,6 +17,12 @@ unfolded. Let's try our best in the plan and design."*
 4. Collectibles that pay perks; trophies; skins and finishes as elite drops; joke-title feats.
 5. *"Death costs XP toward the next level and never delevels."*
 
+Later the same day (Jake): parts, Forge I–IV and Scrip are in; grey kills pay nothing; no patch kits (the bench makes
+ammo only); the legendary is the Titan Cleaver. **Weapons are bought, level-locked: several shops, including a
+dedicated weapons shop, each with stock that opens by level** (rework the shop rows for this). **Normalise every
+loot/economy host across Driftwood, Pine Hollow and Nalati in Wave 1**, migrating those shards onto the shared host
+(parent §4; the per-area map in [wave-1-migration-map.md](wave-1-migration-map.md)).
+
 All kept. Two readings this plan makes (Q2, Q3): the levels page's weapon tiers become one-off **Forge** upgrades, and
 coins follow the XP gap rule instead of Driftwood's per-enemy cap.
 
