@@ -1,12 +1,14 @@
 /**
  * G5: the kit kinds that draw apart (layout.ts `splitKinds`), each through the kit graph with its kind fixed (kitKindGraphs.ts),
  * so their faces carry none of the other kinds' registers: the flagstones (kind 3, 72 % of the phone's street pose (a)) and
- * the plain walls (kind 0, most of a street-level frame). The table alone, with no imports: the layout bake reads it, and the
+ * the plain walls (kind 0, most of a street-level frame), the inset panels (kind 9) and the carved panels (kind 5). The table alone, with no imports: the layout bake reads it, and the
  * kit graphs' module chain reaches the casts that import the layout.
  */
 export const KIT_KINDS: readonly { readonly kind: number; readonly look: string; readonly material: string }[] = [
   { kind: 3, look: 'nine-architecture-ground', material: 'kit-ground' },
   { kind: 0, look: 'nine-architecture-plain', material: 'kit-plain' },
+  // QD5: the next two by the phone poses' pixels (D 14 % and 10 %, A 6.6 % and 3.4 %): the inset panels and the carved panels
+  { kind: 9, look: 'nine-architecture-inset', material: 'kit-inset' },
 ];
 
 /** a split kind's row (its look and world-scene material) */
