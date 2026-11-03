@@ -145,5 +145,54 @@
         "reach": 30
       }
     ]
+  },
+  "mosslight-ruins": {
+    "idea": "mosslight-ruins",
+    "source": {
+      "dir": "/assets/music/mosslight-ruins/",
+      "manifestKey": "mosslight-ruins"
+    },
+    "sfxDir": "/assets/sfx/mosslight-ruins/",
+    "files": {
+      "score": "take-a-f27305fc5237.m4a",
+      "ambience": "ambience-f54e832bc4cf.m4a",
+      "pool-hum": "pool-hum-d7a67bb4f16c.m4a",
+      "ivy-birds": "ivy-birds-6320dcb8c3d0.m4a",
+      "arch-wind": "arch-wind-125671ebe3fd.m4a",
+      "falling-grit": "falling-grit-6591ea862ee1.m4a",
+      "pool-drip": "pool-drip-ada2f22d12a9.m4a"
+    },
+    "spots": [
+      {
+        "id": "pool-hum",
+        "x": -93.75,
+        "z": -93.75,
+        "reach": 28
+      },
+      {
+        "id": "ivy-birds",
+        "x": -93.75,
+        "z": -218.75,
+        "reach": 35
+      },
+      {
+        "id": "arch-wind",
+        "x": -31.25,
+        "z": -218.75,
+        "reach": 28
+      },
+      {
+        "id": "falling-grit",
+        "x": 0,
+        "z": -20,
+        "reach": 30
+      },
+      {
+        "id": "pool-drip",
+        "x": -31.25,
+        "z": -93.75,
+        "reach": 25
+      }
+    ]
   }
 }

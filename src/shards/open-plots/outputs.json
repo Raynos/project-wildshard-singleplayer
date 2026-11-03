@@ -761,6 +761,17 @@
             "x": 0,
             "z": 26
           }
+        ],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.mosslight-ruins",
+          "score": "score.mosslight-ruins",
+          "bed": "none"
+        },
+        "assetGlobs": [
+          "public/assets/open-plots/**",
+          "public/assets/music/mosslight-ruins/**",
+          "public/assets/sfx/mosslight-ruins/**"
         ]
       }
     },
