@@ -1,0 +1,250 @@
+{
+  "protocol": "open-plot-comparison/1",
+  "idea": "mosslight-ruins",
+  "width": 1206,
+  "height": 2622,
+  "quality": 84,
+  "bytes": 313452,
+  "provenance": [
+    {
+      "view": "above-neighbour",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 4,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 1,
+      "file": "tmp/sp-o3-moss/hero3/moss/above.png",
+      "sha256": "ec49aa00e4ee1e76a62253e3b37685e7bf35b055361902bea3784a41ecf8277e",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          0,
+          137.4665206583351,
+          -430
+        ],
+        "look": [
+          -1.162478116391961e-15,
+          134.32085505217393,
+          -420.5076458191756
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "above-neighbour",
+      "column": 2,
+      "file": "tmp/sp-o3-moss/hero3/nm/above.png",
+      "sha256": "23afef161cb107399ba79fc8dd7c941ff466725395a333e62c85fce9b1ef2201",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          0,
+          137.4665206583351,
+          -430
+        ],
+        "look": [
+          -1.162478116391961e-15,
+          134.32085505217393,
+          -420.5076458191756
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 446,
+        "top": 84,
+        "width": 431,
+        "height": 645
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 1,
+      "file": "tmp/sp-o3-moss/hero3/moss/road.png",
+      "sha256": "c5672f1bd6915e73e50f501c231a41c095ff76ef4c8db822e8535b457d8b02c5",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          3.1851220059155235e-9,
+          1.699628488300637,
+          -241
+        ],
+        "look": [
+          3.1851207834724273e-9,
+          2.299268553095083,
+          -231.01799460064797
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "road-entry",
+      "column": 2,
+      "file": "tmp/sp-o3-moss/hero3/nm/road.png",
+      "sha256": "613dc01bbf9d302f8aabc25b678a96f0d54a1549ac7e2789067b4311d7636590",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          3.1851220059155235e-9,
+          1.699628488300637,
+          -241
+        ],
+        "look": [
+          3.1851207834724273e-9,
+          2.299268553095083,
+          -231.01799460064797
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 4,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 1,
+      "file": "tmp/sp-o3-moss/hero3/moss/top.png",
+      "sha256": "f94d7c39750ba24134b811a4e76f1764acf3e4ca080d22acabc9dcdfec0d9a9b",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          0,
+          467.46652065833507,
+          -2
+        ],
+        "look": [
+          -2.5466319307877645e-17,
+          457.4686830164415,
+          -1.792051721969075
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "top-down",
+      "column": 2,
+      "file": "tmp/sp-o3-moss/hero3/nm/top.png",
+      "sha256": "b9485d6d0cc0d4c37aeacc59d6958dd4962a4248e70fad1e4bc74468a2704178",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          0,
+          467.46652065833507,
+          -2
+        ],
+        "look": [
+          -2.5466319307877645e-17,
+          457.4686830164415,
+          -1.792051721969075
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 0,
+      "file": "art/grid/round-62-open-plot-palettes/19-mosslight-ruins.jpg",
+      "sha256": "fb5d69c4f9d254893317e738adb69ee6502368db9313c583d536b07a33767f9c",
+      "crop": {
+        "left": 446,
+        "top": 744,
+        "width": 431,
+        "height": 654
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 1,
+      "file": "tmp/sp-o3-moss/hero3/moss/plaza.png",
+      "sha256": "459638a297d0c89d691da5fed41cc4d8e20d6023833d60e6f049d0d4f17a62c8",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          0,
+          1.6996354128586022,
+          -61.999996889556925
+        ],
+        "look": [
+          -1.2090047326168986e-15,
+          3.292817479001062,
+          -52.127724055800655
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    },
+    {
+      "view": "plaza",
+      "column": 2,
+      "file": "tmp/sp-o3-moss/hero3/nm/plaza.png",
+      "sha256": "2a5f75c2bdac5a51f8a112633f3fc4df7146036adbebc3aa67a5e9cbb16758fe",
+      "pin": "def30fc8f4d616fe086f096ff00ef2c36cbacc37",
+      "camera": {
+        "eye": [
+          0,
+          1.6996354128586022,
+          -61.999996889556925
+        ],
+        "look": [
+          -1.2090047326168986e-15,
+          3.292817479001062,
+          -52.127724055800655
+        ],
+        "fov": 72,
+        "viewport": [
+          804,
+          1748
+        ]
+      }
+    }
+  ]
+}
