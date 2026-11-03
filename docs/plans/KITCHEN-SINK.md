@@ -12,8 +12,8 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 ## 1. What it is
 
 - **Template 3, the Showcase Template** (slug `showcase-template`, G526): one 500 × 500 m cell in the 5 × 5 grid,
-  in the Source dev-map look (orange and grey blocks, stencilled size labels, 1 m grid floors; G523, kept by Jake on
-  11-02 over OPEN-PLOTS' teal expo). It replaces the hologram plot at (0,2) when it is built (G973: "comes later").
+  in an orange-and-grey look (G523, kept by Jake on 11-02 over OPEN-PLOTS' teal expo), **now polished, never
+  placeholder** (ruling 19ab: no stencilled size labels, no 1 m grid floors, no plain blocks). It replaces the hologram plot at (0,2) when it is built (G973: "comes later").
 - **The point:** every engine feature in one place, authored with **0 % custom TypeScript** (G524). Shared hosts, data
   rows and AssemblyScript only. A feature that can't be built that way becomes a Wave 1 host row, never shard TS.
 - **New in v2: it plays like an MMO zone.** Guild Wars-style **levels 1 to 20**: you arrive at level 1 and level up only
@@ -160,6 +160,15 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     combat a ring, the sting, the LV chip and a one-line gain chip; the Fire Emblem tick-up card waits until you're out
     of combat. A level-up refills HP. Regen starts 5 s after the last hit and fills in 12 s; commons leash and reset.
     The Character tab shows the attributes, par, ▲▼ aptitudes and derived numbers.
+19ab. **The look is polished, not placeholder** (Jake 11-03, on the first remastered mockups: *"poisoned by the placeholder
+    stuff in the gray blockout … sizes everywhere, 1x1, 2x3, 4x8. That's bad … what would this look like as a super fun
+    kitchen sink showcase shard that has the simpler art style but still polished and super fun and doesn't look like
+    placeholder shit"*). A simple, polished, playful stylized look in a warm orange and cool grey workshop / test-yard
+    palette with cyan accents: finished materials, characterful robots, a cover-worthy Crate Titan. **Out:** stencilled
+    size labels ("1x1", "MK II"), dev-texture grid floors and plain blocks. The grey blockout fixes layout only. The
+    prompt block is `art/showcase-template/round-11-remaster/COMMON-v2.txt`. Jake, right after: *"a bunch of the mockups are
+    good … 8 out of 10. Top-down stuff is good. The west side is looking pretty good. We just need to push it a bit
+    harder. Especially the crate titan"*; the Training Vault shots are original mockups (no real blockout of it).
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

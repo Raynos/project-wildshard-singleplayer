@@ -1,0 +1,39 @@
+ROUND 11 v2 COMMON (Jake 11-03: "the mockups need to be reimagined as a remaster ... what would this look like as a super fun kitchen sink showcase shard that has the simpler art style but still polished and super fun and doesn't look like placeholder shit.")
+
+WHAT THE ATTACHED SCREENSHOT IS
+The attached image is a GREY BLOCKOUT: flat untextured boxes that only say WHERE things are. Use it as a LAYOUT GUIDE, never as a look reference. Keep: the camera position and angle, the field of view, the horizon line, and where each mass sits, roughly how big and tall it is, and its overall footprint. Everything else is yours to design. Every grey box, capsule, slab, cylinder and coloured patch stands for a real, finished, designed thing (a building, a robot, a ramp, a crate stack, a wall, a tower): replace it with that finished thing, rich in shape and detail, in the same spot at about the same size. Do NOT draw boxes that look like boxes, do NOT copy the flat colours, do NOT copy any placeholder look.
+
+THE GAME AND ITS LOOK
+A real in-game print-screen (iPhone portrait) of Wildshard's "Showcase Template": a super fun, polished, playful theme-park world that shows off every feature of the game. Art style: SIMPLE BUT POLISHED stylized 3D, like a finished, well-funded stylized action game (clean readable shapes, bevelled and rounded edges, soft hand-tuned materials, toy-like charm, saturated but tasteful colour, crisp warm sunlight with soft shadows and ambient occlusion, a bright blue sky with a few soft clouds, light atmospheric depth). The shard's identity is a WORKSHOP / TEST-YARD theme in a warm ORANGE and cool GREY palette with cyan accents: painted steel, warm concrete, timber, canvas awnings, safety stripes, bunting, banners, planters and small trees, lamps, pennants, signage with personality. It must look finished and inviting, never like a level-design placeholder.
+
+NEVER (these are placeholder poison; any image showing them is a failure)
+- No size stencils or dev labels anywhere: no "1x1", "2x3", "4x4", "4x8", "MK II", "1M", "4M", "22M", "DOCK", "HOOK 3", "HOOK 5", "BAND n" or similar text on surfaces.
+- No dev-texture grids: no 1 m / 4 m grid lines on floors, walls or objects. Floors are real surfaces (paving, packed earth, concrete with seams, painted court markings where it makes sense, grass verges).
+- No plain untextured boxes, no flat-shaded cubes, nothing that reads as a blockout.
+- No in-world text except a few short, quoted signs named in the SCREEN block.
+
+LANDMARKS (identical design in every shot; draw one only where the screenshot has its mass)
+- THE OBELISK: a 22 m elegant tapering clock-and-beacon spire at the head of Main Street: warm orange stone with grey steel bands, a glowing cyan crystal at the tip, a small plaza fountain ring at its base.
+- THE GRAPPLE TOWER: a 45 m bright orange steel lattice tower with grey decks, flags at the top and a glowing cyan grapple ring on its crown.
+- THE WATER TANK: a big friendly riveted water tank on short legs, cream with an orange band, a cyan grapple ring on its rim.
+- HOOK POLES: slim grey poles each crowned with a glowing cyan grapple ring.
+- THE ZIPLINE: a steel cable with small triangle pennants near each end.
+- THE TOWN: a charming walled workshop town: warm sandstone-orange walls with grey steel caps, gates with big orange timber doors and banners; houses with grey and cream render, orange tiled roofs, shutters, window boxes, chimneys; shops with striped orange-and-grey awnings and hanging signs.
+- THE SEAM WALL: a tall industrial divider: grey steel panels with orange safety-striped tops; its gate a heavy sliding blast door with warning lights.
+- THE ROCK: a big natural sandstone crag with grass tufts and a few pines, a wooden lookout deck on top.
+- TOWN NPCs: friendly worker robots (1.8 m): rounded grey bodies, orange hi-vis vests, big expressive yellow visor eyes, hard hats or tool belts.
+- COMBAT ROBOTS (east): characterful, finished toy-like robots in orange and grey with cyan eyes by day (amber at night), clean rounded silhouettes, readable weak points and glowing telegraphs. Crate Mite: a small scrappy crate-bodied critter on four springy legs. Pallet Jack: a low wide charger with forklift tines. Plumb Drone: a quad-rotor with a plumb-bob tail and a nail gun. Welder Unit: a stocky welder with a torch arm and a back tank. Riveter: a broad tank with a riot plate and rivet gun. Arc Sentry: a tall thin duellist with a crackling shock lance.
+- THE CRATE TITAN (boss): a towering, menacing, majestic boss robot, ~9 m, built from many interlocking orange-and-grey cargo containers and crates (NOT a stack of plain boxes): a hunched powerful body, huge container fists, a glowing orange core in its chest, a heavy head with burning orange eyes, steam vents, hazard stripes, chains, banners torn on its shoulders. A real boss you would put on a game's cover.
+- ELITES: bigger, ornamented versions of their species with a gold trim and a strong silhouette (Big Pallet a 3 m Pallet Jack king with a crown of pallets; the Vault Warden a walking armoured vault door with clamp arms and a cyan core; Foreman Unit 7 a hard-hatted foreman robot with hi-vis, clipboard and whistle).
+
+UI LANGUAGE
+Dark navy glass panels #0d1b26 at about 80 % opacity, 1 px cyan #8fe3ff hairlines with small corner brackets, letter-spaced monospace uppercase labels in white and cyan, no gradients, no emoji. Every quoted string appears exactly as written, spelled correctly; no other UI text is invented.
+
+HUD (every in-world shot; identical, only quoted values change)
+- Top-left: a chip "❚❚ PAUSE"; under it a chip with a gold coin icon and the Scrip count.
+- Top-right: a round dark minimap (north-up, white player arrow, small "N") with a small bag button at its top-right; under it a chip "◆ " + the objective.
+- Left edge, upper half: a column of three round buttons "HORSE", "HOVER", "SWAP" (SWAP shows the current weapon icon).
+- Lower right: a round "ATTACK" button with the weapon icon, under it round "DODGE" and "JUMP".
+- Bottom: a thin cyan XP bar across the width with a chip "LV n" at its left end, directly above the control deck: a dark navy strip on the bottom 18 % with a "MOVE" joystick ring at the left and a dashed square "LOOK" pad at the right.
+- Vitals (a heart icon, an HP bar and the number) show only when hurt. "LOCK" shows only when an enemy is targeted. Enemy nameplates (east only, within 25 m): a small dark chip "Lv n Name" with a red HP bar and a thin stagger bar under it.
+- Floating combat text: white numbers for hits, big yellow for crits, small grey for glances, the words "DEFLECT", "DODGE" or "PARRY" on fails.

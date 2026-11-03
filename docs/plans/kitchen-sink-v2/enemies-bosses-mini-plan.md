@@ -53,8 +53,9 @@ add. No name, lair or bar: an orange nameplate tag.
 
 ## 3. Look and model pipeline
 
-Orange and grey chamfered blocks, black stencils ("1x1", "MK II"), cyan eyes by day, amber at night; vertex colour
-with baked AO; one shared 512² stencil atlas.
+Characterful, finished toy-like robots in orange and grey with rounded chamfers, cyan eyes by day, amber at night;
+vertex colour with baked AO; **no size stencils or dev labels** (KITCHEN-SINK ruling 19ab, superseding "black stencils
+(\"1x1\", \"MK II\")" and the stencil atlas). The Crate Titan is a cover-worthy boss, not a stack of plain crates.
 
 | Robot | Silhouette | Size | Tris LOD0 / phone / LOD1 |
 |---|---|---|---|
