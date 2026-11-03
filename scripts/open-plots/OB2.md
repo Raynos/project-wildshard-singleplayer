@@ -14,6 +14,17 @@ ordinary files, with no progress panel or runtime service.
 
 ## Audio rows for the template
 
+For any of the five plot ideas, one command uses its planned four spot SFX:
+
+```sh
+node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/ob2.mjs audio --plot=lantern-bayou --out=tmp/bayou-audio-rows.json
+```
+
+The plot template also emits `<idea>.audio.json` beside its candidate
+descriptor, as explicit asset requests with null positions. Supply this file
+as `--input` after OB7 places the spots. The requests are shared with the
+plot-slug CLI through `audio-requests.json`; no playable output is changed.
+
 ```sh
 node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/open-plots/ob2.mjs audio --input=tmp/bayou-audio-input.json --out=tmp/bayou-audio-rows.json
 ```

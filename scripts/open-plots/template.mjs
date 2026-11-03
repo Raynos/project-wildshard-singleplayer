@@ -9,6 +9,7 @@ import { AccentSchema } from '@wildshard/format/accent';
 import { checkLayout, parseLayout } from '../../src/shards/open-plots/generators/kit.mjs';
 import { plotBuilders } from '../../src/shards/open-plots/generators/tiledPlot.mjs';
 import { parseDomeCameras } from '../dome-cameras.mjs';
+import { plotAudioRequest } from './audio-template.mjs';
 
 const slugSchema = v.pipe(v.string(), v.regex(/^open-plot-[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const word = v.pipe(v.string(), v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
@@ -101,6 +102,10 @@ export function plotTemplate(root, raw, { activateExisting = false } = {}) {
     exclude: ['collide_', 'detail_pool', 'coarse_standins'] };
   const descriptorPath = `src/shards/open-plots/data/templates/${idea}.json`;
   const paths = new Map([[layoutPath, json(layout)], [descriptorPath, json({ schema: 'open-plot-template/1', output, map: map.outputs[recipe.slug], activated: activate })]]);
+  // The five build-out themes receive explicit requests, never silent playback claims.
+  if (['frostline-peaks', 'lantern-bayou', 'ember-forge', 'mosslight-ruins', 'coral-drift'].includes(idea)) {
+    paths.set(`src/shards/open-plots/data/templates/${idea}.audio.json`, json(plotAudioRequest(idea)));
+  }
   if (activate) {
     paths.set('src/shards/open-plots/outputs.json', json(declared));
     paths.set('src/game/grid/singleplayer.json', json(grid));

@@ -8,6 +8,7 @@ import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
 import sharp from 'sharp';
 import * as v from 'valibot';
+import {plotAudioRequest} from './audio-template.mjs';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
 const positive=v.pipe(natural,v.minValue(1)),text=v.pipe(v.string(),v.minLength(1),v.maxLength(160));
@@ -194,7 +195,8 @@ if(process.argv[1]!==undefined&&pathToFileURL(resolve(process.argv[1])).href===i
   const save=(file,value)=>{mkdirSync(dirname(file),{recursive:true});writeFileSync(file,`${JSON.stringify(value,null,2)}\n`);};
   if(command==='audio'){
     if(out===resolve('src/shards/_template/data/audio.json'))throw new Error('Do not overwrite the native audio template');
-    save(out,await plotAudioRows(input));
+    if(values.input!==undefined&&values.plot!==undefined)throw new Error('Use audio --input or --plot, not both');
+    save(out,await plotAudioRows(values.plot===undefined?input:plotAudioRequest(values.plot)));
   }
   else if(command==='life'){const report=await lifeCheck(input);save(out,report);if(!report.passesPixelCheck)process.exitCode=2;}
   else if(command==='board'){

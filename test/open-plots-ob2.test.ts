@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import {beforeAll,afterAll,expect,test} from 'vitest';
 import {plotAudioRows,lifeCheck,captureLifeClip,makeComparisonBoard,plotTilingReport,type PlotCamera} from '../scripts/open-plots/ob2.mjs';
 import {parseAudioData} from '../src/format/audio';
+import {plotAudioRequest} from '../scripts/open-plots/audio-template.mjs';
 
 let folder='';
 const pin='1'.repeat(40);
@@ -22,6 +23,15 @@ beforeAll(async()=>{
 afterAll(()=>{if(folder)rmSync(folder,{recursive:true});});
 const life=()=>({pin,device:'iPhone 16 Pro',view:'road-entry',sources:structuredClone(sources),frames:Array.from({length:11},(_,i)=>({file:resolve(folder,`frame-${i}.png`),atMs:i*500,camera:structuredClone(camera)}))});
 const audio=()=>({idea:'lantern-bayou',spots:Array.from({length:4},(_,i)=>({id:`spot-${i+1}`,at:null}))});
+
+test('all five template audio requests use planned spots and remain unplaced',async()=>{
+  for(const idea of ['frostline-peaks','lantern-bayou','ember-forge','mosslight-ruins','coral-drift']){
+    const request=plotAudioRequest(idea),rows=await plotAudioRows(request);
+    expect(request.spots).toHaveLength(4);expect(request.spots.every(row=>row.at===null)).toBe(true);
+    expect(rows.assets).toHaveLength(6);expect(rows.activation).toBe('inert-authoring-template');
+  }
+  expect(()=>plotAudioRequest('../escape')).toThrow('No planned');
+});
 
 test('audio template emits silent native rows and explicit unfulfilled per-plot asset/position requests',async()=>{
   const base=readFileSync('src/shards/_template/data/audio.json');

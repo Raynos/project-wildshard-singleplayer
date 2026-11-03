@@ -46,6 +46,7 @@
     "author-bundle-usage.mjs",
     "generation-cache-prune.mjs",
     "ci-product-cache.mjs",
-    "open-plots/ob2.mjs"
+    "open-plots/ob2.mjs",
+    "open-plots/audio-template.mjs"
   ]
 }
