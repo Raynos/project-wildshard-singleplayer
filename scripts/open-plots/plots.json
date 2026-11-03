@@ -32,6 +32,11 @@
       "cameras": "art/open-plots/night-market/domes"
     },
     {
+      "slug": "open-plot-patchwork-fairground",
+      "instance": "open-plot-0-0",
+      "cameras": "art/open-plots/patchwork-fairground/domes"
+    },
+    {
       "slug": "open-plot-showcase-template",
       "instance": "open-plot-2-4",
       "cameras": "art/open-plots/showcase-template/domes"
