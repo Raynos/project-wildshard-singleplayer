@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { geometryBoundsSteps } from './geometryBounds';
+import { castWholeInLastCascade } from './cascadeCull';
 
 /**
  * E153: island-wide merged casters draw into each shadow map in pieces.
@@ -183,6 +184,9 @@ function* split(mesh: THREE.Mesh): Generator<void, number> {
   }
   mesh.castShadow = false;
   (mesh.userData as ChunkUserData).shadowChunked = true;
+  // DW: the last cascade draws it whole, in one draw, the others its pieces (cascadeCull.ts); a never-culled mesh would
+  // skip that test and cast into every map, so it keeps its pieces alone
+  if (mesh.frustumCulled) castWholeInLastCascade(mesh, pieces.children.filter(isMesh));
   mesh.add(pieces);
   pieces.updateMatrixWorld(true);
   return pieces.children.length;

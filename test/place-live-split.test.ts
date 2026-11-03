@@ -122,7 +122,7 @@ test('shadow preparation pauses inside eligibility bounds and preserves every tr
     expect(boundsPauses).toBe(4); expect(report).toEqual({ meshes: 1, pieces: 4, tris: 21846 });
     expect(sphere).not.toHaveBeenCalled(); expect(box).not.toHaveBeenCalled();
     expect(geometry.boundingBox).toEqual(oracle.boundingBox); expect(geometry.boundingSphere).toEqual(oracle.boundingSphere);
-    expect(mesh.castShadow).toBe(false);
+    expect(mesh.castShadow).toBe(true); // DW: whole in the last cascade only (cascadeCull.ts)
     const pieces = mesh.children[0]?.children ?? [], indices: number[] = [], point = new Vector3();
     for (const piece of pieces) {
       if (!(piece instanceof Mesh)) throw new Error('Shadow piece must be a mesh');

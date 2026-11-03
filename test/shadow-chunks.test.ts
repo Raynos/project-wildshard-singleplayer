@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { chunkShadowCastersSliced } from '../src/engine/world/shadowChunks';
+import { duringShadowPass } from '../src/engine/world/cascadeCull';
 import golden from './fixtures/shadow-chunks-golden.json' with { type: 'json' };
 
 // E153 / SF67: shadow casters split into the same pieces, the same index order and the same bounds as before the
@@ -53,7 +54,13 @@ test('PF3: a caster wider than the cascade splits whatever its triangle count; a
   scene.add(ring, disc);
   const report = await chunkShadowCastersSliced(scene, () => null);
   expect(report.meshes).toBe(1);
-  expect(ring.castShadow).toBe(false);
+  // DW: the chunked mesh casts again, but only whole in a CSM's last cascade (cascadeCull.ts castWholeInLastCascade):
+  // inside any other shadow pass it draws nothing whole (its pieces cast), outside one its view culling is its own
+  expect(ring.castShadow).toBe(true);
+  const everywhere = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().makeOrthographic(-500, 500, 500, -500, -500, 500));
+  expect(ring.intersectsFrustum(everywhere)).toBe(true);
+  let inPass = true; duringShadowPass(() => { inPass = ring.intersectsFrustum(everywhere); });
+  expect(inPass).toBe(false);
   let split = 0; ring.traverse(o => { if (o.name.includes('-shadow-pieces-')) split++; });
   expect(split).toBe(report.pieces);
   expect(disc.castShadow).toBe(true);

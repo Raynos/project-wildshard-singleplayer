@@ -75,6 +75,8 @@ class CascadeFrustum extends THREE.Frustum {
   private pad = 0;
   /** debug: true = the box alone (the A/B capture's switch: `sky.csm.lights[i].shadow.getFrustum().off`) */
   off = false;
+  /** the last cascade's own shadow (never a ghost): the one that draws a chunked caster whole (`castWholeInLastCascade`) */
+  last = false;
 
   /** refresh from the cascade's own frustum (already set by updateMatrices) and the view slice's corners */
   refresh(box: THREE.Frustum, shadowCam: THREE.OrthographicCamera, corners: readonly THREE.Vector3[], pad: number): void {
@@ -192,7 +194,27 @@ export function cullCopiesPerCascade(mesh: THREE.InstancedMesh): void {
  * every later change of the camera, the breaks and the light direction by itself (it reads them each frame).
  */
 export function installCascadeCull(csm: CSM, camera: THREE.PerspectiveCamera): void {
-  for (const [i, light] of csm.lights.entries()) cullToSlice(csm, camera, light.shadow, i);
+  for (const [i, light] of csm.lights.entries()) cullToSlice(csm, camera, light.shadow, i, i === csm.lights.length - 1);
+}
+
+/**
+ * DW (Driftwood draw budget, engine-performance §10): the last cascade draws a chunked island-wide caster (shadowChunks.ts)
+ * whole, in one draw, and skips its pieces; every other cascade and ghost keeps the pieces. The last cascade's footprint
+ * reaches the camera's far plane, so it took most of a mesh's pieces anyway (18 + 5 of Driftwood's spawn's 62 far draws).
+ * The whole mesh is the pieces' own triangles, material, depth material and transform, so every texel a fragment reads
+ * holds the same depth; the extra triangles fall only on texels no fragment of that slice reads. The view's culling is
+ * the mesh's own (the override acts only inside a shadow pass).
+ */
+export function castWholeInLastCascade(mesh: THREE.Mesh, pieces: readonly THREE.Mesh[]): void {
+  const own = mesh.intersectsFrustum.bind(mesh);
+  mesh.intersectsFrustum = (frustum: THREE.Frustum | THREE.FrustumArray): boolean =>
+    shadowPass > 0 ? frustum instanceof CascadeFrustum && frustum.last && frustum.intersectsObject(mesh) : own(frustum);
+  for (const piece of pieces) {
+    const piecewise = piece.intersectsFrustum.bind(piece);
+    piece.intersectsFrustum = (frustum: THREE.Frustum | THREE.FrustumArray): boolean =>
+      !(frustum instanceof CascadeFrustum && frustum.last) && piecewise(frustum);
+  }
+  mesh.castShadow = true;
 }
 
 /**
@@ -201,9 +223,10 @@ export function installCascadeCull(csm: CSM, camera: THREE.PerspectiveCamera): v
  * and without this it drew every caster in its whole ortho box — +34 draws and +0.66 M triangles a frame on the phone
  * rig, on ~3 frames in 4 (a fade runs most of the time), where its cascades drew a fraction of that.
  */
-export function cullToSlice(csm: CSM, camera: THREE.PerspectiveCamera, shadow: THREE.DirectionalLightShadow, i: number): void {
+export function cullToSlice(csm: CSM, camera: THREE.PerspectiveCamera, shadow: THREE.DirectionalLightShadow, i: number, own = false): void {
   const corners = Array.from({ length: 8 }, () => new THREE.Vector3());
   const box = shadow.getFrustum(), cull = new CascadeFrustum();
+  cull.last = own;
   shadow.getFrustum = (): THREE.Frustum => {
     const slice = csm.frustums[i];
     if (slice === undefined) return box;
