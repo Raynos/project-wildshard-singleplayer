@@ -6513,14 +6513,14 @@ Wire bytes, native child defaults, site resource loans and retirement checks sur
 `game/plugin/scene.createWorldScene` borrows geometry/model/material ports and
 returns Group/parts/baked data. `worldPieces.scene` registers parts
 without reparenting or double transforms.
-Build-only `sdk/bake/mapRest.mapSceneRest` projects declared mover rest
-poses through the native CPU channels. Missing movers or instance coverage
-refuse; it installs no renderer, physics, clock or file reader.
+`bake/mapRest.mapSceneRest` projects mover rest poses through native CPU channels;
+missing movers/instance coverage refuse. No renderer, physics, clock or reader is installed.
 
-ModelLibrary `paintedModels` pairs named rest geometry with an existing
-painted atlas and optional four-slot pivots. `painted(name)` clones geometry
-for each owner and shares its atlas; `preload(pause)` retains preparation
-yields. `model(name, fit)` validates a recipe's hero name before copying it.
+`AuthorBakedPlacementPlan` carries whole registered baked plans (format/bakedTiles):
+partitions, small-rock matrices and family/collider rows; native resource checks stay.
+ModelLibrary `paintedModels` binds geometry/atlas/optional four pivots.
+`painted(name)` clones geometry, shares atlas; `preload(pause)` yields;
+`model(name,fit)` checks hero names before copying.
 
 `Entry(edge, kind?, bindings?)` accepts admitted portal or lift data in
 its optional third argument. Its existing frame checks and link parsers

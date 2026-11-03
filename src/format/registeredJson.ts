@@ -1,6 +1,7 @@
 import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServiceSpotsSchema,parseNativeQuestServiceSpots} from './nativeQuestComposition';
 import {ContractCatalogueSchema,parseContractCatalogue} from './contracts';
 import { BuildingLifeDocumentSchema } from './buildings';
+import { BakedPlacementPlanSchema } from './bakedTiles';
 
 import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue} from './panelTemplate';
 import {PopulationKeeperRowsSchema} from './populationKeeper';
@@ -104,6 +105,8 @@ export interface RegisteredJsonContracts {
   readonly 'quests/mill-door.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
   readonly 'world/building-life.json': { readonly schema: typeof BuildingLifeDocumentSchema; readonly source: '@wildshard/format/buildings#BuildingLifeDocumentSchema' };
+  readonly 'world/island/plan-phone.json': { readonly schema: typeof BakedPlacementPlanSchema; readonly source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' };
+  readonly 'world/island/plan-desktop.json': { readonly schema: typeof BakedPlacementPlanSchema; readonly source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
@@ -173,6 +176,8 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/mill-door.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
   'quests/lanterns.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
   'world/building-life.json': { schema: BuildingLifeDocumentSchema, source: '@wildshard/format/buildings#BuildingLifeDocumentSchema' },
+  'world/island/plan-phone.json': { schema: BakedPlacementPlanSchema, source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' },
+  'world/island/plan-desktop.json': { schema: BakedPlacementPlanSchema, source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' },
 };
 export type RegisteredJsonName=keyof typeof REGISTERED_JSON;
 /** JSON decoding preserves the wire input; defaults belong to its consumer. */
@@ -243,6 +248,8 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'world/island/plan-phone.json':
+    case 'world/island/plan-desktop.json':v.parse(BakedPlacementPlanSchema,value);break;
     case 'world/building-life.json':v.parse(BuildingLifeDocumentSchema,value);break;
     case 'quests/native-story.json':parseNativeQuestComposition(value);break;
     case 'quests/native-spots.json':parseNativeQuestServiceSpots(value);break;

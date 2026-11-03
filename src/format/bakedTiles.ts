@@ -391,3 +391,17 @@ interface BakedPlanFields {
     })[];
 }
 export type BakedPlan = { [Key in keyof BakedPlanFields]: BakedPlanFields[Key] };
+
+/** Complete baked placement envelope, including ordered render partitions and
+ * individually modelled small rocks. Native tile/resource checks still own
+ * selected family keys, table ranges and collider registration. */
+export const BakedPlacementPlanSchema: v.GenericSchema<BakedPlacementPlan, BakedPlacementPlan> = v.strictObject({
+  ...BakedPlanSchema.entries,
+  sets: v.strictObject({ casters: v.array(v.array(index)), covers: v.array(v.array(index)), bigs: v.array(v.array(index)) }),
+  smallRocks: v.array(v.strictObject({ x: finite, y: finite, z: finite,
+    matrix: v.pipe(v.array(finite), v.length(16)), params: v.strictObject({ r: finite, sq: finite }) })),
+});
+export interface BakedPlacementPlan extends BakedPlan {
+  sets: { casters: number[][]; covers: number[][]; bigs: number[][] };
+  smallRocks: { x: number; y: number; z: number; matrix: number[]; params: { r: number; sq: number } }[];
+}

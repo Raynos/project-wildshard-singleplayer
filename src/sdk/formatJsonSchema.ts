@@ -6,7 +6,7 @@ import { AudioSceneSchema } from '@wildshard/format/audioScene';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from '@wildshard/format/forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from '@wildshard/format/caveInterior';
 import { SceneBuffersSchema } from '@wildshard/format/sceneBuffers';
-import { BakedTilesSchema } from '@wildshard/format/bakedTiles';
+import { BakedPlacementPlanSchema, BakedTilesSchema } from '@wildshard/format/bakedTiles';
 import { ClientRidingSessionSchema } from '@wildshard/format/riding';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { AdventurePersistenceSchema, HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
@@ -431,6 +431,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'panelTemplate.QuestPanelCatalogue': QuestPanelCatalogueSchema,
   'sceneDressing.SceneScatterPage': SceneScatterPageSchema,
   'buildings.BuildingLifeDocument': BuildingLifeDocumentSchema,
+  'bakedTiles.BakedPlacementPlan': BakedPlacementPlanSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

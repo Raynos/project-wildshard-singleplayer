@@ -1,3 +1,4 @@
+import type { BakedPlacementPlan } from '@wildshard/format/bakedTiles';
 import { registeredJsonSchema } from './formatJsonSchema';
 import type { RegisteredPlacementPageJsonName } from '@wildshard/format/registeredJson';
 import { parseWorldScene, parseWorldSceneBindings, parsePrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
@@ -241,3 +242,6 @@ export function worldScenePlacementPages(id: string, input: readonly WorldSceneP
     return reference;
   }) };
 }
+
+/** Complete authored baked placement data; no geometry or collider is allocated. */
+export type AuthorBakedPlacementPlan = BakedPlacementPlan;

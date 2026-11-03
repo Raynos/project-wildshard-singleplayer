@@ -4,6 +4,7 @@ import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
 import { BLENDER_MODELS } from './blenderArea';
 import { OCEAN_FILES } from './oceanFiles';
 import { driftwoodOceanBank, type DriftwoodOceanBank } from './oceanBank';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { bakeIslandPlan, islandPlacements } from './islandCover';
 import { driftwoodIslandFacts, type DriftwoodIslandFacts } from './islandFacts';
 
@@ -90,6 +91,8 @@ export async function driftwoodPageFileOutput(ctx: Pick<ProjectGenerationContext
   return emitNamedBlobs([...NAMES, ...Object.values(DRIFTWOOD_PLAN_FILES)].map(name => {
     const banked = OCEAN_PAGE[name], bytes = banked === undefined ? files.get(name) : ocean[banked];
     if (bytes === undefined) throw new Error('Driftwood page file cache inventory differs');
-    return nameBlob(name, DRIFTWOOD_PAGE_FILES[name]?.kind ?? 'json', bytes);
+    const schema = registeredJsonSchema(name);
+    if (Object.values<string>(DRIFTWOOD_PLAN_FILES).includes(name) && schema === undefined) throw new Error('Missing complete baked plan contract');
+    return nameBlob(name, DRIFTWOOD_PAGE_FILES[name]?.kind ?? 'json', bytes, schema === undefined ? {} : { jsonSchema: schema });
   }));
 }

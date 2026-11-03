@@ -15,6 +15,7 @@ import { WORLD_DROP } from './sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import type { IslandTier as Tier } from './tiers';
+import type { AuthorBakedPlacementPlan } from '@wildshard/sdk/worldScenes';
 
 const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2, TERRAIN_RES = geometryPolicy.resolution;
 
@@ -217,9 +218,8 @@ export function placementSets(f: Float32Array, protos: readonly { readonly name:
 interface IslandBox { x:number; z:number; hw:number; hd:number; rot:number; yTop:number; yBottom:number }
 interface IslandPlanMeta extends CoverMeta { colliders:IslandBox[] }
 interface IslandFamily { key:CoveFamily;indices:number[];colliders:IslandBox[] }
-interface IslandPlacementPlan { version:1;used:number;sets:{casters:number[][];covers:number[][];bigs:number[][]};smallRocks:{x:number;y:number;z:number;matrix:number[];params:{r:number;sq:number}}[];families:IslandFamily[];unclaimed:IslandBox[] }
 /** Compile the native placement partitions and collider ownership once. */
-export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean,facts:DriftwoodIslandFacts):IslandPlacementPlan {
+export function bakeIslandPlan(f:Float32Array,meta:IslandPlanMeta,phone:boolean,facts:DriftwoodIslandFacts):AuthorBakedPlacementPlan {
   const look=phone?ISLAND_TIERS.phone:ISLAND_TIERS.desktop,used=islandUsed(f,meta,phone);
   const sets=placementSets(f,meta.protos,used,area,{casterTiles:look.casterTiles,coverTiles:look.coverTiles,...ISLAND_LOOK.names});
   const families=new Map<CoveFamily,IslandFamily>();
