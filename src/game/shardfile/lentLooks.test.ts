@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Material } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { lendLooks, prepareLentLooks, setLentParam, type LentLooks } from './lentLooks';
+import { lendLooks, lentLook, prepareLentLooks, setLentParam, type LentLooks } from './lentLooks';
 
 test('preparation groups retain owner, ID order and sequential async barriers', async () => {
   const a = new Scope('looks-a'), b = new Scope('looks-b'), eager = new Scope('looks-eager'), material = new Material();
@@ -107,4 +107,28 @@ test('a reentrant catalogue read cannot publish a cold book under another owner'
     withOwner(level, () => { setLentParam('outer', 'fade', 1); });
     expect(writes).toEqual(['other:inner', 'level:outer', 'other:outer', 'level:outer']);
   } finally { level.dispose(); other.dispose(); material.dispose(); }
+});
+
+test('a following compile takes the writes on its line but never answers a lookup (NT4 coarse cover)', () => {
+  const world = new Scope('follow-world'), assembly = new Scope('follow-assembly', world), other = new Scope('follow-other');
+  const worldLook = new Material(), coarseLook = new Material(), otherLook = new Material(), farLook = new Material();
+  const writes: string[] = [];
+  const lend = (scope: Scope, label: string, material: Material, follows = false): void => {
+    lendLooks(scope, { materials: new Map([['look', material]]),
+      setParam: () => { writes.push(label); }, setTexture: () => undefined, bindMeshMap: () => material }, { follows });
+  };
+  lend(assembly, 'world', worldLook); lend(assembly, 'coarse', coarseLook, true);
+  try {
+    // unowned (a frame's channel feed): the newest compile and the follower on its line
+    setLentParam('look', 'wash', 1);
+    expect(writes.splice(0)).toEqual(['world', 'coarse']);
+    withOwner(world, () => { setLentParam('look', 'wash', 1); });
+    expect(writes.splice(0)).toEqual(['world', 'coarse']);
+    expect(lentLook('look')).toBe(worldLook);
+    lend(other, 'other', otherLook); lend(other, 'far', farLook, true);
+    setLentParam('look', 'wash', 1);
+    expect(writes.splice(0)).toEqual(['other', 'far']);
+    withOwner(assembly, () => { setLentParam('look', 'wash', 1); expect(lentLook('look')).toBe(worldLook); });
+    expect(writes.splice(0)).toEqual(['world', 'coarse']);
+  } finally { world.dispose(); other.dispose(); for (const m of [worldLook, coarseLook, otherLook, farLook]) m.dispose(); }
 });

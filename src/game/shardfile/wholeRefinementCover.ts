@@ -7,6 +7,7 @@ import { prepareClientTile, ring, type ResidentTile, type TileContent } from './
 import { tileOf } from './tileOrder';
 import { productTileRing } from './tileDriver';
 import { runtimeLookMaterials, runtimeProduct } from './runtimeProduct';
+import { lendLooks } from './lentLooks';
 
 /** Declared L1 props cover a native library. Every parent precedes entry, the spawn ring's first, then the rest nearest
  * first (MF5: a parent loaded after control linked its first-drawn programs in play; Nine's four are ~0.15 MB).
@@ -25,6 +26,10 @@ export function wholeRefinementCover(ctx: ShardContext, owner: Scope, entry: { r
   const views = (): Promise<ReturnType<typeof clientTileViews>> => {
     presentation ??= (async () => {
     const looks = await runtimeLookMaterials({ scope: owner, game: ctx.game }, source, true); live();
+      // NT4: the coarse props' own compile follows the owner's line, so the frame's param feeds (a shard's channel group:
+      // wash, shade, light) reach it; unlent, every coarse graph drew with zero params (black walls under the fog). It
+      // only follows: a lookup still hands the fine meshes the world's compile
+      lendLooks(owner, looks, { follows: true });
       return clientTileViews({ terrain: null, ...looks });
     })();
     return presentation;

@@ -40,7 +40,8 @@ export interface LookInstance {
   readonly setParam: (name: string, value: GraphLiteral) => void;
 }
 
-const lends: { readonly looks: LentLooks; readonly scope: Scope | null }[] = [];
+/** `follows`: the lend takes its owner line's param writes but never answers a lookup (`lendLooks`) */
+const lends: { readonly looks: LentLooks; readonly scope: Scope | null; readonly follows: boolean }[] = [];
 const liveLends = new WeakSet<LentLooks>();
 /** bumped whenever a lend starts or ends: the param writers below are cached per lend set */
 let lendGeneration = 0;
@@ -61,9 +62,11 @@ export function sceneMaterial(scope: Scope, slug: string, id: string): Material 
   return sceneMaterials.get(scope)?.get(slug)?.get(id);
 }
 
-/** Lend a compile pass's looks until `scope` ends. */
-export function lendLooks(scope: { onDispose: (run: () => void) => unknown }, looks: LentLooks): void {
-  const lend = { looks, scope: 'belongsTo' in scope && typeof scope.belongsTo === 'function' ? scope as Scope : null };
+/** Lend a compile pass's looks until `scope` ends. `follows` lends a pass that draws only its own meshes (NT4: a coarse
+ *  cover's compile): its looks take the param writes made on `scope`'s line, but a lookup never hands them out, so the
+ *  world's meshes keep the compile they were built with. */
+export function lendLooks(scope: { onDispose: (run: () => void) => unknown }, looks: LentLooks, options: { readonly follows?: boolean } = {}): void {
+  const lend = { looks, scope: 'belongsTo' in scope && typeof scope.belongsTo === 'function' ? scope as Scope : null, follows: options.follows === true };
   lends.push(lend); liveLends.add(looks); lendGeneration++;
   scope.onDispose(() => { const at = lends.indexOf(lend); if (at !== -1) {
     lends.splice(at, 1); lendGeneration++;
@@ -78,7 +81,7 @@ function holder(id: string): LentLooks | null {
   const owner = enteredOwner();
   let newest: LentLooks | null = null;
   for (let i = lends.length - 1; i >= 0; i--) {
-    const lend = lends[i]; if (lend === undefined || !lend.looks.materials.has(id)) continue;
+    const lend = lends[i]; if (lend === undefined || lend.follows || !lend.looks.materials.has(id)) continue;
     if (owner === null || (lend.scope !== null && owner.belongsTo(lend.scope))) return lend.looks;
     newest ??= lend.looks;
   }
@@ -150,14 +153,15 @@ function paramWriters(id: string): readonly LentLooks[] {
   const byId = ownerWriters;
   const cached = byId.get(id);
   if (cached !== undefined) return cached;
-  const writers: LentLooks[] = [];
-  let newest: LentLooks | null = null;
-  for (let i = lends.length - 1; i >= 0; i--) {
-    const lend = lends[i]; if (lend === undefined || !lend.looks.materials.has(id)) continue;
-    newest ??= lend.looks;
-    if (owner !== null && lend.scope !== null && (owner.belongsTo(lend.scope) || lend.scope.belongsTo(owner))) writers.push(lend.looks);
-  }
-  if (writers.length === 0 && newest !== null) writers.push(newest);
+  const line = (a: Scope | null, b: Scope | null): boolean => a !== null && b !== null && (a.belongsTo(b) || b.belongsTo(a));
+  const held = lends.filter(lend => lend.looks.materials.has(id)).reverse();
+  const chosen = held.filter(lend => !lend.follows && line(owner, lend.scope));
+  const newest = held.find(lend => !lend.follows);
+  if (chosen.length === 0 && newest !== undefined) chosen.push(newest);
+  // a following compile takes the writes made on its line: the owner's, or a chosen lend's (the frame feeds write with no
+  // owner, so they reach the newest lend alone)
+  const followers = held.filter(lend => lend.follows && (line(owner, lend.scope) || chosen.some(writer => line(writer.scope, lend.scope))));
+  const writers = [...chosen, ...followers].map(lend => lend.looks);
   byId.set(id, writers);
   return writers;
 }
