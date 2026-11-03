@@ -307,3 +307,12 @@ parries by the §9 dress (LV9's "by PRE" drops). §8 Q1 is superseded by Q1 belo
 and no armour Forge? Rec: yes; B is the fallback after a phone pass. 3. Aptitude 1.2 / 1.0 / 1.0 / 0.8? Rec: yes.
 4. DEX and AGI move the roll 0.5 pt per 1 % over par, max ±8 (under one level)? Rec: yes. 5. RES and POI become data
 as above? Rec: yes.
+
+## 12. Seven attributes (Jake, 2026-11-03; supersedes §11's four)
+
+VIT (HP) · STR (melee damage) · DEX (ranged damage, hit chance for every weapon, melee crit) · AGI (dodge, ranged crit)
+· DEF (physical armour; replaces §11's level × plating: enemies carry DEF curves by kind, and a high DEF turns more
+failures into DEFLECT) · MDEF (energy attacks now: burn, shock, blast; magic later) · LUK (balanced, personal only,
+never touches spawns or drops of others; job set in the LV pass, likely crit chance and crit damage). Aptitude: two
+1.2, three 1.0, two 0.8. INT and WIS are reserved for magic combat. §11's "energy hits count half your armour" is
+replaced by MDEF; its stagger-per-body and fixed parry window (+ Parry Gyro) stand.

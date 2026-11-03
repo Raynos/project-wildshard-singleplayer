@@ -129,6 +129,12 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     VIT, STR, DEX, AGI and nothing else; armour from level × per-body plating. Jake 11-03: **aptitude for four is one
     1.2, two 1.0, one 0.8**; **RES and POI become data** (energy hits count half your armour; stagger per body; parry
     window 0.15 s plus the Parry Gyro). The four-attribute lock and the armour rule wait on his read.
+19w. **Seven attributes** (Jake 11-03, superseding 19v's four): **VIT** (HP) · **STR** (melee damage) · **DEX** (ranged
+    damage, hit chance for every weapon, melee crit) · **AGI** (dodge, ranged crit) · **DEF** (physical armour; enemies
+    have DEF curves by kind, replacing the plating number; more DEFLECTs against high DEF) · **MDEF** (energy attacks
+    now: burn, shock, blast; magic later) · **LUK** (balanced, personal effects only: *"in an MMO luck has to balance and
+    can't impact spawns"*; exact job in the LV design pass, e.g. crit chance and damage). CON is VIT, skill is DEX, speed
+    is AGI; INT and WIS wait for magic combat. **Aptitude for seven: two 1.2, three 1.0, two 0.8.**
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
