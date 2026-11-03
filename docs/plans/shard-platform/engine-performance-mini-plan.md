@@ -557,7 +557,12 @@ cover the far slice at any distance. Two more findings: a live sun step's crossf
 maps every frame while it runs, so a fade frame adds ~40 on top (≈ 226 at spawn); and this HEAD's main pass read 129
 (sp-x6's 106 on `1aeb766`). ≤ 150 therefore needs a combination of look trades, each a board: one coarse island caster
 for the far slice only (−21), the phone's far distance to ~60 m (−14), the palms' far-slice tables, and a fade that
-redraws the ghosts at the cascades' own cadence. Probe: `tmp/o2-dw/far-probe.mjs`.
+redraws the ghosts at the cascades' own cadence. Probe: `tmp/o2-dw/far-probe.mjs`. **The main pass is the bigger half:** a settled spawn frame draws **129** main
+(`tmp/o2-dw/main-probe.mjs`): sp-x6's 106 sampled 2 s after entry, before the streamed ground cover (eight
+`ground-cover-<kind>` families, two draws each, 16 in all, since `d9b1c450d5` on 10-17) and the cove's beach grass
+had filled in. So the steady spawn peak is **≈ 129 + 19 + 62 = 210** (≈ 250 during a crossfade), and ≤ 150 needs about
+40 main-pass cuts as well as the far-slice trades: one row of its own (cover kinds sharing tables per LOD, the cove's
+families) rather than an overnight cut.
 
 Retained raw: `tmp/sp-x6-driftwood-draws/native-ledger-corrected.json`,
 SHA256`d6876b84b2ae89c51744ca8d203fd27d70094b2781f2e4364e29d56ed624a9d8`;
