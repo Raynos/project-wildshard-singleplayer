@@ -24,7 +24,8 @@
           "practice": "/src/shards/open-plots/thumbs/showcase-template.jpg"
         }
       },
-      "pois": []
+      "pois": [],
+      "shardSelect": false
     },
     "layout": "showcase-template",
     "scaffold": true,

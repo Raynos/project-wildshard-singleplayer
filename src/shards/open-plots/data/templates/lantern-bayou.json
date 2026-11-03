@@ -8,7 +8,7 @@
     "manifest": {
       "name": "Open Plot · Lantern Bayou",
       "status": "earlyAccess",
-      "shardSelect": true,
+      "shardSelect": false,
       "blurb": "Lantern Bayou: shared-kit template; landmark and theme dressing are unfinished.",
       "bindings": {
         "accent": "marigold",

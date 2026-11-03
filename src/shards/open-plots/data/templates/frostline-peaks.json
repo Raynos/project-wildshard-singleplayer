@@ -8,7 +8,7 @@
     "manifest": {
       "name": "Open Plot · Frostline Peaks",
       "status": "earlyAccess",
-      "shardSelect": true,
+      "shardSelect": false,
       "blurb": "Frostline Peaks: shared-kit template; landmark and theme dressing are unfinished.",
       "bindings": {
         "accent": "periwinkle",

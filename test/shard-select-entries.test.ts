@@ -10,6 +10,8 @@ import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDec
 import { GAME_STRINGS } from '../src/game/strings';
 import { SHARDS, LEGACY_SHARDS } from '../src/shards.generated';
 import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
+import inkManifest from '../src/shards/ink-cel-valley/manifest.json' with { type: 'json' };
+import pastelManifest from '../src/shards/pastel-plain/manifest.json' with { type: 'json' };
 import productBootSources from '../src/shards/open-plots/data/nightMarketBootSources.json' with { type: 'json' };
 import { chunkFiles } from '../src/engine/boot/manifest';
 import { bootSourceFiles } from '../src/engine/boot/filePolicy';
@@ -128,37 +130,56 @@ test.each([
 
 
 const buildOutPlots = ['frostline-peaks', 'lantern-bayou', 'ember-forge', 'mosslight-ruins', 'coral-drift'];
-const publicPlotSlugs = ['open-plot-night-market', ...buildOutPlots.map(idea => `open-plot-${idea}`)];
-
-test('SHARD SELECT exposes the five build-outs publicly and retains the full grid catalogue', () => {
-  installShards([...SHARDS, ...LEGACY_SHARDS]);
-  const main = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach', ...publicPlotSlugs];
-  const developer = [...main, '_template', 'blender-template', 'pastel-plain', 'ink-cel-valley'];
+/** The selection policy comes from its authored metadata, independently of
+ * native geometry products needed to regenerate full discovery bindings. */
+function selectionManifests(): readonly ShardManifest[] {
+  const flags = new Map(plots.outputs.map(output => [output.slug, output.manifest.shardSelect]));
+  flags.set(inkManifest.slug, inkManifest.shardSelect);
+  flags.set(pastelManifest.slug, pastelManifest.shardSelect);
+  const result: ShardManifest[] = [];
+  for (const manifest of [...SHARDS, ...LEGACY_SHARDS]) {
+    const flag = flags.get(manifest.slug);
+    result.push(flag === undefined ? manifest : { ...manifest, shardSelect: flag });
+  }
+  return result;
+}
+test('G991 pins six public Shard Select cards and only two Developer templates', () => {
+  const registered = selectionManifests();
+  installShards(registered);
+  const main = ['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'nine-dragon-stack', 'far-reach', 'sunscar-dunes'];
+  const developer = [...main, '_template', 'blender-template'];
   expect(titleCards(false).map(item => item.slug).sort()).toEqual(main.sort());
   expect(titleCards(true).map(item => item.slug).sort()).toEqual(developer.sort());
+  expect(titleCards(true)).toHaveLength(8);
+  for (const slug of ['_template', 'blender-template']) {
+    expect(titleCards(false).some(item => item.slug === slug)).toBe(false);
+    expect(titleCards(true).find(item => item.slug === slug)?.badge).toBe('Developer only');
+  }
   const plotSlugs = new Set(plots.outputs.map(item => item.slug));
   expect(plotSlugs.size).toBe(plots.outputs.length);
-  for (const developerMode of [false, true]) {
-    expect(titleCards(developerMode).filter(item => plotSlugs.has(item.slug)).map(item => [item.slug, item.badge]).sort(([a], [b]) => String(a).localeCompare(String(b))))
-      .toEqual(publicPlotSlugs.map(slug => [slug, slug === 'open-plot-night-market' ? 'Experimental' : 'Early access']).sort(([a], [b]) => String(a).localeCompare(String(b))));
+  for (const output of plots.outputs) expect(output.manifest.shardSelect).toBe(false);
+  for (const manifest of registered.filter(item => plotSlugs.has(item.slug)
+    || item.slug === 'ink-cel-valley' || item.slug === 'pastel-plain')) {
+    expect(manifest.shardSelect).toBe(false);
   }
-  const hidden = SHARDS.filter(item => plotSlugs.has(item.slug) && !publicPlotSlugs.includes(item.slug));
-  expect(hidden).toHaveLength(plotSlugs.size - publicPlotSlugs.length);
-  for (const manifest of hidden) expect(manifest).toMatchObject({ status: 'hidden', shardSelect: false });
-  for (const slug of publicPlotSlugs) expect(SHARDS.find(item => item.slug === slug)).toMatchObject({
-    status: slug === 'open-plot-night-market' ? 'experimental' : 'earlyAccess', shardSelect: true });
   expect(SHARDS.filter(item => plotSlugs.has(item.slug)).map(item => item.slug).sort()).toEqual([...plotSlugs].sort());
   expect(shards()).toHaveLength(SHARDS.length + LEGACY_SHARDS.length);
   installShards([]);
 });
 
-test.each(buildOutPlots)('%s uses its existing card and enters its standalone public shardfile', async idea => {
+test.each(buildOutPlots)('%s retains standalone loading and card metadata after exclusion', async idea => {
   await installAssetFixture();
-  installShards([...SHARDS, ...LEGACY_SHARDS]);
+  installShards(selectionManifests());
   setDev(false);
-  const slug = `open-plot-${idea}`, choice = titleCards(false).find(item => item.slug === slug);
-  const manifest = SHARDS.find(item => item.slug === slug);
-  if (choice === undefined || manifest === undefined) throw new Error('Missing public plot card');
+  const slug = `open-plot-${idea}`, manifest = SHARDS.find(item => item.slug === slug);
+  if (manifest === undefined) throw new Error('Missing standalone plot');
+  expect(titleCards(false).some(item => item.slug === slug)).toBe(false);
+  expect(titleCards(true).some(item => item.slug === slug)).toBe(false);
+  // A local host fixture still exercises standalone admission and the original
+  // card metadata; the shipping manifest remains excluded from both decks.
+  installShards([{ ...manifest, shardSelect: true }]);
+  const choice = titleCards(false).find(item => item.slug === slug);
+  if (choice === undefined) throw new Error('Missing fixture card');
   const boot = manifest.boot;
   if (boot?.sources === undefined) throw new Error('Missing authored native-product boot inventory');
   // These levels load world bytes through their admitted shardfile, exactly as

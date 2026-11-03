@@ -242,5 +242,6 @@
       "module": "./data/budgets.json",
       "export": "default"
     }
-  }
+  },
+  "shardSelect": false
 }

@@ -8,7 +8,7 @@
     "manifest": {
       "name": "Open Plot · Coral Drift",
       "status": "earlyAccess",
-      "shardSelect": true,
+      "shardSelect": false,
       "blurb": "Coral Drift: shared-kit template; landmark and theme dressing are unfinished.",
       "bindings": {
         "accent": "coral",

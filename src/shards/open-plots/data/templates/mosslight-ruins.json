@@ -8,7 +8,7 @@
     "manifest": {
       "name": "Open Plot · Mosslight Ruins",
       "status": "earlyAccess",
-      "shardSelect": true,
+      "shardSelect": false,
       "blurb": "Mosslight Ruins: shared-kit template; landmark and theme dressing are unfinished.",
       "bindings": {
         "accent": "moss",

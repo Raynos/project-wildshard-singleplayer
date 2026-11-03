@@ -40,7 +40,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -82,7 +83,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -93,7 +95,7 @@
       "manifest": {
         "name": "Open Plot · Frostline Peaks",
         "status": "earlyAccess",
-        "shardSelect": true,
+        "shardSelect": false,
         "blurb": "Frostline Peaks: shared-kit template; landmark and theme dressing are unfinished.",
         "bindings": {
           "accent": "periwinkle",
@@ -254,7 +256,7 @@
       "manifest": {
         "name": "Open Plot · Ember Forge",
         "status": "earlyAccess",
-        "shardSelect": true,
+        "shardSelect": false,
         "blurb": "An open plot of the grid: a dwarven foundry at deep-blue night, black basalt halls and cold blue lamps round a furnace hall, molten lava the only warm light.",
         "bindings": {
           "accent": "ember",
@@ -371,7 +373,7 @@
       "manifest": {
         "name": "Open Plot · Lantern Bayou",
         "status": "earlyAccess",
-        "shardSelect": true,
+        "shardSelect": false,
         "blurb": "An open plot of the grid: a stilt-house village on a mirror-dark swamp at blue-green dusk, round a giant moss-draped cypress hung with lanterns.",
         "bindings": {
           "accent": "marigold",
@@ -467,7 +469,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -545,7 +548,7 @@
       "manifest": {
         "name": "Open Plot · Coral Drift",
         "status": "earlyAccess",
-        "shardSelect": true,
+        "shardSelect": false,
         "blurb": "An open plot of the grid: a lagoon village at tropical noon, blue-roofed huts on stilts over turquoise pools, palms on white sand, round a giant faceted coral arch.",
         "bindings": {
           "accent": "coral",
@@ -641,7 +644,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -683,7 +687,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -744,7 +749,7 @@
       "manifest": {
         "name": "Open Plot · Mosslight Ruins",
         "status": "earlyAccess",
-        "shardSelect": true,
+        "shardSelect": false,
         "blurb": "An open plot of the grid: a ruined stone city under a grey-green overcast, ivy on every arch, emerald pools glowing round a broken moss-lit tower.",
         "bindings": {
           "accent": "moss",
@@ -840,7 +845,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -882,7 +888,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -893,7 +900,7 @@
       "manifest": {
         "name": "Night Market · Open Plot Pilot",
         "status": "experimental",
-        "shardSelect": true,
+        "shardSelect": false,
         "blurb": "The open-plot pilot (G633): a Night Market of house courts, canals, stall rows and gardens round a pagoda gate, a world still to be built.",
         "bindings": {
           "accent": "pink",
@@ -1068,7 +1075,8 @@
             "x": 0,
             "z": 26
           }
-        ]
+        ],
+        "shardSelect": false
       }
     },
     {
@@ -1083,7 +1091,8 @@
         "bindings": {
           "accent": "apricot"
         },
-        "pois": []
+        "pois": [],
+        "shardSelect": false
       }
     },
     {
@@ -1098,7 +1107,8 @@
         "bindings": {
           "accent": "citron"
         },
-        "pois": []
+        "pois": [],
+        "shardSelect": false
       }
     },
     {
@@ -1113,7 +1123,8 @@
         "bindings": {
           "accent": "rose"
         },
-        "pois": []
+        "pois": [],
+        "shardSelect": false
       }
     },
     {
@@ -1128,7 +1139,8 @@
         "bindings": {
           "accent": "jade"
         },
-        "pois": []
+        "pois": [],
+        "shardSelect": false
       }
     }
   ]
