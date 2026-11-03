@@ -573,6 +573,17 @@
             "x": 0,
             "z": 26
           }
+        ],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.coral-drift",
+          "score": "score.coral-drift",
+          "bed": "none"
+        },
+        "assetGlobs": [
+          "public/assets/open-plots/**",
+          "public/assets/music/coral-drift/**",
+          "public/assets/sfx/coral-drift/**"
         ]
       }
     },

@@ -194,5 +194,54 @@
         "reach": 25
       }
     ]
+  },
+  "coral-drift": {
+    "idea": "coral-drift",
+    "source": {
+      "dir": "/assets/music/coral-drift/",
+      "manifestKey": "coral-drift"
+    },
+    "sfxDir": "/assets/sfx/coral-drift/",
+    "files": {
+      "score": "take-b-4ea0a09e19a7.m4a",
+      "ambience": "ambience-6243d1442260.m4a",
+      "gulls": "gulls-882890bfca57.m4a",
+      "palm-rustle": "palm-rustle-f727c00c7d89.m4a",
+      "pier-creak": "pier-creak-33784300ce1c.m4a",
+      "hut-wind-chimes": "hut-wind-chimes-df2bf5741939.m4a",
+      "lagoon-lap": "lagoon-lap-fb17a048d85b.m4a"
+    },
+    "spots": [
+      {
+        "id": "gulls",
+        "x": -218.75,
+        "z": -218.75,
+        "reach": 55
+      },
+      {
+        "id": "palm-rustle",
+        "x": 218.75,
+        "z": -218.75,
+        "reach": 30
+      },
+      {
+        "id": "pier-creak",
+        "x": 0,
+        "z": -220,
+        "reach": 28
+      },
+      {
+        "id": "hut-wind-chimes",
+        "x": -156.25,
+        "z": -218.75,
+        "reach": 25
+      },
+      {
+        "id": "lagoon-lap",
+        "x": -31.25,
+        "z": -156.25,
+        "reach": 30
+      }
+    ]
   }
 }
