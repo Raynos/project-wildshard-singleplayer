@@ -135,8 +135,8 @@
         },
         "card": {
           "thumb": "/src/shards/open-plots/thumbs/thin-ice.jpg",
-          "portrait": "/src/shards/open-plots/thumbs/thin-ice.jpg",
-          "landscape": "/src/shards/open-plots/thumbs/thin-ice.jpg"
+          "portrait": "/src/shards/open-plots/thumbs/thin-ice-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/thin-ice-landscape.jpg"
         },
         "explore": {
           "art": {

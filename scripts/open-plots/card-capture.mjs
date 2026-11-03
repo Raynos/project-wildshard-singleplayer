@@ -10,7 +10,7 @@ import {parseArgs} from 'node:util';
 import sharp from 'sharp';
 import {withPlotPage} from './hero-page.mjs';
 
-export const CARD_PLOTS=['night-market','lantern-bayou','frostline-peaks','ember-forge','coral-drift','mosslight-ruins','jungle-ziggurat','sky-harbor','starfall-observatory','clockwork-canyon'];
+export const CARD_PLOTS=['night-market','lantern-bayou','frostline-peaks','ember-forge','coral-drift','mosslight-ruins','jungle-ziggurat','sky-harbor','starfall-observatory','clockwork-canyon','thin-ice'];
 // Plot-local metres, as HERO_VIEWS; `fov` is vertical per orientation (72 portrait = the hero lens, 45 landscape ≈ 72 across).
 export const CARD_VIEWS={
   plaza:{eye:[0,1.7,-62],look:[0,12,0],anchor:[0,-62]},

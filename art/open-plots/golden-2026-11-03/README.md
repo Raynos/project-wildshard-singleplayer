@@ -52,6 +52,7 @@ needs a mean of at least 6.5 and no view under 5.
 | [Patchwork Fairground](patchwork-fairground/) | 6 | 5 | 5 | 6 | 5 | 6 | 5 | 6 | **5.50** | NOT YET |
 | [Fossil Badlands](fossil-badlands/) (OP21) | 5 | 6 | 5 | 7 | 6 | 7 | 5 | 5 | **5.75** | NOT YET |
 | [Sky Harbor](sky-harbor/) (OP11) | 4 | 6 | 5 | 7 | 6 | 7 | 5 | 6 | **5.75** | NOT YET |
+| [Thin Ice](thin-ice/) (OP18) | 5 | 6 | 5 | 7 | 6 | 7 | 6 | 5 | **5.88** | NOT YET |
 
 The common pattern: every plot's **top-down matches its mockup's layout** (6–7), and every plot loses points at eye
 level, where the mockups show one huge landmark framed by dense dressing and the builds show a small landmark over wide
@@ -132,6 +133,10 @@ front of it).
   against round 62: the top-down's basins, wharves and corner cottages match and the airship reads from the plaza and
   under its gondola; the road entry shows the poster before a small airship, and the basins are square ponds where the
   board joins canals round its docks (`../../sky-harbor/round-3-final/`).
+- 2026-11-03, Thin Ice (OP18): first set, shot on the pinned preview of `2659447d6d` through `capture.mjs`; cameras
+  are the Fairground's eight, moved to its cell (-1, 2). Scored against round 62: the top-down's ice quadrants, lanes and
+  plaza match and the crystal reads from the plaza and its foot; the road entry shows the poster before a small crystal,
+  the ice is flat colour and the banks' pines draw near only (`../../thin-ice/round-3-final/`).
 - 2026-11-03, Starfall Observatory: first set, from its activation `d4d4b17674` (preview `d4d4b17-mw13gps7`), cameras
   Patchwork's plot-local set moved to Starfall's cell (1, 2) (instance `open-plot-3-4`); final board
   `../starfall-observatory/round-3-final/board.jpg` (its README lists the known gaps).
