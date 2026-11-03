@@ -58,7 +58,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 19a. **Level per shard** (Jake 11-02: *"really important to me"*): your level is locked to the shard you're in. On
     the road between shards you're level 1; entering a shard puts you back at your level in that shard; every shard
     starts you at level 1. Level and XP are saved per shard.
-19b. **Attributes are allocated automatically.** No choosing, no respec (*"really annoying to choose your attributes
+19b. **Attributes grow automatically** (Fire Emblem rolls, 19o). No choosing, no respec (*"really annoying to choose your attributes
     every single time as you go shard by shard"*). The attribute list itself waits on Jake.
 19c. Reaching level 20 takes about 2.5–3 hours. Kill contracts pay coins plus a trophy and a joke title the first time.
 19d. **Roster kept:** Crate Mite L1–3, Pallet Jack L4–6, Plumb Drone L7–9, Welder Unit L10–12, Riveter L13–15, Arc
@@ -98,6 +98,13 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     it). **An enemy cap goes into Wave 1:** full AI within 60 m, at most 16 animated on screen; it helps every shard.
     **Wave 1 crew when built: up to 5 Opus + 5 Codex lanes** (Jake 11-02: *"5+5 is fine for this … but we're just
     planning, not building"*).
+19o. **Fire Emblem growth, not hybrid** (Jake 11-02): no points, no respec, a cap. Each shard rolls you a new character
+    (base values and growth rates); each level-up rolls +1 per attribute at its growth chance. Proposed: growth pool
+    85/70/60/55/45/40/35/30 % shuffled, cap 30, no blank-level protection
+    ([XP Curve and Growth](https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf)).
+19p. **XP is RuneScape-steep:** enemies pay **10 × their level** (linear), drop-off below you, 0 at 6 under; the curve
+    is exponential. Jake suggested ×2 or the golden ratio; ×2 is ~2,000 h to 20, the golden ratio (×1.618) is
+    OSRS's 1–99 curve squeezed into 20 (~60 h). Proposed: golden ratio. This replaces the 2.5–3 h target.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

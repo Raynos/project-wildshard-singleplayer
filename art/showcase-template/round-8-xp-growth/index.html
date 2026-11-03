@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XP Curve and Growth</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { /* dev-map world, single theme; one chart is the point of the page */
+ --floor:#2b2d30; --panel:#35383c; --line:#4a4e54; --ink:#eceae6; --muted:#a7abb1; --orange:#f08a24; --good:#6fcf8a;
+ --display:"Saira Stencil One",Impact,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; color-scheme:dark; }
+*{box-sizing:border-box} html,body{margin:0}
+body{background:var(--floor);color:var(--ink);font:16px/1.55 var(--body)}
+main{max-width:820px;margin:0 auto;padding:24px 16px 56px;display:grid;gap:18px}
+h1{font:38px/1.05 var(--display);color:var(--orange);margin:0} .sub{color:var(--muted);font:13px var(--mono)}
+section{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--orange);padding:16px 18px;display:grid;gap:10px}
+h2{font:22px/1.1 var(--display);color:var(--orange);margin:0} p,li{max-width:68ch} p{margin:0} ul{margin:0;padding-left:20px;display:grid;gap:4px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums} th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{font:600 12px var(--mono);color:var(--muted);text-transform:uppercase} .scroll{overflow-x:auto} svg{width:100%;height:auto;font-family:var(--mono)}
+.sw{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px} .rec{border-left-color:var(--good)} .rec h2{color:var(--good)}
+</style></head><body><main>
+<header><h1>XP CURVE AND GROWTH</h1><div class="sub">Kitchen Sink v2 · Jake's levels rework · 2026-11-02 · enemies pay 10 × their level</div></header>
+<section><h2>XP TO THE NEXT LEVEL</h2>
+<p>Linear scale, so exponential looks exponential. The axis stops at 1,000,000: doubling leaves the chart at level 15.</p>
+<svg viewBox="0 0 640 360" role="img" aria-label="XP to next level by curve"><line x1="48" x2="592" y1="312.0" y2="312.0" stroke="#4a4e54"/><text x="42" y="316.0" text-anchor="end" font-size="11" fill="#a7abb1">0k</text><line x1="48" x2="592" y1="259.2" y2="259.2" stroke="#4a4e54"/><text x="42" y="263.2" text-anchor="end" font-size="11" fill="#a7abb1">200k</text><line x1="48" x2="592" y1="206.4" y2="206.4" stroke="#4a4e54"/><text x="42" y="210.4" text-anchor="end" font-size="11" fill="#a7abb1">400k</text><line x1="48" x2="592" y1="153.6" y2="153.6" stroke="#4a4e54"/><text x="42" y="157.6" text-anchor="end" font-size="11" fill="#a7abb1">600k</text><line x1="48" x2="592" y1="100.8" y2="100.8" stroke="#4a4e54"/><text x="42" y="104.8" text-anchor="end" font-size="11" fill="#a7abb1">800k</text><line x1="48" x2="592" y1="48.0" y2="48.0" stroke="#4a4e54"/><text x="42" y="52.0" text-anchor="end" font-size="11" fill="#a7abb1">1000k</text><text x="48.0" y="330" text-anchor="middle" font-size="11" fill="#a7abb1">1→2</text><text x="168.9" y="330" text-anchor="middle" font-size="11" fill="#a7abb1">5→6</text><text x="320.0" y="330" text-anchor="middle" font-size="11" fill="#a7abb1">10→11</text><text x="471.1" y="330" text-anchor="middle" font-size="11" fill="#a7abb1">15→16</text><text x="592.0" y="330" text-anchor="middle" font-size="11" fill="#a7abb1">19→20</text><path d="M48.0 312.0 L78.2 311.9 L108.4 311.9 L138.7 311.8 L168.9 311.6 L199.1 311.2 L229.3 310.3 L259.6 308.6 L289.8 305.2 L320.0 298.5 L350.2 285.0 L380.4 257.9 L410.7 203.9 L440.9 95.7 L471.1 26.9 L501.3 26.9 L531.6 26.9 L561.8 26.9 L592.0 26.9" fill="none" stroke="#ef6b5b" stroke-width="2"/><path d="M48.0 312.0 L78.2 312.0 L108.4 311.9 L138.7 311.9 L168.9 311.8 L199.1 311.7 L229.3 311.4 L259.6 311.1 L289.8 310.5 L320.0 308.8 L350.2 307.5 L380.4 304.6 L410.7 299.8 L440.9 292.0 L471.1 279.2 L501.3 243.8 L531.6 214.5 L561.8 152.0 L592.0 49.6" fill="none" stroke="#c77dff" stroke-width="2"/><path d="M48.0 312.0 L78.2 312.0 L108.4 311.9 L138.7 311.9 L168.9 311.8 L199.1 311.7 L229.3 311.5 L259.6 311.2 L289.8 310.8 L320.0 310.0 L350.2 308.8 L380.4 306.7 L410.7 303.5 L440.9 298.2 L471.1 289.7 L501.3 276.0 L531.6 253.7 L561.8 217.7 L592.0 159.5" fill="none" stroke="#f08a24" stroke-width="3.5"/><path d="M48.0 312.0 L78.2 312.0 L108.4 311.9 L138.7 311.9 L168.9 311.9 L199.1 311.9 L229.3 311.8 L259.6 311.7 L289.8 311.6 L320.0 311.5 L350.2 311.2 L380.4 310.9 L410.7 310.5 L440.9 309.9 L471.1 309.1 L501.3 307.9 L531.6 306.3 L561.8 304.0 L592.0 300.7" fill="none" stroke="#5aa9e6" stroke-width="2"/><path d="M48.0 312.0 L78.2 312.0 L108.4 312.0 L138.7 311.9 L168.9 311.9 L199.1 311.9 L229.3 311.9 L259.6 311.9 L289.8 311.8 L320.0 311.8 L350.2 311.8 L380.4 311.7 L410.7 311.6 L440.9 311.5 L471.1 311.4 L501.3 311.2 L531.6 311.1 L561.8 310.8 L592.0 310.5" fill="none" stroke="#6fcf8a" stroke-width="2"/></svg>
+<div class="scroll"><table><tr><th>Curve</th><th>1→2</th><th>11→12</th><th>19→20</th><th>Total to 20</th><th>Grind*</th></tr><tr><td><span class="sw" style="background:#ef6b5b"></span>Doubling ×2</td><td>100</td><td>102,400</td><td>26,214,400</td><td>52,428,700</td><td>1,957 h</td></tr><tr><td><span class="sw" style="background:#c77dff"></span>OSRS 1–99 squeezed</td><td>100</td><td>17,162</td><td>994,105</td><td>2,545,787</td><td>99 h</td></tr><tr><td><span class="sw" style="background:#f08a24"></span>Golden ratio ×1.618</td><td>100</td><td>12,299</td><td>577,800</td><td>1,512,538</td><td>59 h</td></tr><tr><td><span class="sw" style="background:#5aa9e6"></span>×1.4</td><td>100</td><td>2,893</td><td>42,688</td><td>149,158</td><td>6 h</td></tr><tr><td><span class="sw" style="background:#6fcf8a"></span>×1.25</td><td>100</td><td>931</td><td>5,551</td><td>27,356</td><td>1 h</td></tr></table></div>
+<p class="sub">*At 2.5 equal-level kills a minute (the blockout's pace), enemies paying 10 × level.</p>
+</section>
+<section><h2>WHY THE GOLDEN RATIO IS RUNESCAPE</h2>
+<p>Old School RuneScape doubles the XP per level about every 7 levels, from 83 XP for level 2 to 13 million at 99. Squeeze its 99 levels into our 20 and each of our levels is about 5 of theirs, about ×1.64 a level. The golden ratio (×1.618) is the same curve. Doubling (×2) would be far harsher than RuneScape: about 2,000 hours to 20.</p>
+</section>
+<section><h2>GOLDEN RATIO: KILLS PER LEVEL</h2>
+<div class="scroll"><table><tr><th>Level</th><th>XP needed</th><th>XP per equal-level kill</th><th>Kills</th></tr><tr><td>1→2</td><td>100</td><td>10</td><td>10</td></tr><tr><td>3→4</td><td>262</td><td>30</td><td>9</td></tr><tr><td>5→6</td><td>685</td><td>50</td><td>14</td></tr><tr><td>8→9</td><td>2,903</td><td>80</td><td>36</td></tr><tr><td>10→11</td><td>7,601</td><td>100</td><td>76</td></tr><tr><td>12→13</td><td>19,901</td><td>120</td><td>166</td></tr><tr><td>14→15</td><td>52,100</td><td>140</td><td>372</td></tr><tr><td>16→17</td><td>136,400</td><td>160</td><td>853</td></tr><tr><td>18→19</td><td>357,100</td><td>180</td><td>1,984</td></tr><tr><td>19→20</td><td>577,800</td><td>190</td><td>3,041</td></tr></table></div>
+<p>Enemies stop at level 18 (the Titan is 20), so the last levels are earned on level-18 commons, elites and night variants. Below you, kills pay less and nothing at 6 under, so you keep moving east.</p>
+</section>
+<section><h2>FIRE EMBLEM GROWTH</h2>
+<ul>
+<li><b>A new character per shard.</b> The first time you enter a shard, the dice roll you a character: each of the 8 attributes gets a base value (3–7) and a <b>growth rate</b>, the 8 rates being a shuffled pool (85, 70, 60, 55, 45, 40, 35, 30 %). One run you are a tank, the next a glass-cannon archer.</li>
+<li><b>Every level-up</b> rolls each attribute: +1 with its growth chance. No points, no choices, no respec. Over 19 level-ups an 85 % stat gains about 16; a 30 % stat about 6.</li>
+<li><b>A cap of 30</b> per attribute (Fire Emblem caps too). Reachable only by a high-growth stat with luck.</li>
+<li><b>Enemies</b> use the same 8 attributes with fixed average growths per type, so a level 12 Welder is always the same Welder.</li>
+<li>The combat formulas are re-tuned for these smaller numbers (an average stat at level 20 is about 15, not 24).</li>
+</ul></section>
+<section class="rec"><h2>RECOMMENDATION</h2>
+<ul><li><b>The golden ratio, ×1.618:</b> it is the RuneScape curve at our scale. Level 10 in a few hours, level 15 a long weekend, level 20 about 60 hours of grind in one shard.</li>
+<li><b>Enemies pay 10 × level</b>, drop-off below you, 0 at 6 under.</li>
+<li><b>Fire Emblem growth</b> as above, with pure dice: no "blank level" protection, matching your no-streak-guard call.</li></ul></section>
+</main></body></html>
