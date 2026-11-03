@@ -440,13 +440,17 @@ async function enterGrid(driver) {
   }
   await sleep(800);
   await handoffFloorGridNavigation(driver);
+  const entryReadFailures = [];
   while (Date.now() - start < 240000) {
-    const state = await driver.evaluate(`(() => { const s = (${status.toString()})(); return { ...s, grid: window.__wildshard?.shard?.grid !== undefined }; })()`).catch(() => null); // mid-navigation
+    const state = await driver.evaluate(`(() => { const s = (${status.toString()})(); return { ...s, grid: window.__wildshard?.shard?.grid !== undefined }; })()`).catch(error => {
+      entryReadFailures.push({ elapsedMs: Date.now() - start, error: errorText(error), ...(error?.cause === undefined ? {} : { cause: errorText(error.cause) }) });
+      return null; // mid-navigation; retain Inspector failures separately from game readiness
+    });
     if (state?.error) throw new Error(state.error);
     if (state?.ready && state.grid) { await driver.evaluate('(window.__wildshard.world.hud.enterNow(), true)'); return; }
     await sleep(300);
   }
-  throw new Error('The grid did not finish loading within 240 seconds');
+  throw Object.assign(new Error('The grid did not finish loading within 240 seconds'), { entryReadFailures });
 }
 /** Reject a standing row displaced by a readiness wall or recovery after camera scans. */
 function assertStandingPosition(pose, result) {
@@ -504,7 +508,7 @@ async function saveSafariProfile(name, profile, pageRange, file = join(safariPro
 async function measureShard(driver, shard, deadline) {
   const start = Date.now(), floorMs = surface === 'sim' ? 33.3 : 16.7;
   const rows = [], scenarios = [];
-  let meta;
+  let meta, measurement;
   try {
     await driver.load(shard);
     if (shard === 'grid') await enterGrid(driver);
@@ -789,15 +793,25 @@ async function measureShard(driver, shard, deadline) {
     if (safariPrefix !== '' && !rows.some(row => row.pose.name === `grid-${safariPrefix}-drive` && row.scriptProfile)) throw new Error(`Selected prefix drive was not reached: ${safariPrefix}`);
     if (safariWindow !== null && !rows.some(row => row.pose.name === `grid-${safariWindow.route}-drive` && row.scriptProfile)) throw new Error(`Selected sampling window was not reached: ${safariWindow.route}`);
     const errors = await driver.errors();
-    return { shard, complete: true, pass: rows.every((r) => r.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
+    measurement = { shard, complete: true, pass: rows.every((r) => r.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
       floorMs, evaluationOriginDriftMaxMs, cpuPhase: driver.cpuPhase?.() ?? null, metadata: meta, cameraSource: suppliedStanding !== null ? 'caller fixed world poses; source and hash retained' : declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, lastRoute: driver.progress(), errors };
   } catch (error) {
     console.error(`${surface} ${shard}: ${errorText(error)}`);
-    const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { documentOrigin: performance.timeOrigin, lastEnd: saved.keys?.['life.lastEnd']?.data, lastUnload: saved.keys?.['life.lastUnload']?.data, url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);
+    let diagnosticError;
+    const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { documentOrigin: performance.timeOrigin, lastEnd: saved.keys?.['life.lastEnd']?.data, lastUnload: saved.keys?.['life.lastUnload']?.data, url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(diagnosticFailure => { diagnosticError = errorText(diagnosticFailure); return null; });
     const lastRoute = driver.progress(), runtimeFailure = gridFloorRuntimeFailure(lastRoute, diagnostic ?? { documentOrigin: error?.documentOrigin });
-    return { shard, complete: runtimeFailure !== null, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error),
+    measurement = { shard, complete: runtimeFailure !== null, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error),
+      ...(error?.entryReadFailures === undefined ? {} : { entryReadFailures: error.entryReadFailures }), ...(diagnosticError === undefined ? {} : { diagnosticError }),
       evaluationOriginDriftMaxMs, cpuPhase: driver.cpuPhase?.() ?? null, ...(meta === undefined ? {} : {metadata: meta}), errors: await driver.errors().catch(() => []), rows, scenarios, lastRoute, runtimeFailure, diagnostic };
-  } finally { await driver.unload(); }
+  } finally {
+    await driver.unload().catch(unloadError => {
+      if (measurement === undefined) throw unloadError;
+      // Cleanup cannot erase an entry refusal or its diagnostic. Missing native
+      // evidence still makes the measurement incomplete and never earns credit.
+      measurement.unloadError = errorText(unloadError); measurement.complete = false; measurement.pass = false;
+    });
+  }
+  return measurement;
 }
 
 /** Long tasks inside a profiled travel leg, each with its heaviest inclusive frames (function url:line); raw profile kept in scratch. */
