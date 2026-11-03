@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **0/10 complete; Saltwind final cohort in flight**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **0/10 complete; Saltwind grid Simulator refusal remains open**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -21,7 +21,7 @@ not qualify a later audio candidate. Saltwind's final admitted candidate is
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
-| Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Chromium/control complete; walk/goldens open | Memory + standalone Sim complete; grid refused |
+| Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim complete; grid refused |
 | Sky Harbor | `open-plot-4-4` / (2,2) | Awaiting audio handoff | Open | Open |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | Awaiting audio handoff | Open | Open |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
@@ -96,9 +96,8 @@ Standing poses are the original real road `(0,1.7,-241,pi,0)` and plaza
 `(0,1.7,-62,pi,0)`, shared with the control. Raw records and pose hashes are
 in `tmp/sp-x1-open-plots/saltwind-final/chromium/`; the source-bound standing
 file is `tmp/sp-x1-open-plots/saltwind-lighthouse-standing.json`.
-The Chromium/control browser is closed. The own preview lease stays retained
-for the pending maintained walk and eight-view golden bridge, after sp-x8's
-finite memory/official Simulator boundary. Those scopes remain open.
+The Chromium/control browser closed before sp-x8's finite memory/official
+Simulator window. The later walk/golden completion is recorded below.
 
 ## Saltwind Lighthouse — Memory/Simulator (sp-x8)
 
@@ -186,3 +185,44 @@ parsing. No browser, model or Simulator lease remains with this reading.
 The own preview use is released after recording; X1 and X6 retain theirs.
 Saltwind's full cohort stays open for the grid refusal and remaining
 peer-owned walk/golden scopes. The other nine await final audio handoffs.
+
+## Saltwind Lighthouse — walk and golden bridge (sp-x1)
+
+The same final audio-containing **f8a1406288 / f8a1406-mw167rcy** completes
+the maintained `scripts/open-plots/walk.mjs` leg `road-avenue-plaza`:
+**14/14 waypoints, 0 stuck, 0 out of bounds, 164.0762 s**, endpoint
+**(0.001, 0.018, -61.975)**, reported maximum Y **0.2 m**. The original
+180 s bound, native controller, continuous fixed-step movement and endpoint
+guards remain intact. No hovering or per-waypoint teleport. Route source
+`scripts/physics-route.json` is read from that exact pin, SHA-256
+`f0f88e6a0ab42ce7f52380a79792dd3e64818f32b31337f15a5dd45a9b351fa9`.
+
+The maintained eight-view grid capture completes with **8/8 green**, all
+rows read individually. Every view has settled crossing, pending empty,
+zero in-flight/queued ring work and no page errors. The original cameras
+match the pinned source hash
+`276031ad62ec9ff7a32e812344b6b06a2e13349f21e56773809c84bdf347c5e7`.
+The original raw receipt remains unchanged; the reviewed labelled board is
+[audio-candidate golden rerun](../../art/golden-runs/open-plot-saltwind-lighthouse/2026-11-03-f8a1406288-final-audio-board.jpg).
+SSIM spans 0.945–0.996 as descriptive evidence, not the look verdict.
+
+Sp-o3 classifies view 3 green for Saltwind: lighthouse, harbour tiles, lamps
+and canal edge match. Its copied `neighbour-100m` camera looks over Pine's
+near-placeholder rock; the reference already has white slivers and NOW draws
+a different strip at the left edge. This is the existing varying Pine
+near-view artefact outside Saltwind's geometry. The far-left corner is a
+newly activated neighbour. That note is passed to the coordinator for Pine's
+owner; no golden is promoted and no new look round is introduced. The
+published G994 density, rain/beam and neighbour-camera gaps remain explicit.
+
+The source/body bridge from sp-x6, matched Chromium/control above, maintained
+walk and golden bridge are complete. **The full cohort remains open only for
+sp-x8's recorded Simulator grid refusal**; its standalone results and missing
+grid witnesses retain their exact scope. The earlier memory/Sim paragraph's
+then-pending walk/golden scopes are now complete. No unchanged retry or
+invented measurement closes that refusal.
+
+Raw walk, capture, eight comparison rows and explicit classification stay in
+`tmp/sp-x1-open-plots/saltwind-final/`. All own browsers are closed; the own
+shared preview use is released normally after this report lands. No visual
+source, collider, controller, contract, cap or verification rule changes.

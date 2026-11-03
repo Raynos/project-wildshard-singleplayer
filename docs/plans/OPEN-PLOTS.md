@@ -121,6 +121,18 @@ Saltwind's actual cell is **(0,2)** / `open-plot-2-4`; `db418c06d7` now
 supplies its maintained 14-waypoint / 180 s route, awaiting the final audio
 candidate's walk qualification. No visual source or guard changes.
 
+
+**Saltwind final audio readings (2026-11-03, sp-x1).** Exact activation
+`f8a1406288` / build `f8a1406-mw167rcy`: matched Chromium/control completes
+six ×120 paired frames (Saltwind draws 44/53/53, p95 33.4 ms; unchanged CPU
+and strict-timing misses retained). Maintained walk reaches all 14 waypoints,
+0 stuck/out in 164.0762 s under the original 180 s bound. All eight golden
+rows are read green, with sp-o3's explicit existing Pine foreground artefact
+classification and no promotion. [Full source-bound results and board](../reviews/open-plots-final-readings.md#saltwind-lighthouse--walk-and-golden-bridge-sp-x1).
+Sp-x8's memory and standalone Simulator numbers are recorded there too;
+its 240 s grid-load deadline and missing GPU/native witnesses remain an open
+refusal, so this does not close the whole cohort or OP9. No visual source changes.
+
 **Starfall walk qualification (2026-11-03, sp-x9).** The ordinary maintained
 `scripts/open-plots/walk.mjs` ran under the browser lane on a shared lease
 of `d4d4b17674c7e80fb3beb8c16de1fbd14ff2e064`, actual build
