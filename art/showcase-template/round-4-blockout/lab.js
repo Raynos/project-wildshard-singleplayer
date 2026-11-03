@@ -891,7 +891,18 @@ function show(name) {
 }
 renderer.setAnimationLoop(() => { if (current === 'orbit') { controls.update(); render(persp); } });
 show('plan');
-window.lab = { show: n => { ui.value = n; show(n); return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); },
+// A free camera for clean grey frames (round-11 remaster inputs): no caption, no labels, no signs unless asked.
+//   lab.cam({ pos: [x, y, z], look: [x, y, z], fov: 70, signs: false })
+function cam({ pos, look, fov = 70, signs: withSigns = false }) {
+  current = 'cam'; controls.enabled = false; full(); signs.visible = withSigns;
+  for (const id of ['cap', 'foot', 'panel', 'ui']) $(id).style.display = 'none';
+  persp.fov = fov; persp.near = .2; persp.position.set(...pos); persp.lookAt(...look); render(persp);
+}
+window.lab = { show: n => { for (const id of ['cap', 'foot', 'panel', 'ui']) $(id).style.display = ''; ui.value = n; show(n); return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); },
+  cam: o => { cam(o); return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); },
+  topdown: (x0, x1, z0, z1) => { current = 'cam'; for (const id of ['cap', 'foot', 'panel', 'ui']) $(id).style.display = 'none';
+    signs.visible = false; planOnly.visible = false; budgetOnly.visible = false; placeOnly.visible = false; scene.fog = null; $('labels').innerHTML = '';
+    setFrame(x0, x1, z0, z1); layoutCanvas(VW(), VH(), 0); render(ortho); return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); },
   stats: () => ({ budget: B_, fit: P.fit, grind: G_, onScreen: S_, reach: [R2_, R1_], townSpan, houses, townBuildings: TOWN_B.length, cover: P.cover.length, chests: P.chests.length, crates: P.crates.length, quests: P.quests.length, lairs: P.lairs, packs: P.packs.length,
     night: P.packs.filter(p => p.night).length, walks: W_ }) };
 window.labReady = true;
