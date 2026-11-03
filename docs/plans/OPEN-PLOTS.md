@@ -1,6 +1,6 @@
 # Plan: OPEN-PLOTS — build the other 18 open plots the way Night Market was built
 
-**State:** `parked (draft, 2026-10-28): starts on Jake's word, after SHARD-PLATFORM archives (G824)`
+**State:** `parked` (rows re-pointed 11-02: the five build-outs and four new plots live in [open-plots/build-out-mini-plan.md](open-plots/build-out-mini-plan.md) and [open-plots/new-unique-plots-mini-plan.md](open-plots/new-unique-plots-mini-plan.md), G971–G977; play loops dropped, G971) — was `parked (draft, 2026-10-28): starts on Jake's word, after SHARD-PLATFORM archives (G824)`
 
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
@@ -120,12 +120,12 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP5 | Showcase Template (wave 1; the template's proof) | Opus + Codex | 8 / 4 h | Pipeline steps 1–8 met (§3) |
 | OP6 | Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
 | OP7 | Patchwork Fairground (wave 1; new idea, reuses stalls and strings) | Opus + Codex | 12 / 4 h | Steps 1–8; takes a repeat cell |
-| OP8 | Mushroom Hollow (wave 2; new) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP8 | ~~Mushroom Hollow~~ **dropped (G977)**: Jungle Ziggurat (OP13) takes its cell (-2,2) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP9 | Saltwind Lighthouse (wave 2; new) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP10 | Coral Drift (wave 2; builds the shared palms and lagoon water) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP11 | Sky Harbor (wave 3) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP12 | Desert Ruin (wave 3; reuses the palms) | Opus + Codex | 16 / 5 h | Steps 1–8 |
-| OP13 | Jungle Ziggurat (wave 3; new) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
+| OP13 | Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP14 | Ember Forge (wave 4; adds the lava water kind) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
 | OP15 | Starfall Observatory (wave 4) | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP16 | Frostline Peaks (wave 4; builds the shared pines and snow) | Opus + Codex | 22 / 6 h | Steps 1–8; frees a repeat cell |
