@@ -4353,5 +4353,76 @@
       "timeout": 240,
       "notes": "OP13 (sp-o1, wildshard-new's ruling): the plaza's western half and north side, which leg 1 leaves out to fit 240 s: from the south stair's foot west outside the stair feet (+-64), north past the west stair, east past the north stair to leg 1's NE corner. Scanned clear of every tile collider (capsule + 0.3 m) and the ziggurat's base and stairs. Finite 240 s bound; 2 s stuck detection and every waypoint/endpoint guard unchanged."
     }
+  ],
+  "open-plot-sky-race": [
+    {
+      "name": "road-avenue-plaza-tower",
+      "start": {
+        "x": 0,
+        "z": -245,
+        "y": 0.2,
+        "yaw": 3.141592653589793
+      },
+      "waypoints": [
+        {
+          "x": 0,
+          "z": -220
+        },
+        {
+          "x": 0,
+          "z": -187.5
+        },
+        {
+          "x": 0,
+          "z": -125
+        },
+        {
+          "x": 0,
+          "z": -62.5
+        },
+        {
+          "x": -62.5,
+          "z": -62.5
+        },
+        {
+          "x": -62.5,
+          "z": 0
+        },
+        {
+          "x": -62.5,
+          "z": 62.5
+        },
+        {
+          "x": 0,
+          "z": 62.5
+        },
+        {
+          "x": 62.5,
+          "z": 62.5
+        },
+        {
+          "x": 62.5,
+          "z": 0
+        },
+        {
+          "x": 62.5,
+          "z": -62.5
+        },
+        {
+          "x": 0,
+          "z": -62.5
+        },
+        {
+          "x": 0,
+          "z": -50
+        },
+        {
+          "x": 0,
+          "z": -62.5
+        }
+      ],
+      "timeout": 180,
+      "notes": "OP22: south road entry up the avenue between the lamps and grandstands, a full plaza perimeter on the tile seams past the stands round the race tower, then its south approach under the start arch. Continuous fixed-step walking, no hovering or per-waypoint teleport."
+    }
   ]
 }
