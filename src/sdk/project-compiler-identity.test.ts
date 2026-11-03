@@ -3,7 +3,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync, symlinkSync } from 'node
 // oxlint-disable-next-line import/no-nodejs-modules -- Package resolution uses only this synthetic directory.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { compilerPackageInputs } from './projectCompilerIdentity';
+import { build } from 'vite';
+import { compilerPackageInputs, createProjectCompilerIdentities } from './projectCompilerIdentity';
 
 test('compiler identities cover transitive runtime and standard-library bytes, not installation paths', () => {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp', 'compiler-identity-'));
@@ -27,3 +28,31 @@ test('compiler identities cover transitive runtime and standard-library bytes, n
     expect(() => compilerPackageInputs(rows)).toThrow('symbolic source');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+
+test('raw compiler role excludes only decision builders while generation and raw compiler inputs remain bound',async()=>{
+  let decisionVisits=0,rawVisits=0;
+  async function identities(mutation:'none'|'decision'|'raw'){
+    const identity=createProjectCompilerIdentities(options=>build({...options,plugins:[...(options?.plugins??[]),{
+      name:'owned-identity-input-mutation',
+      transform(code,id){
+        if(id.endsWith('/src/sdk/buildDecisionScripts.ts')&&mutation==='decision'){
+          decisionVisits++;return code.replace('Missing decision source:', 'Changed decision builder source:');
+        }
+        if(id.endsWith('/src/sdk/bake/compileScript.ts')&&mutation==='raw'){
+          rawVisits++;return code.replace('AssemblyScript compile failed:', 'Changed raw compiler source:');
+        }
+        return undefined;
+      },
+    }]}));
+    return {project:await identity.project(),raw:await identity.rawAssemblyScript()};
+  }
+  const before=await identities('none'),decision=await identities('decision');
+  expect(decisionVisits).toBeGreaterThan(0);
+  expect(decision.project).not.toBe(before.project);
+  expect(decision.raw).toBe(before.raw);
+  const compiler=await identities('raw');
+  expect(rawVisits).toBeGreaterThan(0);
+  expect(compiler.project).not.toBe(before.project);
+  expect(compiler.raw).not.toBe(before.raw);
+},30000);

@@ -12,6 +12,7 @@ import type { AssemblyScriptMemo } from '../src/sdk/bake/assemblyscriptMemoPort'
 import * as finite from '../src/sdk/bake/v2Finite';
 import * as fuel from '../src/sdk/bake/v2Fuel';
 import * as admission from '../src/format/scriptAdmissionV2';
+import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 
 async function isolated(run: (root: string) => Promise<void>): Promise<void> {
   mkdirSync('tmp', { recursive: true });
@@ -27,7 +28,7 @@ async function isolated(run: (root: string) => Promise<void>): Promise<void> {
 }
 
 test('raw memo keys every source, compiler flag and installed compiler identity while owning returned bytes', () => isolated(async () => {
-  const compiler = vi.spyOn(identity, 'projectCompilerIdentity').mockResolvedValue('a'.repeat(64));
+  const compiler = vi.spyOn(identity, 'rawAssemblyScriptCompilerIdentity').mockResolvedValue('a'.repeat(64));
   const original = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
   const generate = vi.fn(() => Promise.resolve(original));
   const args = ['main.ts', '-O3'], sources = new Map([['main.ts', 'export function value():i32{return 1;}'], ['part.ts', 'export const part=1;']]);
@@ -44,7 +45,7 @@ test('raw memo keys every source, compiler flag and installed compiler identity 
 }));
 
 test('raw memo repairs damaged storage and retains original compiler errors without caching them', () => isolated(async root => {
-  vi.spyOn(identity, 'projectCompilerIdentity').mockResolvedValue('a'.repeat(64));
+  vi.spyOn(identity, 'rawAssemblyScriptCompilerIdentity').mockResolvedValue('a'.repeat(64));
   const original = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
   const generate = vi.fn(() => Promise.resolve(original)), sources = new Map([['main.ts', 'source']]);
   await memoAssemblyScript([], sources, generate);
@@ -104,3 +105,37 @@ test('pure compiler bundles do not acquire host memo or filesystem imports', asy
     expect(Object.keys(chunk.modules).some(name => name.endsWith('/bake/assemblyscriptMemo.ts'))).toBe(false);
   }
 });
+
+
+test('only an exact verified old full-compiler key migrates into the raw key and owns its bytes',()=>isolated(async root=>{
+  vi.spyOn(identity,'projectCompilerIdentity').mockResolvedValue('a'.repeat(64));
+  vi.spyOn(identity,'rawAssemblyScriptCompilerIdentity').mockResolvedValue('b'.repeat(64));
+  const args=['main.ts','-O3'],sources=new Map([['main.ts','source']]);
+  const key=hashImmutableBytes(new TextEncoder().encode(encodeCanonicalJson({version:1,compiler:'a'.repeat(64),node:process.version,platform:process.platform,arch:process.arch,args,sources:[...sources]})));
+  const bytes=new Uint8Array([0,97,115,109,1,0,0,0]);
+  writeFileSync(resolve(root,`${key}.wasm`),bytes);
+  writeFileSync(resolve(root,`${key}.json`),JSON.stringify({key,hash:hashImmutableBytes(bytes),bytes:bytes.length}));
+  const generate=vi.fn(()=>Promise.resolve(bytes));
+  const migrated=await memoAssemblyScript(args,sources,generate);
+  expect(migrated).toEqual(bytes);expect(generate).not.toHaveBeenCalled();
+  expect(readdirSync(root).filter(name=>name.endsWith('.wasm'))).toHaveLength(2);
+  migrated.fill(0);
+  // A later decision-builder identity change still hits the validated raw entry.
+  vi.mocked(identity.projectCompilerIdentity).mockResolvedValue('c'.repeat(64));
+  expect(await memoAssemblyScript(args,sources,generate)).toEqual(bytes);
+  expect(generate).not.toHaveBeenCalled();
+  await memoAssemblyScript([...args,'--memoryBase','1024'],sources,generate);
+  expect(generate).toHaveBeenCalledTimes(1);
+}));
+
+
+test('a raw hit cannot bypass the original full compiler identity refusal',()=>isolated(async()=>{
+  const full=vi.spyOn(identity,'projectCompilerIdentity').mockResolvedValue('a'.repeat(64));
+  vi.spyOn(identity,'rawAssemblyScriptCompilerIdentity').mockResolvedValue('b'.repeat(64));
+  const bytes=new Uint8Array([0,97,115,109,1,0,0,0]);
+  const generate=vi.fn(()=>Promise.resolve(bytes)),sources=new Map([['main.ts','source']]);
+  expect(await memoAssemblyScript([],sources,generate)).toEqual(bytes);
+  full.mockRejectedValue(new Error('Original full compiler input refused'));
+  await expect(memoAssemblyScript([],sources,generate)).rejects.toThrow('Original full compiler input refused');
+  expect(generate).toHaveBeenCalledTimes(1);
+}));

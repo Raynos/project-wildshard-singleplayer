@@ -35,7 +35,7 @@ test('actual cold, disk and in-process generation paths count only validated pay
 
 test('real AS and Zstd caches retain exact bytes across hit, corruption repair and failed storage',async()=>{
   const root=fixture();vi.stubEnv('WILDSHARD_ZSTD_BYTES_CACHE',resolve(root,'zstd'));vi.stubEnv('WILDSHARD_AS_RAW_CACHE',resolve(root,'as'));
-  vi.spyOn(compiler,'projectCompilerIdentity').mockResolvedValue('a'.repeat(64));
+  vi.spyOn(compiler,'rawAssemblyScriptCompilerIdentity').mockResolvedValue('a'.repeat(64));
   const counters=createBuildCacheCounters(),stop=observeBuildCache(counters);
   try{
     const input=new Uint8Array([1,2,3]),cold=encodeZstdBytesMemo(input),warm=encodeZstdBytesMemo(input);
