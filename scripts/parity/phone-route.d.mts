@@ -33,7 +33,7 @@ export interface PhoneReceipt {
   protocol:string; route?:'full'|'entry'; rollout?:string; sha:string; version:{build:string}; engine:PhonePage['engine']; steps:string[];
   paint:{heroMs:number|null;fcpMs:number|null;heroURL:string|null;phases?:PhoneTitlePhases}; entry:PhoneEntry|null; wall:PhoneWall|null;
   fps:PhoneFps[]; observations:PhoneObservation[]; frames:{label:string;width:number;height:number;darkShare:number}[];
-  faults:string[]; routes:FloorGridWitness[]; failures:string[]; stop?:unknown;
+  faults:string[]; routes:FloorGridWitness[]; failures:string[]; stop?:unknown; boot?:unknown;
 }
 export function phoneRoutePlans(state:PhoneObservation):{market:string;plans:FloorGridPlan[]};
 export function phoneRouteFailures(receipt:PhoneReceipt):string[];

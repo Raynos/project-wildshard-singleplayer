@@ -105,17 +105,19 @@ test('a pre-world failure preserves loading rows and native timings without muta
     const before=dom.document.body.innerHTML;
     const resources=[{name:'https://example.com/code.js',initiatorType:'script',startTime:10,duration:200,responseStart:20,responseEnd:210,transferSize:100,encodedBodySize:80,decodedBodySize:160}];
     const performance={now:()=>62000,getEntriesByType:(kind:string)=>kind==='resource'?resources:[{name:'modules',startTime:0,duration:13400}]};
-    const result:unknown=runInNewContext(`(${phoneLoadingObservation.toString()})()`,{document:dom.document,location:dom.location,performance});
+    const window={__phoneRouteObserver:{batches:12,records:20,scans:12,scanMs:3,heroPolls:9,heroMs:2}};
+    const result:unknown=runInNewContext(`(${phoneLoadingObservation.toString()})()`,{window,document:dom.document,location:dom.location,performance});
     expect(result).toMatchObject({at:62000,url:'https://example.com/',loading:{step:'warm.links',clock:'01:02.0',timeline},
       resources:[{kind:'script',duration:200,transferBytes:100,encodedBytes:80,decodedBytes:160}],measures:[{name:'modules',duration:13400}]});
     expect(result).toMatchObject({waits:null});
+    expect(result).toMatchObject({observer:window.__phoneRouteObserver});
     let retries=0;
     const row={id:1,label:'Read Product data',kind:'file',step:'home',owner:Symbol('existing loader'),
       startedAt:61000,progressAt:61500,loadedBytes:7,totalBytes:null,resource:'https://example.com/product.bin',
       retry:()=>{retries++;},progress:'',inline:false};
     const pending=new Map([[row.id,row]]);
     Reflect.set(dom.document,Symbol.for('engine.loading.waits.v1'),{version:1,pending});
-    const active:unknown=runInNewContext(`(${phoneLoadingObservation.toString()})()`,{document:dom.document,location:dom.location,performance});
+    const active:unknown=runInNewContext(`(${phoneLoadingObservation.toString()})()`,{window,document:dom.document,location:dom.location,performance});
     expect(active).toMatchObject({waits:[{resource:row.resource,ageMs:1000,progressAgeMs:500,loadedBytes:7,totalBytes:null}]});
     const serial=JSON.stringify(active);
     expect(serial).not.toContain('retry');expect(serial).not.toContain('existing loader');

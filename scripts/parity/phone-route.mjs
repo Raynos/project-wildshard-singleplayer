@@ -158,6 +158,7 @@ export async function phoneRoute(page, base, sha, out, route = 'full') {
     const gridDeadline = Date.now()+60000, gridURL = new URL(base); gridURL.search=''; gridURL.hash='';
     await enterPhoneGrid(page,gridURL.href,gridDeadline);
     await waitPhoneCondition(page, phoneGridEntryCondition, 'grid Driftwood entry', gridDeadline);
+    receipt.boot = await page.evaluate(`(${phoneLoadingObservation.toString()})()`);
     receipt.steps.push('grid', 'Driftwood'); await observe(); await shot('Driftwood'); receipt.fps.push(await fpsWindow(page, 'Driftwood'));
     const initial = await observe(), { market, plans } = phoneRoutePlans(initial);
     const identity = /** @type {import('../frame-floor-grid.mjs').FloorGridDocumentIdentity} */ (await page.evaluate(`(${gridFloorDocumentIdentity.toString()})()`));

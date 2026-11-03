@@ -52,6 +52,7 @@ export function phoneLoadingObservation() {
   /** @type {unknown} */
   const timeline = root === null ? null : Reflect.get(root, Symbol.for('engine.loading.snapshot')) ?? null;
   const at = performance.now();
+  const observer = Reflect.get(window, '__phoneRouteObserver') ?? null;
   // Resource Timing contains settled reads only. Retain the existing registry's
   // live transport identities without importing code or invoking retry owners.
   const state = /** @type {import('../../src/engine/boot/download').LoadingWaitState|undefined} */ (Reflect.get(document, Symbol.for('engine.loading.waits.v1')));
@@ -59,7 +60,7 @@ export function phoneLoadingObservation() {
     ? [...state.pending.values()].map(row => ({ id: row.id, label: row.label, kind: row.kind, step: row.step,
       resource: row.resource ?? null, startedAt: row.startedAt, ageMs: Math.max(0, at - row.startedAt),
       progressAgeMs: Math.max(0, at - row.progressAt), loadedBytes: row.loadedBytes, totalBytes: row.totalBytes })) : null;
-  return { at, url: location.href, readyState: document.readyState, waits,
+  return { at, url: location.href, readyState: document.readyState, waits, observer,
     loading: root === null ? null : { step: step ?? null, clock: text('clock'),
       download: text('dlFact'), setup: text('suFact'), wait: text('foot'), timeline },
     resources: performance.getEntriesByType('resource').map(entry => {
@@ -190,12 +191,25 @@ export function installPhoneTitlePaint() {
   Reflect.set(window, '__phoneRoutePaint', evidence);
   /** @type {string[]} */ const faults = [];
   Reflect.set(window, '__phoneRouteFaults', faults);
+  // Attribute the harness itself before blaming application preparation.
+  // Scalar counters only; no extra observer, timer, census or retained nodes.
+  const observer = { batches: 0, records: 0, scans: 0, scanMs: 0, heroPolls: 0, heroMs: 0 };
+  Reflect.set(window, '__phoneRouteObserver', observer);
   window.addEventListener('error', event => { faults.push(event.message); });
   window.addEventListener('unhandledrejection', event => { faults.push(String(event.reason)); });
-  new MutationObserver(() => { for (const node of document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')) { const text = node.textContent ?? 'Fatal UI'; if (!faults.includes(text)) faults.push(text); } }).observe(document, { childList: true, subtree: true, characterData: true });
+  new MutationObserver(records => {
+    const start = performance.now();
+    observer.batches++; observer.records += records.length; observer.scans++;
+    for (const node of document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')) {
+      const text = node.textContent ?? 'Fatal UI'; if (!faults.includes(text)) faults.push(text);
+    }
+    observer.scanMs += performance.now() - start;
+  }).observe(document, { childList: true, subtree: true, characterData: true });
   const sample = () => {
     if (evidence.heroMs !== null) return;
+    const start = performance.now(); observer.heroPolls++;
     const hero = [...document.querySelectorAll('.ws-launch-hero,.ws-main-hero')].find(node => node.getClientRects().length > 0);
+    observer.heroMs += performance.now() - start;
     if (hero === undefined) { requestAnimationFrame(sample); return; }
     const match = /url\(["']?([^"')]+)["']?\)/u.exec(getComputedStyle(hero).backgroundImage);
     if (match?.[1] === undefined) { requestAnimationFrame(sample); return; }
