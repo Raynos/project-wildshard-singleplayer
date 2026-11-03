@@ -1533,8 +1533,16 @@
         },
         "pois": [],
         "assetGlobs": [
-          "public/assets/open-plots/**"
-        ]
+          "public/assets/open-plots/**",
+          "public/assets/music/jungle-ziggurat/**",
+          "public/assets/sfx/jungle-ziggurat/**"
+        ],
+        "audio": {
+          "catalogue": true,
+          "ambience": "ambience.jungle-ziggurat",
+          "score": "score.jungle-ziggurat",
+          "bed": "none"
+        }
       }
     }
   ]

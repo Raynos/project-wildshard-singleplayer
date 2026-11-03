@@ -4338,7 +4338,7 @@
         }
       ],
       "timeout": 300,
-      "notes": "OP13 final geometry87d997316d: continuous fixed-step south road approach, actual ramp stair to top near y42, back down, full plaza ring and east avenue between pools to NE garden. New approximately1.06km route has finite300s bound; original2s stuck detection and every waypoint/endpoint guard unchanged. No hovering or per-waypoint teleport may qualify; any stuck climb remains a failure reported to the visual owner."
+      "notes": "OP13 final geometry87d997316d: continuous fixed-step south road approach, actual ramp stair to top near y42, back down, full plaza ring and east avenue between pools to NE garden. New approximately965m horizontal route has finite300s bound; original2s stuck detection and every waypoint/endpoint guard unchanged. No hovering or per-waypoint teleport may qualify; any stuck climb remains a failure reported to the visual owner."
     }
   ]
 }

@@ -348,5 +348,61 @@
         "reach": 45
       }
     ]
+  },
+  "jungle-ziggurat": {
+    "idea": "jungle-ziggurat",
+    "source": {
+      "dir": "/assets/music/jungle-ziggurat/",
+      "manifestKey": "jungle-ziggurat"
+    },
+    "sfxDir": "/assets/sfx/jungle-ziggurat/",
+    "files": {
+      "score": "take-b-e7702c963b37.m4a",
+      "ambience": "ambience-9493f2753465.m4a",
+      "waterfall-cascade": "waterfall-cascade-6209defcc456.m4a",
+      "pool-lap": "pool-lap-9a4327b0753e.m4a",
+      "wooden-wind-chimes": "wooden-wind-chimes-6bf8e35d1bc9.m4a",
+      "canopy-birds": "canopy-birds-b95d191b80ba.m4a",
+      "thatch-drip": "thatch-drip-41814333cc6c.m4a",
+      "temple-drum": "temple-drum-f8ec4de3a891.m4a"
+    },
+    "spots": [
+      {
+        "id": "waterfall-cascade",
+        "x": -125,
+        "z": 182,
+        "reach": 38
+      },
+      {
+        "id": "pool-lap",
+        "x": -125,
+        "z": 125,
+        "reach": 24
+      },
+      {
+        "id": "wooden-wind-chimes",
+        "x": -156,
+        "z": 219,
+        "reach": 28
+      },
+      {
+        "id": "canopy-birds",
+        "x": -219,
+        "z": 219,
+        "reach": 45
+      },
+      {
+        "id": "thatch-drip",
+        "x": 156,
+        "z": -219,
+        "reach": 24
+      },
+      {
+        "id": "temple-drum",
+        "x": 0,
+        "z": -3,
+        "reach": 60
+      }
+    ]
   }
 }
