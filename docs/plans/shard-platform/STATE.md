@@ -11,7 +11,7 @@ table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**09:10:** G997 Nine first: QD1 o1, QD3 o2, QD5 o3, QD2 x8, QD4 x9; no pin (Jake). Zero: 342->169. Jake batch: E9/E11 one-user (-3).
+**10:00:** QD1 fixed (cc40cad706 + 54771bace4), full goldens running; QD2/QD5 30 fps Sim. Jake one-user batch (G988): E9, E11, DW plans 2, Z11 fx/rain/obs 3, Z4 13 (f41c47e586).
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
