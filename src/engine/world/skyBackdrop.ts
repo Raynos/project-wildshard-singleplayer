@@ -257,8 +257,9 @@ export class SkyBackdropView {
     const bandsTex = bakedTexture('planet', planetTexture); bandsTex.colorSpace = THREE.SRGBColorSpace;
     body.material.map = bandsTex;
     const ringTex = makeRingTexture();
+    // one draw (EP6): a flat ring shows one face per pixel, so three's back-then-front pass pair draws the same pixels
     const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 1.25, radius * 2.35, 128, 1), new THREE.MeshLambertMaterial({
-      map: ringTex, transparent: true, side: THREE.DoubleSide, fog: false, depthWrite: false, alphaMap: ringTex,
+      map: ringTex, transparent: true, side: THREE.DoubleSide, forceSinglePass: true, fog: false, depthWrite: false, alphaMap: ringTex,
       color: 0xb8c0cc, emissive: 0x1e2838, emissiveIntensity: 0.7, opacity: 0.8,
     }));
     this.setupMaterial(body.material);

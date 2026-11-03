@@ -1,4 +1,4 @@
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type Material, type Object3D } from 'three';
+import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, type Material, type Object3D } from 'three';
 
 import { constructionOwner, currentOwner, enteredOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
@@ -13,11 +13,12 @@ export class ViewmodelRoot extends Group {
   /** Staged models that keep their own pass (`mountOwnPass`): never prepared, never counted for the shared clear. */
   private readonly ownPass = new WeakSet<Object3D>();
   private readonly drawsChild = (child: Object3D): boolean => this.drawsMesh(child);
-  private readonly clearer = new Mesh(new BoxGeometry(0.001, 0.001, 0.001), new MeshBasicMaterial({
-    colorWrite: false, depthWrite: false, transparent: true, fog: false,
-  }));
+  private readonly clearer = new Mesh(new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(3), 3)),
+    new MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
   constructor() {
     super();
+    // EP6: the clear is its draw hook; an empty range past its one vertex returns before any GL call, so it costs no draw
+    this.clearer.geometry.setDrawRange(2, 0);
     this.clearer.renderOrder = 999; this.clearer.frustumCulled = false;
     this.clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     super.add(this.clearer);
