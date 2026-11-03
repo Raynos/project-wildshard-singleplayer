@@ -11,7 +11,7 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | # | Change | Section | Status | Jake's notes |
 |---|---|---|---|---|
 | UI-01 | XP bar + LV chip | 1 Fight HUD | approved | 2026-11-03: "nice … good placement" |
-| UI-04 | Enemy nameplates within 25 m | 1 Fight HUD | pending | |
+| UI-04 | Enemy nameplates within 25 m | 1 Fight HUD | approved | 2026-11-03: "looks good to me" |
 | UI-05 | Floating combat text | 1 Fight HUD | pending | |
 | UI-06 | GUARD button | 1 Fight HUD | pending | |
 | UI-02 | Level-up in a fight | 2 Banners | pending | |
@@ -49,4 +49,4 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 1 approved · 37 pending.
+**Tally:** 2 approved · 36 pending.
