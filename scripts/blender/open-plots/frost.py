@@ -4,7 +4,9 @@ Two families in kit.py's format (kitlib.py), retinted by a layout's palette like
 - `lodges`: timber alpine houses under steep snow-loaded roofs (a lodge with a balcony, a two-storey chalet, a small
   cabin), lit windows, a stone chimney, each lantern hung on an iron bracket (G827);
 - `pines`: the shared snow-dusted pine clumps (three, five and eight trees; Thin Ice reuses them), each tree a trunk and
-  three stacked tiers with a snow cap.
+  three stacked tiers with a snow cap;
+- `lift`: the landmark's chair lift as kit pieces the plot places up the peak's flank (a tower, a chair hung from its
+  grip, a station hut with its bull wheel), so the lift stands with whichever peak take ships.
 Targets: art/grid/round-62-open-plot-palettes/16-frostline-peaks.jpg. Run: bash scripts/blender/build.sh open-plots/frost.
 """
 import math
@@ -121,6 +123,47 @@ def clump(spots):
     return p
 
 
+def lift_tower():
+    """A chair-lift tower, 12 m to its cable line: a tapered four-legged iron lattice, a cross arm 3.6 m across the line
+    (along x) with a sheave each end, a red cap; its origin at its foot, the line along y."""
+    p = Piece()
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            p.prism(sx * 1.1, sy * 1.1, 0.16, 0.1, 0, 11.4, 4, 'Kit.iron', cap_top=False)
+    for k in range(1, 5):  # the lattice rings, narrowing up the tower
+        z, r = 11.4 * k / 5, 1.1 - 0.75 * k / 5
+        p.box((-r, -r, z - 0.08), (r, r, z + 0.08), 'Kit.iron')
+    p.box((-0.35, -0.35, 11.4), (0.35, 0.35, 12.0), 'Kit.iron')
+    p.box((-1.9, -0.25, 11.8), (1.9, 0.25, 12.2), 'Kit.iron')
+    for x in (-1.8, 1.8):
+        p.wheel(x, 0, 11.9, 0.4, 0.2, 8, 'Kit.iron')
+    p.box((-0.4, -0.4, 12.2), (0.4, 0.4, 12.5), 'Kit.stall')
+    return p
+
+
+def lift_chair():
+    """A two-seat chair hung from its cable grip at the origin: a 2.4 m hanger, a red seat, back and foot bar."""
+    p = Piece()
+    p.box((-0.05, -0.05, -2.4), (0.05, 0.05, 0.0), 'Kit.iron')
+    p.box((-0.12, -0.12, -0.1), (0.12, 0.12, 0.1), 'Kit.iron')  # the grip
+    p.box((-0.8, -0.35, -2.4), (0.8, 0.05, -2.15), 'Kit.iron')  # the hanger's yoke
+    p.box((-0.8, -0.55, -2.55), (0.8, 0.05, -2.4), 'Kit.stall', bottom=True)  # the seat
+    p.box((-0.8, 0.0, -2.4), (0.8, 0.1, -1.7), 'Kit.stall')  # the back
+    p.box((-0.6, -0.75, -3.05), (0.6, -0.65, -2.95), 'Kit.iron')  # the foot bar
+    return p
+
+
+def lift_station():
+    """A lift station: a timber hut under a snow roof with the bull wheel housing on its front, a lit window."""
+    p = Piece()
+    log_walls(p, -3, 3, -2.5, 2.5, 0.3, 3.4)
+    snow_roof(p, -3, 3, -2.5, 2.5, 3.4, 2.2, overhang=0.6)
+    p.box((-2.2, -4.4, 2.6), (2.2, -2.5, 3.4), 'Kit.iron')
+    p.lathe(0, -3.6, [(1.7, 3.4), (1.7, 3.7)], 12, ['Kit.stall'], cap_bottom=True)  # the bull wheel, flat on its housing
+    window(p, 1.6, -2.5, 1.3, 0.9, 0.9)
+    return p
+
+
 def main():
     out = sys.argv[sys.argv.index('--') + 1]
     os.makedirs(out, exist_ok=True)
@@ -132,6 +175,8 @@ def main():
                                 lambda: clump([(0, 0, 10.0), (3.2, 0.6, 7.5), (-3.0, 1.2, 8.0), (1.4, 3.4, 6.0), (-1.6, -3.2, 6.5),
                                                (4.4, -2.6, 5.5), (-4.6, -2.0, 5.0), (0.4, -4.4, 5.5)])],
                  FROST_TRIMS, {'slots': FROST_SLOTS})
+    reset_scene()
+    build_family(out, 'lift', [lift_tower, lift_chair, lift_station], FROST_TRIMS, {'slots': FROST_SLOTS})
 
 
 if __name__ == '__main__':

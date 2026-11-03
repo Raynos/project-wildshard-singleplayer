@@ -283,9 +283,9 @@
    "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/bayou.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
    "inputs": ["src/shards/open-plots/data/trim.json"],
    "lock": false,
-   "build": ["lodges.glb", "pines.glb"],
-   "copy": [["lodges.glb", "public/assets/open-plots/kit/lodges.glb"], ["pines.glb", "public/assets/open-plots/kit/pines.glb"]],
-   "outputs": ["public/assets/open-plots/kit/lodges.glb", "public/assets/open-plots/kit/pines.glb"],
+   "build": ["lodges.glb", "pines.glb", "lift.glb"],
+   "copy": [["lodges.glb", "public/assets/open-plots/kit/lodges.glb"], ["pines.glb", "public/assets/open-plots/kit/pines.glb"], ["lift.glb", "public/assets/open-plots/kit/lift.glb"]],
+   "outputs": ["public/assets/open-plots/kit/lodges.glb", "public/assets/open-plots/kit/pines.glb", "public/assets/open-plots/kit/lift.glb"],
    "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
   }
  }
