@@ -18,7 +18,7 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-07 | Named elite banner | 2 Banners | approved | 2026-11-03: "looks very similar … nice" |
 | UI-24 | Gauntlet wave banner | 2 Banners | approved | 2026-11-03: redone frame approved, "UI 24 looks good" (WAVE 2 / 5 in the middle only, fades; no chip). First round: keep "WAVE 2 / 5" big in the middle of the screen when a wave starts ("kind of cool"); drop the wave chip that stays under the quest chip: "too fucking busy … we can't have those permanent banners" |
 | UI-26 | Boss intro title card | 2 Banners | approved | 2026-11-03: "fine … looks fine" |
-| UI-22 | Storm hour | 2 Banners | pending | 2026-11-03, redone for re-review: "way too busy … the beacons on the minimap is way too busy … a really more minimalist, lightweight" one; now one centred STORM HOUR line that fades, no minimap beacons, no toast, the storm chip unchanged |
+| UI-22 | Storm hour | 2 Banners | approved | 2026-11-03: redone frame approved, "UI 22 looks good". First round: "way too busy … the beacons on the minimap is way too busy … a really more minimalist, lightweight" one; now one centred STORM HOUR line that fades, no minimap beacons, no toast, the storm chip unchanged |
 | UI-17 | Checkpoint card | 2 Banners | approved | 2026-11-03: "Yeah, cool. Let's do it." |
 | UI-20 | Course clock chip | 3 Minimap chip | pending | 2026-11-03, redone for re-review: "it can hide the quest chip whilst it's showing the course clock … when we're done … show the quest chip again … not be so busy"; the clock now takes the quest chip's place |
 | UI-29 | Training Vault sealed room | 3 Minimap chip | approved | 2026-11-03: "way too busy … hide the rest of the quest … a dungeon specific quest chip, but like just one … I need new ideas"; then "we can pick A for the UI 29, the vault stuff". **A:** inside the vault the tracked quest hides and one chip takes its place, TRAINING VAULT · ROOM 2/4 · 3 LEFT; the quest chip comes back on leaving (ui-29-opt-a.jpg) |
@@ -49,4 +49,4 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 10 approved · 28 pending (2 redone for re-review: UI-22, UI-20).
+**Tally:** 11 approved · 27 pending (1 redone for re-review: UI-20).
