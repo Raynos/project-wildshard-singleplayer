@@ -3954,3 +3954,29 @@ Evidence under`tmp/sp-ci-deploy-qa-refresh/`:
 `qa-2f1f-complete-proof.json`. Exact retained-input hashes and arithmetic:
 `tmp/sp-x6-ci9-explorer-after/accounting.json`. No new API read, watch,
 native run or dispatch.
+
+
+## CI9: a887 containing-release timing remains open
+
+**2026-11-03, sp-x2, observation at 07:58:47Z.** The coordinator's
+next timing source must contain `a887520c54f5486f2cb270a75b7fb4c48b6439a7`
+and pass all 38 required jobs. The successful deploy-run list has no
+containing source yet. Its newest successful run is still
+`41586256766` / `2f1f8c4e1c922402322ee72410cc8b2f23a36314`;
+actual ancestry excludes a887. Production `version.json` still reports
+`2f1f8c4-mw0a28f2` (build time 05:59:05.246Z, not the live arrival clock).
+The earlier 2080.132 s receipt remains authoritative for that older source.
+
+Exact-a887 push run [41595148921](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/41595148921)
+was created at 07:15:45Z. Its latest-attempt jobs already include failed
+behavior groups 2, 9, 15, 19 and 23; the aggregate is still nonterminal,
+with later jobs queued. It cannot qualify as the requested all-green
+release. Prepare itself passed at 07:29:34Z after starting 07:18:46Z
+(648 s), but preparation completion is not production delivery.
+
+**CI9 stays open:** take the first actual all-38-green containing source,
+verify its source/run/build and first production MATCH, then compute
+run-created push-proxy to first MATCH, with queue/prepare/wave/ship segments
+kept separate. A green verdict alone does not establish the 900 s bar.
+No zero, inferred live timestamp, successful red-run claim, retry, dispatch
+or watcher is introduced. This observation changes no workflow or gate.
