@@ -140,6 +140,8 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     on you AND a few % of your own failed hits into glances; if a subtractive formula is used, **the floor is 1 damage**.
     The damage formula itself is open: Jake doubts raw addition/subtraction and asked for the best three options; an
     interactive calculator and simulation are being built.
+19y. **Six town NPCs** (three quest givers, Tinker Rook, the weapons-shop keeper, the stable hand); the empty shopfronts
+    get keepers only when shops are added. **Keep the road gate into band 6** for the long high-level grind (Jake 11-03).
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
