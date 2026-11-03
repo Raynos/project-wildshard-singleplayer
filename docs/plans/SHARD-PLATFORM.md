@@ -43,6 +43,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 
 | Mini plan / spike | Decisions | State |
 |---|---|---|
+| [qa 11-03](shard-platform/qa-2026-11-03-mini-plan.md) (Jake's Nine QA: missing walls and floors, train fps, neon streaks, golden set; then the close) | G995–G997 | **open, top priority** 11-03 |
 | [dw-pine-zero](../../project/archive/2026-10-27-dw-pine-zero.md), [quest-host](../../project/archive/2026-10-27-quest-host.md) | G564–G573, G589 | **done**: Pine and Driftwood at 0 |
 | [nine-nalati-zero](../../project/archive/2026-10-27-nine-nalati-zero.md) + the Nine / Nalati / C1C5C6 picks pages | G592, G597–G603, G614 | **Nine done** (0, grid-ready); Nalati continues in nalati-zero |
 | [c1-c5-c6-zero](../../project/archive/2026-10-27-c1-c5-c6-zero.md) (+ C2, G613) | G591, G593, G601, G613 | C1, C2, C5 closed and locked; **C6 8 lines left** (with the balbal cut) |
@@ -544,7 +545,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G996+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G997+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
