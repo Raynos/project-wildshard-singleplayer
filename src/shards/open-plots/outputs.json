@@ -106,24 +106,7 @@
             "sets": "/src/shards/open-plots/thumbs/showcase-template.jpg",
             "practice": "/src/shards/open-plots/thumbs/showcase-template.jpg"
           }
-        },
-        "pois": [
-          {
-            "id": "hologram",
-            "name": "Showcase Template hologram",
-            "r": 12,
-            "x": 0,
-            "z": 0
-          },
-          {
-            "id": "billboard",
-            "name": "Billboard",
-            "r": 14,
-            "x": 0,
-            "z": 26
-          }
-        ],
-        "shardSelect": false
+        }
       }
     },
     {
@@ -228,23 +211,10 @@
             "practice": "/src/shards/open-plots/thumbs/thin-ice.jpg"
           }
         },
-        "pois": [
-          {
-            "id": "hologram",
-            "name": "Thin Ice hologram",
-            "r": 12,
-            "x": 0,
-            "z": 0
-          },
-          {
-            "id": "billboard",
-            "name": "Billboard",
-            "r": 14,
-            "x": 0,
-            "z": 26
-          }
-        ],
-        "shardSelect": false
+        "pois": [],
+        "assetGlobs": [
+          "public/assets/open-plots/**"
+        ]
       }
     },
     {
@@ -1658,24 +1628,7 @@
             "sets": "/src/shards/open-plots/thumbs/sky-race.jpg",
             "practice": "/src/shards/open-plots/thumbs/sky-race.jpg"
           }
-        },
-        "pois": [
-          {
-            "id": "hologram",
-            "name": "Floating Island Race hologram",
-            "r": 12,
-            "x": 0,
-            "z": 0
-          },
-          {
-            "id": "billboard",
-            "name": "Billboard",
-            "r": 14,
-            "x": 0,
-            "z": 26
-          }
-        ],
-        "shardSelect": false
+        }
       }
     },
     {
