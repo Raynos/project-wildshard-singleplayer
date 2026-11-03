@@ -4,7 +4,7 @@
   "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
   "beds": {
     "lantern-bayou.ambience": {
-      "file": "ambience-908d31a41d40.m4a",
+      "file": "ambience-99496e6be1b8.m4a",
       "loopStart": 8.25,
       "loopEnd": 26.25,
       "duration": 27.25,
@@ -14,7 +14,7 @@
   },
   "hums": {
     "lantern-bayou.boardwalk-creak": {
-      "file": "boardwalk-creak-c04235c6f19e.m4a",
+      "file": "boardwalk-creak-643528b1842b.m4a",
       "loopStart": 2.25,
       "loopEnd": 4.25,
       "duration": 5.25,
@@ -22,7 +22,7 @@
       "seamScore": 0.538
     },
     "lantern-bayou.house-wind-chimes": {
-      "file": "house-wind-chimes-8d3a6a7a604e.m4a",
+      "file": "house-wind-chimes-dbc4e9fe1523.m4a",
       "loopStart": 3.75,
       "loopEnd": 5.75,
       "duration": 6.75,
@@ -46,7 +46,7 @@
       "seamScore": 0.607
     },
     "lantern-bayou.cypress-rustle": {
-      "file": "cypress-rustle-5782212b0b90.m4a",
+      "file": "cypress-rustle-3f8c7a341fce.m4a",
       "loopStart": 3.25,
       "loopEnd": 5.25,
       "duration": 6.25,
@@ -57,7 +57,7 @@
   "oneshots": {},
   "provenance": [
     {
-      "file": "ambience-908d31a41d40.m4a",
+      "file": "ambience-99496e6be1b8.m4a",
       "winner": "moss",
       "comparison": {
         "moss": {
@@ -92,7 +92,7 @@
       }
     },
     {
-      "file": "boardwalk-creak-c04235c6f19e.m4a",
+      "file": "boardwalk-creak-643528b1842b.m4a",
       "winner": "medium",
       "comparison": {
         "moss": {
@@ -127,7 +127,7 @@
       }
     },
     {
-      "file": "house-wind-chimes-8d3a6a7a604e.m4a",
+      "file": "house-wind-chimes-dbc4e9fe1523.m4a",
       "winner": "moss",
       "comparison": {
         "moss": {
@@ -232,7 +232,7 @@
       }
     },
     {
-      "file": "cypress-rustle-5782212b0b90.m4a",
+      "file": "cypress-rustle-3f8c7a341fce.m4a",
       "winner": "medium",
       "comparison": {
         "moss": {

@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Admission controls use existing shipped AAC bytes, never generated substitutes.
-import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the author compiler's exact module entry resolution.
 import { resolve } from 'node:path';
 import { build } from 'vite';
@@ -10,6 +10,7 @@ import { staticGlb } from '../src/sdk/bake/glb';
 import { bakeAuthoredWorld } from '../src/sdk/bake/authoredWorld';
 import { validateProject } from '../src/sdk/project';
 import { prepareProjectOutput, mergeProjectBlobs } from '../src/sdk/projectOutput';
+import { indexRecordingAac } from '../src/format/aacIndex';
 import { controlFileHashes } from '../src/format/admissionControl';
 import { parseShardfile } from '../src/sdk/shardfile';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
@@ -112,4 +113,19 @@ test('an authored world keeps its real coarse-near bake and complete audio byte 
     expect(Object.keys(merged.shard.audio.recordings ?? {})).toHaveLength(7);
     expect(merged.shard.late).toHaveLength(7);
   } finally { geometry.dispose(); floor.dispose(); materials.forEach(material => material.dispose()); }
+});
+
+// Exercise shipped bytes, including the alternate score, rather than only old controls.
+test('published OB7 AAC candidates have continuous native packet timing', () => {
+  for (const idea of Object.keys(anchors)) {
+    for (const kind of ['music', 'sfx']) {
+      const directory = `public/assets/${kind}/${idea}`;
+      let names: string[];
+      try { names = readdirSync(directory); } catch { continue; }
+      for (const name of names.filter(file => file.endsWith('.m4a'))) {
+        const index = indexRecordingAac(new Uint8Array(readFileSync(`${directory}/${name}`)));
+        expect(index.mediaFrames).toBeGreaterThan(index.primingFrames);
+      }
+    }
+  }
 });

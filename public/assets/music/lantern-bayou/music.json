@@ -5,13 +5,13 @@
   "licence": "MiniMax-Music3 Community License",
   "slots": {
     "score": {
-      "file": "take-a-e259636eca92.m4a",
+      "file": "take-a-823cce36205b.m4a",
       "loopStart": 22.0,
       "loopEnd": 66.58,
       "duration": 67.58,
       "gain": 1,
       "seamScore": 0.465,
-      "calm": "take-a-e259636eca92.m4a",
+      "calm": "take-a-823cce36205b.m4a",
       "bpm": 86.1,
       "beatsPerBar": 4
     }
@@ -95,7 +95,7 @@
         "best": "music with melody and instruments"
       },
       "encoded": {
-        "file": "take-a-e259636eca92.m4a",
+        "file": "take-a-823cce36205b.m4a",
         "loopStart": 22.0,
         "loopEnd": 66.58,
         "duration": 67.58,
@@ -197,7 +197,7 @@
         "best": "music with melody and instruments"
       },
       "encoded": {
-        "file": "take-b-4a122c6b5e26.m4a",
+        "file": "take-b-e064388c8a2a.m4a",
         "loopStart": 28.25,
         "loopEnd": 72.83,
         "duration": 73.83,

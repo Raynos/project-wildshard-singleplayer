@@ -133,7 +133,7 @@ def encode_loop(wav: Path, target: Path, lufs: float, kbps: int, scratch: Path, 
     sf.write(str(intermediate), source.T, sr, subtype="FLOAT")
     target.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(intermediate),
-                    "-af", f"loudnorm=I={lufs}:TP=-2:LRA=8", "-ar", "48000", "-c:a", "aac",
+                    "-af", f"loudnorm=I={lufs}:TP=-2:LRA=8,aresample=48000,asetpts=N/SR/TB", "-ar", "48000", "-c:a", "aac",
                     "-b:a", f"{kbps}k", "-movflags", "+faststart", str(target)], check=True)
     lag, duration = decode_offset(target, source, sr)
     if not 0 <= start + lag < end + lag <= duration:

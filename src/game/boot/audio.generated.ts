@@ -45,13 +45,13 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
   "licence": "MiniMax-Music3 Community License",
   "slots": {
    "score": {
-    "file": "take-a-e259636eca92.m4a",
+    "file": "take-a-823cce36205b.m4a",
     "loopStart": 22,
     "loopEnd": 66.58,
     "duration": 67.58,
     "gain": 1,
     "seamScore": 0.465,
-    "calm": "take-a-e259636eca92.m4a",
+    "calm": "take-a-823cce36205b.m4a",
     "bpm": 86.1,
     "beatsPerBar": 4
    }
@@ -135,7 +135,7 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
      "best": "music with melody and instruments"
     },
     "encoded": {
-     "file": "take-a-e259636eca92.m4a",
+     "file": "take-a-823cce36205b.m4a",
      "loopStart": 22,
      "loopEnd": 66.58,
      "duration": 67.58,
@@ -237,7 +237,7 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
      "best": "music with melody and instruments"
     },
     "encoded": {
-     "file": "take-b-4a122c6b5e26.m4a",
+     "file": "take-b-e064388c8a2a.m4a",
      "loopStart": 28.25,
      "loopEnd": 72.83,
      "duration": 73.83,
@@ -983,7 +983,7 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
   "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
   "beds": {
    "lantern-bayou.ambience": {
-    "file": "ambience-908d31a41d40.m4a",
+    "file": "ambience-99496e6be1b8.m4a",
     "loopStart": 8.25,
     "loopEnd": 26.25,
     "duration": 27.25,
@@ -993,7 +993,7 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
   },
   "hums": {
    "lantern-bayou.boardwalk-creak": {
-    "file": "boardwalk-creak-c04235c6f19e.m4a",
+    "file": "boardwalk-creak-643528b1842b.m4a",
     "loopStart": 2.25,
     "loopEnd": 4.25,
     "duration": 5.25,
@@ -1001,7 +1001,7 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "seamScore": 0.538
    },
    "lantern-bayou.house-wind-chimes": {
-    "file": "house-wind-chimes-8d3a6a7a604e.m4a",
+    "file": "house-wind-chimes-dbc4e9fe1523.m4a",
     "loopStart": 3.75,
     "loopEnd": 5.75,
     "duration": 6.75,
@@ -1025,7 +1025,7 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "seamScore": 0.607
    },
    "lantern-bayou.cypress-rustle": {
-    "file": "cypress-rustle-5782212b0b90.m4a",
+    "file": "cypress-rustle-3f8c7a341fce.m4a",
     "loopStart": 3.25,
     "loopEnd": 5.25,
     "duration": 6.25,
