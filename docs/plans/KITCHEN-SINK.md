@@ -75,6 +75,9 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     every kill drops one salvage part for its robot type; Tinker Rook's stall has UPGRADES (one-off buys for Scrip
     and parts) and BENCH (parts → ammo, patch kits); weapon tiers are **Forge I–IV**, one-off buys that raise every
     weapon at once.
+19h. **Six elites:** the 3 band-gate elites plus **3 night elites** (Jake 11-02, not one per band). **Grey kills pay
+    nothing** (no XP, Scrip or parts). Packs respawn on a **timer per pack** (~90 s after you leave, never in view).
+    **No mid-fight heals:** no patch kits; the bench makes ammo only.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

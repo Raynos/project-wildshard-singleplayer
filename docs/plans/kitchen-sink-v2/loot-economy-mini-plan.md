@@ -157,8 +157,8 @@ finish grants) stay where they are; these rows are the rest.
 
 1. ~~Parts~~: yes (Jake 11-02).
 2. ~~Forge I–IV~~: yes (Jake 11-02).
-3. **Grey kills pay 0 Scrip** (like XP) with no per-enemy cap? *Recommended: yes.*
+3. ~~Grey kills~~: pay nothing at all, no XP, Scrip or parts (Jake 11-02).
+7. ~~Patch kits~~: none; no mid-fight heals (Jake 11-02). The BENCH makes ammo only.
 4. ~~The Titan's legendary~~: the Titan Cleaver sword (Jake 11-02).
-5. **Six named night elites**, one per band, on top of the three band-gate elites (Jake 11-02: "call them elites", at
-   least three)? *Recommended: yes, so 9 elites; the night ones also show off the elite night rule.*
+5. ~~Night elites~~: **3 night elites**, not 6 (Jake 11-02), on top of the 3 band-gate elites: six elites in all.
 6. ~~Currency name~~: Scrip (Jake 11-02).
