@@ -23,8 +23,8 @@ const cache=resolve(cachePath??'.cache/native-fixtures'),archive='tmp/ci-native-
 if(!cache.startsWith(`${resolve('.')}/`))throw new Error('Native fixture cache must stay inside the checkout');
 if(mode==='build'){
   if(process.env.WS_FIXTURE_SNAPSHOTS||process.env.WS_FIXTURE_SNAPSHOT_WRITE)throw new Error('Native producer must execute original constructors');
-  process.env.WILDSHARD_GENERATE_CACHE=cache;
-  for(const spec of specs)await nativeProgramFixture(spec);
+  process.env.WS_NALATI_NATIVE_CACHE=cache;
+  for(const spec of specs)await nativeProgramFixture({...spec,cacheDir:cache});
   mkdirSync('tmp/ci-native-fixtures',{recursive:true});
   writeFileSync(archive,packNativeFixtures(identity,specs,cache),{flag:'wx'});
 }else{

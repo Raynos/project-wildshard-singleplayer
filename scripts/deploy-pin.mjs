@@ -271,10 +271,12 @@ function nativeFixtureSource(source) {
     return false;
   }
   const hash = createHash('sha256').update(native).update('\0').update(fixtures).digest('hex');
-  if (!/^ {6}NATIVE_INPUT_PROOF: 'cache-v1'$/mu.test(native)
-    || hash !== 'bca0fd2e164ba1412ccc5195d8e46e574f9cfeba352bae768e314828da69af86')
-    throw new Error('Source native fixture publisher topology differs');
-  return true;
+  if (/^ {6}NATIVE_INPUT_PROOF: 'cache-v1'$/mu.test(native)
+    && hash === 'bca0fd2e164ba1412ccc5195d8e46e574f9cfeba352bae768e314828da69af86') return 'v1';
+  const behaviour = /\n {2}behaviour:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1] ?? '';
+  const all = createHash('sha256').update(native).update('\0').update(fixtures).update('\0').update(behaviour).digest('hex');
+  if (/^ {6}NATIVE_INPUT_PROOF: 'cache-v2'$/mu.test(native) && all === 'b1c6b6b881cad24467ed7524e1c1817a9d455b5e6ba3295279a152f149ab8b4e') return 'v2';
+  throw new Error('Source native fixture publisher topology differs');
 }
 
 /** The optional stage cannot replace any gate or authorize historical sources.
@@ -566,7 +568,8 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
   if (nativeFixtures) {
     if (details === null) throw new SourceGateError('Native fixture input jobs lack exact metadata');
     for (const [name, expectedStep] of [['fixtures','Publish source-host native constructor inputs'],
-      ...nativeJobs.map(jobName => [jobName,'Restore source-host native constructor inputs'])]) {
+      ...nativeJobs.map(jobName => [jobName,'Restore source-host native constructor inputs']),
+      ...(nativeFixtures === 'v2' ? matrix.map(index => [`behaviour (${index})`,'Restore source-host native constructor inputs']) : [])]) {
       const matches = details.filter(job => job.name === name), job = matches[0];
       if (matches.length !== 1 || job === undefined || job.run_id !== Number(runId)
         || job.run_attempt !== run.run_attempt || job.head_sha !== sha)

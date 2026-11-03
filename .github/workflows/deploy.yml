@@ -790,8 +790,8 @@ jobs:
       matrix:
         group: [escape-titan, stories-qara, chapter-one, native-routes]
     env:
-      NATIVE_INPUT_PROOF: 'cache-v1'
-      WILDSHARD_GENERATE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
+      NATIVE_INPUT_PROOF: 'cache-v2'
+      WS_NALATI_NATIVE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
       WS_VITEST_MAX_WORKERS: '1'
       VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
       WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
@@ -1020,8 +1020,10 @@ jobs:
 
   behaviour:
     needs: [prepare, fixtures]
-    # A failed or skipped fixtures job only costs speed: shards then compute.
-    if: ${{ !cancelled() && needs.prepare.result == 'success' && (github.event_name == 'push' || github.event_name == 'pull_request') }}
+    # Native constructor publication is required; general snapshots retain their fallback.
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.fixtures.result == 'success' && (github.event_name == 'push' || github.event_name == 'pull_request') }}
+    env:
+      WS_NALATI_NATIVE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -1083,6 +1085,12 @@ jobs:
         run: |
           zstd -d --rm test-products.tar.zst
           python3 scripts/ci-products.py unpack
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-fixtures
+          path: tmp/ci-native-fixtures
+      - name: Restore source-host native constructor inputs
+        run: node --experimental-transform-types --import ./scripts/sim-node-loader.mjs scripts/ci-native-fixtures.mjs restore
       - uses: actions/download-artifact@v4
         with:
           name: vitest-plan

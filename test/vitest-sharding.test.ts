@@ -57,6 +57,10 @@ test('parallel and dedicated native CI discover every existing file exactly once
  if(job===undefined)throw new Error('Missing behavior wave');
  expect(workflow).not.toContain('\n  behaviour-products:');
  expect(job).toContain('needs: [prepare, fixtures]');
+ expect(job).toContain("needs.fixtures.result == 'success'");
+ expect(job).toContain('name: native-fixtures');
+ expect(job).toContain('Restore source-host native constructor inputs');
+ expect(job).toContain('WS_NALATI_NATIVE_CACHE:');
  expect(job).toContain("needs.prepare.result == 'success'");
  expect(job).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);
  expect(job).not.toContain('WS_TEST_COHORT:');
@@ -109,7 +113,8 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(CI_NATIVE_GROUPS['stories-qara']).toContain('test/nalati-qara-verbs.test.ts');
  expect(CI_NATIVE_GROUPS['escape-titan']).not.toContain('test/driftwood-trade-verbs.test.ts');
  expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain('test/driftwood-trade-verbs.test.ts');
- expect(nativeJob).toContain('needs: prepare');
+ expect(nativeJob).toContain('needs: [prepare, fixtures]');
+ expect(nativeJob).toContain("NATIVE_INPUT_PROOF: 'cache-v2'");
  expect(nativeJob).toContain('name: test-products');
  expect(nativeJob).toContain('python3 scripts/ci-products.py unpack');
  expect(nativeJob).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);

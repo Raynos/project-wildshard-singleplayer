@@ -15,8 +15,14 @@ export const NALATI_NATIVE_ASSEMBLY_SPEC: NativeProgramSpec = { id: 'nalati-nati
       'test/fixtures/nalati-titan.ts', 'test/fixtures/nalati-titan-compile.mjs', 'test/fixtures/nalati-native-program.ts', 'test/fixtures/runSnapshot.ts'],
   };
 
+/** Select only this Nalati constructor's published input cache. */
+export function nalatiNativeAssemblySpec(): NativeProgramSpec {
+  const cacheDir = process.env['WS_NALATI_NATIVE_CACHE'];
+  return {...NALATI_NATIVE_ASSEMBLY_SPEC, ...(cacheDir === undefined || cacheDir === '' ? {} : {cacheDir})};
+}
+
 /** Retain the complete original native oracle after its production policies
  * move to their defining entered owners. Every constructor input is fenced. */
 export function nalatiNativeAssembly(): Promise<ReturnType<typeof nalatiNativeAssemblyInputs>> {
-  return fencedNativeOracle(NALATI_NATIVE_ASSEMBLY_SPEC, async () => (await import('./nalati-native-assembly-inputs')).nalatiNativeAssemblyInputs());
+  return fencedNativeOracle(nalatiNativeAssemblySpec(), async () => (await import('./nalati-native-assembly-inputs')).nalatiNativeAssemblyInputs());
 }

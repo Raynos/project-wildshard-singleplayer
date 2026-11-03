@@ -1246,16 +1246,26 @@ test('split Explorer refuses foreign, hybrid and changed-guard source topologies
 });
 
 
-function nativeFixtureReadyFixture(){
+function nativeFixtureReadyFixture(version:'v1'|'v2'='v1'){
   const f=fourJourneyReadyFixture();
-  for(const name of ['native-escape','fixtures']){
+  const source=version==='v1'?readFileSync('test/fixtures/ci-native-cache-v1.yml','utf8'):deploy;
+  for(const name of ['native-escape','fixtures',...(version==='v2'?['behaviour']:[])]){
     const pattern=new RegExp(`\\n {2}${name}:\\n[\\s\\S]*?(?=\\n {2}[a-z][a-z0-9-]*:\\n|$)`,'u');
-    const block=pattern.exec(deploy)?.[0];if(block===undefined)throw new Error('Missing current native input publisher');
+    const block=pattern.exec(source)?.[0];if(block===undefined)throw new Error('Missing current native input publisher');
     f.state.source=pattern.test(f.state.source)?f.state.source.replace(pattern,block):f.state.source+block;
   }
   const model=f.state.details[0];if(model===undefined)throw new Error('Missing exact-run source model');
   f.state.details.push({...model,name:'fixtures',status:'completed',conclusion:'success',steps:[{name:'Publish source-host native constructor inputs',status:'completed',conclusion:'success',number:1}]});
   for(const row of f.state.details)if(row.name.startsWith('native-escape ('))row.steps=[{name:'Restore source-host native constructor inputs',status:'completed',conclusion:'success',number:1}];
+  if(version==='v2')for(const row of f.state.details)if(row.name.startsWith('behaviour ('))row.steps=[{name:'Restore source-host native constructor inputs',status:'completed',conclusion:'success',number:1}];
+  for(const name of ['native-escape','fixtures',...(version==='v2'?['behaviour']:[])]){
+    const pattern=new RegExp(`\\n {2}${name}:\\n([\\s\\S]*?)(?=\\n {2}[a-z][a-z0-9-]*:\\n|$)`,'u');
+    const expected=pattern.exec(source)?.[1],actual=pattern.exec(f.state.source)?.[1];
+    if(expected!==actual){
+      let at=0;while(expected?.[at]===actual?.[at]&&at<Math.max(expected?.length??0,actual?.length??0))at++;
+      throw new Error(`Rendered ${version} ${name} differs at ${at}: ${JSON.stringify({expected:expected?.slice(at,at+120),actual:actual?.slice(at,at+120)})}`);
+    }
+  }
   return f;
 }
 
@@ -1299,4 +1309,31 @@ test('native fixture authority requires observed successful publication and rest
       expect(()=>readySource('123',liveBuild,f.state.query,readyNow)).toThrow('Native fixture input');
     }
   }
+});
+
+test('v2 requires verified input restore in all twelve behaviour jobs and keeps v1 separate',()=>{
+  const f=nativeFixtureReadyFixture('v2'),proof=readySource('123',liveBuild,f.state.query,readyNow);
+  expect(proof.jobs.filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(24);
+  for(let index=1;index<=12;index++)for(const defect of ['missing','duplicate','skipped','failed','run','attempt','sha']){
+    const broken=nativeFixtureReadyFixture('v2'),row=broken.state.details.find(job=>job.name===`behaviour (${index})`);
+    const steps=row?.steps;if(row===undefined||steps===undefined)throw new Error('Missing original behaviour steps');
+    if(defect==='missing')row.steps=[];
+    else if(defect==='duplicate')row.steps=[...steps,...steps];
+    else if(defect==='skipped'||defect==='failed'){
+      const step=steps[0];if(step===undefined)throw new Error('Missing restore step');step.conclusion=defect==='failed'?'failure':'skipped';
+    }else if(defect==='run')row.run_id=124;
+    else if(defect==='attempt')row.run_attempt=2;
+    else row.head_sha='b'.repeat(40);
+    expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow('Native fixture input');
+  }
+  for(const [before,after]of [["needs.fixtures.result == 'success' && ",''],
+    ['scripts/ci-native-fixtures.mjs restore','scripts/ci-native-fixtures.mjs build'],
+    ['WS_NALATI_NATIVE_CACHE:','WILDSHARD_GENERATE_CACHE:']] as const){
+    const broken=nativeFixtureReadyFixture('v2'),pattern=/\n {2}behaviour:\n[\s\S]*?(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u;
+    const block=pattern.exec(broken.state.source)?.[0];if(block===undefined)throw new Error('Missing behaviour source');
+    const changed=block.replace(before,after);expect(changed).not.toBe(block);broken.state.source=broken.state.source.replace(pattern,changed);
+    expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow('publisher topology');
+  }
+  expect(readySource('123',liveBuild,nativeFixtureReadyFixture('v1').state.query,readyNow).jobs
+    .filter(row=>!['stage-prebuilt','build-and-deploy'].includes(row.name))).toHaveLength(24);
 });

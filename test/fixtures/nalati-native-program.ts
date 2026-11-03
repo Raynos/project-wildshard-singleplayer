@@ -14,7 +14,8 @@ const inputs = ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons'
 
 /** The defining source/tool/host specification, shared with the CI input publisher. */
 export function nalatiNativeProgramSpec(name: 'kokpar' | 'titan' | 'riding' | 'charge' | 'geography' | 'view'): NativeProgramSpec {
-  return { id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs,
+  const cacheDir = process.env['WS_NALATI_NATIVE_CACHE'];
+  return { ...(cacheDir === undefined || cacheDir === '' ? {} : {cacheDir}), id: `nalati-${name}`, script: `test/fixtures/nalati-${name}-compile.mjs`, inputs,
     loader: name === 'titan' || name === 'riding' ? 'simulation' : 'bake' };
 }
 

@@ -2,14 +2,17 @@
 import {existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,symlinkSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only repository scratch.
 import {resolve} from 'node:path';
-import {afterEach,expect,test} from 'vitest';
+import {afterEach,expect,test,vi} from 'vitest';
 import * as v from 'valibot';
+import {nalatiNativeProgramSpec} from './fixtures/nalati-native-program';
+import {nalatiNativeAssemblySpec} from './fixtures/nalati-native-assembly';
+import {nalatiNativeBootSpec} from './fixtures/nalati-native-boot';
 import {nativeProgramFixture} from './fixtures/native-program';
 import {nativeFixtureIdentity,packNativeFixtures,restoreNativeFixtures} from './fixtures/native-fixture-bundle';
 import {encodeCanonicalJson,hashImmutableBytes} from '../src/sdk/immutable';
 
 const owned:string[]=[];
-afterEach(()=>{for(const path of owned.splice(0))rmSync(path,{recursive:true,force:true});});
+afterEach(()=>{vi.unstubAllEnvs();for(const path of owned.splice(0))rmSync(path,{recursive:true,force:true});});
 async function fixture(){
   const root=mkdtempSync(resolve('tmp/native-bundle-'));owned.push(root);
   mkdirSync(resolve(root,'scripts'));mkdirSync(resolve(root,'source'));
@@ -97,4 +100,17 @@ test('command-only changes and symlink destinations or parents cannot acquire a 
   expect(()=>restoreNativeFixtures(f.wire,f.identity,[f.spec],link)).toThrow('symlink');
   expect(()=>restoreNativeFixtures(f.wire,f.identity,[f.spec],resolve(link,'new'))).toThrow('symlink');
   expect(existsSync(resolve(f.root,'producer/new'))).toBe(false);
+});
+
+test('the dedicated eight-input Nalati cache leaves other recorders on their original cache',async()=>{
+  const f=await fixture(),original=resolve(f.root,'original-family-cache'),dedicated=resolve(f.root,'nalati-cache');
+  vi.stubEnv('WILDSHARD_GENERATE_CACHE',original);vi.stubEnv('WS_NALATI_NATIVE_CACHE',dedicated);
+  for(const name of ['kokpar','titan','riding','charge','geography','view'] as const)expect(nalatiNativeProgramSpec(name).cacheDir).toBe(dedicated);
+  expect(nalatiNativeAssemblySpec().cacheDir).toBe(dedicated);expect(nalatiNativeBootSpec().cacheDir).toBe(dedicated);
+  await nativeProgramFixture({...f.spec,id:'other-family'});
+  expect(existsSync(resolve(original,'fixture-other-family'))).toBe(true);
+  expect(existsSync(dedicated)).toBe(false);
+  vi.stubEnv('WS_NALATI_NATIVE_CACHE','');
+  expect(nalatiNativeProgramSpec('titan').cacheDir).toBeUndefined();expect(nalatiNativeAssemblySpec().cacheDir).toBeUndefined();
+  expect(nalatiNativeBootSpec().cacheDir).toBeUndefined();
 });

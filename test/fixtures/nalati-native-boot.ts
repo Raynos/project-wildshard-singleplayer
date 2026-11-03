@@ -14,8 +14,14 @@ export const NALATI_NATIVE_BOOT_SPEC: NativeProgramSpec = { id: 'nalati-native-b
       'test/fixtures/nalati-native-program.ts', 'test/fixtures/runSnapshot.ts'],
   };
 
+/** Select only this Nalati constructor's published input cache. */
+export function nalatiNativeBootSpec(): NativeProgramSpec {
+  const cacheDir = process.env['WS_NALATI_NATIVE_CACHE'];
+  return {...NALATI_NATIVE_BOOT_SPEC, ...(cacheDir === undefined || cacheDir === '' ? {} : {cacheDir})};
+}
+
 /** Exact independent native oracle, admitted only after a fresh source-fenced
  * constructor reproduces its complete original canonical value. */
 export function nalatiNativeBoot(): Promise<ReturnType<typeof nalatiNativeBootInputs>> {
-  return fencedNativeOracle(NALATI_NATIVE_BOOT_SPEC, async () => (await import('./nalati-native-boot-inputs')).nalatiNativeBootInputs());
+  return fencedNativeOracle(nalatiNativeBootSpec(), async () => (await import('./nalati-native-boot-inputs')).nalatiNativeBootInputs());
 }
