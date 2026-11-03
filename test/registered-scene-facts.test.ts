@@ -33,8 +33,8 @@ for(const root of roots){
   await expect(product.json(root.name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
  });
 }
-test('neither the withheld living envelopes nor the withdrawn 62 welds are registered',()=>{
+test('the withheld living envelopes and withdrawn 62 welds remain unregistered',()=>{
  for(const name of ['scenes/cabins/living/phone-false-false.json','scenes/cabins-phone-shadow-false.json',
-  'scenes/cabins/specimens/log-cabin-east-phone-false.json','world/casts.json','world/fabric.json'])
+  'scenes/cabins/specimens/log-cabin-east-phone-false.json'])
   expect(registeredJsonContract(name)).toBeUndefined();
 });

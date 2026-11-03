@@ -3,6 +3,7 @@ import {WorldSceneSchema} from '../src/format/clientChannels';
 import {SceneBuffersSchema} from '../src/format/sceneBuffers';
 import {ForestPageSchema} from '../src/format/forestPage';
 import {PosedLibrarySchema} from '../src/format/namedJsonContracts';
+import {WorldSceneWeldSchema} from '../src/format/worldSceneWeld';
 import {registeredJsonContract,validateRegisteredJson} from '../src/format/registeredJson';
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
@@ -28,6 +29,9 @@ const forest={id:'forest',sliceMs:30,graphs:[],wildlife:'wildlife',treeLooks:[],
     nightShade:0,sightSlack:0,material:'material',save:'save',floors:[],firePits:[]},props:[],
   lanterns:{texture:'glow',color:0,size:1,order:0,range:1,day:0,flicker:[0,1,0,1],
     light:{color:0,intensity:0,distance:0,decay:0},rows:[]},landmarks:[]};
+const weld={id:'native-weld',root:'root',nodes:[{kind:'group',id:'branch',parent:'root'}],
+  resources:[{id:'geometry',kind:'geometry',source:{library:'shared',model:'marker'}}],
+  placements:['marker'],sets:[{id:'markers',name:'Markers',file:'markers.json',members:['marker']}],culls:[]};
 const roots=[
   {names:['world/forest-page.json'],schema:ForestPageSchema,source:'@wildshard/format/forestPage#ForestPageSchema',
     value:forest,invalid:{...forest,sliceMs:0}},
@@ -42,6 +46,9 @@ const roots=[
   {names:['look/fish-draw.json','look/gull-draw.json','look/wildlife-draw.json'],
     schema:PosedLibrarySchema,source:'@wildshard/format/namedJsonContracts#PosedLibrarySchema',value:posed,
     invalid:{...posed,assets:{...posed.assets,channels:[{name:'position',source:'position',width:5}]}}},
+  {names:['world/casts.json','world/fabric.json'],
+    schema:WorldSceneWeldSchema,source:'@wildshard/format/worldSceneWeld#WorldSceneWeldSchema',value:weld,
+    invalid:{...weld,sets:[{...weld.sets[0],members:['missing-placement']}]}},
 ] as const;
 const encode=(value:unknown)=>new TextEncoder().encode(JSON.stringify(value));
 
@@ -58,8 +65,8 @@ for(const root of roots){
     expect(()=>validateRegisteredJson(name,root.invalid)).toThrow();
   });
 
-  test(`${root.source} rejects missing/foreign metadata before its resource read`,async()=>{
-    const name=root.names[0],schema=registeredJsonSchema(name),bytes=encode(root.value);
+  test.each(root.names)(`${root.source}: %s rejects missing/foreign metadata before its resource read`,async(name)=>{
+    const schema=registeredJsonSchema(name),bytes=encode(root.value);
     for(const metadata of [undefined,{...schema,$comment:'foreign-contract'}]){
       let reads=0;
       const identity={slug:'native-alias',name:'Alias',author:'Fixture',revision:1,seed:1};
@@ -71,7 +78,13 @@ for(const root of roots){
   });
 }
 
-test('alias registration does not capture unapproved names or the withdrawn weld family',()=>{
-  for(const name of ['scenes/new-private.json','world/cards/capped-streaks.json','look/other-posed.json','scenes/cabins-phone-shadow-false.json','world/casts.json'])
+test.each(['world/casts.json','world/fabric.json'])('%s refuses incomplete or extended weld roots',name=>{
+  for(const value of [{id:weld.id,root:weld.root},{...weld,nodes:[{kind:'mesh'}]},{...weld,privateField:true}])
+    expect(()=>validateRegisteredJson(name,value)).toThrow();
+});
+
+test('alias registration does not capture private names or the other withdrawn welds',()=>{
+  for(const name of ['scenes/new-private.json','world/cards/capped-streaks.json','look/other-posed.json',
+    'scenes/cabins-phone-shadow-false.json','world/casts-extra.json','world/fabric-extra.json'])
     expect(registeredJsonContract(name)).toBeUndefined();
 });
