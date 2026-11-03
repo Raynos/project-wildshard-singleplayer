@@ -460,6 +460,8 @@
     "src/game/grid/pageMode.ts",
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
+    "src/shards/open-plots/data/nightMarketBootFiles.json",
+    "src/shards/open-plots/data/nightMarketBootSources.json",
     "src/shards/open-plots/thumbs/card.jpg"
   ],
   "open-plot-frostline-peaks": [
@@ -521,7 +523,10 @@
     "src/game/shard/manifest.ts",
     "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/data/nightMarketBootFiles.json",
-    "src/shards/open-plots/data/nightMarketBootSources.json"
+    "src/shards/open-plots/data/nightMarketBootSources.json",
+    "src/shards/open-plots/thumbs/jungle-ziggurat-landscape.jpg",
+    "src/shards/open-plots/thumbs/jungle-ziggurat-portrait.jpg",
+    "src/shards/open-plots/thumbs/jungle-ziggurat.jpg"
   ],
   "open-plot-lantern-bayou": [
     "src/engine/core/config.ts",

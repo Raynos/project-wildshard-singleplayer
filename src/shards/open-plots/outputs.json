@@ -1084,15 +1084,85 @@
       "idea": "fossil-badlands",
       "name": "Fossil Badlands",
       "accent": "apricot",
-      "placeholder": true,
+      "layout": "fossil-badlands",
+      "landmarkLight": "noon",
+      "coarseLandmark": "lit",
+      "lookKeys": [
+        {
+          "time": 0,
+          "sky": {
+            "zenith": [
+              0.16,
+              0.14,
+              0.52
+            ],
+            "horizon": [
+              0.92,
+              0.56,
+              0.66
+            ]
+          },
+          "fog": {
+            "colour": [
+              0.62,
+              0.5,
+              0.72
+            ],
+            "density": 0,
+            "near": 500,
+            "far": 2000
+          },
+          "sun": {
+            "colour": [
+              1,
+              0.74,
+              0.62
+            ],
+            "intensity": 1.2
+          },
+          "ambient": {
+            "sky": [
+              0.66,
+              0.6,
+              0.9
+            ],
+            "ground": [
+              0.6,
+              0.42,
+              0.4
+            ],
+            "intensity": 1.45
+          }
+        }
+      ],
+      "lookGrade": {
+        "exposure": 0,
+        "saturation": 1.08,
+        "contrast": 1.05,
+        "lut": null
+      },
       "manifest": {
         "name": "Open Plot · Fossil Badlands",
-        "blurb": "Fossil Badlands placeholder: survey floor and open entries; theme art is not built yet.",
+        "status": "earlyAccess",
+        "shardSelect": false,
+        "blurb": "An open plot of the grid: a palaeontology dig in oxblood and mustard badlands at the lavender blue hour, roped trenches, hand cranes and canvas camps round a giant skeleton.",
         "bindings": {
-          "accent": "apricot"
+          "accent": "apricot",
+          "boot": {
+            "files": {
+              "module": "./data/nightMarketBootFiles.json",
+              "export": "default"
+            },
+            "sources": {
+              "module": "./data/nightMarketBootSources.json",
+              "export": "default"
+            }
+          }
         },
         "pois": [],
-        "shardSelect": false
+        "assetGlobs": [
+          "public/assets/open-plots/**"
+        ]
       }
     },
     {

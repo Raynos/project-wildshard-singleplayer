@@ -149,7 +149,7 @@ function fossil(w, p, variant) {
   for (const [x, y2, z] of [[-4, 3, 2], [6, 2.2, -3], [-10, 2.6, -16]]) firefly(w, x, y2, z);
 }
 
-/** M mesa: three stepped strata tiers in an L round the tile's north-west corner (tile -x, +z), each tier two 2 m bands of
+/** M mesa: three stepped strata tiers in an L round the tile's north-west corner (tile -x, +z), each tier two 2.5 m bands of
  *  the oxblood, mustard and cream strata, a bone heap and a lantern at its inner corner. */
 function mesa(w, p) {
   const bands = [p.strataRed, p.strataGold, p.strataCream];
@@ -158,11 +158,11 @@ function mesa(w, p) {
     // the arms along the north and west edges, meeting at the corner without overlap
     for (const [lo, hi] of [[[-INNER, INNER - wide], [reach, INNER]], [[-INNER, -reach], [-INNER + wide, INNER - wide]]]) {
       for (let band = 0; band < 2; band++) {
-        const y0 = 4 * k + 2 * band, colour = bands[(2 * k + band) % 3];
-        if (band === 0) w.sides('Kit', [lo[0], y0, lo[1]], [hi[0], y0 + 2, hi[1]], colour);
-        else w.box('Kit', [lo[0], y0, lo[1]], [hi[0], y0 + 2, hi[1]], colour, bands[(2 * k + 2) % 3]);
+        const y0 = 5 * k + 2.5 * band, colour = bands[(2 * k + band) % 3];
+        if (band === 0) w.sides('Kit', [lo[0], y0, lo[1]], [hi[0], y0 + 2.5, hi[1]], colour);
+        else w.box('Kit', [lo[0], y0, lo[1]], [hi[0], y0 + 2.5, hi[1]], colour, bands[(2 * k + 2) % 3]);
       }
-      w.solid([lo[0], 4 * k, lo[1]], [hi[0], 4 * k + 4, hi[1]]);
+      w.solid([lo[0], 5 * k, lo[1]], [hi[0], 5 * k + 5, hi[1]]);
     }
   }
   heap(w, p, 8, 0, -8, 2);
@@ -225,8 +225,8 @@ function farDig(w, p, type) {
   if (type === 'M') {
     for (let k = 0; k < 3; k++) {
       const wide = [20, 13.5, 7][k], reach = INNER - 3 - 7 * k, colour = [p.strataRed, p.strataGold, p.strataCream][k];
-      w.box('far', [-INNER, 4 * k, INNER - wide], [reach, 4 * k + 4, INNER], colour);
-      w.box('far', [-INNER, 4 * k, -reach], [-INNER + wide, 4 * k + 4, INNER - wide], colour);
+      w.box('far', [-INNER, 5 * k, INNER - wide], [reach, 5 * k + 5, INNER], colour);
+      w.box('far', [-INNER, 5 * k, -reach], [-INNER + wide, 5 * k + 5, INNER - wide], colour);
     }
     return;
   }

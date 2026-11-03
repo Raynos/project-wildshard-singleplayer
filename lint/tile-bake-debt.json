@@ -514,7 +514,12 @@
       "tile/0/4/7/compressed": 359636
     },
     "sunscar-dunes": {},
-    "open-plot-fossil-badlands": {},
+    "open-plot-fossil-badlands": {
+      "tile/1/1/1/draws": 3,
+      "tile/1/1/2/draws": 3,
+      "tile/1/2/1/draws": 3,
+      "tile/1/2/2/draws": 3
+    },
     "open-plot-patchwork-fairground": {
       "tile/1/1/1/draws": 3,
       "tile/1/1/2/draws": 3,
