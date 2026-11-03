@@ -548,7 +548,7 @@ Driftwood P1 is `[100,1]` / yaw−π/2 / pitch−.05, **not this spawn**;
 that pose alone cannot qualify the native-spawn budget change. No
 candidate means no invented A/B or duplicated GPU visit here.
 
-**Lead (2026-11-02, sp-o2):** the 186 peak is the one frame in four where the far cascade (40 calls) redraws with the middle one (22); the other frames are 146 / 124 / 146. Staggering them caps the peak at 164, so a look trade is still needed for ≤ 150. `ec4b08c9d4` removes the viewmodel clearer's draw here too (−1, every frame).
+**Lead (2026-11-03, sp-o2; corrects the 11-02 note):** the cascades are already staggered (`shadowCadence.ts`: near every frame, middle on odd ticks, far every fourth, never together). The 186 peak is the far-tick frame: near 18 + far **62** (18 shadow-only island chunks, 4 terrain tiles, 15 palm tables and ~25 single casters) + 106 render draws; the other frames are 146 / 124 / 146. cascadeCull.ts already keeps only casters whose shadows a fragment reads, so ≤ 150 needs the far cascade at ≤ 26 draws: a look trade (the phone's far shadow distance, 80 m today, or small casters / a coarse island caster in the far slice only). `ec4b08c9d4` removes the viewmodel clearer's draw here too (−1, every frame).
 
 Retained raw: `tmp/sp-x6-driftwood-draws/native-ledger-corrected.json`,
 SHA256`d6876b84b2ae89c51744ca8d203fd27d70094b2781f2e4364e29d56ed624a9d8`;
