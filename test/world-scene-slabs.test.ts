@@ -67,12 +67,14 @@ test('a key draws its tiles\' chunks under its anchor, one instanced mesh each, 
   const f = fixture(), first = f.owner.child('first'), second = f.owner.child('second');
   try {
     expect([...f.content.tiles()]).toEqual([0, 1]); expect([...f.aliasContent.tiles()]).toEqual([]);
-    // NR4: the channel-less anchor and the merged alias stay out of the draw. QD1: the alias draws on no layer but stays
-    // visible, so meshes a scene hangs under it (Nine's plain walls and flagstones) still draw
-    expect(f.anchor.visible).toBe(false); expect(f.alias.visible).toBe(true); expect(f.alias.layers.mask).toBe(0);
-    const wall = new Mesh(); f.alias.add(wall);
-    const drawn: Object3D[] = []; f.alias.traverseVisible(node => { if (node !== f.alias) drawn.push(node); });
-    expect(drawn).toEqual([wall]); wall.removeFromParent();
+    // NR4: the channel-less anchor and the merged alias stay out of the draw. QD1: they draw on no layer but stay
+    // visible, so meshes a scene hangs under them (Nine's plain walls and flagstones) still draw before any chunk lays
+    expect(f.anchor.visible).toBe(true); expect(f.anchor.layers.mask).toBe(0); expect(f.alias.visible).toBe(true); expect(f.alias.layers.mask).toBe(0);
+    for (const anchor of [f.anchor, f.alias]) {
+      const wall = new Mesh(); anchor.add(wall);
+      const drawn: Object3D[] = []; anchor.traverseVisible(node => { if (node !== anchor) drawn.push(node); });
+      expect(drawn).toEqual([wall]); wall.removeFromParent();
+    }
     const version = f.material.version;
     await f.content.attach(0, first);
     expect(f.read).toHaveBeenCalledTimes(1); expect(f.cover).toHaveBeenCalledOnce();
@@ -126,7 +128,7 @@ test('a retiring tile drains its started verified read without publishing a late
     const bytes = f.assets.get(f.slabs.tiles[0]?.files[0]?.file ?? '');
     if (bytes === undefined) throw new Error('Missing original slab');
     release(bytes); await pending;
-    expect(f.read).toHaveBeenCalledTimes(1); expect(f.anchor.children).toEqual([]); expect(f.anchor.visible).toBe(false);
+    expect(f.read).toHaveBeenCalledTimes(1); expect(f.anchor.children).toEqual([]); expect(f.anchor.layers.mask).toBe(0);
     for (const [hash, original] of f.assets) expect(hashImmutableBytes(original)).toBe(hash);
   } finally { f.close(); }
 });
@@ -247,7 +249,7 @@ test('different keys await one shared preparation fence before exposing their na
     expect(prepare).toHaveBeenCalledTimes(1);
     expect(f.anchor.children).toEqual([]); expect(f.alias.children).toEqual([]);
     const firstPart = prepare.mock.calls[0]?.[0];
-    expect(firstPart?.parent).toBeNull(); expect(f.anchor.visible).toBe(false);
+    expect(firstPart?.parent).toBeNull(); expect(f.anchor.layers.mask).toBe(0);
     release(); await next();
     expect(prepare).toHaveBeenCalledTimes(2);
     expect(f.anchor.children).toEqual([firstPart]);
@@ -272,6 +274,6 @@ test('retirement during native preparation leaves no exposed or leaked instance'
     holder.dispose(); expect(disposed).toHaveBeenCalledOnce();
     finish(); await pending;
     expect(part.parent).toBeNull(); expect(f.anchor.children).toEqual([]);
-    expect(f.anchor.visible).toBe(false); expect(prepare).toHaveBeenCalledOnce();
+    expect(f.anchor.layers.mask).toBe(0); expect(prepare).toHaveBeenCalledOnce();
   } finally { finish(); f.close(); }
 });

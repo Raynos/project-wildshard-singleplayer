@@ -142,17 +142,14 @@ export class SlabLibrary {
       }
     }
     const tiles = new Set(banks.keys());
-    // NR4: a channel-less anchor stays out of the draw until its key's first chunk
-    let hidden = false, laid = false;
-    if (mesh.visible) { mesh.visible = false; hidden = true; }
-    const lay = (): void => {
-      laid = true;
-      if (hidden) { mesh.visible = true; hidden = false; }
-      // EP7: it stays visible for its chunks (and its band), but never draws itself: its triangle-less draw issued an
-      // empty call a frame on a plain-mesh program its instanced chunks no longer use. It keeps its channel-less
-      // stand-in, so the precompile skips it too (NR4) instead of linking that plain program and its depth variant
-      mesh.layers.disableAll();
-    };
+    // NR4 / EP7: the anchor never draws itself, before its key's first chunk or after: its triangle-less draw issued an
+    // empty call a frame on a plain-mesh program its instanced chunks no longer use. It keeps its channel-less stand-in,
+    // so the precompile skips it too (NR4) instead of linking that plain program and its depth variant. QD1: it is out
+    // of the draw by its layers, never `visible`, so meshes a scene hangs under it (Nine's plain walls and flagstones)
+    // draw before its chunks lay, and for a key that never lays here (far or unresident)
+    let laid = false;
+    mesh.layers.disableAll();
+    const lay = (): void => { laid = true; };
     // Storage banks may cover several logical fine tiles. Their actual mounted
     // chunks have one publication owner; logical holds retain it without drawing
     // the same bank twice. Readiness resolves only after its verified publication.
