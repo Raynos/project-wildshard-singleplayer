@@ -33,10 +33,9 @@ test('mounted ABI2 replaces one executable in the complete return/spawn inventor
   expect(actual.bytes).toEqual(bytes);expect(actual.file.path).toBe(file);
   const raw=nameBlob(NALATI_RIDING_WITNESS,'bin',NALATI_RIDING_WITNESS_BYTES,{critical:true});
   expect(raw.bytes).toEqual(ridingWitnessBytes);expect(actual.file.dependencies).toEqual([raw.file.hash]);
-  for(const name of ['ride/rules.json','sim/headless-boot.json']){
-    const entry=output.namedFiles.find(row=>row.name===name),payload=entry===undefined?undefined:output.assets.get(entry.hash);
-    if(payload===undefined)throw new Error('Missing actual riding payload');
-    const input:unknown=JSON.parse(new TextDecoder().decode(payload)),row=v.parse(v.record(v.string(),v.unknown()),input);
-    expect(name==='ride/rules.json'?row:row['riding']).toEqual(wire);
-  }
+  const entry=output.namedFiles.find(row=>row.name==='sim/headless-boot.json'),payload=entry===undefined?undefined:output.assets.get(entry.hash);
+  if(payload===undefined)throw new Error('Missing actual riding payload');
+  const input:unknown=JSON.parse(new TextDecoder().decode(payload)),boot=v.parse(v.record(v.string(),v.unknown()),input);
+  expect(boot['riding']).toEqual(wire);
+  expect(output.namedFiles.some(row=>row.name==='ride/rules.json')).toBe(false);
 });
