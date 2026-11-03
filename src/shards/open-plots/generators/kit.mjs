@@ -115,7 +115,13 @@ function writer(parts, centre, turns, kit, coarseFamilies) {
   };
   const lanternEmitter = kit?.lanternEmitter === undefined ? undefined
     : (at, colour) => kit.lanternEmitter(turn(at), [...colour]);
-  const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, placeModel: undefined, hasModel: () => false };
+  /** a plot-axes direction [x, z] in this tile's own axes (the turn undone): a sun-cast shadow's heading */
+  const local = ([x, z]) => {
+    let px = x, pz = z;
+    for (let i = 0; i < turns; i++) [px, pz] = [-pz, px];
+    return [px, pz];
+  };
+  const w = { tri, triColours, triChannels, quad, box, sides, floor, solid, lanternEmitter, local, placeModel: undefined, hasModel: () => false };
   // RM4: a kit model (kitGlb.mjs) at tile-local (x, z), through this writer's turn and lantern bake; a builder uses its
   // family's models only when the kit placed has that family (the layout's kit)
   if (kit?.placeModel !== undefined) {
@@ -204,10 +210,13 @@ export function buildLayout(grid, parts, p, seed, kit, builders) {
   }
 }
 
+/** A writer in plot metres (no turn, centred on the plot), for a plot's own pieces outside the tiles' builders. */
+export const plotWriter = (parts, kit, coarseFamilies = new Set()) => writer(parts, [0, 0], 0, kit, coarseFamilies);
+
 /** Kit models at plot positions outside the tiles, each placed only when the kit has
  *  its family: `placements` rows of { family, variant, at: [x, y, z] plot metres, scale, yaw? }. */
 export function placePlotModels(parts, kit, placements, coarseFamilies = new Set()) {
-  const w = writer(parts, [0, 0], 0, kit, coarseFamilies);
+  const w = plotWriter(parts, kit, coarseFamilies);
   for (const { family, variant, at, scale, yaw } of placements) {
     if (w.hasModel(family)) w.placeModel(family, variant, at[0], at[2], { y: at[1], scale, ...(yaw === undefined ? {} : { yaw }) });
   }

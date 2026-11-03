@@ -5,13 +5,49 @@
 //   F pines:  a dense pine wood round a small clearing with a cabin.
 // Their models are the frost kit families (scripts/blender/open-plots/frost.py: `lodges`, `pines`), placed only when the
 // layout's kit has them, like every kit family.
-import { HALF, INNER, placePlotModels, pool } from './kit.mjs';
+import { HALF, INNER, placePlotModels, plotWriter, pool } from './kit.mjs';
 import { nightMarketBuilders } from './nightMarket.mjs';
 
 /** sRGB hex to linear RGB (the layout's palette rows) */
 const linear = (hex) => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
+
+/**
+ * OB3 open items: a baked shadow on the snow (the round-62 sheet's long blue shadows; the phone draws no cast shadows
+ * here). The look pins a low morning sun, so a piece's shadow falls `shade.length` times its height along `shade.dir`
+ * (plot axes, away from the sun): the hull of its footprint `base` (tile-local [x, z] points round `at`) and that
+ * footprint pulled in by `taper` and moved down the shadow, in the snow-shadow blue, paler toward its far end. It lies
+ * in the kit's draw 3 cm over the ground (ruled with it) and stops inside `bound` (the tile's edge, never over a canal).
+ */
+function shadow(w, p, shade, at, base, h, taper = 1, bound = HALF - 0.5) {
+  if (shade === undefined) return;
+  const [dx, dz] = w.local(shade.dir), [cx, cz] = at;
+  let reach = shade.length * h;
+  for (const [x, z] of base) for (const [c, d] of [[x, dx], [z, dz]]) {
+    if (Math.abs(d) > 1e-6) reach = Math.min(reach, ((d > 0 ? bound : -bound) - c) / d);
+  }
+  if (!(reach > 1)) return;
+  const near = base.map(([x, z]) => ({ x, z, far: false }));
+  const far = base.map(([x, z]) => ({ x: cx + (x - cx) * taper + dx * reach, z: cz + (z - cz) * taper + dz * reach, far: true }));
+  // the hull (monotone chain), counter-clockwise seen from above
+  const points = [...near, ...far].sort((a, b) => a.x - b.x || a.z - b.z), turn = (o, a, b) => (a.x - o.x) * (b.z - o.z) - (a.z - o.z) * (b.x - o.x);
+  const lower = [], upper = [];
+  for (const q of points) { while (lower.length >= 2 && turn(lower[lower.length - 2], lower[lower.length - 1], q) <= 0) lower.pop(); lower.push(q); }
+  for (const q of [...points].reverse()) { while (upper.length >= 2 && turn(upper[upper.length - 2], upper[upper.length - 1], q) <= 0) upper.pop(); upper.push(q); }
+  const hull = [...lower.slice(0, -1), ...upper.slice(0, -1)];
+  const dark = p.snowShadow ?? p.snowShade ?? p.paving, pale = dark.map((v, i) => v + ((p.paving[i] ?? v) - v) * 0.55);
+  const colour = q => (q.far ? pale : dark), y = 0.03;
+  const mid = { x: hull.reduce((sum, q) => sum + q.x, 0) / hull.length, z: hull.reduce((sum, q) => sum + q.z, 0) / hull.length };
+  const midColour = dark.map((v, i) => (v + (pale[i] ?? v)) / 2);
+  for (let i = 0; i < hull.length; i++) {
+    const a = hull[i], b = hull[(i + 1) % hull.length];
+    // counter-clockwise in (x, z) faces down (y up = z x x); the writer's triangle takes the up-facing order
+    w.triColours('Kit', [mid.x, y, mid.z], [b.x, y, b.z], [a.x, y, a.z], [midColour, colour(b), colour(a)]);
+  }
+}
+/** an n-gon footprint of radius r round (x, z) */
+const ring = (x, z, r, n = 8) => Array.from({ length: n }, (_, i) => [x + r * Math.cos(i / n * Math.PI * 2), z + r * Math.sin(i / n * Math.PI * 2)]);
 
 /** A snow bank: a low drift box, its top the snow colour (the kit's ground stays the paving's). */
 function drift(w, p, x0, z0, x1, z1, h = 0.5) {
@@ -57,8 +93,10 @@ function coarseLodge(w, p, x, z, hx, hz) {
   }
 }
 
-/** A pine clump (the kit's, 3 / 5 / 8 trees), or a stand-in cone when the kit has no pines. */
-function pines(w, p, x, z, variant) {
+/** A pine clump (the kit's, 3 / 5 / 8 trees), or a stand-in cone when the kit has no pines, and its shadow. */
+function pines(w, p, x, z, variant, shade, bound) {
+  const [r, h] = variant === 0 ? [2.2, 7] : variant === 1 ? [3.4, 8] : [4, 9];
+  shadow(w, p, shade, [x, z], ring(x, z, r * 0.8, 5), h, 0.3, bound);
   if (w.hasModel('pines')) { w.placeModel('pines', variant, x, z, { yaw: pick(x, z, 4) * Math.PI / 2 }); coarsePines(w, p, x, z, variant); }
   else for (const [dx, dz] of [[0, 0], [2.4, 1.2], [-2, 1.6]]) {
     w.sides('Kit', [x + dx - 0.2, 0, z + dz - 0.2], [x + dx + 0.2, 2, z + dz + 0.2], p.trunk);
@@ -69,7 +107,7 @@ function pines(w, p, x, z, variant) {
 
 /** D lodges: a lodge across the north of a snowy court, a chalet and a cabin on its sides facing in, drifts along the
  *  walls, pines in the corners, two lantern posts at the court's south mouth. `variant` swaps the side houses. */
-function lodges(w, p, variant) {
+function lodges(w, p, variant, shade) {
   const houses = [[0, 17, 0, Math.PI], [variant === 0 ? -17 : 17, -2, 1, variant === 0 ? Math.PI / 2 : -Math.PI / 2],
     [variant === 0 ? 17 : -17, -4, 2, variant === 0 ? -Math.PI / 2 : Math.PI / 2]];
   for (const [x, z, kind, yaw] of houses) {
@@ -77,17 +115,18 @@ function lodges(w, p, variant) {
     const [hx, hz] = Math.abs(Math.sin(yaw)) > 0.5 ? [half[1], half[0]] : half;
     if (w.hasModel('lodges')) { w.placeModel('lodges', kind, x, z, { yaw }); coarseLodge(w, p, x, z, hx, hz); }
     w.solid([x - hx, 0, z - hz], [x + hx, 6, z + hz]);
+    shadow(w, p, shade, [x, z], [[x - hx, z - hz], [x + hx, z - hz], [x + hx, z + hz], [x - hx, z + hz]], 6);
   }
   drift(w, p, -INNER, INNER - 2.5, INNER, INNER); drift(w, p, -INNER, -INNER, -INNER + 2.5, INNER - 2.5);
   drift(w, p, INNER - 2.5, -INNER, INNER, INNER - 2.5);
-  for (const [x, z, v] of [[-22, 22, 1], [22, 22, 0], [-22, -22, 0], [22, -22, 1]]) pines(w, p, x, z, v);
+  for (const [x, z, v] of [[-22, 22, 1], [22, 22, 0], [-22, -22, 0], [22, -22, 1]]) pines(w, p, x, z, v, shade);
   for (const x of [-5, 5]) post(w, x, -20, p, 0);
 }
 
 /** F pines: a pine wood of nine clumps round a clearing with a cabin and its lantern. */
-function wood(w, p, variant) {
+function wood(w, p, variant, shade) {
   const spots = [[-20, 20, 2], [0, 22, 1], [20, 20, 2], [-21, 0, 1], [21, 1, 2], [-20, -20, 2], [0, -21, 1], [20, -20, 2], [10, 10, 0]];
-  for (const [i, [x, z, v]] of spots.entries()) pines(w, p, variant === 0 ? x : -x, z, (v + i) % 3);
+  for (const [i, [x, z, v]] of spots.entries()) pines(w, p, variant === 0 ? x : -x, z, (v + i) % 3, shade);
   if (w.hasModel('lodges')) { w.placeModel('lodges', 2, variant === 0 ? -6 : 6, -6, { yaw: 0 }); coarseLodge(w, p, variant === 0 ? -6 : 6, -6, 3.3, 2.8); }
   w.solid([(variant === 0 ? -6 : 6) - 3.3, 0, -6 - 2.8], [(variant === 0 ? -6 : 6) + 3.3, 4, -6 + 2.8]);
   drift(w, p, -6, 4, 6, 7, 0.6);
@@ -125,16 +164,17 @@ function frostLane(w, p, side, centre) {
   }
 }
 
-const THEME = {
-  D: { build: lodges, far: (w, p, variant) => farFrost(w, p, 'D', variant), sockets: 'pppp' },
-  F: { build: wood, far: (w, p, variant) => farFrost(w, p, 'F', variant), sockets: 'pppp' },
-};
+/** D and F; `shade` is the layout's `shadows` row ({ dir, length }), or undefined for none. */
+const theme = shade => ({
+  D: { build: (w, p, variant) => lodges(w, p, variant, shade), far: (w, p, variant) => farFrost(w, p, 'D', variant), sockets: 'pppp' },
+  F: { build: (w, p, variant) => wood(w, p, variant, shade), far: (w, p, variant) => farFrost(w, p, 'F', variant), sockets: 'pppp' },
+});
 
 /** Frostline's builders: a layout's shared letters (Night Market's kinds, `layout.builders`) plus D and F. */
-export function frostlineBuilders(letters) {
-  const shared = nightMarketBuilders(letters);
-  for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`frostline-peaks: letter ${letter} is a theme tile`);
-  return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: shared.coarseFamilies, seam: frostLane };
+export function frostlineBuilders(letters, shade) {
+  const shared = nightMarketBuilders(letters), own = theme(shade);
+  for (const letter of Object.keys(own)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`frostline-peaks: letter ${letter} is a theme tile`);
+  return { tiles: { ...shared.tiles, ...own }, coarseFamilies: shared.coarseFamilies, seam: frostLane };
 }
 
 /** The chair lift's placements and cable (the layout's `landmark.lift`: `stations` [bottom, top] and `towers` as
@@ -187,20 +227,24 @@ function glint(w, x, y, z, s) {
  *  0, before the lodge and the crown). They are Glow, which the coarse tiles keep, so with the lamps' flicker they are the
  *  plot's motion seen from the road entry: 0.6 m glints up a 5 m column at each point. */
 export const frostlinePlot = {
-  builders: layout => frostlineBuilders(layout.builders),
+  builders: layout => frostlineBuilders(layout.builders, layout.shadows),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
   models(parts, kit, layout) {
     const lift = layout.landmark.lift === undefined ? [] : liftPlacements(layout.landmark.lift, parts.Kit, linear(layout.palette.iron ?? '#2b2b33'));
     placePlotModels(parts, kit, [...lift, ...(layout.landmark.lanterns ?? []).map(at =>
       ({ family: layout.landmark.lanternFamily ?? 'hero', variant: layout.landmark.lanternVariant ?? 2, at, scale: layout.landmark.lanternScale ?? 1 }))],
     new Set(['lodges', 'pines', 'lift']));
+    // OB3 open items: round 62 hugs the peak with pines: the layout's `plazaPines` ([x, z, variant] in one quarter, plot
+    // metres, mirrored into all four), on the plaza outside the peak's foot, their shadows kept on the plaza
+    const plaza = plotWriter(parts, kit, new Set(['pines'])), palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
+    for (const [x, z, v] of layout.plazaPines ?? []) for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) pines(plaza, palette, sx * x, sz * z, v, layout.shadows, 61);
     const writer = { tri: (part, a, b, c, colour) => parts[part].tri(part, a, b, c, colour) }, k = (layout.landmark.height ?? 70) / 70;
     for (const [x, y, z] of layout.landmark.glints ?? []) {
       for (let i = 0; i < 7; i++) glint(writer, (x + Math.sin(i * 2.4) * 1.5) * k, (y + i * 0.75) * k, (z + Math.cos(i * 2.4) * 1.5) * k, 0.6);
     }
   },
   pools(parts, palette) {
-    const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };
-    pool(plotWriter, 0, 0, 34, palette.gatePool, 0.05);
+    const lit = { Pool: parts.Pool }, poolWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };
+    pool(poolWriter, 0, 0, 34, palette.gatePool, 0.05);
   },
 };

@@ -60,6 +60,7 @@
     "rope": "#2a2018",
     "snow": "#f4f8fc",
     "snowShade": "#c8d8ec",
+    "snowShadow": "#7f9ccf",
     "iron": "#2b2b33"
   },
   "landmark": {
@@ -103,6 +104,15 @@
       "chairs": 12
     }
   },
+  "shadows": {
+    "dir": [-0.497, -0.868],
+    "length": 2.4
+  },
+  "plazaPines": [
+    [57, 14, 0],
+    [14, 57, 0],
+    [45, 42, 0]
+  ],
   "posters": {
     "image": "public/assets/open-plots/frostline-peaks/billboard.webp",
     "plaza": {
