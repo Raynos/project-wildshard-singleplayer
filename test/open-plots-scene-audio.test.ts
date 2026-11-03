@@ -10,7 +10,9 @@ import type { LevelAudioBank } from '../src/engine/audio/levelAudio';
 import type { Player } from '../src/engine/player/Player';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { AudioSceneDirector } from '../src/game/audio/sceneDirector';
+import { parseAudioData } from '../src/format/audio';
 import { plotAudioData } from '../src/shards/open-plots/generators/audio';
+import { nalatiAudioRows } from '../src/shards/nalati-grasslands/generators/audioRows';
 import anchors from '../src/shards/open-plots/data/audioAnchors.json' with { type: 'json' };
 
 await installAssetFixture();
@@ -51,4 +53,28 @@ test('the native scene waits for all six own cue loops, then releases its score 
     expect(dispose).toHaveBeenCalledOnce();
     refresh.mockClear(); audio.useLevelBank(bank); expect(refresh).not.toHaveBeenCalled();
   } finally { scope.dispose(); }
+});
+
+test('the existing Nalati score catalogue keeps its shared sample overlay without an own-loop inventory', () => {
+  const data = parseAudioData(nalatiAudioRows().audio);
+  expect(data.music?.setCatalogue).toBeDefined();
+  expect(data.samples?.catalogue).toBeUndefined();
+  const scope = new Scope('nalati.audio.compatibility'), audio = new Audio(), music = new Music(audio);
+  vi.spyOn(music, 'refreshScore').mockImplementation(() => { /* No device opens in this compatibility control. */ });
+  vi.spyOn(music, 'setScore').mockImplementation(() => () => { /* No music deck opens in this compatibility control. */ });
+  const scene = new AudioSceneDirector(data, legacyDouble<Player>({ position: new Vector3(), yaw: 0 }));
+  try {
+    expect(() => scene.bind(audio, music, undefined, scope)).not.toThrow();
+    expect(() => audio.useLevelBank({ title: undefined, score: { slots: new Map(), stings: new Map() }, cues: { loops: new Map(), shots: new Map() } })).not.toThrow();
+  } finally { scope.dispose(); }
+});
+
+test('an explicitly owned scene cue bank still refuses an empty loop inventory', () => {
+  const data = plotAudioData('lantern-bayou', anchors['lantern-bayou'], { dir: '/assets/music/lantern-bayou/', manifestKey: 'lantern-bayou' });
+  if (data.samples?.catalogue === undefined) throw new Error('Missing explicit sample catalogue');
+  data.samples.catalogue.loopOrder = [];
+  const scope = new Scope('plot.audio.invalid'), audio = new Audio();
+  const scene = new AudioSceneDirector(data, legacyDouble<Player>({ position: new Vector3(), yaw: 0 }));
+  try { expect(() => scene.bind(audio, undefined, undefined, scope)).toThrow('Scene cue bank requires its loop inventory'); }
+  finally { scope.dispose(); }
 });

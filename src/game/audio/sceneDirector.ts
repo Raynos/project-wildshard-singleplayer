@@ -75,7 +75,7 @@ export class AudioSceneDirector {
   a.setAmbient(voices.rows.bed);
   // A set catalogue owns arbitrary bed/hum families in its cue bank. The
   // shared sample overlay retains its original fixed-family path.
-  const ownCues=this.data.music?.setCatalogue===undefined?undefined:new CuePlayer(a,scope,audioRandom);
+  const ownCues=this.data.music?.setCatalogue===undefined||this.data.samples?.catalogue===undefined?undefined:new CuePlayer(a,scope,audioRandom);
   const expected=ownCues===undefined?[]:requireAudioProfile(this.data.samples?.catalogue,'scene loop inventory').loopOrder;
   if(ownCues!==undefined&&expected.length===0)throw new Error('Scene cue bank requires its loop inventory');
   if(ownCues!==undefined)a.onLevelBank(bank=>{ownCues.useBank(bank.cues);},scope);
