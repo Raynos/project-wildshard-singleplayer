@@ -203,7 +203,7 @@ Order: NU1 ∥ NU2 → NU3; NU5–NU8 join the build-out plan's waves (look and 
 about 6 Opus + 2 Codex lane-days for the four (G978; was about 14 + 5). NU5–NU8 replace OPEN-PLOTS rows OP7, OP9, OP13
 and OP21 for these ideas; OP8 (Mushroom Hollow) is dropped (G977).
 
-G972 qualification: all 25 cells and origins are identical in public and Developer modes; Nine occupies (1,-1). The four selected collider changes earned the maintained 75-route walk: 75/75 passed, zero stuck or bounds failures. Public Nine also passed the real native reserve/readiness fence, refused premature save, frozen-away ticks and durable restored continuation. The first raw Node caller refusal was retained; its corrected caller reads the ordinary current product, with every original assertion kept. Root types and focused typed lint passed. Self-applied G872 collider and fixture rulings; no walk waiver.
+G972 qualification: all 25 cells and origins are identical in public and Developer modes; Nine occupies (1,-1). The four selected collider changes earned the maintained 75-route walk: 75/75 passed, zero stuck or bounds failures. Public Nine also passed the real native reserve/readiness fence, refused premature save, frozen-away ticks and durable restored continuation. The first raw Node caller refusal was retained; its corrected caller reads the ordinary current product, with every original assertion kept. Focused typed lint passed. Root types passed after the Scene correction; the final recheck then stopped at the unrelated `merge-held-parts.test.ts` attribute/nullability frontier (routed to its owner). Self-applied G872 collider and fixture rulings; no walk waiver.
 
 ## 7. Questions for Jake
 
