@@ -284,14 +284,8 @@
     "lanternScale": 1.6
   },
   "posters": {
-    "image": "public/assets/open-plots/lantern-bayou/billboard.webp",
-    "plaza": {
-      "x": 0,
-      "z": -40,
-      "width": 20,
-      "bottom": 2.5,
-      "offset": -22
-    },
+    "image": "public/assets/open-plots/lantern-bayou/poster.webp",
+    "plaza": null,
     "entry": {
       "inset": 247,
       "width": 10,

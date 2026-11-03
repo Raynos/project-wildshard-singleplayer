@@ -146,7 +146,8 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
   // the posters: the plaza's facing the south entry, one over each entry facing out to the road
   if (layout.posters !== null) {
     const { plaza, entry } = layout.posters;
-    poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 }, lanterns);
+    // a plot whose landmark fills the plaza (Lantern Bayou's cypress) may stand no plaza poster (`plaza: null`)
+    if (plaza !== null) poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 }, lanterns);
     for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset }, lanterns);
   }
   plot.pools(parts, palette);
@@ -242,7 +243,11 @@ export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
   // ring stays the terrain's sampling surface under its `detail_` group
   const ringGroup = doc.createNode('detail_paving');
   scene.addChild(ringGroup);
-  node('ws_terrain_floor', parts.Paving.part('Paving'), materials.Paving, { parent: ringGroup });
+  // a plot's `ringInKit` draws the ring in the kit's material (its ruled flagstones, the ring's colour in its vertices):
+  // an edge tile then holds one render state fewer (T8: Lantern Bayou's edge tiles drew 9 > 8)
+  const ringPart = parts.Paving.part('Paving'), ringInKit = plot.ringInKit === true, ringLinear = linear(ring);
+  if (ringInKit) ringPart.colours = ringPart.colours.map((c, i) => c * (ringLinear[i % 3] ?? 1));
+  node('ws_terrain_floor', ringPart, ringInKit ? materials.Kit : materials.Paving, { parent: ringGroup });
   node('draw_kit', parts.Kit.part('Kit'), materials.Kit);
   node('detail_water', parts.Water.part('Water'), materials.Water);
   node('draw_glow', parts.Glow.part('Glow'), materials.Glow);

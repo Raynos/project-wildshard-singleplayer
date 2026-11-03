@@ -112,6 +112,8 @@ export function lanternBayouBuilders(letters) {
 export const lanternBayouPlot = {
   builders: layout => lanternBayouBuilders(layout.builders),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
+  // T8: the ring in the kit's draw, so an edge tile holds Kit, Water, Glow and Pool (8 draws, not 9)
+  ringInKit: true,
   models(parts, kit, layout) {
     placePlotModels(parts, kit, (layout.landmark.lanterns ?? []).map(at =>
       ({ family: layout.landmark.lanternFamily ?? 'hero', variant: layout.landmark.lanternVariant ?? 2, at, scale: layout.landmark.lanternScale ?? 1 })),
