@@ -22,6 +22,16 @@ function observe() {
     current: grid?.live.live.current, ready: grid?.live.live.gameplayReady };
 }
 
+/** Retain the pre-world boundary when the normal probe is not installed yet. */
+function entryDiagnostic() {
+  const text = (/** @type {string} */ selector) => document.querySelector(selector)?.textContent?.slice(0, 1000) ?? null;
+  return { url: location.href, readyState: document.readyState, timeOrigin: performance.timeOrigin,
+    title: document.title, bodyClass: document.body.className,
+    loader: text('.ws-load'), error: text('#wserr,[role="alert"]'),
+    main: text('.ws-main'), reveal: text('.ws-reveal,#hud.intro'),
+    probePresent: window.__wildshard !== undefined };
+}
+
 /** @param {import('playwright').Browser} browser @param {string} base @param {'template'|'road'} mode @param {string} out */
 async function run(browser, base, mode, out) {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
@@ -32,30 +42,43 @@ async function run(browser, base, mode, out) {
   const page = await context.newPage();
   /** @type {string[]} */ const faults = [];
   page.on('pageerror', error => { faults.push(error.message); });
+  /** @type {{ type: string; text: string; at: number }[]} */ const consoleFaults = [];
+  page.on('console', message => {
+    if (['warning', 'error'].includes(message.type())) {
+      consoleFaults.push({ type: message.type(), text: message.text().slice(0, 1000), at: Date.now() });
+      if (consoleFaults.length > 32) consoleFaults.shift();
+    }
+  });
   /** @type {{ url: string; at: number }[]} */ const navigations = [];
   page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations.push({ url: frame.url(), at: Date.now() }); });
   let before = null, mounted = null, unmounted = null;
+  let phase = 'navigate-title';
   try {
     const url = new URL(base);
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
     if (mode === 'template') url.searchParams.set('chunk', '_template');
     await page.goto(url.href, { waitUntil: 'domcontentloaded' });
     const titleDeadline = Date.now() + 150000;
+    phase = 'title-visible';
     await page.locator('.ws-main-select').waitFor({ state: 'visible', timeout: 150000 });
     // The title DOM appears before cold shaders finish. Its loading overlay
     // still owns input; wait within the same title budget before a real tap.
+    phase = 'title-loading-complete';
     await page.locator('.ws-load').waitFor({ state: 'hidden', timeout: Math.max(1, titleDeadline - Date.now()) });
+    phase = 'enter-world';
     if (mode === 'template') {
       await page.locator('.ws-main-select').tap();
       // SF65's data-only template has a disabled LEGACY button and an explicit SHARDFILE entry.
       const play = page.locator('.ws-menu-play');
       await (await play.isDisabled() ? page.locator('.ws-menu-shardfile') : play).tap();
     } else await page.locator('.ws-main-grid').tap();
+    phase = 'world-play-ready';
     await page.waitForFunction(() => {
       const api = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
       return api?.world?.game.app.state === 'play' && !document.querySelector('#hud.intro,.ws-reveal');
     }, undefined, { timeout: 150000 });
     if (mode !== 'template') {
+      phase = 'road-pose';
       const pitch = await page.evaluate(() => {
         const exposed = window.__wildshard.shard.grid;
         const grid = /** @type {import('../frame-floor-grid.mjs').FloorGridState | undefined} */ (typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : undefined);
@@ -66,6 +89,7 @@ async function run(browser, base, mode, out) {
       if (!Number.isFinite(pitch) || pitch <= 500) throw new Error('Invalid grid pitch');
       const half = pitch / 2;
       await page.evaluate(async at => { await window.__wildshard.pose({ x: at, y: 0.55, z: at, yaw: 0, pitch: -0.08 }); }, half);
+      phase = 'road-gameplay-ready';
       await page.waitForFunction(() => {
         const exposed = window.__wildshard.shard.grid;
         const grid = /** @type {import('../frame-floor-grid.mjs').FloorGridState | undefined} */ (typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : undefined);
@@ -73,12 +97,15 @@ async function run(browser, base, mode, out) {
       }, undefined, { timeout: 120000 });
       const plan = { name: 'hover-touch-road', from: null, to: null, start: { x: half, z: half }, waypoints: [] };
       const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
+      phase = 'road-stage';
       await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
     } else if (await page.evaluate(() => window.__wildshard.shard.slug) !== '_template') throw new Error('Template test booted another shard');
     const hover = page.locator('.ws-touch-hover');
+    phase = 'hover-visible';
     await hover.waitFor({ state: 'visible' });
     before = await page.evaluate(observe);
     await hover.tap();
+    phase = 'hover-mounted';
     await page.waitForFunction(() => {
       const api = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard), world = api?.world;
       return world?.player.hover === true && world.player.hoverBlend > 0.5 &&
@@ -86,6 +113,7 @@ async function run(browser, base, mode, out) {
     }, undefined, { timeout: 5000 });
     mounted = await page.evaluate(observe);
     await hover.tap();
+    phase = 'hover-unmounted';
     await page.waitForFunction(() => {
       const api = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
       return api?.world?.player.hover === false;
@@ -94,8 +122,10 @@ async function run(browser, base, mode, out) {
     if (faults.length > 0) throw new Error(faults.join('\n'));
     return { mode, pass: true, before, mounted, unmounted, faults, navigations };
   } catch (error) {
-    await page.screenshot({ path: join(out, `${mode}-failure.jpg`), type: 'jpeg', quality: 65 }).catch(() => undefined);
-    return { mode, pass: false, before, mounted, unmounted, after: await page.evaluate(observe).catch(() => null), error: String(error), faults, navigations };
+    let screenshotError = null;
+    await page.screenshot({ path: join(out, `${mode}-failure.jpg`), type: 'jpeg', quality: 65 }).catch((/** @type {unknown} */ cause) => { screenshotError = String(cause); });
+    const diagnostic = await page.evaluate(entryDiagnostic).catch((/** @type {unknown} */ cause) => ({ error: String(cause) }));
+    return { mode, pass: false, before, mounted, unmounted, after: await page.evaluate(observe).catch(() => null), error: String(error), phase, diagnostic, screenshotError, consoleFaults, faults, navigations };
   } finally { await context.close(); }
 }
 
