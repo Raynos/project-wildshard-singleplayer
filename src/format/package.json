@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./sceneSources": "./sceneSources.ts",
     "./registeredJson": "./registeredJson.ts",
     "./sourceResidency": "./sourceResidency.ts",
     "./spawnManifest": "./spawnManifest.ts",

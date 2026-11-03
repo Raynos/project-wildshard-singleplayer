@@ -6485,7 +6485,7 @@ grammar; runtime weld admission retains its immutable result.
 `privateSceneRows` admits complete private node/material records without
 a runtime scene host or any file reads.
 
-`sceneDrawRows` admits bounded effect draws. `modelSceneSourceFile` and `bakedSceneSourceFile` publish typed model/rig/held and baked-kind source libraries with their native inventory limits, preserving JSON ordering and numeric spelling. Runtime resource admission remains authoritative.
+`sceneDrawRows` checks draws. `modelSceneSourceFile`/`bakedSceneSourceFile` keep native limits and JSON spelling. `format/sceneSources` defines complete `SceneModelSourceSchema`/`SceneBakeSourceSchema`; `items.ItemEquipmentSchema` retains equipment grammar. Resources stay native.
 `worldSceneTileGroups` admits strict source tile-file groups with their resident
 flags, preserving group/file order and duplicates while owning the output arrays.
 `worldSceneTileFiles` admits ordered main/additional source file names, preserving
