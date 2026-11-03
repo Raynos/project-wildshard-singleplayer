@@ -118,7 +118,7 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS7** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** audio/cards `2c5aa6386d` / `515ffcac96` have normal/strict6 and exact original payload/owner proofs. Every remaining logical name is in the 25-row source table: ten native-root qualification exits and fifteen complete-contract/model/binary/owner/collision exits. No byte rewrite, host score, weather union or CS10 deletion follows. See the [completion bar](#cs4--cs7-completion-bar). | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
 | **CS9** | **done (2026-11-02, sp-x1, exact-slice-or-explicit-exit bar):** eight defining-payload derivations reconstruct all old canonical bytes; 36 original cases pass across eight suites. The complete 69-field ledger accounts for eight qualified derivations and 61 explicit owner/contract exits; Pine’s scaffold is retired and the other three shells have explicit source/schema/witness exits. The exact Nalati source-stamp case is self-applied under G872, with raw refusal retained. No CS10 deletion or host credit follows. See the [completion proof](#cs9-exact-constant-derivations-and-completion-bar). | 2–3 days, Opus (after WASM-HOST H9, H17) |
-| **CS10** | **open toward deleting the live path (2026-11-03, sp-x1/sp-x9):** ten redundant custom copies are retired with full CURRENT payload/native/pack proof and 29 original cases passing. Four live envelopes remain explicit KEEP exits: DW collections/fixedLayouts and Pine nativeView/questRuntime. The private reader/emitter, named-JSON validator, nonzero ceilings and growth/freeze policies remain used; no guard deletion is justified. See the [combined retirement proof](#cs10-seven-case-ownership-and-combined-retirement-proof). | 1 day, Codex |
+| **CS10** | **done (2026-11-03, Codex takeover from sp-x1/sp-x9, exact-slice-or-named-explicit-exit bar; G872 self-applied):** ten redundant copies retain their landed exact payload/native/pack proof and 29 original cases. The four live envelopes and shared reader/emitter/validation/policy paths have named **CS10-E1–E6** KEEP exits in the [completion ledger](#cs10-completion-bar-and-named-implementation-exits). G908 leaves Pine and Nine unchanged; path deletion remains unbuilt, with every guard and cap retained. | 1 day, Codex |
 
 ### Recorded completed bars: CS1 / CS4 / CS7
 
@@ -152,7 +152,7 @@ calendar, plus WASM-HOST H6 / H8 / H17 if not already built (that plan's own est
    7.7 MB of K2, 10 of the 15 `custom/` sections).
 3. Most duplication next: CS5 quests, then CS7's small kinds.
 4. Behaviour last: CS6, CS8, CS9 wait on WASM-HOST H6 / H8 / H17 (H9 is already in progress).
-5. CS10 the day the last ceiling reads 0.
+5. CS10 disposition closes under the completion ledger below; actual path/guard removal stays an explicit exit until its zero-user and zero-ceiling conditions are proved.
 
 - **WASM-HOST** must provide H6 (one `ws_step` per module) and H8 (sim lane) before CS6 / CS8, H17 (headless v2)
   before CS9; H9 (view lane) is already being built. Pull only those rows in, not all of v2.
@@ -2566,10 +2566,53 @@ Pine exits documented above. Named JSON validators, custom-name admission,
 growth/freeze policy, ceilings and compatibility readers remain live.
 The current two-product proof counts 167 named JSON files; the historic
 six-product 461-name census is not a fresh full-product zero-user proof.
-**CS10 remains open toward deleting the path.** No guard or tool is deleted
+**At this retirement landing CS10 remained open toward deleting the path; the completion ledger below supersedes that row status only.** No guard or tool is deleted
 merely because ten redundant copies retire. Compact evidence is retained in
 tmp/sp-x1-cs10 and tmp/sp-x9-cs10; no extra native/browser/walk is required
 for unchanged collider, geometry and native assembly bytes.
+
+## CS10 completion bar and named implementation exits
+
+**Done, 2026-11-03, Codex takeover from sp-x1/sp-x9.** The coordinator's
+fresh-context instruction applies the same exact-slice-or-named-explicit-exit
+bar as CS2–CS9, with **G872 self-applied**. This closes CS10's disposition
+work, superseding its earlier open-until-deletion status and order step 5.
+The generic-only end state remains the target. None of the exits below is
+an implemented migration, host approval, guard waiver or zero-user proof.
+Their implementation remains **open in this plan**.
+
+The ten redundant copies retain the ordered landed authority
+**`f534af4da8` (DW) → `c8c844c993` (Pine)** and the full combined proof
+above: complete old canonical reconstruction, 1,393 remaining bodies /
+234,342,145 B exact, native assemblies exact and all 52 old / 52 new
+ordered packs verified. The 29 original cases, types and lint belong to
+that retirement proof; they are not claimed as freshly rerun here.
+
+The closeout source audit is pinned to
+`a8f1f940c772319f53bc3fa38afd23682555e522`: sixteen committed defining
+producer/consumer/fixture/policy files were checked without adopting loose
+peer edits. DW declares exactly collections/fixedLayouts and Pine exactly
+nativeView/questRuntime. Those four retained bodies total **48,490 B** in
+the qualified combined corpus; this is not a fresh all-24 product census.
+
+| Named exit, implementation open | Live reason and exact retirement condition |
+|---|---|
+| **CS10-E1 — DW collection custom port / KEEP** | `custom/collections`, **2,698 B**. `generators/clientSections.ts` still emits it; `game/models/collectionDisplay.ts` reads its complete CollectionDisplaysSchema models synchronously after geometry preparation, and `game/quest/continuation.ts` dynamically reads its keepsakes. The shared schema alone does not replace that port. Migrate both consumers together, preserving cold Explorer/entered preparation, read-once catalogue, pinned product, model/geometry ownership, cancellation and keepsake/save lifetimes; require exact complete body, original native refusals and ordered-pack proof before retirement. |
+| **CS10-E2 — DW fixed-layout identity/owner port / KEEP** | `custom/fixedLayouts`, **7,855 B**. The same producer emits the approved complete ResolvedIslandLibrarySchema. `game/shardfile/islandBook.ts` still uses its synchronous root in preflight, product/id/recipe cache and post-await identity checks; IslandLibrary and the people/cards draws borrow its declared resources. Preserve resource-presence/unique-slot/collection-slot refusals, root identity across every await, caller resourceScope and catalogue/library lifetime as one complete port. A named file or asynchronous substitution does not prove parity; require exact payload/native/pack and affected entry/Explorer proof before deleting it. |
+| **CS10-E3 — Pine whole native-view port / KEEP** | `custom/nativeView`, **8,648 B**. `generators/sections.ts` and `sourceOutput.ts` retain NativeViewSchema and emission; `test/fixtures/pine-headless.ts` reads BOSS_ENCOUNTER.profile, and `test/pine-runtime-mirrors.test.ts` checks the complete envelope and malformed native refusals. The combat child does not reconstruct all ribs, presentation/cues, clearing/cave, fog/look, spray and prop-kind/box fields. Require a complete admitted derivation, unchanged native-witness/input and full body/pack proof. **G908:** preserve Pine bytes and pixels; without exact retirement this remains an exit, never a renamed private wrapper. |
+| **CS10-E4 — Pine whole quest-runtime/guest port / KEEP** | `custom/questRuntime`, **29,289 B**. `data/clientPlan.json` names it as quest.spawns.source; `generators/forestStory.ts` names it as content; `sourceOutput.ts` emits the compiled lead.program, and the native fixture reads this quest source. PineQuestRowsSchema still contains lead.program, events, deaths, pageDeaths and content with unresolved complete guest/AS ownership. Native-story/page children are incomplete replacements. Migrate the actual source/content/guest ports together, preserving original save, phase, reference and native assertions with exact full body/pack and witness proof. **G908:** no Pine byte or pixel change is accepted to retire this path. |
+| **CS10-E5 — Shared private emitter/reader/compatibility path / KEEP** | E1–E4 are live callers, so shard SECTIONS, emitCustom/custom row emission, custom schema admission and product.section compatibility remain necessary. Removal requires every actual caller to migrate with its own exact payload/native/pack proof, then an immutable complete product/source census proving zero private emitters/readers and no compatibility users. Ten duplicate retirements and the two-product proof do not meet that condition. Retain original unknown/malformed/resource/identity refusals and all generic named-JSON support. |
+| **CS10-E6 — Named-JSON validation, accounting and freeze policy / KEEP** | `game/shardfile/namedJsonChecks.ts` still reaches the defining native validator; `scripts/shard-platform-output.mjs` hash-checks and charges named JSON as well as custom envelopes. `scripts/custom-section-policy.mjs`, `lint/custom-sections.json` and the nonzero `lint/ratchet.json` ceilings still enforce provenance, shrink-only growth and frozen identities. The retained two-product corpus has **167 named JSON files**; neither it nor the historic 461-name census proves a global zero. Keep every validator, check, ceiling and policy. Any eventual obsolete-path cleanup requires a fresh complete census and qualified coverage of every remaining named contract, with no guard deletion, cap raise or waiver credited by this closeout. |
+
+Verification: all sixteen pinned source/policy checks and the exact four-name
+declaration check pass. The retained comparator record again verifies ten
+complete reconstructions, exact remaining payload/native metadata and both
+52-pack layouts, with rawComparisonPassed=true and no raw failures. This
+is a documentation-only disposition: no product publication, source/runtime
+edit, native run, browser, pixel capture or physics walk was needed or run.
+Pine and Nine bytes/pixels are untouched by this commit under G908; no fresh
+pixel result, loading gain, new host score or completed path deletion is
+claimed. All six implementation exits and all existing guards remain live.
 
 ## CS3 completion bar and named implementation exits
 
