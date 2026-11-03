@@ -152,7 +152,7 @@ does not close a Z row.
 | **Z2** | **Streamed scene pages: Nine.** `world/placements/*` onto `WorldScenePlacementPageSchema` (DW + Pine host `sdk/worldScenes.ts`) | 72: Nine placements 70, `world/casts`, `world/fabric` | Opus | 2.5 |
 | **Z3** | **Streamed scene pages: Pine cabins and DW island.** Specimens and living roots become pages; tier / shadow variants derived at load | 70: Pine specimens 56, living 8, tier/shadow copies 4; DW `world/island/plan-{phone,desktop}` | Opus | 4.5 |
 | **Z4** | **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
-| **Z5** | **Scene source envelopes.** One complete bake / model source root (`game/shardfile/sceneSources.ts`, Far + Sun) | 6: Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects | Codex | 1.5 |
+| **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **Held kits.** Weapon pages into the `held/*` platform sections; Jian cloth / halo ship as GLB | 10: Nalati bow-page, rifle-model, rifle-page, sabre, spear, held/slots; Nine jian-cloth, jian-halo, jian-row; Pine loadout/finishes | Opus | 3 |
 | **Z7** | **Model library.** One specimen / fixed-draw / collection book (`game/models/{islandLibrary,fixedDraws,collectionDisplay}.ts`, `SpecimenBookSchema`) and a generic atlas row over the KTX2 that ships | 14: DW **`custom/fixedLayouts`**, **`custom/collections`**, fixed-geometry; Nalati cover ×2, gear-book, shape-book, cloud-specimen; Nine fixed-kits, layout, held-cards, sign atlas ×2; Pine cover-appearance | Opus | 4.5 |
 | **Z8** | **Quest documents.** Finish the `quest/*` family; Pine `lead.program` to AS on the Script ABI | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
@@ -167,6 +167,54 @@ does not close a Z row.
 Kills: 1 + 98 + 72 + 70 + 13 + 6 + 10 + 14 + 14 + 9 + 3 + 8 + 9 + 6 + 9 = **342**. Z0–Z3 remove 241 (70 %) in
 ~9 lane-days. Rows are numbered in build order (most sections per lane-day first); Codex takes Z1, Z4, Z5, Z13 at
 once while Opus starts Z2.
+
+
+### Z5 complete-source qualification (2026-11-03, sp-x2)
+
+Source `92f8a2e671` + `c9ae94288f` registers complete model and bake
+families with actual Far Reach and Sunscar users of each. Fresh sp-x1
+HOST-BAR seat: **6/6 each**, whole envelopes, pure format, client-only
+reader, no shard selectors or authored callbacks. Full-root admission
+precedes publication; original resource/native refusals and colour-graph
+semantic/type/budget checks remain. Original source/converter/native
+focused checks, root types and touched fast lint pass. No guard or cap
+is deleted or raised. E9/E11 remain separately charged one-user roots.
+
+Immutable `26a98e7be3` → `c9ae94288f`: five source bodies / **403,251 B
+identical**. Far 202 bodies / 35,396,837 B are unchanged; Sun 192→191
+bodies / 8,187,546→8,182,591 B removes only the authorized zero-reader
+4,955 B effects duplicate (live effects stay in their complete sources).
+All **28 old/new packs / 777 ordered entries** reconstruct exactly.
+Admission changes only by that dead library hash and −4,955 compressed /
+resident bytes. Indexes 278,755→463,744 B (Far), 207,135→304,434 B (Sun)
+remain under the unchanged 2 MB cap. Registered-family census: **3→0
+custom names each, −6 total**.
+
+The one unrelated raw-body difference is the 164 B Sun `look/map` source
+stamp. Independent reconstruction of every committed map input attributes
+it only to the authorized emitter deletion; the map image stays
+`bac9393474d96298d9bd4a407197d0bc86be913b872c8430e8f2e0aabd5cb399`.
+Restoring the old stamp reconstructs the complete original map bytes and
+SHA exactly. This is explicit source-stamp attribution, not a blanket
+byte-identical claim for the whole index or all raw sections.
+
+Both tiers, four affected poses per shard: **48 native Metal phone
+portrait frames, 16 A/A + 16 A/B comparisons, every changed-pixel count
+zero**; readiness/frame/error guards pass. Both pins contain the same
+`0d7a022fbb` sun fix. Source landed before G998. Supplemental historical
+golden captures completed Chromium 144/144 and WebKit west 72/72 with
+errors empty; capture completion is not an all-panel green verdict.
+Far Reach’s 24-panel Chromium read finds pre-existing differences at
+**16 (sun position) and 24 (bridge fog)**; the other 22 have no static
+loss. [Labelled board](../../../art/golden-runs/far-reach/2026-11-03-c9ae94288f-board.jpg).
+**G872 coordinator ruling:** qualify Z5 on the strict before/after; those
+two pre-existing differences do not block it and go to sp-o2 after QD1
+for an Opus read. No 24/24 green claim or golden promotion. QD1 browser
+priority stops further supplemental captures; all our browsers exited
+and the preview lease was released (sp-x9 retains its own use).
+
+Raw protocol/readings: `tmp/sp-x2-cs3-exits/z5/{audit.json,map-audit.json,
+pixels/reading.json}`. No Pine/Nine source changed in this slice.
 
 ### Z13: qualified cuts and retained semantic owners
 
@@ -2773,7 +2821,7 @@ zero. The DW world golden is owned by sp-ci-deploy and is untouched here.
 | **CS3-E2 — Complete recipe transport** | **Retained: exact complete recipes already use the standard schema; a new physical recipe page transport is not qualified. Pine/Nine recipes are skipped.** DW's eleven and Pine's three `scenes/*.json`, Nine's three `world/scenes/*.json`, Far's fifteen and Sun's nine recipes (**41** historical rows). Their complete roots are already qualified; they are ordered step recipes, not `WorldScenePlacementRow` documents. `game/shardfile/worldScenes.ts` still reads each complete `step.scene`/variant. Any further packing needs its own bounded complete-recipe grammar and consumer, exact step/publication/instance-packet/resource lifetime and native refusal proof, then strict landed-SHA pixels/loading. Do not pass recipes through the placement-page parser. Nalati/Far have zero placement-page candidates in the retained source audit. |
 | **CS3-E3 — Weld registration and projected-root integration** | **Skipped in this port turn: every member belongs to Pine or Nine.** The **whole 62-name** withdrawn slice: four Pine cabin tier/shadow roots, 56 Pine specimen roots and Nine casts/fabric. Keep the historical 1,703,170 → 3,120,670 B refusal; it is not a current index measurement. No full-slice admissible index or projected-root runtime has been qualified after compaction. `WorldSceneWeldSourceSchema` still accepts complete file/tier/knob choices, and the native consumer admits all branches before selecting resources. Four source-only cabin projections reconstruct 339,196 B exactly and pass nine refusal controls, but do not supply this port. Preserve true/false shadow geometry and casting-distance distinctions; require a complete typed derivation, all-branch admission/selected-owner proof, unchanged caps and strict captures at both tiers and both shadow modes before retiring any file. |
 | **CS3-E4 — Living whole-root registration and owner qualification** | **Skipped in this port turn: Pine.** All eight `scenes/cabins/living/{phone,desktop}-{false,true}-{false,true}.json` envelopes. The complete `LivingPageInputSchema` and `{graph,life,geometry}` producer are real; `forestPage.ts` selects the exact tier/shadow/shared branch and borrows shell geometry under the resident owner. The old 1,984,106 B projection predates Pine112 compaction: it is **not a current index blocker**. No fresh full defining-schema/index admission or combined native owner proof is qualified. Register the complete root, retain all eight branches and owner retirement/shared-light/late-hydration behavior, prove exact payloads/packs and remeasure the unchanged index limit. Any copy retirement additionally requires complete derivation and strict affected-branch captures/loading. |
-| **CS3-E5 — Complete source envelopes** | **Retained after source audit at `ea6ad1472a`: no complete shared author-envelope schema is available.** Far `world/sources/{bakes,heroes,sky}.json` and Sun `world/sources/{bakes,models}.json` (five product/name rows). Native `SceneBakeSource`/`SceneModelSource` interfaces cover runtime fields, not the whole author envelopes and GLB/hull/rig/rail/disc/anchor leftovers. Establish a complete shared root and preserve source-resource ownership; no partial fields, unknown-extension wrapper or inferred schema. |
+| **CS3-E5 — Complete source envelopes — ported** | `92f8a2e671` / `c9ae94288f`: complete shared `SceneBakeSourceSchema` and `SceneModelSourceSchema` replace the missing author-envelope contract for Far `world/sources/{bakes,heroes,sky}.json` and Sun `world/sources/{bakes,models}.json`. All five bodies / 403,251 B remain exact, full GLB/hull/rig/rail/disc/anchor/decorator fields admitted before native publication with original owners and refusals intact. Full colour-graph structure plus original semantic checks remain; no unknown document wrapper or transform-guard waiver. Z5 additionally retires Sun’s 4,955 B zero-reader `world/places-effects.json`. Immutable proof, exact map-stamp attribution and G872 acceptance in the Z5 qualification above. |
 | **CS3-E6 — Fixed geometry contracts** | **Nine skipped. DW retained: the existing fixed-group root is shard-shaped; a generic dictionary alias would drop its original exact-shape refusals.** Nine `geometry/{fixed-kits,layout}.json`, DW `models/fixed-geometry.json`. Shard-local `FixedPracticeFileSchema`, `GeometryBootSchema` and `FixedGeometryGroupsSchema` remain authoritative. A shared/approved complete root must retain negative-zero, layout/practice and original geometry/resource refusal checks. |
 | **CS3-E7 — Whole specimen-book genericity/owner** | **Retained: current whole-book producer remains Nalati-only; neither a second whole-book user nor exact Jake approval is established.** Nalati `models/cover-{phone,desktop}.json` and `models/gear-book.json`. Whole `SpecimenBookSchema` users demonstrated in the source remain Nalati-only. Require an actual second whole-book shard user or exact one-user approval, plus unchanged native model/material ownership. Child catalogue use elsewhere supplies neither. |
 | **CS3-E8 — Sign atlas/resource contract** | **Skipped in this port turn: Nine.** Nine `signs/atlas-{phone,desktop}.json`. Preserve shard-local `SignAtlasSchema`, glyph/light/pool/channel bindings until a complete shared contract or the existing approved shader/model exit is qualified. |
