@@ -477,3 +477,20 @@ interface BakedBuildingLookRowsFields {
     ];
 }
 export type BakedBuildingLookRows = { [Key in keyof BakedBuildingLookRowsFields]: BakedBuildingLookRowsFields[Key] };
+
+/** Complete site-life file. Resource ids and their original site scope remain
+ * owned by the native assembler; admission allocates no scene resources. */
+export const BuildingLifeDocumentSchema: v.GenericSchema<BuildingLifeDocumentInput, BuildingLifeDocumentRows> = v.strictObject({
+  look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema,
+  initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)),
+});
+export interface BuildingLifeDocumentInput {
+  readonly look: BuildingLifeLookDataInput;
+  readonly life: BuildingLifeRowsInput;
+  readonly initialDusk: number;
+}
+export interface BuildingLifeDocumentRows {
+  readonly look: BuildingLifeLookData;
+  readonly life: BuildingLifeRows;
+  readonly initialDusk: number;
+}

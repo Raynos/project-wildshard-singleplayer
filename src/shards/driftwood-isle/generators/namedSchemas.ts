@@ -67,9 +67,6 @@ const schemas: Readonly<Record<string, NamedJsonComposition>> = {
     'sim/enemy-placement.json': EnemyPlacementsSchema,
 };
 const composedSchemas: Readonly<Record<string, Readonly<Record<string, unknown>>>> = {
-    'world/building-life.json': composeNamedJsonSchema({ kind: 'object', entries: {
-            look: 'buildings.BuildingLifeLook', life: 'buildings.BuildingLifeRows', initialDusk: number,
-        } }),
     'poses/monkey.json': composeNamedJsonSchema({ kind: 'object', entries: {
             clips: { kind: 'tuple', items: ['clientChannels.NumericPose', 'clientChannels.NumericPose'] },
             program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch,

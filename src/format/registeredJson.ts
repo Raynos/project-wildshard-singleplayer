@@ -1,5 +1,6 @@
 import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServiceSpotsSchema,parseNativeQuestServiceSpots} from './nativeQuestComposition';
 import {ContractCatalogueSchema,parseContractCatalogue} from './contracts';
+import { BuildingLifeDocumentSchema } from './buildings';
 
 import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue} from './panelTemplate';
 import {PopulationKeeperRowsSchema} from './populationKeeper';
@@ -102,6 +103,7 @@ export interface RegisteredJsonContracts {
   readonly 'quests/trader.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
   readonly 'quests/mill-door.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
   readonly 'quests/lanterns.json':{readonly schema:typeof QuestPageInteractionsSchema;readonly source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'};
+  readonly 'world/building-life.json': { readonly schema: typeof BuildingLifeDocumentSchema; readonly source: '@wildshard/format/buildings#BuildingLifeDocumentSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
@@ -170,6 +172,7 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/trader.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
   'quests/mill-door.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
   'quests/lanterns.json': {schema:QuestPageInteractionsSchema,source:'@wildshard/format/questInteractions#QuestPageInteractionsSchema'},
+  'world/building-life.json': { schema: BuildingLifeDocumentSchema, source: '@wildshard/format/buildings#BuildingLifeDocumentSchema' },
 };
 export type RegisteredJsonName=keyof typeof REGISTERED_JSON;
 /** JSON decoding preserves the wire input; defaults belong to its consumer. */
@@ -240,6 +243,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'world/building-life.json':v.parse(BuildingLifeDocumentSchema,value);break;
     case 'quests/native-story.json':parseNativeQuestComposition(value);break;
     case 'quests/native-spots.json':parseNativeQuestServiceSpots(value);break;
     case 'quests/contracts.json':parseContractCatalogue(value);break;

@@ -18,7 +18,7 @@ import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { createStreamedCover } from '../looks/streamedCover';
 import { toonLightingOf } from '../looks/toonLighting';
 import { createAmbientFlock } from '../ambient/ambientFlock';
-import { BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
+import { BuildingLifeDocumentSchema } from '@wildshard/format/buildings';
 import { LivingBuildings } from './livingBuildings';
 import { createBuildingCloud } from './buildingCloud';
 import { hasLentLook, lentLook, lentToon } from './lentLooks';
@@ -469,8 +469,7 @@ export class WorldAssembly {
       const bytes = await lifePorts.product.file(lifeRow.file);
       unchanged();
       if (scenes.object(lifeRow.root) !== group) throw new Error('World site life root changed');
-      const data = v.parse(v.strictObject({ look: BuildingLifeLookSchema, life: BuildingLifeRowsSchema,
-        initialDusk: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)) }), JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
+      const data = v.parse(BuildingLifeDocumentSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
       const life = new LivingBuildings(scenes, data.look); life.add(data.life); life.setDusk(data.initialDusk); life.update(0);
       unchanged(); publishEntryOwner(scope, 'buildings', stage.id, life);
     }

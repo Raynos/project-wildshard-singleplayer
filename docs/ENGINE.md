@@ -6496,20 +6496,20 @@ without constructing a scene or lending runtime handles.
 `quests.questStoryRows`, `questHostRows` and `panelDefinitionRows` admit complete saved-story,
 command-routing and panel data. `AuthorPanelTemplate` and `AuthorPanelValue` retain the native
 markup/expression grammar; these APIs construct no world, quest owner or UI.
-`AuthorWorldScenes` preserves authored fields before parser defaults;
-`AuthorBuildingAssembly` carries the complete native building grammar.
-`checkBuildingAssembly` runs its native strict resource grammar without assembling a scene;
-`AuthorBuildingCloud` describes numeric cloud geometry/material references only.
-`bake/tileGrid.authorCellBounds` returns a fresh native local-cell footprint in
-`[minX, maxX, minZ, maxZ]` order, matching the complete L0 tile lattice.
-`bake/species.SpeciesGeometryCompiler` is the explicit loft/tube/skin/paint kernel port.
-`isLowPoly` and `toonPaint` read its owned author style set by `withSpeciesGeometry`;
-they lend no runtime registry. A recipe can take an independent compiler for native parity.
-`rows.numberArrayRows` and `numberTupleRows` admit numeric streams and three/four/five-word values
-through native number/array/tuple grammar, preserving signed zero and extra-word policy.
-The enclosing geometry schema still owns finiteness and spatial bounds.
-`buildingLookRows`, `buildingLifeRows` and `emptyBuildingLifeRows` admit
-original building policy or create a fresh empty life batch without a service.
+`AuthorWorldScenes` preserves fields before defaults; `AuthorBuildingAssembly` carries
+native building grammar. `checkBuildingAssembly` checks strict resources without a scene;
+`AuthorBuildingCloud` describes numeric geometry/material references.
+`bake/tileGrid.authorCellBounds` returns native `[minX, maxX, minZ, maxZ]`
+local-cell bounds matching the complete L0 lattice.
+`bake/species.SpeciesGeometryCompiler` is the explicit loft/tube/skin/paint port.
+`isLowPoly`/`toonPaint` read its `withSpeciesGeometry` style without a runtime registry;
+recipes may take an independent compiler for parity.
+`rows.numberArrayRows`/`numberTupleRows` admit numeric streams and 3/4/5-word tuples,
+preserving signed zero and extra-word policy. Enclosing schemas own finite/spatial bounds.
+`buildingLookRows`/`buildingLifeRows` admit native policy; `emptyBuildingLifeRows`
+creates a fresh batch without a service. `format/buildings.BuildingLifeDocumentSchema`
+registers complete `world/building-life.json` (`look`, `life`, `initialDusk` in [0,1]).
+Wire bytes, native child defaults, site resource loans and retirement checks survive.
 `game/plugin/scene.createWorldScene` borrows geometry/model/material ports and
 returns Group/parts/baked data. `worldPieces.scene` registers parts
 without reparenting or double transforms.

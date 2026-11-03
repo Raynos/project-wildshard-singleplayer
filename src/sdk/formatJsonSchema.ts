@@ -73,7 +73,7 @@ import { PlumbingSchema } from '@wildshard/format/plumbing';
 import { StateSchema } from '@wildshard/format/state';
 import {QuestStepRowsSchema,QuestServiceActionsSchema,QuestKillRowsSchema,QuestHintRowsSchema,CarriedQuestSchema} from '@wildshard/format/questSteps';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
-import { BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema, BuildingCloudPoseSchema } from '@wildshard/format/buildings';
+import { BuildingLifeDocumentSchema, BakedBuildingLookSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema, BuildingCloudPoseSchema } from '@wildshard/format/buildings';
 import { WorldSceneWeldSchema } from '@wildshard/format/worldSceneWeld';
 import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { WorldScenePlacementSchema, WorldScenePlacementPageSchema } from '@wildshard/format/worldScenePlacement';
@@ -430,6 +430,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'nativeQuestComposition.NativeQuestServiceSpots': NativeQuestServiceSpotsSchema,
   'panelTemplate.QuestPanelCatalogue': QuestPanelCatalogueSchema,
   'sceneDressing.SceneScatterPage': SceneScatterPageSchema,
+  'buildings.BuildingLifeDocument': BuildingLifeDocumentSchema,
  };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
