@@ -233,7 +233,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 
 | Row | What | Lane | Size | Done when |
 |---|---|---|---|---|
-| OB0 | **On SHARD SELECT (G984).** Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift each get a SHARD SELECT card (existing thumbs) that enters the plot standalone, public build too | Codex | 0.5 | Each of the five enters from SHARD SELECT on WebKit (iPhone 16 Pro); a test pins the five cards |
+| OB0 | **In flight (2026-11-03, sp-x1; source + unit controls qualified, five WebKit entries pending). On SHARD SELECT (G984).** Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift each get a SHARD SELECT card (existing thumbs) that enters the plot standalone, public build too | Codex | 0.5 | Each of the five enters from SHARD SELECT on WebKit (iPhone 16 Pro); a test pins the five cards |
 | OB1 | **done (2026-11-03, G972; `ffb6270346` + `913b810625`).** **G972, one grid.** `src/game/grid/singleplayer.json`: `nine-dragon-stack` takes (1,-1) in `grid.cells` (it replaces that Lantern Bayou copy), and `grid.developer` is deleted along with every reader of it (`src/game/grid/catalogue.ts`, `assembly.ts`, `copyIdentity.ts`, `entryDownloads.ts`, the grid tests, and the scripts that read it: `public-grid.mjs`, `frame-floor.mjs`, soak, parity, the world-map atlas and others; grep before deleting). Blender-template, pastel-plain and ink-cel-valley leave the grid. Fold the now-redundant `devserver` Nine entry if nothing else needs it | Codex | 1 d | One grid for public and Developer. Nine enters from its cell on a public build. The grid tests, `vitest related` and the boot smoke pass. Net lines are negative |
 | OB2 | **Pilot: Lantern Bayou** through pipeline steps 1–8. Template additions that every later plot reuses (Codex): audio rows from the template, the bar-7 life check (pixel change per 500 ms in the 5 s clip), the bar-5 three-way board maker, and the per-plot tiling report (G950). Opus: the plot itself, and holding the landmark for the whole cell (§6) | Opus 2 + Codex 1.5 | 3.5 lane-days (was 5.5) | Board sent; the four hero views read as the 2 × 2 board, by eye; the layout is mirror-symmetric kit tiles plus ≤ 3 theme tile variants and one landmark (G978); the three-way board reads "better"; life visible; audio plays; ≤ 130 draws, ≤ 600k triangles, ≤ 1.0 GB in the Chromium reading; 0 stuck; the plot replaces its hologram |
 | OB3 | **Frostline Peaks** (wave 2; builds the shared pines, snow and ice) | Opus 2 + Codex 0.5 | 2.5 (was 6) | As OB2. The peak lodge and lift are readable from the road entry and from the Far Reach side |
@@ -416,3 +416,32 @@ Tiling uses ordinary CURRENT product admission and the existing strict
 NT7 reader; missing products refuse without generation. None of these
 tool controls grants the still-open pilot’s audio, motion, art, phone
 performance or walk qualification.
+
+
+### OB0: public five-card source landing (2026-11-03, G984)
+
+Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift
+use their existing thumbnail/portrait/landscape file references and the
+existing card layout. Each output overrides `shardSelect: true` and the
+existing `earlyAccess` status, which enables the ordinary public ENTER WORLD
+button. Night Market remains experimental; all other plot cards retain
+their existing visibility. There is no new UI, text, grid entry or asset.
+
+The original selector catalogue control and five real public-mode deck
+controls pin the cards, native shardfile paths and each ENTER WORLD callback
+to its own standalone plot. Focused selector/config suites pass; root types
+and typed lint pass. An initial experimental-status probe correctly refused
+all five public entries as Coming soon; the shipped source uses the existing
+public early-access path without changing that restriction.
+
+The exact source audit keeps every non-manifest plot field, geometry/bake
+input and existing image pointer unchanged, including X8's four loose NU3
+rows. `outputs.json` is in the normal author-module hash: this metadata edit
+can invalidate the complete program/map/source cache namespace even though
+geometry inputs are identical. No product-key bypass or freshness waiver is
+introduced. No geometry build, payload or collider change is claimed.
+
+**Remaining OB0 acceptance:** enter all five from SHARD SELECT on the queued
+landed-SHA WebKit iPhone 16 Pro turn, with Developer off. Unit/source
+qualification is not native-entry or whole-OB0 completion. Reuse a joined
+immutable HEAD preview where possible; preserve active native cohorts.

@@ -92,6 +92,8 @@
       "accent": "periwinkle",
       "manifest": {
         "name": "Open Plot · Frostline Peaks",
+        "status": "earlyAccess",
+        "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Frostline Peaks hologram, a world still to be built.",
         "bindings": {
           "accent": "periwinkle"
@@ -134,6 +136,8 @@
       "accent": "ember",
       "manifest": {
         "name": "Open Plot · Ember Forge",
+        "status": "earlyAccess",
+        "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Ember Forge hologram, a world still to be built.",
         "bindings": {
           "accent": "ember"
@@ -176,6 +180,8 @@
       "accent": "marigold",
       "manifest": {
         "name": "Open Plot · Lantern Bayou",
+        "status": "earlyAccess",
+        "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Lantern Bayou hologram, a world still to be built.",
         "bindings": {
           "accent": "marigold"
@@ -260,6 +266,8 @@
       "accent": "coral",
       "manifest": {
         "name": "Open Plot · Coral Drift",
+        "status": "earlyAccess",
+        "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Coral Drift hologram, a world still to be built.",
         "bindings": {
           "accent": "coral"
@@ -386,6 +394,8 @@
       "accent": "moss",
       "manifest": {
         "name": "Open Plot · Mosslight Ruins",
+        "status": "earlyAccess",
+        "shardSelect": true,
         "blurb": "An open plot of the grid: walk round the Mosslight Ruins hologram, a world still to be built.",
         "bindings": {
           "accent": "moss"

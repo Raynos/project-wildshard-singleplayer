@@ -122,24 +122,52 @@ test.each([
 });
 
 
-test('SHARD SELECT shows only experimental Night Market among open plots and retains the full grid catalogue', () => {
+const buildOutPlots = ['frostline-peaks', 'lantern-bayou', 'ember-forge', 'mosslight-ruins', 'coral-drift'];
+const publicPlotSlugs = ['open-plot-night-market', ...buildOutPlots.map(idea => `open-plot-${idea}`)];
+
+test('SHARD SELECT exposes the five build-outs publicly and retains the full grid catalogue', () => {
   installShards([...SHARDS, ...LEGACY_SHARDS]);
-  const main = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach', 'open-plot-night-market'];
+  const main = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'sunscar-dunes', 'far-reach', ...publicPlotSlugs];
   const developer = [...main, '_template', 'blender-template', 'pastel-plain', 'ink-cel-valley'];
   expect(titleCards(false).map(item => item.slug).sort()).toEqual(main.sort());
   expect(titleCards(true).map(item => item.slug).sort()).toEqual(developer.sort());
   const plotSlugs = new Set(plots.outputs.map(item => item.slug));
-  expect(plotSlugs.size).toBe(14);
+  expect(plotSlugs.size).toBe(plots.outputs.length);
   for (const developerMode of [false, true]) {
-    expect(titleCards(developerMode).filter(item => plotSlugs.has(item.slug)).map(item => [item.slug, item.badge]))
-      .toEqual([['open-plot-night-market', 'Experimental']]);
+    expect(titleCards(developerMode).filter(item => plotSlugs.has(item.slug)).map(item => [item.slug, item.badge]).sort(([a], [b]) => String(a).localeCompare(String(b))))
+      .toEqual(publicPlotSlugs.map(slug => [slug, slug === 'open-plot-night-market' ? 'Experimental' : 'Early access']).sort(([a], [b]) => String(a).localeCompare(String(b))));
   }
-  const hidden = SHARDS.filter(item => plotSlugs.has(item.slug) && item.slug !== 'open-plot-night-market');
-  expect(hidden).toHaveLength(13);
+  const hidden = SHARDS.filter(item => plotSlugs.has(item.slug) && !publicPlotSlugs.includes(item.slug));
+  expect(hidden).toHaveLength(plotSlugs.size - publicPlotSlugs.length);
   for (const manifest of hidden) expect(manifest).toMatchObject({ status: 'hidden', shardSelect: false });
-  expect(SHARDS.find(item => item.slug === 'open-plot-night-market')).toMatchObject({ status: 'experimental', shardSelect: true });
+  for (const slug of publicPlotSlugs) expect(SHARDS.find(item => item.slug === slug)).toMatchObject({
+    status: slug === 'open-plot-night-market' ? 'experimental' : 'earlyAccess', shardSelect: true });
   expect(SHARDS.filter(item => plotSlugs.has(item.slug)).map(item => item.slug).sort()).toEqual([...plotSlugs].sort());
   expect(shards()).toHaveLength(SHARDS.length + LEGACY_SHARDS.length);
+  installShards([]);
+});
+
+test.each(buildOutPlots)('%s uses its existing card and enters its standalone public shardfile', async idea => {
+  installShards([...SHARDS, ...LEGACY_SHARDS]);
+  setDev(false);
+  const slug = `open-plot-${idea}`, choice = titleCards(false).find(item => item.slug === slug);
+  const manifest = SHARDS.find(item => item.slug === slug);
+  if (choice === undefined || manifest === undefined) throw new Error('Missing public plot card');
+  expect(choice.entries).toEqual({ legacy: false, shardfile: true });
+  expect(manifest.shardfile).toBe(`/shardfiles/${slug}/shard.json`);
+  expect(choice.thumbnail).toBe(manifest.card.thumb);
+  expect(choice.heroPortrait).toBe(manifest.card.portrait);
+  expect(choice.heroLandscape).toBe(manifest.card.landscape);
+  expect(manifest.card.thumb).toContain(`/open-plots/thumbs/${idea}.jpg`);
+  const entered: [string, string][] = [];
+  const built = buildTitleDeck({ cards: [choice], active: null,
+    onEnter: (selected, entry) => { entered.push([selected.slug, entry]); },
+    onExplore: () => undefined, onSettings: () => undefined,
+    mode: () => ({ developer: false, devserver: false }) });
+  decks.push(built); document.body.append(built.root);
+  expect(shown(built.root)).toEqual(['Enter world']);
+  play(built.root); await paintFrames();
+  expect(entered).toEqual([[slug, 'shardfile']]);
   installShards([]);
 });
 
