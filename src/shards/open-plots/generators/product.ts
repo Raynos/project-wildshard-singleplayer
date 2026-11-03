@@ -9,6 +9,7 @@ import paving from '../data/paving.graph.json' with { type: 'json' };
 import kit from '../data/kit.graph.json' with { type: 'json' };
 import landmark from '../data/landmark.graph.json' with { type: 'json' };
 import landmarkDusk from '../data/landmarkDusk.graph.json' with { type: 'json' };
+import landmarkNoon from '../data/landmarkNoon.graph.json' with { type: 'json' };
 import kitPlanks from '../data/kitPlanks.graph.json' with { type: 'json' };
 import lava from '../data/lava.graph.json' with { type: 'json' };
 import mapSettings from '../data/map.json' with { type: 'json' };
@@ -73,7 +74,9 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
   // G641: a row with a layout is a tiled plot; its far proxy is its far-only stand-ins alone (NM0's farMode 'replace')
   // OB2: a row's `landmarkLight: "dusk"` lights its landmark by a neutral dusk fill (a natural landmark: bark and moss)
   // in place of the gate's warm lilac fill (RM6.4), the same graph and size with its own light
-  const lit = row.landmarkLight === 'dusk' ? { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: landmarkDusk } } } : tiledLook;
+  // OB5: `landmarkLight: "noon"` lights it by a bright noon fill (Coral Drift's arch), the same graph and size again
+  const daylit = row.landmarkLight === 'dusk' ? landmarkDusk : row.landmarkLight === 'noon' ? landmarkNoon : undefined;
+  const lit = daylit === undefined ? tiledLook : { ...tiledLook, materials: { ...tiledLook.materials, landmark: { family: 'graph', graph: daylit } } };
   // OB4: a row's `water: "lava"` draws its water as molten lava (data/lava.graph.json: unlit, its vertex colour as the
   // molten colour, dark crust plates drifting over it in world metres), the lava kind any volcanic plot shares
   const molten = row.water === 'lava' ? { ...lit, materials: { ...lit.materials, water: { family: 'graph', graph: lava } } } : lit;

@@ -482,6 +482,184 @@
         "detail_pool",
         "coarse_standins"
       ]
+    },
+    "open-plot-coral-drift": {
+      "style": {
+        "kind": "ground",
+        "smooth": 2,
+        "shade": 0.3,
+        "classes": [
+          {
+            "match": "#dccbb0",
+            "fill": "#dccbb0"
+          },
+          {
+            "match": "#e8d8bc",
+            "fill": "#e8d8bc"
+          },
+          {
+            "match": "#c9bea6",
+            "fill": "#c9bea6"
+          },
+          {
+            "match": "#e0cfb4",
+            "fill": "#e0cfb4"
+          },
+          {
+            "match": "#eee0c8",
+            "fill": "#eee0c8"
+          },
+          {
+            "match": "#e4d4b8",
+            "fill": "#e4d4b8"
+          },
+          {
+            "match": "#e8dcc4",
+            "fill": "#e8dcc4"
+          },
+          {
+            "match": "#2a4e8a",
+            "fill": "#2a4e8a"
+          },
+          {
+            "match": "#8a6a48",
+            "fill": "#8a6a48"
+          },
+          {
+            "match": "#2a7a9a",
+            "fill": "#2a7a9a"
+          },
+          {
+            "match": "#1e5a72",
+            "fill": "#1e5a72"
+          },
+          {
+            "match": "#a07a50",
+            "fill": "#a07a50"
+          },
+          {
+            "match": "#3ad6d0",
+            "fill": "#3ad6d0"
+          },
+          {
+            "match": "#c8c4b8",
+            "fill": "#c8c4b8"
+          },
+          {
+            "match": "#dcd8cc",
+            "fill": "#dcd8cc"
+          },
+          {
+            "match": "#5aa84a",
+            "fill": "#5aa84a"
+          },
+          {
+            "match": "#3f8a3a",
+            "fill": "#3f8a3a"
+          },
+          {
+            "match": "#3f9a48",
+            "fill": "#3f9a48"
+          },
+          {
+            "match": "#2e7a3a",
+            "fill": "#2e7a3a"
+          },
+          {
+            "match": "#ffe0a0",
+            "fill": "#ffe0a0"
+          },
+          {
+            "match": "#ffe6b0",
+            "fill": "#ffe6b0"
+          },
+          {
+            "match": "#bdb4a0",
+            "fill": "#bdb4a0"
+          },
+          {
+            "match": "#14306a",
+            "fill": "#14306a"
+          },
+          {
+            "match": "#a08a5a",
+            "fill": "#a08a5a"
+          },
+          {
+            "match": "#f585b4",
+            "fill": "#f585b4"
+          },
+          {
+            "match": "#ffd27a",
+            "fill": "#ffd27a"
+          },
+          {
+            "match": "#d8c890",
+            "fill": "#d8c890"
+          },
+          {
+            "match": "#4ae0e0",
+            "fill": "#4ae0e0"
+          },
+          {
+            "match": "#8a7458",
+            "fill": "#8a7458"
+          },
+          {
+            "match": "#d8c8a8",
+            "fill": "#d8c8a8"
+          },
+          {
+            "match": "#6a9a48",
+            "fill": "#6a9a48"
+          },
+          {
+            "match": "#e8dcbc",
+            "fill": "#e8dcbc"
+          },
+          {
+            "match": "#3a4048",
+            "fill": "#3a4048"
+          },
+          {
+            "match": "#f7ad84",
+            "fill": "#f7ad84"
+          },
+          {
+            "match": "#f2b632",
+            "fill": "#f2b632"
+          },
+          {
+            "match": "#f2e6c8",
+            "fill": "#f2e6c8"
+          },
+          {
+            "match": "#c8a868",
+            "fill": "#c8a868"
+          },
+          {
+            "match": "#6e5238",
+            "fill": "#6e5238"
+          },
+          {
+            "match": "#6a4a2a",
+            "fill": "#6a4a2a"
+          },
+          {
+            "match": "#bb8ce4",
+            "fill": "#bb8ce4"
+          },
+          {
+            "match": "#a8a498",
+            "fill": "#a8a498"
+          }
+        ]
+      },
+      "exclude": [
+        "collide_",
+        "detail_pool",
+        "coarse_standins"
+      ]
     }
   },
   "inputs": [

@@ -441,32 +441,32 @@
       "name": "Coral Drift",
       "accent": "coral",
       "layout": "coral-drift",
-      "landmarkLight": "dusk",
+      "landmarkLight": "noon",
       "kitGround": "planks",
       "lookKeys": [
         {
           "time": 0,
           "sky": {
             "zenith": [
-              0.18,
-              0.5,
-              0.95
+              0.06,
+              0.36,
+              0.92
             ],
             "horizon": [
-              0.7,
-              0.88,
+              0.5,
+              0.78,
               0.98
             ]
           },
           "fog": {
             "colour": [
-              0.75,
-              0.88,
-              0.95
+              0.62,
+              0.82,
+              0.98
             ],
             "density": 0,
-            "near": 400,
-            "far": 1800
+            "near": 500,
+            "far": 2200
           },
           "sun": {
             "colour": [
@@ -474,7 +474,7 @@
               0.97,
               0.9
             ],
-            "intensity": 2.0
+            "intensity": 2.2
           },
           "ambient": {
             "sky": [

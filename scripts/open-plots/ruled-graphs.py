@@ -6,7 +6,8 @@ drawn analytically from metres, no texture). python3 scripts/open-plots/ruled-gr
   src/shards/open-plots/data/kit.graph.json     the kit: plain / roof tile / timber / plaster / awning stripe / stone / banner by
                                                 the face's trim band (data/trim.json)
   src/shards/open-plots/data/kitPlanks.graph.json  the kit with its ground ruled as boardwalk planks (Lantern Bayou, OB2)
-  src/shards/open-plots/data/landmarkDusk.graph.json  the landmark under a neutral dusk fill (a natural landmark, OB2)"""
+  src/shards/open-plots/data/landmarkDusk.graph.json  the landmark under a neutral dusk fill (a natural landmark, OB2)
+  src/shards/open-plots/data/landmarkNoon.graph.json  the landmark under a bright noon fill (Coral Drift, OB5)"""
 import json, os
 ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'shards', 'open-plots', 'data')
 TRIM = json.load(open(os.path.join(ROOT, 'trim.json')))
@@ -170,3 +171,7 @@ write('landmark.graph.json', landmark())
 write('kitPlanks.graph.json', kit({'flag': 4.0, 'row': 0.3, 'joint': 0.012, 'spread': 0.36, 'jointShade': 0.6}))
 write('landmarkDusk.graph.json', landmark({'trim': 0.4, 'ambient': [0.46, 0.56, 0.56], 'skyFill': [0.95, 1.12, 1.16], 'sunGain': 0.55,
                                           'sunColour': [1.2, 1.0, 0.82], 'uplight': [0.95, 0.58, 0.26], 'uplightHeight': 16}))
+# OB5 Coral Drift: its arch under a bright noon fill (a pale neutral sky fill ~1.4x, a strong warm sun, no uplight and
+# no gold glow: the coral's peach is not trim)
+write('landmarkNoon.graph.json', landmark({'trim': 0, 'ambient': [0.8, 0.8, 0.86], 'skyFill': [1.35, 1.4, 1.5], 'sunGain': 0.85,
+                                          'sunColour': [1.3, 1.22, 1.1], 'uplight': [0, 0, 0], 'uplightHeight': 16}))
