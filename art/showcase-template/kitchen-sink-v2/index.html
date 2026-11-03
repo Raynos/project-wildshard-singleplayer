@@ -47,7 +47,7 @@ figcaption { font: 13px var(--mono); color: var(--muted); }
 figure { margin: 0; display: grid; gap: 6px; }
 a { color: var(--orange); }
 .meter { height: 14px; background: var(--floor); border: 1px solid var(--line); }
-.meter > div { height: 100%; width: 96%; background: var(--good); }
+.meter > div { height: 100%; width: 97%; background: var(--good); }
 .open { border-left-color: var(--warn); }
 .open h2 { color: var(--warn); }
 </style>
@@ -57,46 +57,54 @@ a { color: var(--orange); }
 <header>
   <h1>KITCHEN SINK v2</h1>
   <div class="sub">The Showcase Template (Template 3) · docs/plans/KITCHEN-SINK.md · planning, nothing built · 2026-11-03</div>
-  <p>A levelled, MMO-style test shard in the orange-and-grey dev-map look. Every engine feature in one 500 × 500 m cell, built only from shared hosts, data rows and AssemblyScript. You arrive at level 1 and grind to a level-20 boss.</p>
-  <div class="meter" aria-label="Plan about 96 percent decided"><div></div></div>
-  <div class="sub">Plan ≈ 96 % decided. Levels, attributes and the combat maths are locked. In progress: all 40 mockups remastered from the grey blockout.</div>
+  <p>One new shard that shows off every engine feature in one place: a levelled, MMO-style zone in a polished orange-and-grey workshop look, built only from shared hosts, data rows and AssemblyScript (no custom TypeScript). It fits in one 500 × 500 × 500 m cube. You arrive at level 1 in a calm town, play with every toy, then fight east through six bands of robots to a 15 m boss.</p>
+  <div class="meter" aria-label="Plan about 97 percent decided"><div></div></div>
+  <div class="sub">Plan ≈ 97 % decided. Built as 87 vertical slices: the west (33), then the east (54).</div>
 </header>
+
+<section>
+  <h2>THE SCOPE AT A GLANCE</h2>
+  <div class="scroll"><table>
+    <tr><th>Part</th><th>What's in it</th></tr>
+    <tr><td><b>West</b><br>no combat, pays nothing</td><td>A walled town: six NPCs (Yard Boss, Surveyor, Shift Boss, Tinker Rook, Gunsmith Brass, Stable Bot Hay), the quest board, the contract board, the trophy wall, the upgrade shop, the weapons shop, the stable. The toys: a weapon range (every weapon lent inside the fence), a physics yard, a hover park, a six-station movers run, a grapple course with a zip into town, a climb yard, the Rock and its squeeze cave, a riding course with a loaner horse. Personal-best boards, vistas, caches, Gold cubes, day/night and storms, one tour quest ("Shift Orientation").</td></tr>
+    <tr><td><b>East</b><br>combat, levels 1–20</td><td>Six bands of robots (Crate Mite, Pallet Jack, Plumb Drone, Welder Unit, Riveter, Arc Sentry) with night and rare variants; seven elites; the stealth yard with storm hour and four beacons; the Training Vault mini dungeon (underground); a three-court gauntlet (five waves); the Crate Titan behind a boss portal in a hidden arena; 12 quests and kill contracts; Scrip, parts, upgrades, a 20-slot pack; the shard-complete card and the Titan Cleaver.</td></tr>
+    <tr><td><b>New in the game</b></td><td>Levels, seven attributes, XP and real combat maths (the showcase only); new HUD pieces (XP bar, nameplates, floating numbers, Character tab, level-up chip and card, a GUARD button for parry, a course clock); parry; ammo; saved personal bests; one quest path; one economy; portals and interiors inside the cube; one boss path with cutscenes; a wave director; elites; weather.</td></tr>
+    <tr><td><b>Every other shard</b></td><td>When a slice touches a shared system, every shard that uses it (Driftwood, Pine Hollow, Nalati, Nine Dragon, Sky Reach, Signal Dunes, the templates) moves onto it in the same slice and is proved unchanged: saves exact, looks the same. Also shared: the enemy count cap, the metal hit sound, the shard-complete card on every shard with an ending, the 500 m cube rule. Other shards keep their simple combat (no levels).</td></tr>
+    <tr><td><b>Out</b></td><td>Swimming, boats, taming, mounted combat, potions and mid-fight heals, the dam puzzle, time trials, lightning, hover-only bridges, a daily seed.</td></tr>
+  </table></div>
+</section>
 
 <section>
   <h2>THE MAP</h2>
   <figure>
-    <img src="blockout-plan.jpg" alt="Grey blockout of the 500 m cell, round 4: a walled town and the toys in the west, bands 1–4 in the north-east, bands 5–6 then the gauntlet and the Titan in the south-east.">
-    <figcaption>Round 4 blockout: a 120 m town, every west toy laid out; everything fits, 16 % of the cell still free.</figcaption>
+    <img src="blockout-plan.jpg" alt="Grey blockout of the 500 m cell, round 5: the walled town and the toys in the west, bands 1–4 in the north-east, bands 5–6 then the three-court gauntlet and the small Titan gate in the south-east.">
+    <figcaption>Round 5 blockout: it all fits, 13.4 % of the cell still free.</figcaption>
   </figure>
   <ul>
-    <li><b>West: no enemies, no rewards.</b> A walled town, 120 m: a gate plaza with three quest givers, the contract board and the trophy wall; Main Street with Tinker Rook, the weapons shop and empty shopfronts; six NPCs. Around it: the weapon range, a physics yard, the riding course with its paddock and loaner horse, a six-station movers run, the grapple course with a 99 m zip into town, a climb yard, the Rock with its squeeze cave, the hover park. Personal-best boards on all five courses; 6 vistas, 4 caches, 10 Gold 1×1s.</li>
-    <li><b>East: combat only.</b> North-east: bands L1–3, 4–6, 7–9, 10–12 and the Training Vault portal. South-east top: band L13–15 (the stealth yard) and band L16–18; south-east bottom: only the gauntlet and the Crate Titan. 60 packs, 129 commons by day, 13 chests, 36 crates, 10 Gold 1×1s.</li>
-    <li><b>Underneath, at 0 m²:</b> the Training Vault mini dungeon.</li>
+    <li><b>West:</b> a 120 m town in the middle; every toy on its own labelled ground around it.</li>
+    <li><b>North-east:</b> bands L1–3, 4–6, 7–9, 10–12 and the Training Vault's gatehouse.</li>
+    <li><b>South-east:</b> band L13–15 (the stealth yard) and L16–18; below them the gauntlet's three courts and the small Titan gate with its portal arch.</li>
+    <li><b>Underground, inside the cube:</b> the Training Vault at 30–50 m down, the Crate Titan's arena 150 m down (a 104 m floor, stands, its own sky). Every shard may pack its cube like this; nothing may leave it.</li>
   </ul>
 </section>
 
 <section>
-  <h2>LEVELS AND YOUR CHARACTER</h2>
+  <h2>YOUR CHARACTER</h2>
   <ul>
-    <li><b>Levels 1–20, per shard.</b> Each shard keeps its own level; the road and every new shard start you at 1. Only the showcase has levels: the other shards keep today's flat damage, stats and HP, and get upgraded later.</li>
-    <li><b>XP only from kills.</b> An enemy pays 10 × its level, less when it's below you, nothing at 6 under. The XP to the next level grows ×1.618 a level (RuneScape's curve squeezed into 20): 10 kills for level 2, ~110 for 11→12, ~3,000 for 19→20. About 60 h to level 20.</li>
-    <li><b>Attributes grow automatically.</b> Each shard rolls you a new character with a balanced aptitude spread: some strong attributes, some weak, never a worse total. Each level-up rolls average step × aptitude × a swing, so late levels can jump +10 or more. Each attribute has a cap just above its average.</li>
-    <li><b>Seven attributes</b> (average L1 → L20, cap): <b>VIT</b> = your HP, 100 → 600 (660) · <b>STR</b> melee damage and stagger, 20 → 120 (132) · <b>DEX</b> ranged damage, landing hits with every weapon, melee crits, 20 → 120 · <b>AGI</b> dodging and ranged crits, front-loaded 20 → 80 · <b>DEF</b> armour and deflects, linear 20 → 80 · <b>MDEF</b> resists burn, shock and blast, a late bloomer 10 → 80 · <b>LUK</b> crit size and lucky saves, 10 → 20.</li>
-    <li><b>Level-up never stops a fight.</b> In combat: a ring, a sting, the LV chip flips, a one-line gain chip, and your HP refills. The full tick-up card, each gain in turn, waits until you're out of combat. The Character tab shows your attributes against par, your strong ▲ and weak ▼ ones, and the derived numbers.</li>
-    <li><b>Death</b> costs 25 % of the level's XP and never delevels. <b>No mid-fight heals</b>; out of combat (5 s after the last hit) HP refills in 12 s. Enemies that lose you walk home and reset.</li>
+    <li><b>Levels 1–20, per shard.</b> XP only from kills (10 × the enemy's level, nothing for enemies 6+ below you). The curve grows ×1.618 a level: about 60 h to level 20.</li>
+    <li><b>Seven attributes, grown for you</b> (no points to spend): VIT is your HP, 100 → 600 · STR melee damage and stagger · DEX ranged damage, landing hits, melee crits · AGI dodging, ranged crits · DEF armour · MDEF resists burn, shock and blast · LUK crit size and lucky saves.</li>
+    <li><b>Level-up never stops a fight:</b> a quick chip and a full heal in combat; the full card once you're safe.</li>
+    <li><b>Death</b> costs 25 % of the level's XP. No mid-fight heals; out of combat you refill in 12 s.</li>
   </ul>
 </section>
 
 <section>
   <h2>COMBAT</h2>
   <ul>
-    <li><b>Weapons</b> are bought at a level-locked weapons shop: sword with combo and parry, spear, bow, crossbow with iron, pitch and broadhead ammo, lever rifle. Forge I–IV upgrades raise every weapon.</li>
-    <li><b>Real dice.</b> 12 % of attacks fail at equal level, rising to 90 % when the target is 8 levels above you. No streak guard. Enemies fail against you by the same rules.</li>
-    <li><b>A failed hit is something the enemy did:</b> a DEFLECT (sparks, clang, recoil), a DODGE (it slips aside) or a PARRY. "MISS" means only a shot you aimed wrong. Floating numbers: white hits, big yellow crits, small grey glances, the words on fails.</li>
-    <li><b>The maths (WoW-classic style):</b> damage = weapon × Forge × STR or DEX × K / (K + armour), so armour takes a share and never walls you. DEX against AGI nudges the fail roll by up to 8 points. Crits 10 % base, up to 40 %, ×1.6–1.7. Lucky saves (2–4 %) flip a fail either way. Above your level, up to 40 % of hits glance for half.</li>
-    <li><b>Pacing:</b> a common at your level dies in ~7 swings (~9 s) and kills you in ~11 hits; +3 levels is a coin flip, +6 a loss. Elites ~1 min, the Titan ~3.5 min. Ranged does ~10 % less damage a second than melee.</li>
-    <li><b>Skill on top:</b> a timed parry (0.15 s) cancels a hit and makes your next hit a crit. Hits fill an enemy's stagger bar (STR fills it faster) for a 1.5 s stun. Energy hits burn, shock or knock back.</li>
-    <li><b>HUD:</b> a bottom XP bar with an LV chip; nameplates within 25 m, coloured by level gap; a read-only Character tab. An enemy cap keeps the phone smooth: full AI within 60 m, at most 16 animated.</li>
+    <li><b>Weapons:</b> you start with a sword and buy the spear, bow, crossbow (iron, pitch and broadhead bolts) and lever rifle. Basic ammo refills free in town; special bolts come from the bench.</li>
+    <li><b>The maths:</b> armour takes a share of each hit (WoW-classic style). 12 % of attacks fail at equal level, up to 90 % at +8; a fail shows as DEFLECT, DODGE or PARRY. Above your level some hits glance for half.</li>
+    <li><b>Pacing:</b> a common dies in ~7 swings (~9 s) and kills you in ~11; +3 levels is a coin flip; elites ~1 min; the Titan ~3.5 min.</li>
+    <li><b>Skill:</b> a timed parry on the GUARD button makes your next hit a crit; strength fills an enemy's stagger bar.</li>
   </ul>
 </section>
 
@@ -104,47 +112,36 @@ a { color: var(--orange); }
   <h2>ENEMIES</h2>
   <div class="scroll"><table>
     <tr><th>Tier</th><th>Who</th></tr>
-    <tr><td>Commons</td><td>Crate Mite L1–3 · Pallet Jack L4–6 · Plumb Drone L7–9 · Welder Unit L10–12 · Riveter L13–15 · Arc Sentry L16–18. At night and in storms each swaps to a night-shift variant (+1 level). Packs respawn ~90 s after you leave.</td></tr>
-    <tr><td>Rare variants</td><td>Spawn at random among the commons: uncommon 8 % (+1 level), rare 2 % (+2 levels). Uncommons have ×1.5 HP, rares ×2.5 and always drop a part. Each species' stats are fixed; only you roll.</td></tr>
-    <tr><td>Elites</td><td>Big Pallet L6 · the Vault Warden L12 (inside the Training Vault) · Foreman Unit 7 L18 (the gauntlet finale) · night elites Sir Nibbles, Hot Mess, Riveting Rita.</td></tr>
-    <tr><td>Boss</td><td>The Crate Titan L20: three phases and a cutscene intro that plays the first time (skippable); drops the Titan Cleaver sword.</td></tr>
+    <tr><td>Commons</td><td>Crate Mite L1–3 · Pallet Jack L4–6 · Plumb Drone L7–9 · Welder Unit L10–12 · Riveter L13–15 · Arc Sentry L16–18. Night-shift variants after dark; packs come back together ~90 s after you leave.</td></tr>
+    <tr><td>Rare variants</td><td>Uncommon +1 level, ×1.5 HP; rare +2 levels, ×2.5 HP and a guaranteed part.</td></tr>
+    <tr><td>Elites</td><td>Big Pallet L6 · the Vault Warden L12 · Shift Supervisor L17 (gauntlet wave 3) · Foreman Unit 7 L18 (wave 5) · night elites Sir Nibbles, Hot Mess, Riveting Rita.</td></tr>
+    <tr><td>Boss</td><td>The Crate Titan, L20, 15 m tall, three phases, in its hidden arena; a cutscene intro the first time; drops the Titan Cleaver.</td></tr>
   </table></div>
-  <p>Every robot is a Blender-script model with LODs. Elites and the boss are a soft gate: always open, brutal when you're under-levelled.</p>
-</section>
-
-<section>
-  <h2>QUESTS, ECONOMY, WORLD</h2>
-  <ul>
-    <li><b>12 quests</b>, four per tier, freeform and level-locked (a grey "!" until you're high enough): kill, collect, explore, elite hunts and set pieces (storm hour, the keycard, the Training Vault, the gauntlet, the Titan). Each quest leg ends on a checkpoint card; the shard ends on a shard-complete card.</li>
-    <li><b>Kill contracts</b> for every enemy type, elite and the Titan: Scrip, a trophy and a joke title the first time.</li>
-    <li><b>Scrip</b> comes from kills, chests and contracts; grey kills pay nothing. Every kill drops one salvage part for its robot type. Tinker Rook sells one-off upgrades and turns parts into ammo. Forge I–IV; a 20-slot pack. Collectibles pay perks, elites drop finishes, trophies fill the hub wall.</li>
-    <li><b>The Training Vault:</b> a four-room shrine (puzzle, fight, climb, the Vault Warden, a chest). Dying restarts the room; solved puzzles stay solved.</li>
-    <li><b>World:</b> 20 + 4 minute days. Storm hour turns the whole cell stormy until four beacons are lit; rare natural storms after that.</li>
-    <li><b>Audio:</b> an orchestral score (hub, west, two east themes that build band by band, elite themes, the Titan's phase stems), 8 stings, ~95 new sounds added to the shared set, ambience zones.</li>
-    <li><b>Developer-only</b> until your phone pass. Each zone is written as a copyable recipe in the shard's own source.</li>
-  </ul>
 </section>
 
 <section>
   <h2>HOW IT GETS BUILT</h2>
+  <p>Not two big waves: <b>87 vertical slices</b>. Each slice does only the engine work its piece needs, moves every other shard that uses that system onto it in the same slice, then builds that piece of the showcase and lands it playable behind Developer.</p>
   <div class="scroll"><table>
-    <tr><th>Wave</th><th>What</th><th>Size</th></tr>
-    <tr><td><b>Wave 1</b></td><td>All engine, game and shared-host work first. Every host it touches is normalised, and Driftwood, Pine Hollow, Nalati, Nine Dragon, Sky Reach, Signal Dunes and the templates move onto it in the same row, each proved unchanged. It covers:<ul><li>levels and the combat maths</li><li>loot and economy; quests and contracts</li><li>held weapons with ammo and parry</li><li>one boss path; the cutscene timeline; the shrine host</li><li>conveyors and jump pads; weather; audio</li><li>the required shard-complete card; the enemy cap</li></ul></td><td>~1,040 h · up to 5 Opus + 5 Codex lanes</td></tr>
-    <tr><td><b>Wave 2</b></td><td>The showcase itself, as data and AssemblyScript only: skeleton, west, east bands, elites, the vault, the Titan, quests, economy, audio, grid-ready, balance, then your phone pass.</td><td>~30 lane-days</td></tr>
+    <tr><th>Half</th><th>Slices</th><th>Size</th></tr>
+    <tr><td><b>West first</b></td><td>Skeleton and town and shops in order, then the toys side by side: range, physics yard, hover park, movers, grapple, climb, the Rock, riding, weather, audio.</td><td>33 slices · ~810 h · ~4.5 weeks</td></tr>
+    <tr><td><b>Then east</b></td><td>Levels and combat core, band 1 end to end, bands 2–6, variants and elites, storm hour, the Training Vault, the gauntlet, the Crate Titan, quests, the shard-complete card, audio, balance.</td><td>54 slices · ~1,302 h · ~6.5–7 weeks</td></tr>
   </table></div>
+  <p>Crew: 5 Opus + 5 Codex lanes when you say build. You play at the end of the west and at the end of the east. 48 slice decisions are logged (DECISIONS.md).</p>
 </section>
 
 <section>
   <h2>DETAIL PAGES</h2>
-  <p><a href="https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj">Mockups (40, being remastered from the blockout)</a> · <a href="https://claude.ai/artifact/YAVYVe7uPQ3GNxTiFL7B6y">Combat Maths</a> · <a href="https://claude.ai/artifact/1vKjyhEmkmRQCV4vFNuXEq">Attributes</a> · <a href="https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf">XP Curve and Growth</a> · <a href="https://claude.ai/artifact/R7BU7ErLT9Vi5wkYd3EsZR">How a Miss Feels</a> · <a href="https://claude.ai/artifact/BEQrDR1Ti1WUyY7pVRphYR">Loot and Economy</a> · <a href="https://claude.ai/artifact/X1RZboFagn5EuHpQXkdWG5">Enemy Tiers</a> · <a href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ">Mini Dungeon</a> · <a href="https://claude.ai/artifact/P3ZQ7R8NdLrHxTTSWrqF3s">Levels 1 to 20 (first draft, partly superseded)</a></p>
-  <p class="sub">Mini plans: docs/plans/kitchen-sink-v2/ (levels-combat, loot-economy, enemies-bosses, quests-contracts, hud-character, audio, mini-dungeon, map-layout, wave-1-hosts, wave-1-migration-map, STATE).</p>
+  <p><a href="https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj">Mockups (40, polished)</a> · <a href="https://claude.ai/artifact/YAVYVe7uPQ3GNxTiFL7B6y">Combat Maths</a> · <a href="https://claude.ai/artifact/1vKjyhEmkmRQCV4vFNuXEq">Attributes</a> · <a href="https://claude.ai/artifact/3vDB3KBSWsuL4XohXcZvWf">XP Curve and Growth</a> · <a href="https://claude.ai/artifact/R7BU7ErLT9Vi5wkYd3EsZR">How a Miss Feels</a> · <a href="https://claude.ai/artifact/BEQrDR1Ti1WUyY7pVRphYR">Loot and Economy</a> · <a href="https://claude.ai/artifact/X1RZboFagn5EuHpQXkdWG5">Enemy Tiers</a> · <a href="https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ">Mini Dungeon</a></p>
+  <p class="sub">Plan files: docs/plans/KITCHEN-SINK.md · docs/plans/kitchen-sink-v2/slices/ (INDEX-west, INDEX-east, IMPACT, COVERAGE, DECISIONS) · the mini plans beside it.</p>
 </section>
 
 <section class="open">
   <h2>STILL OPEN</h2>
   <ul>
+    <li>The 1:1 in-game mockups of every HUD and menu change (being made now), then your pick on each before it lands.</li>
     <li>Loot may be revisited (you called it under-thought).</li>
-    <li>The hover park's ramps read flat at eye height; a later blockout pass can raise them.</li>
+    <li>Two one-user-host approval sheets, one at the end of each half.</li>
   </ul>
 </section>
 </main>
