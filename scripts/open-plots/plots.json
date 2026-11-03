@@ -2,6 +2,11 @@
   "schema": "open-plot-captures/1",
   "plots": [
     {
+      "slug": "open-plot-clockwork-canyon",
+      "instance": "open-plot-4-3",
+      "cameras": "art/open-plots/clockwork-canyon/domes"
+    },
+    {
       "slug": "open-plot-coral-drift",
       "instance": "open-plot-0-0",
       "cameras": "art/open-plots/coral-drift/domes"
@@ -65,6 +70,16 @@
       "slug": "open-plot-sky-harbor",
       "instance": "open-plot-4-4",
       "cameras": "art/open-plots/sky-harbor/domes"
+    },
+    {
+      "slug": "open-plot-starfall-observatory",
+      "instance": "open-plot-3-4",
+      "cameras": "art/open-plots/starfall-observatory/domes"
+    },
+    {
+      "slug": "open-plot-thin-ice",
+      "instance": "open-plot-1-4",
+      "cameras": "art/open-plots/thin-ice/domes"
     }
   ]
 }

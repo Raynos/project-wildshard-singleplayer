@@ -65,6 +65,27 @@ and non-empty-tile admission remains unchanged, so inert placeholders
 refuse rather than produce a fictitious report. Audio and post-board
 readings remain with sp-x6; all visible building/activation stays Opus-owned.
 
+**Wave C Codex stubs (2026-11-03, sp-x9): source preparation complete.**
+Starfall Observatory (OP15), Thin Ice (OP18) and Clockwork Canyon (OP19)
+each have an inert OP3 recipe, generic starter-palette scaffold layout and
+inactive descriptor, plus eight canonical TEMPLATE dome manifests.
+Actual committed bindings: Starfall `open-plot-3-4` at **(1,2)**; Thin Ice
+`open-plot-1-4` at **(-1,2)**; Clockwork `open-plot-4-3` at **(2,1)**.
+All stay `activated: false` and `shardSelect: false`. Outputs, grid, live
+map, look and native assets are untouched. The reference art is provenance,
+not a theme palette or visual approval (G848).
+
+Three provisional continuous south-entry/plaza-seam routes and G950
+tiling selectors prepare their later checks. No walk or measured tiling
+report is claimed: final terrain needs Opus's route adaptation and the
+maintained zero-stuck check, and report selection still requires ordinary
+CURRENT admission and non-empty tiled rows. Wave B's Codex follow-through
+remains open until each Opus final board: sp-x9 owns Chromium/control,
+separate memory, maintained walk and goldens; sp-x6 owns audio/native bar 10,
+body/wire audit and the official Simulator window. Exact source/build and
+capacity are agreed at each natural boundary; no duplicate Jungle run
+(Jungle's complete reading cohort stays with sp-x6).
+
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) until this plan has its own file. Read at HEAD 2f074203c9.
@@ -190,11 +211,11 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP12 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Desert Ruin: real instance `open-plot-3-0`, cell (1,-2); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs; final theme reuses the palms | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP13 | **Built (2026-11-03, sp-o1); audio, walk and readings with sp-x6.** Landmark `1e9ac5a848` (ziggurat.py, now 66 m), builders `58dba85134`, activation `6f3683f9c5` (approved debt: entry tiles ~633 KB, plaza L1 3 draws, wire 5,178,863 B), look round R1 `87d997316d` (pools uncovered, ziggurat 55 → 66 m, avenue egrets out, deeper sky). [Final board](../../art/jungle-ziggurat/round-2-final/board.jpg) and 8 goldens `90957ed671`: 5 7 7 8 7 7 6 6, mean 6.62, GOOD ENOUGH. In-engine card art `d2e077f684` + `b0642bd794` (card off, G991). Player-view draws 86–112, ≤ 253k triangles (Chromium phone 2×). Open: sp-x6 binds audio `add58749da` and runs the walk route, bar 7 life and OB8 readings on the final geometry. Jungle Ziggurat (wave 3; new; **takes (-2,2), G977**) — look target [round 75](../../art/grid/round-75-new-plot-palettes/02-jungle-ziggurat.jpg), cell (-2,2), G977, theme in §4b | Opus + Codex | 16 / 5 h | Steps 1–8; takes a repeat cell |
 | OP14 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Ember Forge (wave 4; adds the lava water kind) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
-| OP15 | Starfall Observatory (wave 4) | Opus + Codex | 16 / 5 h | Steps 1–8 |
+| OP15 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Starfall Observatory: real instance `open-plot-3-4`, cell (1,2); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 16 / 5 h | Steps 1–8 |
 | OP16 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Frostline Peaks (wave 4; builds the shared pines and snow) | Opus + Codex | 22 / 6 h | Steps 1–8; frees a repeat cell |
 | OP17 | **done (2026-11-03, built by the [build-out](../../project/archive/2026-11-03-open-plots-build-out.md) plan as OB2–OB6; leftover look gaps on BURN-DAMAGE-LIST).** Mosslight Ruins (wave 5) | Opus + Codex | 16 / 5 h | Steps 1–8; frees a repeat cell |
-| OP18 | Thin Ice (wave 5; reuses pines and snow) | Opus + Codex | 20 / 6 h | Steps 1–8 |
-| OP19 | Clockwork Canyon (wave 5) | Opus + Codex | 22 / 6 h | Steps 1–8 |
+| OP18 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Thin Ice: real instance `open-plot-1-4`, cell (-1,2); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 20 / 6 h | Steps 1–8 |
+| OP19 | **Inert OP3 stub (2026-11-03, sp-x9); visual build remains open.** Clockwork Canyon: real instance `open-plot-4-3`, cell (2,1); generic palette, unactivated descriptor, eight TEMPLATE domes and provisional walk/report inputs | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP20 | Pastel Alien Plain (wave 6) | Opus + Codex | 22 / 6 h | Steps 1–8 |
 | OP21 | Fossil Badlands (wave 6; new, the last repeat cell) — look target [round 75](../../art/grid/round-75-new-plot-palettes/06-fossil-badlands.jpg), cell (-1,-2), G982, theme in §4b | Opus + Codex | 22 / 6 h | Steps 1–8; all 19 cells unique |
 | OP22 | Floating Island Race (wave 6) | Opus + Codex | 22 / 6 h | Steps 1–8 |

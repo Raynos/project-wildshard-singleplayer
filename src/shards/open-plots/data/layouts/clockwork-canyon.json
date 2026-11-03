@@ -1,0 +1,58 @@
+{
+  "why": "OP3 Clockwork Canyon: shared-kit TEMPLATE; theme art remains its Opus row.",
+  "template": {
+    "schema": "open-plot-template/1",
+    "slug": "open-plot-clockwork-canyon",
+    "contentHash": "487398e426984856d657ff4e53232a4b50ea9c826b818205a8d56ae8316cf698"
+  },
+  "plot": "scaffold",
+  "rows": [
+    "G0 E0 E0 N0 N3 E0 E0 G0",
+    "E0 E0 E0 E0 E0 E0 E0 E0",
+    "E0 E0 E0 E0 E0 E0 E0 E0",
+    "N2 E0 E0 P0 P1 E0 E0 N1",
+    "N3 E0 E0 P3 P2 E0 E0 N0",
+    "E0 E0 E0 E0 E0 E0 E0 E0",
+    "E0 E0 E0 E0 E0 E0 E0 E0",
+    "G0 E0 E0 N1 N2 E0 E0 G0"
+  ],
+  "kit": [
+    "trees",
+    "props",
+    "lanterns"
+  ],
+  "palette": {
+    "paving": "#baa8a7",
+    "lane": "#c8b7b2",
+    "ring": "#a3959a",
+    "court": "#b6a5a3",
+    "plaza": "#d5c3be",
+    "forecourt": "#c1b0af",
+    "wall": "#e9d6b0",
+    "roof": "#24358c",
+    "wood": "#5b3a24",
+    "stall": "#c0222b",
+    "stallDark": "#7a1218",
+    "crate": "#8a5a34",
+    "water": "#3a9fc0",
+    "stone": "#8a8a94",
+    "stoneTop": "#a6a6b0",
+    "lawn": "#5c9e3e",
+    "hedge": "#457f34",
+    "foliage": "#4e9a3c",
+    "foliageDark": "#387a30",
+    "trunk": "#5a4030",
+    "lantern": "#ffb347",
+    "window": "#ffc96a",
+    "kerb": "#918489",
+    "board": "#14203f",
+    "pool": "#9a4a14",
+    "awning": "#ff7a2e",
+    "bulbRed": "#ff4a3a",
+    "gatePool": "#c2361c",
+    "canalGlow": "#1f7fff",
+    "rope": "#2a1d14"
+  },
+  "landmark": null,
+  "posters": null
+}

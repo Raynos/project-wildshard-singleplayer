@@ -191,7 +191,9 @@ node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/o
 plot. Wave B selectors also include `fossil-badlands`, `desert-ruin` and
 `sky-harbor`. The last two start as inert OP3 source stubs, so selection
 refuses until their actual tiled products have ordinary CURRENT admission;
-a selector is not a measured report or an activation. The batch admits
+a selector is not a measured report or an activation. Wave C adds
+`starfall-observatory`, `thin-ice` and `clockwork-canyon` under the same
+inert-source limits. The batch admits
 every selected CURRENT product before writing
 anything, then emits one JSON/Markdown pair per plot and an `index.json`
 with product index hashes and L0/L1 totals. The printed totals cover all
