@@ -101,16 +101,19 @@ capacity are agreed at each natural boundary; no duplicate Jungle run
 (Jungle's complete reading cohort stays with sp-x6).
 
 **Final audio-containing readings ownership (2026-11-03, sp-x1).**
-The coordinator transferred sp-x9's eight-plot readings backlog to sp-x1:
-Fossil, Saltwind, Sky Harbor, Starfall, Thin Ice, Clockwork, Floating Island
-Race and Desert Ruin. Sp-x1 owns matched Chromium/control, maintained walk
+The coordinator transferred sp-x9's readings backlog to sp-x1, then added
+Pastel Alien Plain (`6aaef37e93`) and Showcase Template (`6d8d10289d`): ten
+plots including Fossil, Saltwind, Sky Harbor, Starfall, Thin Ice, Clockwork,
+Floating Island Race and Desert Ruin. Sp-x1 owns matched Chromium/control, maintained walk
 and the eight-view golden bridge; sp-x8 owns separate memory and official
 Simulator readings. Sp-x6 owns audio/native bar 10, body/pack/wire proof,
-activation and joint row integration; sp-x2 authors Sky Harbor/Starfall/
-Thin Ice audio. All Jungle readings stay with sp-x6. Exact final SHA/build
+activation and joint row integration for Saltwind/Fossil/Clockwork/Desert/
+Floating Island Race/Showcase; sp-x2 authors Sky Harbor/Starfall/Thin Ice/
+Pastel audio under their agreed 4/6 split. Completed Jungle and Fairground
+readings stay with sp-x6, covering all twelve plots. Exact final SHA/build
 and shared preview leases arrive from the audio owner before any cohort.
 [The shared readings page](../reviews/open-plots-final-readings.md) records
-measured results; **0/8 final cohorts are measured at this boundary**.
+measured results; **0/10 final cohorts are measured at this boundary**.
 Saltwind's actual cell is **(0,2)** / `open-plot-2-4`; `db418c06d7` now
 supplies its maintained 14-waypoint / 180 s route, awaiting the final audio
 candidate's walk qualification. No visual source or guard changes.
