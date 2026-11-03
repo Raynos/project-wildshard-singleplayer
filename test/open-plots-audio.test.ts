@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Admission controls use existing shipped AAC bytes, never generated substitutes.
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the author compiler's exact module entry resolution.
 import { resolve } from 'node:path';
 import { build } from 'vite';
@@ -12,7 +12,7 @@ import { validateProject } from '../src/sdk/project';
 import { prepareProjectOutput, mergeProjectBlobs } from '../src/sdk/projectOutput';
 import { controlFileHashes } from '../src/format/admissionControl';
 import { parseShardfile } from '../src/sdk/shardfile';
-import type { ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { generatePlotAudioProject, type PlotAudioBinding } from '../src/shards/open-plots/generators/audioProject';
 import { plotAudioData } from '../src/shards/open-plots/generators/audio';
 import anchors from '../src/shards/open-plots/data/audioAnchors.json' with { type: 'json' };
@@ -72,6 +72,25 @@ test('the audio recipe stays inside the real one-module author boundary', async 
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing author module output');
   expect(built.output.map(row => row.type)).toEqual(['chunk']);
+});
+
+test('the real generation cache admits URL inputs and stores only relative recording names', async () => {
+  mkdirSync('tmp', { recursive: true });
+  const folder = resolve(mkdtempSync('tmp/ob7-cache-control-')), project = resolve(folder, 'project'), media = resolve(folder, 'media');
+  mkdirSync(project); mkdirSync(media);
+  try {
+    const row = binding();
+    Object.values(row.files).forEach((file, index) => {
+      const control = controls[index]; if (control === undefined) throw new Error('Missing AAC cache control');
+      writeFileSync(resolve(media, file), readFileSync(`public/assets/sfx/best/${control}`));
+    });
+    const roots = [{ prefix: row.source.dir, directory: media }, { prefix: row.sfxDir, directory: media }];
+    const make = (): ProjectGenerationContext => createProjectGeneration(project, '0'.repeat(64), new Map(), resolve(folder, 'cache'), roots);
+    const first = await generatePlotAudioProject(make(), base(), row);
+    const second = await generatePlotAudioProject(make(), base(), row);
+    expect(first.shard.audio.recordings).toEqual(second.shard.audio.recordings);
+    expect(Object.keys(second.shard.audio.recordings ?? {})).toHaveLength(7);
+  } finally { rmSync(folder, { recursive: true, force: true }); }
 });
 
 test('an authored world keeps its real coarse-near bake and complete audio byte admission', async () => {

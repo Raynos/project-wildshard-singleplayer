@@ -30,10 +30,14 @@ export async function generatePlotAudioProject<T extends Pick<Shardfile, 'identi
     if (file === undefined || !/^[a-z0-9][a-z0-9-]*\.m4a$/u.test(file)) throw new Error('Invalid plot recording filename');
     return `${index === 0 ? binding.source.dir : binding.sfxDir}${file}`;
   });
-  const inputs = await ctx.cached({ id: `audio-${binding.idea}`, inputs: paths }, files => files);
+  const inputs = await ctx.cached({ id: `audio-${binding.idea}`, inputs: paths }, files => new Map(paths.map((path, index) => {
+    const bytes = files.get(path), id = ids[index];
+    if (bytes === undefined || id === undefined) throw new Error(`Missing plot recording: ${path}`);
+    return [`${id}.m4a`, bytes];
+  })));
   let total = 0;
   const blobs = paths.map((path, index) => {
-    const bytes = inputs.get(path);
+    const bytes = inputs.get(`${ids[index]}.m4a`);
     if (bytes === undefined) throw new Error(`Missing plot recording: ${path}`);
     total += bytes.byteLength;
     if (bytes.byteLength > 1_000_000) throw new Error('Plot recording exceeds its blob limit');
