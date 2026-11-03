@@ -17,7 +17,7 @@ import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { buildQuestChapter } from '../src/game/quest/chapter';
 import { readChapterDirector } from '../src/game/quest/chapterDirector';
-import { ChapterDirectorSchema, parseChapterDirector, chapterObservations } from '../src/format/chapterDirector';
+import { ChapterDirectorSchema, parseChapterDirector, parseChapterWake, chapterObservations } from '../src/format/chapterDirector';
 import type { ShardContext } from '../src/game/plugin/context';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';
@@ -58,10 +58,11 @@ test('Pine native product uses the shared request rows and retires executable bi
 test('Driftwood native product shares its page chapter and retires reflected bindings', async () => {
   const product = products.get('driftwood-isle'); if (product === undefined) throw new Error('Missing real Driftwood product');
   const native: unknown = JSON.parse(new TextDecoder().decode(await product.file('sim/headless-assembly.json')));
-  const policy = v.parse(v.object({ constants: v.object({ nativeChapterCues: v.array(v.strictObject({ id: v.string(), operation: v.picklist(['restore', 'wake', 'effects']) })) }) }), native).constants;
+  const cues = parseChapterWake(await product.json('quests/wake-boss.json')).cues.map(({ id, operation }) => ({ id, operation }));
   expect(native).not.toHaveProperty('constants.chapterDirector');
+  expect(native).not.toHaveProperty('constants.nativeChapterCues');
   expect(parseChapterDirector(await product.json('quests/chapter-director.json'))).toEqual(driftRows);
-  expect(policy.nativeChapterCues).toEqual([{ id: 'captain.restore', operation: 'restore' }, { id: 'captain.wake', operation: 'wake' }, { id: 'captain.dead', operation: 'effects' }]);
+  expect(cues).toEqual([{ id: 'captain.restore', operation: 'restore' }, { id: 'captain.wake', operation: 'wake' }, { id: 'captain.dead', operation: 'effects' }]);
   const director: unknown = JSON.parse(new TextDecoder().decode(await product.file('directors/main.json')));
   expect(v.parse(v.object({ bindings: v.null() }), director).bindings).toBeNull();
 });

@@ -1,7 +1,6 @@
 import { NALATI_BODY_ROWS as rows } from './bodies';
 import { bodyKey } from './bodyKey';
 import { bodySpecies } from './speciesRows';
-import { SPECIES_POSES } from './speciesPoses';
 
 type Horse = ReturnType<typeof bodySpecies>;
 interface Pose {
@@ -11,10 +10,9 @@ interface Pose {
   pose?: NonNullable<Horse['pose']>;
   joints: { name: string; parent: number; position: [number, number, number]; order: 'XYZ'; scale: [number, number, number] }[];
 }
-/** Complete owned native joint recipes and the existing numeric horse pose DAGs. */
+/** Complete owned native joint recipes; pose DAGs remain in the admitted species-look book. */
 export interface NalatiTamingPoseRows {
   poses: { kind: string; variant: string; pose: Pose }[];
-  horse: (typeof SPECIES_POSES)['horse'];
 }
 
 /** Construct relative joints directly from authored body metadata, without invoking the body geometry builders.
@@ -39,5 +37,5 @@ export function nalatiTamingPoseRows(): NalatiTamingPoseRows {
     if (variant.id === 'stallion') entries.push({ kind: 'argymaq', variant: variant.id, pose });
     return entries;
   });
-  return structuredClone({ poses, horse: SPECIES_POSES.horse });
+  return structuredClone({ poses });
 }

@@ -4,11 +4,12 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { prepareHeadlessRuntime } from './fixtures/nine-headless';
 import { prepareHeadlessRuntime as prepareNalati } from './fixtures/nalati-headless';
 import { prepareHeadlessRuntime as preparePine } from './fixtures/pine-headless';
+import { prepareHeadlessRuntime as prepareDriftwood } from './fixtures/driftwood-headless';
 import type { Rapier } from '../src/engine/physics/rapier';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 
-test.each([prepareHeadlessRuntime, prepareNalati, preparePine])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async prepare => {
+test.each([prepareHeadlessRuntime, prepareNalati, preparePine, prepareDriftwood])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async prepare => {
   const shard = emptyShardfile({ slug: 'native-proof', name: 'Native proof', author: 'Fixture', revision: 1, seed: 7 });
   const reads: string[] = [];
   const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard,

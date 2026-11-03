@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
 import page from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
+import spots from '../src/shards/driftwood-isle/data/spotsRows.json' with { type: 'json' };
+import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 import { validateDefinedJson } from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
@@ -35,7 +37,9 @@ test('the quest page consumes only the exact native interaction projection', () 
   };
   const original = read('sim/headless-assembly.json');
   const projection = read(page.files.assembly);
-  const { constants } = v.parse(v.object({ constants: v.object({ interact: v.unknown(), interactSpots: v.unknown() }) }), original.value);
+  const constants = { interact: DRIFTWOOD_INTERACT, interactSpots: spots.rows };
+  expect(original.value).not.toHaveProperty('constants.interact');
+  expect(original.value).not.toHaveProperty('constants.interactSpots');
   expect(page.files.assembly).toBe('quests/interaction-source.json');
   expect(projection.value).toEqual({ constants: { interact: constants.interact, interactSpots: constants.interactSpots } });
   expect(projection.bytes.length).toBeLessThan(original.bytes.length / 20);

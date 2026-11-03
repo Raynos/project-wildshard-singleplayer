@@ -32,7 +32,6 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
     const { product, assets } = preparation, shard = product.shardfile;
     const { constants } = await product.json<{
         constants: ReturnType<typeof driftwoodNativeRows> & {
-            sea: Parameters<typeof declaredWaterBody>[0];
             dayStyle: typeof TOON_LOOK.sky.day;
             nativeQuest: NativeQuestCompositionInput['rows'] & {
                 reward: {
@@ -45,21 +44,22 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             };
             nativeQuestSpots: unknown;
             mixedPopulation: unknown;
-            nativeChapterCues: unknown;
             questProps: unknown;
             questKillSteps: unknown;
             swords: unknown;
             entries: Parameters<typeof proveTerrainEntries>[3];
-            interactSpots: NativeQuestCompositionInput['spots']['rows'];
-            interact: NativeQuestCompositionInput["table"];
-            nativeCounters: NativeQuestCompositionInput["counters"];
         };
     }>('sim/headless-assembly.json');
     const lendReturns = await prepareReturns(preparation);
+    const nativeSea = structuredClone(need(product.shardfile.water.find(row => row.id === "sea" && row.kind === "sea"), "Driftwood requires its admitted sea"));
+    const interaction = await product.json<{ constants: { interact: NativeQuestCompositionInput["table"]; interactSpots: NativeQuestCompositionInput["spots"]["rows"] } }>("quests/interaction-source.json");
     const chapterDirector = parseChapterDirector(await product.json('quests/chapter-director.json'));
     const wake = parseChapterWake(await product.json('quests/wake-boss.json'));
     const countersJson = await (readJson(product, "quests/achievements.json"));
     const counters = await ((parseAchievementCounterData)(countersJson));
+    const nativeFeats = counters.feats.filter(row => row.kind === undefined);
+    const nativeCounters = parseAchievementCounterData({ ...counters, feats: nativeFeats,
+        flags: nativeFeats.map(feat => counters.flags.find(row => row.id === feat.id) ?? { id: feat.id, method: 'count', value: { constant: 0 } }), write: 'each' });
     const species = await ((product["section"])("actors/species-programs"));
     await ((need)(species["program"], "Driftwood requires its admitted species program"));
     const fauna = await new Map(species.native.map(row => [row.kind, row] as const));
@@ -91,19 +91,19 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
             const clock = new (DayCycle)(Object.assign({}, dayLook["spec"], { "start": 0.16666666666666669 }));
             (clock["cycle"] = 2880);
             (host["useDayClock"])(clock);
-            const sea = (declaredWaterBody)(constants["sea"]);
+            const sea = (declaredWaterBody)(nativeSea);
             (host["useWater"])({ "surfaceAt": sea["restAt"], "bob": (arg1_0: number, arg1_1: number) => ((waveHeight)(arg1_0, arg1_1, host["clock"]["now"])) });
             ((!context["restoring"]) ? (installNativeCollision)(host, bake, { "resolution": 256 }) : undefined);
             (nativeDecisionAuthority)(shard, assets, host);
             const island = (installMixedPopulation)(host, { "perchProgram": monkeyJson["program"], "rows": constants["mixedPopulation"], "reserved": bake["captain"], "placement": placement, "keeper": keeper, "fauna": fauna, "launch": launch, "population": species, "bake": { "ground": bake["ground"], "actors": bake["actors"], "herds": bake["herds"], "habitat": bake["habitat"] }, "specs": specs, "seed": shard["identity"]["seed"], "waterLevel": sea["level"], "spawnY": shard["spawn"]["y"], "nav": nav }, context["snapshot"]);
-            (installNativeChapterDirector)(host, director, { "id": constants["nativeQuest"]["reward"]["director"], "rows": chapterDirector, "reward": constants["nativeQuest"]["reward"]["channels"], "wake": { "population": constants["nativeQuest"]["acquisition"]["population"], "encounter": wake.encounter, "placement": { "pool": { "x": bake["captain"]["pool"]["x"], "z": bake["captain"]["pool"]["z"] }, "arena": bake["captain"]["arena"] }, "cues": constants["nativeChapterCues"] } }, context["restoring"]);
+            (installNativeChapterDirector)(host, director, { "id": constants["nativeQuest"]["reward"]["director"], "rows": chapterDirector, "reward": constants["nativeQuest"]["reward"]["channels"], "wake": { "population": constants["nativeQuest"]["acquisition"]["population"], "encounter": wake.encounter, "placement": { "pool": { "x": bake["captain"]["pool"]["x"], "z": bake["captain"]["pool"]["z"] }, "arena": bake["captain"]["arena"] }, "cues": wake.cues.map(({ id, operation }) => ({ id, operation })) } }, context["restoring"]);
             const input = (bindHeadlessCommands)(context, host);
             const combat = (need)(context["combat"], "Driftwood requires its native combat frame");
             (host["events"]["answer"])("item.reaction", (arg1_0) => ((((arg1_0["kind"] === "alarm") ? (island["alarm"])() : (island["staggered"])(arg1_0["actor"], arg1_0["strength"], arg1_0["running"])), arg1_0)), host["scope"]);
             (installNativeItems)(host, combat, { "kind": "swept", "items": shard["items"]["rows"], "policy": constants["swords"] });
             (installQuestKillSteps)(host, constants["questKillSteps"], counters["feats"], island["bodies"], input["ledger"]["fact"]);
             installBodyScripts(host, context, preparation);
-            (installNativeQuestComposition)(host, { "source": shard, "table": constants["interact"], "spots": spots, "counters": constants["nativeCounters"], "props": constants["questProps"], "restoring": context["restoring"], "rows": constants["nativeQuest"] });
+            (installNativeQuestComposition)(host, { "source": shard, "table": interaction.constants.interact, "spots": spots, "counters": nativeCounters, "props": constants["questProps"], "restoring": context["restoring"], "rows": constants["nativeQuest"] });
             (island["settle"])();
             (host["onStep"])("driftwood.poses", island["publishPoses"], undefined, "afterBodies");
         } };

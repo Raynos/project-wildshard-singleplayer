@@ -113,11 +113,11 @@ hook: extend it to charge a section's or blob's schema to the shards that emit i
 | **CS2** | **done (2026-10-31, sp-x1, Jake's slice-or-explicit-exit ruling):** all remaining families have a qualified exact slice or a concrete named CS3–CS9 / index-footprint exit. The [completion evidence](#cs2-completion-evidence) binds every family to its per-name source table and landed proof. The 62 welds, eight living envelopes and Pine spray companion remain explicit exits; no cap, host, capture or CS10 deletion credit is inferred. | 2–3 days, Codex + Opus review |
 | **CS3** | **open (2026-10-31, sp-x2):** all 318 rows of `959c6f1503` and the expanded scene-family remainder are reconciled below. Placements, catalogues and recipes qualify on their exact render-input byte proofs under G872; phone/desktop dressing also have twelve actual zero-pixel comparisons. **Pine's 112-placement consolidation is qualified in `5c72cf6cf0` below; remaining implementation: other streamed consolidation and tier/shadow-copy retirement**, with strict landed-SHA captures whenever render-consumed bytes change. Contract, genericity, binary-owner and index exits remain explicit. | 3–4 days, Codex (Opus memory reading on Pine) |
 | **CS4** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** the five field descriptors, common Pine physics, floor/cave contracts and two ground aliases have their recorded exact payload/native proofs; maintained Pine walk is **75/75, 0 stuck/bounds/pending**. Pine owner-only physics, G667 tests 2–6 and the named terrain/bake/shelter/recipe/grid-collision owner configurations remain explicit exits, without host or CS10 deletion credit. See the [completion bar](#cs4--cs7-completion-bar). | 2–3 days, Codex (Opus memory reading) |
-| **CS5** | **open (2026-11-02, sp-x1):** eight historical quest names now have qualified exact slices: the earlier DW three, Pine native-story/native-spots/contracts, Nalati carried and the shared whole-panel catalogue. The one fresh-baseline combined proof retains all target bodies, 226 old wire contracts and original owners; only the exact G872 Nalati source-stamp case differs (self-applied under the 2026-11-02 standing rule, with explicit concurrence). Six presentation/figure/discovery/finds/story/guest exits and live `custom/questRuntime` remain open. See the [qualified slice](#cs5-four-native-aliases-and-the-whole-panel-catalogue). | 4–6 days, Opus design + Codex port |
+| **CS5** | **done (2026-11-02, sp-x1, Jake accepted `9507499224`):** eight historical quest names now have qualified exact slices: the earlier DW three, Pine native-story/native-spots/contracts, Nalati carried and the shared whole-panel catalogue. The one fresh-baseline combined proof retains all target bodies, 226 old wire contracts and original owners; only the exact G872 Nalati source-stamp case differs (self-applied under the 2026-11-02 standing rule, with explicit concurrence). Six presentation/figure/discovery/finds/story/guest families and live `custom/questRuntime` retain their explicit exits, without host or CS10 deletion credit. See the [qualified slice](#cs5-four-native-aliases-and-the-whole-panel-catalogue). | 4–6 days, Opus design + Codex port |
 | **CS6** | **done (2026-10-31, sp-x6, Jake's slice-or-explicit-exit ruling):** the 55-row baseline and four additional actor names have qualified exact slices or concrete complete-contract/native-check/context exits. Directors, keeper/returns, roster/elites and the duplicate grazers retirement are recorded below. Existing native controller/AS owners stay authoritative; no host-score or CS10 bridge-deletion credit is inferred. See the [completion evidence](#cs6-completion-evidence). | 4–6 days, Opus + Codex |
 | **CS7** | **done (2026-11-02, sp-x1, landed-slice-or-recorded-exit bar):** audio/cards `2c5aa6386d` / `515ffcac96` have normal/strict6 and exact original payload/owner proofs. Every remaining logical name is in the 25-row source table: ten native-root qualification exits and fifteen complete-contract/model/binary/owner/collision exits. No byte rewrite, host score, weather union or CS10 deletion follows. See the [completion bar](#cs4--cs7-completion-bar). | 4–5 days, Codex |
 | **CS8** | **K9 combat and riding**: room, encounter and riding-profile rows; Titan script to AS | 2–3 days, Opus |
-| **CS9** | **K10 headless and views**: derive the headless assembly from platform sections; `nativeView`, `runtimeGraphs`, jian effects on H9 / H17 | 2–3 days, Opus (after WASM-HOST H9, H17) |
+| **CS9** | **done (2026-11-02, sp-x1, exact-slice-or-explicit-exit bar):** eight defining-payload derivations reconstruct all old canonical bytes; 36 original cases pass across eight suites. The complete 69-field ledger accounts for eight qualified derivations and 61 explicit owner/contract exits; Pine’s scaffold is retired and the other three shells have explicit source/schema/witness exits. The exact Nalati source-stamp case is self-applied under G872, with raw refusal retained. No CS10 deletion or host credit follows. See the [completion proof](#cs9-exact-constant-derivations-and-completion-bar). | 2–3 days, Opus (after WASM-HOST H9, H17) |
 | **CS10** | **open (2026-10-31, sp-x2/sp-x9):** read-only census still finds 14 live `custom/*` sections and 461 named JSON files in six observed products, with nonzero ceilings and missing template outputs. The private emitter/reader, named-JSON validator and freeze/growth policy remain used; no guard deletion is justified. See the [tool/runtime census](#cs10-live-tool-and-runtime-users). | 1 day, Codex |
 
 ### Recorded completed bars: CS1 / CS4 / CS7
@@ -402,7 +402,7 @@ already duplicated `nativeField`. Image `80afaa55…aff2d6` is identical,
 and Driftwood's map stamp is unchanged. G872 accepts this exact case
 only. No old stamp is frozen and no map freshness check is weakened.
 
-**CS9 remains open** for the retired declaration scaffolding, every
+**At this intermediate slice, CS9 remained open** for the retired declaration scaffolding, every
 remaining unique native constant and the view/graph AS exits. This slice
 establishes actual defining-payload derivation, not complete headless
 assembly retirement.
@@ -427,7 +427,7 @@ two exact actor-schema additions and retained scratch hash-label refusal
 are recorded in [the CS6 proof](#cs6-complete-pine-roster-and-elite-documents).
 Post-landing ordinary Pine admission remains CURRENT without rebuilding.
 
-**CS9 stays open:** Pine's unique constants still use the private native
+**At this intermediate slice, CS9 remained open:** Pine's unique constants still use the private native
 transport; the other three declaration shells and every remaining
 boot/constants/pose/view exit remain. In particular, an available
 population-environment schema does not approve its G571 owner/host exit.
@@ -1821,15 +1821,14 @@ constants**, every top-level field of the four other CS9 documents
 The retained outputs pass native format admission; this census does not
 assert fresh current-source admission or a full-24 output scan.
 
-Eight exact derivations are prepared **off-tree, not landed**. Read-only
-feasibility with the original parsers reconstructs the entire old
-canonical Driftwood/Nalati assemblies and taming-pose document:
-Driftwood **931,426 → 920,377 B**, Nalati assembly
-**113,878 → 113,286 B**, taming poses **85,858 → 32,774 B**.
-The projected saving is **64,725 B**; it is not emitted AFTER proof.
-The single queued full-payload/pack proof must follow the separate
-placement and CS5 checked source/proof handbacks. No extra publisher,
-namespace retag, host promotion or permissive schema is authorized here.
+The eight exact derivations subsequently qualified in the [completion
+proof](#cs9-exact-constant-derivations-and-completion-bar). Original native
+parsers reconstruct the entire old canonical Driftwood/Nalati assemblies
+and taming-pose document. Actual emitted sizes are Driftwood
+**931,426 → 920,377 B**, Nalati assembly **113,878 → 113,286 B** and
+taming poses **85,858 → 32,774 B**, removing **64,725 B**. The sealed
+current BEFORE was captured after the placement/CS5 handbacks; no BEFORE
+generation, namespace retag or permissive schema was used.
 
 The other fields have the explicit exits below. An exact child match is
 reported where found; it never labels the whole compound body as a
@@ -1845,18 +1844,18 @@ has zero diagnostics. CS10's recorded live-user exits are unchanged.
 |---|---|
 | `dayStyle` | **Explicit exit.** CS9 toon-day/clock owner derivation: generators/toonPresentation.ts owns the full TOON_LOOK.sky.day, not an admitted whole defining document. Retain preset values and initial clock alignment. |
 | `entries` | **Explicit exit.** CS9 native entry-proof exit: data/entryWalk.json is an expected walk/count budget consumed by proveTerrainEntries; do not recompute expected proof facts from the geometry being checked. |
-| `interact` | **Queued exact derivation; emitted proof pending.** quests/interaction-source.json#/constants/interact; existing bounded named-JSON admission and original native interaction owner |
-| `interactSpots` | **Queued exact derivation; emitted proof pending.** quests/interaction-source.json#/constants/interactSpots; original page/native placement input |
+| `interact` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/interaction-source.json#/constants/interact; existing bounded named-JSON admission and original native interaction owner |
+| `interactSpots` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/interaction-source.json#/constants/interactSpots; original page/native placement input |
 | `mixedPopulation` | **Explicit exit.** CS6/CS9 complete mixed-roster owner: combines practice placement/respawn, native attack cap and four pose banks. sim/keeper and sim/enemy-placement are partial inputs, not the whole native value. |
-| `nativeChapterCues` | **Queued exact derivation; emitted proof pending.** quests/wake-boss.json#/cues projected to id/operation by the original parseChapterWake |
-| `nativeCounters` | **Queued exact derivation; emitted proof pending.** quests/achievements.json through parseAchievementCounterData and the original native-feat/flag/write projection |
+| `nativeChapterCues` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/wake-boss.json#/cues projected to id/operation by the original parseChapterWake |
+| `nativeCounters` | **Qualified exact derivation; full old canonical bytes reconstructed.** quests/achievements.json through parseAchievementCounterData and the original native-feat/flag/write projection |
 | `nativeQuest` | **Explicit exit.** CS5/CS9 complete native quest-composition owner: generators/nativeQuest.ts joins save order, prompts, transitions, acquisition and reward. Preserve parseNativeQuestComposition and original native entry assertions. |
 | `nativeQuestSpots` | **Explicit exit.** CS5/CS9 complete native place/prompt/cable root: DRIFTWOOD_SPOTS contains more than the interaction-source row array. Keep readNativeQuestSpots, prompt-registration and cable bounds. |
 | `nativeSpecs` | **Explicit exit.** CS4/CS9 complete native figure-spec catalogue: driftwoodNativeRows owns exact native body/spec pairs. A species-name match or an actor subrecord does not reproduce the whole book. |
 | `physics` | **Explicit exit.** CS4 complete native-bake owner/typed binary derivation: preserve solid order, tagged provenance, actor/herd/habitat/captain and exact ground/collider bytes. The two existing binaries alone do not define this whole compound value. |
 | `questKillSteps` | **Explicit exit.** CS5 native kill-step/feat continuation: preserve kill fact identity, ordered native reward and original quest counter ownership; no whole admitted replacement was found. |
 | `questProps` | **Explicit exit.** CS5 complete native prop-owner exit: nativeQuestProps joins barrels, floors, plates and water with placements and owned save order; a scene/view payload is not the native owner. |
-| `sea` | **Queued exact derivation; emitted proof pending.** admitted shardfile.water row id=sea; declaredWaterBody unchanged |
+| `sea` | **Qualified exact derivation; full old canonical bytes reconstructed.** admitted shardfile.water row id=sea; declaredWaterBody unchanged |
 | `swords` | **Explicit exit.** CS7 complete native melee/loadout policy exit: data/nativeSwords.json has slot, source, tags, combo/contact/lunge rules not present as the same whole admitted item row. |
 
 ### pine-hollow — `sim/headless-assembly.json`
@@ -1875,8 +1874,8 @@ has zero diagnostics. CS10's recorded live-user exits are unchanged.
 | `eliteEntry` | **Explicit exit.** CS8/CS9 elite-construct capability/owner exit: preserve assembly/admission file identities, fight/model/program/weather/night bindings and ledge anchor; do not manufacture authority from matching strings. |
 | `groupRows` | **Explicit exit.** CS8/CS9 ordered native group/guest ABI exit: parseNativeGroupRows preserves member adoption, two guest-owned draws, delay/admission and group ordering. Page wildlife groups are not this whole native program. |
 | `nativeBake` | **Explicit exit.** CS4 native bake-admission configuration exit: retain the exact native label, axis/shape/storage/provenance bounds used by createNativeBakeReader. Existing collider bodies are not an independent config contract. |
-| `nativeDayClock` | **Queued exact derivation; emitted proof pending.** world/forest-weather.json#/sky/clock through ForestWeatherSchema |
-| `nativeKnockdown` | **Queued exact derivation; emitted proof pending.** sim/headless-boot.json#/riding through parsePopulationKnockdownSource |
+| `nativeDayClock` | **Qualified exact derivation; full old canonical bytes reconstructed.** world/forest-weather.json#/sky/clock through ForestWeatherSchema |
+| `nativeKnockdown` | **Qualified exact derivation; full old canonical bytes reconstructed.** sim/headless-boot.json#/riding through parsePopulationKnockdownSource |
 | `nativePopulation` | **Explicit exit.** CS6/CS9 complete native population/cadence/projection-driver exit: the riding population is extended with crowdNativeProjection; preserve encounter loan checks and original body/decision order. |
 | `nativeRide` | **Explicit exit.** CS8 native mounted controller exit: nativeRide joins riding speeds and original roads; its projection is not the full riding/session or boot owner. Preserve mounted command/save rules. |
 | `nativeShelters` | **Explicit exit.** CS4/CS9 native weather-shelter owner exit: original shelter circles and weather-world binding remain exact; rendered yurt geometry or ids alone do not define native hit/shelter queries. |
@@ -1916,7 +1915,7 @@ has zero diagnostics. CS10's recorded live-user exits are unchanged.
 
 | Field | Disposition / defining payload or explicit exit |
 |---|---|
-| `horse` | **Queued exact derivation; emitted proof pending.** Queued exact derivation from registered actors/species-looks.json#/poses/horse through parsePackedCreatureLooks. Native pose compiler remains unchanged. |
+| `horse` | **Qualified exact derivation; full old canonical bytes reconstructed.** Queued exact derivation from registered actors/species-looks.json#/poses/horse through parsePackedCreatureLooks. Native pose compiler remains unchanged. |
 | `poses` | **Explicit exit.** CS9 complete owned native pose/joint exit: tamingPoseRows.ts checks <=32 bones and parent-before-child; preserve relative numeric coordinates, zero defaults, gait/pose fields and the extra Argymaq row. |
 
 ### nine-dragon-stack — `sim/headless-constants.json`
@@ -1962,9 +1961,9 @@ and witness contracts retired.
 | nalati-grasslands | CS9 authored constant-book/typed native bootstrap separation exit: data/headlessAssembly.json is also a live source for nativeGroups.ts and clientRiding.ts. Preserve exact source constants and generated native type, return-first admission, runtime weather/ride references and native proof input identity when deleting the inert DSL fields. A wire rename alone is not retirement. |
 | nine-dragon-stack | CS9 authored native control-book/witness ABI exit: data/headlessAssembly.json supplies constants/type and source witness snapshot adapter ids; sim-in-runtime also validates its declared assembly form. Retire only inert DSL fields with all those source/fence references and original entry/collision/grapple/portal guards intact, without weakening the census or retagging proof. |
 
-**CS9 stays open** for these concrete owner/derivation/deletion exits.
-No live custom emitter, reader, named validator, policy or ceiling is
-removed or reclassified by this ledger.
+These concrete owner/contract/deletion exits remain explicit after the
+row’s exact-slice-or-explicit-exit completion. No live custom emitter,
+reader, named validator, policy or ceiling is deleted by this ledger.
 
 
 ## CS3: Pine bounded placement pages
@@ -2183,3 +2182,59 @@ inferred. CS10's live emitters/readers, validators, policy and ceilings
 stay unchanged, as do the other open rows. Evidence reconciliation:
 `tmp/sp-x1-cs4-cs7-close/reading.json`. No build, test, native worker,
 browser, stamp rewrite or requalification is performed for this update.
+
+## CS9: exact constant derivations and completion bar
+
+2026-11-02, sp-x1: the eight remaining exact derivations have the
+sealed ordinary CURRENT BEFORE and one coalesced G972/CS9 physics7
+normal AFTER. The original malformed-return rejection still precedes
+all new reads, on all four native hosts. Native semantic parsers and
+all original caps, assertions, independent replay and proof inputs stay.
+
+Driftwood's sea, interaction table/spots, wake cues and native counters
+come from their admitted defining payloads. Nalati's day clock,
+knockdown and horse pose come from the complete admitted forest-weather,
+original riding and species-look values. The three emitted documents
+reconstruct every original canonical byte, including each removed
+value's type and signed zero. All other payloads and descriptors,
+section/schema membership and ordered pack contents reconstruct exactly.
+
+Original eight suites / **36 cases PASS in 48.5 s**; typed lint passes
+for all eight changed source/test paths. The earlier root-type failure
+was confined to sp-o1’s render tests and fixed separately. The normal
+physics7 refresh is shared with G972; an actual compiler-input crossing
+was retained as an ordinary refusal and corrected once on the frozen
+tuple. There was no unchanged retry or BEFORE repin.
+
+Across 869 payload paths, **865 other bodies / 167,385,053 B are exact**.
+Only the three intended omission-only documents and Nalati’s 164-byte
+map stamp differ. Schema/section membership and defining metadata stay
+exact; hash references and library accounting reconstruct from only the
+measured target changes. All old/new ordered packs and actual pack files
+reconstruct. Indexes: DW **995,665 B**, Nalati **1,108,883 B**, unchanged
+Pine **1,189,307 B** (below the about-1.9-MB policy).
+
+The raw comparator remains **EXIT 2** for exactly Nalati’s `look/map`
+source stamp:
+
+- Old: `62a2bba69d38898571e05bd23cb8fb7713aa74e6bbf372da37a38049a74dd95a`.
+- New/current `mapTilesHash`: `fb19cfa3ad381e9e7e4a1dca2f2f81f01dc0e03eaed707a4bab97abb418916df`.
+- Identical image: `80afaa55b292b48c93694dbc7ac95557ecb96714b2c159cd467ff3fa0caff2d6`.
+
+The full old stamp is independently reconstructed. Only `output.ts`’s
+two duplicate constant omissions and `tamingPoseRows.ts`’s duplicate
+horse-pose omission changed its map source inputs; every other map value
+and image byte is exact. **Self-applied G872 established exact
+source-stamp class**, under Jake’s 2026-11-02 standing delegation. This
+is one recorded case: no tolerance, frozen old stamp or weakened freshness.
+Evidence: `tmp/sp-x9-cs9/remainder/` (`payload-before.json`,
+`payload-after.json`, `originals-report.json`, source hashes and raw
+refusal logs).
+
+The complete 69-field ledger is reconciled: eight qualified derivations
+and 61 explicit owner/contract exits. Pine's declaration shell is already
+retired by 892e75d553/c6f4b14668; Driftwood, Nalati and Nine retain the
+three explicit source/schema/proof-witness shell exits. This meets the
+requested exact-slice-or-explicit-exit completion bar. No remaining live
+owner is silently deleted or promoted, and CS10's emitters, readers,
+validators and ceilings retain their existing exit conditions.

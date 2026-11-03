@@ -139,7 +139,7 @@ const ridingPopulation = nalatiRidingPopulation(ecology);
 const sheepBody = bakeSheepBody();
 // Resolve author-only lair definitions into the admitted assembly, never runtime imports.
 const eliteAssemblyOf = (headlessAssembly: NalatiHeadlessAssembly) => {
-  const {pageWildlife:_pageWildlife,pageGroups:_pageGroups,groupAdmission:_groupAdmission,nativeField:_nativeField,...nativeConstants}=headlessAssembly.constants;
+  const {pageWildlife:_pageWildlife,pageGroups:_pageGroups,groupAdmission:_groupAdmission,nativeField:_nativeField,nativeDayClock:_nativeDayClock,nativeKnockdown:_nativeKnockdown,...nativeConstants}=headlessAssembly.constants;
   return { ...headlessAssembly, constants: { ...nativeConstants, pageElites: buildEliteEntryPageRows(), eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
     id: def.id, lair: def.lair, awareR: def.awareR, engageR: def.engageR, leashR: def.leashR, rule: def.rule, respawnMin: def.respawnMin,
   }])), nativePopulation: {...ridingPopulation,driver:{...ridingPopulation.driver,projection:crowdNativeProjection}}, nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, roads: headlessBoot.roads } } };
