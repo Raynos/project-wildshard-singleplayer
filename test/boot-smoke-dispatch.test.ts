@@ -1152,6 +1152,27 @@ test('four packed jobs keep every logical SIX case and reject skipped or red ste
   }
 });
 
+test('the PR-only draw source preserves the exact required23 and refuses a push diagnostic crossover',()=>{
+  const fixture=()=>{
+    const f=fourJourneyReadyFixture();
+    const draw=/\n {2}draw-budget:\n[\s\S]*?(?=\n {2}journeys:\n)/u.exec(deploy)?.[0];
+    if(draw===undefined)throw new Error('Missing reviewed PR diagnostic');
+    f.state.source=f.state.source.replace("      JOURNEYS_PROOF: 'four-g989'",
+      "      JOURNEYS_PROOF: 'four-g989'\n      DRAW_PROOF: 'pr-only-g989'")+draw;
+    const model=f.state.details[0];if(model===undefined)throw new Error('Missing exact-run model');
+    f.state.details.push({...model,name:'draw-budget',status:'completed',conclusion:'skipped',steps:[]});
+    return f;
+  };
+  const f=fixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);
+  expect(proof.jobs.find(row=>row.name==='draw-budget')?.conclusion).toBe('skipped');
+  expect(proof.jobs.filter(row=>!['stage-prebuilt','build-and-deploy','draw-budget'].includes(row.name))).toHaveLength(23);
+  const changed=fixture();changed.state.source=changed.state.source.replace("github.event_name == 'pull_request' }}",
+    "(github.event_name == 'push' || github.event_name == 'pull_request') }}");
+  expect(()=>readySource('123',liveBuild,changed.state.query,readyNow)).toThrow('draw policy');
+  const foreign=fixture();foreign.state.source=foreign.state.source.replace("DRAW_PROOF: 'pr-only-g989'","DRAW_PROOF: 'foreign'");
+  expect(()=>readySource('123',liveBuild,foreign.state.query,readyNow)).toThrow('draw policy');
+});
+
 test('G989 twelve-shard source requires all twelve exact verdicts and never relaxes historical24',()=>{
   const f=twelveBehaviourReadyFixture(),proof=readySource('123',liveBuild,f.state.query,readyNow);
   expect(proof.jobs.filter(row=>row.name.startsWith('behaviour ('))).toHaveLength(12);

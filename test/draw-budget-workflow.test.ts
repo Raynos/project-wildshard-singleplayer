@@ -39,7 +39,7 @@ test('draw diagnostics read exact prepared worlds and never join source, boot or
   expect(upload).toContain('path: tmp/ci-draw-budget/');
 });
 
-test('diagnostics consume no required-wave runner and still report required failures',()=>{
+test('diagnostics allocate no push runner and still report required PR failures',()=>{
   const diagnostic=section('draw-budget'),shipNeeds=dependencies(section('build-and-deploy'));
   const optionalStage='stage-prebuilt',required=shipNeeds.filter(name=>name!==optionalStage);
   expect(required.length).toBeGreaterThan(0);
@@ -57,7 +57,8 @@ test('diagnostics consume no required-wave runner and still report required fail
   for(const name of required)states[name]={result:'success'};
   const evaluate=(event:string,needs:typeof states,cancelled=false):unknown=>runInNewContext(expression,
     {github:{event_name:event},needs,always:()=>true,cancelled:()=>cancelled},{timeout:100});
-  for(const event of ['push','pull_request']){
+  expect(evaluate('push',states)).toBe(false);
+  for(const event of ['pull_request']){
     expect(evaluate(event,states)).toBe(true);
     for(const result of ['success','failure','cancelled','skipped','pending']){
       expect(evaluate(event,{...states,[optionalStage]:{result}})).toBe(true);

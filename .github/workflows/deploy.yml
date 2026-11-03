@@ -148,6 +148,7 @@ jobs:
       PHONE_PROOF: 'retired-g989'
       BEHAVIOUR_PROOF: 'twelve-g989'
       JOURNEYS_PROOF: 'four-g989'
+      DRAW_PROOF: 'pr-only-g989'
       STAGED_RELEASE_PROOF: 'v1'
       RELEASE_ALLOWED: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && needs.prepare.result == 'success' && needs.typecheck-lint.result == 'success' && needs.derived-docs.result == 'success' && needs.behaviour.result == 'success' && needs.native-escape.result == 'success' && needs.journeys.result == 'success') }}
     runs-on: ubuntu-latest
@@ -1114,11 +1115,11 @@ jobs:
           if-no-files-found: warn
 
 
-  # Diagnostics wait for the required wave instead of occupying its runners.
-  # They still run after a required failure and never gate source/SIX/shipping.
+  # G989: software draw diagnostics allocate no runner on push. PRs retain
+  # the report after their required wave, without gating source/SIX/shipping.
   draw-budget:
     needs: [prepare, typecheck-lint, derived-docs, behaviour, native-escape, journeys]
-    if: ${{ always() && !cancelled() && needs.prepare.result == 'success' && (github.event_name == 'push' || github.event_name == 'pull_request') }}
+    if: ${{ always() && !cancelled() && needs.prepare.result == 'success' && github.event_name == 'pull_request' }}
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 20

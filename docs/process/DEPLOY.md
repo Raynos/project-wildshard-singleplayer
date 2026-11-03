@@ -64,6 +64,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   source runs retain their original report-only phone policy and exact job
   inventory; the new source declares `PHONE_PROOF: retired-g989` and rejects
   unexpected phone jobs. The required browser journeys still gate shipping.
+- **G989 makes software draw diagnostics PR-only.** Pushes allocate no runner
+  for the report-only SwiftShader census. PRs retain its exact prepared-source
+  report, original exit codes and server cleanup. It remains outside every
+  required source/browser/shipping prerequisite; no hardware pass is inferred.
 - **G989 packs the logical SIX into four required macOS jobs:** `explorer`
   runs the whole catalogue, `boot-public` runs public entry,
   `developer-webkit` runs Developer entry plus WebKit HOVER/rendering, and

@@ -496,6 +496,11 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
       '.jobs[] | [.name, .status, .conclusion] | @tsv']).split(/\r?\n/u).filter(Boolean);
   const optional = new Set(['build-and-deploy',...retiredPhone ? [] : [phone === undefined ? 'journeys (phone-route)' : 'phone-route']]);
   const drawBudget = /\n {2}draw-budget:\n([\s\S]*?)(?=\n {2}[a-z][a-z0-9-]*:\n|$)/u.exec(source)?.[1];
+  const prDraw = /^ {6}DRAW_PROOF: 'pr-only-g989'$/mu.test(source);
+  if ((/DRAW_PROOF:/u.test(source) && !prDraw) || (prDraw && (drawBudget === undefined
+    || !/^ {6}JOURNEYS_PROOF: 'four-g989'$/mu.test(source)
+    || !drawBudget.includes(`    if: \${{ always() && !cancelled() && needs.prepare.result == 'success' && github.event_name == 'pull_request' }}\n`))))
+    throw new Error('Source PR-only draw policy differs');
   if (drawBudget !== undefined) {
     if (!/(?:^|\n) {4}continue-on-error: true(?:\n|$)/u.test(drawBudget))
       throw new Error('Source draw-budget job lacks the reviewed report-only policy');
