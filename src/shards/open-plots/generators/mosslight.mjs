@@ -143,12 +143,10 @@ function farMoss(w, p, type, variant) {
   for (const [x, z, size] of [[-22, -16, 10], [22, -14, 9], [10, 10, 11]]) w.box('far', [m * x - size * 0.4, 1, z - size * 0.4], [m * x + size * 0.4, size, z + size * 0.4], p.foliage);
 }
 
-/** The plaza's ruin dressing (r1 look loop: the shared plaza read as bare grey paving round the tower): moss patches over
- *  the paving and between its lantern rings, a rubble heap mid-quarter and column stumps toward its outer edges, clear of
- *  the gate (its corner is (HALF, -HALF)), the rings (36 m, 52 m), the lane beds and the planter. */
-function mossPlaza(w, p) {
-  for (const [x, z, hx, hz] of [[2, 4, 5, 3], [-8, -12, 4, 6], [-20, 6, 6, 4], [12, 16, 4, 3], [-4, 26, 7, 2.5], [-26, -10, 2.5, 7],
-    [20, 26, 5, 2.5], [-26, 14, 2.5, 4], [6, -24, 3, 2], [-14, 18, 3, 3]]) moss(w, p, x - hx, z - hz, x + hx, z + hz);
+/** The plaza's ruin dressing (r1 look loop: the shared plaza read as bare grey paving round the tower): a rubble heap
+ *  mid-quarter and column stumps toward its outer edges, clear of the gate (its corner is (HALF, -HALF)), the rings (36 m,
+ *  52 m), the lane beds and the planter. The moss in its joints is `jointMoss`. */
+function mossPlaza(w) {
   ruin(w, 2, 0, 0, 0);
   ruin(w, 3, 0, 22.4, 0);
   ruin(w, 3, -22.4, 0, 1);
@@ -224,13 +222,44 @@ export function towerWindows(glow, landmark, colour) {
   }
 }
 
-/** Hooks at the generic construction points (tiledPlotCore.mjs): the tower's slits glow emerald, and emerald light pools
- *  ring the outcrop's foot and the stairs' head. */
+/** The flagstones' running bond (data/trim.json `flagstone`, the kit material's world-metre rule): rows across z, every
+ *  other row shifted half a flag along x */
+const FLAG = 3.2, ROW = 2.4;
+
+/** Moss in the plaza's joints (r2 look loop: the targets' strongest first-person cue): a broken strip 8 to 14 cm wide
+ *  along part of about a third of the flagstones' joints within `reach` m of the tower, none on its outcrop, a little proud of the
+ *  paving but under the rule's 4.5 cm so the kit material still shades it as stone, its green varying stone to stone. */
+export function jointMoss(kit, green, lawn, reach = 62, outcrop = 17) {
+  const shade = (i, k, salt) => { const h = Math.sin(i * 12.9898 + k * 78.233 + salt) * 43758.5453; return h - Math.floor(h); };
+  const y = 0.04, keep = (x, z) => Math.abs(x) < reach && Math.abs(z) < reach && Math.hypot(x, z) > outcrop;
+  for (let k = Math.ceil(-reach / ROW); k * ROW < reach; k++) {
+    const z0 = k * ROW, shift = (((k % 2) + 2) % 2) * 0.5;
+    for (let i = Math.ceil(-reach / FLAG) - 1; (i - shift) * FLAG < reach; i++) {
+      const x0 = (i - shift) * FLAG, half = 0.04 + 0.03 * shade(i, k, 3), t = shade(i, k, 7);
+      const colour = green.map((m, c) => (m + ((lawn[c] ?? m) - m) * t) * 1.35);
+      // a broken run of moss along part of a joint: from `a` to `b` of its length, a third to four fifths of it
+      const run = (salt, length) => { const a = shade(i, k, salt) * 0.4 * length; return [a, Math.min(length, a + (0.35 + 0.45 * shade(i, k, salt + 1)) * length)]; };
+      // the row's joint under this flag, then its joint at the flag's west end
+      if (shade(i, k, 1) < 0.34 && keep(x0 + FLAG / 2, z0)) {
+        const [a, b] = run(11, FLAG);
+        kit.quad('Kit', [x0 + a, y, z0 - half], [x0 + a, y, z0 + half], [x0 + b, y, z0 + half], [x0 + b, y, z0 - half], colour);
+      }
+      if (shade(i, k, 2) < 0.34 && keep(x0, z0 + ROW / 2)) {
+        const [a, b] = run(13, ROW);
+        kit.quad('Kit', [x0 - half, y, z0 + a], [x0 - half, y, z0 + b], [x0 + half, y, z0 + b], [x0 + half, y, z0 + a], colour);
+      }
+    }
+  }
+}
+
+/** Hooks at the generic construction points (tiledPlotCore.mjs): the tower's slits glow emerald, moss grows in the
+ *  plaza's joints, and emerald light pools ring the outcrop's foot and the stairs' head. */
 export const mosslightPlot = {
   builders: layout => mosslightBuilders(layout.builders),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
   models(parts, _kit, layout) {
     towerWindows(parts.Glow, layout.landmark, linear(layout.palette.windowGlow ?? layout.palette.lantern));
+    jointMoss(parts.Kit, linear(layout.palette.moss ?? layout.palette.lawn), linear(layout.palette.lawn));
   },
   pools(parts, palette) {
     const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };
