@@ -1922,14 +1922,16 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 
 ## 15. Audio
 
-`AudioSceneSchema.fields.channels` accepts legacy bounded string chunks or
-`ScalarChannelRows` (f32, exactly res squared samples). Raw rows use named
-compressed binary files. `AudioSceneDirector.fieldFiles` lists those files;
-`prepareFields(blocks)` validates all rasters before exposing any sampler.
-`installClientAudioScene(ctx)` reads them through the same product and publishes
-listeners only after validation and live scope/world/player/reader checks.
-Legacy inline scenes still install synchronously. Both encodings retain the
-original f32 storage and bilinear sampling; audio timing and RNG are unchanged.
+[Shared recordings](engine/audio-recordings.md).
+
+`AudioSceneSchema.fields.channels` accepts legacy bounded chunks or
+`ScalarChannelRows` (f32, exactly res squared samples). Raw rows name
+compressed binary files. `AudioSceneDirector.fieldFiles` lists inputs;
+`prepareFields(blocks)` validates every raster before exposing samplers.
+`installClientAudioScene(ctx)` uses the same product and publishes after
+validation and live scope/world/player/reader checks. Legacy inline scenes
+install synchronously. Both encodings preserve f32 storage, bilinear
+sampling, audio timing and RNG.
 
 `AudioData.sceneFile` selects a named `AudioSceneSchema` JSON file instead of
 inline `scene` (the two are exclusive). The client plan requires that admitted

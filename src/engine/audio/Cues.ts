@@ -23,8 +23,18 @@ const file = (dir: string, v: unknown): string | undefined => typeof v === 'stri
 export interface CueSprite { url:string;clips:ReadonlyMap<string,Readonly<{offset:number;duration:number}>> }
 /** The installed recording catalogue, shared by eager banks and lazy family players. */
 export function cueManifest(key:string):Record<string,unknown>|undefined {const raw=sfxManifests()[key];return obj(raw)?raw:undefined;}
-/** Resolve only a confined filename present in the shipped byte table. */
-export function cueFile(key:string,value:unknown):string|undefined {return file(`/assets/sfx/${key}/`,value);}
+/** Resolve a confined shipped filename, or an explicit recording in another
+ * shipped catalogue. References are one hop; paths and nested aliases refuse. */
+export function cueFile(key:string,value:unknown):string|undefined {
+  if(typeof value==='string')return file(`/assets/sfx/${key}/`,value);
+  if(!obj(value)||Object.keys(value).length!==2||typeof value['set']!=='string'
+    ||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(value['set'])||cueManifest(value['set'])===undefined)return undefined;
+  const target=cueManifest(value['set']);
+  const known=['beds','hums'].some(section=>{
+    const rows=target?.[section];return obj(rows)&&Object.values(rows).some(row=>obj(row)&&typeof row['file']==='string'&&row['file']===value['file']);
+  });
+  return known?file(`/assets/sfx/${value['set']}/`,value['file']):undefined;
+}
 /** Original family order for array and object-form manifests. */
 export function cueFamilyNames(manifest:Record<string,unknown>|undefined,family:string):string[] {
   const rows=manifest?.['oneshots'],value=obj(rows)?rows[family]:undefined;
@@ -59,20 +69,20 @@ export function cutCueSprite(manifest:Record<string,unknown>|undefined,sprite:Cu
 
 /** An own set uses one sprite for shots, plus its beds and positional loops. */
 export function cueFiles(key: string): string[] {
-  const raw = sfxManifests()[key], dir = `/assets/sfx/${key}/`;
+  const raw = sfxManifests()[key];
   if (!obj(raw)) return [];
   const files: string[] = [];
   for (const section of ['beds', 'hums']) {
     const entries = raw[section];
     if (obj(entries)) for (const value of Object.values(entries)) if (obj(value)) {
-      const url = file(dir, value['file']); if (url) files.push(url);
+      const url = cueFile(key, value['file']); if (url) files.push(url);
     }
   }
   const sprite = raw['sprite'];
-  if (obj(sprite)) { const url = file(dir, sprite['file']); if (url) files.push(url); }
+  if (obj(sprite)) { const url = cueFile(key, sprite['file']); if (url) files.push(url); }
   else if (obj(raw['oneshots'])) for (const value of Object.values(raw['oneshots'])) {
     const takes = Array.isArray(value) ? value : obj(value) && Array.isArray(value['files']) ? value['files'] : [];
-    for (const take of takes) { const url = file(dir, take); if (url) files.push(url); }
+    for (const take of takes) { const url = cueFile(key, take); if (url) files.push(url); }
   }
   return [...new Set(files)];
 }

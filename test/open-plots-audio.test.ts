@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Admission controls use existing shipped AAC bytes, never generated substitutes.
 import { readFileSync, readdirSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare admitted recording identity against its original AAC bytes.
+import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the author compiler's exact module entry resolution.
 import { resolve } from 'node:path';
 import { build } from 'vite';
@@ -85,6 +87,7 @@ test('the real generation cache admits URL inputs and stores only relative recor
   try {
     const row = binding();
     Object.values(row.files).forEach((file, index) => {
+      if (typeof file !== 'string') throw new Error('Fixture requires local recording names');
       const control = controls[index]; if (control === undefined) throw new Error('Missing AAC cache control');
       writeFileSync(resolve(media, file), readFileSync(`public/assets/sfx/best/${control}`));
     });
@@ -95,6 +98,26 @@ test('the real generation cache admits URL inputs and stores only relative recor
     expect(first.shard.audio.recordings).toEqual(second.shard.audio.recordings);
     expect(Object.keys(second.shard.audio.recordings ?? {})).toHaveLength(7);
   } finally { rmSync(folder, { recursive: true, force: true }); }
+});
+
+test('a shared bed uses its canonical source URL and unchanged admitted bytes', async () => {
+  const row = binding(), requested: string[] = [];
+  const canonical = '/assets/sfx/coral-drift/shared-bed.m4a';
+  const reference = { set: 'coral-drift', dir: '/assets/sfx/coral-drift/', file: 'shared-bed.m4a' };
+  const shared = { ...row, files: { ...row.files, ambience: reference } };
+  const ctx: Pick<ProjectGenerationContext, 'cached'> = { cached: (step, generate) => {
+    requested.push(...step.inputs ?? []);
+    return context().cached(step, generate);
+  } };
+  const project = await generatePlotAudioProject(ctx, base(), shared);
+  expect(requested).toContain(canonical);
+  expect(requested).not.toContain('/assets/sfx/lantern-bayou/shared-bed.m4a');
+  const bytes = readFileSync(`public/assets/sfx/best/${controls[1]}`);
+  expect(project.shard.audio.recordings?.[canonical]).toBe(createHash('sha256').update(bytes).digest('hex'));
+  const scoreReference = { ...row, files: { ...shared.files, score: reference } };
+  await expect(generatePlotAudioProject(context(), base(), scoreReference)).rejects.toThrow('Invalid plot recording');
+  const escaped = { ...row, files: { ...row.files, ambience: { ...reference, set: '../outside' } } };
+  await expect(generatePlotAudioProject(context(), base(), escaped)).rejects.toThrow('Invalid plot recording');
 });
 
 test('an authored world keeps its real coarse-near bake and complete audio byte admission', async () => {

@@ -11,7 +11,7 @@ export interface PlotAudioBinding {
   readonly idea: string;
   readonly source: NonNullable<NonNullable<AudioData['music']>['source']>;
   readonly sfxDir: string;
-  readonly files: Readonly<Record<string, string>>;
+  readonly files: Readonly<Record<string, string | Readonly<{ set: string; dir: string; file: string }>>>;
   readonly spots: readonly PlotAudioSpot[];
 }
 
@@ -26,9 +26,12 @@ export async function generatePlotAudioProject<T extends Pick<Shardfile, 'identi
   const ids = ['score', 'ambience', ...binding.spots.map(row => row.id)];
   if (Object.keys(binding.files).length !== ids.length) throw new Error('Plot audio requires exactly its recording filenames');
   const paths = ids.map((id, index) => {
-    const file = binding.files[id];
-    if (file === undefined || !/^[a-z0-9][a-z0-9-]*\.m4a$/u.test(file)) throw new Error('Invalid plot recording filename');
-    return `${index === 0 ? binding.source.dir : binding.sfxDir}${file}`;
+    const recording = binding.files[id];
+    const shared = typeof recording === 'object' ? recording : undefined;
+    const file = typeof recording === 'string' ? recording : shared?.file;
+    if (file === undefined || !/^[a-z0-9][a-z0-9-]*\.m4a$/u.test(file)
+      || (shared !== undefined && (index !== 1 || /^\/assets\/sfx\/([a-z0-9]+(?:-[a-z0-9]+)*)\/$/u.exec(shared.dir)?.[1] !== shared.set))) throw new Error('Invalid plot recording filename');
+    return `${shared === undefined ? index === 0 ? binding.source.dir : binding.sfxDir : shared.dir}${file}`;
   });
   const inputs = await ctx.cached({ id: `audio-${binding.idea}`, inputs: paths }, files => new Map(paths.map((path, index) => {
     const bytes = files.get(path), id = ids[index];

@@ -3,6 +3,7 @@ import { BOWL } from './layout';
 import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import { ghostArrowKind, nightCues } from './nightGeometry';
 import type { DecisionScriptRow } from '@wildshard/sdk/decisionScripts';
+import type { BufferGeometryJSON } from 'three';
 
 /** The night roster's ABI-1 return programme: the shard's weather decision (its script; the bytes stay a named file). */
 export interface NalatiNightProgram { readonly script: DecisionScriptRow; readonly bytes: string }
@@ -21,7 +22,7 @@ function nightRowsOf(program: NalatiNightProgram) {
   const params = { canter: gaits.canter, center: BOWL.z, x0: point(0)[0], x1: point(1)[0], x2: point(2)[0], x3: point(3)[0],
     z1: point(1)[1] - BOWL.z, z2: point(2)[1] - BOWL.z, z3: point(3)[1] - BOWL.z, z4: point(4)[1] - BOWL.z, d1: leg(1), d2: leg(2), d3: leg(3), d4: leg(4) };
   const {geometry,material,...arrow}=ghostArrowKind();
-  const shape={data:geometry.toJSON().data};geometry.dispose();material.dispose();
+  const shape: { data: BufferGeometryJSON['data'] }={data:geometry.toJSON().data};geometry.dispose();material.dispose();
   const view = {cycle:{wake:"spawn",dawn:"dissolve"},states:{broken:"broken",retire:"retire",home:"statue"},
     cues:{wake:"cue.balbal.wake",hit:"cue.balbal.chip",weak:"cue.balbal.crack",hard:{cue:"cue.balbal.chip.hard",drop:40},broken:"cue.balbal.broken",strike:"cue.balbal.slam"},
     lift:{wake:.1,hit:1.2,broken:1,strike:.1},strike:{field:"slamT",ahead:.75},every:.05,
