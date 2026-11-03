@@ -333,6 +333,23 @@ def listening_list() -> None:
             source = html.escape(f"{plot}/{take['encoded']['file']}", quote=True)
             takes.append(f'<p><strong>Take {label}{recommendation}</strong> · seed {take["provenance"]["seed"]}</p>'
                          f'<audio controls preload="none" src="{source}"></audio>')
+        sfx_path = REPO / "public/assets/sfx" / plot / "sfx.json"
+        if sfx_path.exists():
+            sfx = json.loads(sfx_path.read_text())
+            for bed in sfx["beds"].values():
+                recording = bed["file"]
+                source_set = recording["set"] if isinstance(recording, dict) else plot
+                filename = recording["file"] if isinstance(recording, dict) else recording
+                if re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", source_set) is None or Path(filename).name != filename:
+                    raise ValueError("Listening bed requires a confined catalogue recording")
+                if not (REPO / "public/assets/sfx" / source_set / filename).is_file():
+                    raise ValueError("Listening bed recording is missing")
+                source = html.escape(f"../sfx/{source_set}/{filename}", quote=True)
+                takes.append(f'<p><strong>Ambience bed</strong></p><audio controls preload="none" src="{source}"></audio>')
+            notes = ''.join(f'<p>{html.escape(row["reuse"]["gap"])}</p>'
+                            for row in sfx["provenance"] if "reuse" in row)
+            takes.append('<details><summary>Sound credits and fit notes</summary>'
+                         f'<p>{html.escape(sfx["credit"])}</p><p>{html.escape(sfx["licence"])}</p>{notes}</details>')
         sections.append(f'<section><h2>{html.escape(plot.replace("-", " ").title())}</h2>{"".join(takes)}</section>')
     if not sections:
         raise ValueError("No real OB7 score recordings have been published")
