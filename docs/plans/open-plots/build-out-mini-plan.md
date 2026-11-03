@@ -233,7 +233,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 
 | Row | What | Lane | Size | Done when |
 |---|---|---|---|---|
-| OB0 | **In flight (2026-11-03, sp-x1; source + guarded boot inventory qualified, five WebKit entries pending). On SHARD SELECT (G984).** Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift each get a SHARD SELECT card (existing thumbs) that enters the plot standalone, public build too | Codex | 0.5 | Each of the five enters from SHARD SELECT on WebKit (iPhone 16 Pro); a test pins the five cards |
+| OB0 | **done (2026-11-03, G984; `8b7168fce9` + `53dd955063`, WebKit `53dd955-mw0atk0y`). On SHARD SELECT.** Frostline Peaks, Lantern Bayou, Ember Forge, Mosslight Ruins and Coral Drift each get a SHARD SELECT card (existing thumbs) that enters the plot standalone, public build too | Codex | 0.5 | Each of the five enters from SHARD SELECT on WebKit (iPhone 16 Pro); a test pins the five cards |
 | OB1 | **done (2026-11-03, G972; `ffb6270346` + `913b810625`).** **G972, one grid.** `src/game/grid/singleplayer.json`: `nine-dragon-stack` takes (1,-1) in `grid.cells` (it replaces that Lantern Bayou copy), and `grid.developer` is deleted along with every reader of it (`src/game/grid/catalogue.ts`, `assembly.ts`, `copyIdentity.ts`, `entryDownloads.ts`, the grid tests, and the scripts that read it: `public-grid.mjs`, `frame-floor.mjs`, soak, parity, the world-map atlas and others; grep before deleting). Blender-template, pastel-plain and ink-cel-valley leave the grid. Fold the now-redundant `devserver` Nine entry if nothing else needs it | Codex | 1 d | One grid for public and Developer. Nine enters from its cell on a public build. The grid tests, `vitest related` and the boot smoke pass. Net lines are negative |
 | OB2 | **Pilot: Lantern Bayou** through pipeline steps 1–8. Template additions that every later plot reuses (Codex): audio rows from the template, the bar-7 life check (pixel change per 500 ms in the 5 s clip), the bar-5 three-way board maker, and the per-plot tiling report (G950). Opus: the plot itself, and holding the landmark for the whole cell (§6) | Opus 2 + Codex 1.5 | 3.5 lane-days (was 5.5) | Board sent; the four hero views read as the 2 × 2 board, by eye; the layout is mirror-symmetric kit tiles plus ≤ 3 theme tile variants and one landmark (G978); the three-way board reads "better"; life visible; audio plays; ≤ 130 draws, ≤ 600k triangles, ≤ 1.0 GB in the Chromium reading; 0 stuck; the plot replaces its hologram |
 | OB3 | **Frostline Peaks** (wave 2; builds the shared pines, snow and ice) | Opus 2 + Codex 0.5 | 2.5 (was 6) | As OB2. The peak lodge and lift are readable from the road entry and from the Far Reach side |
@@ -474,3 +474,36 @@ An earlier strict check reached the existing stale-publication guard after
 passing source admission; normal publication refreshed it without relaxing
 either guard. All other plot metadata and bake fields stay exact, including
 X8's four appended NU3 rows. The five real WebKit entries remain queued.
+
+
+### OB0: five public WebKit entries qualified (2026-11-03)
+
+All five public SHARD SELECT cards entered their own standalone worlds on
+the immutable `53dd955063aca925db357a583c4101db03720aec` preview, build
+`53dd955-mw0atk0y`. One real WebKit browser used serial iPhone 16 Pro
+402 × 874 / DPR 2 contexts with Developer off. The actual carousel card and
+ENTER WORLD button were used; every case reached native `play`, entered
+unpaused HUD, frameGate, a finite live player and `grid: null`.
+
+| Plot | Additional real gameplay frames | Fatal / page / console faults | Result |
+|---|---:|---:|---|
+| Frostline Peaks | 12 | 0 | PASS |
+| Lantern Bayou | 12 | 0 | PASS |
+| Ember Forge | 13 | 0 | PASS |
+| Mosslight Ruins | 12 | 0 | PASS |
+| Coral Drift | 13 | 0 | PASS |
+
+Every initial/final version guard retained the same exact build. Fifteen
+lossless 804 × 1748 title/card/gameplay captures passed the unchanged native
+image guard; all five gameplay images were viewed. The caller reused the
+maintained boot observations/readiness guards with WebKit's supported PNG
+transport, never a fabricated world, synthetic clock or screenshot scene.
+Two earlier caller refusals (Chromium-only CDP transport and selected-card
+text assertion) happened before any ENTER WORLD tap; their raw evidence is
+retained separately and is not called a game failure or native pass.
+
+Actual reading: `tmp/sp-x1-ob0/webkit-entry/reading.json`; full per-case
+observations and captures are beside it. The cohort exited 0, every browser
+context closed, and the ordinary joined 4407 preview borrow was released
+with exit 0. No extra app build, physics change, physical-phone, CI timing
+or whole open-plot art/completion claim follows. This meets OB0 only.
