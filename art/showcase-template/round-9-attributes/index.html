@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attributes: 20 Games and Our Four</title>
+<style>
+:root {
+  /* Dev-map world like rounds 3-8: grey grid floor, orange stencil. Attribute colours are fixed per attribute. */
+  --floor: #2b2d30; --panel: #35383c; --line: #4a4e54; --ink: #eceae6; --muted: #a7abb1;
+  --orange: #f08a24; --good: #6fcf8a; --bad: #ef6b5b;
+  --vit: #ef6b5b; --str: #f08a24; --dex: #8fd3ff; --agi: #c9f27a; --lvl: #a7abb1;
+  --display: "Impact", "Haettenschweiler", "Arial Narrow Bold", sans-serif;
+  --body: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--floor);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px; background-attachment: fixed;
+  color: var(--ink); font: 16px/1.55 var(--body);
+}
+main { max-width: 820px; margin: 0 auto; padding: 24px 14px 56px; display: grid; gap: 18px; }
+h1 { font: 38px/1.05 var(--display); color: var(--orange); margin: 0; letter-spacing: 0.02em; text-wrap: balance; }
+.sub { color: var(--muted); font: 13px var(--mono); }
+section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 16px; display: grid; gap: 10px; min-width: 0; }
+h2 { font: 24px/1.1 var(--display); color: var(--orange); margin: 0; letter-spacing: 0.02em; }
+h3 { font: 600 17px/1.2 var(--body); margin: 6px 0 0; }
+p, li { max-width: 68ch; } p { margin: 0; }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 6px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11.5px var(--mono); color: var(--muted); text-transform: uppercase; }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.scroll table { min-width: 680px; }
+.rec { border-left-color: var(--good); } .rec h2 { color: var(--good); }
+code, .m { font: 13px var(--mono); color: var(--muted); }
+pre { margin: 0; font: 12.5px/1.5 var(--mono); color: var(--ink); background: var(--floor); border: 1px solid var(--line); padding: 10px; overflow-x: auto; white-space: pre; }
+svg { width: 100%; height: auto; font-family: var(--mono); }
+.a { font: 700 15px var(--display); letter-spacing: 0.05em; }
+.a.vit { color: var(--vit); } .a.str { color: var(--str); } .a.dex { color: var(--dex); } .a.agi { color: var(--agi); } .a.lvl { color: var(--lvl); }
+details { background: var(--floor); border: 1px solid var(--line); padding: 8px 10px; }
+details + details { margin-top: -4px; }
+summary { cursor: pointer; font-weight: 600; }
+summary .m { font-weight: 400; }
+details[open] summary { margin-bottom: 6px; }
+.facts { display: grid; grid-template-columns: 92px 1fr; gap: 3px 10px; font-size: 14px; }
+.facts b { font: 600 11.5px var(--mono); color: var(--muted); padding-top: 3px; text-transform: uppercase; }
+.games { display: grid; gap: 8px; }
+.opt { background: var(--floor); border: 1px solid var(--line); border-left: 6px solid var(--c, var(--muted)); padding: 12px; display: grid; gap: 8px; }
+.opt .tag { font: 26px/1 var(--display); color: var(--c, var(--ink)); }
+.attr { display: grid; grid-template-columns: 54px 1fr; gap: 2px 10px; font-size: 14.5px; align-items: baseline; }
+.attr .eff { grid-column: 2; font: 12.5px/1.45 var(--mono); color: var(--muted); }
+.key { border-top: 1px dashed var(--line); padding-top: 8px; font-size: 14px; color: var(--muted); }
+.pick { font: 600 13px var(--mono); color: var(--good); }
+.q { background: var(--floor); border: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 4px; }
+.q .ans { color: var(--good); }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+<h1>ATTRIBUTES: 20 GAMES AND OUR FOUR</h1>
+<div class="sub">Kitchen Sink v2 · levels and combat · 2026-11-03 · draft for Jake · replaces the old eight (round 3)</div>
+</header>
+
+<section class="rec">
+<h2>SHORT VERSION</h2>
+<p><b>Four attributes, the shape you described:</b> <span class="a vit">VIT</span> is your HP. <span class="a str">STR</span> is melee damage. <span class="a dex">DEX</span> is ranged damage, your chance to land a hit with <i>every</i> weapon, and melee crits. <span class="a agi">AGI</span> is dodging and ranged crits.</p>
+<p><b>No armour attribute.</b> Armour is <b>your level</b> (the level gap already does most of the defending, as in Ragnarok, Diablo II and Guild Wars 1) times a <b>plating number on each robot's body</b> (Monster Hunter's hard parts, as data). The player's plating is 1.0, and the Warden's Plate and Arc Insulation upgrades stay.</p>
+<p><b>Aptitude with four:</b> one 1.2, two 1.0, one 0.8 per shard: your eight-attribute rule (two, four, two) halved. Each shard rolls you one strong and one weak attribute. That gives 12 different characters, each of them balanced.</p>
+<p>The research below supports it: strength and health appear in almost every game, accuracy usually rides DEX, games that made hit chance its own stat later removed it, and action games keep defence on gear or level, not as a stat.</p>
+</section>
+
+<section>
+<h2>1 · THE 20 GAMES AT A GLANCE</h2>
+<p>Ten MMOs, five classic RPGs, five action RPGs. <b>Growth</b>: chosen = you spend points; auto = the game grows them; by use = doing it raises it. <b>Armour</b>: where damage reduction comes from. <b>Hit / evade</b>: how a blow can fail.</p>
+<div class="scroll"><table>
+<tr><th>Game</th><th>#</th><th>Growth</th><th>Armour from</th><th>Hit / evade</th></tr>
+<tr><td>Guild Wars 1</td><td>4–5 per class</td><td>chosen, refundable</td><td>gear, capped and cheap at 20</td><td>no base miss; block and blind skills</td></tr>
+<tr><td>Guild Wars 2</td><td>4 + 5</td><td>auto to 80, then gear</td><td>gear + Toughness</td><td>no miss; dodge roll; blind</td></tr>
+<tr><td>World of Warcraft</td><td>5 → 4 + 4</td><td>auto by class</td><td>gear</td><td>Classic: hit rating, dodge from Agility; hit cut in 2014</td></tr>
+<tr><td>Old School RuneScape</td><td>7</td><td>by use</td><td>gear + Defence level (lowers hit chance)</td><td>Attack roll vs Defence roll</td></tr>
+<tr><td>EverQuest</td><td>7 + resists</td><td>chosen at creation; skills by use</td><td>gear AC + AGI + Defense skill</td><td>weapon skill + level vs Defense</td></tr>
+<tr><td>Final Fantasy XIV</td><td>5 + 6</td><td>auto; gear</td><td>gear</td><td>none (accuracy cut in 2017)</td></tr>
+<tr><td>Ragnarok Online</td><td>6</td><td>chosen</td><td>gear % + VIT</td><td>HIT = level + DEX vs FLEE = level + AGI</td></tr>
+<tr><td>Black Desert</td><td>4 gear stats</td><td>gear enhancing</td><td>gear only</td><td>accuracy vs evasion, hidden</td></tr>
+<tr><td>Lost Ark</td><td>6 + 4</td><td>gear, accessories</td><td>gear + Endurance</td><td>none</td></tr>
+<tr><td>D&amp;D 5e / Baldur's Gate 3</td><td>6</td><td>chosen at creation, +2 at 4/8/12</td><td>armour + DEX = AC</td><td>d20 + STR or DEX vs AC</td></tr>
+<tr><td>Fallout (SPECIAL)</td><td>7</td><td>chosen at creation (FO4: +1 a level)</td><td>gear</td><td>VATS %, Perception</td></tr>
+<tr><td>Elder Scrolls</td><td>8 → 3</td><td>by use</td><td>gear + Armor skill</td><td>Morrowind: dice from Agility; gone from Oblivion on</td></tr>
+<tr><td>Fire Emblem</td><td>8</td><td><b>auto, random rolls</b></td><td><b>Def is an attribute</b></td><td>2 × Skill vs 2 × Speed + Luck</td></tr>
+<tr><td>Pokémon</td><td>6</td><td><b>auto</b> (+ natures)</td><td><b>Defense is a stat</b></td><td>per move, not a stat</td></tr>
+<tr><td>Diablo II</td><td>4</td><td>chosen, 5 a level</td><td>gear + DEX</td><td>attack rating (DEX) and level vs defence</td></tr>
+<tr><td>Path of Exile</td><td>3</td><td>chosen (tree)</td><td>gear; attributes add %</td><td>accuracy (DEX) vs evasion</td></tr>
+<tr><td>Elden Ring / Dark Souls</td><td>8</td><td>chosen, 1 a level</td><td>gear</td><td>none; dodge roll</td></tr>
+<tr><td>Monster Hunter</td><td>0</td><td>crafting</td><td>gear; hard parts on monsters</td><td>none; blades bounce off hard parts</td></tr>
+<tr><td>Kingdom Come: Deliverance</td><td>4 + skills</td><td>by use</td><td>gear, layered</td><td>no dice; enemy blocks and parries</td></tr>
+<tr><td>Dragon's Dogma</td><td>6</td><td><b>auto, by vocation</b></td><td>Defense stat + gear</td><td>none</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>ATTRIBUTES THAT SHOW UP MOST</h2>
+<p>How many of the 20 have each kind of attribute (a game counts once per kind). Orange bars are the jobs our four cover.</p>
+<svg viewBox="0 0 640 374" role="img" aria-label="How many of the 20 games have each kind of attribute"><line x1="210.0" x2="210.0" y1="10" y2="344" stroke="#4a4e54"/><text x="210.0" y="360" text-anchor="middle" font-size="12" fill="#a7abb1">0</text><line x1="292.5" x2="292.5" y1="10" y2="344" stroke="#4a4e54"/><text x="292.5" y="360" text-anchor="middle" font-size="12" fill="#a7abb1">5</text><line x1="375.0" x2="375.0" y1="10" y2="344" stroke="#4a4e54"/><text x="375.0" y="360" text-anchor="middle" font-size="12" fill="#a7abb1">10</text><line x1="457.5" x2="457.5" y1="10" y2="344" stroke="#4a4e54"/><text x="457.5" y="360" text-anchor="middle" font-size="12" fill="#a7abb1">15</text><line x1="540.0" x2="540.0" y1="10" y2="344" stroke="#4a4e54"/><text x="540.0" y="360" text-anchor="middle" font-size="12" fill="#a7abb1">20</text><text x="202" y="33" text-anchor="end" font-size="13" fill="#eceae6">Strength · physical power</text><rect x="210" y="19" width="313.5" height="20" fill="#f08a24"/><text x="529.5" y="33" font-size="13" fill="#eceae6">19 → STR</text><text x="202" y="63" text-anchor="end" font-size="13" fill="#eceae6">Health · vitality</text><rect x="210" y="49" width="264.0" height="20" fill="#f08a24"/><text x="480.0" y="63" font-size="13" fill="#eceae6">16 → VIT</text><text x="202" y="93" text-anchor="end" font-size="13" fill="#a7abb1">Magic power</text><rect x="210" y="79" width="214.5" height="20" fill="#6b7078"/><text x="430.5" y="93" font-size="13" fill="#eceae6">13</text><text x="202" y="123" text-anchor="end" font-size="13" fill="#eceae6">Agility · speed · evasion</text><rect x="210" y="109" width="181.5" height="20" fill="#f08a24"/><text x="397.5" y="123" font-size="13" fill="#eceae6">11 → AGI</text><text x="202" y="153" text-anchor="end" font-size="13" fill="#eceae6">Dexterity · skill · ranged</text><rect x="210" y="139" width="165.0" height="20" fill="#f08a24"/><text x="381.0" y="153" font-size="13" fill="#eceae6">10 → DEX</text><text x="202" y="183" text-anchor="end" font-size="13" fill="#eceae6">Accuracy from a stat</text><rect x="210" y="169" width="165.0" height="20" fill="#f08a24"/><text x="381.0" y="183" font-size="13" fill="#eceae6">10 → DEX</text><text x="202" y="213" text-anchor="end" font-size="13" fill="#a7abb1">Mana · stamina pool</text><rect x="210" y="199" width="148.5" height="20" fill="#6b7078"/><text x="364.5" y="213" font-size="13" fill="#eceae6">9</text><text x="202" y="243" text-anchor="end" font-size="13" fill="#eceae6">Crit · luck</text><rect x="210" y="229" width="132.0" height="20" fill="#f08a24"/><text x="348.0" y="243" font-size="13" fill="#eceae6">8 → DEX · AGI</text><text x="202" y="273" text-anchor="end" font-size="13" fill="#a7abb1">Defence as a stat, not gear</text><rect x="210" y="259" width="132.0" height="20" fill="#6b7078"/><text x="348.0" y="273" font-size="13" fill="#eceae6">8</text><text x="202" y="303" text-anchor="end" font-size="13" fill="#a7abb1">Magic defence · will</text><rect x="210" y="289" width="82.5" height="20" fill="#6b7078"/><text x="298.5" y="303" font-size="13" fill="#eceae6">5</text><text x="202" y="333" text-anchor="end" font-size="13" fill="#a7abb1">Social · speech</text><rect x="210" y="319" width="82.5" height="20" fill="#6b7078"/><text x="298.5" y="333" font-size="13" fill="#eceae6">5</text></svg>
+<h3>What the 20 teach</h3>
+<ul>
+<li><b>Strength (19 of 20) and health (16) are universal.</b> Nobody needs VIT or STR explained.</li>
+<li><b>Most games split skill from speed:</b> a DEX-like stat (skill, aim, ranged) and an AGI-like stat (speed, evasion) are separate in WoW, EverQuest, Ragnarok, Fire Emblem (Skill and Speed) and Path of Exile.</li>
+<li><b>Accuracy is a stat in 10 games, but its own stat in only 3</b> (RuneScape's Attack, Black Desert's Accuracy, WoW's hit rating). In 6 it rides DEX or Skill (Ragnarok, Diablo II, Path of Exile, D&amp;D, Fire Emblem, Morrowind's Agility). The games that had a separate accuracy chase cut it: WoW in 2014, FFXIV in 2017, Elder Scrolls after Morrowind. <b>Your "DEX is hit chance" is the common shape.</b></li>
+<li><b>Crit sits on the finesse stat:</b> Fire Emblem's Skill (hit and crit, exactly your DEX), WoW Classic's Agility (crit and dodge, exactly your AGI), Ragnarok's Luck.</li>
+<li><b>Dead stats are the most common complaint:</b> Dark Souls 1's Resistance, Lost Ark's three "trap stats", Charisma in EverQuest, Luck in Ragnarok. Our growth is automatic, so nobody wastes points, but an attribute with no visible effect is still noise. <b>Each of our four shows up on screen in every fight.</b></li>
+<li><b>Balanced random growth already exists:</b> Pokémon's natures give +10 % to one stat and −10 % to another. Our aptitude roll works the same way, across the whole sheet.</li>
+<li><b>Growth tied to a choice breeds regret:</b> Dragon's Dogma players level as one vocation and then switch to farm better stats. Your automatic per-shard roll avoids that by design.</li>
+</ul>
+<h3>Defence without gear armour</h3>
+<p>The Kitchen Sink has no armour drops: fixed rewards, Forge I–IV for weapons. The games that also avoid gear armour handle defence in four ways:</p>
+<ul>
+<li><b>Defence is an attribute that grows with level</b>: Fire Emblem (Def), Pokémon (Defense), Dragon's Dogma. All three are turn-based or close to it, where the stat sheet is the whole game.</li>
+<li><b>The level is the defence</b>: Ragnarok puts the level in both HIT and FLEE, Diablo II scales hit chance by both levels, and Guild Wars 1 monsters get their armour from their level.</li>
+<li><b>A short, capped ladder bought once</b>: Guild Wars 1's max armour is cheap and the same for everyone at 20. That is our Forge, and it already exists for weapons.</li>
+<li><b>Hard parts on the body</b>: Monster Hunter puts the toughness in the monster's hitzones (data), and blades bounce off.</li>
+</ul>
+<p><b>The recommendation takes the second and the fourth:</b> your level is your armour, and each robot's body carries a plating number. That keeps the DEFLECT clang meaningful: a Riveter clangs more than a Crate Mite at the same level.</p>
+</section>
+
+<section>
+<h2>THE 20, ONE BY ONE</h2>
+<p class="m">Tap a game. Attributes are name → what it does. "Players say" is the community consensus as I read it, not a poll.</p>
+<div class="games">
+
+<details><summary>Guild Wars 1 <span class="m">· MMO · 4–5 a profession · chosen</span></summary><div class="facts">
+<b>Attributes</b><span>Strength (Warrior) → armour penetration on attack skills; Swordsmanship, Axe, Hammer Mastery → weapon skill power; Tactics → stances and shouts; Energy Storage → more energy; Fire, Water, Air, Earth Magic → spell power. Every profession has its own lines.</span>
+<b>Growth</b><span>Chosen: about 200 points by level 20, refundable any time outside combat.</span>
+<b>Armour</b><span>Gear, but max armour (60–80 by profession) is cheap and reached at 20; prestige armour is looks only. Monster armour comes from monster level.</span>
+<b>Hit / evade</b><span>No base miss. Failures come from block and evade skills and from blindness.</span>
+<b>Players say</b><span>The low cap and cheap max gear are its most praised MMO choices ("horizontal progression"). Builds come from the skill bar; attributes are mostly skill power.</span></div></details>
+
+<details><summary>Guild Wars 2 <span class="m">· MMO · 4 core + 5 · auto, then gear</span></summary><div class="facts">
+<b>Attributes</b><span>Power → damage; Precision → crit chance; Toughness → armour; Vitality → HP. Secondary: Ferocity → crit damage; Condition Damage; Expertise; Concentration; Healing Power.</span>
+<b>Growth</b><span>Automatic to 1,000 each at level 80, then gear stat combos.</span>
+<b>Armour</b><span>Gear defence + Toughness.</span>
+<b>Hit / evade</b><span>No miss except Blind; your dodge roll is the evasion.</span>
+<b>Players say</b><span>"Berserker" gear (Power, Precision, Ferocity) dominates PvE. Toughness also draws boss aggro, so damage dealers skip it. Downscaling to the zone's level is loved.</span></div></details>
+
+<details><summary>World of Warcraft <span class="m">· MMO · 5 (Classic) → 4 + 4 · auto</span></summary><div class="facts">
+<b>Attributes</b><span>Classic: Strength → melee attack power, block; Agility → crit, dodge, armour, rogue and hunter attack power; Stamina → HP; Intellect → mana, spell crit; Spirit → regen. Retail: a primary (Str, Agi or Int) + Stamina; Crit, Haste, Mastery, Versatility from gear.</span>
+<b>Growth</b><span>Automatic by class and level; gear does most of it.</span>
+<b>Armour</b><span>Gear (Agility added a little in Classic).</span>
+<b>Hit / evade</b><span>Classic: hit rating and weapon skill against a miss, dodge, parry and glance table. Hit and expertise were cut in 2014, Spirit in 2016.</span>
+<b>Players say</b><span>The hit-cap chase is remembered as a chore. Classic Agility (crit + dodge) is the rogue and hunter stat, close to the AGI we propose.</span></div></details>
+
+<details><summary>Old School RuneScape <span class="m">· MMO · 7 combat skills · by use</span></summary><div class="facts">
+<b>Attributes</b><span>Attack → melee accuracy; Strength → melee max hit; Defence → chance to be missed; Ranged → ranged accuracy and damage; Magic; Hitpoints → HP; Prayer → buffs.</span>
+<b>Growth</b><span>By use: the attack style you pick decides which skill gets the XP.</span>
+<b>Armour</b><span>Gear bonuses feed the same defence roll as the Defence level. Armour lowers the chance to be hit, not the damage.</span>
+<b>Hit / evade</b><span>Attack roll vs defence roll; damage then rolls 0 to max.</span>
+<b>Players say</b><span>"Pure" accounts (1 Defence) are a beloved build culture. Splitting accuracy (Attack) from damage (Strength) confuses new players.</span></div></details>
+
+<details><summary>EverQuest <span class="m">· MMO · 7 + resists · chosen at creation</span></summary><div class="facts">
+<b>Attributes</b><span>STR → melee damage, carry; STA → HP; AGI → armour class, avoidance; DEX → procs, skill-ups; WIS, INT → mana; CHA → charm, prices. Resists: magic, fire, cold, poison, disease.</span>
+<b>Growth</b><span>Bonus points at creation, then gear. Weapon, Offense and Defense skills rise by use.</span>
+<b>Armour</b><span>AC from gear + AGI + the Defense skill.</span>
+<b>Hit / evade</b><span>Weapon skill and level vs Defense skill. Con colours started here.</span>
+<b>Players say</b><span>Stats feel invisible next to gear and level; CHA is a dump stat; skill-up grinding is a chore.</span></div></details>
+
+<details><summary>Final Fantasy XIV <span class="m">· MMO · 5 + 6 · auto, gear</span></summary><div class="facts">
+<b>Attributes</b><span>STR (melee), DEX (ranged, rogues), VIT → HP, INT, MND. Secondary: Critical Hit, Determination, Direct Hit, Skill and Spell Speed, Tenacity → tanks take less, Piety.</span>
+<b>Growth</b><span>Automatic per level; item level and melded materia do the rest.</span>
+<b>Armour</b><span>Gear Defense and Magic Defense.</span>
+<b>Hit / evade</b><span>None: the accuracy stat was removed in Stormblood (2017).</span>
+<b>Players say</b><span>Removing accuracy was welcomed. Most players just equip the highest item level and never look at the stats.</span></div></details>
+
+<details><summary>Ragnarok Online <span class="m">· MMO · 6 · chosen</span></summary><div class="facts">
+<b>Attributes</b><span>STR → melee attack, carry; AGI → flee (dodge), attack speed; VIT → HP, soft defence; INT → magic; DEX → hit, cast speed, ranged attack; LUK → crit, perfect dodge.</span>
+<b>Growth</b><span>Chosen; higher stats cost more points.</span>
+<b>Armour</b><span>Gear defence % + soft defence from VIT.</span>
+<b>Hit / evade</b><span>HIT = level + DEX vs FLEE = level + AGI; hit % = 80 + HIT − FLEE. Each extra attacker cuts flee.</span>
+<b>Players say</b><span>Its builds (AGI, VIT, DEX) are iconic. An agility build breaks down when mobbed, and LUK feels weak.</span></div></details>
+
+<details><summary>Black Desert <span class="m">· MMO · 4 gear stats · enhancing</span></summary><div class="facts">
+<b>Attributes</b><span>No character attributes. AP → damage; DP → defence, split into evasion and damage reduction; Accuracy; Evasion. Life skills grow by use.</span>
+<b>Growth</b><span>Gear enhancement (it can fail).</span>
+<b>Armour</b><span>Gear only.</span>
+<b>Hit / evade</b><span>Hidden accuracy vs evasion. Since May 2024 an evaded hit still deals reduced damage.</span>
+<b>Players say</b><span>The gear grind is the treadmill people quit over. Players find the AP and DP brackets opaque.</span></div></details>
+
+<details><summary>Lost Ark <span class="m">· MMO · 6 combat stats · gear</span></summary><div class="facts">
+<b>Attributes</b><span>Main stat (Str, Dex or Int) and Vitality from gear. Crit; Specialization → class skills; Swiftness → speed; Domination; Endurance → take less; Expertise.</span>
+<b>Growth</b><span>Item level and accessories.</span>
+<b>Armour</b><span>Gear + Endurance.</span>
+<b>Hit / evade</b><span>None.</span>
+<b>Players say</b><span>Domination, Endurance and Expertise are "trap stats" nobody builds; everyone runs Crit, Specialization and Swiftness. Half the list is dead.</span></div></details>
+
+<details><summary>D&amp;D 5e / Baldur's Gate 3 <span class="m">· classic · 6 · chosen</span></summary><div class="facts">
+<b>Attributes</b><span>STR → melee hit and damage; DEX → AC, ranged and finesse hit and damage, initiative; CON → HP; INT, WIS, CHA → spells, saves, talking.</span>
+<b>Growth</b><span>Point buy at creation, +2 at levels 4, 8 and 12 (or a feat).</span>
+<b>Armour</b><span>AC = worn armour + DEX (capped in heavy armour). Defence and evasion are one number.</span>
+<b>Hit / evade</b><span>d20 + ability + proficiency vs AC; "bounded accuracy" keeps numbers small.</span>
+<b>Players say</b><span>Bounded accuracy is loved. Baldur's Gate 3's "95 % and I missed" memes show a dice whiff stings even in a turn-based game.</span></div></details>
+
+<details><summary>Fallout (SPECIAL) <span class="m">· classic · 7 · chosen</span></summary><div class="facts">
+<b>Attributes</b><span>Strength → melee damage, carry; Perception → VATS accuracy, detection; Endurance → HP; Charisma → speech, prices; Intelligence → skill points; Agility → action points, sneak; Luck → crits.</span>
+<b>Growth</b><span>Chosen at creation; Fallout 4 adds +1 a level as a perk choice.</span>
+<b>Armour</b><span>Damage resistance from armour.</span>
+<b>Hit / evade</b><span>VATS shows the % before you commit; skill and Perception raise it.</span>
+<b>Players say</b><span>SPECIAL is loved as identity. Charisma and Luck are niche; low-Intelligence runs are a cult favourite.</span></div></details>
+
+<details><summary>Elder Scrolls (Morrowind, Oblivion → Skyrim) <span class="m">· classic · 8 → 3 · by use</span></summary><div class="facts">
+<b>Attributes</b><span>Morrowind and Oblivion: Strength → damage, carry; Intelligence → magicka; Willpower → spell success; Agility → hit, dodge, block; Speed; Endurance → HP; Personality → speech; Luck → a little of everything. Skyrim: Health, Magicka, Stamina.</span>
+<b>Growth</b><span>Skills by use; Oblivion's level-up multipliers; Skyrim gives +10 to one of three per level.</span>
+<b>Armour</b><span>Gear + the Armor skill.</span>
+<b>Hit / evade</b><span>Morrowind rolls dice (skill, Agility, Luck, fatigue); Oblivion removed them.</span>
+<b>Players say</b><span>Morrowind's silent whiffs are the classic complaint. Oblivion's "efficient levelling" was a chore. Skyrim's three are called shallow but frictionless.</span></div></details>
+
+<details><summary>Fire Emblem <span class="m">· classic · 8 · auto, random</span></summary><div class="facts">
+<b>Attributes</b><span>HP; Str → physical damage; Mag; Skl → hit and crit; Spd → avoid and double attacks; Lck → avoid, crit dodge; Def → physical damage taken; Res → magic damage taken.</span>
+<b>Growth</b><span>Automatic and random: each stat rolls its growth % every level-up. A cap per class.</span>
+<b>Armour</b><span>Def is an attribute; there is no armour gear. Armour Knights simply grow Def fast.</span>
+<b>Hit / evade</b><span>Hit = weapon + 2·Skl + Lck/2 vs Avoid = 2·Spd + Lck. Many entries roll two dice and average them, which makes high odds safer than they look.</span>
+<b>Players say</b><span>"Blessed" and "screwed" level-ups are the drama. Speed is the god stat; Luck and Res are weakest. Skill (hit + crit) is the DEX we propose.</span></div></details>
+
+<details><summary>Pokémon <span class="m">· classic · 6 · auto</span></summary><div class="facts">
+<b>Attributes</b><span>HP; Attack; Defense; Sp. Atk; Sp. Def; Speed → who moves first.</span>
+<b>Growth</b><span>Automatic from species base stats, IVs and EVs. A nature gives +10 % to one stat and −10 % to another.</span>
+<b>Armour</b><span>The Defense stat; no gear.</span>
+<b>Hit / evade</b><span>Each move has its own accuracy; no accuracy stat.</span>
+<b>Players say</b><span>Speed decides most fights. Natures are a balanced aptitude roll: one stat up, one down, never a worse total.</span></div></details>
+
+<details><summary>Diablo II <span class="m">· action · 4 · chosen</span></summary><div class="facts">
+<b>Attributes</b><span>Strength → damage, gear requirements; Dexterity → attack rating (hit), defence, block, bow damage; Vitality → HP, stamina; Energy → mana.</span>
+<b>Growth</b><span>5 chosen points a level. Diablo IV keeps four (Str, Int, Will, Dex) but grants them automatically.</span>
+<b>Armour</b><span>Gear defence + DEX.</span>
+<b>Hit / evade</b><span>2 × AR/(AR+DR) × alvl/(alvl+dlvl), 5–95 %.</span>
+<b>Players say</b><span>"Strength for gear, Dexterity for max block, the rest in Vitality": the choice collapses to one answer.</span></div></details>
+
+<details><summary>Path of Exile <span class="m">· action · 3 · chosen</span></summary><div class="facts">
+<b>Attributes</b><span>Strength → life, melee damage %; Dexterity → accuracy, evasion %; Intelligence → mana, energy shield %.</span>
+<b>Growth</b><span>Chosen on the passive tree; gear.</span>
+<b>Armour</b><span>Gear armour, evasion and energy shield; attributes add %.</span>
+<b>Hit / evade</b><span>Accuracy (from DEX and level) vs evasion, through an anti-streak counter.</span>
+<b>Players say</b><span>Attributes read as requirements and a nudge. DEX = accuracy is accepted without fuss.</span></div></details>
+
+<details><summary>Elden Ring / Dark Souls <span class="m">· action · 8 · chosen</span></summary><div class="facts">
+<b>Attributes</b><span>Vigor → HP; Mind → FP; Endurance → stamina, equip load; Strength and Dexterity → weapon scaling; Intelligence, Faith, Arcane → spells.</span>
+<b>Growth</b><span>Chosen, one point a level.</span>
+<b>Armour</b><span>Gear absorption and poise. Dark Souls 1's Resistance attribute is the textbook dead stat.</span>
+<b>Hit / evade</b><span>None; evasion is your dodge roll.</span>
+<b>Players say</b><span>"Vigor first." Soft caps are well understood; "never level Resistance".</span></div></details>
+
+<details><summary>Monster Hunter <span class="m">· action · 0 · crafting</span></summary><div class="facts">
+<b>Attributes</b><span>None. Weapons have attack, affinity (crit), element and sharpness; armour has defence, resistances and skills.</span>
+<b>Growth</b><span>Crafting from monster parts.</span>
+<b>Armour</b><span>Gear only. Monsters' toughness lives in hitzones: hard parts on the body.</span>
+<b>Hit / evade</b><span>None; a blade bounces off a hard part with sparks.</span>
+<b>Players say</b><span>"No stats, just skill and gear" is the appeal; the bounce teaches you where to hit. That is our DEFLECT.</span></div></details>
+
+<details><summary>Kingdom Come: Deliverance <span class="m">· action · 4 + skills · by use</span></summary><div class="facts">
+<b>Attributes</b><span>Strength → damage, carry; Agility → combat speed, stealth; Vitality → stamina and health; Speech → talking.</span>
+<b>Growth</b><span>By use: swinging raises Strength, dodging and parrying raise Agility, running raises Vitality.</span>
+<b>Armour</b><span>Gear, in layers.</span>
+<b>Hit / evade</b><span>No dice; skill shapes enemy blocks, parries and master strikes.</span>
+<b>Players say</b><span>"Henry gets better as you do" is the praise; running laps to grind Vitality is the complaint.</span></div></details>
+
+<details><summary>Dragon's Dogma <span class="m">· action · 6 · auto, by vocation</span></summary><div class="facts">
+<b>Attributes</b><span>HP; Stamina; Strength; Magick; Defense; Magick Defense.</span>
+<b>Growth</b><span>Automatic per level, by your current vocation (a Fighter level adds more Defense, a Sorcerer level more Magick).</span>
+<b>Armour</b><span>The Defense attribute + gear.</span>
+<b>Hit / evade</b><span>None; physical contact decides.</span>
+<b>Players say</b><span>Growth tied to a choice breeds regret: guides say to level as one vocation and then switch. That argues for growth that never hinges on a choice.</span></div></details>
+
+</div>
+</section>
+
+<section>
+<h2>2 · THREE OPTIONS</h2>
+<p>All three keep the locked rules: VIT is the HP (100 → 300, cap 330), the failure roll is 12 % at equal level and 90 % at +8 with no streak guard, failures show as DEFLECT, DODGE or PARRY, and enemies use the same attributes. Every attribute follows one <b>par curve</b>, the average path <code>P(L) = 100 × 3^((L−1)/19)</code> (100 at L1, 168 at L10, 300 at L20), and grows by the locked model (par step × aptitude × swing, cap 330).</p>
+<p><b>The rule that keeps the level gap harsh:</b> attributes move the failure roll by your <b>edge</b>: how far a value sits above or below par <i>for its owner's level</i>. Level-driven growth never counts twice. Each 1 % of edge moves the roll by 0.5 points, capped at ±8, so the best roll is worth less than one level (9.75). Edges at level 10 run from about 0.92 (aptitude 0.8) to 1.08 (1.2).</p>
+<div class="scroll"><table>
+<tr><th></th><th>A · Jake's four <span class="pick">RECOMMENDED</span></th><th>B · Four + Defence</th><th>C · The old 8 trimmed to 6</th></tr>
+<tr><td>Attributes</td><td>VIT STR DEX AGI</td><td>VIT STR DEX AGI DEF</td><td>VIT STR DEX PRE AGI TGH</td></tr>
+<tr><td>Hit chance (yours)</td><td>DEX, every weapon</td><td>DEX, every weapon</td><td>PRE</td></tr>
+<tr><td>Crit</td><td>DEX melee · AGI ranged</td><td>DEX melee · AGI ranged</td><td>PRE</td></tr>
+<tr><td>Failures on you</td><td>AGI</td><td>avg of AGI and DEF</td><td>avg of AGI and TGH</td></tr>
+<tr><td>Armour (damage cut)</td><td>your level × body plating</td><td>DEF</td><td>TGH (energy: half)</td></tr>
+<tr><td>DODGE vs DEFLECT</td><td>AGI vs plating</td><td>AGI vs DEF</td><td>AGI vs TGH</td></tr>
+<tr><td>Aptitude</td><td>1.2 · 1.0 · 1.0 · 0.8</td><td>1.2 · 1.0 · 1.0 · 1.0 · 0.8</td><td>1.2 · 1.0 ×4 · 0.8</td></tr>
+<tr><td>Characters per shard</td><td>12</td><td>20</td><td>30</td></tr>
+<tr><td>Example: swings to kill</td><td>17</td><td>17</td><td>17</td></tr>
+<tr><td>Example: its hits to kill you</td><td>12</td><td>12</td><td>12.5</td></tr>
+<tr><td>Best for</td><td>One number per visible thing; your shape</td><td>A tank roll for the player</td><td>Least rework of §2's maths</td></tr>
+<tr><td>Weak spot</td><td>DEX is the busiest stat</td><td>Two stats both make enemies fail</td><td>PRE is RuneScape's confusing Attack; you doubted all three</td></tr>
+</table></div>
+
+<div class="opt" style="--c: var(--good)">
+<div class="tag">A · JAKE'S FOUR</div>
+<div class="attr">
+<span class="a vit">VIT</span><span><b>Vitality: your HP.</b></span><span class="eff">max HP = VIT (100 → 300, cap 330). Enemies: HP = VIT × their body factor (their steeper curve).</span>
+<span class="a str">STR</span><span><b>Strength: sword and spear hit harder.</b></span><span class="eff">melee S = STR / 100. Stagger dealt scales with STR.</span>
+<span class="a dex">DEX</span><span><b>Dexterity: bows and guns hit harder, every weapon lands more, melee crits more.</b></span><span class="eff">ranged S = DEX / 100 · fail −0.5 pt per 1 % DEX edge (all weapons) · melee crit +0.5 pt per 1 % edge</span>
+<span class="a agi">AGI</span><span><b>Agility: you dodge, and your shots crit more.</b></span><span class="eff">fail on you +0.5 pt per 1 % AGI edge · DODGE share of those failures · ranged crit +0.5 pt per 1 % edge</span>
+</div>
+<p class="key"><b>Armour</b> is not an attribute: the rating is <code>plating × P(your level)</code>, so a level-12 Welder has level-12 armour. Plating is body data (player 1.0; Crate Mite 0.6 … Riveter 1.6). The existing Warden's Plate (+5 %) and Arc Insulation (+15 % vs energy) stay as the only armour upgrades.</p>
+</div>
+
+<div class="opt" style="--c: var(--dex)">
+<div class="tag">B · FOUR + DEFENCE</div>
+<div class="attr">
+<span class="a vit">VIT</span><span>as A</span><span class="eff"></span>
+<span class="a str">STR</span><span>as A</span><span class="eff"></span>
+<span class="a dex">DEX</span><span>as A</span><span class="eff"></span>
+<span class="a agi">AGI</span><span>as A, but shares the failures on you with DEF</span><span class="eff">fail on you +0.5 pt per 1 % of the AGI + DEF average edge · DODGE share = AGI / (AGI + DEF)</span>
+<span class="a lvl">DEF</span><span><b>Defence: blows hurt less and clang off you.</b></span><span class="eff">armour rating = DEF (energy counts half) · DEFLECT share · stagger bar</span>
+</div>
+<p class="key">The Fire Emblem and Pokémon answer: defence is a stat that grows with the level. It adds a "tank" roll for the player, but two attributes now both make enemies fail, and the one you doubted ("armour as an attribute") comes back under a new name.</p>
+</div>
+
+<div class="opt" style="--c: var(--muted)">
+<div class="tag">C · THE OLD 8 TRIMMED TO 6</div>
+<div class="attr">
+<span class="a vit">VIT</span><span>HP</span><span class="eff"></span>
+<span class="a str">STR</span><span>melee damage</span><span class="eff"></span>
+<span class="a dex">DEX</span><span>ranged damage only</span><span class="eff"></span>
+<span class="a lvl">PRE</span><span>Precision: hit and crit, every weapon</span><span class="eff">fail −0.5 pt per 1 % PRE edge over the defender's AGI/TGH average edge · crit +0.5 pt per 1 %</span>
+<span class="a agi">AGI</span><span>evasion, DODGE share</span><span class="eff"></span>
+<span class="a lvl">TGH</span><span>armour, DEFLECT share</span><span class="eff">rating = TGH; energy counts half (RES is gone)</span>
+</div>
+<p class="key">RES and POI drop; the rest is round 3. Every job has its own word, which is exactly why it reads as homework on a phone. PRE splits accuracy from damage the way RuneScape's Attack does, the most confusing stat in the research.</p>
+</div>
+</section>
+
+<section class="rec">
+<h2>3 · RECOMMENDED: A, JAKE'S FOUR</h2>
+<p>Each attribute's links, as you described them. Thick lines are its main job; dashed lines are its secondary job; the grey row is not an attribute.</p>
+<svg viewBox="0 0 640 372" role="img" aria-label="Which attribute feeds which combat number">
+<g font-size="14">
+<path d="M170 30 C 285 30, 285 30, 400 30" stroke="#ef6b5b" stroke-width="4" fill="none"/>
+<path d="M170 74 C 285 74, 285 74, 400 74" stroke="#f08a24" stroke-width="4" fill="none"/>
+<path d="M170 162 C 285 162, 285 118, 400 118" stroke="#8fd3ff" stroke-width="2" stroke-dasharray="6 5" fill="none"/>
+<path d="M170 162 C 285 162, 285 162, 400 162" stroke="#8fd3ff" stroke-width="4" fill="none"/>
+<path d="M170 162 C 285 162, 285 206, 400 206" stroke="#8fd3ff" stroke-width="4" fill="none"/>
+<path d="M170 272 C 285 272, 285 250, 400 250" stroke="#c9f27a" stroke-width="2" stroke-dasharray="6 5" fill="none"/>
+<path d="M170 272 C 285 272, 285 294, 400 294" stroke="#c9f27a" stroke-width="4" fill="none"/>
+<path d="M170 338 C 285 338, 285 338, 400 338" stroke="#a7abb1" stroke-width="3" stroke-dasharray="2 4" fill="none"/>
+<rect x="20" y="14" width="150" height="32" fill="#2b2d30" stroke="#ef6b5b"/><text x="34" y="35" fill="#ef6b5b" font-weight="700">VIT</text><text x="78" y="35" fill="#a7abb1" font-size="12">vitality</text>
+<rect x="20" y="58" width="150" height="32" fill="#2b2d30" stroke="#f08a24"/><text x="34" y="79" fill="#f08a24" font-weight="700">STR</text><text x="78" y="79" fill="#a7abb1" font-size="12">strength</text>
+<rect x="20" y="146" width="150" height="32" fill="#2b2d30" stroke="#8fd3ff"/><text x="34" y="167" fill="#8fd3ff" font-weight="700">DEX</text><text x="78" y="167" fill="#a7abb1" font-size="12">dexterity</text>
+<rect x="20" y="256" width="150" height="32" fill="#2b2d30" stroke="#c9f27a"/><text x="34" y="277" fill="#c9f27a" font-weight="700">AGI</text><text x="78" y="277" fill="#a7abb1" font-size="12">agility</text>
+<rect x="20" y="322" width="150" height="32" fill="#2b2d30" stroke="#a7abb1" stroke-dasharray="3 3"/><text x="34" y="343" fill="#a7abb1" font-size="12">level × plating</text>
+<rect x="400" y="14" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="35" fill="#eceae6">HP</text>
+<rect x="400" y="58" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="79" fill="#eceae6">Melee damage</text>
+<rect x="400" y="102" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="123" fill="#eceae6">Melee crit</text>
+<rect x="400" y="146" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="167" fill="#eceae6">Hit chance, every weapon</text>
+<rect x="400" y="190" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="211" fill="#eceae6">Ranged damage</text>
+<rect x="400" y="234" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="255" fill="#eceae6">Ranged crit</text>
+<rect x="400" y="278" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="299" fill="#eceae6">DODGE: blows fail on you</text>
+<rect x="400" y="322" width="220" height="32" fill="#35383c" stroke="#4a4e54"/><text x="412" y="343" fill="#eceae6">Armour · DEFLECT</text>
+</g>
+</svg>
+
+<h3>The formulas (replacing §2's attribute terms)</h3>
+<pre>par   P(L) = 100 × 3^((L−1)/19)          edge e(X) = X / P(owner's level)
+      enemies: X = 100 + (P(L) − 100) × lean   (no swing: a L12 Welder is always the same Welder)
+
+1 FAIL ROLL  g = defender L − attacker L
+  fail % = clamp(12 + 9.75·max(0,g) − 2·max(0,−g) + shift, 2, 90)
+  shift  = clamp(50 × (e(AGI_def) − e(DEX_att)), −8, +8)      DEX for every weapon
+2 DRESS      PARRY 25 % of failures if it owns a parry and faces you
+             DODGE share = e(AGI) / (e(AGI) + plating) − 0.1·max(0,g), floor 0.1
+             DEFLECT = the rest
+3 ON A HIT   glance % = min(40, 5·max(0,g))                       ×0.5
+             crit %   = clamp(10 + 50 × (e(C) − 1) − 2·max(0,g), 0, 40) (+10 rifle)  ×1.5
+             C = DEX for melee, AGI for ranged
+4 DAMAGE     max(1, round(B · S · M · G · (1 − A) · Q))
+  B  Forge base 12 / 17 / 22 / 26 / 31 (player) · 9 × strike multiplier (enemy)
+  S  STR / 100 (sword, spear) · DEX / 100 (bow, crossbow, rifle)
+  M, G, Q   unchanged
+  A  R / (R + 2 · P(attacker L)), max 0.75
+     R = plating × P(defender L) × upgrades; energy counts half of R</pre>
+
+<h3>The aptitude spread</h3>
+<ul>
+<li><b>Four attributes: one 1.2, two 1.0, one 0.8</b>, shuffled per shard: the eight-attribute rule (two, four, two) halved, so a quarter strong, a quarter weak and the total neutral. Twelve characters: <b>Tank</b> (VIT 1.2), <b>Brawler</b> (STR), <b>Marksman</b> (DEX), <b>Dancer</b> (AGI), each paired with one of three weak spots.</li>
+<li><b>Five</b> (option B): one 1.2, three 1.0, one 0.8. <b>Six or seven</b>: still one 1.2 and one 0.8, the rest 1.0. <b>Eight</b>: two, four, two as ruled.</li>
+<li>VIT is strong in a quarter of shards and weak in a quarter, exactly as with eight. The VIT numbers from round 8 are unchanged.</li>
+<li><b>Where the roll lands</b> (20,000 simulated characters): aptitude 1.2 averages edge 1.08 at L10 and 1.10 at L20 (cap 330); 0.8 averages 0.92 and 0.87. The edge is what moves the roll, so a strong DEX at level 10 takes about 4 points off your failures and adds about 4 to your melee crit.</li>
+</ul>
+
+<h3>What enemies do with it</h3>
+<p>Every species uses the same rule as you: one lean up (1.2), one down (0.8), plus a plating number. That's two numbers of character per robot, with no lean-point maths.</p>
+<div class="scroll"><table>
+<tr><th>Band</th><th>Robot</th><th>1.2</th><th>0.8</th><th>Plating</th><th>Reads as</th></tr>
+<tr><td>1–3</td><td>Crate Mite</td><td>AGI</td><td>VIT</td><td>0.6</td><td>skittery: mostly DODGEs</td></tr>
+<tr><td>4–6</td><td>Pallet Jack</td><td>STR</td><td>AGI</td><td>1.2</td><td>hits hard, clangs</td></tr>
+<tr><td>7–9</td><td>Plumb Drone</td><td>DEX</td><td>VIT</td><td>0.7</td><td>accurate shots, fragile</td></tr>
+<tr><td>10–12</td><td>Welder Unit</td><td>VIT</td><td>AGI</td><td>1.3</td><td>slow and thick; torch is energy</td></tr>
+<tr><td>13–15</td><td>Riveter</td><td>STR</td><td>AGI</td><td>1.6</td><td>a wall of DEFLECTs (+ front plate ×0.2)</td></tr>
+<tr><td>16–18</td><td>Arc Sentry</td><td>DEX</td><td>VIT</td><td>1.0</td><td>lands hits, crits, PARRYs</td></tr>
+</table></div>
+<p class="m">Elites and the Titan keep the same rule; their rank sets HP and damage. Rare variants are +1/+2 levels, as ruled.</p>
+
+<h3>Worked example: you at L10 with a sword, a L12 Welder Unit</h3>
+<p><b>You:</b> L10, an average roll (VIT, STR, DEX, AGI all 168, edge 1.00), Forge II Steel (base 22), third combo swing. <b>It:</b> L12 Welder: VIT 207 (255 HP after its body factor), STR 189, DEX 189, AGI 171 (edge 0.91), plating 1.3. g = +2.</p>
+<pre>fail     12 + 9.75×2 = 31.5;  shift 50 × (0.91 − 1.00) = −4.7  →  26.8 %
+dress    DODGE 0.91/(0.91+1.3) − 0.2 = 21 %   DEFLECT 79 %   (no parry)
+on hit   glance 10 %   crit 10 + 0 − 4 = 6 %   clean 84 %
+armour   R = 1.3 × 189 = 246;  A = 246 / (246 + 337) = 0.42
+damage   22 × 1.68 × 1.33 × 0.86 × 0.58  →  clean 25 · crit 37 · glance 12
+         about 14.7 a swing over the combo  →  about 17 swings (9 vs a L10 Welder)
+
+if your 1.2 is DEX   fail 23.5 % (shift capped at −8), crit 10 %  →  16 swings
+if your 1.2 is STR   clean 26.5                                  →  16 swings
+it on you            torch (energy, half your armour) 15 a hit, fails 8 %
+                     →  about 12 hits to burn through your 168 HP
+if your 1.2 is AGI   it fails 12 % on you (52 % of them DODGEs)  →  13 hits</pre>
+<p>At equal level the same Welder fails 8 % against you, not 12 %: it is slow (AGI 0.8). <b>12 % is the average-vs-average number.</b> Leans grow with the level, like your own roll: they barely show on Crate Mites and are worth about 5 points by the Riveters, always less than one level.</p>
+
+<h3>Where the old PRE, AGI, TGH, RES and POI went</h3>
+<div class="scroll"><table>
+<tr><th>Old</th><th>What it did</th><th>Now</th></tr>
+<tr><td>PRE</td><td>Hit chance (cut the target's failures); crit chance; the rifle's requirement; the Arc Sentry's parry rate</td><td>Hit → <b>DEX</b> for every weapon. Crit → <b>DEX</b> (melee), <b>AGI</b> (ranged). The requirement is gone (Forge has none). The Sentry parries 25 % of failures (the miss-feel rule).</td></tr>
+<tr><td>AGI</td><td>Failures on you; DODGE share; dodge recovery</td><td><b>Kept</b>, plus ranged crit. Dodge recovery stays the Dodge Servo upgrade.</td></tr>
+<tr><td>TGH</td><td>Physical armour; DEFLECT share</td><td><b>Your level × body plating</b>; DEFLECT = failures that are not DODGEs. Warden's Plate +5 %.</td></tr>
+<tr><td>RES</td><td>Energy armour; burn and shock length</td><td><b>Energy counts half of the armour rating</b> (the torch and pitch bolts burn through plate). Arc Insulation +15 % vs energy. Burn length is fixed per ammo.</td></tr>
+<tr><td>POI</td><td>Stagger bar; parry window</td><td>Stagger bar → <b>body data</b> (Riveter and Jack big); stagger dealt → <b>STR</b>. Parry window fixed at 0.15 s + the Parry Gyro upgrade, so the timing never changes between shards.</td></tr>
+</table></div>
+
+<h3>Why not a fifth (Defence)?</h3>
+<ul>
+<li>The level gap already defends: 9.75 points a level on the roll, the G term on damage, and armour that scales with level. A Defence attribute would move numbers the gap already moves.</li>
+<li>In the research, defence-as-a-stat lives in turn-based games (Fire Emblem, Pokémon). Action games keep it on gear or level, and the Kitchen Sink has no armour gear.</li>
+<li>A robot's toughness reads best as its body (plating, the Riveter's front plate). That's data, like Monster Hunter, and it needs no stat.</li>
+<li>Four means each shard's roll is obvious: "this time I'm a Dancer". Option B stays ready if the roll feels samey after your first phone pass.</li>
+<li>Known tilt: DEX is the busiest stat, as Skill is in Fire Emblem. For a sword user a 1.2 DEX is worth about as much as a 1.2 STR (16 swings each). For a bow user DEX is the best roll. The roll is free and balanced, so that's fine.</li>
+</ul>
+</section>
+
+<section>
+<h2>4 · OPEN QUESTIONS</h2>
+<div class="q"><b>1. The four: VIT, STR, DEX, AGI, with the links above?</b><span class="ans">Recommended: yes, option A.</span></div>
+<div class="q"><b>2. Armour from your level × body plating, with no Defence attribute and no armour Forge tiers?</b><span class="ans">Recommended: yes. Warden's Plate and Arc Insulation stay the only armour upgrades; option B (DEF) is the fallback after a phone pass.</span></div>
+<div class="q"><b>3. Aptitude with four: one 1.2, two 1.0, one 0.8 per shard?</b><span class="ans">Recommended: yes (your eight-attribute rule halved; the total stays neutral).</span></div>
+<div class="q"><b>4. How much DEX and AGI move the roll: 0.5 points per 1 % over par, never more than ±8 (less than one level)?</b><span class="ans">Recommended: yes. It keeps 12 % → 90 % intact for an average roll, and a strong roll is worth about half a level.</span></div>
+<div class="q"><b>5. RES and POI become data: energy counts half of the armour, stagger bars per body, a fixed parry window (+ Parry Gyro)?</b><span class="ans">Recommended: yes.</span></div>
+</section>
+
+<p class="sub">Sources: the games' own documentation and wikis (OSRS Wiki, WoWWiki/Wowpedia, iRO Wiki, Fire Emblem Wiki, Bulbapedia, Fextralife, the Guild Wars wikis), patch notes for the accuracy removals (WoW 6.0, FFXIV 4.0, BDO May 2024), and the community verdicts quoted on rounds 3 and 7. Numbers: a 20,000-character simulation of the round 8 growth model.</p>
+
+</main>
+</body>
+</html>

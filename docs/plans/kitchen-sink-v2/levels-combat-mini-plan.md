@@ -261,3 +261,49 @@ This replaces the "+1 at growth %" Fire Emblem proposal.
 **Aptitude is balanced** (Jake 11-02): every character gets exactly two 1.2s, four 1.0s and two 0.8s, shuffled across
 the 8 attributes per shard; the roll picks which attributes are strong or weak, never a worse total. VIT over any
 character: average 297 at L20 (5–95 %: 249–330), 20 % reach the cap.
+
+## 11. Attributes rework (draft, 11-03)
+
+Page: `art/showcase-template/round-9-attributes/index.html` (20-game study, options A/B/C). Built around Jake's 11-03
+shape; open until he picks. **Recommended A: four attributes, no armour attribute.**
+
+| Attr | Meaning | Feeds |
+|---|---|---|
+| VIT | your HP | max HP = VIT (100 → 300, cap 330); enemies VIT × body factor |
+| STR | melee hits harder | melee S; stagger dealt |
+| DEX | ranged hits harder; every weapon lands more; melee crits | ranged S; the fail roll (all weapons); melee crit |
+| AGI | you dodge; ranged crits | fail roll on you; DODGE share; ranged crit |
+
+**Armour = your level × body plating** (data: player 1.0, Mite 0.6, Drone 0.7, Sentry 1.0, Jack 1.2, Welder 1.3,
+Riveter 1.6); upgrades Warden's Plate +5 %, Arc Insulation +15 % vs energy. No armour Forge tiers.
+
+```
+par   P(L) = 100 × 3^((L−1)/19); edge e(X) = X / P(owner L); every attribute grows on P (model 19s)
+      enemies X = 100 + (P(L) − 100) × lean, no swing; leans one 1.2 and one 0.8 per species
+FAIL  clamp(12 + 9.75·max(0,g) − 2·max(0,−g) + clamp(50·(e(AGI_def) − e(DEX_att)), −8, 8), 2, 90)
+DRESS parry 25 % if owned and facing; DODGE = e(AGI)/(e(AGI)+plating) − 0.1·max(0,g), floor 0.1; DEFLECT the rest
+HIT   glance min(40, 5·max(0,g)); crit clamp(10 + 50·(e(C) − 1) − 2·max(0,g), 0, 40), C = DEX melee / AGI ranged
+DMG   S = STR/100 melee, DEX/100 ranged; enemy B = 9 × strike multiplier
+      A = R / (R + 2·P(attacker L)), max 0.75; R = plating × P(defender L) × upgrades; energy counts R/2
+```
+
+**Aptitude:** four attributes → one 1.2, two 1.0, one 0.8 (the 2/4/2 rule halved; 12 characters). Five → 1/3/1; six
+or seven → one 1.2, one 0.8, rest 1.0. **Leans:** Mite AGI↑ VIT↓, Jack STR↑ AGI↓, Drone DEX↑ VIT↓, Welder VIT↑ AGI↓,
+Riveter STR↑ AGI↓, Sentry DEX↑ VIT↓.
+
+**Example** (L10 average roll, Steel 22, third swing vs L12 Welder 255 HP): fail 26.8 % (DODGE 21 %, DEFLECT 79 %),
+glance 10 %, crit 6 %, A 0.42 → clean 25, crit 37, glance 12; ≈ 17 swings (9 at equal level). A 1.2 in DEX or STR: 16.
+Its torch: 15 a hit, fails 8 % → ≈ 12 hits on your 168 HP.
+
+**Replaces:** §2's attribute line (the eight, cap 40); the HP formula `40 + 12·VIT + 10·(L−1)` (already retired by
+§10); the PRE/AGI terms in the miss formula and the PRE crit term; `S = 1 + 0.04·(STR or DEX − 5)`; armour
+`R = 4·TGH or 4·RES` and its `60 + 8·L` constant; enemy `B = 12·(1 + 0.1·(L−1))`; §3's lean-point rule and Mk II
+attribute columns; §4's attribute rows; §9's dodge share `AGI/(AGI + TGH or RES)`; LV7's requirement (×0.6, no crit).
+Old jobs: PRE → DEX (hit, melee crit), AGI (ranged crit); TGH → level × plating; RES → energy counts half, Arc
+Insulation; POI → stagger bar per body, stagger dealt by STR, parry window fixed 0.15 s + Parry Gyro. The Arc Sentry
+parries by the §9 dress (LV9's "by PRE" drops). §8 Q1 is superseded by Q1 below.
+
+**Open (Jake):** 1. The four with these links? Rec: yes. 2. Armour from level × plating, no DEF attribute (option B)
+and no armour Forge? Rec: yes; B is the fallback after a phone pass. 3. Aptitude 1.2 / 1.0 / 1.0 / 0.8? Rec: yes.
+4. DEX and AGI move the roll 0.5 pt per 1 % over par, max ±8 (under one level)? Rec: yes. 5. RES and POI become data
+as above? Rec: yes.
