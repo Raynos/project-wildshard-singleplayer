@@ -1,0 +1,4879 @@
+{
+  "schema": "open-plots-op4-evidence/1",
+  "source": "b616c06a02dfcf6d49a333ec35ad6a24a471c1d0",
+  "status": "done",
+  "domes": 24,
+  "views": 216,
+  "drawnFramesPerView": 120,
+  "boards": 24,
+  "mediaBytes": 5897151,
+  "cohorts": [
+    {
+      "folder": "tmp/sp-x9-op4/capture-b616",
+      "version": {
+        "build": "b616c06-mw0dyp5q",
+        "time": "2026-11-03T07:48:18.782Z"
+      },
+      "batchSha256": "bb5add13262a7a580725a2f5056e0e7c76d628853cc0343f5b524e3a35c6cfc7"
+    },
+    {
+      "folder": "tmp/sp-x9-op4/continuation-b616-atomic",
+      "version": {
+        "build": "b616c06-mw0k33gx",
+        "time": "2026-11-03T10:39:41.649Z"
+      },
+      "batchSha256": "06e5ab4749e773748d3a77ef3c86210c8feb644b2f42f3ae0ec99a07073a77c4"
+    }
+  ],
+  "harnesses": {
+    "original": {
+      "scripts/open-plots/capture.mjs": "9fff53f44bf94716a3d60a976303632cbfa11a095e9e8c3b2ab39c47d3c788b0",
+      "scripts/capture-plot-domes.mjs": "0775000906f064b0e97f8437e8c61e6dc6b1bf1240ac2c3d29abae4e9ce6d2e8",
+      "scripts/open-plots/capture-inputs.mjs": "3cd51addc5f3f558f1356d0a8be8396fdfd838ff755b6ca709aee9918bfd86fa",
+      "scripts/dome-cameras.mjs": "a4f8f9446549768f54e3a09dbc5565dd3a1798c5ae79de7b49fbedacf4f9af92",
+      "scripts/frame-floor-grid.mjs": "748dcc98e7c8870a562dfaa4a25ecb11efac68fbfd0370a2bfb6ddee999e0e27",
+      "scripts/open-plots/boards.mjs": "48ffef3cdd0976bc13d71e4623515d4516efc9933e8088d15123562fecc00d7f",
+      "scripts/chromium-memory-browser.mjs": "41ed23eb5306466f155cebfe405ea3097686caf3761de56a7d266ea40bc66d01",
+      "scripts/debug-settings.mjs": "aada219544e86acb934ef97bf16d56813f659d90e84ac905a9fd946234edebdc",
+      "scripts/frame-floor-settings.mjs": "c7c666a47eef39d285c25194429dc455ce77ba2b535b17213c66e10a1d13b7fb",
+      "scripts/frame-floor-navigation.mjs": "f121aa2a8b83b5c2a84f63d0556d946621aeaacc9e691e2b4bc1de0d9a036587",
+      "scripts/grid-ready-memory.mjs": "39c5917796a0bab687a536218d76609a372bb12224c9cec45937d118608361f2",
+      "package.json": "dcff14ca4200f16d9b366e14746a088110bf71e47f7c5f11ee36cf3422e62898",
+      "pnpm-lock.yaml": "888a4fac9a9ca94958d7038f670ed6c641c9096a217222882e09a402458da4f2"
+    },
+    "continuation": {
+      "source": "b616c06a02dfcf6d49a333ec35ad6a24a471c1d0",
+      "base": "http://127.0.0.1:4408",
+      "dist": "tmp/serve/20261103-053826-4408/dist",
+      "version": {
+        "build": "b616c06-mw0k33gx",
+        "time": "2026-11-03T10:39:41.649Z"
+      },
+      "toolingCommit": "92611f473e03f5af7a3ca94baf0d939ee4807cd3",
+      "harnessSHA256": {
+        "scripts/capture-plot-domes.mjs": "cd257f3eafec20ac6352a54b19d9ac5690239e087513e03cc42f5a73b84c1dbc",
+        "scripts/dome-cameras.mjs": "6aa09eeb8ae5aa0936864b0ca343f141873db7518fd8cb313e300d3392ce635e",
+        "scripts/dome-cameras.d.mts": "ee7839caf96fcacf85020d6c23272b3bf41fc1e3a862bb80225e1ac9170dbe1a",
+        "scripts/open-plots/capture.mjs": "519c3c6afeb317c8e2fe938e5858974e76cc6b5c14511bf493a8f18db71110b8",
+        "scripts/open-plots/settled-read.mjs": "2d10dfd401132b9241537c8752191f0bdd0727aefea61132f623aa5d477065de"
+      },
+      "old18": "tmp/sp-x9-op4/capture-b616",
+      "scope": "Only remaining Showcase B1,B2,C1,C2,D1,D2 plus four-view junction. Rebuilt same source; actual new version recorded separately.",
+      "refusedContinuation": "tmp/sp-x9-op4/continuation-b616",
+      "qualifiedContinuation": "tmp/sp-x9-op4/continuation-b616-atomic",
+      "launchPid": 81791
+    }
+  },
+  "plots": [
+    {
+      "slug": "open-plot-night-market",
+      "instance": "open-plot-nw",
+      "domes": [
+        {
+          "dome": "A1-road-stand",
+          "cameraFile": "art/open-plots/night-market/domes/A1-road-stand/cameras.json",
+          "cameraSha256": "f5e7118f0743c90a77deb0fbd4faa8eadceadccb4bb2b32fc388346706c7923d",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "b49c801f4e438dcd43c57ba411b4505b05c86a0c1d911110b7ab733dbc8432d4",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  300.5
+                ],
+                "look": [
+                  -562.5,
+                  41.7,
+                  320.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "82a2103e94efb428a1557084d388389f825de4ed6651742a9993f781ea8f9f54",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  41.7,
+                  265.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  300.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "1bef2b6a56be85f60e874689ba962b02ed6eb0e5632c11dae73218b6ed4e8378",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  41.7,
+                  265.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  300.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "3ec1f311d5b876549438c70192e299d73bf53059945361f68a0fcfdaf8dc7169",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  300.5
+                ],
+                "look": [
+                  -602.5,
+                  1.7,
+                  300.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "e3e2c711fdcd2eb2dfd41f02a0e36e87ed7c54c1eeec9e546669b83c85870bb9",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  300.5
+                ],
+                "look": [
+                  -562.5,
+                  20,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "c08db38a44a4e1f6c6bc8cb672f97f4e5de7a23abf5bc01bf9fa1e596fcbd6a6",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  300.5
+                ],
+                "look": [
+                  -522.5,
+                  1.7,
+                  300.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "4e06fa3cbd4f438788302b7f2588415adfcd42d8576c3ec0a43899ac715564f9",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  300.5
+                ],
+                "look": [
+                  -562.5,
+                  1.7,
+                  240.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "1602c98345f003190110d0b6b197214e1a73858e4541c6ffad7b086968e80500",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  300.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  300.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "e35ad5a2245a9fd7f3dd0a1664b94e5bdec1028d73f53aa59cbd0fe0812e13e3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  61.7,
+                  360.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  300.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "A2-road-look",
+          "cameraFile": "art/open-plots/night-market/domes/A2-road-look/cameras.json",
+          "cameraSha256": "7d608f66737326517d8a39bd0b2b0cbb77a250b3a2c31e9681663533caa016d9",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "36b8ad842a0e7f7d369ce4ed114cd6abdbfcb0ca2ea8ed2768d6461dc1b712d8",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  357.5
+                ],
+                "look": [
+                  -562.5,
+                  41.7,
+                  377.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "ace27f0294e8cb91f6e289369f6c6e7154d8d5961e6319e9f1a7d9b06c1c678c",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  41.7,
+                  322.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  357.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "b54947f9b61dc26234f7cdc880684b1c2cc1669029b4921cfba6e249bdfa9506",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  41.7,
+                  322.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  357.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "87cb7db3d5d1b83feca26154af6c92b7bf8c0da7e70f8e1e9fb636d022416c73",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  357.5
+                ],
+                "look": [
+                  -602.5,
+                  1.7,
+                  357.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "a49c1c7217cb8de83a7095d96071f652f6b8585b0b42e3b2cb1ee6cfea68058c",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  357.5
+                ],
+                "look": [
+                  -562.5,
+                  10,
+                  422.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "42a0a99e84f7d569c81922f87d5ea8a2d1528f669dc1a9b6b72f5aa9be381c6f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  357.5
+                ],
+                "look": [
+                  -522.5,
+                  1.7,
+                  357.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "73b20b850f62cb21e3479e6196aadc07ee593f469fba55948732554009774ba2",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  357.5
+                ],
+                "look": [
+                  -562.5,
+                  1.7,
+                  300.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "5c2ca31a665fd392f0b646f1ce5e0f6a7ffa74ec61bf7633e1bca286bfdedc6f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  357.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  357.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "235e142aad5246583062b8f7a61b3b7ce251e8077b944078f3723188535a41ec",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  61.7,
+                  417.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  357.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "B1-40m-stand",
+          "cameraFile": "art/open-plots/night-market/domes/B1-40m-stand/cameras.json",
+          "cameraSha256": "8ad1c7cd94ccc81411ce0844c2a055e22d5380a001fd9f750bfaeba0836c8b05",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "ae31b076073ab3688f1446ef2901cfa6a6b37a39a31a67d27e9abf74718dccdb",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  262.5
+                ],
+                "look": [
+                  -562.5,
+                  80,
+                  282.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "7e7c0bfb1794679e3d714c9c88f638fb0ea3f18c7195c46e6cb30903254f6299",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  80,
+                  227.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  262.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "c3e8383bf15d42856d2d30029e11075646bb6e3898ddcb982625c19a4c54d8ce",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  80,
+                  227.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  262.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "c5e860ae35cfbcceefea142b7583cf2948f71a3264122f8845351b7e26c1e8b9",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  262.5
+                ],
+                "look": [
+                  -602.5,
+                  40,
+                  262.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "db940c6275b39f7677bb1230ef25b75011af3745c8ca4174924cb68371468dd3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  262.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "e907b2bbb81644f347cc21af5d35da7dba6c3773cf6a73146852bd9c3ea5c3bc",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  262.5
+                ],
+                "look": [
+                  -522.5,
+                  40,
+                  262.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "578c1bd0dc254e3718a3f68512f630b883396e358194dc7c52eedb92eb18f311",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  262.5
+                ],
+                "look": [
+                  -562.5,
+                  40,
+                  202.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "e1a62db1e50e5b67748611aea8520337518b15fcb696e3911b6a00b4715ba634",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  262.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  262.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "c14eaee44fedf506a920587543e70e69638263ad97092f14aaee07d175873741",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  322.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  262.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "B2-40m-look",
+          "cameraFile": "art/open-plots/night-market/domes/B2-40m-look/cameras.json",
+          "cameraSha256": "10fe6baaeb2556451ea03964af8b5125c5d3f0e14cb69758ac53f8ac31558cac",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "942697740ce75697657d717663b75e0a7056118ff6223339d65cca95722bbbbb",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  442.5
+                ],
+                "look": [
+                  -562.5,
+                  80,
+                  462.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "1428df63f989523919d4c4669fa88daf6a76eb2a0711aca7b3738d2f9dd9e30f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  80,
+                  407.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  442.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "480053dbc0ea84dbf9221ee8f95d7aa1e9608bfff043b0df64236326667d2e3a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  80,
+                  407.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  442.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "a8ff224520da6695a7b0d6b0de81440d26b254c2db48a129bf05e6849f23761f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  442.5
+                ],
+                "look": [
+                  -602.5,
+                  40,
+                  442.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "8084cec728f04a736618c87d45c020f6aaf6c3e843914e75ce2a5ec01fb0aae5",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  442.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  502.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "0418cc4987a2a0ed3d497894e462ba2f03f56dfac3d72c0df5b029aa0cee540a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  442.5
+                ],
+                "look": [
+                  -522.5,
+                  40,
+                  442.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "1c4e49855e94126b73a2a581797c4696fbdc88a2789bb82247c786a1ef9884ac",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  442.5
+                ],
+                "look": [
+                  -562.5,
+                  40,
+                  262.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "0e1afc9d1b9137da6bc59a391531062387746654b7ce27cbef9836b0a12f5d0f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  40,
+                  442.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  442.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "c1ee1871139be7e9635a01237573b8b23f2db5180117879bcdb67684f31a8aee",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  502.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  442.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "C1-100m-stand",
+          "cameraFile": "art/open-plots/night-market/domes/C1-100m-stand/cameras.json",
+          "cameraSha256": "27deec36491ac2415191586e4415d04b0b4c52fbe4c3c2f5dd224336cb5827a5",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "a4d2464a6d7259e0aa5b7cfcaf8e86d24b8631562c660c7db87520a5b6a10853",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  162.5
+                ],
+                "look": [
+                  -562.5,
+                  140,
+                  182.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "8b28ea901dc811bf342e3fbdf6bc5600ed69177063154c3c12db368fe72ec7a6",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  140,
+                  127.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  162.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "e3a5f56c8c74a5edfb0ae08deb93e46d58dbb50c3c5686b2a422b162e585f0eb",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  140,
+                  127.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  162.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "c29a4e9959e68b7cd5882a6403aa5e32d9df4da842aa6505e44ae29cfaf60416",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  162.5
+                ],
+                "look": [
+                  -602.5,
+                  100,
+                  162.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "6ea00343bf426ea2e00e43e33e97c62b01d509f952198508c235241f124a18bf",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  162.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "758d11b6dfd8c7d5784919072a5a3f70c8bfd2892174f5aa5c321c1ac213adeb",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  162.5
+                ],
+                "look": [
+                  -522.5,
+                  100,
+                  162.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "4aad3d420147d4de3c3f893b3708ab67f71528953e7eaec6beea7a05b8853658",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  162.5
+                ],
+                "look": [
+                  -562.5,
+                  100,
+                  102.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "54a299afc5ec567e285809ba0063b48444b6b2e409cf8a4275364b9e115d2c29",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  162.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  162.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "4227a463f52c11e08d162e79d8eed738fd105120ce5131f9d7c988962df32edd",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  160,
+                  222.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  162.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "C2-100m-look",
+          "cameraFile": "art/open-plots/night-market/domes/C2-100m-look/cameras.json",
+          "cameraSha256": "95f4ac3dc9a5ef1d173fec35fb7d1ce3a02cb36146e26def63f691f91182368f",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "1cf312a6bd78384c3151955a5e8b14bcbdc3caadd5b53651a9cb5742d4dc6b2c",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  562.5
+                ],
+                "look": [
+                  -562.5,
+                  140,
+                  582.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "a3f245cd6c7784bdedcbb5fa46b15c89ef0cfc84c0d2fa89febac37f82a657f3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  140,
+                  527.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "148a966499fda279e8dfbe7f241d893df5cb8171d8590b77943de65324f08be0",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  140,
+                  527.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "f8495f00d6c38f37ced82ca17ebf2da43c81ce46f3f764b398fb0d6f7abbca35",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  562.5
+                ],
+                "look": [
+                  -602.5,
+                  100,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "89aeaf7e758ff7a90df1249e4e1e9e479900a7cd463d6d601bf13a7852ead4e7",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  562.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  687.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "8d8c29af7fee0292114fd3492dd2fe0b2f92725636d28e45d0c4fc09fd274a3b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  562.5
+                ],
+                "look": [
+                  -522.5,
+                  100,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "7399510733671849585cc94f777e60097af440f4827972fbe69722c3b831d3b3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  562.5
+                ],
+                "look": [
+                  -562.5,
+                  100,
+                  162.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "ca10e372f5cb602b87c20a78cd4faa708894986e3587414368971ec6af632eab",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  562.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  562.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "47c5ad44f58d25325a589cf7ecbefe875945a54380db6a452844c92f588117fd",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  100,
+                  -37.5
+                ],
+                "look": [
+                  -562.5,
+                  10,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "D1-plaza-stand",
+          "cameraFile": "art/open-plots/night-market/domes/D1-plaza-stand/cameras.json",
+          "cameraSha256": "4109b98a6224579915a96d1c7216faa9fef9caebdc3d1866e2dad539fb27784a",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "ef202e3e7d5ea580602a23f1edb8190a57b2fa07e0893e369de31cc19c1e44e6",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  517.5
+                ],
+                "look": [
+                  -562.5,
+                  41.7,
+                  537.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "8f53008d72df10dc071b5d301246d839bd37f9c38ffad5080dfbc511d72680ea",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  41.7,
+                  482.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  517.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "b48c8bcd4c0b277740bf9050671e354bd2be7f422e86c538d987008153cddcfa",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  41.7,
+                  482.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  517.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "ed777ba991d06c6a6fa3a8e888141d7551c4f5d0704ce2057088131d77af497f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  517.5
+                ],
+                "look": [
+                  -602.5,
+                  1.7,
+                  517.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "5bba0856e4f7e59426c1e8e37b46340e5d108d5808d0bdf7b8bb8e608af8d707",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  517.5
+                ],
+                "look": [
+                  -562.5,
+                  15,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "a4c3160f19eb7b78dcb6c3d974318845f9d3c8c2f74c32f1e6db458574113a99",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  517.5
+                ],
+                "look": [
+                  -522.5,
+                  1.7,
+                  517.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "9e5b7dc08ec3a0c42915d984cae167499b8809b4bae8efd5ffe9d17036c03fff",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  517.5
+                ],
+                "look": [
+                  -562.5,
+                  1.7,
+                  457.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "c54c28d6273dbabdf635f13c227ab666467200768f318549f5124e8c01580327",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  517.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  517.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "652d15a25ef8fc1b85bff45e25020c455c769f4c772042fa31afce966399afba",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  61.7,
+                  577.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  517.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "D2-gate-look",
+          "cameraFile": "art/open-plots/night-market/domes/D2-gate-look/cameras.json",
+          "cameraSha256": "f2c8e29e336d1096e4f15fa0d4e4d322224957f561f62d3823d62f35ead14596",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-night-market/capture.json",
+            "sha256": "75fc35ad635d0d8d0dfd1d935e61aec903871b52a55bc6bbe82dc49e7ad52f8d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "deeda5c64041f0b608bf74eed7cbac92893c84c5ffa796d262b6afdbc1c108e8",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  544.5
+                ],
+                "look": [
+                  -562.5,
+                  41.7,
+                  564.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "a97b7e1bff6abfc80b5fc53c05f0f1f5e2b3f4c67ee272f3c48d8553d7a7d774",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -597.5,
+                  41.7,
+                  509.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  544.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "30ed89aadf8703297152bdc5fca80cbddf26c4d9ed22af055f3d3250cd877de0",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -527.5,
+                  41.7,
+                  509.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  544.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "3ca89c1fd196c961d3854580bc23983f0a3e0fa9f81fa41080ee54c94d503e29",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  544.5
+                ],
+                "look": [
+                  -602.5,
+                  1.7,
+                  544.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "b06c3c674008ba8dd866869629c2ccb0d5fc6f4fbf21d9edf31c1a7d2e5cc8c3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  544.5
+                ],
+                "look": [
+                  -562.5,
+                  16,
+                  562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "7fe664a5d03656904b3523e987683665985c7798200f656b2b594e5db4246e6d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  544.5
+                ],
+                "look": [
+                  -522.5,
+                  1.7,
+                  544.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "ce70e10fbb4100c044b981f8d52160715e458c3d9c7cde02a5c3d0a75a6b7f77",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  544.5
+                ],
+                "look": [
+                  -562.5,
+                  1.7,
+                  517.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "3fb4d7ef17bd9f4faf2c793e526795cf8d782141fe332e99bebfb016f913dbf8",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  1.7,
+                  544.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  544.75
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "ea408c9d7899d51555b24d97f7d2b29d7141848e23eafc9bd8e89bceb0b13eda",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -562.5,
+                  61.7,
+                  604.5
+                ],
+                "look": [
+                  -562.5,
+                  0,
+                  544.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "open-plot-lantern-bayou",
+      "instance": "open-plot-0-1",
+      "domes": [
+        {
+          "dome": "A1-road-stand",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/A1-road-stand/cameras.json",
+          "cameraSha256": "2880e7a78ee4a26017dddb6990f2bcc796de4c5c97fa369a60da6ff97a9fd520",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "c8356e5caa30a0cab517490157546cc875303576d91d13add089cf20fd4dde2a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -824.5
+                ],
+                "look": [
+                  -1125,
+                  41.7,
+                  -804.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "207c65f989ff73c6f193f255f38b25fb5b89965fb04627773806d4c62c768f88",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  41.7,
+                  -859.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -824.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "21d7723c3dbacd01a1fe37a61d646e57e74586c01400e99182b1e916a11a500a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  41.7,
+                  -859.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -824.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "0010d2315fc2df1760ed21332818275198a98d77b4bf83b0f8dc15b530f24f5b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -824.5
+                ],
+                "look": [
+                  -1165,
+                  1.7,
+                  -824.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "29fbd9993e7321578c86ba003c3ea416616fae8e905226e7d7cb870bf36d320c",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -824.5
+                ],
+                "look": [
+                  -1125,
+                  20,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "fac0e655eebb1a332696e30c098673ad1afce51c26880f98264d4f4ba0107bc0",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -824.5
+                ],
+                "look": [
+                  -1085,
+                  1.7,
+                  -824.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "74076db329855a6dea981503d3c583cc0cc698df513df052f0faa0a1708cdd5f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -824.5
+                ],
+                "look": [
+                  -1125,
+                  1.7,
+                  -884.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "ad743aeef16351d2700709b707d229952824c4fcb2a3841fde0b78d35b1967a0",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -824.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -824.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "11d3bc8c29fbfec4eb68eb595824dd190f8531e33cdf08219926272ad40b0472",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  61.7,
+                  -764.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -824.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "A2-road-look",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/A2-road-look/cameras.json",
+          "cameraSha256": "3685c3023faf6635fa7cddb5138a5e58823ad29c512befde76031eb0e98eb148",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "5024d5f75f175f0f36637a64505dbfb927dc861de0d971b49ba824d4ce5d96e1",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -767.5
+                ],
+                "look": [
+                  -1125,
+                  41.7,
+                  -747.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "1e72420318e9357ceb629825ff15aa69a923188bf35950f7996114743285fbf2",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  41.7,
+                  -802.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -767.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "6a95518f385533ab19a6414c7e752d6266e1ce8e11986f0ff631138048b8bfe7",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  41.7,
+                  -802.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -767.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "ed0c7ee85527ea52416de9092c3ce35e086a70330598339905c1a44472d1a567",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -767.5
+                ],
+                "look": [
+                  -1165,
+                  1.7,
+                  -767.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "51e127c6124041b5860af6e94b7b7f59bc7224de2e8f593e949d3e6a83c5ae5f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -767.5
+                ],
+                "look": [
+                  -1125,
+                  10,
+                  -702.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "9d0d7a566ec704ad89808cf59161c72c8e2fcaa6dac325d47d09102b7718ad27",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -767.5
+                ],
+                "look": [
+                  -1085,
+                  1.7,
+                  -767.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "a620036534833d4a7877ae5a7272b88a1f475d6919e95f9fb197951692c0b134",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -767.5
+                ],
+                "look": [
+                  -1125,
+                  1.7,
+                  -824.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "22d6ddab35cde93da2376c64084aecb19591514d5e378fcbf75d5ed26d2d248e",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -767.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -767.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "ae045d70e118e968ca9ad2da566acddcd0e182d3b0df4f2539ae96b9dd157c54",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  61.7,
+                  -707.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -767.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "B1-40m-stand",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/B1-40m-stand/cameras.json",
+          "cameraSha256": "b3d00f2ec04a99ef85d40ede5db89eb31e0b8ac65ab808c63a8d0acc496c0096",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "b539ffbfe986f7fb9a941acc147c76e3e8789417657a43fe08f9d983ada789b3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -862.5
+                ],
+                "look": [
+                  -1125,
+                  80,
+                  -842.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "3ab311518562906a616ace9327789140901cf0b6b1f872f60e0f4c8640bdddf9",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  80,
+                  -897.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -862.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "fedeba6408b9978e80c7b1c1c65db61a90d2c870ad3b01a44f40015cadfa71cf",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  80,
+                  -897.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -862.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "2f31e44e787f5fcc240abceeabc03e90770deba19ee569d3f409a56b9f004f48",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -862.5
+                ],
+                "look": [
+                  -1165,
+                  40,
+                  -862.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "d26bce56827225e536b6d5fa1401ff15aa83781afad6e4848ff86a57a2cef6c1",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -862.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "95acdc417c66c178a403b79aaa88b0d4b85cf567719c709059d59f8f93fddabe",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -862.5
+                ],
+                "look": [
+                  -1085,
+                  40,
+                  -862.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "57c65e9ed8df11ac4c9ff9cf308210de6fb93ef9097e7a691af9741583106428",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -862.5
+                ],
+                "look": [
+                  -1125,
+                  40,
+                  -922.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "526028dc86cada952d4ed31d61a3b2ff6d05765950c52c1906dec5d9864d3be7",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -862.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -862.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "79077f4ba9af2483716732b2773a2d50b760c17fc8605442f0501af7e741fd25",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -802.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -862.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "B2-40m-look",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/B2-40m-look/cameras.json",
+          "cameraSha256": "3389100433f56e49d28f3564ce0c4302245f0eb72bd6b96e0fbf40991e1b45b0",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "cdc1aae765c68c1c29e4ae909d9b7ed5c456d7b2ff4fa6f3e8c9d9f6108a665b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -682.5
+                ],
+                "look": [
+                  -1125,
+                  80,
+                  -662.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "f71c14a45032eb9dcdd75f731d04b2656b36eea94704e38a9969457857709bbb",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  80,
+                  -717.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -682.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "c3f02ddc50956ba3f093e08679657fd1162272e2f1683e0e216fc3a6889c5dc8",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  80,
+                  -717.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -682.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "d26153a990de69a4e2d2c8a83f0158df95f902489544c44d847d777afc4683c8",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -682.5
+                ],
+                "look": [
+                  -1165,
+                  40,
+                  -682.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "fff774ed809c28f9afd53a28ec2c4b325d7be109cf06ecdc306b4e7f17c8edd0",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -682.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -622.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "af1de3efc4f69d81d81790632907055082271a394ba72875eea0c6edf4fd610d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -682.5
+                ],
+                "look": [
+                  -1085,
+                  40,
+                  -682.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "eb40ff814852d5cfe18f98300b32763fb013c1be83b695e7060788480513b288",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -682.5
+                ],
+                "look": [
+                  -1125,
+                  40,
+                  -862.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "90cceb2a332424daf96cda6d4261c65e17156fa2fa0b1eba50bc2f2d7817ed76",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  40,
+                  -682.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -682.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "04922fcdbceb5faaa5f760d2890e3247ac8a9635e0915577bb79aef86dfa7734",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -622.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -682.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "C1-100m-stand",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/C1-100m-stand/cameras.json",
+          "cameraSha256": "7bb93a60ea9e214472caa8a4e277af1f6ed7139c12df457fbbe7ab985586c676",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "1b1c2aeb2a404520897ee89f40b31e106fa6dacd7ccadb041a26e55bb704b77f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -962.5
+                ],
+                "look": [
+                  -1125,
+                  140,
+                  -942.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "52e07a787dfad67186a04b980d7eb8203f4ffbfc5f077eec5c4af505deebe282",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  140,
+                  -997.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -962.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "f1849d74468614c23bc0f6b461365d98a077bf71201a5ffc36d17f8240eb8643",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  140,
+                  -997.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -962.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "40acb7f8180db8a4288d97d55c870de50ef3b9422c080a3adca18fb3baeb4436",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -962.5
+                ],
+                "look": [
+                  -1165,
+                  100,
+                  -962.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "1164f05ba6b34fc61779a70cffda84cb1062c6df6cd4da9b9754f7dbc1365754",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -962.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "28965da60a83f39891388885925b41f3168dd1348b909884b3a60327cc4f53fd",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -962.5
+                ],
+                "look": [
+                  -1085,
+                  100,
+                  -962.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "c0b416f0f550a0ff39c93fa54c60128bd14ccef929990ef5708f8268fb89fcc1",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -962.5
+                ],
+                "look": [
+                  -1125,
+                  100,
+                  -1022.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "47c09d5cf1b84757c1f8b79172b60aa193570457c1a7ae8b7395c3f60e28d760",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -962.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -962.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "9f2fcb9993f92f3ba4a486dc1ae4d642a3065e8d943db00bcc71a9893140e71e",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  160,
+                  -902.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -962.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "C2-100m-look",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/C2-100m-look/cameras.json",
+          "cameraSha256": "6e9bfdb02500cbc3ca85bdac72b336b0912533d85f279a6eb4ec6d22121b8aee",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "3cc3535be40dda74225fe563dd811ff458a667c41c00c1b3dae59580c567635b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -562.5
+                ],
+                "look": [
+                  -1125,
+                  140,
+                  -542.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "5629cf6763d433fc797e87493de56f0d6b500d2019be04605510abd207985d1e",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  140,
+                  -597.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "d9b73e15bc737da28ceed3ae18c59eb74c559e8c457440f4617a8fe42b89de15",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  140,
+                  -597.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "d4078348144798478a9de4c50b2b77c4b6f7b6a302d21133c9e2087aa1fa0709",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -562.5
+                ],
+                "look": [
+                  -1165,
+                  100,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "ae94cde38aaa373372acc503e327634c1a6a52c0aeabcad39574bf839d39ba94",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -562.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -437.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "f12fe69f6c4257df09614a709be066cd55de33fa9f391f40f91e6c91e3662eb4",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -562.5
+                ],
+                "look": [
+                  -1085,
+                  100,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "aff5c075ec0942766d60499026193400189a31097ca771efdb5ac84165d8a83d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -562.5
+                ],
+                "look": [
+                  -1125,
+                  100,
+                  -962.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "e4e1053194f3291cb6eb065b9f332257ccd9ba20b01195a56fe3dd832c56e100",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -562.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -562.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "126164446971045cbc95aed7e1bbd92099114c7eebb6166547d97e2d2da2b4c5",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  100,
+                  -1162.5
+                ],
+                "look": [
+                  -1125,
+                  10,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "D1-plaza-stand",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/D1-plaza-stand/cameras.json",
+          "cameraSha256": "afc4d30f2cc1ded91da70bb17811624055cd09f0fd51f84b351c43102949b1a3",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "c868e680dc60edaecad07f31304c1d6e51b2fd020d0dda4ec2793581b60cfee6",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -607.5
+                ],
+                "look": [
+                  -1125,
+                  41.7,
+                  -587.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "3c95c4910e4c4454a6321bf99d57fab25ac8b4f7e4a8fc9771b0d0eff739cdb4",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  41.7,
+                  -642.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -607.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "bbebf396800b7155f9fdb50de29ecec0075e269e753ae90aa447a1f3d031c2a8",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  41.7,
+                  -642.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -607.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "b811f65e2df5f65efc9795cee8c044d983a7de34ad7454d434db7410d4a2f95c",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -607.5
+                ],
+                "look": [
+                  -1165,
+                  1.7,
+                  -607.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "1f12c0a9b296eb22a7a2fb243fec72c8d41af1ef2b88a734391333e6aa79a073",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -607.5
+                ],
+                "look": [
+                  -1125,
+                  15,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "18972727cbedaa20afe83d39657ed1b3e817d806ff73f15c0cf9a40a84b9354a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -607.5
+                ],
+                "look": [
+                  -1085,
+                  1.7,
+                  -607.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "69ffccde687f4f041a840ea0ade82530af14f74db863a5111eb45b11d59d4bbf",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -607.5
+                ],
+                "look": [
+                  -1125,
+                  1.7,
+                  -667.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "7ac52320469c11cebca25e5b550f4c76952b5e24a90a11dba72f2771f4e961ab",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -607.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -607.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "5bc4b5fd3801a1ea43dbc473b42fc3db42575ad637608b8f30f546f5a9a4f569",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  61.7,
+                  -547.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -607.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "D2-gate-look",
+          "cameraFile": "art/open-plots/lantern-bayou/domes/D2-gate-look/cameras.json",
+          "cameraSha256": "9de943e5be5f202f1d87970f3e74a11c72fbfb339795dd722770a3a60041ea5c",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-lantern-bayou/capture.json",
+            "sha256": "546cadba7cf722f70e954cf6dbfd0c8bf4cefd0266495194a9b07320052f5105"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "d035dd4c7b323396ba2b0b25ad10432274f8cd47b3afeff9b411b16b6b7e09a4",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -580.5
+                ],
+                "look": [
+                  -1125,
+                  41.7,
+                  -560.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "a72b803700b0c83e157f00c37638c0e15b90bf03e2aead37325f1a48e2190273",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1160,
+                  41.7,
+                  -615.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -580.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "2397eaf15d6e01bbc61ce4d36d0d9819c4be5a1f6729bd7ad551ee0da081009d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1090,
+                  41.7,
+                  -615.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -580.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "9c90f2f0833d3a30f7806e7f41a1b80e4d476a21d4be35e3bc995335f9ff1b3b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -580.5
+                ],
+                "look": [
+                  -1165,
+                  1.7,
+                  -580.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "8a53a20fb8b5d1eb3c31e49ae9374545403c387ddb0baefe85b7b8b361eb3ac3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -580.5
+                ],
+                "look": [
+                  -1125,
+                  16,
+                  -562.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "c1129389f54047eb1862bd6f018d46a033fe904547ff99b69e5876cd16ebc0bd",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -580.5
+                ],
+                "look": [
+                  -1085,
+                  1.7,
+                  -580.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "c0fa1fdfc1ebcf2ae6d3418f904b7c388a6cda8bffe4907d782f5904fe9ae48e",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -580.5
+                ],
+                "look": [
+                  -1125,
+                  1.7,
+                  -607.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "c2c59cca4e7180d3d711a0f2b8ae4111618d513ef684f3508bba95b07e9cdc24",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  1.7,
+                  -580.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -580.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "2c612948b0f8d3d8252d697b6d6fe701225ad2ee9c332382c934b216d52d5663",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -1125,
+                  61.7,
+                  -520.5
+                ],
+                "look": [
+                  -1125,
+                  0,
+                  -580.5
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "open-plot-showcase-template",
+      "instance": "open-plot-2-4",
+      "domes": [
+        {
+          "dome": "A1-road-stand",
+          "cameraFile": "art/open-plots/showcase-template/domes/A1-road-stand/cameras.json",
+          "cameraSha256": "bc4ff9bc6f287be6d5c14ebab494773950cc8b611f90e8a759b8ed93f03dc840",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-showcase-template/capture.json",
+            "sha256": "86bb72ffe88b7a61e4413dbfb4094a2ab219f14d1bb50e41d54f516c15ab494d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "8702c72f3c815ba8971952d43bb51a3c73cdd057b1d18efc362076a2bbc023bb",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  863
+                ],
+                "look": [
+                  0,
+                  41.7,
+                  883
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "5c2274161dc21ae11f6957dc951a1efe84b0af5e561a9f40e7d842fa3f5ce2be",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  41.7,
+                  828
+                ],
+                "look": [
+                  0,
+                  0,
+                  863
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "8f35faeb6ca8c99b23896ab60b81954ae140246d9732f87ce64ff642037bb68f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  41.7,
+                  828
+                ],
+                "look": [
+                  0,
+                  0,
+                  863
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "2ed0b7583f3ed72d24bcfd241bf19dab1b6d53f671f2a3553ec6a41479a45ac3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  863
+                ],
+                "look": [
+                  -40,
+                  1.7,
+                  863
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "56060d42198b3c9550c44abf539dd620cb15aedb1391e61bf2a3c2bbc1dda784",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  863
+                ],
+                "look": [
+                  0,
+                  20,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "8c70741f976c2302188b01b50325a02dc7256e7d912db745c7f256e76a5b8b3a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  863
+                ],
+                "look": [
+                  40,
+                  1.7,
+                  863
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "d26cc6f31d12859883d44f1202d5047e1959e36bc938a873114bfd8753226e65",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  863
+                ],
+                "look": [
+                  0,
+                  1.7,
+                  803
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "9528e1f30d51e40da9a2558381f2d7751ceabb901636c994b35367a92528305c",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  863
+                ],
+                "look": [
+                  0,
+                  0,
+                  863.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "517a77ea6c1d358ee53be7fb4b60095bc270ecf2ab19166f93703f8021e6f1ed",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  61.7,
+                  923
+                ],
+                "look": [
+                  0,
+                  0,
+                  863
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "A2-road-look",
+          "cameraFile": "art/open-plots/showcase-template/domes/A2-road-look/cameras.json",
+          "cameraSha256": "bd34db452fd9f28eb58c7c7549041d1cf2f63f67e6d0d947650c1a2297df9723",
+          "captureVersion": {
+            "build": "b616c06-mw0dyp5q",
+            "time": "2026-11-03T07:48:18.782Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/capture-b616/open-plot-showcase-template/capture.json",
+            "sha256": "86bb72ffe88b7a61e4413dbfb4094a2ab219f14d1bb50e41d54f516c15ab494d"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "ff140611abfc5067ce4de7ec19101b0a8df65693bc8f023ca4ad8fc66ffd3c96",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  920
+                ],
+                "look": [
+                  0,
+                  41.7,
+                  940
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "3ed0b1118af7bf725b2c701a87432a28918f3be822ebcf6de33334f7c6398b83",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  41.7,
+                  885
+                ],
+                "look": [
+                  0,
+                  0,
+                  920
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "846fa0703f0406208c572d0e5654afcb28f908ceb6a8caa6d261cbfb8252a61e",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  41.7,
+                  885
+                ],
+                "look": [
+                  0,
+                  0,
+                  920
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "9e6998e13d8535c49172df7d6343fd1b394c26a02316666da4b7387207f2c993",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  920
+                ],
+                "look": [
+                  -40,
+                  1.7,
+                  920
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "c4b7f2fb9a3f3b5d79f1ba9c021d7da6b232cd3aa1f69375ccaf22d17f216387",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  920
+                ],
+                "look": [
+                  0,
+                  10,
+                  985
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "8e918046c853df25d514bc922f0406920cc69ed0ceb73aea408f25a89c6fde77",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  920
+                ],
+                "look": [
+                  40,
+                  1.7,
+                  920
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "17e670c28bf9d24f6ec92c019e3342877cb62d63531930c5a6634290519424f9",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  920
+                ],
+                "look": [
+                  0,
+                  1.7,
+                  863
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "1624b9a5e1181abd78935f5f039ad1f924d6b33c2fddc647fd22f50db5a23aaa",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  920
+                ],
+                "look": [
+                  0,
+                  0,
+                  920.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "e8f8ab0858849be0866994eb3b10ceafdf010f5e9c90eaf79abed4863fc1db5a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  61.7,
+                  980
+                ],
+                "look": [
+                  0,
+                  0,
+                  920
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "B1-40m-stand",
+          "cameraFile": "art/open-plots/showcase-template/domes/B1-40m-stand/cameras.json",
+          "cameraSha256": "7bb50aeba0332188e92c66d34654153f62ed7bf9ac64662d933f90c987d46e71",
+          "captureVersion": {
+            "build": "b616c06-mw0k33gx",
+            "time": "2026-11-03T10:39:41.649Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/continuation-b616-atomic/open-plot-showcase-template/capture.json",
+            "sha256": "9bac744d99aa43c268898e12105c2d6235c8a175ba8b15d3c05663385d0e6e1a"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "fc896bf20d15a1ded4fcb230ed05b6efd57e3e073546af776d357b18c6c1ce7d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  825
+                ],
+                "look": [
+                  0,
+                  80,
+                  845
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "bda4c310a64ddceeeff3afe8a0756ad3826ea7cccc908469a10ef8bc8ea81fef",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  80,
+                  790
+                ],
+                "look": [
+                  0,
+                  0,
+                  825
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "16ff2c18d00ae9d9fd143a30749fb9839f0bf2d1b0addba8d8ea3d649d1d0ee4",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  80,
+                  790
+                ],
+                "look": [
+                  0,
+                  0,
+                  825
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "a03b9d7ddb19e7255f09e28c456b450d6ce5672dc3c19b691c4c22c5f384a27f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  825
+                ],
+                "look": [
+                  -40,
+                  40,
+                  825
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "a863621fcc60958e90d8d80e65ee5cd134826bc0d57e928726f53482ff7bcb47",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  825
+                ],
+                "look": [
+                  0,
+                  0,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "66fd7489da60dd1a6a421db7d2696d42d25c87190120612850117944dae19491",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  825
+                ],
+                "look": [
+                  40,
+                  40,
+                  825
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "810df05668078d28b05860fae05551e72c164bd225778e5ef17557aca603821c",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  825
+                ],
+                "look": [
+                  0,
+                  40,
+                  765
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "e94cc5d347998ced701d1976d67daabb269c42271e8c63b63ec2ab50ff2c559b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  825
+                ],
+                "look": [
+                  0,
+                  0,
+                  825.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "3dcd1fd1a00e66b9e7aecbd8b6a1af0708b6c0bdd3342142fa414f8726c8bd24",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  885
+                ],
+                "look": [
+                  0,
+                  0,
+                  825
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "B2-40m-look",
+          "cameraFile": "art/open-plots/showcase-template/domes/B2-40m-look/cameras.json",
+          "cameraSha256": "61881c82c804bb635666eb5f1ce55c2105e830795710499bdee11b6e342173fe",
+          "captureVersion": {
+            "build": "b616c06-mw0k33gx",
+            "time": "2026-11-03T10:39:41.649Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/continuation-b616-atomic/open-plot-showcase-template/capture.json",
+            "sha256": "9bac744d99aa43c268898e12105c2d6235c8a175ba8b15d3c05663385d0e6e1a"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "85c8fddc0975f3b645ecef2c5c3dde8f01b2f84c566e0966e554ea35d9319c7f",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  1005
+                ],
+                "look": [
+                  0,
+                  80,
+                  1025
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "31f3f5550c8cb4b53c45234d73b867458c92bb58c294ce0be515c1b8c651a8f0",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  80,
+                  970
+                ],
+                "look": [
+                  0,
+                  0,
+                  1005
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "0710e696918340c6a193fd14932fff6857a6dacf005aa030ba03bc72a4713e60",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  80,
+                  970
+                ],
+                "look": [
+                  0,
+                  0,
+                  1005
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "f400d7d667fd4371dc2ec134ddc2e723d15beec231afba3d600768f8294a6d34",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  1005
+                ],
+                "look": [
+                  -40,
+                  40,
+                  1005
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "72d71a1b1779de7348a7c8b440cf1c5cf1b60ed2e4667e98827cd82cbac3bec9",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  1005
+                ],
+                "look": [
+                  0,
+                  0,
+                  1065
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "54a4b73b058a99f029a407007df7086dbf8129dc12ba716f45ad797b1cbef402",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  1005
+                ],
+                "look": [
+                  40,
+                  40,
+                  1005
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "62419082364c8c605ba957929d7a72c3147fed2a4759222f472ddbedb54fa792",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  1005
+                ],
+                "look": [
+                  0,
+                  40,
+                  825
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "e9d9f9e2d58ec54c2a1a1633800283a33ed5b763a08aa2b09b05fee54f85fe6a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  40,
+                  1005
+                ],
+                "look": [
+                  0,
+                  0,
+                  1005.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "ac6508c3dee00036cdf4055a7b34bfe9c2b4c09026436e36871e008266a9d6a5",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  1065
+                ],
+                "look": [
+                  0,
+                  0,
+                  1005
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "C1-100m-stand",
+          "cameraFile": "art/open-plots/showcase-template/domes/C1-100m-stand/cameras.json",
+          "cameraSha256": "7febcbc1ab138c5cf0e1def07b18e468e3e9f99d2f81d8cde78dbcd09d300468",
+          "captureVersion": {
+            "build": "b616c06-mw0k33gx",
+            "time": "2026-11-03T10:39:41.649Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/continuation-b616-atomic/open-plot-showcase-template/capture.json",
+            "sha256": "9bac744d99aa43c268898e12105c2d6235c8a175ba8b15d3c05663385d0e6e1a"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "8d43143e56bff2d06282007c993b1543bef7b264638943cbac6ff7e29d409b80",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  725
+                ],
+                "look": [
+                  0,
+                  140,
+                  745
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "94f774c844e1e2b4da528d9f2ed9e3957f634e1586a34b3681b253eaf44e7b48",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  140,
+                  690
+                ],
+                "look": [
+                  0,
+                  0,
+                  725
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "3b33305b7b982c9fcf62742d518e6621ad81385ff61ed7bde4ae39a33dec5974",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  140,
+                  690
+                ],
+                "look": [
+                  0,
+                  0,
+                  725
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "1c7a6fb3439a0be322a1cb764d592649e5ce58513d3863a9914cead6c2ee34bc",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  725
+                ],
+                "look": [
+                  -40,
+                  100,
+                  725
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "f301515f2c3a32a65953f6ec16a48624334eac34d9c89c0e5f1bf9d7fe8951ec",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  725
+                ],
+                "look": [
+                  0,
+                  0,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "ad2253efed4713a6c5af16f81592d2bf92b43a2ec029ba75f322bd8c5b0e3ab3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  725
+                ],
+                "look": [
+                  40,
+                  100,
+                  725
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "9bb23e51af25ee25fe10c4c798d992c5c6fd65560cbc5859dab48164d215003a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  725
+                ],
+                "look": [
+                  0,
+                  100,
+                  665
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "78b6edc1822148aa6ec5dcaf7f916125db10543f689718c7055e09ff85530636",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  725
+                ],
+                "look": [
+                  0,
+                  0,
+                  725.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "9d37db2b93ed9313d7441db3bce3ce71da9e91910270fb0e364dafcc93f4f8de",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  160,
+                  785
+                ],
+                "look": [
+                  0,
+                  0,
+                  725
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "C2-100m-look",
+          "cameraFile": "art/open-plots/showcase-template/domes/C2-100m-look/cameras.json",
+          "cameraSha256": "8ff0a6fb859a37516d23d80a96da58a8af2b16e3d56febb4bb5cc6679eec7a09",
+          "captureVersion": {
+            "build": "b616c06-mw0k33gx",
+            "time": "2026-11-03T10:39:41.649Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/continuation-b616-atomic/open-plot-showcase-template/capture.json",
+            "sha256": "9bac744d99aa43c268898e12105c2d6235c8a175ba8b15d3c05663385d0e6e1a"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "4099b8c6caed96d6bcd61acb7e04b27a0a6ccd92ff4b515beacd8c70313ec1f8",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  1125
+                ],
+                "look": [
+                  0,
+                  140,
+                  1145
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "4bc2555b6865eba45aa65d34980f988d33c183473e9d7268eb63fb89981a9643",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  140,
+                  1090
+                ],
+                "look": [
+                  0,
+                  0,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "fbf0a25591d6c9061ec49288950c6676ab4637e1b82cc5859769c21735726151",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  140,
+                  1090
+                ],
+                "look": [
+                  0,
+                  0,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "5a7264c83e65c346b949fc4e0c8e8255af5b6d76ed99077707b2344934f60e83",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  1125
+                ],
+                "look": [
+                  -40,
+                  100,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "db8cc22da99b4bc7b61c786435fcbafa93677ab2c2f9cd46f03000d6d3492820",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  1125
+                ],
+                "look": [
+                  0,
+                  0,
+                  1250
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "c9c28a1d5b947d3063ce5d28af82b693311866c04e4dcaab3b55d8ba21c5051d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  1125
+                ],
+                "look": [
+                  40,
+                  100,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "5483a6cf0dcff2560c714eb542b17dc6c2191e837d9b82a8f6b9170226a0f727",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  1125
+                ],
+                "look": [
+                  0,
+                  100,
+                  725
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "a2c7e56d46cbedf4356474edb8d11af84c907e591e3b5b19135155aceac8dd63",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  1125
+                ],
+                "look": [
+                  0,
+                  0,
+                  1125.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "c37922040009d5ba3affff8f544ec2e7f96a45ba11782a60b862cd0af56e9026",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  100,
+                  525
+                ],
+                "look": [
+                  0,
+                  10,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "D1-plaza-stand",
+          "cameraFile": "art/open-plots/showcase-template/domes/D1-plaza-stand/cameras.json",
+          "cameraSha256": "eca0aa80605893b68fccbd04d1efee794099f55215f254e234d24210ff2fff48",
+          "captureVersion": {
+            "build": "b616c06-mw0k33gx",
+            "time": "2026-11-03T10:39:41.649Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/continuation-b616-atomic/open-plot-showcase-template/capture.json",
+            "sha256": "9bac744d99aa43c268898e12105c2d6235c8a175ba8b15d3c05663385d0e6e1a"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "48d617fc3002741a17f8bb47a46ef62e1a0d6894f7f81456ba01b45a871c77ab",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1080
+                ],
+                "look": [
+                  0,
+                  41.7,
+                  1100
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "efe00a76b8746f81f7850f28cb1badd53a5ccbe2ac5300b1abb71f022a9c2e70",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  41.7,
+                  1045
+                ],
+                "look": [
+                  0,
+                  0,
+                  1080
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "a4898bfe8043f02dcdf403ad3eb375e5de30992e9e89455590b94cbbbcfa2169",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  41.7,
+                  1045
+                ],
+                "look": [
+                  0,
+                  0,
+                  1080
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "c04a1896b5860f7db937055edbe5395ecc4eb5ab10af4a89fc377805217a74d0",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1080
+                ],
+                "look": [
+                  -40,
+                  1.7,
+                  1080
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "02dd8dbc04908a6e1e00c19101baee746a7127459545a49e677597c7ee80ec31",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1080
+                ],
+                "look": [
+                  0,
+                  15,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "31c10e1996c12b5882b469b2c113b3ef66d70abbafb4d888d8bcf33a7ecc125b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1080
+                ],
+                "look": [
+                  40,
+                  1.7,
+                  1080
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "1d1e55f67c25d05e80d8041dda61444ea78437d3f903dc180fa794ed305629f4",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1080
+                ],
+                "look": [
+                  0,
+                  1.7,
+                  1020
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "6f3b0e6d65e10208e8261dd91794fad432bdd49224918c0a6a28fd708c92324a",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1080
+                ],
+                "look": [
+                  0,
+                  0,
+                  1080.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "909853af7afc5e98e796c25469bfc36504806badd4e2885cdbacc500f509fc15",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  61.7,
+                  1140
+                ],
+                "look": [
+                  0,
+                  0,
+                  1080
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        },
+        {
+          "dome": "D2-gate-look",
+          "cameraFile": "art/open-plots/showcase-template/domes/D2-gate-look/cameras.json",
+          "cameraSha256": "6a147a21f58f9951338594d6eea69012878a2fa5a0ec54978da987e0304fbc07",
+          "captureVersion": {
+            "build": "b616c06-mw0k33gx",
+            "time": "2026-11-03T10:39:41.649Z"
+          },
+          "raw": {
+            "receipt": "tmp/sp-x9-op4/continuation-b616-atomic/open-plot-showcase-template/capture.json",
+            "sha256": "9bac744d99aa43c268898e12105c2d6235c8a175ba8b15d3c05663385d0e6e1a"
+          },
+          "views": [
+            {
+              "n": 1,
+              "imageSha256": "c421c91e74e8764132c803e04372f6f8fcbdc5d296aef4ca91c3db4bbfc932b5",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1107
+                ],
+                "look": [
+                  0,
+                  41.7,
+                  1127
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 2,
+              "imageSha256": "c85a568c50047618c1de2ac621152f57a582fbe6ba1ced69a5ffe4f6afddc73d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  -35,
+                  41.7,
+                  1072
+                ],
+                "look": [
+                  0,
+                  0,
+                  1107
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 3,
+              "imageSha256": "2d79c13c15cdcb4a4195b06bc85cf4f3f91c83d6813bbc27fb620fb84b4b7abd",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  35,
+                  41.7,
+                  1072
+                ],
+                "look": [
+                  0,
+                  0,
+                  1107
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 4,
+              "imageSha256": "92510e908068a979109b519e940c16f9d85b96e59312b181cca5668a4c975e7d",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1107
+                ],
+                "look": [
+                  -40,
+                  1.7,
+                  1107
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 5,
+              "imageSha256": "ce206ecf1e5d7a5df4164202712f9783f53b26bbb53d9efa59cc7b6aaa02a2e3",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1107
+                ],
+                "look": [
+                  0,
+                  16,
+                  1125
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 6,
+              "imageSha256": "224ec6c5a57e02d2ed87c26a61c0831b3260f862cdd3c92a35e240ee48f3355b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1107
+                ],
+                "look": [
+                  40,
+                  1.7,
+                  1107
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 7,
+              "imageSha256": "2aaf54069260f5837c3240c3a6289ee269144a8f2e37c966c57ad19b8e7a0f66",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1107
+                ],
+                "look": [
+                  0,
+                  1.7,
+                  1080
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 8,
+              "imageSha256": "2f8cb486d22c0dd8ef68a4a53ea5a87e4f8e5ac19c53f04b1c5a94c6b42bb36b",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  1.7,
+                  1107
+                ],
+                "look": [
+                  0,
+                  0,
+                  1107.25
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            },
+            {
+              "n": 9,
+              "imageSha256": "43d3a283a4c08f3df96dd4c8cbce1a052fca64099ae75f5e45bc8ffdf8a507b7",
+              "frames": 120,
+              "requestedCamera": {
+                "eye": [
+                  0,
+                  61.7,
+                  1167
+                ],
+                "look": [
+                  0,
+                  0,
+                  1107
+                ],
+                "fov": 84.05610156309032
+              },
+              "pending": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "junction": {
+    "anchor": {
+      "x": -281.25,
+      "z": 843.75,
+      "instance": null
+    },
+    "lattice": {
+      "x": -0.5,
+      "z": 1.5
+    },
+    "coverage": [
+      {
+        "instance": "pine-hollow",
+        "covered": true
+      },
+      {
+        "instance": "open-plot-nw",
+        "covered": true
+      },
+      {
+        "instance": "open-plot-1-4",
+        "covered": true
+      },
+      {
+        "instance": "open-plot-2-4",
+        "covered": true
+      }
+    ],
+    "allCentresInOneFrame": false,
+    "raw": "tmp/sp-x9-op4/final-b616/junction/junction.json",
+    "rawSha256": "a238fe3160db27db14480edfe4202edbcdf035ae3b75f7fdb86e8df633c9c1b0",
+    "views": [
+      {
+        "instance": "pine-hollow",
+        "requestedCamera": {
+          "eye": [
+            -281.25,
+            1.7000409127864031,
+            843.75
+          ],
+          "look": [
+            0,
+            1.7000409127864031,
+            562.5
+          ],
+          "fov": 84.05610156309032
+        },
+        "drawn": {
+          "far": false,
+          "near": true,
+          "l1": 0,
+          "l0": 0
+        },
+        "centreInFrustum": true,
+        "ownedResidencyBytes": 9259412,
+        "frames": 120,
+        "imageSha256": "dcfca99afaf0e69aeb961ce97c3f6d42fe1afe9668bd6b8edc5003fc130d3254",
+        "pending": []
+      },
+      {
+        "instance": "open-plot-nw",
+        "requestedCamera": {
+          "eye": [
+            -281.25,
+            1.7000409127864031,
+            843.75
+          ],
+          "look": [
+            -562.5,
+            1.7000409127864031,
+            562.5
+          ],
+          "fov": 84.05610156309032
+        },
+        "drawn": {
+          "far": false,
+          "near": true,
+          "l1": 8,
+          "l0": 4
+        },
+        "centreInFrustum": true,
+        "ownedResidencyBytes": 8923253,
+        "frames": 120,
+        "imageSha256": "aa78515fb71fcf6cc0319029372ab8c06a1281e5734d23dd1fa58dfd6f32e729",
+        "pending": []
+      },
+      {
+        "instance": "open-plot-1-4",
+        "requestedCamera": {
+          "eye": [
+            -281.25,
+            1.7000409127864031,
+            843.75
+          ],
+          "look": [
+            -562.5,
+            1.7000409127864031,
+            1125
+          ],
+          "fov": 84.05610156309032
+        },
+        "drawn": {
+          "far": true,
+          "near": false,
+          "l1": 0,
+          "l0": 0
+        },
+        "centreInFrustum": true,
+        "ownedResidencyBytes": 1218067,
+        "frames": 120,
+        "imageSha256": "6e25f7f11a0de11e97ba5d2e273b88d0b02ed89e87bf52b46fbe630d61d5ffb5",
+        "pending": []
+      },
+      {
+        "instance": "open-plot-2-4",
+        "requestedCamera": {
+          "eye": [
+            -281.25,
+            1.7000409127864031,
+            843.75
+          ],
+          "look": [
+            0,
+            1.7000409127864031,
+            1125
+          ],
+          "fov": 84.05610156309032
+        },
+        "drawn": {
+          "far": true,
+          "near": false,
+          "l1": 0,
+          "l0": 0
+        },
+        "centreInFrustum": true,
+        "ownedResidencyBytes": 1245015,
+        "frames": 120,
+        "imageSha256": "810218f48b3fb8810a103919cbca65c645af342e401c5d53b6f33e25eeaf0caf",
+        "pending": []
+      }
+    ]
+  },
+  "media": [
+    {
+      "file": "open-plot-night-market/A1-road-stand/sheet-3x3.jpg",
+      "bytes": 201722,
+      "sha256": "e86ee04da90b935268b81049ec808f645c261849475466309735e7302700159d",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-night-market/A2-road-look/sheet-3x3.jpg",
+      "bytes": 203709,
+      "sha256": "2fb0ad531e1719552f94567c339b387cf9842496749c8526b824fa3e5be402f6",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-night-market/B1-40m-stand/sheet-3x3.jpg",
+      "bytes": 207009,
+      "sha256": "f639959ee8be2e2ab87f9b958f998c1459750d9e120cabf7bd8e1c14c7643ab8",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-night-market/B2-40m-look/sheet-3x3.jpg",
+      "bytes": 251148,
+      "sha256": "7403b8fa56cfb949d9efa21d0cc9e663f6b0eecb7af16443ce8a0b737337c07e",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-night-market/C1-100m-stand/sheet-3x3.jpg",
+      "bytes": 167463,
+      "sha256": "9e9353a3d9bab76eae72d84940119f74a045d403ac46f8378fc51db530560c91",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-night-market/C2-100m-look/sheet-3x3.jpg",
+      "bytes": 252140,
+      "sha256": "3559dcdba59754f8eb92806332259142bfc49d66cf5ed853838cef8f47f8a54e",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-night-market/D1-plaza-stand/sheet-3x3.jpg",
+      "bytes": 249855,
+      "sha256": "e2a3d2b1b95f3ec48dcce006ab15d721d26cd2017606b18945fd463d35d391f0",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-night-market/D2-gate-look/sheet-3x3.jpg",
+      "bytes": 261593,
+      "sha256": "39ab8025404b42a25a4b8eae777f4b428bd3bf61f1dde09919bac5754b60ffa3",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/A1-road-stand/sheet-3x3.jpg",
+      "bytes": 214140,
+      "sha256": "5ecdee2703875577c28d591364ca78ae00db025abfd1a3480a5d5dfbc2423946",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/A2-road-look/sheet-3x3.jpg",
+      "bytes": 215811,
+      "sha256": "e69686fb5aa1cd678f05ae64ab36f68c4ffec362d9a1c76f99aa1caac283c8a5",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/B1-40m-stand/sheet-3x3.jpg",
+      "bytes": 253234,
+      "sha256": "11367617943616077b8b950c69268f3aca3a41cdfa1f1e171707be45cfd42c56",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/B2-40m-look/sheet-3x3.jpg",
+      "bytes": 221405,
+      "sha256": "be9702c47e0af66d87682748456215e6c27485a305af465fd52827454c541760",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/C1-100m-stand/sheet-3x3.jpg",
+      "bytes": 275051,
+      "sha256": "d606a36b657731df7c4eea9eec3eea10b4133dcf629efe68c7128292ece3cd03",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/C2-100m-look/sheet-3x3.jpg",
+      "bytes": 242136,
+      "sha256": "930e121edd1f6fb2b226bce8821b147464a240b6ecfe4c712ec6c8c5b704ffba",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/D1-plaza-stand/sheet-3x3.jpg",
+      "bytes": 251318,
+      "sha256": "1d31393984961dd943a49399ec94bc9b4fa6c465242717dc3b355062e21921a4",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-lantern-bayou/D2-gate-look/sheet-3x3.jpg",
+      "bytes": 273447,
+      "sha256": "dff23c56d54de8976f945edbc0a4daa198248d9e8cf6f726e496606e0121140b",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/A1-road-stand/sheet-3x3.jpg",
+      "bytes": 195329,
+      "sha256": "787c2a2f42ea7ae178aa8dfb8dbca3a3e3a9b144f998bfc91943c611c4a4c576",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/A2-road-look/sheet-3x3.jpg",
+      "bytes": 268853,
+      "sha256": "6780693a3b98c4e7f116632f7e471c627adb75bc42a0605d77287123903cb1bd",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/B1-40m-stand/sheet-3x3.jpg",
+      "bytes": 215111,
+      "sha256": "ca00a15c5a5241f0fa67533734517232f85cc47de4c8d5697ab373de51c208cc",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/B2-40m-look/sheet-3x3.jpg",
+      "bytes": 260142,
+      "sha256": "9f58009fd1d1f3e6e86d13a97b3521aa4e9fbe6ccfc4fc3293273f8daa25e426",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/C1-100m-stand/sheet-3x3.jpg",
+      "bytes": 316154,
+      "sha256": "3b2b2b04688ed4df375d687ff339fc7f187e169aca2cf329149f708de0c5d26a",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/C2-100m-look/sheet-3x3.jpg",
+      "bytes": 211763,
+      "sha256": "3065637dde244fd62ce379584ba650af1ad1f015d46edc969c4329dee17daee2",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/D1-plaza-stand/sheet-3x3.jpg",
+      "bytes": 309463,
+      "sha256": "554806033f3c47aae638ad81d9b2ffd8dd84ffe657cbdb4655c97f8ef0e580d6",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "open-plot-showcase-template/D2-gate-look/sheet-3x3.jpg",
+      "bytes": 312879,
+      "sha256": "47a633a643088982f7b2ce3c58ee4e95715c0ed136ed7952d3bb5b2dcffe87b4",
+      "kind": "dome-sheet"
+    },
+    {
+      "file": "junction/pine-hollow.jpg",
+      "bytes": 22019,
+      "sha256": "dcfca99afaf0e69aeb961ce97c3f6d42fe1afe9668bd6b8edc5003fc130d3254",
+      "kind": "junction-view"
+    },
+    {
+      "file": "junction/open-plot-nw.jpg",
+      "bytes": 15549,
+      "sha256": "aa78515fb71fcf6cc0319029372ab8c06a1281e5734d23dd1fa58dfd6f32e729",
+      "kind": "junction-view"
+    },
+    {
+      "file": "junction/open-plot-1-4.jpg",
+      "bytes": 14199,
+      "sha256": "6e25f7f11a0de11e97ba5d2e273b88d0b02ed89e87bf52b46fbe630d61d5ffb5",
+      "kind": "junction-view"
+    },
+    {
+      "file": "junction/open-plot-2-4.jpg",
+      "bytes": 14509,
+      "sha256": "810218f48b3fb8810a103919cbca65c645af342e401c5d53b6f33e25eeaf0caf",
+      "kind": "junction-view"
+    }
+  ],
+  "refusals": [
+    {
+      "path": "tmp/sp-x9-op4/capture-b616/batch.json",
+      "sha256": "bb5add13262a7a580725a2f5056e0e7c76d628853cc0343f5b524e3a35c6cfc7"
+    },
+    {
+      "path": "tmp/sp-x9-op4/showcase-b1-observer/open-plot-showcase-template/capture.json",
+      "sha256": "1f5eaecb71c1124459928606d6744dbe83df93b49fc0b52adaecb428dc7ca4c3"
+    },
+    {
+      "path": "tmp/sp-x9-op4/continuation-b616/open-plot-showcase-template/capture.json",
+      "sha256": "2dcda51c6fdb8a95f2a4e4cf4c52abb7be64214cb21b8b450fcc8bcedad66d8b"
+    }
+  ],
+  "guards": "Original anchor, actual camera, context/document, residency, phone2x/live-clock and 120-frame/15s limits unchanged. Ready snapshot captured atomically; pending work not filtered. No Pine/runtime changes.",
+  "limits": "Four-view neighbour coverage, not a single-frame panorama or occlusion proof. Descriptive Chromium reading; not a physical phone, frame-floor, draw-budget or memory-budget pass. Initial3211 builder and scheduled source gates/shared-host activity retained; no isolated performance inference."
+}

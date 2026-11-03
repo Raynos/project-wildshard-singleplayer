@@ -116,7 +116,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 | OP1 | **done (2026-11-03, sp-o2): `43f9809f0d` + `d141a00252`, board [round 76](../../art/grid/round-76-night-market-op1/board.jpg)** (hero lantern family `e0c7a5d07b`; ~70 hero lanterns on thick ropes, sky lanterns gone, phone wire 8.13 of 8.23 MB). **Night Market lanterns (G827).** Board first: 3 takes of a hero paper lantern (ribs, paper, cap, tassel, inner glow; ~1.5k triangles LOD0, ~300 LOD1, instanced) and 3 rope styles. Then cut the lanterns to a few hundred, delete every sky lantern, hang every lantern on a thick, dark, sagging rope between posts or eaves; re-tune the light bake for fewer emitters | Opus | 6 h | Board sent; no floating lantern in the 8 domes; 30 fps and draws ≤ 154 hold; the new lantern is the shared family |
 | OP2 | **Shared-kit extraction — done (2026-11-02).** Split `kit.mjs` / `tiledPlot.mjs` into a plot-agnostic core (Soup, grid, sockets, writer, pools, posters, kerb, far, light bake, paving) and per-idea builder sets; Night Market's H/G/S/C/L/N/P move to its own set; letters map to builders per layout | Codex | 1 d | All 18 current world GLBs (99,931,412 B) and all 52 read inputs are SHA256/size exact before/after. Night Market stays 64,289,012 B; the real style-row test uses seven different letters, and all eight collision goldens plus the 5,500-emitter control remain unchanged. Core grid/writer/sockets/paving/GLB construction is separate from Night Market geometry, seams and lighting policy |
 | OP3 | **done (2026-11-03, sp-x8; G872 self-applied). Per-plot template generator.** One script: slug → layout stub, style row, `outputs.json` row, look key, map row, dome cameras from the round-62 sheet, cell swap for new ideas. Its first output is Showcase Template | Codex | 0.5 d | A new idea goes from nothing to a building plot (shared families, its palette) in one command |
-| OP4 | **Batching — in flight (2026-11-03, sp-x9).** One dome-capture run and one board-maker over any list of plots; one Chromium reading at a ring junction with all built neighbours in view | Codex | 0.5 d | One command captures 3 plots × 8 domes and makes their labelled sheets |
+| OP4 | **Batching — done (2026-11-03, sp-x9). [24 sheets + junction](../../art/open-plots/op4-b616c06/README.md).** One dome-capture run and one board-maker over any list of plots; one Chromium reading at a ring junction with all built neighbours in view | Codex | 0.5 d | One command captures 3 plots × 8 domes and makes their labelled sheets |
 | OP5 | Showcase Template (wave 1; the template's proof) | Opus + Codex | 8 / 4 h | Pipeline steps 1–8 met (§3) |
 | OP6 | Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
 | OP7 | Patchwork Fairground (wave 1; new idea, reuses stalls and strings) | Opus + Codex | 12 / 4 h | Steps 1–8; takes a repeat cell |
@@ -247,10 +247,36 @@ named typed lint0. The pinned adapter independently reads the three committed
 OP3 rows at`b9165aa0b8`:24 parsed domes/216 source views with exact camera hashes.
 Correctness gates overlap PF13 explicitly; no timing acceptance follows.
 
-**Still open:** one normal checked HEAD preview, the actual single-command
-three-plot×eight-dome capture/sheets and the declared junction Chromium
-reading. No browser/build has started for OP4. These wait for PF13's literal
-whole machine boundary; this tooling landing is not the OP4 capture pass.
+**Qualified and done (2026-11-03):** full immutable source
+`b616c06a02dfcf6d49a333ec35ad6a24a471c1d0`; 24 domes /216 unique views,
+24 labelled sheets and four fixed junction views PASS. [Committed evidence,
+full digests and limitations](../../art/open-plots/op4-b616c06/README.md).
+The original18 completed domes were not repeated. Only the unrun six Showcase
+domes and junction were captured after the B1 cause correction, in one bounded
+command. Same source, two separately retained actual builds:
+`b616c06-mw0dyp5q` and `b616c06-mw0k33gx`; no false single-build claim.
+The standalone board-maker ran once over all three final receipts. All216
+JPEG hashes, pinned camera hashes, ordered120-frame positive clocks and
+original acceptance guards independently pass. All16 existing Night/Bayou
+sheets reproduce byte-for-byte. All24 sheets +four images were inspected.
+
+Junction(-0.5,1.5), world(-281.25,843.75), covers actual Pine, Night Market,
+Thin Ice and Showcase drawn-layer/frustum/residency witnesses across four
+unchanged62° standing views; `allCentresInOneFrame=false`. TEMPLATE and
+placeholder imagery remains explicitly labelled; no art-direction approval,
+forced residency or claim against occlusion follows.
+
+B1's original guard refusal (`pending=[pine-hollow]`) and the separate
+wait/read-race refusal remain raw failures. `fb1920bee6` + `92611f473e` wait
+for normal settled admission and atomically return the actual ready snapshot;
+no pending is ignored and every original postguard stays. No timeout, camera,
+frame count, comparator or Pine/runtime change. Focused tests, types and lint
+pass; source fixes are pushed. Separate X6 optional-admission lifetime
+attribution is `69decd4aa4`, not a replacement for the actual b616 witnesses.
+The first-run3211 builder /scheduled gates and brief O3 boundary overlap are
+labelled shared-host, descriptive Chromium evidence; no isolated performance,
+physical-phone or OP23 budget pass. Both own normal leases/browser cohorts
+closed; no remaining OP4 capture or hardware work.
 
 
 ### OP3: source templates and per-plot construction (2026-11-03)
