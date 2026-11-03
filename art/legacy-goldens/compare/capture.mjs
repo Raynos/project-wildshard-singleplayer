@@ -21,7 +21,7 @@ import {saveFixture,developerSettings,hideDeveloperOverlays} from '../../../scri
 import {loadingCardIndex} from '../../../scripts/loading-benchmark/catalogue.mjs';
 import {pressEscape} from '../../../scripts/parity/browser-escape.mjs';
 import {DEFAULT_GOLDEN_CAMERAS,goldenPreviewIdentity,selectGoldenShards,selectGoldenCameraNumbers} from '../../../scripts/goldens/capture-inputs.mjs';
-import {goldenRefinementBinding,observeRefinement,heldGoldenResidency} from '../../../scripts/goldens/native-residency.mjs';
+import {goldenRefinementBinding,observeRefinement,heldGoldenResidency,queueGoldenResidencyInstall} from '../../../scripts/goldens/native-residency.mjs';
 
 const arg=(k,d)=>process.argv.find(x=>x.startsWith(`--${k}=`))?.slice(k.length+3)??d;
 const base=arg('base',''),root=arg('out','tmp/golden-compare/raw');
@@ -74,16 +74,16 @@ try{for(const slug of slugs){
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(()=>{window.__wildshardHarness={seed:357,capture:null};});
-  if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`window.__installGoldenResidency=async()=>{
+  if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`window.__installGoldenResidency=()=>window.__goldenResidencyPromise??=(async()=>{
     try {
-      if(document.readyState!=='complete'||window.__wildshard?.world?.hud?.entered)throw new Error('Native observer requires loaded title before shard entry');
+      if(document.readyState==='loading'||window.__wildshard?.world?.hud?.entered)throw new Error('Native observer requires DOM readiness before world entry');
       const binding=${JSON.stringify(nativeBinding)},bytes=await(await fetch(binding.chunk)).arrayBuffer();
       const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(word=>word.toString(16).padStart(2,'0')).join('');
       if(hash!==binding.chunkSHA256)throw new Error('Native refinement module changed');
       const native=await import(new URL(binding.chunk,location.href).href);native[binding.initializerExport]();
       window.__goldenResidency=(${observeRefinement.toString()})(native[binding.classExport].prototype);
     }catch(error){window.__goldenResidencyFailure=String(error);}
-  }`);
+  })(); (${queueGoldenResidencyInstall.toString()})(window.__installGoldenResidency);`);
   page=await context.newPage();page.setDefaultTimeout(30000);
   // --cpu-throttle=<n> (Chromium): CDP's CPU throttle, a phone-CPU proxy for frame-cost diagnostics (the shot is unchanged)
   if(throttle>1){if(!owner)throw Error('--cpu-throttle needs Chromium');await(await context.newCDPSession(page)).send('Emulation.setCPUThrottlingRate',{rate:throttle});}page.on('pageerror',e=>row.errors.push(e.message));
@@ -95,13 +95,12 @@ try{for(const slug of slugs){
   if(actual.build!==source.build)throw Error(`Preview changed from ${source.build} to ${actual.build}`);row.build=actual.build;
   await page.goto(base,{waitUntil:'load'});
   if (slug==='nine-dragon-stack'&&nativeBinding!==null) {
-    // WebKit cannot reliably import the native module from a document-start
-    // script. Its initializer is present before navigation, then hooks the
-    // loaded module before any menu action can construct a shard or its jobs.
+    // The per-document DOM-ready hook also covers SHARD SELECT's fresh-page
+    // navigation. The title's explicit handshake precedes every menu action.
     await page.evaluate(()=>{void window.__installGoldenResidency();});
     await page.waitForFunction(()=>window.__goldenResidency!==undefined||window.__goldenResidencyFailure!==undefined);
     const failure=await page.evaluate(()=>window.__goldenResidencyFailure);if(failure)throw new Error(failure);
-    row.nativeBinding={...nativeBinding,installed:'after-load-before-shard-entry'};
+    row.nativeBinding={...nativeBinding,installed:'per-document-dom-ready-before-world-entry'};
   }
   await page.locator('.ws-main-select').click();
   const names=await page.locator('.ws-menu-card b').allTextContents();
@@ -112,6 +111,10 @@ try{for(const slug of slugs){
   const button=mode==='legacy'?page.locator('.ws-menu-play'):await dual.isVisible()?dual:page.locator('.ws-menu-play');
   if(await button.isDisabled())throw Error(`${mode} entry disabled`);await button.click();
   await page.waitForFunction(()=>!!window.__wildshard?.world?.hud?.entered&&!document.querySelector('.ws-load')&&window.__wildshard.world.game.frameGate(),undefined,{timeout:180000});
+  if (slug==='nine-dragon-stack'&&nativeBinding!==null) {
+    await page.waitForFunction(()=>window.__goldenResidency!==undefined||window.__goldenResidencyFailure!==undefined);
+    const failure=await page.evaluate(()=>window.__goldenResidencyFailure);if(failure)throw new Error(failure);
+  }
   if(await page.evaluate(()=>window.__wildshard.world.hud.paused))await(owner?pressEscape(endpoint,page.url()):page.keyboard.press('Escape'));
   row.entry=await page.evaluate(()=>({url:location.href,id:window.__wildshard.world.game.level.id}));
   const want=mode==='legacy'?`${slug}-legacy`:slug;if(row.entry.id!==want)throw Error(`Not ${mode}: ${row.entry.id}`);row.mode=mode;

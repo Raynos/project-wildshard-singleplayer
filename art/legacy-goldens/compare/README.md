@@ -57,8 +57,9 @@ requires that source; a preview changing during capture refuses.
 `--shards=nine-dragon-stack` selects one shard and refuses unknown/duplicate names.
 
 Nine SHARDFILE capture also observes native `ControlRefinement.add` publication promises. Its initializer is declared
-before navigation, then imports and hooks the loaded module **before any shard entry** (document-start imports fail in
-WebKit). Its binding
+before navigation, then imports and hooks the module at DOM readiness **in every document** (document-start imports
+fail in WebKit, and SHARD SELECT replaces the title document). The title also waits for the hook before menu actions.
+The fresh world must still record native jobs; an empty ledger refuses. Its binding
 is rebuilt from the actual local all-product `serve-build.sh` preview, with served chunk bytes checked against that
 exact dist and hashed again in the browser. The original receiver, arguments and returned promises stay intact.
 Before each image it holds the existing golden camera, waits for publication and refuses pending, failed or retired

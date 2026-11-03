@@ -1,3 +1,4 @@
+export function queueGoldenResidencyInstall(install:()=>Promise<void>):void;
 export function goldenRefinementBinding(base:string,source:{build:string;sha:string}):Promise<{
   initializerExport:string;classExport:string;sha:string;build:string;chunk:string;chunkSHA256:string;
 }>;

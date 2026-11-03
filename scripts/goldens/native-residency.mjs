@@ -3,6 +3,13 @@ import {readdirSync,readFileSync} from 'node:fs';
 import {homedir} from 'node:os';
 import {join} from 'node:path';
 
+/** SHARD SELECT replaces the document. Schedule this in every init-script
+ * realm, after module-script bases exist and before the async world boot. */
+export function queueGoldenResidencyInstall(install) {
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{void install();},{once:true});
+  else void install();
+}
+
 /** Rebind the release reader to this actual shared preview, never a copied chunk name.
  * @param {string} base @param {{build:string,sha:string}} source */
 export async function goldenRefinementBinding(base,source) {
@@ -61,7 +68,7 @@ export function observeRefinement(proto) {
 export async function heldGoldenResidency() {
   const w=window.__wildshard.world,g=w.game,ledger=window.__goldenResidency;
   const snapshot=()=>JSON.stringify({frame:g.frameCount,clock:g.app.clock.snapshot(),camera:g.camera.matrixWorld.elements,player:w.player.position.toArray()});
-  if (!g.hold||!ledger||ledger.jobs.length===0) throw new Error('Native residency observer is not bound to a held world');
+  if (!g.hold||!ledger||ledger.jobs.length===0) throw new Error(`Native residency observer is not bound to a held world ${JSON.stringify({hold:g.hold,ledger:ledger!==undefined,jobs:ledger?.jobs.length??0,documentOrigin:performance.timeOrigin})}`);
   const before=snapshot(),start=Date.now();let turns=0;
   for (;;) {
     await new Promise(resolve=>{requestAnimationFrame(resolve);});turns++;
