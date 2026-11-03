@@ -25,9 +25,9 @@ SEED = 23
 SPAN = 11.0  # the half-width of the arch's opening at its feet
 # sRGB swatches, lightest first (judged against art/grid/round-62-open-plot-palettes/10-coral-drift.jpg)
 SWATCHES = {
-    'peach': ['#ffc8a0', '#f7ad84', '#ec966e', '#d87e5a'],
-    'pink': ['#ff9ec6', '#f582b2', '#e66a9e', '#cc5488'],
-    'lilac': ['#d2a6f2', '#bb8ce4', '#a274d2', '#885cba'],
+    'peach': ['#ffb27a', '#ff9660', '#f47c48', '#e06434'],
+    'pink': ['#ff86be', '#fa66a8', '#ec4c92', '#d4367c'],
+    'lilac': ['#c890ff', '#b076f4', '#985ee4', '#7e48cc'],
     'sand': ['#f4e4c0', '#e8d4aa', '#d8c094', '#c4aa7e'],
 }
 

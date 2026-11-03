@@ -108,7 +108,7 @@ function tree(w, x, z, size, p, spin) {
   // OB5 (G978, shared kit rule): a lagoon plot's kit has palms and no broadleaf trees, so its bank trees are its young
   // palms (the lightest variant: a forecourt plants dozens, and the entry tiles hold to their byte cap)
   if (w.hasModel('palms')) {
-    w.placeModel('palms', 2, x, z, { yaw: spin });
+    w.placeModel('palms', 2, x, z, { yaw: spin, scale: Math.max(1, size * 1.1 / 4) });
     w.solid([x - 0.35, 0, z - 0.35], [x + 0.35, 6, z + 0.35]);
     return;
   }
