@@ -93,7 +93,7 @@
   "landmark": {
     "near": "public/assets/open-plots/jungle-ziggurat/landmark.glb",
     "far": "public/assets/open-plots/jungle-ziggurat/landmark-far.glb",
-    "height": 66,
+    "height": 54,
     "turn": 2
   },
   "posters": {

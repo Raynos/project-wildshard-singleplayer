@@ -15,19 +15,22 @@ import { nightMarketBuilders } from './nightMarket.mjs';
 const DEPTH = 0.6;
 /** J's pool (x0, z0, x1, z1): the tile's middle inside its coping, its north side short of the waterfall */
 const POOL = [-22, -22, 22, 17];
-/** the ziggurat's half footprint on the plaza (ziggurat.py at the layout's 66 m, `stand()` centred: about 42 m wide, 45 m
- *  to the stair's foot), plus the walk round it: the plaza quarter dresses only outside it */
+/** the ziggurat's half footprint on the plaza (ziggurat.py at the layout's 54 m, `stand()` centred: its base course 40 m
+ *  from the centre), plus the walk round it: the plaza quarter dresses only outside it */
 const ZIGGURAT = 48;
+/** each of its four stairs (one up each face, on the lanes in): its half width with the balustrades and its foot's
+ *  distance from the centre, plus a walk either side; the lanes' lamps and the plaza's dressing stand outside it */
+const STAIR = { half: 12, foot: 63 };
 
 /** A stable variant (0 to count - 1) for a piece at tile-local (x, z), so neighbours differ and every bake repeats. */
 const pick = (x, z, count, salt = 0) => (((Math.round(x * 4) * 7 + Math.round(z * 4) * 13 + salt) % count) + count) % count;
 
-/** Life (bar 7): an egret, a 0.6 m mover in the glow graph's steady mode (red seed in [0.5, 1), no green: drifting slowly,
- *  never blinking to black) at full blue, which the graph lights white (Coral's gull, coral.mjs) */
+/** Life (bar 7): an egret, an `s` m (0.6 m by default) mover in the glow graph's steady mode (red seed in [0.5, 1), no
+ *  green: drifting slowly, never blinking to black) at full blue, which the graph lights white (Coral's gull, coral.mjs) */
 let seeds = 0;
-function egret(w, x, y, z) {
+function egret(w, x, y, z, s = 0.6) {
   seeds++;
-  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 1], s = 0.6;
+  const c = [((seeds * 0.6180339887) % 1) * 0.5 + 0.5, 0, 1];
   const top = [x, y + s * 1.4, z], a = [x - s, y - s, z - s], b = [x + s, y - s, z - s], d = [x, y - s, z + s * 1.4];
   w.tri('Glow', top, b, a, c); w.tri('Glow', top, d, b, c); w.tri('Glow', top, a, d, c); w.tri('Glow', a, b, d, c);
 }
@@ -153,7 +156,8 @@ function stiltHouses(w, p, variant) {
 }
 
 /** T stele: a paved walk down the tile's middle (north-south), two rows of four painted steles facing it, planters of red
- *  flowers and round trees beyond them, a stone lamp at each end of the walk. Symmetric under every turn's mirror. */
+ *  flowers and round trees beyond them, a stone lamp at each end of the walk, two egrets over it (big enough to read from
+ *  the road entry down the south avenue's walks: bar 7's second source). Symmetric under every turn's mirror. */
 function steleWalk(w, p) {
   w.floor('Kit', -INNER, -INNER, INNER, INNER, 0.03, p.lawn);
   w.floor('Kit', -6, -INNER, 6, INNER, 0.05, p.court);
@@ -161,25 +165,26 @@ function steleWalk(w, p) {
   for (const z of [-18, 18]) { planter(w, p, -19, z, 3, 3); planter(w, p, 19, z, 3, 3); }
   for (const [x, z, size] of [[-21, 0, 10], [21, 0, 10], [-24, -25, 8], [24, 25, 8], [-24, 25, 9], [24, -25, 9]]) tree(w, p, x, z, size);
   for (const z of [-26, 26]) for (const x of [-4.5, 4.5]) lamp(w, p, x, z);
+  egret(w, -3, 9, -10, 1.2); egret(w, 3, 11, 12, 1.2);
 }
 
 /** The plaza quarter (its corner (HALF, -HALF) is the plaza's centre, as Night Market's): wet tan paving, the ziggurat on it,
- *  and outside the ziggurat's ZIGGURAT m a raised planter with a tree, a pair of stone lamps flanking each lane in, a palm
- *  in the far corner and a stele either side of each lane where it enters. Diagonal-symmetric, so the four turned
- *  quarters mirror. */
+ *  and outside the ziggurat's ZIGGURAT m a raised planter with a tree, a pair of stone lamps flanking each stair, a palm
+ *  in the far corner and a stele either side of each lane where it enters, clear of its stair. Diagonal-symmetric, so
+ *  the four turned quarters mirror. */
 function plaza(w, p) {
   w.floor('Kit', -HALF + 0.02, -HALF + 0.02, HALF - 0.02, HALF - 0.02, 0.03, p.plaza);
   // (a, b): metres from the ziggurat's centre along the tile's two lanes in (a west of the east lane, b north of the south)
   const at = (a, b) => [HALF - a, -HALF + b];
   for (const d of [ZIGGURAT + 3, ZIGGURAT + 15]) {
-    const [x1, z1] = at(5, d), [x2, z2] = at(d, 5);
+    const [x1, z1] = at(STAIR.half + 1.5, d), [x2, z2] = at(d, STAIR.half + 1.5);
     lamp(w, p, x1, z1); lamp(w, p, x2, z2);
   }
   const [px, pz] = at(52, 52);
   planter(w, p, px, pz, 4, 4); tree(w, p, px, pz, 10);
   const [qx, qz] = at(56, 30), [rx, rz] = at(30, 56);
   palm(w, p, qx, qz); palm(w, p, rx, rz);
-  const [sx, sz] = at(9, 58), [tx, tz] = at(58, 9);
+  const [sx, sz] = at(STAIR.half + 2, 58), [tx, tz] = at(58, STAIR.half + 2);
   stele(w, p, sx, sz, -1); stele(w, p, tx, tz, 1);
 }
 
@@ -209,10 +214,11 @@ function farJungle(w, p, type, variant) {
 function jungleLane(w, p, side, centre) {
   const along = (u, off) => (side === 0 ? [u, HALF + off] : [HALF + off, -u]);
   const world = (x, z) => [centre[0] + x, centre[1] + z];
-  // an entry's footprint (8 m wide, 15 m in from the plot's edge) and the ziggurat's square stay clear
+  // an entry's footprint (8 m wide, 15 m in from the plot's edge), the ziggurat's square and its four stairs stay clear
   const blocked = (x, z) => { const [wx, wz] = world(x, z), margin = 1.5;
     return (Math.abs(wx) < 4 + margin && Math.abs(wz) > 235 - margin) || (Math.abs(wz) < 4 + margin && Math.abs(wx) > 235 - margin)
-      || (Math.abs(wx) < ZIGGURAT + 2 && Math.abs(wz) < ZIGGURAT + 2); };
+      || (Math.abs(wx) < ZIGGURAT + 2 && Math.abs(wz) < ZIGGURAT + 2)
+      || (Math.min(Math.abs(wx), Math.abs(wz)) < STAIR.half && Math.max(Math.abs(wx), Math.abs(wz)) < STAIR.foot + 2); };
   const avenue = (side === 0 ? centre[1] : centre[0]) + HALF === 0;
   const spots = avenue ? [-HALF + 5, -HALF + 31, HALF - 5] : [-HALF + 4, HALF - 4];
   for (const u of spots) for (const off of [-4.5, 4.5]) {

@@ -3,15 +3,17 @@ on the plaza, take C beside the image-to-3D takes on the pick board (art/jungle-
 
 Blocky painted low poly (the open plots' kit idiom), freshly painted and intact: a cream base course, five cinnabar
 tiers each capped by a cream course, every tier face carrying alternating stepped-hill frets (a saffron outline round
-turquoise steps on a saffron run), a broad cream stair with side balustrades up the front, and on the top platform a red
+turquoise steps on a saffron run), a broad cream stair with side balustrades up each face, and on the top platform a red
 temple house: a cream plinth on a turquoise band, a dark doorway in a cream frame, turquoise square spirals beside it and
 on its sides, a carved cream panel over the door, saffron and turquoise bands under a carved cream cornice, and a pierced
 four-opening roof comb; two feather standards (a turquoise fan round a saffron one) at the platform's front corners.
 Every face samples the swatch atlas (landmarklib.py). The far model is built from the same masses with one block per fret
-and a ramp for the stair, so near and far stand to the same box.
+and a ramp for each stair, so near and far stand to the same box. The far model is the plot's collider: each ramp climbs
+at 36.5 deg, under the player's 40 deg climb limit (CharacterMotor PLAYER_CAPSULE), so every stair walks to the top. Four
+stairs, not one, keep the model's box centred on the pyramid (tiledPlotCore's stand() centres the box).
 
-Exports landmark.glb (near) and landmark-far.glb, in metres: 55 m tall, base course 70 m square, the stair's foot 5.2 m
-proud of it; pivot at the base centre, the stair up the front (Blender -Y, glTF +Z). The top platform is at 35 m.
+Exports landmark.glb (near) and landmark-far.glb, in metres: 47 m tall, base course 70 m square, each stair's foot 17.4 m
+proud of it; pivot at the base centre, the front stair at Blender -Y (glTF +Z). The top platform is at 27 m.
 Run: bash scripts/blender/build.sh open-plots/ziggurat.
 """
 import math
@@ -37,14 +39,14 @@ SWATCHES = {
 BASE = 35.0  # the base course's half size
 COURSE = 2.0  # the base course's height
 TIERS = 5
-TIER_H = 6.6
-STEP_IN = 3.8  # each tier's foot steps in this much from the one below
+TIER_H = 5.0
+STEP_IN = 4.4  # each tier's foot steps in this much from the one below
 BATTER = 0.3  # each tier's face leans in this much over its height
 CAP = 0.7  # the cream course capping each tier
-PLATFORM = COURSE + TIERS * TIER_H  # 35 m
+PLATFORM = COURSE + TIERS * TIER_H  # 27 m
 STAIR_HALF = 7.0
 RAIL = 2.0  # the balustrades' width
-FOOT = -39.8  # the stair's foot (Blender y)
+FOOT = -52.35  # each stair's foot (Blender y, the front one): 27 m over 36.5 m of run, 36.5 deg
 
 
 def half(k):
@@ -106,7 +108,7 @@ def side_box(p, side, a, s0, s1, z0, z1, out, depth, slot):
 
 
 def frets(p, k, detail):
-    """Tier k's stepped-hill frets round its four faces, alternately pointing up and down, kept off the stair."""
+    """Tier k's stepped-hill frets round its four faces, alternately pointing up and down, kept off the stairs."""
     a0, a1 = half(k)
     z0 = COURSE + k * TIER_H
     lo, hi = z0 + 0.6, z0 + TIER_H - CAP - 0.5
@@ -118,7 +120,7 @@ def frets(p, k, detail):
         for m in range(count):
             c = -a1 + 1.0 + pitch * (m + 0.5)
             w = pitch * 0.42
-            if side == 0 and abs(c) - w < clear:
+            if abs(c) - w < clear:
                 continue
             up = (m + side + k) % 2 == 0
             if not detail:
@@ -147,8 +149,28 @@ def pyramid(p, detail):
         frets(p, k, detail)
 
 
+class Turned:
+    """A Piece seen turned `k` quarter turns about the vertical (a proper rotation: faces keep their winding)."""
+
+    def __init__(self, p, k):
+        self.p, self.k = p, k
+
+    def at(self, v):
+        x, y, z = v
+        for _ in range(self.k):
+            x, y = -y, x
+        return (x, y, z)
+
+    def face(self, points, slot):
+        self.p.face([self.at(v) for v in points], slot)
+
+    def box(self, lo, hi, slot, **rest):
+        a, b = self.at(lo), self.at(hi)
+        self.p.box(tuple(map(min, a, b)), tuple(map(max, a, b)), slot, **rest)
+
+
 def stair(p, detail):
-    """The broad cream stair up the front, between two balustrades that run from the ground to the platform."""
+    """A broad cream stair up a face (the front's, at -y), between two balustrades that run from the ground to the platform."""
     top_y = stair_y(PLATFORM)
     if detail:
         steps = 70
@@ -229,7 +251,7 @@ def temple(p, detail):
     zr = zc1 + 0.6  # the roof comb on a stepped base, four openings through it
     p.box((-9.0, cy - 2.2, zr), (9.0, cy + 2.2, zr + 0.8), 'Kit.cream')
     zb = zr + 0.8
-    top = 55.0
+    top = PLATFORM + 20.0
     if detail:
         p.box((-8.2, cy - 1.0, zb), (8.2, cy + 1.0, zb + 1.2), 'Kit.cream')
         for x in (-7.2, -3.6, 0.0, 3.6, 7.2):
@@ -280,7 +302,8 @@ def standard(p, x, y, detail):
 def build(detail):
     p = Piece()
     pyramid(p, detail)
-    stair(p, detail)
+    for k in range(4):
+        stair(Turned(p, k), detail)
     temple(p, detail)
     edge = half(TIERS - 1)[1]
     for s in (-1, 1):
