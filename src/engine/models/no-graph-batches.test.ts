@@ -7,7 +7,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Joins the scanned source paths.
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
-import { BatchedMesh, BoxGeometry, Color, InstancedMesh, Matrix4, MeshStandardMaterial, type Object3D } from 'three';
+import { BatchedMesh, BoxGeometry, Color, InstancedMesh, Matrix4, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, WebGLRenderer, type Object3D } from 'three';
 import { defineModel, modelContext } from './model';
 import { place } from './place';
 import { graphLook, InstancedBatch } from './instancedBatch';
@@ -31,23 +31,39 @@ test('graph looks batch by default while explicit instanced declarations remain 
 
 });
 
-test('PF1: a graph look\'s levels that share a material but not their shadow flag batch apart; a classic one as before', () => {
+test('PF1 / PF13: a graph look\'s levels that share a material but not their shadow flag share one draw, and only the casting level casts; a classic one as before', () => {
   const ctx = modelContext(null);
   Object.assign(ctx, { renderer: { extensions: { has: (name: string) => name === 'WEBGL_multi_draw' } } });
-  const casts = (material: MeshStandardMaterial): boolean[] => {
+  const batches = (material: MeshStandardMaterial): BatchedMesh[] => {
     const model = defineModel({ id: 'shared/graph-batch-levels', name: 'Graph batch levels', category: 'props', pipeline: 'code', file: 'src/engine/models/no-graph-batches.test.ts', defaults: {},
       build: () => [{ geometry: new BoxGeometry(1, 1, 1), material, castShadow: true }],
       lods: [{ from: 10, build: () => [{ geometry: new BoxGeometry(1, 1, 1), material, castShadow: false }] }] });
     const placements = Array.from({ length: 4 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
-    const out: boolean[] = [];
-    place(model, placements, { ctx, draw: 'batched', registry: null }).object.traverse(o => { if (o instanceof BatchedMesh) out.push(o.castShadow); });
+    const out: BatchedMesh[] = [];
+    place(model, placements, { ctx, draw: 'batched', registry: null }).object.traverse(o => { if (o instanceof BatchedMesh) out.push(o); });
     return out;
   };
-  expect(casts(nodeMaterial())).toEqual([true, false]);
-  // PF3: a graph on the GLSL back-end (a classic program, `isGraphShaderMaterial`) splits its levels the same way
-  const glsl = new MeshStandardMaterial(); Object.defineProperty(glsl, 'isGraphShaderMaterial', { value: true });
-  expect(casts(glsl)).toEqual([true, false]);
-  expect(casts(new MeshStandardMaterial())).toEqual([true]);
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing native renderer port');
+  // the shadow draw sees each copy's near (casting) instance and never its far one, whatever the view showed
+  const shadowSees = (bm: BatchedMesh): boolean[] => {
+    for (let id = 0; id < bm.instanceCount; id++) bm.setVisibleAt(id, true);
+    let seen: boolean[] = [];
+    bm.onBeforeRender = () => { seen = Array.from({ length: bm.instanceCount }, (_, id) => bm.getVisibleAt(id)); };
+    bm.onBeforeShadow(renderer, bm, new PerspectiveCamera(), new PerspectiveCamera(), bm.geometry, new MeshDepthMaterial(), null);
+    const after = Array.from({ length: bm.instanceCount }, (_, id) => bm.getVisibleAt(id));
+    expect(after.every(Boolean)).toBe(true);
+    return seen;
+  };
+  for (const material of [nodeMaterial(), Object.defineProperty(new MeshStandardMaterial(), 'isGraphShaderMaterial', { value: true })]) {
+    // PF3: a graph on the GLSL back-end (a classic program, `isGraphShaderMaterial`) keys its levels the same way
+    const [one, ...rest] = batches(material);
+    if (one === undefined) throw new Error('Missing graph batch');
+    expect(rest).toEqual([]); expect(one.castShadow).toBe(true); expect(one.instanceCount).toBe(8);
+    // each copy holds a near instance then a far one
+    expect(shadowSees(one)).toEqual([true, false, true, false, true, false, true, false]);
+  }
+  expect(batches(new MeshStandardMaterial()).map(b => b.castShadow)).toEqual([true]);
 });
 
 test('PF1: a batched level drawn at a scale (another variant\'s shape) holds its geometry scaled, as instancing draws it', () => {

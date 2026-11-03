@@ -804,6 +804,20 @@ function* drawHandedSteps<P extends object>(def: ModelDef<P>, pls: readonly Plac
 
 // ── batched: one BatchedMesh per material (WEBGL_multi_draw; never facade geometry — E271 / E272) ──
 
+/** PF13: a graph batch holding a group that casts and a group that does not (a tree's near and far bark): its shadow
+ *  draw leaves the non-casting group's copies out, so the shadow map is the one the casting group's own batch drew */
+class CastSplitBatchedMesh extends ChangedBatchedMesh {
+  private readonly uncast: number[] = [];
+  private readonly held: number[] = [];
+  leaveOutOfShadows(instance: number): void { this.uncast.push(instance); }
+  override onBeforeShadow(...args: Parameters<ChangedBatchedMesh['onBeforeShadow']>): void {
+    const held = this.held;
+    held.length = 0;
+    for (const id of this.uncast) if (this.getVisibleAt(id)) { this.setVisibleAt(id, false); held.push(id); }
+    try { super.onBeforeShadow(...args); } finally { for (const id of held) this.setVisibleAt(id, true); }
+  }
+}
+
 function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Drawn {
   const renderer = o.ctx.renderer;
   if (o.batch === undefined && (renderer === null || !renderer.extensions.has('WEBGL_multi_draw'))) return drawInstanced(def, pls, poses, params, o);
@@ -815,7 +829,8 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   // shadow on the phone; one batch per material cast every far tree's shadow, as instancing per part never did); a
   // classic look's batches are as they were. A graph on the GLSL back-end (a classic ShaderMaterial) keys the same way:
   // as one batch per material it cast every far tree's shadow again (PF3, Pine's mill: 54 shadow trees, TSL 17)
-  const byMat = new Map<THREE.Material | string, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
+  interface Group { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }
+  const byMat = new Map<THREE.Material | string, Group>();
   const flagged = (material: THREE.Material): boolean => graphLook(material) || Reflect.get(material, 'isGraphShaderMaterial') === true;
   const batchKey = (part: ModelPart): THREE.Material | string => !flagged(part.material) ? part.material
     : `${part.material.uuid}|${String(part.castShadow ?? false)}|${String(part.receiveShadow ?? false)}|${String(part.tint !== false)}|${part.customDepthMaterial?.uuid ?? ''}`;
@@ -837,26 +852,40 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   } }); });
   const count = (g: THREE.BufferGeometry): number => g.getAttribute('position').count;
   const shared = o.batch;
-  const batches = [...byMat.values()].map(({ part, geos }) => {
-    const verts = geos.reduce((s, x) => s + count(x.g), 0), idx = geos.reduce((s, x) => s + (x.g.index?.count ?? 0), 0);
+  // PF13: a graph look's groups that differ only in castShadow (a tree's near and far bark) share one BatchedMesh, one
+  // draw in the view as legacy's forest. Each group keeps its own geometries and its own copy of every tree (a dissolve
+  // band still draws both levels), and the shadow pass leaves the non-casting group's copies out (CastSplitBatchedMesh)
+  const meshKey = (part: ModelPart): THREE.Material | string => !flagged(part.material) ? part.material
+    : `${part.material.uuid}|${String(part.receiveShadow ?? false)}|${String(part.tint !== false)}|${part.customDepthMaterial?.uuid ?? ''}`;
+  const meshes = new Map<THREE.Material | string, Group[]>();
+  for (const group of byMat.values()) { const key = meshKey(group.part), known = meshes.get(key); if (known) known.push(group); else meshes.set(key, [group]); }
+  const casts = (part: ModelPart): boolean => part.castShadow ?? false;
+  const batches = [...meshes.values()].flatMap((groups) => {
+    const part = groups[0]?.part;
+    if (part === undefined) return [];
+    const all = groups.flatMap((group) => group.geos);
+    const verts = all.reduce((s, x) => s + count(x.g), 0), idx = all.reduce((s, x) => s + (x.g.index?.count ?? 0), 0);
     const own = shared === undefined || shared.material !== part.material;
-    const bm = own ? new ChangedBatchedMesh(n, verts, idx, part.material) : shared;
+    const split = own && groups.some((group) => casts(group.part)) && groups.some((group) => !casts(group.part));
+    const bm = !own ? shared : split ? new CastSplitBatchedMesh(n * groups.length, verts, idx, part.material) : new ChangedBatchedMesh(n * groups.length, verts, idx, part.material);
     if (own) {
-      bm.castShadow = part.castShadow ?? false; bm.receiveShadow = part.receiveShadow ?? false;
+      bm.castShadow = groups.some((group) => casts(group.part)); bm.receiveShadow = part.receiveShadow ?? false;
       if (part.customDepthMaterial) bm.customDepthMaterial = part.customDepthMaterial;
       bm.perObjectFrustumCulled = true;
       const sort = part.sortObjects ?? o.sortObjects;
       if (sort !== undefined) bm.sortObjects = sort;
       bm.name = `${def.id}:batch`;
     }
-    /** geometry id per (variant, level) */
-    const ids = new Int32Array(keys.length * levels).fill(-1);
-    /** a part's `until`, squared, per (variant, level) (∞: none) */
-    const until2 = new Float64Array(keys.length * levels).fill(Number.POSITIVE_INFINITY);
-    for (const x of geos) { ids[x.v * levels + x.l] = bm.addGeometry(x.g); if (x.until !== undefined) until2[x.v * levels + x.l] = x.until * x.until; }
-    // what each variant's copies draw per level, shared by its copies' slots
-    const perVariant = keys.map((_, v) => ({ geometry: ids.slice(v * levels, v * levels + levels), until2: geos.some((x) => x.v === v && x.until !== undefined) ? until2.slice(v * levels, v * levels + levels) : null }));
-    return { bm, perVariant, tint: part.tint !== false };
+    return groups.map(({ part: member, geos }) => {
+      /** geometry id per (variant, level) */
+      const ids = new Int32Array(keys.length * levels).fill(-1);
+      /** a part's `until`, squared, per (variant, level) (∞: none) */
+      const until2 = new Float64Array(keys.length * levels).fill(Number.POSITIVE_INFINITY);
+      for (const x of geos) { ids[x.v * levels + x.l] = bm.addGeometry(x.g); if (x.until !== undefined) until2[x.v * levels + x.l] = x.until * x.until; }
+      // what each variant's copies draw per level, shared by its copies' slots
+      const perVariant = keys.map((_, v) => ({ geometry: ids.slice(v * levels, v * levels + levels), until2: geos.some((x) => x.v === v && x.until !== undefined) ? until2.slice(v * levels, v * levels + levels) : null }));
+      return { bm, perVariant, tint: member.tint !== false, uncast: split && bm instanceof CastSplitBatchedMesh && !casts(member) ? bm : null };
+    });
   });
   // each batch copied what it was given: the scaled copies go
   for (const bySize of scaledParts.values()) for (const g of bySize.values()) g.dispose();
@@ -881,6 +910,7 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
       b.bm.setMatrixAt(instance, pose.matrix);
       if (pl.color !== undefined && b.tint) b.bm.setColorAt(instance, tint.set(pl.color));
       if (hidden || (at.geometry[0] ?? -1) < 0) b.bm.setVisibleAt(instance, false);
+      b.uncast?.leaveOutOfShadows(instance);
       slots.push({ mesh: b.bm, instance, geometry: at.geometry, until2: at.until2 });
     }
   });
@@ -891,7 +921,7 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
     const c = new BatchedCull(slots, start, bounds, levelsOf(def), o.cull ?? {}, originsOf(pls, o), fadesOf(def));
     cull = (camera) => { c.update(camera); }; cullWith = (f, e) => { c.updateWith(f, e); };
   }
-  return { object: wrap(batches.map((b) => b.bm), def.id), drawnAs: 'batched', colliders, boxes, cull, cullWith };
+  return { object: wrap([...new Set(batches.map((b) => b.bm))], def.id), drawnAs: 'batched', colliders, boxes, cull, cullWith };
 }
 
 // ── single: one object per copy (THREE.LOD when the model has LODs) ──
