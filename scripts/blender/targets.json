@@ -264,6 +264,18 @@
    "outputs": ["public/assets/open-plots/lantern-bayou/landmark.glb", "public/assets/open-plots/lantern-bayou/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/ziggurat": {
+   "about": "Jungle Ziggurat's landmark (OPEN-PLOTS OP13): the painted stepped temple pyramid as a script, picked over Hunyuan3D 2.1 and TRELLIS.2 (art/jungle-ziggurat/round-1-landmark/board.jpg); 55 m, five cinnabar tiers with saffron and turquoise frets, the stair up +Z, top platform at 35 m; near ~9k and far ~2.4k triangles on one swatch atlas",
+   "script": "scripts/blender/open-plots/ziggurat.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/landmarklib.py"],
+   "inputs": [],
+   "lock": false,
+   "build": ["landmark.glb", "landmark-far.glb"],
+   "meshopt": [["landmark.glb", "public/assets/open-plots/jungle-ziggurat/landmark.glb"], ["landmark-far.glb", "public/assets/open-plots/jungle-ziggurat/landmark-far.glb"]],
+   "outputs": ["public/assets/open-plots/jungle-ziggurat/landmark.glb", "public/assets/open-plots/jungle-ziggurat/landmark-far.glb"],
+   "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
+  },
   "open-plots/lagoon": {
    "about": "Coral Drift's theme kit families (open-plots build-out OB5, G978): beach huts, the shared palms (Desert Ruin reuses them) and reef dressing in the kit's format, retinted by palette slot like open-plots/kit",
    "script": "scripts/blender/open-plots/lagoon.py",
