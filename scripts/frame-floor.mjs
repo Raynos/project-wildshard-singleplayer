@@ -22,6 +22,7 @@
 // when a frame exceeds 100 ms desktop / 200 ms Simulator. Whole drives include every build still running
 // after arrival, so a freeze that p95 never sees cannot pass.
 // Results: --output-dir=<scratch dir> (default progress/frame-floor)/<measured-short-sha>-<run-id>.json.
+// --desktop-dpr=<1..3>: the desktop surface's device scale factor (default 2) on its 1440x900 viewport.
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
@@ -197,6 +198,8 @@ const picks = Object.fromEntries(settingArgs.map((arg) => {
 const chromiumPhone = args.includes('--chromium-phone');
 const chromiumCpuRate = frameFloorChromiumCpuRate(args);
 const chromiumBackend = frameFloorChromiumAngle(args), chromiumAngle = chromiumBackend.angle;
+const desktopDpr = Number(flag('desktop-dpr', '2'));
+if (!Number.isFinite(desktopDpr) || desktopDpr < 1 || desktopDpr > 3) throw new Error('--desktop-dpr=<1..3>');
 const drawBudgetOn = ['--draw-budget', '--draw-budget-report-only'].some(arg => args.includes(arg));
 const postReadyCpu = drawBudgetOn && drawBudgetMode === 'report-only' && chromiumCpuRate !== 1;
 const settings = { ...picks, tier: surface === 'sim' || chromiumPhone ? 'phone' : 'desktop', fps: 'auto' };
@@ -1024,7 +1027,7 @@ async function worker() {
     if (surface === 'desktop') {
       const { chromium } = await import('playwright');
       browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', `--use-angle=${chromiumAngle}`, '--ignore-gpu-blocklist'] });
-      context = await browser.newContext({ ...(chromiumPhone ? { viewport: softwareCensus?.viewport ?? { width: 402, height: 874 }, deviceScaleFactor: 3 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 }), serviceWorkers: 'block' });
+      context = await browser.newContext({ ...(chromiumPhone ? { viewport: softwareCensus?.viewport ?? { width: 402, height: 874 }, deviceScaleFactor: 3 } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: desktopDpr }), serviceWorkers: 'block' });
       await context.addInitScript({ content: `${fixture(settings.tier)};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${LONGTASK_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}` });
       let errors = [], profiler = null, throttle = null, cpuPhase = null;
       driver = {
@@ -1236,6 +1239,7 @@ async function main() {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', ...(devserverBuild ? ['--devserver'] : []), `--surface=${s}`, `--developer=${developer}`, `--standing-poses=${standingPoses.join(',')}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, ...(gridRoutes.length === 0 ? [] : [`--grid-routes=${gridRoutes.join(',')}`]), ...(gridCell === '' ? [] : [`--grid-cell=${gridCell}`]), ...(roadApproach ? ['--road-approach'] : []), ...(entrySocket ? ['--entry-socket'] : []), ...(risingIslet === '' ? [] : [`--rising-islet=${risingIslet}`]), ...(gridCellPoseArg === '' ? [] : [`--grid-cell-pose=${gridCellPoseArg}`]), `--gl-observer=${glObserver}`, ...(texturesPin === '' ? [] : [`--textures=${texturesPin}`]), ...(ktx2ProbePin === '' ? [] : [`--ktx2-probe=${ktx2ProbePin}`]), ...(glTime ? ['--gl-time'] : []), ...(gpuBisectOn ? ['--gpu-bisect'] : []), ...(frameTimeline ? ['--frame-timeline'] : []), ...(taskClock ? ['--task-clock'] : []), ...(cpuProfileDir === '' ? [] : [`--cpu-profile=${cpuProfileDir}`]), ...(safariProfileDir === '' ? [] : [`--safari-profile=${safariProfileDir}`]), ...(gpuTraceDir === '' ? [] : [`--gpu-trace=${gpuTraceDir}`]), `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       if (chromiumPhone) workerArgs.push('--chromium-phone');
+      if (desktopDpr !== 2) workerArgs.push(`--desktop-dpr=${desktopDpr}`);
       if (standingFile !== '') workerArgs.push(`--standing-file=${resolvePath(ROOT, standingFile)}`);
       if (drawBudgetOn) workerArgs.push(drawBudgetMode === 'report-only' ? '--draw-budget-report-only' : '--draw-budget');
       if (softwareCensus !== null) workerArgs.push('--software-draw-census');
@@ -1275,7 +1279,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, standingSource, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      drawBudgetOn, drawBudgetMode, chromiumAngle, chromiumAngleExplicit: chromiumBackend.explicit, ...(softwareCensus === null ? {} : {softwareCensus}), ...(postReadyCpu ? {cpuPhaseMode: 'after-ready', bootCpuRate: 1} : {}), ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
+      drawBudgetOn, drawBudgetMode, chromiumAngle, chromiumAngleExplicit: chromiumBackend.explicit, ...(desktopDpr === 2 ? {} : {desktopDpr}), ...(softwareCensus === null ? {} : {softwareCensus}), ...(postReadyCpu ? {cpuPhaseMode: 'after-ready', bootCpuRate: 1} : {}), ...(chromiumCpuRate === 1 ? {} : {chromiumCpuRate, diagnostic: 'cpu-throttled-chromium', floorTimingCredit: false}),
       frames, settleMs, standingPoses, shards, surface, developer, quiet: quietSample, ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}), settings, deviceSaves, expectedSystems, gridScenario, gridRoutes, ...(gridCell === '' ? {} : { gridCell, gridCellPose }), build: devserverBuild ? 'devserver' : 'production', glObserver, travelGlCensus: travelGl !== '', glTime, frameTimeline, gpuBisect: gpuBisectOn, safariProfile: safariProfileDir !== '', ...(safariSteadyPose === '' ? {} : {safariSteady: {pose: safariSteadyPose, seconds: 20}}), ...(safariDrive === '' ? {} : {safariDrive: {route: safariDrive, ...(safariSteadyPose === '' ? {earlyPlaySeconds: 20} : {separateSteady: true})}}), ...(safariPrefix === '' ? {} : {safariPrefix: {route: safariPrefix, seconds: 20}}), ...(safariWindow === null ? {} : {safariWindow}), webkitTimeline: webkitTimelineDir !== '', ...(webkitSteadyPose === '' ? {} : {webkitSteady: {poses: webkitSteadyPoses, seconds: 20}}), pauseAblation, bufferAblation, nativeJscGcLog: jscGcDirectory !== '', ...(jscRamSize === 0 ? {} : {diagnosticJscRamSizeBytes: jscRamSize}), wasmConstructors: wasmConstructorsDir !== '', nativePressure: nativePressureDir !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: `${chromiumCpuRate === 1 ? '' : postReadyCpu ? `Diagnostic boot CPU 1x; requested measurement CPU ${chromiumCpuRate}x only after ready and an acknowledged new-draw fence (actual per-shard cpuPhase retained); no official floor timing credit. ` : `Diagnostic page CPU ${chromiumCpuRate}x; no official floor timing credit. `}Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass or capture clock.${chromiumCpuRate === 1 ? ' No CPU throttling.' : ''}`,
