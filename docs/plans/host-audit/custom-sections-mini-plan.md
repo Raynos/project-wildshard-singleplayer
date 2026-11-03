@@ -155,7 +155,7 @@ does not close a Z row.
 | **Z3** | **Pine 68 landed `c98d1cffe0` (2026-11-03, sp-x1); DW 2 remain charged for the one-user batch.** Sixteen bounded family pages reconstruct all 68 original Pine graphs byte-for-byte; Driftwood's trader is the second whole-page user. Fresh-seat sp-x2: 6/6. Native payload 1,733,628 → 1,419,651 B; page schema definitions save 302,816 index bytes. G998: Pine and Driftwood 24/24 green in Chromium and WebKit on `d4c2e8d15d-mw0u2vw4`; Pine 11/20 are verified moving native animals. Four reviewed boards are under `art/golden-runs/pine-hollow/` and `art/golden-runs/driftwood-isle/`, named `2026-11-03-d4c2e8d15d-z3-board.jpg` and `2026-11-03-d4c2e8d15d-z3-webkit-board.jpg`. `BakedPlacementPlanSchema` has only Driftwood as a complete emitter (`sets` and `smallRocks` included): both `world/island/plan-{phone,desktop}.json` remain custom pending Jake's batch ruling. **Streamed scene pages: Pine cabins and DW island.** Specimens and living roots become pages; tier / shadow variants derived at load | 70: Pine specimens 56, living 8, tier/shadow copies 4; DW `world/island/plan-{phone,desktop}` | Opus | 4.5 |
 | **Z4** | **In flight (2026-11-03, sp-x9), 0/13 removed.** The complete-root census below names 13 single-user/envelope blockers for Jake’s one-user batch; no shared-family registration or AS rewrite is qualified. **Populations.** `actors/species` + `actors/populations` (`game/population/*`); keeper, return and spawn programs as AS | 13: DW projection, creature-install, poses/monkey, keeper, returns, enemy-placement; Pine roster, elites, shelter; Nalati sheep, wildlife, population-metadata, taming-poses | Codex (+ Opus poses) | 3 |
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
-| **Z6** | **Three targets landed (2026-11-03, sp-x8): Jian cloth/halo via exact native GLB pools and Nalati unread rifle-model copy.** G998 all six shards 24/24 green in Chromium/WebKit; strict Jian and rifle held qualification below. Pine finishes stays separate pending its exact named G872 hand-pixel qualification; six live sole-user roots remain in Jake’s batch | **3 removed / 1,422,487 B; 7 charged:** Pine finishes plus six complete one-user roots | Codex (G958) | 3 |
+| **Z6** | **Four targets qualified (2026-11-03, sp-x8):** Jian cloth/halo GLB transport and Nalati rifle copy `ecec5f75eb`, plus the separate Pine finishes cut. Exact channel/index/body proofs, 16 A/A + 16 A/B held comparisons on both engines/tiers; all six original G998 cohorts green and fresh Pine 24/24 green on both engines. G872 frozen geometry-roughness controls prove every differing hand pixel vanishes; no comparator allowance. Six live one-user roots remain in Jake’s approved batch | **4 retired / 1,426,684 B; 6 charged:** complete sole-user roots, 484,106 B | Codex (G958) | 3 |
 | **Z7** | **Eligible slice qualified (2026-11-03, sp-x9): four new removals; cumulative 6/14 including prior DW ports `3c42144c50`.** Exact existing FixedDrawRows family has real complete DW/Nalati users and fresh 6/6. Nine's unread layout and two atlas copies retire 2,347,716 physical bytes; original sign bake and native pools remain. Strict native qualification and all six shards' Chromium/WebKit goldens below. Eight live one-user roots / 1,264,859 B remain charged for Jake's batch | 14 original: two prior DW ports, one exact family, three dead copies; **8 retained** | Codex (G958) | 4.5 |
 | **Z8** | **Eligible slice done (2026-11-03, sp-x9), 2/14 removed.** Exact shared ChapterStoryPresentation family (6/6, real complete Nalati/DW/Pine users), plus the 149 B reader-less DW steps deletion `98bab03828`. Original native owners and all Pine bytes remain; all six shards qualify 24/24 Chromium + WebKit through the shared cohort, with Nalati re-shot after QD11. Twelve per-file blockers / 93,379 B below remain charged for the one-user batch; Pine lead already runs as AS. | 14: Pine **`custom/questRuntime`**, native-spots, native-story, contracts, forest-story; DW discovery, interaction-source, hints, steps, wake-boss; Nalati carried, chapters, content, finds | Opus design, Codex port | 4.5 |
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
@@ -4351,3 +4351,68 @@ The sole remaining residual outside that batch is Pine `loadout/finishes.json`,
 **1 / 4,197 B**, owned and qualifying separately under Z6. No loose finish cut
 is counted. With this evidence, final Z13 is **6/6** shipping envelopes retired;
 the custom inventory is not zero and Z15 is not activated.
+
+### Z6 Pine finishes: frozen derivative controls (2026-11-03, sp-x8)
+
+The second Z6 landing removes only the unread
+`loadout/finishes.json`: **1 file / 4,197 B**. Its original SHA-256 is
+`2ebca6078a5b850f15d93a3c52dd2f8f6afa6687e093d4f8777e76c628ecb57e`.
+Zero source readers and zero emitted references remain; its complete value
+is exactly the live platform `held/finishes.rows`. No alias, parser,
+shader, renderer, material or native input owner changes.
+
+The fresh ordinary pair has parent
+`2659447d6dd83174fbc9d0bc5d8de3d008d14f87`: BEFORE
+`2659447d6d-mw141bny` (:4401) and AFTER `2659447d6d-mw14363x` (:4407).
+Every other **878 bodies / 153,919,094 B** is exact, including all
+59 platform/custom sections and the original custom schema. All
+**78 old/new packs / 1,717 ordered entries** reconstruct exactly.
+The physical file inventory is **820 → 819**; no replacement file appears.
+The committed six-shard census `bf7094417d` becomes **68 → 67 custom
+files / 14,002,723 → 13,998,526 B**, with Pine **20 → 19** and
+**4,637,093 → 4,632,896 B**. Ceiling ownership remains with sp-x1.
+
+Native held qualification is **48 primary frames / 16 A/A + 16 A/B**:
+Ghost Stag crossbow and Ironhide rifle, both actual tiers, Chromium Metal
+and WebKit. Frame, clock, camera, draws and total triangles are exact
+within every qualified comparison. Every pixel is raw zero except
+Chromium phone crossbow-up A/A **8**, A/B **1**, and WebKit phone
+crossbow-up A/A **9**. The unchanged comparator records each raw refusal;
+no pixel allowance is installed.
+
+G872's mechanism control qualifies those differences: on each same
+frozen native frame, sp-x2's temporary GPU-program probe changes only
+`geometryRoughness` to zero. The actual physical shader term is the
+screen-space derivative of `nonPerturbedNormal`; all nine WebKit pixels
+and Chromium's exact `(569,509)` pair
+`[153,114,95,255] ↔ [153,113,94,255]` vanish. Full zero-term images
+are **8/8 byte-identical per context**, and their A/A/A/B comparisons
+are raw zero across the entire frame. Primary images precede every
+probe. Native frame/clock/camera/draws remain exact, temporary programs
+and GL hooks are restored, and no shader change ships. Cause report:
+[sp-x2's isolation](../../reviews/pine-held-aa-cause-2026-11-03.md).
+
+Raw proof is retained in `tmp/sp-x8-z6/pine-final-qualification.json`,
+`pine-mechanism-audit.json`, and the referenced primary/zero-term RGBA
+files. Original pixel-list refusals and both later Chromium return-visit
+camera refusals remain retained. The crossbow-only scope explicitly
+records its enclosing full-reader refusal. The subsequent untouched
+rifle replay also refused a return-visit player/camera displacement,
+so probe draws are not claimed as its cause. Chromium rifle qualification
+uses fresh real UI entry per weapon, unchanged `poseAt` plus 90 updates,
+frames **94/186**; no culler/pose/clock reset or extra gameplay frames.
+WebKit's original full sequence remains **94/186/278/370**. Every
+accepted baseline and before/after pair keeps exact capture controls.
+
+Fresh G998 Pine **24/24 green in Chromium and WebKit**, all 48
+LEGACY/SHARDFILE/NOW panels read, all settled and errors empty. The six
+new labelled boards under `art/golden-runs/pine-hollow/` begin
+`2026-11-03-2659447d6d-z6-`: `finishes-{chromium,webkit}-board.jpg`
+and `{crossbow,rifle}-{chromium,webkit}-board.jpg`. Nine focused
+finish/product controls, strict root types and touched lint pass.
+
+Together with Jian/Nalati `ecec5f75eb`, Z6 retires **4 files /
+1,426,684 custom B** and **982,404 physical B**. The six complete
+one-user roots remain explicitly charged for Jake's approved batch,
+**484,106 B** including the necessary 651 B Jian reference increase;
+no fabricated second user or private-root host credit is claimed.
