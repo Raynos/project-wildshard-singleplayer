@@ -28,6 +28,18 @@ board/source. Saltwind Lighthouse's inert template stub is `9361210b9d`; its liv
 output/grid/map remain unchanged and its Opus visual row remains open.
 Opus owns all visual source and look rulings (G848).
 
+Audio publications: Jungle `add58749da` (1,240,450 B) and Fairground
+`02c7ca0db0` (1,341,748 B). Fairground activation `8bdf53f635` passed
+full native bar 10 before landing: own recorded B, bed plus five spots,
+six decoded loops, all heading pan flips, errors[]. The coordinator
+approved five spots after all eight paired flag takes failed top five;
+flags stay unshipped with all failures recorded. Exact audio-only wire
+increase +702,751 B preserves the old 44,293 B margin. Fairground OB8
+readings follow final board `80ba3ebf58` on committed source. Jungle
+stays publication-only until sp-o1's real output/board/walk boundary;
+G999 parks that visual work during Nine release QA. Details and body
+comparison limits are in [the audio review](../reviews/open-plots-audio.md).
+
 Jake, 2026-10-28: *"You're approved to go and do the park plan, the draft park plan, how to build the rest of the open
 plots."* This plan replaces Night Market pilot R1–R3 and remaster-open-plots RP2–RP4 (G774, G824). Decisions stay in
 [shard-platform/decisions.md](shard-platform/decisions.md) until this plan has its own file. Read at HEAD 2f074203c9.

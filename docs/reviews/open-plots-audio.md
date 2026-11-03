@@ -123,3 +123,38 @@ served bytes: 7,902,859 → 8,763,727 B. Its exact 8,805,039 B ceiling
 preserves the existing 41,312 B non-audio margin (G872, same OB7 rule).
 Publication is `4f5e804f0c`; the containing build and wire pin are
 `2bdad75694`. The check browser and both borrowed previews are closed.
+
+Wave A publications: Jungle `add58749da` is 1,240,450 B; Fairground
+`02c7ca0db0` is 1,341,748 B, including both scores and catalogues.
+Both ship score B with zero measured separated vocal energy. Jungle A
+(16.61%) and Fairground A (22.51%) stay comparison-only. Fairground uses
+the existing triple-meter loop support; every chosen AAC passes native
+packet admission and decoded loop bounds. Required credits are retained.
+Jungle's bed and six spots choose five MOSS / two Stable Audio takes;
+Fairground's bed and five spots choose one MOSS / five Stable Audio takes.
+
+Fairground flags are unshipped by the coordinator's explicit OB7 ruling.
+All eight paired engine/seed takes fail the unchanged top-five check;
+the catalogue records every rejected prompt, rank, wave and metadata
+hash. No failed take receives a waiver. The generation-source provenance
+reader refuses changed wave/sidecar hashes before publication.
+
+Fairground activation `8bdf53f635` passed full native bar 10 before
+landing on working candidate `c71f1f4e53-mw0zwsw1`: its own recorded
+score, sustained score/bed, six decoded cue loops, native pause/resume,
+five positional gains 0.393–0.398 and heading pan flips near
+−0.698 / +0.696. No page errors; browser closed. Earlier admission
+timeouts executed no playback check and supply no native verdict.
+
+All 158 prior binary bodies are exact; seven audio bodies join. Native
+audio and the client audio.scene row change intentionally. Of the 34 old
+sections, 32 are exact; look/map keeps its exact image and moves only its
+source-derived tilesHash. Served phone bytes increase by 702,751:
+2,758,968 → 3,461,719 B. The explicitly approved 3,506,012 B ceiling
+preserves the old 44,293 B margin. No visual source changes.
+
+Fairground's OB8 readings are in flight against committed activation
+source, following final visual board `80ba3ebf58`. Jungle activation,
+bar 10 and readings await its real output/final board/walk boundary;
+sp-o1 reports it parked under G999 while Nine release QA finishes.
+No activation onto the committed placeholder is claimed.
