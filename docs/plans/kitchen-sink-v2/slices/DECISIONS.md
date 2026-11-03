@@ -42,3 +42,15 @@ families, the parity bar, parallel toy slices) is in [README.md](README.md).
 | D34 | The parity bar, precisely | **Saves, item ids and replays byte-exact** (an old-save fixture per affected shard; never bump a save key's version); **looks "similar, no glitches"** goldens (G415) | all |
 | D35 | Memory gates (report-only today; RENDERING.md still says 1.0 GB) | **At W12 measure every shard, then enforce 1,200 MB per shard** and fix the stale 1.0 GB texts | W12 |
 | D36 | The crew | **5 Opus + 5 Codex**, named in AGENTS.md as a Codex-lane plan when Jake says build | build start |
+| D37 | The in-game cutscenes plan (IC1–IC4) | **Its engine rows run inside the Titan slices**; the five shipped boss intros re-home onto the timeline in the same slice | E12d |
+| D38 | One-user hosts: levels, shrine | **Both approved now as platform**; the shrine host's second user is **Driftwood's sea cave** (+6 h) | E0a, E10b |
+| D39 | The enemy count cap | **Every shard, hostile enemies only** (never wildlife or NPCs), proved by replays | E0h |
+| D40 | The required shard-complete card | **Every shard except the open plots and Nine Dragon**; the card gets a boss trigger | E14 |
+| D41 | The Training Vault's height | **Deepened to 20 m (y −50…−30)**, still clear of the Titan arena (sky from −80) | E10c |
+| D42 | The new metal impact sound | **On every shard's metal hits** | E15a |
+| D43 | XP bar and nameplates | **Bottom bar above the control deck; nameplates always within 25 m**; a 1:1 in-engine board to Jake first | E0e, E0f |
+| D44 | Kill contracts | **Accept first, then count** (Jake, against the recommendation); titles worn from the Character tab | E1f |
+| D45 | Lanes idle late in the west | **They start the engine-only east slices early** (E0a, E11a, E1a); no east shard content until the west is done | INDEX |
+| D46 | Leash heal (walk home to full) | **Showcase only**, an optional row off by default | E-band slices |
+| D47 | Per-pack respawn | **A new optional row, showcase only** (D33: others proved unchanged) | E1c |
+| D48 | The "Patch Notes" feat | **Dropped** | E8 |
