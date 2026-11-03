@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kitchen Sink: Levels 1 to 20</title>
+<style>
+:root {
+  --floor: #2b2d30; --panel: #35383c; --line: #4a4e54; --ink: #eceae6; --muted: #a7abb1;
+  --orange: #f08a24; --good: #6fcf8a; --warn: #f2c14e; --bad: #ef6b5b; --grey: #8d9096;
+  --display: "Saira Stencil One", Impact, "Arial Narrow", sans-serif;
+  --body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background-color: var(--floor);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px; background-attachment: fixed;
+  color: var(--ink); font: 16px/1.55 var(--body); -webkit-text-size-adjust: 100%;
+}
+main { max-width: 860px; margin: 0 auto; padding: 20px 12px 64px; display: grid; gap: 18px; }
+header { display: grid; gap: 8px; }
+h1 { font: 40px/1 var(--display); color: var(--orange); margin: 0; letter-spacing: 1px; text-wrap: balance; }
+.sub { color: var(--muted); font: 13px/1.4 var(--mono); }
+section { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--orange); padding: 14px 14px 16px; display: grid; gap: 10px; min-width: 0; }
+h2 { font: 22px/1.1 var(--display); color: var(--orange); margin: 0; letter-spacing: .5px; }
+h3 { font-size: 15px; margin: 8px 0 0; color: var(--ink); }
+p { margin: 0; max-width: 68ch; }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+li { max-width: 68ch; }
+b.o, .o { color: var(--orange); }
+.muted { color: var(--muted); }
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 6px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--mono); color: var(--muted); text-transform: uppercase; white-space: nowrap; }
+td.n, .n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.n { color: var(--orange); }
+.formula { background: var(--floor); border: 1px solid var(--line); padding: 10px 12px; font: 13.5px/1.6 var(--mono); overflow-x: auto; white-space: pre; }
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { background: var(--floor); border: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 6px; font-size: 14px; }
+.card h3 { margin: 0; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.card dl { margin: 0; display: grid; grid-template-columns: 88px 1fr; gap: 3px 8px; }
+.card dt { font: 600 11px/1.6 var(--mono); color: var(--muted); text-transform: uppercase; }
+.card dd { margin: 0; }
+.tag { display: inline-block; font: 600 11px/1 var(--mono); padding: 3px 6px; border: 1px solid currentColor; white-space: nowrap; }
+.chosen { color: var(--good); } .auto { color: var(--muted); }
+.attrs { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.attr { background: var(--floor); border: 1px solid var(--line); border-top: 4px solid var(--orange); padding: 8px 10px; font-size: 14px; display: grid; gap: 2px; }
+.attr b { font: 600 13px var(--mono); }
+.chart { width: 100%; height: auto; display: block; background: var(--floor); border: 1px solid var(--line); }
+figure { margin: 0; display: grid; gap: 6px; }
+figcaption { font: 12.5px/1.4 var(--mono); color: var(--muted); }
+.con { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+.q { background: var(--floor); border: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 4px; }
+.q b { color: var(--orange); }
+.rec { color: var(--good); }
+.pill { font: 600 12px var(--mono); color: var(--floor); background: var(--orange); padding: 1px 6px; }
+.bang-grey { color: var(--grey); font-weight: 800; } .bang-yellow { color: var(--warn); font-weight: 800; }
+@media (max-width: 420px) { h1 { font-size: 34px; } .card dl { grid-template-columns: 76px 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>LEVELS 1 → 20</h1>
+  <p class="sub">Kitchen Sink (Showcase Template) · game-systems proposal · 2026-11-02 · plan docs/plans/KITCHEN-SINK.md</p>
+  <p>You walk into the kitchen sink at <b class="o">level 1</b>. Everything east of the main road wants to kill you; everything
+    west of it is safe and pays nothing. You level by killing robots and crates, and only by killing them. Six enemy types
+    sit in six level bands, three mini-bosses stand at 6, 12 and 18, and the Crate Titan waits at 20. This page is the
+    research behind that, the full rule set with numbers, and the engine work it needs.</p>
+</header>
+
+<section>
+  <h2>THE SHORT VERSION</h2>
+  <ul>
+    <li><b>8 attributes</b>, shared by players and enemies: <b class="o">Vitality, Strength, Dexterity, Precision, Agility, Toughness, Resolve, Poise</b>.</li>
+    <li><b>Hybrid allocation:</b> each level adds +1 to all eight by itself, and you place <b>3 points</b> where you like (3 more at
+      character creation). Cap 40 per attribute. Free respec at the hub.</li>
+    <li><b>XP only from kills.</b> 34,200 XP to reach 20; about <b>2.5–3 hours</b> of grinding. Equal-level kills pay 20 + 5 × level.
+      Enemies below you pay less and pay <b>nothing at 6 levels below</b> (Guild Wars 1's rule).</li>
+    <li><b>Hits always land when the blade connects.</b> Stats decide how well: a <b>glance</b> (half damage), a clean hit, or a
+      <b>crit</b> (×1.5). Being under-levelled means more glances, less damage, thicker armour.</li>
+    <li><b>A fight with an equal-level enemy takes 6–8 sword swings</b>, about 8–12 seconds on the phone. A mini-boss takes about
+      a minute. The Titan takes 3–4 minutes.</li>
+    <li><b>Bosses are a soft gate:</b> always open, and the level-gap maths makes them brutal if you come early.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>1 · RESEARCH: TEN GAMES</h2>
+  <p>Jake's three (Guild Wars 1, World of Warcraft, Fire Emblem) plus seven. <span class="tag chosen">CHOSEN</span> means the player
+    decides where attribute points go on level-up: five of the ten do (GW1, Diablo II, Elden Ring, Path of Exile, Ragnarok Online).
+    Formulas are the community-documented ones; "≈" marks a rounded or reconstructed one.</p>
+
+  <div class="scroll"><table>
+    <tr><th>Game</th><th>Cap</th><th>Points</th><th>Kill XP drop-off</th></tr>
+    <tr><td>Guild Wars 1</td><td class="n">20</td><td><span class="tag chosen">CHOSEN</span></td><td>table: −20 % a level below, 0 at −6</td></tr>
+    <tr><td>World of Warcraft</td><td class="n">60*</td><td><span class="tag auto">AUTO</span></td><td>linear to 0 at the grey level</td></tr>
+    <tr><td>Fire Emblem</td><td class="n">20+20</td><td><span class="tag auto">AUTO</span> (random)</td><td>shrinks toward 1 XP</td></tr>
+    <tr><td>Old School RuneScape</td><td class="n">99</td><td><span class="tag auto">AUTO</span> (by use)</td><td>none: XP = damage dealt</td></tr>
+    <tr><td>Diablo II</td><td class="n">99</td><td><span class="tag chosen">CHOSEN</span></td><td>beyond ±5 levels, then ratio</td></tr>
+    <tr><td>Elden Ring</td><td class="n">713</td><td><span class="tag chosen">CHOSEN</span></td><td>none (fixed runes per foe)</td></tr>
+    <tr><td>Path of Exile</td><td class="n">100</td><td><span class="tag chosen">CHOSEN</span> (tree)</td><td>safe zone, then a steep curve</td></tr>
+    <tr><td>Ragnarok Online</td><td class="n">99</td><td><span class="tag chosen">CHOSEN</span></td><td>none (Renewal adds a table)</td></tr>
+    <tr><td>Final Fantasy XIV</td><td class="n">100</td><td><span class="tag auto">AUTO</span></td><td>reduced for low foes; level sync</td></tr>
+    <tr><td>Pokémon (Gen V+)</td><td class="n">100</td><td><span class="tag auto">AUTO</span> (+EVs)</td><td>level-ratio formula, never 0</td></tr>
+  </table></div>
+  <p class="muted" style="font-size:13px">* Classic WoW; the retail cap has moved with every expansion.</p>
+
+  <div class="cards">
+    <div class="card"><h3>Guild Wars 1 <span class="tag chosen">CHOSEN</span></h3><dl>
+      <dt>Cap</dt><dd>20, fixed since 2005; XP past 20 buys skill points.</dd>
+      <dt>XP curve</dt><dd>Linear steps: next level costs 1,400 + 600 × level. 140,600 XP to 20.</dd>
+      <dt>XP gain</dt><dd>Kills and quests. A kill pays 100 at equal level, +16 a level above (max 280), 80 / 64 / 48 / 32 / 16 below, <b>0 at 6+ below</b>. Bosses ×2; the party splits it.</dd>
+      <dt>Attributes</dt><dd>Per profession (Warrior: Strength, Swordsmanship, Axe, Hammer, Tactics). 200 points by 20; rank 12 costs 97.</dd>
+      <dt>Allocation</dt><dd>Chosen, <b>refundable at any time</b> out of combat.</dd>
+      <dt>Enemies</dt><dd>Levels 0–28+; armour and strike level rise with level.</dd>
+      <dt>Level gap</dt><dd>Changes crit chance hard (a level 20 hits a level 1 foe with ~90 % crits) and armour.</dd>
+      <dt>Damage</dt><dd>≈ base × 2^((strike level − armour) / 40); a crit is +20 strike levels (≈ ×1.41) at max base.</dd>
+    </dl></div>
+
+    <div class="card"><h3>World of Warcraft <span class="tag auto">AUTO</span></h3><dl>
+      <dt>Cap</dt><dd>60 in Classic (80 in Wrath, higher since).</dd>
+      <dt>XP curve</dt><dd>Steepening polynomial; ≈ 4 M XP to 60 in Classic. Quests give most of it.</dd>
+      <dt>XP gain</dt><dd>Kills, quests, exploration. Kill = 45 + 5 × level; +5 % a level above (max +4); linear fall to <b>0 at the grey level</b> (≈ your level − 5 − ⌊level/10⌋). Elites ×2, rested ×2.</dd>
+      <dt>Attributes</dt><dd>Strength, Agility, Stamina, Intellect, Spirit.</dd>
+      <dt>Allocation</dt><dd>Automatic per class; gear does the rest.</dd>
+      <dt>Enemies</dt><dd>Stats by level and rank (normal / elite / boss); <b>con colours</b> grey, green, yellow, orange, red, skull.</dd>
+      <dt>Level gap</dt><dd>About +1 % miss per level up to +2, then a jump; <b>glancing blows</b> on higher foes; crushing blows from mobs 4+ above.</dd>
+      <dt>Damage</dt><dd>Weapon roll + AP / 14 × speed; armour cuts A / (A + 400 + 85 × attacker level).</dd>
+    </dl></div>
+
+    <div class="card"><h3>Fire Emblem <span class="tag auto">AUTO</span></h3><dl>
+      <dt>Cap</dt><dd>20 per class; promotion resets to 1 for 20 more.</dd>
+      <dt>XP curve</dt><dd>Flat: 100 XP every level.</dd>
+      <dt>XP gain</dt><dd>Combat only (plus staves). Hit ≈ (31 + enemy lv − your lv) / 3; a kill adds ≈ (enemy lv − your lv) + 20, bosses more. Over-levelled units get ~1 XP.</dd>
+      <dt>Attributes</dt><dd><b>HP, Str, Mag, Skl, Spd, Lck, Def, Res</b> (eight, plus Con and Move).</dd>
+      <dt>Allocation</dt><dd>Automatic and random: each stat rolls its growth % on level-up.</dd>
+      <dt>Enemies</dt><dd><b>The same stat block as the player</b>, by class and level; harder modes add levels.</dd>
+      <dt>Level gap</dt><dd>None directly; it all comes through stats.</dd>
+      <dt>Damage</dt><dd>Str + might − Def. Hit = weapon hit + 2·Skl + Lck/2 − (2·Spd + Lck). Crit ×3. Speed 4+ higher strikes twice.</dd>
+    </dl></div>
+
+    <div class="card"><h3>Old School RuneScape <span class="tag auto">AUTO</span></h3><dl>
+      <dt>Cap</dt><dd>99 per skill (combat level 126).</dd>
+      <dt>XP curve</dt><dd>Exponential: ¼ Σ ⌊ℓ + 300 · 2^(ℓ/7)⌋. 13,034,431 XP at 99; level 92 is the halfway mark.</dd>
+      <dt>XP gain</dt><dd>4 XP per damage dealt to the trained skill + 1.33 Hitpoints. <b>No level-gap drop-off</b>: you farm high-HP, low-defence monsters.</dd>
+      <dt>Attributes</dt><dd>Attack, Strength, Defence, Ranged, Magic, Prayer, Hitpoints.</dd>
+      <dt>Allocation</dt><dd>By use: the attack style you pick decides which skill gets the XP.</dd>
+      <dt>Enemies</dt><dd>Fixed stats per monster; combat level is only a label.</dd>
+      <dt>Level gap</dt><dd>None as such; the rolls below do it.</dd>
+      <dt>Damage</dt><dd>Attack roll A vs defence roll D: if A &gt; D, hit = 1 − (D+2)/(2(A+1)), else A/(2(D+1)). Max hit ≈ ⌊0.5 + effStr × (bonus + 64) / 640⌋, rolled 0…max.</dd>
+    </dl></div>
+
+    <div class="card"><h3>Diablo II <span class="tag chosen">CHOSEN</span></h3><dl>
+      <dt>Cap</dt><dd>99 (≈ 3.5 billion XP).</dd>
+      <dt>XP curve</dt><dd>Exponential; the last ten levels are most of it.</dd>
+      <dt>XP gain</dt><dd>Kills. Monsters more than 5 levels below pay less; after clvl 25, higher monsters pay × clvl/mlvl; a further penalty past 70.</dd>
+      <dt>Attributes</dt><dd>Strength, Dexterity, Vitality, Energy.</dd>
+      <dt>Allocation</dt><dd><b>5 stat points + 1 skill point per level</b>, chosen. Gear has stat requirements.</dd>
+      <dt>Enemies</dt><dd>Area level (Normal / Nightmare / Hell) sets monster level and stat tables.</dd>
+      <dt>Level gap</dt><dd>Inside hit chance: 200 % × AR/(AR+DR) × alvl/(alvl+dlvl), clamped 5–95 %.</dd>
+      <dt>Damage</dt><dd>Weapon × (1 + Str/Dex % + skill %); crushing / deadly strike ×2; minus resist %.</dd>
+    </dl></div>
+
+    <div class="card"><h3>Elden Ring <span class="tag chosen">CHOSEN</span></h3><dl>
+      <dt>Cap</dt><dd>713 (each attribute 99, soft caps ~40–80).</dd>
+      <dt>XP curve</dt><dd>Rune cost ≈ cubic: 0.02x³ + 3.06x² + 105.6x − 895 from level 12.</dd>
+      <dt>XP gain</dt><dd>Runes from kills (fixed per foe) and items; <b>dropped on death</b>, one chance to recover. No level drop-off.</dd>
+      <dt>Attributes</dt><dd><b>Eight:</b> Vigor, Mind, Endurance, Strength, Dexterity, Intelligence, Faith, Arcane.</dd>
+      <dt>Allocation</dt><dd>One point per level, chosen. Weapons have requirements and scaling grades (S–E).</dd>
+      <dt>Enemies</dt><dd>No visible levels; each area (and NG+) scales HP, damage and runes.</dd>
+      <dt>Level gap</dt><dd>No hit roll; you feel it through damage and defence.</dd>
+      <dt>Damage</dt><dd>Attack rating × motion value, through an attack/defence ratio curve, then absorption %.</dd>
+    </dl></div>
+
+    <div class="card"><h3>Path of Exile <span class="tag chosen">CHOSEN</span></h3><dl>
+      <dt>Cap</dt><dd>100.</dd>
+      <dt>XP curve</dt><dd>Exponential (≈ 4.25 B XP).</dd>
+      <dt>XP gain</dt><dd>Kills. Safe zone 3 + ⌊L/16⌋ levels; beyond it × ((L+5)/(L+5+ED^2.5))^1.5. Deaths cost XP in late content.</dd>
+      <dt>Attributes</dt><dd>Strength, Dexterity, Intelligence (gear and gem requirements).</dd>
+      <dt>Allocation</dt><dd>Chosen through the passive tree (+attribute nodes).</dd>
+      <dt>Enemies</dt><dd>Area level sets monster level; life and damage grow steeply; rarity multiplies.</dd>
+      <dt>Level gap</dt><dd>Monster evasion and accuracy grow with level: hit = 1.25·Acc / (Acc + (Eva/5)^0.9), 5–100 %.</dd>
+      <dt>Damage</dt><dd>Base × (1 + Σ increased) × Π more; crit ×1.5+; armour cuts A / (A + 5 × hit).</dd>
+    </dl></div>
+
+    <div class="card"><h3>Ragnarok Online <span class="tag chosen">CHOSEN</span></h3><dl>
+      <dt>Cap</dt><dd>Base 99 (later 175) plus job levels.</dd>
+      <dt>XP curve</dt><dd>Steep table; separate base and job XP.</dd>
+      <dt>XP gain</dt><dd>Kills (split by damage share). Classic: no level drop-off; Renewal adds a level-gap table.</dd>
+      <dt>Attributes</dt><dd>STR, AGI, VIT, INT, DEX, LUK.</dd>
+      <dt>Allocation</dt><dd>Chosen: ⌊L/5⌋ + 3 points a level; raising a stat from x costs ⌊(x−1)/10⌋ + 2.</dd>
+      <dt>Enemies</dt><dd>Fixed level and stats per monster.</dd>
+      <dt>Level gap</dt><dd><b>Level is in both sides of hit:</b> HIT = level + DEX, FLEE = level + AGI, hit % = 80 + HIT − FLEE.</dd>
+      <dt>Damage</dt><dd>(STR ATK + weapon) × (1 − DEF %) − VIT DEF; LUK crits skip DEF.</dd>
+    </dl></div>
+
+    <div class="card"><h3>Final Fantasy XIV <span class="tag auto">AUTO</span></h3><dl>
+      <dt>Cap</dt><dd>100 (Dawntrail).</dd>
+      <dt>XP curve</dt><dd>Steep step table; most XP from duties and quests.</dd>
+      <dt>XP gain</dt><dd>Quests, dungeons, FATEs, hunts, kills; low foes pay little; <b>level sync</b> scales you down to old content.</dd>
+      <dt>Attributes</dt><dd>STR, DEX, VIT, INT, MND + Crit, Determination, Direct Hit, Tenacity, Speed, Piety.</dd>
+      <dt>Allocation</dt><dd>Automatic (1.0's bonus points were removed); gear melds tune secondaries.</dd>
+      <dt>Enemies</dt><dd>Level shown on the nameplate; stats by level and rank.</dd>
+      <dt>Level gap</dt><dd>Your hit and damage fall off sharply 5+ levels under a foe.</dd>
+      <dt>Damage</dt><dd>Potency × f(main stat) × f(Det) × f(weapon damage); crit ≈ ×1.4–1.6, direct hit ×1.25.</dd>
+    </dl></div>
+
+    <div class="card"><h3>Pokémon (Gen V+) <span class="tag auto">AUTO</span></h3><dl>
+      <dt>Cap</dt><dd>100.</dd>
+      <dt>XP curve</dt><dd>Growth groups; Medium Fast is level³ (1,000,000 at 100).</dd>
+      <dt>XP gain</dt><dd>Battles only. (b·L/5) × ((2L+10)/(L+Lp+10))^2.5 + 1: a higher foe pays more, a lower one less, never 0.</dd>
+      <dt>Attributes</dt><dd>HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.</dd>
+      <dt>Allocation</dt><dd>Automatic from base stats and IVs; EVs (earned by which species you KO) are a soft choice.</dd>
+      <dt>Enemies</dt><dd><b>Same stat formula at their level</b>; wild level bands per route.</dd>
+      <dt>Level gap</dt><dd>Level is a direct term in damage.</dd>
+      <dt>Damage</dt><dd>((2L/5 + 2) × power × A/D / 50 + 2) × STAB × type × crit 1.5 × 0.85–1.</dd>
+    </dl></div>
+  </div>
+
+  <h3>What we take</h3>
+  <ul>
+    <li><b>Guild Wars 1:</b> cap 20, kill-XP table that hits 0 at six levels under, refundable points.</li>
+    <li><b>WoW:</b> con colours on the nameplate, glancing blows on higher foes, armour that weakens against higher attackers.</li>
+    <li><b>Fire Emblem / Pokémon:</b> one stat block for both sides, so an enemy is a character at a level.</li>
+    <li><b>Ragnarok / Diablo II:</b> level sits inside hit maths on both sides; chosen points with weapon requirements.</li>
+    <li><b>Elden Ring:</b> eight attributes is enough for real builds when weapons scale off them.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>2 · THE 8 ATTRIBUTES</h2>
+  <p>Every actor, player or robot, has a <b>level</b> and the same eight numbers. Everyone starts each attribute at
+    <span class="n">level + 4</span> (5 at level 1). Damage comes in two types: <b>physical</b> (blades, bolts, bullets, fists, crates)
+    and <b>energy</b> (burn, shock, blast: pitch bolts, welding torches, arc lances).</p>
+  <div class="attrs">
+    <div class="attr"><b class="o">VIT · Vitality</b>Max HP: 40 + 12 × VIT + 10 × (level − 1). Out-of-combat regen 4 % of max HP a second.</div>
+    <div class="attr"><b class="o">STR · Strength</b>Sword and spear damage: +4 % per point over 5. More stagger dealt.</div>
+    <div class="attr"><b class="o">DEX · Dexterity</b>Bow, crossbow and rifle damage: +4 % per point over 5. Faster draw and reload (−1 % a point).</div>
+    <div class="attr"><b class="o">PRE · Precision</b>Crit chance 5 % + 0.8 % per point over 5. Each point cuts the target's glance chance by 1.2 %.</div>
+    <div class="attr"><b class="o">AGI · Agility</b>Each point adds 1.2 % glance chance to hits <i>on you</i>. Faster dodge recovery (−1 % a point).</div>
+    <div class="attr"><b class="o">TGH · Toughness</b>Physical armour: rating 4 × TGH, cuts physical damage (formula below), max 75 %.</div>
+    <div class="attr"><b class="o">RES · Resolve</b>Energy armour: rating 4 × RES against burn, shock and blast; shorter burn and shock.</div>
+    <div class="attr"><b class="o">POI · Poise</b>Stagger bar 20 + 4 × POI. Sword parry window 0.15 s + 0.005 s a point over 5 (max 0.33 s).</div>
+  </div>
+  <p class="muted" style="font-size:14px">Why these eight: four for offence (STR, DEX, PRE and the weapon choice they imply), four for
+    defence (VIT, AGI, TGH, RES), and Poise for the parry and stagger game the sword and the big robots need. Every enemy type leans
+    on two or three of them, so it reads as a character, not a bag of HP.</p>
+
+  <h3>Allocation: hybrid <span class="pill">RECOMMENDED</span></h3>
+  <ul>
+    <li><b>Automatic:</b> every level adds +1 to all eight. Nobody can build a broken character, and enemies grow on the same floor.</li>
+    <li><b>Chosen:</b> 3 points per level (and 3 at creation), <b>cap 40</b> per attribute. At 20 that is 60 free points: enough to max
+      three attributes, so builds are real.</li>
+    <li><b>Free respec</b> at the hub's Tuning Bench (GW1's rule), so trying the bow after the sword costs nothing.</li>
+    <li><b>Presets</b> for phone players who want one tap: <b>Blade</b> (STR, VIT, PRE), <b>Marksman</b> (DEX, PRE, AGI),
+      <b>Bulwark</b> (VIT, TGH, POI).</li>
+    <li>A level-up refills HP, plays the sting, shows "LEVEL 7" and puts a "+3" badge on the pause button.</li>
+  </ul>
+  <p class="muted" style="font-size:14px">Fully automatic (WoW, FE) would leave the attributes as decoration; fully chosen (Diablo II) lets a
+    new player dump everything into Strength and die at level 9 with 300 HP. Hybrid keeps the floor and the choice.</p>
+</section>
+
+<section>
+  <h2>3 · XP: KILLS ONLY</h2>
+  <p>The one way to earn XP is to kill an enemy. Quests, the range, the riding course, the movers and every west-half toy
+    pay <b>no XP and no coins</b>. Coins also come only from kills, and buy weapon tiers at the hub vendor.</p>
+  <div class="formula">kill XP   = (20 + 5 × enemy level) × gap factor × rank factor
+rank      : normal ×1 · night shift ×1.25 · mini-boss ×10 · Crate Titan ×25</div>
+
+  <figure><svg viewBox="0 0 360 230" role="img" aria-label="XP needed per level, bars, and total XP, dashed line" class="chart"><g font-size="11" font-family="ui-monospace, monospace" fill="#d9d6d0"><line x1="40" x2="346" y1="196" y2="196" stroke="#4a4e54" stroke-width="1"/><text x="35" y="200" text-anchor="end">0k</text><line x1="40" x2="346" y1="160" y2="160" stroke="#4a4e54" stroke-width="1"/><text x="35" y="164" text-anchor="end">1k</text><line x1="40" x2="346" y1="124" y2="124" stroke="#4a4e54" stroke-width="1"/><text x="35" y="128" text-anchor="end">2k</text><line x1="40" x2="346" y1="88" y2="88" stroke="#4a4e54" stroke-width="1"/><text x="35" y="92" text-anchor="end">3k</text><line x1="40" x2="346" y1="52" y2="52" stroke="#4a4e54" stroke-width="1"/><text x="35" y="56" text-anchor="end">4k</text><text x="49.6" y="210" text-anchor="middle">1</text><text x="113.3" y="210" text-anchor="middle">5</text><text x="193" y="210" text-anchor="middle">10</text><text x="272.7" y="210" text-anchor="middle">15</text><text x="336.4" y="210" text-anchor="middle">19</text><text x="193" y="226" text-anchor="middle" fill="#a7abb1">level (bar = XP to reach the next one)</text><text x="10" y="115" text-anchor="middle" fill="#a7abb1" transform="rotate(-90 10 115)">XP to next</text><rect x="44" y="188.8" width="11.2" height="7.2" fill="#f08a24" opacity="0.85"/><rect x="59.9" y="187" width="11.2" height="9" fill="#f08a24" opacity="0.85"/><rect x="75.9" y="181.6" width="11.2" height="14.4" fill="#f08a24" opacity="0.85"/><rect x="91.8" y="178" width="11.2" height="18" fill="#f08a24" opacity="0.85"/><rect x="107.7" y="172.6" width="11.2" height="23.4" fill="#f08a24" opacity="0.85"/><rect x="123.7" y="167.2" width="11.2" height="28.8" fill="#f08a24" opacity="0.85"/><rect x="139.6" y="161.8" width="11.2" height="34.2" fill="#f08a24" opacity="0.85"/><rect x="155.5" y="154.6" width="11.2" height="41.4" fill="#f08a24" opacity="0.85"/><rect x="171.5" y="147.4" width="11.2" height="48.6" fill="#f08a24" opacity="0.85"/><rect x="187.4" y="140.2" width="11.2" height="55.8" fill="#f08a24" opacity="0.85"/><rect x="203.4" y="131.2" width="11.2" height="64.8" fill="#f08a24" opacity="0.85"/><rect x="219.3" y="122.2" width="11.2" height="73.8" fill="#f08a24" opacity="0.85"/><rect x="235.2" y="113.2" width="11.2" height="82.8" fill="#f08a24" opacity="0.85"/><rect x="251.2" y="102.4" width="11.2" height="93.6" fill="#f08a24" opacity="0.85"/><rect x="267.1" y="93.4" width="11.2" height="102.6" fill="#f08a24" opacity="0.85"/><rect x="283" y="80.8" width="11.2" height="115.2" fill="#f08a24" opacity="0.85"/><rect x="299" y="70" width="11.2" height="126" fill="#f08a24" opacity="0.85"/><rect x="314.9" y="57.4" width="11.2" height="138.6" fill="#f08a24" opacity="0.85"/><rect x="330.9" y="43" width="11.2" height="153" fill="#f08a24" opacity="0.85"/><polyline fill="none" stroke="#d9d6d0" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="5 3" points="57.5,195.1 73.5,193.9 89.4,192 105.3,189.6 121.3,186.5 137.2,182.7 153.2,178.2 169.1,172.8 185,166.4 201,159.1 216.9,150.5 232.8,140.8 248.8,129.9 264.7,117.6 280.7,104.1 296.6,88.9 312.5,72.4 328.5,54.1 344.4,34"/><line x1="46" x2="64" y1="10" y2="10" stroke="#f08a24" stroke-width="3" /><text x="68" y="14">XP to next</text><line x1="206" x2="224" y1="10" y2="10" stroke="#d9d6d0" stroke-width="3" stroke-dasharray="5 3"/><text x="228" y="14">total XP (34.2k)</text></g></svg><figcaption>Bars: XP from one level to the next. Dashed: total XP (34,200 at 20). Each level takes 3 minutes at the start and about 15 at the end.</figcaption></figure>
+
+  <div class="scroll"><table>
+    <tr><th>Lvl</th><th>To next</th><th>Total</th><th>Kill XP</th><th>Kills</th><th>Minutes</th><th>Where</th></tr>
+    <tr><td class="n">1</td><td class="n">200</td><td class="n">0</td><td class="n">25</td><td class="n">8</td><td class="n">3</td><td>Crate Mites</td></tr>
+    <tr><td class="n">2</td><td class="n">250</td><td class="n">200</td><td class="n">30</td><td class="n">8</td><td class="n">3</td><td>Crate Mites</td></tr>
+    <tr><td class="n">3</td><td class="n">400</td><td class="n">450</td><td class="n">35</td><td class="n">11</td><td class="n">5</td><td>Crate Mites</td></tr>
+    <tr><td class="n">4</td><td class="n">500</td><td class="n">850</td><td class="n">40</td><td class="n">13</td><td class="n">5</td><td>Pallet Jacks</td></tr>
+    <tr><td class="n">5</td><td class="n">650</td><td class="n">1,350</td><td class="n">45</td><td class="n">14</td><td class="n">6</td><td>Pallet Jacks</td></tr>
+    <tr><td class="n">6</td><td class="n">800</td><td class="n">2,000</td><td class="n">50</td><td class="n">16</td><td class="n">6</td><td>Pallet Jacks · Big Pallet</td></tr>
+    <tr><td class="n">7</td><td class="n">950</td><td class="n">2,800</td><td class="n">55</td><td class="n">17</td><td class="n">7</td><td>Plumb Drones</td></tr>
+    <tr><td class="n">8</td><td class="n">1,150</td><td class="n">3,750</td><td class="n">60</td><td class="n">19</td><td class="n">8</td><td>Plumb Drones</td></tr>
+    <tr><td class="n">9</td><td class="n">1,350</td><td class="n">4,900</td><td class="n">65</td><td class="n">21</td><td class="n">8</td><td>Plumb Drones</td></tr>
+    <tr><td class="n">10</td><td class="n">1,550</td><td class="n">6,250</td><td class="n">70</td><td class="n">22</td><td class="n">9</td><td>Welders</td></tr>
+    <tr><td class="n">11</td><td class="n">1,800</td><td class="n">7,800</td><td class="n">75</td><td class="n">24</td><td class="n">10</td><td>Welders</td></tr>
+    <tr><td class="n">12</td><td class="n">2,050</td><td class="n">9,600</td><td class="n">80</td><td class="n">26</td><td class="n">10</td><td>Welders · Vault Warden</td></tr>
+    <tr><td class="n">13</td><td class="n">2,300</td><td class="n">11,650</td><td class="n">85</td><td class="n">27</td><td class="n">11</td><td>Riveters</td></tr>
+    <tr><td class="n">14</td><td class="n">2,600</td><td class="n">13,950</td><td class="n">90</td><td class="n">29</td><td class="n">12</td><td>Riveters</td></tr>
+    <tr><td class="n">15</td><td class="n">2,850</td><td class="n">16,550</td><td class="n">95</td><td class="n">30</td><td class="n">12</td><td>Riveters</td></tr>
+    <tr><td class="n">16</td><td class="n">3,200</td><td class="n">19,400</td><td class="n">100</td><td class="n">32</td><td class="n">13</td><td>Arc Sentries</td></tr>
+    <tr><td class="n">17</td><td class="n">3,500</td><td class="n">22,600</td><td class="n">105</td><td class="n">33</td><td class="n">13</td><td>Arc Sentries</td></tr>
+    <tr><td class="n">18</td><td class="n">3,850</td><td class="n">26,100</td><td class="n">110</td><td class="n">35</td><td class="n">14</td><td>Arc Sentries · Foreman Unit 7</td></tr>
+    <tr><td class="n">19</td><td class="n">4,250</td><td class="n">29,950</td><td class="n">115</td><td class="n">37</td><td class="n">15</td><td>Arc Sentries (L18 +1 night shift)</td></tr>
+    <tr><td class="n">20</td><td class="n">—</td><td class="n">34,200</td><td class="n">120</td><td class="n">—</td><td class="n">—</td><td>The Crate Titan</td></tr>
+  </table></div>
+  <p><b>Time to 20: about 2.5–3 hours</b> (the table sums to 169 minutes at 2.5 kills a minute; mini-boss and night-shift
+    bonuses shave 15–20 minutes). Why that target: the first dings come every 3 minutes, which is the MMO pop; the last levels
+    take a quarter of an hour, which makes 20 feel earned; and the whole climb fits two evenings, which is right for one
+    500 m showcase cell rather than a 40-hour campaign.</p>
+  <p>Kills are not capped (unlike Driftwood's coin Bounty): east-half enemies respawn 90 seconds after they die, so a band
+    is a camp you can grind. The level-19 gap is bridged by night-shift Arc Sentries (level 19) and the L18 band's top end.</p>
+
+  <h3>The drop-off rule (gap = enemy level − your level)</h3>
+  <div class="scroll"><table>
+    <tr><th>Gap</th><th>Con colour</th><th>XP factor</th><th>Example at level 10</th></tr>
+    <tr><td class="n">+5 or more</td><td><span class="con" style="background:#c0392b"></span>skull</td><td class="n">×1.5 (cap)</td><td>a level 15 Riveter: 142</td></tr>
+    <tr><td class="n">+3, +4</td><td><span class="con" style="background:#ef6b5b"></span>red</td><td class="n">×1.3, ×1.4</td><td>level 13: 110</td></tr>
+    <tr><td class="n">+1, +2</td><td><span class="con" style="background:#f08a24"></span>orange</td><td class="n">×1.1, ×1.2</td><td>level 12: 96</td></tr>
+    <tr><td class="n">0</td><td><span class="con" style="background:#f2c14e"></span>yellow</td><td class="n">×1.0</td><td>level 10: 70</td></tr>
+    <tr><td class="n">−1, −2</td><td><span class="con" style="background:#6fcf8a"></span>green</td><td class="n">×0.85, ×0.7</td><td>level 8: 42</td></tr>
+    <tr><td class="n">−3, −4, −5</td><td><span class="con" style="background:#5aa7d6"></span>blue</td><td class="n">×0.5, ×0.3, ×0.15</td><td>level 6: 15</td></tr>
+    <tr><td class="n">−6 or less</td><td><span class="con" style="background:#8d9096"></span>grey</td><td class="n">0</td><td>level 4: nothing</td></tr>
+  </table></div>
+  <p>The nameplate shows the level in its con colour when you lock on. Grey at six below is Guild Wars 1's line; the slope
+    above is gentler than GW1's (+10 % a level instead of +16 %) because the gap maths already makes those kills slow and risky.</p>
+</section>
+
+<section>
+  <h2>4 · COMBAT MATHS</h2>
+  <p><b>Contact decides the hit; stats decide its quality.</b> On a phone action game a blade that visibly connects and shows
+    "MISS" feels broken, so there is no miss roll. A connected hit is a <b>glance</b> (half damage, grey number), a <b>clean hit</b>
+    (white) or a <b>crit</b> (×1.5, orange, bigger). Real misses come from your aim and their dodges.</p>
+  <div class="formula">damage = max(1, round( B × S × M × G × (1 − A) × Q ))
+
+B  base     weapon tier base (player) · 12 × (1 + 0.1 × (L − 1)) × strike multiplier (enemy)
+S  scaling  1 + 0.04 × (STR or DEX − 5)          the weapon's attribute
+M  move     combo 1 / 1 / 1.33 · heavy 2 · headshot 1.5 (rifle 2) · ammo row
+G  gap      g = defender level − attacker level
+            g &gt; 0: 1 − 0.07 g (min 0.5)   g &lt; 0: 1 + 0.04 |g| (max 1.2)
+A  armour   R / (R + 60 + 8 × attacker level), max 0.75
+            R = 4 × TGH (physical) or 4 × RES (energy)
+Q  quality  glance 0.5 · clean 1 · crit 1.5
+
+glance % = 8 + 1.2 × (AGI def − PRE att) + 6 × max(0, g) − 3 × max(0, −g)   [0–60]
+crit %   = 5 + 0.8 × (PRE att − 5) − 2 × max(0, g)                            [0–50]
+a glance never crits; crits roll on clean hits only</div>
+  <p>The level gap counts three times when you are under-levelled: <b>G</b> cuts your damage 7 % a level, the armour term
+    gets stronger because your level is in its denominator, and glances climb 6 % a level. The enemy, a character at a higher
+    level, also simply has more HP and hits harder. Over-levelled, it all runs the other way, but gently.</p>
+
+  <h3>Worked example</h3>
+  <p>You: level 10 Blade (STR 24, PRE 24), Steel sword (tier III, base 22), third combo swing. It: level 12 Welder Unit
+    (TGH 16, AGI 16, 255 HP). Gap g = +2.</p>
+  <div class="formula">B 22 × S (1 + 0.04 × 19 = 1.76) × M 1.33 = 51.5
+G  1 − 0.07 × 2                          = 0.86  → 44.3
+A  R = 64; 64 / (64 + 60 + 80)           = 0.31  → × 0.69 = 30.4
+clean 30 · crit 45 · glance 15
+glance 8 + 1.2 × (16 − 24) + 12 = 10.4 % · crit 5 + 15.2 − 4 = 16.2 %
+→ about 8 swings for its 255 HP</div>
+
+  <h3>Level gap in practice</h3>
+  <figure><svg viewBox="0 0 360 230" role="img" aria-label="Level gap: swings to kill an enemy and enemy hits to kill you, by level difference" class="chart"><g font-size="11" font-family="ui-monospace, monospace" fill="#d9d6d0"><line x1="40" x2="346" y1="196" y2="196" stroke="#4a4e54" stroke-width="1"/><text x="35" y="200" text-anchor="end">0</text><line x1="40" x2="346" y1="155.5" y2="155.5" stroke="#4a4e54" stroke-width="1"/><text x="35" y="159.5" text-anchor="end">10</text><line x1="40" x2="346" y1="115" y2="115" stroke="#4a4e54" stroke-width="1"/><text x="35" y="119" text-anchor="end">20</text><line x1="40" x2="346" y1="74.5" y2="74.5" stroke="#4a4e54" stroke-width="1"/><text x="35" y="78.5" text-anchor="end">30</text><line x1="40" x2="346" y1="34" y2="34" stroke="#4a4e54" stroke-width="1"/><text x="35" y="38" text-anchor="end">40</text><text x="40" y="210" text-anchor="middle">-6</text><text x="87.1" y="210" text-anchor="middle">-4</text><text x="134.2" y="210" text-anchor="middle">-2</text><text x="181.2" y="210" text-anchor="middle">0</text><text x="228.3" y="210" text-anchor="middle">+2</text><text x="275.4" y="210" text-anchor="middle">+4</text><text x="322.5" y="210" text-anchor="middle">+6</text><text x="193" y="226" text-anchor="middle" fill="#a7abb1">enemy level minus yours (you are level 10)</text><text x="10" y="115" text-anchor="middle" fill="#a7abb1" transform="rotate(-90 10 115)">count</text><polyline fill="none" stroke="#f08a24" stroke-width="2.5" stroke-linejoin="round"  points="40,187.1 63.5,185.5 87.1,183 110.6,179 134.2,176.6 157.7,173.7 181.2,166.4 204.8,160.4 228.3,151.9 251.8,132.4 275.4,117.8 298.9,99.6 322.5,68.4 346,39.7"/><polyline fill="none" stroke="#d9d6d0" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="5 3" points="40,34 63.5,34 87.1,34 110.6,83.4 134.2,113.8 157.7,132.8 181.2,132 204.8,142.5 228.3,149.8 251.8,147.8 275.4,153.1 298.9,157.9 322.5,169.7 346,171.7"/><circle cx="40" cy="187.1" r="2.6" fill="#f08a24"/><circle cx="63.5" cy="185.5" r="2.6" fill="#f08a24"/><circle cx="87.1" cy="183" r="2.6" fill="#f08a24"/><circle cx="110.6" cy="179" r="2.6" fill="#f08a24"/><circle cx="134.2" cy="176.6" r="2.6" fill="#f08a24"/><circle cx="157.7" cy="173.7" r="2.6" fill="#f08a24"/><circle cx="181.2" cy="166.4" r="2.6" fill="#f08a24"/><circle cx="204.8" cy="160.4" r="2.6" fill="#f08a24"/><circle cx="228.3" cy="151.9" r="2.6" fill="#f08a24"/><circle cx="251.8" cy="132.4" r="2.6" fill="#f08a24"/><circle cx="275.4" cy="117.8" r="2.6" fill="#f08a24"/><circle cx="298.9" cy="99.6" r="2.6" fill="#f08a24"/><circle cx="322.5" cy="68.4" r="2.6" fill="#f08a24"/><circle cx="346" cy="39.7" r="2.6" fill="#f08a24"/><text x="93.1" y="38" fill="#a7abb1">← off the chart: 40–76</text><line x1="181.2" x2="181.2" y1="46" y2="196" stroke="#a7abb1" stroke-dasharray="2 3"/><line x1="46" x2="64" y1="10" y2="10" stroke="#f08a24" stroke-width="3" /><text x="68" y="14">swings to kill it</text><line x1="206" x2="224" y1="10" y2="10" stroke="#d9d6d0" stroke-width="3" stroke-dasharray="5 3"/><text x="228" y="14">hits to kill you</text></g></svg><figcaption>You are level 10 (Blade preset, Steel sword) against that level's band enemy. At +5 the
+    fight takes 24 swings and it kills you in 9 hits; at −6 it is two swings and it barely scratches you (and pays 0 XP).</figcaption></figure>
+</section>
+
+<section>
+  <h2>5 · WEAPONS IN THE SYSTEM</h2>
+  <div class="scroll"><table>
+    <tr><th>Weapon</th><th>Scales</th><th>Type</th><th>Base</th><th>Its trick</th></tr>
+    <tr><td>Sword</td><td>STR</td><td>phys</td><td class="n">×1.0</td><td>3-hit combo 1 / 1 / 1.33, heavy ×2. <b>Parry</b> (window from POI): negates the hit, staggers the attacker, next hit auto-crits.</td></tr>
+    <tr><td>Spear</td><td>STR</td><td>phys</td><td class="n">×1.25</td><td>Longer reach, slower thrust; ignores 20 % of TGH.</td></tr>
+    <tr><td>Bow</td><td>DEX</td><td>phys</td><td class="n">×1.0</td><td>Full draw ×1.2; headshot ×1.5. Quiet: the stealth weapon.</td></tr>
+    <tr><td>Crossbow</td><td>DEX</td><td>by ammo</td><td class="n">×1.6</td><td><b>Iron</b>: physical, ignores 30 % TGH. <b>Pitch</b>: energy (vs RES) + 4 s burn, lights beacons. <b>Broadhead</b>: physical ×1.3 but TGH counts double: for drones and sentries.</td></tr>
+    <tr><td>Lever rifle</td><td>DEX</td><td>phys</td><td class="n">×2.0</td><td>+10 % crit, headshot ×2, 6-round tube. Needs PRE as well as DEX.</td></tr>
+  </table></div>
+  <p><b>Tiers and requirements.</b> The hub vendor sells each weapon in tiers, for coins earned by killing. A tier's
+    requirement is in its scaling attribute (the rifle also needs PRE at the same value). Under the requirement a weapon deals
+    ×0.6 and never crits (GW1's rule), so the choice of where your points go is real.</p>
+  <div class="scroll"><table>
+    <tr><th>Tier</th><th>Name</th><th>Base</th><th>Needs</th><th>Sold from</th></tr>
+    <tr><td class="n">I</td><td>Scrap</td><td class="n">12</td><td class="n">—</td><td>start</td></tr>
+    <tr><td class="n">II</td><td>Iron</td><td class="n">17</td><td class="n">10</td><td>level 5</td></tr>
+    <tr><td class="n">III</td><td>Steel</td><td class="n">22</td><td class="n">15</td><td>level 9</td></tr>
+    <tr><td class="n">IV</td><td>Alloy</td><td class="n">26</td><td class="n">20</td><td>level 13</td></tr>
+    <tr><td class="n">V</td><td>Titanium</td><td class="n">31</td><td class="n">25</td><td>level 17</td></tr>
+    <tr><td class="n">L</td><td>Titan-forged (boss drop)</td><td class="n">36</td><td class="n">30</td><td>Crate Titan</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>6 · THE ROSTER (EAST HALF)</h2>
+  <p>Six types, one per band, each with Mk I / II / III levels stencilled on its side. Enemy attributes follow the player's rule:
+    level + 4 in all eight, plus 3 × level <b>lean points</b> spread by its weights. HP is the player formula × a rank
+    (0.5–0.75 for normal enemies). "Swings" is a level-matched Blade with that band's sword tier. The bands run in strips from the
+    main road eastward, 1–3 nearest the hub, 16–18 at the far edge, and the boss arena in the north-east corner.</p>
+  <div class="scroll"><table>
+    <tr><th>Lvl</th><th>Enemy</th><th>Role · identity</th><th>Leans</th><th>HP</th><th>Hit</th><th>Swings</th></tr>
+    <tr><td class="n">1–3</td><td><b>Crate Mite</b></td><td>Swarmer. A small crate on four servo legs; comes in threes, nips and hops back. Teaches lock-on and the combo.</td><td>AGI STR VIT</td><td class="n">56–84</td><td class="n">10–13</td><td class="n">6–8</td></tr>
+    <tr><td class="n">4–6</td><td><b>Pallet Jack</b></td><td>Charger. Forklift tines, a telegraphed straight-line charge; it stuns itself on walls. Teaches the side dodge.</td><td>STR TGH POI</td><td class="n">83–105</td><td class="n">15–19</td><td class="n">7–8</td></tr>
+    <tr><td class="n">7–9</td><td><b>Plumb Drone</b></td><td>Kiter. A hovering survey drone with a nail gun that holds 12 m and strafes. Teaches the bow and broadheads.</td><td>DEX PRE AGI</td><td class="n">151–179</td><td class="n">22–27</td><td class="n">6–8</td></tr>
+    <tr><td class="n">10–12</td><td><b>Welder Unit</b></td><td>Zoner. A torch-arm flame cone (energy) and burning slag puddles. Shrugs off pitch; bring iron and steel.</td><td>RES VIT STR</td><td class="n">221–255</td><td class="n">26–31</td><td class="n">7–8</td></tr>
+    <tr><td class="n">13–15</td><td><b>Riveter Bulwark</b></td><td>Tank. A riot plate in front and a rivet-slam ring. Flank it, break its poise with heavies, or burn it with pitch (low RES).</td><td>TGH POI</td><td class="n">218–245</td><td class="n">28–32</td><td class="n">7</td></tr>
+    <tr><td class="n">16–18</td><td><b>Arc Sentry</b></td><td>Duellist. A shock lance in pairs; it <b>parries you</b> if you mash. Parry it back, or rifle headshots from range.</td><td>PRE AGI STR</td><td class="n">323–356</td><td class="n">42–48</td><td class="n">6–7</td></tr>
+  </table></div>
+  <p><b>Night shift</b> (Jake's night-only pick): after dark each type has a lamp-eyed variant one level higher that pays ×1.25 XP.</p>
+</section>
+
+<section>
+  <h2>7 · MINI-BOSSES AND THE TITAN</h2>
+  <p>All four are a <b>soft gate</b>: always open, no level lock. Come early and the gap maths does the gating.
+    HP = the player formula × rank; strikes use the same base with a rank multiplier. "Light / heavy" is what it deals to a
+    level-matched Blade; heavies are telegraphed and dodgeable.</p>
+  <div class="scroll"><table>
+    <tr><th>Lvl</th><th>Name</th><th>Fight</th><th>HP</th><th>Light / heavy</th><th>Attributes</th></tr>
+    <tr><td class="n">6</td><td><b>Big Pallet</b></td><td>The Pallet Jacks' king, open world. Chained charges, then lifts and throws crates. ~55 swings, about a minute.</td><td class="n">903</td><td class="n">27 / 54</td><td class="n">VIT 14 STR 17 DEX 10 PRE 10 AGI 10 TGH 17 RES 10 POI 10</td></tr>
+    <tr><td class="n">12</td><td><b>Vault Warden</b></td><td>Guards the Training Vault (quest step 6). Unstaggerable until you trip its pressure plates; floor-slam rings to jump. ~58 swings.</td><td class="n">1,540</td><td class="n">43 / 86</td><td class="n">VIT 16 STR 23 DEX 16 PRE 16 AGI 16 TGH 30 RES 16 POI 30</td></tr>
+    <tr><td class="n">18</td><td><b>Foreman Unit 7</b></td><td>The wave finale (quest step 8). Nail-rifle volleys, whistles in Crate Mites and buffs them. Kill the adds or he outlasts you. ~55 swings.</td><td class="n">3,320</td><td class="n">81 / 163</td><td class="n">VIT 22 STR 22 DEX 40 PRE 40 AGI 22 TGH 22 RES 33 POI 22</td></tr>
+    <tr><td class="n">20</td><td><b>The Crate Titan</b></td><td>Three phases. 100–66 %: plated (TGH 40), crate stomps. 66–33 %: crate rain and Mite adds. 33–0 %: the core opens, TGH drops to 12 and RES to 10, so pitch bolts and heavies shine. ~160 swings, 3–4 minutes.</td><td class="n">9,230</td><td class="n">68 / 136</td><td class="n">VIT 40 STR 24 DEX 24 PRE 24 AGI 24 TGH 40 RES 24 POI 36</td></tr>
+  </table></div>
+  <p><b>Why the Vault Warden is the level 12 one:</b> the Vault is quest step 6, the middle of the chain, between the stealth
+    keycard (level 8) and the storm beacons (14). At level 6 the Vault's puzzle would come before the player has the tools; at 18
+    it would collide with Foreman Unit 7, who belongs to the wave finale at step 8. That leaves Big Pallet as the open-world
+    level 6 elite.</p>
+  <h3>How brutal the soft gate is</h3>
+  <div class="scroll"><table>
+    <tr><th>Fight</th><th>You at</th><th>Swings</th><th>Heavies to kill you</th><th>Your glance %</th></tr>
+    <tr><td>Vault Warden 12</td><td class="n">12 / 10 / 8</td><td class="n">58 / 84 / 173</td><td class="n">5.5 / 4.1 / 3.0</td><td class="n">0 / 10 / 27</td></tr>
+    <tr><td>Foreman 18</td><td class="n">18 / 16 / 14</td><td class="n">55 / 88 / 132</td><td class="n">3.6 / 3.0 / 2.4</td><td class="n">0 / 3 / 20</td></tr>
+    <tr><td>Crate Titan 20</td><td class="n">20 / 18 / 16 / 14</td><td class="n">158 / 226 / 407 / 648</td><td class="n">4.9 / 4.1 / 3.4 / 2.8</td><td class="n">0 / 1 / 18 / 34</td></tr>
+  </table></div>
+  <p>A level 14 player can walk into the Titan's arena. Killing it takes eleven minutes of perfect play while three heavies
+    end the run: possible for a show-off, a wall for everyone else.</p>
+</section>
+
+<section>
+  <h2>8 · PLAYER AT 1, 10, 20</h2>
+  <figure><svg viewBox="0 0 360 230" role="img" aria-label="Hit points by level, player and equal-level enemy" class="chart"><g font-size="11" font-family="ui-monospace, monospace" fill="#d9d6d0"><line x1="40" x2="346" y1="196" y2="196" stroke="#4a4e54" stroke-width="1"/><text x="35" y="200" text-anchor="end">0</text><line x1="40" x2="346" y1="155.5" y2="155.5" stroke="#4a4e54" stroke-width="1"/><text x="35" y="159.5" text-anchor="end">200</text><line x1="40" x2="346" y1="115" y2="115" stroke="#4a4e54" stroke-width="1"/><text x="35" y="119" text-anchor="end">400</text><line x1="40" x2="346" y1="74.5" y2="74.5" stroke="#4a4e54" stroke-width="1"/><text x="35" y="78.5" text-anchor="end">600</text><line x1="40" x2="346" y1="34" y2="34" stroke="#4a4e54" stroke-width="1"/><text x="35" y="38" text-anchor="end">800</text><text x="40" y="210" text-anchor="middle">1</text><text x="104.4" y="210" text-anchor="middle">5</text><text x="184.9" y="210" text-anchor="middle">10</text><text x="265.5" y="210" text-anchor="middle">15</text><text x="346" y="210" text-anchor="middle">20</text><text x="193" y="226" text-anchor="middle" fill="#a7abb1">level</text><text x="10" y="115" text-anchor="middle" fill="#a7abb1" transform="rotate(-90 10 115)">hit points</text><polyline fill="none" stroke="#f08a24" stroke-width="2.5" stroke-linejoin="round"  points="40,173.3 56.1,166.4 72.2,159.6 88.3,152.7 104.4,145.8 120.5,138.9 136.6,132 152.7,125.1 168.8,118.2 184.9,111.4 201.1,104.5 217.2,97.6 233.3,90.7 249.4,83.8 265.5,76.9 281.6,70 297.7,63.2 313.8,56.3 329.9,54.3 346,52.2"/><polyline fill="none" stroke="#d9d6d0" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="5 3" points="40,184.7 56.1,181.2 72.2,179 88.3,179.2 104.4,177 120.5,174.7 136.6,165.4 152.7,162.6 168.8,159.8 184.9,151.2 201.1,147.8 217.2,144.4 233.3,151.9 249.4,149 265.5,146.4 281.6,130.6 297.7,127.4 313.8,123.9 329.9,120.7 346,117.2"/><circle cx="40" cy="173.3" r="2.6" fill="#f08a24"/><circle cx="184.9" cy="111.4" r="2.6" fill="#f08a24"/><circle cx="346" cy="52.2" r="2.6" fill="#f08a24"/><line x1="46" x2="64" y1="10" y2="10" stroke="#f08a24" stroke-width="3" /><text x="68" y="14">player (Blade)</text><line x1="206" x2="224" y1="10" y2="10" stroke="#d9d6d0" stroke-width="3" stroke-dasharray="5 3"/><text x="228" y="14">enemy, same level</text></g></svg><figcaption>HP: the Blade preset (orange) against an equal-level enemy of that level's band (dashed). Dots: levels 1, 10, 20. The dip at 13 is the Riveter: less HP, twice the armour.</figcaption></figure>
+  <figure><svg viewBox="0 0 360 230" role="img" aria-label="Damage per hit by level, player sword before armour and enemy basic strike after armour" class="chart"><g font-size="11" font-family="ui-monospace, monospace" fill="#d9d6d0"><line x1="40" x2="346" y1="196" y2="196" stroke="#4a4e54" stroke-width="1"/><text x="35" y="200" text-anchor="end">0</text><line x1="40" x2="346" y1="155.5" y2="155.5" stroke="#4a4e54" stroke-width="1"/><text x="35" y="159.5" text-anchor="end">25</text><line x1="40" x2="346" y1="115" y2="115" stroke="#4a4e54" stroke-width="1"/><text x="35" y="119" text-anchor="end">50</text><line x1="40" x2="346" y1="74.5" y2="74.5" stroke="#4a4e54" stroke-width="1"/><text x="35" y="78.5" text-anchor="end">75</text><line x1="40" x2="346" y1="34" y2="34" stroke="#4a4e54" stroke-width="1"/><text x="35" y="38" text-anchor="end">100</text><text x="40" y="210" text-anchor="middle">1</text><text x="104.4" y="210" text-anchor="middle">5</text><text x="184.9" y="210" text-anchor="middle">10</text><text x="265.5" y="210" text-anchor="middle">15</text><text x="346" y="210" text-anchor="middle">20</text><text x="193" y="226" text-anchor="middle" fill="#a7abb1">level (sword steps = new weapon tier)</text><text x="10" y="115" text-anchor="middle" fill="#a7abb1" transform="rotate(-90 10 115)">damage per hit</text><polyline fill="none" stroke="#f08a24" stroke-width="2.5" stroke-linejoin="round"  points="40,176.6 56.1,176.6 56.1,174.9 72.2,174.9 72.2,173.3 88.3,173.3 88.3,171.7 104.4,171.7 104.4,158.7 120.5,158.7 120.5,157.1 136.6,157.1 136.6,153.9 152.7,153.9 152.7,152.3 168.8,152.3 168.8,136.1 184.9,136.1 184.9,132.8 201.1,132.8 201.1,131.2 217.2,131.2 217.2,128 233.3,128 233.3,111.8 249.4,111.8 249.4,108.5 265.5,108.5 265.5,105.3 281.6,105.3 281.6,102 297.7,102 297.7,79.4 313.8,79.4 313.8,76.1 329.9,76.1 329.9,76.1 346,76.1 346,56.7"/><polyline fill="none" stroke="#d9d6d0" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="5 3" points="40,179.8 56.1,178.2 72.2,174.9 88.3,171.7 104.4,168.5 120.5,165.2 136.6,160.4 152.7,155.5 168.8,152.3 184.9,153.9 201.1,149 217.2,145.8 233.3,150.6 249.4,147.4 265.5,144.2 281.6,128 297.7,123.1 313.8,118.2 329.9,113.4 346,108.5"/><line x1="46" x2="64" y1="10" y2="10" stroke="#f08a24" stroke-width="3" /><text x="68" y="14">player sword</text><line x1="206" x2="224" y1="10" y2="10" stroke="#d9d6d0" stroke-width="3" stroke-dasharray="5 3"/><text x="228" y="14">enemy hit on you</text></g></svg><figcaption>Damage per hit: your sword before armour (steps when you buy the next tier) and what the band's enemy deals you after your armour.</figcaption></figure>
+  <div class="scroll"><table>
+    <tr><th></th><th>Level 1</th><th>Level 10</th><th>Level 20</th></tr>
+    <tr><td>Blade attributes</td><td class="n">VIT 6 STR 6 PRE 6, rest 5</td><td class="n">VIT 24 STR 24 PRE 24, rest 14</td><td class="n">VIT 40 STR 40 PRE 40, rest 24</td></tr>
+    <tr><td>HP (Blade / Marksman)</td><td class="n">112 / 100</td><td class="n">418 / 298</td><td class="n">710 / 518</td></tr>
+    <tr><td>Sword hit, before armour</td><td class="n">12 (Scrap)</td><td class="n">39 (Steel)</td><td class="n">74 (Titanium) · 86 Titan-forged</td></tr>
+    <tr><td>Bow hit, full draw (Marksman)</td><td class="n">15</td><td class="n">46</td><td class="n">89 · 104 Titan-forged</td></tr>
+    <tr><td>Crit chance vs equal level</td><td class="n">6 %</td><td class="n">20 %</td><td class="n">33 %</td></tr>
+    <tr><td>Physical armour vs equal level</td><td class="n">23 %</td><td class="n">29 %</td><td class="n">30 %</td></tr>
+    <tr><td>Equal-level fight</td><td class="n">6 swings, 11 hits to die</td><td class="n">7 swings, 16 hits</td><td class="n">6 swings, 11 hits</td></tr>
+  </table></div>
+  <p><b>Fight length on the phone:</b> a level-matched normal enemy is 6–8 swings. With the sword's 0.35 s swings, the
+    dodges and the repositioning, that is <b>8–12 seconds</b>; a group of three Crate Mites is about 25. It needs 11–18 of its hits
+    to kill you, so one fight can't end a run, but a pull of three that you ignore can. Mini-bosses take a minute; the Titan 3–4.</p>
+</section>
+
+<section>
+  <h2>9 · QUESTS: FREEFORM, LEVEL-LOCKED, NO XP</h2>
+  <p>Quests are freeform (take them in any order) but each has a <b>minimum level</b>. A giver whose quest is above you shows a
+    <span class="bang-grey">grey !</span>; it turns <span class="bang-yellow">yellow !</span> at the right level, and a yellow
+    <span class="bang-yellow">?</span> marks a turn-in, as in WoW. Rewards are never XP or coins: they are <b>unlocks</b>.</p>
+  <div class="scroll"><table>
+    <tr><th>Lvl</th><th>Quest ("The Foreman's Yard")</th><th>Reward (no XP, no coins)</th></tr>
+    <tr><td class="n">1</td><td>Clock in at the hub</td><td>The journal, the vendor</td></tr>
+    <tr><td class="n">1</td><td>Qualify on the weapon range (two weapon types)</td><td>Bow and spear in the vendor list</td></tr>
+    <tr><td class="n">2</td><td>Beat the riding course's par</td><td>The dev-bot horse</td></tr>
+    <tr><td class="n">4</td><td>Movers park, then grapple to the tower top</td><td>Grapple upgrade, crossbow + iron bolts</td></tr>
+    <tr><td class="n">8</td><td>Steal the keycard unseen</td><td>Vault keycard, pitch bolts</td></tr>
+    <tr><td class="n">12</td><td>Training Vault: plates, then the Vault Warden</td><td>Broadhead bolts, Warden finish (skin)</td></tr>
+    <tr><td class="n">14</td><td>Light the four beacons in the storm</td><td>Lever rifle licence</td></tr>
+    <tr><td class="n">18</td><td>Five waves and Foreman Unit 7</td><td>The Titan's arena key line, a title</td></tr>
+    <tr><td class="n">20</td><td>Beat the Crate Titan</td><td>Titan-forged weapon, hoverboard upgrade</td></tr>
+  </table></div>
+  <p><b>Kill contracts</b> on the hub board are level-locked quests too (one per band: "Scrap 12 Crate Mites", level 1, up to
+    "Ground 6 Arc Sentries", level 16). They pay trophies, finishes and titles; the kills inside them still pay their own XP and coins.
+    A boss killed before its quest is offered completes the quest when you pick it up.</p>
+</section>
+
+<section>
+  <h2>10 · DEATH</h2>
+  <ul>
+    <li>You respawn at the <b>last discovered place</b> (the game's LastPlace, already wired for every shard), full HP.</li>
+    <li><b>No XP loss, no item loss, no coin loss.</b> XP is the one currency you grind; taking it away on a phone feels awful.</li>
+    <li>You get <b>Morale −10 %</b> (max HP and damage), stacking to −30 % (Guild Wars 1's death penalty, softened). Five non-grey
+      kills remove one stack; the hub clears all of it.</li>
+    <li>The enemy that killed you heals to full; a mini-boss or the Titan resets its phase. The "Killed by…" card names it.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>11 · ENGINE WORK (WAVE 1)</h2>
+  <p><b>What exists today:</b> one ordered damage pipeline (<span class="n">CombatPipeline</span>, <span class="n">damage.modify</span>
+    stages with cap / add / mul rules, <span class="n">damageTakenMul</span>, <span class="n">incomingCap</span>), an
+    <span class="n">EffectService</span> whose effects already modify named attributes, flat <span class="n">damage</span> numbers on
+    weapon profiles, creature strikes and boss modes, boss <span class="n">hp</span> in boss profiles, the player fixed at
+    <span class="n">100 HP</span> with 4 HP/s regen, coin <span class="n">Bounty</span> and <span class="n">LastPlace</span>.
+    There is <b>no level, no XP, no attribute and no crit</b> anywhere; sword parry exists only in the legacy Nine Dragon shard.</p>
+  <p>The new rows and hosts. Every one goes through the host bar with Kitchen Sink as a real user; the shard writes data and
+    AssemblyScript only.</p>
+  <ol>
+    <li><b>Progression rows</b> (<span class="n">src/format/progression.ts</span>): the 8 attribute ids, auto growth, points per level,
+      the cap, the XP table, the kill-XP and gap tables, ranks, and every coefficient on this page. Game-layer defaults; a shard opts in.</li>
+    <li><b>Actor level and attributes</b> (engine combat): <span class="n">level</span> plus the eight on the actor's existing
+      <span class="n">AttributeSet</span>, so effects can buff STR or drop TGH (the Titan's open core) with no new code.</li>
+    <li><b>The stat stage</b> in <span class="n">CombatPipeline</span>: one <span class="n">damage.modify</span> answer that applies S, G, A
+      and Q; <span class="n">DamageRequest</span> gains <span class="n">damageType</span>, <span class="n">scaling</span> and an outcome
+      (glance / clean / crit) for the numbers. <span class="n">incomingCap</span> is off on levelled shards (it would flatten the gap).</li>
+    <li><b>Player health</b>: max HP from VIT and level, regen as 4 % of max, full heal on level-up.</li>
+    <li><b>Experience host</b> (game layer): pays XP on <span class="n">actor.died</span> with the drop-off, raises the level, saves it
+      with the character (one character across shards), feeds achievements ("Level 10", "Level 20").</li>
+    <li><b>Creature and spawn rows</b>: level or band, lean weights and rank; strike <span class="n">damage</span> becomes a strike
+      multiplier on the level base; 90 s respawn in combat zones; night-shift variants.</li>
+    <li><b>Elite and boss rows</b>: HP and damage from level and rank (today's fixed <span class="n">hp</span> stays as an override for
+      unlevelled shards); phase rows apply attribute effects.</li>
+    <li><b>Weapon rows</b>: <span class="n">scaling</span>, <span class="n">tier</span>, <span class="n">requirement</span>,
+      <span class="n">damageType</span> and <span class="n">pierce</span> on weapon profiles and ammo; tier stock in the vendor's
+      economy rows; sword <b>parry</b> ported into the held-melee host as a move row.</li>
+    <li><b>Quest rows</b>: a minimum <span class="n">level</span>; giver markers grey ! / yellow ! / yellow ?; unlock-only rewards;
+      west-half activities pay 0.</li>
+    <li><b>UI</b>: a Character tab in pause (eight rows, +, presets, respec at the hub); an XP bar and level badge; level and
+      con colour on the lock-on nameplate; glance / crit number colours. The HUD parts go through E332 and Jake's pick.</li>
+    <li><b>Morale</b> as an EffectService row (stacks 3) on death; encounter reset.</li>
+    <li><b>AssemblyScript queries</b> for actor level and attributes, so a script can make the Arc Sentry parry by its PRE.</li>
+    <li><b>One pure formula module with golden tests</b> (this page's worked example is test row 1); the whole system sits
+      behind Developer until Jake plays it.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>12 · QUESTIONS FOR JAKE</h2>
+  <div class="q"><b>1. Allocation: automatic, chosen or hybrid?</b><span class="rec">Recommended: hybrid. +1 to all eight each level, 3 chosen points (cap 40), free respec at the hub, three presets.</span></div>
+  <div class="q"><b>2. Glance or a real miss when the hit connects?</b><span class="rec">Recommended: glance (half damage, grey number). Misses come only from aim and dodges.</span></div>
+  <div class="q"><b>3. What does death cost?</b><span class="rec">Recommended: Morale −10 % per death to −30 %, worked off by kills; no XP, item or coin loss.</span></div>
+  <div class="q"><b>4. One level for the whole game, or the Kitchen Sink only?</b><span class="rec">Recommended: the system lives in the game layer and the level belongs to your character across shards, but only the Kitchen Sink opts in now; other shards keep flat combat until each adopts it.</span></div>
+  <div class="q"><b>5. Time to reach 20?</b><span class="rec">Recommended: about 2.5–3 hours of grinding (34,200 XP). Faster (1.5 h) makes the bands blur; slower makes a showcase a chore.</span></div>
+</section>
+
+<p class="sub">Sources: wiki.guildwars.com (Experience), warcraft.wiki.gg (Mob experience), the OSRS, Diablo II, Elden Ring, Path of Exile,
+  Ragnarok, FFXIV, Fire Emblem and Bulbapedia wikis. Balance numbers come from one script run of the formulas above.</p>
+
+</main>
+</body>
+</html>
