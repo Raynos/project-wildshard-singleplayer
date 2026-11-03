@@ -2677,8 +2677,8 @@ the qualified combined corpus; this is not a fresh all-24 product census.
 
 | Named exit, implementation open | Live reason and exact retirement condition |
 |---|---|
-| **CS10-E1 — DW collection custom port / KEEP** | `custom/collections`, **2,698 B**. `generators/clientSections.ts` still emits it; `game/models/collectionDisplay.ts` reads its complete CollectionDisplaysSchema models synchronously after geometry preparation, and `game/quest/continuation.ts` dynamically reads its keepsakes. The shared schema alone does not replace that port. Migrate both consumers together, preserving cold Explorer/entered preparation, read-once catalogue, pinned product, model/geometry ownership, cancellation and keepsake/save lifetimes; require exact complete body, original native refusals and ordered-pack proof before retirement. |
-| **CS10-E2 — DW fixed-layout identity/owner port / KEEP** | `custom/fixedLayouts`, **7,855 B**. The same producer emits the approved complete ResolvedIslandLibrarySchema. `game/shardfile/islandBook.ts` still uses its synchronous root in preflight, product/id/recipe cache and post-await identity checks; IslandLibrary and the people/cards draws borrow its declared resources. Preserve resource-presence/unique-slot/collection-slot refusals, root identity across every await, caller resourceScope and catalogue/library lifetime as one complete port. A named file or asynchronous substitution does not prove parity; require exact payload/native/pack and affected entry/Explorer proof before deleting it. |
+| **CS10-E1 — DW collection port / PORTED** | **2026-11-03, sp-x9, `3c42144c50`:** complete 2,698 B body moves byte-identically to synchronous `collections/displays`. CollectionCatalogue and quest continuation use the same full native root. Original geometry preparation, checked/deep-frozen read-once catalogue, pinned product, cancellation, model ownership and keepsake/save lifetimes remain. The exact two-reference ruling and full payload/native/pack/capture/Explorer proof are [below](#cs10-e1e2-driftwood-platform-ports). |
+| **CS10-E2 — DW fixed-layout port / PORTED** | **2026-11-03, sp-x9, `3c42144c50`:** complete 7,855 B body moves byte-identically to synchronous `models/island-library`. Preserve whole-plan resource/unique-slot/collection-slot admission, product/root/recipe cache, checks after awaits, caller resourceScope and catalogue/library lifetime. Entry and cold Explorer use that same admitted root; both custom copies and their emitted schemas retire. The [qualified proof](#cs10-e1e2-driftwood-platform-ports) covers the exact two-reference exception, native ownership and strict captures. |
 | **CS10-E3 — Pine whole native-view port / KEEP** | `custom/nativeView`, **8,648 B**. `generators/sections.ts` and `sourceOutput.ts` retain NativeViewSchema and emission; `test/fixtures/pine-headless.ts` reads BOSS_ENCOUNTER.profile, and `test/pine-runtime-mirrors.test.ts` checks the complete envelope and malformed native refusals. The combat child does not reconstruct all ribs, presentation/cues, clearing/cave, fog/look, spray and prop-kind/box fields. Require a complete admitted derivation, unchanged native-witness/input and full body/pack proof. **G908:** preserve Pine bytes and pixels; without exact retirement this remains an exit, never a renamed private wrapper. |
 | **CS10-E4 — Pine whole quest-runtime/guest port / KEEP** | `custom/questRuntime`, **29,289 B**. `data/clientPlan.json` names it as quest.spawns.source; `generators/forestStory.ts` names it as content; `sourceOutput.ts` emits the compiled lead.program, and the native fixture reads this quest source. PineQuestRowsSchema still contains lead.program, events, deaths, pageDeaths and content with unresolved complete guest/AS ownership. Native-story/page children are incomplete replacements. Migrate the actual source/content/guest ports together, preserving original save, phase, reference and native assertions with exact full body/pack and witness proof. **G908:** no Pine byte or pixel change is accepted to retire this path. |
 | **CS10-E5 — Shared private emitter/reader/compatibility path / KEEP** | E1–E4 are live callers, so shard SECTIONS, emitCustom/custom row emission, custom schema admission and product.section compatibility remain necessary. Removal requires every actual caller to migrate with its own exact payload/native/pack proof, then an immutable complete product/source census proving zero private emitters/readers and no compatibility users. Ten duplicate retirements and the two-product proof do not meet that condition. Retain original unknown/malformed/resource/identity refusals and all generic named-JSON support. |
@@ -3001,3 +3001,56 @@ pixel claim is invented by this warm-only follow-up. Previously accepted
 P1/P3 both-tier A/A0 stands. Raw warm JSON, all free-owner/version/hash
 checks and reference-stage comparison:
 `tmp/sp-x6-nalati-clean-warm/summary.json`.
+
+## CS10 E1/E2: Driftwood platform ports
+
+**Ported and accepted, 2026-11-03, sp-x9.** Source `3c42144c50`;
+empty-registry generator fix `1aefef4f57`. These are two scoped Z7 exits,
+not completion of the other model-library contracts. The coordinator's
+G872 ruling allows exactly the two reference-string changes below, with
+no compatibility mapping. The authored continuation JSON is compiled into
+the complete quest page document.
+
+| Emitted body | Field | Before | After |
+|---|---|---|---|
+| `quests/page-composition.json` | `entryResources.continuation.collections` | `collections` | `collections/displays` |
+| `people/cards.json` | `draws` | `custom/fixedLayouts` | `models/island-library` |
+
+Fresh ordinary CURRENT BEFORE and AFTER both pass complete native admission.
+The complete moved bodies retain hashes
+`3af8db49f9389abe5d87412e994f47579454d1ec41ad3ce47ba2fc0bb81e4d6c`
+(collections, **2,698 B**) and
+`98fee95f2f4967665220504a98bfaa97b002a175a202692dfc9c58a2651b7302`
+(library, **7,855 B**). **450 complete bodies / 79,801,679 B** are exact;
+each of the two remaining bodies changes only the one shown string,
+including canonical byte order. No float, key, geometry, collider, resource
+or native simulation row changes. Full native assembly is exact apart from
+the two resource hashes/inventories and their exact **+11 B** library
+compressed/resident accounting. Both emitted custom schemas disappear;
+their original complete defining parsers now admit the platform roots.
+
+The independent ordered writer transcription verifies every old/new pack
+plan, body hash, member and offset: **13 packs / 438 members / 32,481,954 B**
+before; **13 / 436 / 32,470,354 B** after. Equal-hash deduplication and the
+platform consumer order are retained. AFTER index is **942,515 B**, below
+the unchanged 2 MB cap. All **57 original native/owner cases**, the
+section-schema bridge suite, touched layer/scenario types and typed lint
+pass. The generator now emits an empty record alias for a zero-entry custom
+registry, preserving nonempty registry output; no lint rule is waived.
+
+Immutable capture pair: BEFORE
+`71c1451716a1ea8050b0ce8d0448e40d522e9f30` / `71c1451-mw0pjhoq`;
+AFTER `3c42144c5061a0abb8a0053b0ca8db009ac3e95a` / `3c42144-mw0q7pqc`.
+Native Metal, iPhone 16 Pro portrait 402 × 874 at DPR 2, actual phone and
+desktop tiers, original seeded frame/readiness guards and authored midday:
+**24 full RGBA frames, 16 A/A and A/B comparisons, zero differing pixels**
+at pier, beach, wreck and shrine. No tolerance, overlay or input replacement.
+Both real cold Explorer sweeps pass **61/61 thumbnails**, including castaway,
+sea-glass chime and trophy plaques, with no errors or stale document.
+Every browser closes and both owned preview leases are released.
+
+No Pine source belongs to this slice; E3/E4 remain with their owning work.
+All custom compatibility, native validation, provenance/freeze guards and
+caps remain. This proof grants no global zero-user, loading, memory or
+frame-time claim. The coordinator explicitly accepted scoped E1/E2 after
+the zero-pixel and 61/61 Explorer results.
