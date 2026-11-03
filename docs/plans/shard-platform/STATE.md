@@ -11,7 +11,7 @@ table qa-2026-10-30 (2508e90724).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**12:00:** QD open: QD1 (Jake 7 spots redo). Ship 62e41a234c (all Nine fixes). Zero 342->82; Jake one-user batch 58 files, page coming (sp-x1). Wave A: Jungle, Patchwork, OP26.
+**13:00:** live still 8057f4f; ship run 0b5d27d384 prepare green. QD1/3/5/11 fixed on main; QD2 train: no cost on fixed build (3 lanes), QD6 decides. Batch page 67 files.
 **GPU (Nine, Mac Metal):** G2 silk fog on line pixels 4801c23feb; kinds 0 + 3 programs; copy cut 8f591b94bc; buried
 Boundary hidden 12738017cf (a quarter of the frame); facade G3 fd1d0af320. Gap to legacy on HEAD +0.05..+0.54 ms
 (f33d642372); G4 closed measured. Pine GPU ok.
