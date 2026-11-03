@@ -12,6 +12,8 @@ import landmarkDusk from '../data/landmarkDusk.graph.json' with { type: 'json' }
 import kitPlanks from '../data/kitPlanks.graph.json' with { type: 'json' };
 import lava from '../data/lava.graph.json' with { type: 'json' };
 import mapSettings from '../data/map.json' with { type: 'json' };
+import audioBindings from '../data/audioBindings.json' with { type: 'json' };
+import { generatePlotAudioProject, type PlotAudioBinding } from './audioProject';
 import type { OutputProgramResult, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
 import { ideaWorld, type PlotIdea } from './plotBake.mjs';
@@ -100,6 +102,17 @@ if (first === undefined) throw new Error('open-plots: outputs.json needs an idea
 
 /** Every output, keyed by its product slug (`wildshard build --output=<slug>`, scripts/shard-outputs.mjs). */
 export const outputs: Record<string, ReturnType<typeof project>> = Object.fromEntries(declared.outputs.map((row): [string, ReturnType<typeof project>] => [row.slug, project(row)]));
+
+const bindings: Readonly<Record<string, PlotAudioBinding>> = audioBindings;
+/** A real binding opts one output into ordinary generated-declaration admission;
+ * absent bindings preserve the original world object, including every peer look. */
+export const audioOutputs: Record<string, ReturnType<typeof project> | ((ctx: ProjectGenerationContext) => ReturnType<typeof generatePlotAudioProject<ReturnType<typeof project>>>)> = Object.fromEntries(declared.outputs.map(row => {
+  const original = outputs[row.slug], binding = bindings[row.idea];
+  if (original === undefined) throw new Error('Missing plot world declaration');
+  if (binding === undefined) return [row.slug, original];
+  if (binding.idea !== row.idea || binding.source.manifestKey !== row.idea) throw new Error('Plot audio binding identity differs');
+  return [row.slug, (ctx: ProjectGenerationContext) => generatePlotAudioProject(ctx, original, binding)];
+}));
 
 /** The first idea's output: the project's default build. */
 export const product: ReturnType<typeof project> = project(first);

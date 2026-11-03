@@ -1,8 +1,7 @@
 import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { mergeProjectBlobs, type ProjectOutput } from '@wildshard/sdk/projectOutput';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import type { Shardfile } from '@wildshard/sdk/shardfile';
 import type { AudioData } from '@wildshard/sdk/audio';
 import { plotAudioClientPlan, plotAudioData, type PlotAudioSpot } from './audio';
@@ -43,15 +42,21 @@ export async function generatePlotAudioProject<T extends Pick<Shardfile, 'identi
   });
   if (total > 3_000_000) throw new Error('Plot runtime audio exceeds 3 MB');
   const emitted = emitNamedBlobs(blobs);
-  // Charge through the normal SDK merger before adding recording references:
-  // the whole-shard parser refuses references outside its library closure.
-  const charged = mergeProjectBlobs(emptyShardfile(shard.identity), new Map(), blobs).shard;
+  // nameBlob measured each AAC's actual decoded and compressed costs. Keep
+  // this config-only projection free of the CLI project compiler; the normal
+  // output merger independently re-admits these exact named bytes afterward.
+  if (new Set(emitted.files.map(file => file.hash)).size !== emitted.files.length) throw new Error('Plot recording identities must be distinct');
+  const files: Shardfile['files'] = emitted.files.map(file => ({ hash: file.hash, kind: 'audio',
+    compressed: file.compressed, decoded: file.decoded, gpu: file.gpu, triangles: file.triangles, draws: file.draws,
+    critical: false, dependencies: file.dependencies }));
+  const library = files.map(file => file.hash);
+  const cost = { compressed: files.reduce((sum, file) => sum + file.compressed, 0),
+    resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) };
   audio.recordings = Object.fromEntries(paths.map((path, index) => {
     const blob = blobs[index]; if (blob === undefined) throw new Error('Missing plot audio blob');
     return [path, blob.file.hash];
   }));
-  return { shard: { ...shard, audio, files: charged.files, library: charged.library,
-    budgets: { ...shard.budgets, library: charged.budgets.library } }, output: {
+  return { shard: { ...shard, audio, files, library, budgets: { ...shard.budgets, library: cost } }, output: {
     namedFiles: emitted.files, assets: emitted.assets, late: emitted.files.map(file => ({ hash: file.hash })),
     platform: emitPlatformSections(new Map([['client/plan', plotAudioClientPlan()]])),
   } };

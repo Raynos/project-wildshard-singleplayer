@@ -1,5 +1,5 @@
 // oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids re-export barrels.
-import { outputs as ideaOutputs, product, programs as ideaPrograms } from './generators/product';
+import { audioOutputs as ideaOutputs, product, programs as ideaPrograms } from './generators/product';
 
 /** Every output, keyed by its product slug (`wildshard build --output=<slug>`, scripts/shard-outputs.mjs). */
 export const outputs: typeof ideaOutputs = ideaOutputs;

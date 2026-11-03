@@ -1,5 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Admission controls use existing shipped AAC bytes, never generated substitutes.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Match the author compiler's exact module entry resolution.
+import { resolve } from 'node:path';
+import { build } from 'vite';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { prepareProjectOutput, mergeProjectBlobs } from '../src/sdk/projectOutput';
@@ -55,4 +58,14 @@ test('missing recordings, path escape, duplicate anchors and precharged declarat
   await expect(generatePlotAudioProject(context(), base(), duplicate)).rejects.toThrow('Invalid plot audio anchors');
   const charged = base(); charged.budgets.library.resident = 1;
   await expect(generatePlotAudioProject(context(), charged, binding())).rejects.toThrow('unbaked world declaration');
+});
+
+test('the audio recipe stays inside the real one-module author boundary', async () => {
+  const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
+    lib: { entry: resolve('src/shards/open-plots/generators/audioProject.ts'), formats: ['es'], fileName: 'config' },
+    rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } },
+  } });
+  const built = Array.isArray(result) ? result[0] : result;
+  if (built === undefined || !('output' in built)) throw new Error('Missing author module output');
+  expect(built.output.map(row => row.type)).toEqual(['chunk']);
 });
