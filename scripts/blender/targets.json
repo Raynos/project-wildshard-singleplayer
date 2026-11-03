@@ -312,6 +312,18 @@
    "outputs": ["public/assets/open-plots/sky-harbor/landmark.glb", "public/assets/open-plots/sky-harbor/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/skyport": {
+   "about": "Sky Harbor's theme kit family (OPEN-PLOTS OP11): a timber dock crane with a hanging crate, a cornflower rowboat with oars and a cargo stack of crates, barrels and sacks in kit.py's format, retinted by palette slot like open-plots/kit",
+   "script": "scripts/blender/open-plots/skyport.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/model_source.py", "scripts/blender/lib/glb.py"],
+   "inputs": ["src/shards/open-plots/data/trim.json"],
+   "lock": false,
+   "build": ["skyport.glb"],
+   "copy": [["skyport.glb", "public/assets/open-plots/kit/skyport.glb"]],
+   "outputs": ["public/assets/open-plots/kit/skyport.glb"],
+   "feeds": ["src/shards/open-plots/generators/kitGlb.mjs"]
+  },
   "open-plots/dig": {
    "about": "Fossil Badlands' theme kit family (OPEN-PLOTS OP21): a canvas dig tent, a timber hand crane with a sling of bones and a sorting table with crates in kit.py's format, retinted by palette slot like open-plots/kit",
    "script": "scripts/blender/open-plots/dig.py",
