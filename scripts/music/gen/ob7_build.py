@@ -7,6 +7,7 @@ claims an in-game playback pass or an ear-reviewed taste decision.
 from __future__ import annotations
 
 import argparse
+import difflib
 import hashlib
 import html
 import json
@@ -220,9 +221,60 @@ def listening_list() -> None:
     (REPO / "public/assets/music/ob7-listening.html").write_text(page)
 
 
+def activation(raw: Path, plot: str) -> None:
+    """Emit an exact HEAD patch; peer loose JSON never enters this landing."""
+    music_dir = REPO / "public/assets/music" / plot
+    sfx_dir = REPO / "public/assets/sfx" / plot
+    music = json.loads((music_dir / "music.json").read_text())
+    sfx = json.loads((sfx_dir / "sfx.json").read_text())
+    if len(music["takes"]) != 2 or music["credit"] != "Music: MiniMax-Music3" or "Powered by Stability AI" not in sfx["credit"]:
+        raise ValueError("Both score candidates and required credits must exist before activation")
+    if len(sfx["provenance"]) != 6 or any(set(row["comparison"]) != {"moss", "medium"} for row in sfx["provenance"]):
+        raise ValueError("Both engines must be compared for all six sounds")
+    anchors = json.loads((REPO / "src/shards/open-plots/data/audioAnchors.json").read_text())[plot]
+    files = {"score": music["slots"]["score"]["calm"], "ambience": sfx["beds"][f"{plot}.ambience"]["file"],
+             **{row["id"]: sfx["hums"][f"{plot}.{row['id']}"]["file"] for row in anchors}}
+    for key, file in files.items():
+        folder = music_dir if key == "score" else sfx_dir
+        if Path(file).name != file or not (folder / file).is_file():
+            raise ValueError(f"Missing or unconfined recording: {file}")
+    binding = {"idea": plot, "source": {"dir": f"/assets/music/{plot}/", "manifestKey": plot},
+               "sfxDir": f"/assets/sfx/{plot}/", "files": files, "spots": anchors}
+    patches = []
+
+    def edit(name: str, mutate) -> None:
+        before = subprocess.run(["git", "show", f"HEAD:{name}"], cwd=REPO, check=True, capture_output=True, text=True).stdout
+        data = json.loads(before)
+        mutate(data)
+        after = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+        patches.append(f"diff --git a/{name} b/{name}\n" + ''.join(difflib.unified_diff(
+            before.splitlines(keepends=True), after.splitlines(keepends=True), fromfile=f"a/{name}", tofile=f"b/{name}")))
+
+    edit("src/shards/open-plots/data/audioBindings.json", lambda data: data.update({plot: binding}))
+    base = json.loads((REPO / "src/shards/open-plots/manifest.json").read_text())
+
+    def manifest(row: dict) -> None:
+        metadata = row["manifest"]
+        metadata["audio"] = {"catalogue": True, "ambience": f"ambience.{plot}", "score": f"score.{plot}", "bed": "none"}
+        metadata["assetGlobs"] = list(dict.fromkeys([*metadata.get("assetGlobs", base["assetGlobs"]),
+                                                    f"public/assets/music/{plot}/**", f"public/assets/sfx/{plot}/**"]))
+
+    def output(data: dict) -> None:
+        rows = [row for row in data["outputs"] if row["idea"] == plot]
+        if len(rows) != 1:
+            raise ValueError("Plot activation requires exactly its own output row")
+        manifest(rows[0])
+
+    edit("src/shards/open-plots/outputs.json", output)
+    edit(f"src/shards/open-plots/data/templates/{plot}.json", lambda data: manifest(data["output"]))
+    destination = raw / f"{plot}-activation.patch"
+    destination.write_text(''.join(patches))
+    print(f"Exact activation patch: {destination}; native playback bar remains open")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["measure", "vocals", "clap", "publish", "listening"])
+    parser.add_argument("command", choices=["measure", "vocals", "clap", "publish", "listening", "activate"])
     parser.add_argument("raw", type=Path, nargs="?")
     parser.add_argument("--plot")
     args = parser.parse_args()
@@ -235,7 +287,7 @@ def main() -> None:
         parser.error("raw directory is required")
     if f"ob7/{args.plot}" not in SCORE["jobs"]:
         parser.error("unknown plot")
-    {"measure": measure, "vocals": vocals, "clap": clap, "publish": publish}[args.command](args.raw.resolve(), args.plot)
+    {"measure": measure, "vocals": vocals, "clap": clap, "publish": publish, "activate": activation}[args.command](args.raw.resolve(), args.plot)
 
 
 if __name__ == "__main__":
