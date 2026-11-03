@@ -13,7 +13,7 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-01 | XP bar + LV chip | 1 Fight HUD | approved | 2026-11-03: "nice … good placement" |
 | UI-04 | Enemy nameplates within 25 m | 1 Fight HUD | approved | 2026-11-03: "looks good to me" |
 | UI-05 | Floating combat text | 1 Fight HUD | approved | 2026-11-03: "looks good to me" |
-| UI-06 | GUARD button | 1 Fight HUD | approved | 2026-11-03: "I think that's okay"; asked which weapon crowds the bottom right most |
+| UI-06 | GUARD button | 1 Fight HUD | approved | 2026-11-03: "I think that's okay". Placement: Jake could not tell row vs above JUMP, so it goes in the row's 4th slot over ATTACK, where the spear's THROW sits (GUARD · LOCK · DODGE · JUMP): the timed press stays next to the attack thumb, matches the spear, and the USE band does not move. The frame still shows it above JUMP |
 | UI-02 | Level-up in a fight | 2 Banners | approved | 2026-11-03: "Yeah, sure" |
 | UI-07 | Named elite banner | 2 Banners | approved | 2026-11-03: "looks very similar … nice" |
 | UI-24 | Gauntlet wave banner | 2 Banners | pending | |
