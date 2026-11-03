@@ -587,7 +587,7 @@
       "into": "thin-ice",
       "duration": 30,
       "desc": "Still cold air over a frozen lake with soft wind, deep ice creaks and distant birds",
-      "prompt": "Quiet frozen lake atmosphere: soft cold wind across smooth ice, very occasional distant deep ice creaks and clear small pings, faint distant winter birds and subtle snow crunch. Spacious restrained field recording, no music, no melody, no voices, no storm roar."
+      "prompt": "Soft cold breeze on a frozen lake. Several distant deep resonant ice creaks and a few small sharp ice pings sound across the lake, with sparse faint winter bird chirps over still cold air. Quiet spacious natural winter ambience with long calm pauses. No music, no melody, no voices or speech."
     },
     "hum.thin-ice.ice-crystal": {
       "kind": "hum",
@@ -601,7 +601,7 @@
       "into": "thin-ice",
       "duration": 12,
       "desc": "Wind moves over a frozen lake with deep ice creaks and occasional sharp pings",
-      "prompt": "Soft wind over a wide frozen lake with irregular deep flexing ice groans, quiet cracking creaks and a few small bright pings traveling across the ice. Restrained natural winter field recording, not a breaking disaster, no music, no voices."
+      "prompt": "Long low ice groans as a frozen lake flexes, deep creaks and sharp bright pings echo across the ice. A faint smooth winter wind sits underneath the distinct ice sounds. Sparse isolated resonant cracking ice sounds with quiet gaps. Natural field recording, no music, no voices or speech."
     },
     "hum.thin-ice.fishing-hole": {
       "kind": "hum",
