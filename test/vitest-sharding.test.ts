@@ -114,7 +114,7 @@ test('parallel and dedicated native CI discover every existing file exactly once
  expect(CI_NATIVE_GROUPS['escape-titan']).not.toContain('test/driftwood-trade-verbs.test.ts');
  expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain('test/driftwood-trade-verbs.test.ts');
  expect(nativeJob).toContain('needs: [prepare, fixtures]');
- expect(nativeJob).toContain("NATIVE_INPUT_PROOF: 'cache-v2'");
+ expect(nativeJob).toContain("NATIVE_INPUT_PROOF: 'cache-v3'");
  expect(nativeJob).toContain('name: test-products');
  expect(nativeJob).toContain('python3 scripts/ci-products.py unpack');
  expect(nativeJob).toContain(`WS_TEST_PRODUCTS_SHA: \${{ github.sha }}`);

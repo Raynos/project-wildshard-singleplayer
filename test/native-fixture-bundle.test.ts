@@ -44,6 +44,18 @@ test('foreign source, run, attempt and native host refuse before creating a dest
   }
 });
 
+test('observed Node patch skew refuses even with an intact re-signed producer archive',async()=>{
+  const f=await fixture();
+  const wire=changed(f.wire,archive=>{
+    const identity=v.parse(v.record(v.string(),v.unknown()),archive['identity']);
+    identity['node']='v24.22.2';archive['identity']=identity;
+  });
+  for(const node of ['v24.22.0','v24.22.1']){
+    expect(()=>restoreNativeFixtures(wire,{...f.identity,node},[f.spec],f.out)).toThrow('source/run/attempt/host');
+    expect(existsSync(f.out)).toBe(false);
+  }
+});
+
 test('every changed source, loader, command and inventory invalidates the original recorder key',async()=>{
   for(const mode of ['source','loader','inventory','script']){
     const f=await fixture();

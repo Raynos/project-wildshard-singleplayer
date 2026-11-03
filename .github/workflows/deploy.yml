@@ -790,7 +790,7 @@ jobs:
       matrix:
         group: [escape-titan, stories-qara, chapter-one, native-routes]
     env:
-      NATIVE_INPUT_PROOF: 'cache-v2'
+      NATIVE_INPUT_PROOF: 'cache-v3'
       WS_NALATI_NATIVE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
       WS_VITEST_MAX_WORKERS: '1'
       VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
@@ -808,7 +808,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with: {version: 10}
       - uses: actions/setup-node@v4
-        with: {node-version: 24, cache: pnpm}
+        with: {node-version: '24.22.2', cache: pnpm}
       - run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
         with:
@@ -961,7 +961,7 @@ jobs:
         with: {version: 10}
       - uses: actions/setup-node@v4
         if: steps.admission.outputs.run == 'true'
-        with: {node-version: 24, cache: pnpm}
+        with: {node-version: '24.22.2', cache: pnpm}
       - run: pnpm install --frozen-lockfile
         if: steps.admission.outputs.run == 'true'
       - name: Bind cache snapshot to source inputs
@@ -1044,7 +1044,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with: {version: 10}
       - uses: actions/setup-node@v4
-        with: {node-version: 24, cache: pnpm}
+        with: {node-version: '24.22.2', cache: pnpm}
       - run: pnpm install --frozen-lockfile
       # Prepare publishes this small tool cache before the dependent matrix.
       # Do not restore the full product cache or share mutable build owners.
