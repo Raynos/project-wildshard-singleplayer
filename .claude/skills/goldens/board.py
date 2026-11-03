@@ -13,6 +13,8 @@ An open plot (8 views, art/open-plots/golden-2026-11-03/<plot>/cameras.json):
 Writes <out>/<id>.jpg (one big labelled row per camera: read every one) and <out>/board-<slug>.jpg (every camera on one
 labelled board, <= 500 KB; --red burns a red frame and RED onto those cameras). Prints SSIM per camera: a guide only,
 clouds, rain, crowds and the hands' sway move; the verdict is by eye.
+Large mean colour shifts are automatically RED (sRGB luma >= 0.15 or HSV
+saturation >= 0.08, in either direction); the header never substitutes for review.
 
 Promote (an approved look change only, never silently; the commit names the ruling):
   python3 .claude/skills/goldens/board.py --shard <slug> --now <dir> --promote 11,12 --source "<sha10> G1234"
@@ -24,6 +26,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.insert(0, os.path.join(ROOT, 'art', 'legacy-goldens', 'compare'))
 from compare import ssim  # noqa: E402  (luma SSIM at 402 x 681, the G859 page's measure)
+from colour_shift import colour_shift  # noqa: E402
 
 SET = os.path.join(ROOT, 'art', 'legacy-goldens', 'compare', 'cameras24.json')
 PLOTS = os.path.join(ROOT, 'art', 'open-plots', 'golden-2026-11-03')
@@ -110,21 +113,30 @@ def main():
     big, small, missing = [], [], []
     for n, cid, goldens, now in cams:
         if now is None: missing.append(cid); continue
-        s = ssim(goldens[-1][1], now); is_red = n in red
-        print(f'{cid:28s} {s:.3f}' + ('  RED' if is_red else ''))
-        for w, size, sink, title in ((360, 13, big, f'{slug} {cid}  SSIM vs golden {s:.2f}'), (120, 9, small, f'{cid} {s:.2f}')):
+        s = ssim(goldens[-1][1], now)
+        pixels = lambda image: image.convert('RGB').resize((128, 217), Image.BILINEAR).getdata()
+        colour = colour_shift(pixels(goldens[-1][1]), pixels(now))
+        if colour['red']: red.add(n)
+        is_red = n in red
+        shift = f'dY {colour["luma_delta"]:+.3f} dS {colour["saturation_delta"]:+.3f}'
+        flag = ' RED COLOUR' if colour['red'] else ' RED' if is_red else ''
+        print(f'{cid:28s} {s:.3f}  {shift}{flag}')
+        for w, size, sink, title in ((360, 13, big, f'{slug} {cid}  SSIM {s:.2f}  {shift}'), (120, 9, small, f'{cid} {s:.2f}')):
             f = font(size)
             cells = [labelled(fit(img, w), label, INK, w, f) for label, img in goldens]
             cells.append(labelled(fit(now, w), a.label, RED if is_red else INK, w, f))
-            sink.append(row(cells, title + (' RED' if is_red else ''), w, is_red, f))
+            sink.append(row(cells, title + flag, w, is_red, f))
         big[-1].save(os.path.join(a.out, f'{cid}.jpg'), quality=82)
     if missing: print('MISSING NOW frames:', ', '.join(missing))
     if not small: raise SystemExit('no frames to board')
     cols = 4; tw, th = small[0].width, max(t.height for t in small)
-    f = font(16); head = f.size + 14
+    f = font(16); head = 2 * f.size + 24
     board = Image.new('RGB', (cols * (tw + 4) + 4, head + -(-len(small) // cols) * (th + 4) + 4), BG)
     columns = ' . '.join([label for label, _ in cams[0][2]] + [a.label])
-    ImageDraw.Draw(board).text((6, 6), f'GOLDEN RERUN {slug} | {columns}' + (f' | RED: {",".join(map(str, sorted(red)))}' if red else ' | no RED'), fill=INK, font=f)
+    draw = ImageDraw.Draw(board)
+    draw.text((6, 6), f'GOLDEN RERUN {slug} | {columns}', fill=INK, font=f)
+    status = f'RED: {",".join(map(str, sorted(red)))}' if red else 'No mean colour-shift flags; VISUAL REVIEW REQUIRED'
+    draw.text((6, f.size + 12), status, fill=RED if red else INK, font=f)
     for i, t in enumerate(small): board.paste(t, (4 + (i % cols) * (tw + 4), head + (i // cols) * (th + 4)))
     for q in (80, 72, 64, 56, 48, 40):
         buf = io.BytesIO(); board.save(buf, 'JPEG', quality=q)
