@@ -242,7 +242,7 @@ Prerequisites, owned by OPEN-PLOTS and run first if not yet done:
 | OB6 | **Mosslight Ruins** (first free Opus lane; builds the ruin-stone tile). **In flight (2026-11-03, sp-o3): activated `38b95ef7fd` + `3748dcc5b1`.** Ruin-stone kit `330bed66fc` (ruins: arch, L wall, terrace; rubble: heap, columns; Desert Ruin reuses them), plot `f5b29be288` (R ruin court, E emerald pool, tower windows as emerald Glow), landmark A Hunyuan3D 2.1 picked (G872, `eba2a44862`, art/mosslight-ruins/round-1-landmark). Chromium phone: road 110 draws / 249k tris, plaza 114 / 327k. G983 look loop R1 `d3f8c7cc97`, R2 `e164db2efb`, R3 `def30fc8f4` (art/mosslight-ruins/round-2-look-loop), final three-way board art/mosslight-ruins/round-3-final (G872). Life (bar 7, `3f18b9d190`): emerald motes off the tower (`landmark.motes`), 166-189 px per 500 ms at the road entry, and the court motes in the steady emerald mode instead of blinking to black (art/mosslight-ruins/round-5-life). The road entry sees the tower lit (`coarseLandmark: "lit"`, `acc0a955d6`, board-road.jpg; four plaza L1 tiles draw 3). Density toward round 62 (sp-o1, `9ff4a006a9`): ivy arches across the four avenues frame the tower and the road entry, green lamps, the ruin courts 1.4x, trees round the outcrop; road 124 draws (art/mosslight-ruins/round-6-density); refreshed final board art/mosslight-ruins/round-7-final. Open: audio (OB7), the open-plot walk route (0 stuck) | Opus 1.5 + Codex 0.5 | 2 (was 4.5) | As OB2 |
 | OB6b | **done (2026-11-03).** **Trim Mosslight's phone wire** toward Night Market's: 8,947,522 B against 8,225,190 (+9 %, approved G872 with this row). `def30fc8f4` brought it to 8,828,397 B (tower texture 768 px). It now serves **8,222,060 B**, and the ceiling is ratcheted to that: a 576 px poster in place of the 1024 px billboard, and the tower texture at 704 px. Before and after board: art/mosslight-ruins/round-4-wire-trim (hero views 0–0.5 % of pixels changed, same draws). Mosslight's tile debt shrinks to 26 rows | Opus | S | ≤ 8.23 MB, look unchanged |
 | OB7 | **Audio batch: done (2026-11-03, sp-x2 + sp-x9).** Pilot first, then four plots under the model lock. All five pass native bar 10 at phone 2×: recorded score, ambience bed and five positional SFX, with no page errors. Two MiniMax Music 3 takes per plot share one listening list; all 30 sounds compare MOSS v2 with Stable Audio 3 Medium. Credits updated; packages 1.06–1.67 MB including both takes and catalogues. Publications `87efa08854`, `8821f3600a`, `49f5db5c90`, `5f9e506c7b`, `2a4ad076fc`; final native activations `a6c5ce99cc` / `27b857779a`. [Listening and checks](../../reviews/open-plots-audio.md) | Codex | 1.5 | Every plot meets bar 10; the credits file is updated; the audio stays within its ≤ 3 MB budget |
-| OB8 | **In flight (2026-11-03, sp-x1).** Pinned final-look readings for all five plots pass measured frame/draw/triangle/memory bars and maintained walks on their explicit source. Final Coral at `591bd4e785` (board `06d7401ab7`): Chromium ≤66 draws, Sim ≤69, p95 34 ms, native playing 233.4 MB, full walk 0 stuck. Mosslight/Frostline life refresh at `03ad135a92`: Chromium ≤61/63 draws, Sim ≤65/65, all p95 34 ms, native playing 234.2/258.4 MB; existing model/browser overlap recorded below. Earlier J1/J2 pass on `0c3e3ca16b` (69/82 max draws). Current Ember/J1 refresh at `c8b9be9d42`: Ember accepted; the authorized clean J1 −135 confirmation passes (59 max draws, 134,734 median triangles, 30.303 fps, p95 34 ms), closing `OB8-J1-FRAME` without routing. Earlier contention-overlap failure retained below. **Bayou/Frostline refresh passes (`55275756f2`, includes `b51eee2ce3` + `6bb5d6bd57`):** Chromium ≤67/63 draws, Sim ≤74/65, all Sim p95/worst 34 ms; native playing 235.4/268.5 MB; both new source-pinned walks 0 stuck. One official window 77.925 s, exit 0; all owned resources released. **Next:** Ember density `7f2fc1d7a4`, then Mosslight after its final SHA. Older readings retain their source limits. **`OB8-GRID-HOME-DRAWS` closed:** clean initial home spawn at `591bd4e785` peaks at 131 draws ≤150 (supplemental home 138); prior 181/117/139 readings and red whole-cohort exit remain intact. **OB8-RENDER-CPU (G908, after Jake QA):** engine submission/ownership, uniform and static-matrix bookkeeping; expected 0.07–0.20 ms/frame at 4× (about 1–3.5 µs/draw), estimated from sampled exclusive costs, unproven; no engine/game cut landed. Exact numbers and source limits below **OB8-PENDING attribution (sp-x6, `591bd4e785`):** Pine optional metadata hits residency headroom (`src/game/grid/productLeases.ts:39–40`) and retries on allocator cost revisions (`src/game/grid/live.ts:265,295,300`), so empty/pending alternates (two deferrals then success); Nalati/Nine admissions finish in 4.197/1.591 s, not stalled fetches. Smallest capture fix: atomic ready snapshot (`92611f473e`); future headroom-aware retry is proposal only, G908 leaves streaming untouched. Trace: `tmp/sp-x6-grid-pending/attribution.json` (separate Nine near-graph 268/160 warning retained). | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
+| OB8 | **In flight (2026-11-03, sp-x1).** Pinned final-look readings for all five plots pass measured frame/draw/triangle/memory bars and maintained walks on their explicit source. Final Coral at `591bd4e785` (board `06d7401ab7`): Chromium ≤66 draws, Sim ≤69, p95 34 ms, native playing 233.4 MB, full walk 0 stuck. Mosslight/Frostline life refresh at `03ad135a92`: Chromium ≤61/63 draws, Sim ≤65/65, all p95 34 ms, native playing 234.2/258.4 MB; existing model/browser overlap recorded below. Earlier J1/J2 pass on `0c3e3ca16b` (69/82 max draws). Earlier Ember/J1 refresh at `c8b9be9d42`: Ember accepted; the authorized clean J1 −135 confirmation passes (59 max draws, 134,734 median triangles, 30.303 fps, p95 34 ms), closing `OB8-J1-FRAME` without routing. Earlier contention-overlap failure retained below. **Bayou/Frostline refresh passes (`55275756f2`, includes `b51eee2ce3` + `6bb5d6bd57`):** Chromium ≤67/63 draws, Sim ≤74/65, all Sim p95/worst 34 ms; native playing 235.4/268.5 MB; both new source-pinned walks 0 stuck. One official window 77.925 s, exit 0; all owned resources released. **Mosslight/Ember density + J1 refresh passes (`2a4ad076fc`, includes `9ff4a006a9` + `7f2fc1d7a4`):** Chromium ≤63/60 draws, Sim ≤67/66; all plot/J1 p95 34 ms; native playing 271.0/270.6 MB; both new walks 0 stuck. J1 four-heading max 67 draws with empty pending snapshots. One 119.801 s official window, exit 0; all owned resources released. **Open:** final Coral `9d0988b3cd` and affected J2 refresh. Older readings retain their source limits. **`OB8-GRID-HOME-DRAWS` closed:** clean initial home spawn at `591bd4e785` peaks at 131 draws ≤150 (supplemental home 138); prior 181/117/139 readings and red whole-cohort exit remain intact. **OB8-RENDER-CPU (G908, after Jake QA):** engine submission/ownership, uniform and static-matrix bookkeeping; expected 0.07–0.20 ms/frame at 4× (about 1–3.5 µs/draw), estimated from sampled exclusive costs, unproven; no engine/game cut landed. Exact numbers and source limits below **OB8-PENDING attribution (sp-x6, `591bd4e785`):** Pine optional metadata hits residency headroom (`src/game/grid/productLeases.ts:39–40`) and retries on allocator cost revisions (`src/game/grid/live.ts:265,295,300`), so empty/pending alternates (two deferrals then success); Nalati/Nine admissions finish in 4.197/1.591 s, not stalled fetches. Smallest capture fix: atomic ready snapshot (`92611f473e`); future headroom-aware retry is proposal only, G908 leaves streaming untouched. Trace: `tmp/sp-x6-grid-pending/attribution.json` (separate Nine near-graph 268/160 warning retained). | Codex (Sim lane) + Opus 0.5 d fixes | 1.5 | Every plot meets bars 12–15 on the Simulator; the junctions hold; nothing crashes |
 | OB9 | **done (2026-11-03, `48b08331c0`; G872, sp-o3).** **Title hero re-shoot board.** Board art/main-menu-hero/round-8-ob9/board.jpg: A shipped, B the same G625 camera re-shot on `c8b9be9d42`, C 200 m forward. B ships: Frostline, Bayou, Coral and Night Market built where A showed holograms. Jake's pick overrides. After G972 and OB2–OB6, the 5 × 5 hero shows three of these plots, plus Nine Dragon at (1,-1). One labelled A / B / C board of re-shoots of the same NW-b framing | Opus | 0.5 | Board sent. Jake's pick ships, or the current hero stays |
 | OB10 | **Night Market catch-up (G980)**: after OB2–OB6, bring the Night Market to the same tile-kit bar (landmark, dressing density, audio, phone perf). **In flight (2026-11-03, sp-o3).** R1, the gate (art/grid/round-77-night-market-ob10): the coarse gate is drawn in its landmark graph (`coarseLandmark: "lit"`), so it reads red and gold from the road entry instead of dark; near 12k → 18k triangles; road entry 116 draws (`a8f1f940c7`). R2, density: L0 max 17,886 → 14,852 triangles, mean 8,910; wire 7.94 MB. Top-down 624k triangles, mostly the neighbouring cells; road 282k, plaza 495k (`8925472ace`). Look loop R1 (G983): warm dusk ground on round 49's floor colour, a lavender-to-peach sky and warmer lantern pools. Loop R2: fog 600-1800 m, so the aerials read clear. Loop R3: the gate crimson (`landmarkLight: "crimson"`, its own graph variant; other plots unchanged) and an L of stalls lining each plaza quarter (plaza tiles ≤ 14.7k, draws unchanged, wire 7.90 MB, walk 0 stuck). Final board refreshed: art/grid/round-77-night-market-ob10/board-final.jpg (round 49 · before · now). Kept: round 49's tighter plaza (tiles at the 15k bar). Audio goes with OB7 | Opus + Codex | — | Same bar as OB2 |
 | — | Jake plays the plots on live | Jake | — | His word |
@@ -1296,3 +1296,132 @@ source still to be posted. The `55275756f2` preview excludes that newer
 Ember density; the older accepted Ember/Mosslight readings are not
 silently applied to new products. Their next final-source batch stays
 open on OB8, with no quiet window held while the lane finishes.
+
+
+### OB8 Mosslight/Ember density refresh, source 2a4ad076fc
+
+One HEAD-at-build preview `2a4ad076fc` includes Mosslight `9ff4a006a9`
+(ivy arches, green avenue lamps, enlarged ruin courts and plaza trees)
+and Ember `7f2fc1d7a4` (lamp plinths, raised lava troughs and larger forge
+kit). The final density boards and READMEs were read. No look, engine
+or game cut by sp-x1. These are new source-qualified readings, not a
+relabel of the prior accepted versions.
+
+The same preview's Night Market control uses the identical 4× Metal /
+120 paired-frame protocol at road and plaza. Both changed plots also
+receive complete maintained live walks against their new colliders.
+J1's four fixed headings are refreshed in the one official window
+because both adjacent open plots changed density. J2 retains its explicit
+previous source while Coral's new arch work remains unfinished.
+
+| Chromium phone 4× pose | Max draws | Triangles (median) | p95 / worst ms | Mean / max render µs per draw |
+|---|---:|---:|---:|---:|
+| Mosslight spawn | 52 | 144,877 | 33.4 / 33.5 | 41.106 / 59.615 |
+| Mosslight road | 62 | 129,486 | 33.4 / 33.4 | 43.468 / 66.129 |
+| Mosslight plaza | 63 | 160,137 | 33.4 / 33.4 | 37.619 / 52.381 |
+| Ember spawn | 48 | 123,512 | 33.4 / 33.4 | 45.694 / 68.750 |
+| Ember road | 60 | 104,772 | 33.4 / 33.4 | 37.514 / 56.667 |
+| Ember plaza | 58 | 160,798 | 33.4 / 33.5 | 34.756 / 48.276 |
+| Night Market spawn | 50 | 229,802 | 33.4 / 33.4 | 43.117 / 58.000 |
+| Night Market road | 58 | 142,045 | 33.4 / 33.5 | 36.624 / 53.448 |
+| Night Market plaza | 59 | 287,884 | 33.4 / 33.4 | 35.763 / 47.458 |
+
+All medians **30.03 fps**, 120 paired drawn frames per pose; completed
+in **76.912 s, pass, exit 0**. Phone 402×874 CSS / 804×1748 canvas at
+2×, Metal, live clock, acknowledged 1× boot / 4× measurement fence.
+No interval >100 ms, page/runtime error or context loss. The strict
+30 µs/draw diagnostic remains red for the control as well as the plots;
+per the coordinator's shared-baseline rule it does not route a new plot
+CPU miss. The exact differences remain visible: Mosslight road mean
+43.468 versus control 36.624 µs/draw; road work p95 5.0 versus 4.1 ms.
+No equality of render work is claimed from equal capped frame cadence.
+The existing `OB8-RENDER-CPU` G908 follow-up and its attribution source
+remain unchanged.
+
+Sequential Chromium spawn-process sample peak: Mosslight **710 MiB**,
+about **744.5 MB decimal**, 0 page errors. Rounded process components
+are MiB, not exact byte reads; memory visit fps is not timing credit.
+
+Ember Chromium spawn-process sample peak: **716 MiB**, about **750.8 MB
+decimal**, 0 page errors. The memory visits were sequential; the two
+subsequent physics walks run separately from timing and memory samples.
+
+Both full maintained walks complete on this preview: **Mosslight
+164.0470 s, Ember 164.4106 s, each 0 stuck / 0 bounds failures**. Every
+waypoint and endpoint is verified with live fixed-step movement, not
+per-waypoint teleport. The new arch piers, larger kit, lamp plinths and
+troughs are tested against the route. Both browsers closed before the
+official entry check.
+
+Immediately before the single official window, browser pool was
+**0 / 4** with no outside browsers, `lsof` found **no model-lock holders**,
+and quiet was inactive. The audio lane had reported its checks closed.
+Start notices went to sp-x2, sp-x9, sp-o2 and the coordinator; only the
+official reader takes bounded quiet, with no interruption of active
+peer work.
+
+| Official plot pose | Max draws | Triangles (median) | Median / p5 fps | p95 / worst ms | Work / callback p95 ms |
+|---|---:|---:|---:|---:|---:|
+| Mosslight spawn | 60 | 152,924 | 30.303 / 29.412 | 34 / 34 | 3 / 34 |
+| Mosslight road | 66 | 129,758 | 30.303 / 29.412 | 34 / 34 | 3 / 34 |
+| Mosslight plaza | 67 | 162,764 | 30.303 / 29.412 | 34 / 35 | 3 / 34 |
+| Ember spawn | 57 | 146,666 | 30.303 / 29.412 | 34 / 34 | 3 / 35 |
+| Ember road | 66 | 106,216 | 30.303 / 29.412 | 34 / 34 | 3 / 34 |
+| Ember plaza | 64 | 162,815 | 30.303 / 29.412 | 34 / 37 | 3 / 34 |
+
+
+All requested plot poses meet the ≤130 draw bar, the 30 fps floor,
+p5 ≥27 and p95 ≤34 ms; median triangles remain below 600k. No interval
+>100 ms, page/runtime error, context loss or crash. The common strict
+per-draw CPU diagnostic and its exact control comparison remain above;
+no new plot-specific CPU or frame miss is routed.
+
+| Official J1 heading | Max draws | Triangles (median) | Median / p5 fps | p95 / p99 / worst ms | Work / callback p95 ms |
+|---|---:|---:|---:|---:|---:|
+| −135 | 63 | 135,110 | 30.303 / 29.412 | 34 / 46 / 67 | 3 / 35 |
+| −45 | 67 | 131,570 | 30.303 / 29.412 | 34 / 34 / 34 | 7 / 35 |
+| +45 | 42 | 99,816 | 30.303 / 29.412 | 34 / 34 / 35 | 5 / 35 |
+| +135 | 56 | 232,438 | 30.303 / 29.412 | 34 / 34 / 34 | 6 / 35 |
+
+
+J1 meets the ≤150 draw / 30 fps junction bar. Actual snapshots retain
+pitch **562.5**, the intended Nine Dragon / Ember / Nalati / Mosslight
+corner, road current null, residents empty, **pending empty at all four
+headings**, crossing settled. The −135 heading's single 67 ms interval
+is retained; no interval >100 ms or crash. `OB8-J1-FRAME` remains closed.
+
+The unavoidable initial home row also passes: **131 max draws**,
+**1,083,456 median triangles**, median **30.303 fps**, p95 **34 ms**,
+p99 **41 ms**, worst **46 ms**, work p95 **7 ms**, callback p95 **35 ms**.
+Current/resident is Driftwood; pending are Far Reach, Nalati, Nine, Pine
+and Sunscar, crossing settled. This supplements the earlier closure of
+`OB8-GRID-HOME-DRAWS`; its older 181/117/139 readings remain intact.
+Home triangles are not an individual open plot's 600k budget.
+
+| Native conservative envelope | Playing B | Loading B | GPU peak B | Native playing / loading samples | GPU reads |
+|---|---:|---:|---:|---:|---:|
+| Mosslight | 271,005,354 | 678,316,442 | 28,224,146 | 218 / 36 | 47 |
+| Ember | 270,601,260 | 667,049,732 | 25,690,108 | 219 / 27 | 47 |
+| Grid page aggregate | 929,571,563 | 838,186,051 | 166,810,243 | 367 / 75 | 77 |
+
+
+Each native visit retains one navigation `Inspector closed` gap; missing
+samples are not zero-filled. Both plots meet the 1.0 GB playing aim,
+1.2 GB hard playing cap and separate 1.8 GB loading ceiling. The grid
+figures are page aggregate (G556), not one plot's memory. These are
+Simulator regression readings, not physical-device clearance.
+
+**The one official cohort completes in 119.801 s, pass, exit 0**, through
+`sim-lane` and the official `sim-quiet` reader. All rows use 120 paired
+drawn frames, live clock, phone 2×, no CPU throttle/profiler/GL timing
+observer; Safari viewport 402×714 / canvas 804×1428. End notices went
+to sp-x2, sp-x9, sp-o2 and the coordinator. Quiet cleared, Simulator shut
+down (0 / 1), and preview 4407 stopped after its use was released. All
+owned browser/build/model work is closed.
+
+The sp-x6 pending-neighbour attribution clause is byte-preserved. No
+engine/game, Pine or Nine source cut or look fix by this lane. This
+closes the announced Mosslight/Ember density freshness batch. **Next:**
+final Coral `9d0988b3cd` and affected J2. The last accepted Coral reading
+at `591bd4e785` and J2 at `0c3e3ca16b` retain their source limits.
+No further native window is held before that next preview is ready.
