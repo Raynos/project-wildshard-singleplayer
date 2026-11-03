@@ -1,6 +1,6 @@
 # Open plots: morning listening batch
 
-**Status:** `unread` 2026-11-03 — Bayou and Frostline pass native playback. Ember, Mosslight and Coral remain open.
+**Status:** `unread` 2026-11-03 — Bayou, Frostline and Ember pass native playback. Mosslight and Coral remain open.
 **Link:** https://wildshard-singleplayer.vercel.app/assets/music/ob7-listening.html (ships with the automatic deployment)
 **Plan:** OPEN-PLOTS, [build-out OB7](../plans/open-plots/build-out-mini-plan.md)
 **Made by:** E521, sp-x2 / Codex
@@ -12,7 +12,7 @@ The measured recommendation ships; the other take stays available for comparison
 |---|---|---:|---|
 | Lantern Bayou | A, seed 701 | 1.67 MB | pass, `d649309a52` |
 | Frostline Peaks | B, seed 702 | 1.22 MB | pass, `b51eee2ce3` |
-| Ember Forge | A, seed 701 | 1.56 MB | pending playback |
+| Ember Forge | A, seed 701 | 1.56 MB | pass, `a723810b29` |
 | Mosslight Ruins | A, seed 701 | 1.06 MB | pending playback |
 | Coral Drift | pending | — | open |
 
@@ -68,3 +68,8 @@ Mosslight A measures 5.09% separated vocal energy and B measures 0.95%;
 the brief explicitly includes a wordless choir. Three chosen SFX use MOSS
 and three use Stable Audio; all six winners rank first. The woodland bed
 and hollow arch wind use the paired 702 retakes.
+
+Ember passes on `a723810b29` at phone 2×: its recorded score sustains
+a positive gain after all spot visits, all six loops decode, the bed
+stays active and five positional gains measure 0.390–0.394 with heading
+pan flips near −0.698 / +0.696. No page errors or performance claim.
