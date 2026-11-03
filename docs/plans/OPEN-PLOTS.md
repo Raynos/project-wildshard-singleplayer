@@ -115,7 +115,7 @@ The same eight steps for every plot. One lane owns a plot until it is done (G804
 |---|---|---|---|---|
 | OP1 | **done (2026-11-03, sp-o2): `43f9809f0d` + `d141a00252`, board [round 76](../../art/grid/round-76-night-market-op1/board.jpg)** (hero lantern family `e0c7a5d07b`; ~70 hero lanterns on thick ropes, sky lanterns gone, phone wire 8.13 of 8.23 MB). **Night Market lanterns (G827).** Board first: 3 takes of a hero paper lantern (ribs, paper, cap, tassel, inner glow; ~1.5k triangles LOD0, ~300 LOD1, instanced) and 3 rope styles. Then cut the lanterns to a few hundred, delete every sky lantern, hang every lantern on a thick, dark, sagging rope between posts or eaves; re-tune the light bake for fewer emitters | Opus | 6 h | Board sent; no floating lantern in the 8 domes; 30 fps and draws ≤ 154 hold; the new lantern is the shared family |
 | OP2 | **Shared-kit extraction — done (2026-11-02).** Split `kit.mjs` / `tiledPlot.mjs` into a plot-agnostic core (Soup, grid, sockets, writer, pools, posters, kerb, far, light bake, paving) and per-idea builder sets; Night Market's H/G/S/C/L/N/P move to its own set; letters map to builders per layout | Codex | 1 d | All 18 current world GLBs (99,931,412 B) and all 52 read inputs are SHA256/size exact before/after. Night Market stays 64,289,012 B; the real style-row test uses seven different letters, and all eight collision goldens plus the 5,500-emitter control remain unchanged. Core grid/writer/sockets/paving/GLB construction is separate from Night Market geometry, seams and lighting policy |
-| OP3 | **Per-plot template generator.** One script: slug → layout stub, style row, `outputs.json` row, look key, map row, dome cameras from the round-62 sheet, cell swap for new ideas. Its first output is Showcase Template | Codex | 0.5 d | A new idea goes from nothing to a building plot (shared families, its palette) in one command |
+| OP3 | **done (2026-11-03, sp-x8; G872 self-applied). Per-plot template generator.** One script: slug → layout stub, style row, `outputs.json` row, look key, map row, dome cameras from the round-62 sheet, cell swap for new ideas. Its first output is Showcase Template | Codex | 0.5 d | A new idea goes from nothing to a building plot (shared families, its palette) in one command |
 | OP4 | **Batching — in flight (2026-11-03, sp-x9).** One dome-capture run and one board-maker over any list of plots; one Chromium reading at a ring junction with all built neighbours in view | Codex | 0.5 d | One command captures 3 plots × 8 domes and makes their labelled sheets |
 | OP5 | Showcase Template (wave 1; the template's proof) | Opus + Codex | 8 / 4 h | Pipeline steps 1–8 met (§3) |
 | OP6 | Lantern Bayou (wave 1; reuses OP1's lantern and the strings) | Opus + Codex | 12 / 4 h | Steps 1–8; frees a repeat cell |
@@ -251,3 +251,31 @@ Correctness gates overlap PF13 explicitly; no timing acceptance follows.
 three-plot×eight-dome capture/sheets and the declared junction Chromium
 reading. No browser/build has started for OP4. These wait for PF13's literal
 whole machine boundary; this tooling landing is not the OP4 capture pass.
+
+
+### OP3: source templates and per-plot construction (2026-11-03)
+
+`node scripts/open-plots/template.mjs scripts/open-plots/recipes/showcase-template.json`
+writes a layout/style/output/look/map candidate, all eight canonical camera
+manifests and the capture registry. Existing products stay unactivated by
+default. Their explicit later activation belongs to their build-out row;
+new ideas require a named old-cell replacement and retain 25 unique slugs.
+The tool refuses invalid accents/palettes/tiles/sockets, ambiguous cells,
+hand-authored or edited layouts, changed cameras and concurrent source edits.
+
+`layout.plot` selects Night Market, Lantern Bayou, Frostline Peaks or the
+shared-family scaffold. Missing `plot` retains the original pilot. Only an
+explicit scaffold may omit its landmark/poster; full builds retain their
+ordinary material, input, product and physics admission. Frostline towers
+accept three coordinates or a fourth positive sheave height. The Bayou and
+Frostline stub files are unactivated owner starting points, not art approval.
+
+Fresh original/candidate processes built all 18 existing world GLBs:
+97,994,248 bytes and all 53 read-input hashes are exact. The generated
+Showcase scaffold builds 13,502,112 bytes with real draw and collider meshes,
+using only the three declared shared kit families and no theme asset. Its
+existing output stays byte-preserved. This exact-output component overlapped
+X2's DW loading cohort; no timing or native performance claim follows.
+Nineteen controls in four suites pass, root types and named typed lint are
+zero. G872 exact-output scope is self-applied; no art/physics qualification
+is inherited by a future activation. OP4 remains X9's capture/board row.

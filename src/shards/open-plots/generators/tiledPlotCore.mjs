@@ -107,7 +107,7 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
   const layout = json(read(`src/shards/open-plots/data/layouts/${layoutName}.json`));
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
-  palette.picture = await meanColour(tools, read(layout.posters.image));
+  palette.picture = layout.posters === null ? [1, 1, 1] : await meanColour(tools, read(layout.posters.image));
   const builders = plot.builders(layout), LANTERN_BAKE = plot.lanternBake;
   const grid = parseLayout(layout.rows, builders), parts = { Paving: new Soup(), Kit: new Soup(), Water: new Soup(), Glow: new Soup(), Pool: new Soup(), Poster: new Soup(), far: new Soup(), solid: new Soup(), detailKit: new Soup(), detailGlow: new Soup(), coarse: new Soup(), standIns: new Soup() };
   // the plot's ground: the outer ring, then each tile's paving inside it (the lanes a shade lighter, the canals open)
@@ -139,28 +139,33 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
   const lanterns = [], kit = files.size === 0 ? {} : await prepareModelKit(palette, files, tools.normalizeWorldGlb);
   buildLayout(grid, parts, palette, (r, c) => (r * 7 + c * 3) % 2,
     { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) }, builders);
-  plot.models(parts, { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) }, layout);
+  if (layout.landmark !== null) plot.models(parts, { ...kit, lanternEmitter: (at, colour) => lanterns.push({ at, colour }) }, layout);
   // a pool at the plot's edge (an entry forecourt's lanterns) keeps to the cell: its rim (black, it adds nothing) stops at it
   const pools = parts.Pool.part('Pool').positions, EDGE = 249.5;
   for (let i = 0; i < pools.length; i += 3) for (const k of [0, 2]) pools[i + k] = Math.max(-EDGE, Math.min(EDGE, pools[i + k] ?? 0));
   // the posters: the plaza's facing the south entry, one over each entry facing out to the road
-  const { plaza, entry } = layout.posters;
-  poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 }, lanterns);
-  for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset }, lanterns);
+  if (layout.posters !== null) {
+    const { plaza, entry } = layout.posters;
+    poster(parts, palette, { centre: [plaza.x, plaza.z], n: [0, 0, -1], width: plaza.width, bottom: plaza.bottom, posts: plaza.width / 3, offset: plaza.offset ?? 0 }, lanterns);
+    for (const n of [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0]]) poster(parts, palette, { centre: [n[0] * entry.inset, n[2] * entry.inset], n, width: entry.width, bottom: entry.bottom, posts: entry.posts, offset: entry.offset }, lanterns);
+  }
   plot.pools(parts, palette);
   // the landmark: its near model as drawn, its far model in its texture's colours (far only, and the collider)
-  const near = await readModel(read(layout.landmark.near), codec), far = await readModel(read(layout.landmark.far), codec);
-  const placed = stand(near.corners, layout.landmark.height, layout.landmark.turn, near.corners);
-  const farPlaced = stand(far.corners, layout.landmark.height, layout.landmark.turn, far.corners);
-  const nearImage = await tools.readImagePixels(near.image), farImage = await tools.readImagePixels(far.image), colourOf = sampler(farImage), nearColourOf = sampler(nearImage);
-  // NM5: its vertex colours are its texture's (the Landmark material draws the texture alone), for the near view and the map
-  const landmark = { positions: [], normals: [], colours: [], uvs: [] };
-  for (const c of placed) { landmark.positions.push(...c.p); landmark.normals.push(...c.n); landmark.colours.push(...nearColourOf(c.uv)); landmark.uvs.push(...c.uv); }
-  const farLandmark = { positions: [], colours: [] };
-  for (const c of farPlaced) { farLandmark.positions.push(...c.p); farLandmark.colours.push(...colourOf(c.uv)); }
-  for (let i = 0; i < farPlaced.length; i += 3) {
-    const [a, b, c] = farPlaced.slice(i, i + 3);
-    if (a !== undefined && b !== undefined && c !== undefined) parts.solid.tri('Solid', a.p, b.p, c.p);
+  const landmark = { positions: [], normals: [], colours: [], uvs: [] }, farLandmark = { positions: [], colours: [] };
+  let nearImage = null;
+  if (layout.landmark !== null) {
+    const near = await readModel(read(layout.landmark.near), codec), far = await readModel(read(layout.landmark.far), codec);
+    const placed = stand(near.corners, layout.landmark.height, layout.landmark.turn, near.corners);
+    const farPlaced = stand(far.corners, layout.landmark.height, layout.landmark.turn, far.corners);
+    nearImage = await tools.readImagePixels(near.image);
+    const farImage = await tools.readImagePixels(far.image), colourOf = sampler(farImage), nearColourOf = sampler(nearImage);
+    // NM5: its vertex colours are its texture's (the Landmark material draws the texture alone), for the near view and the map
+    for (const c of placed) { landmark.positions.push(...c.p); landmark.normals.push(...c.n); landmark.colours.push(...nearColourOf(c.uv)); landmark.uvs.push(...c.uv); }
+    for (const c of farPlaced) { farLandmark.positions.push(...c.p); farLandmark.colours.push(...colourOf(c.uv)); }
+    for (let i = 0; i < farPlaced.length; i += 3) {
+      const [a, b, c] = farPlaced.slice(i, i + 3);
+      if (a !== undefined && b !== undefined && c !== undefined) parts.solid.tri('Solid', a.p, b.p, c.p);
+    }
   }
   // the floor everyone walks on (the canals' water sits below it, behind their rims)
   parts.solid.quad('Solid', [-250, 0, -250], [-250, 0, 250], [250, 0, 250], [250, 0, -250]);
@@ -173,7 +178,7 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
   }
   console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, gain ${LANTERN_BAKE.gain}`);
   standIns(parts, farLandmark, linear(layout.palette.ring));
-  return { parts, landmark, farLandmark, nearImage, poster: read(layout.posters.image), ring: layout.palette.ring };
+  return { parts, landmark, farLandmark, nearImage, poster: layout.posters === null ? null : read(layout.posters.image), ring: layout.palette.ring };
 }
 
 /**
@@ -211,13 +216,14 @@ export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
     Glow: doc.createMaterial('Glow').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Pool: doc.createMaterial('Pool').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Water: doc.createMaterial('Water').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.12).setMetallicFactor(0.2),
-    Landmark: doc.createMaterial('Landmark').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0).setBaseColorTexture(await texture('landmark', nearImage)),
-    Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(await texture('poster', await tools.readImagePixels(posterBytes))),
+    Landmark: doc.createMaterial('Landmark').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0).setBaseColorTexture(nearImage === null ? null : await texture('landmark', nearImage)),
+    Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(posterBytes === null ? null : await texture('poster', await tools.readImagePixels(posterBytes))),
   };
   for (const material of [materials.Landmark, materials.Poster]) material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
   const accessor = (values, type) => doc.createAccessor().setType(type).setArray(new Float32Array(values)).setBuffer(buffer);
   // each part welded (corners sharing position, normal, colour and uv become one indexed vertex)
   const node = (name, part, material, { uv = false, normals = true, parent = scene } = {}) => {
+    if (idea.scaffold === true && part.positions.length === 0) return;
     const welded = { positions: [], normals: [], colours: [], uvs: [] }, index = [], seen = new Map(), n = part.positions.length / 3;
     for (let i = 0; i < n; i++) {
       const corner = [part.positions.slice(i * 3, i * 3 + 3), normals ? part.normals.slice(i * 3, i * 3 + 3) : [], part.colours.slice(i * 3, i * 3 + 3), uv ? part.uvs.slice(i * 2, i * 2 + 2) : []];

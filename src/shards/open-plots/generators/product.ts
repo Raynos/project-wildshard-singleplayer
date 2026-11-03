@@ -38,13 +38,13 @@ const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicke
   landmark: { family: 'graph', graph: landmark } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
     spawn: (typeof source)["spawn"];
     look: typeof tiledLook;
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
-    world: { glb: string; colliders: string; far: string; detail: string; coarse: string; farMode: string; near: string; materials: { Paving: string; Kit: string; Water: string; Glow: string; Pool: string; Landmark: string; Poster: string; Floor?: never; Kerb?: never; Plinth?: never; Rim?: never; Frame?: never; Billboard?: never; Sign?: never; Hologram?: never; }; };
+    world: { glb: string; colliders: string; far: string; detail: string; coarse: string; farMode: string; near: string; materials: Record<string, string>; };
 }) | (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
@@ -70,7 +70,8 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
     // NM5: its own near view from its coarse tiles, so the road sees the tiles instead of the far proxy
     // RM8.2: its kit models draw only at L0 (`detail_`); their boxes stand in at L1 (`coarse_`)
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', detail: 'detail_', coarse: 'coarse_', farMode: 'replace', near: 'coarse',
-      materials: { Paving: 'paving', Kit: 'kit', Water: 'water', Glow: 'glow', Pool: 'pool', Landmark: 'landmark', Poster: 'billboard' } },
+      materials: row.worldMaterials ?? (row.scaffold === true ? { Paving: 'paving', Kit: 'kit', Glow: 'glow', Pool: 'pool' }
+        : { Paving: 'paving', Kit: 'kit', Water: 'water', Glow: 'glow', Pool: 'pool', Landmark: 'landmark', Poster: 'billboard' }) },
   };
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...look, keys },
     // G608: the `far_` stand-ins draw only in the far proxy
@@ -111,10 +112,12 @@ async function bakeInputs(ctx: Pick<ProjectGenerationContext, 'cached'>, row: Pl
   if (typeof layout !== 'object' || layout === null || !('landmark' in layout) || !('posters' in layout)) throw new Error('open-plots: invalid layout inputs');
   const { landmark: mark, posters } = layout;
   const families: unknown = 'kit' in layout ? layout.kit : [];
-  if (typeof mark !== 'object' || mark === null || !('near' in mark) || !('far' in mark) || typeof mark.near !== 'string' || typeof mark.far !== 'string'
-    || typeof posters !== 'object' || posters === null || !('image' in posters) || typeof posters.image !== 'string'
-    || !Array.isArray(families) || !families.every((family): family is string => typeof family === 'string')) throw new Error('open-plots: invalid layout inputs');
-  return [file, ...families.map(family => `public/assets/open-plots/kit/${family}.glb`), mark.near, mark.far, posters.image];
+  const landmarkValid = mark === null ? row.scaffold === true : typeof mark === 'object' && 'near' in mark && 'far' in mark && typeof mark.near === 'string' && typeof mark.far === 'string';
+  const posterValid = posters === null ? row.scaffold === true : typeof posters === 'object' && 'image' in posters && typeof posters.image === 'string';
+  if (!landmarkValid || !posterValid || !Array.isArray(families) || !families.every((family): family is string => typeof family === 'string')) throw new Error('open-plots: invalid layout inputs');
+  const landmarks = mark !== null && typeof mark === 'object' && 'near' in mark && 'far' in mark && typeof mark.near === 'string' && typeof mark.far === 'string' ? [mark.near, mark.far] : [];
+  const pictures = posters !== null && typeof posters === 'object' && 'image' in posters && typeof posters.image === 'string' ? [posters.image] : [];
+  return [file, ...families.map(family => `public/assets/open-plots/kit/${family}.glb`), ...landmarks, ...pictures];
 }
 /** GR9 (G783): one idea's build program: its world GLB baked in the build from declared, cached inputs and its map lattice
  *  painted from that world (its own `data/map.json` output row), in place of the retired `open-plots-world` job. */
