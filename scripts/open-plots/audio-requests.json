@@ -67,5 +67,12 @@
     "pine-bank",
     "igloos",
     "road-entry"
+  ],
+  "saltwind-lighthouse": [
+    "lighthouse-foghorn",
+    "se-boat-rigging",
+    "basin-gulls",
+    "slate-roof-rain",
+    "quay-net-rope"
   ]
 }

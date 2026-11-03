@@ -380,5 +380,37 @@
       "z": -230,
       "reach": 50
     }
+  ],
+  "saltwind-lighthouse": [
+    {
+      "id": "lighthouse-foghorn",
+      "x": 0,
+      "z": 0,
+      "reach": 100
+    },
+    {
+      "id": "se-boat-rigging",
+      "x": 93.75,
+      "z": -156.25,
+      "reach": 32
+    },
+    {
+      "id": "basin-gulls",
+      "x": 156.25,
+      "z": 93.75,
+      "reach": 55
+    },
+    {
+      "id": "slate-roof-rain",
+      "x": -156.25,
+      "z": 237,
+      "reach": 28
+    },
+    {
+      "id": "quay-net-rope",
+      "x": -31.25,
+      "z": 93.75,
+      "reach": 28
+    }
   ]
 }

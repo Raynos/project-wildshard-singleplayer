@@ -207,3 +207,29 @@ whole; raw CPU/draw and strict timing misses remain explicit in the
 [readings](open-plots-wave-a-readings.md#jungle-corrected-source-qualification).
 The original four-stuck and unproven-life records above remain historical
 failures. This completes Jungle's Codex half without changing a gate.
+
+Saltwind publication (2026-11-03, sp-x6) is **1,145,443 B including the
+231,398 B shared bed**, below 3 MB. It is not activated by publication.
+Both MiniMax takes remain: A is comparison-only at 22.06 s (below 25 s),
+B qualifies at 67.31 s with zero measured vocal energy. Five chosen local
+spots ship: foghorn, southeast boat rigging, basin gulls, slate-roof rain,
+and quay net/rope. Their selected MOSS takes rank 1/3/2/2/4 against the
+paired Stable Audio comparisons. The northwest rigging comparison stays
+unshipped under the coordinator's five-spot roster, including its later
+rank-five take; this is an explicit roster omission, not a failed rank.
+
+The own bed remains rejected after all three paired attempts: initial
+ranks 56/49, stronger-rain retake 35/27, deterministic same-engine rain,
+wind and faint-horn composition 42/28. All six wave/metadata hashes,
+original comparisons and composition component provenance remain in
+`sfx.json`; no threshold, descriptions or foils were relaxed.
+
+On the coordinator's ruling, Saltwind instead references Coral Drift's
+already-qualified coastal surf/wind bed, original paired ranks 1/1.
+The canonical **6243d1442260** AAC stays at its original Coral path;
+no audio copy or new generation. One-hop references retain counted native
+reads and explicit original loop metadata. The source catalogue/body
+hashes, licence and credits are recorded. O3 accepts the calmer sea as a
+harbour fit; the named gap is **no squall rain or foghorn in the bed**.
+The foghorn stays a local 100 m spot, under the unchanged validator.
+Native bar 10 and body/wire proof remain required before activation.

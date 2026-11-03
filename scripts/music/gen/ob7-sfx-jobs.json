@@ -365,7 +365,12 @@
       "into": "saltwind-lighthouse",
       "duration": 30,
       "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
-      "prompt": "Continuous heavy rain hiss and clearly audible raindrops splattering on slate roof and wet harbour stone. Gusts of cold sea wind swell underneath the steady rain, with soft water slapping a quay wall. One very faint distant two-tone foghorn call sounds beneath the rain, far quieter than the storm. Rain remains continuous and dominant for the entire thirty seconds. Natural coastal storm field recording, no music, no speech."
+      "prompt": "Continuous heavy rain hiss and clearly audible raindrops splattering on slate roof and wet harbour stone. Gusts of cold sea wind swell underneath the steady rain, with soft water slapping a quay wall. One very faint distant two-tone foghorn call sounds beneath the rain, far quieter than the storm. Rain remains continuous and dominant for the entire thirty seconds. Natural coastal storm field recording, no music, no speech.",
+      "reuse": {
+        "set": "coral-drift",
+        "bed": "coral-drift.ambience",
+        "gap": "No squall rain or foghorn in the bed; the foghorn remains a local spot. Owner accepts calmer coastal surf and wind."
+      }
     },
     "hum.saltwind-lighthouse.lighthouse-foghorn": {
       "kind": "hum",
@@ -379,7 +384,9 @@
       "into": "saltwind-lighthouse",
       "duration": 10,
       "desc": "A wooden fishing boat rigging creaks and its hull knocks softly against a quay",
-      "prompt": "Close wooden sailing-boat rigging creaks with clear repeated low rope-and-timber groans as the boat gently rocks. Between the creaks the hollow wooden hull makes a few quiet knocks against quay fenders. Rigging creak is the main sound; hull knocks are softer. Sparse dry mechanical boat foley, no engine, no music, no birds, no voices."
+      "prompt": "Close wooden sailing-boat rigging creaks with clear repeated low rope-and-timber groans as the boat gently rocks. Between the creaks the hollow wooden hull makes a few quiet knocks against quay fenders. Rigging creak is the main sound; hull knocks are softer. Sparse dry mechanical boat foley, no engine, no music, no birds, no voices.",
+      "shipping": false,
+      "omission": "Coordinator selected five local spots. The distinct SE boat rigging spot ships; NW paired takes remain comparison-only, including the qualified rank-five retake."
     },
     "hum.saltwind-lighthouse.se-boat-rigging": {
       "kind": "hum",

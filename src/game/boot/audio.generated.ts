@@ -2169,6 +2169,233 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
   "stings": {
    "dawn": "sting-dawn-6b0b4004.m4a"
   }
+ },
+ "saltwind-lighthouse": {
+  "genre": "saltwind-lighthouse",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-b-6533451204d4.m4a",
+    "loopStart": 3.75,
+    "loopEnd": 34.4,
+    "duration": 35.4,
+    "gain": 1,
+    "seamScore": 0.356,
+    "calm": "take-b-6533451204d4.m4a",
+    "bpm": 172.3,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-702",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.219496,
+    "metrics": {
+     "duration_s": 22.06,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -18.5,
+      "lra": 7.7,
+      "true_peak_dbfs": -5.1
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.5508
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 2.1,
+      "total_silence_s": 2.1
+     },
+     "spectrum": {
+      "centroid_hz": 2653.4,
+      "rolloff95_hz": 9991.2,
+      "flatness": 0.0011,
+      "hf_above_12k": 0.00003,
+      "sub_below_60": 0.0018,
+      "stereo_corr": 0.193
+     },
+     "tempo": {
+      "estimated_bpm": 152,
+      "brief_bpm": 64,
+      "rel_err": 0.187
+     },
+     "key": {
+      "best_key": "F# minor",
+      "best_r": 0.798,
+      "d_major_r": 0.668,
+      "d_major_rank": 2,
+      "key_ok": true
+     },
+     "loop": {
+      "min_bars": 2,
+      "score": 0.309,
+      "similarity": 0.314,
+      "level_match": 0.94,
+      "start_s": 4.75,
+      "end_s": 7.91,
+      "bars": 2,
+      "loop_s": 3.16,
+      "beats_per_bar": 4,
+      "grid_bpm": 152
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0.045,
+      "stem_share": {
+       "drums": 0,
+       "bass": 0,
+       "other": 1,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.182,
+      "drums_active_frac": 0.182
+     }
+    },
+    "qualified": false,
+    "failedChecks": [
+     "duration below 25 seconds"
+    ],
+    "clap": {
+     "rank": 2,
+     "p": 0.112392,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-d962afb1ace0.m4a",
+     "loopStart": 4.75,
+     "loopEnd": 7.91,
+     "duration": 8.91,
+     "gain": 1,
+     "seamScore": 0.309
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "saltwind-lighthouse",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 64 BPM, 4/4. A cold northern fishing harbour on black basalt during a passing late-afternoon squall. Slow low fiddle over a held acoustic drone, sparse minor and modal phrases, long restrained bows and wide empty space. Weathered and exposed, storm rather than cosy, steady quiet exploration. No drums, no percussion, no music box. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 82.9,
+     "model_load_s": 12,
+     "mps_driver_gb": 26.3
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.27741899999999997,
+    "metrics": {
+     "duration_s": 67.31,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -19.7,
+      "lra": 8.3,
+      "true_peak_dbfs": 0.3
+     },
+     "clipping": {
+      "clipped_samples": 18,
+      "clipped_frac": 0.0000030317566402207658,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1969.1,
+      "rolloff95_hz": 9280.7,
+      "flatness": 0.0006,
+      "hf_above_12k": 0.00004,
+      "sub_below_60": 0.0123,
+      "stereo_corr": 0.555
+     },
+     "tempo": {
+      "estimated_bpm": 172.3,
+      "brief_bpm": 64,
+      "rel_err": 0.346
+     },
+     "key": {
+      "best_key": "C# minor",
+      "best_r": 0.889,
+      "d_major_r": 0.003,
+      "d_major_rank": 12,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.356,
+      "similarity": 0.359,
+      "level_match": 0.966,
+      "start_s": 3.75,
+      "end_s": 34.4,
+      "bars": 22,
+      "loop_s": 30.65,
+      "beats_per_bar": 4,
+      "grid_bpm": 172.3
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.0431,
+       "bass": 0.0996,
+       "other": 0.8573,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.343,
+      "drums_active_frac": 0.224
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 3,
+     "p": 0.005638,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-6533451204d4.m4a",
+     "loopStart": 3.75,
+     "loopEnd": 34.4,
+     "duration": 35.4,
+     "gain": 1,
+     "seamScore": 0.356
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "saltwind-lighthouse",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 64 BPM, 4/4. A cold northern fishing harbour on black basalt during a passing late-afternoon squall. Slow low fiddle over a held acoustic drone, sparse minor and modal phrases, long restrained bows and wide empty space. Weathered and exposed, storm rather than cosy, steady quiet exploration. No drums, no percussion, no music box. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 264.1,
+     "model_load_s": 12,
+     "mps_driver_gb": 27.42
+    }
+   }
+  ]
  }
 };
 export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
@@ -4803,5 +5030,536 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ]
    }
   }
+ },
+ "saltwind-lighthouse": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI; shared coastal bed from coral-drift",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "saltwind-lighthouse.ambience": {
+    "file": {
+     "set": "coral-drift",
+     "file": "ambience-6243d1442260.m4a"
+    },
+    "loopStart": 7,
+    "loopEnd": 27,
+    "duration": 28,
+    "gain": 1,
+    "seamScore": 0.667
+   }
+  },
+  "hums": {
+   "saltwind-lighthouse.lighthouse-foghorn": {
+    "file": "lighthouse-foghorn-195fbaedb647.m4a",
+    "loopStart": 7.75,
+    "loopEnd": 22.75,
+    "duration": 23.75,
+    "gain": 1,
+    "seamScore": 0.86
+   },
+   "saltwind-lighthouse.se-boat-rigging": {
+    "file": "se-boat-rigging-a9b8ad0d1613.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 7.25,
+    "duration": 8.25,
+    "gain": 1,
+    "seamScore": 0.501
+   },
+   "saltwind-lighthouse.basin-gulls": {
+    "file": "basin-gulls-33a2c0cccece.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 9.75,
+    "duration": 10.75,
+    "gain": 1,
+    "seamScore": 0.527
+   },
+   "saltwind-lighthouse.slate-roof-rain": {
+    "file": "slate-roof-rain-e992201c4301.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 8.25,
+    "duration": 9.25,
+    "gain": 1,
+    "seamScore": 0.545
+   },
+   "saltwind-lighthouse.quay-net-rope": {
+    "file": "quay-net-rope-6f857686854b.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 7.25,
+    "duration": 8.25,
+    "gain": 1,
+    "seamScore": 0.477
+   }
+  },
+  "oneshots": {},
+  "rejected": [
+   {
+    "family": "bed.saltwind-lighthouse.ambience",
+    "reason": "Own bed failed; canonical qualified coastal bed reused",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 56,
+       "p": 0.000004,
+       "best": "silence",
+       "seed": "701",
+       "sourceWaveSha256": "fa6ce622e17ee97dca5012186406cc1faf67d3aab7ebd7a413061fa36590e2d9",
+       "sourceMetadataSha256": "07974fb25feef67ce45001231210fddbe24af200ae42780d31d5b475bb04f3d2"
+      },
+      "sourceWaveSha256": "fa6ce622e17ee97dca5012186406cc1faf67d3aab7ebd7a413061fa36590e2d9",
+      "sourceMetadataSha256": "07974fb25feef67ce45001231210fddbe24af200ae42780d31d5b475bb04f3d2",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.saltwind-lighthouse.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "Steady rain pattering on slate roofs and wet stone in a northern fishing harbour. Cold gusts swell gently, with subdued water slapping a basalt quay wall. A very faint distant low two-tone foghorn sounds once across the harbour then leaves a long quiet gap beneath the rain. Continuous restrained storm field recording, rain stays dominant. No birdsong, no music, no voices, no thunder crashes.",
+       "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 43.9,
+       "model_load_s": 9.8,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 35,
+       "p": 0.00002,
+       "best": "Snow-dusted pine branches softly rustling and shedding tiny snow falls",
+       "seed": "702",
+       "sourceWaveSha256": "24af4490a9f6e78be463ec8f5389b2be95f86b2ce8b2803785d045d5f0234b64",
+       "sourceMetadataSha256": "f41de2a3d09d96ab97c581ae59285af922a3a1a44c926e39bcb823e356637793"
+      },
+      "sourceWaveSha256": "24af4490a9f6e78be463ec8f5389b2be95f86b2ce8b2803785d045d5f0234b64",
+      "sourceMetadataSha256": "f41de2a3d09d96ab97c581ae59285af922a3a1a44c926e39bcb823e356637793",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "bed.saltwind-lighthouse.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "Continuous heavy rain hiss and clearly audible raindrops splattering on slate roof and wet harbour stone. Gusts of cold sea wind swell underneath the steady rain, with soft water slapping a quay wall. One very faint distant two-tone foghorn call sounds beneath the rain, far quieter than the storm. Rain remains continuous and dominant for the entire thirty seconds. Natural coastal storm field recording, no music, no speech.",
+       "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
+       "duration_s": 30,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 54.44,
+       "model_load_s": 10.1,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 42,
+       "p": 0.000125,
+       "best": "Rainforest birds with distant falling water and light rain drips after a tropical shower",
+       "seed": "703-mix",
+       "sourceWaveSha256": "f8f27e9517fc118206aceb36a2f8e8b961b42c461c4af4281c53ccb7916cfb72",
+       "sourceMetadataSha256": "52c2960ed7b672791339935a8723f81c508d2f3e926ac1bcbbf4a26a8d4d463b"
+      },
+      "sourceWaveSha256": "f8f27e9517fc118206aceb36a2f8e8b961b42c461c4af4281c53ccb7916cfb72",
+      "sourceMetadataSha256": "52c2960ed7b672791339935a8723f81c508d2f3e926ac1bcbbf4a26a8d4d463b",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "family": "bed.saltwind-lighthouse.ambience",
+       "kind": "bed",
+       "take": "703-mix",
+       "duration_s": 30,
+       "generation": "Deterministic composition of same-engine generated takes; no new model load",
+       "recipe": "ob7-saltwind-bed-composition/1",
+       "recipeScriptSha256": "838d62e31ce5243865bf2d974dc4aba660e67db269eb64d3ab6dc5d613d8b288",
+       "sampleRate": 48000,
+       "channels": 2,
+       "format": "PCM_24",
+       "textureRepeatOverlapFrames": 12000,
+       "targetDurationFrames": 1440000,
+       "finalAttenuation": 1,
+       "components": [
+        {
+         "wave": "tmp/ob7-audio/raw/moss/bed.saltwind-lighthouse.ambience/702.wav",
+         "waveSha256": "24af4490a9f6e78be463ec8f5389b2be95f86b2ce8b2803785d045d5f0234b64",
+         "metadataSha256": "f41de2a3d09d96ab97c581ae59285af922a3a1a44c926e39bcb823e356637793",
+         "provenance": {
+          "model": "MOSS-SoundEffect v2.0",
+          "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+          "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+          "backend": "PyTorch mps bf16",
+          "family": "bed.saltwind-lighthouse.ambience",
+          "kind": "bed",
+          "seed": 702,
+          "prompt": "Continuous heavy rain hiss and clearly audible raindrops splattering on slate roof and wet harbour stone. Gusts of cold sea wind swell underneath the steady rain, with soft water slapping a quay wall. One very faint distant two-tone foghorn call sounds beneath the rain, far quieter than the storm. Rain remains continuous and dominant for the entire thirty seconds. Natural coastal storm field recording, no music, no speech.",
+          "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
+          "duration_s": 30,
+          "steps": 100,
+          "cfg": 4,
+          "gen_time_s": 54.44,
+          "model_load_s": 10.1,
+          "mps_driver_gb": 19.8
+         },
+         "measure": "rms",
+         "targetLinearLevel": 0.014,
+         "gain": 0.3315963546943263
+        },
+        {
+         "wave": "tmp/ob7-audio/raw/moss/hum.saltwind-lighthouse.slate-roof-rain/701.wav",
+         "waveSha256": "27aa569adaf8b89b81c02b0dac1a4f575953d61c2580b911d7aeff29e7aa71b1",
+         "metadataSha256": "106cfb2204589ccaba4ec7c00ae27e57a74ff724ae400bc8877de50d0a9c0aa9",
+         "provenance": {
+          "model": "MOSS-SoundEffect v2.0",
+          "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+          "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+          "backend": "PyTorch mps bf16",
+          "family": "hum.saltwind-lighthouse.slate-roof-rain",
+          "kind": "hum",
+          "seed": 701,
+          "prompt": "Close detailed sound of steady rain drumming and ticking on a slate cottage roof, with small gutter drips and brief wind-driven swells. Continuous soft textured rain, no thunder, no birds, no music, no voices.",
+          "desc": "Rain drumming on a slate cottage roof during a squall",
+          "duration_s": 12,
+          "steps": 100,
+          "cfg": 4,
+          "gen_time_s": 45.92,
+          "model_load_s": 9.8,
+          "mps_driver_gb": 19.8
+         },
+         "measure": "rms",
+         "targetLinearLevel": 0.045,
+         "gain": 1.1573714984428107
+        },
+        {
+         "wave": "tmp/ob7-audio/raw/moss/hum.saltwind-lighthouse.lighthouse-foghorn/701.wav",
+         "waveSha256": "1e379c19b89dc82fd41ca48e34833cc5f86092155a4cc504f8512b6a059c6a92",
+         "metadataSha256": "413326349a1e4e5ca6c84716ccaa834eb9af86fc07fcf362202bf5f6ad5e0466",
+         "provenance": {
+          "model": "MOSS-SoundEffect v2.0",
+          "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+          "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+          "backend": "PyTorch mps bf16",
+          "family": "hum.saltwind-lighthouse.lighthouse-foghorn",
+          "kind": "hum",
+          "seed": 701,
+          "prompt": "One distant low two-tone foghorn from a lighthouse over a stormy harbour: a long deep resonant note, a lower answering note, then a long quiet gap. Sparse slow signal, about one two-tone call per thirty seconds. Soft spacious outdoor decay, no music, no voices, no siren, no ship engine.",
+          "desc": "A distant low two-tone lighthouse foghorn with long quiet gaps",
+          "duration_s": 30,
+          "steps": 100,
+          "cfg": 4,
+          "gen_time_s": 45.39,
+          "model_load_s": 9.8,
+          "mps_driver_gb": 19.8
+         },
+         "measure": "peak",
+         "targetLinearLevel": 0.035,
+         "gain": 0.07529411764705883
+        }
+       ],
+       "brief": "Owner requested faint distant foghorn in the continuous rain bed, retaining the positional source at 100 m. Rain is dominant; original generated bed supplies wind/water texture.",
+       "comparison": "Unchanged family description, full original description universe and music/speech/silence foils; requires fresh top-five CLAP plus native AAC/loop checks."
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 49,
+       "p": 0.000003,
+       "best": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+       "seed": "701",
+       "sourceWaveSha256": "26a4b6a1f412683e1f67870225d2e061bfe63231e6935ee6aa189182ed95eef7",
+       "sourceMetadataSha256": "e9e53fa33d8a4be1fdf0c2b5a6d9a2ad6662e1c78b70be9602607428e157548a"
+      },
+      "sourceWaveSha256": "26a4b6a1f412683e1f67870225d2e061bfe63231e6935ee6aa189182ed95eef7",
+      "sourceMetadataSha256": "e9e53fa33d8a4be1fdf0c2b5a6d9a2ad6662e1c78b70be9602607428e157548a",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.saltwind-lighthouse.ambience",
+       "kind": "bed",
+       "seed": 701,
+       "prompt": "Steady rain pattering on slate roofs and wet stone in a northern fishing harbour. Cold gusts swell gently, with subdued water slapping a basalt quay wall. A very faint distant low two-tone foghorn sounds once across the harbour then leaves a long quiet gap beneath the rain. Continuous restrained storm field recording, rain stays dominant. No birdsong, no music, no voices, no thunder crashes.",
+       "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 6.84,
+       "model_load_s": 9.5,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 27,
+       "p": 0.000188,
+       "best": "Soft hanging cypress moss and leaves rustling in a light breeze",
+       "seed": "702",
+       "sourceWaveSha256": "9f830bb0c1734bdbc4d0f2d92f52ef97821e14dbb6f26e560e03a879d4e40f7e",
+       "sourceMetadataSha256": "0480743a3b2db949f3ebd5055991a76e85ad108cfdf95291e333950e9386a615"
+      },
+      "sourceWaveSha256": "9f830bb0c1734bdbc4d0f2d92f52ef97821e14dbb6f26e560e03a879d4e40f7e",
+      "sourceMetadataSha256": "0480743a3b2db949f3ebd5055991a76e85ad108cfdf95291e333950e9386a615",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "bed.saltwind-lighthouse.ambience",
+       "kind": "bed",
+       "seed": 702,
+       "prompt": "Continuous heavy rain hiss and clearly audible raindrops splattering on slate roof and wet harbour stone. Gusts of cold sea wind swell underneath the steady rain, with soft water slapping a quay wall. One very faint distant two-tone foghorn call sounds beneath the rain, far quieter than the storm. Rain remains continuous and dominant for the entire thirty seconds. Natural coastal storm field recording, no music, no speech.",
+       "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
+       "duration_s": 30,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 4.42,
+       "model_load_s": 11.1,
+       "mps_driver_gb": 11.44
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 28,
+       "p": 0.00007,
+       "best": "Soft hanging cypress moss and leaves rustling in a light breeze",
+       "seed": "703-mix",
+       "sourceWaveSha256": "7c13d5f156d8e796e57602dea4cde28f579d687bd9b1f8a5d5275b7fd649d4f3",
+       "sourceMetadataSha256": "01a3cff2fb25300e48b19ac9be6da9af8de2cab41c546f98b23d28936c54b376"
+      },
+      "sourceWaveSha256": "7c13d5f156d8e796e57602dea4cde28f579d687bd9b1f8a5d5275b7fd649d4f3",
+      "sourceMetadataSha256": "01a3cff2fb25300e48b19ac9be6da9af8de2cab41c546f98b23d28936c54b376",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "family": "bed.saltwind-lighthouse.ambience",
+       "kind": "bed",
+       "take": "703-mix",
+       "duration_s": 30,
+       "generation": "Deterministic composition of same-engine generated takes; no new model load",
+       "recipe": "ob7-saltwind-bed-composition/1",
+       "recipeScriptSha256": "838d62e31ce5243865bf2d974dc4aba660e67db269eb64d3ab6dc5d613d8b288",
+       "sampleRate": 48000,
+       "channels": 2,
+       "format": "PCM_24",
+       "textureRepeatOverlapFrames": 12000,
+       "targetDurationFrames": 1440000,
+       "finalAttenuation": 1,
+       "components": [
+        {
+         "wave": "tmp/ob7-audio/raw/medium/bed.saltwind-lighthouse.ambience/702.wav",
+         "waveSha256": "9f830bb0c1734bdbc4d0f2d92f52ef97821e14dbb6f26e560e03a879d4e40f7e",
+         "metadataSha256": "0480743a3b2db949f3ebd5055991a76e85ad108cfdf95291e333950e9386a615",
+         "provenance": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bed.saltwind-lighthouse.ambience",
+          "kind": "bed",
+          "seed": 702,
+          "prompt": "Continuous heavy rain hiss and clearly audible raindrops splattering on slate roof and wet harbour stone. Gusts of cold sea wind swell underneath the steady rain, with soft water slapping a quay wall. One very faint distant two-tone foghorn call sounds beneath the rain, far quieter than the storm. Rain remains continuous and dominant for the entire thirty seconds. Natural coastal storm field recording, no music, no speech.",
+          "desc": "Steady squall rain on slate and wet harbour stone, water slapping quay walls and a faint distant foghorn",
+          "duration_s": 30,
+          "steps": 8,
+          "cfg": 1,
+          "gen_time_s": 4.42,
+          "model_load_s": 11.1,
+          "mps_driver_gb": 11.44
+         },
+         "measure": "rms",
+         "targetLinearLevel": 0.014,
+         "gain": 0.5022458331762658
+        },
+        {
+         "wave": "tmp/ob7-audio/raw/medium/hum.saltwind-lighthouse.slate-roof-rain/701.wav",
+         "waveSha256": "081e8673c83051d91b52cb3c0069a478f68309d960b9e6f1f9d6e010420e6387",
+         "metadataSha256": "1f2747c88637459a39286c664110cb1fe76c26efc1556cdeb1c9e38e44375358",
+         "provenance": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "hum.saltwind-lighthouse.slate-roof-rain",
+          "kind": "hum",
+          "seed": 701,
+          "prompt": "Close detailed sound of steady rain drumming and ticking on a slate cottage roof, with small gutter drips and brief wind-driven swells. Continuous soft textured rain, no thunder, no birds, no music, no voices.",
+          "desc": "Rain drumming on a slate cottage roof during a squall",
+          "duration_s": 12,
+          "steps": 8,
+          "cfg": 1,
+          "gen_time_s": 1.38,
+          "model_load_s": 9.5,
+          "mps_driver_gb": 11.44
+         },
+         "measure": "rms",
+         "targetLinearLevel": 0.045,
+         "gain": 0.4164042391482043
+        },
+        {
+         "wave": "tmp/ob7-audio/raw/medium/hum.saltwind-lighthouse.lighthouse-foghorn/701.wav",
+         "waveSha256": "ca12a427a091a2e66871d4428ae9607720c5c39bdffa5e1f09c55555e77242a8",
+         "metadataSha256": "611941e2d799d502246d212f814d288e9ff144a90ce48e926b6a522d819054c7",
+         "provenance": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "hum.saltwind-lighthouse.lighthouse-foghorn",
+          "kind": "hum",
+          "seed": 701,
+          "prompt": "One distant low two-tone foghorn from a lighthouse over a stormy harbour: a long deep resonant note, a lower answering note, then a long quiet gap. Sparse slow signal, about one two-tone call per thirty seconds. Soft spacious outdoor decay, no music, no voices, no siren, no ship engine.",
+          "desc": "A distant low two-tone lighthouse foghorn with long quiet gaps",
+          "duration_s": 30,
+          "steps": 8,
+          "cfg": 1,
+          "gen_time_s": 2.45,
+          "model_load_s": 9.5,
+          "mps_driver_gb": 11.45
+         },
+         "measure": "peak",
+         "targetLinearLevel": 0.035,
+         "gain": 0.13448066492421892
+        }
+       ],
+       "brief": "Owner requested faint distant foghorn in the continuous rain bed, retaining the positional source at 100 m. Rain is dominant; original generated bed supplies wind/water texture.",
+       "comparison": "Unchanged family description, full original description universe and music/speech/silence foils; requires fresh top-five CLAP plus native AAC/loop checks."
+      }
+     }
+    ]
+   },
+   {
+    "family": "hum.saltwind-lighthouse.nw-boat-rigging",
+    "reason": "Coordinator selected five local spots. The distinct SE boat rigging spot ships; NW paired takes remain comparison-only, including the qualified rank-five retake.",
+    "takes": [
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 7,
+       "p": 0.01705,
+       "best": "A small hollow wooden boat knocking against a wooden dock",
+       "seed": "701",
+       "sourceWaveSha256": "cbf6604f109bc395ebb2be36f1aadf4ad759f5795a2acdebc03a4f8f60b47935",
+       "sourceMetadataSha256": "ded480b4522b4f1f14d27268f4e5d211f7f57a35d1697d8eadfa261fa2538d2a"
+      },
+      "sourceWaveSha256": "cbf6604f109bc395ebb2be36f1aadf4ad759f5795a2acdebc03a4f8f60b47935",
+      "sourceMetadataSha256": "ded480b4522b4f1f14d27268f4e5d211f7f57a35d1697d8eadfa261fa2538d2a",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.saltwind-lighthouse.nw-boat-rigging",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Close field recording beside a small wooden fishing boat in a harbour basin. Weathered rigging creaks with low timber strain and loose ropes; several soft hollow hull knocks against quay fenders. Restrained irregular motion, no engine, no gulls, no music, no voices.",
+       "desc": "A wooden fishing boat rigging creaks and its hull knocks softly against a quay",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 47.83,
+       "model_load_s": 9.8,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "moss",
+       "rank": 5,
+       "p": 0.047263,
+       "best": "A moored wooden boat hull bumps gently while its taut rigging creaks in gusts",
+       "seed": "702",
+       "sourceWaveSha256": "2b2913a91a251e7995aba53e76134bf5f2202178c98ad6f52b7cd8aca5fc29de",
+       "sourceMetadataSha256": "54fd08d281a0d2e081c6c95a96633dcf5913ab3c8de722e5e882bb9571c700d7"
+      },
+      "sourceWaveSha256": "2b2913a91a251e7995aba53e76134bf5f2202178c98ad6f52b7cd8aca5fc29de",
+      "sourceMetadataSha256": "54fd08d281a0d2e081c6c95a96633dcf5913ab3c8de722e5e882bb9571c700d7",
+      "source": {
+       "model": "MOSS-SoundEffect v2.0",
+       "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+       "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+       "backend": "PyTorch mps bf16",
+       "family": "hum.saltwind-lighthouse.nw-boat-rigging",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close wooden sailing-boat rigging creaks with clear repeated low rope-and-timber groans as the boat gently rocks. Between the creaks the hollow wooden hull makes a few quiet knocks against quay fenders. Rigging creak is the main sound; hull knocks are softer. Sparse dry mechanical boat foley, no engine, no music, no birds, no voices.",
+       "desc": "A wooden fishing boat rigging creaks and its hull knocks softly against a quay",
+       "duration_s": 10,
+       "steps": 100,
+       "cfg": 4,
+       "gen_time_s": 51.84,
+       "model_load_s": 10.1,
+       "mps_driver_gb": 19.8
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 6,
+       "p": 0.008735,
+       "best": "A distant low hollow wooden temple drum sounding occasional slow single notes",
+       "seed": "701",
+       "sourceWaveSha256": "6ee908320493446b3c9574c2c397fb10b9f22569bf358bb64be8307510347a4e",
+       "sourceMetadataSha256": "4a03040c6c208772823e1fcf9fb20c42729b133c60be778d53ff66d06ed78ff0"
+      },
+      "sourceWaveSha256": "6ee908320493446b3c9574c2c397fb10b9f22569bf358bb64be8307510347a4e",
+      "sourceMetadataSha256": "4a03040c6c208772823e1fcf9fb20c42729b133c60be778d53ff66d06ed78ff0",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.saltwind-lighthouse.nw-boat-rigging",
+       "kind": "hum",
+       "seed": 701,
+       "prompt": "Close field recording beside a small wooden fishing boat in a harbour basin. Weathered rigging creaks with low timber strain and loose ropes; several soft hollow hull knocks against quay fenders. Restrained irregular motion, no engine, no gulls, no music, no voices.",
+       "desc": "A wooden fishing boat rigging creaks and its hull knocks softly against a quay",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 1.45,
+       "model_load_s": 9.5,
+       "mps_driver_gb": 11.46
+      }
+     },
+     {
+      "comparison": {
+       "engine": "medium",
+       "rank": 7,
+       "p": 0.001986,
+       "best": "An old damp wooden boardwalk gently creaking under weight",
+       "seed": "702",
+       "sourceWaveSha256": "affa1b5aae4e2cfba1ae0ddcdb42a31d269898cd87732fbc50e047c9a1568422",
+       "sourceMetadataSha256": "bf4e67492ceb664761a62b87f0fdc79943ca46274ecc80b1aea2271a19578f80"
+      },
+      "sourceWaveSha256": "affa1b5aae4e2cfba1ae0ddcdb42a31d269898cd87732fbc50e047c9a1568422",
+      "sourceMetadataSha256": "bf4e67492ceb664761a62b87f0fdc79943ca46274ecc80b1aea2271a19578f80",
+      "source": {
+       "model": "Stable Audio 3 medium",
+       "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+       "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+       "backend": "PyTorch mps fp32",
+       "family": "hum.saltwind-lighthouse.nw-boat-rigging",
+       "kind": "hum",
+       "seed": 702,
+       "prompt": "Close wooden sailing-boat rigging creaks with clear repeated low rope-and-timber groans as the boat gently rocks. Between the creaks the hollow wooden hull makes a few quiet knocks against quay fenders. Rigging creak is the main sound; hull knocks are softer. Sparse dry mechanical boat foley, no engine, no music, no birds, no voices.",
+       "desc": "A wooden fishing boat rigging creaks and its hull knocks softly against a quay",
+       "duration_s": 10,
+       "steps": 8,
+       "cfg": 1,
+       "gen_time_s": 2.05,
+       "model_load_s": 11.1,
+       "mps_driver_gb": 11.45
+      }
+     }
+    ]
+   }
+  ]
  }
 };

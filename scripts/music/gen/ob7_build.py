@@ -11,6 +11,7 @@ import difflib
 import hashlib
 import html
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -36,6 +37,38 @@ def read_compared_take(wav: Path, comparison: dict) -> dict:
         raise ValueError(f"{wav}: source changed or comparison lacks source hashes")
     return {"sourceWaveSha256": wave_hash, "sourceMetadataSha256": metadata_hash,
             "source": json.loads(source.read_text())}
+
+
+
+def shared_bed(reference: dict) -> tuple[dict, dict, int]:
+    """Reuse only an existing qualified catalogue body, never a copied take."""
+    source_set, key = reference.get("set"), reference.get("bed")
+    if not isinstance(source_set, str) or re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", source_set) is None:
+        raise ValueError("Shared bed requires a confined catalogue")
+    path = REPO / "public/assets/sfx" / source_set / "sfx.json"
+    source = json.loads(path.read_text())
+    bed = source.get("beds", {}).get(key)
+    if not isinstance(bed, dict) or not isinstance(bed.get("file"), str) or Path(bed["file"]).name != bed["file"]:
+        raise ValueError("Shared bed requires a direct existing recording")
+    provenance = [row for row in source.get("provenance", []) if row.get("file") == bed["file"]]
+    if len(provenance) != 1:
+        raise ValueError("Shared bed requires exact source provenance")
+    proof = provenance[0]
+    pair = proof.get("comparison", {})
+    if set(pair) != {"moss", "medium"} or proof.get("winner") not in pair or pair[proof["winner"]]["rank"] > 5:
+        raise ValueError("Shared bed requires its original qualified paired comparison")
+    asset = path.parent / bed["file"]
+    data = asset.read_bytes()
+    if not 0 < len(data) <= 1_000_000:
+        raise ValueError("Shared bed exceeds the existing blob bound")
+    if not 0 <= bed["loopStart"] < bed["loopEnd"] <= bed["duration"]:
+        raise ValueError("Shared bed has invalid original loop bounds")
+    file = {"set": source_set, "file": bed["file"]}
+    return {**bed, "file": file}, {**proof, "file": file, "reuse": {
+        "catalogue": str(path.relative_to(REPO)), "catalogueSha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "bed": key, "recordingSha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+        "credit": source["credit"], "licence": source["licence"], "gap": reference["gap"],
+    }}, len(data)
 
 
 def score_files(raw: Path, plot: str) -> list[Path]:
@@ -210,12 +243,29 @@ def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
     manifest = {"model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium", "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
                 "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
                 "beds": {}, "hums": {}, "oneshots": {}, "provenance": [], "rejected": []}
+    shared_bytes = 0
     for family, row in SFX.items():
         if row["into"] != plot:
             continue
-        if row.get("shipping", True) is False:
+        if "reuse" in row:
+            if row["kind"] != "bed":
+                raise ValueError("Only an ambience bed may reuse a catalogue recording")
+            entry, proof, shared_bytes = shared_bed(row["reuse"])
+            manifest["beds"][f"{plot}.ambience"] = entry
+            manifest["provenance"].append(proof)
+            manifest["credit"] += f"; shared coastal bed from {row['reuse']['set']}"
             takes = comparisons.get("sfxTakes", {}).get(family, [])
             if {take["engine"] for take in takes} != {"moss", "medium"} or any(take["rank"] <= 5 for take in takes):
+                raise ValueError("Replaced bed requires the retained failing paired comparisons")
+            expected = {(engine, wav.stem) for engine in ("moss", "medium") for wav in (raw / engine / family).glob("*.wav")}
+            if {(take["engine"], take["seed"]) for take in takes} != expected or len(takes) != len(expected):
+                raise ValueError("Replaced bed has missing or duplicate source comparisons")
+            manifest["rejected"].append({"family": family, "reason": "Own bed failed; canonical qualified coastal bed reused",
+                "takes": [{"comparison": take, **read_compared_take(raw / take["engine"] / family / f"{take['seed']}.wav", take)} for take in takes]})
+            continue
+        if row.get("shipping", True) is False:
+            takes = comparisons.get("sfxTakes", {}).get(family, [])
+            if {take["engine"] for take in takes} != {"moss", "medium"} or ("omission" not in row and any(take["rank"] <= 5 for take in takes)):
                 raise ValueError(f"{family}: rejected takes need complete failing engine comparisons")
             expected = {(engine, wav.stem) for engine in ("moss", "medium") for wav in (raw / engine / family).glob("*.wav")}
             actual = {(take["engine"], take["seed"]) for take in takes}
@@ -225,7 +275,7 @@ def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
             for take in takes:
                 wav = raw / take["engine"] / family / f"{take['seed']}.wav"
                 rejected.append({"comparison": take, **read_compared_take(wav, take)})
-            manifest["rejected"].append({"family": family, "reason": row["rejection"], "takes": rejected})
+            manifest["rejected"].append({"family": family, "reason": row.get("omission", row.get("rejection")), "takes": rejected})
             continue
         pair = comparisons["sfx"][family]
         engine = min(pair, key=lambda key: (pair[key]["rank"], -pair[key]["p"]))
@@ -239,7 +289,7 @@ def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
         manifest["beds" if row["kind"] == "bed" else "hums"][ident] = entry
         manifest["provenance"].append({"file": entry["file"], "winner": engine, "comparison": pair, **source})
     write(sfx / "sfx.json", manifest)
-    total = sum(path.stat().st_size for folder in (music, sfx) for path in folder.iterdir() if path.is_file())
+    total = shared_bytes + sum(path.stat().st_size for folder in (music, sfx) for path in folder.iterdir() if path.is_file())
     if total > 3_000_000 or any(path.stat().st_size > 1_000_000 for folder in (music, sfx) for path in folder.iterdir()):
         raise ValueError(f"{plot}: audio byte budget refused ({total})")
     for staged, destination in [(music, REPO / 'public/assets/music' / plot), (sfx, REPO / 'public/assets/sfx' / plot)]:
@@ -297,6 +347,15 @@ def activation(raw: Path, plot: str) -> None:
              **{row["id"]: sfx["hums"][f"{plot}.{row['id']}"]["file"] for row in anchors}}
     for key, file in files.items():
         folder = music_dir if key == "score" else sfx_dir
+        if isinstance(file, dict):
+            if key != "ambience":
+                raise ValueError("Only ambience may reference a shared catalogue")
+            _, proof, _ = shared_bed({"set": file["set"], "bed": sfx["provenance"][0]["reuse"]["bed"], "gap": sfx["provenance"][0]["reuse"]["gap"]})
+            folder = REPO / "public/assets/sfx" / file["set"]
+            if proof["reuse"]["recordingSha256"] != sfx["provenance"][0]["reuse"]["recordingSha256"]:
+                raise ValueError("Shared bed changed since publication")
+            files[key] = {**file, "dir": f"/assets/sfx/{file['set']}/"}
+            file = file["file"]
         if Path(file).name != file or not (folder / file).is_file():
             raise ValueError(f"Missing or unconfined recording: {file}")
     binding = {"idea": plot, "source": {"dir": f"/assets/music/{plot}/", "manifestKey": plot},
@@ -319,6 +378,9 @@ def activation(raw: Path, plot: str) -> None:
         metadata["audio"] = {"catalogue": True, "ambience": f"ambience.{plot}", "score": f"score.{plot}", "bed": "none"}
         metadata["assetGlobs"] = list(dict.fromkeys([*metadata.get("assetGlobs", base["assetGlobs"]),
                                                     f"public/assets/music/{plot}/**", f"public/assets/sfx/{plot}/**"]))
+        shared = files["ambience"]
+        if isinstance(shared, dict):
+            metadata["assetGlobs"].append(f"public/assets/sfx/{shared['set']}/{shared['file']}")
 
     def output(data: dict) -> None:
         rows = [row for row in data["outputs"] if row["idea"] == plot]
