@@ -690,5 +690,65 @@
         "reach": 32
       }
     ]
+  },
+  "alien-plain": {
+    "idea": "alien-plain",
+    "source": {
+      "dir": "/assets/music/alien-plain/",
+      "manifestKey": "alien-plain"
+    },
+    "sfxDir": "/assets/sfx/alien-plain/",
+    "files": {
+      "score": "take-a-5d5f5f1de41f.m4a",
+      "ambience": {
+        "set": "frostline-peaks",
+        "file": "ambience-b9f79739ab4a.m4a",
+        "dir": "/assets/sfx/frostline-peaks/"
+      },
+      "monolith": "monolith-5f8937babd37.m4a",
+      "dome-habitat": "dome-habitat-e8edbb7bf6b0.m4a",
+      "crystal-bed": "crystal-bed-718e9c834ea2.m4a",
+      "rock-outcrop": "rock-outcrop-26127eb4de91.m4a",
+      "avenue-lamp": "avenue-lamp-b851981d958c.m4a",
+      "entry-forecourt": "entry-forecourt-ca5ca0d04e55.m4a"
+    },
+    "spots": [
+      {
+        "id": "monolith",
+        "x": 0,
+        "z": 0,
+        "reach": 80
+      },
+      {
+        "id": "dome-habitat",
+        "x": 218.75,
+        "z": 218.75,
+        "reach": 35
+      },
+      {
+        "id": "crystal-bed",
+        "x": 156.25,
+        "z": 218.75,
+        "reach": 30
+      },
+      {
+        "id": "rock-outcrop",
+        "x": 93.75,
+        "z": 218.75,
+        "reach": 30
+      },
+      {
+        "id": "avenue-lamp",
+        "x": 4.2,
+        "z": 92,
+        "reach": 12
+      },
+      {
+        "id": "entry-forecourt",
+        "x": 218.75,
+        "z": 31.25,
+        "reach": 40
+      }
+    ]
   }
 }

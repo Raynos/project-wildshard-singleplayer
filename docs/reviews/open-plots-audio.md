@@ -459,3 +459,48 @@ walk, golden bridge, memory and official Simulator stay open on the
 ensuing immutable audio source. This native playback proof makes no
 performance, memory or complete OP18 claim. Committed locally while
 Jake's audio/plots/docs push hold remains in effect.
+
+Pastel Alien Plain publication `54573d2778` keeps both qualified MiniMax
+scores. **A, seed 701** ships: 75.08 s, **2.23%** measured vocal energy;
+B is 62.28 s and **0.50%**. Both meet the unchanged 10% voice, duration,
+clipping, silence and loop checks. Six local spots pass at ranks
+**2 / 2 / 1 / 2 / 1 / 1** against 122 unchanged descriptions plus
+three foils. All original and paired retake sources remain retained;
+four own-bed takes fail **21 / 20 / 13 / 26**, without a rank waiver.
+
+O3 and G872 accept canonical **Frostline** as a measured/described
+Alien fit: the near-tonal steady low sub-hum is the defining layer of
+the brief. **-24.1 LUFS, LRA 0.5 LU, peak -9.1 dBFS, flatness 0.001**;
+75% of energy below 150 Hz, 21% at 150–500 Hz, under 2% above 500 Hz.
+Its exact **152,848 B** body is referenced without copying: original
+2.5–17.5 s loop, catalogue duration 18.5 s and paired ranks one/one.
+The original source prompt names an alpine chairlift; no actual
+chairlift in the Alien plot is claimed. Named gaps: **no continuous
+glassy insect chirps and no breeze in the bed**; six local spots carry
+detail. Credits retain all measurements, provenance and gaps. No ear
+claim; Jake judges the original recording on the listening page.
+
+Package **1,542,658 B** including the canonical bed; newly published
+**1,389,810 B**, each file under 1 MB. All source hashes, native AAC
+packet admission and decoded loop bounds pass. Full native bar 10
+passes in **18 s** before landing on `0a547b2ee0-mw1c29d9`,
+bound to verified full source `0a547b2ee01fc63e74d0e147cd59ee5ab815bbf2`: own A recording,
+seven decoded cue loops, native pause/resume, sustained score and bed,
+six positional gains **0.356883–0.399081** and heading
+pans **-0.698203–0.696526**, no page errors; browser closed.
+Muted iPhone 16 Pro, 402 × 874, actual phone tier, 2× render scale.
+
+Against immutable BEFORE `300a65548b`, all **158 prior file bodies,
+6,131,379 B**, and **32/34 old sections** remain exact, no removals.
+Only audio/audio and the defining-source map tilesHash stamp differ;
+the map image stays exact. Eight active AAC bodies total **1,079,779 B**
+and the exact 242 B audio-only native client plan joins. Full candidate
+listed bodies and ordered pack entries verify. Phone wire
+**3,029,418 → 4,088,773 B**: G872 approves exact **+1,059,355 B**,
+retaining the original **0 B margin**; the old-ceiling refusal remains.
+
+Raw records: `tmp/sp-x2-ob7/pastel-*`. Final matched/control, maintained
+walk, golden bridge, memory and official Simulator remain open with
+X1/X8 on the ensuing immutable source. No performance, memory or full
+OP20 close is claimed. This source is committed locally under Jake’s
+audio/plots/docs push hold, without a push request.

@@ -25,7 +25,19 @@
         }
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.alien-plain",
+        "score": "score.alien-plain",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/alien-plain/**",
+        "public/assets/sfx/alien-plain/**",
+        "public/assets/sfx/frostline-peaks/ambience-b9f79739ab4a.m4a"
+      ]
     },
     "layout": "alien-plain",
     "scaffold": true,
