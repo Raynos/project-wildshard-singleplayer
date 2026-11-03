@@ -23,8 +23,11 @@ section).
 **Finding: the practice rooms break the rule today.** Nalati's riding course and Nine Dragon's grapple course run in an
 engine playground at **`PLAYGROUND_Y = 3000`** (`src/engine/practice/playground/Playground.ts:26`), declared by each
 shard's `practice.course` client-plan feature (`src/shards/nalati-grasslands/generators/courseScene.ts`,
-`src/shards/nine-dragon-stack/generators/courseScene.ts`). That is 2,750 m above the cube. W6d moves the course host
-into the world; until then the validator carries a dated allowance for `practice.course` rooms (Q1).
+`src/shards/nine-dragon-stack/generators/courseScene.ts`). That is 2,750 m above the cube. But a playground is "a
+standalone dev level for one shard's own verb, entered from the Explore hub" (`Playground.ts:1-13`), hung that high on
+purpose so the whole shard is past the 2.6 km far plane and culled; play never reaches it. So the rule reads playable
+volumes only, and Explore-hub playgrounds are listed as a dev-tool exemption, like the Practice arena (Q1). The
+showcase's courses are in its world (W6d), not playgrounds.
 
 **Decision-module cap.** `test/decision-module-cap.test.ts:10` pins **at most nine distinct decision modules per
 product** (`src/format/decisionScripts.ts`, D59). The west alone needs about seven (course law, physics yard, skittles,
@@ -41,7 +44,7 @@ volumes and a portal to another product's coordinates (each refused); update `te
 |---|---|---|---|
 | Pine Hollow | crag cave holes/cuts (`caveInterior`) | inside | `wildshard validate out/pine-hollow` |
 | Nine Dragon | `portal.ride` destination | inside | validate + `test/declared-portal-entry.test.ts` |
-| Nalati | arena room; practice room y 3000 | arena inside; room on the allowance | validate + `test/arena-portal.test.ts` |
+| Nalati | arena room; Explore playground y 3000 | arena inside; playground exempt (dev tool) | validate + `test/arena-portal.test.ts` |
 | Driftwood, Sky, Signal, templates | no interiors | pass | validate |
 
 No save risk: nothing moves.
@@ -64,9 +67,10 @@ the cap reads Jake's number.
 
 ## 6. Questions for Jake
 
-1. **The practice rooms at y 3000** (Nalati's riding course, Nine's grapple course). (a) a dated allowance now and move
-   both into the world in W6d; (b) exempt practice rooms forever as an engine tool. **Recommended (a):** 19ad says no
-   cheating past the cube, and W6d needs an in-world course anyway.
+1. **The Explore playgrounds at y 3000** (Nalati's riding course, Nine's grapple course). (a) exempt them as dev tools
+   entered from the Explore hub, like the Practice arena; (b) move them inside each cube. **Recommended (a):** play never
+   reaches them, and moving them under the shard would draw the whole shard behind the room (they hang at 3 km so the
+   shard is culled). The cube rule then binds every portal, interior and arena a player can reach.
 2. **The decision-module cap.** (a) raise 9 → 32 per product; (b) replace the count with a memory budget (Wasm pages);
    (c) keep 9 and pack several laws into one module. **Recommended (a):** one line and a test; each module is a 64 KB
    page, so 32 is 2 MB; (c) would make the showcase's scripts unreadable as zone recipes (19m).

@@ -44,8 +44,8 @@ Work:
 | **records** (new host) | `ui/records: [{ id, label, unit: 'time'|'score', better: 'lower'|'higher', board?: { at, yaw } }]`; saved per shard (`ws.records.v1`), read by boards, feats (W9b) and the Bag | game; one host for five courses, first user here |
 | PB board | a world sign row drawing a record's best and last | game client-only view |
 
-Host bar: records 6/6 once W6d (course timer) is its second internal user and Nalati/Nine move onto it (W6d), so it
-lands with a G595 pending row naming W6d. The dummy placement host has one user (the showcase) and the practice room
+Host bar: records has one shard user (the showcase's five boards) until another shard keeps a best; Nalati's and Nine's
+Explore playgrounds (dev tools, W0e) may write to it in W6d (Q3), else it lands with a G595 pending row. The dummy placement host has one user (the showcase) and the practice room
 underneath it; it needs your G595 approval (Q4). Guards: `engine-words` (no "sword"/"spear" in engine: the
 dummy is a "target figure"), `no-url-switch`. Tests: extend `test/practice-loan.test.ts`, `test/held-polearm-preparation.test.ts`,
 `test/held-arms-platform.test.ts`; new `practice-dummies.test.ts`, `records.test.ts` (save, compare, board text).
@@ -83,9 +83,10 @@ reload; the practice room still lends its kit.
    every weapon inside its fence (try before you buy); (b) only weapons you own work at the range. **Recommended (a):**
    a level-1 player can try every weapon in the first minute, and the shop sells what they liked.
 2. **Personal bests: per shard or global?** (a) saved per shard (like levels, 19a); (b) one global table. **Recommended (a):**
-   each shard's courses are its own, and Nalati's and Nine's courses keep their own bests when they move (W6d).
-3. **Should Nalati's and Nine's course bests start persisting** when they move onto records (today they reset on
-   reload)? (a) yes; (b) keep them in memory. **Recommended (a):** a best that vanishes on reload is a bug.
+   each shard's courses are its own.
+3. **Nalati's and Nine's playground bests** (Explore dev rooms; today they reset on reload). (a) they write to records
+   too (a best that survives a reload, and the host gets two users); (b) leave them in memory. **Recommended (a):** one
+   line each in W6d, and it gives the records host its second real user.
 4. **Approve the placeable dummy host (G595, one user).** (a) approve it as platform (the practice room's dummies are
    its engine half, and every future shard with a training yard can place them); (b) keep the dummies as showcase rows
    over the engine pieces with no game host. **Recommended (a):** it passes tests 2–6 and a training yard is a common
