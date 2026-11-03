@@ -25,7 +25,8 @@ it('weights actual must-go lines and keeps unknown M2 evidence out of a point cl
  for(const slug of MILESTONE_SHARDS)rows[slug]={m3:m3Progress(slug,input),gridReady:{verdict:'unknown',criteria:{}}};
  const result=planProgress(rows);
  expect(result.m3).toMatchObject({cut:480,mustGo:600,fraction:.8});
- expect(result.m2).toMatchObject({lower:0,upper:1,unknown:10,total:10,plots:15});
+ // Seven core products carry M2 evidence; the eighteen plot cells report separately.
+ expect(result.m2).toMatchObject({lower:0,upper:1,unknown:7,total:7,plots:18});
  expect(result.plan?.lower).toBeCloseTo(.48);
  expect(result.plan?.upper).toBeCloseTo(.88);
  expect(readinessVerdict({})).toBe('unknown');
@@ -120,8 +121,8 @@ it('reports frame floor alongside M2 without changing visual readiness or plan w
  const rows:Parameters<typeof planProgress>[0]={};
  for(const slug of MILESTONE_SHARDS)rows[slug]={m3:m3Progress(slug,input),gridReady:{verdict:'pass',criteria:{},frameFloor:{verdict:'fail',evidence:'p95 50 ms'}}};
  const result=planProgress(rows);
- expect(result.m2).toMatchObject({ready:6,unknown:4,total:10});
- expect(result.frameFloor).toEqual({ready:0,fail:6,unknown:4,total:10});
- expect(result.plan?.lower).toBeCloseTo(.72);
+ expect(result.m2).toMatchObject({ready:6,unknown:1,total:7});
+ expect(result.frameFloor).toEqual({ready:0,fail:6,unknown:1,total:7});
+ expect(result.plan?.lower).toBeCloseTo(.48+.4*6/7);
  expect(result.plan?.upper).toBeCloseTo(.88);
 });
