@@ -41,7 +41,7 @@ const tiledLook: { materials: { glow: { family: string; graph: typeof glowFlicke
   landmark: { family: 'graph', graph: landmark } } };
 
 /** One idea row's output (validated whole by the build's parseShardfile; SF88g: one per idea). */
-function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly kitGround?: string; readonly water?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
+function project(row: { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly worldMaterials?: Readonly<Record<string, string>>; readonly landmarkLight?: string; readonly coarseLandmark?: string; readonly kitGround?: string; readonly water?: string; readonly lookKeys?: (typeof source)["look"]["keys"] }): (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
     identity: { slug: string; name: string; author: string; revision: number; seed: number; };
     accent: string;
     spawn: (typeof source)["spawn"];
@@ -83,7 +83,10 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
     // RM8.2: its kit models draw only at L0 (`detail_`); their boxes stand in at L1 (`coarse_`)
     world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_', detail: 'detail_', coarse: 'coarse_', farMode: 'replace', near: 'coarse',
       materials: row.worldMaterials ?? (row.scaffold === true ? { Paving: 'paving', Kit: 'kit', Glow: 'glow', Pool: 'pool' }
-        : { Paving: 'paving', Kit: 'kit', Water: 'water', Glow: 'glow', Pool: 'pool', Landmark: 'landmark', Poster: 'billboard' }) },
+        : { Paving: 'paving', Kit: 'kit', Water: 'water', Glow: 'glow', Pool: 'pool', Landmark: 'landmark', Poster: 'billboard',
+          // OB10: a row's `coarseLandmark: "lit"` draws its coarse (L1) landmark in its landmark graph, in its vertex colours
+          // (no texture: meshMap colourOrVertex), so the road entry sees it lit as the near model is, not dark in the kit
+          ...(row.coarseLandmark === 'lit' ? { LandmarkCoarse: 'landmark' } : {}) }) },
   };
   return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...look, keys },
     // G608: the `far_` stand-ins draw only in the far proxy

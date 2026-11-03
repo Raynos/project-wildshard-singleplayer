@@ -893,6 +893,7 @@
         ]
       },
       "layout": "night-market",
+      "coarseLandmark": "lit",
       "lookKeys": [
         {
           "time": 0,

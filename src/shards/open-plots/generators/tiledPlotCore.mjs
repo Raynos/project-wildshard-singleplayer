@@ -103,7 +103,7 @@ const json = (bytes) => JSON.parse(new TextDecoder('utf-8', { fatal: true }).dec
 
 /** Build a tiled idea's world: { parts, image textures } ready for the writer. GR9: every input arrives through
  *  `read(path)` (a repo-relative path: the build program's declared, cached inputs), so this module opens no file. */
-async function tiledPlot(read, tools, layoutName, plot, codec) {
+async function tiledPlot(read, tools, layoutName, plot, codec, litCoarse = false) {
   const layout = json(read(`src/shards/open-plots/data/layouts/${layoutName}.json`));
   const palette = Object.fromEntries(Object.entries(layout.palette).map(([key, hex]) => [key, linear(hex)]));
   // NM5: the posters' faces carry their picture's mean colour (the Poster material draws the picture alone), for the near view
@@ -152,7 +152,7 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
   }
   plot.pools(parts, palette);
   // the landmark: its near model as drawn, its far model in its texture's colours (far only, and the collider)
-  const landmark = { positions: [], normals: [], colours: [], uvs: [] }, farLandmark = { positions: [], colours: [] };
+  const landmark = { positions: [], normals: [], colours: [], uvs: [] }, farLandmark = { positions: [], normals: [], colours: [] };
   let nearImage = null;
   if (layout.landmark !== null) {
     const near = await readModel(read(layout.landmark.near), codec), far = await readModel(read(layout.landmark.far), codec);
@@ -162,7 +162,7 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
     const farImage = await tools.readImagePixels(far.image), colourOf = sampler(farImage), nearColourOf = sampler(nearImage);
     // NM5: its vertex colours are its texture's (the Landmark material draws the texture alone), for the near view and the map
     for (const c of placed) { landmark.positions.push(...c.p); landmark.normals.push(...c.n); landmark.colours.push(...nearColourOf(c.uv)); landmark.uvs.push(...c.uv); }
-    for (const c of farPlaced) { farLandmark.positions.push(...c.p); farLandmark.colours.push(...colourOf(c.uv)); }
+    for (const c of farPlaced) { farLandmark.positions.push(...c.p); farLandmark.normals.push(...c.n); farLandmark.colours.push(...colourOf(c.uv)); }
     for (let i = 0; i < farPlaced.length; i += 3) {
       const [a, b, c] = farPlaced.slice(i, i + 3);
       if (a !== undefined && b !== undefined && c !== undefined) parts.solid.tri('Solid', a.p, b.p, c.p);
@@ -178,7 +178,7 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
     surface.colours = bakeLanternVertices(surface, lanterns, { gain: LANTERN_BAKE.gain, radius: LANTERN_BAKE.radius, cut: LANTERN_BAKE.cut });
   }
   console.info(`open-plots: ${layoutName} lantern bake: ${lanterns.length} emitters, gain ${LANTERN_BAKE.gain}`);
-  standIns(parts, farLandmark, linear(layout.palette.ring));
+  standIns(parts, farLandmark, linear(layout.palette.ring), litCoarse);
   return { parts, landmark, farLandmark, nearImage, poster: layout.posters === null ? null : read(layout.posters.image), ring: layout.palette.ring };
 }
 
@@ -189,7 +189,7 @@ async function tiledPlot(read, tools, layoutName, plot, codec) {
  * and the ring in its colour, so an L1 tile draws Kit and Glow alone and holds no texture. The pools add light only near;
  * L1 leaves them out.
  */
-function standIns(parts, farLandmark, ring) {
+function standIns(parts, farLandmark, ring, litCoarse) {
   const out = parts.standIns.part('standIns');
   const add = (part, colour) => {
     out.positions.push(...part.positions); out.normals.push(...part.normals);
@@ -202,13 +202,17 @@ function standIns(parts, farLandmark, ring) {
     const n = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]], l = Math.hypot(...n) || 1;
     for (let k = 0; k < 3; k++) normals.push(n[0] / l, n[1] / l, n[2] / l);
   }
-  add(parts.Water.part('Water')); add(parts.Poster.part('Poster')); add({ positions: p, normals, colours: farLandmark.colours }); add(parts.Paving.part('Paving'), ring);
+  add(parts.Water.part('Water')); add(parts.Poster.part('Poster'));
+  // OB10: a self-lit coarse landmark draws in its own node (`coarse_landmark`), not among the kit's stand-ins
+  if (!litCoarse) add({ positions: p, normals, colours: farLandmark.colours });
+  add(parts.Paving.part('Paving'), ring);
 }
 
 /** GR9: a tiled idea's world GLB bytes, from inputs read through `read(path)`; nothing is written. */
 export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
   const { Document, WebIO } = codec;
-  const { parts, landmark, farLandmark, nearImage, poster: posterBytes, ring } = await tiledPlot(read, tools, idea.layout, plot, codec);
+  const litCoarse = idea.coarseLandmark === 'lit';
+  const { parts, landmark, farLandmark, nearImage, poster: posterBytes, ring } = await tiledPlot(read, tools, idea.layout, plot, codec, litCoarse);
   const doc = new Document(), buffer = doc.createBuffer(), scene = doc.createScene('plot');
   const texture = async (name, pixels) => doc.createTexture(name).setImage(await tools.writeImagePixels(pixels)).setMimeType('image/png');
   const materials = {
@@ -218,6 +222,8 @@ export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
     Pool: doc.createMaterial('Pool').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0),
     Water: doc.createMaterial('Water').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.12).setMetallicFactor(0.2),
     Landmark: doc.createMaterial('Landmark').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0).setBaseColorTexture(nearImage === null ? null : await texture('landmark', nearImage)),
+    // OB10: the coarse landmark in its landmark graph without a texture (meshMap colourOrVertex reads its vertex colours)
+    LandmarkCoarse: doc.createMaterial('LandmarkCoarse').setBaseColorFactor([1, 1, 1, 1]).setRoughnessFactor(0.8).setMetallicFactor(0),
     Poster: doc.createMaterial('Poster').setBaseColorFactor([1, 1, 1, 1]).setMetallicFactor(0).setBaseColorTexture(posterBytes === null ? null : await texture('poster', await tools.readImagePixels(posterBytes))),
   };
   for (const material of [materials.Landmark, materials.Poster]) material.getBaseColorTextureInfo()?.setWrapS(33071).setWrapT(33071).setMinFilter(9987).setMagFilter(9729);
@@ -259,6 +265,9 @@ export async function tiledPlotWorldBytes(read, tools, idea, plot, codec) {
   node('detail_glow', parts.detailGlow.part('detailGlow'), materials.Glow);
   node('coarse_kit', parts.coarse.part('coarse'), materials.Kit);
   node('coarse_standins', parts.standIns.part('standIns'), materials.Kit);
+  // OB10: a row's `coarseLandmark: "lit"` draws its coarse landmark in its own landmark graph (`LandmarkCoarse`, no
+  // texture: the graph shades its vertex colours as it shades the near model's texture)
+  if (litCoarse) node('coarse_landmark', farLandmark, materials.LandmarkCoarse);
   // the far proxy's own nodes (far only): the tiles' stand-ins and boards, the landmark's far model
   node('far_tiles', parts.far.part('far'), materials.Kit, { normals: false });
   node('far_landmark', { ...farLandmark, normals: [], uvs: [] }, materials.Kit, { normals: false });
