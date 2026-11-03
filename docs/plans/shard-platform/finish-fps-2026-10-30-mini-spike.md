@@ -334,7 +334,11 @@ pose. HEAD `0c3e3ca` preview → the same tree with the cuts:
 | Trail (−22, −90, yaw 0.75π) | 153 (153) | 128 (128) |
 
 The cove maximum is one streaming frame after the pose jump, in both
-builds. Three cuts, all Driftwood-only (Pine and Nine untouched, G908;
+builds. Simulator before, same SHA (sp-x1 OB8-GRID-HOME-DRAWS, official
+window on `0c3e3ca16b`): home spawn 181 max draws, 1,055,435 median
+triangles, p95 35 / max 47 ms, with 6 residents still pending. The cuts
+removed 41 Chromium draws at spawn. No Simulator after reading is
+claimed yet: it belongs to the next milestone Simulator run. Three cuts, all Driftwood-only (Pine and Nine untouched, G908;
 no multi-draw, E271):
 - **Grid double L1 (exact in intent, ~10 draws):** Driftwood's
   `farStandIn` assembly installed every coarse L1 props tile itself
