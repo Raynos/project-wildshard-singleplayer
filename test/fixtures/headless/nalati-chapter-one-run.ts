@@ -38,7 +38,16 @@ if(stage!=='plains'){
   inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,
     stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':stage==='carvings'?'carving-arrival':stage==='king-entry'?'carvings':stage==='king-phase-one'?'king-entry':stage==='king-phase-two'?'king-phase-one':stage==='king-victory'?'king-phase-two':'king-victory');checkChapterLedger(inherited.parts,inherited.tick,inherited.reportStart);
 }
-const started=performance.now(),session=await beginProductSession('nalati-grasslands',kingStage?'nalati-king':'nalati-chapter',inherited?.snapshot),{product,assets}=session;
+const started=performance.now();
+// The outer child deadline includes static source imports. Keep both clocks
+// visible so a late initialization cannot look like a replay/finalization stall.
+const phase=(name:string):void=>{console.info(JSON.stringify({stage,phase:name,ms:performance.now()-started,childMs:process.uptime()*1000}));};
+phase('imports-ready');
+const session=await beginProductSession('nalati-grasslands',kingStage?'nalati-king':'nalati-chapter',inherited?.snapshot),{product,assets}=session;
+phase('product-session-started');
+// Observe the original readiness promise without moving its admission or
+// changing the point where recording/replay must await its complete commit.
+void session.ready().then(()=>phase('worker-ready'),()=>phase('worker-refused'));
 const descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor?.indexHash);
 if(inherited!==undefined)assert.equal(inherited.source,descriptor.indexHash);
 const inheritedParts=inherited?.parts.length??0,inheritedPartsHash=inherited===undefined?undefined:chapterWireHash(chapterWire(inherited.parts));
@@ -49,7 +58,9 @@ let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
 let pipeline:ReturnType<typeof checkedReplayPipeline<ChapterPart>>|undefined;
 try{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  phase('physics-loaded');
   resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier},kingStage?prepareKing:prepareHeadlessRuntime,inherited?.snapshot);
+  phase('resident-created');
   const active=resident,{host}=active,ready=session.ready(),history:ChapterPart[]=inherited?.parts??[],firstTick=host.state.tick;
   let commandsCount=history.reduce((sum,part)=>sum+(part.plan.segments[0]?.frames??[]).reduce((count,frame)=>count+frame.length,0),0);
   if(inherited!==undefined){
