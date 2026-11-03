@@ -39,7 +39,7 @@ const GROUPS = [
     ['UI-28', 'minimap-band', 'Minimap band border', 'new', 'An orange arc on the rim toward a higher band, BAND 3 · LV 7–9 AHEAD.'],
     ['UI-29', 'vault-room', 'Training Vault sealed room', 'new', 'Picked A: inside the vault the tracked quest hides and one chip takes its place, TRAINING VAULT | ROOM 2/4 · 3 LEFT; the quest chip comes back when you leave.'],
     ['UI-30', 'shrine-complete', 'SHRINE COMPLETE card', 'reuses the complete card', 'Time, best, deaths, rooms, the chest and the trophy.'],
-    ['UI-31', 'trick-score', 'Hover park trick score', 'new', 'A trick word over the board and the running score chip.'],
+    ['UI-31', 'trick-score', 'Hover park trick score', 'new', 'A trick word over the board; the running score takes the quest chip’s place while you’re in the park.'],
   ]],
   ['Economy', [
     ['UI-32', 'upgrades-bench', 'Tinker Rook: UPGRADES / BENCH', 'extends ShopPanel', 'Two tabs, Scrip and parts on every tile, LV tags and locks.'],

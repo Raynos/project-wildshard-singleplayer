@@ -324,10 +324,10 @@ const ITEMS = [
       c.querySelector('.ws-complete-row2').innerHTML = '<button type="button" class="ws-complete-btn sec">Run it again</button><button type="button" class="ws-complete-btn sec">Best times</button>';
     }),
     teardown: async (page) => { await page.evaluate(() => { document.querySelector('.ws-complete [data-act=keep]')?.click(); }); await sleep(900); } },
-  { id: 'UI-31', slug: 'trick-score', title: 'Hover park: trick words + the running score (W5b)',
+  { id: 'UI-31', slug: 'trick-score', title: 'Hover park: trick words + the score in the quest chip’s place, in the park only (W5b)', note: 'quest chip hidden in the park',
     setup: async (page) => { await atPier(page); await page.evaluate(() => { window.__wildshard.world.player.setHover(true); }); await sleep(2200); await clearToasts(page); },
     inject: async (page) => {
-      await page.evaluate(() => { const l = window.__P.add('#hud', '<div class="ws-combat-layer"></div>'); const f = window.__P.add(l, '<div class="ws-combat-float show trick"><b>360</b><i>1.4 s air · ×3</i></div>'); f.style.transform = `translate3d(${innerWidth / 2}px,${innerHeight * 0.36}px,0)`; });
+      await page.evaluate(() => { const l = window.__P.add('#hud', '<div class="ws-combat-layer"></div>'); const f = window.__P.add(l, '<div class="ws-combat-float show trick"><b>360</b><i>1.4 s air · ×3</i></div>'); f.style.transform = `translate3d(${innerWidth / 2}px,${innerHeight * 0.36}px,0)`; window.__P.gone(document.querySelector('.ws-quest-obj')); });
       await chipWith(page, { title: '2,450', sub: 'Trick score · ×3 combo · PB 3,120', tone: 'plain' }, G.board, ['clock']);
     }, teardown: async (page) => { await chipOff(page); await page.evaluate(() => { window.__wildshard.world.player.setHover(false); }); await sleep(1200); } },
 
