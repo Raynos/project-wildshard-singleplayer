@@ -50,6 +50,23 @@
       "lyrics": "loop",
       "bpm": 88,
       "prompt": "Instrumental video game score, 88 BPM, 4/4. A red-and-gold lantern night market beside quiet canals at warm dusk. Delicate plucked pipa and guzheng trade a short pentatonic melody with a gentle bamboo flute, rounded acoustic bass and restrained wooden percussion. Welcoming, curious, gently bustling instrumental exploration. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Acoustic detailed production, no environmental sound effects, no vocals, no dialogue."
+    },
+    "ob7/jungle-ziggurat": {
+      "style": "ob7",
+      "slot": "jungle-ziggurat",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 96,
+      "prompt": "Instrumental video game score, 96 BPM, 4/4. A freshly painted Mesoamerican temple town just after tropical rain, bright warm afternoon. Gentle wooden flute melody answers warm hand drums and soft seed shakers, rounded acoustic bass and spacious plucked strings. Lively welcoming discovery, clean intact cinnabar temples beside jade pools, cheerful and unhurried rather than combat or mystery. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue."
+    },
+    "ob7/patchwork-fairground": {
+      "style": "ob7",
+      "slot": "patchwork-fairground",
+      "duration": 75,
+      "lyrics": "loop",
+      "bpm": 120,
+      "beatsPerBar": 3,
+      "prompt": "Instrumental video game score, 120 BPM, 3/4 waltz time. Jaunty travelling fair in warm buttermilk morning light. Bright mechanical band organ carries a playful short waltz melody, light accordion answers over plucked upright bass on beat one and restrained brushes on beats two and three. Toy-box primaries, striped tents, a carousel and a giant Ferris wheel, friendly delighted exploration, never sinister or frantic. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue."
     }
   }
 }

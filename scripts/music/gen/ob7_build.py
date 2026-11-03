@@ -188,7 +188,8 @@ def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
     if not qualified:
         raise ValueError(f'{plot}: neither score take passes the shipping checks')
     winner = max(qualified, key=lambda row: row["recommendationScore"])
-    slot = {**winner["encoded"], "calm": winner["encoded"]["file"], "bpm": winner["metrics"]["loop"]["grid_bpm"], "beatsPerBar": 4}
+    slot = {**winner["encoded"], "calm": winner["encoded"]["file"], "bpm": winner["metrics"]["loop"]["grid_bpm"],
+            "beatsPerBar": SCORE["jobs"][f"ob7/{plot}"].get("beatsPerBar", 4)}
     write(music / "music.json", {"genre": plot, "model": "MiniMax Music 3", "credit": "Music: MiniMax-Music3",
                                  "licence": "MiniMax-Music3 Community License",
                                  "slots": {"score": slot}, "stings": {}, "recommendation": winner["id"], "takes": candidates})

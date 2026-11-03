@@ -259,6 +259,104 @@
       "duration": 10,
       "desc": "A few nearby crickets chirping in a sheltered courtyard garden",
       "prompt": "A few nearby crickets chirping in a sheltered courtyard garden. Natural detailed field recording, restrained volume, irregular gentle events with short quiet gaps, suitable for looping. No music, no melody, no human speech, no distortion."
+    },
+    "bed.jungle-ziggurat.ambience": {
+      "kind": "bed",
+      "into": "jungle-ziggurat",
+      "duration": 30,
+      "desc": "Rainforest birds with distant falling water and light rain drips after a tropical shower",
+      "prompt": "Rainforest birds with distant falling water and light rain drips after a tropical shower. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.jungle-ziggurat.waterfall-cascade": {
+      "kind": "hum",
+      "into": "jungle-ziggurat",
+      "duration": 10,
+      "desc": "A small stepped stone waterfall cascading into a jungle pool",
+      "prompt": "A small stepped stone waterfall cascading into a jungle pool. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.jungle-ziggurat.pool-lap": {
+      "kind": "hum",
+      "into": "jungle-ziggurat",
+      "duration": 10,
+      "desc": "Gentle water lapping against a smooth stone reflecting pool",
+      "prompt": "Gentle water lapping against a smooth stone reflecting pool. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.jungle-ziggurat.wooden-wind-chimes": {
+      "kind": "hum",
+      "into": "jungle-ziggurat",
+      "duration": 10,
+      "desc": "Hollow wooden bamboo wind chimes gently knocking beside a thatched stilt house",
+      "prompt": "Hollow wooden bamboo wind chimes gently knocking beside a thatched stilt house. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.jungle-ziggurat.canopy-birds": {
+      "kind": "hum",
+      "into": "jungle-ziggurat",
+      "duration": 10,
+      "desc": "Tropical rainforest birds calling back and forth in a leafy tree canopy",
+      "prompt": "Tropical rainforest birds calling back and forth in a leafy tree canopy. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.jungle-ziggurat.thatch-drip": {
+      "kind": "hum",
+      "into": "jungle-ziggurat",
+      "duration": 10,
+      "desc": "Individual rain drops falling from a wet thatched roof onto stone",
+      "prompt": "Individual rain drops falling from a wet thatched roof onto stone. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.jungle-ziggurat.temple-drum": {
+      "kind": "hum",
+      "into": "jungle-ziggurat",
+      "duration": 10,
+      "desc": "A distant low hollow wooden temple drum sounding occasional slow single notes",
+      "prompt": "A distant low hollow wooden temple drum sounding occasional slow single notes. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "bed.patchwork-fairground.ambience": {
+      "kind": "bed",
+      "into": "patchwork-fairground",
+      "duration": 30,
+      "desc": "Distant cheerful mechanical band organ playing a bright gentle waltz across an outdoor fairground",
+      "prompt": "Distant cheerful mechanical band organ playing a bright gentle waltz across an outdoor fairground. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No vocals, no intelligible speech, no distortion."
+    },
+    "hum.patchwork-fairground.carousel-bells": {
+      "kind": "hum",
+      "into": "patchwork-fairground",
+      "duration": 10,
+      "desc": "Small mechanical carousel bells chiming gently as a fairground ride turns",
+      "prompt": "Small mechanical carousel bells chiming gently as a fairground ride turns. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.patchwork-fairground.band-organ": {
+      "kind": "hum",
+      "into": "patchwork-fairground",
+      "duration": 10,
+      "desc": "A distant mechanical fairground band organ wheezing and playing short cheerful waltz phrases",
+      "prompt": "A distant mechanical fairground band organ wheezing and playing short cheerful waltz phrases. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No vocals, no intelligible speech, no distortion."
+    },
+    "hum.patchwork-fairground.wheel-creak": {
+      "kind": "hum",
+      "into": "patchwork-fairground",
+      "duration": 10,
+      "desc": "A slow Ferris wheel axle gently creaking with a steady low mechanical hum",
+      "prompt": "A slow Ferris wheel axle gently creaking with a steady low mechanical hum. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.patchwork-fairground.flags-snap": {
+      "kind": "hum",
+      "into": "patchwork-fairground",
+      "duration": 10,
+      "desc": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze",
+      "prompt": "Small cloth bunting flags fluttering and snapping softly in an outdoor breeze. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.patchwork-fairground.crowd-murmur": {
+      "kind": "hum",
+      "into": "patchwork-fairground",
+      "duration": 10,
+      "desc": "A small distant fairground crowd murmuring softly with no intelligible words",
+      "prompt": "A small distant fairground crowd murmuring softly with no intelligible words. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
+    },
+    "hum.patchwork-fairground.big-top-drum": {
+      "kind": "hum",
+      "into": "patchwork-fairground",
+      "duration": 10,
+      "desc": "A distant snare drum rolling briefly inside a canvas circus tent",
+      "prompt": "A distant snare drum rolling briefly inside a canvas circus tent. Detailed restrained recording, continuous atmosphere with irregular gentle events, suitable for looping. No music, no melody, no intelligible speech, no distortion."
     }
   }
 }

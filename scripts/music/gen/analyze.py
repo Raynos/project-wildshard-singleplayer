@@ -93,7 +93,9 @@ def key_estimate(chroma_mean: np.ndarray) -> dict:
     }
 
 
-def loop_seam(y: np.ndarray, sr: int, bpm: float, dur: float) -> dict:
+def loop_seam(y: np.ndarray, sr: int, bpm: float, dur: float, beats_per_bar: int = 4) -> dict:
+    if type(beats_per_bar) is not int or not 1 <= beats_per_bar <= 12:
+        raise ValueError("Loop meter must be one to twelve beats per bar")
     hop = 512
     chroma = librosa.feature.chroma_cqt(y=y, sr=sr, hop_length=hop)
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20, hop_length=hop)
@@ -102,7 +104,7 @@ def loop_seam(y: np.ndarray, sr: int, bpm: float, dur: float) -> dict:
     feat = np.vstack([chroma, 0.5 * mfcc])
     fps = sr / hop
     w = int(2.0 * fps)
-    bar = 4 * 60.0 / bpm
+    bar = beats_per_bar * 60.0 / bpm
     best = {"score": -1.0}
 
     def win(i: int, left: bool) -> np.ndarray:
@@ -258,7 +260,8 @@ def analyze(wav: Path, side: dict, brief: dict, clap: Clap | None, vocals: Vocal
     chroma = librosa.feature.chroma_cqt(y=y22, sr=22050)
     m["key"] = key_estimate(chroma.mean(1))
     loop_bpm = bpm if err < 0.04 else (tempo if tempo > 0 else bpm)
-    m["loop"] = loop_seam(y22, 22050, loop_bpm, dur)
+    m["loop"] = loop_seam(y22, 22050, loop_bpm, dur, brief.get("beatsPerBar", 4))
+    m["loop"]["beats_per_bar"] = brief.get("beatsPerBar", 4)
     m["loop"]["grid_bpm"] = round(loop_bpm, 1)
     if clap is not None:
         y48 = librosa.resample(y, orig_sr=sr, target_sr=48000) if sr != 48000 else y
