@@ -22,7 +22,8 @@
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
  *   with the near tier (B, shipped); the square round's sizes and lenses.
  *   --enter stands the player in the cell under the eye first (enterOver); --only=<ids> / --sessions=<keys> narrow a re-shoot.
- *   --shipped-framing keeps G625's exact eye (805,520,0), target (0,0,0) and 62°/43° lenses after grid pitch changes.
+ *   --shipped-framing keeps G625's exact eye (805,520,0), target (0,0,0) and 62°/43° lenses after grid pitch changes;
+ *   --shift=<metres> slides it along its heading toward the far rows (OB9).
  *   --pose=<id>:<ex,ey,ez>:<tx,ty,tz>[:<px,pz>] (round near) shoots one view of your own instead of the road views and
  *   the hero, the player standing on the roundabout or at <px,pz>.
  * --tree builds the working tree instead of a clean HEAD export (a change not yet committed, e.g. during a push freeze).
@@ -272,7 +273,9 @@ async function captureAerial(base) {
   if (only !== '') plan.poses = plan.poses.filter(p => only.split(',').includes(p.id));
   if (args.includes('--shipped-framing')) {
     if (round !== '6' || plan.poses.some(p => !['SQ-NE-b', 'LS-NE-b'].includes(p.id))) throw new Error('Shipped framing requires round 6, only SQ-NE-b / LS-NE-b');
-    for (const pose of plan.poses) Object.assign(pose, { eye: { x: 805, y: 520, z: 0 }, target: { x: 0, y: 0, z: 0 },
+    // --shift=<metres> (OB9) slides that camera along its heading toward the far rows, height, tilt and lens unchanged
+    const shift = Number(flag('shift', '0'));
+    for (const pose of plan.poses) Object.assign(pose, { eye: { x: 805 - shift, y: 520, z: 0 }, target: { x: -shift, y: 0, z: 0 },
       headingDegrees: 90, downDegrees: Math.atan2(520, 805) * 180 / Math.PI, fovDegrees: pose.aspect === 'square' ? 62 : 43 });
   }
   // G343 round 4: the square round's sessions over round4HeroPlan, with the near-placeholder tier on (G342)
@@ -444,7 +447,7 @@ if (args.includes('--worker')) {
       { ...process.env, SERVE_OWNER: serveOwner })).split('\n').at(-1);
     requireNoQuiet();
     await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`,
-      ...args.filter(value => /^--(?:only=|sessions=|pose=|enter$|shipped-framing$|variant=)/u.test(value))], root,
+      ...args.filter(value => /^--(?:only=|sessions=|pose=|enter$|shipped-framing$|shift=|variant=)/u.test(value))], root,
       { ...process.env, HERO_CAPTURE_LANE: '1' });
     console.log(`Canvas candidates and pinned capture.json: ${out}`);
   } finally {
