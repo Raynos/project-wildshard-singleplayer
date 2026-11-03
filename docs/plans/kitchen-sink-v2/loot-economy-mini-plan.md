@@ -103,7 +103,7 @@ that burns Riveters: the band you farm sets your ammo.
 | Big Pallet L6 | 60, Hydraulic Heart, trophy *Big Pallet's Tines* (+5 % damage to crate robots), 5 Tine | 60 + 5 Tine | 120, title *Forklift Certified* |
 | Vault Warden L12 | Vault chest: 150, Plate Core, Warden sword finish, trophy *Warden's Plate* (+5 % physical armour) | 50 (chest pays once) | 300, *Plate Expectations* |
 | Foreman Unit 7 L18 | 200, Foreman's Capacitor, the hard hat (worn), trophy *Foreman's Whistle* (+10 % damage to night shift) | 100 + 5 Arc coil | 500, *Middle Management* |
-| Crate Titan L20 | 300, the **Crate Cleaver** (legendary sword, base 36, its heavy sends a shock ring that drops TGH 4 s), Titan gold finish, trophy *Titan's Core* (+5 % all damage), Foreman Gold on sale | 300 | 1,000, *Thinks Outside the Box* |
+| Crate Titan L20 | 300, the **Titan Cleaver** (legendary sword, base 36, its heavy sends a shock ring that drops TGH 4 s), Titan gold finish, trophy *Titan's Core* (+5 % all damage), Foreman Gold on sale | 300 | 1,000, *Thinks Outside the Box* |
 
 Elites (finish + trophy): Sir Nibbles (Mite, board finish), Old Forky (Jack, spear), Nailbiter (Drone, crossbow), Hot
 Mess (Welder, sword), Riveting Rita (Riveter, bow), Static Steve (Sentry, rifle). Feats: *Scrap Metal Enthusiast* (250
@@ -139,7 +139,7 @@ finish grants) stay where they are; these rows are the rest.
 | LW4 | Contract board: 6 count, 6 elite, 3 mini-boss, the Titan |
 | LW5 | 12 chests (2 per band) and the Vault chest |
 | LW6 | 6 named night elites with finishes and trophies (Opus, visual) |
-| LW7 | Mini-boss and Titan rewards; the Crate Cleaver (Opus, visual) |
+| LW7 | Mini-boss and Titan rewards; the Titan Cleaver (Opus, visual) |
 | LW8 | Trophy wall; 20 Gold 1×1s and 4 Calibration Chips |
 | LW9 | 7 loot feats and titles |
 | LW10 | One playthrough balance pass; prices move ± 30 %, numbers in the commit |
@@ -155,11 +155,10 @@ finish grants) stay where they are; these rows are the rest.
 
 ## Open questions for Jake
 
-1. **Parts?** One salvage part per robot type, auto-collected, for upgrades and the bench. *Recommended: yes.*
-2. **Weapon tiers as Forge I–IV**, one-off, raising every weapon? *Recommended: yes* (no item levels, no per-weapon
-   coin split).
+1. ~~Parts~~: yes (Jake 11-02).
+2. ~~Forge I–IV~~: yes (Jake 11-02).
 3. **Grey kills pay 0 Scrip** (like XP) with no per-enemy cap? *Recommended: yes.*
-4. **The Titan's legendary:** the fixed Crate Cleaver sword, or a Titan Core you forge into any weapon? *Recommended:
-   the Cleaver now; the core is a later add.*
-5. **Six named night elites**, one per band, each a finish and a trophy? *Recommended: yes.*
-6. **Currency name:** Scrip, coins or bolts? *Recommended: Scrip* (bolts are ammo).
+4. ~~The Titan's legendary~~: the Titan Cleaver sword (Jake 11-02).
+5. **Six named night elites**, one per band, on top of the three band-gate elites (Jake 11-02: "call them elites", at
+   least three)? *Recommended: yes, so 9 elites; the night ones also show off the elite night rule.*
+6. ~~Currency name~~: Scrip (Jake 11-02).

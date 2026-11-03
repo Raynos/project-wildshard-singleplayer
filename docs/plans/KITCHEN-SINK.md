@@ -50,7 +50,7 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
 
 **Levels and combat** (detail in [levels-combat-mini-plan.md](kitchen-sink-v2/levels-combat-mini-plan.md))
 14. Levels 1–20. XP **only from kills**. **At most 8 attributes**, shared by player and enemies.
-15. At least six enemy types in bands 1–3, 4–6, 7–9, 10–12, 13–15, 16–18; mini-bosses at **L6, L12 (the Vault
+15. At least six enemy types in bands 1–3, 4–6, 7–9, 10–12, 13–15, 16–18; elites at **L6, L12 (the Vault
     Warden), L18**; the **Crate Titan at L20** is the final quest.
 16. Attacks **can miss** (dice rolls). **Death costs XP** toward the next level and never delevels.
 17. Quests are **freeform but level-locked**: a grey "!" when you're too low (like WoW), yellow when eligible.
@@ -66,6 +66,15 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     enemies are night-shift variants**: each band's enemy swaps to a tougher variant at night (+1 level).
 19e. **Hub NPCs:** 4–5 dev-bot NPCs: a quest giver per level tier (1–6, 7–12, 13–20), the shop keeper, the stable
     hand; their lines change as you level. **The legendary is the Titan Cleaver sword.**
+19f. **Enemy tiers:** common → rare variant → **elite** → boss. Jake: *"let's not call them mini bosses, let's call
+    them elites"*; at least three (Big Pallet L6, Vault Warden L12, Foreman Unit 7 L18), on the elite host. Rare
+    variants spawn at random among the commons. **Rare variants** are a shared rarity row on each enemy type (uncommon / rare: a new look, +1/+2
+    levels, more Scrip, a trophy), generalised from Pine's coat rarity ([enemy tiers
+    page](https://claude.ai/artifact/X1RZboFagn5EuHpQXkdWG5)).
+19g. **Economy loop** ([loot page](https://claude.ai/artifact/BEQrDR1Ti1WUyY7pVRphYR)): the currency is **Scrip**;
+    every kill drops one salvage part for its robot type; Tinker Rook's stall has UPGRADES (one-off buys for Scrip
+    and parts) and BENCH (parts → ammo, patch kits); weapon tiers are **Forge I–IV**, one-off buys that raise every
+    weapon at once.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 
