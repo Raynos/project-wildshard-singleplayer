@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { WorldScenePlacementPageSchema } from './worldScenePlacement';
+import { WorldSceneWeldSchema } from './worldSceneWeld';
 import { WorldSceneSchema } from './clientChannels';
 import { SceneBuffersSchema } from './sceneBuffers';
 import { WorldSceneModelsSchema } from './worldSceneModels';
@@ -33,6 +34,8 @@ export interface PlatformFileFamily {
  * Names stay streamed and payloads stay verbatim. Private placement, cabin,
  * ground and encounter grammars remain outside this registry. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^world\/(?:casts|fabric)\.json$/u, schema: WorldSceneWeldSchema,
+    source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema', reader: 'src/game/shardfile/worldSceneWeld.ts' },
   { pattern: /^world\/placement-pages\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}\.json$/u, schema: WorldScenePlacementPageSchema,
     source: '@wildshard/format/worldScenePlacement#WorldScenePlacementPageSchema', reader: 'src/game/shardfile/worldScenePlacementPages.ts' },
   { pattern: /^(?:scenes\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}|world\/scenes\/[A-Za-z0-9_-][A-Za-z0-9_.-]{0,179}|world\/portals\/scene)\.json$/u, schema: WorldSceneSchema,

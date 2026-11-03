@@ -15,6 +15,20 @@ const source = '@wildshard/format/questSteps#QuestServiceActionsSchema';
 const name = 'quests/services.json';
 const good = { version: 1, actions: [{ id: 'hello', effects: [{ kind: 'toast', text: 'Hello' }] }] };
 
+test('complete cast and fabric weld roots register without admitting neighbouring private names', () => {
+  const defining = '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema';
+  const value = { id: 'quay', root: 'root', nodes: [] };
+  for (const fileName of ['world/casts.json', 'world/fabric.json']) {
+    const before = JSON.stringify(value);
+    expect(platformFileFamily(fileName, defining)?.reader).toBe('src/game/shardfile/worldSceneWeld.ts');
+    expect(validatePlatformFile(fileName, defining, value)).toBeDefined();
+    expect(JSON.stringify(value)).toBe(before);
+    expect(() => validatePlatformFile(fileName, defining, { ...value, nodes: [{ kind: 'mesh' }] })).toThrow();
+    expect(platformFileFamily(fileName, 'private')).toBeUndefined();
+  }
+  expect(platformFileFamily('world/casts-extra.json', defining)).toBeUndefined();
+});
+
 test('shared names require the defining type and keep private neighbours custom', () => {
   expect(platformFileFamily(name, source)?.reader).toBe('src/game/quest/effects.ts');
   for (const [file, schema] of [[name, undefined], [name, 'private'], ['private/services.json', source],

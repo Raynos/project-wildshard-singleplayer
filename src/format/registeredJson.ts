@@ -2,6 +2,7 @@ import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServ
 import {ContractCatalogueSchema,parseContractCatalogue} from './contracts';
 import { BuildingLifeDocumentSchema } from './buildings';
 import { BakedPlacementPlanSchema } from './bakedTiles';
+import { WorldSceneWeldSchema, parseWorldSceneWeld } from './worldSceneWeld';
 
 import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue} from './panelTemplate';
 import {PopulationKeeperRowsSchema} from './populationKeeper';
@@ -107,6 +108,8 @@ export interface RegisteredJsonContracts {
   readonly 'world/building-life.json': { readonly schema: typeof BuildingLifeDocumentSchema; readonly source: '@wildshard/format/buildings#BuildingLifeDocumentSchema' };
   readonly 'world/island/plan-phone.json': { readonly schema: typeof BakedPlacementPlanSchema; readonly source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' };
   readonly 'world/island/plan-desktop.json': { readonly schema: typeof BakedPlacementPlanSchema; readonly source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' };
+  readonly 'world/casts.json': { readonly schema: typeof WorldSceneWeldSchema; readonly source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' };
+  readonly 'world/fabric.json': { readonly schema: typeof WorldSceneWeldSchema; readonly source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
@@ -178,6 +181,8 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'world/building-life.json': { schema: BuildingLifeDocumentSchema, source: '@wildshard/format/buildings#BuildingLifeDocumentSchema' },
   'world/island/plan-phone.json': { schema: BakedPlacementPlanSchema, source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' },
   'world/island/plan-desktop.json': { schema: BakedPlacementPlanSchema, source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' },
+  'world/casts.json': { schema: WorldSceneWeldSchema, source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' },
+  'world/fabric.json': { schema: WorldSceneWeldSchema, source: '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema' },
 };
 export type RegisteredJsonName=keyof typeof REGISTERED_JSON;
 /** JSON decoding preserves the wire input; defaults belong to its consumer. */
@@ -250,6 +255,8 @@ export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
     case 'world/island/plan-phone.json':
     case 'world/island/plan-desktop.json':v.parse(BakedPlacementPlanSchema,value);break;
+    case 'world/casts.json':
+    case 'world/fabric.json':parseWorldSceneWeld(value);break;
     case 'world/building-life.json':v.parse(BuildingLifeDocumentSchema,value);break;
     case 'quests/native-story.json':parseNativeQuestComposition(value);break;
     case 'quests/native-spots.json':parseNativeQuestServiceSpots(value);break;
