@@ -30,9 +30,36 @@ function post(w, x, z, p, yaw) {
   pool(w, x, z, 4, p.pool);
 }
 
+/** OB3 look round 1: Frostline's own L1 stand-ins (the generic coarse box took its top from up-facing faces, and a steep
+ *  snow roof or a pine cone has almost none: the courts read as dark brown and green cubes from the road and above). A pine
+ *  clump is three cones, needles below and snow on their tips; a lodge is its walls under a white gable. */
+function coarseCone(w, p, x, z, r, h) {
+  const base = (i) => [x + r * Math.sin(i * Math.PI / 2), h * 0.08, z + r * Math.cos(i * Math.PI / 2)], tip = [x, h, z], snow = p.snow ?? p.foliage;
+  for (let i = 0; i < 4; i++) w.triColours('coarse', base(i), base(i + 1), tip, [p.foliage, p.foliage, snow]);
+}
+/** one snow-tipped pyramid a clump, as wide as the clump (4 triangles: cheaper than the generic box's 12) */
+function coarsePines(w, p, x, z, variant) {
+  const [r, h] = variant === 0 ? [2.2, 7] : variant === 1 ? [3.4, 8] : [4, 9];
+  coarseCone(w, p, x, z, r, h);
+}
+function coarseLodge(w, p, x, z, hx, hz) {
+  const wall = 4, ridge = 7.2;
+  w.sides('coarse', [x - hx, 0, z - hz], [x + hx, wall, z + hz], p.wood);
+  const roof = p.snow ?? p.roof, e = 0.6;
+  if (hx >= hz) {
+    w.quad('coarse', [x - hx - e, wall, z - hz - e], [x - hx - e, ridge, z], [x + hx + e, ridge, z], [x + hx + e, wall, z - hz - e], roof);
+    w.quad('coarse', [x + hx + e, wall, z + hz + e], [x + hx + e, ridge, z], [x - hx - e, ridge, z], [x - hx - e, wall, z + hz + e], roof);
+    w.tri('coarse', [x - hx, wall, z + hz], [x - hx, ridge, z], [x - hx, wall, z - hz], p.wood); w.tri('coarse', [x + hx, wall, z - hz], [x + hx, ridge, z], [x + hx, wall, z + hz], p.wood);
+  } else {
+    w.quad('coarse', [x + hx + e, wall, z - hz - e], [x, ridge, z - hz - e], [x, ridge, z + hz + e], [x + hx + e, wall, z + hz + e], roof);
+    w.quad('coarse', [x - hx - e, wall, z + hz + e], [x, ridge, z + hz + e], [x, ridge, z - hz - e], [x - hx - e, wall, z - hz - e], roof);
+    w.tri('coarse', [x - hx, wall, z - hz], [x, ridge, z - hz], [x + hx, wall, z - hz], p.wood); w.tri('coarse', [x + hx, wall, z + hz], [x, ridge, z + hz], [x - hx, wall, z + hz], p.wood);
+  }
+}
+
 /** A pine clump (the kit's, 3 / 5 / 8 trees), or a stand-in cone when the kit has no pines. */
 function pines(w, p, x, z, variant) {
-  if (w.hasModel('pines')) w.placeModel('pines', variant, x, z, { yaw: pick(x, z, 4) * Math.PI / 2 });
+  if (w.hasModel('pines')) { w.placeModel('pines', variant, x, z, { yaw: pick(x, z, 4) * Math.PI / 2 }); coarsePines(w, p, x, z, variant); }
   else for (const [dx, dz] of [[0, 0], [2.4, 1.2], [-2, 1.6]]) {
     w.sides('Kit', [x + dx - 0.2, 0, z + dz - 0.2], [x + dx + 0.2, 2, z + dz + 0.2], p.trunk);
     w.box('Kit', [x + dx - 1.6, 2, z + dz - 1.6], [x + dx + 1.6, 7, z + dz + 1.6], p.foliage, p.snow ?? p.foliage);
@@ -46,9 +73,9 @@ function lodges(w, p, variant) {
   const houses = [[0, 17, 0, Math.PI], [variant === 0 ? -17 : 17, -2, 1, variant === 0 ? Math.PI / 2 : -Math.PI / 2],
     [variant === 0 ? 17 : -17, -4, 2, variant === 0 ? -Math.PI / 2 : Math.PI / 2]];
   for (const [x, z, kind, yaw] of houses) {
-    if (w.hasModel('lodges')) w.placeModel('lodges', kind, x, z, { yaw });
     const half = kind === 0 ? [5.3, 3.8] : kind === 1 ? [4.3, 4.3] : [3.3, 2.8];
     const [hx, hz] = Math.abs(Math.sin(yaw)) > 0.5 ? [half[1], half[0]] : half;
+    if (w.hasModel('lodges')) { w.placeModel('lodges', kind, x, z, { yaw }); coarseLodge(w, p, x, z, hx, hz); }
     w.solid([x - hx, 0, z - hz], [x + hx, 6, z + hz]);
   }
   drift(w, p, -INNER, INNER - 2.5, INNER, INNER); drift(w, p, -INNER, -INNER, -INNER + 2.5, INNER - 2.5);
@@ -61,7 +88,7 @@ function lodges(w, p, variant) {
 function wood(w, p, variant) {
   const spots = [[-20, 20, 2], [0, 22, 1], [20, 20, 2], [-21, 0, 1], [21, 1, 2], [-20, -20, 2], [0, -21, 1], [20, -20, 2], [10, 10, 0]];
   for (const [i, [x, z, v]] of spots.entries()) pines(w, p, variant === 0 ? x : -x, z, (v + i) % 3);
-  if (w.hasModel('lodges')) w.placeModel('lodges', 2, variant === 0 ? -6 : 6, -6, { yaw: 0 });
+  if (w.hasModel('lodges')) { w.placeModel('lodges', 2, variant === 0 ? -6 : 6, -6, { yaw: 0 }); coarseLodge(w, p, variant === 0 ? -6 : 6, -6, 3.3, 2.8); }
   w.solid([(variant === 0 ? -6 : 6) - 3.3, 0, -6 - 2.8], [(variant === 0 ? -6 : 6) + 3.3, 4, -6 + 2.8]);
   drift(w, p, -6, 4, 6, 7, 0.6);
   post(w, variant === 0 ? -1.5 : 1.5, -9.5, p, 0);
@@ -94,7 +121,7 @@ const THEME = {
 export function frostlineBuilders(letters) {
   const shared = nightMarketBuilders(letters);
   for (const letter of Object.keys(THEME)) if (Object.hasOwn(shared.tiles, letter)) throw new Error(`frostline-peaks: letter ${letter} is a theme tile`);
-  return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: new Set([...shared.coarseFamilies, 'lodges', 'pines']), seam: shared.seam };
+  return { tiles: { ...shared.tiles, ...THEME }, coarseFamilies: shared.coarseFamilies, seam: shared.seam };
 }
 
 /** The chair lift's placements and cable (the layout's `landmark.lift`: `stations` [bottom, top] and `towers` as
