@@ -421,7 +421,7 @@
       "into": "fossil-badlands",
       "duration": 30,
       "desc": "Dry wind and dusk insects over a quiet dig camp with faint canvas flap and distant timber crane creak",
-      "prompt": "Dry open-air wind at blue hour around a quiet palaeontology dig camp, with sparse dusk insects, faint tent canvas flaps and a very distant timber crane creak. Warm restrained natural field recording, steady spacious texture. No music, no human speech, no vehicles, no spooky sounds."
+      "prompt": "Continuous dry desert wind across dusty open ground at dusk, with clearly audible small crickets chirping steadily through the entire recording. Wind and dusk insects dominate this quiet excavation camp ambience. Very faint canvas movement and a distant timber creak stay underneath, never rhythmic or foreground. Warm natural outdoor field recording, no alpine lift motor, no rain, no sea, no music, no speech."
     },
     "hum.fossil-badlands.skeleton-rib-wind": {
       "kind": "hum",
@@ -435,7 +435,7 @@
       "into": "fossil-badlands",
       "duration": 10,
       "desc": "A timber hand crane creaks while a rope pulley turns slowly",
-      "prompt": "Close slow timber hand-crane foley at a dig trench: wooden beams strain and creak, a rope pulley turns with soft friction and an occasional dry wooden knock. Sparse careful work, no motors, no voices, no music."
+      "prompt": "Close dry foley of a heavy timber lifting crane slowly straining under a suspended load: long rising wooden beam creaks and rough rope fibres rubbing through a squeaky pulley wheel. Alternate a sustained wood strain with a clearly textured rope-pulley scrape. Quiet outdoor excavation, sparse careful hand-powered movement, no hollow knocking, no dock, no boat, no water, no motor, no voices, no music."
     },
     "hum.fossil-badlands.sump-water-drips": {
       "kind": "hum",
