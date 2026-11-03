@@ -20,3 +20,10 @@ Poses (world metres; from `art/open-plots/golden-2026-11-03/desert-ruin/cameras.
 Nine's instance is `nine-dragon-stack` at cell (1, -1), origin (562.5, -562.5). The preview is stopped and no
 diagnostic state was kept. sp-x1's trace names the cause (Nine's near.glb carries the elevated +125 m fragment while
 `near.owns` suppresses the grounded far.glb).
+
+## Before / after (sp-o3's stack base, 2026-11-03)
+
+`before-after.jpg`: Desert's views 1, 2 and 5 again. BEFORE is `09ee58a-mw15fhmi` (a `--rev` of `09ee58aa8c`, the floating
+near.glb). AFTER is `300a65548b-mw15l2a1`, sp-o3's working-tree candidate on `300a65548b` whose near.glb carries the stack
+base. Verdict: green. In AFTER the towers stand on a dark stack base that reaches the ground in all three views and no
+longer float, and Desert's own plot is unchanged.
