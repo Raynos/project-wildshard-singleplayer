@@ -261,75 +261,33 @@ to `0251e8cae02598c70fe00c4652f8840b54f6fc9c0924d0aea1c7d3ac2b9692a8`
 from output.ts defining metadata. Coordinator explicitly accepted this
 exact G872 source-stamp class; no literal whole-product byte bar is claimed.
 
-G998 is pending on the frozen candidate, all six shards in both engines.
-Pine Chromium completed 24 settled poses with no capture errors; every
-panel was read. Twenty-two are visually clear; camera 11 reports sunk
-and camera 20 drifted with a foreground obstruction, under investigation
-with Z3. No Pine 24/24 verdict or golden promotion. Nalati's independently
-identified QD11 darkness remains red until cause-directed qualification.
+Fresh sp-x2 HOST-BAR review: **6/6 for exactly the three credited
+patterns**, with real complete weather, audio and post roots; no generic
+custom-predicate or transform waiver. Four independent focused native /
+storage / registration suites pass in 2.3 s. FX, rain and observations
+remain charged.
 
-### Z2 qualification (2026-11-03, sp-x8)
+Sp-x9 independently sealed the old Nalati product against this exact B0
+inventory. Each side's **22 packs / 377 entries / 62,322,835 B** fully
+reconstructs with hashes checked. The 376 retained entries have identical
+order and bytes except the separate map-stamp entry above. The complete
+4,645 B chapter body is exact. This is reconstruction evidence, not a
+literal whole-pack byte claim. Protocol and audit:
+`tmp/sp-x9-z8/nalati-pack-audit.{py,json}`.
 
-Source **`9a3952f83c` + `a2a0e604ff`**, ratchet **`a131158d0c`**, and
-registration-test alignment **`fa2df0e8ed`** are pushed. Nine's measured
-custom count falls **82 → 10 (−72)** and bytes **10,841,964 → 4,488,505**.
-All **70 original placement rows / 6,328,079 B** reconstruct byte-for-byte
-from **9 adaptive native pages**. Cast/fabric bodies retain their exact
-bytes; only their defining provenance changes. The complete shared weld
-host is reuse (DW, Pine and Nine; sp-x1 fresh seat **6/6**), with native
-admission before publication and the existing client-only reader.
+G998 on frozen `d4c2e8d15d-mw0u2vw4`: **Pine 24/24 green in Chromium
+and WebKit**, all 48 individual panels read. Native read-only observation
+identifies the camera 11/20 obstructions as moving `SkinnedMesh` actors
+under `animals` (0.9–3.1 m per 60 frames), covered by G998's explicit
+moving-creature exception. Coordinator accepted this verdict. No actor
+was hidden or paused; no golden was promoted. Driftwood is 24/24 green
+in both engines; Nine Chromium is 24/24 green, WebKit pending.
 
-The audio reader now follows identity-checked page members, with no file
-aliases: `cell` borrows `layout.shared.0.json`, member 3
-(`nds-lanterns-open`); `standalone` borrows `layout.shared.1.json`, member 0
-(`nds-lanterns-capped`), both under `world/placement-pages/`. Every decoded
-pose is identical. Restoring only `audio.sampledScene.points` reconstructs
-the entire old audio section exactly. The scene section changes only its
-placement references; the separate map-source stamp changes while the map
-image stays exact. All **48 old/new packs / 1,275 ordered entries** verify.
-
-The **100k aggregate page cap remains**, with at most 16 rows; adaptive
-packing isolates a complete native row that exceeds it. Only the existing
-bounded native placement contract admits that single-row case (including
-Nine's legitimate 106,361-node facade). Oversized multi-row pages,
-8,193-pose rows, oversized pose params, accessors, malformed members and
-forged provenance refuse. All **12 existing DW/Pine pages** retain exact
-bytes and identical admission through the old and new validators.
-Focused page/audio/weld/family checks, touched types and lint pass.
-
-Immutable **`d606937937` → `9a3952f83c`**: **30 strict captures**, five poses
-× actual phone/desktop tiers × baseline A/A and candidate B. All **20 A/A
-or A/B comparisons** retain identical frame, camera, clock, draw and
-triangle numbers. Native refinement publication and the real tile-refresh
-completion settle with the frame/clock/camera/player held; the maintained
-fixed renderer and GPU upload completion remain unchanged. Frame numbers
-are **94, 186, 278, 370, 462** on both tiers:
-
-| Pose | Phone draws / triangles | Desktop draws / triangles |
-|---|---:|---:|
-| P1 | 80 / 961,677 | 79 / 953,849 |
-| P2 | 81 / 982,494 | 80 / 974,666 |
-| P3 | 84 / 1,004,964 | 83 / 997,136 |
-| P4 | 86 / 1,229,254 | 85 / 1,221,426 |
-| P5 | 51 / 317,237 | 50 / 309,409 |
-
-The phone P1 A/A and A/B each have exactly one raw pixel difference:
-**(569,1139) `[14,15,15,1]` → `[15,16,15,1]`**. It qualifies under the
-explicit **G872/G941 P1-only ruling**. The other approved P1 pair is
-(635,1097), `[26,27,24,1]` ↔ `[27,27,24,1]`; it did not occur in this
-closing run. Both pairs may coexist only at P1. The comparator is
-unchanged; every other difference refuses. All remaining **18 comparisons
-are zero raw RGBA differences**. Raw: `tmp/sp-x8-z2/pixels-close/reading.json`.
-
-Current Nine G998 rerun on **`54771ba-mw0sut9p`**: **24/24 Chromium**
-(`8532216c8a`, sp-o1 capture; sp-x8 read every individual three-column row)
-and **24/24 WebKit** (`6c0a793c74`, sp-o1). The recorded historical
-SHARDFILE-reference omissions at 17/18/21 predate Z2; NOW is closer to
-LEGACY there, as the QD1 review records. Boards and receipts:
-[QD1 full golden review](../../../art/nine-dragon/qd1-2026-11-03/README.md).
-The separate pre-existing Nalati colour regression is QD11, exposed by
-`180df449c9`; it is not a Z2 payload change. Root accepted this Z2 close
-after the exact source/count/capture proof.
+**Z11 does not receive a pre-existing-red waiver for Nalati QD11.**
+Coordinator requires sp-o1's colour-space fix to land, the candidate to
+be rebuilt on that source, and Nalati's 24 cameras re-shot in Chromium
+and WebKit expecting the golden match. Z3 lands first, then Z11 only
+after that visual bar passes. The remaining cohort stays explicit.
 
 ### Z5 complete-source qualification (2026-11-03, sp-x2)
 
