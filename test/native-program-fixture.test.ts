@@ -40,6 +40,29 @@ test('the original transform-types host option stays in the construction key', a
   expect(calls()).toBe(2);
 });
 
+test('the simulation loader keeps its command and loader bytes in the construction fence', async () => {
+  const { root, spec, calls } = fixture();
+  const loader = resolve(root, 'scripts/sim-node-loader.mjs');
+  writeFileSync(loader, '');
+  mkdirSync(resolve(root, 'lint'));
+  writeFileSync(resolve(root, 'lint/sim-schema-leaves.json'), '{}');
+  const original = await nativeProgramFixture(spec);
+  const simulation = { ...spec, loader: 'simulation' as const };
+  expect(await nativeProgramFixture(simulation)).toBe(original);
+  expect(calls()).toBe(2);
+  expect(await nativeProgramFixture(simulation)).toBe(original);
+  expect(calls()).toBe(2);
+  writeFileSync(loader, '// changed simulation loader\n');
+  expect(await nativeProgramFixture(simulation)).toBe(original);
+  expect(calls()).toBe(3);
+  writeFileSync(resolve(root, 'scripts/bake-loader.mjs'), '// original loader remains fenced\n');
+  expect(await nativeProgramFixture(simulation)).toBe(original);
+  expect(calls()).toBe(4);
+  writeFileSync(resolve(root, 'lint/sim-schema-leaves.json'), '{"leaf":true}');
+  expect(await nativeProgramFixture(simulation)).toBe(original);
+  expect(calls()).toBe(5);
+});
+
 test('changed source bytes, new inventory and changed compiler invalidate construction', async () => {
   const { root, spec, calls } = fixture();
   const first = await nativeProgramFixture(spec);

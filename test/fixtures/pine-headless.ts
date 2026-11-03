@@ -1,14 +1,9 @@
-import * as v from 'valibot';
 import type { InferOutput } from 'valibot';
-import { PopulationEnvironmentSchema, type PopulationEnvironmentRows } from '../../src/format/populationEnvironment';
-import * as layout from '../../src/shards/pine-hollow/generators/layout';
-import { pineGeographyRows } from '../../src/shards/pine-hollow/generators/geographyRows';
-import { pinePhysics } from '../../src/shards/pine-hollow/generators/physics';
-import { canonicalNativeOracleInput, fencedNativeOracle } from './native-oracle';
+import { fencedNativeOracle } from './native-oracle';
+import { pineNativeOracleInputs } from './pine-native-oracle-inputs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The direct native proof lends the original committed terrain/nav inputs, as its recorder does.
 import { readFileSync } from 'node:fs';
 import TERRAIN from '../../src/shards/pine-hollow/data/terrainBindings.json' with {type:'json'};
-import ENTRIES from '../../src/shards/pine-hollow/data/entryWalk.json' with {type:'json'};
 import type {PinePhysicsOwnersSchema} from '../../src/shards/pine-hollow/generators/sections';
 import type {NativeQuestCompositionInput} from './native-hosts/quest/nativeComposition';
 import { installNativeSpawnScript } from '@wildshard/game/population/spawnScript';
@@ -45,26 +40,12 @@ import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson, fresh, installCombatMotion, coalesce, prepareReturns } from './headless-plan';
-/** G872 proof-only facts: preserve the original independent entry budget and
- * every habitat field. The production bake/worker never reads this oracle. */
-export function pineNativeOracleInputs(): { terrain: typeof TERRAIN; entries: typeof ENTRIES; environment: PopulationEnvironmentRows } {
-  const ground = pineGeographyRows().ground, physics = pinePhysics();
-  return canonicalNativeOracleInput({ terrain: TERRAIN, entries: ENTRIES, environment: v.parse(PopulationEnvironmentSchema, {
-    id: 'pine.habitat', seed: 1337, chunkHalf: 250, normalEpsilon: .6,
-    sampling: 'bilinear', water: layout.POND.level, sea: false,
-    trails: [layout.S_ROAD, layout.N_ROAD, layout.W_ROAD, layout.E_ROAD,
-      ...Object.entries(layout.SPURS).map(([id, path]) => id === 'den' ? layout.DEN_TRAIL : id === 'lookout' ? layout.LOOKOUT_TRAIL : path)],
-    cabins: layout.CABIN_SITES.map(({ x, z }) => ({ x, z })),
-    pond: { x: layout.POND.x, z: layout.POND.z, r: layout.POND.r }, trees: physics.trees,
-    stream: ground.bodies.find(body => body.kind === 'stream') ?? null,
-  }) });
-}
 /** Fresh source child and typed parent must agree before native installation. */
 export function readPineNativeOracle(): Promise<ReturnType<typeof pineNativeOracleInputs>> {
   return fencedNativeOracle({ id: 'pine-native-oracle', script: 'test/fixtures/pine-native-oracle.mjs',
     inputs: ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons',
       'src/shards/pine-hollow', 'test/fixtures', 'package.json', 'pnpm-lock.yaml',
-      'scripts/native-recorder-cache.mjs', 'scripts/bake-input-hashes.mjs'], transformTypes: true }, pineNativeOracleInputs);
+      'scripts/native-recorder-cache.mjs', 'scripts/bake-input-hashes.mjs'], transformTypes: true, loader: 'simulation' }, pineNativeOracleInputs);
 }
 /** Explicit proof-only inputs outside the product's hashed runtime inventory. */
 export function pineHeadlessAssets(assets: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {

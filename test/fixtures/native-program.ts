@@ -18,12 +18,17 @@ const LOADER = 'scripts/bake-loader.mjs';
 export async function nativeProgramFixture(spec: {
   readonly id: string; readonly script: string; readonly inputs: readonly string[];
   readonly root?: string; readonly cacheDir?: string; readonly transformTypes?: boolean;
+  readonly loader?: 'bake' | 'simulation';
 }): Promise<string> {
   const root = resolve(spec.root ?? '.'), memo = memos.get(root) ?? new InputHashMemo(root);
   memos.set(root, memo);
-  const inventory = (): string[] => [...new Set([spec.script, LOADER, ...spec.inputs.flatMap(path => memo.paths(path, true))])].sort();
+  // Data-only proof constructors need no app identity or discovery-table preload.
+  // The stricter simulation loader still fences its renderer admission rules.
+  const loader = spec.loader === 'simulation' ? 'scripts/sim-node-loader.mjs' : LOADER;
+  const loaderInputs = spec.loader === 'simulation' ? ['lint/sim-schema-leaves.json'] : [];
+  const inventory = (): string[] => [...new Set([spec.script, LOADER, loader, ...loaderInputs, ...spec.inputs.flatMap(path => memo.paths(path, true))])].sort();
   const paths = inventory(), inputs = bakeInputHashes(root, paths, memo);
-  const command = [process.execPath, ...(spec.transformTypes === true ? ['--experimental-transform-types'] : []), '--import', `./${LOADER}`, '--', spec.script];
+  const command = [process.execPath, ...(spec.transformTypes === true ? ['--experimental-transform-types'] : []), '--import', `./${loader}`, '--', spec.script];
   const output = 'fixture.json';
   const result = await runNativeRecorder(root, {
     id: `fixture-${spec.id}`, inputs, command, outputs: [output], platform: 'native',
