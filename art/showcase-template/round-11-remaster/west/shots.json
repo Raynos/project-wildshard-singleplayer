@@ -40,9 +40,9 @@
     ],
     "fov": 62
    },
-   "notes": "First take.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: close up on the kill-contract board in the gate plaza. Keep the \"CONTRACTS\" board with its six wanted posters of robot silhouettes, and the whole \"KILL CONTRACTS\" HUD panel with all six rows and the line \"FIRST CLEAR: SCRIP + TROPHY + TITLE\" exactly as they are. The grey grid wall behind becomes the cream-and-grey rendered side of a town house with a window with shutters and a flower box, a lamp bracket, a hanging banner. The board gets a chunky timber frame with iron corner brackets and a small tiled roof. The ground becomes warm paving with a planter and a crate. HUD values unchanged: Scrip \"120\", objective \"◆ PICK A CONTRACT\", \"LV 5\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -62,9 +62,9 @@
     ],
     "fov": 65
    },
-   "notes": "First take.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: the Surveyor, a friendly worker robot holding a rolled survey map, with a flat GREY \"!\" over its head. Keep the robot, the dialogue panel (\"SURVEYOR · LV 7–12\", \"DRONE SEASON\", the line of text, \"REQUIRES LV 7\" with a lock, \"LATER\") and the HUD exactly. The grey grid house on the left becomes a charming town house (cream and grey render, windows with shutters, flower boxes, orange tiled roof), no stencils. The quest board keeps its \"QUESTS\" header and notices but becomes a handsome timber-framed noticeboard. The street lamp, cones and barrels stay. Paving stones on the ground, bunting overhead. HUD values unchanged: Scrip \"60\", objective \"◆ TALK TO THE SURVEYOR\", \"LV 4\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -84,9 +84,9 @@
     ],
     "fov": 72
    },
-   "notes": "Re-roll 1: the shop-front stencil came back garbled (\"TINKER RDOK\").",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: Tinker Rook's shop on Main Street. Keep Tinker Rook (the worker robot in a leather apron with a wrench), the big \"TINKER ROOK\" shop sign, the cyan awning and the whole shop panel (tabs, five rows, prices, buttons) exactly. The plain orange wall becomes a characterful workshop shopfront: big multi-pane windows with tools and gadgets on display, timber framing, a striped orange-and-grey awning edge, a hanging bracket sign with a wrench icon, tool racks, crates and barrels by the door. The building on the left loses its \"TO LET\" sign and becomes a charming house. No other text. HUD values unchanged: Scrip \"260\", objective \"◆ BUY AN UPGRADE\", \"LV 6\".",
-   "pick": "r1",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -106,9 +106,9 @@
     ],
     "fov": 55
    },
-   "notes": "Re-roll 1: the first take put an NPC on the range (all six NPCs are in town).",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: first person on the weapon range's lever-rifle lane. Keep the lever-action rifle in the lower right, the three bullseye targets with their plates \"25\", \"50\", \"75\", the hit number \"38\" with its tag \"BULLSEYE\", the ammo chip \"6 / 6\" and the HUD exactly. The grey lane wall keeps its \"LEVER RIFLE\" sign as a painted timber sign board but becomes a real range wall (sandbags and timber baffles on a concrete base). The floor becomes a packed-earth and concrete shooting lane with painted white lane lines, no grid. The far wall becomes a grassy earth berm with timber revetment and a few small flags. A shooting bench with a little canopy at the near edge. No other text. HUD values unchanged: Scrip \"45\", objective \"◆ HIT ALL THREE TARGETS\", \"LV 3\".",
-   "pick": "r1",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -128,9 +128,9 @@
     ],
     "fov": 60
    },
-   "notes": "First take.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: first person in the crossbow ammo lane. Keep the loaded crossbow in the lower right, the three targets (the wooden plank with a red bullseye, the burning straw bale, the padded orange training dummy), the ammo picker \"BROADHEAD\" / \"PITCH\" (selected, glowing orange) / \"IRON\", the tag \"PITCH · SETS TARGETS ALIGHT\" and the HUD exactly. The grey grid walls become a real range: timber baffle walls on a concrete base, sandbags, a grassy earth berm at the back with small flags, packed earth and concrete lane floor with white lane lines, no grid. No other text. HUD values unchanged: Scrip \"45\", objective \"◆ TRY ALL THREE BOLTS\", \"LV 3\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -194,9 +194,9 @@
     ],
     "fov": 70
    },
-   "notes": "First take.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: at the start of the movers sequence. Keep the camera, the conveyor belts with cyan chevrons, the jump pads, the platforms, the lift tower, the top deck, the two hook poles on the left, the course timer chip \"MOVERS 0:12.4\" / \"PB 1:05.0\" and the HUD exactly. Remove the \"HOOK 3\" stencil and every other painted label except the station numbers: show the stations' numbers only as six round painted number badges on short posts, \"1\" to \"6\", one per station. The white cylinder becomes THE WATER TANK (cream, riveted, orange band, short legs, cyan grapple ring on its rim). The lift tower and top deck become a real painted-steel and timber structure with safety railings and flags. The two poles are HOOK POLES. Ground: warm concrete with seams and grass verges, no grid. HUD values unchanged: Scrip \"45\", objective \"◆ REACH THE TOP DECK\", \"LV 3\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -216,9 +216,9 @@
     ],
     "fov": 66
    },
-   "notes": "First take. Small dev-bot spectators along the rails were added by the model.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: on horseback at the start of the riding course. Keep the camera, the \"START · FINISH\" gantry and its glowing lap timer, the cyan rings, the white rails, the lap chip \"LAP 1 / 3\" / \"0:04.6\" / \"RINGS 0 / 8\", the lit \"HORSE\" button and the HUD exactly. Remove the \"HOOK 3\", \"4x8\" and \"MK II\" stencils. The horse's head at the bottom centre becomes a charming, finished mechanical horse (rounded orange-and-grey painted plates, a mane of grey cables, friendly cyan eyes) instead of chamfered blocks. The track becomes packed earth with hoof marks and grass verges outside the rails; the gantry becomes painted steel with bunting and pennants; the buildings on the left get windows and detail; a few spectators stay. HUD values unchanged: Scrip \"45\", objective \"◆ RIDE THE COURSE\", \"LV 3\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -238,9 +238,9 @@
     ],
     "fov": 70
    },
-   "notes": "Camera re-aimed (the first frame was mostly empty rock top); the first take of the old frame also invented a water tank and tower.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: on top of THE ROCK at the lookout, looking east over the town. Keep the camera, the two benches, the FINDS toast \"★ FOUND · ROCK LOOKOUT\" / \"VISTAS 1 / 8\" and the HUD exactly. The flat grey roof-like ground becomes the Rock's natural top: weathered sandstone with grass tufts, small wildflowers and a pine or two at the edge, the benches standing on a wooden lookout deck with a timber rail at its edge. The town below gets finished houses (orange tiled roofs, cream walls, windows), its wall and towers, THE OBELISK small and far in the centre, the zip house with its cyan roof, and THE ZIPLINE's cable. HUD values unchanged: Scrip \"45\", objective \"◆ SIT ON THE BENCH\", \"LV 3\".",
-   "pick": "r1",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -282,9 +282,9 @@
     ],
     "fov": 60
    },
-   "notes": "First take.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: the trophy wall in the gate plaza. Keep the camera, the \"TROPHIES\" header, the twelve frames (tines selected, a riveted plate, a hard hat, nine empty with \"?\"), the HUD card \"BIG PALLET'S TINES\" / \"+5 % damage to crate robots\" / \"PERK ON\" and the HUD exactly. Remove \"MK II\", \"4x8\", \"2x3\", \"1x1\" and every grid line. The grey grid building behind becomes a charming town building (cream and grey render, windows with shutters, a tiled roof, a lamp). The trophy wall becomes a handsome hall-of-fame wall: polished timber and orange-painted steel, brass-rimmed display frames with soft spot lights, banners at its ends. Crates, cones and barrels stay below; warm paving on the ground. HUD values unchanged: Scrip \"310\", objective \"◆ HANG YOUR NEXT TROPHY\", \"LV 13\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -343,9 +343,10 @@
     ],
     "fov": 60
    },
-   "notes": "",
+   "notes": "v2 fresh, first take.",
    "screen": "SCREEN: a high 3/4 aerial view over the whole showcase cell from the east, like a beautiful finished game's world overview. Keep the whole layout exactly where the screenshot has it: nearest, the four coloured combat band squares as finished terrain (red, sand, clay and rust ground with ruins, crates, cover walls and props, keeping their colours), the stealth yard (the hex-patterned square, lower left) with cover walls and yellow searchlight cones, the round arena at the left edge is the Crate Titan's stone amphitheatre (tiered seating, a sand floor); the seam road and SEAM WALL down the middle; beyond, the walled town (orange tiled roofs, cream walls, THE OBELISK), THE GRAPPLE TOWER, THE WATER TANK, THE ROCK, the weapon range and the riding course oval far right. Grass, trees and paths between the west zones; the plain grey ground outside the cell becomes soft rolling countryside fading into light haze. Small floating labels with dark backing: \"EAST · COMBAT\" over the near half, \"WEST · CALM\" over the far half, \"CRATE TITAN · LV 20\" over the round amphitheatre. HUD values: Scrip \"310\", objective \"◆ LIGHT THE FOUR BEACONS\", \"LV 14\"; SWAP shows a sword.",
-   "mode": "fresh"
+   "mode": "fresh",
+   "pick": "p1"
   },
   {
    "id": "m04",
@@ -381,9 +382,9 @@
     ],
     "fov": 70
    },
-   "notes": "First take.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: standing in the town's East Gate looking east down the seam avenue. Keep the camera, the large split minimap (grey west half, green east half with red enemy dots), the chips \"ENTERING · LV 1–3\" and \"◆ CLEAR 10 CRATE MITES\" and the HUD exactly. Remove \"4x8\", \"MK II\", \"2x3\" and every grid line. The orange grid walls become THE SEAM WALL: tall grey steel panels with orange safety-striped tops, rivets and warning lights; the far seam gate a heavy sliding blast door with warning lights; the avenue a real paved road with kerbs, painted road markings and grass verges; a few lamp posts and banners. No enemies in view. HUD values unchanged: Scrip \"0\", \"LV 1\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   },
   {
@@ -420,9 +421,9 @@
     ],
     "fov": 66
    },
-   "notes": "First take.",
+   "notes": "v2 polish, first take.",
    "screen": "SCREEN: in the gate plaza looking east at the town's East Gate. Keep the camera, the gate's position and size, the signs \"EAST GATE\", \"TOWN · NO ENEMIES\" and \"COMBAT · LV 1–20 →\" and the HUD exactly. Remove \"4x8\", \"4x4\", \"1x1\", \"SEAM GATE\" and every grid line. The plain orange towers become warm sandstone-orange gatehouse towers with grey steel caps, arrow-slit windows, banners and lamps; the gate a big arch with orange timber doors swung open; the market stall on the right gets a striped awning and goods; the plaza floor warm patterned paving with planters and bunting. Through the gate, the seam gate's blast door far away. HUD values unchanged: Scrip \"0\", objective \"◆ LEAVE BY THE EAST GATE\", \"LV 1\".",
-   "pick": "",
+   "pick": "p1",
    "mode": "polish"
   }
  ],
