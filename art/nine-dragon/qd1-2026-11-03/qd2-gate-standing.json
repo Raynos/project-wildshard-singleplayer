@@ -1,0 +1,20 @@
+{
+ "nine-dragon-stack": [
+  {
+   "name": "gate-jake",
+   "x": 6,
+   "y": 125,
+   "z": -8,
+   "yaw": -5.934119,
+   "pitch": 0.139626
+  },
+  {
+   "name": "walkway-jake",
+   "x": 1,
+   "y": 125,
+   "z": -6,
+   "yaw": -5.759587,
+   "pitch": -0.610865
+  }
+ ]
+}
