@@ -24,7 +24,7 @@ not qualify a later audio candidate. Saltwind's final admitted candidate is
 | Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Chromium/control complete; walk/goldens open | Chromium memory complete; official Sim queued |
+| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Chromium/control complete; walk/goldens open | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
@@ -480,7 +480,7 @@ Raw walk, eight capture rows, source bindings and classification stay in
 `tmp/sp-x1-open-plots/sky-final/`. All own browsers are closed and the own
 shared preview lease is released after reporting. No visual source changes.
 
-## Starfall Observatory — Memory (sp-x8)
+## Starfall Observatory — Memory/Simulator (sp-x8)
 
 Final admitted audio source **aa33a361f526d9a82d280912014de6e451cff381**,
 normal shared immutable build **aa33a36-mw17vdnh** (:4400). The served raw
@@ -508,12 +508,10 @@ from native Simulator memory, and are not summed as a per-shard verdict.
 | 2 | 167 | 524 | 50 | 60.1 |
 | 3 | 167 | 524 | 51 | 60.1 |
 
-The browser closed at the command's natural end. Official Simulator
-cadence, native memory and junction residency remain **unmeasured**;
-Chromium FPS earns no official timing credit. X1's control browser also
-closed, while X2's finite Pastel model turn is still active. Official quiet
-waits for its literal release; no model, quiet or Simulator lock is held
-by this lane. The own preview use stays retained for the queued window.
+The Chromium browser closed at the command's natural end. Its FPS earns
+no official timing credit. The independent official reading below follows
+X1's literal control-browser end and the model owners' literal releases;
+no model or peer proof was interrupted.
 
 The pinned source places Starfall in cell **(1,2)**. Its southwest
 intersection is **(281.25,1.7,843.75)**, with actual Pine, Template,
@@ -521,6 +519,82 @@ Saltwind and Starfall neighbours. These are prepared source poses, not
 measured residency. The exact body admission, memory samples and source
 poses are retained at `tmp/sp-x8-plot-readings/starfall-final/`.
 The full row stays open for the independent remaining scopes.
+
+### Starfall — official Simulator
+
+One maintained official quiet command measures the same admitted
+**aa33a36-mw17vdnh** app: three standalone poses, grid spawn and four
+source-bound junction directions. An extra preflight first stopped before
+any resource acquisition because of a loose desktop-DPR reader hunk.
+The owner then landed checked `1ea6c14007`; committed reader bytes and
+unchanged app/index bindings were verified before the **first native run**.
+The original pose, frame, deadline and admission controls stay intact.
+
+The complete command runs **99.019 s, complete=true/pass=true**, ending
+at **2026-11-03T22:01:32.854Z**. All **eight windows have 120/120 frames**,
+zero skips and no page errors. Apple GPU, phone 2×, CSS 402×714,
+canvas 804×1428. Model-lock admission follows X6's literal 190 s Fossil
+batch end; X2 and X1 also report their finite work ended.
+
+| Surface / view | Median FPS | p95 / p99 / max ms | Max draws | Reported triangles |
+|---|---:|---:|---:|---:|
+| Standalone spawn | 30.303 | 34 / 34 / 34 | 53 | 106,903 |
+| Standalone road | 30.303 | 34 / 34 / 35 | 60 | 90,462 |
+| Standalone plaza | 30.303 | 34 / 34 / 35 | 62 | 121,899 |
+| Grid spawn | 30.303 | 34 / 36 / 46 | 107 | 1,081,902 |
+| Junction −135° | 30.303 | 34 / 34 / 37 | 58 | 78,333 |
+| Junction −45° | 30.303 | 34 / 34 / 36 | 71 | 93,215 |
+| Junction 45° | 30.303 | 34 / 36 / 38 | 48 | 162,124 |
+| Junction 135° | 30.303 | 34 / 34 / 36 | 73 | 75,688 |
+
+The original 30 FPS floor and 150-draw controls pass. Every strict
+33.3 ms flag stays **false**. Evaluation-origin drift maximum is zero
+standalone and 1 ms in the grid. These are Mac-backed Mobile Safari
+readings, not physical-phone clearance; native memory sampling itself
+earns no timing credit.
+
+Standalone native memory has **222 playing / 80 loading samples** and
+**47 GPU witnesses**. Conservative phase envelopes are **272.540 MB
+playing** (249.138 native + 23.402 GPU ledger) and **874.985 MB loading**
+(851.583 + 23.402). They fit the unchanged 1,200 / 1,800 MB per-shard
+limits. The GPU ledger retains 3.446 MB unattributed.
+
+Grid memory has **361 playing / 113 loading samples** and **76 GPU
+witnesses**. Its pooled-page envelopes are **904.077 MB playing**
+(756.863 native + 147.214 GPU ledger) and **1,047.916 MB loading**
+(900.702 + 147.214), with 2.211 MB GPU unattributed. G556 gives this
+whole pooled page no 1.2 GB cap. Both phase readings retain one
+Inspector-closed error with complete native/GPU coverage. Separate native
+and GPU maxima need not coincide; GPU-process footprint is excluded.
+
+All four junction windows independently show actual Pine, Template,
+Saltwind and Starfall neighbours as **near**, with **pending=[]** and
+**crossing=settled**. Road current is null and residents are empty;
+near visibility does not claim four resident gameplay worlds. The
+incidental Driftwood spawn still has six pending neighbours, so no
+whole-grid settled-residency claim is inferred.
+
+Standalone pool observations retain 45 available logical blocks,
+**3,080,192 B**, with zero hits/misses/blocked. Junction observations retain
+40 available blocks, **2,752,512 B**, six virgin hits, zero recycled hits,
+zero misses/blocked and 46 cumulative returns. Grid spawn has five virgin
+hits and 45 returns. Logical reusable capacity is not another physical-RAM
+charge and is not added to the native envelope.
+
+The official result is
+`tmp/sp-x8-plot-readings/starfall-final/simulator/aa33a361f-58758-1793743193844.json`;
+checked `summary.json`, native/GPU logs, admission and exact source poses
+share that root. Quiet, the Simulator and model lock released normally
+before parsing. X1/X2/X6/O2 received literal release; O2's following census
+is a separate owner window. X1's later interrupted walk has no earned
+credit here. All own browsers are closed and the own preview use is
+released after recording.
+
+Memory/official scope is complete. The independent maintained walk and
+eight goldens remain open with X1, and the audio owner retains row
+integration. New reading commits stay local under Jake's push hold;
+no audio, plot or documentation push request is made.
+
 
 ## Starfall Observatory — Chromium/control (sp-x1)
 
