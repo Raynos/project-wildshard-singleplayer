@@ -17,3 +17,15 @@ the phone tier at 2x as an iPhone 16 Pro, at the round-62 hero cameras plus the 
   wire 8,126,234 to 8,164,735 B, under the 8,225,190 B ceiling.
 
 **Ruling (G941 / G872): R1 ships.**
+
+## Round 2: tile density (`board-r2.jpg`)
+
+- **Gap (bar 6):** the stall tiles drew up to 17,886 triangles at L0, past the bar's 15k. With R1's 18k gate, the plaza
+  tiles reached 15.7k.
+- **Fix:** a hero stall every fourth place down each row (was every third); a vendor at every third hero stall (was
+  every other); shoppers before the second and sixth stall only; goods behind every third stall; three aisle carts,
+  evenly spaced (was four); two plaza planters (was four).
+- **Result:** L0 max 14,852, mean 8,910 (bar: max 15k, mean 8k). Phone wire 8.16 to 7.94 MB. The aisle reads
+  the same, with one cart fewer per tile.
+
+**Ruling (G941 / G872): R2 ships.**

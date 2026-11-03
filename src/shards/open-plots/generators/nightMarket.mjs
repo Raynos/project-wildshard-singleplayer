@@ -264,23 +264,25 @@ function modelStalls(w, p) {
   let heroes = 0;
   for (const side of [-1, 1]) for (let i = 0; i < 10; i++) {
     const z = -24.75 + i * 5.5, x = side * 17.5;
-    // a hero stall every third place down each row, the two rows offset (pick() gave every S-tile stall the row kind;
-    // RM8.5: every other one put an S tile over 15k triangles)
-    const kind = (i + side + 1) % 3 === 0 ? 0 : 1, yaw = -side * Math.PI / 2;
+    // a hero stall every fourth place down each row, the two rows offset (pick() gave every S-tile stall the row kind;
+    // RM8.5: every other one put an S tile over 15k triangles; OB10: every third put it at 17.9k, past the build-out
+    // bar's 15k)
+    const kind = (i + side + 1) % 4 === 0 ? 0 : 1, yaw = -side * Math.PI / 2;
     w.placeModel('stalls', kind, x, z, { yaw });
     w.solid([x - 1.5, 0, z - 2.1], [x + 1.5, 1.1, z + 2.1]);
-    // RM4.8 (opt-in): a vendor behind every other hero stall's counter, facing out with it; a shopper before every fourth
-    // stall (RM8.5: an S tile with every family on stays under 15k triangles); G755: counted over the hero stalls
+    // RM4.8 (opt-in): a vendor behind every third hero stall's counter (OB10: was every other), facing out with it; a
+    // shopper before the second and sixth stall (OB10: and no longer the tenth); G755: counted over the hero stalls
     if (w.hasModel('figures')) {
-      if (kind === 0 && heroes++ % 2 === 0) w.placeModel('figures', 0, x - side * 0.2, z, { yaw });
-      if (i % 4 === 1) w.placeModel('figures', pick(x, z, 2, 3) + 1, x - side * 2.6, z + 0.6, { yaw: yaw + Math.PI });
+      if (kind === 0 && heroes++ % 3 === 0) w.placeModel('figures', 0, x - side * 0.2, z, { yaw });
+      if (i === 1 || i === 5) w.placeModel('figures', pick(x, z, 2, 3) + 1, x - side * 2.6, z + 0.6, { yaw: yaw + Math.PI });
     }
     if (i % 2 === 0) pool(w, x - side * 3.4, z + 2.75, 5, p.pool);
-    // RM4.6 (opt-in): goods waiting behind every other stall
-    if (i % 2 === 1 && w.hasModel('props')) { w.placeModel('props', 2, side * 20.6, z, { yaw: -side * Math.PI / 2 }); w.solid([side * 20.6 - 0.7, 0, z - 0.7], [side * 20.6 + 0.7, 0.8, z + 0.7]); }
+    // RM4.6 (opt-in): goods waiting behind every third stall (OB10: was every other)
+    if (i % 3 === 1 && w.hasModel('props')) { w.placeModel('props', 2, side * 20.6, z, { yaw: -side * Math.PI / 2 }); w.solid([side * 20.6 - 0.7, 0, z - 0.7], [side * 20.6 + 0.7, 0.8, z + 0.7]); }
   }
-  for (let i = 0; i < 4; i++) {
-    const z = -16.5 + i * 11, x = i % 2 === 0 ? -4 : 4;
+  // food carts down the aisle (OB10: three, was four)
+  for (let i = 0; i < 3; i++) {
+    const z = -16.5 + i * 16.5, x = i % 2 === 0 ? -4 : 4;
     w.placeModel('stalls', 2, x, z, { yaw: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 });
     w.solid([x - 0.8, 0, z - 1.3], [x + 0.8, 1.1, z + 1.3]);
     pool(w, x, z, 4, p.pool);
@@ -435,9 +437,10 @@ function plaza(w, p) {
   }
   w.box('Kit', [-27, 0, 19], [-19, 0.8, 27], p.stone, p.lawn); w.solid([-27, 0, 19], [-19, 0.8, 27]);
   tree(w, -23, 23, 6.5, p, 1);
-  // RM4.6 (opt-in): a flower planter beside each inner-ring lantern, benches between the outer ring's facing the gate
+  // RM4.6 (opt-in): a flower planter beside the first and last inner-ring lanterns (OB10: was all four; with the 18k gate a
+  // plaza tile went past 15k triangles), benches between the outer ring's facing the gate
   if (w.hasModel('props')) {
-    for (let i = 0; i < 4; i++) {
+    for (const i of [0, 3]) {
       const a = Math.PI / 2 + (i + 0.5) / 4 * Math.PI / 2, x = HALF + 37.8 * Math.cos(a), z = -HALF + 37.8 * Math.sin(a);
       w.placeModel('props', 0, x, z); w.solid([x - 0.9, 0, z - 0.9], [x + 0.9, 0.65, z + 0.9]);
     }
