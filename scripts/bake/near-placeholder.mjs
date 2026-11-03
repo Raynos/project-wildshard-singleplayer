@@ -244,6 +244,63 @@ if (fromTiles) {
   prototypes.push(...(level === 1 ? coarse : await sdk.shardfileWorld(project.shard, project.assets, undefined, 0)));
   console.log(`${slug}: ${prototypes.length} shardfile L${level} tile meshes`);
 }
+/**
+ * A tiles world raised off its declared floor (`near.base`, Nine Dragon's city at +125 m) stands on a stack: a column
+ * under every `cell`-metre square its content covers, from the floor up a metre into that square's lowest content (the
+ * footprint's enclosed gaps filled from their neighbours), its sides only where a neighbour stands lower, coloured from
+ * `foot` at the floor to `lip` at the stack's top. One prototype a 125 m region, each kept whole (a floor of its own).
+ */
+const stackBase = (content, floorY, { cell, lip, foot }) => {
+  const n = Math.ceil(500 / cell), low = new Float32Array(n * n).fill(Infinity), cellOf = (v) => Math.min(n - 1, Math.max(0, Math.floor((v + 250) / cell)));
+  for (const p of content) for (const m of p.transforms) {
+    const world = (k) => [0, 1, 2].map(r => (m[r] ?? 0) * p.positions[k * 3] + (m[4 + r] ?? 0) * p.positions[k * 3 + 1] + (m[8 + r] ?? 0) * p.positions[k * 3 + 2] + (m[12 + r] ?? 0));
+    for (let t = 0; t < p.index.length; t += 3) {
+      const [a, b, c] = [p.index[t], p.index[t + 1], p.index[t + 2]].map(world), y = Math.min(a[1], b[1], c[1]);
+      for (let i = cellOf(Math.min(a[0], b[0], c[0])); i <= cellOf(Math.max(a[0], b[0], c[0])); i++) for (let j = cellOf(Math.min(a[2], b[2], c[2])); j <= cellOf(Math.max(a[2], b[2], c[2])); j++) low[j * n + i] = Math.min(low[j * n + i], y);
+    }
+  }
+  // the gaps the footprint encloses (streets between towers, courts) take their neighbours' lowest content
+  const outside = new Uint8Array(n * n), queue = [];
+  for (let k = 0; k < n; k++) for (const c of [k, (n - 1) * n + k, k * n, k * n + n - 1]) if (low[c] === Infinity && outside[c] === 0) { outside[c] = 1; queue.push(c); }
+  while (queue.length > 0) {
+    const c = queue.pop(), i = c % n, j = (c - i) / n;
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const x = i + di, z = j + dj, d = z * n + x; if (x >= 0 && z >= 0 && x < n && z < n && low[d] === Infinity && outside[d] === 0) { outside[d] = 1; queue.push(d); } }
+  }
+  for (let pass = 0; pass < n; pass++) {
+    let open = 0;
+    for (let c = 0; c < n * n; c++) if (low[c] === Infinity && outside[c] === 0) {
+      const i = c % n, j = (c - i) / n, around = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([di, dj]) => (i + di >= 0 && j + dj >= 0 && i + di < n && j + dj < n ? low[(j + dj) * n + i + di] : Infinity)).filter(Number.isFinite);
+      if (around.length > 0) low[c] = Math.min(...around); else open++;
+    }
+    if (open === 0) break;
+  }
+  const top = (i, j) => (i < 0 || j < 0 || i >= n || j >= n || !Number.isFinite(low[j * n + i]) || low[j * n + i] < floorY + 1 ? floorY : low[j * n + i] + 1);
+  let peak = floorY; for (let c = 0; c < n * n; c++) peak = Math.max(peak, top(c % n, (c - (c % n)) / n));
+  const tint = (y) => { const k = peak > floorY ? (y - floorY) / (peak - floorY) : 1; return [0, 1, 2].map(r => foot[r] + (lip[r] - foot[r]) * k); };
+  const regions = new Map();
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const h = top(i, j);
+    if (h <= floorY) continue;
+    const x0 = -250 + i * cell, z0 = -250 + j * cell, x1 = Math.min(250, x0 + cell), z1 = Math.min(250, z0 + cell), key = `${Math.floor((x0 + 250) / 125)}-${Math.floor((z0 + 250) / 125)}`;
+    const region = regions.get(key) ?? { positions: [], colours: [], index: [], cx: -250 + Math.floor((x0 + 250) / 125) * 125 + 62.5, cz: -250 + Math.floor((z0 + 250) / 125) * 125 + 62.5 };
+    regions.set(key, region);
+    // the four sides, each outward (+x, -x, +z, -z), from the neighbour's top (or the floor) up to this column's
+    for (const { di, dj, ax, az, bx, bz } of [{ di: 1, dj: 0, ax: x1, az: z1, bx: x1, bz: z0 }, { di: -1, dj: 0, ax: x0, az: z0, bx: x0, bz: z1 },
+      { di: 0, dj: 1, ax: x0, az: z1, bx: x1, bz: z1 }, { di: 0, dj: -1, ax: x1, az: z0, bx: x0, bz: z0 }]) {
+      const from = Math.max(floorY, top(i + di, j + dj));
+      if (from >= h) continue;
+      const v = region.positions.length / 3;
+      for (const [x, y, z] of [[ax, from, az], [bx, from, bz], [bx, h, bz], [ax, h, az]]) { region.positions.push(x - region.cx, y, z - region.cz); region.colours.push(...tint(y)); }
+      region.index.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    }
+  }
+  return [...regions.entries()].map(([key, r]) => ({ name: `stack-base-${key}`, positions: Float32Array.from(r.positions), colours: Float32Array.from(r.colours), index: Uint32Array.from(r.index), transforms: [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, r.cx, 0, r.cz, 1]] }));
+};
+const base = source.near?.base === undefined || source.near.floor === undefined ? [] : stackBase(prototypes, source.near.floor.y, source.near.base);
+if (base.length > 0) {
+  prototypes.push(...base);
+  console.log(`${slug}: stack base ${base.reduce((sum, p) => sum + p.index.length / 3, 0)} triangles in ${base.length} regions`);
+}
 // G380: a land of models (Sky Reach's islands, its far row's `parts`) is built with the SDK's shared model tools, at
 // `NEAR_BAKE.modelScale` times the far share, and reduced to the near bake's land budget
 const land = source.far?.parts === undefined ? [] : await (await exported(source.far.parts))(await sdk.placeholderModelTools(root, sdk.NEAR_BAKE.modelScale));
@@ -260,7 +317,8 @@ const grid = floor !== undefined ? { res: 2, size: 500, heights: new Float32Arra
   : flat ? null : ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
 // round 3: the ground at the height field's own density, reduced by geometric error (--ground-error=<m> to measure)
 const arg = (name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-const { bytes, manifest: baked, reduced } = await sdk.bakeNearPlaceholder({ grid, look: floor === undefined ? look : { ...look, quads: 1, colourAt: () => [...floor.colour] }, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
+const { bytes, manifest: baked, reduced } = await sdk.bakeNearPlaceholder({ grid, look: floor === undefined ? look : { ...look, quads: 1, colourAt: () => [...floor.colour] }, prototypes, parts: land, trees: forestTrees, stands: source.trees,
+  floors: base.length === 0 ? source.near?.floors : [...source.near?.floors ?? [], ...base.map(p => ({ prototype: p.name, triangles: p.index.length / 3 }))],
   groundError: Number(arg('ground-error') ?? sdk.NEAR_BAKE.groundError), residentBytes: Number(arg('resident') ?? sdk.NEAR_BAKE.residentBytes), log: line => console.log(`${slug}: ${line}`) });
 // G630: a shard that declares `near.owns` (its tiles draw lit only inside its world) keeps its near view over its tiles
 const row = fromTiles && prototypes.length > 0 && source.near?.owns !== true ? { ...baked, near: { ...baked.near, tiles: true } } : baked;

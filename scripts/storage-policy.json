@@ -59,10 +59,10 @@
     },
     {
       "path": "public/assets/baked/nine-dragon-stack/near.glb",
-      "oid": "b6c288c24eedc2efcf4d4dd89fde4051c226eb9a",
-      "bytes": 2278148,
+      "oid": "d233cd5e187a4c2c1864aea48a748cd1bcc61b5e",
+      "bytes": 1771760,
       "kind": "runtime",
-      "purpose": "G630 / G607 Nine Dragon's near view (every cell near): its 181 L0 tile meshes reduced to the near budget, 42,142 triangles, one draw, 4.56 MB resident; baked by scripts/bake/near-placeholder.mjs (the other shards' near bakes are 0.35-4.2 MB)"
+      "purpose": "G630 / G607 Nine Dragon's near view (every cell near): its 25 L1 tile meshes reduced to the near budget on a granite stack base under the +125 m city (placeholder.json near.base), 42,628 triangles, one draw, 3.54 MB resident; baked by scripts/bake/near-placeholder.mjs (the other shards' near bakes are 0.35-4.2 MB)"
     },
     {
       "path": "public/assets/nalati/baked/6f362ed67dfffeb86ad47768a8e43a59267da96dee77914d0f9cf2af70b8e3ea.glb",

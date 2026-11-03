@@ -56,7 +56,10 @@ export const PlaceholderSourceSchema: v.GenericSchema<PlaceholderSourceInput, Pl
    *  removes keeps its silhouette); `world: 'tiles'`, its world is its shardfile's coarse tiles (a world built from its
    *  product, with no authored host to visit); `owns`, its near view owns its cell over its own tiles (G630: tiles whose
    *  looks are lit only inside their world, Nine Dragon's night city, never refine over it); `floor`, the flat floor such a
-   *  world stands on (its height in metres and its linear colour) when its streets are not in its tiles */
+   *  world stands on (its height in metres and its linear colour) when its streets are not in its tiles; `base`, a stack
+   *  under such a world raised off that floor (Nine Dragon's city at +125 m floated over it from a neighbour's road): a
+   *  column under every `cell`-metre square of its footprint from the floor up into its lowest content, its linear colour
+   *  going from `lip` at the top to `foot` at the floor */
   near: v.optional(v.strictObject({
     floors: v.optional(v.pipe(v.array(v.strictObject({
       prototype: v.pipe(v.string(), v.regex(/^[A-Za-z0-9][A-Za-z0-9_./-]{0,63}$/u)),
@@ -67,6 +70,11 @@ export const PlaceholderSourceSchema: v.GenericSchema<PlaceholderSourceInput, Pl
     floor: v.optional(v.strictObject({
       y: v.pipe(v.number(), v.minValue(-50), v.maxValue(50)),
       colour: v.tuple([v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1))]),
+    })),
+    base: v.optional(v.strictObject({
+      cell: v.pipe(v.number(), v.minValue(2), v.maxValue(50)),
+      lip: v.tuple([v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1))]),
+      foot: v.tuple([v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1)), v.pipe(v.number(), v.minValue(0), v.maxValue(1))]),
     })),
   })),
 });
@@ -145,6 +153,19 @@ interface PlaceholderSourceInputFields {
                 number
             ];
         } | undefined;
+        base?: {
+            cell: number;
+            lip: [
+                number,
+                number,
+                number
+            ];
+            foot: [
+                number,
+                number,
+                number
+            ];
+        } | undefined;
     } | undefined;
 }
 export type PlaceholderSourceInput = { [Key in keyof PlaceholderSourceInputFields]: PlaceholderSourceInputFields[Key] };
@@ -165,6 +186,19 @@ interface PlaceholderSourceFields {
         floor?: {
             y: number;
             colour: [
+                number,
+                number,
+                number
+            ];
+        } | undefined;
+        base?: {
+            cell: number;
+            lip: [
+                number,
+                number,
+                number
+            ];
+            foot: [
                 number,
                 number,
                 number
