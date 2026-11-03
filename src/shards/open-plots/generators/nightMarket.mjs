@@ -56,25 +56,6 @@ function mover(w, x, y, z, size, seed) {
 /** A firefly: a 12 cm mover the glow graph wanders (+-0.8 m) and blinks green (RM10.3: 7 cm did not read past a few
  *  metres). */
 function firefly(w, x, y, z) { placeMovingLight(w, 'firefly', [x, y, z]); }
-/** RM10.1: a round paper sky lantern of the Glow part about (x, y, z), `r` its belly radius: an 8-sided body narrow at
- *  the foot, swelling just under the middle and drawn in at the top, closed both ends (48 triangles), every vertex the
- *  same marked colour so the glow graph moves and lights it as one */
-function paperLantern(w, x, y, z, r, seed) {
-  const c = [seed, 0, 0], rings = [[-1.0, 0.62], [0.1, 1], [1.2, 0.7]].map(([dy, k]) => Array.from({ length: 8 }, (_, i) =>
-    [x + k * r * Math.cos(i / 8 * Math.PI * 2), y + dy * r, z + k * r * Math.sin(i / 8 * Math.PI * 2)]));
-  const foot = [x, y - r, z], crown = [x, y + 1.2 * r, z];
-  for (let i = 0; i < 8; i++) {
-    const j = (i + 1) % 8;
-    for (let k = 0; k < 2; k++) {
-      const [lo, hi] = [rings[k], rings[k + 1]];
-      w.tri('Glow', lo[i], hi[i], lo[j], c); w.tri('Glow', lo[j], hi[i], hi[j], c);
-    }
-    w.tri('Glow', crown, rings[2][j], rings[2][i], c); w.tri('Glow', foot, rings[0][i], rings[0][j], c);
-  }
-}
-/** A floating sky lantern: a round paper lantern (`r` its belly, 0.4 m: 0.9 m tall) the glow graph bobs and drifts
- *  (+-2 m), lit orange. */
-function skyLantern(w, x, y, z, r = 0.4) { placeMovingLight(w, 'sky-lantern', [x, y, z], r); }
 /** RM10.2: steam over a food cart at (x, y, z): three small octahedra in the additive Pool draw, marked by a vertex
  *  colour with blue and no red (no pool light has that) and seeded by green, so the pool graph lifts each 2.4 m on its own
  *  ~3 s loop, drifting and fading in and out (24 triangles). */
@@ -89,14 +70,11 @@ function steam(w, x, y, z) {
     }
   }
 }
-/** One moving light: consumes the next seed and writes its marked shape (a firefly's tetrahedron, a sky lantern's paper
- *  body). */
-function placeMovingLight(w, kind, position, r = 0.4) {
-  if (!['firefly', 'sky-lantern'].includes(kind) || !Array.isArray(position) || position.length !== 3
-    || position.some(value => !Number.isFinite(value)) || !(r > 0)) throw new Error('open-plots: invalid moving light');
-  const seed = nextSeed() * 0.5;
-  if (kind === 'firefly') mover(w, position[0], position[1], position[2], 0.12, seed);
-  else paperLantern(w, position[0], position[1], position[2], r, 0.5 + seed);
+/** One moving light: consumes the next seed and writes its marked shape (a firefly's tetrahedron). */
+function placeMovingLight(w, kind, position) {
+  if (kind !== 'firefly' || !Array.isArray(position) || position.length !== 3
+    || position.some(value => !Number.isFinite(value))) throw new Error('open-plots: invalid moving light');
+  mover(w, position[0], position[1], position[2], 0.12, nextSeed() * 0.5);
 }
 /** A lantern on a post of `height` and its pool of light. With the kit's models (RM4, opt-in: the layout's kit) it is
  *  the stone post, paper-lantern bracket or banner post by place, its model emitting the bake's light; without them,
@@ -443,8 +421,6 @@ function plaza(w, p) {
     }
     if (w.hasModel('lanterns')) for (const [x, z] of along ? [[x0 - 0.8, z0], [x0 - 0.8, z1]] : [[x0, z1 + 0.8], [x1, z1 + 0.8]]) lantern(w, x, z, p, 2.6);
   }
-  // NM10, RM10.1: round paper sky lanterns floating over the plaza, five a quarter at 18 to 40 m
-  for (const [x, y, z] of [[-14, 22, -8], [6, 31, 12], [16, 40, -18], [-6, 27, 20], [22, 18, 4]]) skyLantern(w, x, y, z);
 }
 
 /** RM11: a far tree crown about (x, y, z), `r` wide: a five-sided double cone (10 triangles). */
@@ -503,6 +479,8 @@ function farTile(w, p, type, variant) {
 
 /** RM10 (D112): no lane life within this many metres of the gate (its wings span the plaza's lanes). */
 const GATE_CLEAR = 30;
+/** OP1: the hero paper lantern (kit `hero` take A, 0.82 m as built) on the lane ropes, about 1.3 m tall */
+const HERO_SCALE = 1.6;
 /** The lane on a tile's north (side 0) or east (side 1) seam: two strings of bulbs 3 m either side of the seam, sagging
  *  between posts at the crossings' corners, the bulbs alternating gold and red (Glow, merged into the tile's glow draw). */
 function stringLights(w, p, side, centre) {
@@ -539,15 +517,10 @@ function stringLights(w, p, side, centre) {
   }
 }
 
-/** RM10 (D112): the life every lane carries, so it reads straight down a lane from the road entry, where the plaza's
- *  lanterns and the stall rows' steam are too far: three round sky lanterns (0.6 m belly) over the lane's middle at 9.5 to
- *  15.5 m, a quarter of a tile apart, and four fireflies low at its edges (160 triangles a seam, all in the Glow draw);
- *  none inside `GATE_CLEAR` m of the gate, whose wings span the plaza's lanes (the plaza keeps its own sky lanterns). */
+/** RM10 (D112): the life every lane carries, so it reads straight down a lane from the road entry: four fireflies low at
+ *  its edges (all in the Glow draw), none inside `GATE_CLEAR` m of the gate. OP1 (G827: "too many floating lanterns"):
+ *  the sky lanterns that floated over every lane and the plaza are gone; every lantern hangs on a rope, post or eave. */
 function laneLife(w, along, clear) {
-  for (const [u, y] of [[-HALF / 2, 9.5], [0, 15.5], [HALF / 2, 12.5]]) {
-    const [x, , z] = along(u, 0, y);
-    if (!clear(x, z)) skyLantern(w, x, y, z, 0.6);
-  }
   for (const [u, off, y] of [[-HALF * 0.8, -3.6, 1.4], [-HALF * 0.4, 3.6, 1.9], [HALF * 0.4, -3.6, 1.6], [HALF * 0.8, 3.6, 1.3]]) {
     const [x, , z] = along(u, off, y);
     if (!clear(x, z)) firefly(w, x, y, z);
@@ -555,10 +528,11 @@ function laneLife(w, along, clear) {
 }
 
 /** RM4.3 (opt-in, the layout's kit): a seam's strings from the kit: a lane post with its banner along the lane
- *  at each crossing corner, a dark cord sagging between them, and round gold bulbs on it with a red paper lantern every
- *  fourth (each model emits its own light). */
+ *  at each crossing corner, a thick dark rope sagging between them (OP1, G827: "connected by a very visible rope") with
+ *  round gold bulbs on it, and two hero paper lanterns hung from it a third of the way in from each post (the kit's
+ *  `hero` take A; without it the old small paper lantern every fourth point). Each model emits its own light. */
 function modelStrings(w, p, along, ends, clear, top, sag, step) {
-  const yaw = along(1, 0, 0)[0] === 1 ? 0 : Math.PI / 2;
+  const yaw = along(1, 0, 0)[0] === 1 ? 0 : Math.PI / 2, hero = w.hasModel('hero');
   for (const off of [-3, 3]) {
     for (const u of ends) {
       const [x, , z] = along(u, off, 0);
@@ -566,20 +540,26 @@ function modelStrings(w, p, along, ends, clear, top, sag, step) {
       w.placeModel('strings', 2, x, z, { yaw });
       w.solid([x - 0.15, 0, z - 0.15], [x + 0.15, top, z + 0.15]);
     }
-    const span = ends[1] - ends[0], count = Math.floor(span / step), cord = [];
+    const span = ends[1] - ends[0], count = Math.floor(span / step), cord = [], heroAt = new Set([Math.round(count / 3), Math.round(count * 2 / 3)]);
     for (let i = 0; i <= count; i++) {
       const t = i / count, u = ends[0] + span * t, y = top - sag * 4 * t * (1 - t), point = along(u, off, y);
       if (i % 2 === 0 || i === count) cord.push(point);
       if (i === 0 || i === count || clear(point[0], point[2])) continue;
-      w.placeModel('strings', i % 4 === 0 ? 1 : 0, point[0], point[2], { y: y - (i % 4 === 0 ? 0 : 0.16), yaw });
+      if (hero) {
+        if (heroAt.has(i)) w.placeModel('hero', 0, point[0], point[2], { y, yaw, scale: HERO_SCALE });
+        else w.placeModel('strings', 0, point[0], point[2], { y: y - 0.16, yaw });
+      } else w.placeModel('strings', i % 4 === 0 ? 1 : 0, point[0], point[2], { y: y - (i % 4 === 0 ? 0 : 0.16), yaw });
     }
-    // the cord: a 5 cm ribbon between its points, both faces (seen from below on the lane and from above)
+    // the rope: a 7 cm square-section rope between its points, its four faces out (seen from the lane and from above)
     for (let k = 0; k + 1 < cord.length; k++) {
       const a = cord[k], b = cord[k + 1];
       if (a === undefined || b === undefined || clear(a[0], a[2]) || clear(b[0], b[2])) continue;
-      const across = yaw === 0 ? [0, 0, 0.025] : [0.025, 0, 0];
-      const l = (q) => [q[0] - across[0], q[1], q[2] - across[2]], r = (q) => [q[0] + across[0], q[1], q[2] + across[2]];
-      w.quad('Kit', l(a), r(a), r(b), l(b), p.wood); w.quad('Kit', l(b), r(b), r(a), l(a), p.wood);
+      const r = 0.035, across = yaw === 0 ? [0, 0, r] : [r, 0, 0];
+      const at = (q, s, t) => [q[0] + across[0] * s, q[1] + r * t, q[2] + across[2] * s];
+      for (const [s0, t0, s1, t1] of [[-1, 1, 1, 1], [1, 1, 1, -1], [1, -1, -1, -1], [-1, -1, -1, 1]]) {
+        w.quad('Kit', at(a, s0, t0), at(a, s1, t1), at(b, s1, t1), at(b, s0, t0), p.rope ?? p.wood);
+        w.quad('Kit', at(b, s0, t0), at(b, s1, t1), at(a, s1, t1), at(a, s0, t0), p.rope ?? p.wood);
+      }
     }
   }
 }
@@ -609,8 +589,11 @@ export const nightMarketPlot = {
   builders: layout => nightMarketBuilders(layout.builders),
   lanternBake: { gain: 0.8, radius: 1.5, cut: 3 },
   models(parts, kit, layout) {
-    placePlotModels(parts, kit, (layout.landmark.lanterns ?? []).map(at =>
-      ({ family: 'strings', variant: 1, at, scale: layout.landmark.lanternScale ?? 1 })), COARSE_FAMILIES);
+    // OP1: the gate's lanterns are the hero paper lantern when the kit has it (its scale is the layout's heroScale)
+    const hero = kit.has?.('hero') === true;
+    placePlotModels(parts, kit, (layout.landmark.lanterns ?? []).map(at => hero
+      ? { family: 'hero', variant: 0, at, scale: layout.landmark.heroScale ?? 2 }
+      : { family: 'strings', variant: 1, at, scale: layout.landmark.lanternScale ?? 1 }), COARSE_FAMILIES);
   },
   pools(parts, palette) {
     const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };
