@@ -37,7 +37,7 @@ const GROUPS = [
     ['UI-26', 'cutscene-card', 'Boss intro title card', 'content only', 'The real letterbox, name card and HOLD TO SKIP ring: THE CRATE TITAN · LV 20.'],
     ['UI-27', 'map-heat', 'Map heat map', 'new', 'The level bands tinted on the map tab, a CON key in the legend.'],
     ['UI-28', 'minimap-band', 'Minimap band border', 'new', 'An orange arc on the rim toward a higher band, BAND 3 · LV 7–9 AHEAD.'],
-    ['UI-29', 'vault-room', 'Training Vault sealed room', 'new', 'ROOM 2/4 · 3 left, and the seal toast.'],
+    ['UI-29', 'vault-room', 'Training Vault sealed room', 'new', 'Picked A: inside the vault the tracked quest hides and one chip takes its place, TRAINING VAULT | ROOM 2/4 · 3 LEFT; the quest chip comes back when you leave.'],
     ['UI-30', 'shrine-complete', 'SHRINE COMPLETE card', 'reuses the complete card', 'Time, best, deaths, rooms, the chest and the trophy.'],
     ['UI-31', 'trick-score', 'Hover park trick score', 'new', 'A trick word over the board and the running score chip.'],
   ]],
@@ -99,8 +99,8 @@ const fig = ([id, slug, title, kind, cap]) => {
     + (pick.notes ? `<p class="notes">Your notes: ${esc(pick.notes.replace(/^\d{4}-\d\d-\d\d: /, ''))}</p>` : '');
   return `<section class="pair"><h3>${badge} ${id} · ${esc(title)} <span>${esc(kind)}</span></h3><p>${esc(cap)}</p>${cut}<div class="two">`
     + `<figure><img loading="lazy" src="${f}-before.jpg" alt="${id} before"><figcaption>BEFORE · live</figcaption></figure>`
-    + `<figure><img loading="lazy" src="${f}-after.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div>`
-    + (id === 'UI-29' ? '<p class="notes">New options (A · B · C), all hiding the tracked quest inside the vault:</p><figure><img loading="lazy" src="ui-29-board.jpg" alt="UI-29 options"><figcaption>A · the vault’s own quest chip · B · nothing stays · C · room pips only</figcaption></figure>' : '')
+    + `<figure><img loading="lazy" src="${id === 'UI-29' ? 'ui-29-opt-a' : f + '-after'}.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div>`
+    + (id === 'UI-29' ? '<p class="notes">The options you chose from (you picked A):</p><figure><img loading="lazy" src="ui-29-board.jpg" alt="UI-29 options"><figcaption>A · the vault’s own quest chip · B · nothing stays · C · room pips only</figcaption></figure>' : '')
     + '</section>';
 };
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">

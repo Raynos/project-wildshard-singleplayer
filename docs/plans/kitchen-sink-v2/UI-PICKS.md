@@ -21,7 +21,7 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-22 | Storm hour | 2 Banners | pending | 2026-11-03, redone for re-review: "way too busy … the beacons on the minimap is way too busy … a really more minimalist, lightweight" one; now one centred STORM HOUR line that fades, no minimap beacons, no toast, the storm chip unchanged |
 | UI-17 | Checkpoint card | 2 Banners | approved | 2026-11-03: "Yeah, cool. Let's do it." |
 | UI-20 | Course clock chip | 3 Minimap chip | pending | 2026-11-03, redone for re-review: "it can hide the quest chip whilst it's showing the course clock … when we're done … show the quest chip again … not be so busy"; the clock now takes the quest chip's place |
-| UI-29 | Training Vault sealed room | 3 Minimap chip | pending | 2026-11-03: "way too busy … hide the rest of the quest … a dungeon specific quest chip, but like just one … I need new ideas". Options board ui-29-board.jpg: A the vault's own quest chip (recommended), B nothing stays (ROOM 2 / 4 flashes), C room pips only |
+| UI-29 | Training Vault sealed room | 3 Minimap chip | approved | 2026-11-03: "way too busy … hide the rest of the quest … a dungeon specific quest chip, but like just one … I need new ideas"; then "we can pick A for the UI 29, the vault stuff". **A:** inside the vault the tracked quest hides and one chip takes its place, TRAINING VAULT · ROOM 2/4 · 3 LEFT; the quest chip comes back on leaving (ui-29-opt-a.jpg) |
 | UI-31 | Hover park trick score | 3 Minimap chip | pending | |
 | UI-03 | Level-up card, out of combat | 4 End cards | pending | |
 | UI-19 | Shard-complete card | 4 End cards | pending | |
@@ -49,4 +49,4 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 8 approved · 30 pending (3 redone for re-review: UI-24, UI-22, UI-20; UI-29 has an A / B / C board).
+**Tally:** 9 approved · 29 pending (3 redone for re-review: UI-24, UI-22, UI-20).
