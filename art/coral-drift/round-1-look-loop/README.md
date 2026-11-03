@@ -20,9 +20,19 @@ goes to Jake. The method and the 9 angles are Lantern Bayou's (`art/lantern-bayo
 | 2 | the arch bright and saturated (pink, peach, lilac), where the game dims it under the bayou's dusk light | 4, 7, 9 | landmark light | fixed: `landmarkNoon` (b595178992) |
 | 3 | vivid turquoise water with caustics over a pale sandy floor, where the game draws flat cyan | 1, 3, 4, 6 | water | partly: water #3ad6d0 (b595178992); caustics and a visible floor need the lagoon water kind |
 | 4 | pale bleached planks, where the game draws grey boards | 2, 7 | palette | partly: warmer bleached boards (b595178992) |
-| 5 | palms along the lagoons, where the plaza quarters plant Night Market's boxy trees | 4, 6, 7 | kit | open |
+| 5 | palms along the lagoons, where the plaza quarters plant Night Market's boxy trees | 4, 6, 7 | kit | fixed: the banks plant young palms (47648e0b8f) |
+
+## Round 1: capture 6ed2e90 (72 views)
+
+- `sheet-r1-r0-r1-target.jpg`: each angle as R0, R1 and its target.
+- Moved: the plaza sky is bluer (8), and the boxy trees are gone from the banks.
+- Still open: the sky is still pale beside the targets' saturated cyan; the arch barely moved under the noon fill (its
+  swatches are what lack saturation); the bank palms read small (the young palm unscaled, 4 m); the water has no
+  caustics or visible floor (the lagoon water kind).
 
 ## Picks (G872, logged)
 
 - **R1** (sp-o2, 2026-11-03, b595178992): gaps 2 and 4, the sky key and fog of gap 1, and the water colour of gap 3.
   This is a light and palette round, and it trades nothing the old look had.
+- **R2** (sp-o2, 2026-11-03, a2de5f3227): more saturated coral swatches (peach, pink and lilac); a deeper, more
+  saturated sky key and a bluer fog; the bank palms scaled to the trees they replace (the same model, no new bytes).
