@@ -74,15 +74,16 @@ try{for(const slug of slugs){
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(()=>{window.__wildshardHarness={seed:357,capture:null};});
-  if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`(async()=>{
+  if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`window.__installGoldenResidency=async()=>{
     try {
+      if(document.readyState!=='complete'||window.__wildshard?.world?.hud?.entered)throw new Error('Native observer requires loaded title before shard entry');
       const binding=${JSON.stringify(nativeBinding)},bytes=await(await fetch(binding.chunk)).arrayBuffer();
       const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(word=>word.toString(16).padStart(2,'0')).join('');
       if(hash!==binding.chunkSHA256)throw new Error('Native refinement module changed');
-      const native=await import(binding.chunk);native[binding.initializerExport]();
+      const native=await import(new URL(binding.chunk,location.href).href);native[binding.initializerExport]();
       window.__goldenResidency=(${observeRefinement.toString()})(native[binding.classExport].prototype);
     }catch(error){window.__goldenResidencyFailure=String(error);}
-  })()`);
+  }`);
   page=await context.newPage();page.setDefaultTimeout(30000);
   // --cpu-throttle=<n> (Chromium): CDP's CPU throttle, a phone-CPU proxy for frame-cost diagnostics (the shot is unchanged)
   if(throttle>1){if(!owner)throw Error('--cpu-throttle needs Chromium');await(await context.newCDPSession(page)).send('Emulation.setCPUThrottlingRate',{rate:throttle});}page.on('pageerror',e=>row.errors.push(e.message));
@@ -94,9 +95,13 @@ try{for(const slug of slugs){
   if(actual.build!==source.build)throw Error(`Preview changed from ${source.build} to ${actual.build}`);row.build=actual.build;
   await page.goto(base,{waitUntil:'load'});
   if (slug==='nine-dragon-stack'&&nativeBinding!==null) {
+    // WebKit cannot reliably import the native module from a document-start
+    // script. Its initializer is present before navigation, then hooks the
+    // loaded module before any menu action can construct a shard or its jobs.
+    await page.evaluate(()=>{void window.__installGoldenResidency();});
     await page.waitForFunction(()=>window.__goldenResidency!==undefined||window.__goldenResidencyFailure!==undefined);
     const failure=await page.evaluate(()=>window.__goldenResidencyFailure);if(failure)throw new Error(failure);
-    row.nativeBinding=nativeBinding;
+    row.nativeBinding={...nativeBinding,installed:'after-load-before-shard-entry'};
   }
   await page.locator('.ws-main-select').click();
   const names=await page.locator('.ws-menu-card b').allTextContents();
