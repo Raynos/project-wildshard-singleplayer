@@ -1,0 +1,154 @@
+{
+ "about": "QD1 (2026-11-03): seven cameras approximating Jake 07:47-07:52 QA shots in Nine (art/qa-2026-11-03/); his poses were not recorded, so each is read from the shot and its minimap. Format of art/legacy-goldens/compare/cameras24.json.",
+ "cameras": {
+  "nine-dragon-stack": [
+   {
+    "name": "shaft-ceilings",
+    "kind": "qd1",
+    "poi": "Jake 07:52 qd1-shaft-ceilings (approx): high over the shaft, looking down north",
+    "probe": {
+     "x": 3,
+     "z": -14,
+     "y": 125,
+     "yaw": -6.1086523819801535,
+     "pitch": -1.0122909661567112
+    },
+    "yaw": 350,
+    "pitch": -58,
+    "eye": [
+     3,
+     175,
+     -4
+    ],
+    "fov": 93.01050490332493,
+    "n": 1
+   },
+   {
+    "name": "shaft-floating",
+    "kind": "qd1",
+    "poi": "Jake 07:47 qd1-shaft-floating (approx): walkway edge, looking down north-west into the shaft",
+    "probe": {
+     "x": 3,
+     "z": -14,
+     "y": 125,
+     "yaw": -5.759586531581287,
+     "pitch": -0.8377580409572782
+    },
+    "yaw": 330,
+    "pitch": -48,
+    "eye": [
+     8,
+     160,
+     -2
+    ],
+    "fov": 93.01050490332493,
+    "n": 2
+   },
+   {
+    "name": "shaft-void",
+    "kind": "qd1",
+    "poi": "Jake 07:48 qd1-shaft-void (approx): shaft edge, looking down north-east",
+    "probe": {
+     "x": 3,
+     "z": -14,
+     "y": 125,
+     "yaw": -0.3490658503988659,
+     "pitch": -0.9075712110370514
+    },
+    "yaw": 20,
+    "pitch": -52,
+    "eye": [
+     -4,
+     165,
+     -6
+    ],
+    "fov": 93.01050490332493,
+    "n": 3
+   },
+   {
+    "name": "street-floor",
+    "kind": "qd1",
+    "poi": "Jake 07:49 qd1-street-floor (approx): square street level, looking west along the market street",
+    "probe": {
+     "x": 20,
+     "z": -20,
+     "y": 125,
+     "yaw": -4.71238898038469,
+     "pitch": -0.10471975511965978
+    },
+    "yaw": 270,
+    "pitch": -6,
+    "eye": [
+     20,
+     126.7,
+     -20
+    ],
+    "fov": 93.01050490332493,
+    "n": 4
+   },
+   {
+    "name": "street-walls",
+    "kind": "qd1",
+    "poi": "Jake 07:48 qd1-street-walls (approx): beside the gate awning, looking at the shop wall",
+    "probe": {
+     "x": 11,
+     "z": 12,
+     "y": 125,
+     "yaw": -5.235987755982989,
+     "pitch": 0.17453292519943295
+    },
+    "yaw": 300,
+    "pitch": 10,
+    "eye": [
+     11,
+     126.7,
+     12
+    ],
+    "fov": 93.01050490332493,
+    "n": 5
+   },
+   {
+    "name": "train-gate",
+    "kind": "qd1",
+    "poi": "Jake 07:51 qd2-train-gate (approx): the red gate under the scroll ceiling",
+    "probe": {
+     "x": 0.95,
+     "z": 7.5,
+     "y": 125,
+     "yaw": -0.20943951023931956,
+     "pitch": 0.17453292519943295
+    },
+    "yaw": 12,
+    "pitch": 10,
+    "eye": [
+     0.95,
+     126.7,
+     7.5
+    ],
+    "fov": 93.01050490332493,
+    "n": 6
+   },
+   {
+    "name": "stairs-neon",
+    "kind": "qd1",
+    "poi": "Jake 07:49 qd3-stairs-neon (approx): the stair-street looking down to the square",
+    "probe": {
+     "x": 46,
+     "z": 6,
+     "y": 139,
+     "yaw": -4.71238898038469,
+     "pitch": -0.24434609527920614
+    },
+    "yaw": 270,
+    "pitch": -14,
+    "eye": [
+     46,
+     140.5,
+     6
+    ],
+    "fov": 93.01050490332493,
+    "n": 7
+   }
+  ]
+ }
+}
