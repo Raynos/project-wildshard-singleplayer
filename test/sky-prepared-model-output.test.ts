@@ -25,6 +25,7 @@ import { prepareOutput } from '../src/shards/far-reach/generators/sourceOutput';
 import { emptyShardfile } from '../src/sdk/author';
 import { projectAssets } from '../src/sdk/project';
 import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from '../src/shards/far-reach/generators/rows/swardAtlas';
+import { fixtureJsonCheck } from './fixtures/productFile';
 
 const geometryName = 'world/geometry/prepared-models.glb', heroName = 'world/sources/heroes.json', bakeName = 'world/sources/bakes.json', skyName = 'world/sources/sky.json';
 const bridgeName = 'world/geometry/bridge-rest.glb', millName = 'world/geometry/mill-rest.glb', fanName = 'world/geometry/fan.glb';
@@ -69,8 +70,9 @@ test('normal output admission and the actual native pool resolver consume the ow
   if (geometry === undefined) throw new Error('Normal admission lost prepared geometry');
   expect(hashImmutableBytes(geometry.bytes)).toBe(geometry.file.hash);
   const product = createShardProduct({ slug: 'far-reach', revision: 1, shardfile: skyProductRows(originalSkyNavigation(), originalSkyMovers()), sections: new Map(),
+    jsonCheck: fixtureJsonCheck,
     files: new Map(prepared.blobs.flatMap(row => row.file.name === undefined ? []
-      : [[row.file.name, { hash: row.file.hash, url: `/shardfiles/far-reach/${row.file.path}` }]])),
+      : [[row.file.name, { ...row.file, url: `/shardfiles/far-reach/${row.file.path}` }]])),
     read: key => {
       const bytes = prepared.assets.get(key);
       if (bytes === undefined) throw new Error('Missing admitted product file');

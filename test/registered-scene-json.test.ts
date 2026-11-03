@@ -1,5 +1,6 @@
 import {expect,test} from 'vitest';
 import {WorldSceneSchema} from '../src/format/clientChannels';
+import {SceneBakeSourceSchema} from '../src/format/sceneSources';
 import {registeredJsonContract,validateRegisteredJson} from '../src/format/registeredJson';
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
@@ -25,7 +26,9 @@ test.each(names)('%s retains its defining hierarchy parser and payload bytes',na
 test('scene names refuse nested, empty and oversized ids without capturing other families',()=>{
   for(const id of ['','../source','nested/item','a'.repeat(181)])expect(()=>registeredJsonContract(`world/scenes/${id}.json`)).toThrow('bounded platform id');
   expect(registeredJsonContract('world/scenes.json')).toBeUndefined();
-  expect(registeredJsonContract('world/sources/bakes.json')).toBeUndefined();
+  expect(registeredJsonContract('world/sources/bakes.json').schema).toBe(SceneBakeSourceSchema);
+  expect(registeredJsonContract('world/sources/bakes.json').source).toBe('@wildshard/format/sceneSources#SceneBakeSourceSchema');
+  expect(registeredJsonContract('world/sources/private.json')).toBeUndefined();
   expect(registeredJsonContract('scenes/cabins-phone-shadow-false.json')).toBeUndefined();
 });
 
