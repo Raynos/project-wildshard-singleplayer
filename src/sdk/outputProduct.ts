@@ -1,4 +1,6 @@
 import { registeredJsonContract } from '@wildshard/format/registeredJson';
+import { validatePlatformFile } from '@wildshard/format/platformFileFamilies';
+import { parseNamedJson } from '@wildshard/format/json';
 import { ktx2DeviceCosts } from '@wildshard/format/ktx2Cost';
 import { controlFileHashes, playLibrarySteps } from '@wildshard/format/admissionControl';
 import { entryFileSteps } from '@wildshard/format/tierSelection';
@@ -66,6 +68,10 @@ function blobExtension(kind: OutputFile['kind'], bytes: Uint8Array): string {
 function inspectBlob(file: OutputFile, bytes: Uint8Array, script?: ScriptContract): void {
   if (file.name !== undefined && registeredJsonContract(file.name) !== undefined && (file.kind !== 'json' || file.jsonSchema === undefined)) throw new Error('Registered JSON requires its defining schema');
   if (file.jsonSchema !== undefined) validateDefinedJson(jsonBytes(file.jsonSchema), bytes, file.name);
+  if (file.kind === 'json' && file.name !== undefined) {
+    const source = file.jsonSchema?.['$comment'];
+    validatePlatformFile(file.name, typeof source === 'string' ? source : undefined, parseNamedJson(bytes));
+  }
   const legacy = file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind;
   if (blobKind(legacy,bytes) !== file.kind || !file.path.endsWith(`.${blobExtension(file.kind,bytes)}`)) throw new Error('Output blob bytes differ from their declared kind');
   const cost = assetCost(legacy,bytes,script);

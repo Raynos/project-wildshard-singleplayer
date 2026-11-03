@@ -2,11 +2,12 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { relative, resolve } from 'node:path';
-import { outputFormat } from './shard-platform-format.mjs';
+import { outputFormat, platformFileFamiliesFormat } from './shard-platform-format.mjs';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 import { representativeProduct, shardOutputs } from './shard-outputs.mjs';
 
 const {parseOutputIndex}=outputFormat;
+const {validatePlatformFile}=platformFileFamiliesFormat;
 const digest = value => createHash('sha256').update(value).digest('hex');
 function files(folder) {
   return !existsSync(folder) ? [] : readdirSync(folder,{withFileTypes:true}).flatMap(entry => {
@@ -103,12 +104,14 @@ function productSections(slug,products) {
     if(section.name.startsWith('custom/')){customSectionBytes+=content.length;customSections.push({name:section.name,bytes:content.length});}
     sections.push({name:section.name,value:JSON.parse(content.toString('utf8'))});
   }
-  // G496: moving private JSON behind a logical blob name cannot escape the
-  // section count/byte ceiling. Verify its bytes just like a custom section.
+  // G988: only a registered shared family escapes the custom ceiling. Its
+  // defining native grammar checks the original bytes; private JSON still counts.
   for(const file of index.files.filter(row=>row.kind==='json'&&row.name!==undefined)) {
     const content=readFileSync(resolve(folder,file.path));
     if(content.length!==file.compressed||digest(content)!==file.hash)throw new Error(`${slug}: named JSON hash/size mismatch: ${file.name}`);
-    JSON.parse(content.toString('utf8'));
+    const value=JSON.parse(content.toString('utf8'));
+    const source=file.jsonSchema?.$comment;
+    if(validatePlatformFile(file.name,typeof source==='string'?source:undefined,value)!==undefined)continue;
     customSectionBytes+=content.length;customSections.push({name:file.name,bytes:content.length,...(file.jsonSchema===undefined?{}:{jsonSchema:file.jsonSchema})});
   }
   return {index,sections,customSections,customSectionBytes};

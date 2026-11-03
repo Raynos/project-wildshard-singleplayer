@@ -232,6 +232,7 @@
     "./nativePhysics": "./nativePhysics.ts",
     "./worldPhysics": "./worldPhysics.ts",
     "./platformDataSections": "./platformDataSections.ts",
+    "./platformFileFamilies": "./platformFileFamilies.ts",
     "./heldArms": "./heldArms.ts",
     "./graphArmsRows": "./graphArmsRows.ts",
     "./heldView": "./heldView.ts",

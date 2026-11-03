@@ -6,13 +6,14 @@ import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
 import { outputFormat } from './shard-platform-format.mjs';
+import { validatePlatformFile, platformFileFamily } from '@wildshard/format/platformFileFamilies';
 import { shardProducts } from './shard-outputs.mjs';
 import type { SectionMapping } from '@wildshard/format/outputFields';
 
 interface Reader {path:string;line:number;selector:string|null;name:string|null;schema:string|null;groups:string[];access:string}
-interface Entry {product:string;shard:string;name:string;kind:'platform'|'custom'|'named-json';path:string;bytes:number;hash:string;schema:string|null;document:unknown}
+interface Entry {product:string;shard:string;name:string;kind:'platform'|'custom'|'named-json'|'platform-file';path:string;bytes:number;hash:string;schema:string|null;document:unknown;routes:string[]}
 interface Product {product:string;shard:string;indexHash:string;sourceHash:string;entries:Entry[]}
-interface InventoryRow extends Omit<Entry,'document'> {schemaIdentity:string;schemaBindings:string[];schemaCandidates:string[];provenance:string;readers:Reader[];schemaUsers:string[]}
+interface InventoryRow extends Omit<Entry,'document'> {schemaIdentity:string;schemaBindings:string[];schemaCandidates:string[];provenance:string;readers:Reader[];schemaUsers:string[];registeredReader:string|null}
 interface Inventory {version:number;basis:string;products:Omit<Product,'entries'>[];rows:InventoryRow[];unresolvedReaders:Reader[]}
 
 const ROOT=resolve(import.meta.dirname,'..'),HOST_PIN='419cf542cd';
@@ -27,6 +28,22 @@ const tree=(root:string):string[]=>readdirSync(root,{withFileTypes:true}).flatMa
 const sourceFile=(path:string,source:string):ts.SourceFile=>ts.createSourceFile(path,source,ts.ScriptTarget.Latest,true);
 const textName=(node:ts.Node|undefined):string|null=>node!==undefined&&(ts.isIdentifier(node)||ts.isStringLiteral(node)||ts.isNoSubstitutionTemplateLiteral(node))?node.text:null;
 const unwrap=(node:ts.Expression):ts.Expression=>ts.isAsExpression(node)||ts.isSatisfiesExpression(node)||ts.isParenthesizedExpression(node)?unwrap(node.expression):node;
+
+/** Follow emitted section routes through named documents, including shared
+ * descendants and cycles. No source-name search is mistaken for a live route. */
+export function namedJsonRoutes(roots:ReadonlyMap<string,unknown>,documents:ReadonlyMap<string,unknown>):Record<string,string[]>{
+  const result:Record<string,string[]>={};
+  const names=(value:unknown):string[]=>typeof value==='string'?(documents.has(value)?[value]:[]):Array.isArray(value)?value.flatMap(names)
+    :value!==null&&typeof value==='object'?Object.values(value).flatMap(names):[];
+  for(const [root,value]of roots){
+    const visited=new Set<string>(),pending=names(value);
+    while(pending.length>0){
+      const name=pending.pop();if(name===undefined||visited.has(name))continue;visited.add(name);
+      result[name]=sorted([...(result[name]??[]),root]);pending.push(...names(documents.get(name)));
+    }
+  }
+  return result;
+}
 function imports(file:ts.SourceFile):Map<string,string>{
   const result=new Map<string,string>();
   for(const statement of file.statements)if(ts.isImportDeclaration(statement)&&ts.isStringLiteral(statement.moduleSpecifier)){
@@ -112,15 +129,20 @@ export function productSectionEntries(folder:string,product:string,shard:string)
     if(bytes.byteLength!==expected||digest(bytes)!==entry.hash)throw new Error(`Inventory member hash/size differs: ${product}/${entry.path}`);
     return JSON.parse(bytes.toString('utf8'));
   };
+  const roots=new Map<string,unknown>(),documents=new Map<string,unknown>();
   const entries:Entry[]=index.sections.map(section=>{
-    read(section);
+    roots.set(section.name,read(section));
     const schema=section.name.startsWith('custom/')?index.schemas.find(row=>row.path===section.schema):undefined;
     return {product,shard,name:section.name,kind:section.name.startsWith('custom/')?'custom':'platform',path:section.path,
-      bytes:section.bytes,hash:section.hash,schema:section.schema,document:schema===undefined?null:read(schema)};
+      bytes:section.bytes,hash:section.hash,schema:section.schema,document:schema===undefined?null:read(schema),routes:[]};
   });
   for(const file of index.files)if(file.kind==='json'&&file.name!==undefined){
-    read(file);entries.push({product,shard,name:file.name,kind:'named-json',path:file.path,bytes:file.compressed,hash:file.hash,schema:null,document:file.jsonSchema??null});
+    const value=read(file),source=file.jsonSchema?.['$comment'];documents.set(file.name,value);
+    const family=validatePlatformFile(file.name,typeof source==='string'?source:undefined,value);
+    entries.push({product,shard,name:file.name,kind:family===undefined?'named-json':'platform-file',path:file.path,bytes:file.compressed,hash:file.hash,schema:null,document:file.jsonSchema??null,routes:[]});
   }
+  const routes=namedJsonRoutes(roots,documents);
+  for(const entry of entries)entry.routes=routes[entry.name]??[];
   return {product,shard,indexHash:digest(indexBytes),sourceHash:index.build.sourceHash,entries};
 }
 /** Emitters are deduplicated by source project, never counted as live host users. */
@@ -145,11 +167,13 @@ export function sectionInventory(products:readonly Product[],catalogue:Readonly<
       schemaIdentity=entry.document===null?`unattributed:${entry.shard}/${entry.name}`:`json:${digest(canonical(entry.document))}`;
       provenance=schemaBindings.length===0?'unattributed':'verified-format';
     }
-    const matches=readers.filter(reader=>reader.access===(entry.kind==='named-json'?'json':'section')
+    const matches=readers.filter(reader=>reader.access===(entry.kind==='named-json'||entry.kind==='platform-file'?'json':'section')
       &&(reader.name===entry.name||reader.schema!==null&&schemaBindings.includes(reader.schema)));
     const {document:_document,...metadata}=entry;
     const schemaCandidates=entry.document===null?[]:shapes.filter(candidate=>candidate.shape===shape(entry.document)).map(candidate=>candidate.name);
-    return Object.assign(metadata,{schemaIdentity,schemaBindings,schemaCandidates,provenance,readers:matches,schemaUsers:[]});
+    const family=entry.kind==='platform-file'?platformFileFamily(entry.name,schemaBindings[0]):undefined;
+    if(entry.kind==='platform-file'&&family===undefined)throw new Error(`Platform family requires verified defining schema: ${entry.name}`);
+    return Object.assign(metadata,{schemaIdentity,schemaBindings,schemaCandidates,provenance,readers:matches,schemaUsers:[],registeredReader:family?.reader??null});
   });
   for(const row of rows)row.schemaUsers=sorted(rows.filter(candidate=>candidate.schemaIdentity===row.schemaIdentity).map(candidate=>candidate.shard));
   return {version:1,basis:'Hash-verified emitted JSON; source readers are static evidence, not host scores or live adoption.',
@@ -172,8 +196,10 @@ export async function readSectionInventory(root:string=ROOT,productsRoot:string=
 export function renderSectionInventory(report:Inventory):string{
   const cell=(value:unknown):string=>String(value).replaceAll('|',String.raw`\|`).replaceAll('\n',' ');
   return ['# Emitted section inventory','',report.basis,'',
-    '| Product | Source project | Name | Kind | Bytes | Defining schema | Schema emitters | Reading hosts (H-group) |',
-    '|---|---|---|---|---:|---|---|---|',...report.rows.map(row=>`| ${cell(row.product)} | ${cell(row.shard)} | ${cell(row.name)} | ${row.kind} | ${row.bytes} | ${cell(row.schemaBindings.join(', ')||'unattributed')} | ${cell(row.schemaUsers.join(', '))} | ${cell(row.readers.map(reader=>`${reader.path}:${reader.line}${reader.groups.length===0?' (unmapped)':` (${reader.groups.join(', ')})`}`).join('; ')||'unresolved')} |`),''].join('\n');
+    '| Product | Custom | Registered streamed files |','|---|---:|---:|',
+    ...report.products.map(product=>{const rows=report.rows.filter(row=>row.product===product.product);return `| ${cell(product.product)} | ${rows.filter(row=>row.kind==='custom'||row.kind==='named-json').length} | ${rows.filter(row=>row.kind==='platform-file').length} |`;}),'',
+    '| Product | Source project | Name | Kind | Bytes | Defining schema | Schema emitters | Reading hosts (H-group) | Emitted routes |',
+    '|---|---|---|---|---:|---|---|---|---|',...report.rows.map(row=>`| ${cell(row.product)} | ${cell(row.shard)} | ${cell(row.name)} | ${row.kind} | ${row.bytes} | ${cell(row.schemaBindings.join(', ')||'unattributed')} | ${cell(row.schemaUsers.join(', '))} | ${cell(row.readers.length===0?(row.registeredReader??'unresolved'):row.readers.map(reader=>`${reader.path}:${reader.line}${reader.groups.length===0?' (unmapped)':` (${reader.groups.join(', ')})`}`).join('; '))} | ${cell(row.routes.join(', ')||'direct reader')} |`),''].join('\n');
 }
 if(process.argv[1]!==undefined&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
   const args=process.argv.slice(2);if(args.some(arg=>arg!=='--json'))throw new Error('Usage: node scripts/section-inventory.ts [--json]');

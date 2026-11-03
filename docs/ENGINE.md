@@ -8784,7 +8784,7 @@ edges until scope disposal. Callers retain their update phase and original
 version-3 stage snapshot; restoring stays silent. Captain combat, reward
 pose/carry and page sound/caption effects remain with their existing owners.
 
-### Authored custom shardfile sections (P2b)
+### Custom sections / [files](PLATFORM-FILE-FAMILIES.md)
 
 Build-time `@wildshard/sdk/sections` defines a private table with
 `defineSection('custom/name', valibotSchema, value)`.
