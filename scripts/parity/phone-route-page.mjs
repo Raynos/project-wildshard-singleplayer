@@ -180,8 +180,10 @@ export async function phoneBoardWall(milliseconds, target) {
     final: { x: player.position.x, y: player.position.y, z: player.position.z }, hover: player.hover, samples, previous: { yaw, hover } };
 }
 
-/** Lightweight early shell witness: actual hero image loaded plus a presented animation frame. */
-export function installPhoneTitlePaint() {
+/** Lightweight early shell witness: actual hero image loaded plus a presented animation frame.
+ * The bootstrap follows navigation; only its original title document samples the hero.
+ * @param {string} [titleURL] */
+export function installPhoneTitlePaint(titleURL) {
   // Keep late entry reads: WebKit defaults to only the first 250 resources.
   performance.setResourceTimingBufferSize(10_000);
   /** @type {import('./phone-route.mjs').PhoneTitlePhases} */
@@ -205,6 +207,9 @@ export function installPhoneTitlePaint() {
     }
     observer.scanMs += performance.now() - start;
   }).observe(document, { childList: true, subtree: true, characterData: true });
+  // Keep error collection in every owned document. A grid document has no
+  // title hero, so the inherited bootstrap must not poll it throughout play.
+  if (titleURL !== undefined && location.href !== titleURL) return;
   const sample = () => {
     if (evidence.heroMs !== null) return;
     const start = performance.now(); observer.heroPolls++;

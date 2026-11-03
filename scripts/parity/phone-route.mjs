@@ -145,7 +145,7 @@ export async function phoneRoute(page, base, sha, out, route = 'full') {
     const url = new URL(base);
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
     const titleDeadline=Date.now()+60000;
-    await page.cold(url.href, `(${installPhoneTitlePaint.toString()})()`);
+    await page.cold(url.href, `(${installPhoneTitlePaint.toString()})(${JSON.stringify(url.href)})`);
     await waitPhoneCondition(page, `document.querySelector('.ws-main-select')!==null && (()=>{const load=document.querySelector('.ws-load');return load===null||getComputedStyle(load).display==='none'||getComputedStyle(load).visibility==='hidden'||getComputedStyle(load).opacity==='0';})()`, 'title', titleDeadline);
     // The shell can hydrate before the image-load/rAF witness publishes.
     // Await that FIRST recorded paint under the same deadline; never resample it.

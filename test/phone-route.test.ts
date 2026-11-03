@@ -72,6 +72,22 @@ test('GRID waiting keeps fresh readiness but reads the full census once per owne
   inside='next';expect(runInContext('ready()',context)).toBe(true);expect(full).toBe(2);
 });
 
+test('the inherited grid bootstrap keeps fatal collection without polling a title hero',()=>{
+  const listeners=new Map<string,(event:{message?:string;reason?:string})=>void>();
+  let observers=0;
+  const window={addEventListener:(name:string,run:(event:{message?:string;reason?:string})=>void)=>{listeners.set(name,run);}};
+  runInNewContext(`(${installPhoneTitlePaint.toString()})('http://fixture.test/?tier=phone')`,{
+    window,location:{href:'http://fixture.test/?chunk=coast'},document:{},
+    performance:{setResourceTimingBufferSize:()=>undefined},
+    MutationObserver:class{observe(){observers++;}},
+    requestAnimationFrame:()=>{throw new Error('Grid document polled a title hero');}});
+  expect(observers).toBe(1);
+  listeners.get('error')?.({message:'early grid error'});
+  listeners.get('unhandledrejection')?.({reason:'early grid rejection'});
+  expect(Reflect.get(window,'__phoneRouteFaults')).toEqual(['early grid error','early grid rejection']);
+  expect(Reflect.get(window,'__phoneRouteObserver')).toMatchObject({heroPolls:0,heroMs:0});
+});
+
 test('GRID waiting retains the real reveal input and never substitutes it for readiness',async()=>{
   const dom=new Window();
   try {
