@@ -9,6 +9,8 @@ import { parseRows } from '../src/format/rows';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { LootEconomySchema } from '../src/format/lootEconomy';
 import { SECTIONS } from '../src/shards/driftwood-isle/generators/sections';
+import { parseToonLook } from '../src/format/toonLook';
+import cumulusPuffs from '../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { DRIFTWOOD_EFFECTS, GOODS } from '../src/shards/driftwood-isle/generators/economy';
@@ -31,7 +33,10 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   const loaded = await emittedProduct(), custom = outputDescriptor(loaded.shardfile)?.index;
   if (custom === undefined) throw new Error('Driftwood output descriptor absent');
   const value = <K extends keyof typeof SECTIONS>(name: K): v.InferOutput<(typeof SECTIONS)[K]> => v.parse(SECTIONS[name], loaded.section<unknown>(name));
-  expect(value('custom/cumulusPuffs').length).toBeGreaterThan(0);
+  const puffs = parseToonLook(loaded.section('look/toon')).sky.clouds.puffs;
+  expect(puffs.length).toBeGreaterThan(0);
+  expect(puffs).toEqual(cumulusPuffs);
+  expect(loaded.has('custom/cumulusPuffs')).toBe(false);
   const layouts = value('custom/fixedLayouts');
   expect(layouts.id).toBe('driftwood.island');
   const named=async(name:string):Promise<unknown>=>{

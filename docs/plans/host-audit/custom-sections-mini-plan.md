@@ -2501,3 +2501,64 @@ exact too. No known-bad G5 prefix, working-tree preview or response override.
 All browsers, builds and own leases are literally closed. Compact source,
 shader and cause evidence is under tmp/sp-x2-cs3-driftwood-pages/; no new
 scene family or tier-copy retirement is credited by this loading closure.
+
+
+## CS10: seven-case ownership and combined retirement proof
+
+**2026-11-03, sp-x1; DW first, Pine second.** The three DW copies below
+retire in this source commit. The two Pine removals are qualified by the
+same frozen combined proof and await the immediately ordered Pine landing.
+This table supersedes only the corresponding historical census decisions.
+
+| Custom section | Exact complete carrier / disposition |
+|---|---|
+| DW `cumulusPuffs` (9,013 B) | **Done:** full native `parseToonLook(look/toon).sky.clouds.puffs`; exact original cloud rows and original nonempty assertion remain. |
+| DW `gullFlock` (1,607 B) | **Done:** full native `parsePageLife(actors/page-life.json)` gull flock row, with original assembly ambient flock unchanged. Packed rows, draw ownership and lifetime checks remain. |
+| DW `enemyPlacements` (8,572 B) | **Done:** existing complete `sim/enemy-placement.json`; keep its native schema, seed/sampling and keeper controls. The original named-body test now compares complete authored canonical bytes and asserts only the duplicate is absent. |
+| Pine `cabinAmbience` (1,564 B) | **Qualified, ordered Pine landing pending:** full ForestPage buildings floors/firePits and existing named `world/ambience.json` reconstruct the complete old canonical body. Audio order/caps and native parser remain. |
+| Pine `runtimeGraphs` (385 B) | **Qualified, ordered Pine landing pending:** full ForestPage graphs reconstruct all 20 exact IDs; every hash-bound graph file and native look owner remains. No look math or cache changes. |
+| DW `collections` (2,698 B) | **Explicit live-port exit / KEEP:** complete CollectionDisplaysSchema exists, but collectionDisplay and continuation dynamically read the synchronous custom port. A migration must preserve cold/entered/read-once catalogue, model and keepsake lifetimes together; a filename or asynchronous JSON substitution is insufficient. |
+| DW `fixedLayouts` (7,855 B) | **Explicit live identity/owner-port exit / KEEP:** complete G571 ResolvedIslandLibrarySchema is approved. islandBook's preflight resource/unique-slot checks, product/root identity cache, three post-await identity checks and resourceScope ownership remain live through islandLibrary and people/cards draws. Migrate that entire port before deleting it. |
+
+### Frozen combined proof, not a global zero-user claim
+
+Fresh ordinary CURRENT DW/Pine BEFORE was sealed once without a BEFORE
+generation. The initial independent reader ordering refusal and transient
+ordinary admission refusal remain historical; neither was repinned. The
+reader now follows actual projectDecisions order, including rebuilt
+sim/scripts last, and independently reproduces writer phase/tier/alternative
+membership and global hash deduplication for both complete pack layouts.
+
+One normal AFTER succeeds; the maintained reuse CLI also keeps its four
+program-bound discovery companions current (six reused, zero rebuilds).
+Independent strict DW/Pine and the full AFTER corpus pass. Exactly twenty
+body/schema paths / **64,703 B** retire. All **1,393 remaining bodies /
+234,342,145 B**, every remaining descriptor/schema/metadata and both full
+native assemblies are exact. Ten complete old canonical bodies / 32,634 B
+reconstruct through the original full native parsers. Every old and new
+ordered pack plan (52 per layout), actual pack body, hash and offset verifies.
+Packed bytes decrease 54,567 B: equal-hash named enemy/ambience members
+survive and may move to their later writer phase, rather than being deleted.
+DW index is **943,030 B** and Pine **1,185,500 B**, below the unchanged
+2 MB cap and Pine's approximately 1.9 MB working ceiling.
+
+All twelve original/native/reconstruction files pass **29 cases / 35.50 s**;
+root types and touched typed lint pass. Full source/controller fences pass
+before and after the publisher, corpus and original tests. A later
+open-plots README-only commit follows this closed proof and is outside its
+runtime/source inputs; it is not silently substituted into the old fence.
+**Self-applied G872** covers the exact duplicate retirement only. Raw
+comparison passes with no failures: no map-stamp exception, tolerance,
+freshness waiver, altered assertion/cap or collider change is needed.
+There is no cold-loading, network, frame-time or isolated CI gain claim.
+
+The full combined end state retains four real custom bodies / **48,490 B**:
+DW collections/fixedLayouts and Pine nativeView/questRuntime, with the two
+Pine exits documented above. Named JSON validators, custom-name admission,
+growth/freeze policy, ceilings and compatibility readers remain live.
+The current two-product proof counts 167 named JSON files; the historic
+six-product 461-name census is not a fresh full-product zero-user proof.
+**CS10 remains open toward deleting the path.** No guard or tool is deleted
+merely because ten redundant copies retire. Compact evidence is retained in
+tmp/sp-x1-cs10 and tmp/sp-x9-cs10; no extra native/browser/walk is required
+for unchanged collider, geometry and native assembly bytes.

@@ -3,8 +3,6 @@ import { collectionRows } from './collections';
 import { FIXED_DRAW_ROWS } from './modelFiles';
 import { DRIFTWOOD_ASSET_NAMES } from './assets';
 import { ENTRY_DECKS } from './entryDecks';
-import cumulusPuffs from '../data/cumulusPuffs.json' with { type: 'json' };
-import { GULL_FLOCK } from './gullsLook';
 import { OCEAN_SURFACE, OCEAN_LIMITS } from './oceanLook';
 import { OCEAN_FILES } from './oceanFiles';
 import { pageFile } from './productPageFiles';
@@ -29,7 +27,5 @@ export function driftwoodOceanWaterRow(layouts: DriftwoodFixedLayouts): { readon
 /** Build-only client row assembly; the canonical registry validates it at publication. */
 export const DRIFTWOOD_CLIENT_SECTIONS: readonly {name:string;value:unknown}[] = [
   {name:'custom/collections',value:collectionRows()},
-  {name:'custom/cumulusPuffs', value:cumulusPuffs},
-  {name:'custom/gullFlock', value:GULL_FLOCK},
   {name:'custom/fixedLayouts', value:{id:'driftwood.island', draws:FIXED_DRAW_ROWS.map(({ slot, channels }) => ({ slot, file: named(`fixed:${slot}`), channels })), groups:'models/fixed-geometry.json', figures:'people/catalogue.json', collections:{chime:'chime',trophyPlaques:'trophyPlaques',trophyDrop:'trophyDrop'}}},
 ];

@@ -1,7 +1,6 @@
 import { defineNamedRows, type NamedRowValue, authorFormatSchema , type NamedRows } from '@wildshard/sdk/formatJsonSchema';
 
 const CollectionDisplaysSchema: ReturnType<typeof authorFormatSchema<'collectionDisplay.CollectionDisplaysSchema'>> = authorFormatSchema('collectionDisplay.CollectionDisplaysSchema');
-const AmbientFlockSchema: ReturnType<typeof authorFormatSchema<'ambientLife.AmbientFlockSchema'>> = authorFormatSchema('ambientLife.AmbientFlockSchema');
 const BodySlotsSchema: ReturnType<typeof authorFormatSchema<'bodySlots.BodySlotsSchema'>> = authorFormatSchema('bodySlots.BodySlotsSchema');
 const ResolvedIslandLibrarySchema: ReturnType<typeof authorFormatSchema<'islandLibrary.ResolvedIslandLibrarySchema'>> = authorFormatSchema('islandLibrary.ResolvedIslandLibrarySchema');
 const text = ({ ...({ kind: "string" } as const), max: 512 } as const);
@@ -28,12 +27,12 @@ export const FixedGeometryGroupsSchema: NamedRows<{ cargo: { barrel: string; lyi
         cover: ({ kind: "record", key: text, value: text } as const), piers: ({ kind: "record", key: text, value: ({ kind: "object", mode: "strict", entries: { deck: text, cloth: ({ kind: "nullable", item: text } as const) } } as const) } as const),
     } } as const)).schema;
 export const SECTIONS: {
-  'custom/enemyPlacements': typeof EnemyPlacementsSchema;
   'custom/collections': typeof CollectionDisplaysSchema;
-  'custom/cumulusPuffs': NamedRows<number[][]>['schema'];
   'custom/fixedLayouts': typeof ResolvedIslandLibrarySchema;
-  'custom/gullFlock': typeof AmbientFlockSchema;
-} = { 'custom/enemyPlacements': defineNamedRows(EnemyPlacementsSchema).schema, 'custom/collections': defineNamedRows(CollectionDisplaysSchema).schema, 'custom/cumulusPuffs': defineNamedRows(({ ...({ kind: "array", item: ({ ...({ kind: "array", item: number } as const), length: 7 } as const) } as const), max: 1024 } as const)).schema, 'custom/fixedLayouts': defineNamedRows(ResolvedIslandLibrarySchema).schema, 'custom/gullFlock': defineNamedRows(AmbientFlockSchema).schema } as const;
+} = {
+  'custom/collections': defineNamedRows(CollectionDisplaysSchema).schema,
+  'custom/fixedLayouts': defineNamedRows(ResolvedIslandLibrarySchema).schema,
+} as const;
 const bridgeSpan = ({ kind: "object", mode: "strict", entries: { a: ({ kind: "tuple", items: [number, number] } as const), b: ({ kind: "tuple", items: [number, number] } as const), sag: number } } as const);
 export const FILE_SCHEMAS: { 'data/bridgeRows.json': NamedRows<{ world: { a: [number, number]; b: [number, number]; sag: number }; specimen: { a: [number, number]; b: [number, number]; sag: number } }>['schema'] } = { 'data/bridgeRows.json': defineNamedRows(({ kind: "object", mode: "strict", entries: { world: bridgeSpan, specimen: bridgeSpan } } as const)).schema };
 /** Admit authored bridge endpoints through their defining grammar without an erased JSON shim. */

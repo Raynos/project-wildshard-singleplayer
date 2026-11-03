@@ -109,7 +109,7 @@ const nativePhysics = driftwoodPhysics();
 
 const schemas:Readonly<Record<string,Parameters<typeof parseSectionValue>[0]>>=SECTIONS;
 const placed = enemyPlacements();
-const values=[...DRIFTWOOD_CLIENT_SECTIONS, {name:'custom/enemyPlacements',value:placed}];
+const values = DRIFTWOOD_CLIENT_SECTIONS;
 if(values.length!==Object.keys(schemas).length)throw new Error('Incomplete Driftwood section inventory');
 const custom=emitDefinedSections(values.map(({name,value})=>{
  const schema=schemas[name],jsonSchema=WIRE_SCHEMAS[name];

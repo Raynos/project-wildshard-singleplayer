@@ -10,6 +10,10 @@ import { output as driftwoodOutput } from '../src/shards/driftwood-isle/generato
 import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
+import { defineNamedRows } from '../src/sdk/formatJsonSchema';
+import { encodeCanonicalJson } from '../src/sdk/immutable';
+import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
+import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/sections';
 
 type LookOutput = Pick<ProjectOutput, 'custom' | 'platform' | 'namedFiles' | 'assets'>;
 const outputs = new Map<string, LookOutput>([['driftwood-isle', driftwoodOutput], ['pine-hollow', pineOutput]]);
@@ -41,7 +45,6 @@ const productOf = (slug: string): ShardProduct => {
 };
 
 test.each([
-  ['driftwood-isle', 'custom/enemyPlacements', 'sim/enemy-placement.json'],
   ['pine-hollow', 'custom/cabinAmbience', 'world/ambience.json'],
 ])('%s %s retains the original named payload exactly', (slug, section, name) => {
   const output = outputOf(slug);
@@ -51,6 +54,18 @@ test.each([
   const namedBytes = named === undefined ? undefined : output.assets?.get(named.hash);
   if (sectionBytes === undefined || namedBytes === undefined) throw new Error('Missing emitted content');
   expect(JSON.parse(new TextDecoder().decode(sectionBytes))).toEqual(JSON.parse(new TextDecoder().decode(namedBytes)));
+}, 30_000);
+
+test('Driftwood named enemies retain the complete original defining payload', () => {
+  const output = outputOf('driftwood-isle');
+  const file = output.namedFiles?.find(row => row.name === 'sim/enemy-placement.json');
+  const bytes = file === undefined ? undefined : output.assets?.get(file.hash);
+  if (bytes === undefined) throw new Error('Missing emitted content');
+  const decoded: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  const expected = defineNamedRows(EnemyPlacementsSchema).parse(enemyPlacements());
+  expect(decoded).toEqual(expected);
+  expect(bytes).toEqual(new TextEncoder().encode(encodeCanonicalJson(expected)));
+  expect(output.custom?.sections.some(row => row.name === 'custom/enemyPlacements')).toBe(false);
 }, 30_000);
 
 describe('toLevelSpec binds the product', () => {
