@@ -27,8 +27,12 @@ test('G972: no alternate Developer catalogue or template swaps remain in the shi
   // NU3: changing any cell to an already used slug fails this shipped-grid invariant.
   expect(new Set(slugs).size).toBe(25);
   for (const [slug, cell] of [
-    ['open-plot-fossil-badlands', [-1, -2]], ['open-plot-patchwork-fairground', [-2, 0]],
-    ['open-plot-saltwind-lighthouse', [-2, 1]], ['open-plot-jungle-ziggurat', [-2, 2]],
+    ['open-plot-fossil-badlands', [-1, -2]], ['open-plot-patchwork-fairground', [2, 0]],
+    ['open-plot-saltwind-lighthouse', [2, -1]], ['open-plot-jungle-ziggurat', [-2, 2]],
+    // G986: the six built plots take the cells the title hero shows biggest; Pine and Nalati move to the back row
+    ['open-plot-night-market', [1, 0]], ['open-plot-frostline-peaks', [0, 1]], ['open-plot-ember-forge', [-1, 1]],
+    ['open-plot-coral-drift', [-1, -1]], ['open-plot-mosslight-ruins', [-2, 1]], ['pine-hollow', [-2, -2]],
+    ['nalati-grasslands', [-2, 0]], ['driftwood-isle', [0, 0]],
   ]) expect(catalogue.grid.cells.find(row => row.slug === slug)?.cell).toEqual(cell);
   expect(slugs).not.toContain('open-plot-mushroom-hollow');
 });
