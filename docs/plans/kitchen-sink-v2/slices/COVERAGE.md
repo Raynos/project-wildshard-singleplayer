@@ -219,7 +219,7 @@ and run by another plan; no slice), **dropped** (no longer needed, reason given)
 | ML2 layout → skeleton data | W0a | | mapped |
 | ML3 night-elite lair names | E-elites (prov.) | | mapped |
 
-## 6. Wave 2 rows (KITCHEN-SINK.md §5, K1–K12): umbrellas over the slices
+## 6. Wave 2 rows (KITCHEN-SINK.md's old §5, K1–K12): umbrellas over the slices
 
 | Old | Slice | Also |
 |---|---|---|

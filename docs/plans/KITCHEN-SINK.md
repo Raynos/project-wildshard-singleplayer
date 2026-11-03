@@ -270,88 +270,63 @@ Round 1 (`round-1-blockout/`, 8094bf351f) had fit the zones alone with 22.7 % fr
 | West (no enemies) | hub (r 25–30 m in round 2) with quest givers, vendor, upgrade shop, contract board, trophy wall · weapon range 75 × 100 m · physics + hoverboard park 140 × 90 m · movers park 78 × 80 m + cistern · grapple tower 45 m + zipline · riding oval 208 × 88 m + mount post · cave hill with the squeeze cave · vistas and caches |
 | East (combat) | band 1 L1–3 at the east gate → bands 2–6 snaking outward → L20 boss arena (r 28 m, 39 m intro approach) in the far south-east; elite lairs at the band changes (L6, L12, L18) and three night-elite lairs; stealth yard (band 5, storm hour); elite gauntlet (band 6); the Training Vault portal (band 4) |
 
-## 4. Wave 1: engine, game and host work first
+## 4. How it gets built: vertical slices
 
-**Jake, 2026-11-02:** *"While you're doing that, you need to normalise all the existing custom-section hosts in the
-engine around all of these features, and try and get them all shared. That means refactoring Driftwood Isle and Pine
-Hollow and Nalati Grasslands … when we're touching shared hosts, you have to go and fix all the other shards that use
-the shared hosts, and that's fine … the first wave should be all the engine and game and shared hosts, maybe even WASM
-hosts, everything we need to touch."*
+**Jake, 2026-11-03** (replacing the two waves): *"not have the plan go so waterfall, but to have the plan go in vertical
+play slices. Start on the west half … break it down into as many small chunks as possible … that new engine work has to
+be front loaded within that phase … then you implement that part of the showcase … within that vertical slice, it needs
+to go and fix all the other shards if it touches a refactor that crosses all the shards."*
 
-**The Wave 1 rule:** every row that creates or changes a shared host also **migrates every shard that implements that
-feature today** (Driftwood, Pine Hollow, Nalati, Nine Dragon, Sky Reach, Signal Dunes, the templates) onto it in the
-same row, deletes the shard's custom section, named JSON, shard-shaped schema or shard-named game code, and proves the
-shard unchanged (its focused tests and a look in the game). Logic that is truly per-shard moves to AssemblyScript on
-the WASM host. The loot/economy rows normalise Driftwood's, Pine's and Nalati's economies onto one host. A per-area
-migration map is [wave-1-migration-map.md](kitchen-sink-v2/wave-1-migration-map.md): every area, every shard, today →
-target, the parity proof per shard.
+Everything lives in [kitchen-sink-v2/slices/](kitchen-sink-v2/slices/README.md): the slice rule, one file per slice
+(the showcase piece; the engine / game / host work with the exact files researched; every other shard migrated in the
+same slice and its parity proof; done-when; hours; risks; questions), the two indexes, the impact guide and the coverage
+map.
 
-**Size: about 1,040 h.** Planned host rows ≈ 675 h (W1–W21 ≈ 389, LE 104, LV 50, HUD 19, QC 41, EB 28, DG 44) plus
-new migration rows ≈ 365 h (M0–M9, including a shared parity kit and fresh-seat host scoring). **Crew: up to 5 Opus + 5 Codex lanes** (Jake 11-02, named for this plan when he says build; graphical work
-Opus-only), roughly 4 weeks at that size. Also in Wave 1: an enemy-count cap on the phone (full AI within 60 m, ≤ 16
-animated on screen).
+**The slice rule:** each slice (1) does only the engine / game / host work its piece needs, just in time, on the host bar;
+(2) moves every shard that uses what it touched onto it in the same slice, the whole host family (a new optional field
+only proves the others unchanged, D33), custom code deleted, saves byte-exact and looks "similar, no glitches" (D34);
+(3) builds that piece of the showcase as data + AssemblyScript; (4) lands playable behind Developer.
 
-Full host rows in [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md). Order:
+| Half | Slices | Hours | At 5 Opus + 5 Codex | Index |
+|---|---|---|---|---|
+| **West** (no combat) | 33: W0a–W0e skeleton, ruler, host register, cube + module cap; W1–W2 town, NPCs, quest board, currency, shops; W3 range (melee + loans, bow / crossbow / ammo, rifle out of the plugin, parry); W4–W5 physics yard, hover park, tricks, rails; W6–W8 movers out of the plugin, conveyors, rope bridges, the course timer, grapple, zip, ladders, scramble; W9–W12 the Rock + cave, finds, riding, weather, west audio, west finish | ~810 | ~4.5 weeks | [INDEX-west.md](kitchen-sink-v2/slices/INDEX-west.md) |
+| **East** (combat) | 54: E0 levels + combat core + HUD + enemy cap; E1 band 1 end to end (robot pipeline, packs, Scrip, parts, the contract board, Pine's quest runtime); bands 2–6 and the stealth yard; variants, elites, trophies, storm hour; the Training Vault (portal interiors, shrine host, rooms, Warden); the gauntlet (director out of the plugin); the Crate Titan (one boss path, the cutscene timeline, five intros re-homed, the arena fight); quest tiers, the shard-complete card, audio, balance, east finish | ~1,302 | ~6.5–7 weeks (critical path ~28–30 days) | [INDEX-east.md](kitchen-sink-v2/slices/INDEX-east.md) |
 
-1. **Make the ruler honest** (HOST-AUDIT HA0/HA1/HA5), so "0 % custom TS" means something.
-2. **Shared sections:** interactables (benches, chests, doors, levers, plates, barrels), commons AS prefabs (plates,
-   rope bridge, a wave-director stage script).
-3. **Out of the plugin scaffolding:** movers, the wave director, firearms (SHARD-PLATFORM-NEXT N2/N5 slices).
-4. **In parallel:** quests + vendor + currency (one author quest path); held weapons as weapon-family rows with ammo
-   and parry; a given-mount row with no taming; conveyor and jump pad; one boss path with telegraphs, hazards and
-   arenas; the cutscene timeline (IN-GAME-CUTSCENES IC1–IC4); weather kinds renamed from "forest"; physics props, the
-   board moved to game, trick scoring, see-saw; a generic interior; perks, trophies, finishes; the completion
-   validator (backfill every shard first, then turn the rule on); the scramble climb mode; audio states for elite and
-   boss music; one breadcrumb guide.
-5. **Levels and combat** (LV): progression rows, level and attributes on actors, a hit/miss + damage stage, an XP
-   service, level fields on creature/boss/weapon/quest rows, the hidden L1 parity for every existing shard, HUD pieces
-   (level, XP bar, con-coloured nameplates, a Character tab) through E332 coordination and Jake's pick.
-6. **Economy** (LE) and **the shrine host** (DG, [mini-dungeon-mini-plan.md](kitchen-sink-v2/mini-dungeon-mini-plan.md)).
-7. Docs: one SHARDS.md section per feature and template example rows.
+**How slices run** (Jake 11-03): he plays at the end of the west and the end of the east; the west goes in order W0–W2,
+then the toy slices in parallel lanes; lanes that run dry late in the west start the engine-only east slices early
+(D45) but no east content lands before the west is done; the WASM-HOST H13 ABI switch lands between the halves (D30);
+one-user hosts go to him as one approval sheet per half (D32); the crew is 5 Opus + 5 Codex, written into AGENTS.md
+when he says build (D36). All 48 slice decisions: [DECISIONS.md](kitchen-sink-v2/slices/DECISIONS.md).
 
-**Riskiest:** boss unification plus cutscenes (re-homes five shipped boss intros); moving firearms and movers out of
-the plugin (Driftwood and Pine saves); the completion validator (red on every product until backfilled); the levels
-parity on existing shards.
+**What touching the platform means** (the layers, the host bar, how a host is born, the guards and ratchet, the parity
+kit, the migration procedure, the host × shard matrix): [IMPACT.md](kitchen-sink-v2/slices/IMPACT.md). **Every old
+row** (Wave 1 W1–W21, M0–M9, LV, LE, HC, QC, EB, DG, audio, Wave 2 K1–K12) mapped to its slice:
+[COVERAGE.md](kitchen-sink-v2/slices/COVERAGE.md). The old two-wave plan (Wave 1 ≈ 1,040 h of hosts first, then ~30
+lane-days of shard) is superseded; [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md) and
+[wave-1-migration-map.md](kitchen-sink-v2/wave-1-migration-map.md) stay as research the slices cite.
 
-**Wave 1 is done when** every feature in §2 can be authored as data or AS by a new shard, each host has two real
-users or Jake's approval (G595), existing shards play unchanged, and the template has an example row for each.
+**Riskiest** (from the slice research): movers and the director are wired into quests (W6a lands before W1b); weather
+reads ammo and four shards' painted looks (W11a after W3b); Pine is at 9 of 9 script modules and each costs a
+40–80 ms cell-entry freeze on the iPhone (W0e fixes the freeze, D29); five boss paths on one brain, one inside the
+plugin director (E11a before the boss slices); the completion validator (every product backfilled first); other plans'
+lanes in the same files (Z6, Z13 finish first, D31).
 
-## 5. Wave 2: build the showcase
-
-Data and AS only, on the Wave 1 hosts.
-
-| Row | What | Effort (est.) |
-|---|---|---|
-| **K1** | Skeleton from `src/shards/_template/`: the cell from the round 2 blockout, the seam wall, roads, hub, dev-map materials, grid slot (0,2), edge entries | 2 d |
-| **K2** | West: weapon range, hoverboard park, movers park, grapple tower + zipline, riding course + loaner horse, cave hill, vistas and caches | 3 d |
-| **K3** | East bands 1–6: six enemy types + night variants, spawns, cover, crates and chests, level-banded XP and coins | 3 d |
-| **K4** | Elites (Big Pallet L6, Foreman Unit 7 L18, three night elites), the stealth yard, the gauntlet | 2 d |
-| **K5** | The Training Vault shrine (four rooms + the Vault Warden L12) | 2 d |
-| **K6** | The Crate Titan L20: arena, phases, the cutscene intro, the legendary reward | 2 d |
-| **K7** | Quests: givers, grey/yellow "!", the contract board, storm hour and the beacons, checkpoint cards, the shard-complete card | 2 d |
-| **K8** | Economy: shop, pack, collectibles → perks, trophies, skins, feats, FINDS | 1–2 d |
-| **K9** | Audio: orchestral score (hub, west, combat bands, elite themes, boss stems), SFX, ambience, stings | 2 d |
-| **K10** | Grid-ready (memory ≤ 1.2 GB Explorer, one-frame looks, baked tiles, entries, edge profile) and seamless travel | 1 d |
-| **K11** | Balance pass: the golden-ratio XP curve (~60 h to L20), fight lengths, the miss curve, soft-gate brutality | 2 d |
-| **K12** | Jake plays it on the phone; his notes are the verdict | — |
-
-About 30 lane-days (estimate; the enemies, audio and loot mini plans each came in above their first budgets): Opus for everything the player sees (G848), Codex for rows, AS and balance tables.
-
-## 6. Mini plans
+## 5. Mini plans
 
 | Mini plan | Status |
 |---|---|
-| [levels-combat-mini-plan.md](kitchen-sink-v2/levels-combat-mini-plan.md): levels, XP, attributes, hit/miss + damage maths, enemy scaling, hidden L1 rollout to existing shards, engine rows | being written |
+| [slices/](kitchen-sink-v2/slices/README.md): the build as 87 vertical slices (33 west, 54 east), INDEX-west / INDEX-east, IMPACT, COVERAGE, DECISIONS D1–D48 | written; **the build order** |
+| [levels-combat-mini-plan.md](kitchen-sink-v2/levels-combat-mini-plan.md): levels, XP, attributes, hit/miss + damage maths, enemy scaling, engine rows; §15 is the locked maths; other shards keep flat combat (19z) | written |
 | [loot-economy-mini-plan.md](kitchen-sink-v2/loot-economy-mini-plan.md): coins, shop, loot, harvesting, pack, perks, trophies; audit of Driftwood and Pine Hollow | being designed |
 | [mini-dungeon-mini-plan.md](kitchen-sink-v2/mini-dungeon-mini-plan.md): the shrine host and the Training Vault | written |
-| [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md): every Wave 1 host row | written (draft) |
+| [wave-1-hosts-mini-plan.md](kitchen-sink-v2/wave-1-hosts-mini-plan.md): the old Wave 1 host rows | superseded by slices/ (kept as research) |
 | [map-layout-mini-plan.md](kitchen-sink-v2/map-layout-mini-plan.md): blockout rounds and the zone table | written |
 | [enemies-bosses-mini-plan.md](kitchen-sink-v2/enemies-bosses-mini-plan.md): 6 robot types, rare and night variants, 6 elites, the Crate Titan, the cutscene intro, Blender-script models | written |
 | [quests-contracts-mini-plan.md](kitchen-sink-v2/quests-contracts-mini-plan.md): 12 quests (4 per tier), kinds, the kill-contract board, checkpoint cards | written |
 | [audio-mini-plan.md](kitchen-sink-v2/audio-mini-plan.md): 11 orchestral cues, 8 stings, ~95 SFX, ambience zones, budgets | written |
 | [hud-character-mini-plan.md](kitchen-sink-v2/hud-character-mini-plan.md): bottom XP bar + LV chip, nameplates within 25 m, a read-only Character tab (E332) | written |
 
-## 7. Pages for Jake
+## 6. Pages for Jake
 
 - Tracker: [Kitchen Sink v2](https://claude.ai/artifact/KAK7qkdYt3a3K5JGkpPzUD)
 - [Mini Dungeon / Shrine Room](https://claude.ai/artifact/QT7U953tYyBPBKHA7RrVDQ) (`art/showcase-template/round-2-mini-dungeon/`)
@@ -359,24 +334,25 @@ About 30 lane-days (estimate; the enemies, audio and loot mini plans each came i
 - [Kitchen Sink v2 Mockups](https://claude.ai/artifact/9sKa3P19CfNdDi6ZrS3HUj): the 40 frames remastered from the round-4
   grey blockout in the polished look (`art/showcase-template/round-11-remaster/`; replaces `round-4-v2-layout/`)
 
-## 8. Done when
+## 7. Done when
 
-Wave 1: every §2 feature authorable as data/AS, existing shards unchanged (hidden L1 parity), the completion validator
-on. Wave 2: the showcase plays end to end on the phone tier, level 1 to the Crate Titan, with 0 custom TS lines,
-grid-ready within the memory limit, seamless in the 5 × 5; Jake has played it.
+Every west and east slice is done (its own done-when, every touched shard migrated and proved); every §2 feature is
+authorable as data / AS by a new shard; other shards play unchanged (saves byte-exact, looks similar); the completion
+validator is on; the showcase plays end to end on the phone tier, level 1 to the Crate Titan, with 0 custom TS lines,
+within 1.2 GB, then takes the hologram's grid cell (D3); Jake has played the west and the east.
 
-## 9. Not in this plan
+## 8. Not in this plan
 
 The 1–20 level rollout to other shards; random gear and rarity tiers (unless the loot redesign changes this); the
 tooling demos; per-zone weather.
 
-## 10. Sources
+## 9. Sources
 
 Shard audit and plan mining (11-02, E523): Driftwood, Nalati, Pine Hollow, Nine Dragon, Sky Reach, Signal Dunes;
 GW2-ZONES, WORLDCLAW, OCTOBER-BACKLOG, THIN-ICE, IN-GAME-CUTSCENES, HOST-AUDIT, SHARD-PLATFORM-NEXT. v1 mockups:
 `art/blender-template/round-5-content/`.
 
-## 11. v1, for the record
+## 10. v1, for the record
 
 v1 (2026-10-20): 12 zones (hub, weapon range, creature pen, riding course, movers park, grapple tower, stealth yard,
 elite gauntlet, boss arena, weather and night, physics and hover, portal vault) tied by a 9-step chain, "The Foreman's
