@@ -26,14 +26,15 @@ from landmarklib import atlas_image, export, far_copy, finish, triangles  # noqa
 
 HEIGHT = 35.0
 SEED = 17
-# sRGB swatches, lightest first (judged against art/grid/round-62-open-plot-palettes/17-ember-forge.jpg)
+# sRGB swatches, lightest first (judged against art/grid/round-62-open-plot-palettes/17-ember-forge.jpg); the stone, iron
+# and soot at 0.42 of their first values (OB4 look loop R1: the shared landmark fill lifted them to lilac-white at night)
 SWATCHES = {
-    'basalt': ['#4a4e58', '#3a3d46', '#2c2e36', '#202228'],
-    'stone': ['#5a5e6a', '#4a4e5a', '#3a3d48', '#2c2e38'],
-    'iron': ['#5a5f6a', '#464a54', '#363940', '#272a30'],
-    'lava': ['#ffb04a', '#ff8a2a', '#f06a1a', '#d84e10'],
+    'basalt': ['#1f2125', '#181a1d', '#121317', '#0d0e11'],
+    'stone': ['#26272d', '#1f2126', '#181a1e', '#121318'],
+    'iron': ['#26282d', '#1d1f23', '#17181b', '#101214'],
+    'lava': ['#ff8a24', '#f8661a', '#e04c0e', '#c03a08'],  # R2: deeper, so the dusk uplight keeps it molten, not peach
     'blue': ['#a8e4ff', '#7cd2ff', '#58bcf4', '#3aa2e0'],
-    'soot': ['#2a2420', '#221d1a', '#1a1614', '#13100e'],
+    'soot': ['#120f0d', '#0e0c0b', '#0b0908', '#080706'],
 }
 HALL = (-13.0, -9.0, 13.0, 9.0)  # x0, y0, x1, y1 of the hall body
 BASE, EAVE = 2.4, 13.0  # the plinth's top and the hall's eave

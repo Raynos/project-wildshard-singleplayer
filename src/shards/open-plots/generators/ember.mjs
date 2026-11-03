@@ -126,9 +126,9 @@ function farEmber(w, p, type, variant) {
   for (const [x, z, hx, hz, h] of boxes) w.box('far', [x - hx, 0, z - hz], [x + hx, h, z + hz], p.basalt ?? p.stone);
 }
 
-/** A lane seam (in place of Night Market's string lights and banner posts): a basalt bollard with a cold blue lamp-block on
- *  its cap at each crossing corner (3 m either side of the seam), as the round-62 paths are lined; the four road entries
- *  and the furnace's forecourt stay clear. */
+/** A lane seam (in place of Night Market's string lights and banner posts): basalt bollards, each capped with a cold blue
+ *  lamp-block (no light pool: R1, they crowded the aerials), 3 m either side of the seam at its crossings and twice
+ *  between, as the round-62 paths are lined; the four road entries and the furnace's forecourt stay clear. */
 function emberLane(w, p, side, centre) {
   const along = (u, off) => (side === 0 ? [u, HALF + off] : [HALF + off, -u]);
   const clear = (x, z) => { const wx = centre[0] + x, wz = centre[1] + z, margin = 1.5;
@@ -139,7 +139,6 @@ function emberLane(w, p, side, centre) {
     w.box('Kit', [x - 0.3, 0, z - 0.3], [x + 0.3, 1.0, z + 0.3], p.basalt ?? p.stone, p.basaltTop ?? p.stoneTop);
     w.box('Glow', [x - 0.22, 1.0, z - 0.22], [x + 0.22, 1.36, z + 0.22], p.lantern, p.lantern);
     w.solid([x - 0.3, 0, z - 0.3], [x + 0.3, 1.36, z + 0.3]);
-    pool(w, x, z, 2.2, p.pool);
   }
 }
 
@@ -167,7 +166,7 @@ export const emberForgePlot = {
   },
   pools(parts, palette) {
     const lit = { Pool: parts.Pool }, plotWriter = { triColours: (part, a, b, c, colours) => lit[part].triColours(part, [a, b, c], colours) };
-    pool(plotWriter, 0, -14, 16, palette.gatePool, 0.07);
+    pool(plotWriter, 0, -15, 10, palette.gatePool, 0.07);
     for (let i = 0; i < 8; i++) { const a = (i + 0.5) / 8 * Math.PI * 2; pool(plotWriter, 22 * Math.sin(a), 22 * Math.cos(a), 5, palette.pool, 0.08); }
   },
 };
