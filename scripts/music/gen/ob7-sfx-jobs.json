@@ -477,14 +477,21 @@
       "into": "sky-harbor",
       "duration": 30,
       "desc": "Gentle harbour water, distant gulls, timber and rope creaks in a soft sea breeze with a faint airship hum",
-      "prompt": "Close field recording at a sunny wooden harbour pier: gentle seawater laps against timber quay walls, with clear distant seagull calls, intermittent squeaking mooring ropes and loose canvas rustling in a sea breeze. A very faint far-off moored airship motor hum. Quiet spacious waterfront ambience, no music, no melody, no voices or speech."
+      "prompt": "Close field recording at a sunny wooden harbour pier: gentle seawater laps against timber quay walls, with clear distant seagull calls, intermittent squeaking mooring ropes and loose canvas rustling in a sea breeze. A very faint far-off moored airship motor hum. Quiet spacious waterfront ambience, no music, no melody, no voices or speech.",
+      "reuse": {
+        "set": "coral-drift",
+        "bed": "coral-drift.ambience",
+        "gap": "G872 measured/descriptive fit, not an ear verdict: canonical Coral coastal bed, 28 s, -24.9 LUFS integrated, LRA 4.9 LU, peak -6.7 dBFS; 59% energy at 500 Hz to 2 kHz and 21% at 2 to 6 kHz, under 1% below 150 Hz, spectral flatness 0.21 with no tonal peaks, envelope CV 0.66. Soft irregular lagoon water and coastal breeze fit the open harbour basins. Harbour clutter is carried by five local spots. No airship hum, rigging or tower flag; the failed airship-tower cue remains unshipped. Jake judges by ear on the listening page."
+      }
     },
     "hum.sky-harbor.airship-tower": {
       "kind": "hum",
       "into": "sky-harbor",
       "duration": 12,
       "desc": "A moored airship hums softly while its rigging creaks and a tower flag flutters",
-      "prompt": "A moored propeller airship at a harbour tower. Deep soft steady vibrating airship engine hum with a low fluttering propeller pulse, dry squeaks from suspended rigging ropes and distinct canvas flag flaps overhead. Close airy mechanical harbour sound, restrained continuous loop, no music, no melody, no voices or speech."
+      "prompt": "A moored propeller airship at a harbour tower. Deep soft steady vibrating airship engine hum with a low fluttering propeller pulse, dry squeaks from suspended rigging ropes and distinct canvas flag flaps overhead. Close airy mechanical harbour sound, restrained continuous loop, no music, no melody, no voices or speech.",
+      "shipping": false,
+      "omission": "G872 coordinator and Sky owner approve five qualified local spots. All three paired airship-tower attempts remain comparison-only and unshipped. Named gap: no airship hum, rigging or tower flag; no fabricated sixth cue."
     },
     "hum.sky-harbor.basin-water": {
       "kind": "hum",

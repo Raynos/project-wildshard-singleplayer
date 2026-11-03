@@ -269,12 +269,6 @@
   ],
   "sky-harbor": [
     {
-      "id": "airship-tower",
-      "x": 0,
-      "z": 0,
-      "reach": 60
-    },
-    {
       "id": "basin-water",
       "x": -94,
       "z": 94,
