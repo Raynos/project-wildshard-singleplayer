@@ -21,7 +21,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { LookInstance } from './lentLooks';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { buildYield } from '@wildshard/engine/core/workSlice';
+import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { loadLookGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
 import { curvedParams, graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
@@ -236,7 +236,9 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
       if (moved) moveFamilyMaterial(row.material, curvedParams(row.base, row.rows, (key) => row.seen.get(key) ?? 0));
     }
   };
-  const propNamed = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture, file: (hash) => assets.get(hash) });
+  const propNamed = named === undefined ? null : await propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture, file: (hash) => assets.get(hash),
+    check: workSlice(undefined, scope).check });
+  if (scope.disposed) throw new Error('Material scope unloaded during the prop materials');
   // G227: the splat terrain's tile primitives draw with the live terrain's splat material, every other name as before
   const splatDrawn = splat === undefined ? null : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
   const surfaces = splat === undefined || splatDrawn === null ? propNamed : withSplatSurface({ name: splat.material, binding: splatDrawn.binding }, propNamed);

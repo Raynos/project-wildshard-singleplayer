@@ -54,14 +54,17 @@ export function ownedGraph(material: Material, owner: string): Material {
 /**
  * Resolve every named prop material once. `catalogue` is the compiled `look.materials` (and family defaults), `compile`
  * compiles one more entry on the same looks / graph compiler / admitted textures (scope-owned), and `texture` resolves an
- * admitted transcoded texture in a role. Returns the resolver the installer calls per GLB material name.
+ * admitted transcoded texture in a role. Returns the resolver the installer calls per GLB material name. `check` ends a
+ * spent work slice between names (DL21: Nine's prop graphs compiled in one 1.2-1.5 s task at phone CPU 10x, the card
+ * frozen through it).
  */
-export function propSurfaces(materials: PropMaterials, ports: {
+export async function propSurfaces(materials: PropMaterials, ports: {
   look: Shardfile['look']['materials']; catalogue: ReadonlyMap<string, Material>;
   compile: (entry: unknown) => Material; texture: (ref: string, use: 'colour' | 'data') => Texture;
   /** a graph file's admitted bytes by hash (D74: a graph entry is its file) */
   file: (hash: string) => Uint8Array | undefined;
-}): (name: string) => PropSurfaceBinding {
+  check?: () => Promise<void> | undefined;
+}): Promise<(name: string) => PropSurfaceBinding> {
   const defaults = new Map<string, Material>(), resolved = new Map<string, PropSurfaceBinding>();
   const base = (id: string): Material => {
     const known = ports.catalogue.get(id) ?? defaults.get(id); if (known !== undefined) return known;
@@ -69,6 +72,7 @@ export function propSurfaces(materials: PropMaterials, ports: {
     const material = ports.compile(familyDefaultEntry(id)); defaults.set(id, material); return material;
   };
   for (const [name, row] of Object.entries(materials)) {
+    await ports.check?.();
     const slots = propMaterialSlots(row);
     const maps: { -readonly [K in keyof PropSurfaceBinding['maps']]: PropSurfaceBinding['maps'][K] } = { colour: null, normal: null, normalScale: 1, metallicRoughness: null, occlusion: null, occlusionStrength: 1, emissive: null };
     const entry = Object.hasOwn(ports.look, row.id) ? ports.look[row.id] : undefined;
