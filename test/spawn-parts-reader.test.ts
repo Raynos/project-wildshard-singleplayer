@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import {afterEach, expect, test, vi} from 'vitest';
 import {downloadSpawnManifest, releaseSpawnMembers, type HeldParts} from '../src/game/boot/spawnDownload';
+import {progressOfCard, watchStuckStep} from '../src/engine/boot/stuckStep';
 
 const hash = 'c'.repeat(64), base = 'https://example.test/';
 // Real sha256 of each body: the reader checks every member against its manifest row.
@@ -129,4 +130,33 @@ test('DL15: on the packs path the wire facts are the parts\' q11 bodies plus the
   }}, base);
   await download.ready;
   expect(download.snapshot().wire).toEqual({totalBytes: 8, completedBytes: 8, cachedBytes: 0});
+});
+
+test('DL21: a part streaming one byte every 50 s, before any member verifies, keeps the stuck watch quiet', async () => {
+  let push = (_bytes: Uint8Array<ArrayBuffer>): void => { throw new Error('Part stream not started'); }, close = (): void => undefined, started = false;
+  const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({start: controller => {push = bytes => {controller.enqueue(bytes);}; close = () => {controller.close();};}});
+  const download = downloadSpawnManifest(address, {packs: true, cached: () => Promise.resolve(undefined), fetch: url => {
+    const path = new URL(url).pathname; if (path === part.url) started = true;
+    return Promise.resolve(new Response(path === address.url ? text : path === part.url ? stream : body(path)));
+  }}, base);
+  // the card as the download paints it (paintSpawnDownload's data-streamed-bytes / data-read-bytes)
+  const dataset: Record<string, string> = {step: 'modules'};
+  download.subscribe(row => {dataset['streamedBytes'] = String(row.streamedBytes ?? row.completedBytes); dataset['readBytes'] = String(row.completedBytes);});
+  let now = 0, tick = (): void => undefined;
+  const stalls: [string, number][] = [];
+  watchStuckStep(download.ready, {progress: () => progressOfCard({dataset}), now: () => now,
+    every: (_ms, run) => {tick = run; return () => {tick = () => undefined;};}, stalled: (step, ms) => {stalls.push([step, ms]);}}, 60_000);
+  const wait = (seconds: number): void => {for (let s = 0; s < seconds; s++) {now += 1000; tick();}};
+  await vi.waitFor(() => {expect(started).toBe(true);});
+  // bin (bytes 0..3) verifies only once all four land: three single bytes move the stream but no verified byte
+  for (let at = 0; at < 3; at++) {
+    const before = dataset['streamedBytes'];
+    push(partBytes.slice(at, at + 1));
+    await vi.waitFor(() => {expect(dataset['streamedBytes']).not.toBe(before);});
+    expect(dataset['readBytes']).toBe('0');
+    wait(50);
+  }
+  expect(stalls).toEqual([]);
+  wait(61); expect(stalls).toEqual([['modules', 60_000]]);
+  push(partBytes.slice(3)); close(); await download.ready;
 });

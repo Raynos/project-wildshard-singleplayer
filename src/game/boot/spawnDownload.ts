@@ -34,8 +34,6 @@ export type HeldParts = Readonly<Record<string, readonly string[]>>;
 /** DL5: part members by their exact URL until control, so this page's own reads of them (product reads, engine
  * fetches) are answered from the part instead of the network. A member that failed is null and reads fall through. */
 const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
-/** DL21: how many streamed part bytes publish one progress beat (a chunk is ~64 KB; a phone link streams ~1.25 MB/s) */
-const STREAM_BEAT = 262_144;
 let layered = false;
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
   ktx2: 'image/ktx2', bin: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
@@ -189,12 +187,13 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               const chunk = await reader.read(); if (chunk.done) break;
               if (at + chunk.value.byteLength > part.bytes) {void reader.cancel(); throw new Error(`Spawn part longer than listed: ${part.url}`);}
               body.set(chunk.value, at); at += chunk.value.byteLength;
-              // a slow part still shows it moves: publish once every STREAM_BEAT bytes streamed, verified or not
-              const beat = Math.floor(streamedBytes / STREAM_BEAT); streamedBytes += chunk.value.byteLength;
-              if (Math.floor(streamedBytes / STREAM_BEAT) !== beat) publish();
+              // a slow part still shows it moves: every chunk publishes, as a loose file's read does (verified bytes
+              // still credit only per member)
+              streamedBytes += chunk.value.byteLength; publish();
               for (let row = order[next]; row !== undefined; row = order[next]) {
                 const [index, offset] = row, file = files[index]; if (file === undefined || offset + file.bytes > at) break;
-                const member = body.slice(offset, offset + file.bytes); next++;
+                // DL13: a member is a view into its part (no copy): page reads and the keep share the part's bytes
+                const member = body.subarray(offset, offset + file.bytes); next++;
                 // The part's bytes are only trusted per member: each must match its manifest row before it is kept or read.
                 if (await sha256(member) !== file.hash) throw new Error(`Spawn part member differs: ${part.url}`);
                 await ports.keep?.(file.url, new Response(member, {headers: {'content-type': typeOf(file.url), 'content-length': String(member.length)}}));
