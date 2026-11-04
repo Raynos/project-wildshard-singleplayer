@@ -7,6 +7,7 @@ import { Game } from './Game';
 import { applyLevelTier, TIER } from './tier';
 import { readyWebGLContext } from './webglStartup';
 import { recordBootCheckpoint } from '../boot/bootTrace';
+import { issueBakedPrograms } from '../boot/earlyPrograms';
 import { TERRAIN_RES } from './config';
 import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
@@ -76,6 +77,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
     return new Game(canvas, context, level);
   });
   game.app.clock.setCapture(harnessPins()?.capture ?? null);
+  issueBakedPrograms(game); // DL10 (Debug 'Early shader compile'): a queued list of the level's entry programs starts linking
   const sky = await step('sky', () => game.buildSky());
   game.retainEngineScene();
   const terrain = await step('terrain', async (p) => {

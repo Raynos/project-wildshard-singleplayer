@@ -29,7 +29,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { markBootContextLost, markBootHandledError } from '@wildshard/engine/boot/bootTrace';
 import { macrotask, type Plan, type StepRunner } from '@wildshard/engine/boot/plan';
 import { bootstrap, type World } from '@wildshard/engine/core/bootstrap';
-import { earlyProgramsOn, startEarlyPrograms } from '@wildshard/engine/boot/earlyPrograms';
+import { earlyProgramsOn, queueBakedPrograms, startEarlyPrograms, type BakedPrograms } from '@wildshard/engine/boot/earlyPrograms';
 import { SPAWN_VIEW_REACH_M } from '@wildshard/format/spawnView';
 import { TIER } from '@wildshard/engine/core/tier';
 import { cachedResourceAllocations } from '@wildshard/engine/render/textureBytes';
@@ -41,10 +41,25 @@ import { hasPond } from '@wildshard/engine/world/Heightfield';
 import { Horizon } from '@wildshard/engine/world/Horizon';
 import { HorizonMatte } from '@wildshard/engine/world/HorizonMatte';
 
+/** DL10: the shard's recorded entry programs (`scripts/bake-entry-programs.mjs`), or null when it has none. */
+async function bakedEntryPrograms(slug: string): Promise<BakedPrograms | null> {
+  const response = await fetch(new URL(`programs/${slug}.json`, document.baseURI));
+  if (!response.ok) return null;
+  const data: unknown = await response.json();
+  if (typeof data !== 'object' || data === null || !('version' in data) || data.version !== 1 || !('shaders' in data) || !('programs' in data)) return null;
+  const { shaders, programs } = data;
+  if (!Array.isArray(shaders) || !shaders.every((s: unknown): s is string => typeof s === 'string')) return null;
+  if (!Array.isArray(programs) || !programs.every((p: unknown): p is [number, number] => Array.isArray(p) && p.length === 2
+    && typeof p[0] === 'number' && typeof p[1] === 'number')) return null;
+  return { version: 1, shaders, programs };
+}
+
 async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) : Promise<{ world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: DeclarationWater | null; streams: null; horizon: Horizon; horizonReady: Promise<void>; }; boundary: Boundary; water: DeclarationWater | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: LevelAudio; music: LevelMusic; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, boot, session, audioProfile, plan, step, product } = ctx;
 
   const selected = { ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn };
+  // DL10 (Debug 'Early shader compile'): the entry's recorded programs start linking from the renderer step (bootstrap)
+  if (earlyProgramsOn()) queueBakedPrograms(bakedEntryPrograms(ctx.slug));
   const world = Object.assign(await bootstrap(step, session.ownedGridHome ? gridPageShellLevel(selected) : gridLevel(toLevelSpec(selected, product)), INPUT_CONTEXTS), { chunk: manifest });
   const { game, sky, player, forest, params, chunk, registry } = world;
   session.residency?.bindAssets(app.assets, game.engineScope, session.ownedGridHome ? null : game.levelScope, () => app.levelScope, cachedResourceAllocations);

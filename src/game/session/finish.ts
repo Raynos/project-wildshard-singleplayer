@@ -8,7 +8,7 @@ import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage, waitFor } from '@wildshard/engine/boot/waits';
-import { earlyPrograms, earlyProgramsOn } from '@wildshard/engine/boot/earlyPrograms';
+import { earlyPrograms, earlyProgramsOn, releaseBakedPrograms } from '@wildshard/engine/boot/earlyPrograms';
 import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
@@ -131,6 +131,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       p.set(passes, passes, `Pass ${passes} / ${passes} · ready · ${programs()}`);
     });
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during first frame');
+    releaseBakedPrograms(); // DL10: the level's own programs are linked; the baked copies only warmed the GPU process
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (fragileBoot && /WebGLShader|WebGL context lost|shaderSource/i.test(message)) failGpuBoot(message.slice(0, 120), error instanceof Error ? error.stack ?? '' : '');
