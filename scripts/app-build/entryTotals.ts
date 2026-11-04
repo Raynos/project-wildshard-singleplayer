@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '../../src/format/fenceReads';
+import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -148,8 +148,13 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       // Section references, then the boot tables' audio slots (Pine's colliding sfx revisions).
       const refs = joinRefs(sectionRefs(sections, new Set([...urls, ...members].map(url => url.split('?')[0] ?? url))),
         audioTableRefs(JSON.parse(readAssetTables(root).common.source) as {sfx?: unknown; music?: unknown}));
+      // An identity is one file or none: one naming two distinct files (two vendor versions, sp-x9) refuses, never the first.
+      const owners = identityFiles(assetIdentities(urls, packParts(), refs, {digests: assetDigests, sources: bundlerSources()}));
+      const ambiguous = shell.filter(identity => (owners.get(identity)?.length ?? 0) > 1);
+      if (ambiguous.length > 0) throw new Error(`${fencePath} lists ${ambiguous.length} identities naming more than one file of this build `
+        + `(${ambiguous.slice(0, 3).join(', ')}); re-record with scripts/record-fence-reads.mjs`);
       const byIdentity = new Map<string, string>();
-      for (const [url, ids] of assetIdentities(urls, packParts(), refs, {digests: assetDigests, sources: bundlerSources()})) for (const identity of ids) if (!byIdentity.has(identity)) byIdentity.set(identity, url);
+      for (const [identity, named] of owners) { const only = named[0]; if (named.length === 1 && only !== undefined) byIdentity.set(identity, only); }
       fenceAssets = [...new Set(shell.flatMap(identity => { const url = byIdentity.get(identity); return url === undefined ? [] : [url]; }))];
       const unresolved = [...resolved.unresolved.filter(row => !row.startsWith('ref:')), ...shell.filter(identity => !byIdentity.has(identity))];
       // A stale entry fails the build (sp-x8's review): skipping it would quietly bring back an on-demand fetch.

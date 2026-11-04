@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { assetIdentities, assetStem, audioTableRefs, bundlerSources, type AssetDigests, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
+import { assetIdentities, assetStem, audioTableRefs, bundlerSources, identityFiles, type AssetDigests, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
 
 // DL22: Pine's cold boot read 143 files before control that its spawn set lacked (late models by name, props tiles by
 // tile); the recorded list keeps stable identities so a content edit (new hashes) still maps to the right files.
@@ -164,4 +164,20 @@ test('a vendor source is keyed by its package path, wherever the build ran (5591
   expect(bundlerSources({'src/shards/pine-hollow/thumbs/pine-hollow.jpg': {file: 'assets/pine-hollow-C8hPt5PZ.jpg'}, 'src/main.ts': {file: 'assets/main-x.js'}}))
     .toEqual(new Map([['/assets/pine-hollow-C8hPt5PZ.jpg', ['src/shards/pine-hollow/thumbs/pine-hollow.jpg']]]));
   expect(readFenceReads({version: 1, files: [`asset-source:${wanted}`]}).files).toEqual([`asset-source:${wanted}`]);
+});
+
+test('sp-x9: a project folder named node_modules keeps its project path, and two vendor versions under one key are ambiguous', () => {
+  const lookalike = bundlerSources({'src/generated/my_node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm': {file: 'assets/a-1.wasm'},
+    'src/vendor/node_modules/three/x.wasm': {file: 'assets/b-1.wasm'}});
+  expect(lookalike.get('/assets/a-1.wasm')).toEqual(['src/generated/my_node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm']);
+  expect(lookalike.get('/assets/b-1.wasm')).toEqual(['src/vendor/node_modules/three/x.wasm']);
+  // three@0.186.0 and three@0.187.0 both retained: one package key, two distinct outputs
+  const sources = bundlerSources({
+    'node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm': {file: 'assets/old-1.wasm'},
+    'node_modules/.pnpm/three@0.187.0/node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm': {file: 'assets/new-1.wasm'}});
+  const owners = identityFiles(assetIdentities(['/assets/old-1.wasm', '/assets/new-1.wasm'], new Map(), new Map(), {sources}));
+  expect(owners.get('asset-source:node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm')).toEqual(['/assets/old-1.wasm', '/assets/new-1.wasm']);
+  // one output's own aliases stay one file
+  const shared = identityFiles(new Map([['/assets/s.jpg', ['asset-source:a.jpg', 'asset-source:b.jpg']]]));
+  expect(shared.get('asset-source:a.jpg')).toEqual(['/assets/s.jpg']);
 });

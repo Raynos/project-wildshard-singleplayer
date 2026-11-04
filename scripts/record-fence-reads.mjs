@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parseArgs } from 'node:util';
-import { assetIdentities, audioTableRefs, bundlerSources, fenceReadAliases, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
+import { assetIdentities, audioTableRefs, bundlerSources, fenceReadAliases, identityFiles, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
 
 const { values } = parseArgs({ options: { run: { type: 'string' }, base: { type: 'string' }, dist: { type: 'string' }, slug: { type: 'string' },
   flow: { type: 'string', default: 'client' }, check: { type: 'boolean', default: false }, 'allow-unidentified': { type: 'boolean', default: false } } });
@@ -71,7 +71,9 @@ const digests = path => { try { const bytes = readFileSync(join(dist, path.slice
 const manifestPath = join(dist, '.vite/manifest.json');
 const sources = existsSync(manifestPath) ? bundlerSources(JSON.parse(readFileSync(manifestPath, 'utf8'))) : new Map();
 const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs), { digests, sources });
-for (const path of assetsOutside) { const ids = assetIds.get(path); if (ids === undefined) unknown.push(path); else recorded.push(...ids); }
+// an identity two distinct files share is ambiguous: never recorded (sp-x9)
+const owners = identityFiles(assetIds);
+for (const path of assetsOutside) { const ids = (assetIds.get(path) ?? []).filter(id => owners.get(id)?.length === 1); if (ids.length === 0) unknown.push(path); else recorded.push(...ids); }
 const total = outside.size + assetsOutside.size;
 console.log(`${slug} ${flow}: control at ${((control - run.tap) / 1000).toFixed(1)} s; ${outside.size} level and ${assetsOutside.size} /assets files read before control outside the spawn set; ${unknown.length} unidentified`);
 for (const name of unknown) console.log(`  unidentified ${name}`);

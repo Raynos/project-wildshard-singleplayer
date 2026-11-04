@@ -108,19 +108,29 @@ export function audioTableRefs(tables: {readonly sfx?: unknown; readonly music?:
   return refs;
 }
 /** The bundler manifest (`.vite/manifest.json`: source key → {file}) as emitted non-code file → every source naming it.
- *  A source outside the project (a vendor file: `../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/…`) is
- *  keyed by its package path, `node_modules/three/…`: the relative prefix and the store layout depend on where the build
- *  ran (a local mirror vs CI's checkout broke Pine's list on CI, 5591d76604). */
+ *  A vendor source (the key starts at the install root: `node_modules/…`, or above the project: `../../../../node_modules/
+ *  .pnpm/three@0.186.0/node_modules/three/…`) is keyed by its package path, `node_modules/three/…`: the relative prefix and
+ *  the store layout depend on where the build ran (a local mirror vs CI's checkout broke Pine's list on CI, 5591d76604).
+ *  Any other key, even one with a `node_modules/` folder inside the project, keeps its project path (sp-x9). */
 export function bundlerSources(manifest: unknown): ReadonlyMap<string, readonly string[]> {
   const found = new Map<string, string[]>();
   if (!object(manifest)) return found;
   for (const [key, row] of Object.entries(manifest)) {
     const file = object(row) ? row['file'] : undefined;
     if (typeof file !== 'string' || /\.(?:js|mjs|css)$/u.test(file)) continue;
-    const at = key.lastIndexOf('node_modules/'), source = at === -1 ? key.replace(/^(?:\.\/)+/u, '') : key.slice(at);
+    // a vendor key's last `node_modules/` is its package (pnpm nests the store: .pnpm/<pkg@ver>/node_modules/<pkg>/…)
+    const vendor = /^(?:\.\.\/)*node_modules\//u.test(key), at = key.lastIndexOf('/node_modules/');
+    const source = !vendor ? key.replace(/^(?:\.\/)+/u, '') : at === -1 ? key.replace(/^(?:\.\.\/)+/u, '') : key.slice(at + 1);
     found.set(`/${file}`, [...found.get(`/${file}`) ?? [], source]);
   }
   return found;
+}
+/** Each identity's files. An identity two distinct files share (two vendor versions under one package path, sp-x9) is
+ *  ambiguous: the build refuses it and the recorder never records it; one file's own aliases are fine. */
+export function identityFiles(identities: ReadonlyMap<string, readonly string[]>): ReadonlyMap<string, readonly string[]> {
+  const files = new Map<string, string[]>();
+  for (const [url, ids] of identities) for (const id of ids) { const list = files.get(id) ?? []; if (!list.includes(url)) list.push(url); files.set(id, list); }
+  return files;
 }
 /** Reference maps joined: every identity each path has, in the order given. */
 export function joinRefs(...maps: readonly ReadonlyMap<string, readonly string[]>[]): ReadonlyMap<string, readonly string[]> {
