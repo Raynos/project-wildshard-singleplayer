@@ -7,9 +7,9 @@ import { dropTriangles, hiddenTriangles, type HiddenOptions } from './hiddenFace
 
 /**
  * The engine geometry kit (E357 X5, 10 §X5): the shape builders every model kit shares. Flat-shaded ones (`log`, `beam`,
- * `rope`, `rock`, `plank`, `wobble`, `tris`: the low-poly kit's faceted look) and smooth ones (`pole`, `blob`, `lathe`,
- * `revolve`, `revolveUV`, `mergeVerticesByPos`: welded, smooth normals, for the painted kit). Each keeps its own vertex
- * maths (a `log` is a scaled unit prism, a `pole` a cylinder built at length), so every model built from them is unchanged.
+ * `rope`, `rock`, `plank`, `wobble`, `tris`: the low-poly kit's faceted look) and smooth ones (`blob`: welded, smooth
+ * normals, for the painted kit). Each keeps its own vertex maths (a `log` is a scaled unit prism), so every model built
+ * from them is unchanged.
  */
 
 // ── flat-shaded primitives ──────────────────────────────────────────────────────────────────────────
@@ -111,17 +111,6 @@ export function tris(v: number[]): THREE.BufferGeometry {
 
 // ── smooth primitives ───────────────────────────────────────────────────────────────────────────────
 
-const _m = new THREE.Matrix4();
-/** a smooth round pole / log from a to b, radius r0 at a → r1 at b; `segs` rings along it (for a painter that varies along the length) */
-export function pole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1: number = r0, sides = 7, segs = 1): THREE.BufferGeometry {
-  const d = new THREE.Vector3().subVectors(b, a);
-  const len = d.length();
-  const g = new THREE.CylinderGeometry(r1, r0, len, sides, segs, false, 0.3);
-  g.applyMatrix4(_m.makeRotationFromQuaternion(_q.setFromUnitVectors(UP, d.normalize())));
-  g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-  return g;
-}
-
 /** a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed. A shard that adds
  *  a geometry bake (./geometryBake.ts) reads the shape from it; the smooth normals are exact arithmetic, made here */
 export function blob(r: number, rng: RngPort, detail = 1, squash = 0.75, rough = 0.22): THREE.BufferGeometry {
@@ -146,7 +135,7 @@ function blobShape(r: number, rng: RngPort, detail: number, squash: number, roug
 }
 
 /** weld an unindexed / seam-split geometry by position (so displacement keeps it watertight and normals smooth) */
-export function mergeVerticesByPos(g: THREE.BufferGeometry): THREE.BufferGeometry {
+function mergeVerticesByPos(g: THREE.BufferGeometry): THREE.BufferGeometry {
   const src = g.index ? g.toNonIndexed() : g;
   const pos = src.getAttribute('position');
   const map = new Map<string, number>();
@@ -164,75 +153,6 @@ export function mergeVerticesByPos(g: THREE.BufferGeometry): THREE.BufferGeometr
   if (src !== g) src.dispose();
   g.dispose();
   return out;
-}
-
-/** a lathe from a (radius, height) profile, `seg` around; smooth normals */
-export function lathe(profile: [number, number][], seg: number): THREE.BufferGeometry {
-  const g = new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), seg);
-  // LatheGeometry duplicates the seam column: weld it so the normals are smooth all the way round
-  const w = mergeVerticesByPos(g);
-  w.computeVertexNormals();
-  return w;
-}
-
-/**
- * A surface of revolution with an arbitrary radius / height per (angle, t): `fn(theta, t) → [r, y]`, `segU` round,
- * `segV` along t ∈ [0, 1]. Indexed and seam-welded, so its normals are smooth — the felt sagging between the roof
- * ribs, the wall's panel folds. Angle 0 is +z (the same as a lathe).
- */
-export function revolve(fn: (theta: number, t: number) => [number, number], segU: number, segV: number): THREE.BufferGeometry {
-  const v: number[] = [], idx: number[] = [];
-  for (let j = 0; j <= segV; j++) {
-    const t = j / segV;
-    for (let i = 0; i < segU; i++) {
-      const th = (i / segU) * Math.PI * 2;
-      const [r, y] = fn(th, t);
-      v.push(Math.sin(th) * r, y, Math.cos(th) * r);
-    }
-  }
-  for (let j = 0; j < segV; j++) for (let i = 0; i < segU; i++) {
-    const a = j * segU + i, b = j * segU + ((i + 1) % segU), c = (j + 1) * segU + i, d = (j + 1) * segU + ((i + 1) % segU);
-    idx.push(a, b, c, b, d, c);
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  return g;
-}
-
-/**
- * `revolve` with texture coordinates: u = angle / 2π × `uReps` (the seam column is doubled so u runs 0 → uReps without
- * wrapping), v = t. The seam's two columns share one averaged normal, so the shading has no seam.
- */
-export function revolveUV(fn: (theta: number, t: number) => [number, number], segU: number, segV: number, uReps: number): THREE.BufferGeometry {
-  const v: number[] = [], uv: number[] = [], idx: number[] = [];
-  const cols = segU + 1;
-  for (let j = 0; j <= segV; j++) {
-    const t = j / segV;
-    for (let i = 0; i <= segU; i++) {
-      const th = ((i % segU) / segU) * Math.PI * 2;
-      const [r, y] = fn(th, t);
-      v.push(Math.sin(th) * r, y, Math.cos(th) * r);
-      uv.push((i / segU) * uReps, t);
-    }
-  }
-  for (let j = 0; j < segV; j++) for (let i = 0; i < segU; i++) {
-    const a = j * cols + i, b = a + 1, c = a + cols, d = c + 1;
-    idx.push(a, b, c, b, d, c);
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  const n = g.getAttribute('normal');
-  for (let j = 0; j <= segV; j++) {
-    const a = j * cols, b = a + segU;
-    const x = n.getX(a) + n.getX(b), y = n.getY(a) + n.getY(b), z = n.getZ(a) + n.getZ(b), l = Math.hypot(x, y, z) || 1;
-    n.setXYZ(a, x / l, y / l, z / l); n.setXYZ(b, x / l, y / l, z / l);
-  }
-  return g;
 }
 
 /** Finished parts (normals and colours baked) without their hidden triangles (hiddenFaces.ts: inside another closed part,

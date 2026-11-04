@@ -5,7 +5,7 @@ import { crownTopUniforms, type CrownTop } from './forest/treeSet';
 import { windUniforms as sharedWind, patchWindField } from './wind';
 import { windStrength } from './windStrength';
 
-export interface TreeVariant {
+interface TreeVariant {
   trunk: THREE.BufferGeometry;
   cardsHi: THREE.BufferGeometry;
   cardsLo: THREE.BufferGeometry;
@@ -36,7 +36,7 @@ export const windUniforms: { uTime: { value: number; }; uWindStrength: { value: 
  * instanced / batched draws fade: a single pine (Explore's specimen) is always whole.
  */
 export const forestFade: { uViewer: { value: THREE.Vector3; }; } = { uViewer: { value: new THREE.Vector3(1e9, 0, 1e9) } };
-export interface FadeBand { value: THREE.Vector3 }
+interface FadeBand { value: THREE.Vector3 }
 const noFade = (): FadeBand => ({ value: new THREE.Vector3(1e9, 1e9, 0) });
 
 /**

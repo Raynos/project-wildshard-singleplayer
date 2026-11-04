@@ -42,7 +42,7 @@ export interface AddOpts {
   wobble?: number;
   /** sways in the shared wind (M5, wind.ts): weight `w` (~1 = cloth), rising with height from the part's base — or, with
    * `hang`, from its top down (a sail, a banner, weed hanging off a rail). Meshes with swaying parts want
-   * `mesh.customDepthMaterial = swayDepthMaterial()` so their shadows move too. */
+   * a sway-patched `mesh.customDepthMaterial` so their shadows move too. */
   sway?: { w: number; phase?: number; hang?: boolean; /** absolute (post-matrix) y where the weight is 0 → where it reaches w (a sail built from many quads) */ span?: [number, number] };
 }
 
@@ -153,15 +153,15 @@ export class LowPolyKit {
 // the shared engine geometry kit (E357 X5): imported here for the kit's own users
 
 
-// ── plants (multi-colour parts: `kit.addParts(fern(rng, 1), { matrix })`) ────────────────────────
-// The plant builders and bakeLight below are imported only by the frozen legacy authoring folder (SF73: an export a
+// ── plants (multi-colour parts: `kit.addParts(broadClump(rng, 1), { matrix })`) ──────────────────
+// The plant builders below are imported only by the frozen legacy authoring folder (SF73: an export a
 // registered legacy file imports stays and leaves with that folder). Driftwood's generators use their own copy
 // (the retained offline plant generator); no runtime module reaches these.
 
 /** a geometry + the colour to paint it: plants are a few of these */
-export type Part = [THREE.BufferGeometry, ColorLike];
+type Part = [THREE.BufferGeometry, ColorLike];
 
-export const PLANT = {
+const PLANT = {
   leaf: '#4f8f34', leafB: '#63a63c', leafDark: '#3c7430', leafLight: '#7fbf4a', stem: '#5b7a34',
   hibiscus: '#e2372c', hibiscusB: '#f0543a', stamen: '#ffd24a', lily: '#4f9a3c', lilyB: '#66ad45', lotus: '#f4f0ea', lotusPink: '#f2b6c6',
   grass: '#7cbc45', grassB: '#95cc55', grassTip: '#b9dc6e',
@@ -182,19 +182,8 @@ function leafAt(g: THREE.BufferGeometry, yaw: number, pitch: number, x = 0, y = 
   return g.rotateX(-pitch).rotateY(yaw).translate(x, y, z);
 }
 
-/** a fern: 7–9 long narrow fronds fanning out and up from the crown */
-export function fern(rng: Rng, size = 1): Part[] {
-  const out: Part[] = [];
-  const n = rng.int(7, 9);
-  for (let i = 0; i < n; i++) {
-    const yaw = (i / n) * Math.PI * 2 + rng.range(-0.25, 0.25), len = size * rng.range(0.75, 1.1);
-    out.push([leafAt(leaf(len, len * 0.2, 0.18, 0.35), yaw, rng.range(0.45, 0.85)), i % 3 === 0 ? PLANT.leafLight : i % 2 ? PLANT.leaf : PLANT.leafB]);
-  }
-  return out;
-}
-
 /** a broad-leaf clump (taro / monstera): 5–7 wide leaves on short stems */
-export function broadClump(rng: Rng, size = 1): Part[] {
+function broadClump(rng: Rng, size = 1): Part[] {
   const out: Part[] = [];
   const n = rng.int(5, 7);
   for (let i = 0; i < n; i++) {
@@ -207,7 +196,7 @@ export function broadClump(rng: Rng, size = 1): Part[] {
 }
 
 /** a hibiscus flower facing +y at the origin: five red petals and a yellow stamen */
-export function hibiscus(r = 0.14): Part[] {
+function hibiscus(r = 0.14): Part[] {
   const out: Part[] = [];
   for (let k = 0; k < 5; k++) {
     const a = (k / 5) * Math.PI * 2, b = a + Math.PI / 5, c = a - Math.PI / 5;
@@ -239,18 +228,6 @@ export function lilyPad(r: number, rot = 0): THREE.BufferGeometry {
     v.push(0, 0.01, 0, Math.cos(a1) * r, 0, Math.sin(a1) * r, Math.cos(a0) * r, 0, Math.sin(a0) * r);
   }
   return tris(v);
-}
-
-/** a lotus: six raised white petals round a yellow heart */
-export function lotus(r = 0.16): Part[] {
-  const out: Part[] = [];
-  for (let k = 0; k < 6; k++) {
-    const a = (k / 6) * Math.PI * 2, w = r * 0.45;
-    const tip = [Math.cos(a) * r, r * 0.8, Math.sin(a) * r], l = [Math.cos(a + 0.6) * w, r * 0.15, Math.sin(a + 0.6) * w], rr = [Math.cos(a - 0.6) * w, r * 0.15, Math.sin(a - 0.6) * w];
-    out.push([tris([0, 0, 0, ...l, ...tip, 0, 0, 0, ...tip, ...rr]), k % 2 ? PLANT.lotus : PLANT.lotusPink]);
-  }
-  out.push([new THREE.CylinderGeometry(r * 0.25, r * 0.2, r * 0.3, 5).translate(0, r * 0.2, 0), PLANT.stamen]);
-  return out;
 }
 
 /** a grass tuft: 5–8 bent blades (one triangle each) */
@@ -325,44 +302,6 @@ export function bakeAO(geo: THREE.BufferGeometry, o: AOOptions = {}): void {
     strength: o.strength ?? 0.62, downDark: o.downDark ?? 0.18,
   });
   aoTint(geo.getAttribute('color'), k, tint);
-}
-
-// ── baked point light ─────────────────────────────────────────────────────────────────────────────
-
-export interface BakedLight { x: number; y: number; z: number; color: ColorLike; /** metres to zero */ range: number; /** 0..~2 */ intensity: number }
-
-/**
- * Bake warm lantern / ember light into the vertex colours (after `finish`, so the AO is under it): every face that
- * FACES a light within its range is lifted toward colour × light (smooth falloff × N·L). No shadowing — a face behind a
- * wall that faces the light still catches it — so keep ranges inside the room they light. Runtime cost: none, which is
- * the point (no point light in every shader, no program recompile when a lantern goes out).
- */
-export function bakeLight(geo: THREE.BufferGeometry, lights: BakedLight[]): void {
-  if (!geo.hasAttribute('color') || geo.index !== null || lights.length === 0) return;
-  const pos = geo.getAttribute('position'), col = geo.getAttribute('color');
-  if (!geo.hasAttribute('normal')) geo.computeVertexNormals();
-  const nrm = geo.getAttribute('normal');
-  const lc = lights.map((l) => asColor(l.color).clone());
-  for (let i = 0; i < pos.count; i += 3) {
-    const cx = (pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3, cy = (pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3, cz = (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3;
-    const nx = nrm.getX(i), ny = nrm.getY(i), nz = nrm.getZ(i);
-    let r = 0, g = 0, b = 0;
-    for (let k = 0; k < lights.length; k++) {
-      const l = lights[k], c = lc[k];
-      if (l === undefined || c === undefined) continue;
-      const dx = l.x - cx, dy = l.y - cy, dz = l.z - cz, d = Math.hypot(dx, dy, dz);
-      if (d >= l.range) continue;
-      const ndl = d < 1e-4 ? 1 : Math.max(0, (dx * nx + dy * ny + dz * nz) / d);
-      const f = (1 - d / l.range) ** 1.4 * (0.35 + 0.65 * ndl) * l.intensity;
-      r += c.r * f; g += c.g * f; b += c.b * f;
-    }
-    if (r + g + b <= 0) continue;
-    for (let j = 0; j < 3; j++) {
-      const v = i + j;
-      col.setXYZ(v, col.getX(v) * (1 + r * 2.2) + r * 0.16, col.getY(v) * (1 + g * 2.2) + g * 0.16, col.getZ(v) * (1 + b * 2.2) + b * 0.16);
-    }
-  }
-  col.needsUpdate = true;
 }
 
 // ── material ──────────────────────────────────────────────────────────────────────────────────────

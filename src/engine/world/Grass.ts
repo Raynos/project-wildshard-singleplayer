@@ -76,13 +76,13 @@ const grassUniforms = {
 };
 
 /** A trample field the grass bends round and the player stamps into each frame (the kit's GrassTrample) */
-export interface TrampleField {
+interface TrampleField {
   readonly uniforms: Record<string, THREE.IUniform>;
   push: (x: number, z: number, radius: number, strength?: number, vx?: number, vz?: number) => void;
   update: (dt: number, playerPos: { x: number; z: number }) => void;
 }
 /** the field, and GLSL that defines `vec2 trampleBend(vec2 xz)` over its uniforms */
-export interface GrassTrampleField { field: TrampleField; glsl: string }
+interface GrassTrampleField { field: TrampleField; glsl: string }
 
 /** E322 F-L4: the trample, after the wind (inside its block: `im`, `ipos`, `s2`, `fade` in scope) — the blade lies over by
  *  the bend's angle (≤ 1.35 rad) the way it points, the top dropping as it goes */

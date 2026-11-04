@@ -13,11 +13,11 @@ import { windStrength } from './windStrength';
  *   wind.vecAt(x, z, out) // the wind velocity {x, z} m/s at a point incl. gusts (arrow / javelin drift)
  *   wind.gustAt(x, z)     // the gust field 0..1 (the same number the grass shader bends by)
  *   wind.setTarget(speed, dir, gustiness?, seconds?)   // weather: ease toward a new wind
- *   wind.uniforms + WIND_GLSL                          // for any shader that wants the same gust field
+ *   wind.uniforms                                      // for any shader that wants the same gust field
  *
  * The gust field is a set of fronts travelling downwind (`travel` integrates speed × dt, so a speed change
  * never makes the pattern jump), bent across their length and patchy along it: visible bands of pushed grass
- * rolling across the hills 30–60 m ahead. The CPU copy (`gustAt`) and the GLSL copy (`windGust`) are the same
+ * rolling across the hills 30–60 m ahead. A shader that reads `wind.uniforms` must repeat `gustAt`'s
  * math, so an arrow feels the gust the player sees in the grass.
  *
  * Without a target the wind wanders on its own (a slow ±20 % breathing in speed, ±0.2 rad in heading) around
@@ -41,24 +41,6 @@ export interface WindState {
   target: { speed: number; dir: number; gustiness: number; rate: number };
 }
 const finite = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n);
-
-export const WIND_GLSL = /* glsl */`
-uniform vec2 uWindDir;      // unit, the heading the wind blows toward (world xz)
-uniform float uWindSpeed;   // m/s base
-uniform float uWindGustiness; // 0..1
-uniform float uWindTravel;  // m, how far the gust pattern has moved downwind
-uniform float uWindTime;    // s
-float windGust( vec2 p ) {
-  vec2 perp = vec2( - uWindDir.y, uWindDir.x );
-  float s = dot( p, uWindDir ) - uWindTravel;
-  float c = dot( p, perp );
-  float w1 = sin( s * 0.165 + sin( c * 0.045 + 1.3 ) * 1.8 + sin( c * 0.013 ) * 2.5 );
-  float f1 = 0.5 + 0.5 * w1; f1 = f1 * f1 * f1;
-  float m = 0.55 + 0.45 * sin( c * 0.031 + s * 0.021 + 0.7 );
-  float w2 = sin( s * 0.39 + c * 0.11 + 2.1 );
-  return clamp( f1 * m + 0.18 * ( 0.5 + 0.5 * w2 ), 0.0, 1.0 );
-}
-`;
 
 export class Wind {
   /** m/s, smoothed base speed (no gusts) */
@@ -159,7 +141,7 @@ export class Wind {
     this.#strength.value = Math.min(4, Math.max(0.25, this.speed / REF_SPEED));
   }
 
-  /** gust field 0..1 at (x, z) — identical to WIND_GLSL `windGust` */
+  /** gust field 0..1 at (x, z) */
   gustAt(x: number, z: number, t: number = this.time): number {
     const travel = this.travel + (t - this.time) * (this.speed * 0.85 + 1.2);
     const dx = this.dirX, dz = this.dirZ;

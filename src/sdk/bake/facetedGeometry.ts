@@ -50,7 +50,7 @@ export interface FacetedPartOptions {
   wobble?: number;
   /** sways in the shared wind (M5, wind.ts): weight `w` (~1 = cloth), rising with height from the part's base — or, with
    * `hang`, from its top down (a sail, a banner, weed hanging off a rail). Meshes with swaying parts want
-   * `mesh.customDepthMaterial = swayDepthMaterial()` so their shadows move too. */
+   * a sway-patched `mesh.customDepthMaterial` so their shadows move too. */
   sway?: { w: number; phase?: number; hang?: boolean; /** absolute (post-matrix) y where the weight is 0 → where it reaches w (a sail built from many quads) */ span?: [number, number] };
 }
 

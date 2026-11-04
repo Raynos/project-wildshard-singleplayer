@@ -2,12 +2,12 @@ import { Vector3 } from 'three';
 import { checkDayClockState, clockDayPhase, clockHour, clockPeriod, scheduleSeconds, scheduleSegment, stepDayClock, wrapClock, type DayClockState } from '../sim/dayClock';
 import type { DayClockPhase, DayClockRow, DayClockSegment } from '@wildshard/format/dayCycle';
 
-export type DayPhase = DayClockPhase;
+type DayPhase = DayClockPhase;
 export type TimePick = 'live' | keyof DayClockRow['fixed'];
 export type LightPreset = keyof DayClockRow['presets'];
 export type PhaseListener = (phase: DayPhase, prev: DayPhase) => void;
 export type ScheduleSeg = DayClockSegment;
-export interface DayKeys<K> {
+interface DayKeys<K> {
   coordinate: 'phase' | 'elevation';
   frames: readonly (readonly [number, K])[];
   blend: (out: K, a: K, b: K, t: number) => void;

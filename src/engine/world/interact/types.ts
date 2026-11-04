@@ -172,7 +172,7 @@ export interface DoorDef extends Base {
 export interface LeverDef extends Base { kind: 'lever'; label?: string; /** once pulled it stays pulled (a puzzle step that is done) */ latch?: boolean }
 export interface PlateDef extends Base { kind: 'plate'; /** square side, metres */ size: number; by: 'player' | 'barrel' | 'any' }
 export interface BarrelDef extends Base { kind: 'barrel'; /** the barrel is returned here if it strays further than this (m) from its start */ leash: number }
-export interface PickupDef extends Base {
+interface PickupDef extends Base {
   kind: 'pickup';
   /** a registered pickup look's id (registerPickupLook: the kit's flint, coin, resin, token…) */
   look: string;

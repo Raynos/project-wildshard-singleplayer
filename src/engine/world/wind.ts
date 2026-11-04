@@ -5,11 +5,10 @@
  *
  * Geometry opts in through a vec2 vertex attribute `aSway` = (weight, phase): weight 0 never moves (a geometry without
  * the attribute reads 0), ~1 flutters like cloth. `patchSway(shader)` adds the displacement to any material's vertex
- * shader (call it from onBeforeCompile, before `sky.setupMaterial`); `swayDepthMaterial()` is the matching shadow-pass
- * material, so shadows move with what casts them (`mesh.customDepthMaterial = swayDepthMaterial()`).
+ * shader (call it from onBeforeCompile, before `sky.setupMaterial`); a shadow-pass depth material patched the same way
+ * makes shadows move with what casts them.
  */
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { clockGust, fieldGustAt } from './windField';
 
 export const windUniforms = { uWindTime: { value: 0 }, uGust: { value: 0.5 } };
@@ -49,16 +48,6 @@ export function patchSway(shader: { uniforms: Record<string, THREE.IUniform>; ve
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', '#include <common>\nattribute vec2 aSway;\nuniform float uWindTime;\nuniform float uGust;')
     .replace('#include <begin_vertex>', `#include <begin_vertex>\n${SWAY_GLSL}`);
-}
-
-let depth: THREE.MeshDepthMaterial | null = null;
-/** the shadow-pass material for swaying meshes (one shared program) */
-export function swayDepthMaterial(): THREE.MeshDepthMaterial {
-  if (depth) return depth;
-  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
-  patchShader(m, 'engine.sway-depth', PATCH_ORDER.material, (sh) => patchSway(sh), { mode: 'replace', key: 'sway-depth' });
-  depth = m;
-  return m;
 }
 
 /** an aSway attribute for a geometry: weight rises with height from 0 at `y0` to `w` at `y1` (a bush, a frond) or falls
