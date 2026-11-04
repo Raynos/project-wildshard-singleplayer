@@ -238,6 +238,8 @@ export interface ClassicGraphOptions extends Omit<EmitGraphGlslOptions, 'toon'> 
   readonly textures?: GraphShaderOptions['textures'];
   /** resolves a material's `effectState.fog` catalogue id to that compiled fog graph */
   readonly fog?: (id: string) => ClassicFog;
+  /** a scene post pass's graph: it fades over the scene input by its owner weight (`GraphShaderOptions.weighted`) */
+  readonly weighted?: boolean;
 }
 
 /** a program that reads a model-space position or offsets one decodes a tile primitive's grid (RM8.1e) */
@@ -313,13 +315,13 @@ function shaderMaterial(glsl: GraphGlsl, opts: GraphShaderOptions): GraphShaderM
  * graph needs the family look (`toon`); a material selecting a declared fog needs `fog`.
  */
 export function compileClassicGraph(input: unknown, opts: ClassicGraphOptions = {}): ClassicGraph {
-  const { toon, textures, fog: fogFor, ...emit } = opts;
+  const { toon, textures, fog: fogFor, weighted, ...emit } = opts;
   const glsl = emitClassicGraph(input, { ...emit, ...(toon === undefined ? {} : { toonLook: toon }) }), ir = glsl.ir;
   const selected = ir.effectState?.fog;
   const fog = typeof selected === 'string' ? fogFor?.(selected) : undefined;
   if (typeof selected === 'string' && fog === undefined) throw new Error(`material graph: fog ${selected} needs a fog resolver`);
   const shared = new Map<string, THREE.IUniform>();
-  const shaderOpts: GraphShaderOptions = { shared, ...(toon === undefined ? {} : { toonLook: toon }), ...(textures === undefined ? {} : { textures }), ...(fog === undefined ? {} : { fog }) };
+  const shaderOpts: GraphShaderOptions = { shared, ...(toon === undefined ? {} : { toonLook: toon }), ...(textures === undefined ? {} : { textures }), ...(fog === undefined ? {} : { fog }), ...(weighted === true && ir.kind === 'post' ? { weighted } : {}) };
   const postFog = glsl.postFog === undefined ? undefined : { glsl: glsl.postFog, uniforms: graphUniformValues(glsl.postFog, shaderOpts) };
   const drawOpts = postFog === undefined ? shaderOpts : { ...shaderOpts, fog: postFog };
   // a fog graph draws nothing itself: its uniforms are made once here and lent to every program selecting it

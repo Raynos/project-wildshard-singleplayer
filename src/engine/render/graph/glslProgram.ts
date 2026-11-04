@@ -77,6 +77,9 @@ export interface GraphShaderOptions {
   readonly toonLook?: ToonLook;
   /** resolve an admitted texture param's file (a lent param starts on a 1×1 stand-in) */
   readonly textures?: (ref: string, role?: 'colour' | 'data') => THREE.Texture;
+  /** a scene post pass (a shard's own post stack, `glslPost.ts`): its colour fades over the scene input (`wsScene`) by the
+   *  owner weight `wsWeight` (0 … 1; 1 is the graph's own colour exactly) */
+  readonly weighted?: boolean;
 }
 
 const isUniform = (v: unknown): v is THREE.IUniform => typeof v === 'object' && v !== null && 'value' in v;
@@ -502,8 +505,10 @@ ${fogged ? fogEpilogue(program, fog) : ''}
  *  scaled post lends its inputs as textures; a graph that reads the scene samples `wsScene` itself). Its colour goes out
  *  through the target's encoding, as a node material's does: none into a linear target, sRGB to the screen (QD11: a
  *  grade drawn straight to the canvas, G924, wrote linear values there and Nalati went dark and saturated) */
-function postShaders(program: GraphGlslProgram, uniforms: string, fogFunction?: string): { vertexShader: string; fragmentShader: string } {
-  const colour = program.outputs.colour ?? 'vec3( 0.0 )';
+function postShaders(program: GraphGlslProgram, uniforms: string, fogFunction?: string, weighted = false): { vertexShader: string; fragmentShader: string } {
+  const own = program.outputs.colour;
+  // a weighted pass fades over the scene by its owner weight (the engine's blend: one more tap of the colour input)
+  const colour = own === null ? 'vec3( 0.0 )' : weighted ? `mix( texture( wsScene, wsVUv ).rgb, ${own}, wsWeight )` : own;
   const varyingUv = program.vertex.body.includes('wsVUv') ? '' : 'varying vec2 wsVUv;';
   return {
     vertexShader: `#define WS_GRAPH
@@ -661,7 +666,12 @@ export function graphShaders(glsl: GraphGlsl, opts: GraphShaderOptions = {}): Gr
   if (ir.kind === 'post') {
     const sample = glsl.postFog === undefined ? undefined : fog?.glsl.fogSample;
     if (glsl.postFog !== undefined && sample === undefined) throw new Error('material graph: post fog needs explicit transmission');
-    return { ...postShaders(program, text, sample), uniforms, lights: false, fog: false };
+    let postText = text;
+    if (opts.weighted === true) for (const [name, type, value] of [['wsScene', 'sampler2D', null], ['wsWeight', 'float', 1]] as const) {
+      if (seen.has(name)) continue;
+      uniforms[name] = { value }; postText += `\nuniform ${type} ${name};`;
+    }
+    return { ...postShaders(program, postText, sample, opts.weighted === true), uniforms, lights: false, fog: false };
   }
   const outline = opts.outline === true, depth = opts.depth === true, lit = !outline && !depth && ir.model !== 'unlit';
   const fogged = !depth && (outline || ir.effectState?.fog !== false);

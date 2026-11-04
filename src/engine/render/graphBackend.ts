@@ -5,7 +5,8 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
-import { Texture, Material, Object3D, Vector2, type Mesh, type MeshDepthMaterial } from 'three';
+import { Texture, Material, Object3D, Vector2, type Camera, type Mesh, type MeshDepthMaterial, type Scene } from 'three';
+import type { Pass } from 'postprocessing';
 import type { GraphBinding, GraphLiteral, GraphValidation, GraphValidationOptions } from '@wildshard/format/materialGraph';
 import type { ToonLook } from './families/toon';
 import type { Scope } from '../app/scope';
@@ -126,6 +127,40 @@ export async function loadPostGraphCompiler(renderer: Renderer): Promise<PostGra
   const [{ compileClassicGraph }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
   installGraphShaderHost(renderer);
   return { backend: 'glsl', compileGraph: (input, opts) => compileClassicGraph(input, opts) };
+}
+/** a shard post stack's pass: its compiled graph drawn over the composer's input, fading by the stack's owner weight */
+export interface ScenePostPass extends Pass {
+  /** the owner weight (0 … 1): the graph fades over the scene; 0 skips the pass */
+  readonly setWeight: (w: number) => void;
+}
+/** the normal pre-pass a post stack pays once when a pass reads `sceneNormal`; `texture` is that input */
+export interface ScenePostPrepass extends Pass { readonly texture: Texture }
+/** what a scene post pass's compile takes: the admitted lists, and the pass's inputs */
+export interface ScenePostOptions extends GraphValidationOptions {
+  /** the scene camera (its clip range linearises `sceneDepth`) */
+  readonly camera: Camera;
+  /** the graph reads `sceneDepth`: the pass asks the composer for its depth texture */
+  readonly depth: boolean;
+  /** the normal pre-pass's target, when the graph reads `sceneNormal` */
+  readonly normal: Texture | null;
+  readonly validated?: Extract<GraphValidation, { ok: true }>;
+}
+/** A shard's own post stack's compiler (SF59 step 4): each post graph as a composer pass, on the classic GLSL back-end. */
+export interface ScenePostGraphCompiler {
+  readonly compilePass: (input: unknown, opts: ScenePostOptions) => { readonly graph: PostGraph & Pick<LookGraph, 'bindings'>; readonly pass: ScenePostPass };
+  readonly normalPrepass: (scene: Scene, camera: Camera) => ScenePostPrepass;
+}
+/** The scene post compiler: classic GLSL passes (nine-fix NF18; it loads no node runtime). */
+export async function loadScenePostGraphCompiler(renderer: Renderer): Promise<ScenePostGraphCompiler> {
+  const [{ compileClassicGraph }, { installGraphShaderHost }, { ClassicPostPass, GraphNormalPrepass }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram'), import('./graph/glslPost')]);
+  installGraphShaderHost(renderer);
+  return {
+    compilePass: (input, { camera, depth, normal, ...opts }) => {
+      const graph = compileClassicGraph(input, { ...opts, weighted: true });
+      return { graph, pass: new ClassicPostPass(graph.material, camera, depth, normal) };
+    },
+    normalPrepass: (scene, camera) => new GraphNormalPrepass(scene, camera),
+  };
 }
 /** a renderer's classic depth resolver, made once (registration dedupes by identity); the caster is unknown at compile time,
  *  so its grid decode reads a plain object's (step 1): uniforms only, the program is the same */
