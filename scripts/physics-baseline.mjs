@@ -259,28 +259,39 @@ if (MODE.includes('poses')) {
     try {
       const r = await page.evaluate(async (frames) => {
         const w = window.__wildshard?.world, g = w.game;
-        const cur = { update: 0, fixed: 0, world: 0, player: 0, animals: 0, render: 0 };
-        const wrap = (obj, key, bucket) => { const orig = obj[key]; obj[key] = function timed(...a) { const t = performance.now(); try { return orig.apply(this, a); } finally { cur[bucket] += performance.now() - t; } }; };
-        wrap(w.player, 'update', 'player'); wrap(w.animals, 'update', 'animals'); wrap(g.composer, 'render', 'render');
-        const ups = g.updaters;
-        for (let i = 0; i < ups.length; i++) { const f = ups[i]; ups[i] = (dt, t) => { const s = performance.now(); f(dt, t); cur.update += performance.now() - s; }; }
-        // P2+: the frame phases (Game.onInput / onFixed) — the player's move and the physics step run there, not in `updaters`
-        const timeAll = (list, bucket) => { for (let i = 0; i < list.length; i++) { const f = list[i]; list[i] = (dt) => { const s = performance.now(); f(dt); cur[bucket] += performance.now() - s; }; } };
-        if (g.fixed) { timeAll(g.fixed.pre, 'fixed'); timeAll(g.fixed.step, 'world'); timeAll(g.fixed.post, 'fixed'); }
-        if (g.inputs) timeAll(g.inputs, 'fixed');
-        if (w.player.step) wrap(w.player, 'step', 'player');
-        const rows = [];
-        let last = performance.now();
-        for (let n = 0; n < frames; n++) {
-          await new Promise((resolve) => { requestAnimationFrame(() => { resolve(undefined); }); });
-          const now = performance.now();
-          const steps = g.fixedSteps ?? 0;
-          cur.fixed += cur.world; // "fixed" stays input + every fixed phase (the P9 column); "world" is the Rapier step phase alone
-          rows.push({ ...cur, js: cur.update + cur.fixed, steps, perStep: steps > 0 ? cur.fixed / steps : 0, frame: now - last, calls: g.lastFrame.calls, tris: g.lastFrame.triangles });
-          last = now; cur.update = 0; cur.fixed = 0; cur.world = 0; cur.player = 0; cur.animals = 0; cur.render = 0;
-        }
-        const motors = w.animals.animals.filter((a) => a.motor).length;
-        return { rows, animals: w.animals.animals.length, motors, pos: { x: w.player.position.x, y: w.player.position.y, z: w.player.position.z } };
+        const cur = { update: 0, fixed: 0, world: 0, player: 0, animals: 0, render: 0 }, restore = [];
+        const wrap = (obj, key, bucket) => {
+          const orig = obj[key];
+          if (typeof orig !== 'function') throw new Error(`Physics pose requires ${key}`);
+          const timed = function timed(...args) { const at = performance.now(); try { return orig.apply(this, args); } finally { cur[bucket] += performance.now() - at; } };
+          obj[key] = timed;
+          restore.push(() => { if (obj[key] === timed) obj[key] = orig; });
+        };
+        try {
+          // Game's callback arrays retired with the app registry. Time the live system rows that Game.runPhase uses,
+          // preserving their ordering, predicates, scheduler, receiver and arguments. Never report missing phases as zero.
+          const phases = g.app.systemsByPhase();
+          const buckets = { input: 'fixed', 'fixed.pre': 'fixed', 'fixed.step': 'world', 'fixed.post': 'fixed', update: 'update' };
+          for (const [phase, bucket] of Object.entries(buckets)) {
+            const systems = phases[phase];
+            if (!Array.isArray(systems)) throw new Error(`Physics pose requires live system phase ${phase}`);
+            for (const system of systems) wrap(system, 'run', bucket);
+          }
+          wrap(w.player, 'update', 'player'); wrap(w.animals, 'update', 'animals'); wrap(g.composer, 'render', 'render');
+          if (w.player.step) wrap(w.player, 'step', 'player');
+          const rows = [];
+          let last = performance.now();
+          for (let n = 0; n < frames; n++) {
+            await new Promise((resolve) => { requestAnimationFrame(() => { resolve(undefined); }); });
+            const now = performance.now();
+            const steps = g.fixedSteps ?? 0;
+            cur.fixed += cur.world; // "fixed" stays input + every fixed phase (the P9 column); "world" is the Rapier step phase alone
+            rows.push({ ...cur, js: cur.update + cur.fixed, steps, perStep: steps > 0 ? cur.fixed / steps : 0, frame: now - last, calls: g.lastFrame.calls, tris: g.lastFrame.triangles });
+            last = now; cur.update = 0; cur.fixed = 0; cur.world = 0; cur.player = 0; cur.animals = 0; cur.render = 0;
+          }
+          const motors = w.animals.animals.filter((a) => a.motor).length;
+          return { rows, animals: w.animals.animals.length, motors, pos: { x: w.player.position.x, y: w.player.position.y, z: w.player.position.z } };
+        } finally { for (const undo of restore.reverse()) undo(); }
       }, FRAMES);
       const pct = (k, p) => { const v = r.rows.map((x) => x[k]).sort((a, b) => a - b); return Math.round(v[Math.min(v.length - 1, Math.floor(v.length * p))] * 100) / 100; };
       result.poses.push({
