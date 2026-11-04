@@ -2,7 +2,7 @@
 // DL23 (E529, G1006, G1008): record one player's load of a shard in Safari on the iPhone Simulator, the way Jake does it:
 // title → (Developer) → SHARD SELECT → the shard → ENTER WORLD, then 30 s of play after control. Grown from wildshard-v's
 // E526 recording (tmp/e526-sim/drive.mjs). Runs inside scripts/sim-lane.sh run ($SIM_UDID); run.sh wraps it.
-//   node scripts/loading-flow/drive.mjs <cold|warm|upgrade> --shard <name regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--public]
+//   node scripts/loading-flow/drive.mjs <cold|warm|upgrade> --shard <name regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--device-save <key>=<value>]... [--public]
 // cold: Safari's website data wiped on disk, worker, caches and storage cleared at the origin; warm: the same Simulator
 // right after a cold run (caches kept; the session is ended as an exit to title would, so the title flow is the same);
 // upgrade: a warm visit made right after a deploy, so Safari still holds the previous build's worker and caches (Jake's
@@ -14,12 +14,12 @@ import { appendFileSync, writeFileSync, rmSync, existsSync, readdirSync, mkdirSy
 import { resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { soakInspector } from '../soak/inspector.mjs';
-import { saveFixtureCode } from '../debug-settings.mjs';
+import { deviceSavePicks, saveFixtureCode } from '../debug-settings.mjs';
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(`--${name}`); return i === -1 ? fallback : args[i + 1]; };
 const mode = args[0];
-if (!['cold', 'warm', 'upgrade'].includes(mode)) { console.error('usage: drive.mjs <cold|warm|upgrade> --shard <regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--public]'); process.exit(2); }
+if (!['cold', 'warm', 'upgrade'].includes(mode)) { console.error('usage: drive.mjs <cold|warm|upgrade> --shard <regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--device-save <key>=<value>]... [--public]'); process.exit(2); }
 const udid = process.env.SIM_UDID;
 if (!udid) { console.error('drive.mjs: run inside scripts/sim-lane.sh run (SIM_UDID unset)'); process.exit(2); }
 const BASE = opt('base', 'https://wildshard-singleplayer.vercel.app').replace(/\/$/u, '');
@@ -27,6 +27,8 @@ const SHARD = new RegExp(opt('shard', 'nine'), 'iu');
 const PLAY_S = Number(opt('play', '30'));
 // DL16's gate: the same flow with Debug ▸ Loading & memory ▸ Level download on Runtime packs (the row's own slot)
 const LEVEL_DOWNLOAD = args.includes('--packs') ? 'packs' : 'shardfile';
+// any other device-scope Debug row, as its own slot write (--device-save debug.earlyPrograms=on, repeatable): a row's A / B
+const DEVICE_SAVES = deviceSavePicks(args.flatMap((arg, i) => arg === '--device-save' && args[i + 1] !== undefined ? [args[i + 1]] : []));
 const OUT = resolvePath(opt('out', '.'));
 mkdirSync(OUT, { recursive: true });
 const logFile = `${OUT}/${mode}-timeline.jsonl`;
@@ -130,9 +132,10 @@ if (mode === 'cold') {
 // mute with the game's own volume setting (no URL switch on the player's path)
 await page.evaluate(`(() => { const n='wildshard.save.v2.global'; const d=JSON.parse(localStorage.getItem(n)||'{"keys":{}}'); d.keys ??= {}; const s=d.keys.settings?.data ?? {}; d.keys.settings={v:1,data:{...s,volume:0}}; localStorage.setItem(n, JSON.stringify(d)); return true; })()`);
 await page.evaluate(saveFixtureCode({ scope: 'device', key: 'debug.levelDownload', data: LEVEL_DOWNLOAD }));
+for (const [key, data] of Object.entries(DEVICE_SAVES)) await page.evaluate(saveFixtureCode({ scope: 'device', key, data }));
 page.close(); page = null;
 terminateSafari(); await sleep(2000);
-writeFileSync(`${OUT}/run.json`, `${JSON.stringify({ base: BASE, shard: opt('shard', 'nine'), version: JSON.parse(version), device: 'iPhone 17 Pro Simulator, Safari, portrait', levelDownload: LEVEL_DOWNLOAD, playS: PLAY_S, date: new Date().toISOString() }, null, 1)}\n`);
+writeFileSync(`${OUT}/run.json`, `${JSON.stringify({ base: BASE, shard: opt('shard', 'nine'), version: JSON.parse(version), device: 'iPhone 17 Pro Simulator, Safari, portrait', levelDownload: LEVEL_DOWNLOAD, deviceSaves: DEVICE_SAVES, playS: PLAY_S, date: new Date().toISOString() }, null, 1)}\n`);
 
 // ---- record
 const video = `${OUT}/${mode}-raw.mp4`; rmSync(video, { force: true });
