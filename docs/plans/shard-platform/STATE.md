@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE f6ef48d-mw1kwj75** (23:09 Cancun; DL9 ASTC; Nine P1 entry structural only, G872). QD12 wall fix fe210797ab ships next: **then Jake QD6 re-test, QD7 on his word.** **Jake picks:** G1002 done (P2 measured, not built: +25 MB resident for -0.8 s).
+**LIVE 6bb4c9b-mw1rvmms** (02:28 Cancun; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done (P2 measured not built, P3 parked: +3 MB for 3 s CPU).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**02:00:** LIVE f6ef48d; candidate 3e25945e3d in CI (QD12 + DL21 card + tile fence). DL21: step reads on card; Pine cold 129 s = setup steps fetching on demand -> DL22 recorded fence lists (o3). DL11 slice 2 fixed (51795e079f). P3 parked, D209 closed.
+**03:00:** Pine cold 128.5 -> 117 s (DL22 lists + read-once, 0 MB refetch); KTX2 swap gone; D209 closed, D208/D210 = road on Home main thread. Opus ladder: G960 (5 until 85 %) supersedes G853, so 3 Opus stay at 59 %.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
