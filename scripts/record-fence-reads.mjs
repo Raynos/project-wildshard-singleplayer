@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parseArgs } from 'node:util';
-import { assetIdentities, audioTableRefs, fenceReadAliases, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
+import { assetIdentities, audioTableRefs, bundlerSources, fenceReadAliases, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
 
 const { values } = parseArgs({ options: { run: { type: 'string' }, base: { type: 'string' }, dist: { type: 'string' }, slug: { type: 'string' },
   flow: { type: 'string', default: 'client' }, check: { type: 'boolean', default: false }, 'allow-unidentified': { type: 'boolean', default: false } } });
@@ -68,10 +68,8 @@ for (const url of assetUrls.filter(name => /^\/assets\/boot-tables-[a-f0-9]{8}\.
 const memberPaths = [...parts.values()].flatMap(row => row.members.map(member => member.split('?')[0]));
 // A name's hash is stripped only when the file's bytes match it; the bundler's files are named by their source module.
 const digests = path => { try { const bytes = readFileSync(join(dist, path.slice(1))); return ['sha1', 'sha256'].map(kind => createHash(kind).update(bytes).digest('hex')); } catch { return []; } };
-const manifestPath = join(dist, '.vite/manifest.json'), sources = new Map();
-if (existsSync(manifestPath)) for (const [key, row] of Object.entries(JSON.parse(readFileSync(manifestPath, 'utf8')))) {
-  if (typeof row.file === 'string' && !/\.(?:js|css)$/u.test(row.file)) sources.set(`/${row.file}`, [...sources.get(`/${row.file}`) ?? [], key]);
-}
+const manifestPath = join(dist, '.vite/manifest.json');
+const sources = existsSync(manifestPath) ? bundlerSources(JSON.parse(readFileSync(manifestPath, 'utf8'))) : new Map();
 const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs), { digests, sources });
 for (const path of assetsOutside) { const ids = assetIds.get(path); if (ids === undefined) unknown.push(path); else recorded.push(...ids); }
 const total = outside.size + assetsOutside.size;

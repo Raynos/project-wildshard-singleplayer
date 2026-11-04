@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {assetIdentities, audioTableRefs, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '../../src/format/fenceReads';
+import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -95,11 +95,8 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   let sourcesSeen: ReadonlyMap<string, readonly string[]> | undefined;
   const bundlerSources = (): ReadonlyMap<string, readonly string[]> => {
     if (sourcesSeen !== undefined) return sourcesSeen;
-    const manifest = join(output, '.vite/manifest.json'), found = new Map<string, string[]>();
-    if (existsSync(manifest)) for (const [key, row] of Object.entries(JSON.parse(readFileSync(manifest, 'utf8')) as Record<string, {file?: unknown}>)) {
-      if (typeof row.file === 'string' && !row.file.endsWith('.js') && !row.file.endsWith('.css')) found.set(`/${row.file}`, [...found.get(`/${row.file}`) ?? [], key]);
-    }
-    sourcesSeen = found; return found;
+    const manifest = join(output, '.vite/manifest.json');
+    sourcesSeen = existsSync(manifest) ? manifestSources(JSON.parse(readFileSync(manifest, 'utf8'))) : new Map(); return sourcesSeen;
   };
   const packParts = (): ReadonlyMap<string, PackPart> => {
     if (partsSeen !== undefined) return partsSeen;

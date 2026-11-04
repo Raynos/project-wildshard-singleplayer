@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { assetIdentities, assetStem, audioTableRefs, type AssetDigests, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
+import { assetIdentities, assetStem, audioTableRefs, bundlerSources, type AssetDigests, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
 
 // DL22: Pine's cold boot read 143 files before control that its spawn set lacked (late models by name, props tiles by
 // tile); the recorded list keeps stable identities so a content edit (new hashes) still maps to the right files.
@@ -152,4 +152,16 @@ test('a bundler output two sources share keeps both aliases; once they split, ea
 
 test('audio table refs take every format the engine reads (.webm too, sp-x2)', () => {
   expect(audioTableRefs({sfx: {best: {beds: {rain: {file: 'bed-rain-1.webm'}}}}}).get('/assets/sfx/best/bed-rain-1.webm')).toEqual(['ref:boot-sfx:/best/beds/rain/file']);
+});
+
+test('a vendor source is keyed by its package path, wherever the build ran (5591d76604 failed CI on a mirror path)', () => {
+  const file = 'assets/basis_transcoder-Bq3x9ZQe.wasm', wanted = 'node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm';
+  const mirror = bundlerSources({'../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm': {file}});
+  const checkout = bundlerSources({'node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm': {file}});
+  expect(mirror.get(`/${file}`)).toEqual([wanted]);
+  expect(checkout.get(`/${file}`)).toEqual([wanted]);
+  // project sources keep their key; code is not an asset
+  expect(bundlerSources({'src/shards/pine-hollow/thumbs/pine-hollow.jpg': {file: 'assets/pine-hollow-C8hPt5PZ.jpg'}, 'src/main.ts': {file: 'assets/main-x.js'}}))
+    .toEqual(new Map([['/assets/pine-hollow-C8hPt5PZ.jpg', ['src/shards/pine-hollow/thumbs/pine-hollow.jpg']]]));
+  expect(readFenceReads({version: 1, files: [`asset-source:${wanted}`]}).files).toEqual([`asset-source:${wanted}`]);
 });

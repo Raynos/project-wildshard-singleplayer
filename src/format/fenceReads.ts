@@ -107,6 +107,21 @@ export function audioTableRefs(tables: {readonly sfx?: unknown; readonly music?:
   }
   return refs;
 }
+/** The bundler manifest (`.vite/manifest.json`: source key → {file}) as emitted non-code file → every source naming it.
+ *  A source outside the project (a vendor file: `../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/…`) is
+ *  keyed by its package path, `node_modules/three/…`: the relative prefix and the store layout depend on where the build
+ *  ran (a local mirror vs CI's checkout broke Pine's list on CI, 5591d76604). */
+export function bundlerSources(manifest: unknown): ReadonlyMap<string, readonly string[]> {
+  const found = new Map<string, string[]>();
+  if (!object(manifest)) return found;
+  for (const [key, row] of Object.entries(manifest)) {
+    const file = object(row) ? row['file'] : undefined;
+    if (typeof file !== 'string' || /\.(?:js|mjs|css)$/u.test(file)) continue;
+    const at = key.lastIndexOf('node_modules/'), source = at === -1 ? key.replace(/^(?:\.\/)+/u, '') : key.slice(at);
+    found.set(`/${file}`, [...found.get(`/${file}`) ?? [], source]);
+  }
+  return found;
+}
 /** Reference maps joined: every identity each path has, in the order given. */
 export function joinRefs(...maps: readonly ReadonlyMap<string, readonly string[]>[]): ReadonlyMap<string, readonly string[]> {
   const joined = new Map<string, string[]>();

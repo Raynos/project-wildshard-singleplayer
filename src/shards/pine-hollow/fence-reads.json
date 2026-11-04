@@ -65,7 +65,7 @@
   "asset-pack-member:pine-hollow:phone:/assets/gpu/tex/wood_trunk_wall/arm_1k.phone.ktx2",
   "asset-pack-member:pine-hollow:phone:/assets/gpu/tex/wood_trunk_wall/diffuse_1k.phone.ktx2",
   "asset-pack-member:pine-hollow:phone:/assets/gpu/tex/wood_trunk_wall/nor_gl_1k.phone.ktx2",
-  "asset-source:../../../../node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm",
+  "asset-source:node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm",
   "asset-source:src/shards/open-plots/thumbs/alien-plain-landscape.jpg",
   "asset-source:src/shards/open-plots/thumbs/alien-plain-portrait.jpg",
   "asset-source:src/shards/open-plots/thumbs/alien-plain.jpg",
