@@ -1367,6 +1367,9 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // main thread, so the 12 ms box never closed, but the frame waited for every library they forced (Nine Dragon's entry:
   // 759 uniforms resolved in one 699 ms Simulator frame of afterPlay).
   let tSlice = performance.now(), resolvedInSlice = 0;
+  // DL21: the phase names itself as it opens: its first link wait holds until the GPU process has compiled everything
+  // queued before it (Pine's step 29 sat 3.5 s on '474 / 474 batches' in the DL23 recording on 2477dc4)
+  if (n > 0) onProgress?.(jobs.length + (parallel && !isolateImageUploads ? n : 0), jobs.length + units + textures.length, `0 / ${n} programs resolved · ${mode}`);
   for (const [i, p] of pending.entries()) {
     if (nativeBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
     checkCurrent();
