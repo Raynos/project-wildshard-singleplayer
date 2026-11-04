@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **4/10 fully qualified (3 published, Thin Ice locally complete); C/control measured on 10/10**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **5/10 fully qualified; C/control measured on 10/10**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -33,7 +33,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
-| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete |
+| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
 | Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
 
 All ten plots have eight committed golden cameras and maintained route
@@ -1493,3 +1493,46 @@ browser-lane queue cancellation is retained separately. Both maintained
 commands closed their browsers; the preview owner lease remains until
 publication and peer handoff. This raises qualification to **4/10**, with
 Thin Ice locally complete and publication still pending.
+
+## Pastel Alien Plain — final walk and golden bridge (sp-x2, November 4)
+
+The fresh normal D223 preview binds exact final-audio source
+**5fcb0ac75ac4d47e695dfec2953b280e80445cbc**, build
+**5fcb0ac-mw2cd3ec**. Its raw product index, all **205 served
+bodies** and **200 ordered pack entries** match the earlier qualified
+Pastel admission exactly. No old-versus-new runtime byte parity, memory,
+performance or audio-playback result is inferred.
+
+The unchanged maintained `road-avenue-plaza-scaffold` walk completes all
+**14 waypoints in 164.011 s**, with **zero stuck and bounds failures**.
+Endpoint is `(0.001, 0.020, -61.972)` and maximum Y is 0.2 m.
+This is an untimed route check, separate from the qualified C/control and
+official Simulator results above.
+
+The maintained grid capture completes all **eight views**, phone 2×,
+iPhone 16 Pro portrait, empty page errors and no context loss. Every
+individual GOLDEN · NOW row was read: **8/8 green for Pastel's own look**.
+The monolith, glowing plants, buildings, lamps, avenues and plot layout
+remain consistent. No golden was promoted and no visual source changed.
+
+O3 independently read views 1, 2 and 4. The upper-right skyline change in
+1/2 is **neighbour presentation/residency state**, outside Pastel: NOW
+has a denser, more complete grey tower cluster than the sparse separated
+columns in GOLDEN. View 4's neighbour strip and the plot grid match.
+The actual layout places Pastel at `(2,-2)` and Nine northwest at `(1,-1)`;
+view 1 looks north, so Nine is to screen right. Its NOW receipt says
+`near: true`, `far: false`, L0/L1 zero. Do not describe NOW as a far proxy
+or infer the old golden's exact residency from its image. O3 confirms
+this does not change Pastel's green verdict; no Pastel fix or promotion
+is needed. Existing known artistic gaps remain open as originally recorded.
+
+![Pastel Alien Plain: eight reviewed golden comparisons](../../art/golden-runs/open-plot-alien-plain/2026-11-04-5fcb0ac75a-board.jpg)
+
+Raw evidence stays under `tmp/sp-x2-open-plots/pastel/`: `admission.json`,
+`walk.json` and `goldens/capture.json`. Both maintained commands closed
+their browsers. Together with the earlier C/control, memory and official
+Simulator scopes, this completes Pastel's final cohort and brings full
+qualification to **5/10**. Thin Ice's closure `4282235f9c` is already
+published; this Pastel closure is local at this boundary. Fossil's fresh
+historical preview refused product freshness before app build, so its
+walk/goldens remain open without a retry or product bypass.
