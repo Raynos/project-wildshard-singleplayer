@@ -693,3 +693,46 @@ zero internal gaps. Duration, clipping and gap checks pass; vocal and
 theme checks remain open. Evidence: `tmp/ob7-audio/sky-race-score.log`,
 the original raw sidecars/metrics and
 `tmp/sp-x1-audio/race-score-inventory.json`. No by-ear or final-fit claim.
+
+
+### Four MOSS sets complete; publication preparation
+
+The remaining original MOSS batches finish under the unchanged shared
+lock and memory guards: Desert **331.562 s**, Race **329.786 s**, Showcase
+**336.083 s**, all exit 0. Together with Clockwork's preceding batch,
+**28/28 MOSS takes** now have independent source-sidecar, PCM-header and
+SHA-256 checks. Every plot keeps its original 30 s bed, six 12 s spots,
+seed 701 and ranking descriptions. Earlier guard refusals remain retained.
+No SFX winner, public asset or activation follows from raw completion.
+
+Clockwork and Desert's model-free preparation measures **28 SFX takes
+across 14 complete two-engine pairs**. Raw integrated loudness spans
+**-45.2 to -20.7 LUFS** for Clockwork and **-45.4 to -17.5 LUFS** for
+Desert. Descriptive diagnostics include 1,179 samples at absolute amplitude
+>=0.999 in Medium's Clockwork boiler, 368 in Desert's ruins-west and 542
+in Desert's entry. MOSS's Clockwork garden-birds has a 2.45 s internal
+interval below -45 dBFS. These facts add no rejection rule and do not
+replace CLAP fit comparison. No model loads during these serial measures.
+
+All four existing score takes pass the unchanged duration, clipping,
+internal-gap and vocal checks. Clockwork's loop scores are **0.381/0.315**
+and vocal shares **0/0**; Desert's are **0.391/0.423** and **0.0046/0.0067**.
+The prepared publication inputs bind every wave, sidecar and score metrics
+file by SHA-256, retain six original anchors and both required credits,
+and keep the existing 64 kb/s AAC, decoded-loop, 1 MB blob and 3 MB package
+checks. Nothing is selected or encoded before the original CLAP ranking.
+
+Fresh physical before-audio inventories use committed **8fff8eded7**,
+build **8fff8ed-mw1owpzr**, read-only from sp-o3's normal preview. Every
+loose body and dense ordered pack member verifies against its exact hash.
+Files/sections/packs are Clockwork **158/34/5**, Desert **159/34/5**, Race
+**158/34/4**, Showcase **158/34/5**. These are physical-byte inventories;
+semantic native admission and actual phone wire remain separate proofs.
+
+Evidence is under `tmp/sp-x1-audio/`: the three new MOSS inventories,
+`prepare-pairs.py` and its log, the two
+`{clockwork-canyon,desert-ruin}-publication-prep.json` inputs and
+`baseline-8fff/`. CLAP is a model load and explicitly waits until the fifth
+resource turn, after sp-o2's Auto/KTX2 cohort, sp-x6's isolated bisect and
+sp-o1's P1 goldens. Remaining generation, measured selection, bounded AAC
+publication, native bar 10 and all four final-audio C reports stay open.
