@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 47494ac-mw21w6jq** (07:12, fully qualified, 25 verified tonight; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 6ea1a4b-mw24gn7k** (08:21, fully qualified, 27 verified tonight; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**08:00:** DL17 home green: Driftwood, Sunscar, grid (--rev 72d3185e75), Pine (candidate 820a10c40d), Nine content (lap skips containment legs, o1); Nalati + Far Reach readings next. Release blocker 5591 (vendor WASM alias) fixed fa6c65b69b. QD12 marked done.
+**09:00:** DL17: every home complete at control on content (Pine --rev e265a70539; Far Reach content, lap legs stuck -> damage row). Plots audio 4/4 in (misses ship best measured). **Jake: Pine ships 41.9 MB legacy asset packs before control (G908, keep?).**
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
