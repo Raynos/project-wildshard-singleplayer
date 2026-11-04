@@ -158,7 +158,7 @@ does not close a Z row.
 | **Z6** | **Four targets qualified (2026-11-03, sp-x8):** Jian cloth/halo GLB transport and Nalati rifle copy `ecec5f75eb`, plus the separate Pine finishes cut. Exact channel/index/body proofs, 16 A/A + 16 A/B held comparisons on both engines/tiers; all six original G998 cohorts green and fresh Pine 24/24 green on both engines. G872 frozen geometry-roughness controls prove every differing hand pixel vanishes; no comparator allowance. Six live one-user roots remain in Jake’s approved batch | **4 retired / 1,426,684 B; 6 charged:** complete sole-user roots, 484,106 B | Codex (G958) | 3 |
 | **Z7** | **13/14 source contracts qualified (2026-11-04, sp-x9, G1004).** Prior six exits (`3c42144c50`, `50267bfcd2`) remain qualified. All seven own batch roots / 302,097 custom B now have exact complete format contracts: five catalogues (`186e52971c`), geometry groups (`c7330e616f`) and Nine fixed practice. Practice retains full geometry/controller/course and ABI-1/ABI-2 return metadata; its original author encoding is byte-identical. Cloud belongs solely to X6/Z14 and is counted once. | 14 original: **13 source-qualified; X6 cloud pending** | Codex (G958/G1004) | 4.5 |
 | **Z8** | **G1004 source slice: seven batch roots / 23,416 custom B registered (2026-11-04, sp-x9).** Prior ChapterStoryPresentation plus DW dead steps remain qualified (`a209d3e37e`, `98bab03828`). Exact native-spots, contracts, discovery, hints, wake-boss, carried and finds use their original complete contracts and native/reference/continuation owners. Runtime, forest-story, interaction source and complete chapter-view closure remain next; native-story remains charged until real complete Pine/DW production quest readers exist. | Prior **2/14** plus **7/12 batch roots source-qualified**; five pending | Codex | 4.5 |
-| **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
+| **Z9** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** The prior five dead copies stay retired. Four live Nalati dressing files now use their existing complete defining grammars and original readers (`f2807c2cee`). All four original payloads (**4,284,474 B**) remain byte-identical on immutable all-product build `8b80aff221`; full native/module and serialized admission plus independent native gate/census agree. [Qualification below](#g1004-z9-qualification-2026-11-04-sp-x6) | **9 of 9 resolved:** five retired, four complete registered files | Codex | 0 |
 | **Z10** | **Qualified (2026-11-04, sp-x9, G1004), 3/3 registered / 1,669 custom B retired.** The approved exact KitFigureCards, BuildingLifeDocument and CoverComposition families retain their defining schemas, original payloads and live native owners. No producer, metadata, reference or runtime changes; all 37 focused admission/native cases pass. E9 building-life is counted once. | **3 of 3:** DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** Earlier five-file slice `7cc93a3856` remains qualified; `a4c996a8c5` registers the three complete one-user weather grammars. Immutable `437638730e` verifies all three original bodies and defining schema metadata unchanged, native/wire admission and independent gate/census agreement. [G1004 qualification below](#g1004-z11-and-z14-qualification-2026-11-04-sp-x6) | **8 of 8 resolved:** earlier five eligible cuts/families; weather-fx, rain, weather-observations now platform files (**3 / 1,052,415 custom B**; no physical deletion) | Codex | 0 |
 | **Z12** | **One unread copy retired (2026-11-03, sp-x2); eight live files remain charged for Jake’s one-user batch.** Delete only Pine landmark-view, 5,510 B, while the original ForestPage/native models retain its facts. All other 880 Pine bodies / 154,020,452 B and 78 old/new packs reconstruct exactly. Strict native 24 frames / 8 A/A + 8 A/B all zero; Pine 24/24 green in Chromium and WebKit. Seven native physics route legs pass, zero stuck/bounds failures. [Per-file census and qualification](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2); no fake field-root credit | **1 of 9 retired; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
@@ -4607,3 +4607,47 @@ preview records missing port/coverage; filtering the exact ready target
 before complete lease validation fixed the reader, with no product rerun
 or weakened target admission. Later combined metadata work must still
 hold the same 2 MB cap; this qualification is pinned to `437638730e`.
+
+### G1004 Z9 qualification (2026-11-04, sp-x6)
+
+Jake's approved one-user batch applies to these four existing full roots;
+no second user, reader, field, or payload is invented. Exact registrations
+and the two page-name contracts landed in `f2807c2cee`. The defining
+schemas and SDK roots already existed; Z9 changes no encoder or parser.
+
+| Nalati file | Original bytes | Complete defining format export | Original reader |
+|---|---:|---|---|
+| `world/dressing-pages/0.json` | 1,207,078 | `sceneDressing#SceneScatterPageSchema` | `game/shardfile/sceneScatterPages.ts` |
+| `world/dressing-pages/1.json` | 1,252,812 | `sceneDressing#SceneScatterPageSchema` | `game/shardfile/sceneScatterPages.ts` |
+| `world/dressing-phone.json` | 872,977 | `sceneDressing#SceneDressingSchema` | `game/shardfile/sceneDressing.ts` |
+| `world/dressing-desktop.json` | 951,607 | `sceneDressing#SceneDressingSchema` | `game/shardfile/sceneDressing.ts` |
+
+**Actual committed milestone:** `8b80aff22110a6e149d0d1e3b18e1f2ebcdac939`,
+build `8b80aff-mw2gmqc9`: 28 products (22 built, six reused, zero failed)
+and the app pass the normal immutable build. It also contains sp-x8's
+separate fourteen-root source commit; Z9 takes no credit for those rows.
+The actual Nalati index is **1,682,487 B**, under the unchanged 2,000,000 B
+cap. HTTP/disk index and build identity agree.
+
+All **4,284,474 B** match the retained `c7330e616f` original bodies and
+hashes exactly. Full defining module provenance and canonical metadata,
+native grammar admission, serialized schema validation and input
+immutability pass for every file. Both maintained `outputSections` and
+independent `productSectionEntries` classify all four as `platform-file`:
+**Z9 is 0 charged**. Both dressing books retain current pack membership;
+the two larger scatter pages remain loose. No old whole-pack byte parity
+or unrelated runtime/asset parity is claimed.
+
+The registered-name/schema grep and transitive fixture-import inventory
+select **17 reader-test files**; `vitest related` on all seventeen passes
+(24.7 s). `typecheck-root` passes after the separately owned phone-loading
+test-project repair `e97992f41e`; its earlier TS6307 refusal is retained.
+The exact-family tests preserve malformed, unknown-field, wrong-source,
+missing-source and neighbouring-name refusals. No native owner, AS
+decision, collider, rendering or physics behavior changes, and no new
+runtime witness/G998 result is inferred from this format qualification.
+
+Retained raw: `tmp/sp-x6-g1004/z9-{body-audit,scoped-census,test-readers}.json`,
+the reader-test/type logs and `z9-build.log`; the original four-body hashes
+come from `tmp/sp-x8-g1004/baseline/manifest.json`. The shared stale working
+copy of this plan is preserved; this entry is a fresh HEAD-only patch.
