@@ -26,6 +26,12 @@ const schema = v.object({common: files, client: files, grid: files,
   extras: v.record(v.string(), v.tuple([v.string(), size, size, v.string()])),
 });
 interface Address {readonly url: string; readonly bytes: number}
+/** DL5: a shard's packs set, `src/shards/<slug>/packs-set.json` (`{"version": 1, "set": "fence"}`): 'fence' packs the
+ *  default set (what the boot reads before control), absent packs the whole level. Anything else fails the build. */
+export function readPacksSet(path: string): 'whole' | 'fence' {
+  if (!existsSync(path)) return 'whole';
+  return v.parse(v.strictObject({version: v.literal(1), set: v.literal('fence')}), JSON.parse(readFileSync(path, 'utf8'))).set;
+}
 export interface SpawnManifestBook {
   readonly cacheName: string;
   readonly client: Readonly<Record<string, Readonly<Record<'phone' | 'desktop', SpawnManifestAddress>>>>;
@@ -163,6 +169,10 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
         + `(${unresolved.slice(0, 3).join(', ')}); re-record with scripts/record-fence-reads.mjs`);
       fence = resolved.hashes;
     }
+    // DL5 (wildshard-new, G1012): a shard whose packs-on recording is slower than Shardfile (Pine: 122 vs 101 MB before
+    // control) packs only what its boot reads before control, the default set (entry set + fence reads), not the whole
+    // level; the rest loads on demand from its loose files, as on the Shardfile path. Per shard, in its own folder.
+    const packsFence = readPacksSet(join(root, 'src/shards', directory, 'packs-set.json')) === 'fence';
     // Each string's first place in the sections (`world/scenes:libraries.24.tiles.0.files.3.file`), in section order.
     const namedAt = new Map<string, string>();
     const walk = (value: unknown, at: string): void => {
@@ -191,7 +201,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       add({url: headerURL, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
       for (const row of index.sections) add(productFile(row.path, row.bytes, row.hash, `section:${row.name}`));
       for (const row of index.schemas) add(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
-      const wanted = entryReadSet(source, tier, index, sections, whole, fence);
+      const wanted = entryReadSet(source, tier, index, sections, whole && !packsFence, fence);
       for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash, row.name));
       for (const url of fenceAssets) add(asset(url));
       for (const row of common) add(row);

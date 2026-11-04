@@ -3,7 +3,7 @@ import {expect, test} from 'vitest';
 import {mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all fixture writes inside the repository.
 import {resolve} from 'node:path';
-import {writeSpawnManifests} from '../scripts/app-build/entryTotals';
+import {readPacksSet, writeSpawnManifests} from '../scripts/app-build/entryTotals';
 import {emptyShardfile} from '@wildshard/sdk/author';
 import {outputSectionPayloads} from '../src/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin this compiler fixture's original bytes.
@@ -95,4 +95,21 @@ test('spawn manifests prioritize code stably without changing bytes or the compl
     expect([...reads].sort()).toEqual(nativeManifest.files.map(file => file.url).sort());
     expect(await writeSpawnManifests(output,input,strips,root)).toEqual(native);
   } finally {rmSync(root, {recursive: true, force: true});}
+});
+
+// DL5 (G1012): a shard's packs book holds the whole level unless its folder says 'fence' (Pine: what its boot reads
+// before control); a malformed choice fails the build rather than silently packing the whole level.
+test('a shard packs the whole level unless its packs-set.json selects the fence set', () => {
+  mkdirSync('tmp/entry-totals', {recursive: true});
+  const root = mkdtempSync(resolve('tmp/entry-totals/packs-set-'));
+  try {
+    const file = resolve(root, 'packs-set.json');
+    expect(readPacksSet(file)).toBe('whole');
+    writeFileSync(file, JSON.stringify({version: 1, set: 'fence'}));
+    expect(readPacksSet(file)).toBe('fence');
+    for (const bad of [{version: 1, set: 'whole'}, {version: 2, set: 'fence'}, {version: 1, set: 'fence', extra: true}]) {
+      writeFileSync(file, JSON.stringify(bad)); expect(() => readPacksSet(file)).toThrow();
+    }
+    expect(readPacksSet(resolve('src/shards/pine-hollow/packs-set.json'))).toBe('fence');
+  } finally { rmSync(root, {recursive: true, force: true}); }
 });
