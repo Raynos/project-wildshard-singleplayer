@@ -292,7 +292,6 @@ export const ENGINE_STRINGS = {
   "s_96f0c06bbcb7": "Developer tools",
   "s_f6d2705a823f": "Loading & memory",
   "s_debug_early_programs": "Early shader compile",
-  "s_debug_home_seed": "Home geometry seed",
   "s_442aded87a55": "Performance",
   "s_c57f1e7056cf": "Creatures & NPCs",
   "s_6cb4be24e5ce": "Combat & weapons",

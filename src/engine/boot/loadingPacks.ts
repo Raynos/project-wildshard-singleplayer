@@ -15,13 +15,3 @@ export function runtimePacksOn(): boolean {
   frozen ??= levelDownloadPacks();
   return frozen;
 }
-
-/** DL7 P3 + DL6 (G1008): Debug ▸ Loading & memory ▸ Home geometry seed. 'on' (with runtime packs) restores a cold home's
- *  completed geometry from the build's seed, a packs-book member, instead of decoding its files. Default off: a risky
- *  loading change ships behind this row until a Simulator / iPhone reading backs it (E451). A reload row. */
-export const HOME_SEED_SLOT = 'debug.homeSeed';
-let seedFrozen: boolean | undefined;
-export function homeSeedOn(): boolean {
-  seedFrozen ??= jsonSlot(HOME_SEED_SLOT, 'device').read() === 'on';
-  return seedFrozen;
-}

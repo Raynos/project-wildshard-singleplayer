@@ -1,10 +1,9 @@
 import * as v from 'valibot';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { TIER, type Tier } from '@wildshard/engine/core/tier';
+import { TIER } from '@wildshard/engine/core/tier';
 import { timeClientPreparation } from './preparationTiming';
 import { HomeGeometrySnapshotSchema, homeGeometryBytes, restoreHomeGeometry, snapshotHomeGeometry,
   type HomeGeometryView, type HomeGeometrySnapshot } from './homeGeometrySnapshot';
-import { homeSeedKey, openHomeSeed, type HomeSeed } from './homeSeed';
 
 declare const __BUILD_ID__: string;
 /** One home's completed static geometry: at most 64 MiB of payload and 256 entries, shared across all builds. */
@@ -14,44 +13,9 @@ const size = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(HOME_BUIL
 const metadata = v.strictObject({ identity: v.string(), bytes: size, entries: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256)) });
 const record = v.strictObject({ identity: v.string(), bytes: size, snapshot: HomeGeometrySnapshotSchema });
 let database: Promise<IDBDatabase | null> | undefined;
-/** DL7 P3: the build's cold seed of this cache (scripts/app-build/homeSeed.ts), read only for a bound Home on a miss. */
-export type HomeSeedLoad = (slug: string, tier: Tier) => Promise<Uint8Array | null>;
-let seedLoad: HomeSeedLoad | undefined;
-const seeded = new WeakSet<Shardfile>();
-// One decode per page and seed; the bytes go once every key was read.
-const seeds = new Map<string, Promise<{ seed: HomeSeed; left: Set<string> } | null>>();
-
-/** The composition root installs the seed reader only with runtime packs and Debug > Home geometry seed on (the seed is a
- * packs-book member). Seeds are key-agnostic: any key this cache stores may be seeded. */
-export function installHomeSeedLoader(load: HomeSeedLoad): void {
-  if (seedLoad === load) return;
-  seedLoad = load; seeds.clear();
-}
-const seedId = (source: Shardfile): string => JSON.stringify([source.identity.slug, TIER]);
-function homeSeed(source: Shardfile): Promise<{ seed: HomeSeed; left: Set<string> } | null> | undefined {
-  const load = seedLoad; if (load === undefined || !seeded.has(source)) return undefined;
-  const id = seedId(source), prior = seeds.get(id); if (prior !== undefined) return prior;
-  const pending = (async () => {
-    try {
-      const bytes = await load(source.identity.slug, TIER); if (bytes === null) return null;
-      const seed = openHomeSeed(bytes); return { seed, left: new Set(seed.keys) };
-    } catch { return null; }
-  })();
-  seeds.set(id, pending); return pending;
-}
-async function readHomeSeed(source: Shardfile, key: string): Promise<Map<string, HomeGeometryView> | null> {
-  try {
-    const opened = await homeSeed(source); if (opened === null || opened === undefined) return null;
-    const seedKey = homeSeedKey(key), snapshot = opened.seed.read(seedKey); if (snapshot === null) return null;
-    opened.left.delete(seedKey);
-    if (opened.left.size === 0 && seedLoad !== undefined) seeds.set(seedId(source), Promise.resolve(null));
-    return await timeClientPreparation(source.identity.slug, `home.seed.${key.slice(0, Math.max(0, key.indexOf(':')))}`, () => restoreHomeGeometry(snapshot));
-  } catch { return null; }
-}
 
 /** The composition root calls this only for its actual Home instance, never a neighbour. */
 export function bindHomeBuildCache(source: Shardfile): void {
-  seeded.add(source);
   if (typeof __BUILD_ID__ !== 'string' || typeof indexedDB === 'undefined') return;
   homes.set(source, JSON.stringify([__BUILD_ID__, source.identity.slug, source.identity.revision, TIER]));
 }
@@ -85,17 +49,10 @@ function completed(transaction: IDBTransaction): Promise<void> {
   });
 }
 
-/** A small key census prevents speculative wire reads for already built Home models. Corrupt/missing entries still refill normally.
- * Its keys are origin-free (`homeSeedKey`): stored records and, when installed, the cold seed's entries. */
+/** A small key census prevents speculative wire reads for already built Home models. Corrupt/missing entries still refill normally. */
 export function homeBuildGeometryKeys(source: Shardfile | undefined): Promise<ReadonlySet<string>> | undefined {
-  const identity = source === undefined ? undefined : homes.get(source), seed = source === undefined ? undefined : homeSeed(source);
-  if (identity === undefined && seed === undefined) return undefined;
-  return (async () => {
-    const [stored, opened] = await Promise.all([identity === undefined ? new Set<string>() : readKeys(identity), seed]);
-    const keys = new Set([...stored].map(homeSeedKey));
-    if (opened !== null && opened !== undefined) for (const key of opened.left) keys.add(key);
-    return keys;
-  })();
+  const identity = source === undefined ? undefined : homes.get(source);
+  return identity === undefined ? undefined : readKeys(identity);
 }
 async function readKeys(identity: string): Promise<ReadonlySet<string>> {
   try {
@@ -111,12 +68,8 @@ async function readKeys(identity: string): Promise<ReadonlySet<string>> {
   } catch { return new Set(); }
 }
 
-/** Reads are optional acceleration only. Wrong-build, unavailable or malformed records use the original verified decoder.
- * A miss (or no database) reads the installed cold seed, if any. */
+/** Reads are optional acceleration only. Wrong-build, unavailable or malformed records use the original verified decoder. */
 export async function readHomeBuildGeometry(source: Shardfile, key: string): Promise<Map<string, HomeGeometryView> | null> {
-  return await readStoredGeometry(source, key) ?? readHomeSeed(source, key);
-}
-async function readStoredGeometry(source: Shardfile, key: string): Promise<Map<string, HomeGeometryView> | null> {
   const identity = homes.get(source); if (identity === undefined) return null;
   try {
     const db = await open(); if (db === null) return null;

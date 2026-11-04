@@ -21,9 +21,6 @@ import { reserveMapImage } from './mapImage';
 import { browserShardfileOptions, provideHybridDeclaration, runtimeProduct } from './runtimeProduct';
 import type { ShardProduct } from './shardProduct';
 import type { ShardfileClientBindings } from './client';
-import { bindHomeBuildCache, installHomeSeedLoader } from './homeBuildCache';
-import { loadHomeSeedAsset } from './homeSeedAsset';
-import { homeSeedOn, runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
@@ -323,9 +320,6 @@ export async function prepareHybridShard(product: ShardProduct, options: Product
   const clientBindings = { ...providedBindings, ...(residency === undefined ? {} : { residency }),
     ...(imageOwner === undefined ? {} : { imageOwner }) };
   const gridInstance = pageGridInstance(), instance = gridInstance ?? source.identity.slug;
-  // DL7 P3 + DL6: a selected shard's own page is its home too (the grid binds its home in liveSession); behind the
-  // packs book and the Home geometry seed row, so the default page keeps today's uncached construction.
-  if (gridInstance === null && runtimePacksOn() && homeSeedOn()) { installHomeSeedLoader(loadHomeSeedAsset); bindHomeBuildCache(source); }
   // The data client announces only when it will actually build a simulation. An empty trusted transition runs its
   // legacy gameplay directly and has no handoff; promising one would hold the reveal until its safety ceiling.
   const onSimulationExpected = (): void => { clientBindings.onSimulationExpected?.(); if (gridInstance !== null) gridHomeSim.expect(); };

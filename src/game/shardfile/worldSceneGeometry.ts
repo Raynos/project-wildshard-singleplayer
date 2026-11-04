@@ -8,7 +8,6 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { ShardProduct } from './shardProduct';
 import { PreparationReads } from './preparationReads';
 import { homeBuildGeometryKeys, readHomeBuildGeometry, saveHomeBuildGeometry } from './homeBuildCache';
-import { homeSeedKey } from './homeSeed';
 
 type Assets = Pick<App['assets'], 'register' | 'acquireResource' | 'evictCached'>;
 type GeometryProduct = Pick<ShardProduct, 'url' | 'file'> & Partial<Pick<ShardProduct, 'shardfile'>>;
@@ -47,8 +46,8 @@ function lease(owner: Scope, assets: Assets, source: BufferGeometry): WorldScene
 
 /** Cache only completed immutable GLB geometry under its admitted addresses and decoder profile.
  * Each consumer has its own cancellable construction lease. No pending load or entered owner is shared. */
-/** A source's template key: its admitted addresses and decoder profile (the home seed's bake reproduces it). */
-export function worldSceneTemplateKey(product: Pick<ShardProduct, 'url'>, row: Source, revisit: boolean): string {
+/** A source's template key: its admitted addresses and decoder profile. */
+function templateKey(product: Pick<ShardProduct, 'url'>, row: Source, revisit: boolean): string {
   const url = product.url(row.file), segments = row.segments?.map(file => product.url(file)) ?? [];
   const ordered = Object.entries(row.attributes ?? {}), channels = [...ordered].sort(([a], [b]) => a.localeCompare(b));
   // Independent renames commute; chained or overwritten destinations keep the decoder's authored order.
@@ -57,7 +56,7 @@ export function worldSceneTemplateKey(product: Pick<ShardProduct, 'url'>, row: S
   return JSON.stringify([url, segments, TIER, channels, orderedAliases ? ordered : null, revisit]);
 }
 /** Whether `row` already has a completed template under `assets` (a read would reuse it and read no bytes). */
-export function cachedWorldSceneGeometry(product: Pick<ShardProduct, 'url'>, row: Source, assets: Assets, reuse: GeometryReuse = {}): boolean { return templates.get(assets)?.has(worldSceneTemplateKey(product, row, reuse.revisit === true)) === true; }
+export function cachedWorldSceneGeometry(product: Pick<ShardProduct, 'url'>, row: Source, assets: Assets, reuse: GeometryReuse = {}): boolean { return templates.get(assets)?.has(templateKey(product, row, reuse.revisit === true)) === true; }
 
 /** Resident construction may keep fixed templates idle under the existing charged,
  * pressure-evictable revisit budget. Default readers retain resident-only reuse. */
@@ -65,7 +64,7 @@ export async function readWorldSceneGeometry(owner: Scope, product: GeometryProd
   requireLive(owner);
   // Capture policy before transport: mutable caller options cannot re-key a
   // pending decode or change whether its backing receives independent charges.
-  const revisit = reuse.revisit === true, url = product.url(row.file), key = worldSceneTemplateKey(product, row, revisit);
+  const revisit = reuse.revisit === true, url = product.url(row.file), key = templateKey(product, row, revisit);
   let memo = templates.get(assets);
   if (memo === undefined) { memo = new Map(); templates.set(assets, memo); }
   const ready = memo.get(key);
@@ -129,7 +128,7 @@ export async function* readWorldSceneGeometries(owner: Scope, product: GeometryP
   // including their segments, without increasing concurrent decoded leases.
   const keys = homeBuildGeometryKeys(product.shardfile), homeKeys = keys === undefined ? undefined : await keys;
   const files = [...new Set(rows.flatMap(row => cachedWorldSceneGeometry(product, row, assets, reuse)
-    || homeKeys?.has(homeSeedKey(`owned:${worldSceneTemplateKey(product, row, reuse.revisit === true)}`)) === true ? [] : [row.file].concat(row.segments ?? [])))];
+    || homeKeys?.has(`owned:${templateKey(product, row, reuse.revisit === true)}`) === true ? [] : [row.file].concat(row.segments ?? [])))];
   const indices = new Map(files.map((file, index) => [file, index]));
   const reads = new PreparationReads(files, file => product.file(file), () => !owner.disposed && !owner.disposing);
   const taken = new Map<string, Promise<Uint8Array>>(), refills = new Set<PreparationReads<string>>();

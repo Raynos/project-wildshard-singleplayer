@@ -4,7 +4,7 @@
 //
 //   node scripts/build-app.mjs [vite build arguments…]       e.g. --mode native, --config <file>, --outDir <dir>
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { bakeAssetTables, writeAssetTables } from './app-build/assetTables.mjs';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
@@ -88,14 +88,6 @@ checkNoTopLevelAwait(outDir, resolve('public'));
 // vite/bootModules.ts), and the spawn parts' q11 Brotli bodies (DL15, cached by content). The web build only, which
 // writes the manifest and hidden source maps they read.
 if (mode !== 'native') {
-  // DL7 P3 + DL6: each recorded home's cold geometry seed beside the bundle, before the spawn manifests list it. A failed
-  // bake ships no seed (those homes decode their files as before). Without a recorded keys list nothing starts.
-  if (readdirSync('src/shards').some(slug => existsSync(`src/shards/${slug}/home-seed-keys.json`))) {
-    const seeds = spawnSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-      "await (await import('./scripts/app-build/homeSeed.ts')).bakeHomeSeeds(process.cwd(), process.argv[1]);", outDir], { stdio: 'inherit' });
-    // a bake writes each home as it goes: a failure removes the partial set, so the message holds (sp-x1's review)
-    if (seeds.status !== 0) { rmSync(resolve(outDir, 'assets/home-seed'), { recursive: true, force: true }); console.warn('[home seed] bake failed — this build ships no home seeds'); }
-  }
   try { writeChunkReport(outDir, process.cwd()); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
