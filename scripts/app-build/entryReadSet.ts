@@ -10,7 +10,7 @@ import {spawnViewSceneFiles} from '../../src/format/spawnView';
  * "no deferring level content past control"; read only with Debug > Level download > Runtime packs until a memory
  * reading backs it): the whole level on this tier, every byte its play can load, resident at control. */
 export function entryReadSet(source: Shardfile, tier: 'phone' | 'desktop', index: Pick<OutputIndex, 'files' | 'sections' | 'schemas'>,
-  sections: ReadonlyMap<string, unknown>, whole = false): ReadonlySet<string> {
+  sections: ReadonlyMap<string, unknown>, whole = false, fence: ReadonlySet<string> = new Set()): ReadonlySet<string> {
   const required = controlFileHashes(source), steps = entryFileSteps(source, tier, {index, sections});
   let turn = steps.next(); while (turn.done !== true) turn = steps.next();
   const wanted = new Set([...index.sections, ...index.schemas].map(row => row.hash));
@@ -24,7 +24,9 @@ export function entryReadSet(source: Shardfile, tier: 'phone' | 'desktop', index
   // DL21: the spawn-view fence attaches a tiled scene library's chunks within its reach before control, `late` or not
   // (Nine's native-slabs: 8 files a cold visit fetched one by one inside the fence, none in this set), so the default
   // set carries them and they download with the rest, in parallel and counted.
-  const pending = whole ? [...source.library.filter(hash => late.has(hash)), ...tileFiles] : [...spawnViewSceneFiles(sections)];
+  // DL22: and the files a recorded cold boot read before control (`fence`, the shard's fence-reads.json mapped to this
+  // product's hashes): late models and props tiles the setup steps fetch on demand.
+  const pending = whole ? [...source.library.filter(hash => late.has(hash)), ...tileFiles] : [...spawnViewSceneFiles(sections), ...fence];
   while (pending.length > 0) {
     const hash = pending.pop(); if (hash === undefined || seen.has(hash)) continue;
     seen.add(hash); pending.push(...byHash.get(hash)?.dependencies ?? []);

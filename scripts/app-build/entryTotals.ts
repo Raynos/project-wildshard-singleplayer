@@ -9,6 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
+import {fenceReadHashes, readFenceReads} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -98,6 +99,9 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       sections.set(row.name, JSON.parse(bytes.toString('utf8')));
     }
     const source = assembleOutputShardfile(raw, sections), headerHash = createHash('sha256').update(header).digest('hex');
+    // DL22: the shard's recorded pre-control reads (scripts/record-fence-reads.mjs), mapped to this product's hashes.
+    const fencePath = join(root, 'src/shards', directory, 'fence-reads.json');
+    const fence = existsSync(fencePath) ? fenceReadHashes(readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8'))), index.files, sections) : new Set<string>();
     // Each string's first place in the sections (`world/scenes:libraries.24.tiles.0.files.3.file`), in section order.
     const namedAt = new Map<string, string>();
     const walk = (value: unknown, at: string): void => {
@@ -126,7 +130,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       add({url: headerURL, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
       for (const row of index.sections) add(productFile(row.path, row.bytes, row.hash, `section:${row.name}`));
       for (const row of index.schemas) add(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
-      const wanted = entryReadSet(source, tier, index, sections, whole);
+      const wanted = entryReadSet(source, tier, index, sections, whole, fence);
       for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash, row.name));
       for (const row of common) add(row);
       for (const [url, bytes] of [...bank.common, ...bank[flow]]) add(asset(url, bytes));
