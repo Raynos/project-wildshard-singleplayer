@@ -44,7 +44,7 @@ test('the unposed boot fence follows the player once, then uses the posed camera
   expect(read).toHaveBeenCalled();
 });
 
-test('the spawn fence uses visible bounds and eye height while keeping unbounded recipes conservative', async () => {
+test('the spawn fence takes every job within its radius, seen first, and leaves the rest to control (DL17)', async () => {
   const camera = new PerspectiveCamera(50, 0.5, 0.1, 1000);
   camera.position.set(0, 160, 0); camera.lookAt(90, 40, -25);
   const view = new StreamingCamera(new Group(), () => camera), f = fixture(() => view.read());
@@ -53,10 +53,11 @@ test('the spawn fence uses visible bounds and eye height while keeping unbounded
   const recipe = f.queue.add('recipe', { x: 0, y: 160, z: 0 }, () => { f.seen.push('recipe'); return Promise.resolve(); });
   const high = f.queue.add('high', { x: 0, y: 500, z: 0 }, () => { f.seen.push('high'); return Promise.resolve(); });
   await prepareSpawnView();
-  expect(f.seen).toEqual(['front', 'recipe']);
-  expect(await front).toBe(true); expect(await recipe).toBe(true);
+  // the level is complete at control: a job behind the camera inside the fence runs before it too, after the seen one
+  expect(f.seen).toEqual(['front', 'recipe', 'behind']);
+  expect(await Promise.all([front, recipe, behind])).toEqual([true, true, true]);
   reachControl(f.level); f.paint(); f.paint();
-  expect(await Promise.all([behind, high])).toEqual([true, true]);
+  expect(await high).toBe(true);
   expect(f.seen).toEqual(['front', 'recipe', 'behind', 'high']);
 });
 

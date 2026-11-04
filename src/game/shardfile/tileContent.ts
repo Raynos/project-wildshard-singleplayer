@@ -15,6 +15,7 @@ import { Group, type Object3D } from 'three';
 import type { InstalledProps } from '@wildshard/engine/world/declaredProps';
 import { TileStreamer, type TileStreamBudget, type TileRequirement, scopedTilePorts, type RingCatalogue, type RingPorts, type RingTile } from '@wildshard/engine/world/tileStreamer';
 import { TileDecoder } from '../grid/tileDecoder';
+import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import type { ClientAssets } from './clientAssets';
 import type { ClientTileViews } from './clientViews';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -43,8 +44,10 @@ export interface TileContent {
 const TILES = TILES_PER_SIDE * TILES_PER_SIDE;
 /** the ring radius (tiles) that holds the whole cell from any tile in it */
 export const CELL_RING: number = TILES_PER_SIDE - 1;
-/** The entered ring's radius for a product: the whole cell where it declares `ring: 'cell'`, else the device's (`radius`). */
-export function ringRadius(source: Pick<Shardfile, 'ring'>, radius: () => number): number { return source.ring === 'cell' ? CELL_RING : radius(); }
+/** The entered ring's radius for a product: the whole cell where it declares `ring: 'cell'`, or once Debug ▸ Loading & memory
+ *  ▸ Level download is Runtime packs (DL17: the level is downloaded whole, so its every tile is attached before control and
+ *  none retires in play), else the device's (`radius`). The grid's neighbour rings read `tileRing` directly and keep it. */
+export function ringRadius(source: Pick<Shardfile, 'ring'>, radius: () => number): number { return source.ring === 'cell' || runtimePacksOn() ? CELL_RING : radius(); }
 const HALF = (TILES_PER_SIDE * TILE_SIZE) / 2;
 
 /** A tile's key (0 ... 63). */

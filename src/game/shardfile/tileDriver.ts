@@ -14,7 +14,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { buildYield, WORK_SLICE_MS } from '@wildshard/engine/core/workSlice';
-import { followTile, ring, ringRadius, tileKey, type TileContent } from './tileContent';
+import { CELL_RING, followTile, ring, ringRadius, tileKey, type TileContent } from './tileContent';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { TILE_SIZE, TILES_PER_SIDE, tileOf, tileOrder, type CellTile, type TileEntryway } from './tileOrder';
 import { noteEnteredTiles } from './enteredTileReadout';
@@ -22,7 +22,7 @@ import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { SPAWN_VIEW_M, spawnViewBusy, spawnViewUsesCamera } from './controlRefinement';
-import { streamingDistance, streamingOrder, streamingVisible, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
+import { streamingDistance, streamingOrder, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
 const liveDrivers = new Set<TileDriver>();
@@ -96,7 +96,8 @@ export class TileDriver {
       const view = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null;
       const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key, view) && (this.attached.render.get(key) === undefined || !this.complete(key)));
       if (!this.busy && !pending) return;
-      if (this.busy && !spawnViewBusy()) { idleSince ??= diagnosticNow(); if (diagnosticNow() - idleSince > SETTLE_IDLE_MS) return; }
+      // a whole-cell ring (Runtime packs) waits for every tile: the level is complete at control (DL17)
+      if (this.busy && !spawnViewBusy() && this.radius() < CELL_RING) { idleSince ??= diagnosticNow(); if (diagnosticNow() - idleSince > SETTLE_IDLE_MS) return; }
       else idleSince = null;
       await task();
     }
@@ -194,13 +195,13 @@ export class TileDriver {
     return plan;
   }
 
-  /** The loader and refinement queue use the same camera/bounds fence, so a
-   * tile cannot block on an out-of-view job ahead of visible work. */
+  /** The loader and refinement queue use the same fence: every tile within its radius, in every direction (DL17: the level
+   *  is complete at control), and a whole-cell ring's every tile. The camera orders them (`step`), it does not filter. */
   private inView(key: number, view: StreamingView | null): boolean {
-    if (!loaderMode || this.last === null) return true;
+    if (!loaderMode || this.last === null || this.radius() >= CELL_RING) return true;
     if (view !== null) {
       const target = this.targets.get(key); if (target === undefined) throw new Error('Missing streaming tile');
-      return streamingDistance(target, view) <= SPAWN_VIEW_M ** 2 && (target.bounds === undefined || streamingVisible(target, view));
+      return streamingDistance(target, view) <= SPAWN_VIEW_M ** 2;
     }
     const half = TILES_PER_SIDE * TILE_SIZE / 2;
     return Math.hypot(-half + (key % TILES_PER_SIDE + 0.5) * TILE_SIZE - this.last.x, -half + (Math.floor(key / TILES_PER_SIDE) + 0.5) * TILE_SIZE - this.last.z) <= SPAWN_VIEW_M;

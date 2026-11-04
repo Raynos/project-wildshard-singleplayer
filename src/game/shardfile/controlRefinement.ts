@@ -1,6 +1,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { pageScope } from '@wildshard/engine/app/resources';
+import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import { streamingDistance, streamingVisible, type StreamingPoint, type StreamingView } from './streamingView';
 
 type Point = StreamingPoint;
@@ -9,11 +10,13 @@ interface Job {
   readonly resolve: (published: boolean) => void; readonly reject: (error: Error) => void;
 }
 
-/** MF5 / NT8: the loader awaits spatial jobs in the real camera frustum within
- * a 3-D radius before reveal. Published boxes are conservative; unbounded
- * catalogue/recipe jobs keep the radius fence. Camera-less owners retain their
- * original viewer-distance order. 221 m retains the former 5 x 5 ring reach. */
+/** MF5 / NT8: the loader awaits spatial jobs within a 3-D radius before reveal, in every direction (DL17, G1000: the level
+ * is complete at control, so a job behind the camera is not left to after it); the camera only orders them. Camera-less
+ * owners retain their original viewer-distance order. 221 m retains the former 5 x 5 ring reach. */
 export const SPAWN_VIEW_M = 221;
+/** The fence's default radius: the 5 x 5 ring's reach, or the whole level once Debug ▸ Loading & memory ▸ Level download
+ *  is Runtime packs (the level is downloaded whole, so all of it is attached before control). */
+export function spawnViewRadius(): number { return runtimePacksOn() ? Infinity : SPAWN_VIEW_M; }
 let spawnView: { readonly radius: number; readonly reference: 'camera' | 'player' } | null = null;
 const queues = new Set<ControlRefinement>();
 /** The first boot fence precedes camera posing and explicitly keeps the player
@@ -22,7 +25,7 @@ export function spawnViewUsesCamera(): boolean { return spawnView?.reference !==
 /** A spawn-view job waits or runs in some queue (the tile driver's settle stops when none does). */
 export function spawnViewBusy(): boolean { return [...queues].some(queue => queue.spawnViewOpen()); }
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
-export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera'): Promise<void> {
+export async function prepareSpawnView(radius: number = spawnViewRadius(), settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera'): Promise<void> {
   spawnView = { radius, reference };
   if (settle !== undefined) {
     // the content a frame asks for while the fence is open (the tile driver attaches only ready content) queues its jobs
@@ -110,9 +113,8 @@ export class ControlRefinement {
     for (const job of this.waiting.values()) {
       const distance = view === null ? (job.at.x - from.x) ** 2 + (job.at.z - from.z) ** 2 : streamingDistance(job.at, view);
       const seen = view !== null && streamingVisible(job.at, view);
-      // Unbounded catalogue/recipe jobs retain the conservative radius fence.
-      // Spatial jobs use their whole published box, never only its centre.
-      if (beforeControl && (distance > (spawnView?.radius ?? 0) ** 2 || (view !== null && job.at.bounds !== undefined && !seen))) continue;
+      // Before control the fence takes every job within its radius, seen or not (DL17); seen jobs run first.
+      if (beforeControl && distance > (spawnView?.radius ?? 0) ** 2) continue;
       if (best === undefined || (seen && !bestSeen) || (seen === bestSeen && (distance < bestDistance || (distance === bestDistance && job.order < best.order)))) {
         best = job; bestSeen = seen; bestDistance = distance;
       }
