@@ -1,5 +1,6 @@
 import { PanelDefinitionSchema } from './panelTemplate';
 import { ReturnProgramSchema } from './namedJsonContracts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
 import * as v from 'valibot';
 import { InputExtraEntries, InputKeysSchema } from './inputDeclarations';
 import { isJsonData } from './json';
@@ -95,9 +96,11 @@ export const PageRidingPresetSchema: v.GenericSchema<PageRidingPresetRowsInput, 
     labels: v.strictObject({ name: v.string(), panic: v.string(), thrown: v.string(), bolt: v.string() }) }) });
 
 /** Client-only session composition; every dependency is JSON data. */
+const returnProgram: v.GenericSchema<unknown, ReturnProgramDocument> = v.pipe(v.unknown(), v.check(isJsonData), v.intersect([ReturnProgramSchema, ReturnProgramDocumentSchema]));
+
 const point = v.strictObject({ x: v.number(), z: v.number() });
 export const ClientRidingSessionSchema: v.GenericSchema<ClientRidingSessionRowsInput, ClientRidingSessionRows> = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
-  preset: PageRidingPresetSchema, programs: v.object({ approach: ReturnProgramSchema, breaking: ReturnProgramSchema, riding: ReturnProgramSchema,
+  preset: PageRidingPresetSchema, programs: v.object({ approach: returnProgram, breaking: returnProgram, riding: returnProgram,
     initial: v.record(v.string(), v.number()), reins: ReinPresentationSchema }),
   profile: v.strictObject({ speeds: v.strictObject({ walk: v.number(), trot: v.number(), canter: v.number(), gallop: v.number() }), thrownDamage: v.number(), thrownLabel: v.string() }),
   roads: v.array(v.array(v.tuple([v.number(), v.number()]))), rest: v.strictObject({ ...point.entries, face: point }),
@@ -326,9 +329,9 @@ export type ClientRidingSessionRowsInput = unknown;
 interface ClientRidingSessionRowsFields {
     preset: PageRidingPresetRows;
     programs: {
-        approach: v.InferOutput<typeof ReturnProgramSchema>;
-        breaking: v.InferOutput<typeof ReturnProgramSchema>;
-        riding: v.InferOutput<typeof ReturnProgramSchema>;
+        approach: ReturnProgramDocument;
+        breaking: ReturnProgramDocument;
+        riding: ReturnProgramDocument;
         initial: Record<string, number>;
         reins: ReinPresentationRows;
     };

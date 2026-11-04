@@ -1,3 +1,4 @@
+import { titanFightOwners } from './fixtures/titanFightOwners';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { MeshBasicMaterial, PerspectiveCamera, Scene, Vector3 } from 'three';
@@ -26,7 +27,7 @@ test('the headless cloud body poses and focuses exactly as the page body', () =>
     instance: () => ({ material: new MeshBasicMaterial(), setParam: () => undefined }) });
   lendNalatiPasture(scope);
   try {
-    const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST, arenaFire: fireView, programs: { attack: programs.attack, wind: programs.wind } }, titanGeometryRows());
+    const data = parseArenaScriptData({ ...titanFightOwners, arenaScript: titan.TITAN_HOST, arenaFire: fireView, programs: { attack: programs.attack, wind: programs.wind } }, titanGeometryRows());
     const g = data.geometry;
     for (const tier of ['phone', 'desktop'] as const) {
       const rows = { ...g.body, geometry: { ...g.body.geometry, eyes: g.eyes }, poses: g.poses, puffs: { ...g.body.puffs, rows: g[tier].puffs } };

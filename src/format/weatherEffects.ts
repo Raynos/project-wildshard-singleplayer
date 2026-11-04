@@ -23,28 +23,32 @@ export interface WeatherGeometry {
     readonly boundingSphere?: { readonly center: [number, number, number]; readonly radius: number };
   };
 }
-const geometry: v.GenericSchema<unknown, WeatherGeometry> = v.pipe(v.strictObject({
-  metadata: v.strictObject({ version: finite, type: v.literal('BufferGeometry'), generator: id }),
-  type: v.literal('BufferGeometry'), name: v.exactOptional(id),
-  data: v.strictObject({
-    attributes: v.pipe(v.record(id, v.strictObject({
-      itemSize: v.pipe(natural, v.minValue(1), v.maxValue(16)), type: storage, array: numbers,
-      normalized: v.boolean(), name: v.exactOptional(id), usage: v.exactOptional(natural), gpuType: v.exactOptional(natural),
-    })), v.maxEntries(32)),
-    index: v.exactOptional(v.strictObject({ type: v.picklist(['Uint16Array', 'Uint32Array']), array: v.pipe(v.array(natural), v.maxLength(2_000_000)) })),
-    groups: v.exactOptional(v.pipe(v.array(v.strictObject({ start: natural, count: natural, materialIndex: natural })), v.maxLength(128))),
-    boundingSphere: v.exactOptional(v.strictObject({ center: vector, radius: v.pipe(finite, v.minValue(0)) })),
-  }),
+/** Complete native data block, also used by the arrow's original data-only envelope. */
+export const WeatherGeometryDataSchema: v.GenericSchema<unknown, WeatherGeometry['data']> = v.pipe(v.strictObject({
+  attributes: v.pipe(v.record(id, v.strictObject({
+    itemSize: v.pipe(natural, v.minValue(1), v.maxValue(16)), type: storage, array: numbers,
+    normalized: v.boolean(), name: v.exactOptional(id), usage: v.exactOptional(natural), gpuType: v.exactOptional(natural),
+  })), v.maxEntries(32)),
+  index: v.exactOptional(v.strictObject({ type: v.picklist(['Uint16Array', 'Uint32Array']), array: v.pipe(v.array(natural), v.maxLength(2_000_000)) })),
+  groups: v.exactOptional(v.pipe(v.array(v.strictObject({ start: natural, count: natural, materialIndex: natural })), v.maxLength(128))),
+  boundingSphere: v.exactOptional(v.strictObject({ center: vector, radius: v.pipe(finite, v.minValue(0)) })),
 }), v.check(row => {
-  const position = row.data.attributes['position'];
+  const position = row.attributes['position'];
   if (position?.itemSize !== 3) return false;
-  const count = position.array.length / 3, index = row.data.index;
+  const count = position.array.length / 3, index = row.index;
   const extent = index?.array.length ?? count;
   return Number.isInteger(count)
-    && Object.values(row.data.attributes).every(attribute => attribute.array.length === count * attribute.itemSize)
+    && Object.values(row.attributes).every(attribute => attribute.array.length === count * attribute.itemSize)
     && (index === undefined || index.array.every(value => value < count && value <= (index.type === 'Uint16Array' ? 65535 : 4294967295)))
-    && (row.data.groups ?? []).every(group => group.start + group.count <= extent);
+    && (row.groups ?? []).every(group => group.start + group.count <= extent);
 }, 'Complete native geometry attributes and index ranges'));
+/** The weather's full envelope still requires both metadata and type. */
+export const WeatherGeometrySchema: v.GenericSchema<unknown, WeatherGeometry> = v.strictObject({
+  metadata: v.strictObject({ version: finite, type: v.literal('BufferGeometry'), generator: id }),
+  type: v.literal('BufferGeometry'), name: v.exactOptional(id), data: WeatherGeometryDataSchema,
+});
+/** BufferGeometryLoader also accepts the original arrow's data-only envelope. */
+export const WeatherGeometryPayloadSchema: v.GenericSchema<unknown, Pick<WeatherGeometry, 'data'>> = v.strictObject({ data: WeatherGeometryDataSchema });
 
 interface PaintedSkyData {
   readonly schema: Record<string, 'number' | 'colour'>;
@@ -59,9 +63,7 @@ const sky: v.GenericSchema<unknown, PaintedSkyData> = v.pipe(v.strictObject({
   && Object.entries(row.schema).every(([name, kind]) => Object.hasOwn(row.initial, name)
     && (kind === 'colour' || typeof row.initial[name] === 'number')), 'Complete painted-sky initial values'));
 
-/** Shared weather presentation resource table. Shapes keep native JSON and
- * arbitrary named numeric tables hold texture bytes or instance matrices.
- * The declaring forest-weather row binds each table to its original owner. */
+/** Native geometry, sky and named numeric resource tables. */
 export interface WeatherEffects {
   readonly shapes: Record<string, WeatherGeometry>;
   readonly sky?: PaintedSkyData;
@@ -69,8 +71,8 @@ export interface WeatherEffects {
 }
 /** Complete native weather resource grammar; family credit is separate. */
 export const WeatherEffectsSchema: v.GenericSchema<unknown, WeatherEffects> = v.pipe(v.objectWithRest({
-  shapes: v.pipe(v.record(id, geometry), v.maxEntries(32)), sky: v.exactOptional(sky),
+  shapes: v.pipe(v.record(id, WeatherGeometrySchema), v.maxEntries(32)), sky: v.exactOptional(sky),
 }, numbers), v.check(row => Object.keys(row).length <= 32, 'Bounded weather resource tables'));
 
-/** Validate the complete resource document without rewriting its payload. */
+/** Validate without rewriting the original payload. */
 export function parseWeatherEffects(input: unknown): WeatherEffects { return v.parse(WeatherEffectsSchema, input); }

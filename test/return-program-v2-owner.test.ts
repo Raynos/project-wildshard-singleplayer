@@ -137,7 +137,7 @@ test('selected rows survive real named JSON admission; the shared pasture progra
   for(const selected of [programs.fire,programs.wind]){
     expect(v.parse(ReturnProgramSchema,selected)).toStrictEqual(selected);
   }
-  expect(namedJsonSchema(ArenaScriptFightFileSchema)).toHaveProperty('properties.programs.properties.attack.properties.v2');
+  expect(namedJsonSchema(ArenaScriptFightFileSchema)).toHaveProperty('properties.programs.properties.attack.allOf.0.properties.v2');
 });
 
 test('native observation and ordered candidate snapshots preserve signed zero without invoking accessors',()=>{

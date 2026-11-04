@@ -1,3 +1,4 @@
+import { titanFightOwners } from './fixtures/titanFightOwners';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
@@ -45,7 +46,7 @@ function fight(scope: Scope, view: 'page' | 'native'): { fight: OpenArenaFight; 
   scope.expose(app, 'levelScope', scope);
   const game = Object.assign(f.game.asGame(), { app, levelScope: scope });
   lendNalatiPasture(scope);
-  const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST, arenaFire: fireView, programs: { attack: programs.attack, wind: programs.wind } }, geometry);
+  const data = parseArenaScriptData({ ...titanFightOwners, arenaScript: titan.TITAN_HOST, arenaFire: fireView, programs: { attack: programs.attack, wind: programs.wind } }, geometry);
   const weather = legacyDouble<OpenArenaWorld['weather']>({ flash: 0, raise: () => undefined, stormActive: true });
   const owner = new ArenaRoomEncounter({ kind: 'open', world: { game, player: f.player, weather, air: legacyDouble<OpenArenaWorld['air']>({}), tieSpot: null }, rows: data });
   const rows = nalatiTitanView(), module = nalatiViewBytes('titan-view'), camera = new PerspectiveCamera();

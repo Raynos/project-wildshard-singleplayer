@@ -32,11 +32,14 @@ test.each([
   expect(bytes(value)).toEqual(before);
 });
 
-test('one-user weather grammars stay charged and cannot inherit a neighbouring family', () => {
+test('G1004 approves only the three exact complete weather families', () => {
   for (const name of ['world/weather-fx.json', 'world/rain.json', 'world/weather-observations.json'] as const) {
     const contract = registeredJsonContract(name);
     expect(registeredJsonSchema(name)).toHaveProperty('$comment', contract.source);
-    expect(platformFileFamily(name, contract.source)).toBeUndefined();
+    expect(platformFileFamily(name, contract.source)?.schema).toBe(contract.schema);
+    expect(() => validatePlatformFile(name, contract.source, {})).toThrow();
+    expect(platformFileFamily(name, undefined)).toBeUndefined();
+    expect(platformFileFamily(name.replace('.json', '-private.json'), contract.source)).toBeUndefined();
     expect(platformFileFamily(name, registeredJsonContract('world/weather.json').source)).toBeUndefined();
   }
 });

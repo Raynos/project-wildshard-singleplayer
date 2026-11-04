@@ -13,7 +13,7 @@ const SeatLookSchema=v.variant('look',[v.strictObject({look:v.literal('painterly
  * fixed-draw rows (key, file or data, geometry), an optional lent look for a port material (absent, the scene declares its own
  * standard materials), the speed clock and the gestures its cue kinds start. */
 export const MountedSpecimenSeatSchema: v.GenericSchema<MountedSpecimenSeatRowsInput, MountedSpecimenSeatRows>=v.pipe(v.unknown(),v.check(isJsonData),v.strictObject({mount:id,figure:PrivateSceneSchema,material:v.exactOptional(SeatLookSchema),
-  shapes:v.pipe(v.array(v.union([v.strictObject({key:id,data:id,geometry:v.looseObject({})}),v.strictObject({key:id,...BinaryFileSchema.entries,geometry:SceneBakedGeometrySchema})])),v.minLength(1),v.maxLength(8)),
+  shapes:v.pipe(v.array(v.union([v.strictObject({key:id,data:id,geometry:SceneBakedGeometrySchema}),v.strictObject({key:id,...BinaryFileSchema.entries,geometry:SceneBakedGeometrySchema})])),v.minLength(1),v.maxLength(8)),
   clips:ClipRowsSchema,speed:id,gestures:v.pipe(v.array(v.strictObject({cue:id,clock:id,duration:v.pipe(number,v.minValue(.01))})),v.maxLength(16))}));
 
 /** A mounted specimen (G603 L10): its model card, the product (slug) and file of its seat rows, the species rig and variant
@@ -35,7 +35,7 @@ interface MountedSpecimenSeatRowsFields {
     shapes: (({
         key: string;
         data: string;
-        geometry: (Record<never, never>) & Record<string, unknown>;
+        geometry: v.InferOutput<typeof SceneBakedGeometrySchema>;
     }) | (Omit<Omit<{
         key: string;
     }, keyof (v.InferOutput<typeof BinaryFileSchema>)> & v.InferOutput<typeof BinaryFileSchema>, keyof ({

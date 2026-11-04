@@ -1,3 +1,4 @@
+import { titanFightOwners } from './fixtures/titanFightOwners';
 import { installWorldFixture } from './fixtures/worldSetup';
 import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
@@ -134,7 +135,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
   scope.expose(app,'levelScope',scope);
   const game = Object.assign(f.game.asGame(), { app,levelScope: scope });
   lendNalatiPasture(scope);
-  const data = parseArenaScriptData({ arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs:{attack:programs.attack,wind:programs.wind} },geometry);
+  const data = parseArenaScriptData({ ...titanFightOwners, arenaScript: titan.TITAN_HOST,arenaFire: fireView,programs:{attack:programs.attack,wind:programs.wind} },geometry);
   if (orchard) {
     data.definition.id = 'orchard-thunder'; data.definition.name = 'Orchard thunder';
     data.place.heartHp = 1300; data.script.fight.parameters['fullHp'] = 1300;
@@ -245,7 +246,7 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
 test('arena roles are full-row aliases and retired payload roles refuse',()=>{
   expect(programs.attack).toStrictEqual(programs.rules);
   expect(programs.wind).toStrictEqual(programs.fire);
-  const input={arenaScript:titan.TITAN_HOST,arenaFire:fireView,programs:{attack:programs.attack,wind:programs.wind}};
+  const input={ ...titanFightOwners, arenaScript:titan.TITAN_HOST,arenaFire:fireView,programs:{attack:programs.attack,wind:programs.wind}};
   expect(Object.keys(parseArenaScriptData(input,geometry).programs)).toStrictEqual(['attack','wind']);
   for(const key of ['fire','rules'])expect(()=>parseArenaScriptData({...input,programs:{...input.programs,[key]:programs.attack}},geometry)).toThrow('Invalid key');
 });

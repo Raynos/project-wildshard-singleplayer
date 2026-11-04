@@ -1,3 +1,4 @@
+import { titanFightOwners } from './fixtures/titanFightOwners';
 import { readArenaScriptData } from '../src/game/boss/openArenaFight';
 import { expect,test } from 'vitest';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
@@ -17,12 +18,12 @@ import strikes from './fixtures/nalati-strikeProfiles-original.json' with {type:
 
 const geometry = titanGeometryRows();
 
-const night=withWeatherWitness(nightInput);
+const { cues: _nightCues, ...night } = withWeatherWitness(nightInput);
 
 const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(value));
 
 test('real arena payloads have one defining schema at production and product read',async()=>{
-  const fight={arenaScript:titan.TITAN_HOST,programs:{attack:programs.attack,wind:programs.wind},arenaFire};
+  const fight={ ...titanFightOwners, arenaScript:titan.TITAN_HOST,programs:{attack:programs.attack,wind:programs.wind},arenaFire};
   const fightSchema=namedJsonSchema(ArenaScriptFightFileSchema),geometrySchema=namedJsonSchema(ArenaScriptGeometrySchema);
   const fightBlob=nameBlob('combat/titan-fight.json','json',encode(fight),{jsonSchema:fightSchema});
   const geometryBlob=nameBlob('combat/titan-geometry.json','json',encode(geometry),{jsonSchema:geometrySchema});

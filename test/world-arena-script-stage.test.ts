@@ -1,3 +1,4 @@
+import { titanFightOwners } from './fixtures/titanFightOwners';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import { readArenaScriptData } from '../src/game/boss/openArenaFight';
@@ -41,7 +42,7 @@ const geometry = titanGeometryRows();
 
 const row = { kind: 'arena-room', id: 'meadow.titan', files: { fight: 'combat/titan-fight.json', geometry: 'combat/titan-geometry.json' },
   weather: 'meadow.weather', anchor: 'meadow.cairn' };
-const fight = { arenaScript: titan.TITAN_HOST, arenaFire, programs:{attack:programs.attack,wind:programs.wind} };
+const fight = { ...titanFightOwners, arenaScript: titan.TITAN_HOST, arenaFire, programs:{attack:programs.attack,wind:programs.wind} };
 const fightSchema = namedJsonSchema(ArenaScriptFightFileSchema), geometrySchema = namedJsonSchema(ArenaScriptGeometrySchema);
 
 function fixture(options: { held?: 'fight' | 'geometry'; parent?: Scope; native?: Scope; missing?: 'weather' | 'point'; point?: Vector3 | null } = {}) {

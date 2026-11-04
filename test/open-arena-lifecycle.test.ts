@@ -1,3 +1,4 @@
+import { titanFightOwners } from './fixtures/titanFightOwners';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 // @vitest-environment happy-dom
 import {expect,test,vi} from 'vitest';
@@ -36,7 +37,7 @@ function run(original:boolean):{trace:unknown[];input:unknown[];ownerScope:boole
   const f=manager(),game=Object.assign(f.game.asGame(),{app,levelScope:construction,sky:f.sky});
   const materials=new Map(['nalati-titan-cloud','nalati-titan-flame','nalati-titan-smoke'].map(id=>[id,new MeshBasicMaterial()]));
   lendLooks(construction,{materials,setParam:()=>undefined,setTexture:()=>undefined,bindMeshMap:()=>{throw new Error('Unexpected mapped material');}});
-  const data=parseArenaScriptData({arenaScript:titan.TITAN_HOST,arenaFire:fireView,programs:{attack:programs.attack,wind:programs.wind}},geometry);
+  const data=parseArenaScriptData({ ...titanFightOwners, arenaScript:titan.TITAN_HOST,arenaFire:fireView,programs:{attack:programs.attack,wind:programs.wind}},geometry);
   type Runtime=NonNullable<ShardContext['game']['runtime']>;type Play=NonNullable<Runtime['play']>;type World=NonNullable<Runtime['world']>;
   const world=legacyDouble<World>({game,sky:f.sky,player:f.player}),play=legacyDouble<Play>({animals:f.manager,
     weapons:legacyDouble<Play['weapons']>({setEnabled:value=>{input.push(['weapons',value]);}}),

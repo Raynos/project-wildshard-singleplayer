@@ -17,7 +17,7 @@ test('arena script declarations bound validator metadata and retain defining imp
   expect(emitted.outputText).toContain('v.InferOutput<typeof ArenaEncounterSchema>');
 });
 
-test('the existing fight composition keeps omit, programs and loose-file data contracts', () => {
+test('the existing fight composition keeps omit and programs while refusing undeclared fight fields', () => {
   const consumer = resolve('src/format/t4-arena-script-consumer.ts');
   const options: ts.CompilerOptions = { strict: true, exactOptionalPropertyTypes: true, target: ts.ScriptTarget.ES2022,
     module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, skipLibCheck: true, types: [],
@@ -36,6 +36,6 @@ test('the existing fight composition keeps omit, programs and loose-file data co
   host.writeFile = () => undefined;
   const program = ts.createProgram([consumer], options, host), file = program.getSourceFile(consumer);
   if (file === undefined) throw new Error('Missing virtual arena script consumer');
-  expect(program.getSemanticDiagnostics(file).map(row => row.code)).toEqual([]);
+  expect(program.getSemanticDiagnostics(file).map(row => row.code)).toEqual([2339]);
   expect(program.getDeclarationDiagnostics(file).map(row => row.code)).toEqual([]);
 });

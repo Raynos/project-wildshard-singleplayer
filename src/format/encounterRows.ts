@@ -1,8 +1,15 @@
+import { isJsonData } from './json';
 /** Build-only admission for existing encounter rows; play imports their types and the encounter sites' schema. */
 import * as v from 'valibot';
 import { ReturnProgramSchema } from './namedJsonContracts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
 import { CreatureStrikeSchema } from './creatures';
 import { SpecimenAssetSchema } from './specimenCatalogue';
+import { PrivateSceneSchema, ClientChannelsSchema } from './clientChannels';
+import { WeatherGeometrySchema, WeatherGeometryPayloadSchema } from './weatherEffects';
+
+const returnProgram: v.GenericSchema<unknown, ReturnProgramDocument> = v.pipe(v.unknown(), v.check(isJsonData), v.intersect([ReturnProgramSchema, ReturnProgramDocumentSchema]));
+
 
 const finite=v.pipe(v.number(),v.finite()),numbers=v.record(v.string(),finite);
 const count=v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(64));
@@ -87,7 +94,7 @@ export const PatrolViewSchema: v.GenericSchema<PatrolViewRowsInput, PatrolViewRo
   cues: v.strictObject({ form: cue, tear: cue, loose: cue, hurt: cue, impact: cue }), lift: v.strictObject({ form: finite, loose: finite }),
   trail: v.strictObject({ cue, rate: v.pipe(finite, v.minValue(0)), back: finite }), aim: name, damage: v.pipe(finite, v.minValue(0)),
   targets: v.pipe(v.array(v.strictObject({ at: vector, radius: v.pipe(finite, v.minValue(0)), head: v.boolean() })), v.maxLength(4)),
-  arrow: v.strictObject({ geometry: v.unknown(), colour: vector, renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)),
+  arrow: v.strictObject({ geometry: v.union([WeatherGeometryPayloadSchema, WeatherGeometrySchema]), colour: vector, renderOrder: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)),
     length: finite, gravity: finite, drag: finite, windCoupling: finite, bury: finite, recover: finite,
     maxFlying: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(64)), maxStuck: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(64)),
     stick: v.boolean(), hitsAnimals: v.boolean(), puffs: v.boolean(), hurtsPlayer: v.strictObject({ radius: finite, height: finite }) }),
@@ -102,8 +109,10 @@ export const ArenaFireSchema: v.GenericSchema<ArenaFireRowsInput, ArenaFireRows>
    scorch: v.strictObject({ jitter: finite, lift: finite, scale: pair }) })),
 });
 /** Existing timed named file; unrelated source binding fields remain intact. */
-export const TimedEncountersSchema: v.GenericSchema<TimedEncountersRowsInput, TimedEncountersRows> = v.looseObject({ presentation: v.string(), program: ReturnProgramSchema, slots: EncounterSlotsSchema, view: SlotViewSchema,
+export const TimedEncountersSchema: v.GenericSchema<TimedEncountersRowsInput, TimedEncountersRows> = v.strictObject({ presentation: v.string(), program: returnProgram, slots: EncounterSlotsSchema, view: SlotViewSchema,
   patrol: EncounterPatrolSchema, motion: EncounterScheduleSchema, ride: PatrolViewSchema, phases: v.strictObject({ slots: v.array(v.string()), patrol: v.array(v.string()) }),
+  parameters: numbers, respawn: finite,
+  tell: v.strictObject({ cone: finite, reach: finite, wind: finite, strike: finite }),
   lightFloor: v.pipe(v.number(), v.finite(), v.minValue(0)),
   contact: v.strictObject({ strike: CreatureStrikeSchema, tags: v.array(CreatureStrikeSchema.entries.tags.pipe[0].item), origin: v.picklist(['actor', 'player']) }),
 });
@@ -133,8 +142,8 @@ export const EncounterMaterialSchema: v.GenericSchema<EncounterMaterialRowsInput
     opacity: unit, offset: finite }),
 ]);
 export const CloudBodySchema: v.StrictObjectSchema<{ readonly scene: v.GenericSchema<CloudBodyRowsInput['scene'], CloudBodyRows['scene']>; readonly geometry: v.GenericSchema<CloudBodyRowsInput['geometry'], CloudBodyRows['geometry']>; readonly materials: v.GenericSchema<CloudBodyRowsInput['materials'], CloudBodyRows['materials']>; readonly poses: v.GenericSchema<CloudBodyRowsInput['poses'], CloudBodyRows['poses']>; readonly group: v.GenericSchema<CloudBodyRowsInput['group'], CloudBodyRows['group']>; readonly root: v.GenericSchema<CloudBodyRowsInput['root'], CloudBodyRows['root']>; readonly scale: v.GenericSchema<CloudBodyRowsInput['scale'], CloudBodyRows['scale']>; readonly shown: v.GenericSchema<CloudBodyRowsInput['shown'], CloudBodyRows['shown']>; readonly puffs: v.StrictObjectSchema<{ readonly rows: v.GenericSchema<CloudBodyRowsInput['puffs']['rows'], CloudBodyRows['puffs']['rows']>; readonly bones: v.GenericSchema<CloudBodyRowsInput['puffs']['bones'], CloudBodyRows['puffs']['bones']>; readonly detail: v.GenericSchema<CloudBodyRowsInput['puffs']['detail'], CloudBodyRows['puffs']['detail']>; readonly name: v.GenericSchema<CloudBodyRowsInput['puffs']['name'], CloudBodyRows['puffs']['name']>; readonly look: v.GenericSchema<CloudBodyRowsInput['puffs']['look'], CloudBodyRows['puffs']['look']>; readonly swell: v.GenericSchema<CloudBodyRowsInput['puffs']['swell'], CloudBodyRows['puffs']['swell']>; readonly drift: v.GenericSchema<CloudBodyRowsInput['puffs']['drift'], CloudBodyRows['puffs']['drift']>; readonly spin: v.GenericSchema<CloudBodyRowsInput['puffs']['spin'], CloudBodyRows['puffs']['spin']>; readonly squash: v.GenericSchema<CloudBodyRowsInput['puffs']['squash'], CloudBodyRows['puffs']['squash']>; }, undefined>; readonly params: v.GenericSchema<CloudBodyRowsInput['params'], CloudBodyRows['params']>; readonly focus: v.GenericSchema<CloudBodyRowsInput['focus'], CloudBodyRows['focus']>; readonly strip: v.ExactOptionalSchema<v.GenericSchema<Exclude<CloudBodyRowsInput['strip'], undefined>, Exclude<CloudBodyRows['strip'], undefined>>, undefined>; }, undefined> = v.strictObject({
-  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, EncounterMaterialSchema),
-  poses: v.unknown(), group: id, root: id, scale: finite, shown: v.pipe(v.array(id), v.maxLength(16)),
+  scene: PrivateSceneSchema, geometry: v.record(id, WeatherGeometrySchema), materials: v.record(id, EncounterMaterialSchema),
+  poses: ClientChannelsSchema, group: id, root: id, scale: finite, shown: v.pipe(v.array(id), v.maxLength(16)),
   puffs: v.strictObject({ rows: v.pipe(v.array(puffRow), v.maxLength(4096)), bones: v.pipe(v.array(id), v.maxLength(32)), detail: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(4)),
     name: id, look: id, swell: pair, drift: triple, spin: finite, squash: finite }),
   params: v.strictObject({ time: id, focus: id, glow: id, flash: id, alpha: id, fogColour: id, fog: id }),
@@ -145,7 +154,7 @@ export const CloudBodySchema: v.StrictObjectSchema<{ readonly scene: v.GenericSc
     every: v.pipe(finite, v.minValue(0.01)), held: pair, struck: pair })),
 });
 export const ArenaSceneSchema: v.GenericSchema<ArenaSceneRowsInput, ArenaSceneRows> = v.strictObject({
-  scene: v.unknown(), geometry: v.record(id, v.unknown()), materials: v.record(id, EncounterMaterialSchema),
+  scene: PrivateSceneSchema, geometry: v.record(id, WeatherGeometrySchema), materials: v.record(id, EncounterMaterialSchema),
   wall: v.strictObject({ parts: v.pipe(v.array(id), v.maxLength(8)), spin: v.pipe(v.array(finite), v.maxLength(8)), at: pair, sink: finite, ease: finite }),
   /** ground tells by id: `count` rings or lanes in a self-lit `colour` */
   tells: v.record(id, v.strictObject({ kind: v.picklist(['ring', 'lane']), colour: triple, count: v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(16)) })),
@@ -529,7 +538,7 @@ interface SlotViewRowsFields {
     };
 }
 export type SlotViewRows = { [Key in keyof SlotViewRowsFields]: SlotViewRowsFields[Key] };
-export type PatrolViewRowsInput = PatrolViewRows;
+export type PatrolViewRowsInput = Omit<PatrolViewRows, 'arrow'> & { arrow: Omit<PatrolViewRows['arrow'], 'geometry'> & { geometry: unknown } };
 interface PatrolViewRowsFields {
     looks: Record<string, string>;
     quietLook: string;
@@ -575,7 +584,7 @@ interface PatrolViewRowsFields {
         head: boolean;
     })[];
     arrow: {
-        geometry: unknown;
+        geometry: v.InferOutput<typeof WeatherGeometryPayloadSchema> | v.InferOutput<typeof WeatherGeometrySchema>;
         colour: [
             number,
             number,
@@ -658,9 +667,12 @@ interface ArenaFireRowsFields {
     };
 }
 export type ArenaFireRows = { [Key in keyof ArenaFireRowsFields]: ArenaFireRowsFields[Key] };
-export type TimedEncountersRowsInput = ({
+export interface TimedEncountersRowsInput {
+    parameters: Record<string, number>;
+    respawn: number;
+    tell: { cone: number; reach: number; wind: number; strike: number };
     presentation: string;
-    program: v.InferInput<typeof ReturnProgramSchema>;
+    program: unknown;
     slots: EncounterSlotsRowsInput;
     view: SlotViewRowsInput;
     patrol: EncounterPatrolRowsInput;
@@ -676,10 +688,13 @@ export type TimedEncountersRowsInput = ({
         tags: (v.InferInput<(typeof CreatureStrikeSchema)['entries']['tags']['pipe'][0]['item']>)[];
         origin: 'actor' | 'player';
     };
-}) & Record<string, unknown>;
-export type TimedEncountersRows = ({
+}
+export interface TimedEncountersRows {
+    parameters: Record<string, number>;
+    respawn: number;
+    tell: { cone: number; reach: number; wind: number; strike: number };
     presentation: string;
-    program: v.InferOutput<typeof ReturnProgramSchema>;
+    program: ReturnProgramDocument;
     slots: EncounterSlotsRows;
     view: SlotViewRows;
     patrol: EncounterPatrolRows;
@@ -695,7 +710,7 @@ export type TimedEncountersRows = ({
         tags: (v.InferOutput<(typeof CreatureStrikeSchema)['entries']['tags']['pipe'][0]['item']>)[];
         origin: 'actor' | 'player';
     };
-}) & Record<string, unknown>;
+}
 export type EncounterMaterialRowsInput = EncounterMaterialRows;
 export type EncounterMaterialRows = ({
     kind: 'basic';
@@ -728,10 +743,10 @@ export type EncounterMaterialRows = ({
     offset: number;
 });
 interface CloudBodyRowsInputFields {
-    scene: unknown;
+    scene: v.InferInput<typeof PrivateSceneSchema>;
     geometry: Record<string, unknown>;
     materials: Record<string, EncounterMaterialRowsInput>;
-    poses: unknown;
+    poses: v.InferInput<typeof ClientChannelsSchema>;
     group: string;
     root: string;
     scale: number;
@@ -833,10 +848,10 @@ interface CloudBodyRowsInputFields {
 }
 export type CloudBodyRowsInput = { [Key in keyof CloudBodyRowsInputFields]: CloudBodyRowsInputFields[Key] };
 interface CloudBodyRowsFields {
-    scene: unknown;
-    geometry: Record<string, unknown>;
+    scene: v.InferOutput<typeof PrivateSceneSchema>;
+    geometry: Record<string, v.InferOutput<typeof WeatherGeometrySchema>>;
     materials: Record<string, EncounterMaterialRows>;
-    poses: unknown;
+    poses: v.InferOutput<typeof ClientChannelsSchema>;
     group: string;
     root: string;
     scale: number;
@@ -938,7 +953,7 @@ interface CloudBodyRowsFields {
 }
 export type CloudBodyRows = { [Key in keyof CloudBodyRowsFields]: CloudBodyRowsFields[Key] };
 interface ArenaSceneRowsInputFields {
-    scene: unknown;
+    scene: v.InferInput<typeof PrivateSceneSchema>;
     geometry: Record<string, unknown>;
     materials: Record<string, EncounterMaterialRowsInput>;
     wall: {
@@ -963,8 +978,8 @@ interface ArenaSceneRowsInputFields {
 }
 export type ArenaSceneRowsInput = { [Key in keyof ArenaSceneRowsInputFields]: ArenaSceneRowsInputFields[Key] };
 interface ArenaSceneRowsFields {
-    scene: unknown;
-    geometry: Record<string, unknown>;
+    scene: v.InferOutput<typeof PrivateSceneSchema>;
+    geometry: Record<string, v.InferOutput<typeof WeatherGeometrySchema>>;
     materials: Record<string, EncounterMaterialRows>;
     wall: {
         parts: (string)[];
