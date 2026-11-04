@@ -22,4 +22,4 @@
 
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
 
-**18:15:** live 86f2590; Z15 fixture reds fixed through 463ab110da (in CI); one local full run clears the rest. Dead code DONE. DL5 Driftwood packs +33.6 s: mostly http preview decoding .br (c24ea060e7); sections-part order fix ready. Plots: Safari ITP purge on 127.0.0.1 (harness only).
+**LIVE 463ab110da (463ab11-mw2q02mz, 18:25):** first green since 86f2590 (09:04): packs on, DL10 early compile, Z15, dead code, DL21 card fixes; 24 required CI + boot smoke green. Plots: Safari ITP purge (harness only), tap fix next.
