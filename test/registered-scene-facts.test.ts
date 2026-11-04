@@ -30,7 +30,7 @@ for(const root of roots){
   const product=createShardProduct({...identity,shardfile:emptyShardfile(identity),sections:new Map(),jsonCheck:fixtureJsonCheck,
    files:new Map([[root.name,{hash:'a'.repeat(64),url:'/native',...(kind==='missing'?{}:{jsonSchema:{...schema,$comment:'foreign'}})}]]),
    read:()=>{reads++;return Promise.resolve(bytes);}});
-  await expect(product.json(root.name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
+  await expect(product.json(root.name)).rejects.toThrow('unregistered named JSON is retired');expect(reads).toBe(0);
  });
 }
 test('the withheld living envelopes and withdrawn 62 welds remain unregistered',()=>{
