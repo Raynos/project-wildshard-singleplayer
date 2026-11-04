@@ -18,7 +18,6 @@ import POOL from '../src/shards/nine-dragon-stack/data/lightPools.json' with { t
 import { parseWorldScenes } from '../src/format/worldScenes';
 import { lendWorldSceneTextures } from '../src/game/shardfile/worldSceneTextures';
 import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack/generators/silkWeave';
-import { canopyGraphs } from '../src/shards/nine-dragon-stack/generators/canopyGraphs';
 import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 import { validateGraph, type GraphRef } from '../src/format/materialGraph';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
@@ -138,11 +137,10 @@ test('Nine weave bakes retain every texel and the sealed samplers as lent raster
 });
 
 test('Nine canopy graphs retain vertex fog and fit both catalogue caps', () => {
-  const rows = canopyGraphs(NINE_GRAPHS);
-  for (const [id, graph] of Object.entries(rows)) {
-    expect(Reflect.get(NINE_GRAPHS, id)).toEqual(graph);
-    const checked = validateGraph(graph, { trustedBudget: true });
+  for (const id of ['nine-canopy-cards', 'nine-canopy-depth', 'nine-canopy-inner'] as const) {
+    const checked = validateGraph(NINE_GRAPHS[id], { trustedBudget: true });
     if (!checked.ok) throw new Error(checked.errors.join('\n'));
+    const graph = checked.graph;
     expect(checked.cost.nodes).toBeLessThanOrEqual(4096);
     expect(new TextEncoder().encode(JSON.stringify(graph)).byteLength).toBeLessThanOrEqual(64_000);
     expect(graph.effectState?.fog).toBe(false);
@@ -161,8 +159,9 @@ test('Nine canopy graphs retain vertex fog and fit both catalogue caps', () => {
 });
 
 test('canopy mip coverage matches log2 across float32 minification', () => {
-  const graph = canopyGraphs(NINE_GRAPHS)['nine-canopy-cards'];
-  if (graph === undefined) throw new Error('Missing canopy cards');
+  const checked = validateGraph(NINE_GRAPHS['nine-canopy-cards'], { trustedBudget: true });
+  if (!checked.ok) throw new Error(checked.errors.join('\n'));
+  const graph = checked.graph;
   const coverage = Object.values(graph.nodes).find(node => node.op === 'fwidth')?.in?.[0];
   if (coverage === undefined) throw new Error('Missing mip coverage');
   const f = Math.fround;

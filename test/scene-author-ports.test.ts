@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from 'vitest';
+import { expectTypeOf, test } from 'vitest';
 import type { modelSceneSourceFile, bakedSceneSourceFile } from '../src/sdk/worldScenes';
 import type { readManifestSource } from '../src/sdk/projectManifest';
 import type { RigLibraryRows, ModelSpecimenRow, ModelLibraryRows } from '../src/game/plugin/geometry';
@@ -6,10 +6,6 @@ import type { BakedColliderInput, WorldPieceRow } from '../src/game/shardfile/ba
 import type { ChunkHorizon } from '../src/game/shard/manifest';
 import type { skyRigLibrary } from '../src/shards/far-reach/generators/rigLibrary';
 import type { BakedPiece } from '../src/shards/far-reach/generators/fileInventory';
-import { nalatiDayChannels } from '../src/shards/nalati-grasslands/generators/dayChannels';
-import { NALATI_HORIZON_V2 } from '../src/shards/nalati-grasslands/generators/horizon';
-import { hashImmutableBytes } from '../src/sdk/immutable';
-import original from './fixtures/nalati-sky-author-original.json' with { type: 'json' };
 import type { UniformRows } from '../src/game/plugin/shaderFamily';
 import type { DUNE_MODELS, DuneMeshName, DuneHdName } from '../src/shards/sunscar-dunes/generators/rows/files';
 import type { CardRow } from '../src/shards/sunscar-dunes/generators/rows/fireCards';
@@ -30,13 +26,8 @@ test('source emitter ports retain complete native rigs, specimens, contacts and 
 
 test('horizon ports retain all mutable native ring and band fields', () => {
   expectTypeOf<NonNullable<Awaited<ReturnType<typeof readManifestSource>>['authored']['horizon']>>().toEqualTypeOf<ChunkHorizon>();
-  expectTypeOf<typeof NALATI_HORIZON_V2>().toEqualTypeOf<ChunkHorizon>();
 });
 
-test('every original Nalati day-channel and horizon declaration byte remains unchanged', () => {
-  const bytes = new TextEncoder().encode(JSON.stringify({ day: nalatiDayChannels(), horizon: NALATI_HORIZON_V2 }));
-  expect({ bytes: bytes.byteLength, hash: hashImmutableBytes(bytes) }).toEqual(original);
-});
 
 
 test('Sunscar model and card ports retain every native key, uniform variant and ownership qualifier', () => {

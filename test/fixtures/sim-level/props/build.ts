@@ -3,8 +3,6 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture artifact paths are local build products.
 import { join } from 'node:path';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
-import { templateScene } from '../../../../src/shards/_template/generators/templateScene';
-import { bake } from '../../../../src/sdk/bake';
 import { bakeProps } from '../../../../src/sdk/bake/props';
 import { bakeTerrain } from '../../../../src/sdk/bake/terrain';
 import { canonicalJson } from '../../../../src/sdk/project';
@@ -20,16 +18,5 @@ export function buildPropsFixture(directory: string, count = 10): void {
     for (const [hash, bytes] of assets) writeFileSync(join(directory, hash), bytes);
     writeFileSync(join(directory, 'shard.json'), canonicalJson(shard)); writeFileSync(join(directory, 'props.json'), canonicalJson(result.props)); writeFileSync(join(directory, 'report.json'), canonicalJson({ tiles: result.report, far: result.far, library: result.files.filter((f) => result.library.includes(f.hash)) }));
     writeFileSync(join(directory, 'checker.ktx2'), readFileSync('test/fixtures/sim-level/props/checker.ktx2'));
-  } finally { fixture.dispose(); }
-}
-
-/** Write the template's immutable prop-only rows; SF16 merges these additive costs into its terrain rows. */
-export function writeTemplateProps(directory: string, declaration: string): void {
-  mkdirSync(directory, { recursive: true });
-  const fixture = templateScene(20);
-  try {
-    const result = bake(fixture.scene, { slug: 'template', name: 'Template shard' }, { props: fixture.props }).props;
-    if (result === null) throw new Error('template scene baked no props');
-    for (const [hash, bytes] of result.assets) writeFileSync(join(directory, hash), bytes); writeFileSync(declaration, canonicalJson({ props: result.props, tiles: result.tiles, files: result.files, library: result.library, far: result.far, report: result.report }));
   } finally { fixture.dispose(); }
 }

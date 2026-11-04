@@ -2197,7 +2197,6 @@
   "test/template-map-generation.test.ts": 6.187075184,
   "test/template-native-source.test.ts": 20.809138456,
   "test/template-product-reader.test.ts": 3.402711046,
-  "test/template-props-generation.test.ts": 1.930792816,
   "test/template-source-layout.test.ts": 0.188762869,
   "test/terrain-height-values.test.ts": 0.117017334,
   "test/terrain-triplets.test.ts": 0.900593678,
