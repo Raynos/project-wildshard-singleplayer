@@ -39,9 +39,12 @@ export function queueBakedPrograms(list: Promise<BakedPrograms | null>): void {
   // the page's unhandled-rejection boot failure before the renderer step would have read it (sp-x8's C25)
   baked = list.catch(() => null); bakedStopped = false;
 }
-/** After the renderer step: link the queued list on the game's own context, one program a painted frame where links
- *  queue in the GPU process ahead of frames (WebKit), all at once elsewhere. Nothing is read back (no status query
- *  waits on the GPU process); the objects are kept until `releaseBakedPrograms` so no link is cut short. */
+/** After the renderer step: link the queued list on the game's own context. Where links queue in the GPU process ahead
+ *  of the page's own GL calls (WebKit), the next program is issued only once the last one reports complete
+ *  (KHR_parallel_shader_compile's COMPLETION_STATUS, polled once a painted frame; a 600 ms beat without the extension):
+ *  one a painted frame issued faster than the Simulator links (~0.5 s each), and Driftwood's next synchronous GL call in
+ *  the Sky step waited 15 s behind the queue (throttled Sim pair, 11-04). Elsewhere all at once. The objects are kept
+ *  until `releaseBakedPrograms` so no link is cut short. */
 export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>): void {
   const list = baked; baked = null;
   if (list === null) return;
@@ -54,7 +57,14 @@ export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>):
     const data = await list;
     if (data === null || data.version !== 2) return;
     const { queuedLinks } = await import('../render/precompile');
-    const perFrame = queuedLinks() ? 1 : Number.POSITIVE_INFINITY;
+    const paced = queuedLinks(), parallel = gl.getExtension('KHR_parallel_shader_compile');
+    const frame = (): Promise<void> => new Promise<void>(resolve => { owner.raf(() => { resolve(); }); });
+    // a disposed scope cancels its frame or timer: the pass simply stops there
+    const settled = async (program: WebGLProgram): Promise<void> => {
+      if (parallel === null) { await new Promise<void>(resolve => { owner.timeout(600, resolve); }); return; }
+      const waiting = (): boolean => !bakedStopped && !gl.isContextLost() && gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR) !== true;
+      while (waiting()) await frame();
+    };
     const compiled = new Map<number, WebGLShader>();
     const shader = (at: number, type: number): WebGLShader | null => {
       const known = compiled.get(at); if (known !== undefined) return known;
@@ -63,14 +73,12 @@ export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>):
       gl.shaderSource(made, source); gl.compileShader(made); compiled.set(at, made); mine.shaders.push(made);
       return made;
     };
-    let issued = 0;
     for (const [vertex, fragment] of data.programs) {
       if (bakedStopped || owner.disposed || owner.disposing || held !== mine || gl.isContextLost()) return;
       const vs = shader(vertex, gl.VERTEX_SHADER), fs = shader(fragment, gl.FRAGMENT_SHADER), program = gl.createProgram();
       if (vs === null || fs === null) continue;
       gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program); mine.programs.push(program);
-      // a disposed scope cancels its frame: the pass simply stops here
-      if (++issued % perFrame === 0) await new Promise<void>(resolve => { owner.raf(() => { resolve(); }); });
+      if (paced) await settled(program);
     }
   })();
 }
