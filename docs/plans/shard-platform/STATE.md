@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 5d149d3-mw1gp5xc** (21:18 Cancun; all CI green, Sky + Nine P1 entry PASS). **Jake: QD6, test Nine live.** **Jake picks:** DL7 P1/P2/P3 on download-mini-plan.md DL7 row (a889005ebb; wildshard-v asks).
+**LIVE f6ef48d-mw1kwj75** (23:09 Cancun; DL9 ASTC; Nine P1 entry structural only, G872). QD12 wall fix fe210797ab ships next: **then Jake QD6 re-test, QD7 on his word.** **Jake picks:** G1002 done (P2 measured, not built: +25 MB resident for -0.8 s).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**23:00:** LIVE bbceabe-mw1ih56l. Jake QA: Nine "almost fixed" -> QD12 wall slab (o1, top); DL21 dead loading card (o3, top). DL9 ASTC wins (n=3; o1 lands), DL15 q11 parts built, DL18 reader landed, DL11 road puts in a worker (-4.4 s). G1002 P1/P3 o2, P2 o1.
+**00:00:** DL21 card: clock from tap + index.html clock pushed; step 27 = 8 serial Nine chunk GLBs, fixed 637a3afd4f; stuck-boot rescue (o2). CI disk-full: +315 MB .pack.br, census next run. DL11 slice 2 road capture in a worker (o1).
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
