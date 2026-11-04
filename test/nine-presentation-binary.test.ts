@@ -8,7 +8,7 @@ import { cardScene } from '../src/shards/nine-dragon-stack/generators/presentati
 import { admitSceneBuffers } from '../src/game/shardfile/sceneBuffers';
 import before from './fixtures/nine-presentation-bytes.json' with { type: 'json' };
 
-test('Nine presentation keeps every original channel word and draw reference', () => {
+test('Nine presentation keeps every pinned channel word and draw reference', () => {
   const binary = NINE_SCENE_BLOBS.filter(blob => blob.file.kind === 'bin' && blob.file.name?.startsWith('world/cards/') === true);
   const files = new Map(binary.map(blob => [blob.file.name, blob]));
   const descriptors = NINE_SCENE_BLOBS.filter(blob => blob.file.kind === 'json' && blob.file.name?.startsWith('world/cards/') === true);
@@ -29,8 +29,9 @@ test('Nine presentation keeps every original channel word and draw reference', (
   expect(actual).toEqual(before.map(({ name, scene }) => ({ name, scene })));
   // The full immutable admission also refuses aliased bytes or duplicate hashes.
   expect(() => emitNamedBlobs([...binary, ...descriptors])).not.toThrow();
+  // Historical inline migration sizes stay fixed; current native channels include the approved QD12 shops.
   expect(before.reduce((sum, row) => sum + row.characters, 0)).toBe(477948);
-  expect(before.reduce((sum, row) => sum + row.scene.buffers.reduce((bytes, buffer) => bytes + buffer.byteLength, 0), 0)).toBe(922796); // FC12: one receiver draw, its plane on every card instance
+  expect(before.reduce((sum, row) => sum + row.scene.buffers.reduce((bytes, buffer) => bytes + buffer.byteLength, 0), 0)).toBe(923816); // FC12 receiver planes; QD12 adds five shop emitters (+1020 B)
 });
 
 test('presentation sharing distinguishes word bits and instancing and consumes sources once', () => {
