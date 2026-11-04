@@ -1,3 +1,4 @@
+import { SceneScatterPageSchema, SceneDressingSchema } from './sceneDressing';
 import { PopulationHabitatSchema } from './populationEnvironment';
 import { FindsCatalogueSchema } from './findsCatalogue';
 import { ContractCatalogueSchema } from './contracts';
@@ -204,6 +205,15 @@ export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
     source: '@wildshard/format/rainPresentation#RainPresentationSchema', reader: 'src/game/weather/rainPresentation.ts' },
   { pattern: /^world\/weather-observations\.json$/u, schema: ForestWeatherObservationSchema,
     source: '@wildshard/format/rangedPage#ForestWeatherObservationSchema', reader: 'src/game/looks/forestWeather.ts' },
+  // G1004: exact approved one-user documents; native owners and bytes stay original.
+  { pattern: /^world\/dressing-pages\/0\.json$/u, schema: SceneScatterPageSchema,
+    source: '@wildshard/format/sceneDressing#SceneScatterPageSchema', reader: 'src/game/shardfile/sceneScatterPages.ts' },
+  { pattern: /^world\/dressing-pages\/1\.json$/u, schema: SceneScatterPageSchema,
+    source: '@wildshard/format/sceneDressing#SceneScatterPageSchema', reader: 'src/game/shardfile/sceneScatterPages.ts' },
+  { pattern: /^world\/dressing-phone\.json$/u, schema: SceneDressingSchema,
+    source: '@wildshard/format/sceneDressing#SceneDressingSchema', reader: 'src/game/shardfile/sceneDressing.ts' },
+  { pattern: /^world\/dressing-desktop\.json$/u, schema: SceneDressingSchema,
+    source: '@wildshard/format/sceneDressing#SceneDressingSchema', reader: 'src/game/shardfile/sceneDressing.ts' },
 ];
 
 /** Match both logical name and defining schema identity. An unregistered or
