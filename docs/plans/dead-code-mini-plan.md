@@ -85,10 +85,9 @@ Deleting a `.mjs` also deletes its `.d.mts`. A deleted test also comes out of `t
 
 ### DC1: one-off capture, measure and probe scripts for closed asks (73 files, 7,597 lines) · Codex · M
 
-**DC1 source:** done (2026-11-04, `5721c5896f84649745b5efba450d6b98cc0fef34`; types, related and scoped ratchet pass): remove 66 unread files. Keep number-path-probe and declaration (DW witness/fake reads), latch-grid-evidence and declaration (maintained latch tests), MIDI exporter (byte/hash tests), crossroads production-probe (current production recipe), and grid-ready-chromium (open KITCHEN-SINK finish rows). Fresh tracked-tree basename/path search includes tests, registries and data references; historical prose is not an importer.
+**DC1 source:** committed (2026-11-04, `5721c5896f84649745b5efba450d6b98cc0fef34`, migration-inventory follow-up `77f49c4c7306b2084a715bae0dc618d743c4a5c0`; types, related, deletion guard and scoped ratchet pass): remove 66 unread files. Keep number-path-probe and declaration (DW witness/fake reads), latch-grid-evidence and declaration (maintained latch tests), MIDI exporter (byte/hash tests), crossroads production-probe (current production recipe), and grid-ready-chromium (open KITCHEN-SINK finish rows). Fresh tracked-tree basename/path search includes tests, registries and data references; historical prose is not an importer.
 
-Nothing runs them. No `package.json` script, workflow, hook, skill, process doc or other live script names them, and
-their asks or waves are closed.
+The original candidate list follows. The committed cut excludes the live readers recorded above; the other asks or waves are closed.
 
 - Ask captures: `scripts/{e172-clear-downloads,e314-nine-bag-capture,e314-pine-bag-capture,e334-fp-capture,e334-look-review-capture,e350-king-measure}.mjs`
 - SF22: `scripts/sf22-{cadence,drawn-frames,shader-observer,shaders}.mjs`
@@ -99,12 +98,12 @@ their asks or waves are closed.
 - Practice: `scripts/practice/{bake_unimate_clips,capture_unimate_arena,unimate-rig-input}.mjs`
 - Oneshot: `scripts/oneshot/{browser-broker,browser-channel,browser-policy,seat-browser}.mjs`
 - Test: `test/generation-benchmark.test.ts`
-- **Evidence:** the strict and lenient reach both miss them, and the stem grep finds no live reader. **Risk:** an agent
+- **Evidence:** fresh importer/data/ref searches find no remaining consumer of the 66-file cut; the initial graph missed the seven retained files. **Risk:** an agent
   still runs one by hand. Its git history keeps it. **Check:** the re-grep, then types.
 
 ### DC2: SHARD-PLATFORM M3 look-parity proofs (15 files, 1,661 lines) · Codex · S
 
-**DC2 source:** done (2026-11-04, `b8a2e57b12e2100badc13ae64a91458b0ff90984`; types, related and scoped ratchet pass): remove 13 unread proof files; keep parity/shader-code.mjs and its declaration because world-scene-baked-model.test.ts imports the shader normalizer.
+**DC2 source:** committed (2026-11-04, `b8a2e57b12e2100badc13ae64a91458b0ff90984`; types, related and scoped ratchet pass): remove 13 unread proof files; keep parity/shader-code.mjs and its declaration because world-scene-baked-model.test.ts imports the shader normalizer.
 
 These are base-vs-candidate pixel proofs from SHARD-PLATFORM M3 and W1 C1. That plan is archived, and the `goldens`
 skill (24 SHARDFILE cameras) is now the look check (AGENTS.md).
@@ -112,19 +111,18 @@ skill (24 SHARDFILE cameras) is now the look check (AGENTS.md).
 - `scripts/proof-{driftwood,pine,nalati,signal,sky}-look-parity.mjs`
 - `scripts/{look-parity-creatures,w1-c1-parity,nalati-parity,nalati-paintover,nalati-poses,proof-texture-retirement}.mjs`
 - `scripts/parity/{shader-code,terrain-settle}.mjs`
-- **Evidence:** they only reference each other (a dead cycle). **Risk:** none at runtime. **Check:** the re-grep, then
+- **Evidence:** the 13-file cut has no live reader; the shader normalizer and declaration remain for their maintained test. **Risk:** none at runtime. **Check:** the re-grep, then
   types.
 
 ### DC3: tile-plan, tile-census and draw-hook proof tools (16 files, 1,383 lines) · Codex · S
 
-**DC3 source:** done (2026-11-04, `c12abf07402398b4ea0f255748d1862d99d0341d`; types, related and scoped ratchet pass): remove 17 unread files, including all eight retirement-only cases. The frame-floor-grid import was type-only; there were no frame-floor-grid runtime cases in that test to retain. Live frame-floor-grid and its dedicated tests remain.
+**DC3 source:** committed (2026-11-04, `c12abf07402398b4ea0f255748d1862d99d0341d`; types, related and scoped ratchet pass): remove 17 unread files, including all eight retirement-only cases. The frame-floor-grid import was type-only; there were no frame-floor-grid runtime cases in that test to retain. Live frame-floor-grid and its dedicated tests remain.
 
 - `scripts/tile-plan-{page,reading,report}.mjs`, `scripts/tile-retirement-{chromium,proof}.mjs`
 - `scripts/parity/tile-census{,-scene}.mjs`
 - `scripts/perf/draw-hook-component{s,-build,-scene}.mjs`
 - Tests: `test/tile-census.test.ts`, `test/tile-census-scene.test.ts`
-- `test/tile-retirement-proof.test.ts` also imports `scripts/frame-floor-grid.mjs` (live): keep that test's
-  frame-floor-grid cases and drop only its tile-retirement cases.
+- `test/tile-retirement-proof.test.ts` had only a type import from live `scripts/frame-floor-grid.mjs`; all eight cases exercised the retired harness, so that exclusive test was removed.
 - **Evidence:** only each other and their tests read them. Three were swept by `d0d8d26283` today (an ENTER WORLD rename),
   which is upkeep, not use. **Risk:** a manual tile proof. **Check:** the re-grep, types, `vitest related`.
 
@@ -262,7 +260,7 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
 
 ### DC15: trailer tooling (127 files, ~6,145 lines + ~18 MB) · Codex · M · **approved (G1014)**
 
-**DC15 source:** in flight (2026-11-04, sp-x2): remove the 126 retired trailer files, including three WAVs; TRAILERS stays parked under G1014. Current gameplay music and the independent progress-recording helper/tests remain.
+**DC15 source:** committed (2026-11-04, `cf104912d315992fbdc2b812e4e3df7b1fe5c4fc`; types, related, deletion guard and scoped ratchet pass): remove the 126 retired trailer files, including three WAVs; TRAILERS stays parked under G1014. Current gameplay music and the independent progress-recording helper/tests remain.
 
 - `scripts/progress-trailer/`, `scripts/steam-trailer/`, `scripts/trailer/`, their tests, and the three `.wav` files outside `public/`.
 - Jake: "Nuke the soak, nuke the trailer, we can bring him back from Git history." Future trailers start from a generic tool, built fresh or restored from git (`git log --all -- scripts/trailer/` names the last commit). TRAILERS is parked in the same commit.
