@@ -119,7 +119,12 @@ export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Textur
     const white = new THREE.DataTexture(Uint8Array.from(row.textureFallback??[255,255,255,255]), 1, 1);
     white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
     material.map = white;
-    textureLoads.set(material, loadSpecimenTexture(row.texture).then(loaded => { material.map = loaded; return undefined; }).catch(() => undefined));
+    // G872: a texture that fails keeps the declared fallback colour and is reported, never a refused level
+    const texture = row.texture, apply = async (): Promise<void> => {
+      try { material.map = await loadSpecimenTexture(texture); }
+      catch (error: unknown) { console.warn(`[dressing] ${row.id}: texture failed, its fallback colour stays`, error); }
+    };
+    textureLoads.set(material, apply());
   }
   bySky.set(row.id, material);
   forgetWhenDisposed(material, bySky, row.id, material);

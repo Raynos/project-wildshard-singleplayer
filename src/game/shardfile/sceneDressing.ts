@@ -1,3 +1,4 @@
+import { waitFor } from '@wildshard/engine/boot/waits';
 import { SceneScatterPages } from './sceneScatterPages';
 import {prepareBinarySources,binarySourceBytes} from '../models/binarySource';
 import { decodeLaneBytes, inflateBytes } from '@wildshard/engine/core/deflate';
@@ -45,6 +46,14 @@ const books = new WeakMap<Scope,WeakMap<ShardContext['product'],SceneDressing>>(
 const contacts = (input: readonly unknown[]) => readColliderRows(input, {kinds:['box','treads','hull','capsule','ball','trimesh'],surfaces:['sand','wetSand','grass','rock','planks','stone','water','wood','metal','flesh','shell','ground','edge','felt','earth']});
 
 /** Prepared local floor tables retain their original highest-surface policy. */
+/** DL17: a dressing's declared textures, awaited before it resolves, owned by its scope: retiring the scope ends the wait (a
+ *  read that never settles cannot hold a retired dressing) and refuses it; the loading footer names the wait meanwhile. */
+export async function awaitDressingTextures(scope:Pick<Scope,'capture'|'disposed'|'disposing'>,textures:readonly Promise<unknown>[]):Promise<void>{
+  let release=():void=>undefined;
+  const retired=new Promise<void>(resolve=>{release=scope.capture('disposers',resolve);});
+  try{await waitFor('Dressing textures',Promise.race([Promise.all(textures),retired]),'work');}finally{release();}
+  if(scope.disposed||scope.disposing)throw new Error('Dressing retired while its textures loaded');
+}
 export function readSceneFloors(input:unknown,files:ReadonlyMap<string,Uint8Array>=new Map()):((x:number,z:number)=>number|undefined)[]{
   return v.parse(v.array(SceneFloorSchema),input).map(row=>{
     if('rects'in row)return(x,z)=>floorAtRects(row.rects,x,z,'highest');
@@ -308,12 +317,12 @@ export class SceneDressing {
         :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):source.kind==='lettering'||source.kind==='lettering-file'?letteringMaterial(sky,source,files):painterlyMaterial(sky,source);
       if(source.kind==='look'){
         for(const [name,value]of Object.entries(source.params??{}))setLentParam(source.look,name,value);
-        for(const [name,row]of Object.entries(source.textures??{}))textures.push(loadSpecimenTexture(row).then(texture=>{if(!ctx.scope.disposed)setLentTexture(source.look,name,texture);return null;}).catch(()=>null));
+        for(const [name,row]of Object.entries(source.textures??{}))textures.push(loadSpecimenTexture(row).then(texture=>{if(!ctx.scope.disposed)setLentTexture(source.look,name,texture);return null;}).catch((error:unknown)=>{console.warn(`[dressing] ${key}.${name}: texture failed, its fallback stays`,error);return null;}));
       }
       if(source.kind==='specimen')textures.push(specimenMaterialReady(material));
       materials.set(key,material);await pause();
     }
-    await Promise.all(textures);
+    await awaitDressingTextures(ctx.scope,textures);
     });
     const needGeometry=(id:string):THREE.BufferGeometry=>{const value=geometry.get(id);if(value===undefined)throw new Error(`Missing scene shape ${id}`);return value;};
     const needMaterial=(id:string):THREE.Material=>{const value=materials.get(id);if(value===undefined)throw new Error(`Missing scene paint ${id}`);return value;};
