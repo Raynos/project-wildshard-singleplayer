@@ -1856,7 +1856,6 @@
  "test/shard-component-spans.test.ts": 0,
  "test/shard-component-waves.test.ts": 0,
  "test/shard-headless.test.ts": 36.6,
- "test/shard-phone-memory-entry.test.ts": 0,
  "test/shard-phone-memory.test.ts": 22,
  "test/shard-platform-cli.test.ts": 2.3,
  "test/shard-select-entries.test.ts": 2.7,
