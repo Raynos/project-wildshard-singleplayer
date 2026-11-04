@@ -5,7 +5,7 @@ import { isJsonData } from '@wildshard/format/json';
 import type { RiggedHullFamilyRow, RiggedHullFiles, RiggedHullFlap, RiggedHullUrls } from '@wildshard/format/riggedHulls';
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { cacheUntilDisposed } from '@wildshard/engine/app/disposalCache';
-import { ktx2File, ktx2Texture, prepareCompressedTexture, parseKtx2Bytes } from '@wildshard/engine/core/ktx2';
+import { ktx2File, ktx2Texture, ktx2TranscodeSupport, prepareCompressedTexture, parseKtx2Bytes } from '@wildshard/engine/core/ktx2';
 import { compressedLayerArray } from '@wildshard/engine/render/layeredMaps';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import type { CreatureHull } from '@wildshard/engine/entities/species/look';
@@ -139,12 +139,34 @@ export interface RiggedHullTransport {
   readonly texture: (name: string) => Promise<THREE.Texture>;
 }
 
+/** A KTX2 body of raw ASTC 4x4 (vkFormat 157 linear / 158 sRGB): DL9's phone maps, which no transcoder can turn into
+ *  another format. */
+function nativeAstc(bytes: Uint8Array): boolean {
+  if (bytes.length < 16) return false;
+  const vk = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(12, true);
+  return vk === 157 || vk === 158;
+}
+/**
+ * DL9: the name to read for a hull map: `name` itself, or, when its body is raw ASTC and this device samples no ASTC
+ * (`astc` false: no extension, or the capability probe turned it off, the iOS Simulator's sRGB ASTC), the desktop tier's
+ * Basis twin of the same map (`<hull>.phone.<rest>` → `<hull>.<rest>`), which every device can transcode. Null: no twin.
+ */
+export function hullMapName(name: string, bytes: Uint8Array, astc: boolean): string | null {
+  if (astc || !nativeAstc(bytes)) return name;
+  const twin = name.replace('.phone.', '.');
+  return twin === name ? null : twin;
+}
+
 /** The cached family must not retain an admission or its transport bodies after its resident owner retires. */
 function productHullTransport(slug: string): RiggedHullTransport {
   const read = async () => (await import('@wildshard/game/shardfile/runtimeProduct')).loadFirstPartyProduct(slug);
   return {
     rig: async name => { const product = await read(); return parseRigFile(await product.file(name), product.url(name)); },
-    texture: async name => parseKtx2Bytes(await (await read()).file(name)),
+    texture: async name => {
+      const product = await read(), bytes = await product.file(name), chosen = hullMapName(name, bytes, ktx2TranscodeSupport().astc);
+      if (chosen === null) throw new Error(`Rigged hull map ${name} is raw ASTC, which this device cannot sample, and has no Basis twin`);
+      return parseKtx2Bytes(chosen === name ? bytes : await product.file(chosen));
+    },
   };
 }
 
