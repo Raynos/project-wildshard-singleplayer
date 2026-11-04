@@ -58,7 +58,9 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
     if (id.includes('/src/shards/')) return null;
     if (boundary === 'title') return titleMask > 0n ? `title-${roles}` : null;
     if (titleMask > 0n || !/\.(?:[cm]?[jt]sx?|json)$/u.test(id) || id.includes('/out/')) return null;
-    return `control-${roles}`;
+    // DL14 (G872): one core across every home, split only at the session boundary (its closure budget and its
+    // no-shard guard). A home may fetch another home's pre-control code: at most 1.45 MB raw, parsed, never run.
+    return `control-${session?.has(id) === true ? 'session' : 'startup'}`;
   };
 }
 
@@ -85,9 +87,10 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
     // Its dependencies still join their exact shared requirement banks.
     { name: 'grid-session', test: id => id === resolve(root, 'src/game/grid/session.ts'), includeDependenciesRecursively: false },
     { name: controlChunkSelector(root, startup, 'control', homes), includeDependenciesRecursively: false, maxSize: 4_000_000 },
+    // DL14: one chunk per shard (owners never mix: check-chunks) and one late bank, not one per entry set.
     { name: id => { const slug = /\/src\/shards\/([^/]+)\//u.exec(id)?.[1]; return slug === undefined ? null : `shard-${slug}`; },
-      entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },
-    { name: 'late', entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },
+      includeDependenciesRecursively: false, maxSize: 4_000_000 },
+    { name: 'late', includeDependenciesRecursively: false, maxSize: 4_000_000 },
   ];
 }
 
