@@ -20,8 +20,6 @@ import { ViewmodelSources } from '../../player/viewmodelSources';
 
 export interface RangedWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface RangedOptions { row: EquipmentRow; allowUnlocked?: boolean }
-export type CrossbowWorld = RangedWorld;
-export type CrossbowOptions = RangedOptions;
 export const TRACER_ORDER = 1200;
 export const TRACER_RED: THREE.Color = new THREE.Color(1.0, 0.0, 0.0);
 /** The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. */
@@ -257,17 +255,6 @@ export function box(w: number, h: number, d: number, x = 0, y = 0, z = 0, rx = 0
   g.translate(x, y, z);
   return g;
 }
-export function cyl(rTop: number, rBot: number, len: number, seg: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
-  const g = new THREE.CylinderGeometry(rTop, rBot, len, seg);
-  if (rx || ry || rz) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, ry, rz)));
-  g.translate(x, y, z);
-  return g;
-}
-export function remapUV(g: THREE.BufferGeometry, u0: number, v0: number, su: number, sv: number): THREE.BufferGeometry {
-  const uv = g.getAttribute('uv') as THREE.BufferAttribute;
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, u0 + uv.getX(i) * su, v0 + uv.getY(i) * sv);
-  return g;
-}
 /** Lighten vertex colour on bevel/edge vertices (normals off-axis) → worn, handled edges. */
 export function edgeWear(g: THREE.BufferGeometry, amount = 0.28): void {
   const n = g.getAttribute('normal'), count = n.count;
@@ -285,11 +272,6 @@ export function edgeWear(g: THREE.BufferGeometry, amount = 0.28): void {
 export function whiteColors(g: THREE.BufferGeometry): void {
   if (g.hasAttribute('color')) return;
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
-}
-export function stripExtra(geo: THREE.BufferGeometry): THREE.BufferGeometry { // non-indexed, only position/normal/uv, so merge works
-  const g = geo.index ? geo.toNonIndexed() : geo;
-  for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
-  return g;
 }
 
 /** Bolt geometry along -Z (tip at -Z). Length 0.36. Single material via atlas UVs. */

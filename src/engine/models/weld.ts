@@ -77,12 +77,6 @@ export function twoSidedPositions(geo: THREE.BufferGeometry, m: THREE.Matrix4): 
   return out.applyMatrix4(m);
 }
 
-/** `geo`'s positions only (non-indexed, sharing the attribute when it already is): a caster for a front-sided proxy */
-export function flatPositions(geo: THREE.BufferGeometry): THREE.BufferGeometry {
-  const g = geo.index ? geo.toNonIndexed() : geo;
-  const out = new THREE.BufferGeometry(); out.setAttribute('position', g.getAttribute('position'));
-  return out;
-}
 
 /** a non-indexed position-only geometry with the plain index 0 … n−1 (its position attribute shared) */
 function sequentialIndex(geo: THREE.BufferGeometry): THREE.BufferGeometry {

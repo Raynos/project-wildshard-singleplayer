@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
-import type { ShardSlug } from './shard/slugs.generated';
 import { inventoryKey, purseKey } from './localSaveKeys';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -16,9 +15,5 @@ export const bountySave: SaveSlot<Record<string, number>> = define('bounty', num
 export const compendiumSave: SaveSlot<Record<string, { s: number; n: number; t: number; b: number; }>> = define('compendium', v.record(v.string(), v.object({ s: finite, n: finite, t: finite, b: finite })), () => ({}));
 export const bossesSave: SaveSlot<Record<string, { defeated: boolean; rewardTaken: boolean; kills: number; }>> = define('bosses', v.record(v.string(), v.object({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite })), () => ({}));
 export const elitesSave: SaveSlot<Record<string, { timer: number; discovered: boolean; skinTaken: boolean; kills: number; retired: boolean; }>> = define('elites', v.record(v.string(), v.object({ timer: finite, discovered: v.boolean(), skinTaken: v.boolean(), kills: finite, retired: v.boolean() })), () => ({}));
-/** The public game wrapper constrains saves to the generated registry's slug union. */
-export function shardSave<T>(slot: SaveSlot<T>, slug: ShardSlug): { read: () => T; write: (data: T) => void; reset: () => void } {
-  return { read: () => slot.read(slug), write: (data) => { slot.write(data, slug); }, reset: () => { slot.reset(slug); } };
-}
 /** Legacy actor APIs accept strings until their shard phase; normalize the old identifier at this boundary. */
 export function saveSlug(id: string): string { return id.replace(/^chunk:\/\/local\//u, ''); }

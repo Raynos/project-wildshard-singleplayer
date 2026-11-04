@@ -38,35 +38,6 @@ export const windUniforms: { uTime: { value: number; }; uWindStrength: { value: 
 export const forestFade: { uViewer: { value: THREE.Vector3; }; } = { uViewer: { value: new THREE.Vector3(1e9, 0, 1e9) } };
 export interface FadeBand { value: THREE.Vector3 }
 const noFade = (): FadeBand => ({ value: new THREE.Vector3(1e9, 1e9, 0) });
-export function patchFade(shader: { vertexShader: string; fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, band: FadeBand): void {
-  shader.uniforms['uViewer'] = forestFade.uViewer;
-  shader.uniforms['uFadeBand'] = band;
-  shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nuniform vec3 uViewer; uniform vec3 uFadeBand; varying float vFadeKeep;')
-    .replace('#include <begin_vertex>', `#include <begin_vertex>
-      vFadeKeep = 1.0;
-      #if defined( USE_INSTANCING ) || defined( USE_BATCHING )
-      {
-        vec4 fo = vec4( 0.0, 0.0, 0.0, 1.0 );
-        #ifdef USE_INSTANCING
-          fo = instanceMatrix * fo;
-        #endif
-        #ifdef USE_BATCHING
-          fo = batchingMatrix * fo;
-        #endif
-        fo = modelMatrix * fo;
-        float ft = clamp( ( distance( fo.xz, uViewer.xz ) - uFadeBand.x ) / max( uFadeBand.y - uFadeBand.x, 1e-3 ), 0.0, 1.0 );
-        vFadeKeep = uFadeBand.z > 0.5 ? 1.0 - ft : ( uFadeBand.z < -0.5 ? ft : 1.0 );
-      }
-      #endif`);
-  shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nuniform vec3 uFadeBand; varying float vFadeKeep;')
-    .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-      if ( vFadeKeep < 1.0 ) {
-        float ign = fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) );
-        if ( vFadeKeep <= ( uFadeBand.z < -0.5 ? 1.0 - ign : ign ) ) discard;
-      }`);
-}
 
 /**
  * a forest material: a classic standard / Lambert one, or a shard's compiled graph (which casts its own shadow depth);

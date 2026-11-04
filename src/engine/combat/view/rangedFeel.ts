@@ -38,7 +38,3 @@ export function prepareRangedFeel(game: Game): RangedFeelInstaller {
   };
 }
 
-/** Prepare resources and bind listeners together for ordinary, immediately entered callers. */
-export function installRangedFeel(game: Game, events: Events, scope: Scope, rowFor: (id: EquipmentId) => EquipmentRow | undefined): void {
-  prepareRangedFeel(game)(events, scope, rowFor);
-}

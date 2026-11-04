@@ -1367,8 +1367,7 @@ if (!notes.read(ctx.manifest.slug)) notes.write(true, ctx.manifest.slug);
 ```
 
 `@wildshard/game` defines the shared game keys: `progressSave`, `inventorySave`, `purseSave`, `ownedSave`, `bountySave`,
-`compendiumSave`, `bossesSave`, `elitesSave`. Bind one to your shard with `shardSave(slot, slug)`:
-`shardSave(purseSave, ctx.manifest.slug).write(n)`. `saveSlug(id)` strips a legacy `chunk://local/` id.
+`compendiumSave`, `bossesSave`, `elitesSave`. `saveSlug(id)` strips a legacy `chunk://local/` id.
 `jsonSlot(key, scope)`, `jsonSchema`, `jsonRecord` and `saveStorage(scope)` cover untyped JSON and the pre-boot keys.
 
 ## 10. Input
@@ -2003,7 +2002,7 @@ loops, score, listeners and credits.
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
 | `LevelAudioProfile` | a level's audio profile (the audio runtime loads lazily: `await import('@wildshard/engine/audio/Stems')` …, by the module a level uses). Optional `titleFiles(style)` identifies only recordings unused by played slots; direct phone play can defer those exact bytes through the existing after-control audio queue. |
 | `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/audio/theme.ts, E405: the engine holds no theme) |
-| `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (a shard's creature voices) |
+| `Synth`, `impact` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (a shard's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
 `audio/util.spatialAudio(position, listener, yaw, reach, scale, power = 1.4)`
@@ -2125,7 +2124,7 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 | Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel`; weather fog `weatherFog`, `WeatherFog`, `WeatherFogSpec` (E390: a second exponential fog over the level's own, compiled only when the manifest sets `atmosphere.weather: true`; `set(strength 0..1)` each time it changes, cleared when the scope ends; it composes with a backdrop's clock and the underwater blend) | `const storm = weatherFog(ctx.scope, { dist: 0.05, color: 0x8a5238 }); storm.set(eased)` (Signal Dunes' sand storm) |
 | Wind | `wind`, `WIND_DIR`, `windGustAt`, `windUniforms`, `WindField` | grass, trees and arrow drift read it |
 | Placement and models | `defineModel`, `ModelDef`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `twoSidedPositions`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
-| Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchFade`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn` | |
+| Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn` | |
 | Geometry kit | `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `lathe`, `revolve`, `revolveUV`, `mergeVerticesByPos`, `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`, `lin`; the AO bake (SF67): `addVoxelAOBake`, `withVoxelAOBake` (a world build with a shard's baked table added, then dropped), `decodeVoxelAOBake`, `encodeVoxelAOBake`, `recordVoxelAO`, `voxelAOBakeStats`; its key drops the trig last bits Node and the browsers disagree on (hemisphere directions to 1e-9, normals to 2^-16) and probes the ground coarsely, so a hit skips the full column cache | |
 | Interactables | `Interactable`, `Interactables`, `InteractEvent`, `Flags`, `Place`, `PoiId` | the template's hut door |
 | Bounds and layout | `installBounds`, `CHUNK_*` | |
@@ -2481,8 +2480,8 @@ and existing Pine saves/buffers are covered by
 `test/held-finishes-platform.test.ts` and `test/pine-finish-product.test.ts`.
 
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
-`ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`, `HitLine`,
-`makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `installRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,
+`ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`,
+`makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `prepareRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,
 `AmmoId`, `AmmoRow`, `ProjectileModification`, and the shared viewmodel helpers in `./combat/view/ranged`
 (`Puffs`, `worldHit`, `FOV_HIP`, `FOV_ADS`, `viewmodelMaterial`, `TRACER_ORDER` … listed in the appendix);
 `viewmodelRowMaterial` builds that shared material from a data row (`ViewmodelMaterialRow`: factors, a named texture set, tuples).
@@ -2507,8 +2506,7 @@ from entered listeners: it builds the existing camera/debris resources and retur
 a `RangedFeelInstaller(events, scope, rowFor)`. Prepare while an admitted resident
 is hidden, before shader warm-up; bind the returned installer only during entry.
 It uses the same particle pool, seeded bursts, hit-stop and camera laws.
-`installRangedFeel(game, events, scope, rowFor)` retains the immediate prepare-and-bind
-contract for ordinary callers. Listener disposal and re-entry remain scope-owned.
+Listener disposal and re-entry remain scope-owned.
 
 ## 19. Creatures and AI
 

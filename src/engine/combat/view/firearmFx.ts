@@ -1,10 +1,4 @@
 import * as THREE from 'three';
-import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { TRACER_RED, TRACER_ORDER } from './ranged';
-
-const TRACER_WIDTH = 3;
 /** muzzle flash sprite: a hot white core, orange petals, alpha in the luminance (additive) */
 export function makeFlashTexture(): THREE.CanvasTexture {
   const S = 128, cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
@@ -30,30 +24,4 @@ export function makeFlashTexture(): THREE.CanvasTexture {
 
 // ───────────────────────────── hitscan tracer ─────────────────────────────
 
-/** one straight red line, muzzle → impact, alive TRACER_TIME s */
-export class HitLine {
-  readonly line: LineSegments2; readonly mat: LineMaterial;
-  private geo: LineSegmentsGeometry; private buf = new Float32Array(6);
-  t0 = -1;
-  constructor(scene: THREE.Scene) {
-    this.geo = new LineSegmentsGeometry(); this.geo.setPositions(this.buf);
-    this.mat = new LineMaterial({ linewidth: TRACER_WIDTH, transparent: true, opacity: 1, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
-    this.mat.color = TRACER_RED.clone();
-    this.line = new LineSegments2(this.geo, this.mat);
-    this.line.frustumCulled = false; this.line.renderOrder = TRACER_ORDER; this.line.visible = false;
-    scene.add(this.line);
-  }
-  show(a: THREE.Vector3, b: THREE.Vector3, t: number): void {
-    this.buf[0] = a.x; this.buf[1] = a.y; this.buf[2] = a.z; this.buf[3] = b.x; this.buf[4] = b.y; this.buf[5] = b.z;
-    this.geo.setPositions(this.buf);
-    this.mat.opacity = 1; this.line.visible = true; this.t0 = t;
-  }
-  update(t: number, res: THREE.Vector2, life: number): void {
-    if (this.t0 < 0) return;
-    this.mat.resolution.copy(res);
-    const a = 1 - (t - this.t0) / life;
-    if (a <= 0) { this.t0 = -1; this.line.visible = false; return; }
-    this.mat.opacity = a;
-  }
-}
 

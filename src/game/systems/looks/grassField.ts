@@ -263,8 +263,3 @@ export function grassBloomAt(x: number, z: number): number { return page().sampl
 /** 0..1 which species a drift leans to (FLOWER_VS in src/shards/level/look/grass.ts) */
 export function flowerSpeciesAt(x: number, z: number): number { return page().sample(x, z, 3); }
 
-/** the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled */
-export function groundColorAt(x: number, z: number, out: [number, number, number]): [number, number, number] {
-  out[0] = page().sample(x, z, 4); out[1] = page().sample(x, z, 5); out[2] = page().sample(x, z, 6);
-  return out;
-}

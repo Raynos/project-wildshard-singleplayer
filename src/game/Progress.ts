@@ -20,8 +20,6 @@ import { achievementsFor, type AchievementDef } from './achievements';
 interface ShardProgress { counts: Record<string, number>; earned: string[]; title: string | null; playS: number }
 const PLAY_SAVE_S = 15;
 
-/** what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6) */
-export interface ProgressSink { recordEvent: (event: string, total?: number) => void }
 
 /** Read-only achievement state from the authoritative ledger; the shard's feat table owns presentation. */
 export interface ProgressLedger {
