@@ -78,7 +78,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   });
   game.app.clock.setCapture(harnessPins()?.capture ?? null);
   issueBakedPrograms(game); // DL10 (Debug 'Early shader compile'): a queued list of the level's entry programs starts linking
-  const sky = await step('sky', () => game.buildSky());
+  const sky = await step('sky', (p) => game.buildSky((text) => { p.detail(text); }));
   game.retainEngineScene();
   const terrain = await step('terrain', async (p) => {
     const t = await new Terrain().build(level.ground, game.look?.terrainPainter, game.levelScope); // a look with its own ground paints it (LookStrategy.terrainPainter)

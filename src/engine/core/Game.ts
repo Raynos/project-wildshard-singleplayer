@@ -525,15 +525,19 @@ export class Game {
   /** where the strategy put its passes (asked once, in buildComposer) */
   private composition: LookComposition | null = null;
 
-  async buildSky(): Promise<Sky> {
+  /** `detail` names each stage on the loading card as it starts (DL21: a cold Simulator card sat 1.2 s on the bare step). */
+  async buildSky(detail?: (text: string) => void): Promise<Sky> {
     this.levelId = this.level.id;
     const loadLook = this.level.look;
     const render = loadLook === undefined ? null : retried(loadLook); // the render code downloads while the sky builds; buildComposer reads both
+    if (render !== null) detail?.('render code');
     this.lookStrategy = await render;
+    detail?.('sky and lighting');
     const fog = this.lookStrategy?.fog; // after installAtmosphere (the constructor), before the sky or anything compiles (01 §13.2: its slot)
     if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install, this.level.id);
     this._sky = await new Sky(this.rootScene, this.camera, this.renderer).build(this.lookStrategy, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null }); // its lighting, shadows, backdrop and sky dressing
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
+    detail?.('world look');
     await prepareWorldLook(this.lookStrategy, { renderer: this.renderer, sky: this._sky, scope: this.levelScope });
     return this._sky;
   }
