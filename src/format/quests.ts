@@ -11,6 +11,8 @@ const markers = v.pipe(v.array(marker), v.maxLength(32));
 const done = v.pipe(condition, v.check((c) => [...(c.all ?? []), ...(c.any ?? []), ...(c.none ?? [])].length > 0, 'nonempty done condition'));
 const step = v.strictObject({ id, objective: text, chip: v.exactOptional(v.pipe(text, v.maxLength(18))), hint: v.exactOptional(text), done, count: v.exactOptional(names), markers: v.exactOptional(markers) });
 const quest = v.strictObject({ id, title: text, track: v.exactOptional(v.boolean()), completeFlag: id, startWhen: v.exactOptional(condition), intro: v.exactOptional(v.strictObject({ objective: text, chip: v.exactOptional(v.pipe(text, v.maxLength(18))), hint: v.exactOptional(text), markers: v.exactOptional(markers) })), steps: v.pipe(v.array(step), v.minLength(1), v.maxLength(64)), onComplete: v.exactOptional(v.strictObject({ fact: v.exactOptional(id), scene: v.exactOptional(id), coins: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(100))) })) });
+/** Complete presentation chapter after its native completion owner is omitted. */
+export const QuestPresentationChapterSchema:v.GenericSchema<Omit<QuestDataInput['quests'][number],'onComplete'>,Omit<QuestData['quests'][number],'onComplete'>>=v.omit(quest,['onComplete']);
 const trigger = v.variant('kind', [
   v.strictObject({ id, kind: v.literal('region'), flag: id, x: finite, z: finite, radius: v.pipe(finite, v.minValue(0.01), v.maxValue(500)), when: v.exactOptional(condition) }),
   v.strictObject({ id, kind: v.literal('death'), flag: id, tag: id, when: v.exactOptional(condition) }),

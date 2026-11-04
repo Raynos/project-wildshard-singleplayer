@@ -9,6 +9,8 @@
     "./waterWorld": "./waterWorld.ts",
     "./forestNativeInputs": "./forestNativeInputs.ts",
     "./questInteractionSource": "./questInteractionSource.ts",
+    "./questRuntime": "./questRuntime.ts",
+    "./questStoryBindings": "./questStoryBindings.ts",
     "./returnProgramDocument": "./returnProgramDocument.ts",
     "./sceneSources": "./sceneSources.ts",
     "./registeredJson": "./registeredJson.ts",

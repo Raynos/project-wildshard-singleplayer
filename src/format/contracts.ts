@@ -9,6 +9,10 @@ const positive = v.pipe(integer, v.minValue(1));
 const reward: v.GenericSchema<ContractRewardInput, ContractReward> = v.strictObject({ items: v.pipe(v.array(v.strictObject({ id: text, n: positive })), v.maxLength(16)),
   bolts: integer, skin: v.exactOptional(text) });
 const target = v.strictObject({ kind: text, target: text });
+/** A complete authored offer, also retained in a quest content document. */
+export const ContractOfferSchema:v.GenericSchema<ContractCatalogueInput['rows'][number],ContractCatalogue['rows'][number]>=v.strictObject({
+  id:text,kind:text,target:text,need:positive,title:text,goal:text,reward,
+});
 /** Deterministic contract board policy and content. Selection laws and identities are authored rows. */
 export const ContractCatalogueSchema: v.GenericSchema<ContractCatalogueInput, ContractCatalogue> = v.strictObject({
   program: v.exactOptional(ReturnProgramSchema),
@@ -30,8 +34,7 @@ export const ContractCatalogueSchema: v.GenericSchema<ContractCatalogueInput, Co
   rarity: v.array(v.strictObject({ id: text, need: positive, title: text })),
   elites: v.record(text, v.strictObject({ name: text, kind: text, variant: text })),
   eliteIds: v.array(text),
-  rows: v.pipe(v.array(v.strictObject({ id: text, kind: text, target: text, need: positive,
-    title: text, goal: text, reward })), v.minLength(1), v.maxLength(256)),
+  rows: v.pipe(v.array(ContractOfferSchema), v.minLength(1), v.maxLength(256)),
 });
 /** Successful claims return ids for the existing inventory and cosmetic owners. */
 

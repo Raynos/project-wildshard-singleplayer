@@ -74,12 +74,14 @@ const groupPiece = v.strictObject({ id: text, name: text, category: v.literal('p
  * the moving figures. Its head, face and arm motion are the shard's admitted channel programs, one group per
  * figure id; the group sleeps beyond `sleep.distance` of `sleep.figure`.
  */
+const idleWave=v.strictObject({clock:v.picklist(['phase','time']),frequency:finite,amplitude:finite,offset:finite,cosine:v.exactOptional(v.boolean())});
 export const FigureGroupSchema: v.GenericSchema<FigureGroupRowsInput, FigureGroupRows> = v.strictObject({
   name: text, sleep: v.strictObject({ figure: text, distance: finite }), atlas: tiered,
-  figures: v.pipe(v.record(text, v.object({
-    frame: v.object({ neck: point, shoulder: point }),
-    motion: v.object({ orbit: v.exactOptional(v.object({ x: finite, z: finite, radius: finite, speed: finite, stopDistance: finite, lift: finite, frequency: finite })) }),
-    phase: finite, glanceAfter: finite, row: v.unknown(), moving: v.boolean(), atlas: tiered,
+  figures: v.pipe(v.record(text, v.strictObject({
+    frame: v.strictObject({ neck: point, shoulder: point,file:v.exactOptional(text),height:v.exactOptional(finite),radius:v.exactOptional(finite) }),
+    motion: v.strictObject({idleArm:v.exactOptional(v.strictObject({distance:finite,x:v.exactOptional(idleWave),z:v.exactOptional(idleWave)})),
+      idleHead:v.exactOptional(v.strictObject({distance:finite,pitch:finite,yaw:finite})),orbit: v.exactOptional(v.strictObject({ x: finite, z: finite, radius: finite, speed: finite, stopDistance: finite, lift: finite, frequency: finite })) }),
+    phase: finite, glanceAfter: finite, row: FigureRowSchema, moving: v.boolean(), atlas: tiered,
   })), v.check(rows => Object.keys(rows).length <= 64, 'bounded figure group')),
   pieces: v.strictObject({ still: groupPiece, moving: groupPiece }),
 });
@@ -314,6 +316,7 @@ interface FigureGroupRowsInputFields {
     };
     figures: Record<string, {
         frame: {
+            file?:string;height?:number;radius?:number;
             neck: [
                 number,
                 number,
@@ -326,6 +329,8 @@ interface FigureGroupRowsInputFields {
             ];
         };
         motion: {
+            idleArm?:{distance:number;x?:FigureIdleWave;z?:FigureIdleWave};
+            idleHead?:{distance:number;pitch:number;yaw:number};
             orbit?: {
                 x: number;
                 z: number;
@@ -338,7 +343,7 @@ interface FigureGroupRowsInputFields {
         };
         phase: number;
         glanceAfter: number;
-        row: unknown;
+        row: FigureRowInput;
         moving: boolean;
         atlas: {
             phone: FigureAtlasRowInput;
@@ -375,6 +380,7 @@ interface FigureGroupRowsFields {
     };
     figures: Record<string, {
         frame: {
+            file?:string;height?:number;radius?:number;
             neck: [
                 number,
                 number,
@@ -387,6 +393,8 @@ interface FigureGroupRowsFields {
             ];
         };
         motion: {
+            idleArm?:{distance:number;x?:FigureIdleWave;z?:FigureIdleWave};
+            idleHead?:{distance:number;pitch:number;yaw:number};
             orbit?: {
                 x: number;
                 z: number;
@@ -399,7 +407,7 @@ interface FigureGroupRowsFields {
         };
         phase: number;
         glanceAfter: number;
-        row: unknown;
+        row: FigureRow;
         moving: boolean;
         atlas: {
             phone: FigureAtlasRow;
@@ -424,3 +432,6 @@ interface FigureGroupRowsFields {
     };
 }
 export type FigureGroupRows = { [Key in keyof FigureGroupRowsFields]: FigureGroupRowsFields[Key] };
+
+/** Authored figure motion metadata retained alongside its admitted channel program. */
+export interface FigureIdleWave {clock:'phase'|'time';frequency:number;amplitude:number;offset:number;cosine?:boolean}
