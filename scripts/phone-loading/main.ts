@@ -10,6 +10,7 @@ import {observeRequests} from './network.ts';
 import {parseSaveFixture} from './fixtures.ts';
 import {postControlWindow} from './post-control.ts';
 import {startPageCpuProfile, type PageCpuCapture} from './cpu-profile.ts';
+import {parsePlayCapture, playReading, playScript, PLAY_READ, type PlayReading} from './play.ts';
 import {comparisons, controlQualification, printRun, profiles, readNavigationPanel, record, type Capture, type ErrorRow, type PanelRow, type Run} from './model.ts';
 import {developerSettings, saveFixture} from '../debug-settings.mjs';
 import {loadingCardIndex} from '../loading-benchmark/catalogue.mjs';
@@ -22,9 +23,10 @@ const {values} = parseArgs({options: {preset: {type: 'string', default: 'phone'}
   'after-control': {type: 'string', default: '4000'},
   'save-fixture': {type: 'string'},
   'cpu-profile': {type: 'boolean'},
+  play: {type: 'string'},
   help: {type: 'boolean'}}});
 if (values.help) {
-  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit | --engine chromium|webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000] [--save-fixture JSON] [--cpu-profile (cold Chromium page only)]');
+  console.log('pnpm phone-loading [--live | --head | --rev SHA | --url URL] [--preset phone|lte|desktop] [--flow grid|select:SLUG] [--record] [--webkit | --engine chromium|webkit] [--compare JSON] [--timeout MS] [--title-dwell MS=3000] [--after-control MS=4000] [--save-fixture JSON] [--cpu-profile (cold Chromium page only)] [--play S (DL24: S s of walk, then hoverboard boost from 10 s, at control)]');
   return;
 }
 const profile = profiles[values.preset];
@@ -40,6 +42,8 @@ const titleDwell = Number(values['title-dwell']);
 if (!Number.isFinite(titleDwell) || titleDwell < 0) throw new Error('Invalid title dwell');
 const afterControl = Number(values['after-control']);
 if (!Number.isFinite(afterControl) || afterControl < 0) throw new Error('Invalid post-control dwell');
+const playS = values.play === undefined ? null : Number(values.play);
+if (playS !== null && (!Number.isInteger(playS) || playS < 11)) throw new Error('--play takes whole seconds, at least 11 (walk 10 s, then boost)');
 process.env['PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS'] = '1';
 const {webkit, devices} = await import('playwright');
 function command(file: string, args: string[], env: NodeJS.ProcessEnv = process.env): Promise<string> {
@@ -117,6 +121,7 @@ try {
         }
         let capture: Capture = {tap: null, control: null, rows: [], measures: [], longTasks: [], frameGaps: [], errors: [], rowCoverage: 'unavailable'};
         let controlDocument: string | null = null;
+        let play: PlayReading | null = null;
         try {
           await page.goto(url, {waitUntil: 'commit', timeout});
           // The marker belongs to this entry, not the previous warm visit.
@@ -158,7 +163,20 @@ try {
               const witness: unknown = data.controlWitness;
               return typeof witness === 'object' && witness !== null && 'documentToken' in witness && typeof witness.documentToken === 'string' ? witness.documentToken : null;
             });
-            await page.waitForTimeout(afterControl);
+            // DL24: the play window starts at control and outlasts the post-control dwell
+            if (playS !== null) {
+              const started: unknown = await page.evaluate(playScript(playS));
+              if (started !== 'ok') errorAt(`Play did not start: ${String(started)}`, 'play');
+            }
+            await page.waitForTimeout(Math.max(afterControl, playS === null ? 0 : playS * 1000 + 1000));
+            if (playS !== null) {
+              const text: unknown = await page.evaluate(PLAY_READ);
+              const played = typeof text === 'string' ? parsePlayCapture(text) : null;
+              const control = await page.evaluate(() => { const data: unknown = Reflect.get(window, '__phoneLoading');
+                return typeof data === 'object' && data !== null && 'control' in data && typeof data.control === 'number' ? data.control : null; });
+              if (played === null) errorAt('Play capture missing', 'play');
+              else play = playReading(played, control);
+            }
           }
         } catch (error) {errorAt(String(error), 'flow');}
         if (stopCpuProfile !== undefined) {
@@ -209,7 +227,7 @@ try {
           rows: capture.rows, measures: capture.measures.filter(row => row.start >= from && row.start <= to),
           longTasks: capture.longTasks.filter(row => row.start >= from && row.start <= to),
           frameGaps: capture.frameGaps.filter(row => row.start >= from && row.start <= to),
-          requests, titleRequests, requestAccounting, postControl, errorDetails,
+          requests, titleRequests, requestAccounting, postControl, errorDetails, ...(play === null ? {} : {play}),
           link: link === null ? null : {shared: true, bytesPerSecond: link.bytesPerSecond, visitBytes: link.bytes(visitStart, to),
             tapToControlBytes: capture.tap === null ? null : link.bytes(capture.tap, to), peakBytesPerSecond: link.peak(visitStart, to), errors: [...link.errors]},
           errors: errorDetails.map(error => error.message)};

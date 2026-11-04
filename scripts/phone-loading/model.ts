@@ -1,4 +1,5 @@
 import type {PostControl} from './post-control.ts';
+import type {PlayReading} from './play.ts';
 /** The measuring protocol is data, never a CI verdict or a game setting. */
 export interface Profile {cpu: number; down: number; up: number; latency: number}
 export const profiles: Record<string, Profile> = {
@@ -67,7 +68,7 @@ export interface LinkSummary {shared: true; bytesPerSecond: number; visitBytes: 
 export interface Run extends Capture {schema: 1; build: string; engine: string; flow: string; cache: string; preset: string; at: string; url: string; profile: Profile; applied: {pageCPU: boolean; pageNetwork: boolean; workerNetwork: boolean; notes: string[]}; requests: RequestRow[];
   /** Requests begun during the title dwell, before the tap (the worker's precache starts there). */
   titleRequests?: RequestRow[]; link?: LinkSummary | null;
-  requestAccounting?: RequestAccounting; totalMs: number | null; postControl?: PostControl | null; video?: string; contactSheet?: string}
+  requestAccounting?: RequestAccounting; totalMs: number | null; postControl?: PostControl | null; play?: PlayReading; video?: string; contactSheet?: string}
 export function record(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};
 }
@@ -98,6 +99,8 @@ export function printRun(run: Run): void {
     return `${rows.length} / ${(rows.reduce((sum, row) => sum + (row.transferBytes ?? 0), 0) / 1e6).toFixed(3)} MB transferred / ${(rows.reduce((sum, row) => sum + (row.decodedBytes ?? 0), 0) / 1e6).toFixed(3)} MB body${wireUnknown + bodyUnknown === 0 ? '' : ` + pending sizes (${wireUnknown} wire/${bodyUnknown} body)`}${open === 0 ? '' : `, ${open} open at control`}`;
   };
   console.log(`\n${run.engine} ${run.flow} ${run.cache} ${run.build} [${run.preset}]`);
+  const play = run.play;
+  if (play !== undefined) console.log(`play ${play.seconds} s: ${play.fps} fps (1st s ${play.firstSecondFps}, settled ${play.settledFps}, lowest of first 5 ${play.lowestFirst5}) longest ${play.longestFrameMs} ms, ${play.framesOver250} > 250 ms (page ${play.pageGapsOver250}); walk ${play.motion.walkM} m, boost ${play.motion.boostM} m @ ${play.motion.boostTopMps} m/s; pass ${JSON.stringify(play.pass)}`);
   console.table([{seconds: run.totalMs === null ? 'INCOMPLETE' : (run.totalMs / 1000).toFixed(3),
     world: run.controlWitness?.gridHome?.slug ?? run.controlWitness?.shard ?? run.lastWitness?.shard ?? 'unqualified',
     'page network': summary('network'), 'worker network': summary('worker'), 'page via SW': summary('service-worker'),
