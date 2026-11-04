@@ -1,6 +1,6 @@
 # Custom sections: one-user batch for Jake
 
-**Status:** `unread` 2026-11-03 — one batch decision on 67 unique retained files; approval does not waive complete contracts or native ownership.
+**Status:** `read` — approved by Jake 2026-11-04 ~09:12 Cancun (G1004: *"Approve the batch"*); was: one batch decision on 67 unique retained files; approval does not waive complete contracts or native ownership.
 **Link:** [custom-sections-one-user-batch.md](custom-sections-one-user-batch.md)
 **Plan:** SHARD-PLATFORM / [custom sections to zero](../plans/host-audit/custom-sections-mini-plan.md) (G988, E498)
 **Made by:** sp-x1, at wildshard-new's request; evidence from the owning Z rows.
