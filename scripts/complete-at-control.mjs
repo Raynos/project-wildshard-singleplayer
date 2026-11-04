@@ -46,14 +46,14 @@ import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from './complete-at-control-snapshot.mjs';
 import { execFileSync } from 'node:child_process';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist', 'frames', 'profile'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist', 'frames', 'profile', 'heap'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
@@ -419,6 +419,13 @@ try {
     const frames = await page.evaluate(() => Reflect.get(window, '__dl17Frames') ?? []);
     report.frames = firstSeconds(frames, frameSeconds);
     if (profiler !== null) report.frames.profile = profileTop((await profiler.send('Profiler.stop')).profile, sourceOf);
+    // --heap=on (Chromium, D227): the page's JS heap at the end of the window, self size by constructor (top 30)
+    if (values.heap === 'on' && engine === 'chromium') {
+      const cdp = await context.newCDPSession(page), chunks = [];
+      cdp.on('HeapProfiler.addHeapSnapshotChunk', ({ chunk }) => { chunks.push(chunk); });
+      await cdp.send('HeapProfiler.enable'); await cdp.send('HeapProfiler.takeHeapSnapshot', { reportProgress: false });
+      report.frames.heap = heapTop(JSON.parse(chunks.join('')));
+    }
   }
   const reachCells = reachOf(cold.at);
   report.reachCells = reachCells;
@@ -472,14 +479,15 @@ try {
        *  waypoint), inside its time bound, and it ends at the last waypoint. */
       const drive = async hover => {
         const seconds = bound(hover);
-        if (hover) await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; });
+        const boost = leg.boost ?? true;
+        if (hover) await page.evaluate(on => { window.__wildshard.requireWorld().player.hoverBoost = on; }, boost);
         const walk = page.evaluate(l => window.__wildshard.walkLeg({ name: `dl17-${l.name}`, start: { ...l.start, hover: l.hover }, waypoints: l.points.map(([x, z]) => ({ x, z })), timeout: l.seconds, stuckSeconds: 5 }), { ...leg, seconds, hover });
         const first = lap.length, legEnd = Date.now() + seconds * 1000 + 2000, finished = { done: false };
         const settledWalk = (async () => {
           try { return await walk; } catch (error) { report.errors.push(`lap ${leg.name}: ${String(error)}`); return null; } finally { finished.done = true; }
         })();
         await page.waitForTimeout(300);
-        if (hover) await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
+        if (hover) await page.evaluate(on => { window.__wildshard.requireWorld().player.hoverBoost = on; }, boost); // walkLeg's start pose may reset the board
         while (!finished.done && Date.now() < legEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
         const result = await settledWalk, mine = lap.slice(first).map(s => s.scene ?? {});
         // what the board did: its top speed (samples, and the trace frame to frame), boost and any speed cap it ran under
@@ -492,7 +500,7 @@ try {
         const off = result?.end === undefined ? Infinity : Math.hypot(result.end.x - lx, result.end.z - lz);
         const stuck = (result?.stuck ?? []).length;
         const complete = result !== null && trace.length > 0 && ordered && leg.points.every((_, i) => passed.has(i)) && stuck === 0 && result.seconds < seconds && off <= 3;
-        return { leg: leg.name, on: hover ? 'board' : 'foot', complete, board, frames: trace.length, waypointsPassed: passed.size, of: leg.points.length, stuck, stuckAt: result?.stuck ?? [], maxY: result?.maxY ?? null, seconds: result?.seconds ?? null, bound: seconds, end: result?.end ?? null, offEnd: Number.isFinite(off) ? Math.round(off * 10) / 10 : null };
+        return { leg: leg.name, on: hover ? 'board' : 'foot', boost: hover && boost, complete, board, frames: trace.length, waypointsPassed: passed.size, of: leg.points.length, stuck, stuckAt: result?.stuck ?? [], maxY: result?.maxY ?? null, seconds: result?.seconds ?? null, bound: seconds, end: result?.end ?? null, offEnd: Number.isFinite(off) ? Math.round(off * 10) / 10 : null };
       };
       report.lapRoute.legs.push({ leg: leg.name, waypoints: leg.points.length, metres: Math.round(metres) });
       // a walk course the board cannot climb (stairs, ladders) is driven again on foot: the player reaches it that way
@@ -506,7 +514,8 @@ try {
     // boost is proven engaged (every board sample: Developer boost on, a cap of none or the grid interior 14 m/s, so a 56 m/s
     // top, src/engine/player/hoverSpeed.ts); the speed
     // travelled is the course's (frame to frame in the trace: a velocity sample reads 56 against a wall it is stuck on)
-    const boardRuns = report.lapResults.filter(r => r.on === 'board');
+    // the route's no-boost legs (`lap.boost: false`, D226) drive the board at normal speed: they never count as the boost proof
+    const boardRuns = report.lapResults.filter(r => r.on === 'board' && r.boost !== false);
     const engaged = boardRuns.length > 0 && boardRuns.every(r => r.board.boost.every(Boolean) && r.board.hover.includes(true) && r.board.limit.every(l => l === null || l <= 14));
     report.boost = { engaged, travelledTop: Math.max(0, ...boardRuns.map(r => r.board.traceTop)) };
     if (!engaged) report.errors.push(`boost never engaged on the board: ${JSON.stringify(boardRuns.map(r => ({ leg: r.leg, hover: r.board.hover, boost: r.board.boost, limit: r.board.limit })))}`);

@@ -168,7 +168,8 @@ async function oneRun(udid, run, opts) {
     page = connect(await inspectorPage(run.base), (cats) => {
       const bytes = cats.reduce((s, c) => s + c.size, 0);
       samples.push({ phase, bytes, cats });
-      write({ kind: 'memory', bytes });
+      // D227: each sample keeps Web Inspector's split (javascript, images, layers, page, source, other …), not only the sum
+      write({ kind: 'memory', bytes, cats: Object.fromEntries(cats.map(c => [c.type, c.size])) });
     });
     await page.opened;
     await sleep(700); // the proxy announces its target first

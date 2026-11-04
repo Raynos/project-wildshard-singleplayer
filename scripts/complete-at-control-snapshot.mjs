@@ -210,7 +210,9 @@ export function lapLegs(all, offset, player, reach) {
     const start = { ...leg.start, x: leg.start.x + ox, z: leg.start.z + oz };
     if (Math.hypot(start.x - px, start.z - pz) > reach) continue;
     if (leg.inside !== undefined) { skipped.push(leg.name); continue; }
-    legs.push({ name: leg.name, start, points: leg.waypoints.map(w => [w.x + ox, w.z + oz]) });
+    // `lap.boost: false` (D226): a course boost throws the board off (Far Reach's hover bridges) is driven on the board at
+    // normal speed; every other leg keeps Developer boost
+    legs.push({ name: leg.name, start, points: leg.waypoints.map(w => [w.x + ox, w.z + oz]), boost: leg.lap?.boost !== false });
   }
   return { legs, skipped };
 }
@@ -245,4 +247,17 @@ export function profileTop(profile, sourceOf) {
   });
   const top = map => [...map].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([key, ms]) => [key, Math.round(ms)]);
   return { totalMs: Math.round(total), self: top(self), files: top(files) };
+}
+
+/** D227: a V8 heap snapshot's self size by node type and constructor, in MB, the top 30 (ArrayBuffer backing stores,
+ *  typed arrays, strings, the game's own classes): where a shard's JavaScript-held memory goes. */
+export function heapTop(heap) {
+  const meta = heap.snapshot.meta, fields = meta.node_fields, width = fields.length, types = meta.node_types[0];
+  const at = name => fields.indexOf(name), [ti, ni, si] = [at('type'), at('name'), at('self_size')], nodes = heap.nodes;
+  const sizes = new Map(); let total = 0;
+  for (let i = 0; i < nodes.length; i += width) {
+    const type = types[nodes[i + ti]], name = type === 'object' || type === 'native' ? heap.strings[nodes[i + ni]] : `(${type})`;
+    const size = nodes[i + si]; total += size; const key = `${type} ${name}`; sizes.set(key, (sizes.get(key) ?? 0) + size);
+  }
+  return { totalMB: Math.round(total / 1e5) / 10, top: [...sizes].sort((a, b) => b[1] - a[1]).slice(0, 30).map(([key, size]) => [key, Math.round(size / 1e5) / 10]) };
 }
