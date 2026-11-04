@@ -23,6 +23,9 @@ import { QuestServiceActionsSchema } from './questSteps';
 import { DirectorProductSchema } from './directorProduct';
 import { QuestPanelCatalogueSchema } from './panelTemplate';
 import { ForestWeatherSchema } from './forestWeather';
+import { WeatherEffectsSchema } from './weatherEffects';
+import { RainPresentationSchema } from './rainPresentation';
+import { ForestWeatherObservationSchema } from './rangedPage';
 import { validateRegisteredJson } from './registeredJson';
 
 /** A streamed platform document has one defining schema and an existing reader.
@@ -96,6 +99,13 @@ export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
     source: '@wildshard/format/forestWeather#ForestWeatherSchema', reader: 'src/game/weather/forest.ts' },
   { pattern: /^quests\/persistence\.json$/u, schema: AdventurePersistenceSchema,
     source: '@wildshard/format/namedJsonContracts#AdventurePersistenceSchema', reader: 'src/game/quest/persistence.ts' },
+  // G1004: Jake approved these exact complete one-user documents; not a prefix waiver.
+  { pattern: /^world\/weather-fx\.json$/u, schema: WeatherEffectsSchema,
+    source: '@wildshard/format/weatherEffects#WeatherEffectsSchema', reader: 'src/game/weather/forest.ts' },
+  { pattern: /^world\/rain\.json$/u, schema: RainPresentationSchema,
+    source: '@wildshard/format/rainPresentation#RainPresentationSchema', reader: 'src/game/weather/rainPresentation.ts' },
+  { pattern: /^world\/weather-observations\.json$/u, schema: ForestWeatherObservationSchema,
+    source: '@wildshard/format/rangedPage#ForestWeatherObservationSchema', reader: 'src/game/looks/forestWeather.ts' },
 ];
 
 /** Match both logical name and defining schema identity. An unregistered or
