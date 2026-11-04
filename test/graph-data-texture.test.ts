@@ -4,7 +4,7 @@ import { expect, it, vi } from 'vitest';
 import { DataTexture, NoColorSpace } from 'three';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { parseKtx2 } from '../src/format/ktx2Cost';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { bakeRawColourTexture } from '../src/sdk/bake/texture';
 import { writeImagePixels } from '../src/sdk/bake/image';
 
@@ -29,7 +29,7 @@ it('samples numerical library channels at computed UVs without colour conversion
       sample: { op: 'texture', param: 'noise', in: ['scroll'] }, density: { op: 'swizzle', in: ['sample'], mask: 'x' } },
     stages: { surface: { colour: 'density' } },
   };
-  const compiled = compileGraph(graph, { textures: texture });
+  const compiled = compileClassicGraph(graph, { textures: texture });
   try {
     expect(texture).toHaveBeenCalledWith('noise.ktx2', 'data');
     expect(map.colorSpace).toBe(NoColorSpace);

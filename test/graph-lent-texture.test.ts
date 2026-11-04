@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { DataTexture, Material } from 'three';
-import { compileGraph, attachOutline } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { classicLookCompiler } from './fixtures/classicLookCompiler';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { materialTextureRefs } from '../src/format/materials';
 import { clientGraphs } from '../src/game/shardfile/clientGraphs';
@@ -19,7 +20,7 @@ test('a lent texture param names no admitted file and is set in place by setText
   expect(validateGraph(LENT).ok).toBe(true);
   expect(materialTextureRefs({ m: { family: 'graph', graph: LENT } })).toEqual([]);
   const source = emptyShardfile({ slug: 'lent-fixture', name: 'Lent', author: 'Test', seed: 1, revision: 1 });
-  const graphs = clientGraphs(source, { compiler: { compileGraph, attachOutline },
+  const graphs = clientGraphs(source, { compiler: classicLookCompiler(),
     fallback: () => { throw new Error('Unexpected fallback'); }, textures: () => { throw new Error('A lent texture is never resolved'); } });
   const material = graphs.compile({ family: 'graph', graph: LENT }), foreign = new Material();
   const key = new DataTexture(new Uint8Array([1, 2, 3, 255]), 1, 1);
@@ -42,7 +43,7 @@ test("Pine's sky graphs validate under their own budget and compile", () => {
   for (const graph of Object.values(SKY_GRAPHS)) {
     const checked = validateGraph(graph, { trustedBudget: true });
     expect(checked.ok ? [] : checked.errors).toEqual([]);
-    const compiled = compileGraph(graph, { trustedBudget: true });
+    const compiled = compileClassicGraph(graph, { trustedBudget: true });
     compiled.setTexture('keyA', new DataTexture(new Uint8Array(4), 1, 1));
     compiled.material.dispose();
   }

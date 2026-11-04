@@ -1,23 +1,25 @@
 import { expect, test } from 'vitest';
-import { Material, Vector3 } from 'three';
-import { MeshBasicNodeMaterial, UniformNode } from 'three/webgpu';
-import { compileGraph, attachOutline } from '../src/engine/render/graph/compile';
+import { Material, ShaderMaterial, Vector3 } from 'three';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { classicLookCompiler } from './fixtures/classicLookCompiler';
 import { clientGraphs } from '../src/game/shardfile/clientGraphs';
 import { emptyShardfile } from '../src/sdk/author';
 import { validateGraph } from '../src/format/materialGraph';
 
 test('runtime graph uniforms move in place and refuse invalid writes atomically', () => {
   const source = emptyShardfile({ slug: 'param-fixture', name: 'Param', author: 'Test', seed: 1, revision: 1 });
-  const graphs = clientGraphs(source, { compiler: { compileGraph, attachOutline },
+  const graphs = clientGraphs(source, { compiler: classicLookCompiler(),
     fallback: () => { throw new Error('Unexpected fallback'); }, textures: () => { throw new Error('Unexpected texture'); } });
   const material = graphs.compile({ family: 'graph', graph: { version: 1, kind: 'material', model: 'unlit',
     params: { tint: { type: 'vec3', value: [0.2, 0.3, 0.4], min: 0, max: 1 } },
     nodes: { tint: { op: 'param', param: 'tint' } }, stages: { surface: { colour: 'tint' } } } });
   const foreign = new Material();
   try {
-    if (!(material instanceof MeshBasicNodeMaterial) || material.colorNode === null) throw new Error('Missing graph material');
-    const uniform: unknown = Reflect.get(material.colorNode, 'node');
-    if (!(uniform instanceof UniformNode) || !(uniform.value instanceof Vector3)) throw new Error('Missing live uniform');
+    if (!(material instanceof ShaderMaterial)) throw new Error('Missing graph material');
+    // the surface colour reads the param's own uniform
+    expect(material.fragmentShader).toContain('wsP_tint');
+    const uniform = material.uniforms['wsP_tint'];
+    if (uniform === undefined || !(uniform.value instanceof Vector3)) throw new Error('Missing live uniform');
     const before = material.version, value = [0.6, 0.7, 0.8];
     graphs.setParam(material, 'tint', value); value.fill(9);
     expect(uniform.value.toArray()).toEqual([0.6, 0.7, 0.8]);
@@ -39,12 +41,12 @@ test('scalar uniforms preserve signed zero and refuse invalid writes before chan
     nodes: { amount: { op: 'param', param: 'amount' } },
     stages: { surface: { colour: [1, 1, 1], alpha: 'amount' } } });
   if (!checked.ok) throw new Error(checked.errors.join('; '));
-  const compiled = compileGraph(checked.graph, { validated: checked });
+  const compiled = compileClassicGraph(checked.graph, { validated: checked });
   try {
     const material = compiled.material;
-    if (!(material instanceof MeshBasicNodeMaterial) || material.opacityNode === null) throw new Error('Missing scalar material');
-    const uniform: unknown = Reflect.get(material.opacityNode, 'node');
-    if (!(uniform instanceof UniformNode)) throw new Error('Missing scalar uniform');
+    expect(material.fragmentShader).toContain('wsP_amount');
+    const uniform = material.uniforms['wsP_amount'];
+    if (uniform === undefined) throw new Error('Missing scalar uniform');
     const version = material.version;
     for (const value of [-0, 1, 0.5]) {
       compiled.setParam('amount', value);
@@ -63,7 +65,8 @@ test('scalar uniforms preserve signed zero and refuse invalid writes before chan
     const param = checked.graph.params?.['amount'];
     if (param === undefined) throw new Error('Missing scalar definition');
     Reflect.set(param, 'max', 0.25);
-    expect(() => compiled.setParam('amount', 0.5)).toThrow('outside declared range');
+    // (a write of the value the uniform already holds returns before the check: NF15's held-value fast path)
+    expect(() => compiled.setParam('amount', 0.3)).toThrow('outside declared range');
     expect(uniform.value).toBe(0.5);
     compiled.setParam('amount', 0.25);
     expect(uniform.value).toBe(0.25);
