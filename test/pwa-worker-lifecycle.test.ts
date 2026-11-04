@@ -50,21 +50,22 @@ function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = 
     const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
     const claim = vi.fn(() => Promise.resolve()), skipWaiting = vi.fn(() => Promise.resolve());
     const routes = vi.fn<(rules: NativeRoute[]) => Promise<void>>(() => Promise.resolve());
-    const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim }, skipWaiting,
+    const live = new Set<string>(), get = (id: string): Promise<{ id: string } | undefined> => Promise.resolve(live.has(id) ? { id } : undefined);
+    const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim, get }, skipWaiting,
       addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); } };
     const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
     const source = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replaceAll('__BUILD_ID__', build)
       .replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME).replace("'__DOCUMENT__'", JSON.stringify(document)).replace("'__FILES__'", JSON.stringify(JSON.stringify(files)))
       .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shellFiles)));
-    // Deliberately no clock, crypto, scheduler or accounting ports.
-    runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent, AbortController });
+    // Deliberately no crypto, scheduler or accounting ports; timers only for the precache's bounded pause.
+    runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent, AbortController, setTimeout, clearTimeout });
     const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'request' | 'data' | 'ports' | 'source' | 'clientId'> = {}): Promise<Response | undefined> => {
       const work: Promise<unknown>[] = []; let response: Response | undefined;
       for (const listener of listeners.get(kind) ?? []) listener({ ...payload, ...(nativeRoutes && kind === 'install' ? {addRoutes: routes} : {}),
         waitUntil: promise => { work.push(promise); }, respondWith: promise => { work.push(Promise.resolve(promise).then(value => { response = value; return value; })); } });
       await Promise.all(work); return response;
     };
-    return { dispatch, claim, skipWaiting, routes };
+    return { dispatch, claim, skipWaiting, routes, live };
   };
   return { caches, open, books, fetch, load };
 }
@@ -111,6 +112,55 @@ test('the post-control precache yields to a loading page and resumes at that pag
   const assets = await f.open(ASSET_CACHE_NAME);
   for (const path of files) expect(await assets.match(url(path))).toBeDefined();
   expect(await (await f.open('ws-builds-v1')).keys()).toHaveLength(1);
+});
+
+/** A precache whose fetches hang until `release()` (or abort), for the pause tests. */
+function heldPrecache() {
+  let holding = true;
+  const f = fixture(request => new Promise((resolve, reject) => {
+    request.signal.addEventListener('abort', () => { reject(new DOMException('aborted', 'AbortError')); });
+    if (!holding) resolve(new Response(`body:${request.url}`));
+  }));
+  const files = Array.from({ length: 8 }, (_, at) => `/assets/f${at}-0000000${at}.js`);
+  return { f, files, release: () => { holding = false; }, source: (id: string) => ({ id, postMessage: () => undefined }) };
+}
+
+test('a pause never strands the precache: a gone loader or the time limit resumes it', async () => {
+  // The loading page closes before its control: a controlled page's next read finds it gone and resumes.
+  const gone = heldPrecache(), worker = gone.f.load('A', gone.files, []);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  const first = worker.dispatch('message', { ...precached, source: gone.source('page-1') });
+  await vi.waitFor(() => { expect(gone.f.fetch).toHaveBeenCalledTimes(6); });
+  worker.live.add('page-2');
+  await worker.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-2' });
+  gone.release(); worker.live.delete('page-2');
+  await worker.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-1' }); await first;
+  expect(gone.f.fetch).toHaveBeenCalledTimes(14);
+  // The loading page lives on but never reports control: the pause ends at its limit.
+  vi.useFakeTimers();
+  try {
+    const stuck = heldPrecache(), late = stuck.f.load('A', stuck.files, []);
+    await late.dispatch('install'); await late.dispatch('activate');
+    const pending = late.dispatch('message', { ...precached, source: stuck.source('page-1') });
+    await vi.advanceTimersByTimeAsync(0); expect(stuck.f.fetch).toHaveBeenCalledTimes(6);
+    late.live.add('page-2'); await late.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-2' });
+    stuck.release(); await vi.advanceTimersByTimeAsync(59_999); expect(stuck.f.fetch).toHaveBeenCalledTimes(6);
+    await vi.advanceTimersByTimeAsync(1); await pending;
+    expect(stuck.f.fetch).toHaveBeenCalledTimes(14);
+  } finally { vi.useRealTimers(); }
+});
+
+test('a waiting update steps its precache aside on a loading page\'s PAUSE', async () => {
+  const held = heldPrecache(), waiting = held.f.load('B', held.files, []);
+  await waiting.dispatch('install');
+  const background = waiting.dispatch('message', { ...precached, source: held.source('page-1') });
+  await vi.waitFor(() => { expect(held.f.fetch).toHaveBeenCalledTimes(6); });
+  // The controlling worker sees the navigation; the waiting one hears it from the loading page (src/engine/boot/sw.ts).
+  await waiting.dispatch('message', { data: { type: 'PAUSE' }, source: held.source('page-2') });
+  held.release(); await new Promise(resolve => { setTimeout(resolve, 0); });
+  expect(held.f.fetch).toHaveBeenCalledTimes(6);
+  await waiting.dispatch('message', { ...precached, source: held.source('page-2') }); await background;
+  expect(held.f.fetch).toHaveBeenCalledTimes(14);
 });
 
 test('native title routes use exact same-origin bare GETs and the existing cache owners', async () => {

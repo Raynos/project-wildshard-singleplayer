@@ -340,6 +340,12 @@ async function register(s: ServiceWorkerContainer): Promise<void> {
   // Treat that as unavailable support, just like a rejected registration.
   if (reg === undefined) return;
   watch(reg);
+  // DL1 (sp-x2): this page is loading. A waiting update (and the active worker, when this page is uncontrolled) sees
+  // none of its fetches, so tell them to step their precache aside; this page's control resumes it (PRECACHE).
+  if (!controlReached) for (const w of [reg.waiting, sw?.controller === null ? reg.active : null]) {
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
+    if (w !== null && w !== undefined) try { w.postMessage({ type: 'PAUSE' }); } catch { /* a retired worker has nothing to pause */ }
+  }
   precacheTarget = reg; afterControl();
   // Standalone installs live for days: keep discovering updates so the pill can offer them.
   pageScope.listen(document, 'visibilitychange', () => {

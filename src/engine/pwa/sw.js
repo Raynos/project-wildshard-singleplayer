@@ -91,19 +91,32 @@ workerScope.listen(self, 'install', event => {
 // It yields to a page that is loading (G872, sp-o2's quick-return gate): a navigation, or a fetch from a page that has
 // not reported control yet, pauses it and aborts its in-flight fetches (re-queued); the next PRECACHE (that page's
 // control, or an explicit adoption) resumes it. A few fetches at a time, so a pause frees the link at once.
-const PRECACHE_LANES = 6;
-let precaching, paused = false, resume = () => undefined;
-const inflight = new Set(), controlled = new Set();
-function pausePrecache() {
+// A pause never strands it (sp-x2): it also resumes once every loading client that paused it is gone, and at the
+// latest PAUSE_LIMIT_MS after the pause. A waiting update has no fetch events of its own: a loading page tells it
+// with a PAUSE message (src/engine/boot/sw.ts), and that page's control resumes it with PRECACHE.
+const PRECACHE_LANES = 6, PAUSE_LIMIT_MS = 60_000;
+let precaching, paused = false, resume = () => undefined, pauses = 0;
+const inflight = new Set(), controlled = new Set(), loading = new Set();
+function pausePrecache(client) {
+  if (typeof client === 'string' && client !== '') loading.add(client);
   if (precaching === undefined || paused) return;
   paused = true;
   for (const lane of inflight) lane.abort();
+  const pause = ++pauses; // a limit only ends the pause that set it
+  workerScope.timeout(PAUSE_LIMIT_MS, () => { if (paused && pauses === pause) resumePrecache(); });
 }
 function resumePrecache() {
   paused = false;
+  loading.clear();
   const waiting = resume;
   resume = () => undefined;
   waiting();
+}
+/** While paused, a controlled page's read checks whether the loading clients still exist; none left resumes. */
+async function resumeIfLoadersGone() {
+  if (!paused || typeof self.clients?.get !== 'function') return;
+  for (const id of Array.from(loading)) if (await self.clients.get(id) === undefined) loading.delete(id);
+  if (paused && loading.size === 0) resumePrecache();
 }
 /** Resolves at once, or on the resume that ends the current pause. */
 function whilePaused() {
@@ -201,7 +214,8 @@ async function cached(request, name) {
 workerScope.listen(self, 'fetch', event => {
   const request = event.request, url = new URL(request.url);
   // A loading page (a navigation, or a client that has not reported control) gets the link: the precache waits.
-  if (request.mode === 'navigate' || !controlled.has(event.clientId)) pausePrecache();
+  if (request.mode === 'navigate' || !controlled.has(event.clientId)) pausePrecache(request.mode === 'navigate' ? event.resultingClientId : event.clientId);
+  else if (paused) event.waitUntil(resumeIfLoadersGone());
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.searchParams.get('sw') === '0') return;
   if (url.pathname === '/version.json' || url.pathname === '/sw.js' || url.pathname.startsWith('/api/')) return;
   if (request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
@@ -220,6 +234,7 @@ workerScope.listen(self, 'fetch', event => {
 workerScope.listen(self, 'message', event => {
   const type = event.data?.type;
   if (type === 'SKIP_WAITING') { event.waitUntil(self.skipWaiting()); return; }
+  if (type === 'PAUSE') { pausePrecache(event.source?.id); return; }
   if (type === 'PRECACHE') {
     // Adoption waits on this reply: a build is offered as the next document's worker only once its code is held.
     // A page asks once it reaches control, so it no longer counts as loading, and the precache resumes.
