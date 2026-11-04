@@ -502,3 +502,52 @@ test('DL11: a page read of a file a lane already took in manifest order still ge
   await download.ready; await reading;
   vi.unstubAllGlobals();
 });
+
+test('DL11: duplicate demands while lanes sleep at the floor fetch each file once (sp-x9\'s coverage gap)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const rows = Array.from({length: 12}, (_, at) => ({url: `/shardfiles/example/blobs/bin/${at.toString(16).repeat(64)}.bin`, bytes: 4, hash: 'f'.repeat(64)}));
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 48});
+  const at = {url: '/assets/spawn/example-dupes-1234567890abcdef.json', bytes: plain.length, totalBytes: 48, files: 12};
+  const started: string[] = [], release = new Map<string, () => void>();
+  const download = downloadSpawnManifest(at, {
+    cached: () => Promise.resolve(undefined), store: () => Promise.resolve(),
+    fetch: async url => {
+      const path = new URL(url).pathname;
+      if (path === at.url) return new Response(plain);
+      started.push(path); await new Promise<void>(resolve => { release.set(path, resolve); });
+      return new Response(new Uint8Array(4));
+    },
+  }, base);
+  const path = (index: number): string => rows[index]?.url ?? '';
+  const free = async (index: number): Promise<void> => { await vi.waitFor(() => { expect(release.has(path(index))).toBe(true); }); release.get(path(index))?.(); };
+  await vi.waitFor(() => { expect(started).toHaveLength(8); });
+  // the same two files asked for three times each while every lane is busy, then lanes free up one by one
+  const reads = [11, 10, 11, 10, 11, 10].map(index => window.fetch(new URL(path(index), base).href));
+  for (let index = 0; index < 8; index++) await free(index);
+  await vi.waitFor(() => { expect(started).toEqual(expect.arrayContaining([path(10), path(11)])); });
+  await free(11); await free(10);
+  for (const index of [8, 9]) await free(index);
+  await download.ready; await Promise.all(reads);
+  expect(started.filter(row => row === path(10) || row === path(11))).toHaveLength(2);
+  expect(new Set(started).size).toBe(started.length);
+  vi.unstubAllGlobals();
+});
+
+test('DL11: a cancel while every store hangs settles at once and frees waiting reads (sp-x9\'s coverage gap)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const rows = Array.from({length: 4}, (_, at) => ({url: `/shardfiles/example/blobs/bin/${at.toString(16).repeat(64)}.bin`, bytes: 4, hash: 'f'.repeat(64)}));
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 16});
+  const at = {url: '/assets/spawn/example-hung-store-1234567890abcdef.json', bytes: plain.length, totalBytes: 16, files: 4};
+  let stores = 0;
+  const download = downloadSpawnManifest(at, {
+    cached: () => Promise.resolve(undefined),
+    store: url => { if (!url.endsWith('.json')) stores++; return url.endsWith('.json') ? Promise.resolve() : new Promise<void>(() => { /* never returns */ }); },
+    fetch: url => Promise.resolve(new Response(new URL(url).pathname === at.url ? plain : new Uint8Array(4))),
+  }, base);
+  await vi.waitFor(() => { expect(stores).toBe(4); }); // every lane is inside its store
+  const reading = window.fetch(new URL(rows[3]?.url ?? '', base).href);
+  download.cancel();
+  await expect(download.ready).rejects.toThrow();
+  expect(await (await reading).text()).toBe('network');
+  vi.unstubAllGlobals();
+});
