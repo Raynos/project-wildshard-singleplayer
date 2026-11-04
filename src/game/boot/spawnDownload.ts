@@ -342,7 +342,10 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
                 const member = body.subarray(offset, offset + file.bytes); next++;
                 // The part's bytes are only trusted per member: each must match its manifest row before it is kept or read.
                 if (await sha256(member) !== file.hash) throw new Error(`Spawn part member differs: ${part.url}`);
+                // a cancelled job keeps nothing more: neither before a member's store nor after an unabortable one (sp-x1)
+                controller.signal.throwIfAborted();
                 await ports.keep?.(file.url, new Response(member, {headers: {'content-type': typeOf(file.url), 'content-length': String(member.length)}}));
+                controller.signal.throwIfAborted();
                 settle.get(index)?.(member); done.add(index); settleFile(file.url, true);
                 landed(file.url); completedBytes += file.bytes; wireCompleted += file.wireBytes; filesDone++; publish();
               }

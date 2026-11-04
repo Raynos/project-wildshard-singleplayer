@@ -617,3 +617,21 @@ test('DL11 slice 4: parts run on two lanes in order, and a read of a later part\
   await download.ready; await reading;
   vi.unstubAllGlobals();
 });
+
+test('DL13: a cancel while a member\'s keep stalls keeps nothing more from the same chunk (sp-x1\'s review)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const at = {...address, url: '/assets/spawn/example-keep-cancel-1234567890abcdef.json'};
+  const kept: string[] = [];
+  let keepReturns = (): void => undefined;
+  const stalled = new Promise<void>(resolve => { keepReturns = resolve; });
+  const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined),
+    // the whole part arrives in one chunk, so both members are cut from it; the first keep stalls
+    keep: async url => { kept.push(new URL(url).pathname); if (kept.length === 1) await stalled; },
+    fetch: url => { const path = new URL(url).pathname; return Promise.resolve(new Response(path === at.url ? text : path === part.url ? partBytes : body(path))); },
+  }, base);
+  await vi.waitFor(() => { expect(kept).toHaveLength(1); });
+  download.cancel(); await expect(download.ready).rejects.toThrow();
+  keepReturns(); await new Promise(resolve => { setTimeout(resolve, 10); });
+  expect(kept).toEqual([bin.url]); // the glb is never kept
+  vi.unstubAllGlobals();
+});
