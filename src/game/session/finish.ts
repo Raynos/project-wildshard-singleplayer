@@ -8,7 +8,7 @@ import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage, waitFor } from '@wildshard/engine/boot/waits';
-import { earlyPrograms } from '@wildshard/engine/boot/earlyPrograms';
+import { earlyPrograms, earlyProgramsOn } from '@wildshard/engine/boot/earlyPrograms';
 import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
@@ -118,7 +118,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       // A six-material job exceeded the loading text's one-second update
       // budget at phone CPU speed. Use the existing one-material sliced path.
       // PL6: and what the first frame's warm turns show, so none of it builds and links inside that frame
-      await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`), { sliceMs: BOOT_SHADER_SLICE_MS, warmPost: true, drawnOnly: true, turns: game.warmTurnYaws() });
+      // DL10 (Debug 'Early shader compile'): on WebKit the boot links take the live pacing too (a few programs a presented
+      // frame, uploads under a budget), so no loading frame holds a burst of GPU-process links (0.75-2.4 s on the Simulator)
+      await precompileLevel(game, (d, n, what) => p.set(d, n, `${what} · ${programs()}`), { sliceMs: BOOT_SHADER_SLICE_MS, warmPost: true, drawnOnly: true, turns: game.warmTurnYaws(),
+        ...(earlyProgramsOn() ? liveWarmPacing() : {}) });
     });
     if (fragileBoot && game.renderer.getContext().isContextLost()) throw new Error('WebGL context lost during shader compile');
     await step('firstFrame', async (p) => {
