@@ -225,6 +225,231 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    }
   ]
  },
+ "clockwork-canyon": {
+  "genre": "clockwork-canyon",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-b-14d4ec11ef6d.m4a",
+    "loopStart": 21,
+    "loopEnd": 72.27,
+    "duration": 73.27,
+    "gain": 1,
+    "seamScore": 0.315,
+    "calm": "take-b-14d4ec11ef6d.m4a",
+    "bpm": 107.7,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-702",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.23948949999999997,
+    "metrics": {
+     "duration_s": 39.08,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15.2,
+      "lra": 4.6,
+      "true_peak_dbfs": 2.1
+     },
+     "clipping": {
+      "clipped_samples": 38,
+      "clipped_frac": 0.000011024769756387403,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 3759.7,
+      "rolloff95_hz": 11847.1,
+      "flatness": 0.0094,
+      "hf_above_12k": 0.00362,
+      "sub_below_60": 0.0271,
+      "stereo_corr": 0.475
+     },
+     "tempo": {
+      "estimated_bpm": 103.4,
+      "brief_bpm": 96,
+      "rel_err": 0.077
+     },
+     "key": {
+      "best_key": "E major",
+      "best_r": 0.739,
+      "d_major_r": 0.074,
+      "d_major_rank": 11,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.381,
+      "similarity": 0.391,
+      "level_match": 0.916,
+      "start_s": 13,
+      "end_s": 33.9,
+      "bars": 9,
+      "loop_s": 20.9,
+      "beats_per_bar": 4,
+      "grid_bpm": 103.4
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.4753,
+       "bass": 0.0143,
+       "other": 0.5104,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.846,
+      "drums_active_frac": 0.872
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 8,
+     "p": 0.016879,
+     "best": "Instrumental video game score, 96 BPM, 4/4. A freshly painted Mesoamerican temple town just after tropical rain, bright warm afternoon. Gentle wooden flute melody answers warm hand drums and soft seed shakers, rounded acoustic bass and spacious plucked strings. Lively welcoming discovery, clean intact cinnabar temples beside jade pools, cheerful and unhurried rather than combat or mystery. Clear short memorable theme, consistent dynamics from second bar to end, no fade-out, no sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no vocals, no dialogue."
+    },
+    "encoded": {
+     "file": "take-a-4a200d591f35.m4a",
+     "loopStart": 13,
+     "loopEnd": 33.9,
+     "duration": 34.9,
+     "gain": 1,
+     "seamScore": 0.381
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "clockwork-canyon",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. Bright busy daylight steampunk workshop town. Pizzicato strings, music box and marimba with ticking woodblock percussion and light brass swells. Whimsical, nimble and warm, never grim. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 129.5,
+     "model_load_s": 11.1,
+     "mps_driver_gb": 26.67
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.27859999999999996,
+    "metrics": {
+     "duration_s": 75.08,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -14.1,
+      "lra": 4.3,
+      "true_peak_dbfs": 0
+     },
+     "clipping": {
+      "clipped_samples": 10,
+      "clipped_frac": 0.0000015100703571980826,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1422.8,
+      "rolloff95_hz": 5342,
+      "flatness": 0.0002,
+      "hf_above_12k": 0.00001,
+      "sub_below_60": 0.0126,
+      "stereo_corr": 0.409
+     },
+     "tempo": {
+      "estimated_bpm": 107.7,
+      "brief_bpm": 96,
+      "rel_err": 0.122
+     },
+     "key": {
+      "best_key": "F# minor",
+      "best_r": 0.779,
+      "d_major_r": 0.229,
+      "d_major_rank": 8,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.315,
+      "similarity": 0.316,
+      "level_match": 0.992,
+      "start_s": 21,
+      "end_s": 72.27,
+      "bars": 23,
+      "loop_s": 51.27,
+      "beats_per_bar": 4,
+      "grid_bpm": 107.7
+     },
+     "vocals": {
+      "vocal_energy_share": 0,
+      "vocal_active_frac": 0,
+      "stem_share": {
+       "drums": 0.0001,
+       "bass": 0.0773,
+       "other": 0.9226,
+       "vocals": 0
+      },
+      "groove_active_frac": 0.373,
+      "drums_active_frac": 0
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 8,
+     "p": 0.0367,
+     "best": "Instrumental video game score, 72 BPM, 4/4. Lavender blue hour at a quiet palaeontology dig in banded clay badlands, lanterns lit in the dry wind. Low marimba and kalimba answer a distant wooden flute over soft bowed strings. Slow, dusty, wondering and warmly curious, never spooky or threatening. Sparse acoustic motifs and gentle open harmonies for unhurried discovery. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed acoustic production, no environmental sound effects, no voices, no vocals, no choir, no dialogue."
+    },
+    "encoded": {
+     "file": "take-b-14d4ec11ef6d.m4a",
+     "loopStart": 21,
+     "loopEnd": 72.27,
+     "duration": 73.27,
+     "gain": 1,
+     "seamScore": 0.315
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "clockwork-canyon",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 96 BPM, 4/4. Bright busy daylight steampunk workshop town. Pizzicato strings, music box and marimba with ticking woodblock percussion and light brass swells. Whimsical, nimble and warm, never grim. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 247.1,
+     "model_load_s": 11.1,
+     "mps_driver_gb": 27.92
+    }
+   }
+  ]
+ },
  "coral-drift": {
   "genre": "coral-drift",
   "model": "MiniMax Music 3",
@@ -444,6 +669,231 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
      "gen_time_s": 266.6,
      "model_load_s": 9.5,
      "mps_driver_gb": 28.44
+    }
+   }
+  ]
+ },
+ "desert-ruin": {
+  "genre": "desert-ruin",
+  "model": "MiniMax Music 3",
+  "credit": "Music: MiniMax-Music3",
+  "licence": "MiniMax-Music3 Community License",
+  "slots": {
+   "score": {
+    "file": "take-a-6eab0c86e126.m4a",
+    "loopStart": 24.75,
+    "loopEnd": 65.62,
+    "duration": 66.62,
+    "gain": 1,
+    "seamScore": 0.391,
+    "calm": "take-a-6eab0c86e126.m4a",
+    "bpm": 117.5,
+    "beatsPerBar": 4
+   }
+  },
+  "stings": {},
+  "recommendation": "minimax3-701",
+  "takes": [
+   {
+    "id": "minimax3-701",
+    "recommendationScore": 0.29006699999999996,
+    "metrics": {
+     "duration_s": 75.08,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -15,
+      "lra": 7.2,
+      "true_peak_dbfs": 0.4
+     },
+     "clipping": {
+      "clipped_samples": 76,
+      "clipped_frac": 0.000011476534714705427,
+      "peak": 1
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 1563.2,
+      "rolloff95_hz": 5732.1,
+      "flatness": 0.0006,
+      "hf_above_12k": 0.00004,
+      "sub_below_60": 0.1303,
+      "stereo_corr": 0.518
+     },
+     "tempo": {
+      "estimated_bpm": 117.5,
+      "brief_bpm": 68,
+      "rel_err": 0.136
+     },
+     "key": {
+      "best_key": "C major",
+      "best_r": 0.798,
+      "d_major_r": 0.079,
+      "d_major_rank": 11,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 16,
+      "score": 0.391,
+      "similarity": 0.442,
+      "level_match": 0.615,
+      "start_s": 24.75,
+      "end_s": 65.62,
+      "bars": 20,
+      "loop_s": 40.87,
+      "beats_per_bar": 4,
+      "grid_bpm": 117.5
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0046,
+      "vocal_active_frac": 0.013,
+      "stem_share": {
+       "drums": 0.1894,
+       "bass": 0.2225,
+       "other": 0.5834,
+       "vocals": 0.0046
+      },
+      "groove_active_frac": 0.893,
+      "drums_active_frac": 0.773
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 3,
+     "p": 0.006434,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-a-6eab0c86e126.m4a",
+     "loopStart": 24.75,
+     "loopEnd": 65.62,
+     "duration": 66.62,
+     "gain": 1,
+     "seamScore": 0.391
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "desert-ruin",
+     "seed": 701,
+     "prompt": "Instrumental video game score, 68 BPM, 4/4. Harsh white-gold noon over a desert oasis. Slow open sparse plucked oud or saz phrases over a soft frame drum pulse and held drone. Sun-baked and calm at the water, never mysterious or threatening. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 295.2,
+     "model_load_s": 11.1,
+     "mps_driver_gb": 27.3
+    }
+   },
+   {
+    "id": "minimax3-702",
+    "recommendationScore": 0.24927749999999999,
+    "metrics": {
+     "duration_s": 40.4,
+     "sample_rate": 44100,
+     "channels": 2,
+     "loudness": {
+      "lufs": -16.1,
+      "lra": 13,
+      "true_peak_dbfs": -0.4
+     },
+     "clipping": {
+      "clipped_samples": 0,
+      "clipped_frac": 0,
+      "peak": 0.9531
+     },
+     "silence": {
+      "longest_internal_gap_s": 0,
+      "internal_gaps": 0,
+      "head_silence_s": 0,
+      "tail_silence_s": 0,
+      "total_silence_s": 0
+     },
+     "spectrum": {
+      "centroid_hz": 2565.1,
+      "rolloff95_hz": 10191,
+      "flatness": 0.0015,
+      "hf_above_12k": 0.00273,
+      "sub_below_60": 0.0572,
+      "stereo_corr": 0.327
+     },
+     "tempo": {
+      "estimated_bpm": 143.6,
+      "brief_bpm": 68,
+      "rel_err": 0.056
+     },
+     "key": {
+      "best_key": "F minor",
+      "best_r": 0.752,
+      "d_major_r": -0.464,
+      "d_major_rank": 21,
+      "key_ok": false
+     },
+     "loop": {
+      "min_bars": 8,
+      "score": 0.423,
+      "similarity": 0.472,
+      "level_match": 0.653,
+      "start_s": 10,
+      "end_s": 30.06,
+      "bars": 12,
+      "loop_s": 20.06,
+      "beats_per_bar": 4,
+      "grid_bpm": 143.6
+     },
+     "vocals": {
+      "vocal_energy_share": 0.0067,
+      "vocal_active_frac": 0.1,
+      "stem_share": {
+       "drums": 0.0449,
+       "bass": 0.2341,
+       "other": 0.7143,
+       "vocals": 0.0067
+      },
+      "groove_active_frac": 0.575,
+      "drums_active_frac": 0.45
+     }
+    },
+    "qualified": true,
+    "failedChecks": [],
+    "clap": {
+     "rank": 10,
+     "p": 0.000455,
+     "best": "music with melody and instruments"
+    },
+    "encoded": {
+     "file": "take-b-a8fc43a3e0a3.m4a",
+     "loopStart": 10,
+     "loopEnd": 30.06,
+     "duration": 31.06,
+     "gain": 1,
+     "seamScore": 0.423
+    },
+    "provenance": {
+     "model": "MiniMax Music 3",
+     "variant": "MiniMaxAI/MiniMax-Music3 (8B global LM + 0.6B local LM + 2.4B flow-matching DiT)",
+     "code_commit": "diffusers 0.40.0, torch 2.14.0",
+     "backend": "PyTorch mps bf16",
+     "style": "ob7",
+     "slot": "desert-ruin",
+     "seed": 702,
+     "prompt": "Instrumental video game score, 68 BPM, 4/4. Harsh white-gold noon over a desert oasis. Slow open sparse plucked oud or saz phrases over a soft frame drum pulse and held drone. Sun-baked and calm at the water, never mysterious or threatening. Clear short memorable instrumental theme, consistent dynamics from the second bar, no fade-out or sudden ending, final full bar suitable for a seamless loop. Detailed instrumental production, no environmental sound effects, no voices, no vocals, no choir, no dialogue.",
+     "lyrics": "[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+     "duration_s": 75,
+     "steps": 30,
+     "gen_time_s": 141.9,
+     "model_load_s": 11.1,
+     "mps_driver_gb": 27.3
     }
    }
   ]
@@ -4472,6 +4922,73 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    }
   }
  },
+ "clockwork-canyon": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "clockwork-canyon.ambience": {
+    "file": "ambience-24d7c730b7d6.m4a",
+    "loopStart": 12,
+    "loopEnd": 24,
+    "duration": 25,
+    "gain": 1,
+    "seamScore": 0.388
+   }
+  },
+  "hums": {
+   "clockwork-canyon.clock-tick": {
+    "file": "clock-tick-1a1c07574d21.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 4.75,
+    "duration": 5.75,
+    "gain": 1,
+    "seamScore": 0.533
+   },
+   "clockwork-canyon.waterwheel": {
+    "file": "waterwheel-96705d3c2043.m4a",
+    "loopStart": 2,
+    "loopEnd": 9,
+    "duration": 10,
+    "gain": 1,
+    "seamScore": 0.555
+   },
+   "clockwork-canyon.boiler": {
+    "file": "boiler-6032e2ff6897.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 7.75,
+    "duration": 8.75,
+    "gain": 1,
+    "seamScore": 0.503
+   },
+   "clockwork-canyon.gear-ratchet": {
+    "file": "gear-ratchet-a038e6831283.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 9.25,
+    "duration": 10.25,
+    "gain": 1,
+    "seamScore": 0.562
+   },
+   "clockwork-canyon.garden-birds": {
+    "file": "garden-birds-05a9c59c152a.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 9.75,
+    "duration": 10.75,
+    "gain": 1,
+    "seamScore": 0.395
+   },
+   "clockwork-canyon.kiosk-murmur": {
+    "file": "kiosk-murmur-0160591b0750.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 7.5,
+    "duration": 8.5,
+    "gain": 1,
+    "seamScore": 0.541
+   }
+  },
+  "oneshots": {},
+  "rejected": []
+ },
  "coral-drift": {
   "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
   "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
@@ -4529,6 +5046,73 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    }
   },
   "oneshots": {}
+ },
+ "desert-ruin": {
+  "model": "MOSS-SoundEffect v2 · Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "MOSS: Apache-2.0; Stable Audio 3 Medium: Stability AI Community License and Gemma terms",
+  "beds": {
+   "desert-ruin.ambience": {
+    "file": "ambience-9e8220262258.m4a",
+    "loopStart": 7.25,
+    "loopEnd": 15.25,
+    "duration": 16.25,
+    "gain": 1,
+    "seamScore": 0.63
+   }
+  },
+  "hums": {
+   "desert-ruin.gateway-wind": {
+    "file": "gateway-wind-7dfd0c8b22a9.m4a",
+    "loopStart": 2,
+    "loopEnd": 8,
+    "duration": 9,
+    "gain": 1,
+    "seamScore": 0.568
+   },
+   "desert-ruin.oasis-ne": {
+    "file": "oasis-ne-2c294b87f1da.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 7.5,
+    "duration": 8.5,
+    "gain": 1,
+    "seamScore": 0.587
+   },
+   "desert-ruin.tents-south": {
+    "file": "tents-south-66cdbaee8b50.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 9.75,
+    "duration": 10.75,
+    "gain": 1,
+    "seamScore": 0.579
+   },
+   "desert-ruin.ruins-west": {
+    "file": "ruins-west-f765ff652fd4.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 8.5,
+    "duration": 9.5,
+    "gain": 1,
+    "seamScore": 0.544
+   },
+   "desert-ruin.palms-south": {
+    "file": "palms-south-56714d4c116f.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 8.25,
+    "duration": 9.25,
+    "gain": 1,
+    "seamScore": 0.464
+   },
+   "desert-ruin.entry": {
+    "file": "entry-73e4ec1ad002.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 8.25,
+    "duration": 9.25,
+    "gain": 1,
+    "seamScore": 0.483
+   }
+  },
+  "oneshots": {},
+  "rejected": []
  },
  "driftwood-isle": {
   "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",

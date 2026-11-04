@@ -40,6 +40,19 @@ def read_compared_take(wav: Path, comparison: dict) -> dict:
 
 
 
+def publication_fit(family: str, engine: str, match: dict, decisions: dict) -> dict | None:
+    """Keep the top-five bar unless a reviewed decision binds this exact measured take."""
+    if match["rank"] <= 5:
+        return None
+    binding = {"engine": engine, **{key: match.get(key) for key in
+        ("rank", "p", "seed", "sourceWaveSha256", "sourceMetadataSha256")}}
+    accepted = decisions.get("families", {}).get(family)
+    if (accepted != binding or decisions.get("label") != "best measured, below top-5"
+            or not isinstance(decisions.get("ruling"), str) or not decisions["ruling"].startswith("G872 ")):
+        raise ValueError(f"{family}: neither engine meets the existing CLAP top-five bar; no exact fit decision")
+    return {"label": decisions["label"], "ruling": decisions["ruling"], "family": family, **binding}
+
+
 def shared_bed(reference: dict) -> tuple[dict, dict, int]:
     """Reuse only an existing qualified catalogue body, never a copied take."""
     source_set, key = reference.get("set"), reference.get("bed")
@@ -222,6 +235,7 @@ def publish(raw: Path, plot: str) -> None:
 
 def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
     comparisons = json.loads((raw / f"{plot}-clap.json").read_text())
+    decisions = json.loads((HERE / "ob7-fit-decisions.json").read_text())
     music = scratch / 'music'
     sfx = scratch / 'sfx'
     music.mkdir()
@@ -295,15 +309,15 @@ def publish_checked(raw: Path, plot: str, scratch: Path) -> None:
             continue
         pair = comparisons["sfx"][family]
         engine = min(pair, key=lambda key: (pair[key]["rank"], -pair[key]["p"]))
-        if pair[engine]["rank"] > 5:
-            raise ValueError(f"{family}: neither engine meets the existing CLAP top-five bar")
+        fit = publication_fit(family, engine, pair[engine], decisions)
         wav = raw / engine / family / f"{pair[engine]['seed']}.wav"
         source = read_compared_take(wav, pair[engine])
         ident = family.removeprefix("bed.").removeprefix("hum.")
         name = family.rsplit(".", 1)[1]
         entry = encode_loop(wav, sfx / f"{name}.m4a", -24 if row["kind"] == "bed" else -26, 64, scratch)
         manifest["beds" if row["kind"] == "bed" else "hums"][ident] = entry
-        manifest["provenance"].append({"file": entry["file"], "winner": engine, "comparison": pair, **source})
+        manifest["provenance"].append({"file": entry["file"], "winner": engine, "comparison": pair, **source,
+                                       **({"fitDecision": fit} if fit is not None else {})})
     write(sfx / "sfx.json", manifest)
     total = shared_bytes + sum(path.stat().st_size for folder in (music, sfx) for path in folder.iterdir() if path.is_file())
     if total > 3_000_000 or any(path.stat().st_size > 1_000_000 for folder in (music, sfx) for path in folder.iterdir()):

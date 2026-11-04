@@ -6,10 +6,26 @@ import tempfile
 import unittest
 import wave
 
-from ob7_build import REPO, read_compared_take, shared_bed, replace_output_row
+from ob7_build import REPO, read_compared_take, shared_bed, replace_output_row, publication_fit
 
 
 class ComparedTakeTest(unittest.TestCase):
+    def test_below_top_five_requires_the_exact_reviewed_source_and_measurement(self) -> None:
+        match = {"rank": 6, "p": .02, "seed": "701", "sourceWaveSha256": "a" * 64,
+                 "sourceMetadataSha256": "b" * 64}
+        family = 'bed.fixture.ambience'
+        decisions = {"ruling": "G872 2026-11-04", "label": "best measured, below top-5",
+                     "families": {family: {"engine": "moss", **match}}}
+        self.assertEqual(publication_fit(family, 'moss', match, decisions)['label'], decisions['label'])
+        self.assertIsNone(publication_fit(family, 'moss', {**match, 'rank': 5}, {}))
+        for field, value in [('rank', 7), ('p', .03), ('seed', '702'),
+                             ('sourceWaveSha256', 'c' * 64), ('sourceMetadataSha256', 'd' * 64)]:
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'no exact fit decision'):
+                publication_fit(family, 'moss', {**match, field: value}, decisions)
+        for name, engine, decision in [('other', 'moss', decisions), (family, 'medium', decisions), (family, 'moss', {})]:
+            with self.assertRaisesRegex(ValueError, 'no exact fit decision'):
+                publication_fit(name, engine, match, decision)
+
     def test_activation_preserves_literal_peer_keys_and_only_changes_its_row(self) -> None:
         before = '{\n  "outputs": [\n    {"idea":"peer","pois":[],"pois":[1]},\n    {"idea":"own","manifest":{}},\n    {"idea":"later","value":2}\n  ]\n}\n'
         after = replace_output_row(before, 'own', {'idea': 'own', 'manifest': {'audio': True}})
