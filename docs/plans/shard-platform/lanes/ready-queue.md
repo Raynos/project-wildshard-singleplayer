@@ -5,6 +5,20 @@ claims it with a one-line pathspec commit to this file (`<lane> <HH:MM>`), sends
 A brief sent by wildshard-new always wins over this queue. The coordinator keeps at least five open rows per type.
 Every row is decided work (Jake's G-rows); the refs are the brief.
 
+## Current open rows (2026-11-04 ~11:10 Cancun; supersedes the older tables below)
+
+Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<lane> <HH:MM>` in its Taken cell.
+
+| # | Codex row | Ref | Taken |
+|---|---|---|---|
+| C1 | Review sp-o3's DL10 early compile + WebKit link pacing (Debug row, default off) | 359b6fecd2, cb7ceccab4 | |
+| C2 | Review sp-o4's DL21 card commits: named spans/sub-stages, step 27 jobs, link counts | 5730708c5c, 42bd0ec286, 1b240a289a | |
+| C3 | Review sp-o5's NF18 (TSL runtime deletion) when it lands: no TSL import left, goldens cited | NF18 commit | |
+| C4 | Review sp-o5's LD9b (copied-runtime arm retired) when it lands: refusals, chargebacks | LD9b commit | |
+| C5 | Review sp-o2's DL16 flip (packs default on; debug.levelDownload kept for tools only) when it lands | DL16 commit | |
+| C6 | Review sp-o1's DL7 P3 snapshot seed when it lands: snapshot equals runtime build, fallback intact | DL7 P3 commit | |
+| C7 | Plot walks + 8-view goldens (machine slot; booked: x2 Thin/Fossil/Pastel, x1 Clockwork/Desert/Race/Showcase) | OPEN-PLOTS | x1, x2 |
+
 ## G768 (Jake, 2026-10-27): no gate project
 
 sp-x7 alone: push gate = 45 s wall clock that fails open (unfinished = CI), no red hold, no quiet pause; pre-commit capped
