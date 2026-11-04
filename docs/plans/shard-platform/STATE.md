@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE c93770e-mw1y439m** (05:33, fully qualified; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 3e1b102-mw20d5rm** (06:29, fully qualified, 22 verified tonight; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**06:00:** DL11: demand-first 62502f386c (Pine setup starts 5.5 s, was 85 s; control 119 s); next 8 colliding sfx + per-step barrier (o3). GitHub SSH rejects this Mac: sp-ci-deploy publishes over command-scoped HTTPS (gh keyring) until it recovers.
+**07:00:** DL17 home: Driftwood + Sunscar green; Nalati fixed (gate predicate pending); Pine ring cell landed, own reds (horizon, held tool, fences) in measure (o2); Nine traced run queued (o1). sfx stem bug fixed 3e1b10222e. Push via HTTPS (sp-ci-deploy).
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
