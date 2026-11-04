@@ -89,16 +89,16 @@ export function bootFiles(def: BootLevel, tex: TexMode = texMode(), profile?: Le
   addBytes(art.bytes);
   const inventory = profile?.files() ?? bootAudioFiles(def.boot) ?? audioFiles();
   const boot = profile?.bootFiles(getMusicStyle());
-  // I7: on the phone the bar reads only the first seconds' audio; the rest of the boot set follows control.
-  const control = TIER === 'phone' ? profile?.controlFiles?.(getMusicStyle()) : undefined;
+  // G1000 (DL17, root's ruling over I7): the level's audio is downloaded and loaded at full fidelity before control, so
+  // the phone's bar reads the whole boot set too (I7 held all but its first seconds back until after control)
   const title = TIER === 'phone' && lateTitleMusic ? new Set(profile?.titleFiles?.(getMusicStyle())) : new Set<string>();
-  const selected = boot === undefined ? undefined : new Set(boot.filter(url => (control === undefined || control.includes(url)) && !title.has(url)));
+  const selected = boot === undefined ? undefined : new Set(boot.filter(url => !title.has(url)));
   // Omitting a profile retains the complete inventory used by background shard prefetch.
   const audio = selected === undefined ? inventory : {
     music: inventory.music.filter(url => selected.has(url)), sfx: inventory.sfx.filter(url => selected.has(url)),
   };
   const files = { ...chunkFiles(def, tex), art: art.urls, ...audio };
-  if ((control !== undefined || title.size > 0) && boot !== undefined && selected !== undefined) {
+  if (title.size > 0 && boot !== undefined && selected !== undefined) {
     const shipped = new Set([...inventory.music, ...inventory.sfx]);
     heldAudio.set(files, boot.filter(url => shipped.has(url) && !selected.has(url)));
   }
@@ -256,7 +256,9 @@ export function startDeferredAudioPreload(files: ChunkFiles, def: BootLevel, pro
       };
       try {
         const selectedProfile = profile ?? NO_AUDIO;
-        const bank = await (TIER === 'phone' ? selectedProfile.controlDecode ?? selectedProfile.decode : selectedProfile.decode)(style, read, oneAtATime);
+        // the whole set decodes in the bar on every tier (G1000): a held-back set (late title music) keeps the phone's
+        // control decode of what it read
+        const bank = await (TIER === 'phone' && hasLateAudio(files) ? selectedProfile.controlDecode ?? selectedProfile.decode : selectedProfile.decode)(style, read, oneAtATime);
         return { music: undefined, sfx: { set, credit: undefined, loops: new Map(), shots: new Map() }, profile: bank };
       } finally { if (!hasLateAudio(files)) selectedBytes.clear(); }
     })();

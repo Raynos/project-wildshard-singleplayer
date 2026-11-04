@@ -7,7 +7,7 @@ import { HORIZON_RADIUS as CONTENT_HORIZON_RADIUS } from '@wildshard/format/cont
  *
  *   const matte = new HorizonMatte(sky).build();   // null-safe: builds nothing unless the sky backdrop has a palette
  *   scene.add(matte.mesh);
- *   matte.load();                                  // lazy, after boot
+ *   await matte.load(undefined, true);             // under the loading card (DL17: whole at control)
  *   game.onUpdate((dt) => matte.update(dt, camera, dayNight?.night ?? 0));
  *
  * - **mesh**: one open cylinder (128 × 8 quads) of radius `RADIUS` that follows the camera on XZ and stays at sea level,
@@ -20,8 +20,8 @@ import { HORIZON_RADIUS as CONTENT_HORIZON_RADIUS } from '@wildshard/format/cont
  *   the night texture by the clock's `night`, then hazed toward the dome's live horizon colour near the sea and lit by
  *   the sun glow — so it rides every day / night preset without a third texture. The alpha fades into the sky at the top.
  * - **textures**: the shard's strips (its manifest's `horizonStrips`): two 4096 × 512 WebPs with alpha
- *   (`public/assets/horizon/<slug>-{day,night}.webp`, made by scripts/horizon-matte/ with `--shard <slug>`), fetched after
- *   boot; the band fades in over ~1.5 s once both are decoded. A shard without strips builds nothing; Pine Hollow's
+ *   (`public/assets/horizon/<slug>-{day,night}.webp`, made by scripts/horizon-matte/ with `--shard <slug>`), fetched while
+ *   the level loads and shown whole at control (DL17); a later `load()` fades the band in over ~1.5 s. A shard without strips builds nothing; Pine Hollow's
  *   photoreal strips are drawn at infinity by PaintedHorizon (below), not by this class. Always on — the user locked it in (E78); the `?matte=0` switch is gone (E136).
  */
 import * as THREE from 'three';
@@ -132,11 +132,11 @@ export class HorizonMatte {
   }
 
   /**
-   * fetch + decode both paintings off the critical path (call once boot is done); resolves when the band is shown.
-   * `replaces`: geometry the painting stands in for, hidden as the band fades in; it stays the fallback when the
-   * paintings fail to load.
+   * fetch + decode both paintings; resolves once both are decoded. `instant` (the loader's own call, DL17: before
+   * control) shows the band whole at once; otherwise it fades in over FADE_IN. `replaces`: geometry the painting stands
+   * in for, hidden as the band shows; it stays the fallback when the paintings fail to load.
    */
-  async load(replaces?: THREE.Object3D): Promise<void> {
+  async load(replaces?: THREE.Object3D, instant = false): Promise<void> {
     const strips = this.strips;
     if (!this.mesh || !strips || this.loaded) return;
     this.loaded = true;
@@ -144,6 +144,8 @@ export class HorizonMatte {
       const [day, night] = await Promise.all([loadTexture(strips.day), loadTexture(strips.night)]);
       this.u.tDay.value = day; this.u.tNight.value = night;
       this.ready = true;
+      // `instant`: loaded under the loading card (DL17), the band is whole at control, with no fade-in after it
+      if (instant) { this.fade = 1; this.u.uFade.value = 1; }
       if (replaces) replaces.visible = false;
     } catch (e) {
       console.warn('[horizon-matte] paintings not loaded; the band stays off', e);

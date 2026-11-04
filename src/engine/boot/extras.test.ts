@@ -147,28 +147,24 @@ test('missing audio retains synth fallback and an asset-free profile reads nothi
   expect(fetch).toHaveBeenCalledTimes(2);
 });
 
-test('late decoding keeps the original bank and reuses control bytes beside one packed late read',async()=>{
+test('G1000: the phone bar reads and decodes the whole boot audio set before control, with no late load',async()=>{
   const prior=TIER;initializeTier('phone');
   try{
-    const wire=new Uint8Array([4,5,6]);
-    const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',wire))].map(value=>value.toString(16).padStart(2,'0')).join('');
-    const url=`/assets/packs/fixture-audio-folk.phone-${hash.slice(0,8)}.bin`;
-    const rows=[[sfx,0,3,'audio/mp4']] as const;
-    installAssetTables({...priorTables,bytes:{[music]:3,[sfx]:3},packs:{'fixture-audio-folk':{phone:{bytes:3,files:rows,parts:[{url,bytes:3,files:rows}]}}}});
-    const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(input=>Promise.resolve(new Response(input===url?wire:new Uint8Array([1,2,3]))));
+    installAssetTables({...priorTables,bytes:{[music]:3,[sfx]:3}});
+    const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(input=>Promise.resolve(new Response(input===sfx?new Uint8Array([4,5,6]):new Uint8Array([1,2,3]))));
     const decoded=vi.fn<LevelAudioProfile['decode']>(async(_style,read)=>{
       expect([...new Uint8Array(await read(music))]).toEqual([1,2,3]);
       expect([...new Uint8Array(await read(sfx))]).toEqual([4,5,6]);
       return bank;
     });
-    const selected={...profile,controlFiles:()=>[music],controlDecode:()=>Promise.resolve(bank),decode:decoded};
+    // a profile that still names a control subset (I7) gets its whole boot set anyway, and the full decode
+    const control=vi.fn<NonNullable<LevelAudioProfile['controlDecode']>>(()=>Promise.resolve(bank));
+    const selected={...profile,controlFiles:()=>[music],controlDecode:control,decode:decoded};
     const files=bootFiles(level,'img',selected),preload=startDeferredAudioPreload(files,level,selected);
     await preload.wait({set:()=>undefined,detail:()=>undefined});await preload.decode();
-    expect(fetch.mock.calls.map(([input])=>input)).toEqual([music]);
-    const late=startLateAudio(files);expect(startLateAudio(files)).toBe(late);
-    expect((await late)?.profile).toBe(bank);
-    expect(decoded).toHaveBeenCalledTimes(1);
-    expect(fetch.mock.calls.map(([input])=>input)).toEqual([music,url]);
+    expect(new Set(fetch.mock.calls.map(([input])=>input))).toEqual(new Set([music,sfx]));
+    expect(decoded).toHaveBeenCalledTimes(1); expect(control).not.toHaveBeenCalled();
+    expect(startLateAudio(files)).toBeUndefined();
   }finally{initializeTier(prior);}
 });
 

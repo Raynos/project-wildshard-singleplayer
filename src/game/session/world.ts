@@ -39,7 +39,7 @@ import { hasPond } from '@wildshard/engine/world/Heightfield';
 import { Horizon } from '@wildshard/engine/world/Horizon';
 import { HorizonMatte } from '@wildshard/engine/world/HorizonMatte';
 
-async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) : Promise<{ world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: DeclarationWater | null; streams: null; horizon: Horizon; }; boundary: Boundary; water: DeclarationWater | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: LevelAudio; music: LevelMusic; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
+async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) : Promise<{ world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: DeclarationWater | null; streams: null; horizon: Horizon; horizonReady: Promise<void>; }; boundary: Boundary; water: DeclarationWater | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: LevelAudio; music: LevelMusic; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, boot, session, audioProfile, plan, step, product } = ctx;
 
   const selected = { ...manifest, spawn: boot.handoff?.arrive ?? manifest.spawn };
@@ -92,12 +92,15 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
     // the painted 360° horizon (X4): far sea stacks, islands and cloud banks on the sea, day + night; the paintings load after boot
     const seaBody = app.world.water.sea; // registered at level.data, before the edge step
     const matte = seaBody !== null ? new HorizonMatte(sky, seaBody.level).build() : null;
+    let horizonReady: Promise<void> = Promise.resolve();
     if (matte?.mesh) {
       game.rootScene.add(matte.mesh);
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); }, 'main.2');
-      game.levelScope.listen(document, 'ws:ready', () => { game.levelScope.timeout(250, () => { void matte.load(); }); }, { once: true });
+      // DL17 (G1000): the paintings are level content: they load now, beside the rest of the level, and the reveal waits
+      // for them (finish.ts), shown whole at control instead of fading in after it
+      horizonReady = matte.load(undefined, true);
     }
-    return { boundary, water, streams, horizon };
+    return { boundary, water, streams, horizon, horizonReady };
   });
   const { boundary, water, horizon } = edgeDressing;
   boot.runtime.horizonVeil = horizon.painted?.veil ?? null;
