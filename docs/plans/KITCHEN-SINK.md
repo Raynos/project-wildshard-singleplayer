@@ -183,6 +183,13 @@ mega plan … and then we must have a bunch of mini plans attached to it."* v1 (
     `CELL_BELOW` / `CELL_ABOVE`) and no two volumes overlap; no portal leads to a parallel world outside the cube. A
     shardfile validator enforces it and SHARDS.md documents it (Wave 1 row W15). The showcase is the first user: the
     Training Vault at y −40 and the Titan arena at y −150.
+19ae. **The HUD stays calm: all 38 UI changes decided** (Jake 11-03, one by one on in-engine before/after pairs; 33
+    approved, 5 cut; [UI-PICKS.md](kitchen-sink-v2/UI-PICKS.md), slice decisions D49–D61). No banner or chip outlives
+    its moment (wave, storm and beacon lines fade in ~2 s); an activity's chip takes the quest chip's place (course
+    clock, vault rooms, trick score); the fight row is GUARD · LOCK · DODGE · JUMP with no BOLTS disc (tap the weapon
+    chip for three ammo tiles); the bag is five tabs with CHARACTER / GEAR and MAP / QUESTS sub-tabs; toasts are one
+    short line. Cut: the map heat map, the minimap band border, a HUD Scrip chip, the range's LOAN tags, the tour
+    toast.
 19. **Existing shards get levels too, hidden:** you are level 1, every enemy is level 1, the range is 1 to 1, and no
     level UI shows. Their combat must feel exactly as it does today. Rolling 1–20 out to other shards is future work.
 

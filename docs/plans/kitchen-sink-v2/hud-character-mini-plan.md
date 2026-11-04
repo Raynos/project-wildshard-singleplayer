@@ -15,6 +15,40 @@ Levels rows LVH1–LVH5 live in [levels-combat-mini-plan.md](levels-combat-mini-
 4. Attributes grow automatically, so the Character screen is read-only: no point spending.
 5. Quest givers show a grey or yellow "!" (quests mini plan).
 
+## Decisions (Jake, 2026-11-03: the 38 UI changes, one by one)
+
+All 38 in-engine before/after pairs (`art/showcase-template/round-12-ui/`, the "Kitchen Sink v2 UI Changes" page) are
+decided: **33 approved, 5 cut**. Each item, its frame and Jake's words: [UI-PICKS.md](UI-PICKS.md). The rules they set
+(slice decisions D49–D61 in [slices/DECISIONS.md](slices/DECISIONS.md)):
+
+1. **Nothing permanent and busy.** No banner or chip stays on screen for a moment that has passed. Wave starts, storm
+   hour and each beacon get one centred line that fades in ~2 s (UI-24, UI-22); no minimap beacons, no extra toasts.
+2. **One chip under the minimap.** While an activity runs, its chip takes the quest chip's place and the quest chip
+   comes back after: the course clock (UI-20), the Training Vault's TRAINING VAULT | ROOM 2/4 · 3 LEFT (UI-29 A), the
+   hover park's trick score (UI-31).
+3. **The fight row is four in a row**: GUARD · LOCK · DODGE · JUMP, GUARD in the slot the spear's THROW takes, only with
+   the sword (UI-06). **No BOLTS disc**: tap the weapon chip and three ammo tiles slide out beside it (UI-35 C2); no
+   ammo list in the bag.
+4. **The bag has five tabs**: MAP · CHARACTER · FINDS · PACK · FEATS. Gear folds into CHARACTER (CHARACTER / GEAR
+   sub-tabs, opens on CHARACTER; UI-10); the map tab holds MAP / QUESTS sub-tabs (opens on MAP) with the quest list,
+   one quest's details, a locked quest and the tracked quest's card (UI-14).
+5. **Dialogue never offers a dead button**: a level-gated quest says NEEDS LV n once by its name and ends on one OK
+   (UI-13). Leaving a mini dungeon is walking through its real exit portal; the SHRINE COMPLETE card has one CONTINUE
+   (UI-30).
+6. **Toasts are one short line at a time** ("FOUND · GOLD 1×1 · 5 / 20"); details live in FINDS / FEATS (UI-18 A).
+   Stealth is one eye + UNSEEN row top left, no toast (UI-23 B).
+7. **In the world**: the quest-giver "!" sits just above the head (UI-12); boards with information (personal bests)
+   are real signs, placed properly (UI-21). A first-time hint teaches a mechanic once (UI-11).
+8. **Cut**: the map's level heat map (UI-27), the minimap band border (UI-28), a HUD Scrip chip and the per-kill
+   "+3 Scrip · +1 Servo" toast (UI-38), the range's LOAN tags and toast (UI-37), the tour-step toast (UI-15).
+
+Approved as shown: the XP bar (UI-01), level-up in a fight (UI-02) and its out-of-combat card (UI-03), nameplates
+(UI-04), floating text (UI-05), the named-elite banner (UI-07), the boss bar's phases (UI-08), the death card's XP line
+(UI-09), the kill-contract board (UI-16), the checkpoint card (UI-17), the shard-complete card (UI-19), the portal ENTER
+prompt (UI-25), the boss title card with HOLD TO SKIP (UI-26), Tinker Rook's UPGRADES / BENCH (UI-32), the weapons shop
+(UI-33), the 20-slot pack (UI-34) and the trophy perk card (UI-36). Every one still sends the E332 herdr notice when
+it is built.
+
 ## Pieces
 
 | Piece | Where | Notes |

@@ -1,6 +1,6 @@
 # KITCHEN-SINK v2: state
 
-**Updated:** 2026-11-03 (E523 session). **Phase:** planning with Jake, ~96 % decided; nothing built.
+**Updated:** 2026-11-03 (E523 session, after the UI picks). **Phase:** planning with Jake, ~96 % decided; nothing built.
 
 **Settled:** the parent §2 (rulings 1–19ad): seven attributes and the whole combat maths (19aa; levels-combat §15), the
 polished look (19ab), the Titan behind a boss portal (19ac), the 500 m shard cube (19ad), the golden-ratio XP curve, option E misses, other shards keep simple combat.
@@ -15,7 +15,8 @@ three-court gauntlet; the 15 m Titan fights in a ⌀104 m hidden arena at y −1
 **Mockups:** all 40 remastered (`art/showcase-template/round-11-remaster/`, the gallery artifact). Five show the old SE
 and get redone on round 5: E11 (gauntlet), E13 / E14 / S06 (Titan arena), M03 (aerial from the east).
 
-**Decided 11-03:** Titan 15 m; the Titan road opens after the first gauntlet clear; wave-3 elite Shift Supervisor.
+**Decided 11-03:** Titan 15 m; the Titan road opens after the first gauntlet clear; wave-3 elite Shift Supervisor. **The 38 UI changes** (one by one): 33 approved, 5 cut ([UI-PICKS.md](UI-PICKS.md); rules in the HUD mini
+plan; D49–D61). The ramps were D7 (launch walls, kickers 2.4 / 3.6 / 4.8 m).
 
-**Open for Jake:** loot may be revisited; taller hover-park ramps; the 38 UI changes one by one in
-[UI-PICKS.md](UI-PICKS.md) (all 38 decided 11-03: 33 approved, 5 cut; each HUD change still sends the E332 herdr notice when it is built).
+**Open for Jake:** loot may be revisited; the mini plans' open questions (audio Q1–Q4, enemies Q1, Q2, Q4, Q5, the
+Warden Core, the quest names); the slice questions D1–D61 did not answer (each has a recommendation).

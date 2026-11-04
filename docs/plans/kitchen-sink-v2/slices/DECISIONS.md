@@ -54,3 +54,24 @@ families, the parity bar, parallel toy slices) is in [README.md](README.md).
 | D46 | Leash heal (walk home to full) | **Showcase only**, an optional row off by default | E-band slices |
 | D47 | Per-pack respawn | **A new optional row, showcase only** (D33: others proved unchanged) | E1c |
 | D48 | The "Patch Notes" feat | **Dropped** | E8 |
+
+## The 38 UI changes (Jake, 2026-11-03, one by one on the in-engine pairs)
+
+33 approved, 5 cut; every item in [UI-PICKS.md](../UI-PICKS.md), the rules in the
+[HUD mini plan](../hud-character-mini-plan.md). These rows answer or refine the slice questions they name.
+
+| # | Question | Jake's answer | Slice |
+|---|---|---|---|
+| D49 | The XP bar, the tick-up card, nameplates, the Character tab's place (E0e Q1–Q2, E0f Q1–Q2) | **As recommended**: the bar on the touch bar's top edge, the tick-up card after 5 s calm with TAP TO SKIP, nameplates always within 25 m, CHARACTER in the bag (UI-01–UI-04, UI-10) | E0e, E0f |
+| D50 | Where activity counters show (refines D22) | **In the quest chip's place, one chip at a time**; the quest chip comes back after: course clock, the vault's room count, the trick score (UI-20, UI-29 A, UI-31) | W6d, E10c, W5b |
+| D51 | Wave, storm hour and beacon messages | **One centred line that fades in ~2 s**; nothing stays; no minimap beacons, no toast (UI-24, UI-22) | E11b, E9 |
+| D52 | Where GUARD sits (refines D6) | **In the row: GUARD · LOCK · DODGE · JUMP**, in the slot the spear's THROW takes (UI-06) | W3d |
+| D53 | The bag's tabs (supersedes D14's placement) | **Five tabs, MAP · CHARACTER · FINDS · PACK · FEATS**: Gear is a sub-tab of CHARACTER (opens on CHARACTER); the map tab has MAP / QUESTS sub-tabs (opens on MAP) with the list by tier, one quest's details, a locked quest (UI-10, UI-14) | E0f, W1b |
+| D54 | Picking ammo (refines D17) | **No BOLTS disc and no pouch row: tap the weapon chip, three ammo tiles slide out beside it** (icon + count, the loaded one lit); no ammo list in the bag (UI-35 C2) | W3b |
+| D55 | A quest above your level in dialogue | **NEEDS LV n once, by the quest name, and one OK**; no NEXT, no greyed button (UI-13) | W1b |
+| D56 | Leaving a mini dungeon | **Walk through the real exit portal; rerun by walking back in**; the SHRINE COMPLETE card has one CONTINUE (UI-30) | E10b, E10c |
+| D57 | Find and feat toasts | **One short line at a time**, no effect text, the next one waits; details in FINDS / FEATS (UI-18 A) | W9b, E8 |
+| D58 | Stealth on the HUD | **One eye + UNSEEN row top left**, the quest chip unchanged, no toast (UI-23 B) | E5b |
+| D59 | Boss intro skip (E12h Q1, enemies plan Q3) | **Hold** (the engine's HOLD TO SKIP ring; UI-26) | E12h |
+| D60 | Signs and markers in the world | **Information boards are real signs placed in the world** (UI-21); the quest-giver "!" just above the head (UI-12); first-time hints teach a mechanic once (UI-11) | W3a, W6d, W1b, E0b |
+| D61 | Cut | **The map's level heat map, the minimap band border, a HUD Scrip chip and the per-kill Scrip toast, the range's LOAN tags and toast, the tour-step toast** (UI-27, UI-28, UI-38, UI-37, UI-15). The features under them (D2's range loan, D4's Shift Orientation quest, Scrip itself) stay | map, E1d, W3a, W1b |
