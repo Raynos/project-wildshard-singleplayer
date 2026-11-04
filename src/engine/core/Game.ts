@@ -897,9 +897,14 @@ export class Game {
         : this.frameCount > 0 ? () => waitForDrawnFrame(this.levelScope, () => this.frameCount, live) : undefined;
       // before play (no frame drawn yet) the boot's Shaders step builds what the first frame draws and the rest is warmed
       // in play: a region's own warm-up here keeps only its resources then
+      // DL21: Developer splits a geometry warm into its prepare and its parked draws (the loader's step 27 runs one a slab
+      // part, ~75 ms each on a cold Simulator, serialized)
+      const timed = options?.drawGeometry === true && isDev(), started = timed ? diagnosticNow() : 0;
       await prepareSceneRoots(this.renderer, this.camera, this.rootScene, composer.inputBuffer, roots, live, pause,
         LIVE_UPLOAD_BUDGET, this.frameCount > 0 || options?.drawGeometry === true, futureLighting);
+      if (timed) performance.measure('wildshard.warm.geometry-prepare', { start: started, end: diagnosticNow() });
       if (options?.drawGeometry === true) {
+        const drawsFrom = diagnosticNow();
         const { warmParkedDraws } = await import('../render/parkedDraws');
         // Before the first game draw the loading card owns task-paced work.
         // In play each native geometry draw crosses the completed-draw fence.
@@ -912,6 +917,7 @@ export class Game {
           // A strict streamed publication cannot call that prepared.
           if (!complete) throw new Error('Streamed geometry preparation did not complete');
         }
+        if (timed) performance.measure('wildshard.warm.geometry-draws', { start: drawsFrom, end: diagnosticNow() });
       }
     });
   }

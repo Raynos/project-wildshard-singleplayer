@@ -303,7 +303,7 @@ function streamedGeometry(draw: typeof warmParkedDraws) {
   const presentation = { state: 'covered' }, task = vi.fn<typeof yieldTask>().mockImplementation(scope => yieldTask(scope));
   const body = source.slice(start, end).replace("await import('../render/precompile')", 'programs').replace("await import('../render/parkedDraws')", 'nativeDraws');
   const method: unknown = runInNewContext(stripTypeScriptTypes(`class Harness { ${body} }\nHarness.prototype.warmSceneRoots`), {
-    programs: { prepareSceneRoots: prepare, waitForDrawnFrame: pause, LIVE_UPLOAD_BUDGET: {} }, nativeDraws: { warmParkedDraws: draw }, boundEntryWarmup, yieldTask: task, pagePresentation: presentation,
+    programs: { prepareSceneRoots: prepare, waitForDrawnFrame: pause, LIVE_UPLOAD_BUDGET: {} }, nativeDraws: { warmParkedDraws: draw }, boundEntryWarmup, yieldTask: task, pagePresentation: presentation, isDev: () => false, diagnosticNow: () => 0,
   });
   if (typeof method !== 'function') throw new Error('Streamed preparation method is not callable');
   return { owner, root, scene, game, prepare, pause, presentation, task,
