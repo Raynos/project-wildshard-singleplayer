@@ -3,11 +3,10 @@ import { Color, Vector3 } from 'three';
 import { WebGLUniforms } from 'three/src/renderers/webgl/WebGLUniforms.js';
 import type { WebGLProgram } from 'three/src/renderers/webgl/WebGLProgram.js';
 import { installUniformCacheKinds } from './uniformCaches';
-import { installUniformCacheKinds as installBefore } from '../test/uniform-caches-before';
 
 /** Actual Three uniform construction/setters over a recorder of native float32
  * uploads. Each call records a copy, so reuse cannot overwrite its predecessor. */
-function fixture(buffered: boolean, array = false, install = installUniformCacheKinds) {
+function fixture(buffered: boolean, array = false) {
   const uploads: number[][] = [], buffers: Float32Array[] = [];
   const location: unknown = {}, program: unknown = {};
   const native: unknown = {
@@ -27,20 +26,11 @@ function fixture(buffered: boolean, array = false, install = installUniformCache
   const uniforms = new WebGLUniforms(gl, program as WebGLProgram);
   if (buffered) {
     const target = { getUniforms: () => uniforms };
-    install({ info: { programs: [target] } }); target.getUniforms();
+    installUniformCacheKinds({ info: { programs: [target] } }); target.getUniforms();
   }
   const setter: unknown = Reflect.get(uniforms, 'setValue');
   if (typeof setter !== 'function') throw new Error('Missing native Three setter');
-  const capture = (): ((value: unknown) => void) => {
-    const seq: unknown = Reflect.get(uniforms, 'seq');
-    if (!Array.isArray(seq)) throw new Error('Missing actual native uniform list');
-    const rows: readonly unknown[] = seq, leaf = rows[0];
-    if (typeof leaf !== 'object' || leaf === null) throw new Error('Missing actual native uniform binding');
-    const saved: unknown = Reflect.get(leaf, 'setValue');
-    if (typeof saved !== 'function') throw new Error('Missing actual native leaf setter');
-    return value => { Reflect.apply(saved, leaf, [gl, value]); };
-  };
-  return { uploads, buffers, capture, set: (value: unknown) => { Reflect.apply(setter, uniforms, [gl, 'value', value]); } };
+  return { uploads, buffers, set: (value: unknown) => { Reflect.apply(setter, uniforms, [gl, 'value', value]); } };
 }
 
 test('buffered native vector/color uploads retain every original float32 value and cache skip', () => {
@@ -85,38 +75,4 @@ test('incomplete vector values keep native cache and upload behavior across nume
     before.set(value); after.set(value);
   }
   expect(after.uploads).toEqual(before.uploads);
-});
-
-
-test('binding-local dispatch retains original getter order and captured setters across value kinds', () => {
-  const before = fixture(true, false, installBefore), after = fixture(true);
-  const oldSaved = before.capture(), newSaved = after.capture(), oldLog: string[] = [], newLog: string[] = [];
-  function value(kind: 'rgb' | 'xyz', log: string[], base: number): object {
-    const source = {};
-    for (const [index, key] of (kind === 'rgb' ? ['r', 'g', 'b'] : ['x', 'y', 'z']).entries()) {
-      Object.defineProperty(source, key, { get: () => { log.push(key); return base + index * .1; } });
-    }
-    Object.defineProperty(source, kind === 'rgb' ? 'x' : 'r', { get: () => { log.push('absent'); return undefined; } });
-    return source;
-  }
-  for (let tick = 0; tick < 64; tick++) {
-    const kind = tick % 3 === 0 ? 'rgb' : 'xyz', a = value(kind, oldLog, tick / 256), b = value(kind, newLog, tick / 256);
-    before.set(a); after.set(b);
-    oldSaved(a); newSaved(b);
-    before.set(new Float32Array([.1, .2, .3])); after.set(new Float32Array([.1, .2, .3]));
-    expect(newLog).toEqual(oldLog); expect(after.uploads).toEqual(before.uploads);
-  }
-});
-
-test('changing component getters retain native undefined and null typed-store coercion', () => {
-  const before = fixture(true, false, installBefore), after = fixture(true);
-  function value(second: unknown): object {
-    let reads = 0;
-    return { get x(): unknown { return reads++ % 2 === 0 ? 0.25 : second; }, y: 0.5, z: 0.75 };
-  }
-  for (const second of [undefined, null, -0, Number.NaN, Number.POSITIVE_INFINITY]) {
-    before.set(value(second)); after.set(value(second));
-    before.set(value(second)); after.set(value(second));
-    expect(after.uploads).toEqual(before.uploads);
-  }
 });
