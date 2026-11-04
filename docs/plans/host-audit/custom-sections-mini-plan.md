@@ -164,7 +164,7 @@ does not close a Z row.
 | **Z12** | **Done (2026-11-04, sp-x8, G1004): 0 charged.** `b56d04c2a9` admits all eight complete ground/native-owner files. Immutable `8b80aff221` preserves their **4,390,922 B** and original native/resource/consumer checks; native gate and independent census agree at zero owned custom files. The earlier 5,510 B unread landmark retirement, strict frames, G998 and seven-leg zero-stuck physics proof remain qualified. The exact original CI witness passes before and after b56 (3/3 each; jobs `126780531813` and `126793504221`), as recorded below | **9 source-qualified:** one retired plus eight registered; **0 owned custom files**, clean CI witness attribution qualified | Codex (G958/G1004) | 0 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **Done (2026-11-03, sp-x1 + sp-x2): 6/6 shipping files retired. Full original production policies enter their typed owners; complete native oracles, input fences and independent proof expectations remain. Qualified per-shard landings below; no family credit.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** Original unread ride/rules cut stays qualified. Full room/King, geometry/pose, timed and closed return-program contracts `d6f1d86040`; exact nine registrations/provenance `437638730e`. All nine original bodies (**2,004,340 B**) remain byte-identical with original native owners, AS decisions and refusals. Immutable all-product build and independent native gate/census qualify the metadata change. [G1004 qualification below](#g1004-z11-and-z14-qualification-2026-11-04-sp-x6) | **10 of 10 resolved:** one unread copy retired plus nine complete registered native roots. Cloud is counted once under Z14, also closing its Z7 overlap | Codex | 0 |
-| **Z15** | **In flight (2026-11-04, sp-x6, G1004):** all 28 predecessor products independently qualify at zero on `cee1f1ec35`. Atomic retirement source and bounded reader/refusal checks are prepared; final clean product qualification follows this source milestone. **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
+| **Z15** | **Done (2026-11-04, sp-x6, G1004):** `a39e494196` retires the transport and `dba567db5c` keeps temporary producer JSON under its original byte/schema checks while final output/index/native admission stays closed. Both source commits are pushed. Immutable all-28 `dba567d-mw2n0ivo` qualifies at **0 custom**, with complete current payload/pack verification and unchanged 2 MB ceilings; [final qualification below](#z15-final-retirement-2026-11-04-sp-x6). **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
 
 Kills: 1 + 98 + 72 + 70 + 13 + 6 + 10 + 14 + 14 + 9 + 3 + 8 + 9 + 6 + 9 = **342**. Z0–Z3 remove 241 (70 %) in
 ~9 lane-days. Rows are numbered in build order (most sections per lane-day first); Codex takes Z1, Z4, Z5, Z13 at
@@ -4880,3 +4880,51 @@ under `tmp/sp-x6-g1004/z8-final-indexes/` as the explicit Z15 BEFORE inventory.
 Z15 still waits for every authoritative row to read zero; this qualification
 does not silently delete the custom path.
 
+
+### Z15 final retirement (2026-11-04, sp-x6)
+
+G1004's zero condition is earned by the independent `cee1f1ec35` all-28
+census and the final `dba567db5c` normal immutable build. The custom
+emitter, caller-schema/generated section readers, copied registries, schema
+baker and per-shard capacity/policy files are retired. Exact registered
+named grammars retain their defining native, unsafe-data, semantic, byte,
+hash, cancellation, mirror and lifecycle refusals. The sole custom budget
+is now `custom-sections/total = 0`; restoring a per-shard allowance or an
+inherited zero refuses. No compatibility mapping or runtime loader is added.
+
+The normal clean build completes generation in 41 s, all 28 products in
+45 s and the app in 41 s (127.54 s heavy-lane total). Exact source
+`dba567db5cc6f341fb12806bfda4cda277682424`, build
+`dba567d-mw2n0ivo`, is retained in
+`tmp/serve/20261104-163526-4461/dist`. Maintained output admission and the
+independent source-project census both report **0 custom**. Every current
+physical payload is hash/length checked: **6,030 files + 1,087 sections,
+669,935,026 B**, plus **205 packs / 7,037 ordered members**. The maximum
+index remains **1,813,389 B**, below the unchanged 2,000,000 B ceiling.
+
+Against the retained `cee1` indexes, all **6,030 file hashes** and **1,082
+section hashes** are identical. Only `look/map.map.tilesHash` changes in
+_template, Far Reach, Nalati, Nine and Pastel. Their five map image hashes
+are identical; no literal map-byte parity is claimed. These are ordinary
+fresh source stamps, with no frozen stamp, map-schema exception or visual
+change. This declaration-bound comparison does not invent an unavailable
+8b80/1bc5 whole-Driftwood baseline. Current complete bytes and current pack
+members were independently read and verified.
+
+Root/shard-test types, schema-reference/derived docs and touched typed lint
+pass. The bounded 75-reader run retained 63 passes and 12 fixture failures;
+the affected 17-suite follow-up passes after exact registered-document or
+explicit host-only oracle alignment, preserving all original phase/save,
+loan and refusal assertions. Core gate tests pass. No SDK-wide repeat,
+full-suite, hosted CI, frame-floor or visual claim is made. The initial
+a39 build refusal caught temporary producer JSON before it was consumed;
+dba restores its original intermediate admission and keeps every final
+output/index/native guard strict. Deleted-path fixture failures are fixed
+with neutral isolated source-probe names; the guard itself is unchanged.
+The exact committed deleted-path check and scheduled push gate pass.
+
+Raw current payload/native/census facts are in
+`tmp/z15-current/final-audit.json`, declared before/after differences in
+`parent-compare.json`, and exact five map deltas in `map-deltas.json`.
+Both original failures remain recorded beside the successful changed-source
+build and bounded follow-up logs. Z0-Z15 now all have resolved exits.
