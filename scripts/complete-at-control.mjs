@@ -11,7 +11,8 @@
 //   --dist=<the served build's dist> maps every frame through its hidden source maps
 //   --frames=<s> (G1008): every rAF interval for <s> seconds from control (fps per second, worst frame, frames over 250
 //   and 100 ms) as report.frames, before the lap; --profile=on (Chromium) adds the page's CPU profile over the same window
-//   (self time per function and inclusive time per file, through --dist's maps)
+//   (self time per function and inclusive time per file, through --dist's maps); --heap=on|save (Chromium) adds a heap
+//   snapshot by constructor at the window's end, 'save' also writing the raw snapshot beside the report
 //   --warm=on: no lap: the cold visit, an exit and re-entry 1 s after control while the service worker's post-control
 //   precache still runs (039d's trap), and a re-entry once the worker has gone quiet, each visit judged by checks 1 and 2
 //
@@ -67,7 +68,7 @@ if (![undefined, 'shardfile', 'packs'].includes(values['level-download'])) { con
 // --profile and --heap read the --frames window in Chromium only: refuse a combination that would collect nothing (sp-x9)
 for (const flag of ['profile', 'heap']) {
   if (values[flag] === undefined) continue;
-  if (values[flag] !== 'on') { console.error(`bad --${flag}`); process.exit(2); }
+  if (values[flag] !== 'on' && !(flag === 'heap' && values[flag] === 'save')) { console.error(`bad --${flag}`); process.exit(2); }
   if (!(Number(values.frames ?? '0') > 0) || (values.engine ?? 'chromium') !== 'chromium') { console.error(`--${flag}=on needs --frames=<s> and Chromium`); process.exit(2); }
 }
 // --textures=ktx2|img pins the page's texture mode (the harness pin): a texture-policy change measured on a clean build
@@ -426,11 +427,13 @@ try {
     report.frames = firstSeconds(frames, frameSeconds);
     if (profiler !== null) report.frames.profile = profileTop((await profiler.send('Profiler.stop')).profile, sourceOf);
     // --heap=on (Chromium, D227): the page's JS heap at the end of the window, self size by constructor (top 30)
-    if (values.heap === 'on' && engine === 'chromium') {
+    if ((values.heap === 'on' || values.heap === 'save') && engine === 'chromium') {
       const cdp = await context.newCDPSession(page), chunks = [];
       cdp.on('HeapProfiler.addHeapSnapshotChunk', ({ chunk }) => { chunks.push(chunk); });
       await cdp.send('HeapProfiler.enable'); await cdp.send('HeapProfiler.takeHeapSnapshot', { reportProgress: false });
       report.frames.heap = heapTop(JSON.parse(chunks.join('')));
+      // --heap=save: the raw snapshot beside the report, for retainer analysis (which objects own the ArrayBuffers)
+      if (values.heap === 'save') writeFileSync(`${out.replace(/\.json$/u, '')}.heapsnapshot`, chunks.join(''));
     }
   }
   const reachCells = reachOf(cold.at);
