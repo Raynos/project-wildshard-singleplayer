@@ -140,6 +140,6 @@ test('page publication and external reads require exact provenance before any tr
   const product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity), sections: new Map(),
     files: new Map([[name, { hash: 'a'.repeat(64), url: 'x', jsonSchema: namedJsonSchema(WorldScenePlacementPageSchema) }]]),
     read: () => { reads++; return Promise.resolve(bytes); }, builtJson: true });
-  await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+  await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
   expect(reads).toBe(0);
 });

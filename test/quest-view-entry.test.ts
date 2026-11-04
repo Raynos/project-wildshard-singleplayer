@@ -19,6 +19,14 @@ function fixture(scope=new Scope('quest-entry'),read?:()=>Promise<Uint8Array>){
   const source=emptyShardfile({slug:'quest-entry',name:'Quest entry',author:'Fixture',revision:1,seed:1});
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,jsonCheck:fixtureJsonCheck,
     sections:new Map([['world/scenes',{version:1,libraries:[],materials:[],steps:[]}]]),files,read:read??(()=>Promise.resolve(bytes))});
+  // Only this partial entry-ordering projection is a test byte port. The
+  // separate registered-story negative below still uses real product intake.
+  const named = product.json.bind(product);
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    if (name !== row.file) return named(name);
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   return {scope,input,bytes,files,ctx:legacyDouble<ShardContext>({scope,product})};
 }
 
