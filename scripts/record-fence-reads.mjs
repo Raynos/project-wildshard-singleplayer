@@ -3,7 +3,7 @@
 // then carries them (scripts/app-build/entryReadSet.ts, entryTotals.ts), so the setup steps no longer fetch them on demand.
 //
 //   node --import ./scripts/bake-loader.mjs scripts/record-fence-reads.mjs --run=<cold run .json> --base=<preview URL>
-//        --dist=<the preview's dist> --slug=<shard> [--flow=client|grid] [--check]
+//        --dist=<the preview's dist> --slug=<shard> [--flow=client|grid] [--check] [--allow-unidentified]
 // The run must be a qualified cold phone run of that entry on the served preview's build (a --head or --rev preview: a
 // working-tree preview links public folders, which this reader does not follow), its control witness on that
 // shard (a grid run: its grid home). Scope: page requests between the tap and control under /shardfiles/<slug>/ and the
@@ -16,8 +16,8 @@ import { parseArgs } from 'node:util';
 import { assetIdentities, fenceReadAliases, fenceReadIdentities, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
 
 const { values } = parseArgs({ options: { run: { type: 'string' }, base: { type: 'string' }, dist: { type: 'string' }, slug: { type: 'string' },
-  flow: { type: 'string', default: 'client' }, check: { type: 'boolean', default: false } } });
-const { run: runPath, base, dist, slug, flow, check } = values;
+  flow: { type: 'string', default: 'client' }, check: { type: 'boolean', default: false }, 'allow-unidentified': { type: 'boolean', default: false } } });
+const { run: runPath, base, dist, slug, flow, check, 'allow-unidentified': allowUnidentified } = values;
 if (!runPath || !base || !dist || !slug || !/^[a-z0-9-]+$/u.test(slug) || (flow !== 'client' && flow !== 'grid')) throw new Error('usage: --run --base --dist --slug [--flow] [--check]');
 const run = JSON.parse(readFileSync(runPath, 'utf8'));
 const control = run.control ?? run.controlEventAt;
@@ -36,7 +36,9 @@ const bank = JSON.parse(/id="boot-module-files">([^<]+)</u.exec(html)?.[1] ?? 'n
 const address = flow === 'grid' ? bank.spawnManifests.grid['000'][slug].phone : bank.spawnManifests.client[slug].phone;
 const manifest = await (await fetch(new URL(address.url, base))).json();
 const listed = new Set(manifest.files.map(row => row.url.split('?')[0]));
+// The shell's own images (title cards, the loading backdrop) are page UI, not level content.
 const prefix = `/shardfiles/${slug}/`, shell = /^\/assets\/(?!spawn\/|boot-tables-)[^?]+$/u, code = /\.(?:js|mjs|css|map)$/u;
+const shellImage = /^\/assets\/(?:title\/)?[^/]+\.(?:png|jpe?g|webp|avif|svg)$/u;
 const outside = new Set(), assetsOutside = new Set();
 let matched = 0;
 for (const row of run.requests) {
@@ -45,7 +47,7 @@ for (const row of run.requests) {
   if (path.startsWith(prefix)) matched++;
   if (listed.has(path)) continue;
   if (path.startsWith(prefix) && !path.endsWith('/shard.json')) outside.add(/([a-f0-9]{64})/u.exec(path)?.[1] ?? path);
-  else if (shell.test(path) && !code.test(path)) assetsOutside.add(path);
+  else if (shell.test(path) && !code.test(path) && !shellImage.test(path)) assetsOutside.add(path);
 }
 // Only the home's own reads before control count as its witness (sp-x8's review).
 if (matched === 0) throw new Error(`The run read nothing under ${prefix} before control: not a ${slug} run`);
@@ -69,7 +71,8 @@ for (const name of unknown) console.log(`  unidentified ${name}`);
 if (check) { if (total > 0) throw new Error(`${total} files read before control are not in the spawn set`); }
 else {
   const file = join('src/shards', slug, 'fence-reads.json');
-  if (unknown.length > 0) throw new Error(`${unknown.length} files have no stable identity; nothing written`);
+  // --allow-unidentified writes the identified files; the rest stay on-demand reads, named above.
+  if (unknown.length > 0 && !allowUnidentified) throw new Error(`${unknown.length} files have no stable identity; nothing written (--allow-unidentified records the rest)`);
   let previous = [];
   // Only a missing list is a first recording; a malformed one refuses (sp-x8's review).
   try { previous = readFenceReads(JSON.parse(readFileSync(file, 'utf8'))).files; }
