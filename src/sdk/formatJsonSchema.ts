@@ -1,3 +1,4 @@
+import { QuestInteractionSourceSchema } from '@wildshard/format/questInteractionSource';
 import { uniformIdentityTransforms } from '@wildshard/format/uniformRows';
 import { HeldCueSchema, ArcWeaponItemSchema } from '@wildshard/format/heldMelee';
 import { HeldJianDocumentSchema } from '@wildshard/format/heldJianDocument';
@@ -498,6 +499,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'heldWeaponDocuments.PolearmDocument': PolearmDocumentSchema,
   'heldWeaponDocuments.HeldSlotsDocument': HeldSlotsDocumentSchema,
   'heldJianDocument.HeldJianDocument': HeldJianDocumentSchema,
+  'questInteractionSource.QuestInteractionSource': QuestInteractionSourceSchema,
 };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

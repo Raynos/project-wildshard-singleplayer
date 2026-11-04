@@ -8,6 +8,7 @@
     "./heldWeaponDocuments": "./heldWeaponDocuments.ts",
     "./waterWorld": "./waterWorld.ts",
     "./forestNativeInputs": "./forestNativeInputs.ts",
+    "./questInteractionSource": "./questInteractionSource.ts",
     "./returnProgramDocument": "./returnProgramDocument.ts",
     "./sceneSources": "./sceneSources.ts",
     "./registeredJson": "./registeredJson.ts",

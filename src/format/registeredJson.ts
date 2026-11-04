@@ -1,3 +1,4 @@
+import { QuestInteractionSourceSchema } from './questInteractionSource';
 import { HeldJianDocumentSchema } from './heldJianDocument';
 import { BladeDocumentSchema, PolearmDocumentSchema, HeldSlotsDocumentSchema } from './heldWeaponDocuments';
 import { HeldBowFileSchema, HeldFirearmPageSchema } from './weaponProfiles';
@@ -98,6 +99,7 @@ export interface RegisteredJsonContracts {
   readonly 'models/gear-book.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
   readonly 'models/held-cards.json':{readonly schema:typeof HeldGraphCardsSchema;readonly source:'@wildshard/format/heldArms#HeldGraphCardsSchema'};
   readonly 'look/cover-appearance.json':{readonly schema:typeof CoverAppearanceSchema;readonly source:'@wildshard/format/coverAppearance#CoverAppearanceSchema'};
+  readonly 'quests/interaction-source.json':{readonly schema:typeof QuestInteractionSourceSchema;readonly source:'@wildshard/format/questInteractionSource#QuestInteractionSourceSchema'};
   readonly 'quests/chapters.json':{readonly schema:typeof ChapterStoryPresentationSchema;readonly source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'};
   readonly 'quests/native-story.json':{readonly schema:typeof NativeQuestCompositionSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'};
   readonly 'quests/native-spots.json':{readonly schema:typeof NativeQuestServiceSpotsSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'};
@@ -214,6 +216,7 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'models/gear-book.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
   'models/held-cards.json':{schema:HeldGraphCardsSchema,source:'@wildshard/format/heldArms#HeldGraphCardsSchema'},
   'look/cover-appearance.json':{schema:CoverAppearanceSchema,source:'@wildshard/format/coverAppearance#CoverAppearanceSchema'},
+  'quests/interaction-source.json':{schema:QuestInteractionSourceSchema,source:'@wildshard/format/questInteractionSource#QuestInteractionSourceSchema'},
   'quests/chapters.json':{schema:ChapterStoryPresentationSchema,source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'},
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
   'quests/native-spots.json':{schema:NativeQuestServiceSpotsSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'},
@@ -482,6 +485,7 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'people/catalogue.json':v.parse(FigureCatalogueSchema,value);break;
     case 'quests/chapter-director.json':parseChapterDirector(value);break;
     case 'quests/story.json':parseQuestStory(value);break;
+    case 'quests/interaction-source.json':v.parse(QuestInteractionSourceSchema,value);break;
     case 'quests/chapters.json':parseChapterStoryPresentation(value);break;
     case 'quests/stall.json':v.parse(QuestTraderSchema,value);break;
     case 'quests/achievements.json':parseAchievementCounterData(value);break;

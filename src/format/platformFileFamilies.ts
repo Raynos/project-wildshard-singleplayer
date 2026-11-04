@@ -1,3 +1,4 @@
+import { QuestInteractionSourceSchema } from './questInteractionSource';
 import { EnemyPlacementsSchema } from './populationProjection';
 import { HeldJianDocumentSchema } from './heldJianDocument';
 import { BladeDocumentSchema, PolearmDocumentSchema, HeldSlotsDocumentSchema } from './heldWeaponDocuments';
@@ -76,6 +77,8 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^quests\/interaction-source\.json$/u, schema: QuestInteractionSourceSchema,
+    source: '@wildshard/format/questInteractionSource#QuestInteractionSourceSchema', reader: 'src/game/quest/pageComposition.ts' },
   { pattern: /^sim\/enemy-placement\.json$/u, schema: EnemyPlacementsSchema,
     source: '@wildshard/format/populationProjection#EnemyPlacementsSchema', reader: 'test/fixtures/driftwood-headless.ts' },
   { pattern: /^sim\/population-metadata\.json$/u, schema: PopulationHabitatSchema,

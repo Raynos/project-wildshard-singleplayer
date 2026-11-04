@@ -85,7 +85,7 @@ import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
 import { enemyPlacements } from './enemyPlacement';
 import { keeperRows } from './keeperRows';
 import { emitDefinedSections, parseSectionValue } from '@wildshard/sdk/sections';
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { DRIFTWOOD_OUTPUT } from '../generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS, driftwoodOceanWaterRow } from './clientSections';
 import type { DriftwoodCreatureBodyBank } from './creatureBodyBank';
@@ -104,15 +104,6 @@ const sceneBytes = (value: unknown): Uint8Array => new TextEncoder().encode(enco
 const SCRIPT_V2_REVISIONS = scriptV2Revisions();
 const BRIDGE_SWAY_SCRIPT = { abi: 2 as const, lane: 'view' as const, pages: 1, ioBytes: 4096,
   compilerRevision: SCRIPT_V2_REVISIONS.compiler, admissionRevision: SCRIPT_V2_REVISIONS.admission };
-// The page consumes only these two original constants. Keep the same bounded
-// native JSON value grammar; the interaction host still admits its own rows.
-const nativeDocumentSchema = authorFormatSchema('namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA');
-const interactionWireSchema = {
-  $schema: nativeDocumentSchema.$schema, definitions: nativeDocumentSchema.definitions,
-  type: 'object', additionalProperties: false, required: ['constants'],
-  properties: { constants: { type: 'object', additionalProperties: false, required: ['interact', 'interactSpots'],
-    properties: { interact: nativeDocumentSchema.properties.constants, interactSpots: nativeDocumentSchema.properties.constants } } },
-};
 
 const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PAGE_LIFE))),
 
@@ -130,7 +121,7 @@ const placements = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new
   nameBlob('scenes/cove.json', 'json', new TextEncoder().encode(encodeCanonicalJson(coveScene))),
   nameBlob('scenes/cascade.json', 'json', new TextEncoder().encode(encodeCanonicalJson(cascadeScene))),
   nameBlob('models/fixed-geometry.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseSectionValue(FixedGeometryGroupsSchema, fixedInventory.groups)))),
-  nameGuestBlob('quests/interaction-source.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ constants: { interact: DRIFTWOOD_INTERACT, interactSpots: authoredSpots.rows } })), { jsonSchema: interactionWireSchema }),
+  nameGuestBlob('quests/interaction-source.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ constants: { interact: DRIFTWOOD_INTERACT, interactSpots: authoredSpots.rows } })), { jsonSchema: registeredJsonSchema('quests/interaction-source.json') }),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR))),
   nameBlob('quests/wake-boss.json', 'json', new TextEncoder().encode(encodeCanonicalJson(WAKE_ENCOUNTER))),
   nameBlob('look/gull-draw.json', 'json', new TextEncoder().encode(encodeCanonicalJson(GULL_DRAW))),
