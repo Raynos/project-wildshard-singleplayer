@@ -1,0 +1,965 @@
+{
+  "reader": {
+    "maintained": "art/legacy-goldens/compare/capture.mjs",
+    "maintainedSHA256": "c2bf457869d951a8db6ffc1bcfbd4360fb70b1038ee347740e5204c3a59b89cd",
+    "scratchSHA256": "22f6068f0de8a331fced399608730bf9b93b334142a502bf43ca1dfe260d9383",
+    "changes": [
+      "absolute imports for scratch location",
+      "clock-hour argument",
+      "native pause+set after entry before unchanged frames"
+    ],
+    "discardedCausalRuns": [
+      "left-noon",
+      "left-golden"
+    ],
+    "discardReason": "first method changed native clock.pinned via hold and issued manual sky.update; diagnostic only"
+  },
+  "runs": [
+    {
+      "label": "parent-noon-clockonly",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        172.0667037899497,
+        162.5796688153173,
+        144.49761511030115
+      ],
+      "shotSHA256": "a253918b4b9f0b22ed585636958c67236746facc7153e3bb37addba08b8b2235",
+      "receiptSHA256": "79211b625f2477bf82a52ad77b0c36f8c0a96d919b6cce66dcbd2d769e8c6ad9",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "a258c2941a62468e19a64f55f613b54fa97f5ccb",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 1667
+            },
+            "live": {
+              "settled": true,
+              "ms": 1665
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 374,
+            "player": [
+              -0.08675878551826655,
+              30.020085096137336,
+              -49.60038880952898
+            ],
+            "settledEye": [
+              -0.086760422307685,
+              31.699951919258893,
+              -49.6004149674911
+            ],
+            "exp": {
+              "hour": 12,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                -0.8137976813493742,
+                0.3420201433256687,
+                -0.4698463103929535
+              ],
+              "elevation": 20,
+              "azimuth": 480
+            },
+            "shot": "tmp/sp-x8-d229/parent-noon-clockonly/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "a258c29-mw2hl87t",
+        "entry": {
+          "url": "http://127.0.0.1:4402/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 12,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    },
+    {
+      "label": "left-noon-clockonly",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        172.15926450901645,
+        162.71149584331724,
+        144.63268198845805
+      ],
+      "shotSHA256": "5aa178dee65efdd3ffc9bce5d2ec677f08123ba0ad909357f5c9345cc55614cf",
+      "receiptSHA256": "1e57288f502289567f3e81b102ed79cf3d49eac67f4c837e180e274b6ddf6f2d",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "0d7a022fbbb4cd350f770d15270a1887d3d49d11",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 1667
+            },
+            "live": {
+              "settled": true,
+              "ms": 1667
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 375,
+            "player": [
+              -0.08864956120373535,
+              30.019935644053476,
+              -49.60083289281517
+            ],
+            "settledEye": [
+              -0.08865096108764932,
+              31.699945794521582,
+              -49.60083028534837
+            ],
+            "exp": {
+              "hour": 12,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                -0.8137976813493742,
+                0.3420201433256687,
+                -0.4698463103929535
+              ],
+              "elevation": 20,
+              "azimuth": 480
+            },
+            "shot": "tmp/sp-x8-d229/left-noon-clockonly/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "0d7a022-mw2h8r6j",
+        "entry": {
+          "url": "http://127.0.0.1:4406/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 12,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    },
+    {
+      "label": "right-noon-clockonly",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        171.73689716850595,
+        162.22348778868977,
+        144.155147199442
+      ],
+      "shotSHA256": "5e7a94a09573c899b4e60dcd2af5de5aa27d4994ab0c9997aaea866e20799410",
+      "receiptSHA256": "e807ea0b53ad3c72c8e98188316bda6bb9e914627c1bc14314641a5a3a43e4c5",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "c9ae94288ff745bf1c710f43c19983c10e250c78",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 1665
+            },
+            "live": {
+              "settled": true,
+              "ms": 1667
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 375,
+            "player": [
+              -0.08187463126776157,
+              30.020035461169755,
+              -49.599294285930995
+            ],
+            "settledEye": [
+              -0.08187488897876358,
+              31.700037808681994,
+              -49.599295065206626
+            ],
+            "exp": {
+              "hour": 12,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                -0.8137976813493742,
+                0.3420201433256687,
+                -0.4698463103929535
+              ],
+              "elevation": 20,
+              "azimuth": 480
+            },
+            "shot": "tmp/sp-x8-d229/right-noon-clockonly/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "c9ae942-mw2hd4qg",
+        "entry": {
+          "url": "http://127.0.0.1:4407/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 12,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    },
+    {
+      "label": "left-dawn-clockonly",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        162.77409357317225,
+        149.41465019742836,
+        130.11545341027977
+      ],
+      "shotSHA256": "6ee8fc4d5f9b6754ee64185274c521547185cba00fbdfb6efd98c6908040e1c9",
+      "receiptSHA256": "3fc9784525a37fa998aec491522a876b24f4275f4bd21a8a2506a0773d8ef261",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "0d7a022fbbb4cd350f770d15270a1887d3d49d11",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 1666
+            },
+            "live": {
+              "settled": true,
+              "ms": 1667
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 375,
+            "player": [
+              -0.08453172800121309,
+              30.01991943757821,
+              -49.59971318716823
+            ],
+            "settledEye": [
+              -0.0845311078884521,
+              31.699890091881716,
+              -49.59972327135354
+            ],
+            "exp": {
+              "hour": 6,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                -0.4999999999999993,
+                0,
+                0.866025403784439
+              ],
+              "elevation": 0,
+              "azimuth": 390
+            },
+            "shot": "tmp/sp-x8-d229/left-dawn-clockonly/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "0d7a022-mw2h8r6j",
+        "entry": {
+          "url": "http://127.0.0.1:4406/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 6,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 6,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    },
+    {
+      "label": "left-golden-clockonly",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        167.91727132620116,
+        156.9916191376149,
+        138.55071827927958
+      ],
+      "shotSHA256": "23af26db7755c0204c52ba724d4881cb0e9038d44ba8a7dcb5b47db1a503f04f",
+      "receiptSHA256": "1fca7c2baa0eef13e33f1bb5c532c0498a0e2389686c9cb303bef28cae8622e1",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "0d7a022fbbb4cd350f770d15270a1887d3d49d11",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 1661
+            },
+            "live": {
+              "settled": true,
+              "ms": 1670
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 375,
+            "player": [
+              -0.09620560842175481,
+              30.020084479321667,
+              -49.602573180558196
+            ],
+            "settledEye": [
+              -0.09620801347458746,
+              31.700018214969628,
+              -49.6025514698805
+            ],
+            "exp": {
+              "hour": 17.5,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                0.3822862914815905,
+                0.04554647401643723,
+                -0.9229207496041697
+              ],
+              "elevation": 2.61052384440104,
+              "azimuth": 562.5
+            },
+            "shot": "tmp/sp-x8-d229/left-golden-clockonly/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "0d7a022-mw2h8r6j",
+        "entry": {
+          "url": "http://127.0.0.1:4406/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 17.5,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 17.5,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    },
+    {
+      "label": "right-golden-clockonly",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        124.35716535610229,
+        93.30140168517207,
+        65.95487271213706
+      ],
+      "shotSHA256": "4234a6eb3cb1dbf7fc880a4ec1628b9ddc48b7e3191d5605e2f6093ab09d47fa",
+      "receiptSHA256": "79a0ddb642986d7c26752ba9bd09274680cd95c703f0ea458d507356c172aa2b",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "c9ae94288ff745bf1c710f43c19983c10e250c78",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 7667
+            },
+            "live": {
+              "settled": true,
+              "ms": 1668
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 555,
+            "player": [
+              -0.0878622690770331,
+              30.02010035375133,
+              -49.600633486668265
+            ],
+            "settledEye": [
+              -0.087862270572311,
+              31.70004637426118,
+              -49.60063345078771
+            ],
+            "exp": {
+              "hour": 17.5,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                0.3822862914815905,
+                0.04554647401643723,
+                -0.9229207496041697
+              ],
+              "elevation": 2.61052384440104,
+              "azimuth": 562.5
+            },
+            "shot": "tmp/sp-x8-d229/right-golden-clockonly/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "c9ae942-mw2hd4qg",
+        "entry": {
+          "url": "http://127.0.0.1:4407/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 17.5,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 17.5,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    },
+    {
+      "label": "left-golden-aa",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        169.30532212885154,
+        158.81150371795306,
+        140.4878505619115
+      ],
+      "shotSHA256": "3363a6f17c1aa6458df21973b7649cacba8da100434337eb3239b5927cbc52f1",
+      "receiptSHA256": "91c47b9a1612c409a93cbc52c609a423b66dd35746db601bb511575364b61fb4",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "0d7a022fbbb4cd350f770d15270a1887d3d49d11",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 1667
+            },
+            "live": {
+              "settled": true,
+              "ms": 1663
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 375,
+            "player": [
+              -0.08748683300926985,
+              30.020034758646943,
+              -49.600441263750895
+            ],
+            "settledEye": [
+              -0.0874870855625571,
+              31.699930413926143,
+              -49.60043728031081
+            ],
+            "exp": {
+              "hour": 17.5,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                0.3822862914815905,
+                0.04554647401643723,
+                -0.9229207496041697
+              ],
+              "elevation": 2.61052384440104,
+              "azimuth": 562.5,
+              "skySun": [
+                -0.13565746816854515,
+                0.10470203849028618,
+                -0.9852078635831522
+              ],
+              "fog": {
+                "color": [
+                  0.8713671191959567,
+                  0.5840784178830671,
+                  0.46778379610254284
+                ],
+                "near": 160,
+                "far": 720
+              },
+              "fogUniforms": {
+                "fogSunDir": [
+                  -0.13565746816854515,
+                  0.10470203849028618,
+                  -0.9852078635831522
+                ],
+                "fogSunColor": [
+                  1,
+                  0.82,
+                  0.64
+                ],
+                "fogHeight": -20,
+                "fogHeightFalloff": 0,
+                "fogHeightDensity": 0,
+                "fogDistDensity": 0,
+                "fogEdge": [
+                  0,
+                  236,
+                  252,
+                  10
+                ]
+              },
+              "hemi": {
+                "intensity": 1.4,
+                "color": [
+                  0.5775804404214573,
+                  0.5647115056965487,
+                  0.7156935005005721
+                ],
+                "ground": [
+                  0.34191442489801843,
+                  0.3139887133649649,
+                  0.41254261347374327
+                ]
+              }
+            },
+            "shot": "tmp/sp-x8-d229/left-golden-aa/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "0d7a022-mw2h8r6j",
+        "entry": {
+          "url": "http://127.0.0.1:4406/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 17.5,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 17.5,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    },
+    {
+      "label": "right-golden-aa",
+      "ROI": [
+        134,
+        1504,
+        715,
+        1810
+      ],
+      "meanRGB": [
+        170.60896808522605,
+        160.60975554880588,
+        142.4174063199577
+      ],
+      "shotSHA256": "81d1edbc0cf1035260aa0f1ea0a572fe14ed4a4d7fb0da5e4e8070f2ca307a77",
+      "receiptSHA256": "1534532900a2b468f0266ca2e353c282de69f0a6b1834b315d014e85d2c624a0",
+      "receipt": {
+        "slug": "far-reach",
+        "head": "c9ae94288ff745bf1c710f43c19983c10e250c78",
+        "engine": "chromium",
+        "device": "iPhone 16 Pro",
+        "tier": "phone",
+        "dpr": 2,
+        "seed": 357,
+        "levelDownload": "shardfile",
+        "homeSeed": "default",
+        "errors": [],
+        "warnings": {
+          "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.": 1,
+          "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.": 4
+        },
+        "poses": [
+          {
+            "n": 24,
+            "name": "hands-up",
+            "free": false,
+            "drifted": false,
+            "sunk": false,
+            "idle": {
+              "settled": true,
+              "ms": 1667
+            },
+            "live": {
+              "settled": true,
+              "ms": 1668
+            },
+            "eye": [
+              0,
+              31.7,
+              -50
+            ],
+            "rotation": [
+              0.24434609527920614,
+              -3.141592653589793,
+              0,
+              "YXZ"
+            ],
+            "fov": 72,
+            "frame": 375,
+            "player": [
+              -0.08524398476155186,
+              30.019920240923966,
+              -49.60042102597981
+            ],
+            "settledEye": [
+              -0.08524477436059995,
+              31.69995975102704,
+              -49.60042364044389
+            ],
+            "exp": {
+              "hour": 17.5,
+              "paused": true,
+              "pinned": false,
+              "sun": [
+                0.3822862914815905,
+                0.04554647401643723,
+                -0.9229207496041697
+              ],
+              "elevation": 2.61052384440104,
+              "azimuth": 562.5,
+              "skySun": [
+                -0.13565746816854515,
+                0.10470203849028618,
+                -0.9852078635831522
+              ],
+              "fog": {
+                "color": [
+                  0.8713671191959567,
+                  0.5840784178830671,
+                  0.46778379610254284
+                ],
+                "near": 160,
+                "far": 720
+              },
+              "fogUniforms": {
+                "fogSunDir": [
+                  -0.13565746816854515,
+                  0.10470203849028618,
+                  -0.9852078635831522
+                ],
+                "fogSunColor": [
+                  1,
+                  0.82,
+                  0.64
+                ],
+                "fogHeight": -20,
+                "fogHeightFalloff": 0,
+                "fogHeightDensity": 0,
+                "fogDistDensity": 0,
+                "fogEdge": [
+                  0,
+                  236,
+                  252,
+                  10
+                ]
+              },
+              "hemi": {
+                "intensity": 1.4,
+                "color": [
+                  0.5775804404214573,
+                  0.5647115056965487,
+                  0.7156935005005721
+                ],
+                "ground": [
+                  0.34191442489801843,
+                  0.3139887133649649,
+                  0.41254261347374327
+                ]
+              }
+            },
+            "shot": "tmp/sp-x8-d229/right-golden-aa/raw/far-reach/24-hands-up-shardfile.png"
+          }
+        ],
+        "build": "c9ae942-mw2hd4qg",
+        "entry": {
+          "url": "http://127.0.0.1:4407/?chunk=far-reach",
+          "id": "far-reach"
+        },
+        "mode": "shardfile",
+        "clockPin": {
+          "requestedHour": 17.5,
+          "before": {
+            "hour": 12,
+            "paused": true,
+            "pinned": false
+          },
+          "after": {
+            "hour": 17.5,
+            "paused": true,
+            "pinned": false
+          },
+          "method": "pause+native set before unchanged canonical frames; no clock hold, renderer update or extra frames"
+        },
+        "status": "complete"
+      }
+    }
+  ]
+}
