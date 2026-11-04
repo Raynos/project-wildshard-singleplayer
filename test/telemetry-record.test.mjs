@@ -1,14 +1,16 @@
+// DL20: the telemetry record's download.parts counts. An .mjs test: the api project (ES2023, its own tsconfig) stays out of
+// the test project's type check, as the other api readers do.
 import { expect, test } from 'vitest';
-import { cleanTelemetryRecord } from '../api/_telemetryRecord';
+import { cleanTelemetryRecord } from '../api/_telemetryRecord.ts';
 
-/** One analytics record carrying a single download.parts event with `data`. */
-function parts(data: Record<string, unknown>): Record<string, string | number> | undefined {
+/** One analytics record carrying a single download.parts event with `data`. @param {Record<string, unknown>} data */
+function parts(data) {
   const record = cleanTelemetryRecord({ kind: 'analytics', build: 'b', install: 'i', events: [{ name: 'download.parts', data: { level: 'nine', ...data } }] });
   if (record === null || record.kind !== 'analytics') throw new Error('download.parts record refused');
   return record.events[0]?.data;
 }
 
-// DL20 (sp-x1's offline control): a missing or malformed count is an 'unknown' boot, never a silent 0
+// sp-x1's offline control: a missing or malformed count is an 'unknown' boot, never a silent 0
 test('a download.parts count that is missing or not a nonnegative integer makes the boot unknown, never 0', () => {
   expect(parts({ parts: 7, failed: 1 })).toEqual({ shard: 'nine', counts: 'unknown' });
   expect(parts({ parts: 7, failed: 0, fallback: 'unknown' })).toEqual({ shard: 'nine', counts: 'unknown' });
