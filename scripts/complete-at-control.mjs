@@ -118,7 +118,7 @@ function snapshot() {
       const g = o.geometry;
       const sig = [g?.uuid, g?.attributes?.position?.count ?? 0, g?.index?.count ?? 0,
         ...mats.map(m => `${m?.uuid}:${m?.map?.uuid ?? ''}:${m?.map?.image?.width ?? ''}`)].join('|');
-      list.push([o.uuid, chain.join('<'), sig, on, close]);
+      list.push([o.uuid, chain.join('<'), sig, on, close, o.isSkinnedMesh === true]);
       if (close) for (const m of mats) for (const key of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap', 'alphaMap']) {
         const t = m?.[key];
         if (t?.isTexture !== true || t.isRenderTargetTexture === true) continue;
@@ -143,7 +143,9 @@ function snapshot() {
     const raw = api?.shard?.shardfileResidency;
     residency = raw ? JSON.parse(JSON.stringify(typeof raw === 'function' ? raw() : raw, (_key, value) => (typeof value === 'function' ? undefined : value))) : null;
   } catch (error) { residency = { error: String(error) }; }
-  return { at: performance.now(), when: Date.now(), marks, scene, grid: gridState, fine, residency };
+  let textures = null;
+  try { const t = api?.textures?.(); textures = t === undefined ? null : { mode: t.mode, why: t.why }; } catch (error) { textures = { error: String(error) }; }
+  return { at: performance.now(), when: Date.now(), marks, scene, grid: gridState, fine, residency, textures };
 }
 
 const requests = [], reads = [];
@@ -283,9 +285,12 @@ try {
     if (openResidency.length > 0) flag(`shardfile residency open at control: ${openResidency.slice(0, 6).join(', ')}`);
     if (at.scene?.error !== undefined) flag(`no scene at control: ${at.scene.error}`);
     if ((at.scene?.texturesPending ?? []).length > 0) flag(`${at.scene.texturesPending.length} textures of shown meshes within reach not decoded at control (first: ${at.scene.texturesPending.slice(0, 3).join(', ')})`);
+    // Auto (src/engine/boot/gpuFiles.ts) fixes a page's texture mode at boot: a level drawn with images because its KTX2 set
+    // is not cached yet downloads that set after control and the next visit draws other textures (sp-x6's DL9 red)
+    if (at.textures?.mode === 'img' && /KTX2 set is not cached/u.test(at.textures.why ?? '')) flag(`textures drawn as images at control while the level's KTX2 set downloads after it, so the next visit swaps them (${at.textures.why})`);
     if ((at.scene?.lods ?? []).length > 0) flag(`${at.scene.lods.length} LODs within reach below full detail at control (first: ${at.scene.lods.slice(0, 3).join(', ')})`);
     // pops during the lap: anything shown within reach of the player that control did not show as it is now
-    const atMeshes = new Map((at.scene?.list ?? []).map(([id, , sig, on]) => [id, { sig, on }])), pops = new Map();
+    const atMeshes = new Map((at.scene?.list ?? []).map(([id, , sig, on]) => [id, { sig, on }])), pops = new Map(), dynamic = new Map();
     const fineAt = new Set(at.fine), addedFine = new Set(), lapLods = new Set(), lapTextures = new Set();
     let speedMax = 0;
     for (const s of lap) {
@@ -293,8 +298,10 @@ try {
       speedMax = Math.max(speedMax, s.scene?.speed ?? 0);
       for (const lod of s.scene?.lods ?? []) lapLods.add(lod);
       for (const texture of s.scene?.texturesPending ?? []) lapTextures.add(texture);
-      for (const [id, chain, sig, , close] of s.scene?.list ?? []) {
-        if (!close || pops.has(id)) continue;
+      for (const [id, chain, sig, , close, skinned] of s.scene?.list ?? []) {
+        if (!close || pops.has(id) || dynamic.has(id)) continue;
+        // a skinned mesh (an animal, a person) is a moving actor the level culls by distance: listed, never a pop
+        if (skinned) { if (atMeshes.get(id)?.on !== true) dynamic.set(id, chain); continue; }
         const was = atMeshes.get(id), why = was === undefined ? 'added' : !was.on ? 'shown' : was.sig === sig ? null : 'swapped';
         if (why !== null) pops.set(id, `${why} ${chain}`);
       }
@@ -315,7 +322,7 @@ try {
         }
       }
       if (cellPops.size > 0) flag(`${cellPops.size} reach cells changed what they draw during the boost lap: ${[...cellPops.values()].join('; ')}`);
-      report.lapAdds = { fineTiles: [...addedFine], meshesAtControl: at.scene?.meshes ?? null, pops: [...pops.values()], lods: [...lapLods], textures: [...lapTextures], cellPops: [...cellPops.values()], speedMax };
+      report.lapAdds = { fineTiles: [...addedFine], meshesAtControl: at.scene?.meshes ?? null, pops: [...pops.values()], actorsShown: [...dynamic.values()], lods: [...lapLods], textures: [...lapTextures], cellPops: [...cellPops.values()], speedMax };
     }
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
       pendingAtControl: pending.map(r => ({ url: r.url, by: r.by })), afterControl: after.map(row), readsAfterControl: lateReads.slice(0, 40),
@@ -349,6 +356,8 @@ try {
     report.warm = { coldMs: cold.ms, duringPrecacheMs: during.ms, workerFetchesOpenAtReentry: during.workerFetchesOpenAtNavigation, settledMs: settled.ms,
       workerFetchesOpenAtSettled: settled.workerFetchesOpenAtNavigation, workerBytesRequests: requests.filter(r => r.by === 'service-worker').length };
     report.visits = { cold: judge('cold', cold, during.start, reachCells), duringPrecache: judge('during precache', during, settled.start, reachCells), settled: judge('settled', settled, Infinity, reachCells) };
+    const modes = [cold, during, settled].map(visit => visit.at.textures?.mode ?? null);
+    if (new Set(modes).size > 1) report.violations.push(`the texture mode changed between visits (cold, during precache, settled: ${modes.join(', ')}): a texture swap the player sees`);
     report.atControl = { cold: strip(cold.at), duringPrecache: strip(during.at), settled: strip(settled.at) };
   } else {
     // the boost lap: the level's own walk legs (scripts/physics-route.json: courses known to be drivable) that start within
@@ -368,33 +377,42 @@ try {
     for (const leg of legs) {
       let metres = 0;
       for (let i = 0, from = [leg.start.x, leg.start.z]; i < leg.points.length; from = leg.points[i], i++) metres += Math.hypot(leg.points[i][0] - from[0], leg.points[i][1] - from[1]);
-      // its time bound: the leg at 20 m/s (a walk course turns often) plus 15 s, so only a stuck board runs out of time
-      const seconds = values.lap === undefined ? Math.ceil(metres / 20 + 15) : lapSeconds;
-      report.lapRoute.legs.push({ leg: leg.name, waypoints: leg.points.length, metres: Math.round(metres), seconds });
-      await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; });
-      const walk = page.evaluate(l => window.__wildshard.walkLeg({ name: `dl17-${l.name}`, start: { ...l.start, hover: true }, waypoints: l.points.map(([x, z]) => ({ x, z })), timeout: l.seconds, stuckSeconds: 5 }), { ...leg, seconds });
-      const legEnd = Date.now() + seconds * 1000 + 2000, finished = { done: false };
-      const settledWalk = (async () => {
-        try { return await walk; } catch (error) { report.errors.push(`lap ${leg.name}: ${String(error)}`); return null; } finally { finished.done = true; }
-      })();
-      await page.waitForTimeout(300);
-      await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
-      while (!finished.done && Date.now() < legEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
-      const result = await settledWalk;
-      // a leg counts only when it is driven (sp-x1's review: a timed-out drive is no lap): its trace (each frame's waypoint
-      // index, column 9) passes every waypoint in order, nothing stuck (walkLeg teleports past a stuck waypoint), inside its
-      // time bound, and it ends at the last waypoint
-      const trace = result?.trace ?? [], passed = new Set(trace.map(frame => frame[9]));
-      const ordered = trace.every((frame, i) => i === 0 || frame[9] >= trace[i - 1][9]);
-      const [lx, lz] = leg.points.at(-1) ?? [leg.start.x, leg.start.z];
-      const off = result?.end === undefined ? Infinity : Math.hypot(result.end.x - lx, result.end.z - lz);
-      const stuck = (result?.stuck ?? []).length;
-      const complete = result !== null && trace.length > 0 && ordered && leg.points.every((_, i) => passed.has(i)) && stuck === 0 && result.seconds < seconds && off <= 3;
-      report.lapResults.push({ leg: leg.name, complete, frames: trace.length, waypointsPassed: passed.size, of: leg.points.length, stuck, seconds: result?.seconds ?? null, end: result?.end ?? null, offEnd: Number.isFinite(off) ? Math.round(off * 10) / 10 : null });
-      if (!complete) report.errors.push(`the boost lap's ${leg.name} leg did not complete: ${passed.size} of ${leg.points.length} waypoints in its trace, ${stuck} stuck, ended ${Number.isFinite(off) ? `${off.toFixed(1)} m from its last waypoint` : 'with no result'}, ${result?.seconds?.toFixed(1) ?? '?'} of ${seconds} s`);
+      // its time bound: the leg at 10 m/s on the board (a walk course turns often, wades, climbs), 4 m/s on foot, plus 15 s, so only a stuck
+      // run runs out of time
+      const bound = hover => (values.lap === undefined ? Math.ceil(metres / (hover ? 10 : 4) + 15) : lapSeconds);
+      /** One run of the leg; a run counts only when it is driven (sp-x1's review: a timed-out drive is no lap): its trace
+       *  (each frame's waypoint index, column 9) passes every waypoint in order, nothing stuck (walkLeg teleports past a stuck
+       *  waypoint), inside its time bound, and it ends at the last waypoint. */
+      const drive = async hover => {
+        const seconds = bound(hover);
+        if (hover) await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; });
+        const walk = page.evaluate(l => window.__wildshard.walkLeg({ name: `dl17-${l.name}`, start: { ...l.start, hover: l.hover }, waypoints: l.points.map(([x, z]) => ({ x, z })), timeout: l.seconds, stuckSeconds: 5 }), { ...leg, seconds, hover });
+        const legEnd = Date.now() + seconds * 1000 + 2000, finished = { done: false };
+        const settledWalk = (async () => {
+          try { return await walk; } catch (error) { report.errors.push(`lap ${leg.name}: ${String(error)}`); return null; } finally { finished.done = true; }
+        })();
+        await page.waitForTimeout(300);
+        if (hover) await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
+        while (!finished.done && Date.now() < legEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
+        const result = await settledWalk;
+        const trace = result?.trace ?? [], passed = new Set(trace.map(frame => frame[9]));
+        const ordered = trace.every((frame, i) => i === 0 || frame[9] >= trace[i - 1][9]);
+        const [lx, lz] = leg.points.at(-1) ?? [leg.start.x, leg.start.z];
+        const off = result?.end === undefined ? Infinity : Math.hypot(result.end.x - lx, result.end.z - lz);
+        const stuck = (result?.stuck ?? []).length;
+        const complete = result !== null && trace.length > 0 && ordered && leg.points.every((_, i) => passed.has(i)) && stuck === 0 && result.seconds < seconds && off <= 3;
+        return { leg: leg.name, on: hover ? 'board' : 'foot', complete, frames: trace.length, waypointsPassed: passed.size, of: leg.points.length, stuck, seconds: result?.seconds ?? null, bound: seconds, end: result?.end ?? null, offEnd: Number.isFinite(off) ? Math.round(off * 10) / 10 : null };
+      };
+      report.lapRoute.legs.push({ leg: leg.name, waypoints: leg.points.length, metres: Math.round(metres) });
+      // a walk course the board cannot climb (stairs, ladders) is driven again on foot: the player reaches it that way
+      const runs = [await drive(true)];
+      if (!runs[0].complete) runs.push(await drive(false));
+      const run = runs.at(-1);
+      report.lapResults.push(...runs);
+      if (!run.complete) report.errors.push(`the boost lap's ${leg.name} leg did not complete on board or on foot: ${run.waypointsPassed} of ${run.of} waypoints in its trace, ${run.stuck} stuck, ended ${run.offEnd === null ? 'with no result' : `${run.offEnd} m from its last waypoint`}, ${run.seconds?.toFixed(1) ?? '?'} of ${run.bound} s`);
     }
+    report.lapComplete = legs.every(leg => report.lapResults.some(r => r.leg === leg.name && r.complete));
     report.lapSamples = lap.length;
-    report.lapComplete = report.lapResults.every(r => r.complete);
     lap.push(await page.evaluate(snapshot));
     await harvest();
     report.requests = judge('', cold, Infinity, reachCells, lap);
