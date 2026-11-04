@@ -17,19 +17,22 @@ build. The lanes share its normal all-product preview through separate owner
 leases. A visual-boundary walk or hero count is historical evidence; it does
 not qualify a later audio candidate. Saltwind's final admitted candidate is
 `f8a1406288`; Sky Harbor's is `a8593f8ac6`, and Starfall's is
-`aa33a361f5`. The other seven await their audio handoff.
+`aa33a361f5`. Fossil Badlands (`0e0f1ba1c3`), Thin Ice
+(`6ce898ee5f`) and Pastel Alien Plain (`5fcb0ac75a`) are also admitted.
+Clockwork, Floating Island Race, Desert and Showcase still await final
+audio handoffs. Admission alone earns no reading qualification.
 
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
-| Fossil Badlands | `open-plot-1-0` / (-1,-2) | Awaiting audio handoff | Open | Open |
+| Fossil Badlands | `open-plot-1-0` / (-1,-2) | `0e0f1ba1c3` / `0e0f1ba-mw1c0i2g` | Open | Memory complete; fresh-process official Sim queued |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Qualified locally: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Thin Ice | `open-plot-1-4` / (-1,2) | Awaiting audio handoff | Open | Open |
+| Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f` / `6ce898e-mw1buojk` | Open | Memory complete; original Sim refused/overlapped; one fresh-process retake queued |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | Awaiting audio handoff | Open | Open |
-| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | Awaiting audio handoff | Open | Open |
+| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a` / `5fcb0ac-mw1c7hz2` | Open | Memory complete; fresh-process official Sim queued |
 | Showcase Template | `open-plot-sw` / (-1,-1) | Awaiting audio handoff | Open | Open |
 
 All ten plots have eight committed golden cameras and maintained route
@@ -697,3 +700,152 @@ Raw walk, quiet refusal, successful capture, eight comparison rows, source
 bindings and explicit classification stay in
 `tmp/sp-x1-open-plots/starfall-final/finish-after-quiet/`. No visual source,
 collider, controller, budget, tolerance or verification rule changes.
+
+## Thin Ice — Memory/Simulator refusal (sp-x8)
+
+Final audio-containing source **6ce898ee5fd69dc3a9a7ac3820a6ad562473bb26**,
+admitted build **6ce898e-mw1buojk**, used the **reused shared preview process**
+on :4402. All 166 files, 35 sections and four packs (205 listed payloads,
+201 pack entries) match the admitted owner bodies and hashes. Literal index
+SHA-256 is `32f1e2b6ef5e2aeab2852709777899eb085bb58f795808c001ae003a660fc496`;
+normalized index-object hash also matches in its separately defined units.
+X2 retains exact-source native bar 10 (18 s), body/pack/wire proof and activation.
+
+The separate maintained Chromium phone-memory reader retains its original
+20 s settle, three samples and phone 2×, without forced GC or page errors.
+These legacy `MB` fields are **MiB**, separate from native Simulator RAM.
+They earn no official timing credit.
+
+| Sample | Renderer MiB | GPU process MiB | JS heap MiB | FPS | Draws |
+|---|---:|---:|---:|---:|---:|
+| 1 | 192 | 509 | 56 | 60.2 | 44 |
+| 2 | 159 | 504 | 44 | 60.1 | 44 |
+| 3 | 160 | 506 | 44 | 60.0 | 44 |
+
+All samples retain 18 textures, 77 geometries and 26 programs. The browser
+closed before the later official command.
+
+The original official `frame-floor --surface=sim --quiet` command on
+`wildshard-iphone` ends after **371.2 s**, exit 3,
+**complete=false/pass=false**. Its standalone rows each record 120/120 drawn
+frames, zero skips, **30.303 fps / p95 34 ms**; the strict 33.3 ms flags
+remain false. Raw spawn/road/plaza draws are **44/49/50**, triangles
+**41,019/40,510/43,407**, and maximum intervals **34/34/36 ms**.
+These raw floor passes do not qualify the official scope.
+
+**Quiet overlap is retained.** Sp-o3's headless Chromium phone-loading run,
+CPU-throttled 10×, overlapped the official quiet marker from **18:56:57 to
+approximately 18:57:40 UTC−5** on November 3. Its cold visit completed at
+18:57:30; its warm visit then began before the owner stopped the run.
+Own and X1 browser ends had been checked, but the machine-wide browser
+inventory was missed before admission. That is corrected for future
+admissions; no clean-quiet timing credit is inferred for the affected rows.
+`quiet-overlap.json` retains the owner's exact report.
+
+The standalone native record contains **223 playing / 108 loading samples**
+and **47 GPU witnesses**. Its conservative raw playing/loading envelopes
+are **234.665 / 836.356 MB** (native **215.043 / 816.734 MB** plus GPU ledger
+**19.622 MB**). The separate maxima need not coincide. GPU-process footprint
+is excluded; 0.840 MB is unattributed and one Inspector-closed error remains.
+These are descriptive observations from the overlapped command, without
+clean-quiet qualification or physical-phone clearance. Pool observations
+retain 45 available logical blocks, **3,080,192 B**, zero hits/misses/blocked;
+logical capacity is not added to physical memory.
+
+**Grid scope refused** at the original **240 s** entry deadline, with
+**12 retained Inspector entry-read failures**. `diagnosticError` says the
+active evaluation was lost; `unloadError` separately refuses missing
+native/GPU samples. The page diagnostic is unavailable. Neither that text
+nor reconnect attempts prove the game was still loading or the target
+changed. Grid frames, four junction witnesses, settled/pending state,
+native memory and pool readings remain unmeasured; missing values are not
+zero. G556 gives the pooled page no 1.2 GB cap and grants no missing witness.
+
+The source-only junction preparation uses Thin cell **(-1,2)**, southeast
+intersection **(-281.25,1.7,843.75)** and actual Pine Hollow, Night Market,
+Thin Ice and Saltwind neighbours. It is not measured residency.
+
+Root's later D223 finding identifies long-lived preview processes as a
+candidate cause. It does not establish this original refusal's cause.
+**One authorized retake is queued**, using a freshly started normal pinned
+preview on a new port, with the actual source/build/body bridge recorded
+before admission. The original reused-process result stays intact; no cap,
+Inspector replay, capture clock or verification rule changes.
+
+Raw evidence: `tmp/sp-x8-plot-readings/thin-final/`, including `memory.json`,
+`admission.json`, `quiet-overlap.json`, `summary.json`, native/GPU logs and
+`simulator/6ce898ee5-79982-1793750209732.json`. Quiet, Simulator and model lock
+released normally; all own browsers and the old preview lease are released.
+The full Thin cohort remains open.
+
+## Fossil Badlands — Memory/Simulator queue (sp-x8)
+
+Admitted final audio source **0e0f1ba1c35e2ff4ea16ac25260a29cf5f0a6e47**,
+build **0e0f1ba-mw1c0i2g**, used the reused shared :4400 preview for memory.
+All **166 files + 35 sections + four packs = 205 listed payloads** match;
+there are 200 pack entries. X6's `bodies` count is the 201 files/sections,
+excluding packs. An extra scratch count assertion initially mixed those
+units and refused; every body hash and both index hashes matched throughout,
+and no capture began on that refusal. Literal index SHA-256 is
+`ef2c67e77dadb672a24ed53f9eb253e7f8e654044de5db05cdb3ed1c259d824d`.
+X6 retains the full immutable native bar 10 (18 s), seven decoded loops,
+body/pack/wire proof and activation.
+
+The separate maintained memory reader uses the original 20 s settle,
+three samples, phone 2×, no forced GC and no page errors. All samples retain
+18 textures, 85 geometries and 25 programs. These Chromium values are **MiB**,
+not native RAM, and earn no Simulator timing credit.
+
+| Sample | Renderer MiB | GPU process MiB | JS heap MiB | FPS | Draws |
+|---|---:|---:|---:|---:|---:|
+| 1 | 194 | 530 | 51 | 60.2 | 55 |
+| 2 | 163 | 526 | 50 | 60.1 | 55 |
+| 3 | 164 | 516 | 50 | 60.0 | 55 |
+
+**No official Fossil command has started.** The next admission will use a
+freshly started normal pinned preview process on a new port under D223,
+after independent source/build/body checks and the agreed resource gap.
+Native playing/loading memory, frame floor, four grid junction witnesses
+and pools remain unknown. Preparation uses actual cell **(-1,-2)**,
+northeast junction **(-281.25,1.7,-843.75)**, with Far Reach, Showcase,
+Fossil and Floating Island Race as source neighbours; it is not residency.
+
+Raw evidence is `tmp/sp-x8-plot-readings/fossil-final/`: `admission.json`,
+`memory.json`, exact source poses and neighbour audit. The memory browser
+closed normally. All old shared-preview owners released :4400 before the
+fresh-process request; no official quiet, model or Simulator is reserved.
+The full cohort remains open.
+
+## Pastel Alien Plain — Memory/Simulator queue (sp-x8)
+
+Final admitted audio source **5fcb0ac75ac4d47e695dfec2953b280e80445cbc**,
+build **5fcb0ac-mw1c7hz2**, remains bound to the reused shared :4404 preview.
+All 166 files, 35 sections and four packs (**205 listed payloads**, 200 pack
+entries) match the owner bodies and hashes. Literal index SHA-256 is
+`90e21e1bea11e26c2eae6b659d76f5d87e6d6093928228a1124cad9d0163443a`;
+normalized index-object identity matches separately. X2 retains immutable
+native bar 10 (17 s), body/pack/wire proof and activation.
+
+Separate Chromium memory uses the maintained 20 s settle and three samples,
+phone 2×, without forced GC or page errors. Every sample retains 18 textures,
+87 geometries and 25 programs. Values below are **MiB**, separate from native
+Simulator RAM; the recorded FPS earns no official timing credit.
+
+| Sample | Renderer MiB | GPU process MiB | JS heap MiB | FPS | Draws |
+|---|---:|---:|---:|---:|---:|
+| 1 | 196 | 519 | 49 | 60.2 | 55 |
+| 2 | 162 | 515 | 47 | 60.0 | 55 |
+| 3 | 164 | 507 | 47 | 60.0 | 55 |
+
+**No official Pastel command has started.** The eventual grid reading will
+use a freshly started pinned preview process on a new port under D223.
+Native memory, floor, pools and actual grid residency remain unknown.
+The source-only northwest junction is **(843.75,1.7,-843.75)** at cell
+**(2,-2)**, with Nine Dragon, Desert, Pastel and Ember Forge as the four
+source neighbours. No resident or settled state is inferred.
+
+Raw evidence is `tmp/sp-x8-plot-readings/pastel-final/`: `admission.json`,
+`memory.json`, exact source poses and neighbour audit. The memory browser
+closed normally. X1 and X8 retain normal preview uses for the admitted
+source; a lease alone reserves no quiet, model or Simulator window.
+No full-cohort closure or audio/plot/documentation push is requested.
