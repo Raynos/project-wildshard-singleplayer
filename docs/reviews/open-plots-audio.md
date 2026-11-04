@@ -821,3 +821,34 @@ post-Medium and final-turn CLAP snapshots, the two 702 raw inventories,
 Race/Showcase Medium and Showcase score inventories, and the two
 publication logs. Maintained model logs remain under `tmp/ob7-audio/`.
 No further model retake round is queued in this machine turn.
+
+
+### G872 accepts the four remaining measured fits
+
+The coordinator rules on November 4 that these plots are grid filler
+(G990/G994), with **no extra retake rounds**. Ship the best measured take
+for each of the four remaining families, explicitly labelled
+**best measured, below top-5**. This supersedes the preceding open-fit
+status for these four sources only; it does not turn their ranks green.
+
+| Family | Best measured take | Rank | Disposition |
+| --- | --- | ---: | --- |
+| Clockwork bed | MOSS 701 | 6 | best measured, below top-5 |
+| Desert bed | Medium 701 | 13 | best measured, below top-5 |
+| Desert gateway wind | Medium 702 | 8 | best measured, below top-5 |
+| Desert ruins-west | MOSS 701 | 17 | best measured, below top-5 |
+
+The reviewed source decisions bind exact family, engine, seed, rank,
+probability and wave/sidecar SHA-256. A different source or measurement
+still refuses. The original top-five rule remains for every unapproved
+family. Focused controls retain unknown-family/engine and changed
+rank/probability/seed/hash refusal, alongside the existing source and
+canonical shared-bed checks. No measured rank, original prompt, scoring
+description or comparison file is edited; no fallback or omission.
+
+Clockwork and Desert pass the bounded AAC publisher at **1,575,060 B**
+and **1,430,622 B**, eleven files each, with both score comparisons,
+native AAC indexing, decoded-loop bounds and required credits retained.
+The four chosen SFX provenance rows carry the decision and the label
+above. Gameplay binding, native bar 10 and final C/control qualification
+follow separately; this publication alone claims none of them.
