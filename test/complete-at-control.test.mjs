@@ -119,6 +119,12 @@ test('unknown initiator evidence vetoes the neighbour verdict per request (sp-x1
   expect(split([page('/assets/w.js', 10), page('/assets/w.js', 40)], fetched)).toEqual([]);
   fetched.workers[1].frames = [near];
   expect(split([page('/assets/w.js', 10), page('/assets/w.js', 40)], fetched)).toEqual(['/assets/w.js', '/assets/w.js']);
+  // a fetch with its own neighbour stack still owns its constructor: the home's second constructor vetoes (sp-x1)
+  const mixed = { initiators: [{ ...page('/assets/w.js', 10), frames: [near] }, { ...page('/assets/w.js', 40), frames: [] }],
+    workers: [{ ...page('/assets/w.js', 9), frames: [near] }, { ...page('/assets/w.js', 39), frames: [home] }] };
+  expect(split([page('/assets/w.js', 10), page('/assets/w.js', 40)], mixed)).toEqual([]);
+  // fewer constructors than fetches of a worker script: the unpaired fetch vetoes
+  expect(split([page('/assets/w.js', 10), page('/assets/w.js', 40)], { ...mixed, workers: [mixed.workers[0]] })).toEqual([]);
 });
 
 test('the neighbour spans refuse a missing or doubled anchor, and today\'s session source has each once', () => {

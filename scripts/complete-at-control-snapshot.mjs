@@ -160,8 +160,9 @@ export function neighbourFrame(frames, spans) {
 /** Post-control level requests split by who asked (root's ruling, G872): a URL naming no level whose every page request
  *  after control has its own initiator stack, each passing through neighbour work, is the neighbour's (G828). Unknown
  *  evidence vetoes (sp-x1): a request with no stack, fewer stacks than page requests, or any stack from elsewhere keeps
- *  the URL the level's. A worker script's fetch carries no stack: the n-th constructor of that script since control
- *  stands for its n-th stackless fetch, never another occurrence's. The worker's own fetch follows the URL's verdict. */
+ *  the URL the level's. A worker script's fetch carries no stack: each fetch pairs with its own constructor in order,
+ *  every constructor since control must be neighbour work, and fewer constructors than fetches vetoes. The worker's own
+ *  fetch follows the URL's verdict. */
 export function splitByInitiator(after, trace, spans, namesLevel) {
   const path = url => { try { return new URL(url).pathname; } catch { return url; } };
   const group = rows => {
@@ -175,11 +176,15 @@ export function splitByInitiator(after, trace, spans, namesLevel) {
   const of = url => {
     const key = path(url);
     if (verdict.has(key)) return verdict.get(key);
-    const pages = after.filter(row => row.by === 'page' && path(row.url) === key).length, constructors = [...builds.get(key) ?? []];
-    // each observed fetch's own stack, or the next constructor of its worker script when the fetch has none
-    const stacks = (fetches.get(key) ?? []).map(row => (row.frames.length > 0 ? row.frames : constructors.shift()?.frames ?? []));
+    const pages = after.filter(row => row.by === 'page' && path(row.url) === key).length, observed = fetches.get(key) ?? [];
+    // a worker script: every constructor since control must be neighbour work (any other vetoes), and each fetch pairs
+    // with its own constructor in order, so a stackless fetch never borrows another occurrence's (sp-x1)
+    const constructors = builds.get(key) ?? [];
+    if (constructors.length > 0 && constructors.length < observed.length) { verdict.set(key, null); return null; }
+    const stacks = [...observed.filter(row => row.frames.length > 0).map(row => row.frames), ...constructors.map(row => row.frames)];
     const found = stacks.map(frames => (frames.length === 0 ? null : neighbourFrame(frames, spans)));
-    const what = !namesLevel(url) && stacks.length > 0 && stacks.length >= pages && found.every(work => work !== null) ? found[0] : null;
+    if (observed.some((row, i) => row.frames.length === 0 && constructors[i] === undefined)) found.push(null);
+    const what = !namesLevel(url) && stacks.length > 0 && observed.length >= pages && found.every(work => work !== null) ? found[0] : null;
     verdict.set(key, what);
     return what;
   };

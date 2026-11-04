@@ -43,7 +43,7 @@ import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapPops, splitRequests, neighbourSpans, splitByInitiator } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from './complete-at-control-snapshot.mjs';
 import { execFileSync } from 'node:child_process';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
@@ -126,6 +126,30 @@ const byWork = (rows, trace) => (trace?.mapped !== true ? { level: rows, neighbo
   : splitByInitiator(rows, trace, neighbourSpans(file => execFileSync('git', ['show', `${rev}:${file}`], { encoding: 'utf8' })), url => slugOf(contentPath(url) ?? '') !== null));
 // --dist: the build's hidden source maps (dist/assets/*.js.map) name each trace frame's source, as loading-benchmark does
 const sourceMaps = new Map();
+/** sp-x1: the maps must be the served build's own: --dist's version.json names the revision, and every map that carries a
+ *  span file carries exactly that revision's source of it. Null when bound, else why not (then no frame is trusted). */
+const distBinding = () => {
+  if (values.dist === undefined) return 'no --dist';
+  const stamp = resolve(values.dist, 'version.json'), version = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : null;
+  if (typeof version?.build !== 'string' || !version.build.startsWith(rev.slice(0, 7))) return `--dist serves ${version?.build ?? 'no version.json'}, not ${rev}`;
+  const assets = resolve(values.dist, 'assets');
+  for (const file of new Set(NEIGHBOUR_WORK.map(span => span.file))) {
+    const want = execFileSync('git', ['show', `${rev}:${file}`], { encoding: 'utf8' });
+    let carried = 0;
+    for (const name of readdirSync(assets).filter(entry => entry.endsWith('.js.map'))) {
+      const text = readFileSync(resolve(assets, name), 'utf8');
+      if (!text.includes(file)) continue;
+      const map = JSON.parse(text);
+      for (const [i, source] of map.sources.entries()) {
+        if (!source.endsWith(file)) continue;
+        if (map.sourcesContent?.[i] !== want) return `${name} maps a ${file} that is not ${rev}'s`;
+        carried++;
+      }
+    }
+    if (carried === 0) return `no map in --dist carries ${file}`;
+  }
+  return null;
+};
 const mapped = (rows) => {
   if (values.dist === undefined) return rows;
   const require = createRequire(resolve('package.json')), { TraceMap, originalPositionFor } = require('@jridgewell/trace-mapping');
@@ -459,7 +483,7 @@ try {
     report.lapSamples = lap.length;
     lap.push(await page.evaluate(snapshot));
     await harvest();
-    if (values.trace === 'on') report.trace = { initiators: mapped(initiators), workers: mapped(workers.filter(w => w.msAfterControl !== null)), mapped: values.dist !== undefined, measures: await page.evaluate(() => {
+    if (values.trace === 'on') report.trace = { initiators: mapped(initiators), workers: mapped(workers.filter(w => w.msAfterControl !== null)), mapped: (report.traceBinding = distBinding()) === null, measures: await page.evaluate(() => {
       const at = Reflect.get(window, '__dl17ControlNow');
       return performance.getEntriesByType('measure').filter(entry => entry.name.startsWith('wildshard.prepare'))
         .map(entry => ({ name: entry.name, msFromControl: Math.round(entry.startTime - at), ms: Math.round(entry.duration) }));
