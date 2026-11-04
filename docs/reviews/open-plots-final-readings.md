@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **3/10 fully qualified and published; C/control measured on 10/10**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **4/10 fully qualified (3 published, Thin Ice locally complete); C/control measured on 10/10**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -29,7 +29,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
+| Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
@@ -1461,3 +1461,35 @@ Raw capture and per-view rows:
 `tmp/sp-x1-open-plots/audio4-untimed/clockwork-canyon-goldens/`.
 Both Clockwork browsers closed normally before review. Memory/official
 Simulator remains open, so full-cohort coverage stays **3/10**.
+
+## Thin Ice — final walk and golden bridge (sp-x2, November 4)
+
+The fresh normal D223 preview binds exact final-audio source
+**6ce898ee5fd69dc3a9a7ac3820a6ad562473bb26**, build
+**6ce898e-mw2c1971**. Its raw product index, all **205 served
+bodies** and **201 ordered pack entries** match the earlier qualified
+Thin Ice admission exactly. No old-versus-new runtime byte parity or new
+performance, memory or audio-playback result is inferred.
+
+The unchanged maintained `road-avenue-plaza-scaffold` walk completes all
+**14 waypoints in 164.0431 s**, with **zero stuck and bounds failures**.
+Endpoint is `(0.001, 0.021, -61.931)` and maximum Y is 0.2 m.
+This is an untimed route check, not a performance cohort.
+
+The maintained grid capture completes all **eight views**, phone 2×,
+iPhone 16 Pro portrait, with empty page errors and no context loss.
+Every individual GOLDEN · NOW row was read: **8/8 green**; the crystal,
+ice tiles, pine banks, cottages, igloos, roads and lamps retain their
+structure and look. No golden was promoted and no visual source changed.
+
+![Thin Ice: eight reviewed golden comparisons](../../art/golden-runs/open-plot-thin-ice/2026-11-04-6ce898ee5f-board.jpg)
+
+The original Thin Ice official refusal/overlap and authorized fresh-process
+pass above remain separate and intact. Together with the existing C/control,
+memory and qualified official readings, this completes Thin Ice's cohort.
+Raw evidence stays under `tmp/sp-x2-open-plots/thin/`: `admission.json`,
+`walk-after-dl16-priority.json` and `goldens/capture.json`; the earlier
+browser-lane queue cancellation is retained separately. Both maintained
+commands closed their browsers; the preview owner lease remains until
+publication and peer handoff. This raises qualification to **4/10**, with
+Thin Ice locally complete and publication still pending.
