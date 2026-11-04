@@ -94,7 +94,7 @@ test('pull requests keep their merge-checkout fixture path without querying head
   expect(unsupported.output).toBe('');
 });
 
-test('admission precedes every expensive optional step while behavior keeps its producer gate and fallback', () => {
+test('admission precedes optional work while behavior requires native publication and keeps snapshot fallback', () => {
   const fixtures = workflow.split('\n  fixtures:\n')[1]?.split('\n  behaviour:\n')[0];
   if (fixtures === undefined) throw new Error('Missing fixtures job');
   const steps = fixtures.split('\n      - ').slice(1);
@@ -105,6 +105,20 @@ test('admission precedes every expensive optional step while behavior keeps its 
   expect(behavior).toContain('needs: [prepare, fixtures]');
   const admission = /^ {4}if: (.+)$/mu.exec(behavior ?? '')?.[1];
   expect(admission).toContain("needs.prepare.result == 'success'");
-  expect(admission).not.toContain('needs.fixtures');
+  expect(admission).toContain("needs.fixtures.result == 'success'");
   expect(behavior).toContain('continue-on-error: true');
+  const behaviorSteps = behavior?.split('\n      - ').slice(1) ?? [];
+  const nativeDownload = behaviorSteps.find(step => step.includes('\n          name: native-fixtures\n'));
+  const nativeRestore = behaviorSteps.find(step => step.startsWith('name: Restore source-host native constructor inputs\n'));
+  expect(nativeDownload).toBeDefined();
+  expect(nativeRestore).toContain('scripts/ci-native-fixtures.mjs restore');
+  for (const step of [nativeDownload, nativeRestore]) {
+    expect(step).not.toContain('continue-on-error: true');
+    expect(step).not.toMatch(/\n {8}if:/u);
+  }
+  const snapshots = behaviorSteps.find(step => /\n {10}name: test-fixtures(?:\n|$)/u.test(step));
+  expect(snapshots).toContain('continue-on-error: true');
+  const restoreSnapshots = behaviorSteps.find(step => step.startsWith('name: Restore exact-run fixture snapshots\n'));
+  expect(restoreSnapshots).toContain('shards compute them');
+  expect(restoreSnapshots).toContain('rm -f tmp/ci-fixtures/*.v8');
 });
