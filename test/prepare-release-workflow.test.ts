@@ -50,16 +50,18 @@ test('prepare overlaps only tokenless pinned CLI installation with the original 
   const root = mkdtempSync(resolve('tmp/prepare-cli-overlap-')), output = join(root, 'argv'), installed = join(root, 'installed');
   try {
     const python = join(root, 'python3'), node = join(root, 'node');
-    writeFileSync(python, '#!/bin/sh\nprintf "%s\\n" "$@" > "$CHECK_ARGS"\n');
+    writeFileSync(python, '#!/bin/sh\nif [ "$1" = scripts/ci-disk-census.py ]; then printf "%s\\n" "$2" >> "$DISK_PHASES"; else printf "%s\\n" "$@" > "$CHECK_ARGS"; exit "$CHECK_STATUS"; fi\n');
     writeFileSync(node, '#!/bin/sh\nprintf "%s\\n" "$@" > "$CLI_ARGS"\n');
     chmodSync(python, 0o755); chmodSync(node, 0o755);
-    for (const event of ['push', 'pull_request']) {
+    for (const event of ['push', 'pull_request']) for (const status of [0, 23]) {
       rmSync(installed, {force:true});
+      const phases = join(root, 'disk-phases'); rmSync(phases, { force: true });
       const sha = 'b'.repeat(40), run = '123';
-      const env = {...process.env, PATH:`${root}:/usr/bin:/bin`, CHECK_ARGS:output, CLI_ARGS:installed,
+      const env = {...process.env, PATH:`${root}:/usr/bin:/bin`, CHECK_ARGS:output, CLI_ARGS:installed, DISK_PHASES:phases, CHECK_STATUS:String(status),
         GITHUB_EVENT_NAME:event, GITHUB_SHA:sha, GITHUB_RUN_ID:run, RUNNER_TEMP:root};
       const result = spawnSync('/bin/bash', ['-eu', '-c', script], {encoding:'utf8', env});
-      expect(result.status, result.stderr).toBe(0);
+      expect(result.status, result.stderr).toBe(status);
+      expect(readFileSync(phases, 'utf8').trim().split('\n')).toEqual(['prepare-before-parallel', 'prepare-after-parallel']);
       const args = readFileSync(output, 'utf8').trim().split('\n');
       expect(args.slice(0, 8)).toEqual(['scripts/ci-fail-fast.py', '--', 'node', 'scripts/build-without-browser.mjs', '--', 'node', 'scripts/ci-checks.mjs', '--prepared']);
       expect(args[8]).toBe('python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist');
