@@ -9,6 +9,8 @@ export interface SpawnDownloadSnapshot {
   readonly wire?: {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number};
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
+  /** Bytes streamed so far, verified or not: progress for the stuck-boot watch, never shown as downloaded. */
+  readonly streamedBytes?: number;
 }
 export interface SpawnDownloadPorts {
   readonly fetch: (url: string, signal: AbortSignal, init?: RequestInit) => Promise<Response>;
@@ -32,6 +34,8 @@ export type HeldParts = Readonly<Record<string, readonly string[]>>;
 /** DL5: part members by their exact URL until control, so this page's own reads of them (product reads, engine
  * fetches) are answered from the part instead of the network. A member that failed is null and reads fall through. */
 const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
+/** DL21: how many streamed part bytes publish one progress beat (a chunk is ~64 KB; a phone link streams ~1.25 MB/s) */
+const STREAM_BEAT = 262_144;
 let layered = false;
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
   ktx2: 'image/ktx2', bin: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
@@ -95,8 +99,10 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   const controller = new AbortController(), listeners = new Set<(snapshot: SpawnDownloadSnapshot) => void>(), aliases = new Map<string, string>();
   let completedBytes = 0, cachedBytes = 0, filesDone = 0, complete = false, progressKnown = false, error: string | null = null;
   let wireCompleted = 0, wireCached = 0, wireTotal = address.wireBytes;
+  // DL21: a part's chunks as they arrive, before its members verify (the stuck-boot watch's progress, never shown as read)
+  let streamedBytes = 0;
   const snapshot = (): SpawnDownloadSnapshot => ({...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
-    filesTotal: address.files, filesDone, complete, error});
+    filesTotal: address.files, filesDone, complete, error, streamedBytes: streamedBytes + completedBytes});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
   const ready = (async () => {
     try {
@@ -183,6 +189,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               const chunk = await reader.read(); if (chunk.done) break;
               if (at + chunk.value.byteLength > part.bytes) {void reader.cancel(); throw new Error(`Spawn part longer than listed: ${part.url}`);}
               body.set(chunk.value, at); at += chunk.value.byteLength;
+              // a slow part still shows it moves: publish once every STREAM_BEAT bytes streamed, verified or not
+              const beat = Math.floor(streamedBytes / STREAM_BEAT); streamedBytes += chunk.value.byteLength;
+              if (Math.floor(streamedBytes / STREAM_BEAT) !== beat) publish();
               for (let row = order[next]; row !== undefined; row = order[next]) {
                 const [index, offset] = row, file = files[index]; if (file === undefined || offset + file.bytes > at) break;
                 const member = body.slice(offset, offset + file.bytes); next++;
@@ -398,6 +407,7 @@ export function paintSpawnDownload(download: SpawnDownload, root: HTMLElement): 
     root.dataset['readBytes'] = String(row.completedBytes); root.dataset['readCachedBytes'] = String(row.cachedBytes);
     root.dataset['readUnknownSourceBytes'] = '0'; root.dataset['readsClosed'] = String(row.complete);
     root.dataset['spawnFilesDone'] = String(row.filesDone); root.dataset['spawnFilesTotal'] = String(row.filesTotal);
+    root.dataset['streamedBytes'] = String(row.streamedBytes ?? row.completedBytes);
     const fact = root.querySelector('[data-el="dlFact"]'), pct = root.querySelector('[data-el="dlPct"]'), bar = root.querySelector<HTMLElement>('[data-el="dlBar"]');
     const text = row.wire ?? row;
     if (fact !== null) fact.textContent = `Spawn view · ${mb(text.completedBytes)}${row.complete ? '' : ` of ${mb(text.totalBytes)}`} · ${mb(text.cachedBytes)} from cache`;

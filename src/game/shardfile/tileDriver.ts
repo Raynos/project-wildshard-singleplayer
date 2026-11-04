@@ -21,30 +21,28 @@ import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { SPAWN_VIEW_M, spawnViewBusy, spawnViewUsesCamera } from './controlRefinement';
+import { SPAWN_VIEW_M, spawnViewUsesCamera } from './controlRefinement';
 import { streamingDistance, streamingOrder, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
 const liveDrivers = new Set<TileDriver>();
 let loaderMode = false;
 const task = (): Promise<void> => new Promise(resolve => { pageScope.timeout(0, resolve); });
-/** MF5: a settling driver that is busy with no spawn-view job running for this long waits on one outside the fence. */
-const SETTLE_IDLE_MS = 1000;
 /** MF13: the longest a render tile in view waits to refine out of sight */
 const VIEW_DEFER_MS = 3000;
 /**
  * MF5 (reveal = spawn view complete): while the loader's spawn-view fence is open (prepareSpawnView), drive every live
- * driver on tasks instead of frames, nearest first, until the fence's part of its render ring is attached or it waits
- * only on content that refines after control. A refining content's attach awaits its fence job, so this is what queues
- * and runs the spawn ring's fine tiles under the card. `frame` (the loader's hidden frame) runs in loader mode already:
- * an attach its step starts takes no frame pause either. `capMs` bounds a driver that never settles.
+ * driver on tasks instead of frames, nearest first, until the fence's part of its render ring is attached and complete.
+ * A refining content's attach awaits its fence job, so this is what queues and runs the spawn ring's fine tiles under the
+ * card. `frame` (the loader's hidden frame) runs in loader mode already: an attach its step starts takes no frame pause
+ * either. A driver that makes no progress for `stallMs`, or whose in-fence tile fails twice, rejects (DL17: never an
+ * incomplete level at control).
  */
-export async function settleTileDrivers(frame?: () => void, capMs = 20000): Promise<void> {
+export async function settleTileDrivers(frame?: () => void, stallMs = 20000): Promise<void> {
   loaderMode = true;
   try {
     frame?.();
-    const until = diagnosticNow() + capMs;
-    for (const driver of Array.from(liveDrivers)) await driver.settle(until);
+    for (const driver of Array.from(liveDrivers)) await driver.settle(stallMs);
   } finally { loaderMode = false; }
 }
 
@@ -60,7 +58,10 @@ interface TileRingPlan {
 
 export class TileDriver {
   private readonly attached: Record<Layer, Map<number, Attachment>> = { render: new Map(), colliders: new Map() };
-  private readonly failed = new Set<string>();
+  /** tiles that failed to attach (`layer:key`) and their errors; in play one stays out, in the loader's fence it is tried
+   *  once more (`retried`) and then rejects the fence */
+  private readonly failed = new Map<string, unknown>();
+  private readonly retried = new Set<string>();
   private centre: CellTile | null = null;
   private renderRing: ReadonlySet<number> = new Set();
   private busy = false;
@@ -86,19 +87,28 @@ export class TileDriver {
   setView(view: () => ViewCone | null): void { this.view = view; }
   /** NT8: the actual eye in the content root's frame ranks work, not residency. */
   setStreamingView(view: () => StreamingView | null): void { this.streamingView = view; }
-  /** MF5 (settleTileDrivers): step on tasks until nothing of the render ring inside the fence is left to start, or the
-   *  one attach in flight has waited SETTLE_IDLE_MS with no spawn-view job running (one outside the fence: it runs after
-   *  control). A shorter wait reads an attach in its own budget pause (a frame wait, capped) as that. */
-  async settle(until: number): Promise<void> {
-    let idleSince: number | null = null;
-    while (this.last !== null && !this.scope.disposed && !this.scope.disposing && diagnosticNow() < until) {
-      this.step(this.last.x, this.last.z);
+  /** MF5 / DL17 (settleTileDrivers): step on tasks until every render tile inside the fence is attached and complete: the
+   *  level is complete at control, so this never resolves with one missing. A tile that fails inside the fence is tried
+   *  once more, then its error rejects the fence; a fence that makes no progress (no tile or content stage finished) for
+   *  `stallMs` rejects, naming the tiles it waits on (the loading card's fatal modal shows either). */
+  async settle(stallMs: number): Promise<void> {
+    let progress = -1, since = diagnosticNow();
+    while (this.last !== null && !this.scope.disposed && !this.scope.disposing) {
       const view = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null;
-      const plan = this.plan, pending = plan !== null && plan.nearest.render.some(key => this.inView(key, view) && (this.attached.render.get(key) === undefined || !this.complete(key)));
-      if (!this.busy && !pending) return;
-      // a whole-cell ring (Runtime packs) waits for every tile: the level is complete at control (DL17)
-      if (this.busy && !spawnViewBusy() && this.radius() < CELL_RING) { idleSince ??= diagnosticNow(); if (diagnosticNow() - idleSince > SETTLE_IDLE_MS) return; }
-      else idleSince = null;
+      for (const key of this.plan?.nearest.render ?? []) {
+        const id = `render:${String(key)}`, error = this.failed.get(id);
+        if (error === undefined || !this.inView(key, view)) continue;
+        if (this.retried.has(id)) throw new Error(`Tile ${String(key)} failed to attach before control: ${error instanceof Error ? error.message : JSON.stringify(error)}`, { cause: error });
+        this.retried.add(id); this.failed.delete(id);
+      }
+      this.step(this.last.x, this.last.z);
+      const plan = this.plan, open = plan === null ? [] : plan.nearest.render.filter(key => this.inView(key, view) && (this.attached.render.get(key) === undefined || !this.complete(key)));
+      if (!this.busy && open.length === 0) return;
+      let finished = 0;
+      for (const tile of this.attached.render.values()) finished += tile.done.size;
+      const now = diagnosticNow();
+      if (finished !== progress) { progress = finished; since = now; }
+      else if (now - since > stallMs) throw new Error(`Tile fence stalled: ${String(open.length)} tiles inside it made no progress for ${String(Math.round(stallMs / 1000))} s (first: ${open.slice(0, 4).join(', ')})`);
       await task();
     }
   }
@@ -282,7 +292,7 @@ export class TileDriver {
       const cancelled = tile.scope.disposed || tile.scope.disposing || this.scope.disposed || this.scope.disposing;
       tile.scope.dispose();
       if (cancelled) return null;
-      this.failed.add(`${layer}:${String(key)}`);
+      this.failed.set(`${layer}:${String(key)}`, error);
       if (!required && !this.scope.disposed) console.warn(`[tiles] ${layer} tile ${String(key)} failed to attach; it stays out`, error);
       return { error };
     } finally { tile.pending = null; }

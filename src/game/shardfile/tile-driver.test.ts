@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing, productTileRing } from './tileDriver';
+import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing, productTileRing, settleTileDrivers } from './tileDriver';
 import { ring, type TileContent } from './tileContent';
 import { tileOrder, tileOf } from './tileOrder';
 import { noteFrameDrawn, setBuildHeld } from '@wildshard/engine/core/framePacing';
@@ -373,4 +373,37 @@ test('a resident cell retains its slab owner while the player stands on the fart
     expect(attached).toHaveBeenCalledOnce(); expect(retired).not.toHaveBeenCalled();
   } finally { scope.dispose(); }
   expect(retired).toHaveBeenCalledOnce();
+});
+
+// DL17: the loader's fence never releases control with an in-fence tile missing
+test('the loader fence resolves only once every in-fence render tile is attached', async () => {
+  const scope = new Scope('tiles'), made = content();
+  const driver = new TileDriver(scope, [made], () => 1, () => Promise.resolve());
+  try {
+    driver.step(-40, -40);
+    await settleTileDrivers(undefined, 5000);
+    expect(driver.resident('render').size).toBe(9);
+  } finally { scope.dispose(); }
+});
+
+test('an in-fence tile that fails is tried once more, then its error rejects the fence', async () => {
+  const scope = new Scope('tiles'), made = content(28);
+  const driver = new TileDriver(scope, [made], () => 1, () => Promise.resolve());
+  const warn = console.warn; let warned = 0; console.warn = () => { warned++; };
+  try {
+    driver.step(-40, -40);
+    await expect(settleTileDrivers(undefined, 5000)).rejects.toThrow('Tile 28 failed to attach before control: broken tile');
+    expect(warned).toBe(2);
+  } finally { console.warn = warn; scope.dispose(); }
+});
+
+test('a fence that makes no progress rejects after its bound instead of passing incomplete', async () => {
+  const scope = new Scope('tiles'), made = content();
+  const hang: TileContent = { ...made, attach: (tile, owner) => (tile === 28 ? new Promise<void>(() => { /* never publishes */ }) : made.attach(tile, owner)) };
+  const driver = new TileDriver(scope, [hang], () => 1, () => Promise.resolve());
+  try {
+    driver.step(-40, -40);
+    // one tile attaches at a time, so the hanging tile holds the ones queued behind it too
+    await expect(settleTileDrivers(undefined, 200)).rejects.toThrow(/Tile fence stalled: \d+ tiles inside it made no progress for 0 s \(first: 28/u);
+  } finally { scope.dispose(); }
 });

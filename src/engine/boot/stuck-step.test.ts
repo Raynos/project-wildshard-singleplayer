@@ -48,8 +48,18 @@ test('a start that settles, resolved or thrown, ends the watch without a stall',
 
 test('the card gives the step and a signature of its progress; no card is still the modules', () => {
   expect(progressOfCard(null)).toEqual({ step: 'modules', signature: 'modules' });
-  const card = { dataset: { step: 'world.props', setup: '40', readBytes: '1000', spawnFilesDone: '3' } };
-  expect(progressOfCard(card as unknown as HTMLElement)).toEqual({ step: 'world.props', signature: 'world.props|40|1000|3' });
+  const card = { dataset: { step: 'world.props', setup: '40', readBytes: '1000', spawnFilesDone: '3', streamedBytes: '4096' } };
+  expect(progressOfCard(card)).toEqual({ step: 'world.props', signature: 'world.props|40|1000|3|4096' });
+});
+
+test('a part streaming for minutes before its first member verifies is progress, not a stall', () => {
+  // the spawn download publishes streamed bytes as a part's chunks arrive; its verified bytes and files stay put
+  const dataset: Record<string, string> = { step: 'modules', setup: '0', readBytes: '0', spawnFilesDone: '0', streamedBytes: '0' };
+  const h = harness(() => progressOfCard({ dataset }));
+  watchStuckStep(never, h.ports, 60_000);
+  for (let s = 0; s < 180; s += 10) { h.tick(10_000); dataset['streamedBytes'] = String((s + 10) * 65_536); }
+  expect(h.stalls).toEqual([]);
+  h.tick(61_000); expect(h.stalls).toEqual([['modules', 60_000]]);
 });
 
 test('the fatal line names the step, for a hang and for a throw', () => {

@@ -18,6 +18,9 @@ export interface LoadingDownloadSnapshot {
   readonly wire?: {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number};
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
+  /** Bytes streamed so far, verified or not (a part's chunks before its members verify): progress for the stuck-boot
+   *  watch (src/engine/boot/stuckStep.ts), never shown as downloaded. */
+  readonly streamedBytes?: number;
 }
 export function loadingDownloadFraction(row: LoadingDownloadSnapshot): number {
   return row.complete ? 1 : row.totalBytes === 0 ? 0 : Math.min(0.999, row.completedBytes / row.totalBytes);

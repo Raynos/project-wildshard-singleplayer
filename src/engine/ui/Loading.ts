@@ -334,6 +334,7 @@ export class Loading {
     setData(this.root, 'entryDownloadBytes', String(row.totalBytes));
     setData(this.root, 'spawnFilesDone', String(row.filesDone));
     setData(this.root, 'spawnFilesTotal', String(row.filesTotal));
+    setData(this.root, 'streamedBytes', String(row.streamedBytes ?? row.completedBytes));
   }
 
   /** MF4 (sp-x6): the DOWNLOAD number before any transfer fact (no source, nothing declared) reads unknown, never an

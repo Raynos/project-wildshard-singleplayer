@@ -116,3 +116,12 @@ test('MF5: the loader fence runs only spawn-view jobs before control, and the re
   reachControl(f.level); f.paint(); f.paint();
   expect(await far).toBe(true); expect(f.seen).toEqual(['near', 'edge', 'far']);
 });
+
+test('a refinement that fails inside the spawn fence rejects the fence instead of marking it done (DL17)', async () => {
+  const f = fixture(), refusal = new Error('slab library refused');
+  const job = f.queue.add('bad', { x: 0, z: 0 }, () => { throw refusal; });
+  void job.catch(() => undefined);
+  await expect(prepareSpawnView()).rejects.toBe(refusal);
+  // the fence closed: a later fence for the same failed queue refuses too
+  await expect(prepareSpawnView()).rejects.toBe(refusal);
+});

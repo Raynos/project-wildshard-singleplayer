@@ -39,12 +39,15 @@ export function watchStuckStep(started: Promise<unknown>, ports: StuckStepPorts,
   return stop;
 }
 
-/** The loading card's progress: its step (`data-step`), and a signature that changes whenever the step, the setup
- *  share or the bytes read do. No card: the boot is still in its modules. */
-export function progressOfCard(card: HTMLElement | null): { readonly step: string; readonly signature: string } {
+/** What of the loading card the watch reads (an element's `dataset`). */
+export interface StuckCard { readonly dataset: Readonly<Record<string, string | undefined>> }
+/** The loading card's progress: its step (`data-step`), and a signature that changes whenever the step, the setup share,
+ *  the verified bytes read, the files done or the bytes streamed (`data-streamed-bytes`: a part's chunks as they arrive,
+ *  before its members verify, src/game/boot/spawnDownload.ts) do. No card: the boot is still in its modules. */
+export function progressOfCard(card: StuckCard | null): { readonly step: string; readonly signature: string } {
   if (card === null) return { step: 'modules', signature: 'modules' };
   const data = card.dataset, step = data['step'] ?? 'modules';
-  return { step, signature: [step, data['setup'] ?? '', data['readBytes'] ?? '', data['spawnFilesDone'] ?? ''].join('|') };
+  return { step, signature: [step, data['setup'] ?? '', data['readBytes'] ?? '', data['spawnFilesDone'] ?? '', data['streamedBytes'] ?? ''].join('|') };
 }
 
 /** The fatal modal's line for a stuck or failed boot: the step it stopped on, then what happened. */

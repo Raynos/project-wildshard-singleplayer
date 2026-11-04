@@ -16,7 +16,7 @@ test('cold progress is exactly the one list, with a fixed denominator and no unr
   }}, base);
   download.subscribe(row => {snapshots.push(row);}); await download.ready;
   expect(reads).toEqual([address.url, ...files.map(row => row.url)]);
-  expect(download.snapshot()).toEqual({progressKnown: true, totalBytes: 7, completedBytes: 7, cachedBytes: 0, filesTotal: 2, filesDone: 2, complete: true, error: null});
+  expect(download.snapshot()).toEqual({progressKnown: true, totalBytes: 7, completedBytes: 7, cachedBytes: 0, filesTotal: 2, filesDone: 2, complete: true, error: null, streamedBytes: 7});
   expect(snapshots.every(row => row.totalBytes === 7 && row.completedBytes <= 7)).toBe(true);
   expect(snapshots.map(row => row.completedBytes)).toEqual(snapshots.map(row => row.completedBytes).sort((a, b) => a - b));
 });
@@ -59,7 +59,7 @@ test('a pending cache census keeps its fixed total but publishes no invented zer
   release(new Set(files.map(file => new URL(file.url, base).href)));
   await download.ready;
   expect(snapshots.filter(row => row.progressKnown)).toEqual([
-    {progressKnown: true, totalBytes: 7, completedBytes: 7, cachedBytes: 7, filesTotal: 2, filesDone: 2, complete: true, error: null},
+    {progressKnown: true, totalBytes: 7, completedBytes: 7, cachedBytes: 7, filesTotal: 2, filesDone: 2, complete: true, error: null, streamedBytes: 7},
   ]);
 });
 

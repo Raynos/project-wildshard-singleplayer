@@ -27,22 +27,26 @@ export function spawnViewBusy(): boolean { return [...queues].some(queue => queu
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
 export async function prepareSpawnView(radius: number = spawnViewRadius(), settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera'): Promise<void> {
   spawnView = { radius, reference };
-  if (settle !== undefined) {
-    // the content a frame asks for while the fence is open (the tile driver attaches only ready content) queues its jobs
-    // a few tasks after it: let them arrive before the queues are read
-    await settle();
-    for (let turn = 0; turn < 3; turn++) await new Promise<void>(resolve => { pageScope.timeout(0, resolve); });
-    performance.mark('wildshard.spawn-view.settled', { detail: [...queues].map(queue => queue.describe()) });
-  }
-  // what the fence saw, for the loading rulers (a viewer far from its jobs runs nothing)
-  performance.mark('wildshard.spawn-view', { detail: [...queues].map(queue => queue.describe()) });
+  // DL17: a queue whose refinement failed refuses the fence (the job's error, not an incomplete level at control)
+  const refused = (): void => { for (const queue of queues) { const failure = queue.refusal(); if (failure !== undefined) throw failure; } };
   try {
+    if (settle !== undefined) {
+      // the content a frame asks for while the fence is open (the tile driver attaches only ready content) queues its jobs
+      // a few tasks after it: let them arrive before the queues are read
+      await settle();
+      for (let turn = 0; turn < 3; turn++) await new Promise<void>(resolve => { pageScope.timeout(0, resolve); });
+      performance.mark('wildshard.spawn-view.settled', { detail: [...queues].map(queue => queue.describe()) });
+    }
+    // what the fence saw, for the loading rulers (a viewer far from its jobs runs nothing)
+    performance.mark('wildshard.spawn-view', { detail: [...queues].map(queue => queue.describe()) });
     for (const queue of queues) queue.wake();
     for (;;) {
+      refused();
       const open = [...queues].filter(queue => queue.spawnViewOpen());
       if (open.length === 0) break;
       await Promise.all(open.map(queue => queue.spawnViewIdle()));
     }
+    refused();
     // what the fence left (DL17's complete-at-control gate refuses a level whose queues still wait here)
     performance.mark('wildshard.spawn-view.done', { detail: [...queues].map(queue => queue.describe()) });
   } finally { spawnView = null; }
@@ -93,6 +97,8 @@ export class ControlRefinement {
     return { at: { x: Math.round(from.x), z: Math.round(from.z), ...(from.y === undefined ? {} : { y: Math.round(from.y) }) },
       waiting: this.waiting.size, nearest: nearest === null ? null : Math.round(nearest), active: this.active };
   }
+  /** The error a refinement job failed with (it refused the rest of the queue), if one did. */
+  refusal(): Error | undefined { return this.failure; }
   /** The spawn-view fence opened: run what is in view (prepareSpawnView). */
   wake(): void { this.kick(); }
   /** A spawn-view job waits or runs before control. */
