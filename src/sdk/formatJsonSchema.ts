@@ -566,6 +566,9 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     // Both existing weather wires contain the same complete phase program.
     ...(schema === WeatherDocumentSchema ? { definitions: { weatherProgram: WeatherProgramSchema } } : {}),
     ...(definitions === undefined ? {} : { definitions }),
+    // The population's six identical return descriptors share their complete
+    // native grammars; the defining parser and every wire constraint remain.
+    ...(schema === WildlifePopulationSchema ? { definitions: { legacyReturn: ReturnProgramSchema, projection: ReturnProjectionV2Schema } } : {}),
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
       if (postIdentityTransforms.has(valibotAction)) return jsonSchema;
