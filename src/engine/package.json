@@ -135,6 +135,7 @@
     "./boot/shardPrefetch": "./boot/shardPrefetch.ts",
     "./boot/steps": "./boot/steps.ts",
     "./boot/stuck": "./boot/stuck.ts",
+    "./boot/stuckStep": "./boot/stuckStep.ts",
     "./pwa/cacheNames": "./pwa/cacheNames.ts",
     "./boot/tables": "./boot/tables.ts",
     "./boot/timeline": "./boot/timeline.ts",

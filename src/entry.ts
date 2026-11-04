@@ -23,6 +23,7 @@ import {prepareBootImports} from './bootDownloads';
  * document only adds 0.8 + 2.5 s before the same failure); a failed import rejects `entered`, and guardBoot reloads once.
  */
 import { guardBoot } from '@wildshard/engine/boot/stuck';
+import { progressOfCard, stuckMessage, watchStuckStep } from '@wildshard/engine/boot/stuckStep';
 import { startShellClock, waitForLoadingStyles } from '@wildshard/engine/boot/shell';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
 import { Scope } from '@wildshard/engine/app/scope';
@@ -130,14 +131,23 @@ guardBoot(entered);
 
 /** Composition root: select authored content and inject reusable kit recipes. */
 export async function start(): Promise<void> {
-  try { await startSelected(); }
+  // DL21: a start whose card stops moving (step, setup share, bytes) names its step after a bounded wait instead of
+  // leaving a dead card; the fatal modal's RELOAD HERE is the retry (src/engine/boot/stuckStep.ts)
+  const card = (): HTMLElement | null => document.querySelector<HTMLElement>('.ws-load');
+  const started = startSelected();
+  watchStuckStep(started, {
+    progress: () => progressOfCard(card()),
+    every: (ms, run) => { const timer = entryScope.interval(ms, run); return () => { entryScope.cancelTimer(timer); }; },
+    stalled: (step, stuckMs) => { void (async () => { (await import('@wildshard/engine/ui/ErrorModal')).showError(stuckMessage(step, { stuckMs })); })(); },
+  });
+  try { await started; }
   catch (error) {
     const { pageGridRecovery, clearGridRecovery } = await import('@wildshard/game/grid/pageEntry');
     if (pageGridRecovery() === null) {
       // Admission can refuse before startSession installs its fatal-load boundary. main starts asynchronously;
-      // paint the same fatal card here instead of leaving a rejected boot behind the first-paint loader.
+      // paint the same fatal card here, naming the step it died on, instead of leaving a rejected boot behind the loader.
       const { showError } = await import('@wildshard/engine/ui/ErrorModal');
-      showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');
+      showError(stuckMessage(progressOfCard(card()).step, { error }), error instanceof Error ? error.stack ?? '' : '');
       return;
     }
     clearGridRecovery();
