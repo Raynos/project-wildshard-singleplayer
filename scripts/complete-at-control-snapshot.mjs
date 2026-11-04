@@ -75,6 +75,10 @@ function sigParts(sig) {
  *  actor: listed, never a pop. */
 export function lapPops(at, lap, homeRegion) {
   const atList = at.scene?.list ?? [], atMeshes = new Map(atList.map(([id, , sig, on]) => [id, { sig, on }]));
+  // DL5 target (root, G872): the Shardfile ring retires a tile beyond it and re-attaches the same model on return; a mesh
+  // added after control with the name, owner and vertex count of one shown at control is that model re-attached: listed
+  const model = (chain, sig) => `${chain.split('<').slice(0, 2).join('<')}|${sig.split('|')[1] ?? ''}`;
+  const atModels = new Set(atList.map(([, chain, sig]) => model(chain, sig))), reattached = new Map();
   const residentGeometry = new Set(), residentMaps = new Set();
   for (const row of atList) { const parts = sigParts(row[2]); residentGeometry.add(parts.geometry); for (const map of parts.maps) residentMaps.add(map); }
   const pops = new Map(), neighbourPops = new Map(), actors = new Map(), distance = new Map();
@@ -85,10 +89,11 @@ export function lapPops(at, lap, homeRegion) {
     for (const lod of s.scene?.lods ?? []) lods.add(lod);
     for (const texture of s.scene?.texturesPending ?? []) textures.add(texture);
     for (const [id, chain, sig, , close, skinned] of s.scene?.list ?? []) {
-      if (!close || pops.has(id) || neighbourPops.has(id) || actors.has(id)) continue;
+      if (!close || pops.has(id) || neighbourPops.has(id) || actors.has(id) || reattached.has(id)) continue;
       if (skinned) { if (atMeshes.get(id)?.on !== true) actors.set(id, chain); continue; }
       const was = atMeshes.get(id);
       let red = null;
+      if (was === undefined && atModels.has(model(chain, sig))) { reattached.set(id, `re-attached ${chain}`); continue; }
       if (was === undefined) red = 'added';
       else if (was.sig !== sig) {
         const parts = sigParts(sig);
@@ -100,16 +105,20 @@ export function lapPops(at, lap, homeRegion) {
   }
   for (const id of pops.keys()) distance.delete(id);
   return { fine: [...fine], pops: [...pops.values()], neighbourPops: [...neighbourPops.values()], actors: [...actors.values()],
-    distanceLod: [...distance.values()], lods: [...lods], textures: [...textures] };
+    distanceLod: [...distance.values()], lods: [...lods], textures: [...textures], reattached: [...reattached.values()] };
 }
 
-/** DL17's request rule (root's ruling, G872 (a)): of one visit's requests (`{ url, by: 'page' | 'service-worker' }`),
- *  the level's are every level-content URL (`isLevelContent`) except the worker's offline precache: a service-worker
- *  fetch of a URL the page never requests in the visit, lap included. A file the level needs shows as a page request too
- *  (also when the worker answers it from its cache), so any page request stays the level's. */
+/** DL17's request rule (root's ruling, G872 (a)): of one visit's requests (`{ url, by: 'page' | 'service-worker', start,
+ *  end }`, end null while open), the level's are every level-content URL (`isLevelContent`) except the worker's offline
+ *  precache: a service-worker fetch whose URL no page request is still reading or reads later (the page never requests
+ *  it in the visit, lap included, or already had it before the worker's fetch began: the worker filling its cache with
+ *  what the level loaded). A file the level needs shows as a page request too (also when the worker answers it from its
+ *  cache), so any page request stays the level's. */
 export function splitRequests(rows, isLevelContent) {
-  const path = row => new URL(row.url).pathname, pageRead = new Set(rows.filter(row => row.by === 'page').map(path));
-  const precache = rows.filter(row => row.by === 'service-worker' && !pageRead.has(path(row)) && isLevelContent(row.url));
+  const path = row => new URL(row.url).pathname, pageReads = new Map();
+  for (const row of rows) if (row.by === 'page') { const reads = pageReads.get(path(row)) ?? []; reads.push(row); pageReads.set(path(row), reads); }
+  const pageAfter = row => (pageReads.get(path(row)) ?? []).some(read => read.end === null || read.end === undefined || read.end > (row.start ?? 0));
+  const precache = rows.filter(row => row.by === 'service-worker' && !pageAfter(row) && isLevelContent(row.url));
   const held = new Set(precache);
   return { level: rows.filter(row => isLevelContent(row.url) && !held.has(row)), precache };
 }

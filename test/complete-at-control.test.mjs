@@ -34,7 +34,7 @@ test('content not resident at control is red; distance design on resident models
 
 test('a lap that changes nothing has no pops and no distance LOD', () => {
   const at = sample([row('a', 'Mesh<a', 'g-a', 't-a')]);
-  expect(lapPops(at, [sample([row('a', 'Mesh<a', 'g-a', 't-a')])], undefined)).toEqual({ fine: [], pops: [], neighbourPops: [], actors: [], distanceLod: [], lods: [], textures: [] });
+  expect(lapPops(at, [sample([row('a', 'Mesh<a', 'g-a', 't-a')])], undefined)).toEqual({ fine: [], pops: [], neighbourPops: [], actors: [], distanceLod: [], lods: [], textures: [], reattached: [] });
 });
 
 test('in the grid, a mesh under another cell is the neighbour\'s', () => {
@@ -47,13 +47,24 @@ test('in the grid, a mesh under another cell is the neighbour\'s', () => {
 test('a worker fetch the page never requests in the visit is precache; any page request stays the level\'s (G872 (a))', () => {
   const level = url => !url.includes('/version.json');
   const rows = [
-    { url: 'https://x.test/assets/late-Explore-a1.js', by: 'service-worker' },            // offline precache: never read by the page
-    { url: 'https://x.test/assets/packs/spawn-b2.bin', by: 'service-worker' },            // the worker fetches it ...
-    { url: 'https://x.test/assets/packs/spawn-b2.bin?v=1', by: 'page' },                   // ... and the page reads it (query ignored)
-    { url: 'https://x.test/assets/gpu/horizon/day-c3.ktx2', by: 'page' },                  // a page read answered from the worker's cache
-    { url: 'https://x.test/version.json', by: 'service-worker' },                          // not level content at all
+    { url: 'https://x.test/assets/late-Explore-a1.js', by: 'service-worker', start: 50, end: 60 },   // offline precache: never read by the page
+    { url: 'https://x.test/assets/packs/spawn-b2.bin', by: 'service-worker', start: 10, end: 40 },   // the worker fetches it ...
+    { url: 'https://x.test/assets/packs/spawn-b2.bin?v=1', by: 'page', start: 30, end: null },        // ... while the page still reads it
+    { url: 'https://x.test/assets/main-d4.js', by: 'page', start: 1, end: 5 },                        // the page read it before control ...
+    { url: 'https://x.test/assets/main-d4.js', by: 'service-worker', start: 70, end: 80 },           // ... and the worker caches it later
+    { url: 'https://x.test/assets/gpu/horizon/day-c3.ktx2', by: 'page', start: 90, end: 95 },         // a page read answered from the worker's cache
+    { url: 'https://x.test/assets/gpu/horizon/day-c3.ktx2', by: 'service-worker', start: 85, end: 99 },// the worker fetching it for that read
+    { url: 'https://x.test/version.json', by: 'service-worker', start: 1, end: 2 },                   // not level content at all
   ];
   const { level: levelRows, precache } = splitRequests(rows, level);
-  expect(precache.map(entry => entry.url)).toEqual(['https://x.test/assets/late-Explore-a1.js']);
-  expect(levelRows.map(entry => entry.url)).toEqual(['https://x.test/assets/packs/spawn-b2.bin', 'https://x.test/assets/packs/spawn-b2.bin?v=1', 'https://x.test/assets/gpu/horizon/day-c3.ktx2']);
+  expect(precache.map(entry => entry.url)).toEqual(['https://x.test/assets/late-Explore-a1.js', 'https://x.test/assets/main-d4.js']);
+  expect(levelRows.map(entry => `${entry.by} ${entry.url}`)).toEqual(['service-worker https://x.test/assets/packs/spawn-b2.bin', 'page https://x.test/assets/packs/spawn-b2.bin?v=1',
+    'page https://x.test/assets/main-d4.js', 'page https://x.test/assets/gpu/horizon/day-c3.ktx2', 'service-worker https://x.test/assets/gpu/horizon/day-c3.ktx2']);
+});
+
+test('a model re-attached by the ring after control is listed, a new one is a pop (DL5 target)', () => {
+  const at = sample([row('pier-a', 'Mesh<driftwood-isle/pier<piers.world-0<Scene', 'g-pier', 't-wood')]);
+  const found = lapPops(at, [sample([row('pier-b', 'Mesh<driftwood-isle/pier<Scene', 'g-pier-2', 't-wood'), row('crate', 'Mesh<crate<Scene', 'g-crate', 't-crate')])], undefined);
+  expect(found.reattached).toEqual(['re-attached Mesh<driftwood-isle/pier<Scene']);
+  expect(found.pops).toEqual(['added Mesh<crate<Scene']);
 });

@@ -275,6 +275,8 @@ try {
       if (found.neighbourPops.length > 0) note(`${found.neighbourPops.length} neighbour meshes popped within reach during the boost lap: ${found.neighbourPops.slice(0, 4).join('; ')}`);
       // distance LOD (resident models shown, hidden or swapped between resident data; LOD levels): listed, not red
       if (found.distanceLod.length + found.lods.length > 0) (report.distanceLod ??= []).push(...found.distanceLod, ...found.lods.map(lod => `LOD ${lod}`));
+      // the Shardfile ring's in-play re-attachments: a DL5 target (root, G872), listed, not in the verdict
+      if (found.reattached.length > 0) (report.ringReattached ??= []).push(...found.reattached);
       if (found.textures.length > 0) flag(`${found.textures.length} textures within reach not decoded during the boost lap (first: ${found.textures.slice(0, 3).join(', ')})`);
       // grid tiles join batched meshes, so a ring pop shows as a reach cell's drawn layers changing, not as a new mesh
       const lapReach = new Set(reachCells.map(cell => cell.id)), drawnAt = new Map((g?.cells ?? []).map(cell => [cell.id, cell.drawn])), cellPops = new Map();
@@ -288,7 +290,7 @@ try {
       const homePops = [...cellPops].filter(([id]) => id === g?.home).map(([, text]) => text), nCellPops = [...cellPops].filter(([id]) => id !== g?.home).map(([, text]) => text);
       if (homePops.length > 0) flag(`the home cell changed what it draws during the boost lap: ${homePops.join('; ')}`);
       if (nCellPops.length > 0) note(`neighbour cells changed what they draw during the boost lap: ${nCellPops.join('; ')}`);
-      report.lapAdds = { fineTiles: found.fine, meshesAtControl: at.scene?.meshes ?? null, pops: found.pops, distanceLod: found.distanceLod, neighbourPops: found.neighbourPops, actorsShown: found.actors, lods: found.lods, textures: found.textures, cellPops: [...cellPops.values()] };
+      report.lapAdds = { fineTiles: found.fine, meshesAtControl: at.scene?.meshes ?? null, pops: found.pops, distanceLod: found.distanceLod, reattached: found.reattached, neighbourPops: found.neighbourPops, actorsShown: found.actors, lods: found.lods, textures: found.textures, cellPops: [...cellPops.values()] };
     }
     if (neighbourList.length > 0) (report.neighbour ??= []).push(...neighbourList);
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
@@ -411,5 +413,5 @@ try {
 }
 const timing = report.warm === undefined ? '' : ` (warm: cold ${report.warm.coldMs} ms, re-entry during precache ${report.warm.duringPrecacheMs} ms with ${report.warm.workerFetchesOpenAtReentry} worker fetches open, settled ${report.warm.settledMs} ms)`;
 const verdict = `${report.pass ? 'COMPLETE AT CONTROL' : 'FAIL'}${timing}`;
-console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${(report.distanceLod ?? []).length > 0 ? `\n  distance LOD (resident models, the shard's design, not in the verdict): ${report.distanceLod.length} (first: ${report.distanceLod.slice(0, 4).join('; ')})` : ''}${(report.neighbour ?? []).length > 0 ? `\n  neighbours (G828, not in the verdict):\n  ~ ${report.neighbour.join('\n  ~ ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
+console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${(report.ringReattached ?? []).length > 0 ? `\n  ring re-attachments (Shardfile, a DL5 target, not in the verdict): ${report.ringReattached.length} (${report.ringReattached.slice(0, 3).join('; ')})` : ''}${(report.distanceLod ?? []).length > 0 ? `\n  distance LOD (resident models, the shard's design, not in the verdict): ${report.distanceLod.length} (first: ${report.distanceLod.slice(0, 4).join('; ')})` : ''}${(report.neighbour ?? []).length > 0 ? `\n  neighbours (G828, not in the verdict):\n  ~ ${report.neighbour.join('\n  ~ ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
 process.exit(report.pass === null ? 2 : report.pass ? 0 : 1);
