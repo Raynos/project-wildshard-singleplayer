@@ -27,7 +27,8 @@ it('admits registered named JSON, refuses private names and detects corrupt blob
   writeFileSync(join(root,'out/_template',blob.file.path),blob.bytes);
   writeFileSync(indexPath,JSON.stringify({...index,files:[blob.file]}));
   expect(outputSections(root,'_template')).toMatchObject({customSectionBytes:0,customSections:[]});
-  expect(()=>nameBlob('private.json','json',new TextEncoder().encode('{"n":2}'))).toThrow('Unregistered named JSON');
+  const transient=nameBlob('private.json','json',new TextEncoder().encode('{"n":2}'));
+  expect(()=>parseOutputIndex({...index,files:[transient.file]})).toThrow('Unregistered named JSON');
   expect(()=>nameBlob('custom/private.bin','bin',new Uint8Array([1]))).toThrow('retired');
   writeFileSync(join(root,'out/_template',blob.file.path),'[{}]');
   expect(()=>outputSections(root,'_template')).toThrow('named JSON hash/size mismatch');

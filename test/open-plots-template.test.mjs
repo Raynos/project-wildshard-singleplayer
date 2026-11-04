@@ -105,7 +105,7 @@ test('an explicitly named new-idea swap writes complete declarations and keeps 2
  expect(declared).not.toContain('src/shards/open-plots/discovery.open-plot-new-idea.generated.ts');
  expect(proposal.paths.has('.gitignore')).toBe(false);
  expect(proposal.paths.has('lint/tile-bake-debt.json')).toBe(true);
- expect(proposal.paths.has('lint/custom-sections.json')).toBe(false);
+ expect([...proposal.paths.keys()].some(path=>path.startsWith('lint/custom-'))).toBe(false);
  expect(()=>plotTemplate(root,{...recipe,slug:'open-plot-new-idea',cell:cell.cell,replaces:'open-plot-wrong'})).toThrow('replacement does not match');
 });
 

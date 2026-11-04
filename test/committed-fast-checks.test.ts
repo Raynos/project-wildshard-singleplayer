@@ -49,44 +49,44 @@ test('source table guards pin producers, schema data and output to the checked c
       f.put(`scripts/${file}`, readFileSync(resolve('scripts', file), 'utf8'));
     const registry=readFileSync(resolve('scripts/source-generators.mjs'),'utf8');
     f.put('scripts/source-generators.mjs',registry.replace('export const SOURCE_GENERATORS = [',`export const SOURCE_GENERATORS = [
-      ...['driftwood-isle','pine-hollow'].map(slug=>({id:slug+'-test-schema',outputs:['src/shards/'+slug+'/generators/sectionSchemas.ts','src/shards/'+slug+'/runtime/productSections.d.ts'],inputs:['src/format/schema.txt'],committed:true,generate:async root=>(await import(pathToFileURL(root+'/scripts/bake-section-schemas.mjs').href)).sectionSchemaTables(root,slug).tables})),`));
+      ...['driftwood-isle','pine-hollow'].map(slug=>({id:slug+'-test-schema',outputs:['src/shards/'+slug+'/generators/sourceProbe.generated.ts','src/shards/'+slug+'/runtime/sourceProbe.generated.d.ts'],inputs:['src/format/schema.txt'],committed:true,generate:async root=>(await import(pathToFileURL(root+'/scripts/source-probe.mjs').href)).sourceProbeTables(root,slug).tables})),`));
     const producer = `import {readFileSync} from 'node:fs';import {resolve} from 'node:path';
-export function sectionSchemaTables(root,slug){return {tables:{
- ['src/shards/'+slug+'/generators/sectionSchemas.ts']:readFileSync(resolve(root,'src/format/schema.txt'),'utf8'),
- ['src/shards/'+slug+'/runtime/productSections.d.ts']:'export interface CustomSections {}\\n'
+export function sourceProbeTables(root,slug){return {tables:{
+ ['src/shards/'+slug+'/generators/sourceProbe.generated.ts']:readFileSync(resolve(root,'src/format/schema.txt'),'utf8'),
+ ['src/shards/'+slug+'/runtime/sourceProbe.generated.d.ts']:'export interface SourceProbe {}\\n'
 }};}`;
-    f.put('scripts/bake-section-schemas.mjs', producer);
+    f.put('scripts/source-probe.mjs', producer);
     f.put('src/format/schema.txt', 'export const schema="original";\n');
-    const output = 'src/shards/pine-hollow/generators/sectionSchemas.ts';
-    const sibling = 'src/shards/driftwood-isle/generators/sectionSchemas.ts';
+    const output = 'src/shards/pine-hollow/generators/sourceProbe.generated.ts';
+    const sibling = 'src/shards/driftwood-isle/generators/sourceProbe.generated.ts';
     f.put(output, 'export const schema="original";\n');
     f.put(sibling, 'export const schema="original";\n');
-    f.put('src/shards/pine-hollow/runtime/productSections.d.ts', 'export interface CustomSections {}\n');
-    f.put('src/shards/driftwood-isle/runtime/productSections.d.ts', 'export interface CustomSections {}\n');
+    f.put('src/shards/pine-hollow/runtime/sourceProbe.generated.d.ts', 'export interface SourceProbe {}\n');
+    f.put('src/shards/driftwood-isle/runtime/sourceProbe.generated.d.ts', 'export interface SourceProbe {}\n');
     const base = f.commit();
     f.put('src/format/schema.txt', 'export const schema="new";\n');
     const stale = f.commit();
     // A child reading these loose repairs would incorrectly accept stale output.
     f.put('src/format/schema.txt', 'export const schema="original";\n');
-    f.put('scripts/bake-section-schemas.mjs', producer.replace('src/format/schema.txt', output));
+    f.put('scripts/source-probe.mjs', producer.replace('src/format/schema.txt', output));
     const index = readFileSync(resolve(f.root, '.git/index'));
     const refused = f.run('guards', stale, ['src/format/schema.txt'], base);
     expect(refused.status, refused.stdout + refused.stderr).toBe(1);
     expect(refused.stderr).toContain(`gen:source: stale ${sibling}, ${output} (run pnpm gen:source)`);
     expect(readFileSync(resolve(f.root, '.git/index'))).toEqual(index);
     expect(readFileSync(resolve(f.root, 'src/format/schema.txt'), 'utf8')).toContain('original');
-    f.put('scripts/bake-section-schemas.mjs', producer);
+    f.put('scripts/source-probe.mjs', producer);
     f.put('src/format/schema.txt', 'export const schema="new";\n');
     f.put(output, 'export const schema="new";\n');
     f.put(sibling, 'export const schema="new";\n');
     const current = f.commit();
     f.put(output, 'loose output poison');
-    f.put('scripts/bake-section-schemas.mjs', 'throw new Error("loose producer poison");');
+    f.put('scripts/source-probe.mjs', 'throw new Error("loose producer poison");');
     const accepted = f.run('guards', current, ['src/format/schema.txt'], stale);
     expect(accepted.status, accepted.stdout + accepted.stderr).toBe(0);
     expect(accepted.stdout).toContain('guards: exact committed inputs passed');
     expect(readFileSync(resolve(f.root, output), 'utf8')).toBe('loose output poison');
-    expect(readFileSync(resolve(f.root, 'scripts/bake-section-schemas.mjs'), 'utf8')).toContain('loose producer poison');
+    expect(readFileSync(resolve(f.root, 'scripts/source-probe.mjs'), 'utf8')).toContain('loose producer poison');
   } finally { f.close(); }
 });
 

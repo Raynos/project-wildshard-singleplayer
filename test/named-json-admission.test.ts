@@ -18,7 +18,10 @@ test('named JSON retains its byte-bound contract above the custom-section node c
   const schemaBytes=new TextEncoder().encode(encodeCanonicalJson(jsonSchema));
   expect(validateDefinedJson(schemaBytes,encode(value))).toEqual(value);
   expect(validateNamedJsonSchema(jsonSchema,encode(value))).toEqual(value);
-  expect(()=>nameBlob('data/placements.json','json',encode(value),{jsonSchema})).toThrow('Unregistered named JSON');
+  // A producer can name a temporary document; final output admission, not
+  // this in-memory byte helper, enforces its registered shipping identity.
+  const transient=nameBlob('data/placements.json','json',encode(value),{jsonSchema});
+  expect(transient.bytes).toEqual(encode(value));
   value[9000] = [1];
   expect(() => validateDefinedJson(schemaBytes,encode(value))).toThrow('refuses its schema');
   expect(() => validateNamedJsonSchema(jsonSchema, encode(value))).toThrow('refuses its schema');
