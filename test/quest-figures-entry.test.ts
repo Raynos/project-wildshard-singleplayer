@@ -35,6 +35,14 @@ function fixture(readOverride?: (name: string) => Promise<Uint8Array>) {
   const product = createShardProduct({ slug: 'orchard', revision: 1, shardfile, sections: new Map([['world/scenes', {}]]), files, jsonCheck: fixtureJsonCheck,
     read: name => { reads.push(name); if (readOverride !== undefined) return readOverride(name);
       return Promise.resolve(bytes(name === 'quest.json' ? { id: row.id } : name === 'models/world-scenes.json' ? { product: 'orchard', models: [] } : { figures: [] })); } });
+  // These two composition projections feed mocked host builders below;
+  // preserve their byte/retirement schedule while real books stay admitted.
+  const named = product.json.bind(product);
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    if (name !== row.file && name !== row.figures?.file) return named(name);
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   const draws = fixedDraws(product, [{ slot: 'original', file: 'original.glb', channels: [] }]);
   const hooks = {}, ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime: legacyDouble<ShardRuntime>({ hooks }) }) });
   bindResidentWorldScope(scope, resident);

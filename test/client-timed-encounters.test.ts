@@ -1,3 +1,4 @@
+import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the actual generated envelope, not a static generated import.
 import { readFileSync } from 'node:fs';
 import { NALATI_NIGHT } from './fixtures/nalati-night';
@@ -30,7 +31,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { withWeatherWitness } from './fixtures/weatherInlineWitness';
 
-const input = {kind: 'timed.encounters', owner: 'quarry.watch', file: 'combat/watch.json', draws: 'quarry.draws', species: 'quarry.species', guest: 'guardian', weather: 'quarry.weather',
+const input = {kind: 'timed.encounters', owner: 'quarry.watch', file: 'combat/timed-encounters.json', draws: 'quarry.draws', species: 'quarry.species', guest: 'guardian', weather: 'quarry.weather',
   figures: {rider: 'quarry.guard', captain: 'quarry.captain', storm: 'rider'}};
 function fixture(retireOnRead = false) {
   const scope = new Scope('quarry.encounters'), copies: string[] = [], figure = new BoxGeometry(.2, .5, .3);
@@ -47,7 +48,7 @@ function fixture(retireOnRead = false) {
   const night = withWeatherWitness({...admitted, program: {...admitted.program, script}});
   const bytes = new TextEncoder().encode(JSON.stringify(night)), hash = sha256(bytes);
   const product = createShardProduct({slug: 'quarry', revision: 1, shardfile: emptyShardfile({slug: 'quarry', name: 'Quarry', author: 'Fixture', revision: 1, seed: 1}), sections: new Map(),
-    files: new Map([[input.file, {hash, url: '/watch.json'}]]), read: () => { if (retireOnRead) scope.dispose(); return Promise.resolve(bytes); }});
+    files: new Map([[input.file, fixtureProductFile(input.file,{hash, url: '/watch.json'})]]), jsonCheck:fixtureJsonCheck, read: () => { if (retireOnRead) scope.dispose(); return Promise.resolve(bytes); }});
   const game = legacyDouble<Game>({app, levelScope: scope, scene: new Scene(), camera: new PerspectiveCamera(), renderer: legacyDouble<Game['renderer']>({getDrawingBufferSize: (out: Vector2) => out.set(400, 800)})});
   const world = legacyDouble<ShardWorld>({game, sky: legacyDouble<ShardWorld['sky']>({}), forest: legacyDouble<ShardWorld['forest']>({}), player: legacyDouble<Player>({position: new Vector3()})});
   const ctx = legacyDouble<ShardContext>({scope, product, game: legacyDouble<ShardContext['game']>({runtime: legacyDouble<ShardRuntime>({world})})});

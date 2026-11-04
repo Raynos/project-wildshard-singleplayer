@@ -1,5 +1,5 @@
 import {nativeBakeFloats,originalNativeGround} from './fixtures/native-bake-inline';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { createNativeBakeReader, nativeBakeGround, installNativeCollision } from './fixtures/native-hosts/population/nativeBake';
 import { readNamedBlob } from '../src/sdk/blobs';
@@ -49,6 +49,12 @@ test('the shipped assembly reads the raw files and retains native collision, sav
     files: new Map([...data.keys()].map(name => [name, { hash: name, url: name }])), read: name => {
       reads.push(name); const bytes = data.get(name); if (bytes === undefined) throw new Error('Missing native fixture file'); return Promise.resolve(bytes);
     } });
+  // The retired assembly projection exists only in this binary oracle.
+  // Keep its exact bytes/read order and all native intake/replay checks.
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   const {constants}=await product.json<{constants:{physics:typeof admitted}}>('sim/headless-assembly.json');
   const floor=await product.file(floorFile),colliders=await product.file(hullFile);
   const intake=createNativeBakeReader(constants.physics,{label:'Driftwood',resolution:256,size:500,parked:false,rig:'axis',shapes:[1,2,9],provenance:'tagged'},

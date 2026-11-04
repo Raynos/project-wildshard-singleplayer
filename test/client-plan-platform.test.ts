@@ -296,6 +296,14 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
   ] });
   f.sections.set('held/finishes', {});
   for (const name of ['ranged.json', 'world.json', 'quest.json', 'quests/runtime.json']) { f.files.set(name, { hash: name, url: `https://example.invalid/${name}` }); f.bytes.set(name, new TextEncoder().encode('{}')); }
+  // This phase-order fixture stubs every consumer, including the runtime
+  // program. Lend only its synthetic projection through the existing byte port.
+  const named = f.ctx.product.json.bind(f.ctx.product);
+  vi.spyOn(f.ctx.product, 'json').mockImplementation(async name => {
+    if (!['quests/runtime.json', 'quest.json', 'ranged.json', 'world.json'].includes(name)) return named(name);
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await f.ctx.product.file(name)));
+    return value;
+  });
   const prepare = vi.spyOn(rangedPreparation, 'prepareRangedPage').mockResolvedValue(undefined);
   const ranged = vi.spyOn(questPreparation, 'installEntryRangedPage').mockImplementation(() => { order.push('ranged'); return Promise.resolve(); });
   const worldAdmission = vi.spyOn(questWorldPreparation, 'prepareQuestWorldEntry').mockImplementation(() => { order.push('world'); return Promise.resolve(); });

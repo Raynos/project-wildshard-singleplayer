@@ -133,6 +133,12 @@ function roomFixture(){
   let afterRead=():void=>undefined;
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
     files:new Map([['combat/room.json',{hash:'room',url:'/room'}]]),read:hash=>{reads.push(hash);afterRead();return Promise.resolve(bytes);}});
+  // The native room builder is stubbed below: this fixture owns only its
+  // minimal projection and the original byte/owner retirement boundary.
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   Object.assign(f.contextSurface,{product});
   const entrance={x:4,y:2,z:7,r:.8,facing:.6};
   const piece=legacyDouble<NonNullable<ReturnType<SceneDressing['pieces']['get']>>>({anchors:{entrance:[entrance]}});
