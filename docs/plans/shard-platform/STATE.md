@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 86f2590-mw26uru3** (09:34, 30 verified; CI red since, next carrier f7ac4c186f; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 86f2590-mw26uru3** (09:34, 30 verified; CI red since; first green due from 4644786eb2; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**11:00:** QD7: LD5, LD6/7, LD8, manifest A (o1), LD9a (o5) landed; NF18 then LD9b next. Packs faster cold in Sim (Nine 29.4 vs 31.9 s, Pine 58.3 vs 66.3): DL16 default flip gates (o2). Post-control "10 s frame" was the HUD meter (281fb0d2ed). CI reds: physics setup 10 s (x8 RCA).
+**12:00:** QD7 done to LD8 + manifest B (o1); o5 NF18 then LD9b, LD10, CO8. DL16 gates green bar goldens (o2); DL7 P3 seed landed off (o1); DL10 pacing (o3). D227: Pine 1.39-1.43 GB Inspector play, pre-packs (Jake).
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
