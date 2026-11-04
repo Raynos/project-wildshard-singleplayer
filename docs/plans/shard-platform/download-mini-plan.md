@@ -81,6 +81,40 @@ download on top: ≈ 15.5 s for 18.4 MB, plus +19 s when the worker's 24 MB prec
 | Application modules (JS) | 3,506 | 108 JS chunks evaluated | 3 chunks (DL14) |
 | 86 long tasks | 10,036 total | main thread blocked > 50 ms | workers (DL11) |
 
+### DL4 inventory: build, worker or main thread (11-03)
+
+Cold: HEAD `89d8680`, `phone` preset, page and worker on DL0's shared link
+(`tmp/phone-loading/2026-11-03T23-56-09-304Z-89d8680-mw1cj2wg/chromium-grid-cold.json`, 65.6 s tap → control). Warm:
+`d4d4b17` above (35.5 s). ms at 10× CPU, summed per measure; sub-steps overlap, so columns do not add up. *Build* means
+the step's inputs are only the shardfile, the engine build and the tier, so the runtime build writes its result
+(G1000). *Main thread* is kept only for the GPU, the DOM, input or the player's saves.
+
+| step | cold ms | warm ms | inputs | where | row |
+| --- | --- | --- | --- | --- | --- |
+| Application modules (wait for the spawn set + 108 JS chunks) | 27,261 | 3,506 | the spawn set's bytes; the build's chunks | download: packs, nothing competing; JS: build | DL1, DL2, DL5, DL14 |
+| `product.read` + `product.source` (2 reads) | 6,166 + 4,474 | 3,962 + 1,518 | shardfile (`shard.json` → sections → blobs), validated per blob | build: validated once, members as views | DL5, DL13 |
+| `world.world.scenes` | 7,273 | 6,203 | shardfile, tier | build: flat scene tables | DL7 |
+| `scene.library-intake` + owned cargo / cascade / native / reef | 5,083 + 2,673 / 688 / 474 / 567 | 4,075 + 1,169 / 1,466 / 614 / 258 | shardfile GLBs, tier | build: GPU-ready buffers | DL6 |
+| `fixed-draws:whole` (cold-only `whole.read-wait / yield / decode / assemble / release`, ≈ 2.0–2.2 s each, overlapped) | 2,382 | 296 | product props, tier (warm restores the home-build cache) | build: decoded whole geometry | DL6 |
+| `world.world.assembly` + `assembly:construct` + `world:assembly:library` | 3,734 + 2,975 + 2,185 | 2,914 + 1,265 + 192 | shardfile, tier | build: resolved instance tables | DL7 |
+| `world.world.baked` / `world.looks` / `world.world.water` | 1,106 / 603 / 280 | 1,458 / 728 / 538 | shardfile, tier | build (inputs to confirm at DL7) | DL7 |
+| `grid:assembly.compiled-page` | 617 | 986 | grid catalogue, shardfiles | build | DL7 |
+| `grid:assembly.collider-join` | 906 | 1,164 | shardfile colliders | build: pre-joined colliders | DL8 |
+| `native.foundation` + `native.inputs` + `native.terrain` | 2,348 + 956 + 522 | 1,731 + 1,068 + 299 | AS modules, shardfile | build: memory image | DL12 |
+| `native.checkpoints.pause` | 1,245 | 592 | none (a yield) | main thread scheduling; goes when its work moves | DL11, DL12 |
+| `boot.script-memory-bank` | 1,048 | 698 | the build's module bank | build | DL14 |
+| Gameplay and saved state (quest composition 792, held claims 472, population 636) | 2,180 | 1,130 | shardfile + the player's saves | main thread for the saves; product-only parts → build | DL7 |
+| `entry.wait-equipment` / `entry.wait-content` | 1,137 / 841 | 776 / 1,012 | waits, no CPU | hidden by overlapping the download | DL11 |
+| Shaders + spawn and world program links + precompile census | 1,800 + 490 + 1,140 + 946 | 1,840 + 510 + 1,290 + 1,066 | baked GLSL variants | main thread (GPU), compiled during the download | DL10 |
+| First frame / world frame / drawn frames | 710 / 900 / 550 | 560 / 740 / 570 | GPU upload, first draws | main thread (GPU) | stays |
+| Long tasks before control | 109 tasks, 11,237 | 86 tasks, 10,036 | — | workers | DL11 |
+
+**Re-sizing from this table.** On a cold visit DL6's share is ≈ 10.9 s, not 7.8 s: intake 5.1 + owned 4.4 + whole
+geometry 2.4 (≈ 8.7 s warm). DL13's product reads are 10.6 s cold against 5.5 s warm, so the re-reads cost most on
+the first visit. Application modules at 27.3 s cold is mostly the shared-link download (DL0), so DL1 / DL2 / DL5 come
+before DL14's 3.5 s of chunk evaluation. Nothing in the list needs the main thread except shader and program work, the
+first frames and the saves.
+
 ## Impact on the engine and the game (measured 11-03)
 
 Two phases with very different blast radius:
