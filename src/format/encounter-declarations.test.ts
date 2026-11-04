@@ -30,7 +30,8 @@ declare const site:EncounterSitesRows;
 export const tilt:number|undefined=site.sites[0]?.tilt;
 export const authoredSite:EncounterSitesRowsInput['sites'][number]={x:0,z:0,yaw:0,scale:1};
 declare const timed:TimedEncountersRows;
-export const extra:unknown=timed.extra;
+export const presentation:string=timed.presentation;
+export const retain:Record<string,string>=timed.motion.retain;
 export function colour(row:EncounterMaterialRows):number|[number,number,number]{return row.colour;}
 `;
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
@@ -47,9 +48,11 @@ export function colour(row:EncounterMaterialRows):number|[number,number,number]{
  expect(diagnostics()).toEqual([]);
  source+=`export const missingDefault:EncounterSitesRows['sites'][number]={x:0,z:0,yaw:0,scale:1};
 export const removed:v.InferOutput<typeof frame>['signal']='step';
+export const removedExtra:TimedEncountersRows['extra']=undefined;
 export const badMaterial:EncounterMaterialRows={kind:'unknown',colour:0};`;
  const refused=diagnostics().map(diagnostic=>diagnostic.code);
  expect(refused).toContain(2741);
  expect(refused).toContain(2339);
+ expect(refused.filter(code=>code===2339)).toHaveLength(2);
  expect(refused).toContain(2322);
 });
