@@ -11,7 +11,7 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 
 | # | Codex row | Ref | Taken |
 |---|---|---|---|
-| C1 | Review sp-o3's DL10 early compile + WebKit link pacing (Debug row, default off) | 359b6fecd2, cb7ceccab4 |sp-x8 11:12 |
+| C1 | Review sp-o3's DL10 early compile + WebKit link pacing (Debug row, default off) | 359b6fecd2, cb7ceccab4 | sp-x8 11:12; source-confirmed: early WebKit pacing finding fixed in `1fb729718a`, default-off and owner/final compile fences retained |
 | C2 | Review sp-o4's DL21 card commits: named spans/sub-stages, step 27 jobs, link counts | 5730708c5c, 42bd0ec286, 1b240a289a | sp-x1 11:13; reviewed: 3 findings fixed in `4cc0796427` + `ac94241956`, source confirmed |
 | C3 | Review sp-o5's NF18 (TSL runtime deletion) when it lands: no TSL import left, goldens cited | NF18 commit |  sp-x2 11:15 |
 | C4 | Review sp-o5's LD9b (copied-runtime arm retired) when it lands: refusals, chargebacks | LD9b commit | sp-x1 11:20 |
@@ -21,7 +21,7 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 | C8 | Review sp-x8 cap-only 8c64526e31 + sp-x9 wildlife factoring db73663420: no refusal or native check lost, no grammar loosened | 8c64526e31, db73663420 | sp-x1 12:25 |
 | C9 | Review sp-x8's B7/B9 shared fixture wrap: original bytes/hash/url checks kept | 2dcb3acd5d | sp-x6 12:26; source-reviewed `2dcb3acd5d`: metadata-only, original bytes/hash/url and native/refusal controls retained; no findings |
 | C10 | Review sp-o3's Pine early-read list (sky textures) + DL11 member-scoped refs | 1e709cf297, 63020f7c1b | sp-x2 12:27; source-reviewed `1e709cf297` + `63020f7c1b`: two sky reads added, scoped member refs; shared resolver, ambiguity/staleness refusals and original bytes retained; no findings |
-| C11 | Review sp-o1's seed chunks (<= 11 MB, ordered join, packs manifest binding) | 526406cf30 | sp-x8 12:27 |
+| C11 | Review sp-o1's seed chunks (<= 11 MB, ordered join, packs manifest binding) | 526406cf30 | sp-x8 12:27; source-reviewed `526406cf30`: <=11 MB chunks, ordered join, manifest binding and native fallback retained; no findings |
 | C12 | Review sp-o2's D226 route data + DL17 boost-false legs and heap tool | e452f315d9, 2477dc4e09 |sp-x9 12:31 |
 
 ## G768 (Jake, 2026-10-27): no gate project
