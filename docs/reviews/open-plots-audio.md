@@ -773,3 +773,51 @@ and actual phone-wire proofs are still open. CLAP and all remaining model
 batches wait for the coordinator's model slot, after the updated DL21,
 sp-o2 DL17/goldens, sp-x6 bisect and sp-o1 P1 sequence. All four final-audio
 C/control reports remain open.
+
+
+### Remaining models and one bounded retake round
+
+After the coordinated machine handoff on November 4, all remaining
+initial generation and measured comparisons finish serially through the
+unchanged shared lock and model guards: Race/Showcase Medium, Showcase's
+two MiniMax scores, their four vocal checks, and CLAP for all four sets.
+Every initial SFX pair is complete. All eight score recordings pass the
+existing vocal-share check. Showcase take 702 is **23.34 s**, below the
+unchanged 25 s minimum; it remains an explicitly unqualified comparison
+take. Showcase 701 is **70.80 s** and passes the existing raw checks.
+
+Initial SFX top-five counts are Clockwork **6/7**, Desert **4/7**, Race
+**5/7**, Showcase **6/7**. One bounded round generates Medium seed 702
+only for those seven misses, followed by MOSS seed 702 for Clockwork's
+bed, Desert's bed/gateway/ruins-west and Race's bed/race-tower. The new
+Showcase road-entry Medium take ranks **1st**, so no additional MOSS
+take is generated for that now-qualified family. All prompts and ranking
+descriptions remain exact; the original 701 sources and each comparison
+snapshot are retained. This yields **69 measured SFX takes**, each bound
+to its exact wave/sidecar SHA-256. No by-ear claim or new fit threshold.
+
+Final unchanged top-five counts are Clockwork **6/7**, Desert **4/7**,
+Race **7/7**, Showcase **7/7**. Clockwork's bed still misses at best rank
+**6**. Desert's bed, gateway wind and ruins-west still miss at best ranks
+**13 / 8 / 17**. These four families remain open; no fallback or omission
+is introduced. Race's new MOSS race-tower takes rank **4**. Its unchanged
+701 bed varies from rank **7** in the initial comparison to **5** in later
+runs; that variation is explicitly retained, not credited to a new take.
+
+Race and Showcase alone pass the existing bounded AAC/catalogue writer:
+**1,211,749 B / 1,218,245 B**, eleven files per plot, each below the 1 MB
+blob bound and each package below 3 MB. Every chosen SFX retains both
+engine comparisons and source hashes; native AAC indexing and decoded
+loop-bound checks pass. Both score takes and required credits remain in
+each plot's own folders; take 701 is the measured recommendation for
+both. Showcase 702 stays available as comparison-only with its failed
+duration check. These are offline catalogue publications, **not gameplay
+activation or a native-playback pass**. No binding, template, output row
+or shared listening page is changed. Native bar 10, body/pack/wire proof,
+activation and all four final C/control reports remain open.
+
+Evidence: `tmp/sp-x1-audio/final-model-turn-fit.json`, each plot's initial,
+post-Medium and final-turn CLAP snapshots, the two 702 raw inventories,
+Race/Showcase Medium and Showcase score inventories, and the two
+publication logs. Maintained model logs remain under `tmp/ob7-audio/`.
+No further model retake round is queued in this machine turn.
