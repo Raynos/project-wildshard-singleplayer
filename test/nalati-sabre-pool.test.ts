@@ -21,6 +21,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import { nalatiSabrePool, SABRE_POOL_NAME } from '../src/shards/nalati-grasslands/generators/sabrePool';
+import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 
 const { glb: poolGlb, rows } = nalatiSabrePool();
 
@@ -38,7 +39,8 @@ test('re-entry rehydrates an evicted real blade pool before synchronous consumer
   const data={...rows,program:heldWeapons.programs.blade,power:{...weaponPower,program:heldWeapons.programs.power},parts:heldWeapons.blade};
   const read=vi.fn((hash:string)=>Promise.resolve(new TextEncoder().encode(JSON.stringify(hash==='blade'?data:book))));
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
-    files:new Map([[bookFile,{hash:'book',url:'/fixture/book'}],[loadout.blade.file,{hash:'blade',url:'/fixture/blade'}],[SABRE_POOL_NAME,{hash:'sabre-pool',url:'/fixture/sabre-pool.glb'}]]),read});
+    // 186e52971c registered the gear book: it carries its defining schema, as the product build writes it
+    files:new Map([[bookFile,{hash:'book',url:'/fixture/book',jsonSchema:registeredJsonSchema('models/gear-book.json')}],[loadout.blade.file,{hash:'blade',url:'/fixture/blade'}],[SABRE_POOL_NAME,{hash:'sabre-pool',url:'/fixture/sabre-pool.glb'}]]),read});
   const held=HeldClaims.fromProductSlots(product,{version:1,id:'retired-kit',slots:[
     {id:'blade',kind:'blade',item:'weapon.sabre',source:{kind:'passes',file:loadout.blade.file}}],
     registration:['blade'],equipment:{primary:'blade',extras:[]},selection:{unlock:[]},mount:[],refills:[],upgrades:[]},bookFile);

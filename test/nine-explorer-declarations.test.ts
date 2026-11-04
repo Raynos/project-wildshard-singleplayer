@@ -6,7 +6,6 @@ import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { explorerRoster } from '../src/game/models/explorerCatalogue';
 import { heldArmsGear } from '../src/game/models/heldGear';
-import { nameBlob } from '../src/sdk/blobs';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { modelContext } from '../src/engine/models/model';
 import { Scope } from '../src/engine/app/scope';
@@ -16,6 +15,7 @@ import heldCards from '../src/shards/nine-dragon-stack/data/heldCards.json' with
 import heldPrimary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };
 import manifest from '../src/shards/nine-dragon-stack/manifest.json' with { type: 'json' };
 import { NINE_HELD_CARDS } from '../src/shards/nine-dragon-stack/generators/explorerDeclarations';
+import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 
 const decode = (bytes: Uint8Array): unknown => JSON.parse(new TextDecoder().decode(bytes));
 function section(name: string): unknown {
@@ -29,13 +29,15 @@ const cardsBytes = cardsFile === undefined ? undefined : output.assets.get(cards
 if (cardsBytes === undefined) throw new Error('Missing declared graph card book');
 const emittedCards = decode(cardsBytes);
 function product(cards: unknown = emittedCards, entries: unknown = catalogue, arms: unknown = heldPrimary): ReturnType<typeof createShardProduct> {
-  const blob = nameBlob(NINE_HELD_CARDS, 'json', new TextEncoder().encode(JSON.stringify(cards)));
+  // 186e52971c registered the card book: it carries its defining schema, as the product build writes it
+  // (built directly, not through nameBlob, so a malformed book reaches the product's own refusal)
+  const jsonSchema = registeredJsonSchema('models/held-cards.json'), bytes = new TextEncoder().encode(JSON.stringify(cards)), hash = 'held-cards';
   return createShardProduct({ slug: source.identity.slug, revision: source.identity.revision, shardfile: source,
     sections: new Map<string, unknown>([['explore/catalogue', entries], ['held/arms', arms]]),
-    files: new Map([[NINE_HELD_CARDS, { hash: blob.file.hash, url: blob.file.hash }]]),
-    read: hash => {
-      if (hash !== blob.file.hash) throw new Error('Unexpected Explorer resource read');
-      return Promise.resolve(blob.bytes);
+    files: new Map([[NINE_HELD_CARDS, { hash, url: hash, jsonSchema }]]),
+    read: read => {
+      if (read !== hash) throw new Error('Unexpected Explorer resource read');
+      return Promise.resolve(bytes);
     }, check: true });
 }
 
