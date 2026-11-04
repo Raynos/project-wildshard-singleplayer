@@ -157,7 +157,7 @@ does not close a Z row.
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **Done (2026-11-04, sp-x8, G1004): 0 charged.** `b56d04c2a9` admits the six complete held documents under Jake’s exact one-user approval. Immutable `8b80aff221` preserves all **484,106 B**, native owners, full return guests and defining metadata; native gate and independent census both report zero owned custom files. Earlier four transport/copy retirements and their strict held/G998 qualifications remain intact. The exact original CI witness passes before and after b56 (3/3 each; jobs `126780531813` and `126793504221`), as recorded below | **10 source-qualified:** four retired plus six registered; **0 owned custom files**, clean CI witness attribution qualified | Codex (G958/G1004) | 0 |
 | **Z7** | **0 charged (2026-11-04, sp-x6 + sp-x9, G1004).** Prior six exits (`3c42144c50`, `50267bfcd2`) and seven X9 complete roots / 302,097 B (`186e52971c`, `c7330e616f`, `58ecff17bc`) remain qualified. The last cloud root / 962,762 B was already fully qualified by X6 in `437638730e` and `18cf2c0507`: exact body SHA-256 `d4b0727222dff41bab3d2079cb3574ecee3ad1ce65996dadda7b3be5625bcc33`, complete CloudSpecimen grammar, original native reader and immutable platform census. It is counted once under Z14, not again here. This closes stale overlap bookkeeping without another registration or invented user. | **0** (six retired; eight registered, 1,264,859 B; cloud counted once in Z14) | Codex (G958/G1004) | 4.5 |
-| **Z8** | **G1004 source slice: seven batch roots / 23,416 custom B registered (2026-11-04, sp-x9).** Prior ChapterStoryPresentation plus DW dead steps remain qualified (`a209d3e37e`, `98bab03828`). Exact native-spots, contracts, discovery, hints, wake-boss, carried and finds use their original complete contracts and native/reference/continuation owners. Runtime, forest-story, interaction source and complete chapter-view closure remain next; native-story remains charged until real complete Pine/DW production quest readers exist. | Prior **2/14** plus **7/12 batch roots source-qualified**; five pending | Codex | 4.5 |
+| **Z8** | **Done (2026-11-04, sp-x6 + sp-x2 + sp-x9, G1004/G872): 0 charged.** Twelve whole roots / **95,584 B** are registered: prior chapter plus seven catalogue roots, and complete runtime, forest-story, interaction-source and chapter-view documents. `80f4f8e8da` closes the full grammars; `c280532523` migrates the real runtime readers with all native/save/phase/loan guards; X2 `1bb0f472ee` closes the exact interaction source. Immutable `cee1f1ec35` verifies every original body, defining/native/wire contracts and linked guest bytes; the only approved body delta is the story binding token (both tokens 19 B; body stays 7,937 B). Two test-only/unread shipments / 2,589 B are retired, retaining exact fixtures and authored production inputs. Native gate and independent all-28 census both report zero. [Qualification below](#g1004-z8-final-qualification-2026-11-04-sp-x6) | **14 of 14 resolved:** twelve complete registrations; two retired copies; **0 owned custom files** | Codex (G1004/G872) | 0 |
 | **Z9** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** The prior five dead copies stay retired. Four live Nalati dressing files now use their existing complete defining grammars and original readers (`f2807c2cee`). All four original payloads (**4,284,474 B**) remain byte-identical on immutable all-product build `8b80aff221`; full native/module and serialized admission plus independent native gate/census agree. [Qualification below](#g1004-z9-qualification-2026-11-04-sp-x6) | **9 of 9 resolved:** five retired, four complete registered files | Codex | 0 |
 | **Z10** | **Qualified (2026-11-04, sp-x9, G1004), 3/3 registered / 1,669 custom B retired.** The approved exact KitFigureCards, BuildingLifeDocument and CoverComposition families retain their defining schemas, original payloads and live native owners. No producer, metadata, reference or runtime changes; all 37 focused admission/native cases pass. E9 building-life is counted once. | **3 of 3:** DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** Earlier five-file slice `7cc93a3856` remains qualified; `a4c996a8c5` registers the three complete one-user weather grammars. Immutable `437638730e` verifies all three original bodies and defining schema metadata unchanged, native/wire admission and independent gate/census agreement. [G1004 qualification below](#g1004-z11-and-z14-qualification-2026-11-04-sp-x6) | **8 of 8 resolved:** earlier five eligible cuts/families; weather-fx, rain, weather-observations now platform files (**3 / 1,052,415 custom B**; no physical deletion) | Codex | 0 |
@@ -4816,3 +4816,67 @@ Final scoped evidence is retained at
 `tmp/sp-x9-g1004/z4-final-body-audit.json` and
 `tmp/sp-x9-g1004/z4-final-scoped-census.json`; Sheep additionally has
 `tmp/sp-x8-sheep/final-body-audit.json` and `final-scoped-census.json`.
+
+### G1004 Z8 final qualification (2026-11-04, sp-x6)
+
+**0 charged, all fourteen original targets resolved.** Source contracts and
+transport are `80f4f8e8da` / `c280532523`; X2's interaction source is
+`1bb0f472ee`. The previous chapter and seven catalogue registrations remain
+under their original native owners. The final normal immutable all-product
+source is `cee1f1ec35174fb0f6240b1f884a127139f94492`, build
+`cee1f1e-mw2knnlh`: **28 products**, product step **55 s**, app step **39 s**.
+
+All twelve registered bodies total **95,584 B**. Eleven roots / **85,698 B**
+pass exact baseline/hash, defining-source and serialized-schema checks,
+original native validation, input-identity checks and containing pack-member
+checks. X2 independently verifies the twelfth, Driftwood interaction source:
+**9,886 B**, SHA-256 `256fcf3032ace6fb1f52d72ce3e0c0d2ab2c0e9dc94bbd1620b4cb2e4166a936`,
+all thirty rows and thirty placements including prompts and colliders.
+
+Pine's complete **29,289 B** runtime is byte-exact, SHA-256
+`92d6503d0356e9140fa1362f767f5fd24c12d9512cf81847d66450dc62cb65bf`.
+Its original **9,133 B** lead module is verified against the actual named
+Wasm body/hash. All externally linked guests in the qualified roots likewise
+match their immutable descriptors. No AS instruction, phase/save owner,
+deadline, guard or native constructor changes. The new awaited runtime reads
+recheck their existing scope, product, world and borrowed-owner identities
+before publishing. Original positive and negative native tests remain.
+
+**G872 necessary transport delta:** `custom/questRuntime` becomes
+`quests/runtime.json` in the story and mechanical client-plan/page-kit
+bindings. Both tokens are nineteen ASCII bytes: the story is **7,937 B
+before and after**, correcting the earlier 7,936 B shorthand. Reversing only
+that token reconstructs the exact original story hash. Runtime, Nalati
+content (**20,411 B**) and Driftwood interaction bytes remain exact. No
+compatibility mapping or unrelated body edit is introduced.
+
+The prior **149 B** unread Driftwood steps copy stays absent. G872 also
+retires only Pine's emitted **2,440 B** native-story copy: the exact fixture
+SHA-256 is `6ec75c8f3b81778eda9ab75356978ad7cb3f3793053780374ed00bd3ce982f14`.
+Its authored production native policy remains. Every original phase, saved
+envelope, compiler/native and refusal assertion is retained against that
+fixture; neither a fake family nor a second production reader is invented.
+
+Actual index sizes remain below the original **2,000,000 B** ceiling:
+Pine **1,813,389 B**, Nalati **1,810,704 B**, Driftwood **981,359 B**.
+The maintained `outputSections` gate and independent `productSectionEntries`
+verify all current JSON/section body hashes and native families on **all
+28 products**: **0 custom files / 0 custom B** in both readers.
+
+Bounded reader tests, original module/phase/save/retirement controls, root
+types, schema-reference, derived docs and named typed lint pass. Two stale
+positive consumers were fixed with the source: the partial forest-story
+schema expectation and the virtual Pine schema-metadata access. Original
+negative counts remain. Four original product suites' working-tree
+currentness refusals are retained; they are not counted as passes or
+bypassed. The immutable body/native/module/census proof is separately bound
+to the exact final source. No new pixel, old whole-shard/runtime, or old
+whole-pack byte-parity claim is made.
+
+Raw results: `tmp/sp-x6-g1004/z8-final-body-audit.json`,
+`z8-final-scoped-census.json`, `z8-all28-census.json` and
+`tmp/sp-x2-z8/product-audit.json`. All twenty-eight final indexes are retained
+under `tmp/sp-x6-g1004/z8-final-indexes/` as the explicit Z15 BEFORE inventory.
+Z15 still waits for every authoritative row to read zero; this qualification
+does not silently delete the custom path.
+
