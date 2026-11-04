@@ -10,7 +10,7 @@ import { expect, test } from 'vitest';
 import { BatchedMesh, BoxGeometry, Color, Group, InstancedMesh, Matrix4, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, WebGLRenderer, type Object3D } from 'three';
 import { defineModel, modelContext } from './model';
 import { place } from './place';
-import { graphLook, InstancedBatch } from './instancedBatch';
+import { InstancedBatch } from './instancedBatch';
 
 const nodeMaterial = (): MeshStandardMaterial => { const m = new MeshStandardMaterial(); Object.defineProperty(m, 'isNodeMaterial', { value: true }); return m; };
 const kinds = (root: Object3D): string[] => { const out: string[] = []; root.traverse(o => { if (o instanceof BatchedMesh) out.push('batched'); else if (o instanceof InstancedMesh) out.push('instanced'); }); return out; };
@@ -24,7 +24,6 @@ test('graph looks batch by default while explicit instanced declarations remain 
     const placements = Array.from({ length: 6 }, (_, i) => ({ x: i * 3, y: 0, z: 0, matrix: new Matrix4().makeTranslation(i * 3, 0, 0) }));
     return kinds(place(model, placements, { ctx, draw, registry: null }).object);
   };
-  expect(graphLook(nodeMaterial())).toBe(true); expect(graphLook(new MeshStandardMaterial())).toBe(false);
   expect(drawn(nodeMaterial())).toEqual(['batched']);
   expect(drawn(new MeshStandardMaterial())).toEqual(['batched']);
   expect(drawn(nodeMaterial(), 'instanced')).toEqual(['instanced']);

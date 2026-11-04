@@ -18,8 +18,6 @@ import * as THREE from 'three';
 import type { BatchSink } from './cull';
 import { cullCopiesPerCascade } from '../world/cascadeCull';
 
-/** A node (graph look) material: it never draws on a multi-draw batch (E271 / E272), only instanced. */
-export function graphLook(material: THREE.Material): boolean { return Reflect.get(material, 'isNodeMaterial') === true; }
 
 interface Slot { readonly geometry: THREE.BufferGeometry; mesh: THREE.InstancedMesh | null; capacity: number; copies: Int32Array }
 /** `held` of a copy drawn by the still merge */

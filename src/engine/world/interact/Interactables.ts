@@ -38,7 +38,7 @@ import { test, bindInteractionState, type Flags } from './flags';
 import { bindInteractPlacements, autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
-import { graphLook, InstancedBatch } from '../../models/instancedBatch';
+import { InstancedBatch } from '../../models/instancedBatch';
 import { walkInPickup } from './pickup';
 import { pickPrompt, promptVisible, setPromptSight, PROMPT_SIGHT_SLACK } from './prompts';
 
@@ -192,7 +192,7 @@ export class Interactables {
     glowMat.name = 'interact-glow';
     // A lent graph look never draws on a multi-draw batch (E271 / E272; on the grid its shader did not compile): instanced
     const batch = (b: BatchId, material: THREE.Material): THREE.BatchedMesh | InstancedBatch => {
-      if (graphLook(material)) return new InstancedBatch(material, { name: `interact-${b}`, castShadow: b === 'lit', receiveShadow: b === 'lit', ownsGeometry: true });
+      if (Reflect.get(material, 'isGraphShaderMaterial') === true) return new InstancedBatch(material, { name: `interact-${b}`, castShadow: b === 'lit', receiveShadow: b === 'lit', ownsGeometry: true });
       const bm = new ChangedBatchedMesh(Math.max(1, this.instCount[b]), Math.max(3, size(b)), Math.max(3, size(b)), material);
       bm.name = `interact-${b}`; bm.sortObjects = false; bm.perObjectFrustumCulled = true; bm.frustumCulled = false; // the batch's own sphere is stale (instances move); three culls each instance instead
       bm.castShadow = b === 'lit'; bm.receiveShadow = b === 'lit';
