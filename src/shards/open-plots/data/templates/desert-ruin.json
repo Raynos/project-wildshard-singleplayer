@@ -25,7 +25,18 @@
         }
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.desert-ruin",
+        "score": "score.desert-ruin",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/desert-ruin/**",
+        "public/assets/sfx/desert-ruin/**"
+      ]
     },
     "layout": "desert-ruin",
     "scaffold": true,

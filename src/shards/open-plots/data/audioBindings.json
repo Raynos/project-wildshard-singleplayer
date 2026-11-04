@@ -750,5 +750,229 @@
         "reach": 40
       }
     ]
+  },
+  "clockwork-canyon": {
+    "idea": "clockwork-canyon",
+    "source": {
+      "dir": "/assets/music/clockwork-canyon/",
+      "manifestKey": "clockwork-canyon"
+    },
+    "sfxDir": "/assets/sfx/clockwork-canyon/",
+    "files": {
+      "score": "take-b-14d4ec11ef6d.m4a",
+      "ambience": "ambience-24d7c730b7d6.m4a",
+      "clock-tick": "clock-tick-1a1c07574d21.m4a",
+      "waterwheel": "waterwheel-96705d3c2043.m4a",
+      "boiler": "boiler-6032e2ff6897.m4a",
+      "gear-ratchet": "gear-ratchet-a038e6831283.m4a",
+      "garden-birds": "garden-birds-05a9c59c152a.m4a",
+      "kiosk-murmur": "kiosk-murmur-0160591b0750.m4a"
+    },
+    "spots": [
+      {
+        "id": "clock-tick",
+        "x": 0,
+        "z": 0,
+        "reach": 100
+      },
+      {
+        "id": "waterwheel",
+        "x": 93.75,
+        "z": 31.25,
+        "reach": 30
+      },
+      {
+        "id": "boiler",
+        "x": 218.75,
+        "z": 218.75,
+        "reach": 30
+      },
+      {
+        "id": "gear-ratchet",
+        "x": 156.25,
+        "z": 218.75,
+        "reach": 20
+      },
+      {
+        "id": "garden-birds",
+        "x": 218.75,
+        "z": 93.75,
+        "reach": 35
+      },
+      {
+        "id": "kiosk-murmur",
+        "x": 218.75,
+        "z": 31.25,
+        "reach": 40
+      }
+    ]
+  },
+  "desert-ruin": {
+    "idea": "desert-ruin",
+    "source": {
+      "dir": "/assets/music/desert-ruin/",
+      "manifestKey": "desert-ruin"
+    },
+    "sfxDir": "/assets/sfx/desert-ruin/",
+    "files": {
+      "score": "take-a-6eab0c86e126.m4a",
+      "ambience": "ambience-9e8220262258.m4a",
+      "gateway-wind": "gateway-wind-7dfd0c8b22a9.m4a",
+      "oasis-ne": "oasis-ne-2c294b87f1da.m4a",
+      "tents-south": "tents-south-66cdbaee8b50.m4a",
+      "ruins-west": "ruins-west-f765ff652fd4.m4a",
+      "palms-south": "palms-south-56714d4c116f.m4a",
+      "entry": "entry-73e4ec1ad002.m4a"
+    },
+    "spots": [
+      {
+        "id": "gateway-wind",
+        "x": 0,
+        "z": 0,
+        "reach": 30
+      },
+      {
+        "id": "oasis-ne",
+        "x": 125,
+        "z": 125,
+        "reach": 55
+      },
+      {
+        "id": "tents-south",
+        "x": 0,
+        "z": -156,
+        "reach": 45
+      },
+      {
+        "id": "ruins-west",
+        "x": -219,
+        "z": 125,
+        "reach": 45
+      },
+      {
+        "id": "palms-south",
+        "x": 0,
+        "z": -94,
+        "reach": 35
+      },
+      {
+        "id": "entry",
+        "x": 0,
+        "z": -219,
+        "reach": 30
+      }
+    ]
+  },
+  "sky-race": {
+    "idea": "sky-race",
+    "source": {
+      "dir": "/assets/music/sky-race/",
+      "manifestKey": "sky-race"
+    },
+    "sfxDir": "/assets/sfx/sky-race/",
+    "files": {
+      "score": "take-a-f26cd25c3720.m4a",
+      "ambience": "ambience-100efa4b31d8.m4a",
+      "race-tower": "race-tower-4cc9447c8990.m4a",
+      "circuit": "circuit-a479967c09c1.m4a",
+      "grandstand": "grandstand-41bdc020c42c.m4a",
+      "paddock": "paddock-e5e36c26264d.m4a",
+      "pit-garages": "pit-garages-3ce78fc1914f.m4a",
+      "road-entry": "road-entry-addeca4f6cc1.m4a"
+    },
+    "spots": [
+      {
+        "id": "race-tower",
+        "x": 0,
+        "z": 0,
+        "reach": 60
+      },
+      {
+        "id": "circuit",
+        "x": -125,
+        "z": 125,
+        "reach": 70
+      },
+      {
+        "id": "grandstand",
+        "x": -31,
+        "z": 94,
+        "reach": 45
+      },
+      {
+        "id": "paddock",
+        "x": -219,
+        "z": 156,
+        "reach": 40
+      },
+      {
+        "id": "pit-garages",
+        "x": -219,
+        "z": 219,
+        "reach": 35
+      },
+      {
+        "id": "road-entry",
+        "x": 0,
+        "z": -230,
+        "reach": 50
+      }
+    ]
+  },
+  "showcase-template": {
+    "idea": "showcase-template",
+    "source": {
+      "dir": "/assets/music/showcase-template/",
+      "manifestKey": "showcase-template"
+    },
+    "sfxDir": "/assets/sfx/showcase-template/",
+    "files": {
+      "score": "take-a-f0c28e903f89.m4a",
+      "ambience": "ambience-f45d3258415f.m4a",
+      "obelisk": "obelisk-5c25113eba12.m4a",
+      "canal-ring": "canal-ring-5e28a62c686f.m4a",
+      "stalls": "stalls-b1a466b81973.m4a",
+      "gardens": "gardens-77fb4ba39523.m4a",
+      "houses": "houses-9ca4abaa256f.m4a",
+      "road-entry": "road-entry-204f957bd718.m4a"
+    },
+    "spots": [
+      {
+        "id": "obelisk",
+        "x": 0,
+        "z": 0,
+        "reach": 40
+      },
+      {
+        "id": "canal-ring",
+        "x": -94,
+        "z": 0,
+        "reach": 50
+      },
+      {
+        "id": "stalls",
+        "x": -31,
+        "z": 94,
+        "reach": 40
+      },
+      {
+        "id": "gardens",
+        "x": -156,
+        "z": 156,
+        "reach": 45
+      },
+      {
+        "id": "houses",
+        "x": -219,
+        "z": 219,
+        "reach": 40
+      },
+      {
+        "id": "road-entry",
+        "x": 0,
+        "z": -230,
+        "reach": 50
+      }
+    ]
   }
 }

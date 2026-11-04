@@ -25,7 +25,18 @@
         }
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.sky-race",
+        "score": "score.sky-race",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/sky-race/**",
+        "public/assets/sfx/sky-race/**"
+      ]
     },
     "layout": "sky-race",
     "scaffold": true,

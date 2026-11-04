@@ -25,7 +25,18 @@
         }
       },
       "pois": [],
-      "shardSelect": false
+      "shardSelect": false,
+      "audio": {
+        "catalogue": true,
+        "ambience": "ambience.showcase-template",
+        "score": "score.showcase-template",
+        "bed": "none"
+      },
+      "assetGlobs": [
+        "public/assets/open-plots/**",
+        "public/assets/music/showcase-template/**",
+        "public/assets/sfx/showcase-template/**"
+      ]
     },
     "layout": "showcase-template",
     "scaffold": true,
