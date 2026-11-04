@@ -29,8 +29,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { markBootContextLost, markBootHandledError } from '@wildshard/engine/boot/bootTrace';
 import { macrotask, type Plan, type StepRunner } from '@wildshard/engine/boot/plan';
 import { bootstrap, type World } from '@wildshard/engine/core/bootstrap';
-import { earlyProgramsOn, queueBakedPrograms, startEarlyPrograms, type BakedPrograms } from '@wildshard/engine/boot/earlyPrograms';
-import { SPAWN_VIEW_REACH_M } from '@wildshard/format/spawnView';
+import { earlyProgramsOn, queueBakedPrograms, type BakedPrograms } from '@wildshard/engine/boot/earlyPrograms';
 import { TIER } from '@wildshard/engine/core/tier';
 import { cachedResourceAllocations } from '@wildshard/engine/render/textureBytes';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
@@ -159,8 +158,6 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   };
   const disableBootGpuGuard = (): void => { bootGpuGuardActive = false; };
   if (audioProfile) prepareAudio();
-  // DL10 (Debug 'Early shader compile', default off): the world is built; its spawn-view programs start linking now
-  if (earlyProgramsOn()) startEarlyPrograms(game, player.position.clone(), SPAWN_VIEW_REACH_M);
   return { ...ctx, world, game, sky, player, forest, params, chunk, registry, fragileBoot, failGpuBoot, onBootContextLost, nolock, viewer, edgeDressing, boundary, water, horizon,
     get interactables() { return boot.runtime.interactables; }, props, prepareAudio, disableBootGpuGuard, level };
 }

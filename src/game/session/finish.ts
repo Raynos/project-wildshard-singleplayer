@@ -8,7 +8,7 @@ import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage, waitFor } from '@wildshard/engine/boot/waits';
-import { earlyPrograms, releaseBakedPrograms } from '@wildshard/engine/boot/earlyPrograms';
+import { releaseBakedPrograms, stopBakedPrograms } from '@wildshard/engine/boot/earlyPrograms';
 import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
@@ -110,7 +110,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // for this first fence; the final readyFrame fence uses the posed camera.
   await loadingStage('spawnDetail', () => prepareSpawnView(undefined, undefined, 'player'));
   try {
-    await earlyPrograms(); // DL10: an early pass (Debug row) finishes issuing first; its links continue in parallel
+    stopBakedPrograms(); // DL10 (Debug row): the Shaders step's own programs supersede what a baked pass has not issued
     await step('shaders', async (p) => {
       // Until the first systems step the camera stands at the origin (Nine: 127 m below the spawn's eye, at 72° not the
       // held 93°) and placed copies hold none until their first cull: one step without its draw poses the spawn view,

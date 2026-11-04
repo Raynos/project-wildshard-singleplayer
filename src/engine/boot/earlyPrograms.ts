@@ -1,14 +1,14 @@
-import type * as THREE from 'three';
 import type { Scope } from '../app/scope';
 import type { Game } from '../core/Game';
 import { jsonSlot } from '../saves/slots';
 
-/** DL10 (11-04): Debug ▸ Loading & memory ▸ Early shader compile. 'on' issues the programs of what the spawn view draws
- *  as soon as the world is built, so `KHR_parallel_shader_compile` links them on the driver's threads while the rest of
- *  loading (and its download) runs; the Shaders step then finds them linked. The Simulator's cold run spent 5.0 s there
- *  (Nine, 69fa647: 50 programs linked ≈ 3.5 s, all after the download). Default off: a compile under the download can
- *  contend with the phone's GPU process, so it ships behind this row until a Simulator / iPhone reading backs it (E451).
- *  A reload row: the first read of a page is its value. */
+/** DL10 (11-04): Debug ▸ Loading & memory ▸ Early shader compile. 'on' links the level's recorded entry programs from the
+ *  renderer step on (issueBakedPrograms) and warms the shader compiler on the title (warmShaderCompiler), so WebKit's GPU
+ *  process has them compiled before the Shaders step asks. Default off until a Simulator reading backs it (E451).
+ *  The pass that issued the spawn view's programs at the end of the world build is gone (sp-o1, 11-04): it compiled
+ *  before the level's point lights were placed, so lit programs came out with the wrong light count (Driftwood's
+ *  ground: 0 point lights instead of 3, links the level never draws, ~0.55 s each on the Simulator), and the baked list
+ *  already warms every program the entry draws. A reload row: the first read of a page is its value. */
 export const EARLY_PROGRAMS_SLOT = 'debug.earlyPrograms';
 let frozen: boolean | undefined;
 export function earlyProgramsOn(): boolean {
@@ -16,28 +16,9 @@ export function earlyProgramsOn(): boolean {
   return frozen;
 }
 
-let pending: Promise<void> | null = null;
 let baked: Promise<BakedPrograms | null> | null = null, bakedStopped = false;
-/** Issue the scene's programs for what lies within `radius` of `at` (the spawn view), in sliced issue passes; links
- *  proceed in parallel. Post, shadow, offscreen and family jobs stay with the Shaders step (they need the final page). */
-export function startEarlyPrograms(game: Game, at: THREE.Vector3, radius: number): void {
-  const owner = game.levelScope;
-  pending = (async () => {
-    try {
-      const { precompileLevel, arrivalPrograms, liveWarmPacing } = await import('../render/precompile');
-      // on WebKit the live pacing too (a few programs a presented frame), as the boot Shaders step takes it: no burst of
-      // GPU-process links holds a loading frame (sp-x8's review)
-      await precompileLevel(game, undefined, { sceneOnly: true, chunkCasters: false, sliceMs: 12, ...liveWarmPacing(),
-        arrival: arrivalPrograms(game.scene, at, radius), current: () => !owner.disposed && !owner.disposing });
-    } catch (error) {
-      // the Shaders step compiles whatever this pass did not reach
-      if (!owner.disposed && !owner.disposing) console.info('[programs] early compile stopped', error);
-    }
-  })();
-}
-/** The Shaders step waits for an early pass first, so the two never issue the same programs at once. A baked pass still
- *  issuing stops here: the Shaders step's own programs supersede what is left of it. */
-export function earlyPrograms(): Promise<void> { bakedStopped = true; return pending ?? Promise.resolve(); }
+/** The Shaders step starts: a baked pass still issuing stops; the step's own programs supersede what is left of it. */
+export function stopBakedPrograms(): void { bakedStopped = true; }
 
 /** DL10 (same Debug row): the GLSL pairs a recorded entry of this level linked, as data from the level's files. WebKit's GPU
  *  process keeps what it compiled by source (Playwright WebKit: 70 entry programs link in 225 ms the first time, 128 ms
