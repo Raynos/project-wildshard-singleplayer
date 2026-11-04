@@ -18,8 +18,6 @@ export function threeMemoryFloor(input: unknown): {phase: string; rendererBytes:
 export function contextMemoryDiagnostic(input: unknown): {calibration: {shard: string; phase: string; rendererBytes: number; gpuBytes: number; totalBytes: number} | null; error: string | null};
 /** Select one target, all four app floors, or the separate hello-world calibration. */
 export function selectedCoreMemoryTargets(selection: string): readonly (typeof coreMemoryTargets[number] | typeof helloWorldMemoryTarget | typeof webGLMemoryTarget | typeof threeMemoryTarget)[];
-/** Existing device fixture exposing the explicit SHARDFILE button for compiled-only floors. */
-export const compiledFloorSave: Readonly<{scope: 'device'; key: 'debug.global.legacyShardButtons'; data: 'on'}>;
 /** Distinct loaded script URLs, without fetching or retaining response bodies. */
 export function scriptResourceURLs(entries?: readonly {name: string}[]): string[];
 /** Bounded Node-side metadata after native acceptance; no page/Inspector fetch, admission or budget verdict. */

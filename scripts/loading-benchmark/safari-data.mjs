@@ -1,11 +1,11 @@
 import { readLoadingReport } from '../admin-data/validate.mjs';
 import { loadingShardNeedsDeveloper } from './catalogue.mjs';
 
-/** Match the real picker policy: prototypes/experimental cards require Developer; only the template uses its data entry. */
+/** Match the real picker policy: prototypes/experimental cards require Developer; every card enters by ENTER WORLD
+ * (the shardfile, G531; the LEGACY entry is gone, QD7 LD5). */
 export function safariEntryPolicy(shard) {
   const developer = loadingShardNeedsDeveloper(shard);
-  const compiled = shard === '_template';
-  return { developer, entry: compiled ? 'shardfile' : 'legacy', selector: compiled ? '.ws-menu-shardfile' : '.ws-menu-play' };
+  return { developer, entry: 'shardfile', selector: '.ws-menu-play' };
 }
 
 /** The exported HTML runs this before game modules, including after Safari process swaps.

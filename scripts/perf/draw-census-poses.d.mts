@@ -1,6 +1,6 @@
 import type { ProbePose } from '../types/wildshard-probe.d.ts';
 
-export function censusEntry(mode: string, paired: boolean, primary: string): string;
+export function censusEntry(primary: string): string;
 
 export interface CensusCamera {
   readonly n: number; readonly name: string;

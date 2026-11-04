@@ -12,9 +12,9 @@ become `art/shardfile-goldens/` (G859). The first pass had 4 cameras per shard, 
   eye, yaw and pitch (degrees; yaw 0 = −z, 90 = +x). Eyes come from the LEGACY run (`compare.py eyes`), so SHARDFILE
   renders exactly the same camera. Every camera was checked on the LEGACY capture: it is inside the cell and not inside
   geometry.
-- `capture.mjs --cameras=… --mode=legacy|shardfile`: seed 357, saved midday / clear, phone tier, 2×, muted Chromium,
-  iPhone 16 Pro portrait. Entry is through SHARD SELECT: LEGACY through the Debug row's LEGACY button, SHARDFILE
-  through its own button. There are 120 drawn frames plus a streaming-idle wait per camera. One browser context covers
+- `capture.mjs --cameras=…`: seed 357, saved midday / clear, phone tier, 2×, muted Chromium,
+  iPhone 16 Pro portrait. Entry is through SHARD SELECT's one ENTER WORLD (the shardfile); the LEGACY entry is gone
+  (QD7 LD5), so the LEGACY frames are frozen and `--mode=legacy` refuses. There are 120 drawn frames plus a streaming-idle wait per camera. One browser context covers
   a whole shard per mode. The HUD and the minimap are hidden for the shot (only the game canvas shows), 804 × 1362.
   - **The eye is the game camera** (NR10 / NR12, 10-28): a late hook sets the camera to the eye on every frame, and 60 live
     frames plus a streaming-idle wait run at the eye before the held shot, so what the game culls and streams in its update

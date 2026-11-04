@@ -28,7 +28,7 @@ const approvedFlakes=arg('g941-nine-flakes');
 if(approvedFlakes!==undefined&&approvedFlakes!=='1')throw new Error('Requires explicit --g941-nine-flakes=1');
 const g941=approvedFlakes==='1';
 if(g941&&(arg('slug')!=='nine-dragon-stack'||includeViewmodel))throw new Error('G941 applies only to the explicit Nine world-only cohort');
-if (mode !== 'legacy' && mode !== 'shardfile') throw new Error('Requires --mode=legacy|shardfile');
+if (mode !== 'shardfile') throw new Error(`--mode=${mode}: the LEGACY entry is gone (QD7 LD5); only shardfile captures`);
 if (!url) throw new Error('Requires --url=URL [--candidate=URL --slug=SLUG --pose=P1 --out=tmp/...]');
 /** @type {typeof readParityFrame<ReturnType<typeof fixedWorldFrame>>} */
 const readWorldFrame = readParityFrame;
@@ -94,7 +94,6 @@ try {
       await installInit(context, { lane: 'exact-world-capture', sha: sourceVersion.build, browser: 'chromium', capture: 30, tier: 'phone' });
       await developerSettings(context, { tier: 'phone', volume: 0, time: 'midday' });
       await saveFixture(context, {scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
-      await saveFixture(context, {scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
       /** @type {string[]} */
       const errors = [];
       const page = await context.newPage();
@@ -103,9 +102,9 @@ try {
       await page.goto(sourceUrl, {waitUntil:'load'}); await page.locator('.ws-main-select').click();
       const names = await page.locator('.ws-menu-card b').allTextContents();
       await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names, slug)}"]`).click();
-      const dual = await page.locator('.ws-menu-shardfile').isVisible();
-      if (mode === 'legacy' && !dual) throw new Error(`No legacy entry for ${slug}`);
-      await page.locator(mode === 'shardfile' && dual ? '.ws-menu-shardfile' : '.ws-menu-play').click();
+      const enter = page.locator('.ws-menu-play');
+      if (await enter.isDisabled()) throw new Error(`ENTER WORLD disabled for ${slug}`);
+      await enter.click();
       await page.waitForFunction(() => window.__wildshard?.world?.hud?.entered && !document.querySelector('.ws-load'), undefined, {timeout:240000});
       if (!(await page.evaluate(() => window.__wildshard.requireWorld().game.level.id)).includes(slug)) throw new Error('Wrong captured world');
       for (const pose of poses) {

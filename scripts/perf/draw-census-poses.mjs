@@ -2,27 +2,25 @@
 
 const goldenShards = ['driftwood-isle', 'nalati-grasslands', 'far-reach', 'sunscar-dunes'];
 
-/** Retired legacy cards have one Enter world button; never route a requested
- * legacy leg through it. @param {string} mode @param {boolean} paired
+/** Every card enters by its one ENTER WORLD (the shardfile, G531; QD7 LD5
+ * removed the LEGACY / SHARDFILE pair); a locked card's label is refused.
  * @param {string} primary */
-export function censusEntry(mode, paired, primary) {
-  if (mode !== 'legacy' && mode !== 'shardfile') throw new Error('Unknown census mode');
-  if (paired) return mode === 'legacy' ? '.ws-menu-play' : '.ws-menu-shardfile';
-  if (mode === 'shardfile' && primary.trim() === 'Enter world') return '.ws-menu-play';
+export function censusEntry(primary) {
+  if (primary.trim() === 'Enter world') return '.ws-menu-play';
   throw new Error('Requested census entry is unavailable');
 }
 
-/** Keep Nine paired and the retired Pine entry shardfile-only; the other shards use golden camera 1.
+/** Measure the shardfile (the LEGACY leg is gone, QD7 LD5); the other shards use golden camera 1.
  * The CLI lends its authored table; importing this pure selector needs no art.
  * @param {string} slug @param {string} pinePose @param {string} mode
  * @param {Readonly<Record<string, readonly CensusCamera[]>>} [cameras]
  * @param {string} [ninePose] */
-export function censusSelection(slug = '', pinePose = 'Q4', mode = 'both', cameras = {}, ninePose = 'P4') {
+export function censusSelection(slug = '', pinePose = 'Q4', mode = 'shardfile', cameras = {}, ninePose = 'P4') {
   if (!['P4', 'P5'].includes(ninePose)) throw new Error('Unknown Nine census pose');
   if (!['P1', 'Q4'].includes(pinePose)) throw new Error('Unknown Pine census pose');
-  if (!['both', 'legacy', 'shardfile'].includes(mode)) throw new Error('Unknown census mode');
+  if (mode === 'legacy' || mode === 'both') throw new Error('The LEGACY census leg is gone (QD7 LD5); use --mode=shardfile');
+  if (mode !== 'shardfile') throw new Error('Unknown census mode');
   if (slug !== '' && !['nine-dragon-stack', 'pine-hollow', ...goldenShards].includes(slug)) throw new Error('Unknown census shard');
-  if (slug === 'pine-hollow' && mode === 'legacy') throw new Error('Pine legacy entry is retired');
   const defaults = [
     { slug: 'nine-dragon-stack', poseName: ninePose, pose: ninePose === 'P5'
       ? { x: 76, y: 146, z: 6, yaw: -90 * (Math.PI / 180), pitch: 4 * (Math.PI / 180) }
@@ -40,8 +38,7 @@ export function censusSelection(slug = '', pinePose = 'Q4', mode = 'both', camer
       yaw: -camera.yaw * Math.PI / 180, pitch: camera.pitch * Math.PI / 180,
     } : undefined);
     if (!pose || ![pose.x, pose.z, pose.yaw, pose.pitch].every(Number.isFinite)) throw new Error('Golden camera is not a standing pose');
-    return [{ slug, poseName: `P1:${camera.name}`, pose, modes: mode === 'both' ? ['legacy', 'shardfile'] : [mode] }];
+    return [{ slug, poseName: `P1:${camera.name}`, pose, modes: [mode] }];
   }
-  return defaults.filter(row => slug === '' || row.slug === slug).map(row => Object.assign(row,
-    { modes: row.slug === 'pine-hollow' && mode === 'both' ? ['shardfile'] : mode === 'both' ? ['legacy', 'shardfile'] : [mode] }));
+  return defaults.filter(row => slug === '' || row.slug === slug).map(row => Object.assign(row, { modes: [mode] }));
 }

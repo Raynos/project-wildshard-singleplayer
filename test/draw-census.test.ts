@@ -3,20 +3,19 @@ import { drawFrames } from '../scripts/perf/draw-census-page.mjs';
 import { nativeSummary, attributionSummary, sampledCpu } from '../scripts/perf/draw-census-report.mjs';
 import { censusSelection, censusEntry } from '../scripts/perf/draw-census-poses.mjs';
 
-test('single shardfile entry does not silently become a legacy leg', () => {
-  expect(censusEntry('shardfile', false, 'Enter world')).toBe('.ws-menu-play');
-  expect(censusEntry('shardfile', true, 'LEGACY')).toBe('.ws-menu-shardfile');
-  expect(censusEntry('legacy', true, 'LEGACY')).toBe('.ws-menu-play');
-  expect(()=>censusEntry('legacy', false, 'Enter world')).toThrow('unavailable');
-  expect(()=>censusEntry('shardfile', false, 'Coming soon')).toThrow('unavailable');
+test('census enters by the one ENTER WORLD and refuses a locked card', () => {
+  expect(censusEntry('Enter world')).toBe('.ws-menu-play');
+  expect(censusEntry(' Enter world ')).toBe('.ws-menu-play');
+  expect(()=>censusEntry('Coming soon')).toThrow('unavailable');
 });
 
-test('census keeps Nine paired, Pine shardfile-only and standing golden P1 cameras', () => {
+test('census measures the shardfile only, at standing golden P1 cameras', () => {
   expect(censusSelection().map(row => [row.slug, row.poseName, row.modes])).toEqual([
-    ['nine-dragon-stack', 'P4', ['legacy', 'shardfile']], ['pine-hollow', 'Q4', ['shardfile']],
+    ['nine-dragon-stack', 'P4', ['shardfile']], ['pine-hollow', 'Q4', ['shardfile']],
   ]);
   expect(censusSelection('pine-hollow', 'P1', 'shardfile')[0]?.pose).toEqual({x:0,z:-235,yaw:Math.PI,pitch:0});
-  expect(()=>censusSelection('pine-hollow', 'P1', 'legacy')).toThrow('Pine legacy entry is retired');
+  expect(()=>censusSelection('pine-hollow', 'P1', 'legacy')).toThrow('LEGACY census leg is gone');
+  expect(()=>censusSelection('nine-dragon-stack', 'Q4', 'both')).toThrow('LEGACY census leg is gone');
   // Input fixtures exercise both authored representations; the CLI lends its
   // actual camera table instead of making this pure module import art/.
   const cameras = {
@@ -26,12 +25,12 @@ test('census keeps Nine paired, Pine shardfile-only and standing golden P1 camer
     'sunscar-dunes': [{n:1,name:'spawn',yaw:0,pitch:2,feet:[0,21.363867328746412,70]}],
   };
   expect(censusSelection('driftwood-isle', 'Q4', 'shardfile', cameras)[0]).toMatchObject({poseName:'P1:pier',pose:{x:0,z:-194,yaw:Math.PI,pitch:0},modes:['shardfile']});
-  expect(censusSelection('nalati-grasslands', 'Q4', 'both', cameras)[0]?.pose).toMatchObject({x:60,z:214,yaw:-Math.PI/2,pitch:0});
-  expect(censusSelection('far-reach', 'Q4', 'both', cameras)[0]?.pose).toMatchObject({x:0,y:30,z:-5.5,yaw:-0,pitch:0});
-  expect(censusSelection('sunscar-dunes', 'Q4', 'both', cameras)[0]?.pose).toMatchObject({x:0,z:70,yaw:-0,pitch:2*Math.PI/180});
+  expect(censusSelection('nalati-grasslands', 'Q4', 'shardfile', cameras)[0]?.pose).toMatchObject({x:60,z:214,yaw:-Math.PI/2,pitch:0});
+  expect(censusSelection('far-reach', 'Q4', 'shardfile', cameras)[0]?.pose).toMatchObject({x:0,y:30,z:-5.5,yaw:-0,pitch:0});
+  expect(censusSelection('sunscar-dunes', 'Q4', 'shardfile', cameras)[0]?.pose).toMatchObject({x:0,z:70,yaw:-0,pitch:2*Math.PI/180});
   expect(() => censusSelection('far-reach')).toThrow('Missing golden census camera 1');
-  expect(() => censusSelection('far-reach','Q4','both',{'far-reach':[{n:2,name:'wrong',yaw:0,pitch:0,feet:[0,0,0]}]})).toThrow('Missing golden census camera 1');
-  expect(() => censusSelection('far-reach','Q4','both',{'far-reach':[{n:1,name:'invalid',yaw:0,pitch:0,feet:[Number.NaN,0,0]}]})).toThrow('not a standing pose');
+  expect(() => censusSelection('far-reach','Q4','shardfile',{'far-reach':[{n:2,name:'wrong',yaw:0,pitch:0,feet:[0,0,0]}]})).toThrow('Missing golden census camera 1');
+  expect(() => censusSelection('far-reach','Q4','shardfile',{'far-reach':[{n:1,name:'invalid',yaw:0,pitch:0,feet:[Number.NaN,0,0]}]})).toThrow('not a standing pose');
   expect(() => censusSelection('missing')).toThrow('Unknown census shard');
   expect(() => censusSelection('', 'missing')).toThrow('Unknown Pine census pose');
   expect(() => censusSelection('', 'P1', 'missing')).toThrow('Unknown census mode');
@@ -299,12 +298,12 @@ test('game gather functions remain visible without inflating draw-wrapper attrib
 });
 
 
-test('Nine P5 is explicit and retains the default P4 pair', () => {
+test('Nine P5 is explicit and keeps the default P4', () => {
   expect(censusSelection('nine-dragon-stack','Q4','shardfile',{},'P5')).toEqual([
     {slug:'nine-dragon-stack',poseName:'P5',pose:{x:76,y:146,z:6,yaw:-90*(Math.PI/180),pitch:4*(Math.PI/180)},modes:['shardfile']},
   ]);
   expect(censusSelection('nine-dragon-stack')[0]?.poseName).toBe('P4');
-  expect(()=>censusSelection('nine-dragon-stack','Q4','both',{},'missing')).toThrow('Unknown Nine census pose');
+  expect(()=>censusSelection('nine-dragon-stack','Q4','shardfile',{},'missing')).toThrow('Unknown Nine census pose');
 });
 
 

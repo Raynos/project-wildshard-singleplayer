@@ -9,4 +9,4 @@ export interface SafariCapture { shard: string; cache: 'cold' | 'warm'; status: 
 export function safariRecorder(): void;
 export function safariReport(pin: string, captures: readonly SafariCapture[]): LoadingReport;
 
-export function safariEntryPolicy(shard: string): { developer: boolean; entry: 'legacy' | 'shardfile'; selector: '.ws-menu-shardfile' | '.ws-menu-play' };
+export function safariEntryPolicy(shard: string): { developer: boolean; entry: 'shardfile'; selector: '.ws-menu-play' };

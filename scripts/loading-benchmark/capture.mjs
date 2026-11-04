@@ -113,10 +113,10 @@ for (const shard of SHARDS) {
       await page.waitForTimeout(600);
       await page.waitForFunction((i) => document.querySelector('.ws-menu-card.selected')?.dataset.i === String(i), index, { timeout: 3000 });
       tapAt = Date.now();
-      const compiled = page.locator('.ws-menu-shardfile');
-      const useCompiled = await compiled.isVisible() && await compiled.isEnabled();
-      entry = useCompiled ? 'shardfile' : 'legacy';
-      const enter = useCompiled ? compiled : page.locator('.ws-menu-play');
+      // ENTER WORLD is the one entry (the shardfile, G531; QD7 LD5 removed LEGACY)
+      const enter = page.locator('.ws-menu-play');
+      if (!await enter.isVisible() || !await enter.isEnabled()) throw new Error(`${shard}: ENTER WORLD unavailable`);
+      entry = 'shardfile';
       await enter.click();
       try {
         await page.waitForURL(/chunk=/, { timeout: 30000 });

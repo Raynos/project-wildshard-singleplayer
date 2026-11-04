@@ -183,7 +183,7 @@ export function instrument(flow: string): void {
   const tapped = (event: Event): void => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const selector = flow === 'grid' ? '.ws-main-grid' : '.ws-menu-shardfile,.ws-menu-play';
+    const selector = flow === 'grid' ? '.ws-main-grid' : '.ws-menu-play';
     if (target.closest(selector) === null) return;
     if (data.tap !== null) return;
     sessionStorage.removeItem(expectedKey);

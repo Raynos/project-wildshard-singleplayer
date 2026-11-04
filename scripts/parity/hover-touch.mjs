@@ -68,9 +68,10 @@ async function run(browser, base, mode, out) {
     phase = 'enter-world';
     if (mode === 'template') {
       await page.locator('.ws-main-select').tap();
-      // SF65's data-only template has a disabled LEGACY button and an explicit SHARDFILE entry.
+      // ENTER WORLD is the one entry (the shardfile, G531; QD7 LD5 removed LEGACY / SHARDFILE).
       const play = page.locator('.ws-menu-play');
-      await (await play.isDisabled() ? page.locator('.ws-menu-shardfile') : play).tap();
+      if (await play.isDisabled()) throw new Error('ENTER WORLD disabled for the template');
+      await play.tap();
     } else await page.locator('.ws-main-grid').tap();
     phase = 'world-play-ready';
     await page.waitForFunction(() => {

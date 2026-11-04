@@ -28,12 +28,12 @@ const visits = arg('visits', 'cold');
 if (!['cold', 'cold,warm'].includes(visits)) throw new Error('Visits must be cold or cold,warm');
 try {
   for (const path of arg('paths', 'shardfile,grid').split(',')) {
-    if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
+    if (path === 'legacy') throw new Error('The legacy load path is gone (QD7 LD5: ENTER WORLD is the one entry)');
+    if (!['shardfile', 'grid'].includes(path)) throw new Error('Unsupported load path');
     let offline = false;
     transport = await observeTransport(base, { offline: () => offline });
     const context = await browser.newContext(desktop ? { viewport: { width: 1440, height: 900 } } : phone);
     await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-    await saveFixture(context, { scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' });
     await context.addInitScript(accuracyRecorder);
     // Keep the same origin and context: warm visits retain the real browser/content caches.
     for (const visit of visits.split(',')) {
@@ -70,8 +70,7 @@ try {
           const titles = await page.locator('.ws-menu-card b').allTextContents();
           const index = loadingCardIndex(titles, 'driftwood-isle');
           await page.locator(`.ws-menu-dots i[data-i="${index}"]`).click();
-          const explicit = page.locator('.ws-menu-shardfile');
-          await (path !== 'legacy' && await explicit.isVisible() ? explicit : page.locator('.ws-menu-play')).click();
+          await page.locator('.ws-menu-play').click();
         }
         await page.waitForFunction(() => Reflect.get(window, '__loadingAccuracy')?.readyAt > 0,
           undefined, { timeout: 240_000 });

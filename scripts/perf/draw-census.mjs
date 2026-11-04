@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 // scripts/browser-lane.sh node scripts/perf/draw-census.mjs --url=http://127.0.0.1:4400/ --dist=tmp/serve/.../dist
-// Default: Nine P4 and Pine Q4, LEGACY then SHARDFILE.
+// Default: Nine P4 and Pine Q4, SHARDFILE (ENTER WORLD; the LEGACY leg is gone, QD7 LD5).
 // --slug=pine-hollow --pine-pose=P1 measures the PF14 spawn bar separately.
 // --nine-pose=P5 selects the maintained M3 frame-group cost pose.
-// Other public shards select golden camera 1. --environment=golden pins midday/clear;
-// --mode=shardfile measures the graph back-end without an unrelated legacy leg.
+// Other public shards select golden camera 1. --environment=golden pins midday/clear.
 import { chromium, devices } from 'playwright';
 import cameras from '../../art/legacy-goldens/compare/cameras24.json' with { type: 'json' };
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -20,7 +19,7 @@ import { censusSelection, censusEntry } from './draw-census-poses.mjs';
 const arg = (name, fallback = '') => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const base = arg('url'), dist = resolve(arg('dist', 'dist')), frames = Number(arg('frames', '60'));
 const surface = arg('surface', 'pwa'), requestedSlug = arg('slug'), pinePose = arg('pine-pose', 'Q4');
-const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'both'), cameras.cameras, arg('nine-pose', 'P4'));
+const selections = censusSelection(requestedSlug, pinePose, arg('mode', 'shardfile'), cameras.cameras, arg('nine-pose', 'P4'));
 const environment = arg('environment', 'live');
 if (!['live', 'golden'].includes(environment)) throw new Error('Unknown census environment');
 const programSourceOption = arg('program-sources', '0');
@@ -94,7 +93,6 @@ try {
     try {
       await developerSettings(context, { tier: 'phone', volume: 0, time: environment === 'golden' ? 'midday' : 'live', weather: environment === 'golden' ? 'clear' : 'live' });
       await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
-      await saveFixture(context, { scope: 'device', key: 'debug.global.legacyShardButtons', data: 'on' });
       await saveFixture(context, { scope: 'device', key: 'debug.global.refineDither', data: 'off' });
       await context.addInitScript(hideDeveloperOverlays);
       await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null, lane: 'draw-census' }; });
@@ -104,8 +102,9 @@ try {
       await page.goto(base, { waitUntil: 'load' }); await page.locator('.ws-main-select').click();
       const names = await page.locator('.ws-menu-card b').allTextContents();
       await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names, slug)}"]`).click();
-      row.pairedEntry = await page.locator('.ws-menu-shardfile').isVisible();
-      await page.locator(censusEntry(mode, row.pairedEntry, await page.locator('.ws-menu-play b').textContent() ?? '')).click();
+      const enter = page.locator(censusEntry(await page.locator('.ws-menu-play b').textContent() ?? ''));
+      if (await enter.isDisabled()) throw new Error('ENTER WORLD disabled');
+      await enter.click();
       await page.waitForFunction(() => window.__wildshard?.world?.hud?.entered && !document.querySelector('.ws-load') && window.__wildshard.world.game.frameGate(), undefined, { timeout: 240000 });
       row.level = await page.evaluate(() => window.__wildshard.world.game.level.id);
       if (!row.level.includes(slug)) throw new Error('Census entered another shard');

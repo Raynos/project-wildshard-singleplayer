@@ -18,7 +18,7 @@ const networkEvents = arg('network-events') ?? '1';
 if (!['0', '1', 'late'].includes(networkEvents)) throw new Error('Network events must be 0, 1 or late');
 const udid = process.env.SIM_UDID, upstream = arg('base'), pin = arg('pin'), dist = arg('dist'), out = arg('out');
 if (!udid || !upstream || !dist || !out || !/^[a-f0-9]{40}$/u.test(pin ?? '')) throw new Error('Requires sim-lane and base/pin/dist/out');
-const setup = path => `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'device', key: 'debug.global.legacyShardButtons', data: path === 'legacy' ? 'on' : 'off' })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};setTimeout(() => location.replace('/'), 100); true`;
+const setup = () => `${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${saveFixtureCode({ scope: 'global', key: 'settings', data: { volume: 0 }, merge: true })};setTimeout(() => location.replace('/'), 100); true`;
 let transport, base;
 const version = await (await fetch(new URL('/version.json', upstream))).json();
 if (!version.build?.startsWith(pin.slice(0, 7)) || JSON.parse(readFileSync(resolvePath(dist, 'version.json'), 'utf8')).build !== version.build) throw new Error('HTTP/disk pin mismatch');
@@ -84,7 +84,8 @@ if (!['cold', 'cold,warm'].includes(visits)) throw new Error('Visits must be col
 let failed = false;
 try {
   for (const path of (arg('paths') ?? 'shardfile,grid').split(',')) {
-    if (!['shardfile', 'grid', 'legacy'].includes(path)) throw new Error('Unsupported load path');
+    if (path === 'legacy') throw new Error('The legacy load path is gone (QD7 LD5: ENTER WORLD is the one entry)');
+    if (!['shardfile', 'grid'].includes(path)) throw new Error('Unsupported load path');
     let offline = false;
     transport = await observeTransport(upstream, { recorder: accuracyRecorder, offline: () => offline,
       prelude: arg('ktx2-probe') === 'skip' ? harnessPinCode({ ktx2Probe: 'skip' }) : '' });
@@ -107,7 +108,7 @@ try {
         // A controlled navigation would cache a fixture document as the app shell.
         // Inspect the real title too: navigating to JSON would replace the cached shell.
         // Set the same save fixtures on this origin, then reload the real title.
-        await inspector.evaluate(setup(path));
+        await inspector.evaluate(setup());
         await sleep(500); await connect();
         await wait(`performance.timeOrigin !== ${previousOrigin} && window.__loadingAccuracy !== undefined && document.querySelector('.ws-main-select') !== null`, 60000);
         offline = visit === 'warm' && arg('offline-warm') === '1';
@@ -118,7 +119,7 @@ try {
           const titles = JSON.parse(await inspector.evaluate(`JSON.stringify([...document.querySelectorAll('.ws-menu-card b')].map(el => el.textContent))`));
           const index = loadingCardIndex(titles, 'driftwood-isle');
           await gesture(`document.querySelector('.ws-menu-dots i[data-i="${index}"]').click()`);
-          await gesture(`(() => { const explicit = document.querySelector('.ws-menu-shardfile'); (${path !== 'legacy'} && explicit && explicit.getClientRects().length ? explicit : document.querySelector('.ws-menu-play')).click(); })()`);
+          await gesture(`document.querySelector('.ws-menu-play').click()`);
         }
         await sleep(500); await connect();
         if (networkEvents === '1') {

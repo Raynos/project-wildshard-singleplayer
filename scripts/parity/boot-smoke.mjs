@@ -18,9 +18,8 @@ import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures 
  * @param {{shard:string,appState:string,entered?:boolean,playerValid:boolean,fatal:string[],frame:number,renderFrame:number}} observation */
 export function publicPolicyAdmission(observation) {
   const developer = Object.hasOwn(document.documentElement.dataset, 'dev');
-  const play = document.querySelector('.ws-menu-play'), alternate = document.querySelector('.ws-menu-shardfile');
-  const locked = play !== null && play.hasAttribute('disabled') && /coming soon/iu.test(play.textContent) &&
-    (alternate === null || alternate.hasAttribute('hidden') || alternate.hasAttribute('disabled'));
+  const play = document.querySelector('.ws-menu-play');
+  const locked = play !== null && play.hasAttribute('disabled') && /coming soon/iu.test(play.textContent);
   const admitted = !developer && locked && observation.shard === 'nine-dragon-stack' && observation.appState === 'title' &&
     observation.entered === false && observation.playerValid && Number.isFinite(observation.renderFrame) && observation.renderFrame > 0 && observation.frame > 0 && observation.fatal.length === 0 && document.querySelector('#hud') !== null;
   return { admitted, developer, locked, frame: observation.frame, renderFrame: observation.renderFrame };
@@ -395,8 +394,8 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     await observeTitleCapture(page, join(out, `${receipt}-title`), () => captureBootFrame(page, 'title', deadline, frames));
     if (mode !== 'grid') {
       await page.locator('.ws-main-select').click();
-      // Admission enables the entry asynchronously. Developer cases prove the primary SHARDFILE,
-      // while public cases use their sole ENTER WORLD; frozen LEGACY is a separate historical entry.
+      // Admission enables the entry asynchronously. Every case enters by the one ENTER WORLD
+      // (the shardfile, G531; QD7 LD5 removed the LEGACY / SHARDFILE pair).
       if (mode === 'public-policy') {
         if (developer || shard !== 'nine-dragon-stack') throw new Error('Invalid public-policy admission case');
         await until(page, faults, async () => {
@@ -411,14 +410,13 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
         writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
         return result;
       }
-      const play = page.locator('.ws-menu-play'), shardfile = page.locator('.ws-menu-shardfile');
+      const play = page.locator('.ws-menu-play');
       await play.waitFor();
-      await until(page, faults, async () => await play.isEnabled() || (await shardfile.isVisible() && await shardfile.isEnabled()), 'available shard entry', deadline);
-      const viaShardfile = await shardfile.isVisible() && await shardfile.isEnabled();
+      await until(page, faults, async () => await play.isVisible() && await play.isEnabled(), 'available shard entry', deadline);
       await captureBootFrame(page, 'SHARD SELECT', deadline, frames);
       phases.entryMs = Date.now() - started;
       deadline = Date.now() + 90000;
-      await (viaShardfile ? shardfile : play).click();
+      await play.click();
     } else {
       // The real grid button writes its one-shot intent and deliberately changes the document.
       gridNavigationIntent = true;

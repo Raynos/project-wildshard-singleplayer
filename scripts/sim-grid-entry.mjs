@@ -32,7 +32,7 @@ import { accuracyRecorder } from './loading-benchmark/accuracy-data.mjs';
 import { requireCompiledEntry, downloadEvidence, stepEvidence, stepBoundaryEvidence, transportEvidence, waitForWaitingWorker, recoveredGridControls, sampleCompiledFrame, compiledFrameMetrics, compiledEntryQualification, compiledDocumentEvidence, compiledPollDetails, compiledVisibleFailure, compiledPreviewEnvironment, compiledTimingHistory, admissionFrameEvidence } from './loading-benchmark/sim-shard.mjs';
 import { cachedBodyEvidence } from './loading-benchmark/cache-bodies.mjs';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, compiledFloorSave, scriptResourceURLs,
+import { readSimulatorCoreFootprint, selectedCoreMemoryTargets, coreMemorySummary, scriptResourceURLs,
   serveHelloWorldMemory, helloWorldMemoryFloor, contextMemoryDiagnostic, coreMemoryProductIdentity } from './shard-phone-memory.mjs';
 import { pageMemoryAttributionExpression } from './memory-report-snapshot.mjs';
 import { memoryCategories } from './soak/memory-categories.mjs';
@@ -212,7 +212,6 @@ async function runCoreMemory(mode, index, target) {
   }`);
   if (reset === null || typeof reset !== 'object') throw new Error(`Core floor reset failed: ${String(reset)}`);
   const setup = calibration ? '' : [saveFixtureCode({scope: 'device', key: 'devMode', data: true}),
-    saveFixtureCode({...compiledFloorSave, data: template ? 'on' : 'off'}),
     saveFixtureCode({scope: 'global', key: 'settings', merge: true, data: {tier: 'phone', volume: 0}}),
     saveFixtureCode({scope: 'global', key: 'gfx', data: {dpr: '2', aa: 'auto'}})].join(';');
   await page.evaluate(`${setup};setTimeout(() => location.replace(${JSON.stringify(three ? '/three' : webgl ? '/webgl' : hello ? '/' : '/?sw=0')}), 50);true`);
@@ -236,8 +235,8 @@ async function runCoreMemory(mode, index, target) {
         const selected = loadingCardIndex(titles, target);
         await gesture(`document.querySelector('.ws-menu-dots i[data-i="${selected}"]').click(); true`);
         if (!await until(`document.querySelector('.ws-menu-card.selected')?.dataset.i === '${selected}'`, 30000)) throw new Error('Requested core template not selected');
-        if (!await until(`(() => { const b=document.querySelector('.ws-menu-shardfile');return !!b && !b.disabled && b.getClientRects().length>0; })()`, 30000)) throw new Error('Missing compiled core template entry');
-        await gesture(`setTimeout(() => document.querySelector('.ws-menu-shardfile').click(), 0);true`);
+        if (!await until(`(() => { const b=document.querySelector('.ws-menu-play');return !!b && !b.disabled && b.getClientRects().length>0; })()`, 30000)) throw new Error('Missing compiled core template entry');
+        await gesture(`setTimeout(() => document.querySelector('.ws-menu-play').click(), 0);true`);
         await sleep(800); await connect(`${BASE}/`);
         if (!await until(`(() => {const w=window.__wildshard?.world;const failure=document.querySelector('#wserr .msg')?.textContent;return !!failure || (new URL(location.href).searchParams.get('chunk')===${JSON.stringify(target)} && !!w?.hud.entered && !w.hud.paused && w.game.frameGate() && !document.querySelector('.ws-load'));})()`, 240000)) throw new Error('Compiled core template never reached controls');
         const failure=await page.evaluate(`document.querySelector('#wserr .msg')?.textContent ?? null`);
@@ -299,7 +298,6 @@ async function run(mode, index, target) {
     await sleep(1000);
     const setup = shard === undefined && upgradeFrom === undefined ? '' : [
       saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
-      saveFixtureCode({ scope: 'device', key: 'debug.global.legacyShardButtons', data: 'on' }),
       saveFixtureCode({ scope: 'global', key: 'settings', merge: true, data: { volume: 0, tier: 'phone' } }),
       saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     ].join(';');
@@ -336,7 +334,7 @@ async function run(mode, index, target) {
       const selected = loadingCardIndex(titles, shard);
       await gesture(`document.querySelector('.ws-menu-dots i[data-i="${selected}"]').click(); true`);
       if (!await until(`document.querySelector('.ws-menu-card.selected')?.dataset.i === '${selected}'`, 30000)) throw new Error('Requested shard card not selected');
-      button = '.ws-menu-shardfile';
+      button = '.ws-menu-play'; // ENTER WORLD, the one (compiled) entry: QD7 LD5 removed LEGACY / SHARDFILE
     }
     if (!await until(`(() => { const b = document.querySelector('${button}'); return !!b && b.getClientRects().length > 0; })()`, 30000)) throw new Error('Missing real entry control');
     await sleep(6000);

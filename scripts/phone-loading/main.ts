@@ -137,10 +137,9 @@ try {
             const index = loadingCardIndex(titles, values.flow.slice(7));
             await page.locator(`.ws-menu-dots i[data-i="${index}"]`).click();
             await page.locator(`.ws-menu-card.selected[data-i="${index}"]`).waitFor({timeout});
-            const explicit = page.locator('.ws-menu-shardfile');
-            // The ordinary single ENTER WORLD button is the primary compiled
-            // entry. The explicit button exists only in the legacy A/B UI.
-            await (await explicit.isVisible() ? explicit : page.locator('.ws-menu-play')).click({timeout});
+            // ENTER WORLD is the one (compiled) entry: QD7 LD5 removed the
+            // LEGACY / SHARDFILE pair.
+            await page.locator('.ws-menu-play').click({timeout});
           }
           await page.waitForFunction(() => {
             const data: unknown = Reflect.get(window, '__phoneLoading');

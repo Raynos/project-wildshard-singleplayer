@@ -4,11 +4,10 @@
 // Run through scripts/browser-lane.sh on a serve-build.sh preview (version.json is the source authority).
 //
 //   node art/legacy-goldens/compare/capture.mjs --base=http://127.0.0.1:44xx/ --out=tmp/golden-compare/raw [--shards=a,b]
-//     [--cameras=art/legacy-goldens/compare/cameras24.json] [--mode=legacy|shardfile] [--cams=1,5,9] [--textures=ktx2|img]
+//     [--cameras=art/legacy-goldens/compare/cameras24.json] [--cams=1,5,9] [--textures=ktx2|img]
 // --cameras: the 24-camera set (G859); its frames hide every element but the canvases (no HUD), at device pixels, named <nn>-<camera>-<mode>.png. A camera
-// without an eye takes the player's settled eye plus its lift; receipts-<slug>.json records it, and the LEGACY run's
-// eyes are written back into the set (compare.py eyes) so SHARDFILE renders the same camera.
-// --mode=legacy enters through the LEGACY button (Debug > Legacy shard buttons) and expects `<slug>-legacy`.
+// without an eye takes the player's settled eye plus its lift; receipts-<slug>.json records it. The LEGACY frames are
+// frozen: the LEGACY entry is gone (QD7 LD5), so --mode=legacy refuses and every run enters by ENTER WORLD.
 // The eye is the game's own camera (NR10 / NR12, sp-o5): a late hook sets it on every frame, so what the game culls and
 // streams in its update (instanced dressing, the tile ring, coarse masks) follows the eye. A free camera (its eye more than
 // FREE m from the probe's) poses the player under the eye, hovering, so the ring and colliders stand round the camera as
@@ -28,7 +27,7 @@ const base=arg('base',''),root=arg('out','tmp/golden-compare/raw');
 if(!base)throw Error('--base=<preview url> is required');
 const source=goldenPreviewIdentity(await(await fetch(new URL('/version.json',base))).json(),arg('sha',''));
 const head=source.sha;
-const set=arg('cameras',DEFAULT_GOLDEN_CAMERAS);const mode=arg('mode','shardfile');if(!['legacy','shardfile'].includes(mode))throw Error(`--mode=${mode}`);
+const set=arg('cameras',DEFAULT_GOLDEN_CAMERAS);const mode=arg('mode','shardfile');if(mode!=='shardfile')throw Error(`--mode=${mode}: the LEGACY entry is gone (QD7 LD5); only shardfile captures`);
 if(!set)throw Error('--cameras requires a camera-set path');
 const canonical=JSON.parse(readFileSync(set,'utf8')).cameras;
 const exp=arg('exp','')?readFileSync(arg('exp',''),'utf8'):'';// --exp=<file.js>: diagnostics only, run in the page before the held shot (its return value lands in the receipt)
@@ -73,7 +72,6 @@ try{for(const slug of slugs){
  try{
   await developerSettings(context,{tier:'phone',volume:0,time:'midday',weather:'clear'});
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
-  await saveFixture(context,{scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(textures=>{window.__wildshardHarness={seed:357,capture:null,...(textures===''?{}:{textures})};},TEXTURES);
@@ -108,10 +106,8 @@ try{for(const slug of slugs){
   await page.locator('.ws-main-select').click();
   const names=await page.locator('.ws-menu-card b').allTextContents();
   await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names,slug)}"]`).click();
-  // SHARDFILE button while the legacy buttons exist; ENTER WORLD (the shardfile, G531) once they are gone
-  const dual=page.locator('.ws-menu-shardfile');
-  if(mode==='legacy'&&!await dual.isVisible())throw Error('No LEGACY button (Legacy shard buttons row off or legacy deleted)');
-  const button=mode==='legacy'?page.locator('.ws-menu-play'):await dual.isVisible()?dual:page.locator('.ws-menu-play');
+  // ENTER WORLD, the one entry (the shardfile, G531; QD7 LD5 removed the LEGACY / SHARDFILE pair)
+  const button=page.locator('.ws-menu-play');
   if(await button.isDisabled())throw Error(`${mode} entry disabled`);await button.click();
   await page.waitForFunction(()=>!!window.__wildshard?.world?.hud?.entered&&!document.querySelector('.ws-load')&&window.__wildshard.world.game.frameGate(),undefined,{timeout:180000});
   if (slug==='nine-dragon-stack'&&nativeBinding!==null) {
@@ -120,7 +116,7 @@ try{for(const slug of slugs){
   }
   if(await page.evaluate(()=>window.__wildshard.world.hud.paused))await(owner?pressEscape(endpoint,page.url()):page.keyboard.press('Escape'));
   row.entry=await page.evaluate(()=>({url:location.href,id:window.__wildshard.world.game.level.id}));
-  const want=mode==='legacy'?`${slug}-legacy`:slug;if(row.entry.id!==want)throw Error(`Not ${mode}: ${row.entry.id}`);row.mode=mode;
+  const want=slug;if(row.entry.id!==want)throw Error(`Not ${mode}: ${row.entry.id}`);row.mode=mode;
   // the golden camera is a spectator: its player takes no damage (Pine's bear-den elite killed it, and the death fade put it
   // back at spawn with the ring and the grass field)
   await page.evaluate(()=>{const hp=window.__wildshard.world.game.app.player;if(hp)hp.attributes.incomingCap=0;});

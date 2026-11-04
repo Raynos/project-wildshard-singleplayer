@@ -36,10 +36,11 @@ export function gpuCensusPoses(slug,selected,cameras=[]){
 /** Modern GPU census entry: native loading cards, immutable preview, explicit modes. */
 export async function runGpuCensus(){
 const arg=(key,fallback)=>process.argv.find(s=>s.startsWith(`--${key}=`))?.slice(key.length+3)??fallback;
-const url=arg('url',''),out=arg('out','tmp/gpu-census'),slug=arg('chunk','nine-dragon-stack'),modes=arg('mode','legacy,shardfile').split(','),rounds=Number(arg('rounds','5')),K=Number(arg('frames','16'));
+const url=arg('url',''),out=arg('out','tmp/gpu-census'),slug=arg('chunk','nine-dragon-stack'),modes=arg('mode','shardfile').split(','),rounds=Number(arg('rounds','5')),K=Number(arg('frames','16'));
 const requested=arg('poses',''),selected=requested===''?[]:requested.split(','),ids=slug==='nine-dragon-stack'?nineIds:pineIds;
 if(selected.some(id=>!ids.includes(id)))throw new Error('Unknown requested census pose');
-if(!modes.every(x=>['legacy','shardfile'].includes(x)))throw new Error('Invalid pose/mode selection');
+if(modes.includes('legacy'))throw new Error('The LEGACY census mode is gone (QD7 LD5); ENTER WORLD is the one entry');
+if(!modes.every(x=>x==='shardfile'))throw new Error('Invalid pose/mode selection');
 if(!['0','1'].includes(arg('coverage','0')))throw new Error('Invalid coverage capability');
 const coverageHashPath=arg('coverage-source-hashes',''),coverageHashes=coverageHashPath===''?[]:JSON.parse(readFileSync(coverageHashPath,'utf8'));
 sourceMatchedCoverageAliases([],coverageHashes);
@@ -59,10 +60,9 @@ try{for(const mode of modes)for(const pose of poses){
   await installInit(context,{lane:'sp-x8-g1',sha:version.build,browser:'chromium',capture:30,tier:'phone'});
   await developerSettings(context,{tier:'phone',volume:0,time:'night',weather:'rain'});
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
-  await saveFixture(context,{scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
   const page=await context.newPage();const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});row.cpuRate=1;page.on('pageerror',e=>row.errors.push(e.message));
   await page.goto(url,{waitUntil:'load'});await page.locator('.ws-main-select').click();const names=await page.locator('.ws-menu-card b').allTextContents();await page.locator(`.ws-menu-dots i[data-i="${loadingCardIndex(names,slug)}"]`).click();
-  const dual=await page.locator('.ws-menu-shardfile').isVisible();if(mode==='legacy'&&!dual)throw new Error('Legacy entry unavailable');await page.locator(mode==='shardfile'&&dual?'.ws-menu-shardfile':'.ws-menu-play').click();
+  const enter=page.locator('.ws-menu-play');if(await enter.isDisabled())throw new Error('ENTER WORLD disabled');await enter.click();
   await page.waitForFunction(()=>window.__wildshard?.world?.hud?.entered&&!document.querySelector('.ws-load'),undefined,{timeout:240000});
   await poseAt(page,pose);if(pose.hover)await page.evaluate(()=>window.__wildshard.world.player.setHover(true));await poseAt(page,pose);await advance(page,90);await poseAt(page,pose);
   await page.evaluate(()=>{window.__wildshard.world.game.frameGate=()=>false;});row.environment=await page.evaluate(installGpuProbe);save();

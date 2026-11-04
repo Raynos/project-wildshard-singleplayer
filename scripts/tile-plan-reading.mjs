@@ -104,7 +104,6 @@ async function open(){
   await context.addInitScript({content:frameFloorSettingsCode({tier:'phone',fps:'auto',volume:'0'})});
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
   await saveFixture(context,{scope:'device',key:'devMode',data:true});
-  await saveFixture(context,{scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
   await harnessPins(context,{seed:357,browser:'Chromium / iPhone 16 Pro',lane:'tile-plan-end'});
   await context.addInitScript({content:GL_FULL_INIT});await context.addInitScript({content:TILE_PAINT_INIT});
   /** @type {string[]} */const errors=[];
@@ -140,7 +139,7 @@ try{
     const visit=await open(),label=`${shard}-${ring}`;
     try{
       const source=await declaration(shard);
-      let tapAt=Date.now(),entry='observed SHARDFILE button';
+      let tapAt=Date.now(),entry='observed ENTER WORLD button';
       if(shard==='open-plot-night-market'){
         // This declared compiled-only manifest is intentionally absent from SHARD SELECT.
         entry='declared compiled-only chunk route (hidden selector card)';
@@ -155,7 +154,8 @@ try{
         const selected=matches[0];if(matches.length!==1||selected===undefined)throw new Error(`Missing or ambiguous card ${name}`);
         await visit.page.locator(`.ws-menu-dots i[data-i="${selected}"]`).click();
         await visit.page.locator(`.ws-menu-card.selected[data-i="${selected}"]`).waitFor();
-        const compiled=visit.page.locator('.ws-menu-shardfile');
+        // ENTER WORLD is the one entry and enters the compiled shardfile (QD7 LD5 removed LEGACY / SHARDFILE)
+        const compiled=visit.page.locator('.ws-menu-play');
         if(!await compiled.isVisible()||!await compiled.isEnabled())throw new Error(`Missing compiled entry ${name}`);
         tapAt=Date.now();await compiled.click();
       }

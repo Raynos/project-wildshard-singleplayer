@@ -111,8 +111,6 @@ export function selectedCoreMemoryTargets(selection) {
   if (target === undefined) throw new Error('Expected --core-memory=all, templates, contexts, hello, webgl, three or an existing core floor');
   return [target];
 }
-/** Existing Developer-tools fixture: expose the explicit compiled button, never fall back to LEGACY. */
-export const compiledFloorSave = Object.freeze({scope: 'device', key: 'debug.global.legacyShardButtons', data: 'on'});
 /** Scalar inventory only: no response bodies or Network-domain changes.
  * @param {readonly {name: string}[]} [entries] */
 export function scriptResourceURLs(entries = performance.getEntriesByType('resource')) {
@@ -414,7 +412,6 @@ const result = { label, shard, base, pin, floor, protocol: 'chromium-phone-core/
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: floor ? 'block' : 'allow' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  if (requireCompiled && !title) await saveFixture(context, compiledFloorSave);
   await saveFixture(context, { scope: 'global', key: 'settings', merge: true, data: { tier: 'phone', fps: 'auto', volume: 0 } });
   await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
   await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
@@ -430,9 +427,10 @@ try {
         const titles = await page.locator('.ws-menu-card b').allTextContents(), selected = loadingCardIndex(titles, shard);
         await page.locator(`.ws-menu-dots i[data-i="${selected}"]`).click();
         await page.locator(`.ws-menu-card.selected[data-i="${selected}"]`).waitFor();
-        const compiled = page.locator('.ws-menu-shardfile');
-        if (requireCompiled && !await compiled.isVisible()) throw new Error(`Missing compiled floor entry: ${shard}`);
-        await (await compiled.isVisible() ? compiled : page.locator('.ws-menu-play')).click();
+        // ENTER WORLD is the one entry and enters the compiled shardfile (QD7 LD5 removed LEGACY)
+        const enter = page.locator('.ws-menu-play');
+        if (requireCompiled && (!await enter.isVisible() || await enter.isDisabled())) throw new Error(`Missing compiled floor entry: ${shard}`);
+        await enter.click();
         await page.waitForURL(url => url.searchParams.get('chunk') === shard);
       }
     }
