@@ -134,7 +134,7 @@ test('the committed composition table needs only declarations and preserves outp
     expect(source).toContain("import m0 from '../out/.app/discovery.island.island-east.generated'");
     expect(source).toContain("import m1 from '../out/.app/discovery.island.island-west.generated'");
     expect(source).toContain('grid: [1,0], size: [500,500,500], instance: "east"');
-    expect(source).toContain('export const LEGACY_SHARDS: ShardManifest[] = []');
+    expect(source).not.toContain('LEGACY_');
     expect(source).toContain('placed.sort((a, b) => a.order - b.order)');
     const row = SOURCE_GENERATORS.find(entry => entry.id === 'shard-list');
     if (row?.generate === undefined) throw new Error('Missing composition table producer');

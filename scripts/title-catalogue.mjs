@@ -53,7 +53,7 @@ export function selectionModules(root) {
 }
 /** A separate lazy composition bank: the cold title imports none of these modules.
  * @param {ReturnType<typeof selectionModules>} rows
- * @param {Readonly<Record<string,string>>} identities */
-export function selectionCatalogueSource(rows, identities = {}) {
-  return `export const LEGACY_CONTENT_IDENTITIES=${JSON.stringify(identities)};\nexport const SHARD_LOADERS={${rows.map(row=>`${JSON.stringify(row.slug)}:()=>import(${JSON.stringify(`/${row.file}`)}).then(({default:manifest})=>${row.placement===undefined?'manifest':`({...manifest,placement:${JSON.stringify(row.placement)}})`})`).join(',')}};\n`;
+ */
+export function selectionCatalogueSource(rows) {
+  return `export const SHARD_LOADERS={${rows.map(row=>`${JSON.stringify(row.slug)}:()=>import(${JSON.stringify(`/${row.file}`)}).then(({default:manifest})=>${row.placement===undefined?'manifest':`({...manifest,placement:${JSON.stringify(row.placement)}})`})`).join(',')}};\n`;
 }

@@ -28,6 +28,5 @@ test('the discovery producer emits isolated manifest declarations',()=>{
 test('the composition producer emits isolated placed shard declarations',()=>{
  const source=shardSource(process.cwd());
  checkGenerated(resolve('src/shards.generated.ts'),source,': typeof placed');
- expect(source).toContain('export const LEGACY_SHARDS: ShardManifest[]');
- expect(source).toContain('export const LEGACY_CONTENT_IDENTITIES: Readonly<Record<string, string>>');
+ expect(source).not.toContain('LEGACY_');
 });

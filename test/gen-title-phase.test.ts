@@ -21,7 +21,7 @@ function fixture(): { root: string; write: (path: string, source: string) => voi
     if(!existsSync('boot-ready'))throw new Error('Title ran before boot');
     appendFileSync('title-calls','once\n');
     process.stdout.write('TITLE-CATALOGUE '+JSON.stringify('import image from "/src/shards/island/card.webp";\nexport const TITLE_MANIFESTS=[{slug:"island",card:image}];\n')+'\n');
-    process.stdout.write('TITLE-SELECTION '+JSON.stringify('export const LEGACY_CONTENT_IDENTITIES={};\nexport const SHARD_LOADERS={"island":()=>import("/src/shards/island/manifest.ts")};\n')+'\n');
+    process.stdout.write('TITLE-SELECTION '+JSON.stringify('export const SHARD_LOADERS={"island":()=>import("/src/shards/island/manifest.ts")};\n')+'\n');
   `);
   return { root, write, boot: () => {
     write('src/game/boot/late.generated.ts', 'export const ready=true;'); write('boot-ready', 'ready');
