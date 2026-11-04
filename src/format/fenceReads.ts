@@ -55,21 +55,23 @@ export function fenceReadIdentity(identities: ReadonlyMap<string, readonly strin
 /** Every identity a recording keeps for a file, so a later split of a shared file (two rows naming one hash) leaves an
  *  entry that no longer resolves to the same file, and the build refuses it as stale (sp-x8's review). */
 export function fenceReadAliases(identities: ReadonlyMap<string, readonly string[]>, hash: string): readonly string[] { return identities.get(hash) ?? []; }
+/** A file's content digests (hex: sha1, sha256), read from its bytes; a name's hash must match one to be stripped. */
+export type AssetDigests = (path: string) => readonly string[];
 /** A `/assets` file's path without its content hash or version query: `/assets/sfx/best/bed-forest-2-0cd11be5.m4a` →
- *  `/assets/sfx/best/bed-forest-2.m4a`, `/assets/gpu/x/rifle.phone-fd73a325.glb` → `/assets/gpu/x/rifle.phone.glb`, and
- *  the bundler's own suffix: `/assets/pine-hollow-C8hPt5PZ.jpg` → `/assets/pine-hollow.jpg` (DL11: images the page
- *  reads before control must be listed, or they wait for the whole set). */
-export function assetStem(url: string): string {
-  const path = url.split('?')[0] ?? url, at = path.lastIndexOf('/');
-  const name = path.slice(at + 1).replace(/[-.][a-f0-9]{8,}(?=\.[a-z0-9]+$)/u, '');
-  // the bundler emits its files flat under /assets/ (public files keep their folders, where `-forest-2` is a name)
-  return path.slice(0, at + 1) + (at === '/assets'.length ? name.replace(/-(?=[A-Za-z0-9_-]*[0-9A-Z])[A-Za-z0-9_-]{8}(?=\.[a-z0-9]+$)/u, '') : name);
+ *  `/assets/sfx/best/bed-forest-2.m4a` (0cd11be5 is the file's sha1), `/assets/gpu/x/rifle.phone-fd73a325.glb` →
+ *  `/assets/gpu/x/rifle.phone.glb` (its sha256). A suffix is a hash only when the file's own bytes say so, never by its
+ *  shape: `forest-2` is a name (sp-x1, wildshard-new). Without digests nothing is stripped. */
+export function assetStem(url: string, digests: AssetDigests = () => []): string {
+  const path = url.split('?')[0] ?? url, at = path.lastIndexOf('/'), name = path.slice(at + 1);
+  const match = /[-.]([a-f0-9]{8,})(?=\.[a-z0-9]+$)/u.exec(name), hash = match?.[1];
+  if (match === null || hash === undefined || !digests(path).some(digest => digest.startsWith(hash))) return path;
+  return path.slice(0, at + 1) + name.slice(0, match.index) + name.slice(match.index + match[0].length);
 }
-/** A stem that still carries a hash (a pure-hash basename like `cabin-materials/<64 hex>.glb`, or a bundler's base64
- *  suffix) changes with the bytes: it is no identity (sp-x8's review). */
+/** A stem is no identity when its name is still a hash: a pure-hash basename (`cabin-materials/<64 hex>.glb`, sp-x8) or
+ *  a hex run its bytes did not confirm (refused, never guessed). A bundler file is named by its source instead. */
 function stableStem(stem: string): boolean {
   const name = stem.slice(stem.lastIndexOf('/') + 1).replace(/\.[a-z0-9]+$/u, '');
-  return !/[a-f0-9]{8,}/u.test(name) && !/-(?=[A-Za-z0-9_-]{8}$)(?=.*[0-9A-Z])[A-Za-z0-9_-]{8}$/u.test(name);
+  return name !== '' && !/[a-f0-9]{8,}/u.test(name);
 }
 /** Every place the sections name each of `paths` (JSON Pointers `ref:<section>:<pointer>`), in section order, so a file
  *  two rows share keeps both aliases and a later split is stale, not silently dropped (sp-x8's review). */
@@ -135,18 +137,22 @@ export function packMembers(packs: unknown): ReadonlyMap<string, PackPart> {
  *  stable name: a stem that still carries a hash with no section reference, or a stem two members of its pack share (two
  *  revisions of one slot, in different parts). Any other file is `asset:<stem>` when its stem is hash-free and unique,
  *  else every place a section names it (`refs`). */
-export function assetIdentities(urls: readonly string[], packs: ReadonlyMap<string, PackPart>, refs: ReadonlyMap<string, readonly string[]> = new Map()): ReadonlyMap<string, readonly string[]> {
+export function assetIdentities(urls: readonly string[], packs: ReadonlyMap<string, PackPart>, refs: ReadonlyMap<string, readonly string[]> = new Map(),
+  files: {readonly digests?: AssetDigests; readonly sources?: ReadonlyMap<string, string>} = {}): ReadonlyMap<string, readonly string[]> {
+  const digests = files.digests ?? ((): readonly string[] => []), sources = files.sources ?? new Map<string, string>();
   const stems = new Map<string, number>(), memberStems = new Map<string, number>();
-  for (const url of urls) if (!packs.has(url.split('?')[0] ?? url)) { const stem = assetStem(url); stems.set(stem, (stems.get(stem) ?? 0) + 1); }
+  for (const url of urls) if (!packs.has(url.split('?')[0] ?? url)) { const stem = assetStem(url, digests); stems.set(stem, (stems.get(stem) ?? 0) + 1); }
   for (const part of packs.values()) for (const member of part.members) {
-    const key = `${part.bank}:${part.pack}:${assetStem(member)}`; memberStems.set(key, (memberStems.get(key) ?? 0) + 1);
+    const key = `${part.bank}:${part.pack}:${assetStem(member, digests)}`; memberStems.set(key, (memberStems.get(key) ?? 0) + 1);
   }
   const identities = new Map<string, readonly string[]>();
   for (const url of urls) {
-    const path = url.split('?')[0] ?? url, part = packs.get(path), stem = assetStem(url);
+    const path = url.split('?')[0] ?? url, part = packs.get(path), stem = assetStem(url, digests), source = sources.get(path);
+    // the bundler's own files (`pine-hollow-C8hPt5PZ.jpg`): named by their source module, from the build's manifest
+    if (source !== undefined) { identities.set(url, [`asset-source:${source}`]); continue; }
     if (part !== undefined) {
       const named = part.members.map(member => {
-        const memberStem = assetStem(member), key = `${part.bank}:${part.pack}:${memberStem}`;
+        const memberStem = assetStem(member, digests), key = `${part.bank}:${part.pack}:${memberStem}`;
         if (stableStem(memberStem) && memberStems.get(key) === 1) return [`asset-pack-member:${key}`];
         return refs.get(member.split('?')[0] ?? member) ?? null;
       });
@@ -164,6 +170,6 @@ export function readFenceReads(input: unknown): FenceReads {
   const files: unknown = object(input) ? input['files'] : undefined;
   if (!object(input) || input['version'] !== 1 || !Array.isArray(files) || files.length > 20_000
     || !files.every((row: unknown): row is string => typeof row === 'string'
-      && /^(?:name:.+|ref:[^:]+:.+|props-tile:\d+\/\d+\/\d+:(?:file|\d+)|asset:\/assets\/[^?]+|asset-pack-member:[^:]+:[^:]+:\/assets\/[^?]+)$/u.test(row))) throw new Error('Invalid fence reads');
+      && /^(?:name:.+|ref:[^:]+:.+|props-tile:\d+\/\d+\/\d+:(?:file|\d+)|asset:\/assets\/[^?]+|asset-pack-member:[^:]+:[^:]+:\/assets\/[^?]+|asset-source:[^?:]+)$/u.test(row))) throw new Error('Invalid fence reads');
   return {version: 1, files: [...new Set(files)].sort()};
 }

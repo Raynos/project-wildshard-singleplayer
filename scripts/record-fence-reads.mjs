@@ -10,7 +10,8 @@
 // shell's /assets files (asset packs, gpu models, sfx, music, hdri, baked; not code, boot tables or spawn files);
 // title-started, worker and member-only reads are not seen, and a grid run is read against the grid mode 000 book.
 // --check reports what the run read outside the spawn set without writing (0 = the recorded list holds).
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parseArgs } from 'node:util';
 import { assetIdentities, audioTableRefs, fenceReadAliases, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
@@ -65,7 +66,13 @@ for (const url of assetUrls.filter(name => /^\/assets\/boot-tables-[a-f0-9]{8}\.
   audioRefs.push(audioTableRefs(table));
 }
 const memberPaths = [...parts.values()].flatMap(row => row.members.map(member => member.split('?')[0]));
-const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs));
+// A name's hash is stripped only when the file's bytes match it; the bundler's files are named by their source module.
+const digests = path => { try { const bytes = readFileSync(join(dist, path.slice(1))); return ['sha1', 'sha256'].map(kind => createHash(kind).update(bytes).digest('hex')); } catch { return []; } };
+const manifestPath = join(dist, '.vite/manifest.json'), sources = new Map();
+if (existsSync(manifestPath)) for (const [key, row] of Object.entries(JSON.parse(readFileSync(manifestPath, 'utf8')))) {
+  if (typeof row.file === 'string' && !/\.(?:js|css)$/u.test(row.file)) sources.set(`/${row.file}`, key);
+}
+const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs), { digests, sources });
 for (const path of assetsOutside) { const ids = assetIds.get(path); if (ids === undefined) unknown.push(path); else recorded.push(...ids); }
 const total = outside.size + assetsOutside.size;
 console.log(`${slug} ${flow}: control at ${((control - run.tap) / 1000).toFixed(1)} s; ${outside.size} level and ${assetsOutside.size} /assets files read before control outside the spawn set; ${unknown.length} unidentified`);

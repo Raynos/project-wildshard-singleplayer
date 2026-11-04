@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { assetIdentities, assetStem, audioTableRefs, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
+import { assetIdentities, assetStem, audioTableRefs, type AssetDigests, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
 
 // DL22: Pine's cold boot read 143 files before control that its spawn set lacked (late models by name, props tiles by
 // tile); the recorded list keeps stable identities so a content edit (new hashes) still maps to the right files.
@@ -59,25 +59,28 @@ test('every alias of a shared file is recorded, so a later split leaves a stale 
   expect([...split.hashes].sort()).toEqual([h('5'), h('6')].sort()); expect(split.unresolved).toEqual([]);
 });
 
+// A build where every hex suffix is the file's real hash: its digest starts with it.
+const real: AssetDigests = path => { const hex = /[-.]([a-f0-9]{8,})(?=\.[a-z0-9]+$)/u.exec(path)?.[1]; return hex === undefined ? [] : [`${hex}ff`]; };
+
 test('/assets identities: hash-free stems, pack parts by their members, and unstable names only by a section reference', () => {
-  expect(assetStem('/assets/gpu/x/rifle.phone-fd73a325.glb')).toBe('/assets/gpu/x/rifle.phone.glb');
-  expect(assetStem('/assets/sfx/best/bed-forest-2-0cd11be5.m4a')).toBe('/assets/sfx/best/bed-forest-2.m4a');
-  expect(assetStem('/assets/baked/p/navmesh.bin?v=93aaa10d')).toBe('/assets/baked/p/navmesh.bin');
+  expect(assetStem('/assets/gpu/x/rifle.phone-fd73a325.glb', real)).toBe('/assets/gpu/x/rifle.phone.glb');
+  expect(assetStem('/assets/sfx/best/bed-forest-2-0cd11be5.m4a', real)).toBe('/assets/sfx/best/bed-forest-2.m4a');
+  expect(assetStem('/assets/baked/p/navmesh.bin?v=93aaa10d', real)).toBe('/assets/baked/p/navmesh.bin');
   const table = (first: string[], second: string[]) => packMembers({ 'pine-hollow': { phone: { parts: [
     { url: '/assets/packs/pine.phone-11111111.bin', files: first.map(path => [path, 0, 1, 'x']) },
     { url: '/assets/packs/pine.phone-22222222.bin', files: second.map(path => [path, 0, 1, 'x']) }] } } });
   const before = table(['/assets/m/a-0cd11be5.m4a'], ['/assets/m/b-7faf0468.m4a']);
   const cabin = `/assets/pine-hollow/baked/cabin-materials/${h('7')}.glb`;
   const ids = assetIdentities(['/assets/packs/pine.phone-22222222.bin', '/assets/sfx/a-0cd11be5.m4a', '/assets/x/b-aaaaaaaa.png',
-    '/assets/x/b-bbbbbbbb.png', cabin, '/assets/y/c-BpZPbf24.bin'], before, new Map([[cabin, ['ref:world/props:/cabins/0/material']]]));
+    '/assets/x/b-bbbbbbbb.png', cabin, '/assets/y/c-BpZPbf24.bin'], before, new Map([[cabin, ['ref:world/props:/cabins/0/material']]]), {digests: real});
   expect(ids.get('/assets/packs/pine.phone-22222222.bin')).toEqual(['asset-pack-member:pine-hollow:phone:/assets/m/b.m4a']);
   expect(ids.get('/assets/sfx/a-0cd11be5.m4a')).toEqual(['asset:/assets/sfx/a.m4a']);
   expect(ids.has('/assets/x/b-aaaaaaaa.png')).toBe(false); // two files share the stem
   expect(ids.get(cabin)).toEqual(['ref:world/props:/cabins/0/material']); // a pure-hash name: its section references
-  expect(ids.has('/assets/y/c-BpZPbf24.bin')).toBe(false); // a bundler hash and no reference: no identity
+  expect(ids.get('/assets/y/c-BpZPbf24.bin')).toEqual(['asset:/assets/y/c-BpZPbf24.bin']); // no hash its bytes confirm: a name
   // A rebuild moves member b into the other part: its identity now resolves to that part, never to the old ordinal.
   const after = table(['/assets/m/b-7faf0468.m4a'], ['/assets/m/a-0cd11be5.m4a']);
-  expect(assetIdentities(['/assets/packs/pine.phone-11111111.bin'], after).get('/assets/packs/pine.phone-11111111.bin'))
+  expect(assetIdentities(['/assets/packs/pine.phone-11111111.bin'], after, new Map(), {digests: real}).get('/assets/packs/pine.phone-11111111.bin'))
     .toEqual(['asset-pack-member:pine-hollow:phone:/assets/m/b.m4a']);
   expect(readFenceReads({ version: 1, files: ['asset:/assets/sfx/a.m4a', 'asset-pack-member:pine-hollow:phone:/assets/m/b.m4a'] }).files).toHaveLength(2);
 });
@@ -87,12 +90,12 @@ test('sp-x8\'s third round: colliding member stems and hash-only members refuse 
   // Two revisions of one slot in different parts share a stem: both parts are refused, never one silently chosen.
   const revisions = packMembers({ p: { phone: { parts: [part('/assets/packs/p-11111111.bin', ['/assets/t/diffuse-11111111.ktx2']),
     part('/assets/packs/p-22222222.bin', ['/assets/t/diffuse-22222222.ktx2'])] } } });
-  const both = assetIdentities(['/assets/packs/p-11111111.bin', '/assets/packs/p-22222222.bin'], revisions);
+  const both = assetIdentities(['/assets/packs/p-11111111.bin', '/assets/packs/p-22222222.bin'], revisions, new Map(), {digests: real});
   expect(both.has('/assets/packs/p-11111111.bin')).toBe(false); expect(both.has('/assets/packs/p-22222222.bin')).toBe(false);
   // A pure-hash member needs a section reference, or its part is refused.
   const hashed = `/assets/m/${h('8')}.glb`, pack = packMembers({ p: { phone: { parts: [part('/assets/packs/q-33333333.bin', [hashed, '/assets/m/rock-0cd11be5.glb'])] } } });
-  expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack).has('/assets/packs/q-33333333.bin')).toBe(false);
-  expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack, new Map([[hashed, ['ref:world/props:/rocks/0']]])).get('/assets/packs/q-33333333.bin'))
+  expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack, new Map(), {digests: real}).has('/assets/packs/q-33333333.bin')).toBe(false);
+  expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack, new Map([[hashed, ['ref:world/props:/rocks/0']]]), {digests: real}).get('/assets/packs/q-33333333.bin'))
     .toEqual(['ref:world/props:/rocks/0', 'asset-pack-member:p:phone:/assets/m/rock.glb']);
   // A hash-only /assets file two sections name keeps both references; when one is split off, the other still resolves to
   // the old file and the split one is a different file, so a recording made before the split no longer covers it.
@@ -111,17 +114,26 @@ test('DL11: colliding sfx revisions are told apart by their slot in the boot tab
   expect(refs.get('/assets/sfx/best/bed-forest-2-0cd11be5.m4a')).toEqual(['ref:boot-sfx:/best/beds/forest/file']);
   expect(refs.get('/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a')).toEqual(['ref:boot-sfx:/best/oneshots/footstep-planks/files/1']);
   expect(refs.get('/assets/music/calm/theme-aaaabbbb.m4a')).toEqual(['ref:boot-music:/calm/tracks/0']);
-  const ids = assetIdentities(urls, new Map(), joinRefs(new Map(), refs));
+  const ids = assetIdentities(urls, new Map(), joinRefs(new Map(), refs), {digests: real});
   expect(ids.get('/assets/sfx/best/bed-forest-2-0cd11be5.m4a')).toEqual(['ref:boot-sfx:/best/beds/forest/file']);
   expect(ids.has('/assets/sfx/best/bed-forest-2-11112222.m4a')).toBe(false); // the unshipped revision has no slot
   expect(readFenceReads({version: 1, files: ['ref:boot-sfx:/best/beds/forest/file']}).files).toEqual(['ref:boot-sfx:/best/beds/forest/file']);
 });
 
-test('DL11: a bundler-hashed image is named by its stem without the hash', () => {
-  expect(assetStem('/assets/pine-hollow-C8hPt5PZ.jpg')).toBe('/assets/pine-hollow.jpg');
-  expect(assetStem('/assets/pine-hollow-portrait-CaUCW0-1.jpg')).toBe('/assets/pine-hollow-portrait.jpg');
-  // a plain name is untouched, and a hex hash still strips first
-  expect(assetStem('/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a')).toBe('/assets/sfx/best/footstep-litter-1.m4a');
-  expect(assetStem('/assets/models/rock_moss_set_01/rock.glb')).toBe('/assets/models/rock_moss_set_01/rock.glb');
-  expect(assetIdentities(['/assets/pine-hollow-C8hPt5PZ.jpg'], new Map()).get('/assets/pine-hollow-C8hPt5PZ.jpg')).toEqual(['asset:/assets/pine-hollow.jpg']);
+test('a suffix is stripped only when the file\'s bytes confirm it: `forest-2` is a name (sp-x1, wildshard-new)', () => {
+  // Pine's bed-forest-2: its 0cd11be5 is the file's sha1; `-forest-2` was refused as a bundler hash by its shape.
+  const forest = '/assets/sfx/best/bed-forest-2-0cd11be5.m4a', sha1: AssetDigests = path => path === forest ? ['0cd11be5a176ffff'] : [];
+  expect(assetStem(forest, sha1)).toBe('/assets/sfx/best/bed-forest-2.m4a');
+  expect(assetIdentities([forest], new Map(), new Map(), {digests: sha1}).get(forest)).toEqual(['asset:/assets/sfx/best/bed-forest-2.m4a']);
+  expect(assetIdentities(['/assets/sfx/best/footstep-litter-1.m4a'], new Map()).get('/assets/sfx/best/footstep-litter-1.m4a'))
+    .toEqual(['asset:/assets/sfx/best/footstep-litter-1.m4a']);
+  // A hex suffix the bytes do not confirm is neither stripped nor trusted: no identity.
+  expect(assetStem(forest)).toBe(forest);
+  expect(assetIdentities([forest], new Map()).has(forest)).toBe(false);
+});
+
+test('a bundler file is named by its source module from the build manifest, never by guessing its hash', () => {
+  const emitted = '/assets/pine-hollow-C8hPt5PZ.jpg', source = 'src/shards/pine-hollow/thumbs/pine-hollow.jpg';
+  expect(assetIdentities([emitted], new Map(), new Map(), {sources: new Map([[emitted, source]])}).get(emitted)).toEqual([`asset-source:${source}`]);
+  expect(readFenceReads({version: 1, files: [`asset-source:${source}`]}).files).toEqual([`asset-source:${source}`]);
 });

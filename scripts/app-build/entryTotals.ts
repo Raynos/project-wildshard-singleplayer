@@ -82,6 +82,25 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     }
     assetsSeen = [...urls]; return assetsSeen;
   };
+  // A name's hash is stripped only when the file's bytes match it (sha1 or sha256): `forest-2` is a name (sp-x1).
+  const digestsSeen = new Map<string, readonly string[]>();
+  const assetDigests = (path: string): readonly string[] => {
+    const seen = digestsSeen.get(path); if (seen !== undefined) return seen;
+    let found: readonly string[] = [];
+    try { const bytes = bytesFor(path); found = [createHash('sha1').update(bytes).digest('hex'), createHash('sha256').update(bytes).digest('hex')]; }
+    catch { /* not a file of this build: nothing is stripped */ }
+    digestsSeen.set(path, found); return found;
+  };
+  // The bundler's own /assets files by their source module (its manifest: source -> emitted file).
+  let sourcesSeen: ReadonlyMap<string, string> | undefined;
+  const bundlerSources = (): ReadonlyMap<string, string> => {
+    if (sourcesSeen !== undefined) return sourcesSeen;
+    const manifest = join(output, '.vite/manifest.json'), found = new Map<string, string>();
+    if (existsSync(manifest)) for (const [key, row] of Object.entries(JSON.parse(readFileSync(manifest, 'utf8')) as Record<string, {file?: unknown}>)) {
+      if (typeof row.file === 'string' && !row.file.endsWith('.js') && !row.file.endsWith('.css')) found.set(`/${row.file}`, key);
+    }
+    sourcesSeen = found; return found;
+  };
   const packParts = (): ReadonlyMap<string, PackPart> => {
     if (partsSeen !== undefined) return partsSeen;
     const banks = readAssetTables(root), parts = new Map<string, PackPart>();
@@ -133,7 +152,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       const refs = joinRefs(sectionRefs(sections, new Set([...urls, ...members].map(url => url.split('?')[0] ?? url))),
         audioTableRefs(JSON.parse(readAssetTables(root).common.source) as {sfx?: unknown; music?: unknown}));
       const byIdentity = new Map<string, string>();
-      for (const [url, ids] of assetIdentities(urls, packParts(), refs)) for (const identity of ids) if (!byIdentity.has(identity)) byIdentity.set(identity, url);
+      for (const [url, ids] of assetIdentities(urls, packParts(), refs, {digests: assetDigests, sources: bundlerSources()})) for (const identity of ids) if (!byIdentity.has(identity)) byIdentity.set(identity, url);
       fenceAssets = [...new Set(shell.flatMap(identity => { const url = byIdentity.get(identity); return url === undefined ? [] : [url]; }))];
       const unresolved = [...resolved.unresolved.filter(row => !row.startsWith('ref:')), ...shell.filter(identity => !byIdentity.has(identity))];
       // A stale entry fails the build (sp-x8's review): skipping it would quietly bring back an on-demand fetch.
