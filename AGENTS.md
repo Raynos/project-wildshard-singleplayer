@@ -138,7 +138,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **No polling, no receipts** (E491, [BUILD-SPEED, archived](project/archive/2026-10-28-build-speed.md)): Codex lanes give exec a
   10 min yield and use `scripts/proof-run.sh` beyond it, never `sleep`/`wait` loops (Claude's `guard-polling.sh` already
   refuses them); nothing new under `.git/proofs` or `progress/` as proof of work, the numbers go in the commit message.
-- **Heavy proofs run per milestone, not per slice** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): the soak, frame floor, boot smoke and Simulator runs at each
+- **Heavy proofs run per milestone, not per slice** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`): frame floor, boot smoke and Simulator runs at each
   milestone and before a deploy that changes the grid; the physics walk only after collider changes; slices land on quick
   checks of what they touched. The gpu-gate parity CI runs nightly and at milestones, not on every push.
 - **At most 3 agents per session** (Jake, 2026-10-10: *"What we write down and commit in AGENTS.md is 3 agents"*).

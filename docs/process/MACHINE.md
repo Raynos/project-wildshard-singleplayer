@@ -376,7 +376,7 @@ and dead-owner markers. Never kill another lane's active job or extend a hold.
 
 ## Long proofs: start detached, don't poll (SF74 W5)
 
-`scripts/proof-run.sh <label> -- <command…>` starts a soak, frame floor, boot smoke or Simulator run in its own session
+`scripts/proof-run.sh <label> -- <command…>` starts a frame floor, boot smoke or Simulator run in its own session
 and returns at once; when it ends, `.git/proofs/<id>.json` holds the verdict (state, rc, times, log) and herdr types
 one line with it into the pane that started it. Keep working meanwhile; never `sleep`-and-`tail` a log (~11 agent-hours
 of polling in the 12 h audit). The command still takes its own lanes (browser-lane, sim-lane, heavy-lane);
