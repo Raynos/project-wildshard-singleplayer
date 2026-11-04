@@ -221,9 +221,14 @@ declare const __BUILD_ID__: string;
 let packsBook: Promise<unknown> | undefined;
 function readPacksBook(): Promise<unknown> {
   packsBook ??= (async () => {
-    const response = await fetch(new URL(`/${packsBookPath(__BUILD_ID__)}`, document.baseURI).href);
-    if (!response.ok) throw new Error(`Packs book unavailable (${response.status})`);
-    return response.json() as Promise<unknown>;
+    try {
+      const response = await fetch(new URL(`/${packsBookPath(__BUILD_ID__)}`, document.baseURI).href);
+      if (!response.ok) throw new Error(`Packs book unavailable (${response.status})`);
+      return await (response.json() as Promise<unknown>);
+    } catch (error) {
+      packsBook = undefined; // a failed read is not kept: the next attempt fetches the book again
+      throw error;
+    }
   })();
   return packsBook;
 }
@@ -282,12 +287,14 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
   const selected = spawnSelection(slug, flow, tier, mode); if (selected === null) return null;
   const key = packsOn ? `packs:${flow}|${slug}|${tier}|${mode}` : addressKey(selected.address);
   if (current !== undefined && current.key === key) {current.foreground ||= foreground; return current.download;}
-  // Runtime packs: this entry's whole-level manifest from the packs book; a missing book falls back to the default one.
+  // Runtime packs: this entry's whole-level manifest from the packs book. A missing, unreadable or entry-less book
+  // fails the download (admission waits on it and refuses control with the reason); it never runs the default set and
+  // reports it complete, which would break the whole-level rule (sp-x9's review of 40bc516d5c).
   const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), document.baseURI)
     : lateDownload((async () => {
-      let address: SpawnManifestAddress | null = null;
-      try { address = bookSelection(await readPacksBook(), slug, flow, tier, mode); } catch { /* no book: the default manifest */ }
-      return downloadSpawnManifest(address ?? selected.address, downloadPorts(selected.cacheName, address !== null), document.baseURI);
+      const address = bookSelection(await readPacksBook(), slug, flow, tier, mode);
+      if (address === null) throw new Error(`Packs book has no ${flow} entry for ${slug} (${tier}, ${mode})`);
+      return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), document.baseURI);
     })());
   current?.download.cancel(); current = {key, download, foreground}; return download;
 }
