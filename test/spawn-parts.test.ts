@@ -76,8 +76,10 @@ test('a resized named file changes only its own part', () => {
   const keyOf = (url: string): string => `models/${/\/(\d+)(?:-edited)?\.glb$/u.exec(url)?.[1] ?? url}.glb`;
   // Bodies differ per file (the shared helper only varies with URL length, which would make equal parts collide).
   const seed = (url: string): number => Array.from(url, char => char.codePointAt(0) ?? 0).reduce((sum, code) => sum + code, 0);
-  const read = (rows: SpawnFile[]) => (url: string): Uint8Array =>
-    Uint8Array.from({ length: rows.find(row => row.url === url)?.bytes ?? 0 }, (_, at) => (seed(url) + at) % 251);
+  const read = (rows: SpawnFile[]) => (url: string): Uint8Array => {
+    const value = seed(url);
+    return Uint8Array.from({ length: rows.find(row => row.url === url)?.bytes ?? 0 }, (_, at) => (value + at) % 251);
+  };
   const pack = (rows: SpawnFile[]): Map<string, string> => {
     const [parts] = writeSpawnParts(out, [manifest(rows)], read(rows), keyOf);
     return new Map((parts ?? []).flatMap(part => part.members.map(([member]) => [rows[member]?.url ?? '', part.url] as const)));
