@@ -1,5 +1,5 @@
 import {controlFileHashes} from '../../src/format/admissionControl';
-import {entryFileSteps} from '../../src/format/tierSelection';
+import {entryFileSteps, tierLibrarySteps} from '../../src/format/tierSelection';
 import type {Shardfile} from '../../src/format/shardSchema';
 import type {OutputIndex} from '../../src/format/outputIndex';
 import {wholeGeometryInputs} from '../../src/game/shardfile/wholeInputs';
@@ -26,6 +26,27 @@ export function entryReadSet(source: Shardfile, tier: 'phone' | 'desktop', index
     seen.add(hash); pending.push(...byHash.get(hash)?.dependencies ?? []);
     const fileTier = tierOf.get(hash);
     if (tierOf.has(hash) && (fileTier === undefined || fileTier === tier)) wanted.add(hash);
+  }
+  if (whole) {
+    // The other device's payloads and the variants this tier never fetches: tier selection's own verdict (named
+    // desktop files, the smaller texture-mode alternatives, the other tier's horizons and scene models), sp-o1's census.
+    const library = tierLibrarySteps(source, tier, {index, sections}); let step = library.next(); while (step.done !== true) step = library.next();
+    for (const hash of step.value) wanted.delete(hash);
+    // Per-tier tables, `{phone: X, desktop: Y}` (cover cells, scene model files, held decals, lent atlases, Explorer
+    // books): their loaders read `[TIER]`, so a file named only as the other tier's value is never read on this one.
+    const other = tier === 'phone' ? 'desktop' : 'phone', otherOnly = new Set<string>(), elsewhere = new Set<string>();
+    const walk = (value: unknown, skip: boolean): void => {
+      if (typeof value === 'string') { (skip ? otherOnly : elsewhere).add(value); return; }
+      if (Array.isArray(value)) { for (const item of value) walk(item, skip); return; }
+      if (typeof value !== 'object' || value === null) return;
+      const table = 'phone' in value && 'desktop' in value;
+      for (const [key, item] of Object.entries(value)) walk(item, skip || table && key === other);
+    };
+    for (const value of sections.values()) walk(value, false);
+    const hashOf = new Map(index.files.flatMap(file => [[file.hash, file.hash], [file.path, file.hash], ...file.name === undefined ? [] : [[file.name, file.hash] as const]] as const));
+    const kept = new Set<string>(); for (const name of elsewhere) { const hash = hashOf.get(name); if (hash !== undefined) kept.add(hash); }
+    const needed = new Set([...wanted].flatMap(hash => byHash.get(hash)?.dependencies ?? []));
+    for (const name of otherOnly) { const hash = hashOf.get(name); if (hash !== undefined && !kept.has(hash) && !needed.has(hash)) wanted.delete(hash); }
   }
   const plan = sections.get('client/plan'), features: unknown = typeof plan === 'object' && plan !== null ? Reflect.get(plan, 'features') : undefined;
   // This host starts its complete native intake before construction. These
