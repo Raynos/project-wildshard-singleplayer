@@ -23,7 +23,7 @@ export const ReturnProgramDocumentSchema: v.GenericSchema<unknown, ReturnProgram
   v.unknown(), v.check(isJsonData),
   // Admit the caller's original script before record parsing can omit unsafe
   // property names. The native authority must never inspect a stripped clone.
-  v.check(input => typeof input === 'object' && input !== null && !Array.isArray(input)
+  v.check(input => isJsonData(input) && typeof input === 'object' && input !== null && !Array.isArray(input)
     && v.safeParse(DecisionScriptsSchema, [Reflect.get(input, 'script')]).success, 'Complete native return-script admission'),
   v.strictObject({ script: DecisionScriptsSchema.pipe[2].item,
     bytes: v.pipe(v.string(), v.maxLength(2_000_000)), v2: v.exactOptional(ReturnProjectionV2Schema),

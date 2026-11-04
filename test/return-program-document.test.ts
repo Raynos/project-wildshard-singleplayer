@@ -44,3 +44,11 @@ test('the defining JSON projection describes the whole script and retains unknow
   expect(() => validateNamedJsonSchema(schema, bytes({ ...good, script: { id: 'return.fixture' } }))).toThrow();
   expect(() => namedJsonSchema(v.pipe(v.string(), v.check(() => true)))).toThrow();
 });
+
+test('rejected script accessors are never invoked by later validation checks', () => {
+  let reads = 0;
+  const value = { bytes: '' };
+  Object.defineProperty(value, 'script', { enumerable: true, get: () => { reads++; return script; } });
+  expect(v.safeParse(ReturnProgramDocumentSchema, value).success).toBe(false);
+  expect(reads).toBe(0);
+});
