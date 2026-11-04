@@ -18,4 +18,4 @@ and get redone on round 5: E11 (gauntlet), E13 / E14 / S06 (Titan arena), M03 (a
 **Decided 11-03:** Titan 15 m; the Titan road opens after the first gauntlet clear; wave-3 elite Shift Supervisor.
 
 **Open for Jake:** loot may be revisited; taller hover-park ramps; the 38 UI changes one by one in
-[UI-PICKS.md](UI-PICKS.md) (11-03: 27 approved, 5 cut, 6 open).
+[UI-PICKS.md](UI-PICKS.md) (11-03: 28 approved, 5 cut, 5 open).

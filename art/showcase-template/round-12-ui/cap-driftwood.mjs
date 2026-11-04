@@ -205,7 +205,7 @@ const ITEMS = [
         pip.style.left = `${r.width / 2 + l.right * k}px`; pip.style.top = `${r.height / 2 - l.ahead * k}px`;
       }
     }) },
-  { id: 'UI-13', slug: 'requires-level', title: 'Dialogue: a quest above your level ends on a choice (W1b)', note: 'no NEXT: greyed quest or LATER',
+  { id: 'UI-13', slug: 'requires-level', title: 'Dialogue: a quest above your level: one line, one button (W1b)', note: 'needs LV 7 once · OK',
     setup: async (page) => {
       await pose(page, WENDELL, 2600); await clearToasts(page);
       await page.evaluate(() => { const i = window.__wildshard.world.interactables.find((x) => x.label === 'Talk to Wendell'); i.onInteract(); });
@@ -217,10 +217,10 @@ const ITEMS = [
         c.querySelector('.ws-quest-talk-text').textContent = 'Drones in the yard again. Come back when you can stand up to them.';
         const foot = c.querySelector('.ws-quest-talk-foot');
         const gate = document.createElement('div'); gate.className = 'ws-quest-talk-gate';
-        gate.innerHTML = '<span class="quest">Quest · tier 2<b>Drone Season</b></span><span class="btn">REQUIRES LV 7</span>';
+        gate.innerHTML = '<span class="quest">Quest · tier 2 · <span style="color:#ffb36b">needs LV 7</span><b>Drone Season</b></span>';
         foot.before(gate);
-        // Jake 11-03: a level-gated offer is the last line, so no NEXT; you choose (the gated quest is greyed, so: leave)
-        foot.innerHTML = '<span>Come back at LV 7</span><b>Later ▸</b>';
+        // Jake 11-03: no NEXT, no greyed button, one LV 7 and one button: the last line ends on OK
+        foot.innerHTML = '<span></span><b>OK ▸</b>';
       });
     }),
     teardown: async (page) => { await page.keyboard.press('Escape').catch(() => {}); await page.evaluate(() => { document.querySelector('.ws-quest-talk.show')?.click(); }); await sleep(600); } },
