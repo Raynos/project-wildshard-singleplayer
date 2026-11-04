@@ -160,10 +160,10 @@ does not close a Z row.
 | **Z8** | **G1004 source slice: seven batch roots / 23,416 custom B registered (2026-11-04, sp-x9).** Prior ChapterStoryPresentation plus DW dead steps remain qualified (`a209d3e37e`, `98bab03828`). Exact native-spots, contracts, discovery, hints, wake-boss, carried and finds use their original complete contracts and native/reference/continuation owners. Runtime, forest-story, interaction source and complete chapter-view closure remain next; native-story remains charged until real complete Pine/DW production quest readers exist. | Prior **2/14** plus **7/12 batch roots source-qualified**; five pending | Codex | 4.5 |
 | **Z9** | **Five dead copies retired (2026-11-03, sp-x2); four live Nalati files remain charged for Jake’s one-user batch.** Pine’s two prop JSONs and Nalati support pages 2/3/4 have no reader or routing reference. G872 approved deletion removes 397,308 B; all unrelated 242,316,656 B and 122 ordered packs verify exactly, with only the independently reconstructed Nalati map source stamp attributed. Strict native 48 frames / 16 A/A + 16 A/B all zero. Pine and Nalati each 24/24 green in Chromium and WebKit; actual builds, four boards and per-file retained-root evidence [below](#z9-dead-copies-and-four-real-one-user-roots-2026-11-03-sp-x2). No fabricated Pine scatter user or new platform-family credit | **5 of 9 retired; 4 charged:** Nalati dressing-pages 0/1 and dressing-{phone,desktop} | Codex (G958) | 3 |
 | **Z10** | **Qualified (2026-11-04, sp-x9, G1004), 3/3 registered / 1,669 custom B retired.** The approved exact KitFigureCards, BuildingLifeDocument and CoverComposition families retain their defining schemas, original payloads and live native owners. No producer, metadata, reference or runtime changes; all 37 focused admission/native cases pass. E9 building-life is counted once. | **3 of 3:** DW people/cards, building-life, cover-composition | Codex | 1 |
-| **Z11** | **Qualified five-file slice (2026-11-03, sp-x6), source `7cc93a3856`: −5 / −57,213 custom bytes; three one-user documents remain charged for Jake's batch. Weather, audio, look.** `world/weather` + `audio/scene` families (`game/weather/forest.ts`, Pine + Nalati); post look into the G599 post-graph platform | **5 eligible:** dead Pine ambience, Pine + Nalati weather, Nalati audio/scene and look/post. **3 charged:** Nalati weather-fx; Pine rain and weather-observations | Opus fx, Codex audio | 3 |
+| **Z11** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** Earlier five-file slice `7cc93a3856` remains qualified; `a4c996a8c5` registers the three complete one-user weather grammars. Immutable `437638730e` verifies all three original bodies and defining schema metadata unchanged, native/wire admission and independent gate/census agreement. [G1004 qualification below](#g1004-z11-and-z14-qualification-2026-11-04-sp-x6) | **8 of 8 resolved:** earlier five eligible cuts/families; weather-fx, rain, weather-observations now platform files (**3 / 1,052,415 custom B**; no physical deletion) | Codex | 0 |
 | **Z12** | **One unread copy retired (2026-11-03, sp-x2); eight live files remain charged for Jake’s one-user batch.** Delete only Pine landmark-view, 5,510 B, while the original ForestPage/native models retain its facts. All other 880 Pine bodies / 154,020,452 B and 78 old/new packs reconstruct exactly. Strict native 24 frames / 8 A/A + 8 A/B all zero; Pine 24/24 green in Chromium and WebKit. Seven native physics route legs pass, zero stuck/bounds failures. [Per-file census and qualification](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2); no fake field-root credit | **1 of 9 retired; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **Done (2026-11-03, sp-x1 + sp-x2): 6/6 shipping files retired. Full original production policies enter their typed owners; complete native oracles, input fences and independent proof expectations remain. Qualified per-shard landings below; no family credit.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
-| **Z14** | **One approved unread copy retired (2026-11-03, sp-x1); nine live one-user roots remain charged for Jake’s batch.** Nalati ride/rules removes 31,569 B. All other bodies/ordered packs retain exact proof with the independently reconstructed map source stamp; strict native 24 frames / 8 A/A + 8 A/B all zero. Nalati G998 24/24 green in Chromium and WebKit. Titan decisions already compile from shard AS; no new family is registered. [Per-file evidence and qualification below](#z14-census-encounters-riding-and-one-unread-copy-2026-11-03-sp-x1) | **1 of 10 retired; 9 charged:** Nalati room-entry, timed-encounters, titan-fight, titan-geometry, cloud-specimen, riding/session, mounted-figure; Pine combat/roaming, client/ranged-page. Cloud overlaps Z7 and is charged once | Codex (G958) | 4.5 |
+| **Z14** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** Original unread ride/rules cut stays qualified. Full room/King, geometry/pose, timed and closed return-program contracts `d6f1d86040`; exact nine registrations/provenance `437638730e`. All nine original bodies (**2,004,340 B**) remain byte-identical with original native owners, AS decisions and refusals. Immutable all-product build and independent native gate/census qualify the metadata change. [G1004 qualification below](#g1004-z11-and-z14-qualification-2026-11-04-sp-x6) | **10 of 10 resolved:** one unread copy retired plus nine complete registered native roots. Cloud is counted once under Z14, also closing its Z7 overlap | Codex | 0 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
 
 Kills: 1 + 98 + 72 + 70 + 13 + 6 + 10 + 14 + 14 + 9 + 3 + 8 + 9 + 6 + 9 = **342**. Z0–Z3 remove 241 (70 %) in
@@ -4563,3 +4563,47 @@ its original objects, count checks, cache identities or typed constructor.
 All original bodies/SHA-256s and the emitted habitat bytes stay exact.
 Five focused original/complete-root cases, format/SDK/test-project types and
 typed lint pass. No AS, renderer, collider, guard, cap or timeout change.
+
+## G1004 Z11 and Z14 qualification (2026-11-04, sp-x6)
+
+Jake's reviewed one-user batch admits these exact full contracts. Z11
+registration is `a4c996a8c5`; the stale pre-approval test and complete Z14
+contracts are `d6f1d86040`; nine Z14 registrations and defining producer
+metadata are `437638730e60b16b2f2114e78c17e08095453728`.
+
+The normal immutable all-28-product build is **4376387-mw2brhoa**
+(:4402): **22 built, 6 reused, no failed product; app green**. Pine's
+index is **1,719,841 B**, Nalati's **1,938,666 B**, both below the unchanged
+2 MB cap. Phone-wire, native resource, AS module/witness, ownership and
+admission guards remain; no runtime decision or visual source changes.
+
+All **12 / 3,056,755 B** owned documents match their original immutable
+`b752d49037c8ed98611376418069becb7c2599c0` hashes and lengths. Both
+native and JSON-wire admission pass; metadata exactly matches each
+defining registered schema. All nine payload encoder AST arguments are
+unchanged. Eleven bodies have current verified pack membership; the
+large weather-fx body is loose. This is no claim of old whole-pack or
+unrelated runtime/assets byte equality.
+
+The maintained `outputSections` gate and independent
+`productSectionEntries` census agree for every owned name: Z11 **3 /
+1,052,415 B -> 0 custom**, Z14 **9 / 2,004,340 B -> 0 custom**. The same
+candidate confirms all six Z13 envelopes remain absent; Z13 was already
+complete and earns no second retirement credit. No peer WIP is credited.
+
+Format, SDK, shard and test project types pass. **42 focused cases**
+cover the exact nine identities, canonical schema requirement, malformed
+values, wrong provenance, private neighbours, complete geometry/poses,
+room/King/return programs and the original native riding/seat owners.
+Original strict program extra-field refusals and accessor-read-zero
+admission remain. The first forged-schema fixture omitted draft-07's
+header; it was corrected to reach the intended exact-contract refusal.
+
+Retained raw: `tmp/sp-x6-g1004/{encoder-proof,final-body-audit,scoped-census}.json`,
+`metadata-candidate-build.log`, `.git/command-logs/vitest-xnm1d_v8.log`
+(33 passing controls plus the initial fixture refusal), and the subsequent
+nine-control pass. The audit reader initially rejected unrelated failed
+preview records missing port/coverage; filtering the exact ready target
+before complete lease validation fixed the reader, with no product rerun
+or weakened target admission. Later combined metadata work must still
+hold the same 2 MB cap; this qualification is pinned to `437638730e`.
