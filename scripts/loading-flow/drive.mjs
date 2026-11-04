@@ -269,7 +269,7 @@ await stopProfile();
 try {
   const perf = await page.evaluate(`JSON.stringify({origin: performance.timeOrigin, nav: performance.getEntriesByType('navigation').map(e=>({name:e.name,start:e.startTime,resp:e.responseEnd,dcl:e.domContentLoadedEventEnd,type:e.type})),
     res: performance.getEntriesByType('resource').map(e=>({n:e.name.replace(location.origin,''),s:Math.round(e.startTime),e:Math.round(e.responseEnd),b:e.transferSize,d:e.decodedBodySize,i:e.initiatorType})),
-    measures: performance.getEntriesByType('measure').map(e=>({n:e.name,s:Math.round(e.startTime),d:Math.round(e.duration)})),
+    measures: performance.getEntriesByType('measure').map(e=>({n:e.name,s:Math.round(e.startTime),d:Math.round(e.duration),...(e.name.startsWith('wildshard.tile.') ? {x:e.detail} : {})})),
     marks: performance.getEntriesByType('mark').map(e=>({n:e.name,s:Math.round(e.startTime)})),
     fcp: performance.getEntriesByType('paint').map(e=>({n:e.name,s:Math.round(e.startTime)}))})`);
   writeFileSync(`${OUT}/${mode}-perf.json`, perf);
