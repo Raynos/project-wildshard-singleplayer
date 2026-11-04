@@ -849,15 +849,6 @@ function drawOffscreenSlice(renderer: OffscreenWarmRenderer, scene: THREE.Scene,
   }
 }
 
-/** Synchronous compatibility path for one complete pass, with the same target and restoration contract. */
-export function warmOffscreenPass(renderer: OffscreenWarmRenderer, scene: THREE.Scene, pass: OffscreenPreparation): number {
-  const { drawn, benched } = offscreenDrawables(pass);
-  if (drawn.length === 0) return 0;
-  const target = standInTarget(pass.target, 1, 1);
-  try { drawOffscreenSlice(renderer, scene, pass, target, drawn, benched); return drawn.length; }
-  finally { target.depthTexture?.dispose(); target.dispose(); }
-}
-
 /**
  * Warm every registered offscreen override pass under `root`, with caster batches bounded like parked draws.
  * `current` fences every slice; a draw that throws ends the warm-up (logged), never the entry, like `warmParkedDraws`.

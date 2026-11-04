@@ -3,11 +3,6 @@ import type { EffectPass } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
 import { patchShader, PATCH_ORDER } from './shaderPatches';
 
-/** Opaque linear display colour uses the existing half-float scene alpha.
- * Ordinary depth testing decides which surface owns each pixel. The colour
- * pass restores marked pixels from its original input after all grading. */
-export const DISPLAY_COLOUR_ALPHA = -1;
-
 /** Dependency shader contracts, kept in one place for real-material tests. */
 export function displayColourFragment(source: string, stage: 'surface' | 'post' | 'ao'): string {
   if (stage === 'surface') {

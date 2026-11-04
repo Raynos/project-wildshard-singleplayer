@@ -56,11 +56,6 @@ export function installBakedSamplesReader(next: BakedSamplesReader): () => void 
   return () => { if (samplesReader === next) samplesReader = previous; };
 }
 
-/** The active chunk's undergrowth decision log from its installed bake, if it has one (src/shards/pine-hollow/world/undergrowth.ts). */
-export function bakedUndergrowth(binding: HeightfieldBinding = captureHeightfield()): BakedPlacement | null {
-  return installed.get(binding)?.placement ?? null;
-}
-
 /** Install original native samples and their placement decisions into one selected binding without fetching or rebuilding. */
 export function installBakedGrid(grid: BakedGrid, binding: HeightfieldBinding = captureHeightfield()): void {
   if (grid.seed !== ((binding.level.seed ?? SEED) >>> 0)) throw new Error('Baked terrain seed differs from selected level');

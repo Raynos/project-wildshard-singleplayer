@@ -11,7 +11,7 @@ the first card on the title deck and the default shard.
 | `status`, `order`, `next` | `live`, 1, `nalati-grasslands` |
 | `style`, `kitLook` | `toon`, `toon` |
 | `uses` | `dayCycle` |
-| `ground` | a terrain from `buildTerrain`, the sea as a `swellBody('sea', …)` water row, `paths: 'plugin'` |
+| `ground` | a terrain from `buildTerrain`, the sea as a swell water row (`WaterBodies`, src/engine/world/water/body.ts), `paths: 'plugin'` |
 | `loadout` | the wooden sword and the hoverboard at the start; the iron sword is a pickup on the wreck's deck |
 | `fight` | every hit capped at 20 except the Drowned Captain's; two attackers at once; buffer 120 ms, coyote 100 ms |
 | `loot`, `bodyShadow` | coins on kills (doubloons); the castaway's body shadow |

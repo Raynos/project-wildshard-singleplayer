@@ -1,6 +1,5 @@
 import { BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, type Camera, type Object3D, type Scene } from 'three';
 import type { Scope } from '../app/scope';
-import type { Renderer } from './renderer';
 
 /** A native program-cache reference, independent of geometry, textures and live material uniforms. */
 export interface ProgramReference { readonly cacheKey: string; usedTimes: number }
@@ -48,18 +47,6 @@ function programHolder(renderer: ProgramRenderer, owner: Scope, camera: Camera, 
   const held: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'programs') : undefined;
   if (!programMap(held)) throw new Error('Renderer lacks its ordinary material program owner');
   return { material, held };
-}
-
-/** Keep warm programs through temporary-world retirement. Three's ordinary material disposal releases both its
- * program array AND key map; never destroy native handles or mutate the renderer's cache lists ourselves.
- * Call only for the reload-only loading experiment, before any temporary content owner is allocated. */
-export function retainRendererPrograms(renderer: Renderer, owner: Scope, camera: Camera, scene: Scene): { capture: () => number } {
-  if (owner.disposed) throw new Error('Loading programs require a live page owner');
-  const { held } = programHolder(renderer, owner, camera, scene);
-  return { capture: () => {
-    if (owner.disposed) throw new Error('Loading program owner left');
-    return pinProgramReferences(held, renderer.info.programs ?? []);
-  } };
 }
 
 /** Programs kept across world retirements (see createProgramKeeper). */

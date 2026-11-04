@@ -1,5 +1,4 @@
 import type { Scope } from '../../app/scope';
-import { insideWaterExtent, waveHeight } from '../waves';
 /** A registered body's eye or Explorer map view; shading remains body-owned. */
 export type WaterView = 'eye' | 'top-down';
 
@@ -68,16 +67,6 @@ export class WaterBodies {
   }
 
   get size(): number { return this.bodies.size; }
-}
-
-/** A body whose surface rides the engine's Gerstner swell (../waves.ts) over a flat rest level: an open sea. */
-export function swellBody(id: string, level: number): WaterBody {
-  return {
-    id, level,
-    surfaceAt: (x, z) => level + waveHeight(x, z),
-    inside: (x, z, y) => insideWaterExtent(x, z) && y < level + waveHeight(x, z),
-    restAt: (x, z) => (insideWaterExtent(x, z) ? level : null),
-  };
 }
 
 /**

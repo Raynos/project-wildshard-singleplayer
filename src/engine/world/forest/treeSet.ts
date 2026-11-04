@@ -99,27 +99,6 @@ export async function loadTreeSetGeometry(url: string, variants: readonly { name
   return out;
 }
 
-/**
- * The bark material's array lookups: three's map / normalMap / aoMap / roughnessMap reads (all four bound to 1 × 1
- * stand-ins so their defines and uv varyings exist) become reads of the bark arrays at the vertex's layer. The layers are
- * uploaded file-orientation (loadPBRArray, no flip), so v is negated: the bark's up is the image's up, as in Blender.
- */
-export function patchBarkArrays(shader: { vertexShader: string; fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, arrays: { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }): void {
-  shader.uniforms['tBarkD'] = { value: arrays.map };
-  shader.uniforms['tBarkN'] = { value: arrays.normalMap };
-  shader.uniforms['tBarkA'] = { value: arrays.armMap };
-  shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nattribute float barkLayer; varying float vBarkLayer;')
-    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBarkLayer = barkLayer;');
-  const at = (uv: string) => `vec3( ${uv}.x, -${uv}.y, floor( vBarkLayer + 0.5 ) )`;
-  shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nprecision highp sampler2DArray;\nuniform sampler2DArray tBarkD; uniform sampler2DArray tBarkN; uniform sampler2DArray tBarkA; varying float vBarkLayer;')
-    .replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment.replace('texture2D( map, vMapUv )', `texture( tBarkD, ${at('vMapUv')} )`))
-    .replace('#include <normal_fragment_maps>', THREE.ShaderChunk.normal_fragment_maps.replace('vec3 mapN = texture2D( normalMap, vNormalMapUv )', `vec3 mapN = texture( tBarkN, ${at('vNormalMapUv')} )`))
-    .replace('#include <aomap_fragment>', THREE.ShaderChunk.aomap_fragment.replace('texture2D( aoMap, vAoMapUv )', `texture( tBarkA, ${at('vAoMapUv')} )`))
-    .replace('#include <roughnessmap_fragment>', THREE.ShaderChunk.roughnessmap_fragment.replace('texture2D( roughnessMap, vRoughnessMapUv )', `texture( tBarkA, ${at('vRoughnessMapUv')} )`));
-}
-
 /** A 1 × 1 texture: the bark material's stand-in maps (the arrays are what it samples). */
 export function standIn(rgba: [number, number, number, number]): THREE.DataTexture {
   const t = new THREE.DataTexture(new Uint8Array(rgba), 1, 1);
@@ -158,25 +137,4 @@ export function patchImpostorCrownTop(shader: { fragmentShader: string; uniforms
         normal = normalize( mix( normal, crownUp, uCrownTune.x * crownDown ) );
         diffuseColor.rgb *= 1.0 + uCrownTune.y * crownDown;
       }`);
-}
-
-/**
- * E322 F-L3 B, the branch cards (the near and far bands): seen from above, a crown's sky-facing cards (their crown-bent
- * vertex normal up) shed most of their baked AO, lift and lean to the sky, so a crown's top reads sunlit, as in the look
- * targets, instead of the dark green of its occluded inside. Weighted by the same view-down ramp as the impostor, so a
- * crown seen from the ground (looking level or up) is unchanged.
- */
-export function patchCardCrownTop(shader: { fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, crown: CrownTop, aoLift = 0.75): void {
-  shader.uniforms['uCrownTune'] = { value: crown.tune };
-  shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nuniform vec4 uCrownTune;')
-    .replace('#include <emissivemap_fragment>', `
-      float crownLift = 0.0;
-      {${CROWN_VIEW}
-        crownLift = crownDown * smoothstep( -0.1, 0.6, dot( nonPerturbedNormal, crownUp ) );
-        normal = normalize( mix( normal, crownUp, uCrownTune.z * crownLift ) );
-        diffuseColor.rgb *= 1.0 + uCrownTune.w * crownLift;
-      }
-      #include <emissivemap_fragment>`)
-    .replace('#include <aomap_fragment>', THREE.ShaderChunk.aomap_fragment.replace('* aoMapIntensity + 1.0', `* aoMapIntensity * ( 1.0 - ${aoLift.toFixed(3)} * crownLift ) + 1.0`));
 }

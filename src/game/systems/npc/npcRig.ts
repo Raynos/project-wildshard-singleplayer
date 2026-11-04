@@ -45,10 +45,6 @@ export interface NpcModel {
   readonly group: THREE.Group;
   update: (dt: number, t: number, player: THREE.Vector3) => void;
 }
-export interface NpcFace<M extends NpcModel> {
-  load: () => Promise<THREE.BufferGeometry | null>;
-  target: (model: M) => THREE.Mesh;
-}
 
 export const LEG_BONE_NAMES = [
   'hips', 'spine', 'chest', 'neck', 'head',

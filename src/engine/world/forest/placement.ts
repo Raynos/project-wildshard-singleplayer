@@ -236,10 +236,6 @@ export function placementChecksum(p: UnderPlacements): { counts: number[]; sum: 
   for (const k of UNDER_KINDS) for (const it of p[k]) sum += it.x + 2 * it.z + 3 * it.scale;
   return { counts: UNDER_KINDS.map((k) => p[k].length), sum };
 }
-/** Same fingerprint? Counts exactly; the sum to 1e-9 relative (another engine's Math.cos may differ in the last bit). */
-export function sameChecksum(a: { counts: readonly number[]; sum: number }, b: { counts: readonly number[]; sum: number }): boolean {
-  return a.counts.length === b.counts.length && a.counts.every((c, i) => c === b.counts[i]) && Math.abs(a.sum - b.sum) <= 1e-9 * (1 + Math.abs(a.sum));
-}
 
 type Kind = 'fern' | 'shrub' | 'litter' | 'stone' | 'moss' | 'reed';
 
