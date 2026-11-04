@@ -1,3 +1,4 @@
+import { platformFileFamily } from '@wildshard/format/platformFileFamilies';
 import { assetCost, prepareAssetDecoders } from '@wildshard/format/product';
 import { parseImageAsset } from '@wildshard/format/stillImage';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
@@ -37,6 +38,8 @@ function extension(kind: NamedBlobKind, bytes: Uint8Array): string {
  * JSON schema requires its validator; omitting it never skips admission. */
 export function nameBlobBytes(name: string, kind: NamedBlobKind, input: Uint8Array, options: BlobOptions = {}, validateJson?: (schemaBytes: Uint8Array, bytes: Uint8Array) => unknown): NamedBlob {
   assertName(name);
+  if (name.startsWith('custom/')) throw new Error('Custom output names are retired');
+  if (kind === 'json' && platformFileFamily(name, typeof options.jsonSchema?.$comment === 'string' ? options.jsonSchema.$comment : undefined) === undefined) throw new Error(`Unregistered named JSON: ${name}`);
   if (!kinds.has(kind)) throw new Error('Unsupported named blob kind');
   if (input.length === 0 || input.length > MAX_BYTES) throw new Error('Blob exceeds its wire byte cap');
   const owned = ownAssetBytes(input), bytes = owned.bytes, suffix = extension(kind, bytes);

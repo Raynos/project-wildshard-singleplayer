@@ -12,11 +12,9 @@ def required_test_products(tests, registry):
     return sorted(products)
 
 
-def custom_section_growth_command(tree, repo, base, sha, common):
+def custom_sections_zero_command(tree):
     """Only the immutable carrier's checker can vouch for its products."""
-    growth = tree / 'scripts/check-custom-section-growth.mjs'
-    if not growth.is_file():
-        return None
-    return ['node', str(growth), str(repo), base, sha,
-            str(common / 'custom-section-measures')]
-
+    guard = tree / 'scripts/check-custom-sections-zero.mjs'
+    if not guard.is_file():
+        raise ValueError('Missing zero custom-section guard')
+    return ['node', str(guard), str(tree)]

@@ -90,9 +90,7 @@ export async function stagedRatchet(files, executable, repository) {
   }
   const failures = compareCounts(effective, current, hard, files, false, true, true).failures;
   // The candidate's rise history is checked against HEAD's, so a recorded raise passes (G664).
-  const sectionPolicy = (/** @type {string} */ file) => existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
-  failures.push(...comparePlatformList('lint/ratchet.json', resolve('.commit-baseline-ratchet.json'), resolve('lint/ratchet.json'), undefined,
-    { before: sectionPolicy('.commit-baseline-custom-sections.json'), after: sectionPolicy('lint/custom-sections.json') }));
+  failures.push(...comparePlatformList('lint/ratchet.json', resolve('.commit-baseline-ratchet.json'), resolve('lint/ratchet.json')));
   failures.push(...ratchetApprovalFailures(baseline, policy, process.env.WS_COMMIT_MESSAGE ?? ''));
   if (failures.length > 0) throw new Error(failures.join('\n'));
 }

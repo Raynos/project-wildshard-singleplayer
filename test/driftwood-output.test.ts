@@ -12,8 +12,8 @@ test('Driftwood fixed draws and island cover files name admitted product blobs (
   if (output === undefined || row === undefined) throw new Error('Fixed layouts absent');
   expect(output.index.sections.some(value => value.name === 'custom/assets')).toBe(false);
   expect(row.schema).toBe('wildshard:models/island-library@1');
-  expect(product.has('custom/fixedLayouts')).toBe(false);
-  expect(product.has('custom/collections')).toBe(false);
+  expect(product.hasFile('custom/fixedLayouts')).toBe(false);
+  expect(product.hasFile('custom/collections')).toBe(false);
   const value = product.section('models/island-library');
   const layouts = v.parse(ResolvedIslandLibrarySchema, value), files = output.index.files.filter(file => file.name !== undefined), names = new Set(files.map(file => file.name));
   for (const name of [...layouts.draws.map(draw => 'file' in draw ? draw.file : draw.slot), BAKED_COVE.wear?.files.phone.file, BAKED_COVE.wear?.files.desktop.file]) {

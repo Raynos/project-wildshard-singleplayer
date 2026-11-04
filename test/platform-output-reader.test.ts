@@ -12,21 +12,24 @@ import { outputSectionPayloads } from '../src/format/outputFields';
 import {emptyShardfile} from '../src/sdk/author';
 import {outputContent} from '../scripts/shard-output-content.mjs';
 import {nameBlob} from '../src/sdk/blobs';
+import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 
 // LD10: a product ships no runtime TypeScript, so the reader verifies only sections and named JSON (copy checks retired)
-it('charges named JSON beside custom sections and refuses corrupt blob bytes',()=>{
+it('admits registered named JSON, refuses private names and detects corrupt blob bytes',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-output-json-'));
  try{
-  platformOutput(root,'_template',{}, {'custom/rows':'{"key":1}'});
-  expect(outputSections(root,'_template')).toMatchObject({customSectionBytes:9,customSections:[{name:'custom/rows',bytes:9}]});
+  platformOutput(root,'_template',{}, {'ui/strings':'{"key":"1"}'});
+  expect(outputSections(root,'_template')).toMatchObject({customSectionBytes:0,customSections:[]});
   const indexPath=join(root,'out/_template/shard.json');
   const index=parseOutputIndex(JSON.parse(readFileSync(indexPath,'utf8')));
-  const blob=nameBlob('private.json','json',new TextEncoder().encode('{"n":2}'));
+  const blob=nameBlob('models/shape-book.json','json',new TextEncoder().encode('[{"slot":"shape","channels":[],"file":"models/native.bin"}]'),{jsonSchema:registeredJsonSchema('models/shape-book.json')});
   mkdirSync(join(root,'out/_template/blobs/json'),{recursive:true});
   writeFileSync(join(root,'out/_template',blob.file.path),blob.bytes);
   writeFileSync(indexPath,JSON.stringify({...index,files:[blob.file]}));
-  expect(outputSections(root,'_template')).toMatchObject({customSectionBytes:16,customSections:[{name:'custom/rows',bytes:9},{name:'private.json',bytes:7}]});
-  writeFileSync(join(root,'out/_template',blob.file.path),'{"n":3}');
+  expect(outputSections(root,'_template')).toMatchObject({customSectionBytes:0,customSections:[]});
+  expect(()=>nameBlob('private.json','json',new TextEncoder().encode('{"n":2}'))).toThrow('Unregistered named JSON');
+  expect(()=>nameBlob('custom/private.bin','bin',new Uint8Array([1]))).toThrow('retired');
+  writeFileSync(join(root,'out/_template',blob.file.path),'[{}]');
   expect(()=>outputSections(root,'_template')).toThrow('named JSON hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
@@ -35,8 +38,8 @@ it('refuses missing products and section corruption instead of reporting zero',(
  const root=mkdtempSync(join(tmpdir(),'platform-output-sections-'));
  try{
   expect(()=>outputSections(root,'_template')).toThrow('section inventory missing');
-  platformOutput(root,'_template',{}, {'custom/rows':'{"key":1}'});
-  writeFileSync(join(root,'out/_template/sections/custom/rows.json'),'{}');
+  platformOutput(root,'_template',{}, {'ui/strings':'{"key":"1"}'});
+  writeFileSync(join(root,'out/_template/sections/ui/strings.json'),'{}');
   expect(()=>outputSections(root,'_template')).toThrow('section hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
@@ -44,11 +47,11 @@ it('refuses missing products and section corruption instead of reporting zero',(
 it('scopes verified bytes to one report',()=>{
  const root=mkdtempSync(join('tmp/','platform-output-report-'));
  try{
-  platformOutput(root,'_template',{},{'custom/rows':'{"key":1}'});
+  platformOutput(root,'_template',{},{'ui/strings':'{"key":"1"}'});
   const report=createOutputReader(root);
-  expect(report.sections('_template').sections).toEqual([{name:'custom/rows',value:{key:1}}]);
-  writeFileSync(join(root,'out/_template/sections/custom/rows.json'),'{}');
-  expect(report.sections('_template').sections).toEqual([{name:'custom/rows',value:{key:1}}]);
+  expect(report.sections('_template').sections).toEqual([{name:'ui/strings',value:{key:'1'}}]);
+  writeFileSync(join(root,'out/_template/sections/ui/strings.json'),'{}');
+  expect(report.sections('_template').sections).toEqual([{name:'ui/strings',value:{key:'1'}}]);
   expect(()=>createOutputReader(root).sections('_template')).toThrow('section hash/size mismatch');
  }finally{rmSync(root,{recursive:true,force:true});}
 });

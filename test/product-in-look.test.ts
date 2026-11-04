@@ -20,7 +20,7 @@ import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sectio
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { ForestPageSchema } from '../src/format/forestPage';
 
-type LookOutput = Pick<ProjectOutput, 'custom' | 'platform' | 'namedFiles' | 'assets'>;
+type LookOutput = Pick<ProjectOutput, 'platform' | 'namedFiles' | 'assets'>;
 const outputs = new Map<string, LookOutput>([['driftwood-isle', driftwoodOutput], ['pine-hollow', pineOutput]]);
 const outputOf = (slug: string): LookOutput => {
   const output = outputs.get(slug);
@@ -30,11 +30,11 @@ const outputOf = (slug: string): LookOutput => {
 
 // progress/shard-platform/product-in-look-o272: the game binds the shard's loaded product into the look and roster loaders
 // it hands the engine; the engine's LevelSpec keeps plain zero-argument loaders.
-// Both platform look rows and custom rows come from the shard's emitted output.
+// Platform look rows come from the shard's emitted output.
 const emittedSections = (slug: string): Map<string, unknown> => {
   const output = outputOf(slug);
   const sections = new Map<string, unknown>();
-  for (const group of [output.custom, output.platform]) for (const row of group?.sections ?? []) {
+  for (const group of [output.platform]) for (const row of group?.sections ?? []) {
     const bytes = group?.files.get(row.path);
     if (bytes !== undefined) sections.set(row.name, JSON.parse(new TextDecoder().decode(bytes)));
   }
@@ -61,7 +61,7 @@ test.each([
   const expected = original();
   expect(decoded).toEqual(expected);
   expect(namedBytes).toEqual(new TextEncoder().encode(encodeCanonicalJson(expected)));
-  expect(output.custom?.sections.some(row => row.name === section)).toBe(false);
+  expect(output.platform?.sections.some(row => row.name === section)).toBe(false);
 }, 30_000);
 
 test('Pine forwards the complete admitted forest page with the original native audio rows', () => {
@@ -72,7 +72,7 @@ test('Pine forwards the complete admitted forest page with the original native a
   const forest = v.parse(ForestPageSchema, JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)));
   const original = v.parse(CabinAmbienceSchema, cabinAmbienceRows(PINE_SOURCES));
   expect(encodeCanonicalJson({ floors: forest.buildings.floors, firePits: forest.buildings.firePits })).toBe(encodeCanonicalJson(original));
-  expect(output.custom?.sections.some(row => row.name === 'custom/cabinAmbience')).toBe(false);
+  expect(Object.hasOwn(output, 'custom')).toBe(false);
   expect(output.namedFiles?.some(row => row.name === 'world/ambience.json')).toBe(false);
 }, 30_000);
 

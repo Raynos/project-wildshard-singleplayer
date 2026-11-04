@@ -1,3 +1,5 @@
+import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with {type:'json'};
+import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
@@ -25,13 +27,13 @@ function glb(): Uint8Array {
   view.setUint32(12,padded,true);view.setUint32(16,0x4e4f534a,true);bytes.fill(32,20,20+padded);bytes.set(json,20);
   view.setUint32(20+padded,36,true);view.setUint32(24+padded,0x004e4942,true);new Float32Array(bytes.buffer,28+padded,9).set([0,0,0,1,0,0,0,1,0]);return bytes;
 }
-const root={id:'fixture.island',draws:[{slot:'chime',file:'mesh.glb',channels:[]}],groups:'groups.json',figures:'figures.json',collections:{chime:'chime'}};
+const root={id:'fixture.island',draws:[{slot:'chime',file:'mesh.glb',channels:[]}],groups:'models/fixed-geometry.json',figures:'people/catalogue.json',collections:{chime:'chime'}};
 function fixture() {
   const source=emptyShardfile({slug:'fixture-island',name:'Test',author:'Test',revision:1,seed:1});
-  const blobs=new Map([['mesh.glb',glb()],['groups.json',new TextEncoder().encode('{"native":true}')],['figures.json',new TextEncoder().encode('{"figures":{}}')]]);
+  const blobs=new Map([['mesh.glb',glb()],['models/fixed-geometry.json',new TextEncoder().encode(JSON.stringify(inventory.groups))],['people/catalogue.json',new TextEncoder().encode('{"figures":{}}')]]);
   const reads=vi.fn((name:string)=>{const bytes=blobs.get(name);if(bytes===undefined)throw new Error('Missing fixture bytes');return Promise.resolve(bytes);});
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map([['collections/displays',collectionRows()]]),
-    files:new Map([...blobs].map(([name])=>[name,{hash:name,url:name}])),read:reads});
+  const product=createShardProduct({slug:source.identity.slug,revision:1,jsonCheck:fixtureJsonCheck,shardfile:source,sections:new Map([['collections/displays',collectionRows()]]),
+    files:new Map([...blobs].map(([name])=>[name,fixtureProductFile(name,{hash:name,url:name})])),read:reads});
   return {product,reads};
 }
 
@@ -53,21 +55,21 @@ test('cold geometry is intaken once, construction re-admits figures on its own o
     expect(admit.mock.calls.map(call=>call[1])).toEqual([cold,world]);
     await later.run(()=>library.load());
     expect(admit).toHaveBeenCalledTimes(2);
-    expect(await later.run(()=>ProductFigureCatalogue.fromProduct(f.product,'figures.json'))).toBe(library.figures);
+    expect(await later.run(()=>ProductFigureCatalogue.fromProduct(f.product,'people/catalogue.json'))).toBe(library.figures);
     expect(f.reads.mock.calls.filter(([name])=>name==='mesh.glb')).toHaveLength(1);
-    expect(f.reads.mock.calls.filter(([name])=>name==='groups.json')).toHaveLength(1);
-    expect(f.reads.mock.calls.filter(([name])=>name==='figures.json')).toHaveLength(2);
+    expect(f.reads.mock.calls.filter(([name])=>name==='models/fixed-geometry.json')).toHaveLength(1);
+    expect(f.reads.mock.calls.filter(([name])=>name==='people/catalogue.json')).toHaveLength(2);
     template.dispose();
   }finally{cold.dispose();world.dispose();later.dispose();admit.mockRestore();}
 });
 
 test('retiring an older source cannot invalidate the same catalogue re-admitted by construction',async()=>{
-  const f=fixture(),cold=new Scope('cold'),world=new Scope('world'),catalogue=new ProductFigureCatalogue(f.product.slug,'figures.json');
+  const f=fixture(),cold=new Scope('cold'),world=new Scope('world'),catalogue=new ProductFigureCatalogue(f.product.slug,'people/catalogue.json');
   try{
     await catalogue.admit(f.product,cold);await catalogue.admit(f.product,world);cold.dispose();
-    await expect(ProductFigureCatalogue.fromProduct(f.product,'figures.json',cold)).rejects.toThrow('owner left');
-    expect(await world.run(()=>ProductFigureCatalogue.fromProduct(f.product,'figures.json'))).toBe(catalogue);
-    world.dispose();const next=new Scope('next');try{expect(await next.run(()=>ProductFigureCatalogue.fromProduct(f.product,'figures.json'))).not.toBe(catalogue);}finally{next.dispose();}
+    await expect(ProductFigureCatalogue.fromProduct(f.product,'people/catalogue.json',cold)).rejects.toThrow('owner left');
+    expect(await world.run(()=>ProductFigureCatalogue.fromProduct(f.product,'people/catalogue.json'))).toBe(catalogue);
+    world.dispose();const next=new Scope('next');try{expect(await next.run(()=>ProductFigureCatalogue.fromProduct(f.product,'people/catalogue.json'))).not.toBe(catalogue);}finally{next.dispose();}
   }finally{cold.dispose();world.dispose();}
 });
 
@@ -85,7 +87,7 @@ test('leave during figure reads publishes no admission and permits a later const
   const f=fixture(),cold=new Scope('cold'),world=new Scope('world');
   let release:(bytes:Uint8Array)=>void=()=>{throw new Error('No gate');};
   const gate=new Promise<Uint8Array>(resolve=>{release=resolve;}),read=f.product.file;
-  const files=vi.spyOn(f.product,'file').mockImplementation(name=>name==='figures.json'?gate:read(name));
+  const files=vi.spyOn(f.product,'file').mockImplementation(name=>name==='people/catalogue.json'?gate:read(name));
   const library=new IslandLibrary(root,f.product),pending=cold.run(()=>library.load());cold.dispose();release(new TextEncoder().encode('{"figures":{}}'));
   try{
     await expect(pending).rejects.toThrow('owner left');files.mockRestore();await world.run(()=>library.load());expect(library.ready).toBe(true);
@@ -104,7 +106,7 @@ test('world-first geometry and collection reads keep one intake while each live 
     first.dispose();await library.load(input,second,second);
     expect(admit.mock.calls.map(call=>call[1])).toEqual([first,second]);
     expect(f.reads.mock.calls.filter(([name])=>name==='mesh.glb')).toHaveLength(0);
-    expect(f.reads.mock.calls.filter(([name])=>name==='groups.json')).toHaveLength(1);
+    expect(f.reads.mock.calls.filter(([name])=>name==='models/fixed-geometry.json')).toHaveLength(1);
   }finally{first.dispose();second.dispose();cold.dispose();admit.mockRestore();input.get('mesh.glb')?.dispose();}
 });
 
@@ -124,7 +126,7 @@ test('retirement during skin preparation preserves the last complete figure admi
 
 test('resolved books explicitly refuse packed figure owners before a pack fetch',async()=>{
   const f=fixture(),owner=new Scope('unpacked-book'),library=new IslandLibrary(root,f.product),read=f.product.file;
-  const file=vi.spyOn(f.product,'file').mockImplementation(name=>name==='figures.json'?Promise.resolve(new TextEncoder().encode(JSON.stringify({figures:{},pack:{url:'pack',rows:{bytes:0,geometries:[]}}}))):read(name));
+  const file=vi.spyOn(f.product,'file').mockImplementation(name=>name==='people/catalogue.json'?Promise.resolve(new TextEncoder().encode(JSON.stringify({figures:{},pack:{url:'pack',rows:{bytes:0,geometries:[]}}}))):read(name));
   const fetch=vi.spyOn(globalThis,'fetch');
   try{await expect(owner.run(()=>library.load())).rejects.toThrow('unpacked');expect(fetch).not.toHaveBeenCalled();expect(library.ready).toBe(false);}
   finally{owner.dispose();file.mockRestore();fetch.mockRestore();}
@@ -134,32 +136,32 @@ test('resolved books explicitly refuse packed figure owners before a pack fetch'
 test('legacy catalogue admission still decodes its original packed geometry by default',async()=>{
   const f=fixture(),owner=new Scope('legacy-pack'),writer=new GeometryPackWriter('legacy-book');
   const geometry=new BufferGeometry().setAttribute('position',new BufferAttribute(new Float32Array([0,0,0,1,0,0,0,1,0]),3));writer.add(geometry);
-  const read=f.product.file,file=vi.spyOn(f.product,'file').mockImplementation(name=>name==='figures.json'?Promise.resolve(new TextEncoder().encode(JSON.stringify({figures:{},pack:{url:'legacy-pack',rows:writer.rows()}}))):read(name));
+  const read=f.product.file,file=vi.spyOn(f.product,'file').mockImplementation(name=>name==='people/catalogue.json'?Promise.resolve(new TextEncoder().encode(JSON.stringify({figures:{},pack:{url:'legacy-pack',rows:writer.rows()}}))):read(name));
   const fetch=vi.spyOn(globalThis,'fetch').mockResolvedValue(new Response(Uint8Array.from(zlibSync(writer.bytes()))));
-  const catalogue=new ProductFigureCatalogue(f.product.slug,'figures.json');
+  const catalogue=new ProductFigureCatalogue(f.product.slug,'people/catalogue.json');
   try{
     await catalogue.admit(f.product,owner);expect(fetch).toHaveBeenCalledTimes(1);expect(fetch.mock.calls[0]?.[0]).toBe('legacy-pack');
-    expect(await owner.run(()=>ProductFigureCatalogue.fromProduct(f.product,'figures.json'))).toBe(catalogue);
+    expect(await owner.run(()=>ProductFigureCatalogue.fromProduct(f.product,'people/catalogue.json'))).toBe(catalogue);
   }finally{owner.dispose();file.mockRestore();fetch.mockRestore();geometry.dispose();}
 });
 
 test('groups transport overlaps held figure admission without publishing inventory or geometry early', async () => {
-  const f = fixture(), owner = new Scope('overlapped-book'), library = new IslandLibrary<{ native: boolean }>(root, f.product);
+  const f = fixture(), owner = new Scope('overlapped-book'), library = new IslandLibrary<typeof inventory.groups>(root, f.product);
   const read = f.reads.getMockImplementation();
   if (read === undefined) throw new Error('Missing original fixture reader');
   let release: (bytes: Uint8Array) => void = () => { throw new Error('Missing figure gate'); };
   const gate = new Promise<Uint8Array>(resolve => { release = resolve; });
-  f.reads.mockImplementation(name => name === 'figures.json' ? gate : read(name));
+  f.reads.mockImplementation(name => name === 'people/catalogue.json' ? gate : read(name));
   const pending = owner.run(() => library.load());
   try {
-    await vi.waitFor(() => { expect(f.reads.mock.calls.map(([name]) => name)).toContain('groups.json'); });
+    await vi.waitFor(() => { expect(f.reads.mock.calls.map(([name]) => name)).toContain('models/fixed-geometry.json'); });
     expect(library.ready).toBe(false);
     expect(() => library.groups()).toThrow('not loaded');
     expect(f.reads.mock.calls.map(([name]) => name)).not.toContain('mesh.glb');
     release(new TextEncoder().encode('{"figures":{}}'));
     await pending;
-    expect(library.groups()).toEqual({ native: true }); expect(library.ready).toBe(true);
-    expect(f.reads.mock.calls.filter(([name]) => name === 'groups.json')).toHaveLength(1);
+    expect(library.groups()).toEqual(inventory.groups); expect(library.ready).toBe(true);
+    expect(f.reads.mock.calls.filter(([name]) => name === 'models/fixed-geometry.json')).toHaveLength(1);
   } finally { release(new TextEncoder().encode('{"figures":{}}')); await pending.catch(() => undefined); owner.dispose(); }
 });
 
@@ -169,19 +171,19 @@ test('figure refusal drains started groups transport without publishing inventor
   if (read === undefined) throw new Error('Missing original fixture reader');
   let release: (bytes: Uint8Array) => void = () => { throw new Error('Missing inventory gate'); };
   const gate = new Promise<Uint8Array>(resolve => { release = resolve; });
-  f.reads.mockImplementation(name => name === 'groups.json' ? gate : name === 'figures.json' ? Promise.reject(failure) : read(name));
+  f.reads.mockImplementation(name => name === 'models/fixed-geometry.json' ? gate : name === 'people/catalogue.json' ? Promise.reject(failure) : read(name));
   const pending = owner.run(() => library.load());
   let settled = false;
   void pending.then(() => { settled = true; return settled; }, () => { settled = true; return settled; });
   try {
-    await vi.waitFor(() => { expect(f.reads.mock.calls.map(([name]) => name)).toContain('groups.json'); });
+    await vi.waitFor(() => { expect(f.reads.mock.calls.map(([name]) => name)).toContain('models/fixed-geometry.json'); });
     await new Promise(resolve => { setTimeout(resolve, 0); });
     expect(settled).toBe(false);
-    release(new TextEncoder().encode('{"native":true}'));
+    release(new TextEncoder().encode(JSON.stringify(inventory.groups)));
     await expect(pending).rejects.toBe(failure);
     expect(library.ready).toBe(false); expect(() => library.groups()).toThrow('not loaded');
     expect(f.reads.mock.calls.map(([name]) => name)).not.toContain('mesh.glb');
-  } finally { release(new TextEncoder().encode('{"native":true}')); await pending.catch(() => undefined); owner.dispose(); }
+  } finally { release(new TextEncoder().encode(JSON.stringify(inventory.groups))); await pending.catch(() => undefined); owner.dispose(); }
 });
 
 test('prepared whole intake overlaps earlier work but publishes only after figure admission', async () => {
@@ -193,7 +195,7 @@ test('prepared whole intake overlaps earlier work but publishes only after figur
   });
   let release: (bytes: Uint8Array) => void = () => { throw new Error('Missing figure gate'); };
   const gate = new Promise<Uint8Array>(resolve => { release = resolve; }), read = f.product.file;
-  const files = vi.spyOn(f.product, 'file').mockImplementation(name => name === 'figures.json' ? gate : read(name));
+  const files = vi.spyOn(f.product, 'file').mockImplementation(name => name === 'people/catalogue.json' ? gate : read(name));
   const drain = library.prepareGeometry(owner, source);
   if (drain === undefined) throw new Error('Missing whole preparation');
   try {
@@ -238,7 +240,7 @@ test('abandoned preparation drains its read and releases geometry without publis
 test('a figure refusal keeps precedence over an earlier failed geometry preparation', async () => {
   const f = fixture(), owner = new Scope('refused-preparation'), library = new IslandLibrary(root, f.product);
   const original = new Error('Original figure admission'), read = f.product.file;
-  const files = vi.spyOn(f.product, 'file').mockImplementation(name => name === 'figures.json' ? Promise.reject(original) : read(name));
+  const files = vi.spyOn(f.product, 'file').mockImplementation(name => name === 'people/catalogue.json' ? Promise.reject(original) : read(name));
   const whole = vi.spyOn(wholeGeometry, 'readWholeGeometry').mockRejectedValue(new Error('Independent geometry refusal'));
   const drain = library.prepareGeometry(owner, owner);
   if (drain === undefined) throw new Error('Missing whole preparation');

@@ -170,7 +170,6 @@ export function parseFloorRows(input: unknown): v.InferOutput<typeof FloorRowsSc
 }
 
 
-export const SECTIONS: Readonly<Record<never, never>> = {};
 
 
 export const TradeGoodSchema: v.StrictObjectSchema<{ readonly id: typeof tradeText; readonly name: typeof tradeText; readonly does: typeof tradeText; readonly icon: v.PicklistSchema<["bolt", "rifle", "longbow", "crossbow"], undefined>; readonly price: v.LiteralSchema<0, undefined>; readonly tile: typeof tradeText; readonly trade: typeof TradeSchema; readonly cost: v.SchemaWithPipe<readonly [v.ArraySchema<v.StrictObjectSchema<{ readonly item: typeof TradeItemSchema; readonly n: typeof amount; readonly text: typeof tradeText; }, undefined>, undefined>, v.MinLengthAction<{ item: "venison" | "deer-hide" | "boar-hide" | "boar-tusk" | "bear-pelt" | "amber-resin" | "lodge-ribbon"; n: number; text: string; }[], 1, undefined>, v.MaxLengthAction<{ item: "venison" | "deer-hide" | "boar-hide" | "boar-tusk" | "bear-pelt" | "amber-resin" | "lodge-ribbon"; n: number; text: string; }[], 3, undefined>]>; }, undefined> = TradeCatalogueSchema.entries.goods.pipe[0].item;
@@ -220,6 +219,5 @@ export function parsePineSpots(input: unknown): v.InferOutput<typeof PineSpotsSc
 }
 export const PoolGroundSchema: v.ArraySchema<typeof floorNumber, undefined> = v.array(finite);
 
-export const FILE_SCHEMAS: Record<never, never> = {};
 
 export function parseQuestLeadRows(input: unknown): v.InferOutput<typeof QuestLeadRowsSchema> { return v.parse(QuestLeadRowsSchema, input); }

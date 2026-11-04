@@ -6,6 +6,7 @@ import {resolve,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual emitted-byte identity.
 import {createHash} from 'node:crypto';
 import {emptyShardfile} from '../src/sdk/author';
+import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {productSectionEntries,sectionInventory,platformSchemaBindings,sectionReaders,hostGroupBindings,renderSectionInventory} from '../scripts/section-inventory';
 
 const hash=(wire:string):string=>createHash('sha256').update(wire).digest('hex');
@@ -17,21 +18,22 @@ function fixture(){
     const wire=JSON.stringify(value);mkdirSync(dirname(resolve(root,path)),{recursive:true});writeFileSync(resolve(root,path),wire);
     return {path,hash:hash(wire),bytes:Buffer.byteLength(wire)};
   };
-  const namedPath=`blobs/json/${hash(JSON.stringify({value:1}))}.json`;
-  const section=member('sections/world/spawn.json',source.spawn),named=member(namedPath,{value:1});
+  const value=[{slot:'shape',channels:[],file:'models/shape.glb'}];
+  const namedPath=`blobs/json/${hash(JSON.stringify(value))}.json`;
+  const section=member('sections/world/spawn.json',source.spawn),named=member(namedPath,value);
   const schemas:{path:string;hash:string;bytes:number}[]=[];
   const index={format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,
     build:{sourceHash:'a'.repeat(64),validator:'unplayed'},requires:source.requires,
     admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:[],library:[]},
     sections:[{...section,name:'world/spawn',schema:'wildshard:world/spawn@1'}],schemas,runtime:null,
-    files:[{path:named.path,hash:named.hash,kind:'json',name:'quest/demo.json',compressed:named.bytes,decoded:named.bytes,gpu:0,triangles:0,draws:0,critical:false,dependencies:[],jsonSchema:document}]};
+    files:[{path:named.path,hash:named.hash,kind:'json',name:'models/shape-book.json',compressed:named.bytes,decoded:named.bytes,gpu:0,triangles:0,draws:0,critical:false,dependencies:[],jsonSchema:registeredJsonSchema('models/shape-book.json')}]};
   const publish=():void=>{writeFileSync(resolve(root,'shard.json'),JSON.stringify(index));};publish();
   return {root,index,publish,member};
 }
 test('every declared platform section and named JSON keeps its checked byte identity',()=>{
   const f=fixture();try{
     const product=productSectionEntries(f.root,'demo','source-demo');
-    expect(product.entries.map(row=>[row.name,row.kind,row.bytes])).toEqual([['world/spawn','platform',f.index.sections[0]?.bytes],['quest/demo.json','named-json',f.index.files[0]?.compressed]]);
+    expect(product.entries.map(row=>[row.name,row.kind,row.bytes])).toEqual([['world/spawn','platform',f.index.sections[0]?.bytes],['models/shape-book.json','platform-file',f.index.files[0]?.compressed]]);
     expect(product.sourceHash).toBe('a'.repeat(64));expect(product.indexHash).toHaveLength(64);
     const path=f.index.files[0]?.path;if(path===undefined)throw new Error('Missing named fixture');
     writeFileSync(resolve(f.root,path),'foreign');expect(()=>productSectionEntries(f.root,'demo','source-demo')).toThrow('hash/size');
@@ -48,13 +50,13 @@ test('missing, foreign, duplicate and symbolic product inputs refuse',()=>{
     expect(()=>productSectionEntries(f.root,'demo','source-demo')).toThrow('Symbolic');
   }finally{rmSync(f.root,{recursive:true,force:true});}
 });
-test('a custom section retains and verifies its separately declared schema',()=>{
+test('custom section and schema inventories refuse instead of receiving a checked identity',()=>{
   const f=fixture();try{
     const schema=f.member('schemas/custom/demo.schema.json',document),section=f.member('sections/custom/demo.json',{value:1});
     f.index.schemas.push(schema);f.index.sections.push({...section,name:'custom/demo',schema:schema.path});f.publish();
-    const custom=productSectionEntries(f.root,'demo','source-demo').entries.find(row=>row.kind==='custom');
-    expect(custom?.document).toEqual(document);expect(custom?.schema).toBe(schema.path);
-    writeFileSync(resolve(f.root,schema.path),'{}');expect(()=>productSectionEntries(f.root,'demo','source-demo')).toThrow('hash/size');
+    expect(()=>productSectionEntries(f.root,'demo','source-demo')).toThrow();
+    f.index.schemas.pop();f.publish();
+    expect(()=>productSectionEntries(f.root,'demo','source-demo')).toThrow();
   }finally{rmSync(f.root,{recursive:true,force:true});}
 });
 test('defining schemas resolve aliases and refuse a guessed platform binding',()=>{
@@ -70,7 +72,10 @@ test('reader evidence retains literal, parser, line and accepted host-group prov
 });
 test('schema users deduplicate source projects and an unverified label grants no provenance',()=>{
   const f=fixture();try{
-    const first=productSectionEntries(f.root,'demo','one'),second={...first,product:'second',entries:first.entries.map(row=>{const copy=structuredClone(row);copy.product='second';return copy;})},third={...first,product:'third',shard:'two',entries:first.entries.map(row=>{const copy=structuredClone(row);copy.product='third';copy.shard='two';return copy;})};
+    const admitted=productSectionEntries(f.root,'demo','one');
+    // Pure attribution inputs may model an unverified label; no such document
+    // enters product admission now that every shipping named file is registered.
+    const first={...admitted,entries:admitted.entries.map(row=>{const copy=structuredClone(row);if(copy.kind==='platform-file'){copy.kind='named-json';copy.name='quest/demo.json';copy.document=document;}return copy;})},second={...first,product:'second',entries:first.entries.map(row=>{const copy=structuredClone(row);copy.product='second';return copy;})},third={...first,product:'third',shard:'two',entries:first.entries.map(row=>{const copy=structuredClone(row);copy.product='third';copy.shard='two';return copy;})};
     const report=sectionInventory([first,second,third],{[provenance]:document},{},[{name:'world/spawn',fields:['spawn']}],[]);
     const named=report.rows.find(row=>row.kind==='named-json');expect(named?.schemaUsers).toEqual(['one','two']);expect(named?.provenance).toBe('verified-format');
     expect(sectionInventory([first],{[provenance]:{...document,type:'number'}},{},[{name:'world/spawn',fields:['spawn']}],[]).rows.find(row=>row.kind==='named-json')?.provenance).toBe('unattributed');

@@ -7,7 +7,7 @@ import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { platformFileFamily } from '../src/format/platformFileFamilies';
 import { admitWorldSceneModelGraphs } from '../src/game/shardfile/worldSceneWeld';
 import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import { validateDefinedSection } from '../src/sdk/sections';
+import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 
 const graph = (name: string) => parseWorldSceneWeld({ id: name, root: 'root', nodes: [
@@ -81,9 +81,9 @@ test('page metadata fits the product index while local references retain node co
   // Sixteen family pages must leave room for the rest of Pine's 2 MB index.
   expect(schema.byteLength).toBeLessThan(36_000);
   const page = parseWorldScenePage(JSON.parse(new TextDecoder().decode(blob.bytes)));
-  expect(() => validateDefinedSection(schema, page)).not.toThrow();
-  expect(() => validateDefinedSection(schema, { ...page, nodes: [{ kind: 'light', id: 'light', parent: 'root', color: 1, intensity: -1, distance: 1, decay: 2 }] })).toThrow();
-  expect(() => validateDefinedSection(schema, { ...page, nodes: [{ kind: 'group', id: 'group', parent: 'root', unexpected: true }] })).toThrow();
+  expect(() => validateFixtureJsonValue(schema, page)).not.toThrow();
+  expect(() => validateFixtureJsonValue(schema, { ...page, nodes: [{ kind: 'light', id: 'light', parent: 'root', color: 1, intensity: -1, distance: 1, decay: 2 }] })).toThrow();
+  expect(() => validateFixtureJsonValue(schema, { ...page, nodes: [{ kind: 'group', id: 'group', parent: 'root', unexpected: true }] })).toThrow();
 });
 
 test('native pages keep the aggregate JSON ceiling and complete defining provenance', () => {

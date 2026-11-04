@@ -1,13 +1,6 @@
 import { expect, test } from 'vitest';
-import * as v from 'valibot';
 import { emptyShardfile } from '../author';
 import { absentShardProduct, createShardProduct, ProductError, type ShardProduct, type ShardProductInput } from '@wildshard/game/shardfile/shardProduct';
-
-// A runtime's custom section registry, as runtime/sections.ts declares it (P2a spec §3).
-const SECTIONS = {
-  'custom/trades': v.array(v.strictObject({ id: v.string(), give: v.number() })),
-  'custom/wind': v.strictObject({ gust: v.number() }),
-} as const;
 
 const shardfile = emptyShardfile({ slug: 'p2a-fixture', name: 'P2a fixture', author: 'Wildshard', revision: 3, seed: 1 });
 const wasm = new Uint8Array([0, 97, 115, 109]);
@@ -18,8 +11,6 @@ function product(overrides: Partial<ShardProductInput> = {}): ShardProduct {
     sections: new Map<string, unknown>([
       ['quests/quests', { quests: shardfile.quests }],
       ['ui/strings', { raised: 'The bridge is up', locked: 'The winch will not turn' }],
-      ['custom/trades', [{ id: 'bolts', give: 2 }]],
-      ['custom/wind', { gust: 'strong' }],
     ]),
     streamed: new Set(['world/tiles']),
     files: new Map([['behaviour/director.wasm', { hash: 'a'.repeat(64), url: `https://example.test/blobs/wasm/${'a'.repeat(64)}.wasm` }]]),
@@ -33,15 +24,12 @@ function refusal(read: () => unknown): ProductError {
   throw new Error('expected a ProductError');
 }
 
-test('platform and custom sections read synchronously, typed by the registry', () => {
+test('platform sections read synchronously through their defining types', () => {
   const p = product();
   const quests = p.section('quests/quests').quests;
   expect(quests).toBe(shardfile.quests);
-  const trades = p.section('custom/trades', SECTIONS);
-  expect(trades[0]?.id).toBe('bolts');
   expect(p.has('quests/quests')).toBe(true);
   expect(p.has('world/tiles')).toBe(true);
-  expect(p.has('custom/missing')).toBe(false);
   expect(p.shardfile).toBe(shardfile);
 });
 
@@ -51,27 +39,13 @@ test('a missing or streamed section refuses with its reason', () => {
   expect(refusal(() => p.section('world/tiles')).reason).toBe('stream-section');
 });
 
-test('generated custom types need no runtime registry and retain product refusals', () => {
-  type Trades = { id: string; give: number }[];
-  const checked = product({ check: true });
-  const trades = checked.section<Trades>('custom/trades');
-  expect(trades).toEqual([{ id: 'bolts', give: 2 }]);
-  expect(Object.isFrozen(trades) && Object.isFrozen(trades[0])).toBe(true);
-  expect(checked.section<Trades>('custom/trades')).toBe(trades);
-  expect(refusal(() => checked.section<Trades>('custom/missing')).reason).toBe('missing-section');
-  expect(refusal(() => product({ streamed: new Set(['custom/trades']) }).section<Trades>('custom/trades')).reason).toBe('stream-section');
-  expect(refusal(() => absentShardProduct('absent').section<Trades>('custom/trades')).reason).toBe('absent');
-});
-
-test('every explicit custom registry parses; checked products also freeze values', () => {
-  expect(refusal(() => product().section('custom/wind', SECTIONS)).reason).toBe('schema');
-  const checked = product({ check: true });
-  const error = refusal(() => checked.section('custom/wind', SECTIONS));
-  expect(error.reason).toBe('schema');
-  expect(error.item).toBe('custom/wind');
-  const trades = checked.section('custom/trades', SECTIONS);
-  expect(Object.isFrozen(trades) && Object.isFrozen(trades[0])).toBe(true);
-  expect(checked.section('custom/trades', SECTIONS)).toBe(trades);
+test('a caller cannot supply custom sections even through direct native inputs',()=>{
+  expect(()=>product({sections:new Map([['custom/trades',[]]])})).toThrow('only platform sections');
+  expect(()=>product({streamed:new Set(['custom/trades'])})).toThrow('only platform sections');
+  expect(()=>product({files:new Map([['custom/private.bin',{hash:'b'.repeat(64),url:'/private.bin'}]])})).toThrow('custom output names are retired');
+  const p=product({check:true});const strings=p.section('ui/strings');
+  expect(Object.isFrozen(strings)).toBe(true);
+  expect(p.section('ui/strings')).toBe(strings);
 });
 
 test('strings are read all at once and refuse naming every missing key', () => {
@@ -94,15 +68,12 @@ test('files are read by logical name through the verified reader', async () => {
   expect(refusal(() => p.url('models/missing.glb')).reason).toBe('missing-file');
 });
 
-test('generated named-JSON types read verified bytes and reject malformed content', async () => {
-  interface Rig { bones: string[] }
-  const files = new Map([['rig.json', { hash: 'b'.repeat(64), url: '/rig.json' }]]);
-  const read = (text: string) => product({ files, read: () => Promise.resolve(new TextEncoder().encode(text)) });
-  expect(await read('{"bones":["root"]}').json<Rig>('rig.json')).toEqual({ bones: ['root'] });
-  await expect(read('{broken').json<Rig>('rig.json')).rejects.toThrow();
-  await expect(product({ files, read: () => Promise.resolve(new Uint8Array([255])) }).json<Rig>('rig.json')).rejects.toThrow();
-  await expect(read('{}').json<Rig>('missing.json')).rejects.toMatchObject({ reason: 'missing-file' });
-  await expect(absentShardProduct('absent').json<Rig>('rig.json')).rejects.toMatchObject({ reason: 'absent' });
+test('private named JSON refuses before reading bytes',async()=>{
+  const files=new Map([['rig.json',{hash:'b'.repeat(64),url:'/rig.json'}]]);let reads=0;
+  const p=product({files,read:()=>{reads++;return Promise.resolve(new TextEncoder().encode('{}'));}});
+  await expect(p.json('rig.json')).rejects.toMatchObject({reason:'schema'});expect(reads).toBe(0);
+  await expect(p.json('missing.json')).rejects.toMatchObject({reason:'missing-file'});
+  await expect(absentShardProduct('absent').json('rig.json')).rejects.toMatchObject({reason:'absent'});
 });
 
 test('an entry with no built output refuses every read with the fix', async () => {
@@ -116,11 +87,7 @@ test('an entry with no built output refuses every read with the fix', async () =
   await expect(p.file('models/roc.glb')).rejects.toMatchObject({ reason: 'absent' });
 });
 
-test('named JSON with an authored schema refuses wrong types even on unchecked products', async () => {
-  const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { bones: { type: 'array', items: { type: 'string' } } }, required: ['bones'], additionalProperties: false };
-  const files = new Map([['rig.json', { hash: 'b'.repeat(64), url: '/rig.json', jsonSchema }]]);
-  const read = (value: unknown) => product({ files, check: false, read: () => Promise.resolve(new TextEncoder().encode(JSON.stringify(value))) }).json<{ bones: string[] }>('rig.json');
-  await expect(read({ bones: ['root'] })).resolves.toEqual({ bones: ['root'] });
-  await expect(read({ bones: [2] })).rejects.toThrow('refuses its schema');
-  await expect(read({})).rejects.toThrow('refuses its schema');
+test('a source label alone cannot register a private named JSON',async()=>{
+  const files=new Map([['rig.json',{hash:'b'.repeat(64),url:'/rig.json',jsonSchema:{$comment:'@wildshard/format/fixedDraws#FixedDrawRowsSchema'}}]]);
+  await expect(product({files,read:()=>Promise.resolve(new TextEncoder().encode('[]'))}).json('rig.json')).rejects.toMatchObject({reason:'schema'});
 });

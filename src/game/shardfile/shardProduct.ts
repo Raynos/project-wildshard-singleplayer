@@ -1,6 +1,7 @@
-import * as v from 'valibot';
+import { OUTPUT_SECTIONS, isPlatformDataSection } from '@wildshard/format/outputFields';
+import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { CustomSectionName, PlatformSectionName, PlatformSections, SectionName } from '@wildshard/format/sections';
+import type { PlatformSectionName, PlatformSections, SectionName } from '@wildshard/format/sections';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
 import { parseNamedJson } from '@wildshard/format/json';
 import { registeredJsonContract,validateRegisteredJson,type RegisteredJsonName,type RegisteredJsonValues } from '@wildshard/format/registeredJson';
@@ -12,9 +13,9 @@ import { readCheckedNamedJson, type NamedJsonCheck } from './namedJsonChecks';
  *
  * The loader builds one product per admitted shard and hands it to the plugin as `ctx.product` (and to a headless entry
  * as `product`). Every `boot` and `enter` section is fetched, hash-checked and decoded before the first hook runs, so
- * `section()` and `strings()` are synchronous lookups. The loader checks every custom section's emitted schema
- * before hooks run (G491); explicit registry reads also parse, and `check: true` deep-freezes values. Blobs are
- * read by logical name, asynchronously, through the shard's verified asset reader.
+ * `section()` and `strings()` are synchronous lookups. Only platform sections are
+ * admitted; named JSON keeps its complete registered grammar. Blobs are read by
+ * logical name, asynchronously, through the shard's verified asset reader.
  */
 export interface ShardProduct {
   readonly slug: string;
@@ -26,7 +27,7 @@ export interface ShardProduct {
   readonly shardfile: Shardfile;
   /** Does the index list this section? Use it for a section a shard may leave out; `section()` refuses a missing one. */
   readonly has: (name: SectionName) => boolean;
-  /** A section's value: platform sections typed by `@wildshard/format/sections`, custom ones by the runtime's registry. */
+  /** A platform section value, typed by its defining format. */
   readonly section: SectionReader;
   /** The named strings from `ui/strings`, all at once; refuses listing every missing key. */
   readonly strings: <const K extends string>(keys: readonly K[]) => ProductStrings<K>;
@@ -41,29 +42,15 @@ export interface ShardProduct {
 }
 
 /** Registered names infer their wire input; defining consumers apply defaults.
- * Remaining private JSON
- * retains the checked compatibility path while its CS3-CS9 exits are open. */
+ * Every named JSON read requires a registered complete platform family. */
 export interface JsonReader {
   <Name extends RegisteredJsonName>(name:Name):Promise<RegisteredJsonValues[Name]>;
   <T>(name:string):Promise<T>;
 }
 
-/** `ShardProduct.section`. Values are shared between readers: treat them as read-only. */
-export interface SectionReader {
-  /** Build-validated custom data, typed by a generated declaration; no runtime schema is imported. */
-  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- The caller supplies its generated type because build validation erases the runtime schema argument.
-  <T>(name: CustomSectionName): T;
-  /** A platform section's value, typed by `@wildshard/format/sections`. */
-  <K extends PlatformSectionName>(name: K): PlatformSections[K];
-  /**
-   * An explicitly checked section value, typed by the consumer's schema registry (`runtime/sections.ts` `SECTIONS`). The build
-   * parses the emitted JSON with that same registry entry, so the type is proven at build and trusted here.
-   */
-  <R extends Readonly<Record<string, v.GenericSchema>>, K extends keyof R & SectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
-}
+/** Platform values are shared between readers and must remain read-only. */
+export type SectionReader = <K extends PlatformSectionName>(name: K) => PlatformSections[K];
 
-/** A runtime's custom section schemas, keyed by section name (`runtime/sections.ts`: `export const SECTIONS = {…}`). */
-export type CustomSectionSchemas = Readonly<Record<CustomSectionName, v.GenericSchema>>;
 /** The strings a runtime asked for, by key. */
 export type ProductStrings<K extends string> = Readonly<Record<K, string>>;
 
@@ -96,7 +83,7 @@ export interface ShardProductInput {
   readonly files: ReadonlyMap<string, ProductFile>;
   /** the verified reader: bytes for a hash, checked against it (`ClientAssets.read`, or a Node file read) */
   readonly read: (hash: string) => Promise<Uint8Array>;
-  /** parse custom sections on read and deep-freeze values (tests and validation; never a shipped page) */
+  /** Deep-freeze admitted values for tests and validation. */
   readonly check?: boolean;
   /** a first-party build's named JSON: its build validated each file against its schema (nameBlob) and `read` checks the
    *  bytes against that build's hash, so a read parses it without validating it again (an external product validates) */
@@ -128,7 +115,8 @@ export function productClosureFile(product: ShardProduct, hash: string): Promise
 /** Build the product the loader passes to a runtime. Pure: it fetches nothing and decodes nothing itself. */
 export function createShardProduct(input: ShardProductInput): ShardProduct {
   const { slug, sections, files, check = false } = input, streamed = input.streamed ?? new Set<string>();
-  const parsed = new Map<string, unknown>();
+  for (const name of new Set([...sections.keys(), ...streamed])) if (!isPlatformDataSection(name) && !OUTPUT_SECTIONS.some(row => row.name === name)) throw new ProductError(slug, name, 'schema', 'only platform sections are admitted');
+  for (const name of files.keys()) if (name.startsWith('custom/')) throw new ProductError(slug, name, 'schema', 'custom output names are retired');
   const value = (name: string): unknown => {
     if (streamed.has(name)) throw new ProductError(slug, name, 'stream-section', `section ${name} streams; read it through its host`);
     if (!sections.has(name)) throw new ProductError(slug, name, 'missing-section', `the built shard has no section ${name}`);
@@ -140,25 +128,13 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     if (file === undefined) throw new ProductError(slug, name, 'missing-file', `the built shard names no file ${name}`);
     return file;
   };
-  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- Match the explicit generated-type overload without a runtime schema argument.
-  function section<T>(name: CustomSectionName): T;
   function section<K extends PlatformSectionName>(name: K): PlatformSections[K];
-  function section<R extends Readonly<Record<string, v.GenericSchema>>, K extends keyof R & SectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
-  function section(name: string, schemas?: Readonly<Record<string, v.GenericSchema>>): unknown {
-    if (schemas === undefined) return value(name);
-    const done = parsed.get(name);
-    if (done !== undefined) return done;
-    const schema = schemas[name];
-    if (schema === undefined) throw new ProductError(slug, name, 'schema', `runtime/sections.ts declares no schema for ${name}`);
-    const result = v.safeParse(schema, value(name));
-    if (!result.success) throw new ProductError(slug, name, 'schema', `section ${name} refuses its runtime schema: ${v.summarize(result.issues)}`);
-    parsed.set(name, deepFreeze(result.output));
-    return result.output;
-  }
+  function section(name: string): unknown { return value(name); }
   function json<Name extends RegisteredJsonName>(name:Name):Promise<RegisteredJsonValues[Name]>;
   function json<T>(name: string): Promise<T>;
   async function json(name: string): Promise<unknown> {
     const file = named(name);
+    if (name.startsWith('custom/') || platformFileFamily(name, typeof file.jsonSchema?.['$comment'] === 'string' ? file.jsonSchema['$comment'] : undefined) === undefined) throw new ProductError(slug, name, 'schema', 'unregistered named JSON is retired');
     // Unsupported browser ingestion refuses before touching the blob reader.
     // An explicit native port keeps author bundles checked even under SSR:false.
     if (!(import.meta.env?.SSR ?? true) && input.builtJson !== true && input.jsonCheck === undefined && file.jsonSchema !== undefined) {
@@ -171,8 +147,8 @@ export function createShardProduct(input: ShardProductInput): ShardProduct {
     // a read in play lets a due frame through between its parse, schema compile and validation (pacedResolve)
     const decoded: unknown = file.jsonSchema === undefined ? JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
       : input.builtJson === true ? parseNamedJson(bytes) : await (input.jsonCheck ?? readCheckedNamedJson)(file.jsonSchema, bytes, () => pacedResolve(undefined));
-    if(input.builtJson!==true&&contract!==undefined){
-      try{validateRegisteredJson(name,decoded);}
+    if(input.builtJson!==true){
+      try{validatePlatformFile(name,typeof file.jsonSchema?.['$comment']==='string'?file.jsonSchema['$comment']:undefined,decoded);if(contract!==undefined)validateRegisteredJson(name,decoded);}
       catch(error){throw new ProductError(slug,name,'schema',`registered JSON refuses its defining contract: ${String(error)}`);}
     }
     return input.check === true ? deepFreeze(decoded) : decoded;
@@ -205,10 +181,7 @@ export function absentShardProduct(slug: string): ShardProduct {
   const absent = (item: string): never => {
     throw new ProductError(slug, item, 'absent', `no built shard was loaded for this entry (run \`wildshard build ${slug}\`)`);
   };
-  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- An absent product retains the same generated-type overload and always refuses.
-  function section<T>(name: CustomSectionName): T;
   function section<K extends PlatformSectionName>(name: K): PlatformSections[K];
-  function section<R extends Readonly<Record<string, v.GenericSchema>>, K extends keyof R & SectionName>(name: K, schemas: R): v.InferOutput<R[K]>;
   function section(name: string): never { return absent(name); }
   return {
     slug, revision: 0, get shardfile(): Shardfile { return absent('shardfile'); }, section,

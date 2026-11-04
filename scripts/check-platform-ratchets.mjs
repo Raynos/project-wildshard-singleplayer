@@ -6,10 +6,10 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
-import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
+import { zeroPolicyFailures } from './check-custom-sections-zero.mjs';
 import { compareClosedComponents } from './check-closed-components.mjs';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', CUSTOM_SECTION_POLICY, 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', RUNTIME_FILES_LIST];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', RUNTIME_FILES_LIST];
 
 const RUNTIME_REKEY_ABOUT = 'SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.';
 
@@ -146,23 +146,13 @@ function retiredClassCeilings(trees) {
 }
 
 /** Explicit immutable trees permit proven verbatim moves; every other policy allowance remains shrink-only.
- * Without trees, `sections` carries the predecessor and candidate custom-section policies (pre-commit). */
-export function comparePlatformList(list, baselineFile, candidateFile, trees, sections, sources) {
-  if (list === 'lint/ratchet.json' || list === CUSTOM_SECTION_POLICY) {
+ * Immutable source readers retain the same shrink-only checks without retired custom-policy inputs. */
+export function comparePlatformList(list, baselineFile, candidateFile, trees, sources) {
+  if (list === 'lint/ratchet.json') {
     const read=file=>existsSync(file)?JSON.parse(readFileSync(file,'utf8')):undefined;
-    const locks = list === 'lint/ratchet.json' ? compareClosedComponents(read(baselineFile)?.closedComponents, read(candidateFile)?.closedComponents) : [];
-    if(trees!==undefined)return compareCustomSections(read(resolve(trees.baselineRoot,'lint/ratchet.json'))?.budgets??{},
-      read(resolve(trees.candidateRoot,'lint/ratchet.json'))?.budgets??{},read(resolve(trees.baselineRoot,CUSTOM_SECTION_POLICY)),read(resolve(trees.candidateRoot,CUSTOM_SECTION_POLICY))).concat(locks);
-    if(list===CUSTOM_SECTION_POLICY) {
-      if(sources===undefined)return ['custom-section policy comparison requires immutable trees'];
-      // The committed gate supplies immutable Git readers instead of materialized
-      // trees. Read both ceilings and policies from those same revision views.
-      const readSource=(reader,file)=>{const text=reader(file);return text===undefined?undefined:JSON.parse(text);};
-      return compareCustomSections(readSource(sources.before,'lint/ratchet.json')?.budgets??{},
-        readSource(sources.after,'lint/ratchet.json')?.budgets??{},
-        readSource(sources.before,CUSTOM_SECTION_POLICY),readSource(sources.after,CUSTOM_SECTION_POLICY));
-    }
-    return compareCustomSections(read(baselineFile)?.budgets??{},read(candidateFile)?.budgets??{},sections?.before,sections?.after).concat(locks);
+    const fromSource=reader=>{const text=reader('lint/ratchet.json');return text===undefined?undefined:JSON.parse(text);};
+    const before=sources===undefined?read(baselineFile):fromSource(sources.before),after=sources===undefined?read(candidateFile):fromSource(sources.after);
+    return zeroPolicyFailures(after?.budgets??{}).concat(compareClosedComponents(before?.closedComponents,after?.closedComponents));
   }
   if (list === CLASS_MOVE_LIST) {
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).moves : {};

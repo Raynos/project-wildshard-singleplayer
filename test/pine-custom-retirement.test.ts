@@ -28,7 +28,7 @@ test('five retired Pine copies reconstruct complete canonical bodies from native
     const bytes = new TextEncoder().encode(encodeCanonicalJson(value));
     expect(bytes.byteLength,name).toBe(expected.bytes);
     expect(hashImmutableBytes(bytes),name).toBe(expected.hash);
-    expect(output.custom.sections.some(section => section.name === name),name).toBe(false);
+    expect(Object.hasOwn(output, 'custom')).toBe(false);
   }
   expect(rows.get('custom/cabinAppearance')).toEqual({CABIN_LIFE,CABIN_LIGHT,HEARTH_LOOKS});
   expect(rows.get('custom/kingKit')).toEqual(PINE_KING_KIT.rows);
@@ -37,7 +37,7 @@ test('five retired Pine copies reconstruct complete canonical bodies from native
 });
 
 test('the complete quest runtime leaves no Pine document in the custom path', () => {
-  expect(output.custom.sections).toEqual([]);
+  expect(Object.hasOwn(output, 'custom')).toBe(false);
   expect(output.namedFiles.some(row => row.name === 'quests/runtime.json')).toBe(true);
   expect(output.namedFiles.some(row => row.name === 'quests/native-story.json')).toBe(false);
 });

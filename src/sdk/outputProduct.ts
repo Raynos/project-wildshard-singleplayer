@@ -31,7 +31,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { assetHandles, hashAssetBytes, immutableAsset, verifyAssetBytes, type ImmutableAsset } from './assetHandle';
 import { readBoundedFile } from './sourceReader';
 import { validateRuntimeImports } from './runtimeImports';
-import { validateDefinedSection, validateDefinedJson, type EmittedSections } from './sections';
+import { validateDefinedJson, type EmittedSections } from './sections';
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 const encoder = new TextEncoder();
@@ -70,7 +70,7 @@ function inspectBlob(file: OutputFile, bytes: Uint8Array, script?: ScriptContrac
   if (file.jsonSchema !== undefined) validateDefinedJson(jsonBytes(file.jsonSchema), bytes, file.name);
   if (file.kind === 'json' && file.name !== undefined) {
     const source = file.jsonSchema?.['$comment'];
-    validatePlatformFile(file.name, typeof source === 'string' ? source : undefined, parseNamedJson(bytes));
+    if (validatePlatformFile(file.name, typeof source === 'string' ? source : undefined, parseNamedJson(bytes)) === undefined) throw new Error(`Unregistered named JSON: ${file.name}`);
   }
   const legacy = file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind;
   if (blobKind(legacy,bytes) !== file.kind || !file.path.endsWith(`.${blobExtension(file.kind,bytes)}`)) throw new Error('Output blob bytes differ from their declared kind');
@@ -82,7 +82,6 @@ function put(destination: string, path: string, bytes: Uint8Array): void { const
 export interface OutputProductOptions {
   /** Build metadata only; discovery inlines these admitted values after the product is built. */
   readonly discovery?: DiscoveryValues;
-  readonly custom?: EmittedSections;
   readonly platform?: EmittedSections;
   readonly namedFiles?: readonly OutputFile[];
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
@@ -114,6 +113,7 @@ function checkWorldTargets(source: Shardfile, input: unknown): void {
 }
 /** Split an admitted product without changing host values or any immutable asset byte. */
 export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Uint8Array>, destination: string, options: OutputProductOptions = {}): OutputIndex {
+  if (Object.hasOwn(options, 'custom')) throw new Error('Custom output extensions are retired');
   // the product buildProject admitted a moment ago is not admitted twice in memory (readmitted); the written folder always is
   const scripts = outputScriptAdmissionRows(options.platform), source = readmitted(input,assets,'warn',scripts) ?? admitProduct(input,assets,'warn',scripts);
   const targetEntry = options.platform?.sections.find(row => row.name === 'world/targets');
@@ -133,9 +133,9 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     const bytes = jsonBytes(value), path = `sections/${name}.json`;emitted.set(path,bytes);
     sections.push({name,path,schema:`wildshard:${name}@1`,hash:hashAssetBytes(bytes),bytes:bytes.length});
   }
-  for (const {name,path,schema,hash,bytes} of [...options.custom?.sections ?? [],...options.platform?.sections ?? []]) sections.push({name,path,schema,hash,bytes});
-  for (const [path,bytes] of [...options.custom?.files ?? [],...options.platform?.files ?? []]) {
-    if (emitted.has(path)) throw new Error('Custom output crosses platform output');
+  for (const {name,path,schema,hash,bytes} of options.platform?.sections ?? []) sections.push({name,path,schema,hash,bytes});
+  for (const [path,bytes] of options.platform?.files ?? []) {
+    if (emitted.has(path)) throw new Error('Duplicate platform output path');
     emitted.set(path,bytes);
     if (path.startsWith('schemas/')) schemas.push({path,hash:hashAssetBytes(bytes),bytes:bytes.length});
   }
@@ -241,12 +241,12 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     ...(discovery === undefined ? {} : { discovery: { hash: hashImmutableBytes(jsonBytes(discovery)), values: discovery } }) }));
   return index;
 }
-/** Validate format, exact file inventory, bytes/kinds and platform/custom schemas.
+/** Validate format, exact file inventory, bytes/kinds and defining platform contracts.
  * Existing full product admission still enforces cross-references and budgets. */
 export function validateOutputProduct(destination: string, prior?: ReadonlyMap<string, ImmutableAsset>): {index:OutputIndex; shard:Shardfile; assets:ReadonlyMap<string,Uint8Array>} {
   const index = parseOutputIndex(readJson(readBoundedFile(resolve(destination,'shard.json'),limits.sourceBytes)));
   const verified = new Map(prior);
-  const listed = new Set(['shard.json','validation.json']), payloads = new Map<string,unknown>(), schemaBytes = new Map<string,Uint8Array>(), assets = new Map<string,Uint8Array>();
+  const listed = new Set(['shard.json','validation.json']), payloads = new Map<string,unknown>(), assets = new Map<string,Uint8Array>();
   const read = (entry:{path:string;hash:string;bytes:number}):Uint8Array => {
     let target=destination;
     for(const part of entry.path.split('/')){target=resolve(target,part);if(lstatSync(target).isSymbolicLink())throw new Error('Output symlinks refuse');}
@@ -255,8 +255,7 @@ export function validateOutputProduct(destination: string, prior?: ReadonlyMap<s
     if(bytes.length!==entry.bytes||!verifyAssetBytes(bytes,entry.hash,verified.get(entry.hash)))throw new Error(`Output hash or size mismatch: ${entry.path}`);
     verified.set(entry.hash,immutableAsset(bytes));return bytes;
   };
-  for(const entry of index.schemas){const bytes=read(entry);readJson(bytes);schemaBytes.set(entry.path,bytes);}
-  for(const entry of index.sections){const bytes=read(entry),value=readJson(bytes);if(entry.name.startsWith('custom/')){const schema=schemaBytes.get(entry.schema);if(schema===undefined)throw new Error('Missing custom schema');validateDefinedSection(schema,value);}else validateOutputSection(entry.name,value);payloads.set(entry.name,value);}
+  for(const entry of index.sections){const bytes=read(entry),value=readJson(bytes);validateOutputSection(entry.name,value);payloads.set(entry.name,value);}
   const scripts = scriptAdmissionRows(payloads), contracts = decisionModuleContracts(scripts, index.files);
   for(const entry of index.files){const bytes=read({path:entry.path,hash:entry.hash,bytes:entry.compressed});inspectBlob(entry,bytes,entry.kind === 'wasm' ? contracts.get(entry.hash) ?? {abi:0} : undefined);assets.set(`${entry.commons===true?'commons:':''}${entry.hash}`,bytes);if(index.requires.commons.includes(entry.hash))assets.set(`commons:${entry.hash}`,bytes);}
   for (const [hash,cost] of Object.entries(index.ktx2Costs ?? {})) {

@@ -8737,13 +8737,20 @@ edges until scope disposal. Callers retain their update phase and original
 version-3 stage snapshot; restoring stays silent. Captain combat, reward
 pose/carry and page sound/caption effects remain with their existing owners.
 
-### Custom sections / [files](PLATFORM-FILE-FAMILIES.md)
+### Platform sections and [files](PLATFORM-FILE-FAMILIES.md)
 
-Build-time `@wildshard/sdk/sections` defines a private table with
-`defineSection('custom/name', valibotSchema, value)`.
-Values must be plain JSON;
-Valibot supplies defaults before emission. Predicates or transformations
-that cannot be represented by JSON Schema refuse instead of being dropped.
+Z15 closes the custom path. Output admission refuses every `custom/` name,
+custom schema inventory and unregistered named JSON. Only `platform` is an
+emitted-section extension; there is no custom definition or emission API,
+shard `SECTIONS` registry, generated custom declaration or per-shard capacity.
+The verified all-product census is locked by `custom-sections/total = 0`.
+
+Named JSON requires an exact registered complete file family and defining
+schema provenance. Native validation preserves its original malformed-data,
+resource and semantic refusals. A single-user exception requires Jake's
+named approval and the complete implemented contract; approval alone grants
+no registration or count credit. Bytes and parser-owned defaults retain
+their existing consumers and lifecycle.
 
 `parseSectionValue(schema, value)` runs the defining native parser when an
 existing section owns its wire grammar separately. It preserves defaults,
@@ -8753,29 +8760,10 @@ the caller still publishes and validates its original wire schema.
 array through the defining native collider grammar with original file-slice
 storage and shape/provenance checks; it neither reads nor decodes files.
 
-`emitDefinedSections(definitions)` returns sorted index descriptors and a
-map of canonical bytes at `sections/custom/name.json` and
-`schemas/custom/name.schema.json`. The product writer owns publishing those
-files. Duplicate names and path escapes refuse before any file is written.
-`validateDefinedSection(schemaBytes, value)` independently checks a custom
-section loaded from disk against its canonical draft-07 schema, without
-loading author code. It refuses unknown checks, unresolved external schemas,
-asynchronous validation and non-JSON values; it never coerces data, supplies
-defaults or removes unknown properties. Runtime custom-section readers keep
-their own local schema; the authoring SDK never enters the play graph.
-
-
-For migrated custom sections, declare `SECTIONS` only in
-`runtime/sections.ts`. The official section-schema producer copies that
-schema-only registry into ignored `generators/sectionSchemas.generated.ts`
-and derives draft-07 structural documents with
-`formatJsonSchema(schema, 'draft-07')`. The default format-schema target
-remains draft-2020-12. The authoring entry imports the generated bridge,
-never `runtime/`. Relative, dynamic or non-schema package imports refuse.
-The producer and copied-runtime proof keep the defining Valibot checks;
-disk admission uses the derived structural schema. Unknown predicates and
-transforms still refuse conversion. The generation cache binds the bridge
-to the registry and public format sources; `pnpm gen` regenerates it.
+`validateDefinedJson(schemaBytes, bytes, name)` validates named file bytes
+against their defining draft-07 grammar. Unknown checks, external schemas,
+async validators and noncanonical data still refuse. This named-file
+validation remains available independently of the retired custom transport.
 
 ### Verbatim runtime output (P3)
 
@@ -8834,7 +8822,7 @@ rig and collider provenance. It preserves actor order and encoded buffers.
 Build-time `@wildshard/sdk/platformSections.worldPhysicsSection(bake,
 {rig, provenance})` extracts those common fields from an unchanged producer
 output. Owner-specific encounter, habitat, shelter and hit-volume metadata
-must use custom sections and retain their existing owner validation. The
+must use complete registered native contracts and retain their existing owner validation. The
 platform section does not replace these checks or decode native buffers.
 `emitPlatformSections(map)` validates values and returns canonical bytes
 and descriptors with schema ids `wildshard:<name>@1` for the product writer.
@@ -8862,12 +8850,12 @@ checker through `runtimeCheck`; ordinary SDK output admission also checks
 imports on the actual copy. There is no migration allowance or source
 fallback. Current app builds opt in together when their runtimes close.
 
-The proof reads hashed emitted custom JSON and evaluates only the copied
-`runtime/sections.ts` and `runtime/const.ts` namespaces using an in-memory
-Node build. It never executes either page or native entry and emits no
-JavaScript artifact. `validateRuntimeData` requires a synchronous Valibot
-schema for every custom section, refuses undeclared schema keys and
-parses emitted values. The config's `mirrors` export is checked with the
+The proof refuses copied executable runtime and any retired custom registry.
+Mirror comparison retains the original constant names and values; a declared
+mirror without its required constant namespace still refuses. It never
+executes a page or native entry and emits no JavaScript artifact.
+`runtime/sections.ts` and `runtime/productSections.d.ts` are retired.
+The config's `mirrors` export is checked with the
 defining `runtimeMirrorIssues` comparer. A failed proof removes the owned
 product, including its validation receipt. Client runtime code is
 compiled into the app and never imported from a remote JavaScript URL.
@@ -11639,7 +11627,7 @@ subscriptions and releases draw guards and material variants immediately.
 and releases its scope bookkeeping; owner disposal remains the fallback cleanup.
 
 The format's spatial AABBs and cell rectangles must fit the same cell envelope
-in every section, including custom sections. Placed prop triangle bytes are
+in every admitted platform section. Placed prop triangle bytes are
 checked even without `drawBounds`; a visual overhang no longer widens admission.
 Navigation voxel envelopes and model-local culling spheres retain their separate
 typed coordinate contracts; the loader checks the actual placed draw bounds.
@@ -11762,8 +11750,8 @@ The ranged feature can declare `shadowBatch: { shard, grid }`; the page-mode
 host selects that authored value. The composition reads its admitted named
 rows, requires their exact id, installs the existing quest once, and publishes
 the concrete quest, animal-manager and sound-bank loans. The spawn feature
-requires matching declared composition loans and one admitted custom section;
-its compiled reader takes only that section's fixed `spawns` field. It checks
+requires matching declared composition loans and one admitted registered JSON source;
+its compiled reader takes only that complete source's fixed `spawns` field. It checks
 the bound quest and sound identities before constructing the existing AS runner
 and refuses expired or changed loans across admission.
 
@@ -11778,7 +11766,7 @@ callback row, export lookup or property selector is introduced.
 `{catalogue, draws, cards}`. Each card contains standard model metadata
 and the existing numeric `QuestFigureSchema` row. Model defaults are empty;
 variants and other unused controls refuse. `draws` names one admitted
-custom section's fixedDraws field, never a field path or executable builder.
+`models/island-library` platform root, never a field path or executable builder.
 The book is a defining named-JSON wire root. It introduces no loader,
 owner, clock, view update or geometry representation by itself.
 

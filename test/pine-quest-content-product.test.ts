@@ -37,7 +37,7 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   // the King's saved decision contract.
   expect(gameplay.flags).toEqual(quests.flags);
   expect(hash(gameplay)).toBe(hash(quests));
-  expect(product.has('custom/questRuntime')).toBe(false);
+  expect(product.hasFile('custom/questRuntime')).toBe(false);
   if (!product.hasFile('quests/runtime.json')) throw new Error('The product must publish its complete quest runtime');
   const rows = parsePineQuestRows(await product.json<unknown>('quests/runtime.json'));
   expect(rows).not.toHaveProperty('graph'); expect(rows).not.toHaveProperty('interactions');

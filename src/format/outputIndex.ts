@@ -1,3 +1,4 @@
+import { platformFileFamily } from './platformFileFamilies';
 import type { Ktx2DeviceCosts } from './ktx2Cost';
 import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate } from './admissionLate';
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
@@ -28,7 +29,7 @@ export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputInde
   format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2), sdk: v.literal('0.2'), version: v.literal(SHARDFILE_VERSION),
   identity: IdentitySchema, build: v.strictObject({ sourceHash: ShardHashSchema, validator: v.pipe(v.string(), v.minLength(1), v.maxLength(160)) }), requires: RequiresSchema,
   admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library, late: v.exactOptional(AdmissionLateSchema) }),
-  sections: v.pipe(v.array(section), v.maxLength(256)), schemas: v.pipe(v.array(v.strictObject(measuredFile)), v.maxLength(128)),
+  sections: v.pipe(v.array(section), v.maxLength(256)), schemas: v.pipe(v.array(v.strictObject(measuredFile)), v.maxLength(0)),
   files: v.pipe(v.array(fileSchema), v.maxLength(8192)), runtime: v.nullable(runtime),
   ktx2Costs: v.exactOptional(v.pipe(v.record(ShardHashSchema,v.strictObject({rgba:ShardNaturalSchema,astc:ShardNaturalSchema,bc7:ShardNaturalSchema})),v.check(rows=>Object.keys(rows).length<=8192,'bounded texture cost table'))),
   /** iPhone downloads I5: content-hashed concatenations of the small sections, schemas and files, so a reader can fetch
@@ -69,14 +70,13 @@ function parseOutputIndexRows(input: unknown): OutputIndex {
   for (const entry of index.sections) {
     if (names.has(entry.name) || entry.path !== `sections/${entry.name}.json`) throw new Error('Duplicate or mismatched section path');
     names.add(entry.name);
-    if (entry.name.startsWith('custom/')) {
-      if (entry.schema !== `schemas/${entry.name}.schema.json` || !index.schemas.some(row => row.path === entry.schema)) throw new Error('Custom section needs its listed schema');
-    } else if ((!OUTPUT_SECTIONS.some(row => row.name === entry.name) && !isPlatformDataSection(entry.name)) || entry.schema !== `wildshard:${entry.name}@1`) throw new Error('Unknown platform section schema');
+    if ((!OUTPUT_SECTIONS.some(row => row.name === entry.name) && !isPlatformDataSection(entry.name)) || entry.schema !== `wildshard:${entry.name}@1`) throw new Error('Unknown platform section schema');
   }
-  for (const entry of index.schemas) if (!index.sections.some(row => row.schema === entry.path)) throw new Error('Unreferenced custom schema');
   const refs = new Set<string>(), logical = new Set<string>();
   for (const entry of index.files) {
     outputBlobPath(entry);
+    if (entry.name?.startsWith('custom/')) throw new Error('Custom output names are retired');
+    if (entry.kind === 'json' && entry.name !== undefined && platformFileFamily(entry.name, typeof entry.jsonSchema?.['$comment'] === 'string' ? entry.jsonSchema['$comment'] : undefined) === undefined) throw new Error(`Unregistered named JSON: ${entry.name}`);
     if (entry.jsonSchema !== undefined && (entry.kind !== 'json' || entry.name === undefined)) throw new Error('JSON schema requires a named JSON blob');
     const ref = `${entry.commons === true ? 'commons:' : ''}${entry.hash}`;
     if (refs.has(ref)) throw new Error('Duplicate output blob reference'); refs.add(ref);

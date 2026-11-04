@@ -4,7 +4,6 @@ import { sourceManifest } from '../src/game/plugin/context';
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
-import * as v from 'valibot';
 import * as schema from '../src/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -57,20 +56,19 @@ function fixture(platformRef = false, extra?: (source: schema.Shardfile) => Read
   source.files.push({ hash: ref, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
   source.library.push(ref); source.budgets.library = { compressed: 3, resident: 3 };
   const added = extra?.(source);
-  const values = new Map(outputSectionPayloads(source)); values.set('custom/facts', { count: 3 });
+  const values = new Map(outputSectionPayloads(source)); values.set('ui/strings', { count: '3' });
   for (const [name, value] of added ?? []) values.set(name, value);
   if (platformRef) values.set('ui/strings', { file: `blobs/bin/${ref}.bin` });
-  const customSchema = bytes({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['count'], additionalProperties: false, properties: { count: { type: 'number' } } });
-  const wires = new Map<string, Uint8Array>([['schemas/custom/facts.schema.json', customSchema]]); let descriptors = 0;
+  const wires = new Map<string, Uint8Array>(); let descriptors = 0;
   const sections = [...values].map(([name, value]) => {
     const wire = bytes(value), path = `sections/${name}.json`; wires.set(path, wire);
     return { name, path, hash: hashImmutableBytes(wire), bytes: wire.length,
-      schema: name.startsWith('custom/') ? `schemas/${name}.schema.json` : `wildshard:${name}@1` };
+      schema: `wildshard:${name}@1` };
   });
   const index = parseOutputIndex({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version,
     identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
     admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
-    sections, schemas: [{ path: 'schemas/custom/facts.schema.json', hash: hashImmutableBytes(customSchema), bytes: customSchema.length }],
+    sections, schemas: [],
     files: source.files.map(file => ({ ...file, kind: file.kind === 'image' ? 'image' : 'bin', name: logicalNames?.get(file.hash) ?? (file.hash === ref ? 'models/token.bin' : 'models/desktop.bin'), path: file.kind === 'image' ? `blobs/image/${file.hash}.png` : `blobs/bin/${file.hash}.bin` })), runtime: source.runtime === null ? null : { ...source.runtime, trust:'first-party',files:[],lines:0 } });
   wires.set('shard.json', bytes(index)); wires.set(`blobs/bin/${ref}.bin`, blob);
   const base = 'https://test.example/shardfiles/runtime-loader/';
@@ -258,16 +256,16 @@ test('worker-verified custom sections retain schema validation and named pending
   try {
     await vi.waitFor(() => { expect(started).toHaveLength(f.index.sections.length + f.index.schemas.length); });
     expect(bootWaits().some(row => row.label === 'Read Product data section'
-      && row.resource === new URL('sections/custom/facts.json', f.options.base).href && row.kind === 'file')).toBe(true);
+      && row.resource === new URL('sections/ui/strings.json', f.options.base).href && row.kind === 'file')).toBe(true);
   } finally { release(); }
   await expect(pending).resolves.toBeDefined();
   expect(bootWaits()).toHaveLength(0);
   const sections = f.index.sections.map(row => {
-    if (row.name !== 'custom/facts') return row;
-    const wire = bytes({ count: 'invalid' }); f.wires.set(row.path, wire);
+    if (row.name !== 'ui/strings') return row;
+    const wire = bytes({ count: 3 }); f.wires.set(row.path, wire);
     return { ...row, bytes: wire.length, hash: hashImmutableBytes(wire) };
   });
-  await expect(admitProduct({ ...f.index, sections }, options)).rejects.toThrow('Custom section value refuses its schema');
+  await expect(admitProduct({ ...f.index, sections }, options)).rejects.toThrow();
 });
 
 test.each(['content', 'url'])('trusted %s bytes are hashed once and retain exact size refusal for admission and rereads', async kind => {
@@ -382,53 +380,53 @@ test('the pinned index keeps custom admission and shares a facade until its last
   const [first, second] = await Promise.all([loadShardProduct(f.source.identity.slug, f.options, a), loadShardProduct(f.source.identity.slug, f.options, b)]);
   expect(first).toBe(second); expect(f.descriptors()).toBe(1); expect(parse).not.toHaveBeenCalled();
   expect(first.section('quests/quests').quests).toEqual(f.source.quests);
-  expect(first.section('custom/facts', { 'custom/facts': v.strictObject({ count: v.number() }) })).toEqual({ count: 3 });
+  expect(first.section('ui/strings')).toEqual({ count: '3' });
   expect(await first.file('models/token.bin')).toEqual(f.blob);
   a.dispose(); expect(await loadShardProduct(f.source.identity.slug, f.options, b)).toBe(first);
   b.dispose(); expect(await loadShardProduct(f.source.identity.slug, f.options, own())).not.toBe(first);
   expect(f.descriptors()).toBe(2);
 });
 
-test('a pinned product still refuses missing and changed custom schema bytes', async () => {
+test('a pinned product still refuses missing and changed platform bytes', async () => {
   const missing = fixture(); trust(missing.receipt);
-  missing.wires.delete('schemas/custom/facts.schema.json');
+  missing.wires.delete('sections/ui/strings.json');
   await expect(loadShardProduct(missing.source.identity.slug, missing.options, own())).rejects.toThrow('Unavailable');
   const changed = fixture(); trust(changed.receipt);
-  changed.wires.set('schemas/custom/facts.schema.json', bytes({ $schema: 'http://json-schema.org/draft-07/schema#' }));
+  changed.wires.set('sections/ui/strings.json', bytes({ count: '4' }));
   await expect(loadShardProduct(changed.source.identity.slug, changed.options, own())).rejects.toThrow('hash or size');
 });
 
 test('an exact build proof does not rerun custom section validators in play', async () => {
   const f = fixture(); trust(f.receipt);
-  const synchronous = vi.spyOn(customValidators, 'validateCustomSchema');
-  const paced = vi.spyOn(customValidators, 'validateCustomSchemaPaced');
+  const synchronous = vi.spyOn(customValidators, 'validateNamedJsonSchema');
+  const paced = vi.spyOn(customValidators, 'validateNamedJsonSchemaPaced');
   try {
     const product = await loadShardProduct(f.source.identity.slug, f.options, own());
-    expect(product.section<{ count: number }>('custom/facts')).toEqual({ count: 3 });
+    expect(product.section('ui/strings')).toEqual({ count: '3' });
     expect(synchronous).not.toHaveBeenCalled(); expect(paced).not.toHaveBeenCalled();
   } finally { synchronous.mockRestore(); paced.mockRestore(); }
 });
 
 test('an unproved custom section still refuses a schema violation after its bytes are verified', async () => {
   const f = fixture(); trust(f.receipt);
-  const row = f.index.sections.find(section => section.name === 'custom/facts');
+  const row = f.index.sections.find(section => section.name === 'ui/strings');
   if (row === undefined) throw new Error('Missing custom section fixture');
-  const changed = bytes({ count: 'wrong' });
+  const changed = bytes({ count: 3 });
   row.hash = hashImmutableBytes(changed); row.bytes = changed.length;
   f.wires.set(row.path, changed); f.wires.set('shard.json', bytes(f.index));
-  await expect(readProductDescriptor({ ...f.options, firstParty: false })).rejects.toThrow('refuses its schema');
+  await expect(readProductDescriptor({ ...f.options, firstParty: false })).rejects.toThrow();
 });
 
 test('a wrong index receipt never bypasses parsing and custom checks', async () => {
   const f = fixture(); trust({ ...f.receipt, indexHash: '0'.repeat(64) }); const parse = vi.spyOn(schema, 'parseShardfile');
   const product = await loadShardProduct(f.source.identity.slug, f.options, own());
   expect(parse).toHaveBeenCalled();
-  expect(() => product.section('custom/facts', { 'custom/facts': v.strictObject({ count: v.string() }) })).toThrow('schema');
+  expect(product.section('ui/strings')).toEqual({ count: '3' });
 });
 
 test('a pinned index refuses changed section bytes even with a matching source receipt', async () => {
   const f = fixture(); trust(f.receipt);
-  const section = f.index.sections.find(row => row.name === 'custom/facts');
+  const section = f.index.sections.find(row => row.name === 'ui/strings');
   if (section === undefined) throw new Error('Missing custom section');
   f.wires.set(section.path, bytes({ count: 4 }));
   await expect(loadShardProduct(f.source.identity.slug, f.options, own())).rejects.toThrow('hash or size');

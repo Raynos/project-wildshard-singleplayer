@@ -21,7 +21,7 @@ beforeAll(async () => {
   // Pine's built product (CI's build or the matching local cache), not its whole author output rebuilt in the hook
   const pine = await loadHeadlessProduct(builtProduct('pine-hollow'));
   economy = declaredLootEconomy(pine.shardfile.rows.loot, 'barter');
-  expect(pine.has('custom/tradeCatalogue')).toBe(false);
+  expect(pine.hasFile('custom/tradeCatalogue')).toBe(false);
   expect(pine.hasFile('quests/exchange.json')).toBe(false);
   exchangeRows = economy.exchange;
   declared = parseTradeCatalogue(tradeCatalogue());

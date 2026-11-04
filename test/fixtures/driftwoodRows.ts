@@ -6,6 +6,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
 import { DRIFTWOOD_CLIENT_SECTIONS } from './driftwoodLegacyLayouts';
+import { DRIFTWOOD_CLIENT_SECTIONS as PLATFORM_ROWS } from '../../src/shards/driftwood-isle/generators/clientSections';
 import { admitDriftwoodRows } from './driftwoodLegacyRows';
 import { NPC_FOCUS_PROGRAMS } from '../../src/shards/driftwood-isle/generators/npcFocusPrograms';
 import { fixtureProductFile, fixtureJsonCheck } from './productFile';
@@ -15,11 +16,14 @@ import { fixtureProductFile, fixtureJsonCheck } from './productFile';
 export function admitDriftwoodFixtureRows(): void {
   const sections = new Map<string, unknown>();
   for (const row of DRIFTWOOD_CLIENT_SECTIONS) { const value: unknown = JSON.parse(JSON.stringify(row.value)); sections.set(row.name, value); }
+  const originalRows = new Map(sections);
+  for (const name of sections.keys()) if (name.startsWith('custom/')) sections.delete(name);
+  for(const row of PLATFORM_ROWS) sections.set(row.name,row.value);
   sections.set('look/toon', TOON_LOOK);
   sections.set('held/arms', HELD_ARMS);
   const identity = { slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 1 };
   const bytes = new TextEncoder().encode(encodeCanonicalJson(inventory.groups)), hash = hashImmutableBytes(bytes);
   const figures = new TextEncoder().encode(encodeCanonicalJson(FIGURE_CATALOGUE)), figureHash = hashImmutableBytes(figures);
   admitDriftwoodRows(createShardProduct({ slug: 'driftwood-isle', revision: 1, jsonCheck: fixtureJsonCheck, shardfile: { ...emptyShardfile(identity), clientChannels: NPC_FOCUS_PROGRAMS }, sections, files: new Map([['models/fixed-geometry.json', fixtureProductFile('models/fixed-geometry.json', { hash, url: '/fixed-geometry.json' })], ['people/catalogue.json', fixtureProductFile('people/catalogue.json', { hash: figureHash, url: '/people/catalogue.json' })]]),
-    read: name => name === hash ? Promise.resolve(bytes) : name === figureHash ? Promise.resolve(figures) : Promise.reject(new Error('no such file in this fixture')), check: true }));
+    read: name => name === hash ? Promise.resolve(bytes) : name === figureHash ? Promise.resolve(figures) : Promise.reject(new Error('no such file in this fixture')), check: true }), originalRows);
 }

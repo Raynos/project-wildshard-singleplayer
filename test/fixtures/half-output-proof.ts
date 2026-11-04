@@ -62,7 +62,7 @@ export class HalfOutputProof {
       const a = oldFiles.get(old.hash), b = newFiles.get(next.hash);
       if (a !== undefined && b !== undefined && old.kind === 'json') candidates.push({ before: a, current: b, name });
     }
-    for (const kind of ['platform', 'custom'] as const) {
+    for (const kind of ['platform'] as const) {
       for (const [name, bytes] of before.options[kind]?.files ?? []) {
         const next = current.options[kind]?.files.get(name);
         if (next === undefined) throw new Error(`Missing current half-control ${kind}/${name}`);

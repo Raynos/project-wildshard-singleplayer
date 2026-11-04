@@ -37,7 +37,7 @@ test('Driftwood client reads resolve against the emitted output', async () => {
   const puffs = parseToonLook(loaded.section('look/toon')).sky.clouds.puffs;
   expect(puffs.length).toBeGreaterThan(0);
   expect(puffs).toEqual(cumulusPuffs);
-  expect(loaded.has('custom/cumulusPuffs')).toBe(false);
+  expect(loaded.hasFile('custom/cumulusPuffs')).toBe(false);
   const layouts = v.parse(ResolvedIslandLibrarySchema, loaded.section('models/island-library'));
   expect(layouts.id).toBe('driftwood.island');
   const named=async(name:string):Promise<unknown>=>{

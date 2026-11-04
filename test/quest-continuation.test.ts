@@ -49,6 +49,12 @@ function fixture(read: (hash: string) => Promise<Uint8Array>, parent?: Scope) {
     sections: new Map<string, unknown>([['economy/loot', { rows: { loot: admitted.loot } }], ['collections/displays', { models: {},
       keepsakes: { ...collections.keepsakes, placements: [], trophies: {}, wardrobe: [], restore: [] } }]]),
     files: new Map([['continuation.json', { hash: 'continuation', url: '/continuation.json' }], ['cosmetics.json', { hash: 'cosmetics', url: '/cosmetics.json' }], ['shop.json', { hash: 'shop', url: '/shop.json' }]]), read });
+  // This host-lifecycle fixture has no shipping document. Its explicit JSON
+  // oracle preserves the old byte/read schedule; native ingestion/refusal is
+  // checked independently by named-json-admission and the real product proofs.
+  vi.spyOn(product,'json').mockImplementation(async name=>{
+    const bytes=await product.file(name);const value:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));return value;
+  });
   const world = legacyDouble<NonNullable<ShardRuntime['world']>>({ sky: SkyRig.prototype, game: new FakeGame().asGame(), registry: new WorldRegistry(),
     player: legacyDouble<NonNullable<ShardRuntime['world']>['player']>({ position: new Vector3(), yaw: 0 }) });
   const play = legacyDouble<NonNullable<ShardRuntime['play']>>({ weapons: legacyDouble<NonNullable<ShardRuntime['play']>['weapons']>({ list: [] }),

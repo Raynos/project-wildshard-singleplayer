@@ -1,5 +1,4 @@
 import { afterEach, expect, it } from 'vitest';
-import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- The output validator fixture owns its generated directory.
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, symlinkSync, existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files inside the owned output directory.
@@ -8,7 +7,6 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import { runtimePackageAllowed, validateRuntimeImports } from './runtimeImports';
-import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
 import { writeOutputProduct, validateOutputProduct } from './outputProduct';
 import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 
@@ -18,18 +16,17 @@ function textureBody(size: number, padding: number): Uint8Array { const bytes=ne
 function output(): string { mkdirSync('tmp',{recursive:true});const path=mkdtempSync(resolve('tmp','output-product-'));directories.push(path);return path; }
 const source = () => emptyShardfile({slug:'output-test',name:'Output',author:'Test',revision:1,seed:3});
 afterEach(()=>{for(const directory of directories.splice(0))rmSync(directory,{recursive:true,force:true});});
-it('writes deterministic sections and revalidates a custom schema from disk',()=>{
+it('writes deterministic platform sections and verifies their bytes on disk',()=>{
  const shard=source(), first=output(),second=output();
- const custom=emitDefinedSections([defineSection('custom/wind',v.strictObject({speed:v.number()}),{speed:7})]);
  const platform=emitPlatformSections(new Map([['ui/strings',{hello:'Hello'}]]));
- writeOutputProduct(shard,new Map(),first,{custom,platform});writeOutputProduct(shard,new Map(),second,{custom,platform});
+ writeOutputProduct(shard,new Map(),first,{platform});writeOutputProduct(shard,new Map(),second,{platform});
  expect(readFileSync(resolve(first,'shard.json'))).toEqual(readFileSync(resolve(second,'shard.json')));
  expect(validateOutputProduct(first).shard).toEqual(shard);
  const evidence:unknown=JSON.parse(readFileSync(resolve(first,'validation.json'),'utf8'));
  expect(evidence).toMatchObject({indexHash:hashImmutableBytes(readFileSync(resolve(first,'shard.json'))),gridReady:{version:1,criteria:{
    bakedTiles:{verdict:'fail'},edgeProfile:{verdict:'pass'},fourEntryways:{verdict:'pass'},hudAccent:{verdict:'pass'},
  }}});
- const path=resolve(first,'schemas/custom/wind.schema.json');writeFileSync(path,'{}\n');
+ const path=resolve(first,'sections/ui/strings.json');writeFileSync(path,'{}\n');
  expect(()=>validateOutputProduct(first)).toThrow(/hash|size/u);
 });
 it('splits terrain from opaque binary while retaining byte and field identity',()=>{

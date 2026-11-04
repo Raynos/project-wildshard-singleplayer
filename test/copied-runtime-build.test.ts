@@ -19,15 +19,12 @@ function fixture(runtime = 'null', mirrors = true): { project: string; destinati
   const shard = emptyShardfile({ slug: 'runtime-test', name: 'Runtime', author: 'Test', revision: 1, seed: 3 });
   // The declaration is raw config text: LD9 retired the copied-runtime `entry` arm, so it is no longer a typed shape.
   writeFileSync(resolve(project, 'shard.config.ts'), `
-import * as v from 'valibot';
-import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
 export default {...${JSON.stringify(shard)}, runtime: ${runtime}};
-export const output = {custom:emitDefinedSections([defineSection('custom/reward',v.strictObject({amount:v.number()}),{amount:3})])};
+export const output = {};
 ${mirrors ? "export const mirrors = [{name:'REWARD',value:{amount:3}}];" : ''}
 `);
   writeFileSync(resolve(project, 'runtime/index.ts'), 'throw new Error("Page entry must never execute during a build");\r\n');
   writeFileSync(resolve(project, 'runtime/hybrid.ts'), 'throw new Error("Native entry must never execute during a build");\n');
-  writeFileSync(resolve(project, 'runtime/sections.ts'), "import * as v from 'valibot';\nexport const SECTIONS = {'custom/reward':v.strictObject({amount:v.number()})};\n");
   writeFileSync(resolve(project, 'runtime/const.ts'), 'export const REWARD = {amount:3};\r\n');
   return { project, destination };
 }
@@ -42,18 +39,22 @@ it('refuses a source entry declaration at admission', async () => {
   await expect(buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true })).rejects.toThrow();
   expect(existsSync(resolve(destination, 'validation.json'))).toBe(false);
 });
-it('proves custom sections from their built schemas, and declared mirrors still need a runtime constant', async () => {
+it('proves platform-only output, and declared mirrors still need a runtime constant', async () => {
   const { project, destination } = fixture('null', false);
-  for (const file of ['index.ts', 'hybrid.ts', 'sections.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
+  for (const file of ['index.ts', 'hybrid.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
   await buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true });
   const { index } = validateOutputProduct(destination);
   expect(index.runtime).toBeNull();
   expect(() => { proveRuntimeData(destination, index, []); }).not.toThrow();
+  const schema={path:'schemas/custom/old.schema.json',hash:'0'.repeat(64),bytes:2};
+  expect(()=>parseOutputIndex({...index,schemas:[schema]})).toThrow();
+  expect(()=>proveRuntimeData(destination,{...index,schemas:[schema]},[])).toThrow('Custom runtime registries are retired');
+  expect(()=>proveRuntimeData(destination,{...index,sections:[{name:'custom/old',path:'sections/custom/old.json',schema:schema.path,hash:'0'.repeat(64),bytes:2}]},[])).toThrow('Custom runtime registries are retired');
   expect(() => { proveRuntimeData(destination, index, [{ name: 'REWARD', value: { amount: 3 } }]); }).toThrow('runtime/const.ts');
 });
 it('refuses a copied-runtime inventory: the index schema refuses an entry row, the proof refuses any listed copy', async () => {
   const { project, destination } = fixture('null', false);
-  for (const file of ['index.ts', 'hybrid.ts', 'sections.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
+  for (const file of ['index.ts', 'hybrid.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
   await buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true });
   const { index } = validateOutputProduct(destination);
   const copy = { path: 'runtime/index.ts', hash: '0'.repeat(64), bytes: 1, lines: 1 };

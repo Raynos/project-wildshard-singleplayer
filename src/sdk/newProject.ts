@@ -25,7 +25,7 @@ sections and hash-named blobs. In this repository use \`out/<slug>/\`.
 - \`data/\` is build-time TypeScript: identity/card, layouts, quests, rows and
   schemas. It never ships as executable code.
 - \`generators/\` produces immutable assets and section data at build time.
-- \`generators/output.ts\` declares named blobs and emitted custom/platform
+- \`generators/output.ts\` declares registered named blobs and platform
   sections. The CLI reads its \`output\` export automatically.
 - \`behaviour/\` holds AssemblyScript sources; \`assets/\` holds source assets.
 

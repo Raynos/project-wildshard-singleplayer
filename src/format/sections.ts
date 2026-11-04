@@ -136,7 +136,5 @@ export interface PlatformSections {
 
 /** A platform section's name, as the index lists it (`<group>/<name>`). */
 export type PlatformSectionName = keyof PlatformSections;
-/** A shard-private section's name (`sections/custom/<name>.json`, schema in `schemas/custom/<name>.schema.json`). */
-export type CustomSectionName = `custom/${string}`;
-/** Any section name an index may list. */
-export type SectionName = PlatformSectionName | CustomSectionName;
+/** Every admitted section is defined by the platform. */
+export type SectionName = PlatformSectionName;

@@ -2,22 +2,6 @@ import Ajv from 'ajv';
 import { isJsonData, parseNamedJson } from '@wildshard/format/json';
 import { schemaReferences } from './schemaReferences';
 
-/** Check authored draft-07 schemas without coercion, defaults, property removal,
- * remote references or async validation. Runtime counterpart of SDK section
- * admission, using the same pinned Ajv policy without a build dependency. */
-export function validateCustomSchema(schema: unknown, value: unknown): unknown {
-  if (!isJsonData(value)) throw new Error('Custom section value must be plain JSON');
-  return validateSchema(schema, value);
-}
-
-/** Browser admission separates JSON checking, Ajv setup, compilation and validation
- * with the caller's existing paint policy. The synchronous reader uses the same checks. */
-export async function validateCustomSchemaPaced(schema: unknown, value: unknown, pause: () => Promise<void>): Promise<unknown> {
-  if (!isJsonData(value)) throw new Error('Custom section value must be plain JSON');
-  await pause();
-  return pacedChecks(schemaChecks(schema, value), pause);
-}
-
 /** Named payloads arrive as verified, byte-bounded JSON; their defining schema
  * supplies shape and bounds without introducing a custom-section node limit. */
 export function validateNamedJsonSchema(schema: unknown, bytes: Uint8Array): unknown {

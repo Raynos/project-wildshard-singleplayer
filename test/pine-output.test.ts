@@ -9,25 +9,13 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import director from '../src/shards/pine-hollow/data/director.json' with {type:'json'};
 import {readPineProject} from './fixtures/pine-project';
-import {validateDefinedSection} from '../src/sdk/sections';
-import {SECTIONS} from '../src/shards/pine-hollow/generators/sections';
 import {ClaimedPickupSchema} from '../src/format/lootEconomy';
 
 const pine=await readPineProject();
 
 test('Pine emits every client section with checked schemas and named immutable assets',()=>{
- const loaded=pine,custom=loaded.output.custom;
- expect(custom).toBeDefined();
- if(custom===undefined)throw new Error('Pine custom sections absent');
- console.info('Pine custom section bytes',custom.sections.reduce((sum,row)=>sum+row.bytes,0));
- expect(custom.sections.map(row=>row.name).sort()).toEqual(Object.keys(SECTIONS).sort());
- const runtime:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
- for(const row of custom.sections){
-  const bytes=custom.files.get(row.path),schema=custom.files.get(row.schema),check=runtime[row.name];
-  if(bytes===undefined||schema===undefined||check===undefined)throw new Error('Missing Pine section contract');
-  const value:unknown=JSON.parse(new TextDecoder().decode(bytes));
-  validateDefinedSection(schema,value);v.parse(check,value);
- }
+ const loaded=pine;
+ expect(Object.hasOwn(loaded.output,'custom')).toBe(false);
  const names=loaded.output.namedFiles?.map(row=>row.name)??[];
  expect(names).toEqual(expect.arrayContaining(['models/held/crossbow-pool.glb','models/held/lever-details.glb','models/king/kit.glb','behaviour/night.wasm','behaviour/director.wasm']));
  const eliteRows=parseEliteFeature(elites),fights=eliteRows.fights;

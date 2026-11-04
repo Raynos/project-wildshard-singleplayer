@@ -47,6 +47,9 @@ test('source table guards pin producers, schema data and output to the checked c
     f.put('scripts/ratchet-approval.mjs', 'export function ratchetApprovalFailures(){return [];}');
     for (const file of ['gen-source.mjs', 'source-generators.mjs'])
       f.put(`scripts/${file}`, readFileSync(resolve('scripts', file), 'utf8'));
+    const registry=readFileSync(resolve('scripts/source-generators.mjs'),'utf8');
+    f.put('scripts/source-generators.mjs',registry.replace('export const SOURCE_GENERATORS = [',`export const SOURCE_GENERATORS = [
+      ...['driftwood-isle','pine-hollow'].map(slug=>({id:slug+'-test-schema',outputs:['src/shards/'+slug+'/generators/sectionSchemas.ts','src/shards/'+slug+'/runtime/productSections.d.ts'],inputs:['src/format/schema.txt'],committed:true,generate:async root=>(await import(pathToFileURL(root+'/scripts/bake-section-schemas.mjs').href)).sectionSchemaTables(root,slug).tables})),`));
     const producer = `import {readFileSync} from 'node:fs';import {resolve} from 'node:path';
 export function sectionSchemaTables(root,slug){return {tables:{
  ['src/shards/'+slug+'/generators/sectionSchemas.ts']:readFileSync(resolve(root,'src/format/schema.txt'),'utf8'),
@@ -314,33 +317,18 @@ test('ratchet retains old unrecorded counts but refuses new counts and cannot bo
   }finally{f.close();}
 });
 
-test('guards compare custom policies through immutable Git readers without a checkout',()=>{
-  const f=fixture();try {
+test('guards lock zero through immutable committed inputs',()=>{
+  const f=fixture();try{
     f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
     f.put('scripts/ratchet-approval.mjs','export function ratchetApprovalFailures(){return [];}');
     f.put('scripts/check-platform-ratchets.mjs',`export {comparePlatformList} from '${pathToFileURL(resolve('scripts/check-platform-ratchets.mjs')).href}';
-export const PLATFORM_LISTS=['lint/ratchet.json','lint/custom-sections.json'];`);
-    const policy={version:1,baselineAt:'a'.repeat(40),baseline:{demo:{count:2,bytes:100}}};
-    const budgets=(count:number,bytes:number)=>({budgets:{'custom-sections/demo/count':count,'custom-sections/demo/bytes':bytes}});
-    f.put('lint/ratchet.json',JSON.stringify(budgets(2,100)));
-    f.put('lint/custom-sections.json',JSON.stringify({...policy,raises:[],risesCloseAt:'W1 spike end'}));
-    const base=f.commit();
-    f.put('lint/custom-sections.json',JSON.stringify(policy));const sealed=f.commit();
-    // Loose policy bytes cannot rescue a committed rise or poison a valid seal.
-    f.put('lint/ratchet.json',JSON.stringify(budgets(99,999)));f.put('lint/custom-sections.json','foreign invalid policy');
-    const good=f.run('guards',sealed,[],base);
-    expect(good.status,good.stdout+good.stderr).toBe(0);
-    expect(good.stdout).toContain('guards: exact committed inputs passed');
-    f.put('lint/ratchet.json',JSON.stringify(budgets(3,100)));f.put('lint/custom-sections.json',JSON.stringify(policy));
-    const raised=f.commit();
-    f.put('lint/ratchet.json',JSON.stringify(budgets(1,90)));
-    const bad=f.run('guards',raised,[],sealed);
-    expect(bad.status).toBe(1);expect(bad.stderr).toContain('demo: custom-section ceilings are shrink-only');
-    f.put('lint/ratchet.json',JSON.stringify(budgets(2,100)));f.put('lint/custom-sections.json',JSON.stringify({...policy,raises:[]}));
-    const malformed=f.commit();
-    f.put('lint/custom-sections.json',JSON.stringify(policy));
-    const refused=f.run('guards',malformed,[],sealed);
-    expect(refused.status).toBe(1);expect(refused.stderr).toContain('custom-section policy is malformed');
+export const PLATFORM_LISTS=['lint/ratchet.json'];`);
+    f.put('lint/ratchet.json',JSON.stringify({budgets:{'custom-sections/total':0}}));const base=f.commit();
+    f.put('lint/ratchet.json',JSON.stringify({budgets:{'custom-sections/total':1}}));const raised=f.commit();
+    f.put('lint/ratchet.json',JSON.stringify({budgets:{'custom-sections/total':0}}));
+    const bad=f.run('guards',raised,[],base);expect(bad.status).toBe(1);expect(bad.stderr).toContain('custom-sections/total must equal 0');
+    const sealed=f.commit();f.put('lint/ratchet.json','foreign invalid policy');
+    const good=f.run('guards',sealed,[],raised);expect(good.status,good.stdout+good.stderr).toBe(0);
   }finally{f.close();}
 });
 

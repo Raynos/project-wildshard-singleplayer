@@ -130,8 +130,6 @@ function registerProduct(paths, root, slug, before) {
   tests['test/shipped-graph-cost.test.ts'].sort(); paths.set(testsPath, json(tests));
   const debtPath = 'lint/tile-bake-debt.json', debt = read(root, debtPath, before);
   debt.products[slug] ??= {}; paths.set(debtPath, json(debt));
-  const sectionPath = 'lint/custom-sections.json', sections = read(root, sectionPath, before);
-  sections.freeze.names[slug] ??= []; sections.baseline[slug] ??= { count: 0, bytes: 0 }; paths.set(sectionPath, json(sections));
 }
 
 /** Add canonical camera manifests and the exact assembled plot registry. No image is generated.

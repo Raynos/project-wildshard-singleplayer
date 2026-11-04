@@ -55,7 +55,6 @@ import * as v from 'valibot';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
 import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
-import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sections';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlob, type NamedBlobKind } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
@@ -116,7 +115,7 @@ const heldEquipment = { ...heldTuning,
 };
 
 /** Pine's output before the program's producers add theirs (`prepareOutput`). */
-export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSections>; custom: ReturnType<typeof emitDefinedSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: NonNullable<ProjectOutput['blobs']>; late?: NonNullable<ProjectOutput['late']>; }
+export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: NonNullable<ProjectOutput['blobs']>; late?: NonNullable<ProjectOutput['late']>; }
 
 /** D65: the output rows over the program's sources (the scene, page and story rows, the props, the floor, the keyed sky);
  *  the platform rows go to `prepareOutput`, which adds the compiled return and spawn scripts. */
@@ -141,7 +140,7 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('quests/mill-door.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_MILL_DOOR))), { jsonSchema: registeredJsonSchema('quests/mill-door.json') }),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE))),{jsonSchema:registeredJsonSchema('quests/lanterns.json')}),nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(pineFloorLayout(sources)), (key: string, value: unknown) => key === 'matrix' ? undefined : typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value)), { jsonSchema: registeredJsonSchema('world/floor.json') })]);
   const PLATFORM_ROWS = new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['world/physics', pineWorldPhysics()],['world/trees', TREE_SET],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]]);
-  return { platformRows: PLATFORM_ROWS, output: { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom: emitDefinedSections([]), namedFiles: clientJson.files, assets: clientJson.assets, blobs: pinePhysicsSources().map(meshoptSource).map(sourceBlob) } };
+  return { platformRows: PLATFORM_ROWS, output: { platform: emitPlatformSections(PLATFORM_ROWS), namedFiles: clientJson.files, assets: clientJson.assets, blobs: pinePhysicsSources().map(meshoptSource).map(sourceBlob) } };
 }
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
@@ -306,5 +305,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   // the keyed sky decodes only the keys around the clock's phase (game looks/keyedSky.ts), read on demand, so no key is prefetched
   const skyKeys = output.namedFiles.filter(file => file.name?.startsWith('look/sky/') === true && file.kind === 'bin').map(file => ({ hash: file.hash }));
   const late = [...(await cabinScene(sources)).CABIN_LATE, ...skyKeys];
-  return { ...output, platform, custom: emitDefinedSections([]), namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]), late };
+  return { ...output, platform, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]), late };
 }

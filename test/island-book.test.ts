@@ -1,3 +1,5 @@
+import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with {type:'json'};
+import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 // @vitest-environment happy-dom
 import { BufferGeometry, Group, Matrix4, PerspectiveCamera, type Material } from 'three';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -29,19 +31,19 @@ import { collectionRows } from '../src/shards/driftwood-isle/generators/collecti
 const rows={construction:{cells:{phone:'cells.bin',desktop:'cells.bin'},seed:1,progress:{total:1,start:'Start',finish:'Finish',budgetMs:30},
   checkpoints:[],gpu:{label:'gpu',roots:[{kind:'object',id:'root'}]},looks:{unbound:[],bound:[]},publish:{draws:'draws',collection:'collection'}},
   stages:[{kind:'group',id:'root',label:'Root',part:'root'}]};
-const row=parseClientPlan({version:1,features:[{kind:'world.assembly',library:'fixture.island',catalogue:'models.json',rows}]}).features[0];
+const row=parseClientPlan({version:1,features:[{kind:'world.assembly',library:'fixture.island',catalogue:'models/world-scenes.json',rows}]}).features[0];
 if(row?.kind!=='world.assembly'||row.library===undefined||row.catalogue===undefined)throw new Error('Missing assembly fixture');
 const assembly={...row,library:row.library,catalogue:row.catalogue};
-const book={id:assembly.library,draws:[{slot:'chime',file:'mesh.glb',channels:[]}],groups:'groups.json',figures:'figures.json',collections:{chime:'chime'}};
+const book={id:assembly.library,draws:[{slot:'chime',file:'mesh.glb',channels:[]}],groups:'models/fixed-geometry.json',figures:'people/catalogue.json',collections:{chime:'chime'}};
 const siteCatalogue={product:'fixture-island',models:[{key:'site',id:'fixture-island/site',name:'Site',file:'fixture.json',category:'props',pipeline:'blender',defaults:{},variants:[],
   choices:[{id:'world',params:{},size:[1,1,1],draws:[],lods:[],colliders:[]}]}]};
 function fixture(root:unknown=book,features:unknown[]=[assembly]){
   const source=emptyShardfile({slug:'fixture-island',name:'Test',author:'Test',revision:1,seed:1});
-  const sections=new Map<string,unknown>([['client/plan',{version:1,features}],['models/island-library',root],['world/scenes',{catalogue:'models.json',version:1,libraries:[],materials:[],steps:[]}],
+  const sections=new Map<string,unknown>([['client/plan',{version:1,features}],['models/island-library',root],['world/scenes',{catalogue:'models/world-scenes.json',version:1,libraries:[],materials:[],steps:[]}],
     ['collections/displays',collectionRows()],['explore/catalogue',{version:1,entries:[{kind:'scene-model',library:book.id,model:'site',copies:0,drawnAs:'single'}]}]]);
-  const reads=vi.fn((name:string)=>Promise.resolve(new TextEncoder().encode(JSON.stringify(name==='models.json'?siteCatalogue:{}))));
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections,
-    files:new Map(['models.json','groups.json','figures.json','mesh.glb'].map(name=>[name,{hash:name,url:name}])),read:reads});
+  const reads=vi.fn((name:string)=>Promise.resolve(new TextEncoder().encode(JSON.stringify(name==='models/world-scenes.json'?siteCatalogue:name==='models/fixed-geometry.json'?inventory.groups:{figures:{}}))));
+  const product=createShardProduct({slug:source.identity.slug,revision:1,jsonCheck:fixtureJsonCheck,shardfile:source,sections,
+    files:new Map(['models/world-scenes.json','models/fixed-geometry.json','people/catalogue.json','mesh.glb'].map(name=>[name,fixtureProductFile(name,{hash:name,url:name})])),read:reads});
   return{product,sections,reads};
 }
 
@@ -66,7 +68,7 @@ test('cold Explorer and construction readers resolve the same pinned record in e
       expect(roster[0]?.id).toBe(record.sites.model('site').id);
       if(!Array.isArray(first))expect(first).toBe(record);
       expect(await owner.run(()=>admittedIslandBook(f.product,book.id))).toBe(record);
-      expect(f.reads.mock.calls).toEqual([['models.json']]);
+      expect(f.reads.mock.calls).toEqual([['models/world-scenes.json']]);
       expect(record.library.product).toBe(f.product);
       const other=fixture();expect((await owner.run(()=>admittedIslandBook(other.product,book.id))).library).not.toBe(record.library);
     }finally{owner.dispose();}
@@ -108,7 +110,7 @@ function nativeFixture(f: ReturnType<typeof fixture>, construction?: Scope) {
 
 test('the ordered phase consumes its whole loan once before publishing real templates', async () => {
   const f=fixture(),owner=new Scope('phase-real-loan'),native=nativeFixture(f,owner),geometry=new BufferGeometry();
-  f.reads.mockImplementation(name=>Promise.resolve(new TextEncoder().encode(JSON.stringify(name==='models.json'?siteCatalogue:name==='figures.json'?{figures:{}}:{}))));
+  f.reads.mockImplementation(name=>Promise.resolve(new TextEncoder().encode(JSON.stringify(name==='models/world-scenes.json'?siteCatalogue:name==='people/catalogue.json'?{figures:{}}:inventory.groups))));
   const record=await native.scope.run(()=>admittedIslandBook(f.product,book.id));
   const whole=vi.spyOn(wholeGeometry,'readWholeGeometry').mockImplementation(scope=>{
     const release=scope.capture('geometries',()=>{geometry.dispose();});
@@ -130,7 +132,7 @@ test('the ordered phase consumes its whole loan once before publishing real temp
     await installClientPhase(native.ctx,{features:[assembly,{kind:'world.scenes'}]},'world',owner);
     expect(record.library.ready).toBe(true);expect(whole).toHaveBeenCalledTimes(1);
     expect(scenes).toHaveBeenCalledTimes(2);
-    expect(f.reads.mock.calls.map(([name])=>name)).toEqual(['models.json','groups.json','figures.json']);
+    expect(f.reads.mock.calls.map(([name])=>name)).toEqual(['models/world-scenes.json','models/fixed-geometry.json','people/catalogue.json']);
     expect(entryOwner(native.scope,'fixed-draws','draws')).toBe(record.library.loaded());
     const copy=record.library.loaded().handle('chime').copy();expect(copy.attributes).toEqual(geometry.attributes);copy.dispose();
   } finally {for(const spy of[whole,materials,scenes,baked,construct])spy.mockRestore();native.scope.dispose();owner.dispose();geometry.dispose();}

@@ -121,7 +121,7 @@ test('a -legacy folder name retains no runtime sites after the registry retired'
   try {
     put(candidateRoot, file, source);
     expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), { baselineRoot, candidateRoot })).not.toEqual([]);
-    expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), undefined, undefined,
+    expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), undefined,
       { before: read(baselineRoot), after: read(candidateRoot) })).not.toEqual([]);
     expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list))).not.toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { SECTIONS } from '../src/shards/pine-hollow/generators/sections';
+import * as sectionDefinitions from '../src/shards/pine-hollow/generators/sections';
 import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import { grazerRows } from '../src/shards/pine-hollow/generators/grazers';
@@ -9,7 +9,7 @@ import { SpeciesProgramsSchema } from '../src/format/speciesPrograms';
 import { HullLookBook } from '../src/game/looks/speciesBook';
 
 test('grazers retain their complete platform definitions without a duplicate custom section', () => {
-  expect(Object.hasOwn(SECTIONS, 'custom/grazers')).toBe(false);
+  expect(Object.hasOwn(sectionDefinitions, 'SECTIONS')).toBe(false);
   const book = v.parse(HullLookBookSchema, SPECIES_LOOKS);
   const authored = grazerRows();
   expect(book.definitions['deer']).toEqual(v.parse(HullSpeciesSchema, authored.deer));

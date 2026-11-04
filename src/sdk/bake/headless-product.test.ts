@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Load the real in-memory author build through an owned temporary module.
 import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
-import * as v from 'valibot';
+import { registeredJsonSchema } from '../formatJsonSchema';
 import { build } from 'vite';
 import { emptyShardfile } from '../author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
@@ -45,47 +45,45 @@ test.each(['direct', 'author-bundle'] as const)('%s native admission supplies ch
     const source = emptyShardfile({ slug: 'native-product', name: 'Native', author: 'Test', revision: 1, seed: 1 });
     const blob = new Uint8Array([1, 2, 3]), hash = hashImmutableBytes(blob);
     source.files.push({ hash, kind: 'binary', compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
-    const json = bytes({ bones: ['root'] }), jsonHash = hashImmutableBytes(json);
+    const json = bytes([{"slot":"shape","channels":[],"file":"models/native.bin"}]), jsonHash = hashImmutableBytes(json);
     source.files.push({ hash: jsonHash, kind: 'json', compressed: json.length, decoded: json.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
     source.library.push(hash, jsonHash); source.budgets.library = { compressed: 3 + json.length, resident: 3 + json.length };
-    const values = new Map(outputSectionPayloads(source)); values.set('custom/native', { count: 7 });
+    const values = new Map(outputSectionPayloads(source)); values.set('ui/strings', { count: '7' });
     const sections = await Promise.all([...values].map(async ([name, value]) => {
       const wire = bytes(value), path = `sections/${name}.json`; await put(path, wire);
       return { name, path, hash: hashImmutableBytes(wire), bytes: wire.length,
-        schema: name.startsWith('custom/') ? 'schemas/custom/native.schema.json' : `wildshard:${name}@1` };
+        schema: `wildshard:${name}@1` };
     }));
-    const customSchema = bytes({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['count'], additionalProperties: false, properties: { count: { type: 'number' } } });
-    await put('schemas/custom/native.schema.json', customSchema);
     const index = parseOutputIndex({ format: 'wildshard.shardfile', formatVersion: 2, sdk: '0.2', version: source.version,
       identity: source.identity, requires: source.requires, build: { sourceHash: hashImmutableBytes(bytes(source)), validator: 'test' },
       admission: { budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps, critical: source.critical, library: source.library },
-      sections, schemas: [{ path: 'schemas/custom/native.schema.json', hash: hashImmutableBytes(customSchema), bytes: customSchema.length }],
+      sections, schemas: [],
       files: source.files.map(file => file.hash === hash ? { ...file, kind: 'bin', name: 'models/native.bin', path: `blobs/bin/${hash}.bin` }
-        : { ...file, kind: 'json', name: 'rig.json', path: `blobs/json/${jsonHash}.json`, jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['bones'], properties: { bones: { type: 'array', items: { type: 'string' } } } } }), runtime: null });
+        : { ...file, kind: 'json', name: 'models/shape-book.json', path: `blobs/json/${jsonHash}.json`, jsonSchema: registeredJsonSchema('models/shape-book.json') }), runtime: null });
     await put('shard.json', bytes(index)); await put(`blobs/bin/${hash}.bin`, blob);
     await put(`blobs/json/${jsonHash}.json`, json);
     const product = await load(dir);
     expect(product.shardfile).toEqual(source);
-    expect(product.section('custom/native', { 'custom/native': v.strictObject({ count: v.number() }) })).toEqual({ count: 7 });
+    expect(product.section('ui/strings')).toEqual({ count: '7' });
     expect(await product.file('models/native.bin')).toEqual(blob);
-    expect(await product.json<{ bones: string[] }>('rig.json')).toEqual({ bones: ['root'] });
-    const badJsonIndex = structuredClone(index), jsonFile = badJsonIndex.files.find(file => file.name === 'rig.json');
+    expect(await product.json('models/shape-book.json')).toEqual([{"slot":"shape","channels":[],"file":"models/native.bin"}]);
+    const badJsonIndex = structuredClone(index), jsonFile = badJsonIndex.files.find(file => file.name === 'models/shape-book.json');
     if (jsonFile === undefined) throw new Error('Missing named JSON');
     jsonFile.jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'array' };
     await put('shard.json', bytes(badJsonIndex));
-    await expect((await load(dir)).json('rig.json')).rejects.toThrow('refuses its schema');
+    await expect(load(dir)).rejects.toThrow('Unregistered named JSON');
     await put('shard.json', bytes(index));
     const checked = await load(dir);
-    expect(() => checked.section('custom/native', { 'custom/native': v.strictObject({ count: v.string() }) })).toThrow('schema');
+    expect(checked.section('ui/strings')).toEqual({ count: '7' });
     await put(`blobs/bin/${hash}.bin`, new Uint8Array([3, 2, 1]));
     await expect(product.file('models/native.bin')).rejects.toThrow('hash or size');
-    const bad = bytes({ count: 'bad' });
-    const malformed = structuredClone(index), custom = malformed.sections.find(row => row.name === 'custom/native');
+    const bad = bytes({ count: 7 });
+    const malformed = structuredClone(index), custom = malformed.sections.find(row => row.name === 'ui/strings');
     if (custom === undefined) throw new Error('Missing native custom section');
     custom.hash = hashImmutableBytes(bad); custom.bytes = bad.length;
-    await put('sections/custom/native.json', bad);
+    await put('sections/ui/strings.json', bad);
     await put('shard.json', bytes(malformed));
-    await expect(load(dir)).rejects.toThrow('refuses its schema');
+    await expect(load(dir)).rejects.toThrow();
     await put('shard.json', bytes(source));
     await expect(load(dir)).rejects.toThrow('format-2');
   } finally { await rm(dir, { recursive: true, force: true }); }

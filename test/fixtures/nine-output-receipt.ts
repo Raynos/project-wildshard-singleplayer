@@ -11,6 +11,5 @@ export function nineOutputReceipt(prepared: PreparedProjectOutput, originalAsset
     namedFiles: prepared.options.namedFiles,
     assets: files(new Map([...prepared.assets, ...prepared.blobs.map(row => [row.file.hash, row.bytes] as const)].filter(([name]) => originalAssets === undefined || originalAssets.has(name)))),
     platform: prepared.options.platform === undefined ? null : { sections: prepared.options.platform.sections, files: files(prepared.options.platform.files) },
-    custom: prepared.options.custom === undefined ? null : { sections: prepared.options.custom.sections, files: files(prepared.options.custom.files) },
   };
 }

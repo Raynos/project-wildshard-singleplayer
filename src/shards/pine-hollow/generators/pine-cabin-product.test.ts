@@ -14,7 +14,7 @@ import { outputPlatformPayloads } from '@wildshard/sdk/outputProduct';
 const output = await staticOutput(await pineScriptSources('pine-cabin-product-test'), readImagePixels);
 
 test('native cabin carriers retain every authored material and life value and reject malformed rows', () => {
-  expect(output.custom.sections.some(row => row.name === 'custom/cabinAppearance')).toBe(false);
+  expect(Object.hasOwn(output, 'custom')).toBe(false);
   const file = output.namedFiles.find(row => row.name === 'world/forest-page.json');
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);
   if (bytes === undefined) throw new Error('Missing defining forest page');

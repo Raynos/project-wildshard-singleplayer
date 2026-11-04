@@ -3,10 +3,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, 
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture paths stay under the owned tmp directory.
 import { dirname, join, resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
-import * as v from 'valibot';
 import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
 import { runtimeCodeLines, validateRuntimeData, writeRuntimeFiles } from '@wildshard/sdk/outputRuntime';
-import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { codeLines } from '../scripts/shard-platform.mjs';
 
 const owned: string[] = [];
@@ -53,30 +51,22 @@ it('supports data-only projects and refuses overlapping output', () => {
   expect(() => writeRuntimeFiles(project, join(project, 'out'))).toThrow('separate');
 });
 
-it('checks copied custom registries and constants against the emitted data before boot', () => {
-  const sections = new Map<string, unknown>([['custom/probe',[1,2]],['ui/card',{}]]);
-  const registry = { SECTIONS: { 'custom/probe': v.array(v.number()) } };
-  const mirrors = [defineMirror('COUNT',2)];
-  expect(() => validateRuntimeData(sections,registry,mirrors,{COUNT:2})).not.toThrow();
-  expect(() => validateRuntimeData(sections,undefined,mirrors,{COUNT:2})).toThrow('SECTIONS');
-  expect(() => validateRuntimeData(sections,{SECTIONS:{}},mirrors,{COUNT:2})).toThrow('no runtime schema');
-  expect(() => validateRuntimeData(sections,{SECTIONS:{'custom/probe':v.string()}},mirrors,{COUNT:2})).toThrow();
-  expect(() => validateRuntimeData(new Map(),registry,[],{})).toThrow('no emitted custom section');
-  expect(() => validateRuntimeData(sections,registry,mirrors,{COUNT:3})).toThrow('COUNT');
-  expect(() => validateRuntimeData(sections,registry,mirrors,undefined)).toThrow('runtime/const.ts');
-});
-
-it('admits immutable built schemas without shipping a registry and still checks mirrors', () => {
-  const sections = new Map<string, unknown>([['custom/probe', [1, 2]]]);
-  const bytes = new TextEncoder().encode(encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'array', items: { type: 'number' } }));
-  const schemas = new Map([['custom/probe', bytes]]);
-  expect(() => validateRuntimeData(sections, undefined, [], undefined, schemas)).not.toThrow();
-  expect(() => validateRuntimeData(new Map([['custom/probe', ['wrong']]]), undefined, [], undefined, schemas)).toThrow('refuses');
-  expect(() => validateRuntimeData(sections, undefined, [], undefined, new Map())).toThrow('no built schema');
-  expect(() => validateRuntimeData(sections, undefined, [defineMirror('COUNT', 2)], { COUNT: 3 }, schemas)).toThrow('COUNT');
+it('checks copied constants against unchanged mirrors without a custom registry', () => {
+  const mirrors=[defineMirror('COUNT',2)];
+  expect(()=>validateRuntimeData(mirrors,{COUNT:2})).not.toThrow();
+  expect(()=>validateRuntimeData(mirrors,{COUNT:3})).toThrow('COUNT');
+  expect(()=>validateRuntimeData(mirrors,undefined)).toThrow('runtime/const.ts');
+  expect(()=>validateRuntimeData([],undefined)).not.toThrow();
 });
 
 it('admits the compiled Driftwood source without copying retired runtime data', () => {
   const { output } = fixture();
   expect(writeRuntimeFiles(resolve('src/shards/driftwood-isle'), output)).toEqual({ files: [], lines: 0 });
+});
+
+it.each(['runtime/sections.ts','runtime/productSections.d.ts'])('refuses retired custom registry %s before deleting any output', path => {
+  const {project,output}=fixture();
+  put(project,path,'export {};');put(output,'runtime/keep.d.ts','keep');
+  expect(()=>writeRuntimeFiles(project,output)).toThrow('Custom runtime registries are retired');
+  expect(readFileSync(join(output,'runtime/keep.d.ts'),'utf8')).toBe('keep');
 });

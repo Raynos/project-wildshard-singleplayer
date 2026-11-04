@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 /** Client-only collection presentation over existing game/save owners. */
 import * as THREE from 'three';
 import { defineModel, modelContext, seedOf, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
@@ -114,7 +115,7 @@ export class CollectionCatalogue {
         await Promise.all([...this.geometry.values()].map(handle => handle.load()));
         check();
         const product = pinned ?? await loadFirstPartyProduct(this.slug, owner); check();
-        const rows = product.section('collections/displays', { 'collections/displays': CollectionDisplaysSchema }).models;
+        const rows = v.parse(CollectionDisplaysSchema, product.section('collections/displays')).models;
         const entries = Object.fromEntries(Object.entries(rows).map(([key, row]) => {
           const { id, name, file, surface, defaults, variants } = row;
           return [key, collectionModel({ id, name, file, surface, defaults, variants }, () => this.row(key), this.ports)];

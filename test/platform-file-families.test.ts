@@ -73,7 +73,7 @@ test('gate and census exclude only admitted families and retain hash, schema and
     expect(product.entries.find(row => row.name === name)).toMatchObject({ kind: 'platform-file', routes: ['client/plan'] });
     const report = sectionInventory([product], namedFormatJsonSchemas(), { 'client/plan': 'plan' }, [], []);
     expect(report.rows.find(row => row.name === name)).toMatchObject({ provenance: 'verified-format', registeredReader: 'src/game/quest/effects.ts' });
-    publish(good, undefined); expect(outputSections(root, 'demo').customSections.map(row => row.name)).toEqual([name]);
+    publish(good, undefined); expect(()=>outputSections(root, 'demo')).toThrow('Unregistered named JSON');
     publish({}, { $comment: source }); expect(() => outputSections(root, 'demo')).toThrow();
     publish(good, schema);
     const emitted = parseOutputIndex(JSON.parse(readFileSync(indexPath, 'utf8'))).files[0];

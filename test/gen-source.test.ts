@@ -26,8 +26,8 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('index.html')).toEqual(['title-asset-urls', 'native-page']);
   expect(ids('src/engine/core/Game.ts')).toEqual(['manifest-closure', 'manifest-art']);
   expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag', 'manifest-closure', 'manifest-art']);
-  expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['pine-hollow-section-schemas', 'manifest-closure', 'manifest-art']);
-  expect(ids('src/shards/driftwood-isle/generators/sections.ts')).toEqual(['driftwood-isle-section-schemas', 'manifest-closure', 'manifest-art']);
+  expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['manifest-closure', 'manifest-art']);
+  expect(ids('src/shards/driftwood-isle/generators/sections.ts')).toEqual(['manifest-closure', 'manifest-art']);
 });
 
 test('every registry output is listed once and committed rows own tracked inputs only', () => {
@@ -41,8 +41,7 @@ test('every registry output is listed once and committed rows own tracked inputs
     'src/game/boot/versions.generated.ts', 'src/game/shard/art.generated.ts', 'src/game/shard/manifest-closure.generated.json',
     'src/game/shard/portShares.generated.ts', 'src/game/shard/slugs.generated.json', 'src/game/shard/slugs.generated.ts',
     'src/game/systems/effects/starter.generated.ts', 'src/game/systems/viewmodel/clips.generated.ts', 'src/game/weapons/starter.generated.ts',
-    'src/shards.generated.ts', 'src/shards/driftwood-isle/generators/sectionSchemas.ts', 'src/shards/driftwood-isle/runtime/productSections.d.ts',
-    'src/shards/pine-hollow/generators/sectionSchemas.ts', 'src/shards/pine-hollow/runtime/productSections.d.ts',
+    'src/shards.generated.ts',
   ].sort());
   for (const row of SOURCE_GENERATORS) expect(Number(row.generate !== undefined) + Number(row.run !== undefined), row.id).toBe(1);
   for (const row of SOURCE_GENERATORS.filter(entry => entry.committed)) expect(row.inputs.some(glob => glob === 'public/assets/**'), row.id).toBe(false);

@@ -3,78 +3,25 @@ import { existsSync, lstatSync, readdirSync, realpathSync, rmSync } from 'node:f
 // oxlint-disable-next-line import/no-nodejs-modules -- Runtime inventory paths are local project-relative paths.
 import { dirname, relative, resolve, sep } from 'node:path';
 import { parseSync } from 'vite';
-import * as v from 'valibot';
-import { hashImmutableBytes } from './immutable';
-import { readBoundedFile } from './sourceReader';
 import { runtimeMirrorIssues, type RuntimeMirror } from './runtimeMirrors';
 import type { OutputIndex } from '@wildshard/format/outputIndex';
-import { validateDefinedSection } from './sections';
 
 export interface RuntimeCopyFile { readonly path: string; readonly hash: string; readonly bytes: number; readonly lines: number }
 export interface RuntimeCopy { readonly files: readonly RuntimeCopyFile[]; readonly lines: number }
 
-function syncSchema(input: unknown): input is v.GenericSchema {
-  return typeof input === 'object' && input !== null && 'kind' in input && input.kind === 'schema'
-    && 'type' in input && typeof input.type === 'string' && 'reference' in input && typeof input.reference === 'function'
-    && 'expects' in input && typeof input.expects === 'string' && 'async' in input && input.async === false
-    && '~run' in input && typeof input['~run'] === 'function';
-}
-
-/** Build step 5 checks the copied module namespaces, never source-side substitutes.
- * Orchestration imports these TS modules only after the boundary check. Every
- * custom section must have its matching runtime schema; every declared schema
- * must have emitted data. Mirrors reuse the defining canonical comparer. */
-export function validateRuntimeData(sections: ReadonlyMap<string, unknown>,
-  copiedSections: Readonly<Record<string, unknown>> | undefined,
-  mirrors: readonly RuntimeMirror[], copiedConstants: Readonly<Record<string, unknown>> | undefined,
-  builtSchemas?: ReadonlyMap<string, Uint8Array>): void {
-  const custom = [...sections.keys()].filter(name => name.startsWith('custom/'));
-  const registry = copiedSections?.['SECTIONS'];
-  if (copiedSections === undefined && builtSchemas !== undefined) {
-    for (const name of custom) {
-      const schema = builtSchemas.get(name);
-      if (schema === undefined) throw new Error(`Custom section has no built schema: ${name}`);
-      validateDefinedSection(schema, sections.get(name));
-    }
-    validateRuntimeData(new Map(), undefined, mirrors, copiedConstants);
-    return;
-  }
-  if (custom.length > 0 && (typeof registry !== 'object' || registry === null || Array.isArray(registry))) throw new Error('Custom sections require runtime/sections.ts SECTIONS');
-  const entries = typeof registry === 'object' && registry !== null && !Array.isArray(registry) ? Object.entries(registry) : [];
-  for (const [name, schema] of entries) {
-    if (!name.startsWith('custom/') || !sections.has(name)) throw new Error(`Runtime schema has no emitted custom section: ${name}`);
-    if (!syncSchema(schema)) throw new Error(`Runtime section needs a synchronous Valibot schema: ${name}`);
-    v.parse(schema, sections.get(name));
-  }
-  for (const name of custom) if (!entries.some(([key]) => key === name)) throw new Error(`Custom section has no runtime schema: ${name}`);
+/** Validate declared constant mirrors without a custom runtime registry. */
+export function validateRuntimeData(mirrors: readonly RuntimeMirror[], copiedConstants: Readonly<Record<string, unknown>> | undefined): void {
   if (mirrors.length > 0 && copiedConstants === undefined) throw new Error('Declared mirrors require runtime/const.ts');
   const issues = runtimeMirrorIssues(mirrors, copiedConstants ?? {});
   if (issues.length > 0) throw new Error(issues.join('\n'));
 }
 
-/** Build step 5: check the emitted custom sections against their built schemas and the declared mirrors, from the
- * emitted inventory only, never the author folder. A client-plan product ships no runtime TypeScript (LD9), so no
- * copied module is compiled or evaluated. */
-export function proveRuntimeData(destination: string, index: OutputIndex, mirrors: readonly RuntimeMirror[]): void {
-  // a client-plan output lists no copied TypeScript (the index schema caps it at none); this proof never accepts one
+/** Client-plan products contain no copied executable runtime. Platform data
+ * and registered named files retain their original output-owner validation. */
+export function proveRuntimeData(_destination: string, index: OutputIndex, mirrors: readonly RuntimeMirror[]): void {
   if (index.runtime !== null && index.runtime.files.length > 0) throw new Error('Runtime proof requires a client-plan output with no copied TypeScript');
-  const read = (file: { readonly path: string; readonly hash: string; readonly bytes: number }): Uint8Array => {
-    const bytes = readBoundedFile(resolve(destination, file.path), file.bytes);
-    if (bytes.length !== file.bytes || hashImmutableBytes(bytes) !== file.hash) throw new Error(`Runtime proof input changed: ${file.path}`);
-    return bytes;
-  };
-  const sections = new Map<string, unknown>();
-  for (const file of index.sections.filter(row => row.name.startsWith('custom/'))) {
-    const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(read(file)));
-    sections.set(file.name, value);
-  }
-  const builtSchemas = new Map<string, Uint8Array>();
-  for (const section of index.sections.filter(row => row.name.startsWith('custom/'))) {
-    const schema = index.schemas.find(row => row.path === section.schema);
-    if (schema === undefined) throw new Error(`Missing built schema: ${section.name}`);
-    builtSchemas.set(section.name, read(schema));
-  }
-  validateRuntimeData(sections, undefined, mirrors, undefined, builtSchemas);
+  if (index.schemas.length > 0 || index.sections.some(row => row.name.startsWith('custom/'))) throw new Error('Custom runtime registries are retired');
+  validateRuntimeData(mirrors, undefined);
 }
 
 /** Parser comment ranges preserve strings, regexes and template literal text.
@@ -104,6 +51,7 @@ export function writeRuntimeFiles(project: string, destination: string): Runtime
       if (item.isSymbolicLink()) throw new Error(`Runtime cannot contain symlinks: ${path}`);
       if (item.isDirectory()) { walk(file); continue; }
       if (!item.isFile() || !/^(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\.ts$/u.test(path)) throw new Error(`Runtime accepts TypeScript files only: ${path}`);
+      if (path === 'runtime/sections.ts' || path.endsWith('/productSections.d.ts')) throw new Error(`Custom runtime registries are retired: ${path}`);
       if (!path.endsWith('.d.ts')) throw new Error(`Client-plan runtime cannot contain executable source: ${path}`);
     }
   };

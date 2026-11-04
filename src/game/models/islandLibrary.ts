@@ -11,7 +11,6 @@ import type { BufferGeometry } from 'three';
 import type { OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { CustomSectionName } from '@wildshard/format/sections';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { readWholeGeometry } from '../plugin/geometry';
 import { fixedDraws, type FixedDraws } from './fixedDraws';
@@ -22,8 +21,8 @@ import { timeClientPreparation } from '../shardfile/preparationTiming';
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 export const IslandLibrarySchema: v.GenericSchema<BoundedIslandLibraryInput, BoundedIslandLibrary> = v.strictObject({
   product: id,
-  /** the custom section and its field holding the fixed draw rows */
-  draws: v.strictObject({ section: v.custom<CustomSectionName>(name => typeof name === 'string' && /^custom\/[A-Za-z][A-Za-z0-9_.-]{0,120}$/u.test(name), 'a custom section'), field: id }),
+  /** The complete fixed-draw platform root. */
+  draws: v.strictObject({ section: v.literal('models/island-library'), field: v.literal('draws') }),
   /** the named JSON of the draws' groups, and the figure catalogue admitted with them */
   groups: id, figures: id,
   /** each collection card's key and fixed draw slot */
@@ -32,7 +31,7 @@ export const IslandLibrarySchema: v.GenericSchema<BoundedIslandLibraryInput, Bou
 
 /** One shard's island library (see the module note); `Groups` is its groups file's generated type. */
 export class IslandLibrary<Groups> {
-  private readonly rows: Omit<BoundedIslandLibrary, 'draws'> & { readonly draws: { readonly section: CustomSectionName | 'models/island-library'; readonly field: string } };
+  private readonly rows: BoundedIslandLibrary;
   private readonly resolved: v.InferOutput<typeof ResolvedIslandLibrarySchema> | undefined;
   private admitted: ShardProduct | null = null;
   private intake: Promise<void> | undefined;
@@ -74,8 +73,7 @@ export class IslandLibrary<Groups> {
   }
 
   private draws(): FixedDraws {
-    const { section, field } = this.rows.draws;
-    this.library ??= fixedDraws(this.product, this.resolved?.draws ?? (section === 'models/island-library' ? this.product.section(section).draws : this.product.section<Readonly<Record<string, unknown>>>(section)[field]));
+    this.library ??= fixedDraws(this.product, this.resolved?.draws ?? this.product.section('models/island-library').draws);
     return this.library;
   }
   /** A slot's inert owned handle: loading it before the library loads loads the whole library. */
@@ -171,8 +169,8 @@ type BoundedIslandLibraryInput = BoundedIslandLibrary;
 interface BoundedIslandLibraryFields {
     product: string;
     draws: {
-        section: `custom/${string}`;
-        field: string;
+        section: 'models/island-library';
+        field: 'draws';
     };
     groups: string;
     figures: string;

@@ -38,7 +38,7 @@ const authored = timberWorld(PINE_SOURCES);
 const { CRAG_CAVE_ROWS } = await cragScene(PINE_SOURCES);
 
 test('the unread native view is retired and combat keeps its encounter', () => {
-  expect(output.custom.sections.some(row => row.name === 'custom/nativeView')).toBe(false);
+  expect(Object.hasOwn(output, 'custom')).toBe(false);
   expect(output.namedFiles.some(row => row.name === 'look/native-view.json')).toBe(false);
   const file = output.namedFiles.find(row => row.name === 'combat/roaming.json');
   const bytes = file === undefined ? undefined : output.assets.get(file.hash);

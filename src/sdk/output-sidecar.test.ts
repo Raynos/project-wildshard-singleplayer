@@ -16,18 +16,17 @@ test('CLI sidecars emit checked sections without entering browser config imports
   writeFileSync(resolve(path, 'shard.config.ts'), config);
   mkdirSync(resolve(path, 'generators'));
   writeFileSync(resolve(path, 'generators/output.ts'), `
-import * as v from 'valibot';
-import {defineSection,emitDefinedSections} from '@wildshard/sdk/sections';
-export const output={custom:emitDefinedSections([defineSection('custom/example',v.strictObject({answer:v.number()}),{answer:42})])};
+import {emitPlatformSections} from '@wildshard/sdk/platformSections';
+export const output={platform:emitPlatformSections(new Map([['ui/strings',{answer:'42'}]]))};
 `);
   const loaded = await readProjectAssets(path);
-  expect(loaded.output.custom?.sections.map(row => row.name)).toEqual(['custom/example']);
+  expect(loaded.output.platform?.sections.map(row => row.name)).toEqual(['ui/strings']);
   const browser = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
     lib: { entry: resolve(path, 'shard.config.ts'), formats: ['es'], fileName: 'browser-config' } } });
   const first = Array.isArray(browser) ? browser[0] : browser;
   if (first === undefined || !('output' in first)) throw new Error('Browser config did not build');
   const code = first.output.filter(row => row.type === 'chunk').map(row => row.code).join('\n');
-  expect(code).not.toContain('createHash'); expect(code).not.toContain('custom/example');
+  expect(code).not.toContain('createHash'); expect(code).not.toContain('answer');
   writeFileSync(resolve(path, 'shard.config.ts'), `${config}export const output={};\n`);
   await expect(readProjectAssets(path)).rejects.toThrow('unambiguous');
 });

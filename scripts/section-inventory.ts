@@ -11,7 +11,7 @@ import { shardProducts } from './shard-outputs.mjs';
 import type { SectionMapping } from '@wildshard/format/outputFields';
 
 interface Reader {path:string;line:number;selector:string|null;name:string|null;schema:string|null;groups:string[];access:string}
-interface Entry {product:string;shard:string;name:string;kind:'platform'|'custom'|'named-json'|'platform-file';path:string;bytes:number;hash:string;schema:string|null;document:unknown;routes:string[]}
+interface Entry {product:string;shard:string;name:string;kind:'platform'|'named-json'|'platform-file';path:string;bytes:number;hash:string;schema:string|null;document:unknown;routes:string[]}
 interface Product {product:string;shard:string;indexHash:string;sourceHash:string;entries:Entry[]}
 interface InventoryRow extends Omit<Entry,'document'> {schemaIdentity:string;schemaBindings:string[];schemaCandidates:string[];provenance:string;readers:Reader[];schemaUsers:string[];registeredReader:string|null}
 interface Inventory {version:number;basis:string;products:Omit<Product,'entries'>[];rows:InventoryRow[];unresolvedReaders:Reader[]}
@@ -132,9 +132,8 @@ export function productSectionEntries(folder:string,product:string,shard:string)
   const roots=new Map<string,unknown>(),documents=new Map<string,unknown>();
   const entries:Entry[]=index.sections.map(section=>{
     roots.set(section.name,read(section));
-    const schema=section.name.startsWith('custom/')?index.schemas.find(row=>row.path===section.schema):undefined;
-    return {product,shard,name:section.name,kind:section.name.startsWith('custom/')?'custom':'platform',path:section.path,
-      bytes:section.bytes,hash:section.hash,schema:section.schema,document:schema===undefined?null:read(schema),routes:[]};
+    return {product,shard,name:section.name,kind:'platform',path:section.path,
+      bytes:section.bytes,hash:section.hash,schema:section.schema,document:null,routes:[]};
   });
   for(const file of index.files)if(file.kind==='json'&&file.name!==undefined){
     const value=read(file),source=file.jsonSchema?.['$comment'];documents.set(file.name,value);
@@ -197,7 +196,7 @@ export function renderSectionInventory(report:Inventory):string{
   const cell=(value:unknown):string=>String(value).replaceAll('|',String.raw`\|`).replaceAll('\n',' ');
   return ['# Emitted section inventory','',report.basis,'',
     '| Product | Custom | Registered streamed files |','|---|---:|---:|',
-    ...report.products.map(product=>{const rows=report.rows.filter(row=>row.product===product.product);return `| ${cell(product.product)} | ${rows.filter(row=>row.kind==='custom'||row.kind==='named-json').length} | ${rows.filter(row=>row.kind==='platform-file').length} |`;}),'',
+    ...report.products.map(product=>{const rows=report.rows.filter(row=>row.product===product.product);return `| ${cell(product.product)} | ${rows.filter(row=>row.kind==='named-json').length} | ${rows.filter(row=>row.kind==='platform-file').length} |`;}),'',
     '| Product | Source project | Name | Kind | Bytes | Defining schema | Schema emitters | Reading hosts (H-group) | Emitted routes |',
     '|---|---|---|---|---:|---|---|---|---|',...report.rows.map(row=>`| ${cell(row.product)} | ${cell(row.shard)} | ${cell(row.name)} | ${row.kind} | ${row.bytes} | ${cell(row.schemaBindings.join(', ')||'unattributed')} | ${cell(row.schemaUsers.join(', '))} | ${cell(row.readers.length===0?(row.registeredReader??'unresolved'):row.readers.map(reader=>`${reader.path}:${reader.line}${reader.groups.length===0?' (unmapped)':` (${reader.groups.join(', ')})`}`).join('; '))} | ${cell(row.routes.join(', ')||'direct reader')} |`),''].join('\n');
 }

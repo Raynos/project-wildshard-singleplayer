@@ -17,6 +17,7 @@ import { validateOutputProduct, writeOutputProduct } from './outputProduct';
 import { compileScript } from '@wildshard/sdk/compileScript';
 import { encodeCanonicalJson } from './immutable';
 import { loadHeadlessProduct } from './headlessProduct';
+import { registeredJsonSchema } from './formatJsonSchema';
 
 const directories: string[] = [];
 function directory(): string {
@@ -91,20 +92,21 @@ test('a some getter that detaches the view still runs once and retains the nativ
 });
 
 test('named JSON schemas survive merging and run during disk and runtime validation', async () => {
-  const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false };
-  const blob = nameBlob('data/checked.json', 'json', new TextEncoder().encode('{"n":1}'), { jsonSchema });
+  const jsonSchema = registeredJsonSchema('models/shape-book.json');
+  const value = [{"slot":"shape","channels":[],"file":"models/native.bin"}];
+  const blob = nameBlob('models/shape-book.json', 'json', new TextEncoder().encode(encodeCanonicalJson(value)), { jsonSchema });
   const merged = mergeProjectBlobs(source(), new Map(), [blob]);
   const path = directory();
   const index = writeOutputProduct(merged.shard, merged.assets, path, { namedFiles: merged.namedFiles });
   expect(index.files[0]?.jsonSchema).toEqual(jsonSchema);
   expect(validateOutputProduct(path).shard).toEqual(merged.shard);
-  expect(await (await loadHeadlessProduct(path)).json<{ n: number }>('data/checked.json')).toEqual({ n: 1 });
+  expect(await (await loadHeadlessProduct(path)).json('models/shape-book.json')).toEqual(value);
   const file = index.files[0];
   if (file === undefined) throw new Error('Missing named JSON');
-  file.jsonSchema = { ...jsonSchema, properties: { n: { type: 'string' } } };
+  file.jsonSchema = { ...jsonSchema, type: 'object' };
   writeFileSync(resolve(path, 'shard.json'), encodeCanonicalJson(index));
   expect(() => validateOutputProduct(path)).toThrow('refuses its schema');
-  await expect((await loadHeadlessProduct(path)).json('data/checked.json')).rejects.toThrow('refuses its schema');
+  await expect((await loadHeadlessProduct(path)).json('models/shape-book.json')).rejects.toThrow('refuses its schema');
 });
 
 test('blob admission charges new content once, preserves conservative declarations/names and owns bytes', () => {
@@ -123,7 +125,7 @@ test('blob admission charges new content once, preserves conservative declaratio
   expect(() => mergeProjectBlobs(changedKind, first.assets, [nameBlob('body.bin', 'bin', binary)])).toThrow('kind');
 });
 
-test('config output carries custom/platform sections, source and in-memory Wasm blobs through disk validation', async () => {
+test('config output carries platform sections, source and in-memory Wasm blobs through disk validation', async () => {
   const path = directory(), destination = resolve(path, 'out');
   const wasm = await compileScript(`
 export function abi_version(): i32 { return 0; }
@@ -136,37 +138,36 @@ export function out_count(): i32 { return 0; }
 export function on_tick(): void {}
 `);
   writeFileSync(resolve(path, 'body.bin'), binary);
-  writeFileSync(resolve(path, 'bake.json'), JSON.stringify({ places: [[1, 2, 3]] }));
+  writeFileSync(resolve(path, 'bake.json'), '[{"slot":"shape","channels":[],"file":"models/native.bin"}]');
   writeFileSync(resolve(path, 'quest.wasm'), wasm);
   writeFileSync(resolve(path, 'shard.config.ts'), `
 import * as v from 'valibot';
-import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import { nameBlob, emitNamedBlobs } from '@wildshard/sdk/blobs';
 export default ${JSON.stringify(source())};
 const named = emitNamedBlobs([nameBlob('behaviour/quest.wasm', 'wasm', new Uint8Array(${JSON.stringify([...wasm])}), { script: { abi: 0 } })]);
 export const output = {
  blobs: [{ name: 'models/body.bin', kind: 'bin', source: 'body.bin' },
-         { name: 'world/bake.json', kind: 'json', source: 'bake.json' },
+         { name: 'models/shape-book.json', kind: 'json', source: 'bake.json', options: {jsonSchema:registeredJsonSchema('models/shape-book.json')} },
          { name: 'behaviour/quest.wasm', kind: 'wasm', source: 'quest.wasm', options: { script: { abi: 0 } } }],
  namedFiles: named.files, assets: named.assets,
- custom: emitDefinedSections([defineSection('custom/reward', v.strictObject({ amount: v.number() }), { amount: 3 })]),
  platform: emitPlatformSections(new Map([['ui/strings', { hello: 'Hello' }]]))
 };
 export const mirrors = [{ name: 'REWARD', value: { amount: 3 } }];
 `);
   const loaded = await readProjectAssets(path);
   expect(loaded.mirrors).toEqual([{ name: 'REWARD', value: { amount: 3 } }]);
-  expect(loaded.output.namedFiles?.map(row => row.name)).toEqual(['models/body.bin', 'world/bake.json', 'behaviour/quest.wasm']);
+  expect(loaded.output.namedFiles?.map(row => row.name)).toEqual(['models/body.bin', 'models/shape-book.json', 'behaviour/quest.wasm']);
   await buildProject(path, destination, { client: null });
   const checked = validateOutputProduct(destination);
   expect(checked.index.formatVersion).toBe(2);
-  const bake = checked.index.files.find(row => row.name === 'world/bake.json');
+  const bake = checked.index.files.find(row => row.name === 'models/shape-book.json');
   expect(bake?.kind).toBe('json');
   if (bake === undefined) throw new Error('Missing named JSON bake');
-  expect(JSON.parse(readFileSync(resolve(destination, bake.path), 'utf8'))).toEqual({ places: [[1, 2, 3]] });
+  expect(JSON.parse(readFileSync(resolve(destination, bake.path), 'utf8'))).toEqual([{"slot":"shape","channels":[],"file":"models/native.bin"}]);
   expect(checked.index.files.find(row => row.name === 'behaviour/quest.wasm')?.kind).toBe('wasm');
-  expect(checked.index.sections.map(row => row.name)).toEqual(expect.arrayContaining(['custom/reward', 'ui/strings']));
+  expect(checked.index.sections.map(row => row.name)).toEqual(expect.arrayContaining(['ui/strings']));
   expect(readFileSync(resolve(destination, 'sections/ui/strings.json'), 'utf8')).toContain('Hello');
 });
 

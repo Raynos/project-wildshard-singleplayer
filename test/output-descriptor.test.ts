@@ -821,64 +821,35 @@ test('a refused background section write cannot advertise a complete offline pro
   await expect(readProductDescriptor({ ...opts, offline: true })).rejects.toThrow('not been visited offline');
 });
 
-test('checks emitted custom schemas at load, including first-party and cached readers', async () => {
-  const { index, wires } = fixture();
-  let paused = 0;
-  const name = 'custom/probe', path = `sections/${name}.json`, schemaPath = `schemas/${name}.schema.json`;
-  const schema = encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false });
-  const measured = (file: string, bytes: Uint8Array) => ({ path: file, hash: hashImmutableBytes(bytes), bytes: bytes.length });
-  const read = (value: unknown, schemaBytes = schema) => {
-    const bytes = encodeCanonicalJson(value);
-    wires.set(path, bytes); wires.set(schemaPath, schemaBytes);
-    wires.set('shard.json', encodeCanonicalJson({ ...index,
-      sections: [...index.sections, { name, schema: schemaPath, ...measured(path, bytes) }],
-      schemas: [measured(schemaPath, schemaBytes)] }));
-    return readProductDescriptor({ ...options(wires), pause: () => { paused++; return Promise.resolve(); } });
-  };
-  await expect(read({ n: 1 })).resolves.toBeDefined();
-  expect(paused).toBeGreaterThan(2);
-  const completedPauses = paused;
-  await expect(read({ n: 'bad' })).rejects.toThrow('refuses its schema');
-  expect(paused).toBeGreaterThan(completedPauses);
-  await expect(read({})).rejects.toThrow('refuses its schema');
-  await expect(read({ n: 1 }, encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', typo: true }))).rejects.toThrow();
-  await read({ n: 1 });
-  const store = cacheStore();
-  const opts = options(wires, store.cache);
-  const source = await readProductDescriptor(opts);
-  await admitProduct(source, opts);
-  await expect(readProductDescriptor({ ...opts, offline: true })).resolves.toBeDefined();
-  store.bytes.delete(hashImmutableBytes(schema));
-  await expect(readProductDescriptor({ ...opts, offline: true })).rejects.toThrow('incomplete section cache');
-});
-
-test('concurrent products serialize painted custom schema phases', async () => {
-  const { index, wires } = fixture(), name = 'custom/parallel', path = `sections/${name}.json`, schemaPath = `schemas/${name}.schema.json`;
-  const value = encodeCanonicalJson({ n: 1 }), schema = encodeCanonicalJson({ $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', properties: { n: { type: 'number' } }, required: ['n'], additionalProperties: false });
-  const measured = (file: string, bytes: Uint8Array) => ({ path: file, hash: hashImmutableBytes(bytes), bytes: bytes.length });
-  wires.set(path, value); wires.set(schemaPath, schema);
-  const input = { ...index, sections: [...index.sections, { name, schema: schemaPath, ...measured(path, value) }], schemas: [measured(schemaPath, schema)] };
-  let blocked = true, pauses = 0, completed = 0;
-  const release: (() => void)[] = [];
-  const pause = (): Promise<void> => { pauses++; return blocked ? new Promise(resolve => { release.push(resolve); }) : Promise.resolve(); };
-  const read = () => resolveOutputDescriptor(input, { offline: false, hash, pause, read: file => {
-    const bytes = wires.get(file); if (bytes === undefined) throw new Error('Missing section'); return Promise.resolve(bytes);
-  } });
-  const products = [read(), read()].map(async product => { const descriptor = await product; completed++; return descriptor; });
-  try {
-    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
-    expect(release).toHaveLength(1);
-    release[0]?.();
-    await new Promise<void>(resolve => { setTimeout(resolve, 0); });
-    expect(release).toHaveLength(2);
-    expect(completed).toBe(0); // A complete check paints before its consumer resumes.
-  } finally {
-    blocked = false; for (const done of release) done();
-    await Promise.all(products);
+test('custom sections and their schema inventory refuse before reads or cache adoption', async () => {
+  const {index}=fixture();let reads=0,pauses=0;
+  const measured={path:'schemas/custom/probe.schema.json',hash:'0'.repeat(64),bytes:2};
+  const reader={offline:false,hash,pause:()=>{pauses++;return Promise.resolve();},read:()=>{reads++;return Promise.reject(new Error('Unexpected read'));}};
+  for(const input of [
+    {...index,sections:[...index.sections,{name:'custom/probe',path:'sections/custom/probe.json',schema:measured.path,hash:measured.hash,bytes:2}]},
+    {...index,schemas:[measured]},
+  ]) {
+    await expect(resolveOutputDescriptor(input,reader)).rejects.toThrow();
+    await expect(resolveOutputDescriptor(input,{...reader,firstParty:true})).rejects.toThrow();
+    await expect(resolveOutputDescriptor(input,{...reader,offline:true})).rejects.toThrow();
   }
-  expect(pauses).toBeGreaterThan(4);
+  expect(reads).toBe(0);expect(pauses).toBe(0);
 });
 
+test('concurrent platform reads paint before their consumers resume', async () => {
+  const {index,wires}=fixture();let blocked=true,completed=0,pauses=0;
+  const release:(()=>void)[]=[];
+  const pause=():Promise<void>=>{pauses++;return blocked?new Promise(resolve=>{release.push(resolve);}):Promise.resolve();};
+  const read=()=>resolveOutputDescriptor(index,{offline:false,firstParty:true,hash,pause,read:file=>{
+    const bytes=wires.get(file);if(bytes===undefined)throw new Error('Missing section');return Promise.resolve(bytes);
+  }});
+  const products=[read(),read()].map(async product=>{const result=await product;completed++;return result;});
+  try {
+    await new Promise<void>(resolve=>{setTimeout(resolve,0);});
+    expect(pauses).toBeGreaterThan(0);expect(completed).toBe(0);
+  } finally {blocked=false;for(const done of release)done();await Promise.all(products);}
+  expect(completed).toBe(2);
+});
 
 test('descriptor envelope detection refuses getters before reading format or starting reads', async () => {
   let calls = 0;
@@ -1240,10 +1211,10 @@ test('live parsing retains main-thread receipts and the original hash refusal', 
 });
 
 test('build-owned client sections assemble exact hosts without hashing or downloading schemas',async()=>{
-  const f=fixture(),path='sections/custom/build-probe.json',schemaPath='schemas/custom/build-probe.schema.json';
-  const value={enabled:true},wire=encodeCanonicalJson(value),schema=encodeCanonicalJson({type:'object',properties:{enabled:{type:'boolean'}},required:['enabled'],additionalProperties:false});
+  const f=fixture(),path='sections/ui/strings.json',schemaPath='schemas/custom/forbidden.schema.json';
+  const value={enabled:'true'},wire=encodeCanonicalJson(value);
   const measured=(name:string,bytes:Uint8Array)=>({path:name,bytes:bytes.length,hash:hashImmutableBytes(bytes)});
-  const index=parseOutputIndex({...f.index,sections:[...f.index.sections,{name:'custom/build-probe',schema:schemaPath,...measured(path,wire)}],schemas:[measured(schemaPath,schema)]});
+  const index=parseOutputIndex({...f.index,sections:[...f.index.sections,{name:'ui/strings',schema:'wildshard:ui/strings@1',...measured(path,wire)}],schemas:[]});
   f.wires.set(path,wire);
   const reads:string[]=[],digest=vi.fn<(bytes:Uint8Array)=>Promise<string>>(()=>{throw new Error('No client digest');});
   let active=0,maximum=0;
@@ -1253,7 +1224,7 @@ test('build-owned client sections assemble exact hosts without hashing or downlo
   expect(source).toStrictEqual(f.source);expect(digest).not.toHaveBeenCalled();expect(reads).toEqual(index.sections.map(row=>row.path));expect(reads).not.toContain(schemaPath);
   expect(maximum).toBe(1);
   if(!isBuildValidatedOutput(source))throw new Error('Missing build authority');
-  expect(outputDescriptor(source)?.sections.get('custom/build-probe')).toStrictEqual(value);expect(outputDescriptor(source)?.indexHash).toBe('compiled-index-key');
+  expect(outputDescriptor(source)?.sections.get('ui/strings')).toStrictEqual(value);expect(outputDescriptor(source)?.indexHash).toBe('compiled-index-key');
 });
 
 test('a supplied build reader cannot bypass external descriptor validation',async()=>{

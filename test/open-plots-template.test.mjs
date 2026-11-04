@@ -13,7 +13,7 @@ const write=(file,value)=>{const path=resolve(root,file);mkdirSync(dirname(path)
 beforeEach(()=>{
  mkdirSync('tmp',{recursive:true});root=mkdtempSync(resolve('tmp/open-plot-template-test-'));
  const reference='art/test/template-reference.svg';
- for(const file of ['.gitignore','src/shards/open-plots/outputs.json','src/game/grid/singleplayer.json','src/shards/open-plots/data/map.json','src/shards/open-plots/data/source.json','src/shards/open-plots/data/layouts/night-market.json','scripts/source-generation-outputs.json','scripts/test-products.json','lint/tile-bake-debt.json','lint/custom-sections.json']){
+ for(const file of ['.gitignore','src/shards/open-plots/outputs.json','src/game/grid/singleplayer.json','src/shards/open-plots/data/map.json','src/shards/open-plots/data/source.json','src/shards/open-plots/data/layouts/night-market.json','scripts/source-generation-outputs.json','scripts/test-products.json','lint/tile-bake-debt.json']){
   const target=resolve(root,file);mkdirSync(dirname(target),{recursive:true});copyFileSync(file,target);
  }
  // CI intentionally excludes repository art. Own a real reference image and use the maintained exact camera fixtures.
@@ -105,7 +105,7 @@ test('an explicitly named new-idea swap writes complete declarations and keeps 2
  expect(declared).not.toContain('src/shards/open-plots/discovery.open-plot-new-idea.generated.ts');
  expect(proposal.paths.has('.gitignore')).toBe(false);
  expect(proposal.paths.has('lint/tile-bake-debt.json')).toBe(true);
- expect(proposal.paths.has('lint/custom-sections.json')).toBe(true);
+ expect(proposal.paths.has('lint/custom-sections.json')).toBe(false);
  expect(()=>plotTemplate(root,{...recipe,slug:'open-plot-new-idea',cell:cell.cell,replaces:'open-plot-wrong'})).toThrow('replacement does not match');
 });
 

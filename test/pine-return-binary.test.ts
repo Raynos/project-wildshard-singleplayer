@@ -60,7 +60,7 @@ test('Pine life, shelter and both quest copies publish descriptors with only adm
   }
   const chapter = v.parse(v.object({ chapter: programPage }), namedJson('quests/page-composition.json')).chapter;
   expect(chapter.program).toEqual({ script: life.script, bytes: '' });
-  expect(output.custom.sections).toEqual([]);
+  expect(Object.hasOwn(output, 'custom')).toBe(false);
   const runtime = v.parse(v.object({ lead: programPage }), namedJson('quests/runtime.json'));
   expect(runtime.lead.program).toEqual(chapter.program);
 });

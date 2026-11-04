@@ -48,26 +48,29 @@ assert all(str(path) in registry for path in Path('test/scripts').glob('*.test.t
   ]);
 });
 
-test('old carriers skip a checkout-only checker and new carriers run their own', () => {
+test('carriers require their own zero guard and never trust a checkout-only checker', () => {
   const result = execFileSync('python3', ['-c', `
 import json, runpy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-command = runpy.run_path('scripts/test_products.py')['custom_section_growth_command']
+command = runpy.run_path('scripts/test_products.py')['custom_sections_zero_command']
 Path('tmp').mkdir(exist_ok=True)
 with TemporaryDirectory(dir='tmp') as temporary:
  root = Path(temporary).resolve()
  repo, tree, common = root / 'repo', root / 'carrier', root / 'git'
  for folder in [repo, tree]:
   (folder / 'scripts').mkdir(parents=True)
- checker = 'scripts/check-custom-section-growth.mjs'
+ checker = 'scripts/check-custom-sections-zero.mjs'
  (repo / checker).write_text('checkout-only checker')
- assert command(tree, repo, 'base', 'sha', common) is None
+ try:
+  command(tree)
+  raise AssertionError('missing zero guard accepted')
+ except ValueError:
+  pass
  (tree / checker).write_text('committed checker')
- assert command(tree, repo, 'base', 'sha', common) == [
-  'node', str(tree / checker), str(repo), 'base', 'sha',
-  str(common / 'custom-section-measures')]
- print(json.dumps({'oldSkipped': True, 'newUsesCarrier': True}))
+ assert command(tree) == [
+  'node', str(tree / checker), str(tree)]
+ print(json.dumps({'missingRefused': True, 'newUsesCarrier': True}))
 `], { encoding: 'utf8' });
-  expect(JSON.parse(result)).toEqual({ oldSkipped: true, newUsesCarrier: true });
+  expect(JSON.parse(result)).toEqual({ missingRefused: true, newUsesCarrier: true });
 });

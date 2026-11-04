@@ -82,7 +82,6 @@ const GeometryLibrarySchemaShape: { readonly kind: 'object'; readonly entries: {
 const GeometryLibrarySchemaRows: ReturnType<typeof defineNamedRows<typeof GeometryLibrarySchemaShape>> = defineNamedRows(GeometryLibrarySchemaShape);
 export const GeometryLibrarySchema: typeof GeometryLibrarySchemaRows.schema = GeometryLibrarySchemaRows.schema;
 /** Named blob types only; this declaration adds no custom output section. */
-export const SECTIONS: NonNullable<unknown> = {};
 
 const OffsetShape: { readonly kind: 'number'; readonly integer: true; readonly min: 0 } = { kind: 'number', integer: true, min: 0 } as const;
 const CrowdCopyShape: { readonly kind: 'object'; readonly entries: { readonly variant: { readonly kind: 'string' }; readonly matrix: typeof OffsetShape } } = { kind: 'object', entries: { variant: { kind: 'string' }, matrix: OffsetShape } } as const;

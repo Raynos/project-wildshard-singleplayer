@@ -19,24 +19,6 @@ const starter = (id, script, input, output, source) => ({
   generate: async root => ({ [output]: (await import(pathToFileURL(`${root}/${script}`).href))[source]() }),
 });
 
-/** Compute in the caller's source view: committed checks pin imports and reads
- * to Git, so a child process must not escape into loose working-tree schemas.
- * @param {string} root @param {string} slug @returns {Promise<Readonly<Record<string,string>>>} */
-async function schemaTables(root,slug) {
-  const {sectionSchemaTables}=await import(pathToFileURL(`${root}/scripts/bake-section-schemas.mjs`).href);
-  const {tables}=await sectionSchemaTables(root,slug);
-  return tables;
-}
-
-/** @param {string} slug @param {readonly string[]} outputs @param {readonly string[]} [jsonInputs] @returns {SourceGenerator} */
-function sectionSchemas(slug,outputs,jsonInputs=[]) {
-  return {id:`${slug}-section-schemas`,outputs,committed:true,
-    inputs:[`src/shards/${slug}/generators/sections.ts`,...jsonInputs,
-      'scripts/source-generators.mjs','scripts/bake-section-schemas.mjs','scripts/section-types.mjs','scripts/shard-platform-format.mjs',
-      'src/sdk/formatJsonSchema.ts','src/sdk/package.json','src/format/**','package.json','pnpm-lock.yaml'],
-    generate:root=>schemaTables(root,slug)};
-}
-
 const MANIFEST_INPUTS = ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.mjs', 'src/**/*.js', 'src/**/package.json', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/shards/*/{data,boot}/*.json', 'tsconfig*.json', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs', 'scripts/generated-source.mjs', 'lint/generated-source-debt.json', 'lint/generated-import-debt.json', 'scripts/manifest-static-imports.mjs', 'scripts/manifest-art-inputs.json'];
 
 /** @type {readonly SourceGenerator[]} */
@@ -46,8 +28,6 @@ export const SOURCE_GENERATORS = [
     inputs: ['public/assets/title/*', 'scripts/title-assets.mjs', 'index.html'],
     generate: async root => (await import(pathToFileURL(`${root}/scripts/title-assets.mjs`).href)).titleAssetTables(root),
   },
-  sectionSchemas('driftwood-isle',['src/shards/driftwood-isle/generators/sectionSchemas.ts','src/shards/driftwood-isle/runtime/productSections.d.ts'],['src/shards/driftwood-isle/data/bridgeRows.json']),
-  sectionSchemas('pine-hollow',['src/shards/pine-hollow/generators/sectionSchemas.ts','src/shards/pine-hollow/runtime/productSections.d.ts']),
   starter('starter-arm-clips', 'scripts/gen-starter-arm-clips.mjs', 'src/game/systems/viewmodel/armAliases.json', 'src/game/systems/viewmodel/clips.generated.ts', 'starterArmClipsTableSource'),
   starter('starter-weapons', 'scripts/gen-starter-weapons.mjs', 'src/game/weapons/starterBow.json', 'src/game/weapons/starter.generated.ts', 'starterWeaponsTableSource'),
   starter('starter-bag', 'scripts/gen-starter-bag.mjs', 'src/game/bag/starterItems.json', 'src/game/bag/starter.generated.ts', 'starterBagTableSource'),

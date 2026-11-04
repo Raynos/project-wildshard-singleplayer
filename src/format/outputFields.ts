@@ -85,7 +85,7 @@ export function isPlatformDataSection(name: string): name is keyof PlatformDataS
   return Object.hasOwn(DATA_SECTION_NAMES, name);
 }
 
-/** Deterministic platform section values; custom author sections are added separately. */
+/** Deterministic platform section values. */
 export function outputSectionPayloads(source: Shardfile): ReadonlyMap<string, unknown> {
   const result = new Map<string, unknown>();
   for (const mapping of OUTPUT_SECTIONS) {
@@ -105,7 +105,7 @@ export function assembleOutputTransport(index: OutputIndex, sections: ReadonlyMa
   const rows: Record<string, unknown> = {};
   for (const entry of index.sections) {
     checks?.bounds(entry.name, sections.get(entry.name));
-    if (entry.name.startsWith('custom/')) continue;
+    if (entry.name.startsWith('custom/')) throw new Error('Custom output sections are retired');
     if (isPlatformDataSection(entry.name)) { checks?.platform(entry.name, sections.get(entry.name)); continue; }
     const payload=sections.get(entry.name);
     if(typeof payload!=='object'||payload===null||Array.isArray(payload))throw new Error('Output section envelope must be an object');

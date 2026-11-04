@@ -1,6 +1,6 @@
 import { DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { formatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateDefinedSection } from '../src/sdk/sections';
+import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, type Object3D } from 'three';
@@ -175,8 +175,8 @@ test('site-life custom sections convert with their suffix and defining checks in
   expect(() => formatJsonSchema(WorldAssemblySchema, 'draft-07')).not.toThrow();
   const schema = namedJsonSchema(WorldAssemblySchema);
   const encoded = new TextEncoder().encode(encodeCanonicalJson(schema));
-  expect(validateDefinedSection(encoded, stages)).toEqual(stages);
+  expect(validateFixtureJsonValue(encoded, stages)).toEqual(stages);
   const wrong = { stages: [{ ...stages.stages[0], life: { ...lifeRow, file: 'wrong.bin' } }] };
   expect(() => v.parse(WorldAssemblySchema, wrong)).toThrow();
-  expect(() => validateDefinedSection(encoded, wrong)).toThrow();
+  expect(() => validateFixtureJsonValue(encoded, wrong)).toThrow();
 });

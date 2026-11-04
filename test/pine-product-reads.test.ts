@@ -13,13 +13,13 @@ import { RangedPageSchema } from '../src/format/rangedPage';
 const pine = await readPineProject();
 
 test('Pine client reads resolve against the emitted output', () => {
-  const loaded = pine, custom = loaded.output.custom;
-  if (custom === undefined) throw new Error('Pine custom sections absent');
+  const loaded = pine;
+  expect(Object.hasOwn(loaded.output, 'custom')).toBe(false);
   const rows = loaded.shard.items.pickups ?? {};
   expect(Object.keys(rows).sort()).toEqual(['blackpaw', 'ghost-stag', 'hollow-ash', 'imperial', 'ironhide', 'scarback-furnace', 'warden']);
   expect(loaded.shard.quests.achievements?.length).toBeGreaterThan(0);
   expect(loaded.shard.items.catalogue?.length).toBeGreaterThan(0);
-  expect(custom.sections.some(row => row.name === 'custom/questInventory')).toBe(false);
+  expect(loaded.output.namedFiles?.some(row => row.name === 'custom/questInventory')).toBe(false);
   const shots = loaded.shard.audio.bank?.shots;
   if(shots===undefined)throw new Error('Pine admitted voice identities absent');
   const lifeFile = loaded.output.namedFiles?.find(row => row.name === 'actors/page-life.json');
@@ -32,7 +32,7 @@ test('Pine client reads resolve against the emitted output', () => {
   ].filter((cue): cue is string => cue !== undefined && cue !== null)),
     ...(life.guide === undefined ? [] : [life.guide.cue]), ...(life.harvest?.sounds ?? [])];
   for (const voice of voices) expect(shots.includes(voice), voice).toBe(true);
-  expect(custom.sections.some(row => row.name === 'custom/ambientLife')).toBe(false);
+  expect(loaded.output.namedFiles?.some(row => row.name === 'custom/ambientLife')).toBe(false);
   expect(shots.length).toBe(new Set(shots).size);
   const rangedFile = loaded.output.namedFiles?.find(row => row.name === 'client/ranged-page.json');
   const rangedBytes = rangedFile === undefined ? undefined : loaded.assets.get(rangedFile.hash);

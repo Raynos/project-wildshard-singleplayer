@@ -34,7 +34,7 @@ const declaration: v.StrictObjectSchema<{ readonly name: v.StringSchema<undefine
 });
 const output = v.strictObject({
   blobs: v.optional(v.pipe(v.array(declaration), v.maxLength(8192)), []),
-  custom: v.exactOptional(emitted), platform: v.exactOptional(emitted),
+  platform: v.exactOptional(emitted),
   late: v.exactOptional(AdmissionLateSchema),
   namedFiles: v.optional(OutputIndexSchema.entries.files, []), assets: v.optional(assetMap, () => new Map()),
 });
@@ -115,7 +115,6 @@ export async function prepareProjectOutput(project: string, input: unknown, deci
   const late = [...parsed.late ?? [], ...riggedHullLate(parsed.platform, inventory, critical).filter(row => !explicit.has(row.hash))];
   return { blobs, assets: ownedAssets(parsed.assets), ...(parsed.late === undefined && late.length === 0 ? {} : { late }), options: {
     namedFiles: overlays,
-    ...(parsed.custom === undefined ? {} : { custom: ownedSections(parsed.custom) }),
     ...(parsed.platform === undefined ? {} : { platform: ownedSections(parsed.platform) }),
   } };
 }

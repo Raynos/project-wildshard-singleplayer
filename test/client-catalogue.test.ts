@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { parseClientPlan } from '../src/format/clientPlan';
 import { CatalogueEconomySchema, type CatalogueEconomy } from '../src/format/catalogueEconomy';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateDefinedSection } from '../src/sdk/sections';
+import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { installClientCatalogue } from '../src/game/shardfile/clientCatalogue';
@@ -93,10 +93,10 @@ test('catalogue reference failures and unknown ownership refuse before any regis
 test('catalogue economy reuses the defining grammar and emits a structural wire schema', () => {
   const rows = driftwoodCatalogueEconomy(), schema = namedJsonSchema(CatalogueEconomySchema);
   const bytes = new TextEncoder().encode(encodeCanonicalJson(schema));
-  expect(validateDefinedSection(bytes, rows)).toEqual(rows);
+  expect(validateFixtureJsonValue(bytes, rows)).toEqual(rows);
   expect(v.parse(CatalogueEconomySchema, rows)).toEqual(rows);
   expect(() => v.parse(CatalogueEconomySchema, { ...rows, source: 'economy/loot' })).toThrow();
-  expect(() => validateDefinedSection(bytes, { ...rows, source: 'economy/loot' })).toThrow();
+  expect(() => validateFixtureJsonValue(bytes, { ...rows, source: 'economy/loot' })).toThrow();
 });
 
 test('a direct economy accessor refuses without invocation or registration', () => {

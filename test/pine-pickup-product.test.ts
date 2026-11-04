@@ -13,7 +13,7 @@ test('the platform item catalogue preserves all seven pickups and refuses malfor
     sections: new Map([['combat/items', { items }]]), files: new Map(), check: true,
     read: () => Promise.reject(new Error('No pickup bytes expected')) });
   expect(product.section('combat/items').items.pickups).toEqual(pickups);
-  expect(product.has('custom/skinPickups')).toBe(false);
+  expect(product.hasFile('custom/skinPickups')).toBe(false);
   for (const id of Object.keys(rows)) {
     const incomplete = Object.fromEntries(Object.entries(rows).filter(([key]) => key !== id));
     expect(() => pinePickups(incomplete)).toThrow();

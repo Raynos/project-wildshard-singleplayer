@@ -11,7 +11,6 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 /** Trusted checked-ingestion capability, supplied explicitly by Node author readers. */
 export interface OutputDescriptorChecks {
   readonly parseIndex: (input: unknown) => OutputIndex | null;
-  readonly custom: (index: OutputIndex, sections: ReadonlyMap<string, unknown>, schemas: ReadonlyMap<string, unknown>, pause: OutputDescriptorReader['pause']) => Promise<void>;
   readonly assemble: (index: OutputIndex, sections: ReadonlyMap<string, unknown>) => Shardfile;
 }
 /** Byte readers are injected: the section adapter runs in browsers and renderer-free Node admission. */
@@ -253,11 +252,10 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   };
   // Each section is independently bounded; launch the complete inventory in
   // parallel, and settle every request before returning a failed admission.
-  const results = await Promise.allSettled([...inventory.sections, ...inventory.schemas.map(row => ({ ...row, name: row.path, schema: row.path }))].map(load));
-  const schemas = new Map<string, unknown>();
+  const results = await Promise.allSettled(inventory.sections.map(load));
   for (const result of results) {
     if (result.status === 'rejected') throw result.reason;
-    (result.value[0].startsWith('schemas/') ? schemas : sections).set(...result.value);
+    sections.set(...result.value);
   }
   if (current === null) {
     const state = sections.get('state/state');
@@ -267,10 +265,6 @@ export async function resolveOutputDescriptor(input: unknown, reader: OutputDesc
   const candidate = pinned?.receipt ?? (reader.firstParty === true ? builtValidationReceipt(index.build.sourceHash) : null);
   const indexHash = pinned?.digest ?? (candidate === null ? undefined : await reader.hash(await receiptBytes(input, reader)));
   const receipt = pinned?.receipt ?? (indexHash === undefined ? null : builtValidationReceipt(index.build.sourceHash, indexHash));
-  // G728: the exact build receipt proves custom schemas too; every section/schema
-  // byte above still passes its declared size and hash. Unproved Node inputs
-  // stay checked; the default browser reader has already refused them.
-  if (receipt === null) await (await descriptorChecks(reader)).custom(index, sections, schemas, reader.pause);
   // Unproved products keep the original serialized schema phase before paced
   // hashing; only a possible CI receipt needs that digest to decide the fast path.
   const digest = indexHash ?? await reader.hash(await receiptBytes(input, reader));
