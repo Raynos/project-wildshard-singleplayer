@@ -28,6 +28,8 @@ export interface SpawnManifestBook {
   readonly cacheName: string;
   readonly client: Readonly<Record<string, Readonly<Record<'phone' | 'desktop', SpawnManifestAddress>>>>;
   readonly grid: Readonly<Record<string, Readonly<Record<string, Readonly<Record<'phone' | 'desktop', SpawnManifestAddress>>>>>>;
+  /** DL16: the whole level with its parts, read only with Debug > Level download > Runtime packs. */
+  readonly packs: {readonly client: SpawnManifestBook['client']; readonly grid: SpawnManifestBook['grid']};
 }
 
 /** Write the complete ordered spawn IO, rather than estimating a number from
@@ -81,8 +83,9 @@ export function writeSpawnManifests(outDir: string, input: unknown,
   const seams = existsSync(join(root, 'out/.app/grid-seams.json')) ? readGridSeams(root).address : undefined;
   const client: Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>> = {}, grid: Record<string, Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>>> = {};
   mkdirSync(join(output, 'assets/spawn'), {recursive: true});
-  const pending: {manifest: Omit<SpawnManifest, 'parts'>; public: boolean}[] = [];
+  const pending: {manifest: Omit<SpawnManifest, 'parts'>; public: boolean; packed: boolean}[] = [];
   const clientAt: Record<string, {phone: number; desktop: number}> = {}, gridAt: Record<string, Record<string, {phone: number; desktop: number}>> = {};
+  const packsClientAt: typeof clientAt = {}, packsGridAt: typeof gridAt = {};
   for (const prefix of Object.keys(bank.products)) {
     const directory = prefix.split('/')[2]; if (directory === undefined || !/^[a-z0-9_-]+$/u.test(directory)) throw new Error('Invalid spawn shard');
     const product = join(root, 'out', directory), header = readFileSync(join(product, 'shard.json')), raw: unknown = JSON.parse(header.toString('utf8')), index = parseOutputIndex(raw);
@@ -107,12 +110,12 @@ export function writeSpawnManifests(outDir: string, input: unknown,
       return {url, bytes, hash, wireBytes: wire};
     };
     const headerURL = `${prefix}shard.json?v=${headerHash.slice(0, 8)}`; sources.set(headerURL, () => header);
-    const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = [], mode = '000'): number => {
+    const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = [], mode = '000', whole = false): number => {
       const selected = new Map<string, SpawnFile>(), add = (row: SpawnFile): void => {selected.set(row.url, row);};
       add({url: headerURL, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
       for (const row of index.sections) add(productFile(row.path, row.bytes, row.hash, `section:${row.name}`));
       for (const row of index.schemas) add(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
-      const wanted = entryReadSet(source, tier, index, sections);
+      const wanted = entryReadSet(source, tier, index, sections, whole);
       for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash, row.name));
       for (const row of common) add(row);
       for (const [url, bytes] of [...bank.common, ...bank[flow]]) add(asset(url, bytes));
@@ -145,21 +148,26 @@ export function writeSpawnManifests(outDir: string, input: unknown,
       const rows = [...original.filter(code), ...original.filter(row => !code(row))];
       const totalBytes = rows.reduce((sum, row) => sum + row.bytes, 0), wire = rows.reduce((sum, row) => {if (row.wireBytes === undefined) throw new Error('Missing spawn wire size'); return sum + row.wireBytes;}, 0);
       // The public phone entries (client, and grid mode 000) steer how files share parts.
-      pending.push({manifest: {version: 1, shard: directory, tier, flow, files: rows, totalBytes, wireBytes: wire}, public: tier === 'phone' && (flow === 'client' || mode === '000')});
+      pending.push({manifest: {version: 1, shard: directory, tier, flow, files: rows, totalBytes, wireBytes: wire}, public: tier === 'phone' && (flow === 'client' || mode === '000'), packed: whole});
       return pending.length - 1;
     };
+    // DL16: the default book is today's entry set (Shardfile, what every player gets); the packs book is the whole
+    // level in parts, read only with Debug > Level download > Runtime packs until a memory reading backs it.
     clientAt[directory] = {phone: write('phone', 'client'), desktop: write('desktop', 'client')};
-    for (const [mode, homes] of Object.entries(strips)) (gridAt[mode] ??= {})[directory] = {
-      phone: write('phone', 'grid', homes[directory], mode), desktop: write('desktop', 'grid', homes[directory], mode),
-    };
+    packsClientAt[directory] = {phone: write('phone', 'client', [], '000', true), desktop: write('desktop', 'client', [], '000', true)};
+    for (const [mode, homes] of Object.entries(strips)) {
+      (gridAt[mode] ??= {})[directory] = {phone: write('phone', 'grid', homes[directory], mode), desktop: write('desktop', 'grid', homes[directory], mode)};
+      (packsGridAt[mode] ??= {})[directory] = {phone: write('phone', 'grid', homes[directory], mode, true), desktop: write('desktop', 'grid', homes[directory], mode, true)};
+    }
   }
   // DL5: every manifest is known, so pack their files into shared parts, then write each manifest with its own table.
-  const partTables = writeSpawnParts(output, pending.map(row => ({rows: row.manifest.files, public: row.public})), url => {
+  const packed = pending.flatMap((row, index) => row.packed ? [index] : []);
+  const packedTables = writeSpawnParts(output, packed.map(index => ({rows: pending[index]?.manifest.files ?? [], public: pending[index]?.public === true})), url => {
     const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read();
   }, url => stableKeys.get(url));
   const written: SpawnManifestAddress[] = [];
   for (const [index, {manifest: base}] of pending.entries()) {
-    const manifest = readSpawnManifest({...base, parts: partTables[index] ?? []});
+    const at = packed.indexOf(index), manifest = readSpawnManifest(at === -1 ? base : {...base, parts: packedTables[at] ?? []});
     const text = JSON.stringify(manifest), hash = createHash('sha256').update(text).digest('hex'), name = `assets/spawn/${base.shard}-${base.flow}-${base.tier}-${hash.slice(0, 16)}.json`;
     writeFileSync(join(output, name), text);
     written.push({url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes: base.totalBytes, files: base.files.length, ...(base.wireBytes === undefined ? {} : {wireBytes: base.wireBytes})});
@@ -167,6 +175,9 @@ export function writeSpawnManifests(outDir: string, input: unknown,
   const at = (index: number): SpawnManifestAddress => { const address = written[index]; if (address === undefined) throw new Error('Missing spawn manifest'); return address; };
   for (const [directory, pair] of Object.entries(clientAt)) client[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
   for (const [mode, shards] of Object.entries(gridAt)) for (const [directory, pair] of Object.entries(shards)) (grid[mode] ??= {})[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
-  return {cacheName: ASSET_CACHE_NAME, client, grid};
+  const packs: {client: typeof client; grid: typeof grid} = {client: {}, grid: {}};
+  for (const [directory, pair] of Object.entries(packsClientAt)) packs.client[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
+  for (const [mode, shards] of Object.entries(packsGridAt)) for (const [directory, pair] of Object.entries(shards)) (packs.grid[mode] ??= {})[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
+  return {cacheName: ASSET_CACHE_NAME, client, grid, packs};
 }
 

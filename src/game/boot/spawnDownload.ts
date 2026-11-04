@@ -209,7 +209,9 @@ export function prefetchSpawnDownload(slug: string, tier: 'phone' | 'desktop', f
 function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): {address: SpawnManifestAddress; cacheName: unknown} | null {
   const text = document.getElementById('boot-module-files')?.textContent; if (!text) return null;
   const bank: unknown = JSON.parse(text), get = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
-  const manifests = get(bank, 'spawnManifests'), roots = flow === 'grid' ? get(get(manifests, flow), mode) : get(manifests, flow);
+  // DL16: Runtime packs read the whole-level book (with parts); the default Shardfile path keeps today's entry set.
+  const manifests = get(bank, 'spawnManifests'), book = packsOn ? get(manifests, 'packs') ?? manifests : manifests;
+  const roots = flow === 'grid' ? get(get(book, flow), mode) : get(book, flow);
   const pair = get(get(roots, slug), tier);
   if (pair === undefined) return null;
   return {address: readSpawnManifestAddress(pair), cacheName: get(manifests, 'cacheName')};

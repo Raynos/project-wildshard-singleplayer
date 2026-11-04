@@ -65,15 +65,19 @@ test('plain build publishes exact tier spawn files and rejects changed section b
       admission: {budgets: source.budgets, serverBudget: source.serverBudget, authorCaps: source.authorCaps,
         critical: source.critical, library: source.library, late: source.late}, sections, schemas: [], files, packs, runtime: null};
     const indexBytes = JSON.stringify(index); writeFileSync(resolve(product, 'shard.json'), indexBytes);
-    // Each tier's own file plus the untiered late library file: 'late' is only a schedule, so the whole level (DL5,
-    // G872) includes it.
-    const expected = Buffer.byteLength(indexBytes) + sections.reduce((sum, row) => sum + row.bytes, 0) + 3 + 3;
+    // The default (Shardfile) book: each tier's own file. The packs book (DL16, Runtime packs) is the whole level and
+    // adds the untiered late library file: 'late' is only a schedule.
+    const expected = Buffer.byteLength(indexBytes) + sections.reduce((sum, row) => sum + row.bytes, 0) + 3;
     const manifests = writeSpawnManifests(out, {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
       products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}, code: {entries: {}}}, {}, root);
     const spawn = manifests.client['example']; if (spawn === undefined) throw new Error('Missing spawn manifests');
     expect(spawn.phone.totalBytes).toBe(expected); expect(spawn.desktop.totalBytes).toBe(expected);
     const phone = readFileSync(resolve(out, spawn.phone.url.slice(1)), 'utf8');
-    expect(phone).toContain(hashes[0]); expect(phone).not.toContain(hashes[1]); expect(phone).toContain(hashes[2]);
+    expect(phone).toContain(hashes[0]); expect(phone).not.toContain(hashes[1]); expect(phone).not.toContain(hashes[2]);
+    const whole = manifests.packs.client['example']; if (whole === undefined) throw new Error('Missing packs manifests');
+    expect(whole.phone.totalBytes).toBe(expected + 3);
+    const wholePhone = readFileSync(resolve(out, whole.phone.url.slice(1)), 'utf8');
+    expect(wholePhone).toContain(hashes[0]); expect(wholePhone).not.toContain(hashes[1]); expect(wholePhone).toContain(hashes[2]);
     const moduleBank = {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
       products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}};
     writeFileSync(resolve(out, 'index.html'), `<head><script type="application/json" id="boot-module-files">${JSON.stringify(moduleBank)}</script></head>`);
