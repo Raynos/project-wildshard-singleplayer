@@ -75,3 +75,10 @@ test('a packs book that stalls is refused by name instead of an endless wait (DL
   await expect(download.ready).rejects.toThrow('Packs book did not arrive in 20 s');
   expect(download.snapshot()).toMatchObject({complete: false, error: 'Packs book did not arrive in 20 s'});
 });
+
+test('a packs book whose body stalls past the limit is the same named refusal (DL21, sp-x9)', async () => {
+  vi.spyOn(AbortSignal, 'timeout').mockReturnValue(AbortSignal.abort(new DOMException('The operation timed out.', 'TimeoutError')));
+  // The headers arrived; the body never finishes and rejects when the (already passed) limit aborts it.
+  const {download} = run('book-slow-body', () => new Response(new ReadableStream({pull: controller => { controller.error(new DOMException('aborted', 'AbortError')); }})));
+  await expect(download.ready).rejects.toThrow('Packs book did not arrive in 20 s');
+});

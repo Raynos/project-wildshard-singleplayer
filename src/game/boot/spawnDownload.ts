@@ -277,12 +277,13 @@ function readPacksBook(): Promise<unknown> {
   const book = (async () => {
     try {
       // DL21 (E526): a stalled book is a named refusal with the loading card's retry, never an endless wait.
-      const signal = AbortSignal.timeout(PACKS_BOOK_MS);
-      const response = await fetch(url, {signal}).catch((error: unknown) => {
+      // The limit covers the body too (sp-x9): a stalled body is the same named refusal.
+      const signal = AbortSignal.timeout(PACKS_BOOK_MS), stalled = (error: unknown): never => {
         throw signal.aborted ? new Error(`Packs book did not arrive in ${PACKS_BOOK_MS / 1000} s`) : error;
-      });
+      };
+      const response = await fetch(url, {signal}).catch(stalled);
       if (!response.ok) throw new Error(`Packs book unavailable (${response.status})`);
-      const value: unknown = await response.json();
+      const value: unknown = await response.json().catch(stalled);
       // Bound to its purpose and this build: a valid default book or another build's book is refused (sp-x9).
       if (get(value, 'book') !== 'packs' || get(value, 'build') !== __BUILD_ID__) throw new Error('Packs book is not this build\'s whole-level book');
       return value;
