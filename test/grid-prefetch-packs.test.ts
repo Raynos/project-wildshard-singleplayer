@@ -1,4 +1,4 @@
-import {afterEach, expect, test, vi} from 'vitest';
+import {afterAll, afterEach, beforeAll, expect, test, vi} from 'vitest';
 import {emptyShardfile} from '../src/sdk/author';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '../src/format/outputIndex';
@@ -6,6 +6,14 @@ import {installTitleManifests, titleManifests, type TitleManifest} from '../src/
 import {startGridPrefetch, startTitlePrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
 import {startSpawnDownload, adoptCompletedSpawnDownload} from '../src/game/boot/spawnDownload';
 import {installEntryDownloadTap, startEntryDownload} from '../src/game/shardfile/entryTransport';
+import {jsonSlot} from '../src/engine/saves/slots';
+import {LEVEL_DOWNLOAD_SLOT, runtimePacksOn} from '../src/engine/boot/loadingPacks';
+
+// These title transports read loose files (DL16 made Runtime packs the shipped default; the packs book has its own
+// tests): pin the harness slot to Shardfile before the page's first, frozen read
+const download = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device'), savedDownload = download.read();
+beforeAll(() => { download.write('shardfile'); expect(runtimePacksOn()).toBe(false); });
+afterAll(() => { download.write(savedDownload); });
 
 const initialStorage = globalThis.localStorage;
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.stubGlobal('localStorage', initialStorage); });
