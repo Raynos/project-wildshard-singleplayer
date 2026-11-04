@@ -2,15 +2,14 @@ import type { ShardManifest } from './manifest';
 import { shards } from './list';
 
 /** Cold-title metadata contains no executable shard bindings. */
-export type TitleManifest = Pick<ShardManifest, 'slug' | 'name' | 'biome' | 'status' | 'card' | 'legacy' | 'shardSelect' | 'shardfile' | 'gridShardfile'> & Pick<Partial<ShardManifest>, 'order' | 'bag'> & { readonly entries: NonNullable<ShardManifest['entries']> };
-type TitleSource = Omit<TitleManifest, 'entries'> & { readonly entries?: TitleManifest['entries']; readonly load?: unknown };
-/** Preserve discovery's entry defaults while copying no executable bindings. */
+export type TitleManifest = Pick<ShardManifest, 'slug' | 'name' | 'biome' | 'status' | 'card' | 'shardSelect' | 'shardfile' | 'gridShardfile'> & Pick<Partial<ShardManifest>, 'order' | 'bag'>;
+type TitleSource = TitleManifest & { readonly load?: unknown };
+/** Copy the scalar title fields, never executable bindings. */
 export function titleMetadata(row: TitleSource): TitleManifest {
-  const { slug, name, biome, status, card, legacy, shardSelect, shardfile, gridShardfile, order, bag } = row;
-  return { slug, name, biome, status, card, ...(order === undefined ? {} : {order}), ...(bag === undefined ? {} : {bag}), ...(legacy === undefined ? {} : { legacy }),
+  const { slug, name, biome, status, card, shardSelect, shardfile, gridShardfile, order, bag } = row;
+  return { slug, name, biome, status, card, ...(order === undefined ? {} : {order}), ...(bag === undefined ? {} : {bag}),
     ...(shardSelect === undefined ? {} : { shardSelect }), ...(shardfile === undefined ? {} : { shardfile }),
-    ...(gridShardfile === undefined ? {} : { gridShardfile }),
-    entries: row.entries ?? { legacy: row.load !== undefined, shardfile: row.load === undefined } };
+    ...(gridShardfile === undefined ? {} : { gridShardfile }) };
 }
 let title: readonly TitleManifest[] | null = null;
 const worldRows = new WeakMap<readonly ShardManifest[], readonly TitleManifest[]>();

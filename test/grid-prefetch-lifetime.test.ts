@@ -20,7 +20,7 @@ test('completed prefetch releases dedupe hashes after their last live reader', a
   vi.stubEnv('DEV', false);
   vi.stubGlobal('__SHARDFILE_VERDICTS__', ['alpha', 'beta'].map(path => ({ path: `/${path}/index.json`, indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))) })));
   const title = (slug: '_template' | 'blender-template', path: string): TitleManifest => ({slug, name: slug, biome: 'test', status: 'hidden',
-    card: {thumb: '', portrait: '', landscape: ''}, entries: {legacy: false, shardfile: true}, shardfile: `http://localhost/${path}/index.json`});
+    card: {thumb: '', portrait: '', landscape: ''}, shardfile: `http://localhost/${path}/index.json`});
   let previous: readonly TitleManifest[] = [];
   try {previous = titleManifests();} catch { /* This isolated test need not install runnable worlds. */ }
   installTitleManifests([title('_template', 'alpha'), title('blender-template', 'beta')]);

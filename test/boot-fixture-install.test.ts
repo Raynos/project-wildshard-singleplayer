@@ -12,7 +12,6 @@ test('a cached catalogue module restores its real rows without selecting a world
     installShards([]);expect(shards()).toHaveLength(0);
     await installCatalogueFixture();
     expect(shards().map(row=>row.slug)).toEqual(before.map(row=>row.slug));
-    expect(shards().every(row=>row.legacy!==true)).toBe(true);
     expect(selectedLevel()).toBe(level);
   }finally{await installCatalogueFixture();}
 });

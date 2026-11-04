@@ -5,8 +5,6 @@ import { authoredRows } from '../src/engine/ui/authoredDebugRows';
 import { jsonSlot } from '../src/engine/saves/slots';
 import type { ShardManifest } from '../src/game/shard/manifest';
 import { installShards, shards } from '../src/game/shard/list';
-import { shardEntry } from '../src/game/shard/entryMode';
-import { resolveTravelEntry } from '../src/game/travel/entry';
 import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDeck';
 import { SHARDS } from '../src/shards.generated';
 import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
@@ -20,9 +18,8 @@ import { installAssetFixture } from './fixtures/bootSetup';
 
 // G531 / QD7 LD5: SHARD SELECT shows one ENTER WORLD per shard, its shardfile, in the public build and in Developer. The
 // LEGACY / SHARDFILE pair, its Developer row and the saved per-tab choice are gone.
-const card = (slug: TitleCard['slug'], legacy: boolean): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '',
-  entries: { legacy, shardfile: true } });
-const CARDS = [card('nine-dragon-stack', true), card('pine-hollow', false), card('far-reach', false)];
+const card = (slug: TitleCard['slug']): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '' });
+const CARDS = [card('nine-dragon-stack'), card('pine-hollow'), card('far-reach')];
 const decks: ReturnType<typeof buildTitleDeck>[] = [];
 const paintFrames = (): Promise<void> => new Promise(resolve => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); });
 
@@ -66,34 +63,27 @@ test('a saved Legacy shard buttons pick from before LD5 resurrects nothing', asy
   expect([...authoredRows].some(row => row.id === 'legacyShardButtons')).toBe(false);
   play(d.root); await paintFrames();
   expect(d.entered).toEqual(['nine-dragon-stack']);
-  expect(shardEntry({ entries: { legacy: true, shardfile: true } })).toBe('shardfile');
 });
 
-test('a locked card offers no entry and a legacy-only manifest boots as itself', () => {
+test('a locked card offers no entry', () => {
   setDev(false);
-  const d = deck(false), locked = { ...card('_template', false), badge: 'Developer only' as const };
+  const d = deck(false), locked = { ...card('_template'), badge: 'Developer only' as const };
   const built = buildTitleDeck({ cards: [locked], active: null, onEnter: () => { throw new Error('entered a locked card'); },
     onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: false, devserver: false }) });
   decks.push(built); document.body.append(built.root);
   expect(shown(built.root)).toEqual(['Coming soon']);
   expect(built.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(true);
   expect(shown(d.root)).toEqual(['Enter world']);
-  expect(shardEntry({ entries: { legacy: true, shardfile: false, public: 'legacy' } })).toBe('legacy');
-  expect(shardEntry({ load: () => Promise.reject(new Error('unused')) })).toBe('legacy');
-  expect(shardEntry({})).toBe('shardfile');
 });
 
 test.each(['driftwood-isle', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'pine-hollow'] as const)(
-  '%s card enters its shardfile through ENTER WORLD, never a frozen copy', async (slug) => {
+  '%s card enters through ENTER WORLD, and no card is a frozen copy', async (slug) => {
     const manifests = SHARDS;
     installShards(manifests); setDev(true);
     expect(titleCards(true).some(candidate => candidate.slug.endsWith('-legacy'))).toBe(false);
     const choice = titleCards(true).find(candidate => candidate.slug === slug);
     const manifest = manifests.find(candidate => candidate.slug === slug);
     if (choice === undefined || manifest === undefined) throw new Error('Missing real shard card');
-    expect(choice.entries?.shardfile).toBe(true);
-    expect(shardEntry(manifest)).toBe('shardfile');
-    expect(resolveTravelEntry(manifest)).toBe(manifest);
     const entered: string[] = [];
     const built = buildTitleDeck({cards: [choice], active: null, onEnter: (selected) => { entered.push(selected.slug); },
       onExplore: () => undefined, onSettings: () => undefined, mode: () => ({developer: true, devserver: true})});
@@ -167,7 +157,6 @@ test.each(buildOutPlots)('%s retains standalone loading and card metadata after 
     expect(bootFetches(manifest, sources)).toEqual([]);
   }
   expect(chunkFiles(manifest)).toEqual(productBootSources.tiers.desktop);
-  expect(choice.entries).toEqual({ legacy: false, shardfile: true });
   expect(manifest.load).toBeUndefined();
   expect(manifest.shardfile).toBe(`/shardfiles/${slug}/shard.json`);
   expect(choice.thumbnail).toBe(manifest.card.thumb);
@@ -192,7 +181,7 @@ test('a playable level without authored boot sources still refuses before pack c
 
 test('the backdrop is the hero over the card\'s own thumbnail, so a late hero never leaves it black', () => {
   installShards([]);
-  const art = (slug: TitleCard['slug']): TitleCard => Object.assign(card(slug, true), { thumbnail: `/thumbs/${slug}.jpg`, heroPortrait: `/heroes/${slug}-portrait.jpg`, heroLandscape: `/heroes/${slug}-landscape.jpg` });
+  const art = (slug: TitleCard['slug']): TitleCard => Object.assign(card(slug), { thumbnail: `/thumbs/${slug}.jpg`, heroPortrait: `/heroes/${slug}-portrait.jpg`, heroLandscape: `/heroes/${slug}-landscape.jpg` });
   const cards = [art('driftwood-isle'), art('pine-hollow')];
   const built = buildTitleDeck({ cards, active: null, onEnter: () => undefined, onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
   document.body.append(built.root);

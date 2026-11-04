@@ -26,7 +26,7 @@ test.each(['play', 'title', 'title-stop', 'grid-title', 'title-adopt'] as const)
   vi.stubEnv('DEV', false);
   vi.stubGlobal('__SHARDFILE_VERDICTS__', [{path: '/alpha/index.json', indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index)))}]);
   const title: TitleManifest = {slug: '_template', name: '_template', biome: 'test', status: 'hidden',
-    card: {thumb: '', portrait: '', landscape: ''}, entries: {legacy: false, shardfile: true}, shardfile: 'http://localhost/alpha/index.json'};
+    card: {thumb: '', portrait: '', landscape: ''}, shardfile: 'http://localhost/alpha/index.json'};
   let previous: readonly TitleManifest[] = [];
   try {previous = titleManifests();} catch { /* This isolated test need not install runnable worlds. */ }
   installTitleManifests([title]);

@@ -38,7 +38,6 @@ import type { LoadStage } from '../shard/load';
 import type { StagedBoot, SessionState, KitPorts } from './context';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { resolveLevelBounds } from '../shard/runtime';
-import { shardEntry } from '../shard/entryMode';
 import { SkinLocker } from '../cosmetics/locker';
 import { BagMenu } from '../bag/tabs';
 import { equipmentEntry, toolEntries } from '../bag/equipment';
@@ -287,7 +286,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   const touchUi = () => document.getElementById('hud')?.classList.contains('touch') === true;
   let explore: Explore | null = null; // Explore World (below) — while it is up, notes describe the viewer, not the player
   const exploring = (): boolean => explore?.active === true;
-  const entry = shardEntry(manifest); // SF65 (G240): every note names the shard and the way it was entered (legacy / shardfile)
+  const entry = 'shardfile'; // SF65 (G240): notes keep naming the way in; LD8 left one (the shardfile)
   const loadFeedback = (): Promise<Feedback> => { feedback ??= loadFeedbackModule().then(({ Feedback: F }) => new F({
     capture: () => game.captureFrame(1280),
     context: () => (explore?.active === true ? { shard: manifest.slug, entry, ...explore.context(), tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles } : {

@@ -20,7 +20,6 @@ import { bootPageMode, pageGridRecovery } from '../grid/pageEntry';
 import { firstPartyInstance } from '../grid/instances';
 import { game } from '../shard/registry';
 import { installShards, shards } from '../shard/list';
-import { shardEntries, shardEntry } from '../shard/entryMode';
 import type { ShardManifest } from '../shard/manifest';
 import { toLevelSpec } from '../shard/spec';
 import { productPaintedLook } from '../looks/paintedLook';
@@ -142,7 +141,7 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   if (manifest.shardfile === undefined) {
     // Transitional entries bootstrap their native terrain before admitting the world plugin.
     // Read only the receipted header here; never retain an admission or pin its transport to the page owner.
-    if (!options.firstParty || manifest.gridShardfile === undefined || shardEntry(manifest) !== 'shardfile') return manifest;
+    if (!options.firstParty || manifest.gridShardfile === undefined) return manifest;
     const url = new URL(manifest.gridShardfile, options.base);
     if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
     const source = await readProductDescriptor({ ...options, base: new URL('.', url).href, descriptorPath: url.pathname });
@@ -184,8 +183,6 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
       ? { boot: { ...page.boot, audio: manifest.boot.audio } } : {}),
     slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
     ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
-    // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
-    entries: shardEntries(manifest),
     // The first-party viewer is authored presentation, independent of native page stages.
     ...(manifest.explore === undefined ? {} : { explore: manifest.explore }),
     // Keep the authored map look; image bytes come exclusively from the admitted product (SF66).

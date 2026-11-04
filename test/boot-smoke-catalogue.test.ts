@@ -20,20 +20,18 @@ afterEach(() => {
 
 test('cold title installation supplies every smoke case without preparing any world', () => {
   const metadata = { name: 'Fixture', biome: 'Fixture',
-    card: { thumb: '/card.webp', portrait: '/card.webp', landscape: '/card.webp' },
-    entries: { legacy: false, shardfile: true } };
+    card: { thumb: '/card.webp', portrait: '/card.webp', landscape: '/card.webp' }};
   const rows: readonly TitleManifest[] = [
     { ...metadata, slug: 'driftwood-isle', status: 'live' },
     { ...metadata, slug: 'nine-dragon-stack', status: 'experimental' },
     { ...metadata, slug: 'sunscar-dunes', status: 'experimental' },
     { ...metadata, slug: '_template', status: 'hidden' },
     { ...metadata, slug: 'open-plot-alien-plain', status: 'hidden', shardSelect: false },
-    { ...metadata, slug: 'far-reach', status: 'live', legacy: true }, // a flagged frozen copy (LD6 retired the last real one)
   ];
   Object.defineProperty(globalThis, worldSlot, { configurable: true, get() { throw new Error('Prepared worlds must not be read'); } });
   installTitleManifests(rows);
   expect(Reflect.get(globalThis, titleSlot)).toBe(rows);
-  expect(bootCatalogue()).toEqual(rows.map(({ slug, status, legacy, shardSelect }) => ({ slug, status, legacy: legacy === true, shardSelect: shardSelect !== false })));
+  expect(bootCatalogue()).toEqual(rows.map(({ slug, status, shardSelect }) => ({ slug, status, legacy: false, shardSelect: shardSelect !== false })));
   expect(bootCases(bootCatalogue()).map(row => row[1])).toEqual([
     'driftwood-isle', 'nine-dragon-stack', 'nine-dragon-stack', 'sunscar-dunes', '_template', 'driftwood-isle',
   ]);

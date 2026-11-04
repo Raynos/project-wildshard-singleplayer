@@ -11,7 +11,7 @@ function catalogue() {
 
 test('modern Pine and ordinary model tools do not register legacy deer or elk', () => {
   const { rows, register } = catalogue();
-  expect(pine.legacy).not.toBe(true);
+  expect(pine.slug).toBe('pine-hollow');
   installKitSpecies(register);
   expect(rows.map(row => row.kind)).toEqual(['boar', 'bear']);
 });

@@ -34,7 +34,7 @@ test('prefetch publishes canonical URL bytes and durable progress in the worker 
   vi.stubEnv('DEV', false);
   vi.stubGlobal('__SHARDFILE_VERDICTS__', [{ path: '/product/index.json', indexHash: hashImmutableBytes(new TextEncoder().encode(JSON.stringify(index))) }]);
   installTitleManifests([{ slug: '_template', name: 'Test', biome: 'test', status: 'hidden', card: { thumb: '', portrait: '', landscape: '' },
-    entries: { legacy: false, shardfile: true }, shardfile: 'http://localhost/product/index.json' }]);
+    shardfile: 'http://localhost/product/index.json' }]);
   vi.stubGlobal('fetch', (input: RequestInfo | URL) => Promise.resolve(new URL(urlOf(input)).pathname.endsWith('/index.json') ? Response.json(index) : new Response(body)));
   try {
     startGridPrefetch(['_template']); await vi.waitFor(() => { expect(gridPrefetchStatus()?.phase).toBe('done'); });

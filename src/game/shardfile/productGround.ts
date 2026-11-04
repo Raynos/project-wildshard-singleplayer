@@ -5,7 +5,6 @@ import { clientGround } from './clientGround';
 import { firstPartyDescriptor, runtimeProduct, slugRuntimeProduct, type RuntimeProduct } from './runtimeProduct';
 import { selectedLevel } from '@wildshard/engine/level/selection';
 import { findShard } from '../shard/registry';
-import { shardEntry } from '../shard/entryMode';
 
 /**
  * The game session's required-ground loader (E434: `startSession` installs it; importing this module installs nothing). A
@@ -34,7 +33,7 @@ export function installProductGround(): () => void {
  *  only for the selected level of a compiled client page entered as its shardfile (keyed by its slug). */
 export function standaloneHybrid(key: string): Promise<RuntimeProduct> | null {
   const manifest = findShard(key);
-  if (manifest?.gridShardfile === undefined || manifest.clientPlanRuntime !== true || selectedLevel()?.id !== key || shardEntry(manifest) !== 'shardfile') return null;
+  if (manifest?.gridShardfile === undefined || manifest.clientPlanRuntime !== true || selectedLevel()?.id !== key) return null;
   return firstPartyDescriptor(key).then(runtimeProduct);
 }
 

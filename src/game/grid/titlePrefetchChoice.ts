@@ -39,6 +39,6 @@ export function titlePrefetchTargets(home: string | undefined, last: string | nu
     if (typeof slug !== 'string') return false;
     const row = bySlug.get(slug);
     return row !== undefined && (row.shardfile !== undefined || row.gridShardfile !== undefined)
-      && row.entries.shardfile && row.legacy !== true && (developer || row.status !== 'experimental' && row.status !== 'hidden');
+      && (developer || row.status !== 'experimental' && row.status !== 'hidden');
   });
 }

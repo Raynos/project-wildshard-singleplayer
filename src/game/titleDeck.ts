@@ -30,10 +30,7 @@ import { titlePrefetchChoice } from './grid/titlePrefetchChoice';
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
 import { titleManifests, type TitleManifest } from './shard/titleList';
-import { ordinaryShardManifests } from './shard/legacy';
 import type { ShardSlug } from './shard/slugs.generated';
-import type { ShardEntries } from './shard/manifest';
-import { defaultEntry, shardEntries } from './shard/entryMode';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
@@ -59,8 +56,6 @@ export interface TitleCard {
   upgrade?: { readonly built: number };
   /** G167: this session refused the shard (memory, safety, format or load): the dimmed UNAVAILABLE card with its reason */
   unavailable?: ShardRefusal;
-  /** SF65 (G237 / G241): the shard's declared entries; ENTER WORLD takes its shardfile when it has one (LD5) */
-  entries?: ShardEntries;
 }
 
 /** Which shards need an upgrade before this client can enter them (G86): the shardfile version each was built for. Every
@@ -75,14 +70,13 @@ const sessionRefusals: RefusedShard = (slug) => pageShardRefusals().read(slug);
 /** Developer mode reveals hidden levels after every player-facing card. */
 export function titleCards(showHidden: boolean = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades, refused: RefusedShard = sessionRefusals): readonly TitleCard[] {
   const hidden = (m: TitleManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
-  const ordinary = ordinaryShardManifests(titleManifests()).filter(m => m.shardSelect !== false);
+  const ordinary = titleManifests().filter(m => m.shardSelect !== false);
   const visible = ordinary.filter((m) => !hidden(m));
   const manifests = showHidden ? [...visible, ...ordinary.filter(hidden)] : visible;
   return manifests.map((m): TitleCard => {
     const card: TitleCard = {
     slug: m.slug, name: m.name, label: m.biome,
     thumbnail: m.card.thumb, heroPortrait: m.card.portrait, heroLandscape: m.card.landscape,
-    entries: shardEntries(m),
     };
     if (m.status === 'earlyAccess') card.badge = 'Early access';
     if (m.status === 'experimental') card.badge = 'Experimental';
@@ -104,7 +98,6 @@ interface DeckEntry {
   readonly badge?: TitleBadge | undefined;
   readonly upgrade?: { readonly built: number } | undefined;
   readonly unavailable?: ShardRefusal | undefined;
-  readonly entries?: ShardEntries | undefined;
   readonly thumbnail: string;
   readonly heroPortrait: string;
   readonly heroLandscape: string;
@@ -291,14 +284,14 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     place(i, 0, smooth);
     if (i !== index) { index = i; apply(); }
   };
-  // the card is entered through its one admitted entry (src/game/shard/entryMode.ts); a shardfile starts its download first
+  // the card is entered through its shardfile, whose download starts first
   let entering = false;
   const enter = (c: DeckEntry): void => {
     if (entering) return;
     if (c.shard === null || !canEnter(c, mode())) return;
     const shard = c.shard;
     entering = true;
-    if (c.entries !== undefined && defaultEntry(c.entries) === 'shardfile') { startEntryDownload(c.slug); titlePrefetchChoice(saves).remember(c.slug); }
+    startEntryDownload(c.slug); titlePrefetchChoice(saves).remember(c.slug);
     const attempt = beginNavigationShell(c.name, scope, () => { opts.onEnter(shard); }, play);
     attempt.onDispose(() => { entering = false; });
   };

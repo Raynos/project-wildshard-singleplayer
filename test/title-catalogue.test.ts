@@ -10,7 +10,7 @@ import { titleMetadata, type TitleManifest } from '../src/game/shard/titleList';
 test('compile title metadata and deduplicated image URLs without shard imports', () => {
   const row: TitleManifest = { slug: '_template', name: 'A title', biome: 'A biome', status: 'hidden',
     card: { thumb: '/src/shards/_template/card.jpg', portrait: '/src/shards/_template/card.jpg', landscape: '/assets/card.webp' },
-    entries: { legacy: true, shardfile: true }, shardfile: '/shardfiles/example/shard.json' };
+    shardfile: '/shardfiles/example/shard.json' };
   const source = titleCatalogueSource([row]);
   expect(source).toContain('import image0 from "/src/shards/_template/card.jpg";');
   expect(source.match(/import /gu)).toHaveLength(1);
@@ -19,11 +19,8 @@ test('compile title metadata and deduplicated image URLs without shard imports',
   expect(source).toContain(JSON.stringify(metadata));
   expect(source).not.toContain('discovery');
   expect(source).not.toContain('runtime');
-  const { entries, ...withoutEntries } = row;
-  expect(titleMetadata(withoutEntries).entries).toEqual({ legacy: false, shardfile: true });
-  const executable = { ...withoutEntries, load: () => { throw new Error('Never load a world on the title'); } };
-  expect(titleMetadata(executable)).toEqual({ ...withoutEntries, entries: { legacy: true, shardfile: false } });
-  expect(titleMetadata({ ...executable, entries })).toEqual(row);
+  const executable = { ...row, load: () => { throw new Error('Never load a world on the title'); } };
+  expect(titleMetadata(executable)).toEqual(row);
 });
 
 test('title placement data preserves the complete existing prefetch order in every mode', () => {

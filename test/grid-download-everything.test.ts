@@ -23,7 +23,7 @@ test('Download everything reads every product past Save-Data in a fresh run, and
   // no build index hashes (as in dev): the phone path keeps each checked index without rebuilding its whole product
   vi.stubEnv('DEV', true);
   const title = (slug: '_template' | 'blender-template', path: string): TitleManifest => ({slug, name: slug, biome: 'test', status: 'hidden',
-    card: {thumb: '', portrait: '', landscape: ''}, entries: {legacy: false, shardfile: true}, shardfile: `http://localhost/${path}/index.json`});
+    card: {thumb: '', portrait: '', landscape: ''}, shardfile: `http://localhost/${path}/index.json`});
   let previous: readonly TitleManifest[] = [];
   try {previous = titleManifests();} catch { /* This isolated test need not install runnable worlds. */ }
   installTitleManifests([title('_template', 'home'), title('blender-template', 'far')]);

@@ -49,16 +49,9 @@ test('the explicit bridge forwards the original parser failure and receiver', as
 });
 
 
-test('the shared frozen-shard bridge configures raw loaders before running their original hooks', async () => {
+test('shard hooks run without configuring raw loaders (LD8 retired the frozen-copy bridge)', async () => {
   vi.spyOn(files, 'texMode').mockReturnValue('img');
   const configure = vi.spyOn(textures, 'installGltfKtx2');
-  const outcome = await withShardHooks({legacy:true,ground:{structures:true}}, (_name, work) => Promise.resolve(work()), async () => {
-    expect(configure).toHaveBeenCalledExactlyOnceWith(GLTFLoader);
-    const parsed = await new GLTFLoader().parseAsync(JSON.stringify({asset:{version:'2.0'},scene:0,scenes:[{nodes:[]}],nodes:[]}), '');
-    return parsed.scene.type;
-  });
-  expect(outcome).toBe('Group');
-  configure.mockClear();
   expect(await withShardHooks({ground:{structures:true}}, (_name, work) => Promise.resolve(work()), () => Promise.resolve('ordinary'))).toBe('ordinary');
   expect(configure).not.toHaveBeenCalled();
 });

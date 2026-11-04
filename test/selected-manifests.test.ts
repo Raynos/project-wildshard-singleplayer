@@ -1,20 +1,17 @@
 import { expect, test } from 'vitest';
 import { selectedManifests, gridManifests } from '../src/selectedManifests';
 import { shards } from '../src/game/shard/list';
-import type { ShardManifest } from '../src/game/shard/manifest';
 import { prepareBootImports } from '../src/bootDownloads';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 
 await installCatalogueFixture();
 
 function fixture() {
-  const [primary, other] = shards().filter(row => row.legacy !== true);
+  const [primary, other] = shards();
   if (primary === undefined || other === undefined) throw new Error('Missing original primary fixtures');
-  // LD6 retired the last frozen copy and LD8 its pairing: a flagged row is only ever refused.
-  const copy: ShardManifest = { ...other, legacy: true };
   const calls: string[] = [], declared: string[] = [];
   const loaders = Object.fromEntries([primary, other].map(row => [row.slug, () => { calls.push(row.slug); return Promise.resolve(row); }]));
-  return { primary, copy, other, calls, declared, loaders, before: (id: string): void => { declared.push(id); } };
+  return { primary, other, calls, declared, loaders, before: (id: string): void => { declared.push(id); } };
 }
 
 test('native selection prepares only its own original manifest', async () => {
@@ -24,9 +21,8 @@ test('native selection prepares only its own original manifest', async () => {
   expect(f.calls).toEqual([f.primary.slug]); expect(f.declared).toEqual(f.calls);
 });
 
-test('a flagged frozen copy or a missing loader refuses before fetching any world', async () => {
+test('a missing loader refuses before fetching any world', async () => {
   const f = fixture();
-  await expect(selectedManifests(f.copy, f.loaders, f.before)).rejects.toThrow('frozen copy');
   await expect(selectedManifests(f.primary, { [f.other.slug]: f.loaders[f.other.slug] }, f.before)).rejects.toThrow('Missing selected discovery loader');
   expect(f.calls).toEqual([]); expect(f.declared).toEqual([]);
 });
@@ -34,7 +30,6 @@ test('a flagged frozen copy or a missing loader refuses before fetching any worl
 test('a swapped or wrongly flagged loaded identity refuses', async () => {
   const f = fixture();
   await expect(selectedManifests(f.primary, { ...f.loaders, [f.primary.slug]: () => Promise.resolve(f.other) }, f.before)).rejects.toThrow('identity differs');
-  await expect(selectedManifests(f.primary, { ...f.loaders, [f.primary.slug]: () => Promise.resolve({ ...f.primary, legacy: true }) }, f.before)).rejects.toThrow('identity differs');
 });
 
 test('a grid prepares every exact primary in catalogue order', async () => {
@@ -50,7 +45,6 @@ test('a grid prepares every exact primary in catalogue order', async () => {
 
 test('invalid grid catalogues refuse before any manifest read', async () => {
   const f = fixture();
-  await expect(gridManifests([f.primary, f.copy], f.loaders, f.before)).rejects.toThrow('frozen copy');
   await expect(gridManifests([f.primary, f.other, f.primary], f.loaders, f.before)).rejects.toThrow('duplicate identities');
   await expect(gridManifests([], f.loaders, f.before)).rejects.toThrow('no native manifests');
   await expect(gridManifests([f.primary, f.other], { [f.primary.slug]: f.loaders[f.primary.slug] }, f.before)).rejects.toThrow('Missing grid discovery loader');
@@ -69,7 +63,7 @@ test('a grid retains the full primary readiness barrier and refuses swapped mani
   expect(complete).toBe(false); expect(shards()).toBe(installed);
   release(); expect((await pending).manifests).toHaveLength(2);
   await expect(gridManifests([f.primary, f.other], { ...f.loaders,
-    [f.primary.slug]: () => Promise.resolve(f.copy),
+    [f.primary.slug]: () => Promise.resolve(f.other),
   }, f.before)).rejects.toThrow('identity differs');
   expect(shards()).toBe(installed);
 });

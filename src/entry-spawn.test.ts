@@ -111,7 +111,6 @@ function selectedEntry(admissionFailure?: Error, packs = false) {
     '@wildshard/game/shard/registry': {game: {shard}},
     '@wildshard/engine/ui/Loading': {beginLoading: () => ({waiting: noop, setPrefetchSource: noop, setPath: noop})},
     '@wildshard/engine/core/tier': {TIER: 'phone'},
-    '@wildshard/game/shard/entryMode': {shardEntry: () => 'shardfile'},
     '@wildshard/game/grid/pageEntry': grid,
     '@wildshard/game/grid/menu': {DEVSERVER: false, gridMode: () => ({})},
     '@wildshard/game/boot/spawnDownload': {setSpawnPacks: (enabled: boolean) => {transport.push(enabled);},

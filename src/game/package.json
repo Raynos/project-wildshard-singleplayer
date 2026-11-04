@@ -308,7 +308,6 @@
     "./models/binarySource": "./models/binarySource.ts",
     "./plugin/clientChannelView": "./plugin/clientChannelView.ts",
     "./mainMenu": "./mainMenu.ts",
-    "./shard/entryMode": "./shard/entryMode.ts",
     "./systems/species/install": "./systems/species/install.ts",
     "./icons": "./icons.ts",
     "./models/interact": "./models/interact.ts",

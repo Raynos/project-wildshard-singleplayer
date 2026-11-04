@@ -35,10 +35,11 @@ test('old last-shard preference migrates as client and later retains the actual 
   expect(reread.read()).toBe('driftwood-isle'); expect(reread.flow()).toBe('grid');
 });
 
-test('title selects the compiled home then last, deduplicating and refusing unavailable LEGACY metadata', () => {
+test('title selects the compiled home then last, deduplicating and refusing a card with no shardfile', () => {
   const row = (slug: TitleManifest['slug'], extra: Partial<TitleManifest> = {}): TitleManifest => ({slug, name: slug, biome: '', status: 'live',
-    card: {thumb: '', portrait: '', landscape: ''}, entries: {legacy: false, shardfile: true}, shardfile: `/shardfiles/${slug}/shard.json`, ...extra});
-  const rows = [row('driftwood-isle'), row('nalati-grasslands'), row('_template', {status: 'hidden'}), row('blender-template', {legacy: true})];
+    card: {thumb: '', portrait: '', landscape: ''}, shardfile: `/shardfiles/${slug}/shard.json`, ...extra});
+  const { shardfile: _none, ...unbuilt } = row('blender-template');
+  const rows = [row('driftwood-isle'), row('nalati-grasslands'), row('_template', {status: 'hidden'}), unbuilt];
   expect(titlePrefetchTargets('driftwood-isle', 'nalati-grasslands', rows, false)).toEqual(['driftwood-isle', 'nalati-grasslands']);
   expect(titlePrefetchTargets('driftwood-isle', 'driftwood-isle', rows, false)).toEqual(['driftwood-isle']);
   expect(titlePrefetchTargets('unknown', 'blender-template', rows, true)).toEqual([]);

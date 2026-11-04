@@ -451,19 +451,13 @@ export interface ChunkHud {
 
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
 
-/** SF65: LEGACY is the original TypeScript shard; SHARDFILE is its current port state (the shardfile plus any TypeScript
- *  not yet ported). */
-export type ShardEntryMode = 'legacy' | 'shardfile';
-/** Which entries exist (a missing one is a disabled button: NOT YET, or SHARDFILE ONLY · NO LEGACY). G531: SHARD SELECT
- *  enters the shardfile whenever there is one; `public` is G326's retired per-card flip, still spelled only by the sealed
- *  frozen copies (SF73), read by nothing and deleted with them (SHARD-PLATFORM-NEXT N5). */
-export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean; readonly public?: 'legacy' }
+/** SF65's retired entry rows, still spelled by six authored manifests; only toLevelSpec's baked-map check reads
+ *  `shardfile` (QD7: the rows, this type and that read leave together with the manifest schema field). */
+export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean }
 
 export interface ShardManifest {
   /** Interior board cruise: road preserves the grid road speed; absent/shard keeps the ordinary 14 m/s. */
   hoverSpeedClass?: 'shard' | 'road';
-  /** Frozen standalone copy. It is paired with the same slug without -legacy, hidden from ordinary cards and never admitted to the grid. */
-  legacy?: true;
   /** Reviewed opaque-runtime home measurements, available before world bootstrap; the declaration shares this data. */
   runtimeCost?: RuntimeCost;
   /** SF57: a reviewed per-sim resident reading for this shard's regional shardfile sims; the allocator charges it instead of the declared ceiling. */
@@ -477,8 +471,7 @@ export interface ShardManifest {
   clientPlanRuntime?: true;
   /** Definition-owned raw scalar preparation; never an authored callback. */
   scalarBlocks?: ScalarLatticeBindings;
-  /** SF65 (G237–G241): the ways SHARD SELECT can enter this shard with Developer on, and the one the public build enters
-   *  (`src/game/shard/entryMode.ts`). Absent: a shard with no TypeScript plugin (`load`) is shardfile only, any other is its TypeScript alone. */
+  /** Retired SF65 entry rows (inert authored data, see ShardEntries). */
   entries?: ShardEntries;
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */

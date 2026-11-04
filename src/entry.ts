@@ -169,12 +169,11 @@ async function startSelected(): Promise<void> {
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   const moduleText = document.getElementById('boot-module-files')?.textContent;
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
-  const entryModule = import('@wildshard/game/shard/entryMode');
   const gridEntryModule = import('@wildshard/game/grid/pageEntry');
   const gridMenuModule = import('@wildshard/game/grid/menu');
-  const [entrySelection, gridSelection, { gridMode, DEVSERVER }] = await Promise.all([entryModule, gridEntryModule, gridMenuModule]);
+  const [gridSelection, { gridMode, DEVSERVER }] = await Promise.all([gridEntryModule, gridMenuModule]);
   const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
-    ? 'grid' : entrySelection.shardEntry(game.shard);
+    ? 'grid' : 'shardfile';
   // MF4: one spawn manifest per shard / tier / flow (grid: per menu mode) is the whole download; the bar reads only it and
   // admission waits for it (a tap on the title started the same job, so its files may already be in the worker cache)
   // a world entry's own import: the spawn manifest's reader stays out of the title's chunk (check-chunks)
@@ -190,7 +189,7 @@ async function startSelected(): Promise<void> {
   const catalogue = earlyPath === 'grid' ? prepareBootImports(preparePageCatalogue()) : null;
   if (typeof moduleRows === 'object' && moduleRows !== null) {
     if ('common' in moduleRows) readModuleFiles(moduleRows.common);
-    const kind = earlyPath === 'grid' ? 'grid' : earlyPath === 'shardfile' ? 'client' : 'common';
+    const kind = earlyPath === 'grid' ? 'grid' : 'client';
     if (Object.hasOwn(moduleRows, kind)) readModuleFiles(Reflect.get(moduleRows, kind));
   }
   const modules = (kind: 'common' | 'client' | 'grid'): void => {
@@ -223,7 +222,7 @@ async function startSelected(): Promise<void> {
   ] as const;
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
     starterModule, hoverboardModule, voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
-    gridEntryModule, pathsModule, entryModule, prefetchModule]));
+    gridEntryModule, pathsModule, prefetchModule]));
   // Cover the full-ALL route's five observed misses; never recycle growables.
   const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
     import('@wildshard/engine/script/moduleV2'), import('@wildshard/engine/core/workSlice'),
@@ -240,8 +239,8 @@ async function startSelected(): Promise<void> {
     detail: { memoryTurns, memoryWaitMs } });
   const [{ sharedWeaponVoices, declaredWeaponVoices }, { BOAR_LOOK }, { declaredKitItemFamilies },
     { configuredShardfile, installShardfileProduct, installManifestShardfile, preparePageResidency }, { browserShardfileOptions },
-    { pageGridRecovery }, { loadingPath }, { shardEntry }, { gridPrefetchStatus }] = await Promise.all([
-    voicesModule, boarModule, familiesModule, sourceModule, runtimeModule, gridEntryModule, pathsModule, entryModule,
+    { pageGridRecovery }, { loadingPath }, { gridPrefetchStatus }] = await Promise.all([
+    voicesModule, boarModule, familiesModule, sourceModule, runtimeModule, gridEntryModule, pathsModule,
     prefetchModule,
   ]).catch(imports.refuse);
   let page: ReturnType<typeof preparePageResidency> | undefined;
@@ -253,7 +252,7 @@ async function startSelected(): Promise<void> {
     page = preparePageResidency(game.shard, source?.identity.slug);
     await (await import('./assetTables')).prepareAssetPacks(page.mode === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
     await completePageCatalogue(page.mode, catalogue?.ready);
-    const path = page.mode === 'grid' ? 'grid' : source !== null || shardEntry(game.shard) === 'shardfile' ? 'shardfile' : 'legacy';
+    const path = page.mode === 'grid' ? 'grid' : 'shardfile';
     if (path === 'shardfile') modules('client');
     if (path === 'grid') modules('grid');
     // Hybrid shardfile entries retain real TypeScript stages until their page is data-only.
@@ -278,11 +277,10 @@ async function startSelected(): Promise<void> {
     const previousImages = selectedImages;
     selectedImages = imageOwner;
     previousImages?.dispose();
-    const [{ installKitSpecies, installLegacyKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue },
+    const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue },
       { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL }, , { sharedCombatCues }] = await imports.ready();
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
-    if (manifest.legacy === true) await installLegacyKitSpecies();
-    else installKitSpecies();
+    installKitSpecies();
     installKitIcons();
     const [{boundedResponse,browserContentHash},{publicBytes}] = await Promise.all([import('@wildshard/game/shardfile/product'),import('@wildshard/engine/boot/tables')]);
     const pickupAssets=publicBytes(), pickupPath=/^\/assets\/baked\/common\/pickups\/([a-f0-9]{64})\.bin$/u;

@@ -67,7 +67,7 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   // Its predecessor's pack can contain an entire unused world; keep declared
   // direct URLs available, but never start that speculative whole inventory.
   // Frozen legacy and untiled/desktop boots retain their original pack path.
-  const demandWorld = TIER === 'phone' && manifest.legacy !== true && ctx.product.has('client/plan') && ctx.product.shardfile.tiles.length > 0;
+  const demandWorld = TIER === 'phone' && ctx.product.has('client/plan') && ctx.product.shardfile.tiles.length > 0;
   const eagerWorld = !demandWorld;
   if (demandWorld) { const declaredPack = packFor(manifest); if (declaredPack !== null) demandPack(declaredPack, currentOwner() ?? app.engineScope); }
   const pack = eagerWorld ? packFor(manifest) : null;
