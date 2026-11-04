@@ -29,21 +29,18 @@ export function joinHomeSeed(chunks: readonly Uint8Array[]): Uint8Array {
 }
 
 /** A runtime cache key without its page origin, the seed's one key form (any home build cache key; extend it here for
- * a new key kind): an owned key's URLs become their path (`/shardfiles/<slug>/blobs/…`), and a pool key's file URL
- * (DL6, scenePools.ts `scenePoolKey`); whole keys name content hashes only, and any other key, stay as they are. A key
- * that does not parse is returned unchanged. */
+ * a new key kind): an owned key's URLs become their path (`/shardfiles/<slug>/blobs/…`); whole keys name content hashes
+ * only, and any other key, stay as they are. A key that does not parse is returned unchanged. */
 export function homeSeedKey(runtimeKey: string): string {
-  const kind = runtimeKey.startsWith('owned:') ? 'owned' : runtimeKey.startsWith('pool:') ? 'pool' : null;
-  if (kind === null) return runtimeKey;
+  if (!runtimeKey.startsWith('owned:')) return runtimeKey;
   let parts: unknown;
-  try { parts = JSON.parse(runtimeKey.slice(kind.length + 1)); } catch { return runtimeKey; }
-  if (!Array.isArray(parts) || typeof parts[0] !== 'string' || kind === 'owned' && !Array.isArray(parts[1])) return runtimeKey;
+  try { parts = JSON.parse(runtimeKey.slice('owned:'.length)); } catch { return runtimeKey; }
+  if (!Array.isArray(parts) || typeof parts[0] !== 'string' || !Array.isArray(parts[1])) return runtimeKey;
   const path = (url: unknown): unknown => {
     if (typeof url !== 'string') return url;
     try { return new URL(url, 'http://seed.invalid/').pathname; } catch { return url; }
   };
-  if (kind === 'pool') return `pool:${JSON.stringify([path(parts[0]), ...parts.slice(1)])}`;
-  const segments: unknown[] = Array.isArray(parts[1]) ? parts[1] : [];
+  const segments: unknown[] = parts[1];
   return `owned:${JSON.stringify([path(parts[0]), segments.map(path), ...parts.slice(2)])}`;
 }
 

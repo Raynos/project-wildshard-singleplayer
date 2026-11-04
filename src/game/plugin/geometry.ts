@@ -99,8 +99,6 @@ export interface ModelLibraryRows<M extends string, H extends string> {
   readonly rigs?: RigLibraryRows;
   /** Manual rig preload preserves a caller's existing preparation phase. */
   readonly rigLoad?: 'manual';
-  /** DL6: where a pool's prepared parts are kept between visits (absent: every pool parses its file). */
-  readonly restPools?: RestPoolStore;
 }
 
 /** How a copy is framed: turned `yaw` about +Y, centred on x / z, its lowest point at `floor`, `size` metres by span or height. */
@@ -118,12 +116,6 @@ export interface ModelGeometryPool {
   /** Explicit Float32 application channels; a part subset requires that channel on exactly those meshes. */
   readonly channels?: readonly { readonly name: string; readonly source: string; readonly width: number; readonly parts?: readonly string[] }[];
   readonly atlases?: readonly { readonly id: string; readonly part: string; readonly anisotropy: number; readonly refresh?: boolean }[];
-}
-/** DL6: a pool's completed rest parts kept outside the library (the home build cache and its cold seed), read before the
- *  pool's file is parsed and written after a parse. Only a pool without atlases is kept: its textures live in the file. */
-export interface RestPoolStore {
-  readonly read: (pool: ModelGeometryPool) => Promise<ReadonlyMap<string, BufferGeometry> | null>;
-  readonly save: (pool: ModelGeometryPool, parts: ReadonlyMap<string, BufferGeometry>) => void;
 }
 
 /** A loaded model library: preload once, then take copies. */
@@ -303,20 +295,8 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     }
   }
 
-  // DL6: a kept pool restores exactly its declared parts, or nothing (the file is parsed as before).
-  async function keptPool(pool: ModelGeometryPool): Promise<ReadonlyMap<string, BufferGeometry> | null> {
-    if (rows.restPools === undefined || (pool.atlases ?? []).length > 0) return null;
-    const kept = await rows.restPools.read(pool).catch(() => null);
-    if (kept === null) return null;
-    if (kept.size === pool.parts.length && pool.parts.every(name => kept.has(name))) return kept;
-    for (const geometry of kept.values()) geometry.dispose();
-    return null;
-  }
-
   async function loadPool(pool: ModelGeometryPool): Promise<void> {
     try {
-      const kept = await keptPool(pool);
-      if (kept !== null) { for (const [name, geometry] of kept) cacheModelEntry(rest, name, geometry, state); return; }
       const gltf = await readModel(pool.url), nodes: Mesh[] = [];
       gltf.scene.updateMatrixWorld(true); gltf.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
       if (nodes.length > 128 || new Set(nodes.map(node => node.name)).size !== nodes.length) throw new Error('Rest pool has repeated or excessive meshes');
@@ -408,7 +388,6 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       for (const [id, atlas] of borrowed) {
         cacheModelEntry(atlases, id, atlas, state);
       }
-      if (rows.restPools !== undefined && borrowed.size === 0) rows.restPools.save(pool, prepared);
       for (const [name, geometry] of prepared) {
         cacheModelEntry(rest, name, geometry, state);
       }

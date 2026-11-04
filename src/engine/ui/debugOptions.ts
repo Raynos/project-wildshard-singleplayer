@@ -146,11 +146,11 @@ const earlyProgramsRow: DebugRow = { id: 'earlyPrograms', group: 'loading', labe
  *  boot, so a pick reloads. Default off until a Simulator / iPhone reading (E451). */
 const homeSeedSlot = jsonSlot(HOME_SEED_SLOT, 'device');
 const homeSeedRow: DebugRow = { id: 'homeSeed', group: 'loading', label: engineString('s_debug_home_seed'), reload: true, when: always,
-  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'on', text: engineString('s_130011756125') }, { v: 'pools', text: engineString('s_debug_home_seed_pools') }],
-  get: () => { const read = homeSeedSlot.read(); return read === 'on' || read === 'pools' ? read : 'off'; },
-  set: (next) => { if (next === 'off' || next === 'on' || next === 'pools') homeSeedSlot.write(next); },
+  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'on', text: engineString('s_130011756125') }],
+  get: () => homeSeedSlot.read() === 'on' ? 'on' : 'off',
+  set: (next) => { if (next === 'off' || next === 'on') homeSeedSlot.write(next); },
   on: () => undefined,
-  note: 'DL7 P3 + DL6: with runtime packs, a cold entry restores its whole and owned geometry from the build\'s seed instead of decoding their files; On + pools also keeps the scene pool libraries\' prepared parts (DL6\'s own piece); default off until a Simulator / iPhone reading.',
+  note: 'DL7 P3 + DL6: with runtime packs, a cold entry restores its whole and owned geometry from the build\'s seed instead of decoding their files; default off until a Simulator / iPhone reading.',
   ask: 'E526', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);

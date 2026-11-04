@@ -44,8 +44,7 @@ import { parseWorldScenes, worldScenesForTier, type WorldScenesSection } from '@
 import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import type { ShardContext } from '../plugin/context';
 import type { ModelLibrary } from '../plugin/geometry';
-import { homeRestPools, tierFile, worldScenePool } from './scenePools';
-import { homePoolSeedOn, runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
+import { tierFile, worldScenePool } from './scenePools';
 import { createWorldScene, bindWorldSceneParts } from '../plugin/scene';
 import { hasLentLook, lentLook, lentMappedLook, lendLooks, sceneMaterial } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';
@@ -464,8 +463,7 @@ async function buildPrepared(ctx: ShardContext, section: WorldScenesSection, res
             libraries.set(row.id, { geometry: id => models.get(id)?.copy() ?? null });
           } else {
             requireSceneOwner(owner);
-            // DL6: Debug > Home geometry seed 'On + pools' keeps the Home's prepared pool parts (cache, cold seed)
-            const models = worldScenePool(product, row, undefined, runtimePacksOn() && homePoolSeedOn() ? homeRestPools(product.shardfile) : undefined);
+            const models = worldScenePool(product, row);
             await models.preload(() => constructionCheckpoint(owner) ?? Promise.resolve());
             requireSceneOwner(owner);
             if (row.publish !== undefined) for (const part of row.files.flatMap(file => file.parts)) {
