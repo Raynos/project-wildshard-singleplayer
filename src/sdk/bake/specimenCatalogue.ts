@@ -34,7 +34,7 @@ export function defineSpecimenCatalogue(input: unknown): AuthoredSpecimenCatalog
 export function nameSpecimenBook(name: string, input: unknown, options: Pick<BlobOptions, 'tier' | 'dependencies'> = {}): NamedBlob {
   const book = defineSpecimenCatalogue(input).book;
   return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(book)), {
-    ...options, jsonSchema: namedJsonSchema(SpecimenBookSchema),
+    ...options, jsonSchema: namedJsonSchema(SpecimenBookSchema, {provenance:true}),
   });
 }
 

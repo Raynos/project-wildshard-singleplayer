@@ -23,7 +23,7 @@ import {NativeQuestCompositionSchema,NativeQuestServiceSpotsSchema} from '@wilds
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
-import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
+import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { BinarySourceSchema } from '@wildshard/format/binarySource';
 import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema, type NativeColliderRecord, type NativeArrayStorage } from '@wildshard/format/nativePhysics';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
@@ -67,7 +67,7 @@ import { InputActionSchema, InputKeysSchema } from '@wildshard/format/inputDecla
 import { BodySlotsSchema } from '@wildshard/format/bodySlots';
 import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/format/limbRig';
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
-import { ToonArmsLookSchema, HeldArmsSchema } from '@wildshard/format/heldArms';
+import { ToonArmsLookSchema, HeldArmsSchema, HeldGraphCardsSchema } from '@wildshard/format/heldArms';
 import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
 import { PracticeSceneSchema,RidingPracticeSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
@@ -465,6 +465,8 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+  'specimenCatalogue.SpecimenBook': SpecimenBookSchema,
+  'heldArms.HeldGraphCards': HeldGraphCardsSchema,
 };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

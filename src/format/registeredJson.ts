@@ -1,3 +1,6 @@
+import { CoverAppearanceSchema } from './coverAppearance';
+import { HeldGraphCardsSchema } from './heldArms';
+import { SpecimenBookSchema } from './specimenCatalogue';
 import { WeatherDocumentSchema, parseWeatherDocument } from './weatherBundle';
 import { WeatherEffectsSchema, parseWeatherEffects } from './weatherEffects';
 import { RainPresentationSchema } from './rainPresentation';
@@ -47,6 +50,11 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'models/cover-phone.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
+  readonly 'models/cover-desktop.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
+  readonly 'models/gear-book.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
+  readonly 'models/held-cards.json':{readonly schema:typeof HeldGraphCardsSchema;readonly source:'@wildshard/format/heldArms#HeldGraphCardsSchema'};
+  readonly 'look/cover-appearance.json':{readonly schema:typeof CoverAppearanceSchema;readonly source:'@wildshard/format/coverAppearance#CoverAppearanceSchema'};
   readonly 'quests/chapters.json':{readonly schema:typeof ChapterStoryPresentationSchema;readonly source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'};
   readonly 'quests/native-story.json':{readonly schema:typeof NativeQuestCompositionSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'};
   readonly 'quests/native-spots.json':{readonly schema:typeof NativeQuestServiceSpotsSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'};
@@ -130,6 +138,11 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'models/cover-phone.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
+  'models/cover-desktop.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
+  'models/gear-book.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
+  'models/held-cards.json':{schema:HeldGraphCardsSchema,source:'@wildshard/format/heldArms#HeldGraphCardsSchema'},
+  'look/cover-appearance.json':{schema:CoverAppearanceSchema,source:'@wildshard/format/coverAppearance#CoverAppearanceSchema'},
   'quests/chapters.json':{schema:ChapterStoryPresentationSchema,source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'},
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
   'quests/native-spots.json':{schema:NativeQuestServiceSpotsSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'},
@@ -292,6 +305,11 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'models/cover-phone.json':v.parse(SpecimenBookSchema,value);break;
+    case 'models/cover-desktop.json':v.parse(SpecimenBookSchema,value);break;
+    case 'models/gear-book.json':v.parse(SpecimenBookSchema,value);break;
+    case 'models/held-cards.json':v.parse(HeldGraphCardsSchema,value);break;
+    case 'look/cover-appearance.json':v.parse(CoverAppearanceSchema,value);break;
     case 'world/sources/bakes.json':v.parse(SceneBakeSourceSchema,value);break;
     case 'world/sources/models.json':
     case 'world/sources/heroes.json':

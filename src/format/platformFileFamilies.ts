@@ -1,3 +1,6 @@
+import { CoverAppearanceSchema } from './coverAppearance';
+import { HeldGraphCardsSchema } from './heldArms';
+import { SpecimenBookSchema } from './specimenCatalogue';
 import { BakedPlacementPlanSchema } from './bakedTiles';
 import { CoverCompositionSchema } from './streamedCover';
 import { KitFigureCardsSchema } from './questFigures';
@@ -48,6 +51,16 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^models\/cover-phone\.json$/u, schema: SpecimenBookSchema,
+    source: '@wildshard/format/specimenCatalogue#SpecimenBookSchema', reader: 'src/game/models/explorerCatalogue.ts' },
+  { pattern: /^models\/cover-desktop\.json$/u, schema: SpecimenBookSchema,
+    source: '@wildshard/format/specimenCatalogue#SpecimenBookSchema', reader: 'src/game/models/explorerCatalogue.ts' },
+  { pattern: /^models\/gear-book\.json$/u, schema: SpecimenBookSchema,
+    source: '@wildshard/format/specimenCatalogue#SpecimenBookSchema', reader: 'src/game/loadout/claims.ts' },
+  { pattern: /^models\/held-cards\.json$/u, schema: HeldGraphCardsSchema,
+    source: '@wildshard/format/heldArms#HeldGraphCardsSchema', reader: 'src/game/models/explorerCatalogue.ts' },
+  { pattern: /^look\/cover-appearance\.json$/u, schema: CoverAppearanceSchema,
+    source: '@wildshard/format/coverAppearance#CoverAppearanceSchema', reader: 'src/game/looks/coverAppearance.ts' },
   // G1004: Jake approved these exact complete single-user documents.
   { pattern: /^world\/island\/plan-(?:phone|desktop)\.json$/u, schema: BakedPlacementPlanSchema,
     source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema', reader: 'src/game/shardfile/bakedTiles.ts' },

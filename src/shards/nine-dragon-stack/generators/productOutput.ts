@@ -19,7 +19,7 @@ import { filamentGeometry } from './filamentGeometry';
 import { grappleCourseScene } from './courseScene';
 import type { NinePracticeProgram } from './practiceProgram';
 import course from '../data/grappleCourse.json' with { type: 'json' };
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import type { GrappleRows } from '../data/grappleTypes';
 import aim from '../data/grapple.json' with { type: 'json' };
 import { nameBlob, emitNamedBlobs, type BlobOptions, type NamedBlob } from '@wildshard/sdk/blobs';
@@ -92,7 +92,7 @@ const decalBlobs = 'blobs' in decals ? decals.blobs : [];
 if (rawMovers.some(row => row.file.hash !== movers.hash)) throw new Error('Nine movers bytes differ from module hash');
 const volumes = lightVolumeBlobs(inputs.ownedWorld.layout, inputs.signs.atlas);
 const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, volumes, facadeWindowBlobs(inputs.ownedWorld.layout), [
-  nameBlob(NINE_HELD_CARDS, 'json', json(heldCards)),
+  nameBlob(NINE_HELD_CARDS, 'json', json(heldCards),{jsonSchema:registeredJsonSchema('models/held-cards.json')}),
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedPractice({ practice: grappleCourseScene(course, inputs.courseProgram) })),{jsonSchema:namedJsonSchema(FixedPracticeFileSchema)}),
