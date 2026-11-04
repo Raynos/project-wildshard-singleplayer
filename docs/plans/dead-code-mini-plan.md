@@ -154,6 +154,26 @@ replaced the local gate.
 
 ### DC6: dead exports in engine, game, SDK, format and commons, non-visual (~98 symbols, ~937 lines, 80 files) · Codex · M
 
+**DC6 source committed (2026-11-04, sp-x2; handed off by sp-x9):**
+27 exports in 23 modules retired in four layer commits: engine
+`9eadffa837`, game `68bc672313`, format `04216c3b37`, SDK `dac765c2d4`.
+Fresh symbol, module/namespace/dynamic-import and data/ref searches found
+no consumer for the 26 prepared exports; `HerdMode` was one additional
+unused alias (the native oracle defines its own independent type).
+Seventy candidates retain real tests/native-fixture/component-registry
+readers; `CustomSectionSchemas` remains exclusively with Z15. No native
+oracle constructor or refusal/restore assertion is retired by this slice.
+Newly unused imports/private `Present` and the two obsolete manual API
+paragraphs are gone; no timing/product/chargeback row names this cut.
+
+Root test types, engine/game and SDK-test types pass. Existing G612 live
+related selections pass: engine 59 suites/159 cases, game 56/153; format's
+32 remaining suites/62 cases and SDK's 42 remaining suites/159 cases pass
+without repeating already-passed consumers, plus the writer's 1/1 case.
+The full deferred closure remains for CI. Typed lint, per-layer scoped
+scratch ratchets and the derived schema-reference check pass. All schema
+fields/bounds and live host consumers remain unchanged.
+
 These are mostly the `installNative*` / `native*` hosts that custom shard TS called, now reached only by tests:
 `installNativeTaming`, `installNativeEliteFeature`, `installNativeQuestProps`, `installNativeHerdShelter`, the
 `nativeQuestChannels` set, `installHostPortalRide`, `nativeDecisionAuthority`. The rest are input and output types and
