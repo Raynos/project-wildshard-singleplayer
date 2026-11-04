@@ -157,23 +157,31 @@ export function neighbourFrame(frames, spans) {
   }
   return null;
 }
-/** Post-control level requests split by who asked (root's ruling, G872): a URL naming no level whose every page fetch and
- *  worker construction was initiated from neighbour work is the neighbour's (G828); a URL with no initiator stack, or any
- *  from elsewhere, stays the level's. The worker's fetch of a URL follows that URL's verdict. */
+/** Post-control level requests split by who asked (root's ruling, G872): a URL naming no level whose every page request
+ *  after control has its own initiator stack, each passing through neighbour work, is the neighbour's (G828). Unknown
+ *  evidence vetoes (sp-x1): a request with no stack, fewer stacks than page requests, or any stack from elsewhere keeps
+ *  the URL the level's. A worker script's fetch carries no stack: the n-th constructor of that script since control
+ *  stands for its n-th stackless fetch, never another occurrence's. The worker's own fetch follows the URL's verdict. */
 export function splitByInitiator(after, trace, spans, namesLevel) {
-  const path = url => { try { return new URL(url).pathname; } catch { return url; } }, stacks = new Map();
-  for (const row of [...trace.initiators, ...trace.workers]) {
-    if (row.frames.length === 0) continue;
-    const list = stacks.get(path(row.url)) ?? []; list.push(row.frames); stacks.set(path(row.url), list);
-  }
-  const verdict = new Map();
+  const path = url => { try { return new URL(url).pathname; } catch { return url; } };
+  const group = rows => {
+    const byPath = new Map();
+    for (const row of [...rows].sort((a, b) => (a.msAfterControl ?? 0) - (b.msAfterControl ?? 0))) {
+      const list = byPath.get(path(row.url)) ?? []; list.push(row); byPath.set(path(row.url), list);
+    }
+    return byPath;
+  };
+  const fetches = group(trace.initiators), builds = group(trace.workers), verdict = new Map();
   const of = url => {
     const key = path(url);
-    if (!verdict.has(key)) {
-      const list = namesLevel(url) ? [] : stacks.get(key) ?? [], found = list.map(frames => neighbourFrame(frames, spans));
-      verdict.set(key, list.length > 0 && found.every(what => what !== null) ? found[0] : null);
-    }
-    return verdict.get(key);
+    if (verdict.has(key)) return verdict.get(key);
+    const pages = after.filter(row => row.by === 'page' && path(row.url) === key).length, constructors = [...builds.get(key) ?? []];
+    // each observed fetch's own stack, or the next constructor of its worker script when the fetch has none
+    const stacks = (fetches.get(key) ?? []).map(row => (row.frames.length > 0 ? row.frames : constructors.shift()?.frames ?? []));
+    const found = stacks.map(frames => (frames.length === 0 ? null : neighbourFrame(frames, spans)));
+    const what = !namesLevel(url) && stacks.length > 0 && stacks.length >= pages && found.every(work => work !== null) ? found[0] : null;
+    verdict.set(key, what);
+    return what;
   };
   const neighbour = [], level = [];
   for (const row of after) { const what = of(row.url); if (what === null) level.push(row); else neighbour.push({ ...row, work: what }); }

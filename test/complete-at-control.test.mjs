@@ -103,6 +103,24 @@ test('a shared fetch only neighbour work asked for is the neighbour\'s; no stack
   expect(level.map(entry => new URL(entry.url).pathname)).toEqual(['/assets/b.worker.js', '/assets/mixed.js', '/shardfiles/driftwood-isle/blobs/glb/h', '/assets/none.js']);
 });
 
+test('unknown initiator evidence vetoes the neighbour verdict per request (sp-x1)', () => {
+  const spans = [{ file: 'src/game/grid/session.ts', what: 'tile views', from: 2, to: 5 }];
+  const near = { src: 'src/game/grid/session.ts:3' }, home = { src: 'src/game/session/finish.ts:300' };
+  const page = (url, ms) => ({ url: `https://x.test${url}`, by: 'page', msAfterControl: ms });
+  const split = (after, trace) => splitByInitiator(after, trace, spans, () => false).neighbour.map(entry => new URL(entry.url).pathname);
+  // two reads, one neighbour stack and one stackless fetch that no worker constructor explains
+  expect(split([page('/assets/shared.js', 1), page('/assets/shared.js', 2)],
+    { initiators: [{ ...page('/assets/shared.js', 1), frames: [near] }, { ...page('/assets/shared.js', 2), frames: [] }], workers: [] })).toEqual([]);
+  // two reads, but the trace saw only one of them
+  expect(split([page('/assets/shared.js', 1), page('/assets/shared.js', 2)], { initiators: [{ ...page('/assets/shared.js', 1), frames: [near] }], workers: [] })).toEqual([]);
+  // a worker script fetched twice: each fetch takes its own constructor, in order; the home's second one keeps it red
+  const fetched = { initiators: [{ ...page('/assets/w.js', 10), frames: [] }, { ...page('/assets/w.js', 40), frames: [] }],
+    workers: [{ ...page('/assets/w.js', 9), frames: [near] }, { ...page('/assets/w.js', 39), frames: [home] }] };
+  expect(split([page('/assets/w.js', 10), page('/assets/w.js', 40)], fetched)).toEqual([]);
+  fetched.workers[1].frames = [near];
+  expect(split([page('/assets/w.js', 10), page('/assets/w.js', 40)], fetched)).toEqual(['/assets/w.js', '/assets/w.js']);
+});
+
 test('the neighbour spans refuse a missing or doubled anchor, and today\'s session source has each once', () => {
   expect(() => neighbourSpans(() => 'private tileAdmission(\nprivate tileAdmission(\nprivate refuse(', [NEIGHBOUR_WORK[4]])).toThrow(/single/u);
   const spans = neighbourSpans(file => readFileSync(file, 'utf8'));
