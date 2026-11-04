@@ -40,12 +40,21 @@ const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
 const storedUrls = new Map<string, {readonly bytes: number; readonly hash: string}>();
 let storeRead: ((url: string) => Promise<Response | undefined>) | null = null;
 let layer: typeof fetch | null = null;
+/** DL11: loading overlaps the download. Each listed file's download (true once it is stored), so a page read of it waits
+ *  for that file, not the whole set; the download's own requests (by their abort signal) pass straight through. */
+const pendingFiles = new Map<string, Promise<boolean>>(), ownSignals = new WeakSet<AbortSignal>();
+/** While the entry's download runs, a level read it does not list (a loader reading a file its set lacks) waits for the
+ *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
+ *  tables, code or the shell's own images. */
+let unlistedWait: Promise<void> | null = null;
+const levelRead = (path: string): boolean => /^\/(?:shardfiles\/|assets\/(?!spawn\/|boot-tables-))/u.test(path)
+  && !/\.(?:js|mjs|css|map)$/u.test(path) && !/^\/assets\/(?:title\/)?[^/]+\.(?:png|jpe?g|webp|avif|svg)$/u.test(path);
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
   ktx2: 'image/ktx2', bin: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
   gif: 'image/gif', avif: 'image/avif', svg: 'image/svg+xml'};
 const typeOf = (url: string): string => TYPES[/\.([a-z0-9]+)(?:\?|$)/u.exec(url)?.[1] ?? ''] ?? 'application/octet-stream';
-/** A GET of a member URL waits for its bytes, and of a stored URL reads the store; anything else, a retry, a failed member
- *  or a store miss goes to the network. */
+/** A GET of a member URL waits for its bytes, of a listed file for its download, and of a stored URL reads the store;
+ *  anything else, a retry, a failed member or a store miss goes to the network. */
 function installMemberLayer(): boolean {
   // Installed once per page, and again only if something replaced it (tests do); a page without fetch gets none.
   if (typeof window === 'undefined' || typeof window.fetch !== 'function') return false;
@@ -54,10 +63,14 @@ function installMemberLayer(): boolean {
   layer = async (input, init) => {
     const request = input instanceof Request ? input : undefined;
     const method = (init?.method ?? request?.method ?? 'GET').toUpperCase(), cache = init?.cache ?? request?.cache;
-    if ((members.size > 0 || storedUrls.size > 0) && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
-      const url = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href).href;
+    const signal = init?.signal ?? request?.signal, own = signal !== undefined && signal !== null && ownSignals.has(signal);
+    if ((members.size > 0 || storedUrls.size > 0 || pendingFiles.size > 0 || unlistedWait !== null) && !own && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
+      const address = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href), url = address.href;
       const bytes = await members.get(url);
       if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
+      const pending = pendingFiles.get(url);
+      if (pending !== undefined) await pending;
+      else if (unlistedWait !== null && address.origin === location.origin && levelRead(address.pathname)) await unlistedWait;
       const expected = storedUrls.get(url);
       if (expected !== undefined && storeRead !== null) {
         // Served only as the manifest's exact file (sp-x2's review): a 200, not a page, its length and sha256; a short,
@@ -80,13 +93,15 @@ async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Control: the level is complete and its reads are done, so the member bytes go. */
-export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); storeRead = null; }
+export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); pendingFiles.clear(); storeRead = null; }
 /** Debug 'Loading: runtime packs / shardfile' (DL16, default shardfile): set by the composition root before a spawn
  * download starts; this leaf reads no engine setting itself. */
 let packsOn = false;
 export function setSpawnPacks(on: boolean): void { packsOn = on; }
 export interface SpawnDownload {
   readonly ready: Promise<void>; readonly snapshot: () => SpawnDownloadSnapshot;
+  /** DL11: the file list is known and each file's read waits for its own download, so setup may start; fails as `ready`. */
+  readonly listed?: Promise<void>;
   readonly subscribe: (listener: (snapshot: SpawnDownloadSnapshot) => void) => () => void;
   readonly resolve: (url: string) => string; readonly cancel: () => void;
 }
@@ -123,6 +138,11 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   const snapshot = (): SpawnDownloadSnapshot => ({...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error, streamedBytes: streamedBytes + completedBytes});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
+  ownSignals.add(controller.signal);
+  const settles = new Map<string, (stored: boolean) => void>();
+  const settleFile = (url: string, stored: boolean): void => { settles.get(url)?.(stored); settles.delete(url); };
+  let markListed = (): void => undefined;
+  const listedOnly = new Promise<void>(resolve => { markListed = resolve; });
   const ready = (async () => {
     try {
       const manifestURL = new URL(address.url, base).href, held = await ports.cached(manifestURL);
@@ -137,6 +157,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const files = manifest.files.map(file => {
         const url = new URL(file.url, base); aliases.set(url.pathname, url.href); return {bytes: file.bytes, hash: file.hash, wireBytes: file.wireBytes ?? 0, url: url.href};
       });
+      // DL11: from here a page read of a listed file waits for that file (a cached one settles at once below)
+      if (installMemberLayer()) for (const file of files) pendingFiles.set(file.url, new Promise(resolve => { settles.set(file.url, resolve); }));
+      markListed();
       // DL18: on a warm visit the held-parts index and the cache's keys answer every packed member at once; the few
       // loose files left are looked up one by one, so no bulk read of the cache runs.
       const parts = ports.packs === true ? manifest.parts : undefined, heldFiles = new Set<string>();
@@ -179,7 +202,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       for (let index = 0; index < files.length; index++) {
         const file = files[index]; if (file === undefined) throw new Error('Missing spawn file');
         if (unfit.has(file.url)) missing.push(file);
-        else if (heldFiles.has(file.url) || present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; }
+        else if (heldFiles.has(file.url) || present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; settleFile(file.url, true); }
         else missing.push(file);
       }
       progressKnown = true;
@@ -226,7 +249,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
                 // The part's bytes are only trusted per member: each must match its manifest row before it is kept or read.
                 if (await sha256(member) !== file.hash) throw new Error(`Spawn part member differs: ${part.url}`);
                 await ports.keep?.(file.url, new Response(member, {headers: {'content-type': typeOf(file.url), 'content-length': String(member.length)}}));
-                settle.get(index)?.(member); done.add(index);
+                settle.get(index)?.(member); done.add(index); settleFile(file.url, true);
                 completedBytes += file.bytes; wireCompleted += file.wireBytes; filesDone++; publish();
               }
             }
@@ -262,18 +285,23 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           });
           if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
           if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); serve(file); }
-          wireCompleted += file.wireBytes; filesDone++; publish();
+          settleFile(file.url, true); wireCompleted += file.wireBytes; filesDone++; publish();
         }
       }));
       controller.signal.throwIfAborted(); complete = true; publish();
     } catch (failure) {
+      // A read waiting on a file this download will not store falls through to the network.
+      for (const resolve of settles.values()) resolve(false);
+      settles.clear();
       error = failure instanceof Error ? failure.message : String(failure); publish(); controller.abort(); throw failure;
     }
   })();
   // The tap starts work before its composition root reaches the await. Keep
   // its original rejection for that await without a premature global report.
   void ready.catch(() => undefined);
-  return {ready, snapshot, subscribe: listener => {listeners.add(listener); listener(snapshot()); return () => {listeners.delete(listener);};},
+  const listed = Promise.race([listedOnly, ready]);
+  void listed.catch(() => undefined);
+  return {ready, listed, snapshot, subscribe: listener => {listeners.add(listener); listener(snapshot()); return () => {listeners.delete(listener);};},
     resolve: input => {const url = new URL(input, base); return url.origin === new URL(base).origin ? aliases.get(url.pathname) ?? url.href : url.href;}, cancel: () => {controller.abort(); listeners.clear();}};
 }
 
@@ -396,7 +424,9 @@ function lateDownload(inner: Promise<SpawnDownload>): SpawnDownload {
     await download.ready;
   })();
   void ready.catch(() => undefined);
-  return {ready, snapshot: () => resolved?.snapshot() ?? waiting(),
+  const listed = Promise.race([ready, (async () => { const download = await inner; await (download.listed ?? download.ready); })()]);
+  void listed.catch(() => undefined);
+  return {ready, listed, snapshot: () => resolved?.snapshot() ?? waiting(),
     subscribe: listener => {
       listeners.set(listener, resolved?.subscribe(listener) ?? (() => undefined));
       if (resolved === undefined) listener(waiting());
@@ -408,7 +438,10 @@ function lateDownload(inner: Promise<SpawnDownload>): SpawnDownload {
 function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
   const selected = spawnSelection(slug, flow, tier, mode); if (selected === null) return null;
   const key = packsOn ? `packs:${flow}|${slug}|${tier}|${mode}` : addressKey(selected.address);
-  if (current !== undefined && current.key === key) {current.foreground ||= foreground; return current.download;}
+  if (current !== undefined && current.key === key) {
+    if (foreground && !current.foreground) holdUnlisted(current.download.ready);
+    current.foreground ||= foreground; return current.download;
+  }
   // Runtime packs: this entry's whole-level manifest from the packs book. A missing, unreadable or entry-less book
   // fails the download (admission waits on it and refuses control with the reason); it never runs the default set and
   // reports it complete, which would break the whole-level rule (sp-x9's review of 40bc516d5c).
@@ -419,7 +452,15 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
       if (address.url === selected.address.url) throw new Error('Packs book names the default manifest');
       return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), document.baseURI);
     })());
-  current?.download.cancel(); current = {key, download, foreground}; return download;
+  current?.download.cancel(); current = {key, download, foreground};
+  if (foreground) holdUnlisted(download.ready);
+  return download;
+}
+/** The entry's own download only: a title read-ahead never holds the title's reads. */
+function holdUnlisted(ready: Promise<void>): void {
+  if (!installMemberLayer()) return;
+  const wait: Promise<void> = (async () => { await ready.catch(() => undefined); if (unlistedWait === wait) unlistedWait = null; })();
+  unlistedWait = wait;
 }
 export function currentSpawnDownload(): SpawnDownload | undefined { return current?.download; }
 

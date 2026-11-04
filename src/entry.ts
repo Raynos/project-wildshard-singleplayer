@@ -265,7 +265,8 @@ async function startSelected(): Promise<void> {
       recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
     };
     imports.check();
-    if (spawnJob !== null) await waitFor('Spawn download', spawnJob.ready, 'file');
+    // DL11: setup overlaps the download (each read waits for its own file); control waits for the whole set (finish.ts)
+    if (spawnJob !== null) await waitFor('Spawn download', spawnJob.listed ?? spawnJob.ready, 'file');
     const manifest = source === null
       ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
       : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready);

@@ -206,3 +206,50 @@ test('DL13 read-once serves only the manifest\'s exact file; a fetch replaced mi
   expect(new Uint8Array(await (await window.fetch(glbURL)).arrayBuffer())).toEqual(new Uint8Array(5).fill(2));
   vi.unstubAllGlobals();
 });
+
+test('DL11: after the list is known, a page read of a listed file waits for that file alone, then reads the store', async () => {
+  // Setup overlaps the download: a loader asks for its file mid-download and gets the stored copy, never a second fetch.
+  const network = vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network')));
+  vi.stubGlobal('fetch', network);
+  const disk = new Map<string, Response>(), plain = JSON.stringify({ ...manifest, parts: undefined });
+  const at = { ...address, url: '/assets/spawn/example-overlap-1234567890abcdef.json', bytes: plain.length };
+  let release = (): void => undefined;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const download = downloadSpawnManifest(at, {
+    cached: url => Promise.resolve(disk.get(url)?.clone()),
+    store: (url, response) => { disk.set(url, response); return Promise.resolve(); },
+    fetch: async url => { const path = new URL(url).pathname; if (path === glb.url) await held; return new Response(path === at.url ? plain : body(path)); },
+  }, base);
+  await download.listed;
+  let glbRead: Uint8Array | undefined;
+  const reading = (async () => { glbRead = new Uint8Array(await (await window.fetch(new URL(glb.url, base).href)).arrayBuffer()); })();
+  // the bin arrives while glb is held: its read is answered at once
+  await vi.waitFor(() => { expect(disk.has(new URL(bin.url, base).href)).toBe(true); });
+  expect(new Uint8Array(await (await window.fetch(new URL(bin.url, base).href)).arrayBuffer())).toEqual(new Uint8Array(4).fill(1));
+  expect(glbRead).toBeUndefined();
+  release(); await reading; await download.ready;
+  expect(glbRead).toEqual(new Uint8Array(5).fill(2));
+  expect(network).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
+});
+
+test('DL11: a read waiting on a file the download will not store falls through to the network', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const plain = JSON.stringify({ ...manifest, parts: undefined });
+  const at = { ...address, url: '/assets/spawn/example-overlap-fail-1234567890abcdef.json', bytes: plain.length };
+  // glb never arrives; the download is cancelled (a new entry, a refusal) while a loader waits on it
+  const download = downloadSpawnManifest(at, {
+    cached: () => Promise.resolve(undefined), store: () => Promise.resolve(),
+    fetch: async (url, signal) => {
+      const path = new URL(url).pathname;
+      if (path === glb.url) await new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { reject(new Error('aborted')); }); });
+      return new Response(path === at.url ? plain : body(path));
+    },
+  }, base);
+  await download.listed;
+  const reading = window.fetch(new URL(glb.url, base).href);
+  download.cancel();
+  await expect(download.ready).rejects.toThrow();
+  expect(await (await reading).text()).toBe('network');
+  vi.unstubAllGlobals();
+});

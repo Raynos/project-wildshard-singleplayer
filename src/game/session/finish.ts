@@ -7,7 +7,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { loadingStage } from '@wildshard/engine/boot/waits';
+import { loadingStage, waitFor } from '@wildshard/engine/boot/waits';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
 import { idleTurn } from '@wildshard/engine/boot/idle';
@@ -195,6 +195,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     // and capped; what the cap leaves still links in play (warmRest).
     if (queuedLinks()) await loadingStage('worldPrograms', () => linkWorldUnderLoader(game));
   }
+  // DL11: setup overlapped the spawn download; control still waits for the whole set
+  const spawn = currentSpawnDownload();
+  if (spawn !== undefined && !spawn.snapshot().complete) await waitFor('Spawn download', spawn.ready, 'file');
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
   if (loading.holdRequested) game.frameGate = loadingFrameGate;
   try { await loading.done(); }
