@@ -51,6 +51,15 @@ for (const row of run.requests) {
   if (path.startsWith(prefix) && !path.endsWith('/shard.json')) outside.add(/([a-f0-9]{64})/u.exec(path)?.[1] ?? path);
   else if (shell.test(path) && !code.test(path) && !path.startsWith('/assets/title/')) assetsOutside.add(path);
 }
+// DL11: a read the page's spawn layer held for the whole set names itself on the timeline
+// (wildshard.prepare:unlisted:<path>) even when no network request follows it (a pack reader read the loose member of a
+// listed part: Pine's baked clouds and planet), so it is a read outside the set too.
+for (const measure of run.measures ?? []) {
+  const held = /^wildshard\.prepare:unlisted:(\/.+)$/u.exec(measure.name ?? '')?.[1];
+  if (held === undefined || measure.start < run.tap || measure.start > control || listed.has(held)) continue;
+  if (held.startsWith(prefix)) outside.add(/([a-f0-9]{64})/u.exec(held)?.[1] ?? held);
+  else if (shell.test(held) && !code.test(held) && !held.startsWith('/assets/title/')) assetsOutside.add(held);
+}
 // Only the home's own reads before control count as its witness (sp-x8's review).
 if (matched === 0) throw new Error(`The run read nothing under ${prefix} before control: not a ${slug} run`);
 const product = join(dist, 'shardfiles', slug), index = JSON.parse(readFileSync(join(product, 'shard.json'), 'utf8'));
