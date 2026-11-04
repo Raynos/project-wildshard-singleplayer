@@ -1,8 +1,11 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Mesh, MeshBasicMaterial, Sphere, Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
-import type { CullPlan } from './roadCull';
-import type { RoadTileStore } from './roadTileArchive';
+import { finishRoadSteps, type CullPlan } from './roadCull';
+import { compactRoadTileSteps } from './roadTileGeometry';
+import { coarseRoadTileSteps } from './roadTileCoarse';
+import { contentHash } from '../shardfile/contentHash';
+import { encodeRoadTile, type RoadTileStore } from './roadTileArchive';
 import { RoadTileBacking } from './roadTileBacking';
 import { captureJobTiles } from './roadTileCaptureJob';
 import { captureJob, captureJobBytes } from './roadTileCaptureWorker';
@@ -31,23 +34,39 @@ function parents(plan: CullPlan): { x: number; z: number }[] {
   for (const bin of plan.bins) if (bin.tile !== undefined) { const x = Math.floor(bin.tile.x / 2), z = Math.floor(bin.tile.z / 2); out.set([x, z].join(','), { x, z }); }
   return [...out.values()];
 }
-// the page path's archive writes, recorded in the order it made them (its references are those writes' results)
-async function pagePath(mesh: Mesh, plan: CullPlan, store: RoadTileStore): Promise<string[]> {
-  const order: string[] = [], recording: RoadTileStore = { get: store.get, put: (hash, bytes) => { order.push(hash); return store.put(hash, bytes); } };
-  const scope = new Scope('page capture'), backing = new RoadTileBacking(scope, recording, { pitch: 125, plans: new Map() });
+/** The references' contract: the authored order, each fine bin in order and then each coarse parent (an empty one
+ *  skipped), as both paths commit them. Computed serially here; the page path's puts themselves run concurrently, so
+ *  their completion order is not that order and is never compared. */
+async function authoredHashes(mesh: Mesh, plan: CullPlan): Promise<string[]> {
+  const out: string[] = [];
+  for (const bin of plan.bins) {
+    if (bin.tile === undefined) throw new Error('Missing fixture tile');
+    const data = finishRoadSteps(compactRoadTileSteps(mesh.geometry, plan, bin.tile.x, bin.tile.z));
+    try { out.push(await contentHash(encodeRoadTile(data))); } finally { data.geometry.dispose(); }
+  }
+  for (const { x, z } of parents(plan)) {
+    const data = finishRoadSteps(coarseRoadTileSteps(mesh.geometry, plan, x, z));
+    try { if (data.plan.source.length > 0) out.push(await contentHash(encodeRoadTile(data))); } finally { data.geometry.dispose(); }
+  }
+  return out;
+}
+// the page path's archive (its bodies; its puts complete in any order)
+async function pagePath(mesh: Mesh, plan: CullPlan, store: RoadTileStore): Promise<number> {
+  const scope = new Scope('page capture'), backing = new RoadTileBacking(scope, store, { pitch: 125, plans: new Map() });
   const steps = backing.capture(mesh, plan);
   for (;;) { const next = steps.next(), pending = backing.flush(); if (pending !== null) await pending; if (next.done === true) break; }
-  expect(backing.state().backedTiles).toBe(order.length);
-  scope.dispose(); return order;
+  const backed = backing.state().backedTiles;
+  scope.dispose(); return backed;
 }
 
 test('a captured job (through structured clone) writes the page path\'s exact bodies and references, in order', async () => {
   const f = fixture(), page = memoryStore(), worker = memoryStore();
-  const written = await pagePath(f.mesh, f.plan, page.store);
+  const backed = await pagePath(f.mesh, f.plan, page.store), authored = await authoredHashes(f.mesh, f.plan);
   const job = captureJob(0, 'https://wildshard.test', f.mesh.geometry, f.plan, parents(f.plan));
   if (job === null) throw new Error('Missing capture job');
   const result = await captureJobTiles(structuredClone(job), worker.store);
-  expect([...result.fine, ...result.coarse].map(reference => reference.hash)).toEqual(written);
+  expect([...result.fine, ...result.coarse].map(reference => reference.hash)).toEqual(authored);
+  expect(backed).toBe(authored.length);
   expect(result.fine).toHaveLength(12); expect(result.coarse.length).toBeGreaterThan(0);
   for (const reference of [...result.fine, ...result.coarse]) expect(reference.wireBytes).toBe(page.bodies.get(reference.hash)?.length);
   expect([...worker.bodies.keys()].sort()).toEqual([...page.bodies.keys()].sort());

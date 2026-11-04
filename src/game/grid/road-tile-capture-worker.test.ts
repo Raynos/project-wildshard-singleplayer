@@ -46,21 +46,23 @@ async function drive(backing: RoadTileBacking, mesh: Mesh, plan: CullPlan): Prom
   const steps = backing.capture(mesh, plan);
   for (;;) { const next = steps.next(), pending = backing.flush(); if (pending !== null) await pending; if (next.done === true) return; }
 }
-async function pageOrder(mesh: Mesh, plan: CullPlan): Promise<string[]> {
-  const order: string[] = [], scope = new Scope('page'), backing = new RoadTileBacking(scope, memoryStore(order).store, { pitch: 125, plans: new Map() });
-  await drive(backing, mesh, plan); scope.dispose(); return order;
+// the page path's archive bodies (its puts run concurrently and complete in any order: only the set is compared)
+async function pageBodies(mesh: Mesh, plan: CullPlan): Promise<string[]> {
+  const page = memoryStore(), scope = new Scope('page'), backing = new RoadTileBacking(scope, page.store, { pitch: 125, plans: new Map() });
+  await drive(backing, mesh, plan); scope.dispose(); return [...page.bodies.keys()].sort();
 }
 const settle = (): Promise<void> => new Promise(resolve => { setTimeout(resolve, 0); });
 
 test('a job the worker refuses is captured again on the page: the same archive writes, the backing seals', async () => {
   vi.stubGlobal('Worker', FakeWorker); mode = 'refuse';
-  const f = fixture(), expected = await pageOrder(f.mesh, f.plan), order: string[] = [];
+  const f = fixture(), expected = await pageBodies(f.mesh, f.plan), order: string[] = [];
   const scope = new Scope('refused'), backing = new RoadTileBacking(scope, memoryStore(order).store, { pitch: 125, plans: new Map() }, 'https://wildshard.test');
   await settle();
   await drive(backing, f.mesh, f.plan);
   expect(posted).toBe(1);
   await backing.joinCapture();
-  expect(order).toEqual(expected);
+  // the page retry writes the page path's bodies, serially in the job's authored order (one put each)
+  expect([...order].sort()).toEqual(expected); expect(order).toHaveLength(expected.length);
   expect(backing.state().backedTiles).toBe(expected.length);
   scope.dispose();
 });
