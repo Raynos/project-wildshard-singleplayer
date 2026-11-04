@@ -4,7 +4,8 @@
 // on foot, on the hoverboard or at boost.
 //
 // scripts/browser-lane.sh node scripts/complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid
-//   [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--lap=<seconds>] [--reach=<m, 220>] [--out=<json under ./tmp>]
+//   [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--level-download=shardfile|packs] [--lap=<seconds>]
+//   [--reach=<m, 220>] [--out=<json under ./tmp>]
 //   --warm=on: timing only (no lap): the cold visit's tap-to-control, an exit and re-entry 1 s after control while the
 //   service worker's post-control precache still runs (039d's trap), and a re-entry once the worker has gone quiet
 //
@@ -32,16 +33,16 @@ import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
   process.exit(2);
 }
 const engine = values.engine ?? 'chromium', reach = Number(values.reach ?? '220'), sw = values.sw ?? 'on', linkName = values.link ?? 'none';
-// the lap: spawn -> (x+r, z) -> (x+r, z+r) -> (x-r, z+r) -> (x-r, z-r) -> (x+r, z-r) -> spawn is 9r of hoverboard (~2 km at
-// the default 220 m); its time bound is that at 45 m/s plus 15 s to reach boost, so only a stuck board runs out of time
-const lapSeconds = Number(values.lap ?? String(Math.ceil(reach * 9 / 45 + 15)));
+// --lap overrides each boost-lap leg's time bound (default: the leg's length at 20 m/s plus 15 s)
+const lapSeconds = Number(values.lap ?? '60');
+if (![undefined, 'shardfile', 'packs'].includes(values['level-download'])) { console.error('bad --level-download'); process.exit(2); }
 if (!['chromium', 'webkit'].includes(engine) || !['on', 'off'].includes(sw) || !['none', 'phone'].includes(linkName) || !(lapSeconds > 0) || !(reach > 0)) { console.error('bad --engine / --sw / --link / --lap / --reach'); process.exit(2); }
 if (values.warm === 'on' && (linkName !== 'phone' || engine !== 'chromium' || sw !== 'on')) { console.error('--warm=on needs --link=phone, Chromium and the worker on: a localhost link finishes the precache before any re-entry'); process.exit(2); }
 const out = resolve(values.out ?? `tmp/complete-at-control/${flow}-${rev.slice(0, 10)}-${engine}.json`);
@@ -94,6 +95,8 @@ function snapshot() {
     const world = api.requireWorld(); let meshes = 0, visible = 0; const ids = [];
     world.game.scene.traverse(o => {
       if (!(o.isMesh || o.isInstancedMesh)) return;
+      // the player's own viewmodel (held weapons, arms, the board) hangs under the camera: not level content
+      for (let q = o.parent; q; q = q.parent) if (q.isCamera) return;
       meshes++; if (o.visible) visible++;
       const chain = []; for (let q = o; q && chain.length < 4; q = q.parent) chain.push(q.name === '' ? q.type : q.name);
       ids.push(`${o.uuid}|${chain.join('<')}|${o.geometry?.attributes?.position?.count ?? 0}`);
@@ -125,12 +128,14 @@ let controlAt = null;
 const link = linkName === 'phone' ? await startSharedLink(profiles.phone.down) : null;
 const browser = await (engine === 'webkit' ? webkit : chromium).launch({ headless: true, args: engine === 'chromium'
   ? ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', ...(link === null ? [] : [`--proxy-server=${link.proxy}`, '--proxy-bypass-list=<-loopback>'])] : [] });
-const report = { schema: 1, gate: 'DL17 complete-at-control', rev, base, flow, engine, reach, lapSeconds, link: link === null ? null : { preset: 'phone', bytesPerSecond: link.bytesPerSecond },
+const report = { schema: 1, gate: 'DL17 complete-at-control', rev, base, flow, engine, reach, lapSeconds, levelDownload: values['level-download'] ?? null, link: link === null ? null : { preset: 'phone', bytesPerSecond: link.bytesPerSecond },
   when: new Date().toISOString(), violations: [], errors: [] };
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], viewport: { width: 402, height: 874 } });
   await developerSettings(context, { tier: 'phone', volume: 0 });
   await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
+  // DL16's Debug ▸ Loading & memory ▸ Level download (src/engine/boot/loadingPacks.ts), read once at boot
+  if (values['level-download'] !== undefined) await saveFixture(context, { scope: 'device', key: 'debug.levelDownload', data: values['level-download'] });
   await context.addInitScript(hideDeveloperOverlays);
   await harnessPins(context, { seed: 357, browser: `${engine} / iPhone 16 Pro`, lane: 'dl17', sha: rev });
   const control = { at: null };
@@ -207,25 +212,45 @@ try {
       report.reachCells = inReach.map(c => ({ id: c.id, slug: c.slug, shows: c.shows }));
     }
 
-    // the boost lap: hoverboard, Developer boost, a square of `reach` metres round spawn
+    // the boost lap: the level's own walk legs (scripts/physics-route.json: courses known to be drivable) that start within
+    // `reach` of spawn, each driven on the hoverboard at Developer boost; the grid drives its home cell's legs, moved by the
+    // cell's offset (a cell's centre is its index times the pitch)
     const lap = [];
-    const [sx, , sz] = report.atControl.scene?.player ?? [0, 0, 0];
-    const corners = [[sx + reach, sz], [sx + reach, sz + reach], [sx - reach, sz + reach], [sx - reach, sz - reach], [sx + reach, sz - reach], [sx, sz]];
-    await page.evaluate(() => { const w = window.__wildshard.requireWorld(); w.player.hoverBoost = true; });
-    const walk = page.evaluate(leg => window.__wildshard.walkLeg({ name: 'dl17-boost-lap', start: { x: leg.x, z: leg.z, yaw: 0, hover: true }, waypoints: leg.points.map(([x, z]) => ({ x, z })), timeout: leg.seconds, stuckSeconds: 5 }), { x: sx, z: sz, points: corners, seconds: lapSeconds });
-    const lapEnd = Date.now() + lapSeconds * 1000 + 2000, finished = { done: false };
-    const settledWalk = (async () => {
-      try { return await walk; } catch (error) { report.errors.push(`lap: ${String(error)}`); return null; } finally { finished.done = true; }
-    })();
-    await page.waitForTimeout(300);
-    await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
-    while (!finished.done && Date.now() < lapEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
-    report.lapResult = await settledWalk;
+    const homeCell = flow === 'grid' ? (gridAt?.cells ?? []).find(c => c.id === gridAt.home) : undefined;
+    const homeSlug = flow === 'grid' ? homeCell?.slug : flow;
+    const [ox, oz] = homeCell === undefined ? [0, 0] : [homeCell.cell[0] * gridAt.pitch, homeCell.cell[1] * gridAt.pitch];
+    const [px, , pz] = report.atControl.scene?.player ?? [ox, 0, oz];
+    const allLegs = JSON.parse(readFileSync(resolve('scripts/physics-route.json'), 'utf8'))[homeSlug ?? ''] ?? [];
+    const legs = allLegs.map(leg => ({ name: leg.name, start: { ...leg.start, x: leg.start.x + ox, z: leg.start.z + oz }, points: leg.waypoints.map(w => [w.x + ox, w.z + oz]) }))
+      .filter(leg => Math.hypot(leg.start.x - px, leg.start.z - pz) <= reach);
+    if (legs.length === 0) throw new Error(`No walk leg of ${homeSlug} starts within ${reach} m of spawn: the boost lap needs scripts/physics-route.json`);
+    report.lapRoute = { slug: homeSlug, legs: [] };
+    report.lapResults = [];
+    for (const leg of legs) {
+      let metres = 0;
+      for (let i = 0, from = [leg.start.x, leg.start.z]; i < leg.points.length; from = leg.points[i], i++) metres += Math.hypot(leg.points[i][0] - from[0], leg.points[i][1] - from[1]);
+      // its time bound: the leg at 20 m/s (a walk course turns often) plus 15 s, so only a stuck board runs out of time
+      const seconds = values.lap === undefined ? Math.ceil(metres / 20 + 15) : lapSeconds;
+      report.lapRoute.legs.push({ leg: leg.name, waypoints: leg.points.length, metres: Math.round(metres), seconds });
+      await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; });
+      const walk = page.evaluate(l => window.__wildshard.walkLeg({ name: `dl17-${l.name}`, start: { ...l.start, hover: true }, waypoints: l.points.map(([x, z]) => ({ x, z })), timeout: l.seconds, stuckSeconds: 5 }), { ...leg, seconds });
+      const legEnd = Date.now() + seconds * 1000 + 2000, finished = { done: false };
+      const settledWalk = (async () => {
+        try { return await walk; } catch (error) { report.errors.push(`lap ${leg.name}: ${String(error)}`); return null; } finally { finished.done = true; }
+      })();
+      await page.waitForTimeout(300);
+      await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
+      while (!finished.done && Date.now() < legEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
+      const result = await settledWalk;
+      // a leg counts only when it is driven: at its last waypoint, never stuck (sp-x1's review: a timed-out drive is no lap)
+      const [lx, lz] = leg.points.at(-1) ?? [leg.start.x, leg.start.z];
+      const off = result?.end === undefined ? Infinity : Math.hypot(result.end.x - lx, result.end.z - lz);
+      const complete = result !== null && off <= 15 && (result.stuck ?? []).length === 0;
+      report.lapResults.push({ leg: leg.name, complete, result });
+      if (!complete) report.errors.push(`the boost lap's ${leg.name} leg did not complete: ended ${Number.isFinite(off) ? `${off.toFixed(0)} m from its last waypoint` : 'with no result'}, ${(result?.stuck ?? []).length} stuck, ${result?.seconds?.toFixed(1) ?? '?'} of ${seconds} s`);
+    }
     report.lapSamples = lap.length;
-    // a lap counts only when it is driven: back within 15 m of spawn, never stuck (sp-x1's review: a timed-out drive is no lap)
-    const end = report.lapResult?.end, home = end === undefined ? Infinity : Math.hypot(end.x - sx, end.z - sz);
-    report.lapComplete = report.lapResult !== null && home <= 15 && (report.lapResult.stuck ?? []).length === 0;
-    if (!report.lapComplete) report.errors.push(`the boost lap did not complete: ended ${Number.isFinite(home) ? `${home.toFixed(0)} m from spawn` : 'with no result'}, ${(report.lapResult?.stuck ?? []).length} stuck, ${report.lapResult?.seconds?.toFixed(1) ?? '?'} of ${lapSeconds} s`);
+    report.lapComplete = report.lapResults.every(r => r.complete);
     report.afterLap = await page.evaluate(snapshot);
 
     // verdict
@@ -239,7 +264,7 @@ try {
     const lateAll = level.filter(r => r.start >= controlAt), refetch = lateAll.filter(r => fetchedBefore.has(path(r))), after = lateAll.filter(r => !fetchedBefore.has(path(r)));
     const shared = requests.filter(r => isLevelContent(r.url) && precache(r));
     const row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - controlAt });
-    report.requests = { total: requests.length, byServiceWorker: requests.filter(r => r.by === 'service-worker').length, level: level.length,
+    report.requests = { total: requests.length, beforeControl: requests.filter(r => r.start < controlAt).length, byServiceWorker: requests.filter(r => r.by === 'service-worker').length, level: level.length,
       pendingAtControl: pending.map(r => ({ url: r.url, by: r.by })), afterControl: after.map(row), refetchAfterControl: refetch.map(row),
       precacheOpenAtControl: shared.filter(r => r.start < controlAt && (r.end === null || r.end > controlAt)).map(r => r.url),
       precacheAfterControl: shared.filter(r => r.start >= controlAt).length,
