@@ -89,7 +89,14 @@ function installMemberLayer(): boolean {
       const pending = jobWaits?.get(url);
       if (pending !== undefined) jobDemand?.(url);
       if (pending !== undefined) await pending;
-      else if (unlistedWait !== null && address.origin === new URL(document.baseURI).origin && levelRead(address.pathname)) await unlistedWait;
+      else if (unlistedWait !== null && address.origin === new URL(document.baseURI).origin && levelRead(address.pathname)) {
+        // held for the whole set: named on the page's timeline, so a step it stalls shows which file its spawn list is
+        // missing (Pine's sky step, DL11)
+        const held = performance.mark('wildshard.prepare:unlisted');
+        await unlistedWait;
+        performance.measure(`wildshard.prepare:unlisted:${address.pathname}`, {start: held.startTime});
+        performance.clearMarks(held.name);
+      }
       const bytes = await members.get(url);
       if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
       const expected = storedUrls.get(url);
