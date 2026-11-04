@@ -4,6 +4,7 @@ import { pageScope } from '@wildshard/engine/app/resources';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import { beginLoadingWait, finishLoadingWait, reportLoadingWait } from '@wildshard/engine/boot/download';
+import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
 import { streamingDistance, streamingVisible, type StreamingPoint, type StreamingView } from './streamingView';
 
 type Point = StreamingPoint;
@@ -49,12 +50,15 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
     // DL21 (E526): the fence names its wait and counts it: jobs done of jobs known, and the level bytes they fetched
     // (resource timing of /shardfiles/ reads since the fence opened), so the card never sits unchanged on it.
     fenceDone = 0;
-    const wait = beginLoadingWait('Spawn view', { kind: 'work' }), opened = diagnosticNow();
+    // The card lists only its current step's waits (Loading.paintWaiting): the wait carries that step and owner.
+    const timeline = currentLoadingTimeline(), opened = diagnosticNow();
+    const wait = beginLoadingWait('Spawn view', { kind: 'work', step: timeline?.snapshot().current ?? null, owner: timeline?.waitOwner ?? null });
     const fetched = (): number => performance.getEntriesByType('resource').reduce((sum, entry) => sum
       + (entry.startTime >= opened && entry.name.includes('/shardfiles/') && entry instanceof PerformanceResourceTiming ? entry.transferSize || entry.encodedBodySize : 0), 0);
     const report = (): void => {
       const waiting = [...queues].reduce((sum, queue) => sum + queue.fenceWaiting(), 0);
-      reportLoadingWait(wait, { progress: `${fenceDone} of ${fenceDone + waiting} · ${(fetched() / 1e6).toFixed(1)} MB` });
+      const counted = `${fenceDone} of ${fenceDone + waiting} · ${(fetched() / 1e6).toFixed(1)} MB`;
+      reportLoadingWait(wait, { label: `Spawn view · ${counted}`, progress: counted });
     };
     const ticker = pageScope.child('spawn-view.count'); ticker.interval(250, report);
     try {

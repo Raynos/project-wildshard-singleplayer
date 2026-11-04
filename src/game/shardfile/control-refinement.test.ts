@@ -140,7 +140,7 @@ test('DL21: before control the fence runs up to FENCE_LANES jobs at once and nam
   const fence = prepareSpawnView();
   await vi.waitFor(() => { expect(gates).toHaveLength(FENCE_LANES); });
   // The card names the wait and counts it: none done of six known.
-  const wait = [...loadingWaitState().pending.values()].find(row => row.label === 'Spawn view');
+  const wait = [...loadingWaitState().pending.values()].find(row => row.label.startsWith('Spawn view'));
   await vi.waitFor(() => { expect(wait?.progress).toMatch(/^0 of 6 · /u); });
   for (const open of gates.splice(0)) open();
   await vi.waitFor(() => { expect(gates).toHaveLength(2); });
@@ -148,7 +148,7 @@ test('DL21: before control the fence runs up to FENCE_LANES jobs at once and nam
   await fence;
   expect(await Promise.all(jobs)).toEqual(Array.from({ length: 6 }, () => true));
   expect(most).toBe(FENCE_LANES);
-  expect([...loadingWaitState().pending.values()].some(row => row.label === 'Spawn view')).toBe(false);
+  expect([...loadingWaitState().pending.values()].some(row => row.label.startsWith('Spawn view'))).toBe(false);
   // After control the queue paces one job at a time.
   reachControl(f.level); f.paint(); f.paint();
   most = 0;
