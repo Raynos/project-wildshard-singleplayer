@@ -805,3 +805,15 @@ QA12-WebKit-worker: OPEN — exact aac39462b7 menu lifecycle proof passes both d
 CI12-Nalati-sand-contact-save: OPEN — reproduce by saving immediately after the real Golden King victory while the 15 Hz sand heightfield replaces the cached motor ground contact, then restore: raw Rapier handle index 2713 / generation 476 resolves to generation 478 and quiet-save equality refuses; observed `0f1906ec37`, first bad unisolated, owner sp-x1. A player save on sand could hit the same refusal. The tape uses real neutral settling only; no motor fix or guard waiver.
 
 HA7-Far-map-input: OPEN — `src/shards/far-reach/generators/rows/islets.generated.ts` is an untracked 2026-10-17 generated file inside map inputs; reproduce by comparing `mapTilesHash` for the local tree containing it with a clean CI checkout without it: source stamps can differ. File retained; no stamp or freshness waiver.
+
+### Inherited golden-drift bounds (2026-11-04, sp-x8)
+
+Open origin, first changing commit not established: Pine20/12 purple
+conifer crowns, Nine11/12 missing cyan post/line and Nalati12 lighter snow.
+The proposed Pine13253..c280 onset is retracted after full-resolution
+Opus review: all three differences already predate clean c733. Fresh
+13253/c280 selected-camera captures are settled/errors-empty on the
+Shardfile path. No fix, promotion or regression verdict is claimed.
+The coordinator stopped this bisect at the G1012/G1014 priority boundary;
+retained panels and exact source/build limits are in
+[the bound review](../reviews/golden-drift-bound-2026-11-04.md).
