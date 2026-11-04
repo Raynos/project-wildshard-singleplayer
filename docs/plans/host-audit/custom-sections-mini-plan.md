@@ -4762,3 +4762,27 @@ program. Every registered-return/provenance/refusal assertion remains;
 the product-reading test additionally requires keeper to be absent from
 the shipping inventory. Actual emitted-body/pack/census qualification is
 recorded separately after the final combined product build.
+
+### G1004 Z4 complete Sheep qualification (2026-11-04, sp-x8)
+
+Source `f0b8e98d56` closes the full `actors/sheep.json` contract; the
+old internal partial parser remains unchanged. The original encoder
+expression and complete 108,205 B body are exact, SHA-256
+`d86a90e95f80713ff119785b5aa854a0c2123aa047efd55a399def7757b5f8e1`.
+
+Immutable all-product source `cee1f1ec35174fb0f6240b1f884a127139f94492` / build
+`cee1f1e-mw2knnlh` emits the same body with its complete defining
+metadata. Native admission and full wire validation pass without changing
+the decoded input. Nalati's written index is 1,810,704 B, below
+the unchanged 2,000,000 B cap. The native output gate and independent
+section census agree: this one owned root is a platform file, with zero
+owned custom rows. Current pack membership is checked; no unrelated body
+or old whole-pack equality is claimed.
+
+Sixteen bounded related suites / 33 cases pass, alongside the focused
+body/refusal/consumer/schema-reference controls, root types, lint and
+derived docs. The earlier expanded SDK related walk and its raw failures
+remain separately reported; this is no blanket related or hosted verdict.
+Raw qualification: `tmp/sp-x8-sheep/final-body-audit.json` and
+`final-scoped-census.json`. X9 integrates the complete Z4 row after its
+separate Driftwood qualification; this paragraph credits only Sheep.
