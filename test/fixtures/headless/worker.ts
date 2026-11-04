@@ -23,6 +23,10 @@ await runTickWorker(async raw => {
     if (payload.kind === 'pine') console.info(JSON.stringify({diagnostic:'native-physics-worker',kind:payload.kind,
       phase,atMs:Date.now(),elapsedMs:Math.round(performance.now()-started)}));
   };
+  const driftwoodPhase = (phase: string): void => {
+    if (payload.kind === 'driftwood') console.info(JSON.stringify({diagnostic:'native-physics-worker',kind:payload.kind,
+      phase,atMs:Date.now(),elapsedMs:Math.round(performance.now()-started)}));
+  };
   // Source-only reconstruction overlaps independent worker admission. Observe
   // its rejection immediately; every guard and the complete initial commit
   // still finish inside the original request before a world becomes ready.
@@ -33,11 +37,15 @@ await runTickWorker(async raw => {
     prepare => {pinePhase('sources-ready');return {ok: true as const, prepare};},
     (error: unknown) => {pinePhase('sources-refused');return {ok: false as const, error};});
   pinePhase('sources-started');
+  driftwoodPhase('worker-start');
   const rapier = await loadRapier(readFileSync(payload.binary));
+  driftwoodPhase('rapier-ready');
   pinePhase('rapier-ready');
   await prepareAssetDecoders();
+  driftwoodPhase('decoders-ready');
   pinePhase('decoders-ready');
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(payload.sections));
+  driftwoodPhase('assets-admitted');
   pinePhase('assets-admitted');
   if (pine !== undefined && pineSources !== undefined) {
     const product = await loadHeadlessProduct(payload.directory);
@@ -50,7 +58,11 @@ await runTickWorker(async raw => {
     return adapter;
   }
   let prepare: PrepareHeadlessRuntime, assets: ReadonlyMap<string, Uint8Array> = payload.assets;
-  if (payload.kind === 'driftwood') prepare = (await import('../../proof/driftwood-isle/worker')).prepareHeadlessRuntime;
+  if (payload.kind === 'driftwood') {
+    driftwoodPhase('factory-import-start');
+    prepare = (await import('../../proof/driftwood-isle/worker')).prepareHeadlessRuntime;
+    driftwoodPhase('factory-import-ready');
+  }
   else if (payload.kind === 'driftwood-trade') prepare = (await import('../driftwood-trade-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'pine-verbs') {
     const native = await import('../pine-headless');
@@ -78,5 +90,8 @@ await runTickWorker(async raw => {
     ? createShardProduct({ slug: shard.identity.slug, revision: shard.identity.revision, shardfile: shard, sections: payload.sections,
       files: new Map(), read: () => Promise.reject(new Error('Direct native fixture has no named files')) })
     : await loadHeadlessProduct(payload.directory);
-  return createNativeProofAdapter({ shard, assets, rapier, product }, prepare, payload.snapshot);
+  driftwoodPhase('product-ready');
+  const adapter = await createNativeProofAdapter({ shard, assets, rapier, product }, prepare, payload.snapshot);
+  driftwoodPhase('world-ready');
+  return adapter;
 });
