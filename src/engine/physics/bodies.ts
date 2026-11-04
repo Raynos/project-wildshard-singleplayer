@@ -20,9 +20,8 @@
  */
 import type { Collider, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
-import { groups, type GroupName } from './groups';
+import { groups } from './groups';
 import { tagCollider, untagCollider, type Material } from './surface';
-import { overlapBox as queryOverlapBox } from './overlap';
 import { floorBelow } from './query';
 import { Euler, Quaternion } from 'three';
 import { BodySlotsSchema, type BodySlotsData } from '@wildshard/format/bodySlots';
@@ -316,15 +315,6 @@ export class Bodies {
   dispose(): void {
     for (const b of this.list.slice()) this.remove(b); // remove() edits the list
   }
-}
-
-/**
- * Colliders of the kinds in `sees` overlapping a box (half extents `half`, turned `yaw` about +Y, centred at `at`):
- * `hit` is called with each one's owner until it returns true (found). A pressure plate asks this of the PLAYER and
- * ITEM groups every frame. `as` is the querier's own group (a plate is a SENSOR).
- */
-export function overlapBox(physics: Physics, at: Vec3, half: Vec3, yaw: number, sees: readonly GroupName[], hit: (owner: unknown, c: Collider) => boolean, as: GroupName = 'SENSOR'): boolean {
-  return queryOverlapBox(physics, at, half, yaw, sees, hit, as);
 }
 
 // ── drops (PHYSICS P7-L2): a thing that falls out of something, lands, and lies there ────────────────────────────────

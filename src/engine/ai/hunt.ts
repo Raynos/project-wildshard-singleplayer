@@ -18,8 +18,6 @@ export const HURT_ARC: number = law.HURT_ARC;
 export const ATTACK_TURN: 1.5 = law.ATTACK_TURN;
 /** Historical registered sound selection; no new fallback content. */
 export const fallbackSound: (charger: boolean, which: "call" | "hurt") => string = law.fallbackSound;
-/** Historical mutable per-body continuation, owned by the roster host. */
-export type HuntMemory = law.HuntMemory;
 /** Native hunt body and the original nondrawing slope-sample capability. */
 export interface HuntBody extends AnimalSim { readonly hidden: boolean; sampleTerrain: () => void }
 /** Historical ordered herd/centre continuation. */

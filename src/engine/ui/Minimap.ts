@@ -104,9 +104,9 @@ export interface MapExtraLabel { readonly x: number; readonly z: number; readonl
   readonly width?: number; readonly height?: number; readonly short?: string }
 
 /** a named place on the maps: the format's row (`@wildshard/format/minimap`); frozen legacy folders still name it here */
-export type MapPoi = MapPoiRow;
+type MapPoi = MapPoiRow;
 /** what a palette's overlay paints with: the terrain layer's context, world → layer px, px per metre, the trails */
-export interface MapOverlay {
+interface MapOverlay {
   ctx: CanvasRenderingContext2D; toU: (x: number) => number; toV: (z: number) => number; ppm: number;
   trails: readonly (readonly [number, number])[][]; half: number;
   /** the chunk's forest mask (ChunkForest.mask), when it has one */

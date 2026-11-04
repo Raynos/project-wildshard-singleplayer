@@ -55,7 +55,7 @@
  *     `batch` shares one BatchedMesh with the world's own geometry; `piece.split` registers the colliders a task apart.
  *     `weld` (./weld.ts, E347) merges across several models: site-fitted buildings (`ModelDef.weld`: built where they
  *     stand) merged per unit — a copy, or the whole weld — with their detail bands, the never-hidden materials welded
- *     across copies, the props they stand about instanced and drawn by their host (`Placement.host`); `finishWeld` once.
+ *     across copies, the props they stand about instanced and drawn by their host (`Placement.host`); `Weld.finish` once.
  *     `piece: { id, name, … }` keeps the old registry id so saves, tests and footprints don't move.
  *  4. Delete the old drawing code (M6 deleted the old registrations: nothing but `place` / `listModel` gives a piece a
  *     `model`, check-models rule 6). `place` registers ONE registry piece per call (drawn object + world-space colliders + floor) and
@@ -112,7 +112,7 @@ export type ModelBuildVisit<P extends object> = {
 } & ({ readonly kind: 'model'; readonly built: ModelBuild } | { readonly kind: 'weld'; readonly built: WeldBuild });
 
 /** A placement call's original ordered copies, including copies initially hidden by culling. */
-export interface ModelPlacementVisit<P extends object> {
+interface ModelPlacementVisit<P extends object> {
   readonly model: string;
   readonly placements: readonly Placement<P>[];
   readonly draw: 'single' | 'merged' | 'instanced' | 'batched';
@@ -156,7 +156,7 @@ export function modelContext(sky: Sky | null, renderer: Renderer | null = null, 
 
 /** Whatever holds the renderer a shared model context may join: the game, or core's field-models context. A level's
  *  runtime hands the holder on as it is and never reads the renderer itself. */
-export interface ModelRendererHost { readonly renderer: Renderer | null }
+interface ModelRendererHost { readonly renderer: Renderer | null }
 
 const sharedBySky = new WeakMap<Sky, ModelContext>();
 
@@ -204,7 +204,7 @@ export interface ModelPart {
 export type ModelBuild = readonly ModelPart[] | THREE.Object3D;
 
 /** A coarser copy from `from` metres out; `build` returning `[]` draws nothing past `from` (a cull distance). */
-export interface ModelLod<P> {
+interface ModelLod<P> {
   readonly from: number;
   /**
    * metres before `from` over which the level before and this one are both drawn (culled copies): their shaders dissolve
@@ -280,7 +280,7 @@ export interface ModelDef<P extends object> {
 }
 
 /** What every defined model says about itself, whatever its params (the catalog and the contract test read these). */
-export interface ModelInfo {
+interface ModelInfo {
   readonly id: string;
   readonly name: string;
   readonly category: ModelCategory;
@@ -372,12 +372,12 @@ export function defineBakedModels(rows: readonly BakedModelMetadata[], build: (i
 }
 
 /** One authored part of a named geometry variant; sources remain caller-owned. */
-export interface GeometryModelPart {
+interface GeometryModelPart {
   readonly geometry: string; readonly fallback?: string; readonly material: string;
   readonly clone?: boolean; readonly castShadow: boolean; readonly receiveShadow: boolean;
 }
 /** Ordered variant draws and optional own-space convex hulls, lowered by authoring. */
-export interface GeometryModelRow<P extends object> {
+interface GeometryModelRow<P extends object> {
   readonly id: string; readonly name: string; readonly file: string;
   readonly defaults: P; readonly variants: readonly ModelVariant<P>[];
   readonly parts: Readonly<Record<string, readonly GeometryModelPart[] | undefined>>;
@@ -386,7 +386,7 @@ export interface GeometryModelRow<P extends object> {
   readonly specimenMaterial?: string;
 }
 /** Already loaded parts borrowed by a geometry recipe. */
-export interface GeometryModelSource {
+interface GeometryModelSource {
   readonly geometry: ReadonlyMap<string, THREE.BufferGeometry>;
   readonly materials: Readonly<Record<string, THREE.Material | undefined>>;
 }
@@ -421,7 +421,7 @@ export interface SceneModelRow {
   readonly position?: readonly [number,number,number]; readonly subtractY?: string;
 }
 /** Actual page/Explorer owners keep geometry, materials and effects. */
-export type SceneModelPort = Object3D | {readonly root:Object3D;readonly part?:(id:string)=>Object3D|null};
+type SceneModelPort = Object3D | {readonly root:Object3D;readonly part?:(id:string)=>Object3D|null};
 /** Define an ordered private-scene catalogue without constructing or preloading any model. */
 export function defineSceneModels<Rows extends readonly SceneModelRow[]>(rows:Rows,builds:readonly (readonly [string,()=>SceneModelPort])[],prepare?:()=>Promise<void>):{readonly [Index in keyof Rows]:ModelDef<Record<string,never>>} {
   const builders=new Map(builds);

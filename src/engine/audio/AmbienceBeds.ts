@@ -29,8 +29,8 @@ function loopVoice(audio: AudioMixer, sample: SampleLoop, scope: Scope, random: 
   catch (error) { stop(); throw error; }
   return { gain, pan, stop };
 }
-export interface BedDef { id: string; zone: string; sample: () => SampleLoop | undefined; started: () => void }
-export type ZoneWeights = Readonly<Record<string, number>>;
+interface BedDef { id: string; zone: string; sample: () => SampleLoop | undefined; started: () => void }
+type ZoneWeights = Readonly<Record<string, number>>;
 /** Zone weights fade N beds through the ambience bus without starting an audio device before a gesture. */
 export class AmbienceBeds {
   private readonly zones: AmbienceZones;

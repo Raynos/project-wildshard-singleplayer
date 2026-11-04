@@ -4,7 +4,7 @@ import type { StrikeSpec } from './strikes';
 import { GrazerBrain, type CircleGrazerSpec, type CircleGrazerPorts } from './grazer';
 
 /** Legacy tuning name for the shared grazer's circle-challenge preset. */
-export type ChallengeGrazerSpec = CircleGrazerSpec;
+type ChallengeGrazerSpec = CircleGrazerSpec;
 /** Legacy observation name; the preset supplies its own admitted pattern. */
 export type ChallengeGrazerPorts<A extends AnimalSim> = CircleGrazerPorts<A>;
 

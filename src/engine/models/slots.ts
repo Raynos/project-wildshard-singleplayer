@@ -6,37 +6,14 @@
  * when something changes (a pickup, a trophy: a few times a game). Every slot is drawn by the one mesh on the one shared
  * material, whatever is shown.
  *
- *   const kit = new LowPolyKit(seed);
- *   const rec = new SlotRecorder(kit);
- *   kit.add(bar…);            rec.mark();          // slot 0: the bar
- *   kit.add(piece1…);         rec.mark();          // slot 1: the first piece
- *   const slots = new SlotGeometry(kit.finish({ ao: false }), rec.ranges, [true, false]);
+ *   // ranges: each slot's vertices in the finished geometry, in build order (3 per triangle the kit added)
+ *   const slots = new SlotGeometry(kit.finish({ ao: false }), [{ start: 0, count: 36 }, { start: 36, count: 24 }], [true, false]);
  *   slots.set(1, true);
  */
 import * as THREE from 'three';
 
 /** a slot: `count` vertices from `start` in the finished geometry */
 export interface SlotRange { readonly start: number; readonly count: number }
-
-/** what a recorder needs of a kit: its running triangle count (LowPolyKit's `triangleCount`) */
-interface Counted { readonly triangleCount: number }
-
-/** records the kit's vertex ranges as parts are added: call `mark()` after each slot's parts */
-export class SlotRecorder {
-  readonly ranges: SlotRange[] = [];
-  private at: number;
-  private readonly kit: Counted;
-  constructor(kit: Counted) {
-    this.kit = kit;
-     this.at = kit.triangleCount * 3; }
-  /** close the slot added since the last mark; returns its index */
-  mark(): number {
-    const end = this.kit.triangleCount * 3;
-    this.ranges.push({ start: this.at, count: end - this.at });
-    this.at = end;
-    return this.ranges.length - 1;
-  }
-}
 
 /** one merged geometry whose recorded parts (slots) show and hide without another draw */
 export class SlotGeometry {

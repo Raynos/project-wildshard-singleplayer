@@ -57,26 +57,6 @@ export function shadowProxy(list: THREE.BufferGeometry[]): THREE.Mesh | null {
   return proxy;
 }
 
-/**
- * `geo`'s positions only, moved by `m`, indexed with every triangle twice — as it is and with its winding reversed — for
- * the front-sided proxy material: a double-sided caster (a glTF scan) draws each triangle whichever way it faces; the
- * front-sided depth pass draws exactly one of the pair, so the same depth with the depth program the proxies already use.
- */
-export function twoSidedPositions(geo: THREE.BufferGeometry, m: THREE.Matrix4): THREE.BufferGeometry {
-  const out = new THREE.BufferGeometry();
-  const pos = geo.getAttribute('position');
-  out.setAttribute('position', pos.clone());
-  const src = geo.index, n = src ? src.count : pos.count;
-  const idx = new Uint32Array(n * 2);
-  for (let i = 0; i + 2 < n; i += 3) {
-    const a = src ? src.getX(i) : i, b = src ? src.getX(i + 1) : i + 1, c = src ? src.getX(i + 2) : i + 2;
-    idx[i] = a; idx[i + 1] = b; idx[i + 2] = c;
-    idx[n + i] = a; idx[n + i + 1] = c; idx[n + i + 2] = b;
-  }
-  out.setIndex(new THREE.BufferAttribute(idx, 1));
-  return out.applyMatrix4(m);
-}
-
 
 /** a non-indexed position-only geometry with the plain index 0 … n−1 (its position attribute shared) */
 function sequentialIndex(geo: THREE.BufferGeometry): THREE.BufferGeometry {
@@ -118,7 +98,7 @@ export interface WeldBuild {
   readonly root: THREE.Object3D;
   /** its parts, in the root's frame */
   readonly parts: readonly WeldPart[];
-  /** depth-only casters in the root's frame (its double-sided dressing: `twoSidedPositions`) for its near proxy */
+  /** depth-only casters in the root's frame (its double-sided dressing) for its near proxy */
   readonly casters?: readonly THREE.BufferGeometry[];
   /** its colliders, world space (computed where it stands) */
   readonly colliders: readonly ColliderDesc[];

@@ -11,9 +11,9 @@ import type { BoxSpec } from '../physics/box';
  *   const ferns = place(fern, placements, { ctx, draw: 'instanced', cull: { far: 60, keepNear: 12 } });
  *   game.onRender(() => cullPlaced(camera));   // once a frame, after the camera is posed, if anything culls or has LODs
  *
- *   const homestead = weld({ unit: 'copy', parent: group, detail: 30, near: true });   // a merge across models (E347)
+ *   const homestead = new Weld({ unit: 'copy', parent: group, detail: 30, near: true }); // a merge across models (E347)
  *   place(logCabin, [site], { ctx, draw: 'merged', weld: homestead, piece: { id: 'cabin-1' } });   // … one call per building
- *   finishWeld(homestead);                                                                // welds them, registers their pieces
+ *   homestead.finish();                                                                   // welds them, registers their pieces
  *   place(woodenCrate, crates, { ctx, draw: 'instanced', weld: homestead });              // `host`: the building each stands by
  *
  * Cost: every path draws what the hand-rolled code drew (merged = one draw per material per cell; instanced = one per
@@ -121,7 +121,7 @@ export interface PlaceOptions {
    * A merge across several models (E347, ./weld.ts): `draw: 'merged'` — each copy is the model's site-fitted build
    * (`ModelDef.weld`), its parts merged with its unit's, its bands culled by the weld; `draw: 'instanced'` — copies set
    * about the weld's copies (`Placement.host`), drawn by their host. The weld draws what they share, so the piece anchors
-   * on its copies (as `drawnInto`); a welded copy's piece is registered by `finishWeld`, once the weld has drawn it.
+   * on its copies (as `drawnInto`); a welded copy's piece is registered by `Weld.finish`, once the weld has drawn it.
    */
   readonly weld?: Weld;
 }
@@ -133,12 +133,12 @@ export interface PlaceOptions {
  * mesh of its own with room for every copy (count 0, hidden) — and hands the part's levels to `take`. The shard culls
  * them in its own frame hook; `cullPlaced` never touches them.
  */
-export interface InstancedCuller {
+interface InstancedCuller {
   take: (batch: HandedBatch) => void;
 }
 
 /** one part of one variant of a `place` call, handed to an `InstancedCuller` */
-export interface HandedBatch {
+interface HandedBatch {
   /** level 0 (every copy), then the model's LODs nearest first; `mesh: null`: nothing is drawn from `from` on */
   readonly levels: readonly { readonly mesh: THREE.InstancedMesh | null; readonly from: number }[];
   /** the copies' poses, in level 0's instance order */
@@ -213,7 +213,7 @@ const cullers: Culler[] = [];
 const cullerLives: Life[] = [];
 /** cullPlaced's frame count: a framed life's camera is posed once per call */
 let cullStamp = 0;
-/** the life each weld's place calls belong to (its band culler starts at `finishWeld`) */
+/** the life each weld's place calls belong to (its band culler starts at `Weld.finish`) */
 const weldLives = new WeakMap<Weld, Life>();
 
 function livedBy(key: object, retireOn: (end: () => void) => void, frame: THREE.Object3D | null = null): Life {
@@ -958,7 +958,7 @@ export interface WeldOptions {
 
 interface WeldCopy { readonly build: WeldBuild; readonly always: THREE.Mesh[]; readonly onBox: (box: THREE.Box3) => void }
 
-/** A weld in progress: `weld(…)`, then `place(…, { weld })` per model, then `finishWeld`. */
+/** A weld in progress: `new Weld(…)`, then `place(…, { weld })` per model, then `finish()`. */
 export class Weld {
   private readonly copies: WeldCopy[] = [];
   private readonly whole: UnitParts | null;
@@ -1056,12 +1056,6 @@ export class Weld {
     for (const fn of this.pending.splice(0)) fn();
   }
 }
-
-/** A merge across several models' copies (see `WeldOptions`, ./weld.ts); `finishWeld` once every building is in. */
-export function weld(options: WeldOptions): Weld { return new Weld(options); }
-
-/** Draw a weld's shared meshes, start its bands, and register its copies' pieces (in the order they were placed). */
-export function finishWeld(w: Weld): void { w.finish(); }
 
 function drawWelded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>, w: Weld): Drawn {
   const build = def.weld;
@@ -1434,7 +1428,7 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
       })();
     }
   };
-  // a welded copy's piece waits for its weld: its box, its anchor and its drawing are final then (`finishWeld`)
+  // a welded copy's piece waits for its weld: its box, its anchor and its drawing are final then (`Weld.finish`)
   if (w !== undefined && o.draw === 'merged') registered = new Promise((resolve) => { w.defer(() => { register(); resolve(); }); });
   else register();
   return placed;

@@ -436,18 +436,8 @@ export function layerArrayMips(layers: readonly ({ readonly format: THREE.Compre
 
 /**
  * Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h
- * sRGB target, rows top-first like a canvas's getImageData; null without a renderer. Nalati's sky reads its zenith colour
- * this way, the painted horizon its floor.
- */
-export function readTexturePixels(tex: THREE.Texture, w: number, h: number, renderer: Renderer | null = gameRenderer): Uint8Array | null {
-  if (renderer === null) return null;
-  const read = drawForRead(tex, w, h, renderer);
-  try { renderer.readRenderTargetPixels(read.rt, 0, 0, w, h, read.out); } finally { read.dispose(); }
-  return topRowsFirst(read.out, w, h);
-}
-
-/**
- * `readTexturePixels` without the stall: the read waits on a GPU fence instead of the main thread. A synchronous read
+ * sRGB target, rows top-first like a canvas's getImageData; null without a renderer. The read waits on a GPU fence
+ * instead of the main thread. A synchronous read
  * waits for every draw queued before it: on a software GPU (CI's SwiftShader) the painted horizon's floor read held the
  * Explorer's Pine page for 7-9 s behind the frames still rasterizing.
  */

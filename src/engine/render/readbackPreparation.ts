@@ -6,7 +6,7 @@ import { engineString } from '../strings';
 const held = new WeakMap<Pick<Scope, 'onDispose'>, CompileJob>();
 
 /** Keep the ordinary sRGB texture-readback shader linked for later streamed content. Only one white texel is owned;
- * sampled content textures are never retained. Match core/ktx2.readTexturePixels' geometry, target and material flags. */
+ * sampled content textures are never retained. Match core/ktx2.readTexturePixelsAsync's geometry, target and material flags. */
 export function readbackPreparation(owner: Pick<Scope, 'onDispose'>): CompileJob {
   const existing = held.get(owner);
   if (existing !== undefined) return existing;

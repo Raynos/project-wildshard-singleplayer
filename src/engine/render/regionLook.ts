@@ -164,7 +164,7 @@ const UNIFORM = /\buniform\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)\s*(?:\[[^
 const declared = (look: LookChunks): Set<string> => new Set(Object.values(look.chunks).flatMap((text) => [...text.matchAll(UNIFORM)].map((m) => m[1] ?? '')));
 /**
  * Drop the later declarations of a uniform the region's chunks declare (GLSL refuses a redeclaration): a material that
- * declared a look uniform itself for a page without the look (`ownUniforms`) now also receives the region's chunk that
+ * declared a look uniform itself for a page without the look now also receives the region's chunk that
  * declares it. The first declaration stays, so it still precedes every use. Only the chunks' own names are touched, so
  * a three chunk's `#if` / `#else` pair of one uniform is never cut.
  */

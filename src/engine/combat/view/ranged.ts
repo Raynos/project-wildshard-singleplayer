@@ -45,7 +45,7 @@ export function fovForAspect(base: number, aspect: number): number {
   if (aspect >= 1) return base;
   return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
 }
-export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repeat = 1): THREE.DataTexture {
+function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repeat = 1): THREE.DataTexture {
   const t = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
   t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -249,12 +249,6 @@ export function viewmodelRowMaterial(sky: Sky, name: string, row: ViewmodelMater
 /** `Mesh` type guard for `Object3D.traverse` callbacks (three sets `isMesh` on every Mesh) */
 export function isMesh(o: THREE.Object3D): o is THREE.Mesh { return 'isMesh' in o; }
 
-export function box(w: number, h: number, d: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
-  const g = new THREE.BoxGeometry(w, h, d);
-  if (rx || ry || rz) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, ry, rz)));
-  g.translate(x, y, z);
-  return g;
-}
 /** Lighten vertex colour on bevel/edge vertices (normals off-axis) → worn, handled edges. */
 export function edgeWear(g: THREE.BufferGeometry, amount = 0.28): void {
   const n = g.getAttribute('normal'), count = n.count;

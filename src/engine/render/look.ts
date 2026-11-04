@@ -65,7 +65,7 @@ export const ENGINE_CHAIN_TUNING: Readonly<Record<EngineChainKind, { readonly ra
  */
 export const CINEMATIC_FX = { chroma: 0.0006, chromaModulation: 0.35, grain: 0.12 } as const;
 
-export interface LookComposeContext extends LookReplaceContext {
+interface LookComposeContext extends LookReplaceContext {
   /** the engine chain's effects: the 'cinematic' chain's unless the compose asked `engineChain('clean')` first */
   fx: EngineEffects;
   /** the engine's colour chain, in order, for the composition's `chain` slot (01 §13.1, 13 C6); one kind per level */

@@ -380,7 +380,7 @@ bake recorders; implementations own their storage.
 | `death.checkpoint` | `{ cause? } \| boolean` → `boolean`: does this death respawn at a checkpoint |
 | `player.crouch` | `{ want, via: 'toggle' \| 'hold' }` → `{ allowed, latched }` |
 | `player.traversal`, `player.stepSurface` | traversal speed and the footstep surface |
-| `projectile.modify` | a shot's `ProjectileModification` (bolt mods, broadheads) |
+| `projectile.modify` | a shot's projectile modification (`ammo`, `gravity`, `drag`: bolt mods, broadheads) |
 | `combat.targets.ray`, `combat.aimTargets` | what a ray or the aim assist can hit |
 | `ai.claim`, `ai.mayAttack` | the aggression director's tokens (§18) |
 | `creature.wander-goal` | where a wandering creature heads |
@@ -1481,7 +1481,7 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 | `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts` | the icon registry: the engine's UI glyphs (lock, check, map pins, the Bag's tabs); a content library merges its ids into `IconMap` through `declare module '@wildshard/engine'` and registers SVGs drawn with `iconParts` (the kit's `installKitIcons`; E405) |
 | `BossBar`, `EliteBar` | the shared encounter bars (decision 91: one boss bar look) |
 | `ItemCardSpec`, `ItemCardState`, `itemCardTile`, `ItemCardPop` | the big item card (SF28, Jake's G87): an item as plain data (name, icon id, detail, price, state) drawn by the platform as a shop grid tile or the pickup / reward card under the top bar, in the accent hex it is handed (`--ws-accent`; the HUD cyan when none). Text lands as `textContent`. `HUD.pickupCard(spec)` shows it for every platform pickup (the only look since Jake's G181 pick, E450; the trader's `ShopPanel` is the same G87 sheet); the game sets `HUD.cardAccent` from the shard's declared accent |
-| `HUD`, `GameMenu`, `GameMenuOptions`, `FullMap`, `FullMapPoi`, `MapQuest`, `MapMark`, `MapPoi`, `MapOverlay`, `MinimapPalette`, `FirstHints`, `Feedback`, `KitEntry` | **ports**: the legacy HUD, menu and map types `runtime.play` hands over |
+| `HUD`, `GameMenu`, `GameMenuOptions`, `FullMap`, `FullMapPoi`, `MapQuest`, `MapMark`, `MapPoi`, `MinimapPalette`, `FirstHints`, `Feedback`, `KitEntry` | **ports**: the legacy HUD, menu and map types `runtime.play` hands over |
 
 **HUD verbs** (`ctx.hud`, all scoped):
 
@@ -1577,7 +1577,7 @@ text or material factory crosses the author API.
 
 | Shape | `compose` | Use |
 |---|---|---|
-| `ExtendLook` (`mode: 'extend'`, default) | `(c: LookComposeContext) => LookComposition`: slots `beforeScene`, `afterScene`, `beforeChain`, `chain`, `afterChain`. **Call `c.engineChain('clean' \| 'cinematic')` before `c.fx`**: reading effects first builds cinematic; asking for clean later throws, stops loading and sets `<html data-ws-state="error">`. Tune `c.fx` (`EngineEffects`), e.g. `tone.mode` (default AGX; NEUTRAL/ACES_FILMIC can retain bright sun bloom and gold rims), `bloom.intensity` / `luminanceMaterial.threshold`, `godRays`. Grid `RegionCinematic.weight(w, grainVisible?)` preserves authored grain strength inside its actual cell, hides it on exit, and leaves other effects' edge blend intact. | most shards (Driftwood, Pine, template) |
+| `ExtendLook` (`mode: 'extend'`, default) | `(c) => LookComposition` (`c` extends `LookReplaceContext`): slots `beforeScene`, `afterScene`, `beforeChain`, `chain`, `afterChain`. **Call `c.engineChain('clean' \| 'cinematic')` before `c.fx`**: reading effects first builds cinematic; asking for clean later throws, stops loading and sets `<html data-ws-state="error">`. Tune `c.fx` (`EngineEffects`), e.g. `tone.mode` (default AGX; NEUTRAL/ACES_FILMIC can retain bright sun bloom and gold rims), `bloom.intensity` / `luminanceMaterial.threshold`, `godRays`. Grid `RegionCinematic.weight(w, grainVisible?)` preserves authored grain strength inside its actual cell, hides it on exit, and leaves other effects' edge blend intact. | most shards (Driftwood, Pine, template) |
 | `ReplaceLook` (`mode: 'replace'`) | `(c: LookReplaceContext) => LookChain`: `{ chain: Pass[] }`, the whole chain in order. Optional `engineKnobs(tier) => EngineKnobs`: what that chain amounts to on an engine chain that draws your content instead (a grid cell on a page shell): `bloom` (or null), `vignette`, `rays`, `ao`, and `display`, your tone curve and grade as one NORMAL-blend `Effect` that takes over the engine's tone mapping by the cell's weight | a look with its own composer (Nalati) |
 
 Both shapes take these optional parts:
@@ -1729,7 +1729,6 @@ clipping declare that contract. Other patch chains stay strict.
 | `PATCH_ORDER` | order bands: material 100 · decorate 200 · shadows 900 · view 950 (fog slots: engine 100, stylize 200, a level's 300) |
 | `ShaderSource`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions` | its types |
 | `setProgramKey`, `hasProgramKey`, `setInheritedPatch`, `takeForeignHook` | program-key control and legacy hook adoption |
-| `ownUniforms`, `OwnUniform` | a patch declares and binds the uniforms it reads that the compiled stage lacks (a look's chunk patch is absent, e.g. a region under the grid's neutral page shell); a no-op where the look declares them, so the standalone source is unchanged (G226) |
 
 ```ts
 patchShader(material, 'template.linear-fog', PATCH_ORDER.decorate, (shader) => {
@@ -1993,11 +1992,11 @@ loops, score, listeners and credits.
 
 | Export | What it is |
 |---|---|
-| `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind` | the engine mixer (`runtime.play.audio`, a port while S3.5 finishes) |
+| `Audio`, `StepSurface`, `HoofSurface`, `ImpactKind` | the engine mixer (`runtime.play.audio`, a port while S3.5 finishes) |
 | `Music`, `MusicState`, `ScoreSource`, `SetScore`, `SlotAudio`, `StyleBank`, `StemSting`, `BossPhase` | the score engine and its sources |
 | `CueMap`, `CuePlayer`, `CueOpts`, `CueBank`, `SampleClip`, `CueId` | cues: the engine and weapons emit `cue.*`; your cue map turns a cue into sound |
 | `CombatCues`, `CombatCueMap`, `CombatCueOpts` | `runtime.play.cues`: `cues.use(fn, scope)` adds a handler; `fire`, `charge`, `cue` play one |
-| `AmbienceZones`, `ZoneVoice`, `ZoneWeights` | ambience beds by zone |
+| `AmbienceZones` | ambience beds by zone |
 | `SampledAmbience` (`audio/AmbienceBeds`) | client sampled loops and seeded distant calls from `audio.zones.sampleMix` |
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
 | `LevelAudioProfile` | a level's audio profile (the audio runtime loads lazily: `await import('@wildshard/engine/audio/Stems')` …, by the module a level uses). Optional `titleFiles(style)` identifies only recordings unused by played slots; direct phone play can defer those exact bytes through the existing after-control audio queue. |
@@ -2123,7 +2122,7 @@ rigContract: { skeleton: 'template.greyBlob', sockets: ['body', 'head'], clips: 
 | Water | `WaterBody`, `WaterBodies` (`app.world.water`), `swellBody`, `basinBody` (`@wildshard/engine/world/water/body`), `WaterView`, `pondGrid`, `waveHeight` | the template's `POOL` row in `ground.water` |
 | Fog | `attachFogUniforms`, `addFogUniforms`, `fogUniforms`; your `FogModel`; weather fog `weatherFog`, `WeatherFog`, `WeatherFogSpec` (E390: a second exponential fog over the level's own, compiled only when the manifest sets `atmosphere.weather: true`; `set(strength 0..1)` each time it changes, cleared when the scope ends; it composes with a backdrop's clock and the underwater blend) | `const storm = weatherFog(ctx.scope, { dist: 0.05, color: 0x8a5238 }); storm.set(eased)` (Signal Dunes' sand storm) |
 | Wind | `wind`, `WIND_DIR`, `windGustAt`, `windUniforms`, `WindField` | grass, trees and arrow drift read it |
-| Placement and models | `defineModel`, `ModelDef`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `twoSidedPositions`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
+| Placement and models | `defineModel`, `ModelDef`, `modelContext`, `ModelContext`, `ModelPart`, `live`, `listModel`, `RosterEntry`, `WeldBuild`, `markGpuOnly` | `defineModel({ id: '_template/lantern', pipeline: 'code', build: () => … })` |
 | Forest and trees | `Forest`, `TreeFactory`, `TreeVariant`, `FadeBand`, `patchWind`, `TREE_SPECS`, `TreeSpeciesTraits` (a species' planting: scale, growth, girth, spacing, hue), `TreeSetVariant` (a tree set's variant), `SpeciesWeights` (the level's own set and traits: `TreeSpec.setVariants`, `ForestSpec.speciesTraits`; E405), `treeSetOf`, `treeSetUrls`, `loadTreeSetGeometry`, `BARK_LAYERS`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn` | |
 | Geometry kit | `log`, `beam`, `rope`, `sagLine`, `rock`, `plank`, `tris`, `wobble`, `pole`, `blob`, `lathe`, `revolve`, `revolveUV`, `mergeVerticesByPos`, `voxelAO`, `aoTint`, `hemisphere`, `VoxelAOParams`, `HemiRing`, `HemiDir`, `lin`; the AO bake (SF67): `addVoxelAOBake`, `withVoxelAOBake` (a world build with a shard's baked table added, then dropped), `decodeVoxelAOBake`, `encodeVoxelAOBake`, `recordVoxelAO`, `voxelAOBakeStats`; its key drops the trig last bits Node and the browsers disagree on (hemisphere directions to 1e-9, normals to 2^-16) and probes the ground coarsely, so a hit skips the full column cache | |
 | Interactables | `Interactable`, `Interactables`, `InteractEvent`, `Flags`, `Place`, `PoiId` | the template's hut door |
@@ -2481,8 +2480,8 @@ and existing Pine saves/buffers are covered by
 
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
 `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`,
-`makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `prepareRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,
-`AmmoId`, `AmmoRow`, `ProjectileModification`, and the shared viewmodel helpers in `./combat/view/ranged`
+`makeFlashTexture`, `stepBrass`, `BrassCase`, `prepareRangedFeel`, `ImpactSurface`,
+`AmmoId`, `AmmoRow`, and the shared viewmodel helpers in `./combat/view/ranged`
 (`Puffs`, `worldHit`, `FOV_HIP`, `FOV_ADS`, `viewmodelMaterial`, `TRACER_ORDER` … listed in the appendix);
 `viewmodelRowMaterial` builds that shared material from a data row (`ViewmodelMaterialRow`: factors, a named texture set, tuples).
 Renderer-free numeric ranged laws are defined by `./combat/shotSpread` (`shotSpread`, `ShotCone`,
@@ -2775,7 +2774,7 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 ```
 **Species look helpers:** `loft`, `tube`, `skinPlain`, `S`, `boneIndex`, `srgb`, `mix`, `speciesSstep`, `paintNoise`,
 `setShag`, `isLowPoly`, `registerToonPaint`, `toonPaint`, `paletteColors`, `Paint`, `ToonPaint`, `SpeciesRGB`,
-`setShapeFn`, `Station`, `crestSpikes`, `NO_FUR`, `lookAngles`, `smooth01`, `bump`, `step`, `rigClamp`, `squashBody`.
+`setShapeFn`, `crestSpikes`, `NO_FUR`, `lookAngles`, `smooth01`, `bump`, `step`, `rigClamp`, `squashBody`.
 
 ## 20. The game layer (`@wildshard/game`)
 

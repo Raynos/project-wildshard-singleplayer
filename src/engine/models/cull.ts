@@ -81,7 +81,7 @@ export interface CullOptions {
 const CELL = 24, CELL_MIN = 64;
 
 /** a view that tells its cullers when it changed (`CullOptions.view`) */
-export interface CullView {
+interface CullView {
   onViewChange: (fn: (frustum: THREE.Frustum, eye: THREE.Vector3) => void) => void;
 }
 

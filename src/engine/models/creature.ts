@@ -24,7 +24,7 @@ import type { Renderer } from '../render/renderer';
 export interface CreatureParams { readonly variant: string }
 
 /** the clips a species rig plays on the Explorer's turntable (Animal.ts gaits and reactions) */
-export const CREATURE_CLIPS: readonly string[] = ['idle', 'walk', 'trot', 'charge', 'hit', 'die'];
+const CREATURE_CLIPS: readonly string[] = ['idle', 'walk', 'trot', 'charge', 'hit', 'die'];
 
 const FACTORY = 'creatures:factory';
 

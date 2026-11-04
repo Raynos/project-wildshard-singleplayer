@@ -65,7 +65,7 @@ export function resampleTerrain(physics: Physics): boolean {
 }
 
 /** A rectangle (centre, half-extents, turned by `yaw` about +Y) where the physics ground must sit at or below `below`. */
-export interface TerrainCut { x: number; z: number; hw: number; hd: number; yaw: number; below: number }
+interface TerrainCut { x: number; z: number; hw: number; hd: number; yaw: number; below: number }
 
 /**
  * Push the physics heightfield down inside `cuts` (PHYSICS P4): where the drawn terrain pokes up through a walk-in

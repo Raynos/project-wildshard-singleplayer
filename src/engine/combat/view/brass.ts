@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { terrainHeight as heightAt } from '../../world/terrainHeight';
 import { floorBelow } from '../../physics/query';
 
-export function brassFloor(p: THREE.Vector3, v: THREE.Vector3): number {
+function brassFloor(p: THREE.Vector3, v: THREE.Vector3): number {
   const physics = app.physics;
   if (physics === null) return heightAt(p.x, p.z);
   const f0 = floorBelow(physics, p.x, p.z, p.y, 8) ?? heightAt(p.x, p.z);

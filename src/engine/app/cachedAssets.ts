@@ -30,7 +30,7 @@ export function rebindGeometry(geometry: BufferGeometry): void {
 }
 
 /** Existing application/legacy entry; the defining tracker has no application value dependency. */
-export function cacheUntilDisposed<T>(value: T, invalidate: () => void): T {
+function cacheUntilDisposed<T>(value: T, invalidate: () => void): T {
   return trackCacheUntilDisposed(value, invalidate);
 }
 

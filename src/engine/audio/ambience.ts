@@ -9,7 +9,7 @@ import type { AudioMixer } from './levelAudio';
 import { ownAudioSource } from './ownership';
 import { loopAt, audioRandom } from './util';
 
-export interface ZoneVoice {
+interface ZoneVoice {
   gain: GainNode; pan: StereoPannerNode | undefined; src: AudioBufferSourceNode | undefined;
   buf: AudioBuffer | undefined; level: number; quiet: number;
 }

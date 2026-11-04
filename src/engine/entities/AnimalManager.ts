@@ -134,9 +134,9 @@ declare module '../events/maps' {
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
 /** a species' own sound id (SpeciesDef.sounds); the engine names none (E405) */
-export type AnimalSound = string;
+type AnimalSound = string;
 
-export type Herd = HuntHerd<Animal>;
+type Herd = HuntHerd<Animal>;
 
 /** the far LOD distance of the per-frame animation (m) */
 const ANIM_LOD = 140;

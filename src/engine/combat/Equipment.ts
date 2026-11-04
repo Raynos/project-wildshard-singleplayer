@@ -5,7 +5,7 @@ import type { HitStopProfile } from './cues';
 import type { Events } from '../events/events';
 import type { EquipmentPickupSpec } from './EquipmentPickup';
 
-export interface RangedFeelProfile {
+interface RangedFeelProfile {
   kick: { body: number; head: number; kill: number; side: number; killSide: number };
   trauma: { kill: number; head: number; killKinds: readonly string[]; headKinds: readonly string[] };
 }

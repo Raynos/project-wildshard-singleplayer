@@ -4,7 +4,7 @@ import type { StrikeSpec } from './strikes';
 import { DiverBrain, type PatrolDiverSpec as SharedSpec, type PatrolDiverPorts as SharedPorts } from './diver';
 
 /** Legacy Spec name for the shared diver preset. */
-export type PatrolDiverSpec = SharedSpec;
+type PatrolDiverSpec = SharedSpec;
 /** Legacy Ports name for the shared diver preset. */
 export type PatrolDiverPorts<A extends AnimalSim> = SharedPorts<A>;
 

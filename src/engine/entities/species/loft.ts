@@ -23,7 +23,7 @@ import type { VariantDef } from './registry';
  * in hardParts / eyeParts.
  */
 
-export interface Station {
+interface Station {
   x: number; y: number; z: number;
   rx: number; ry: number;
   top: number; bot: number;       // asymmetric vertical scale (withers hump / deep belly)

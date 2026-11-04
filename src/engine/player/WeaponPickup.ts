@@ -37,14 +37,14 @@ import type { Renderer } from '../render/renderer';
  * material, the sigil is one merged geometry, and the update loop allocates nothing.
  */
 
-export type PickupTier = 'common' | 'rare' | 'legendary';
+type PickupTier = 'common' | 'rare' | 'legendary';
 /** legendary = the GOLD orb of a boss reward (src/game/Boss.ts) */
-export const TIER_COLOUR: Record<PickupTier, number> = { common: 0x8fe3ff, rare: 0xc38fff, legendary: 0xffcf5a };
+const TIER_COLOUR: Record<PickupTier, number> = { common: 0x8fe3ff, rare: 0xc38fff, legendary: 0xffcf5a };
 /** the orb's own colour: the tier colour pushed toward saturation — the post chain's AgX tone map washes a bright
  *  #8fe3ff to white, a deeper cyan / violet at the same energy stays cyan / violet */
 const ORB_COLOUR: Record<PickupTier, number> = { common: 0x35d4ff, rare: 0xa862ff, legendary: 0xffa018 };
 
-export interface ItemPickupOptions {
+interface ItemPickupOptions {
   scene: THREE.Scene;
   /** the world-space model (origin near its centre; the AR-15's `displayModel()`) */
   item: THREE.Object3D;

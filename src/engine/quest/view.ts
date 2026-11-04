@@ -11,7 +11,7 @@ import { emitFault } from '../core/faults';
 export interface LiveMarker { id: string; label: string; short: string; x: number; z: number }
 
 /** what the quest chip (ObjectiveLine) shows: the goal's label and count and the live markers */
-export interface ChipSource {
+interface ChipSource {
   /** the chip's goal: a short label and its counter ('' for none) */
   chip: () => { label: string; count: string };
   /** the live markers; the nearest one past 6 m is the chip's nav half */
