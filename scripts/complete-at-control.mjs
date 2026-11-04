@@ -20,12 +20,14 @@
 //      Playwright WebKit reports none of the worker's fetches.
 //   2. Completeness at control: the grid's rings (far / l1 / l0 in flight or queued, reach cells showing a far proxy,
 //      tiles or near placeholders), the shardfile residency, the spawn-view fence (`wildshard.spawn-view.done` must exist
-//      and wait on nothing), every texture of a shown mesh within reach decoded, every THREE.LOD within reach at level 0.
+//      and wait on nothing), every texture of a shown mesh within reach decoded.
 //   3. A boost lap: the hoverboard at Developer boost (56 m/s) along the level's walk legs within reach of spawn
 //      (scripts/physics-route.json), sampling every 250 ms; a leg counts only when its trace passes every waypoint unstuck
-//      inside its time bound. A shown mesh within reach of the player that was absent or hidden at control, or whose
-//      geometry, material or texture changed (an LOD or texture swap), and any tile or level request added, is a pop.
-//      The player's own viewmodel (meshes under the camera) and additive effects are not level content.
+//      inside its time bound. The rule is about content not downloaded and loaded at control (root's ruling, G872 (A)):
+//      a mesh within reach added after control, or swapped to a geometry or texture no mesh held at control, a fine tile
+//      or an undecoded texture is a pop. A shard's distance design on resident models (shown, hidden, swapped between
+//      resident data, a THREE.LOD below level 0) is listed as distance LOD, not red (its distances are Jake's look and
+//      perf call). The player's own viewmodel (under game.camera) and additive effects are not level content.
 // Exit 0 = complete at control, 1 = the gate fails (the report lists every violation), 2 = no reading.
 import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -261,13 +263,14 @@ try {
     // Auto (src/engine/boot/gpuFiles.ts) fixes a page's texture mode at boot: a level drawn with images because its KTX2 set
     // is not cached yet downloads that set after control and the next visit draws other textures (sp-x6's DL9 red)
     if (at.textures?.mode === 'img' && /KTX2 set is not cached/u.test(at.textures.why ?? '')) flag(`textures drawn as images at control while the level's KTX2 set downloads after it, so the next visit swaps them (${at.textures.why})`);
-    if ((at.scene?.lods ?? []).length > 0) flag(`${at.scene.lods.length} LODs within reach below full detail at control (first: ${at.scene.lods.slice(0, 3).join(', ')})`);
+    // a THREE.LOD below level 0 is the shard's distance design on resident models (root's ruling, G872 (A)): listed by the lap
     if (lap.length > 0) {
       const found = lapPops(at, lap, flow === 'grid' ? (g?.cells ?? []).find(cell => cell.id === g?.home)?.id : undefined);
       if (found.fine.length > 0) flag(`${found.fine.length} fine tiles became resident during the boost lap`);
       if (found.pops.length > 0) flag(`${found.pops.length} meshes popped within reach during the boost lap: ${found.pops.slice(0, 6).join('; ')}`);
       if (found.neighbourPops.length > 0) note(`${found.neighbourPops.length} neighbour meshes popped within reach during the boost lap: ${found.neighbourPops.slice(0, 4).join('; ')}`);
-      if (found.lods.length > 0) flag(`${found.lods.length} LODs within reach below full detail during the boost lap (first: ${found.lods.slice(0, 3).join(', ')})`);
+      // distance LOD (resident models shown, hidden or swapped between resident data; LOD levels): listed, not red
+      if (found.distanceLod.length + found.lods.length > 0) (report.distanceLod ??= []).push(...found.distanceLod, ...found.lods.map(lod => `LOD ${lod}`));
       if (found.textures.length > 0) flag(`${found.textures.length} textures within reach not decoded during the boost lap (first: ${found.textures.slice(0, 3).join(', ')})`);
       // grid tiles join batched meshes, so a ring pop shows as a reach cell's drawn layers changing, not as a new mesh
       const lapReach = new Set(reachCells.map(cell => cell.id)), drawnAt = new Map((g?.cells ?? []).map(cell => [cell.id, cell.drawn])), cellPops = new Map();
@@ -281,7 +284,7 @@ try {
       const homePops = [...cellPops].filter(([id]) => id === g?.home).map(([, text]) => text), nCellPops = [...cellPops].filter(([id]) => id !== g?.home).map(([, text]) => text);
       if (homePops.length > 0) flag(`the home cell changed what it draws during the boost lap: ${homePops.join('; ')}`);
       if (nCellPops.length > 0) note(`neighbour cells changed what they draw during the boost lap: ${nCellPops.join('; ')}`);
-      report.lapAdds = { fineTiles: found.fine, meshesAtControl: at.scene?.meshes ?? null, pops: found.pops, neighbourPops: found.neighbourPops, actorsShown: found.actors, lods: found.lods, textures: found.textures, cellPops: [...cellPops.values()] };
+      report.lapAdds = { fineTiles: found.fine, meshesAtControl: at.scene?.meshes ?? null, pops: found.pops, distanceLod: found.distanceLod, neighbourPops: found.neighbourPops, actorsShown: found.actors, lods: found.lods, textures: found.textures, cellPops: [...cellPops.values()] };
     }
     if (neighbourList.length > 0) (report.neighbour ??= []).push(...neighbourList);
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
@@ -403,5 +406,5 @@ try {
 }
 const timing = report.warm === undefined ? '' : ` (warm: cold ${report.warm.coldMs} ms, re-entry during precache ${report.warm.duringPrecacheMs} ms with ${report.warm.workerFetchesOpenAtReentry} worker fetches open, settled ${report.warm.settledMs} ms)`;
 const verdict = `${report.pass ? 'COMPLETE AT CONTROL' : 'FAIL'}${timing}`;
-console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${(report.neighbour ?? []).length > 0 ? `\n  neighbours (G828, not in the verdict):\n  ~ ${report.neighbour.join('\n  ~ ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
+console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${(report.distanceLod ?? []).length > 0 ? `\n  distance LOD (resident models, the shard's design, not in the verdict): ${report.distanceLod.length} (first: ${report.distanceLod.slice(0, 4).join('; ')})` : ''}${(report.neighbour ?? []).length > 0 ? `\n  neighbours (G828, not in the verdict):\n  ~ ${report.neighbour.join('\n  ~ ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
 process.exit(report.pass === null ? 2 : report.pass ? 0 : 1);

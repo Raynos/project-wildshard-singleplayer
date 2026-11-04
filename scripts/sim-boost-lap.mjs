@@ -156,7 +156,7 @@ try {
   if (!report.boost.engaged) report.errors.push('boost never engaged on the board');
   const found = lapPops(at, lap, undefined);
   report.pops = found;
-  const count = found.fine.length + found.pops.length + found.lods.length + found.textures.length;
+  const count = found.fine.length + found.pops.length + found.textures.length;
   report.pass = report.errors.length > 0 ? null : count === 0;
 } catch (error) {
   report.errors.push(String(error)); report.pass = null;
@@ -169,7 +169,7 @@ try {
 }
 const p = report.pops;
 const lines = [`DL17 Simulator boost lap ${flow} ${report.build ?? rev}${levelDownload === undefined ? '' : ` (${levelDownload})`}: ${report.pass === null ? 'NO READING' : report.pass ? '0 POPS' : 'POPS'}`];
-if (p !== undefined) lines.push(`  fine ${p.fine.length}, meshes ${p.pops.length} (${p.pops.slice(0, 4).join('; ')}), LODs ${p.lods.length}, textures ${p.textures.length}, actors ${p.actors.length}`);
+if (p !== undefined) lines.push(`  fine ${p.fine.length}, meshes ${p.pops.length} (${p.pops.slice(0, 4).join('; ')}), textures ${p.textures.length}; distance LOD (listed, not red) ${p.distanceLod.length + p.lods.length}, actors ${p.actors.length}`);
 lines.push(`  legs ${report.legs.map(r => `${r.leg}:${r.on}:${r.complete ? 'ok' : 'no'}`).join(' ')}, boost ${JSON.stringify(report.boost ?? null)}`);
 if (report.errors.length > 0) lines.push(`  errors: ${report.errors.slice(0, 3).join(' | ')}`);
 lines.push(`  report ${join(out, 'report.json')}${existsSync(join(out, 'lap.mp4')) ? `, clip ${join(out, 'lap.mp4')}` : ''}`);

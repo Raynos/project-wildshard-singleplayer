@@ -60,15 +60,25 @@ export function snapshot() {
   return { at: performance.now(), when: Date.now(), marks, scene, grid: gridState, fine, residency, textures };
 }
 
-/** What a boost lap added against the control snapshot `at`, from its samples: fine tiles, meshes within reach of the
- *  player shown that control did not show as they are now (absent, hidden, or another geometry / material / texture: an
- *  LOD or texture swap), LODs below full detail and undecoded textures. A mesh under another grid cell's region
- *  (`homeRegion` is the home cell's id) is the neighbour's; a skinned mesh (an animal, a person) is a moving actor the
- *  level culls by distance: listed, never a pop. */
+/** A mesh signature's geometry id and texture ids (the snapshot's `geometry|positions|indices|material:map:width…`). */
+function sigParts(sig) {
+  const parts = sig.split('|');
+  return { geometry: parts[0], maps: parts.slice(3).map(m => m.split(':')[1] ?? '').filter(map => map !== '') };
+}
+
+/** What a boost lap changed within reach of the player against the control snapshot `at`, from its samples, classified by
+ *  the download plan's rule (root's ruling, G872 (A)): content that was not downloaded and loaded at control is a pop
+ *  (RED): a mesh added after control, a mesh swapped to a geometry or texture no mesh held at control, a fine tile, an
+ *  undecoded texture. A shard's own distance design on resident models (a mesh shown or hidden, swapped between resident
+ *  geometries or textures, a THREE.LOD below level 0) is distance LOD: listed, not red. A mesh under another grid cell's
+ *  region (`homeRegion` is the home cell's id) is the neighbour's; a skinned mesh (an animal, a person) is a moving
+ *  actor: listed, never a pop. */
 export function lapPops(at, lap, homeRegion) {
-  const atMeshes = new Map((at.scene?.list ?? []).map(([id, , sig, on]) => [id, { sig, on }]));
-  const pops = new Map(), neighbourPops = new Map(), actors = new Map();
-  const fineAt = new Set(at.fine), fine = new Set(), lods = new Set(), textures = new Set();
+  const atList = at.scene?.list ?? [], atMeshes = new Map(atList.map(([id, , sig, on]) => [id, { sig, on }]));
+  const residentGeometry = new Set(), residentMaps = new Set();
+  for (const row of atList) { const parts = sigParts(row[2]); residentGeometry.add(parts.geometry); for (const map of parts.maps) residentMaps.add(map); }
+  const pops = new Map(), neighbourPops = new Map(), actors = new Map(), distance = new Map();
+  const fineAt = new Set(at.fine), fine = new Set(), lods = new Set(at.scene?.lods), textures = new Set();
   const neighbourChain = chain => homeRegion !== undefined && /region:[\w-]+/u.test(chain) && !chain.includes(`region:${homeRegion}`);
   for (const s of lap) {
     for (const key of s.fine ?? []) if (!fineAt.has(key)) fine.add(key);
@@ -77,9 +87,18 @@ export function lapPops(at, lap, homeRegion) {
     for (const [id, chain, sig, , close, skinned] of s.scene?.list ?? []) {
       if (!close || pops.has(id) || neighbourPops.has(id) || actors.has(id)) continue;
       if (skinned) { if (atMeshes.get(id)?.on !== true) actors.set(id, chain); continue; }
-      const was = atMeshes.get(id), why = was === undefined ? 'added' : !was.on ? 'shown' : was.sig === sig ? null : 'swapped';
-      if (why !== null) (neighbourChain(chain) ? neighbourPops : pops).set(id, `${why} ${chain}`);
+      const was = atMeshes.get(id);
+      let red = null;
+      if (was === undefined) red = 'added';
+      else if (was.sig !== sig) {
+        const parts = sigParts(sig);
+        if (!residentGeometry.has(parts.geometry) || parts.maps.some(map => !residentMaps.has(map))) red = 'swapped to non-resident data';
+        else distance.set(id, `swapped ${chain}`);
+      } else if (!was.on) distance.set(id, `shown ${chain}`);
+      if (red !== null) (neighbourChain(chain) ? neighbourPops : pops).set(id, `${red} ${chain}`);
     }
   }
-  return { fine: [...fine], pops: [...pops.values()], neighbourPops: [...neighbourPops.values()], actors: [...actors.values()], lods: [...lods], textures: [...textures] };
+  for (const id of pops.keys()) distance.delete(id);
+  return { fine: [...fine], pops: [...pops.values()], neighbourPops: [...neighbourPops.values()], actors: [...actors.values()],
+    distanceLod: [...distance.values()], lods: [...lods], textures: [...textures] };
 }
