@@ -54,7 +54,7 @@ import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist', 'frames', 'profile', 'heap'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist', 'frames', 'profile', 'heap', 'probe'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
@@ -419,6 +419,9 @@ try {
 
   const cold = await enter();
   report.tapToControlMs = cold.ms;
+  // --probe=<file.js> (D227): a page script evaluated in the control frame's wake; whatever its window.__dl17ProbeResult()
+  // returns at the end of the --frames window lands in report.frames.probe (a measurement hook, never part of the verdict)
+  if (values.probe !== undefined) await page.evaluate(readFileSync(values.probe, 'utf8'));
   if (frameSeconds > 0) {
     // the first seconds of play, before the lap moves the player (G1008): fps per second, the worst frames
     const until = (control.at ?? Date.now()) + frameSeconds * 1000 + 500;
@@ -426,6 +429,7 @@ try {
     const frames = await page.evaluate(() => Reflect.get(window, '__dl17Frames') ?? []);
     report.frames = firstSeconds(frames, frameSeconds);
     if (profiler !== null) report.frames.profile = profileTop((await profiler.send('Profiler.stop')).profile, sourceOf);
+    if (values.probe !== undefined) report.frames.probe = await page.evaluate(() => Reflect.get(window, '__dl17ProbeResult')?.() ?? null);
     // --heap=on (Chromium, D227): the page's JS heap at the end of the window, self size by constructor (top 30)
     if ((values.heap === 'on' || values.heap === 'save') && engine === 'chromium') {
       const cdp = await context.newCDPSession(page), chunks = [];
