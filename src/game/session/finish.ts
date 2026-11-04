@@ -8,6 +8,7 @@ import { releaseByteCounter } from '@wildshard/engine/boot/bytes';
 import { hasLateAudio, startAudioPreload, startLateAudio, type AudioBanks } from '@wildshard/engine/boot/extras';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadingStage, waitFor } from '@wildshard/engine/boot/waits';
+import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
 import { startShardPrefetch } from '@wildshard/engine/boot/shardPrefetch';
 import { afterControl, reachControl } from '@wildshard/engine/boot/prefetch';
 import { idleTurn } from '@wildshard/engine/boot/idle';
@@ -41,7 +42,11 @@ const BOOT_SHADER_SLICE_MS = 48;
  *  programs a frame, each link polled). Only completion or owner retirement ends this loading step. */
 async function linkWorldUnderLoader(game: Awaited<ReturnType<typeof playStage>>['game']): Promise<void> {
   const scope = game.levelScope;
-  await waitEntryWork(scope, current => precompileLevel(game, undefined, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing() }));
+  // DL21: the step counts its links on the card ('World program links · 12 / 40 programs linked'), as the Shaders step
+  // does: Pine's sat 5.3-5.5 s unchanged in the DL23 recordings on live 86f2590, with no wait named
+  const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current ?? null;
+  const progress = key === null ? undefined : (done: number, total: number, detail: string): void => { timeline?.report(key, detail, done, total); };
+  await waitEntryWork(scope, current => precompileLevel(game, progress, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing() }));
 }
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
