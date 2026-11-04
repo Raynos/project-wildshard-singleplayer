@@ -25,7 +25,7 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-31 | Hover park trick score | 3 Minimap chip | approved | 2026-11-03: redone frame approved, "UI 31 looks good now". First round: "the same kind of temporary UI … the timed racing … when we show that kind of UI, we want to hide the normal quest UI … make it tidier"; the trick score now takes the quest chip's place in the park |
 | UI-03 | Level-up card, out of combat | 4 End cards | approved | 2026-11-03: "UI 03 looks good to me" |
 | UI-19 | Shard-complete card | 4 End cards | approved | 2026-11-03: "Ui 19 approved" |
-| UI-30 | SHRINE COMPLETE card | 4 End cards | pending | 2026-11-03, redone for re-review: "nice but all the buttons have to be different: leaving the mini dungeon means walking through a real portal, not hitting a button, and you can restart, it needs a change"; now one CONTINUE that only closes the card, and a line: the exit portal is open behind the chest, walk through it to leave, walk back in to run it again |
+| UI-30 | SHRINE COMPLETE card | 4 End cards | approved | 2026-11-03: redone frame approved, "UI 30 looks fine". First round: "nice but all the buttons have to be different: leaving the mini dungeon means walking through a real portal, not hitting a button, and you can restart, it needs a change"; now one CONTINUE that only closes the card, and a line: the exit portal is open behind the chest, walk through it to leave, walk back in to run it again |
 | UI-10 | Character tab | 5 Menus | pending | 2026-11-03, redone for re-review: "Gear and character can be turned into a single item in the 5 menu icons … two nested tabs for gear and character underneath, default to character"; now five tabs (MAP · CHARACTER · FINDS · PACK · FEATS), CHARACTER / GEAR inside, opens on CHARACTER |
 | UI-14 | Quest list on the map tab | 5 Menus | pending | 2026-11-03, redone for re-review: "same thing, map and quests can be shared but it must be two nested tabs to toggle them"; now MAP / QUESTS sub-tabs in the map tab, the frame shows QUESTS |
 | UI-16 | Kill-contract board | 5 Menus | approved | 2026-11-03: "Ui 16 sure" |
@@ -49,4 +49,4 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 17 approved · 21 pending (3 redone for re-review: UI-30, UI-10, UI-14).
+**Tally:** 18 approved · 20 pending (2 redone for re-review: UI-10, UI-14).
