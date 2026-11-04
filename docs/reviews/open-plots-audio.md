@@ -657,3 +657,39 @@ Raw evidence: `tmp/ob7-audio/{clockwork-canyon-vocals,desert-ruin-score,
 desert-ruin-vocals,desert-ruin-medium}.log`, their original raw sidecars
 and metrics, plus `tmp/sp-x1-audio/{desert-score-inventory,
 desert-medium-inventory}.json`. No partial publication or push.
+
+
+### Clockwork MOSS resumes under the original guard
+
+After the confirmed-live release and the coordinator's fresh CI-lane
+session, the normal resume condition changes. At the assigned CPU turn
+after sp-o2's literal cohort END, the original `mem-ok2.sh` runs unchanged
+at **23:20:41** and passes: pressure 1, 89% free, swap 2,780.62 MB and
+`big=[]`. Earlier refusals and the 19G observation remain retained.
+No bound, guard, peer exclusion or source policy changes.
+
+The original `ob7_run.sh moss clockwork-canyon` then completes in
+**358.282 s**, exit 0, under the normal shared lock, outer admission and
+per-take checks. All seven seed-701 takes are source-verified mono
+48,000 Hz PCM: a 30 s bed and six 12 s spots. Every family, prompt,
+ranking description, wave and sidecar matches its prepared source and
+independent hashes. The model's existing self-only exclusion remains
+unchanged; every per-take guard admits. The owned process exits and
+releases the model lock before sp-x8's six-command DL17 baseline turn.
+
+Clockwork now has both original SFX engine sets plus its two score takes
+and passing vocal checks. **Paired CLAP/theme qualification, AAC publication,
+full native playback and its final C report remain open.** No recording
+is selected, published or activated by this raw-take completion. Evidence:
+`tmp/sp-x1-audio/clockwork-resume-guard-after-release.log`,
+`tmp/ob7-audio/clockwork-canyon-moss.log`, and
+`tmp/sp-x1-audio/clockwork-moss-inventory.json`.
+
+Race's two MiniMax takes separately finish in **358.059 s**, exit 0:
+**52.698 / 38.603 s**, stereo 44,100 Hz, exact prepared prompts and
+independent source hashes. The maintained model-free analysis gives loop
+scores **0.662 / 0.502**, clipping fractions **0 / 0.000000293703**, and
+zero internal gaps. Duration, clipping and gap checks pass; vocal and
+theme checks remain open. Evidence: `tmp/ob7-audio/sky-race-score.log`,
+the original raw sidecars/metrics and
+`tmp/sp-x1-audio/race-score-inventory.json`. No by-ear or final-fit claim.
