@@ -9,7 +9,10 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** What the player sees on the card; a change in any of these is "something moved" (the clock alone does not count). */
-const CARD = ['shown', 'slug', 'tier', 'dl', 'dlPct', 'su', 'suPct', 'line', 'rows', 'lastRow', 'err'];
+const CARD = ['shown', 'slug', 'tier', 'dl', 'dlPct', 'su', 'suPct', 'line', 'rows', 'err'];
+/** The card's newest row without its own running time ('▸ 1 · Application modules…964 ms'): the row's timer is a clock
+ *  (sp-x1's review), its step, detail and count are what move. */
+const rowName = (text) => (text ?? '').replace(/\d+(?:\.\d+)? ?(?:ms|s)$/u, '');
 export const BAR = { stillS: 1, unnamedStepS: 3, loadingFrameMs: 250, playFrameMs: 250, playS: 30 };
 
 const round = (v, d = 1) => Math.round(v * 10 ** d) / 10 ** d;
@@ -76,7 +79,8 @@ export function analyse(rows) {
     const row = loading[i];
     if (from === null) { from = row; continue; }
     // the foot's wait counts (files, MB) move the card; its running seconds and 'No reported progress for' are a clock
-    const same = CARD.every(key => row[key] === from[key]) && waitName(row.foot ?? '') === waitName(from.foot ?? '');
+    const same = CARD.every(key => row[key] === from[key]) && rowName(row.lastRow) === rowName(from.lastRow)
+      && waitName(row.foot ?? '') === waitName(from.foot ?? '');
     if (!same || i === loading.length - 1) {
       const s = (row.t - from.t) / 1000;
       if (s >= BAR.stillS && from.shown) still.push({ from: T(from.t), to: T(row.t), s: round(s), step: from.su, pct: from.suPct, dl: from.dl, foot: from.foot ?? null });
@@ -173,15 +177,18 @@ export function analyse(rows) {
 
   const errors = [...new Set(polls.map(row => row.err).filter(Boolean))];
   const retryShown = polls.some(row => row.retry === true);
+  const playJudged = play !== null && play.source === 'game drawn frames' && play.frames > 0 && play.sampledS >= BAR.playS - 1;
   const bar = {
     reachesControl: control !== null,
     styledFromFirstFrame: firsts.cardAppears?.styled !== false && polls.filter(row => row.shown && row.t <= end).every(row => row.styled !== false),
     cardMovesEverySecond: still.length === 0,
     noLoadingFrameOver250ms: loadGaps.length > 0 && loadWorst.ms <= BAR.loadingFrameMs,
     everyLongStepNamed: stalls.every(s => s.named),
-    playNoFrameOver250ms: play !== null && play.frames > 0 && play.framesOver250 === 0 && (play.page?.framesOver250 ?? 0) === 0,
+    // the play lines need the whole window, judged on the game's own drawn frames (sp-x1's review): a short log or one
+    // without the game's frame ring is no reading, so it fails rather than passes on the page's 60 Hz rAF
+    playNoFrameOver250ms: playJudged && play.framesOver250 === 0 && (play.page?.framesOver250 ?? 0) === 0,
     // "normal fps from second one": no second of the first five below 80 % of the shard's settled rate (seconds 10-30)
-    playSteadyFromSecondOne: play !== null && play.frames > 0 && play.perSecond.slice(0, 5).every(n => n >= 0.8 * play.settledFps),
+    playSteadyFromSecondOne: playJudged && play.perSecond.slice(0, 5).every(n => n >= 0.8 * play.settledFps),
     stuckShowsRetry: control !== null || retryShown,
     // the play window really walked and boosted (an unmoved player would read a smooth standstill)
     playWalkedAndBoosted: play !== null && play.motion.walkM >= 5 && play.motion.boostEngaged && play.motion.boostM > play.motion.walkM,

@@ -10,19 +10,24 @@ const card = (s, extra = {}) => ({ ev: 'poll', t: TAP + s * 1000, shown: true, s
   foot: 'Now waiting for: Read audio 1 / 10 · 0.2 s', control: false, ...extra });
 /** A frame every `ms` from `from` to `to` seconds after the tap, one page. */
 const frames = (from, to, ms, origin = TAP) => ({ ev: 'frames', origin, f: Array.from({ length: Math.floor(((to - from) * 1000) / ms) + 1 }, (_, i) => from * 1000 + i * ms) });
+/** The game's drawn-frame ring as each poll reads it: `perPoll` new frames of `ms` each call (Game.frameCount / frameMs). */
+const ring = () => { let n = 0, i = 0; const ms = Array.from({ length: 120 }, () => 0);
+  return (perPoll, frameMs) => { for (let k = 0; k < perPoll; k++) { ms[i] = frameMs; i = (i + 1) % 120; n++; } return { n, i, ms: [...ms] }; }; };
 
 test('a load that moves every poll, names its waits and plays smoothly passes every bar line', () => {
   const rows = [{ ev: 'recStart', t: TAP - 5000, recStart: TAP - 5000 }, { ev: 'tapEnter', t: TAP }];
   for (let s = 0; s < 10; s += 0.25) rows.push(card(s, { dl: `Spawn view · ${(s / 2).toFixed(2)} MB of 9.00 MB` }));
   rows.push(card(10, { shown: false, control: true }), frames(0, 40, 16.7));
-  // the play window: 10 s on foot at 1.4 m/s, then the board at boost, 15 m/s
+  // the play window: 10 s on foot at 1.4 m/s, then the board at boost, 15 m/s; the game draws 30 frames a poll (60 fps)
+  const drawn = ring(); rows[rows.length - 2] = card(10, { shown: false, control: true, origin: TAP, drawn: drawn(0, 17) });
   for (let s = 10.5, x = 0; s <= 40; s += 0.5) {
     const boost = s > 20; x += boost ? 7.5 : 0.7;
-    rows.push(card(s, { shown: false, control: true, play: boost ? 'boost' : 'walk', player: { x, y: 0, z: 0, v: boost ? 15 : 1.4, hover: boost, boost } }));
+    rows.push(card(s, { shown: false, control: true, origin: TAP, drawn: drawn(30, 17), play: boost ? 'boost' : 'walk', player: { x, y: 0, z: 0, v: boost ? 15 : 1.4, hover: boost, boost } }));
   }
   const r = analyse(rows);
   expect(r.controlS).toBe(10);
   expect(r.cardStill_ge1s).toEqual([]);
+  expect(r.play.source).toBe('game drawn frames');
   expect(r.play.fps).toBeGreaterThan(55);
   expect(r.play.settledFps).toBeGreaterThan(55);
   expect(r.bar).toEqual({ reachesControl: true, styledFromFirstFrame: true, cardMovesEverySecond: true, noLoadingFrameOver250ms: true,
@@ -63,11 +68,11 @@ test('after control the game\'s drawn frames judge fps: the page can tick at 60 
   const rows = [{ ev: 'tapEnter', t: TAP }, card(0), card(0.5, { dl: 'Spawn view · 9.00 MB' }), frames(0, 40, 16.7)];
   // control at 1 s; each 0.5 s poll reads the ring: 30 frames of 17 ms, except one poll whose only new frame took 4400 ms
   let n = 0, i = 0;
-  const ring = Array.from({ length: 120 }, () => 0);
+  const slots = Array.from({ length: 120 }, () => 0);
   for (let s = 1; s <= 34; s += 0.5) {
     const slow = Math.abs(s - 2) < 0.01, count = slow ? 1 : 30;
-    for (let k = 0; k < count; k++) { ring[i] = slow ? 4400 : 17; i = (i + 1) % 120; n++; }
-    rows.push(card(s, { shown: false, control: true, origin: TAP, drawn: { n, i, ms: [...ring] } }));
+    for (let k = 0; k < count; k++) { slots[i] = slow ? 4400 : 17; i = (i + 1) % 120; n++; }
+    rows.push(card(s, { shown: false, control: true, origin: TAP, drawn: { n, i, ms: [...slots] } }));
   }
   const { play } = analyse(rows);
   expect(play.source).toBe('game drawn frames');
@@ -120,4 +125,27 @@ test('loading frames are measured per Setup step: a 900 ms unpresented frame lan
   expect(r.loading.byStep[0]).toMatchObject({ step: '24 Shaders', over250: 1 });
   expect(r.loading.byStep[0].longestMs).toBeGreaterThanOrEqual(880);
   expect(r.bar.noLoadingFrameOver250ms).toBe(false);
+});
+
+test('the play lines need the whole 30 s on the game\'s own frames: a short log or a missing frame ring is no pass', () => {
+  const run = (until, withRing) => {
+    const rows = [{ ev: 'tapEnter', t: TAP }, card(0), card(0.5, { dl: 'Spawn view · 9.00 MB' }), frames(0, 40, 16.7)];
+    const drawn = ring();
+    for (let s = 1; s <= until; s += 0.5) rows.push(card(s, { shown: false, control: true, origin: TAP, ...(withRing ? { drawn: drawn(s === 1 ? 0 : 30, 17) } : {}) }));
+    return analyse(rows);
+  };
+  expect(run(33, true).bar).toMatchObject({ playNoFrameOver250ms: true, playSteadyFromSecondOne: true });
+  // a log cut at 12 s after control: smooth so far, but no reading of the rest
+  expect(run(13, true).bar).toMatchObject({ playNoFrameOver250ms: false, playSteadyFromSecondOne: false });
+  // no game frame ring: the page's 60 Hz rAF alone does not judge the world's frame rate
+  const pageOnly = run(33, false);
+  expect(pageOnly.play.source).toBe('page requestAnimationFrame');
+  expect(pageOnly.bar).toMatchObject({ playNoFrameOver250ms: false, playSteadyFromSecondOne: false });
+});
+
+test('a row whose only change is its own running time is a still card (sp-x1\'s review)', () => {
+  const rows = [{ ev: 'tapEnter', t: TAP }];
+  for (let s = 0; s <= 2; s += 0.2) rows.push(card(s, { lastRow: `▸ 1 · Application modulesPreparing application services${Math.round(400 + s * 1000)} ms` }));
+  rows.push(card(2.2, { lastRow: '▸ 2 quick steps1.4 s' }), card(2.4, { shown: false, control: true }), frames(0, 40, 16.7));
+  expect(analyse(rows).cardStill_ge1s[0]).toMatchObject({ from: 0, s: 2.2 });
 });
