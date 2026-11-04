@@ -2,6 +2,8 @@ import { completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
 import { projectNineLayout } from './layoutSource';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
+import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
+import { brotliBytes } from '@wildshard/sdk/bake/compactGlb';
 import { nineScene } from './scene';
 import type { BakedScene } from '@wildshard/sdk/bake';
 import type { NineSpillAtlas } from './spillBake';
@@ -34,6 +36,15 @@ export function nineWorldLayout(layout: ReturnType<typeof nineScene>['layout']):
   return projectNineLayout(layout);
 }
 
+/** DL7 P1: a whole piece's lossless meshopt form when that is fewer bytes over the wire (the deploy's q3 brotli) and
+ *  admissible (its decoded fallback buffer counts toward the GLB buffer cap: compressGlb refuses past it), else as it is.
+ *  The readers decode it to the identical channels. */
+function wirePiece(glb: Uint8Array): Uint8Array {
+  let packed: Uint8Array;
+  try { packed = compressGlb(glb); } catch { return glb; }
+  return brotliBytes(packed) < brotliBytes(glb) ? packed : glb;
+}
+
 /** Original world bake as owned data and bytes, with no file writes or scene publication.
  * The retained file adapter and the source product call this same function. */
 export function nineWorldProduct(atlas: NineSpillAtlas): NineWorldProduct {
@@ -41,8 +52,8 @@ export function nineWorldProduct(atlas: NineSpillAtlas): NineWorldProduct {
   const libraries: Record<'layout' | 'boot' | 'explorer', string[]> = { layout: [], boot: [], explorer: [] };
   const assets = new Map(baked.assets), files = [...baked.shardfile.files];
   for (const part of baked.pieces) {
-    const hash = hashImmutableBytes(part.glb); assets.set(hash, part.glb);
-    files.push({ hash, kind: 'glb', compressed: part.glb.length, ...parseGlb(part.glb), dependencies: [], critical: false });
+    const glb = wirePiece(part.glb), hash = hashImmutableBytes(glb); assets.set(hash, glb);
+    files.push({ hash, kind: 'glb', compressed: glb.length, ...parseGlb(glb), dependencies: [], critical: false });
     const section = part.name.startsWith('layout_sets_') ? 'layout' : part.name.startsWith('specimens_boot_') ? 'boot' : 'explorer';
     libraries[section].push(hash);
   }

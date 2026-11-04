@@ -28,7 +28,7 @@ function addTimber(scene: THREE.Scene, timber: TimberBuilder, identity: string, 
   for (const [key, geometry] of timberDraws(timber)) {
     const material = new THREE.MeshStandardMaterial({ roughness: 1 }); material.name = key;
     // Whole-source consumers rebuild the original GLBs: retain Float32 channel bits, then compress tile transport losslessly.
-    const whole = new WholeShape(`${identity}-${key}`, new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: 'runs' });
+    const whole = new WholeShape(`${identity}-${key}`, new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: 'runs', compact: true });
     whole.matrixAutoUpdate = false; whole.matrix.copy(frame); scene.add(whole);
   }
 }

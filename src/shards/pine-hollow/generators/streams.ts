@@ -200,6 +200,6 @@ export function pineStreamGeometry(ground: PineStreamGround): THREE.BufferGeomet
 export function pineStreamScene(ground: PineStreamGround): THREE.Scene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.streams';
   const geometry = pineStreamGeometry(ground), material = new THREE.MeshStandardMaterial({ roughness: 1 });
-  scene.add(new WholeShape('pine-streams', new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true }));
+  scene.add(new WholeShape('pine-streams', new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true, compact: true }));
   return scene;
 }
