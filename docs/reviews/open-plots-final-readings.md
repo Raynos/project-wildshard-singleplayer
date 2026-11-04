@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **3/10 qualified; 2 published, Starfall closure held locally under Jake's push hold**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **3/10 fully qualified and published; C/control measured on 6/10**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -24,15 +24,15 @@ audio handoffs. Admission alone earns no reading qualification.
 
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
-| Fossil Badlands | `open-plot-1-0` / (-1,-2) | `0e0f1ba1c3` / `0e0f1ba-mw1c0i2g` | Open | Memory complete; fresh-process official Sim queued |
+| Fossil Badlands | `open-plot-1-0` / (-1,-2) | `0e0f1ba1c3` / `0e0f1ba-mw1c0i2g` | C/control measured; walk + goldens open | Memory complete; fresh-process official Sim queued |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Qualified locally: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f` / `6ce898e-mw1buojk` | Open | Memory complete; original Sim refused/overlapped; one fresh-process retake queued |
+| Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
+| Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f` / `6ce898e-mw1buojk` | C/control measured; walk + goldens open | Memory complete; original Sim refused/overlapped; one fresh-process retake queued |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | Awaiting audio handoff | Open | Open |
-| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a` / `5fcb0ac-mw1c7hz2` | Open | Memory complete; fresh-process official Sim queued |
+| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a` / `5fcb0ac-mw1c7hz2` | C/control measured; walk + goldens open | Memory complete; fresh-process official Sim queued |
 | Showcase Template | `open-plot-sw` / (-1,-1) | Awaiting audio handoff | Open | Open |
 
 All ten plots have eight committed golden cameras and maintained route
@@ -849,3 +849,137 @@ Raw evidence is `tmp/sp-x8-plot-readings/pastel-final/`: `admission.json`,
 closed normally. X1 and X8 retain normal preview uses for the admitted
 source; a lease alone reserves no quiet, model or Simulator window.
 No full-cohort closure or audio/plot/documentation push is requested.
+
+
+## Thin Ice — Chromium/control (sp-x1)
+
+Exact admitted source **6ce898ee5fd69dc3a9a7ac3820a6ad562473bb26**,
+normal immutable all-product build **6ce898e-mw1buojk** (:4402). Sp-x2's
+final native bar 10 passes 18 s. The final bridge preserves all 166 file
+bodies and 34/35 sections against its checked audio candidate; only the map
+source stamp differs. The original 158 files and 32 pre-audio sections stay
+exact. Wire is 2,961,101 B; the 1,112,919 B audio package uses the canonical
+Mosslight bed without a copy, plus six local spots. Those audio proofs belong
+to sp-x2; this cohort does not re-earn generated playback or load completeness.
+
+One maintained Chromium/Night Market command completes in **51.671 s** on
+the exact source, with **six 120/120 paired drawn-frame/CPU windows**, zero
+skipped samples, empty page errors, no context loss and no standing builds.
+Muted iPhone 16 Pro CSS 402×874, canvas 804×1748 / phone 2×, Metal M5 Max,
+live clock, boot CPU 1× then the original ready/new-draw fence at CPU 4×.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Thin Ice / spawn | 40 | 39,724 | 50.917 / 77.500 |
+| Thin Ice / road | 46 | 40,418 | 45.978 / 63.043 |
+| Thin Ice / plaza | 46 | 41,664 | 41.431 / 58.696 |
+| Night Market / spawn | 48 | 225,198 | 44.861 / 70.833 |
+| Night Market / road | 56 | 140,577 | 38.690 / 64.286 |
+| Night Market / plaza | 57 | 283,280 | 34.371 / 54.386 |
+
+All six windows report **30.03 fps / p95 33.4 ms**, maximum intervals
+33.4–33.5 ms and no intervals over 50 or 100 ms. The maintained reader marks
+the cadence floor complete/pass, while the original strict **33.3 ms flags
+remain false**. All draw windows fit 150; the unchanged **30 µs/draw CPU
+target misses all six windows**, on both Thin Ice and its matched control.
+These report-only samples earn no official Simulator or physical-device
+timing credit and remain in the existing G908 / OB8-RENDER-CPU follow-up.
+
+The original road `(0,1.7,-241,pi,0)` and plaza `(0,1.7,-62,pi,0)` are
+matched with Night Market. Standing-file SHA-256 is
+`baeda5c06bda03453c05dded8d8476527486b1ee7c5181d89cbb48be3667d0aa`.
+Raw records are `tmp/sp-x1-open-plots/thin-final/cpu/`, reading
+`6ce898ee5-70073-1793750074329`. The runner closed its browser and the
+literal completion was sent to sp-x8 before its official admission.
+The walk and eight-view golden bridge remain open; no visual source changes.
+
+
+## Fossil Badlands — Chromium/control (sp-x1)
+
+Exact admitted source **0e0f1ba1c35e2ff4ea16ac25260a29cf5f0a6e47**,
+normal immutable all-product build **0e0f1ba-mw1c0i2g** (:4400). Sp-x6's
+immutable native bar 10 passes 18 s, with score A, the shared Night Market
+bed and six spots; named crane/dry-wind gaps remain. The final bridge binds
+201 bodies and four packs / 200 ordered entries / 7,615,459 B. All 158
+pre-audio files and 32 sections stay exact; 200/201 candidate bodies match,
+with only the 164 B map source stamp changing and the map image exact.
+The audio owner's old map-stamp limitation remains explicit in
+`tmp/wave-a-audio/fossil-readings/map-stamp-proof.json`: strict MapSchema
+and the sole baseline image prove that scope, without a literal old stamp
+byte claim. Phone wire is the exact approved **3,838,831 B** ceiling.
+
+One maintained matched Chromium/Night Market command completes in
+**51.457 s**, with six **120/120 paired drawn-frame/CPU windows**, zero
+skipped samples, empty page errors, no context loss and no standing builds.
+It uses the same muted iPhone 16 Pro CSS 402×874 / canvas 804×1748 phone 2×,
+Metal M5 Max, live clock and boot 1× / acknowledged measurement CPU 4×
+protocol as Thin Ice above.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Fossil / spawn | 46 | 112,568 | 32.518 / 56.522 |
+| Fossil / road | 54 | 91,943 | 29.923 / 53.704 |
+| Fossil / plaza | 56 | 136,488 | 32.024 / 53.571 |
+| Night Market / spawn | 48 | 225,198 | 30.833 / 60.417 |
+| Night Market / road | 56 | 140,577 | 29.687 / 69.643 |
+| Night Market / plaza | 57 | 283,280 | 26.082 / 43.860 |
+
+All six windows report **30.03 fps / p95 33.4 ms**, with maximum intervals
+33.4–33.5 ms; the cadence reader is complete/pass, while strict 33.3 ms
+flags remain false. All draw limits pass, but the unchanged **30 µs/draw CPU
+target misses all six windows**, including means below 30: the worst
+whole-frame ratio remains the gate. These descriptive samples earn no
+official Simulator or physical-device timing credit; G908 / OB8-RENDER-CPU
+remains open without an isolated saving or cause claim.
+
+Original road/plaza poses match the control. Standing-file SHA-256 is
+`99b6282d4e16fcfc6b00d5b56a65cec80bb3a14e1a24e26a27ae5d3b1b08605e`.
+Raw records are `tmp/sp-x1-open-plots/fossil-final/cpu/`, reading
+`0e0f1ba1c-7967-1793750678715`. The runner closed its browser and sent the
+literal end to sp-x8. Under root's D223 ruling both old Fossil :4400 and
+Thin :4402 previews were subsequently released normally; their C records
+remain preserved. Fresh preview processes are required for the queued
+Fossil official run and the one authorized Thin retake. No such official
+reading, walk or golden credit is inferred here; no visual source changes.
+
+
+## Pastel Alien Plain — Chromium/control (sp-x1)
+
+Exact admitted source **5fcb0ac75ac4d47e695dfec2953b280e80445cbc**,
+normal immutable all-product build **5fcb0ac-mw1c7hz2** (:4404). Sp-x2's
+immutable final native bar 10 passes 17 s. All 166 final file bodies and
+34/35 sections match its checked audio candidate, except the defining
+map source stamp; image, audio and client plan remain exact. The audio
+package is 1,542,658 B, including the canonical Frostline bed without a
+copy; phone wire is 4,088,773 B. Full body/pack/hash and playback proofs
+remain with sp-x2; this performance cohort does not re-earn them.
+
+One maintained matched Chromium/Night Market command completes in
+**51.626 s**, with six **120/120 paired drawn-frame/CPU windows**, zero
+skipped samples, empty page errors, no context loss and no standing builds.
+The original muted iPhone 16 Pro CSS 402×874 / canvas 804×1748 phone 2×,
+Metal M5 Max, live clock and boot 1× / acknowledged measurement CPU 4×
+protocol matches the two cohorts above.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Pastel / spawn | 47 | 52,595 | 44.752 / 63.830 |
+| Pastel / road | 53 | 64,511 | 40.267 / 67.925 |
+| Pastel / plaza | 55 | 62,286 | 38.364 / 60.000 |
+| Night Market / spawn | 48 | 225,198 | 41.823 / 62.500 |
+| Night Market / road | 56 | 140,577 | 34.688 / 57.143 |
+| Night Market / plaza | 57 | 283,280 | 31.813 / 47.368 |
+
+All six windows report **30.03 fps / p95 33.4 ms**, maximum intervals
+33.4–33.5 ms; cadence is complete/pass, strict **33.3 ms remains false**.
+All 150-draw windows pass. The unchanged **30 µs/draw CPU target misses
+all six windows** on both Pastel and Night Market. These diagnostic samples
+earn no official Simulator or physical-device timing credit; the existing
+G908 / OB8-RENDER-CPU follow-up remains open.
+
+Original road/plaza poses match the control. Standing-file SHA-256 is
+`6ee6320be0ab091deb356a3384a0eb522962c2dda7798e54a56ed72c6ab378ed`.
+Raw records are `tmp/sp-x1-open-plots/pastel-final/cpu/`, reading
+`5fcb0ac75-23862-1793752689327`. The runner closed its browser and sent
+the literal end before sp-x6's finite DL9 turn. The maintained walk and
+eight-view golden bridge remain open; no visual source changes.
