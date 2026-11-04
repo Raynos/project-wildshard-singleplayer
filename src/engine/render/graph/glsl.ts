@@ -1,10 +1,12 @@
 /**
  * The material graph's GLSL back-end (nine-fix NF13; engine-performance EP4, G935): `emitGraphGlsl(ir)` lowers a validated
- * graph IR (`@wildshard/format/materialGraph`) to classic GLSL ES 3.00 statements, the same vocabulary `compile.ts` maps to
- * TSL nodes, with its safety rules, so a graph can draw as a plain `ShaderMaterial` with no node runtime. Pure strings:
- * no `three/webgpu` or `three/tsl` and no renderer; `glslProgram.ts` wraps the output in a classic program.
+ * graph IR (`@wildshard/format/materialGraph`) to classic GLSL ES 3.00 statements, the vocabulary the retired TSL
+ * compiler (NF18) mapped to nodes, with its safety rules, so a graph draws as a plain `ShaderMaterial` with no node
+ * runtime. Pure strings: no `three/webgpu` or `three/tsl` and no renderer; `glslProgram.ts` wraps the output in a
+ * classic program.
  *
- * - **Validation first**, as `compileGraph`: an unknown op, a type mismatch, a cycle or an over-budget graph throws.
+ * - **Validation first**, as the retired `compileGraph` did: an unknown op, a type mismatch, a cycle or an over-budget
+ *   graph throws.
  * - **One temporary per node**, emitted lazily into the block that first needs it. A block's values are visible only
  *   inside it (GLSL scoping), so a node first built in one arm of a branch is built again where the other arm or a later
  *   read needs it, never read unassigned (D204 / NR16 by construction); the operands both arms share are hoisted above

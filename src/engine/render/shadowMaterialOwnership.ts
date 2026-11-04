@@ -66,7 +66,7 @@ function omitUnusedDepthTextures(material: Material): void {
 }
 
 /** the classic graph back-end's depth for a vertex-moving caster (`glslMaterial.ts`'s `classicShadowDepth`), installed by
- *  its loader; null under the node back-end, whose handler substitutes its own */
+ *  its loader; null until that loader runs */
 type ClassicShadowDepth = (material: unknown, stock: MeshDepthMaterial, object: Object3D) => Material | null;
 let classicDepth: ClassicShadowDepth | null = null;
 /** Let the classic graph back-end's vertex-moving casters cast from their own vertex stage (called by its loader). */

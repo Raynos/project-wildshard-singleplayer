@@ -8,9 +8,9 @@ interface Copy { readonly source: ShadowLight; readonly light: ShadowLight; borr
  * existing shadow without redrawing it; a missing map may be built privately.
  * The warm owns those private maps, never the source light or its attachments. */
 const sources = new WeakMap<Light, Light>();
-/** The page light a warm-up copy stands for (undefined: not a copy). A node (TSL) program keys its lights by each light's
- *  id and binds its uniforms to that light, so a copy's own id keyed a program no real draw asks for: the node back-end
- *  builds node programs with the sources (EngineNodesHandler.updateLights); classic programs key only light counts. */
+/** The page light a warm-up copy stands for (undefined: not a copy). A node (TSL) program keyed its lights by each
+ *  light's id and bound its uniforms to that light, so a copy's own id keyed a program no real draw asked for: the node
+ *  back-end (retired in NF18) built node programs with the sources; classic programs key only light counts. */
 export function compileLightSource(light: Light): Light | undefined { return sources.get(light); }
 
 const sceneSources = new WeakMap<Object3D, WeakRef<Scene>>();

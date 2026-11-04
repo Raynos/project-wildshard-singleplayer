@@ -1,11 +1,10 @@
 /**
- * The sun's shadow cascades, as data the TSL back-end can read (SHARD-PLATFORM SF59 step 2, fix 3;
+ * The sun's shadow cascades, as data a graph program can read (SHARD-PLATFORM SF59 step 2, fix 3;
  * sf59-tsl-spike.md §2.2). three's classic CSM is one DirectionalLight per cascade, and its shader chunk gates each light
  * to its own depth slice (with the fade margins); the shadow fade (shadowFade.ts, E147) mixes a ghost light's shadow into
- * cascade i's while a sun step crossfades. Both are ShaderChunk edits, which node materials never read, so a node
- * material would be lit by every cascade at full strength. The sky rig registers its cascades here; the node back-end
- * (render/nodes/cascadeLightNode.ts) gates each registered light the way the chunk does. No TSL here: the default render
- * path imports this module, the node back-end loads lazily.
+ * cascade i's while a sun step crossfades. The sky rig registers its cascades here; a lit classic graph program takes
+ * the same gate and fade through the set's `setup` (`graph/glslMaterial.ts` `gateCascades`). The TSL back-end that
+ * first read this (NF18 retired it) gated each registered light the way the chunk does.
  */
 import type * as THREE from 'three';
 import type { CSM } from 'three/examples/jsm/csm/CSM.js';
@@ -26,6 +25,6 @@ export function registerCascades(set: CascadeSet): void {
   latest = set;
 }
 
-/** the newest registered sky's cascades (a classic graph program gates its sun by them, as the node back-end does), or null */
+/** the newest registered sky's cascades (a classic graph program gates its sun by them), or null */
 export function latestCascades(): CascadeSet | null { return latest; }
 

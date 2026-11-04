@@ -24,7 +24,7 @@ const isGeometry = (value: unknown): value is BufferGeometry => value instanceof
 /** A tile mesh no taller than this (m) is flat; within FLOOR of the tile's lowest mesh it lies on the floor and casts no
  *  shadow. */
 const FLAT = 0.01, FLOOR = 0.1;
-/** An unlit graph (raw colour out) that samples no texture: light, not a surface (graph/compile.ts's userData marks). */
+/** An unlit graph (raw colour out) that samples no texture: light, not a surface (graph/glslMaterial.ts's userData marks). */
 const isGlow = (material: Material): boolean => material.userData['graphRawOutput'] === true && material.userData['graphMeshMap'] !== true;
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }

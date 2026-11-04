@@ -14,7 +14,7 @@ export const FOG_SLOT = { engine: 100, stylize: 200, level: 300 } as const;
  * each fragment, read from a heading LUT and re-tinted live by the hour and the weather, so the 3D world dissolves into its
  * painted sky with no step at any angle. Every value is a borrowed live uniform; its owner writes them, no shader rebuilds.
  */
-export interface NodeFogPanorama {
+export interface FogPanorama {
   /** 256 × 1 heading LUT, scene linear, repeating on the azimuth (atan(−x, z) / 2π) */
   readonly lut: { readonly value: Texture };
   /** x density (1/m), y clear distance (m), z the floor height the haze thins above (m), w the day's own distance density

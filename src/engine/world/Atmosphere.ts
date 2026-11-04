@@ -3,7 +3,7 @@
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
 import { setInheritedPatch } from '../render/shaderPatches';
-import { FOG_SLOT, installFogPatch, type NodeFogPanorama } from '../render/fogPatches';
+import { FOG_SLOT, installFogPatch, type FogPanorama } from '../render/fogPatches';
 
 export const fogUniforms: { fogSunDir: { value: THREE.Vector3; }; fogSunColor: { value: THREE.Color; }; fogHeight: { value: number; }; // metres; fog is densest below this
 fogHeightFalloff: { value: number; }; fogHeightDensity: { value: number; }; fogDistDensity: { value: number; }; 
@@ -44,7 +44,7 @@ export const weatherUniforms: { uWet: { value: number; }; fogBlob: { value: THRE
 };
 let pineWeather = false;
 
-/** A painted panorama's live re-grade (`NodeFogPanorama['tint']`): × key, a cool monochrome by moon, × light, into
+/** A painted panorama's live re-grade (`FogPanorama['tint']`): × key, a cool monochrome by moon, × light, into
  *  veilColour by veil, + flash. One set per page, shared by the panorama fog, the panorama dome and a painted sky's rows. */
 export const panoramaTint: { key: { value: THREE.Color; }; moon: { value: number; }; light: { value: THREE.Color; }; veil: { value: number; }; veilColour: { value: THREE.Color; }; flash: { value: number; }; } = { key: { value: new THREE.Color(1, 1, 1) }, moon: { value: 0 }, light: { value: new THREE.Color(1, 1, 1) }, veil: { value: 0 },
   veilColour: { value: new THREE.Color(0.2, 0.21, 0.26) }, flash: { value: 0 } };
@@ -253,17 +253,17 @@ const PANORAMA_FRAGMENT = /* glsl */`
  * A level's colour-ramp fog (Firewatch-style distance × height haze into the sky's own gradient), one live set of
  * uniforms: `model(order)` is the look's `fog` (the classic chunk with the ramp term above), `control` its `fogControl` (Explore's overhead map turns the haze off for its shot). A day clock
  * moves `near` / `zenith` (linear colours) and the range (m) in place; no shader rebuilds. With `panorama` (a painted
- * world: fogPatches.ts `NodeFogPanorama`) the haze's colour and curve are the panorama's instead of the ramp's; `zenith` stays the colour a
+ * world: fogPatches.ts `FogPanorama`) the haze's colour and curve are the panorama's instead of the ramp's; `zenith` stays the colour a
  * graph's `fogZenithColour` reads.
  */
 export class ColourRampFog {
   readonly start: { value: number }; readonly end: { value: number };
   readonly near: { value: THREE.Color }; readonly zenith: { value: THREE.Color };
-  readonly panorama: NodeFogPanorama | undefined;
+  readonly panorama: FogPanorama | undefined;
   private readonly uniforms: Record<string, THREE.IUniform>;
   private readonly held = { start: 0, end: 0 };
 
-  constructor(spec: { readonly start: number; readonly end: number; readonly near: Rgb; readonly zenith: Rgb; readonly panorama?: NodeFogPanorama }) {
+  constructor(spec: { readonly start: number; readonly end: number; readonly near: Rgb; readonly zenith: Rgb; readonly panorama?: FogPanorama }) {
     this.start = { value: spec.start }; this.end = { value: spec.end };
     this.near = { value: new THREE.Color(...spec.near) }; this.zenith = { value: new THREE.Color(...spec.zenith) };
     const p = spec.panorama;

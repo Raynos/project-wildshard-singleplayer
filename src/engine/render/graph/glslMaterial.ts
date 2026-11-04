@@ -1,8 +1,8 @@
 /**
  * The classic graph material (nine-fix NF14): a graph lowered by `glsl.ts` and wrapped by `glslProgram.ts`, drawn as a
- * plain `ShaderMaterial` with no node runtime and no per-draw hook. `compileClassicGraph` is the GLSL twin of
- * `compile.ts`'s `compileGraph` for look materials: the same params, lent textures, uniform lists, outline and declared fog,
- * behind the same contract (`LookGraph`, `graphBackend.ts`).
+ * plain `ShaderMaterial` with no node runtime and no per-draw hook. `compileClassicGraph` compiles look materials (it
+ * was the GLSL twin of the retired TSL `compileGraph`, NF18): params, lent textures, uniform lists, outline and declared
+ * fog, behind the `LookGraph` contract (`graphBackend.ts`).
  *
  * - **Clones share the graph's uniforms** (`GraphShaderMaterial.copy`), as a node material's clone shares its uniform
  *   nodes: a param, a lent texture or an engine clock moves every variant (a coarse tile's mask, a borrowed mesh map, a
@@ -134,8 +134,8 @@ export class GraphShaderMaterial extends THREE.ShaderMaterial {
   }
 
   /** A lit program gates its sun by the sky's cascades (the CSM chunk's setup: one cascade per depth slice, the shadow
-   *  fade's ghosts), as the node back-end gates the registered cascade lights; without it every cascade lit it at full
-   *  strength. A clone that copied the patch (a coarse tile's variant) keeps it. */
+   *  fade's ghosts), as the retired node back-end gated the registered cascade lights; without it every cascade lit it at
+   *  full strength. A clone that copied the patch (a coarse tile's variant) keeps it. */
   gateCascades(): void {
     if (!this.lights || hasShaderPatch(this, 'engine.csm')) return;
     latestCascades()?.setup?.(this);

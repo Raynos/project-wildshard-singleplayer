@@ -16,8 +16,8 @@ function surfaceOf(m: Material): MeshStandardMaterial | MeshLambertMaterial | nu
 
 /**
  * A named prop surface (SHARD-PLATFORM SF55): what one GLB material name resolves to, the base material it draws with (a
- * family material, or a graph's node material, which is shared as it is) and the admitted texture slots it binds, each
- * already carrying its sampler. A null slot keeps the base material's own map.
+ * family material, or a graph's classic program material, which is shared as it is) and the admitted texture slots it
+ * binds, each already carrying its sampler. A null slot keeps the base material's own map.
  */
 export interface PropSurfaceBinding {
   readonly material: Material;

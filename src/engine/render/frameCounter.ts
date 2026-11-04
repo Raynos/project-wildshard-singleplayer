@@ -2,13 +2,13 @@
  * The engine's own render counter (SHARD-PLATFORM SF59 step 2, fix 2; `docs/design/mmo/research/sf59-tsl-spike.md`
  * §2.3).
  *
- * three's `renderer.info.render.frame` counts `renderer.render()` calls, but three's node handler (the TSL back-end,
- * `render/nodes/engineNodesHandler.ts`) also bumps it once per node-material draw to refresh its uniform buffers. So once a
- * graph material is on screen, a reader that took it as "one per render" (the Memory saver's release timing, a shard's
- * once-per-render placement) would run once per draw. The engine counts renders itself instead: `renderCount(renderer)`
- * advances exactly once per `renderer.render()` call, whatever is drawn, and has the value three's counter has with only
- * classic materials on screen (both start at 0 and step at the start of a render, before any draw), so today's readers
- * behave identically.
+ * three's `renderer.info.render.frame` counts `renderer.render()` calls, but three's node handler (the TSL back-end NF18
+ * retired) also bumped it once per node-material draw to refresh its uniform buffers. So once a graph material was on
+ * screen, a reader that took it as "one per render" (the Memory saver's release timing, a shard's once-per-render
+ * placement) ran once per draw. The engine counts renders itself instead: `renderCount(renderer)` advances exactly once
+ * per `renderer.render()` call, whatever is drawn, and has the value three's counter has with only classic materials on
+ * screen (both start at 0 and step at the start of a render, before any draw; every graph is a classic program since
+ * NF18).
  */
 import type { Renderer } from './renderer';
 

@@ -8,7 +8,7 @@
  *   own texture param of that name (same program, its own uniforms), so its outline stage and bound params come with it;
  * - **the slots** are the admitted, transcoded KTX2 textures in their colour / data role, each carrying its glTF sampler
  *   (one sampler per file, admitted by `validatePropMaterials`). A family base draws them as a shared variant; a graph's
- *   node material reads them through its params; a graph that fell back to its preset (Debug row off, or over budget)
+ *   program reads them through its params; a graph that fell back to its preset (Debug row off, or over budget)
  *   draws them on the preset, so a fallback still shows its textures;
  * - **an unmapped name throws** from the resolver: the install refuses, naming it, and never draws a guessed surface.
  */

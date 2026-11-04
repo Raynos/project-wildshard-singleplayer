@@ -1,5 +1,5 @@
 /**
- * The tile grid codec for classic graph programs (RM8.1e, as `compile.ts` reads it for TSL): on a grid-quantized tile
+ * The tile grid codec for classic graph programs (RM8.1e, as the retired TSL compiler read it): on a grid-quantized tile
  * primitive (unnormalized Int16 positions that its own node's uniform scale and translation dequantize) a graph's
  * `positionLocal` / `positionGeometry` read the authored metres (origin + step × the grid value) and its model-space
  * offsets are divided back into grid units; any other mesh has step 1 and origin 0. `ClassicCodec` feeds a material's

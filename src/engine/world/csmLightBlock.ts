@@ -4,7 +4,7 @@ import * as THREE from 'three';
  * three r186's CSMShader replaces `lights_fragment_begin` with a copy that predates the
  * `#ifdef STANDARD` block computing `material.dfg` / multi-scattering compensation, so every
  * CSM material loses its IBL specular (metals go black, water loses its sky). Re-insert it (the sky rig, once, before a
- * material compiles; a node material needs no copy: TSL's physical model carries the term).
+ * material compiles).
  */
 export function patchCSMShaderChunk(): void {
   const chunk = THREE.ShaderChunk.lights_fragment_begin;

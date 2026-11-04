@@ -1,6 +1,7 @@
 /**
  * three's `compile()` renders the target scene's whole shadow pass first when a nodes handler is installed, only so node
  * materials find the shadow maps when they are built (three.module `compile`: "node materials reference the shadow map").
+ * The engine installs none since NF18 retired the TSL back-end, so today the skip below never triggers.
  * A warm-up issues one compile per job, so every job redrew every caster in the live scene: a 64 ms shadow pass inside one
  * 100 ms Pine drive frame on desktop Chromium. The pass draws the live scene, never the job's own stand-ins (their depth
  * variants are shadowJobs' work), and the real frame draws the same shadows anyway. So while every shadow light already

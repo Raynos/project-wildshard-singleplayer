@@ -1,9 +1,9 @@
 /**
  * The material graph IR (SHARD-PLATFORM SF59 step 3, G155; `docs/design/mmo/research/sf59-tsl-spike.md` §4): a typed,
  * versioned graph of approved nodes that a material (`family: "graph"`) or a post pass points to. Content carries this
- * data and never shader code: the compiler (`graph/compile.ts`, loaded lazily through `render/graphBackend.ts`) maps each
- * node to a TSL call in our own code (the MaterialXLoader pattern), so three's `NodeLoader`, `CodeNode` and `glslFn` stay
- * out of reach of content (§2.9).
+ * data and never shader code: the compiler (`render/graph/glsl.ts`, loaded lazily through `render/graphBackend.ts`)
+ * lowers each node to GLSL in our own code (the MaterialXLoader pattern), so three's `NodeLoader`, `CodeNode` and
+ * `glslFn` stay out of reach of content (§2.9).
  *
  * The shape (version 1, the starter vocabulary; §4 lists the ≈ 60 the format grows to):
  * - `nodes`: id → `{ op, in?, … }`; an input is another node's id or a literal number / 2–4 number array;

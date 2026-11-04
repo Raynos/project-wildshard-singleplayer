@@ -38,7 +38,7 @@ import { spawnViewThenNamed } from './readyFrame';
 const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
 /** PL6: the boot shader step's slice (ms); the loader's text still updates well inside its 1 s. Measured at phone CPU 10x
  *  it moved nothing (warm step 2.10 -> 2.17 s, f040ca2936): one material's job overruns any such slice there, and the step
- *  is its node builds' CPU, not its painted frames. */
+ *  is its program builds' CPU, not its painted frames. */
 const BOOT_SHADER_SLICE_MS = 48;
 /** QA8: link the world's programs the spawn view did not draw before the reveal, nearest first, at the in-play pace (a few
  *  programs a frame, each link polled). Only completion or owner retirement ends this loading step. */
