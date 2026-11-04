@@ -29,3 +29,10 @@ label strip naming the shard, the camera and the source.
   anchors draw again). The 10-29 goldens showed pale voids on the portal decks and a void under 21's awning; the new frames
   show LEGACY's distant crowns and building columns. Captured on `c71f1f4e53`, Chromium; WebKit matched. Boards:
   `../golden-runs/nine-dragon-stack/2026-11-03-c71f1f4e53-qd1-promote-{chromium,webkit}-board.jpg`.
+- 2026-11-04, driftwood-isle 02, 13, 14, 15, 24 and nine-dragon-stack 22: promoted per wildshard-new's ruling (G872) on
+  sp-x6's golden-drift bisect (`tmp/sp-x6-golden-bisect/`): Driftwood's foliage, frond and canopy shadows from the G913 palm
+  folds (`afddc7b6f9`, `13bbae2567`) and Nine's detailed far facades from NF4's legacy paint restoration (`d6f1822f09`) are
+  intended. driftwood-isle 23: its hands were dark from `180df449c9` (the GLSL graph back-end ignored `shadow.offset`);
+  with that fixed its hands are bright again, as before, and it is re-taken with the fold changes only. Captured on
+  `f437ca63d6` + the shadow-offset fix + DL7 P1, Chromium; WebKit matched. Boards:
+  `../golden-runs/<slug>/2026-11-04-f437ca63d6-p1-dw23{,-webkit}-board.jpg`.

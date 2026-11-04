@@ -956,7 +956,9 @@ export function emitGraphGlsl(input: unknown, opts: EmitGraphGlslOptions = {}): 
       outputs.metalness = output(s.metalness, fragmentRoot, 'fragment', 'float');
       outputs.occlusion = output(s.occlusion, fragmentRoot, 'fragment', 'float');
       outputs.shadingNormal = output(s.normal, fragmentRoot, 'fragment', 'vec3');
-      outputs.shadowOffset = output(st['shadow.offset']?.offset, fragmentRoot, 'fragment', 'vec3');
+      // the received-shadow offset moves where the shadow is looked up (TSL: receivedShadowPositionNode = positionWorld +
+      // offset); three's classic shadow coordinates are made per vertex (shadowmap_vertex), so it is built there
+      outputs.shadowOffset = output(st['shadow.offset']?.offset, vertexRoot, 'vertex', 'vec3');
       const lit = ir.model === 'toon' ? opts.toon?.preset.stages.lighting : st.lighting;
       const litScope = ir.model === 'toon' && toonScope !== null ? toonScope : root;
       if (lit !== undefined && ir.model !== 'unlit') {

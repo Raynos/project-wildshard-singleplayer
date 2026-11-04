@@ -234,11 +234,25 @@ ${o.pointSize !== null ? `  gl_PointSize = clamp( ${o.pointSize}, 1.0, 2048.0 );
 ${lit ? '  vViewPosition = - mvPosition.xyz;' : ''}
 #include <worldpos_vertex>
   vec4 wsWorldPosition = modelMatrix * vec4( transformed, 1.0 );
-${lit ? '#include <shadowmap_vertex>' : ''}
+${lit ? shadowCoords(program.outputs.shadowOffset) : ''}
 #include <fog_vertex>
 ${fogged ? '  wsVFogWorld = wsWorldPosition.xyz;' : ''}
 ${program.vertex.end}
 }`;
+}
+
+/** three's per-vertex shadow coordinates, looked up at the world position moved by the graph's `shadow.offset` (as TSL's
+ *  receivedShadowPositionNode): only the shadow lookup moves; the vertex's world position is restored after it */
+function shadowCoords(offset: string | null): string {
+  if (offset === null) return '#include <shadowmap_vertex>';
+  return `#ifdef USE_SHADOWMAP
+  vec4 wsUnshadowedWorld = worldPosition;
+  worldPosition.xyz += ${offset};
+#endif
+#include <shadowmap_vertex>
+#ifdef USE_SHADOWMAP
+  worldPosition = wsUnshadowedWorld;
+#endif`;
 }
 
 /** the fog epilogue: the engine's chunk (scaled by the graph's fog share), or a declared fog graph in its place */
