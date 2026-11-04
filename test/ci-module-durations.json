@@ -1332,7 +1332,6 @@
   "test/lane-watchdog.test.ts": 0.038775277,
   "test/launcher-spring.test.ts": 0.274666611,
   "test/legacy-runtime-state.test.ts": 0.324148987,
-  "test/legacy-species-install.test.ts": 0.424481549,
   "test/level-output-images.test.ts": 0.041693203,
   "test/light-emitters.test.ts": 2.331317592,
   "test/link-node-modules.test.ts": 0.022196842,

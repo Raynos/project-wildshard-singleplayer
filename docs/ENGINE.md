@@ -24,9 +24,9 @@ palettes); `@wildshard/game/systems/npc/npcRig` is the procedural humanoid leg r
 Both moved unchanged from the kit (SF54); shard files outside `runtime/` import them directly. They stay runtime
 builders until their baked commons entries (SF54 step 4) replace the procedural path.
 
-`@wildshard/game/systems/species/{boar,bear,deer,elk}` hold the shared species rows (`BOAR`, `BEAR` and their tunings; the
-lofted `DEER` / `ELK` with `DEER_PALETTE` / `ELK_PALETTE`), and `@wildshard/game/systems/species/install.installKitSpecies`
-registers the four plus the default creature calls; the composition root calls it, nothing installs on import.
+`@wildshard/game/systems/species/{boar,bear}` hold the shared species rows (`BOAR`, `BEAR` and their tunings).
+`@wildshard/game/systems/species/install.installKitSpecies` registers those two plus the default creature calls;
+the composition root calls it, and nothing installs on import. Shard-owned admitted hull rows supply deer and elk.
 Product Explorer rows retain their original model ids and source labels; the native species reader defines their live models without importing the retired Pine catalogue module.
 All moved unchanged from the kit (SF54); species ids (`kit.creature.*`) and model ids are kept.
 
@@ -12262,10 +12262,8 @@ stagesOwner, plus the existing optional CSS styles. The generated loader
 calls declaredClientPlanEntry in game/shard/declaredEntry; it imports no
 shard constructor and exposes no trusted-module resolver. The shared prepareHybridShard
 composite is the declared entry's only composite.
-Only a frozen manifest with `legacy: true` awaits `installLegacyKitSpecies`.
-Its original deer/elk definitions and procedural bodies live in
-`game/systems/species/legacy`, held for LD in wave 3. Modern boots keep
-`installKitSpecies` and their admitted hull rows; importing either installer
+Boots keep `installKitSpecies` and their admitted hull rows. The installer
+registers the shared boar and bear catalogue only when called; importing it
 does not register a service.
 
 The compiled constructor admits the product's client/plan before entering

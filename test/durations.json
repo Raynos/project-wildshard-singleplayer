@@ -1178,7 +1178,6 @@
  "test/ktx2-table-ownership.test.ts": 0,
  "test/lane-watchdog.test.ts": 0,
  "test/legacy-runtime-state.test.ts": 0,
- "test/legacy-species-install.test.ts": 0,
  "test/level-output-images.test.ts": 0,
  "test/light-emitters.test.ts": 0.4,
  "test/link-node-modules.test.ts": 0,

@@ -16,10 +16,3 @@ export function installKitSpecies(register: typeof registerSpecies = registerSpe
   register(speciesWithLook(BOAR, BOAR_LOOK));
   register(speciesWithLook(BEAR, BEAR_LOOK));
 }
-
-/** Held for LD: only a frozen legacy boot requests the original procedural catalogue. */
-export async function installLegacyKitSpecies(register: typeof registerSpecies = registerSpecies): Promise<void> {
-  installSoundDefaults();
-  const legacy = await import('./legacy/install');
-  legacy.installLegacyKitSpecies(register);
-}
