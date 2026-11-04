@@ -251,6 +251,8 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
 
 ### DC14: the soak harness (12 files, 1,713 lines) · Codex · S · **approved (G1014): delete, and drop "the soak" from AGENTS.md in the same commit**
 
+**Done (2026-11-04, sp-x9): `b45e7f1130`.** After DC3 `c12abf0740` retired the last external owned-plan readers, delete nine soak script/route modules and six exclusive suites. The same commit removes "the soak" from AGENTS.md's milestone proof rule and the stale MACHINE.md proof-run example; six CI timing rows retire and the generic related-selector MJS fixture uses a neutral name. Keep Inspector, memory categories and boundary attribution because current Simulator/loading/core-heap readers still import them. Root types, 16 retained boundary/selector cases and scoped scratch-baseline ratchet pass. No product or chargeback rows name deleted paths.
+
 - `scripts/soak/{bisect,drive,gl,owned,pine-events,pine-rate,report,soak}.mjs`, `scripts/soak/route.ts`
 - `test/tooling/soak/{drive,gl,pine-events}.test.mjs`
 - `scripts/soak/boundary.mjs` and `test/tooling/soak/owned.test.mjs` stay if the boundary is still read.
