@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import * as v from 'valibot';
 import {existsSync, readFileSync, mkdirSync, writeFileSync, readdirSync} from 'node:fs';
-import {join, resolve} from 'node:path';
+import {join, relative, resolve, sep} from 'node:path';
 import {PickupCatalogueSchema} from '../../src/format/specimenCatalogue';
 import {assetTableAddresses, readAssetTables} from './assetTables.mjs';
 import {readGridSeams} from './gridSeams.mjs';
@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {readFenceReads, resolveFenceReads} from '../../src/format/fenceReads';
+import {assetIdentities, packPartIdentities, readFenceReads, resolveFenceReads} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -68,6 +68,26 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     const row = {url: versioned ? url : `${url}?v=${hash.slice(0, 8)}`, bytes: bytes.length, hash, wireBytes: wireBytes(url, bytes, hash)};
     assets.set(url, row); sources.set(row.url, () => bytesFor(url)); return row;
   };
+  // DL22: this build's /assets files (emitted and authored) and its pack parts, for the fence lists' /assets entries.
+  let assetsSeen: readonly string[] | undefined, partsSeen: ReadonlyMap<string, string> | undefined;
+  const publicAssets = (): readonly string[] => {
+    if (assetsSeen !== undefined) return assetsSeen;
+    const urls = new Set<string>();
+    for (const base of [output, publicRoot]) {
+      const folder = join(base, 'assets');
+      if (!existsSync(folder)) continue;
+      for (const entry of readdirSync(folder, {recursive: true, withFileTypes: true})) {
+        if (entry.isFile()) urls.add(`/${relative(base, join(entry.parentPath, entry.name)).split(sep).join('/')}`);
+      }
+    }
+    assetsSeen = [...urls]; return assetsSeen;
+  };
+  const packParts = (): ReadonlyMap<string, string> => {
+    if (partsSeen !== undefined) return partsSeen;
+    const banks = readAssetTables(root), parts = new Map<string, string>();
+    for (const table of [banks.all, ...Object.values(banks.packs)]) for (const [url, identity] of packPartIdentities((JSON.parse(table.source) as {packs?: unknown}).packs)) parts.set(url, identity);
+    partsSeen = parts; return parts;
+  };
   const common: SpawnFile[] = [];
   if (existsSync(join(publicRoot, 'assets/physics/rapier.wasm'))) common.push(asset('/assets/physics/rapier.wasm'));
   if (existsSync(join(publicRoot, 'basis'))) for (const directory of readdirSync(join(publicRoot, 'basis'))) {
@@ -101,12 +121,18 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     const source = assembleOutputShardfile(raw, sections), headerHash = createHash('sha256').update(header).digest('hex');
     // DL22: the shard's recorded pre-control reads (scripts/record-fence-reads.mjs), mapped to this product's hashes.
     const fencePath = join(root, 'src/shards', directory, 'fence-reads.json');
-    let fence: ReadonlySet<string> = new Set();
+    let fence: ReadonlySet<string> = new Set(), fenceAssets: readonly string[] = [];
     if (existsSync(fencePath)) {
-      const resolved = resolveFenceReads(readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8'))), index.files, sections);
+      const reads = readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8')));
+      const level = reads.files.filter(row => !row.startsWith('asset')), shell = reads.files.filter(row => row.startsWith('asset'));
+      const resolved = resolveFenceReads({version: 1, files: level}, index.files, sections);
+      // `/assets` reads (Pine's asset packs, gpu models, sfx, music): this build's emitted files and pack tables.
+      const byIdentity = new Map([...assetIdentities(publicAssets(), packParts()).entries()].map(([url, identity]) => [identity, url]));
+      fenceAssets = shell.flatMap(identity => { const url = byIdentity.get(identity); return url === undefined ? [] : [url]; });
+      const unresolved = [...resolved.unresolved, ...shell.filter(identity => !byIdentity.has(identity))];
       // A stale entry fails the build (sp-x8's review): skipping it would quietly bring back an on-demand fetch.
-      if (resolved.unresolved.length > 0) throw new Error(`${fencePath} lists ${resolved.unresolved.length} files this product no longer has `
-        + `(${resolved.unresolved.slice(0, 3).join(', ')}); re-record with scripts/record-fence-reads.mjs`);
+      if (unresolved.length > 0) throw new Error(`${fencePath} lists ${unresolved.length} files this build no longer has `
+        + `(${unresolved.slice(0, 3).join(', ')}); re-record with scripts/record-fence-reads.mjs`);
       fence = resolved.hashes;
     }
     // Each string's first place in the sections (`world/scenes:libraries.24.tiles.0.files.3.file`), in section order.
@@ -139,6 +165,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       for (const row of index.schemas) add(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
       const wanted = entryReadSet(source, tier, index, sections, whole, fence);
       for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash, row.name));
+      for (const url of fenceAssets) add(asset(url));
       for (const row of common) add(row);
       for (const [url, bytes] of [...bank.common, ...bank[flow]]) add(asset(url, bytes));
       const selections = flow === 'grid' ? Object.values(bank.selection) : [bank.selection[directory] ?? []];
