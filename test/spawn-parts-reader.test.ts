@@ -438,3 +438,37 @@ test('DL11: a cancelled job\'s versioned routes never answer for the next job\'s
   expect(network).not.toHaveBeenCalled();
   vi.unstubAllGlobals();
 });
+
+test('DL11: while a demanded file is in flight, manifest-order files run on at most two lanes', async () => {
+  // Pine's sky models crawled at an eighth of the link: a demand must get the bandwidth, not only the next free lane.
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const rows = Array.from({length: 12}, (_, at) => ({url: `/shardfiles/example/blobs/bin/${at.toString(16).repeat(64)}.bin`, bytes: 4, hash: 'f'.repeat(64)}));
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 48});
+  const at = {url: '/assets/spawn/example-floor-1234567890abcdef.json', bytes: plain.length, totalBytes: 48, files: 12};
+  const started: string[] = [], release = new Map<string, () => void>();
+  const download = downloadSpawnManifest(at, {
+    cached: () => Promise.resolve(undefined), store: () => Promise.resolve(),
+    fetch: async url => {
+      const path = new URL(url).pathname;
+      if (path === at.url) return new Response(plain);
+      started.push(path); await new Promise<void>(resolve => { release.set(path, resolve); });
+      return new Response(new Uint8Array(4));
+    },
+  }, base);
+  const path = (index: number): string => rows[index]?.url ?? '';
+  const free = async (index: number): Promise<void> => { await vi.waitFor(() => { expect(release.has(path(index))).toBe(true); }); release.get(path(index))?.(); };
+  await vi.waitFor(() => { expect(started).toHaveLength(8); }); // eight lanes on files 0-7
+  const reading = window.fetch(new URL(path(11), base).href); // the page needs the last file
+  await free(0);
+  await vi.waitFor(() => { expect(started).toContain(path(11)); });
+  for (let index = 1; index < 8; index++) await free(index);
+  await vi.waitFor(() => { expect(started).toHaveLength(11); });
+  await new Promise(resolve => { setTimeout(resolve, 10); });
+  // the demand (11) plus at most two manifest-order files (8, 9); file 10 waits for the demand to land
+  expect(started).not.toContain(path(10));
+  await free(11);
+  await vi.waitFor(() => { expect(started).toContain(path(10)); });
+  for (const index of [8, 9, 10]) await free(index);
+  await download.ready; await reading;
+  vi.unstubAllGlobals();
+});
