@@ -24,7 +24,7 @@ stops growing by ~240 MiB a day.
   every commit, a force-push, every checkout re-cloned.
 
 **Not in this plan:** `public/` runtime assets and deploy bytes ([DEPLOYMENT_ASSET_TRIM](../../project/archive/2026-10-31-deployment-asset-trim.md) T4,
-T5); shardfiles and where shard projects live ([SHARD-PLATFORM](SHARD-PLATFORM.md) §3.5: shardfiles are build products,
+T5); shardfiles and where shard projects live ([SHARD-PLATFORM](../../project/archive/2026-11-04-shard-platform.md) §3.5: shardfiles are build products,
 git-ignored). This plan keeps both possible (§8).
 
 ## 1. The measures

@@ -1,0 +1,593 @@
+# Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
+
+**State:** `archived 2026-11-04 (finished 2026-11-04)` — CO8 (G824, G1005, G1009; coordinator wildshard-new under G872). The done-when below (G604, G624) closed as: every shard at **0 custom TypeScript** (G693, latched); **all 10 grid-ready** (Nalati closed unreachable, G828); loading closed with its accepted misses (G831) and carried on by [DOWNLOAD](../../docs/plans/DOWNLOAD.md) (the runtime build, G1000; it left this plan as its own live plan at the archive); open plots continue in [OPEN-PLOTS](../../docs/plans/OPEN-PLOTS.md) (G990, G1009); Jake's phone QA passed, Nine last (G1005); the legacy folders and the TSL runtime are deleted (QD7: LD5–LD10 slice 1 and NF18; the LD10 tail is on [BURN-DAMAGE-LIST](../../docs/plans/BURN-DAMAGE-LIST.md) "LD10 tail"). Every row still reading open below was ruled at the archive: see [Archive dispositions (CO8)](#archive-dispositions-co8-2026-11-04). The final coordinator record is [STATE.md](2026-11-04-shard-platform/STATE.md); the State history is [history.md](2026-11-04-shard-platform/history.md).
+**Was:** `in progress`, worked in waves (G403–G408) toward zero custom TypeScript (G604), then grid-ready, then Jake's phone QA, then the legacy deletion on his word.
+
+**Reviews:** [Wildshard MMO Review](../../docs/reviews/wildshard-mmo-review.md) (the clean-room audits, E435); [SHARD-PLATFORM mockups](../../docs/reviews/shard-platform-mockups.md) (Jake's E438 picks G72–G107, boards in `art/`).
+
+## Archive dispositions (CO8, 2026-11-04)
+
+No open row is archived silently (CO8, ASKS.md). Every row of this plan and its pages that did not read done, closed or
+dropped at the archive goes to the destination below. The coordinator ruled them under G872 (log them for Jake's review).
+
+| Rows | Destination | Why |
+|---|---|---|
+| download mini plan DL0–DL24 (13 open: DL1, DL2, DL5, DL6, DL7, DL10, DL11, DL15, DL18, DL20–DL24) | **moved, live:** [DOWNLOAD](../../docs/plans/DOWNLOAD.md), State [download/STATE.md](../../docs/plans/download/STATE.md) | G1000 / G1001 / G1006 / G1008; Jake G1009 keeps download running |
+| QD7 (qa 11-03) and close-out CO8 | **done** (this archive commit) | QD7's done-when is this archive; LD5–LD10 slice 1, NF18 and CO7 landed first |
+| LD5–LD8 cells still reading "Nine remains / retained" | **done** (QD7: `d3143de1cf`, `1d4f2e2fe3`, `af33359def`, `880c17d3fb`, `dcb1ef7d3d`) | marked in legacy-deletion at the archive |
+| LD10 remainder | **folded into BURN-DAMAGE-LIST "LD10 tail"** (already there) | G872 coordinator ruling at LD10 slice 1 |
+| LD4-DW, LD4-NG, LD4-FR, LD4-SD list gaps | **closed** (accepted, finish-everything L6, G872) | the legacy trees they compared against are deleted |
+| nine-fix NF18; engine-performance EP4 | **done** `13253e2609` (QD7) | both plans read "done except NF18" |
+| pine-fps (State `open`; PF3 P3/P4 bar, first PF18 row) | **done**, closed as measured (G872, E518) | PF13's measured close carries PF3's P3/P4 shadow bar; the second PF18 row closes the first |
+| finish-everything 10-29 spike rows | **superseded by** close-out §6 and QD7 | its PL / QF rows closed in their archives (phone-loading, qa-fixes); LD / CO rows landed in QD7 |
+| open-x-queue: W3 pending-user host rows (G441), named future users (G474–G477), W2 / W2b custom-section exits (G453), G491 named-JSON remainder; rows.md SF48's pending users; SF76 | **folded into HOST-AUDIT HA8** ([host-audit/shard-platform-rows.md](../../docs/plans/host-audit/shard-platform-rows.md), names unchanged; `lint/platform-pending-users.json` and `lint/ratchet.json` point there) | G596: host damage is HOST-AUDIT's once every shard is at zero; custom sections run there (G988, G1009) |
+| open-x-queue P3 (source-mode discovery bridges) | **folded into BURN-DAMAGE-LIST "LD10 tail"** (a) | the copied-runtime / discovery remainder is that item |
+| rows.md SF58 untrusted-shardfile hardening | **folded into SHARD-PLATFORM-NEXT N7** | needed before S19 / any non-first-party load, not by the singleplayer done-when |
+| rows.md SF87 regenerable bakers (G320) | **folded into SHARD-PLATFORM-NEXT N8** | a permanent rule with no clean-room proof yet |
+| rows.md SF78 no second SDK, no wrappers | **folded into SHARD-PLATFORM-NEXT N4** | the engine and game quality pass |
+| rows.md SF72 renderer-free runtime installers | **superseded by** LD9 (one client-plan boot) and SHARD-PLATFORM-NEXT N5 | the plugin plumbing it targeted is retired |
+| rows.md SF53 Thin Ice | **superseded by** [THIN-ICE](../../docs/plans/THIN-ICE.md) | its own plan |
+| rows.md SF88d / SF88g (billboard plots, the open-plots shard) | **superseded by** [OPEN-PLOTS](../../docs/plans/OPEN-PLOTS.md) (G990) | every plot is being built there |
+| every other row of §4 / rows.md / design-system.md / open-x-queue / lanes still reading open (SP3, SF8c–SF38, SF46–SF52, SF55–SF57, SF59–SF68, SF70–SF71, SF73–SF77, SF79–SF86, SF88a–SF88c, SF88e–SF88f, W1-M0, W1-C1–C9, the DIR / BR / design phase rows, open-x-queue H1 / H3 / W2a–W3b / Z1 / N3D / PF1 / CM1 / PC9 / KP1 / Part D, sim-queue S8) | **superseded by** the done-when of G604 / G624 | the 80/20 Part A route was replaced by zero custom lines (G604), reached (G693); grid-ready 10/10 (G828); memory per shard 1.2 GB (G534, G556, so G433's return to 1.0 GB is void); the legacy is deleted (QD7) |
+| sim-queue S9 (Wasm boundary benchmark) | **folded into WASM-HOST H0** | WASM-HOST is parked (G1009) |
+| ready-queue C7 (plot walks + goldens), C12 (DL17 legs review) | **folded into** OPEN-PLOTS OP23 and DOWNLOAD (its STATE lane queue) | the two live queues |
+
+The live Codex / Opus lane rules that named this plan (AGENTS.md, SUBAGENTS.md: "today SHARD-PLATFORM") and the 1.2 GB
+Explorer note in RENDERING.md / JAKE.md ("until SHARD-PLATFORM closes") are Jake's rules; G534 / G556 already keep
+1.2 GB per shard.
+
+## Waves: how M3 is worked (G403–G408)
+
+Jake, 2026-10-13: *"Rather than refocusing one sprint at a time, we refocus permanently."* Input:
+`progress/process/m3-recut-2026-10-13/README.md`. Full rules and the W1 rows: [rows.md §C "M3 re-cut"](2026-11-04-shard-platform/rows.md#m3-re-cut-g403-three-waves-of-component-milestones).
+
+| Wave | Shards | Done when (G404, G406) | Starts |
+|---|---|---|---|
+| **W1** | Sky Reach, Signal Dunes | **0 % custom** and grid-ready (done: both 0, latched) | done |
+| **W2** | Pine Hollow, Driftwood Isle (G413) | **0 custom lines** (done, G589), then grid-ready (G598: oneFrameLooks left) | zero done; grid-ready now |
+| **W3** | Nalati Grasslands, Nine Dragon Stack (G413) | **0 custom lines** (G604; the old 20 % targets ≤ 5,674 / ≤ 4,222 are retired), then grid-ready; M2 and M3 close here | now (G592) |
+
+**Progress is measured toward zero (G567, Jake 2026-10-21):** M3 = lines cut ÷ every shard's original custom lines (no 10 % / 20 % goal, no cap above 100 %); plan % = 60 % × M3 + 40 % × M2. At dc788d5d6: 89,880 of 98,854 cut, M3 90.9 %, M2 6/10, plan 78.5 % (the old 20 %-goal ruler read 84 %).
+
+- **The unit of work is a component across the wave's shards**, closed at 100/0 for that wave (old path deleted in one
+  commit set). Shards stay valid at every step. Discovered work goes to its component's row or its wave, never built now.
+- **W1 components** (one lane each, all at once, G406; the lanes are in STATE.md): W1-M0 the per-component inventory ·
+  C1 static world (+ Sky's grid-ready travel frame time) · C2 looks (SF59 graphs, one shared painted look, G406) ·
+  C3 effects · C4 creatures · C5 NPCs and quests · C6 items and combat (the lash no later than the fan) · C7 movers ·
+  C8 audio · C9 boot glue.
+- **Codex builds, Opus looks** (G407): every non-visual piece goes to Codex; the 2 Opus lanes author graphs with
+  before / after boards and take parity and frame-time captures.
+- **Missing platform features are built in W1** (G405) by the component's lane, so W2 reuses them.
+- **Finish to the spirit, trash the process** (G416): keep typecheck, lint / layer guards, the build, the boot smoke and a few behaviour tests per shard; delete fragile tests, receipts, snapshots, CI pixel diffs and per-landing proofs; lanes take only the big deletions.
+- **The port bar is similar, not identical** (G415): no graphical glitches, graphically similar, no major regressions; no byte-identical, pixel-exact or exact-replay checks, no Simulator / millisecond gating of port work (performance is a later effort); exact-number tests are deleted; idle lanes get work at once, stuck ones are rescued after ~45 min; committing never waits on pushing.
+- **A switch ships straight to public** once its check passes (a behaviour check, or Jake's board for a look; G405).
+- **CI builds the cheap derived outputs** (G405); expensive bakes stay committed and regenerate at commit.
+- **Paused until its wave** (G404, G413): Pine and Driftwood work (G391's generators, Pine KTX2, their grid travel
+  fixes) → W2; Nalati and Nine → W3; Template 2, the dev-texture look, the main-menu hero and the near tier → after M3. Only the
+  pusher and red fixes run outside the wave.
+- **Headline** (G403, G405): components closed N of M and custom lines per component, beside each shard's custom %;
+  the plan agent reports it to Jake every 2 hours.
+
+## Mini plans, spikes and done (2026-10-22, G624)
+
+Every mini plan and spike of this plan, in one place (Jake, 2026-10-22: *"Are they attached to the shard platform mega
+plan? … what is in scope … and what do we all have to complete to be done?"*). Pages for Jake are in `docs/reviews/`.
+
+| Mini plan / spike | Decisions | State |
+|---|---|---|
+| [qa 11-03](2026-11-04-shard-platform/qa-2026-11-03-mini-plan.md) (Jake's Nine QA: missing walls and floors, train fps, neon streaks, golden set; then the close) | G995–G997 | **done** 11-04: QD1–QD12; QD7 closes with this archive (CO8) |
+| [download](../../docs/plans/DOWNLOAD.md) (a runtime build from the shardfile: whole level in ≤ 10 requests, loading work moved to build time and workers, complete at control; Opus-only; E525) | G1000, G1001 | **moved out, live** 11-04: its own plan, [DOWNLOAD](../../docs/plans/DOWNLOAD.md) (CO8, G1009) |
+| [dw-pine-zero](2026-10-27-dw-pine-zero.md), [quest-host](2026-10-27-quest-host.md) | G564–G573, G589 | **done**: Pine and Driftwood at 0 |
+| [nine-nalati-zero](2026-10-27-nine-nalati-zero.md) + the Nine / Nalati / C1C5C6 picks pages | G592, G597–G603, G614 | **Nine done** (0, grid-ready); Nalati continues in nalati-zero |
+| [c1-c5-c6-zero](2026-10-27-c1-c5-c6-zero.md) (+ C2, G613) | G591, G593, G601, G613 | C1, C2, C5 closed and locked; **C6 8 lines left** (with the balbal cut) |
+| [nalati-zero](2026-10-27-nalati-zero.md) | G613, G621 | **open**: rows R1–R15 (C6, C4, C9); est. Sat 10-24 ~12:00 |
+| [mega-build](2026-10-28-mega-build.md) + [finish-line](2026-10-28-finish-line.md) | G768–G799 | **active** 10-27: how lanes stop waiting, and the path to every mini plan at 100 %; all questions answered |
+| [grid-ready](2026-10-28-grid-ready.md) | G557–G561, G598 | **10 of 10** (Nalati closed unreachable, G828) |
+| [grid-crossing](2026-10-28-grid-crossing.md) | G579–G581, G782 | **open**: T1, T5, T6 done; T2–T4 to every crossing under 5 s warm and 8 s cold (G782) |
+| [loading-speed](2026-10-28-loading-speed.md) (folds in [loading](2026-10-28-loading.md), G618) | G543, G554, G618, G619, G622 | **done (G831)**: phone QA complete; H4 3.374–3.740 s vs1.5 s and A1 770.1 ms vs600 ms accepted misses (G822/G831); deeper fixes belong to the next mega plan |
+| [shared-waits](2026-10-28-shared-waits.md) | G666 | **done** (G809): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
+| [ci-flow](2026-10-27-ci-flow.md) | E495 | **done** (G809; archived 2026-10-27): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
+| [green-main](2026-10-27-green-main.md) | G751–G754, G756 | **done** (G809; archived 2026-10-27): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
+| [debug-rows](2026-10-27-debug-rows.md) | G669 | **open**: 27 rows → 14 SHIP, 11 DELETE, 2 in the Developer section (G672, G673); DR1–DR19 incl. the Settings page apply button; Memory saver on (G674) |
+| [open-plots](2026-10-28-open-plots-hologram.md) redesign + [night-market-pilot](2026-10-28-night-market-pilot.md) + [remaster-open-plots](2026-10-28-remaster-open-plots.md) (mockups only until the pilot is approved, G660) | G546, G607, G608, G616, G617, G621, G623, G629, G632 | **parked** 10-27 (G774): pilot NM0–NM11 done; pilot R1–R3 and remaster RP2–RP4 wait for Jake's Night Market play and a new plan for the other 18 plots. Was **open**: Night Market pilot (code-built 62.5 m tiles, Hunyuan3D 2.1 / TRELLIS.2 landmark, five billboards) target = round 47 take B (G633); bespoke tiles per idea; billboards with hero image + name + invitation |
+| [night-market-remaster](2026-10-27-night-market-remaster.md) | E503, G726 | **active** 10-24 (Codex RM1–RM3 now, Opus from Tue 13:00): streaming (far proxy at eye height) is tile-streaming T4.3; the art gap gets 10 domes (5 mockup cameras × stand / look), RM0–RM14, Opus from Tue 13:00; D1–D4 for Jake |
+| [build-speed](2026-10-27-build-speed-g548.md), CI speed | G547, G548, G584, G609, G620 | **done** (G809): [first green main push 40582611712](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/40582611712) at `0012c73e11b2a4940c87af5075eec52c69492251`; applicable CI rows marked in their plans |
+| [fail-fast](2026-10-27-fail-fast.md) | G610, G612, G620 | **done** (F1–F9) |
+| WASM-HOST zero blockers ([WASM-HOST](../../docs/plans/WASM-HOST.md)) | G595, G600, G604 | **done**: H4, H5, view-target adapter, dismount / ignite / impulse |
+| [memory-strip](2026-10-27-memory-strip.md) + leak fix (O18) | G628 | **open**: leak fix first (crossing-crash P0), then strip rows M1–M7 |
+| [tile-streaming](2026-10-28-tile-streaming.md) (62.5 m tiles, memory + loading) | G626, G638 | **12 of 12 closed; archived 2026-10-28.** T6 → D202 (0 MB), T7 → damage (G842); T10 G832 iPhone passed, 13/15 frame floor retained |
+| [core-memory](2026-10-27-core-memory.md) (core game floor, Templates 1 + 2 in SHARD SELECT) | G640, G762, G781 | **done** 10-27, archived: C4 ratcheted (G781), C2 dropped, C6 closed by G762 |
+| [js-heap](2026-10-27-js-heap.md) (Template heap allocation, clean menu → Template path) | E501 | **done, archived 2026-10-27** (sp-o4, G804): G1 + H1–H11 met; clean Template boot 98.7 MiB (was 133.8), idle 2.8 MiB/s (was 5.6), ~12 major GCs a minute (was 34); D2's whole-page target not met |
+| [legacy-deletion](2026-11-04-shard-platform/legacy-deletion-mini-plan.md) | G604, G606 | **done** 11-04 (QD7): LD1–LD9 and LD10 slice 1; the LD10 tail is on BURN-DAMAGE-LIST |
+| [close-out](2026-11-04-shard-platform/close-out-mini-plan.md) (the 10-28 spike to close and archive every plan) | G824, G834 | **done** 11-04: CO1–CO7, then CO8 = this archive |
+| [qa-fixes 10-28](2026-10-29-qa-fixes.md) (Jake's phone QA, one buildable list) | G819–G837 | **open** 10-28: QF1–QF18 + QF2.T1–T8 + QF17.B1–B6 + the LEGACY vs SHARDFILE gaps (Nine reflections, Far Reach islets/Keeper/windmill, Driftwood sailboat, Pine cabin); one immediate release, counted |
+| [qa 10-29](2026-10-30-qa-2026-10-29.md) (Jake's phone QA today) | G872–G875 | **archived** 10-30 (all rows done) 10-29: QA1–QA7 (reload pill, 68 s cold freeze, hold toggle, download total, two golden leftovers) |
+| [qa 10-29 (2)](2026-10-30-qa-2026-10-29-2.md) (Jake's phone QA of the QA build) | G879, G880 | **archived** 10-30 (all rows done) 10-29: QB1 black boot, QB2 "Preparing next world" line, QB3 boot shell boat + hung module load, QB4 one boot screen, QB5 download total, QB6 Pine crash, QB7 legacy Pine exit, QB8 error modal; blocks the archive |
+| [qa 10-30 (1)](2026-10-30-qa-2026-10-30.md) (Jake's phone QA before the legacy deletion) | G932 | **archived** 10-30: QC2 / QC3 done; QC1 folded into nine-fix / nine-tiling / engine-performance, QC4 into pine-fps |
+| [nine-fix](2026-11-04-shard-platform/nine-fix-mini-plan.md) (Nine Dragon fixed properly, E512) | E512, G934–G942 | **done** 11-04: NF18 `13253e2609` (QD7); the rest landed or closed as measured (QD10) |
+| [nine-tiling](2026-11-04-shard-platform/nine-tiling-mini-plan.md) (how a vertical megacity fits the tiling system, E516) | E516, G948–G950 | **done** 11-03 (QD10): NT1–NT8 landed or closed as measured |
+| [pine-fps](2026-11-04-shard-platform/pine-fps-mini-plan.md) (Pine Hollow fps way better, E514) | E514, G936 / G937 | **done** 11-04: every row landed or closed as measured, misses retained (E518, G872) |
+| [pwa-reload](2026-10-31-pwa-reload.md) (one tap on NEW BUILD lands the newest build, E519) | E519, G961 / G962 | **done, archived 10-31**: PR1–PR4 browser matrix and PR5 headless native Web.app A→B / A→B→C each one tap; existing fullscreen clip, no new icon / physical-device claim |
+| [engine-performance](2026-11-04-shard-platform/engine-performance-mini-plan.md) (can the shardfile engine batch like Unreal? E515) | G934, G935, G943 | **done** 11-04: EP4's last deletion was NF18 `13253e2609` |
+| [reload-simplify](2026-10-30-reload-simplify.md) (RELOAD just reloads; one boot screen; nothing downloaded twice) | G879 | **archived** 10-30 (all rows done) 10-29: RL1–RL9 (Jake 13:45: *"reload should just reload the page … delete 90% of it"*); carries QB1/QB3/QB4/QB9; G881 no checksums on cache reads; blocks the archive |
+| [FOUNDATIONS](2026-10-30-foundations.md) (the zoom-out: six broken families, rewrites, the bars) | G886–G890 | **archived** 10-30 (all rows done) 10-29: MF1–MF7 before Jake's next phone QA, superseding most QB / RL / DA / NP rows; waves 2–3 (MF8–MF20) after |
+| [frame-cost](2026-10-30-frame-cost.md) (draw only when seen; every frame cheaper) | G909 | **archived** 10-30 (all rows done) 10-29: FC1–FC15 (FC1–FC6 first in wave 1 with MF7); blocks the archive |
+| [nine-regressions 10-28](2026-10-29-nine-regressions.md) (Nine SHARDFILE vs LEGACY look spike: hands ink hull, wet stone, facades) | G834 | **open** 10-28: NR1–NR8 (NR1 hull projection hook first; R2 floor good on 08348223b9, bad by 93eb52800f), counted |
+| [far-reach-regressions 10-28](2026-10-29-far-reach-regressions.md) (Sky SHARDFILE vs LEGACY look spike: islets, ring edge, Sunrest underside) | G834 | **open** 10-28: FR1–FR4 (CO6 islets / windmill fixed at 18aaab1583; FR2 whole-cell ring for the far blobs next), counted |
+| [phone-loading 10-28](2026-10-29-phone-loading.md) (golden flow at phone speed: CPU 10×, 10 Mb/s; where the minute goes) | G837, G848 | **open** 10-28: cold 53.3 s / warm 27.6 s on live a6701db71; PL1–PL12 (PL1–PL3 overlap the 28 MB download with the work first; PL12 Opus pick), counted |
+| [finish-everything 10-29](2026-11-04-shard-platform/finish-everything-2026-10-29-mini-spike.md) (4-hour spike: every open row, lane and cut-off to the 14:00 archive; the questions) | G824, G845, G871, G872 | **superseded by** close-out §6 and QD7 (CO8) |
+| [custom-code-freeze](2026-10-28-custom-code-freeze.md) | E496 | **active** 10-24: freeze F1–F5 (lock all shards, schema + lint refusals), delete-now D1–D6 (~5k lines), legacy LD5–LD8 built here, then A1–A2 |
+| [js-payload](2026-10-27-js-payload.md) (draft, for Jake) | E500 | **draft** 10-24: J1–J10, biggest first: grid seam plans out of JS, title diet, shard entry diet, shard isolation; D1–D4 for Jake |
+| [iphone-downloads](2026-10-28-iphone-downloads.md) (draft, for Jake) | E504 | **draft** 10-24: cold DW shardfile entry 1,021 req / 52.6 MB wire, all before control; I1–I12 (tier filter = L18, spawn-first, quantised geometry, UASTC RDO, packs, immutable blob headers, budgets guard); D1–D4 for Jake |
+
+**Out of scope here (their own plans, after this one):** [TOOLING-PERF](../../docs/plans/TOOLING-PERF.md) (parked draft, G659), [HOST-AUDIT](../../docs/plans/HOST-AUDIT.md) (starts after every shard is at
+zero, G596), [BURN-DAMAGE-LIST](../../docs/plans/BURN-DAMAGE-LIST.md) (parked draft: the mega build's damage list, G769),
+SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
+
+**Order (G639):** live reds that stop Jake playing → **Nalati to zero** (component by component) → **grid readiness 10/10**; every other mini plan above is an extra taken only by a lane with no zero / grid row free (CI and gate rows first, then the Night Market pilot, loading, memory strip, tile streaming, hero).
+
+**SHARD-PLATFORM is done when (G604, G624; replaces the 80/20 wording in §6):**
+1. Every shard at **0 custom TypeScript** (ruler), components C1–C9 closed and locked: only Nalati left.
+2. **All 10 grid-ready** (latched): only Nalati left.
+3. Infinite Wildshard **loads in < 5 s warm, < 15 s cold** (tap → controls, G619/G622) and **shard to shard < 5 s** (G579).
+4. **Open plots redesigned** (G617/G621/G623).
+5. **Live = main on a green CI**, then **Jake's one iPhone check** of all six shards in SHARD SELECT and the grid (G558, G604). The check also watches what only a cold phone shows: Driftwood's 'Sky · lighting' loading step (D199's 8.8 s frozen frame, never reproduced off the phone) and the first visit's shader compiles (DL10).
+6. Then, on Jake's word, the legacy folders are deleted (LD5–LD8) and the plan archives.
+
+## 0. Read this first
+
+Jake, E431 (2026-10-03): *"high level the vision is the MMO. … a high level plan to get to the 80/20 split. The 80/20
+split can be 80% data and approved systems … The remaining 20% is custom runtime per shard so we don't have to rewrite
+everything in one go."*
+
+Jake, E435, the scope (G41): *"This plan and goal is purely to make shardfiles that are MMO & multiplayer compatible, I
+do not want to build any multiplayer code, I want to refactor the singleplayer game to be about running a singleplayer
+three.js game that contains shardfiles that are MMO/multiplayer compatible."* And the fence (G51): *"No fence, build
+the whole thing, all … shards ported over, the fence is the 80/20 split, the fact you can leave the 20% of the hard
+code to port in a ./runtime/ directory in typescript."*
+
+**The goal.** The singleplayer game becomes a three.js game that runs **shardfiles**: validated, self-contained build
+products a future MMO server could load unchanged together with the platform's headless sim (`@wildshard/engine/sim`,
+SF4a). All seven shards are ported to 80/20 (G49): the template, Driftwood Isle, Pine Hollow, Nalati Grasslands, Signal
+Dunes (slug `sunscar-dunes`), Sky Reach (slug `far-reach`) and Nine Dragon Stack, plus an **eighth, Template 2** (G151, SF55):
+the fully Blender reference beside Template 1, the fully procedural one. They meet on a **3 × 3 singleplayer
+grid** on one landmass joined by an asphalt boulevard and generated no-man's land (§3.3), reached from the main menu's
+**INFINITE WILDSHARD** card (G79, G88); **SHARD SELECT** keeps today's one-shard-at-a-time flow (G58). In this plan
+"Select a shard" means the SHARD SELECT card.
+
+**Compatible** means (G45, bounded determinism G48): the shard's sim runs headless in Node; a snapshot taken
+mid-encounter restores and replays to the same state hash on the same engine; behaviour is AssemblyScript (bit-identical
+everywhere by construction) or, during the transition, TypeScript in `runtime/`; shared state is host-owned declared
+fields; rewards go only through the ledger interface. Cross-engine bit identity of the whole sim is **not** required
+(§3.1).
+
+**This plan does not build:** servers, rooms, netcode, an upload service, moderation, source storage, remix, a catalogue
+service (G41, G47), or anything in WorldClaw (G47). Repo weight has its own plan, [REPO-WEIGHT](../../docs/plans/REPO-WEIGHT.md) (E436).
+Decisions about the MMO platform (G13, G17, G19, G20, G23, G25, G26, G28, G34) are requirements the format stays
+compatible with; G7's building and G36's grid events are later.
+
+**The route (G319).** The approved shardfile design system, [design-system.md](2026-11-04-shard-platform/design-system.md) (page
+`docs/reviews/shardfile-design-system.md`, with G312–G318 applied), is how the rest of Part A is built: its rows are
+SF79–SF87 (the base, the authoring core, the five shared systems, the one-shot test, regenerable bakes), and its §7
+table supersedes the older rows it lists. Read it before any row it touches; the measures are §1, the binding rules are
+"Live rules" below.
+
+**The words** (the same three boxes as the [Shardfiles Explained](../../docs/reviews/shardfiles-explained.md) page):
+- **① Shardfile:** the build product a future MMO receives, and **only compiled output**: `shard.json` (identity,
+  version, budgets, entries, accent, state schema, every file by content hash), baked tiles with levels of detail,
+  colliders, the far proxy, `.glb` models, textures, sounds, data rows and compiled AssemblyScript (`.wasm`), plus
+  `commons:<hash>` references. **No generator, no TypeScript, no source** is in it (G146, G150). Renderer-neutral (G32).
+  Built, never hand-edited (G1). An MMO server loads it unchanged; `shard.json` may name a first-party runtime entry
+  (`runtime`), which a non-first-party load refuses and the MMO ignores (C3-R1-C11).
+- **② Shard project (local authoring source; not uploaded by this singleplayer plan, C3-R1-B11):** `src/shards/<slug>/`
+  in the monorepo for first-party shards (§3.5), anywhere for an outside author (SF8b; C3-R1-C11): generators, data and quest
+  authoring, AssemblyScript sources, raw assets, and during the transition `runtime/`. `wildshard build` (the SDK's CLI)
+  compiles it into ①. A future source-plus-build upload is the MMO's workflow (G19, G41); it never puts source inside ①.
+- **Generator:** any tool that makes a shard's geometry or content on the author's machine: our six shards' existing
+  three.js TypeScript run once at build time, AI mesh models (TRELLIS, Hunyuan3D), Blender scripts, Rust, Go or hand
+  modelling (G150). **Optional**: a shard can have zero generators and be one big Blender world GLB plus data (Template
+  2, SF55; Template 1, SF52, is the generator-heavy opposite, G151). Generators never ship; only their output does. A committed hand-made or Blender-exported GLB in `assets/` is an
+  input, not a generator: "zero generators" means no `generators/` folder the shard build runs (C3-R1-C2).
+- **The SDK's build** (`wildshard build`): **today it validates and packages files that are already baked**; the
+  generator-free bake of authored geometry is **SF55a** (C3-R1-A1, B1, C1). With it, the build does the platform work for any authored geometry: cuts it into 62.5 m tiles with LODs, makes the
+  colliders and the far proxy, checks the four 8 m entries, the edge profile and the 1.0 GB budget, and maps materials
+  onto the engine's material families, which is where the shaders come from (G5).
+- **Platform systems:** engine-backed behaviour every shard uses through `@wildshard/sdk`: families, the script host,
+  brains, quests, rigs, the UI kit, audio, toys, crowds … (the kit package dissolves into the SDK, G135).
+- **The commons:** one `@wildshard/commons` package of build-time packs that emit shared, hash-named content (models,
+  clips, sounds, WASM, rows), cached once across shards; no commons code runs in the game (G137, G138).
+- **③ Custom runtime:** a first-party shard's trusted TypeScript in `runtime/`; **the target for every shard is zero (G604)**, so it exists only until a shard finishes. It is **not
+  part of the shardfile**: in our singleplayer game it ships as a separate trusted chunk next to the shardfile (the
+  hybrid loader, SF46), and it never goes to the MMO. Transition only; 90/10 and later plans shrink it to zero (G136,
+  G146).
+- **Grid-ready:** baked tiles + an edge profile + looks on families under one frame + within the 1.0 GB cap (G110) +
+  **four midpoint entryways at y = 0, 8 m wide, each carrying 15 m of the platform's asphalt into the shard** (G93, G99,
+  G103, G131; the platform draws the asphalt and the shard keeps the 8 × 15 m footprint clear, SF8c; `validate` checks them) + a declared HUD accent (G104). Behaviour may still sit in `runtime/` (C16). Grid-ready is separate from 80/20 so the grid doesn't wait on the hardest conversions.
+- **DEVSERVER:** a build define `__DEVSERVER__` (`vite build --mode devserver`), set by `scripts/serve-build.sh
+  --devserver` and by `wildshard dev`, never by `pnpm build` or Vercel; the push gate asserts it is false in the
+  production bundle (R3-C10). Never a URL switch. It shows every shard including Nine Dragon, explore mode, enter world and
+  the usual dev controls (G46).
+- **Dev mode:** the shipped game's Settings ▸ Developer switch (`src/engine/core/devMode.ts`).
+
+## 1. The measures (exact, G291 / G294 / G304)
+
+`scripts/shard-platform.mjs` prints them per shard; generated and baked output never counts (G291).
+
+- **Zero (G604, replaces 80/20 G291/G373):** a shard passes only when its **custom runtime TypeScript is 0 lines** — the shard folder's shipped TypeScript, **plus** every game / SDK / engine module or export only that shard uses (G294: shared only once two real shards use it; the template doesn't count, G312; Jake-approved one-user hosts per G595/G599–G603 are platform), **plus** raw GLSL (G306). Generated output, generators and `shard.config.ts` never count (G573). The frozen `<slug>-legacy/` size is kept only as the denominator of the historical share column. Percent done means percent of the way to zero (G567): M3 = lines cut ÷ every shard's original custom lines. `scripts/shard-platform.mjs` passes a shard at zero only (04ab7cd967).
+- **M3's scope (G265):** the `<slug>/` shardfile folders; `<slug>-legacy/` folders are excluded and frozen (G263).
+- **AssemblyScript (G315):** no cap; its own report-only column per shard.
+- **The content gate beside 80/20 (G304, SF77):** a ported shard ships its terrain, static geometry and colliders as
+  shardfile tiles (via `sdk/bake` / SF55a); bakes stop writing shard-private binaries decoded by trusted code; and
+  `compatible` reads `transitional` while trusted code runs the shard's simulation. Report-only first: the script prints
+  tiles / files / colliders from the built `shard.json` and names each private binary.
+- **The proofs** per shard: boot from its shardfile, headless, replay, ledger, grid-ready, compatible / transitional
+  (A15: never "compatible" by percentage alone).
+- **Reporting (G256, G351):** lead with the hard count (shards at 80/20 of 7) and the ready-to-share checklist, then
+  effort; every status reports game's shard-facing plugin modules and its total exports.
+
+The pre-G291 measure (public ÷ (public + custom) inside the shard folder) is kept in [history.md](2026-11-04-shard-platform/history.md).
+
+## Live rules
+
+The rules binding today, one line each; Jake's words are in [decisions.md](../../docs/plans/decisions.md) under each G-number.
+
+**The goal and the measure**
+- **Every shard's target is zero custom lines (G604)**; generated data never counts (G291); percent done is toward zero (G567). The 80/20 bar (G291/G373) is retired.
+- **Legacy folders stay until Jake says so (G604):** all shards at zero → every shard grid-ready → a stable finished build → Jake's full phone QA of all six shards in SHARD SELECT → he says when the `<slug>-legacy/` folders are deleted. Nobody deletes them before.
+- A game / SDK system is shared only once 2+ real shards use it; the template is not a second user (G294, G312).
+- The content gate: tiles, no shard-private binaries, `transitional` while trusted code runs the sim (G304).
+- Raw GLSL is trusted custom code; SF59 shader graphs are the only public material path (G306).
+- Each of the six shards is `<slug>-legacy/` (frozen) beside `<slug>/`, with separate saves (G263, G264); every legacy feature is ported 1:1 (G267).
+
+**Layers, the SDK and `runtime/`**
+- The SDK is the library you import to generate a shardfile, never a wrapper over engine or game internals (G296).
+- It feels like three.js (G301); generators build real three.js scenes in Node and hand them to SDK calls such as `bake(scene)` (G311).
+- `runtime/` imports only the `@wildshard/game` plugin modules in its `exports`; no SDK facades; `generators/` and `data/` import only the authoring SDK (G307).
+- Game's plugin modules trim one by one toward the design's ~12 (G357).
+- Behaviour: data rows first, then a generic SDK system with a second user in mind, AssemblyScript for truly custom logic, `runtime/` last (G295, G309).
+- Engine and game stay separate packages for good (G316); the shardfile schema is its own `@wildshard/format` package (G313).
+- One-user systems move back into their shard (G303); commons is what 2+ shards reuse to generate shardfiles (G310), and a pack lands only with two real shard users (G355).
+- A shard folder holds all the code that generates its shardfile, with no one-time steps (G298).
+- Native runtimes and bakes that run runtime code in Node are bridges with an exit row per shard (G297, G350).
+- The approved design system is the route for the rest of Part A, rows SF79–SF87 (G319).
+
+**Generated outputs and bakes**
+- Infrastructure as code: every output is generated from SDK-driven TypeScript in the repo, never hand-edited (G290).
+- Build time + content-hash cache by default; commit an output only when its cold rebuild is over 30 s and it is under 2 MB (G292, G318).
+- Blender GLBs stay committed, regenerated by their script (G293); `scene.json` is never committed (G317).
+- Every output is regenerable from the shard's authoring folders, the SDK and commons only; no baker boots the game; a nightly clean-room rebuild proves it (G320).
+- Near and far placeholders come from the SDK build for any shard: no slug branches, no per-shard tables (G348).
+- Generated files are made at commit, fast, and ride in that commit; the push never regenerates (G367); cheap bakes regenerate at commit, slow ones stay committed and are checked in CI (G364).
+
+**Process and the push**
+- Debt counts are shrink-only; a rise needs a plan row naming the deletion that pays it back (G349).
+- Pre-commit checks those debts on the committed files; allowed-direction graph counts are report-only; green-prefix pushes on (G353).
+- Every check of about a second or less runs at commit, in parallel (G358); pre-commit ≤ 10 s (G370).
+- The pre-push gate takes ≤ 2 min: changed-file typecheck and lint plus affected tests; the full suite, bakes and receipts run in CI, fix forward (G359, G360, G363).
+- Exact-number tests become limits; behaviour tests stay (G365); flaky tests go to the nightly and dead ones are deleted (G280).
+- Never stop the line: lanes keep committing while the push lane fixes the queue (G374).
+- Faster, less ceremony; no new git or push tooling except to fix a red (G356).
+- Builders keep deciding and list every call daily in STATE.md; anything touching an approved G-row asks first (G352).
+- Status lives in STATE.md; no per-lane handoff files (G275); heavy proofs per milestone (G273).
+- Any agent may dispatch the deploy, at most once an hour (G284).
+
+**The fleet**
+- 4 Opus subagents of the coordinator + 3 Codex panes (G366, G376); Opus lanes are subagents, not top-level panes (G337).
+- One Codex lane only pushes and deploys (G339); the bench-max lane is a Codex lane (G376); one Opus subagent is the looks lane (G376).
+- Long coordinator and plan-agent sessions keep going (G362).
+
+**Picks in force**
+- The main-menu hero: above Nalati's centre (NA-a), aimed toward Driftwood; square on the phone band, landscape on desktop (G368, G372, G344).
+- The main-menu layout: B on portrait, A on landscape (G341).
+- The near tier: the nearest cells by distance, diagonals included (G371); it stays behind its Debug row while it iterates (G342, G347, G369).
+- The public 3 × 3: Driftwood (centre), Pine, Nalati, Sky Reach, Signal Dunes, Template 1, Template 2, two open plots (G270); it goes public after Jake's three phone runs (G269).
+- Public SHARD SELECT cards flip to the shardfile version once proven (G326).
+- Ship real in-engine captures, not AI images; the rest is compared on boards (G332, G333, G334).
+- The 80/20 sprint lands Signal at ~25–30 % and Sky at ~35 %; quest state machines move into AssemblyScript hooks now; shader graphs later (G345, G373).
+
+## 3. The contracts (summary)
+
+The full text is [contracts.md](2026-11-04-shard-platform/contracts.md), with the same numbering.
+
+- **3.1 Determinism, bounded (G48):** AssemblyScript behaviour (bit-identical everywhere), the whole sim headless in
+  Node, same-engine record → replay and snapshot → restore → replay, each shard in its own local frame. No
+  cross-engine check beyond scripts.
+- **3.2 Caps v1 (SF22a):** the only hard caps are the worst-location totals, **1.0 GB playing and 1.8 GB loading**
+  (G110); the per-category budgets (L0 4 MB, L1 2 MB, far proxy 1.6 MB, library 25 MB, sim 25 MB, 8 draws per tile …)
+  warn. One cost model for `validate`, SF22a and the residency allocator. Tiles: 62.5 m L0 → 125 m L1 → far proxy.
+  Content cuts go to Jake; the grid never reloads the page at a crossing (G171). Phone textures: G188.
+- **3.3 The singleplayer grid (G46, G49):** a 3 × 3 on one landmass (G72) inside an outer road and a VR void (G77);
+  placement lives in `src/game/grid/singleplayer.json`; every shard is a 500 m cube with four 8 m midpoint entryways at
+  y = 0 carrying 15 m of platform asphalt (G93, G99, G103, G131); the cell edge is the line for the safe zone, weapon
+  stow, frame owner and respawn (G130); the menu's SHARD SELECT and INFINITE WILDSHARD cards (G58, G79, G88). Today's
+  public grid is G270.
+- **3.4 Versioning (G29, G195):** one `SHARDFILE_VERSION`, 0.x, bumped freely with every first-party source migrated
+  in the same commit; no freeze.
+- **3.5 A shard project (B4, B17):** `src/shards/<slug>/` with `shard.config.ts`, `generators/`, `data/`,
+  `behaviour/`, `quests/`, `assets/`, `runtime/`; a shardfile carries only data, AssemblyScript and baked assets
+  (G146); `wildshard build` writes `public/shardfiles/<slug>/` (git-ignored); `wildshard dev` is rebuild-and-serve.
+
+## 4. Open rows
+
+**Archived (CO8, 2026-11-04):** the statuses below are the last first-read before the archive; every row that still reads open here went where [Archive dispositions (CO8)](#archive-dispositions-co8-2026-11-04) says.
+
+Lanes (§9): **X** = Codex, **O** = Opus, **X+O** = Codex builds and Opus does the visual part. The full row text, with
+done-whens and evidence, is [rows.md](2026-11-04-shard-platform/rows.md); statuses here are a first read of each row's done-when
+cell (the row text is the authority).
+
+**Split (G417):** Part B, the stretch goals after 80/20 (S1–S22), moved whole to its own plan, [SHARD-PLATFORM-NEXT](../../docs/plans/SHARD-PLATFORM-NEXT.md), which starts when this plan is done. Nothing was cut or deleted: every Part A row stays here.
+
+**The current wave (G403–G408), first:**
+
+- **M3 re-cut (G403): three waves of component milestones.** W1 Sky + Signal (now): **W1-M0** component inventory — open; **W1-C1** static world, **W1-C2** looks, **W1-C3** effects, **W1-C4** creatures, **W1-C5** NPCs and quests, **W1-C6** items and combat (lash no later than fan), **W1-C7** movers, **W1-C8** audio, **W1-C9** boot glue — open (0 of 9 closed). W2 Pine + Driftwood (SF46, SF47), W3 Nalati + Nine (SF48, SF51): after W1 (G413).
+
+**[P0 — Guardrails and the metric (before any move)](2026-11-04-shard-platform/rows.md#p0--guardrails-and-the-metric-before-any-move)**
+
+- **SP3** Rows are serialisable — ratchet done; the named-id conversion open
+
+**[F0 — Honest foundations, and memory measured first](2026-11-04-shard-platform/rows.md#f0--honest-foundations-and-memory-measured-first)**
+
+- **SF22c** (X) The phone reading without a chore — Simulator half done; Jake's phone runs open
+- **SF22d** (O) Engine memory cuts — fix landed; parity re-run open
+
+**[F1 — The shardfile → M1 the package](2026-11-04-shard-platform/rows.md#f1--the-shardfile--m1-the-package)**
+
+- **SF8c** (X) wildshard dev + validate's sim checks + DEVSERVER plumbing — headless half done; the rest open
+- **SF10a** (O) Material families v1 — part 1 done; the rest open
+- **SF15a** (X) The shardfile loader, minimal first — open
+- **SF16** (X+O) M1 proof — open
+
+**[F2 — The 3 × 3 grid, loading and seamless travel → M2 the grid](2026-11-04-shard-platform/rows.md#f2--the-3--3-grid-loading-and-seamless-travel--m2-the-grid)**
+
+- **SF17b** (O) Highway deck and seams — open
+- **SF18a** (X) Sim residency per shard — open
+- **SF18b** (O) Render streaming — rings + allocator landed; open items
+- **SF18d** (X) Traversal safety — open
+- **SF19a** (O) One frame — open
+- **SF19b** (O) Each shard's look under one frame — open
+- **SF20a** (X) Seamless crossing inside the grid — open
+- **SF21a** (O) The main menu — open
+- **SF22** (O) The crossroads gates — open
+- **SF57** (X + O) The memory soak test — needs pick
+- **SF58** (X) Untrusted-shardfile hardening — reopened
+- **SF59** (X + O) Material graphs and per-shard post effects, in Part A — open
+- **SF60** (X + O) Playtest and steering — open
+- **SF61** (X + O) The Debug-row purge — open
+- **SF62** (X + O) Performance guardrails — open
+- **SF64** (X + O) The memory debugger — open
+- **SF65** (X + O) Legacy vs shardfile entry in SHARD SELECT — open
+- **SF66** (X + O) Maps that can't go stale — open
+- **SF67** (X + O) The loading sprint — open
+- **SF68** (X + O) wildshard-admin, the admin and analytics site — open
+- **SF73** (X + O) Legacy and shardfile folders — open
+- **SF74** (X) Stop wasting wall-clock time, and keep prod unstuck — open
+- **SF75** (X) INFINITE WILDSHARD never drops to one shard silently — open
+- **SF76** (O) Move the one-shard systems back into their shards — open
+- **SF77** (O) The content gate beside 80/20, and the metric fixed — open
+- **SF78** (O) No second SDK, no wrappers — open
+- **SF79** (X (+O for looks)) Design system phase 0, the base — open
+- **SF80** (X + O) Design system phase 1, the authoring core — open
+- **SF81** (X) Directors — open
+- **SF82** (X + O) Creature brains — open
+- **SF83** (X) Movers — open
+- **SF84** (X + O) Player modes — open
+- **SF85** (X + O) Weapon rows — open
+- **SF86** (O + X) The one-shot test — open
+- **SF87** (O + X) Every baker regenerable without legacy code or the running game — open
+- **SF70** (X+O) Ranged and thrown items as declared rows — open
+- **SF71** (O) Agent playtest round 3, the first in iOS Simulator Safari — open
+- **SF72** (X+O) Renderer-free runtime installers — open
+- **SF63** (O) Each shard looks like itself inside the grid — open
+
+**[Systems the seven shards use today (pulled by their conversion rows)](2026-11-04-shard-platform/rows.md#systems-the-seven-shards-use-today-pulled-by-their-conversion-rows)**
+
+- **SF24** (X) shard director — open
+- **SF25** (X) Client scripts — open
+- **SF26** (X+O) The commons v0 — open
+- **SF27** (X) Brains — open
+- **SF28** (O) The UI kit — open
+- **SF29** (X) Audio as data — open
+- **SF30** (X) Movers and toys the shards use today — open
+- **SF34** (X+O) The player modes used today — open
+- **SF36** (X) Items — open
+- **SF38** (O) The points budget overlay — open
+
+**[C — The seven shards ported → M3 (from M1; all seven to 80/20, G49)](2026-11-04-shard-platform/rows.md#c--the-seven-shards-ported--m3-from-m1-all-seven-to-8020-g49)**
+
+- **SF46** (X+O) Driftwood Isle — open
+- **SF47** (X+O) Pine Hollow — needs pick
+- **SF48** (X+O) Nalati Grasslands — open
+- **SF49** (X+O) Sky Reach — open
+- **SF50** (X+O) Signal Dunes — open
+- **SF51** (X+O) Nine Dragon Stack — open
+- **SF52** (X) Template 1, the procedural template — reopened
+- **SF53** (—) Thin Ice — open
+- **SF55** (O + X) Template 2, the Blender shard — open
+- **SF56** (O + X) Template 1's dev-texture look — open
+
+
+**Done** (63): SP0, SP1, SP2, SP4, SP5, SF0, SF0a, SF0b, SF0c, SF0d, SF1a, SF1b, SF1c, SF1d, SF1e, SF2, SF3a, SF3b, SF3c, SF4a, SF5a, SF5b, SF5c, SF4c, SF6, SF6b, SF22a, SF22b, SF8b-0, SF7a, SF7b, SF7c, SF7d, SF7e, SF7f, SF7h, SF8a, SF8b, SF8d, SF9a, SF9d, SF9b, SF9c, SF10b, SF11a, SF11b, SF11c, SF12, SF13, SF13b, SF29a, SF14, SF33a, SF17a, SF18c, SF20d, SF69, SF23, SF33, SF33b, SF45, SF54, SF55a.
+
+**Dropped / folded:** SF4d, SF15b (folded into SF46), SF57b (G171).
+
+## 5. Order and why
+
+1. **Now, alongside the council:** SF0 is done (`417db57d2`); SF0a–c fix the three desktop misses first when code rows open; SF22a (memory: the empty template's engine base and a synthetic four-corner rig on the
+   Simulator; Jake: memory is a huge problem): **done**, §3.2 caps v1. SF22b and SF22c come after round 4 (R4-A4).
+2. **F0**: SF1a → SF1b → (SF1c, SF1d, SF1e, SF2) in parallel; SF3a → SF3b → SF3c → SF4a; SF5a → SF5b → SF5c → SF4c;
+   SF6 after SF1a.
+3. **F1** (R3-A1, R3-C2): SF8b-0 → SF7a → SF7b → SF8a → **SF15a-min** → SF11a → SF11b; then in parallel, each proved on an
+   engine fixture: SF7c, SF7d, SF7e, SF7f, SF7h, SF8b, SF9a, SF9d, SF9b, SF9c, SF10a, SF10b, SF11c, SF12, SF13, SF13b,
+   SF14, SF29a, the full SF15a, SF8c, with these edges (R4-A1): the full SF15a before SF9a's tile load; SF7f before
+   SF13b's boss panel; then SF8d; then **SF16 (+ SF16a)** switches the template onto all of them.
+   **M1** = SF16 passing. Then **SF33a** before any F2 row that persists state.
+   SF47's memory breakdown runs during F1.
+4. After M1, in parallel: **F2** (SF17a → SF17b → SF18a, with SF21a and SF20d before SF18a's grid-mode and 30 m/s legs (R4-S5); SF18b, SF18c, SF18d;
+   SF19a → SF19b; SF20a; SF23; SF22b, SF22c; SF46-g, SF47-g, SF48-g prepared → **SF57** (its shipped-leg verdict; C3-R1-C5) → SF22) and **the conversions**: SF46-g (with the hybrid loader), then SF47-g and SF48-g so the shipped cells are
+   grid-ready, then SF49-g, SF50-g; the -p ports follow, then SF51; each pulls the systems it uses from the "used today"
+   table. **M2** = the 3 × 3 grid playable from
+   INFINITE WILDSHARD with seamless travel (never a page reload, G171) and SF57's and SF22's gates passed. **M3** = all seven at 80/20 by both measures, worked in three waves of component milestones (G403): W1 Sky + Signal, W2 Pine + Driftwood, W3 Nalati + Nine (G413).
+   **Alongside, off the M2 path** (C3-R1-A8, B2, C8): **SF56** (B picked, G163; shipped `e894412ca`; its proof gates stay with its lane); **SF58** after SF8a's reopened admission, its preflight (1′) before any non-first-party fetch, the whole row before S19; **SF55a → SF55** now, one parallel lane (G211); **SF59** (the TSL spike first) in Part A (no format freeze, G195).
+5. **Part B** after M3, or a single stretch goal earlier when a shard's port needs it; S3 (vehicles, a highway car) and S14 / S15 (bot and AI playtests) first (G205).
+
+## 6. Done when
+
+**Superseded by "Mini plans, spikes and done" (G604, G624) at the top: zero custom lines, not 80/20.**
+
+**G433:** the Explorer memory limit is 1.2 GB until the plan ends; the last row before the plan closes brings it back under 1.0 GB. **G417 overrides what follows:** one measure only, custom ÷ frozen legacy (the second measure is gone); **M2 is done** when the 3 × 3 grid plays from the menu with seamless travel and Jake's three phone runs have no tab kill and feel OK, with no Simulator millisecond targets; **the compatibility proofs** a shard must pass are headless only (it simulates on a server with no renderer); exact replay, ledger and witness matching are dropped.
+
+Part A (this plan's goal):
+- **M1:** every milestone boolean true for the template.
+- **M2:** the 3 × 3 grid plays from INFINITE WILDSHARD with seamless travel (never a page reload, G171);
+  SF57 done; SF22's gates passed on the Simulator, and
+  Jake's grid playtest (SF22c, G71) survives three crossroads runs with no tab kill; SHARD SELECT still works and is the
+  way back. **M2-ready** (the unattended target; C2-R1-C10): every M2 row done, SF57's shipped leg included (the dev leg closes under M3, C3-R2-C11), except Jake's gates (G120 captures,
+  G123's board, SF22c's playtest): those boards are on the for-Jake page
+  (`docs/reviews/shard-platform-for-jake.md`), their rows read `needs pick (date)`, and the
+  grid is ready for SF22c. **Two reported outcomes** (C4-R1-A1, B6): **ready for playtest** (SF57's shipped leg and SF22 pass, every other buildable M2 item done, only unpicked boards and SF22c wait for Jake) or **needs content pick** (all independent M2 work done; SF57's per-shard cut board, measurements and recommended cut recorded; SF57 reads `needs pick (date)`, SF22 `open — blocked by SF57`, SF22c `open — blocked by SF22`; the grid stays Developer-only; never reported as a passed memory gate). Only Jake's yes turns M2-ready into M2. A -g row whose only open item is Jake's look approval counts as **prepared**: its
+  new look stays behind its Debug row, and it unblocks the rows that depend on it (C2-R2-A1).
+- **M3:** worked in three waves (G403, G404): W1 Sky + Signal at **90/10**, then W2 Pine + Driftwood at 80/20, then W3 Nalati + Nine at 80/20 (G413); all seven shards at **80/20 by both measures** (W1's at 90/10), grid-ready, with their compatibility checks green (transitional
+  runtime listed per shard).
+- **Part A also needs** (C3-R1-A8, B2, C8): SF55a and SF55 (the Blender Template; it gates neither M2 nor M3), SF56
+  with Jake's pick, SF57, SF58 and SF59. The original seven keep their 80/20 target; the Blender Template is
+  100 % public with zero runtime.
+- Every "used today" system row landed with its consumer.
+- **The frame floor held throughout** (§9.4).
+
+Effort by milestone (agent-days, re-weighted 2026-10-04; C2-R1-C16; council 3's rows added, C3-R1-C16):
+
+| | Total | Done | Left | Basis |
+|---|---|---|---|---|
+| M1 | ≈ 94 | ≈ 91 | ≈ 3 | the template proofs; the refreshed board and the 8 m entries left |
+| M2 | ≈ 108 | ≈ 56 | ≈ 52 | menu, HUD, road and seams built; entries, Driftwood / Pine / Nalati -g, SF57, gates left (SF57b dropped, G171) |
+| M3 | ≈ 174 | ≈ 22 | ≈ 152 | the shared systems (SF24 / SF27 / SF29 / SF30 …), not shard lines moved |
+| Part A extras | ≈ 24 | ≈ 2 | ≈ 22 | SF55a, SF55, SF56 (picked and shipped), SF58, SF59 |
+| Part A | ≈ 400 | ≈ 171 | ≈ 229 | ≈ 43 % (done not re-counted since 2026-10-04; C4-R1-C14 added ≈ 6 to M2 for Pine and ≈ 4 to M3 for the Sky Reach entries and the Nine Dragon lift) |
+
+At ≈ 1–2 wall-clock hours of the fleet per agent-day, a 24–48 h window buys ≈ 12–48 agent-days. The target is M2-ready,
+in this order: the deploy green → the M2 integration slice → SF8a / SF8c (admission, the entry contract) → SF46-g, SF47-g,
+SF48-g prepared → **SF57**'s shipped-leg verdict (C3-R1-C5, C3-R2-C11) → SF22's gates on the Simulator →
+the boards for Jake (C2-R2-C8).
+- `docs/SHARDFILE.md`, SHARDS.md and ENGINE.md describe the format, the systems and the ABI.
+
+Part B rows are done one by one when they start; the plan archives when Part A is done and Part B's open rows move to a
+successor plan.
+
+## 7. Touches other plans
+
+- **Guards**: this plan owns them (ARCH-GUARDS is archived, B20); a lint change is announced on herdr to active agents.
+- **REPO-WEIGHT** (E436): media and history; shardfiles stay out of git (§3.5).
+- **WORLDCLAW-SHARD / THIN-ICE**: out of scope (G47); Thin Ice's owner is told that new shards other than Thin Ice are
+  born on the format and that Thin Ice's `runtime/` is allowlisted (B12).
+- **NINE-DRAGON-STACK**: Nine Dragon becomes DEVSERVER-only (G46); its owner is told (B11).
+- **EXPLORE-V2, WORLDCLAW-TOOLS**: explore mode is one shard at a time behind the dev toggle (G46).
+- **FINISH-LINE**: its M1 (Jake, E423: CONTINUE + a shard map with progress on the title) moves inside the SHARD SELECT screen; the main menu stays the two cards (G132): progress on the carousel's main card and CONTINUE, no map or grid in SHARD SELECT (G133).
+- **ANIMATION-REMASTER**: standard rigs and the clip library (S7); skinned assets in the format (SF9c).
+- **PHYSICS-POLISH**: colliders move into tiles and per-shard worlds (SF9a, SF18a).
+- **NATIVE-APPS**: the shells need the shardfile loader and the save scopes (SF15a).
+- **DRIFTWOOD-REMASTER-V2, SIGNAL-DUNES, SKY-REACH**: conversion waits for those agents to be idle.
+- **DEPLOYMENT_ASSET_TRIM**: tiles change the pack layout; its offline-reload gate holds (SF15a).
+- **HUD (E332)**: SF28, S3 (the car and auto-path) and any HUD change go over herdr and to Jake.
+
+## 9. How it is built
+
+Jake, 2026-10-04: *"Finish the plan … Run the 8 council rounds as discussed … Autonomously build the plan to completion
+… At all moments the game must be at 60-120 fps on desktop/laptop and at 30-60 fps on iOS simulator. I'm going to bed,
+you are in charge. No ask user tools, only autonomous planning & building."* (The council was later cut to four rounds, G59.) The other agents are paused (Jake: *"they
+are paused this is more important"*).
+
+### 9.1 The coordinator and the two kinds of agent (G52)
+
+The shard-platform session **coordinates**: it dispatches rows, reviews every result against its done-when, runs the
+gates, commits and pushes, keeps this plan's State, register and Handoff true, and sends Jake status lines. It builds
+small glue itself only when dispatching would cost more.
+
+- **Codex GPT-6.1 Sol high**, each in its own herdr pane: `herdr pane split --current --direction right --no-focus`,
+  then `herdr agent start <name> --kind codex` in the new pane (model and effort come from `~/.codex/config.toml`).
+  Names: `sp-x1`, `sp-x2` … One row (or one row's slice) per prompt via `herdr agent prompt <name> "<brief>"`; the agent
+  replies with its commit SHA. Up to **5 Codex panes** at once (amended to the running fleet, C2-R1-C14; browsers stay capped at 4 machine-wide; a Codex row that
+  needs a browser takes a lane through `scripts/browser-lane.sh`).
+- **Claude Opus 5.5 subagents** (the Agent tool): at most **3 live**, each with SUBAGENTS.md's caps (400k context,
+  90 min, ~200 turns, a report ≤ 40 lines, one job, never recycled).
+
+### 9.2 Routing (G53)
+
+Jake: *"Any UI, visual, HUD, rendering, shader, art or graphics work, and shard look and content (E374), goes to Opus 5.5
+only. All other code, refactoring, tooling, tests, SDK/CLI, validation, bake and determinism work goes to Codex GPT-6.1
+Sol high."* The **Lane** column in §4 applies it: X → Codex, O → Opus, X+O → Codex builds and Opus does the visual part
+or judges it (two dispatches).
+
+### 9.3 Budget (G54)
+
+Jake: *"stay within both usage plans. Run openusage before every dispatch and every few rows … the bulk goes to Codex;
+keep Claude for UI and visual work and for coordinating. When a plan nears its weekly or 5-hour limit, pause that lane
+until it resets rather than going over, and never spend Codex credits or rate-limit resets. … You can burn both claude &
+codex to 100% usage to get this plan built out."*
+
+- `openusage` (JSON) before every dispatch and after every few rows. At the start (2026-10-04 06:12 UTC): Claude weekly
+  62 % (resets 2026-10-06 18:00 UTC), 5-hour 20 %; Codex weekly 20 % (resets 2026-10-10 00:53 UTC).
+- **Claude runs to 100 % (G109).** At **99 % of the weekly window** (G145) the coordinator stops dispatching, lets in-flight Codex rows finish, pushes
+  them, writes the Handoff, then tells the Codex panes to stop; Codex keeps its 97 % pause (C2-R1-C15). The 5-hour window only pauses dispatch
+  until it refills. After the weekly reset (Tue 2026-10-06 18:00 UTC) the coordinator, or a fresh session Jake starts,
+  resumes from the Handoff (C2-R2-C9). Never buy or
+  spend Codex credits or rate-limit resets.
+- Claude is the scarce plan: council seats run as **two Codex seats + one Claude seat** from round 2; Opus subagents
+  only for O rows and visual judging.
+
+- Codex / Opus routing and openusage pacing: [SUBAGENTS.md](../../docs/process/SUBAGENTS.md) § Large multi-week plans (this plan is one).
+
+### 9.4 The frame floor (G55)
+
+Jake: *"At all moments the game must be at 60-120 fps on desktop/laptop and at 30-60 fps on iOS simulator."*
+- **SF0** (first row of all, X): `scripts/frame-floor.mjs` measures every playable surface (each shard, later the grid
+  and a crossroads) on **desktop** (headless Chromium on Metal, uncapped, 2× scale)
+  and on the **iOS Simulator** through `scripts/sim-lane.sh` (Safari, the phone tier), writing
+  `progress/frame-floor/<sha>.json`. **The one acceptance rule** (R4-A3): integer-rounded median fps ≥ 60 (desktop) / 30
+  (Simulator) and p95 ≤ 17.5 / 35.0 ms (1.05 × the period, tolerating vsync and ms quantization); strict p95 and CPU
+  work p95 are reported, not gated. It records today's baseline first; a surface that misses the floor today is listed
+  and gets its own fix row before anything else touches it.
+- **Every row that touches the client** (loader, rendering, streaming, scripts on the main thread, looks) runs the frame
+  floor before it merges; a miss blocks the merge. Engine-only and tooling rows run it every few merges.
+- A risky render or memory change still ships default-off behind a Debug row until a reading backs it (RENDERING.md).
+
+### 9.5 Councils (G59)
+
+**Councils 3 and 4** (E447, 2026-10-04; Jake: *"Didn't I say that we were going to do three to four councils? You can do
+council three and council four."*) review the plan after G150–G162 and SF55–SF59, two rounds each, run by the plan-status
+agent (herdr pane `wildshard-v`), which holds this file's edits while they run (the coordinator sends it plan changes);
+the lanes keep building. Files in `shard-platform/reviews/council-3/`; fixes land as plan edits citing their `C3-R…` ID;
+Jake's picks from them become §10 rows (G159–G162 from round 1; C3-R1-C12). **Council 3 closed 2026-10-04 after two rounds** (round 1: 38 findings, round 2: 26; all fixed except C3-R2-C1 and C3-R2-C7's remedy, `needs pick`); its round files are in `project/archive/2026-10-04-shard-platform-council-3/`. **Council 4 closed 2026-10-07 after two rounds** (round 1: 31 findings, round 2: 22; all fixed or decided by Jake as G185 / G186 / G208 / G209); its round files are in `project/archive/2026-10-07-shard-platform-council-4/`. **The four councils on the replan are done.**
+
+**Council 2** (E441, 2026-10-04, three rounds at Jake's request) reviews the post-steering plan while the lanes keep
+building; its files are in `shard-platform/reviews/council-2/` and its fixes land as plan edits (C2-R1-C21).
+
+**Four council rounds** (Jake, 2026-10-04: "I've also been told that 4 round council approach is better then 8 rounds";
+COUNCIL.md's normal cap). Round 1 reviewed everything; rounds 2–4 review the diff since the last round plus the battery,
+with two Codex seats and one Claude seat. **Code rows waited until round 4 ended** (Jake, 2026-10-04: "why are you building before the 4 rouns of council are
+done"); only the measurements SF0 and SF22a run during the council. SF5a landed before the pause (`3760af612`) and is
+re-checked against the final rows. After round 4, whatever is still open is decided by the coordinator
+with a recorded reason (Jake set no questions for the night, G56) and listed for his review.
+
+### 9.6 Every merge
+
+Before dispatching a row, the coordinator checks that every row its done-when uses is done (R4-A1 should-add, taken as a
+dispatch rule instead of a column). Pathspec-only commits through `scripts/push-main.sh` with the local gates green (`scripts/vercel-tree-gate.sh`); parity
+identical or a board; the frame floor (§9.4); this plan's row, State line and Handoff updated in the same commit; a status
+line to Jake at each milestone.
+
+## Where things live
+
+Everything in [`shard-platform/`](2026-11-04-shard-platform), beside this file:
+
+- [STATE.md](2026-11-04-shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
+- [decisions.md](../../docs/plans/decisions.md): every decision G1–G1009+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [rows.md](2026-11-04-shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
+- [contracts.md](2026-11-04-shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
+- [history.md](2026-11-04-shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
+- [design-system.md](2026-11-04-shard-platform/design-system.md): the shardfile design system, the route for the rest of Part A (G319).
+- [open-x-queue.md](2026-11-04-shard-platform/open-x-queue.md): the open engineering (X) queue.
+- [red-green.md](2026-11-04-shard-platform/red-green.md): the push / CI / deploy red → green log (G330).
+- [wall-clock-plan.md](2026-10-13-shard-platform-side/wall-clock-plan.md): SF74, stop wasting wall-clock time.
+- [kit-commons-audit.md](2026-10-13-shard-platform-side/kit-commons-audit.md): the kit audit and the commons design (SF54 / SF26).
+- [mockup-wave-E449.md](2026-10-13-shard-platform-side/mockup-wave-E449.md), [mockup-wave-E450.md](2026-10-13-shard-platform-side/mockup-wave-E450.md): the 2026-10-04 mockup and decision waves.
+- [lanes/](2026-11-04-shard-platform/lanes/README.md): the lane briefs; [reviews/](2026-11-04-shard-platform/reviews/register.md): the four councils' registers (all closed).

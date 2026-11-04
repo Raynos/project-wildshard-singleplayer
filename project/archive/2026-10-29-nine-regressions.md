@@ -2,7 +2,7 @@
 
 **State:** `done` 2026-10-29 (every row closed; archived) 2026-10-28 ~15:30 Cancun. Spike by a wildshard-v subagent for wildshard-new, which hands the rows to
 lanes. Jake (10-28): *"Nine Dragon has some really obvious visual regressions, especially the shadows on the hands."*
-Part of [close-out](../../docs/plans/shard-platform/close-out-mini-plan.md) after CO6; archives with SHARD-PLATFORM (CO8). Read and captured at HEAD
+Part of [close-out](2026-11-04-shard-platform/close-out-mini-plan.md) after CO6; archives with SHARD-PLATFORM (CO8). Read and captured at HEAD
 `4990c215fb`; start board: [CO6 Nine sheet](../../art/legacy-vs-shardfile/round-1-2026-10-28/nine-dragon-stack-board.jpg)
 (`93eb52800f`). Boards: [round-32](../../art/nine-dragon-stack/round-32-shardfile-regressions) 1–5.
 
@@ -33,7 +33,7 @@ Part of [close-out](../../docs/plans/shard-platform/close-out-mini-plan.md) afte
 
 The LD4 gaps (`fp-arms` and six Sets missing from the declaration adapter) are registration coverage, not pixels. Every Set
 in the capture is present (booth, parasol, pavilion, balustrade-panel). They stay
-[legacy-deletion](../../docs/plans/shard-platform/legacy-deletion-mini-plan.md) LD4-ND rows and are not repeated here.
+[legacy-deletion](2026-11-04-shard-platform/legacy-deletion-mini-plan.md) LD4-ND rows and are not repeated here.
 
 ## Rows
 

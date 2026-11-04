@@ -1,6 +1,6 @@
 # SF22a: memory measured before the shardfile format (2026-10-04)
 
-Row SF22a of [SHARD-PLATFORM](../../../../plans/SHARD-PLATFORM.md) (§3.2 caps v0, §4 F0). Jake: *"memory is a huge problem"*.
+Row SF22a of [SHARD-PLATFORM](../../../../../project/archive/2026-11-04-shard-platform.md) (§3.2 caps v0, §4 F0). Jake: *"memory is a huge problem"*.
 Raw numbers: [`progress/memory/sf22a-2026-10-04.json`](../../../../../progress/memory/sf22a-2026-10-04.json). Build `91f97bdfc`
 (a clean HEAD export). Decimal MB, settled medians unless a peak is named.
 

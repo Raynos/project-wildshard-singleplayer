@@ -61,7 +61,7 @@ the difference is retained in BURN-DAMAGE-LIST.
 
 ## LD4 Node gaps, retained explicitly
 
-Source audit: [legacy-deletion plan](../../../docs/plans/shard-platform/legacy-deletion-mini-plan.md),
+Source audit: [legacy-deletion plan](../../../project/archive/2026-11-04-shard-platform/legacy-deletion-mini-plan.md),
 with exact identifiers in its `legacy-explorer-lists.json` inventory.
 These are declaration-adapter coverage gaps, not proof that runtime
 content disappeared. The boards do not substitute for Node registration

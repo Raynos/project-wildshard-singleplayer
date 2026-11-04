@@ -1,7 +1,7 @@
 # E435 clean-room audit: SHARD-PLATFORM and the MMO docs (Claude seat)
 
 Auditor: Claude (clean room, read-only). Repo HEAD while auditing: `a7efb8ff6` (plan State line + Q5 "package-first").
-Scope: `docs/plans/SHARD-PLATFORM.md` (SP), `docs/design/mmo/{MMO-REQUIREMENTS, SHARD-PLATFORM-PLAN, VISION, GLOSSARY,
+Scope: `project/archive/2026-11-04-shard-platform.md` (SP), `docs/design/mmo/{MMO-REQUIREMENTS, SHARD-PLATFORM-PLAN, VISION, GLOSSARY,
 SHARD-IDEAS, ONE-SHOT-REVIEW}.md`, and the P0 code they call done. Every number below is a command I ran; the
 baseline tree `06de6df0e` was exported with `git archive 06de6df0e src` and searched with `rg`.
 
@@ -45,7 +45,7 @@ check is vacuous or bypassable).
 | 15 | Interactables: 10 kinds, pure data | SP:83 | **true** | 10 distinct `kind:` values in src/engine/world/interact/types.ts |
 | 16 | "Every manifest already declares a 500 × 500 × 500 cell" | SP:90; MMO-REQ:174 | **false** | `src/shards/_template/manifest.ts:12`: `placement: { grid: [0, 0], size: [200, 200, 200] }`. The one shard that is false is the package-first shard |
 | 17 | `placement.grid` / `size` are read by nothing | SP:112 | **true** | Nothing in src/engine, game or kit reads `.placement`. Grid values (Driftwood `[-1, 6]`, Nalati `[4, -2]`, FR `[1, 4]`) fall outside the 5 × 5 grid of W3 anyway |
-| 18 | The aim ray comes from the viewmodel camera; hit-stop scales the fixed step | SP:108–109 | **true, and unplanned** | `src/engine/combat/Weapon.ts:56–59` (`this.model.parent` camera); `src/engine/core/Game.ts:592` ("hit-stop slows them with everything else"). **No SP row fixes either** (`rg -n -i "aim\|hit-stop" docs/plans/SHARD-PLATFORM.md` hits only §2). Only §6's done-when needs a headless sim |
+| 18 | The aim ray comes from the viewmodel camera; hit-stop scales the fixed step | SP:108–109 | **true, and unplanned** | `src/engine/combat/Weapon.ts:56–59` (`this.model.parent` camera); `src/engine/core/Game.ts:592` ("hit-stop slows them with everything else"). **No SP row fixes either** (`rg -n -i "aim\|hit-stop" project/archive/2026-11-04-shard-platform.md` hits only §2). Only §6's done-when needs a headless sim |
 | 19 | SP1: `sim-no-render` fixed; quest / event code "passes at 0" | SP:135 | **true as written, hollow as a headless claim** | `lint/wildshard-plugin.js:487–491` is fixed, fixtures exist, and `test/arch-guards.test.ts:43` checks the folders exist. But the rule checks **direct imports only**. `src/engine/ai/reach.ts:2` imports the `app` singleton from `app/runtime`, which imports `App` (the whole client). `src/engine/entities/Animal.ts:2` does `import * as THREE` and imports `app`, yet the core creature entity sits outside `SIM_DIRS`. "0 sites" does not mean "runs in Node" |
 | 20 | SP2: the `profile` scope exists, no key uses it | SP:136 | **true** | `src/engine/saves/store.ts:10,12`, `native/saves.ts:25`, tests in `test/engine/saves.test.ts:48–58` |
 | 21 | SP2: "the travel handoff names it as its future home" | SP:136 | **false** | `rg -i profile src/game/travel/` → nothing |

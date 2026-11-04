@@ -1,6 +1,6 @@
 # SHARD-PLATFORM council 2, round 2, seat C (red team)
 
-Surface: `git diff 755b43d74 24d0b2674 -- docs/plans/SHARD-PLATFORM.md`, battery 12–17, and the code and working tree that
+Surface: `git diff 755b43d74 24d0b2674 -- project/archive/2026-11-04-shard-platform.md`, battery 12–17, and the code and working tree that
 the new text names. Plan line numbers are at `24d0b2674`. Round-1 rows already closed are not repeated. The one exception
 is C2-R1-C19 (parked "revisit in round 2"), which #8 answers.
 

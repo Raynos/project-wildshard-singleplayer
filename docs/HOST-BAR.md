@@ -4,7 +4,7 @@ The scoring matrix for every platform host and every proposed one. A host is sha
 `src/sdk` or `src/format` that shards drive. Jake set the bar in G454 (2026-10-16) and asked for it to be written down
 as permanent design (G481, 2026-10-17): *"the engine is supposed to be very flexible and not have all kinds of random
 Sky specific and Dune specific if statements in them."* Decisions live in
-[plans/shard-platform/decisions.md](plans/shard-platform/decisions.md); the layer rules are in
+[plans/shard-platform/decisions.md](plans/decisions.md); the layer rules are in
 [ENGINE.md](ENGINE.md) and [AGENTS.md](../AGENTS.md).
 
 ## Where code belongs

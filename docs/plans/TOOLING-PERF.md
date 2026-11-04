@@ -3,7 +3,7 @@
 **State:** `in progress` 2026-10-31 for the Codex lanes (G964, Jake: "tooling perf … great for the Codex lanes"; was `parked`, G659) — a draft in the same bucket as SHARD-PLATFORM-NEXT and WASM-HOST: nothing is worked until Jake says when; its picks (G657) are recorded. The zoomed-in mini plans it links (TypeScript, oxlint, no binaries in JSON, generators) are not parked: they run as SHARD-PLATFORM extras (G647). 2026-10-23 — G651 audit done (plan-agent subagent, from 7 days of GitHub runs, 147 red-run logs,
 `.git/push.log`, the hooks, workflows and every check script; cheap checks timed at load ~30, the rest marked est.).
 Nothing is worked here until Jake says go; decided SHARD-PLATFORM tooling rows (G609, G610/G612, G620, G627, G628, G634,
-G636) keep landing there and move here when it starts; decisions stay in [decisions.md](shard-platform/decisions.md);
+G636) keep landing there and move here when it starts; decisions stay in [decisions.md](decisions.md);
 absorbs [BUILD-SPEED](../../project/archive/2026-10-28-build-speed.md) waves 3–5. Jake, G651: *"the tooling perf is everything else. Like, everything that
 I don't know about yet … all the things that we should be running in pre-commit if they were fast, all the things that we
 should be running in pre-push if they were fast."*

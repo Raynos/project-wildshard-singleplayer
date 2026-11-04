@@ -3,7 +3,7 @@
 > **State:** reference, 2026-10-03 — the thinking behind the MMO route, written 2026-09-30, before GAME-NORMALIZATION
 > was archived. **Overtaken in four places:** (1) the requirements now live in [MMO-REQUIREMENTS.md](MMO-REQUIREMENTS.md)
 > (Jake, 2026-10-03: shards are 500 m tall; WASM plugins are an approved system; the 80/20 split); (2) phase 2a, the
-> 80/20 pass, is the plan [`docs/plans/SHARD-PLATFORM.md`](../../plans/SHARD-PLATFORM.md); (3) the six guardrails of §9
+> 80/20 pass, is the plan [`project/archive/2026-11-04-shard-platform.md`](../../../project/archive/2026-11-04-shard-platform.md); (3) the six guardrails of §9
 > were never folded in — GAME-NORMALIZATION was archived on 2026-10-01 without them, so SHARD-PLATFORM picks up G-2,
 > G-5 and G-6 as its first rows; (4) "build no more code shards" (§9) was overtaken: the clean-room test built Signal
 > Dunes and Sky Reach as code shards, so there are six to carry over, not four.

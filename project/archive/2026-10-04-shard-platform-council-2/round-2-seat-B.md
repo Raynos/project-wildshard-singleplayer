@@ -1,6 +1,6 @@
 # Council 2, round 2 — seat B
 
-Scope: `git diff 755b43d74 24d0b2674 -- docs/plans/SHARD-PLATFORM.md`, plus all 17 battery scenarios. Evidence below is frozen to `24d0b2674`; later commits and the shared working tree are not credited to this diff. Line numbers refer to that revision. A reopened implementation row is not a claim that its code has landed. Closed round-1 findings remain closed unless the evidence below identifies a new defect in their resolution.
+Scope: `git diff 755b43d74 24d0b2674 -- project/archive/2026-11-04-shard-platform.md`, plus all 17 battery scenarios. Evidence below is frozen to `24d0b2674`; later commits and the shared working tree are not credited to this diff. Line numbers refer to that revision. A reopened implementation row is not a claim that its code has landed. Closed round-1 findings remain closed unless the evidence below identifies a new defect in their resolution.
 
 ## Findings
 

@@ -7,7 +7,7 @@ their *disposition* (slices plus named exits); those exits are **not** an ending
 the [zero spike](custom-sections-zero-mini-spike.md). A Z row is done only when the gate's count drops by its kill
 count with identical pixels (Opus rows) or identical bytes (Codex rows). Jake rules first on decision 6 (what zero
 counts). Non-graphics rows run on Codex (G963 / G969); graphics rows stay Opus (G848); no WASM-HOST work (G969).
-Phase HA7 of [HOST-AUDIT](../HOST-AUDIT.md) (G697); direction G696 ([decisions](../shard-platform/decisions.md)).
+Phase HA7 of [HOST-AUDIT](../HOST-AUDIT.md) (G697); direction G696 ([decisions](../decisions.md)).
 
 **Reviews:** [One-user batch for Jake](../../reviews/custom-sections-one-user-batch.md) — `unread`, 67 unique retained files with per-file dispositions and the route to zero.
 
@@ -57,7 +57,7 @@ in no `-legacy` file), so nothing here touches custom-code wave 3.
 blob name (`scripts/shard-platform-output.mjs` `productSections`). The 15: Pine `questRuntime` (41 KB), `thrallLook`,
 `nativeView`, `grazers`, `trophyMounts`, `paintedTextures`, `cabinAmbience`, `cabinAppearance`, `runtimeGraphs`,
 `kingKit`; Driftwood `enemyPlacements`, `collections`, `cumulusPuffs`, `fixedLayouts`, `gullFlock`. All already have
-an exit row in `shard-platform/open-x-queue.md` W2 (`shardfile/custom-sections` exceptions in the ratchet).
+an exit row in `host-audit/shard-platform-rows.md` (HOST-AUDIT HA8; was SHARD-PLATFORM's open-x-queue W2; `shardfile/custom-sections` exceptions in the ratchet).
 
 **3. ~90 % already use a shared `@wildshard/format` schema; ~40 are truly shard-shaped.** Each producer attaches its
 defining schema (G491J). About 345 blobs name a format schema (`WorldSceneSchema`, `WorldScenePlacementSchema`,

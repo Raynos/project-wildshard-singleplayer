@@ -1171,7 +1171,7 @@ desktop · keyboard and mouse
 
 Every key can be rebound in Settings.
 
-# Play page · live today, coming next (sources: docs/plans/SHARD-PLATFORM.md, docs/design/mmo/MMO-REQUIREMENTS.md, src/game/grid/menu.ts)
+# Play page · live today, coming next (sources: project/archive/2026-11-04-shard-platform.md, docs/design/mmo/MMO-REQUIREMENTS.md, src/game/grid/menu.ts)
 
 ## Play · next question
 

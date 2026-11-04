@@ -17,7 +17,7 @@ reading and spawn/Pine-drive misses remain recorded, not waived.
 Dated source tables, proposals and receipts below retain their intermediate
 statuses and refused readings as history; they are not a second live queue.
 The separate RM8.1e codec pixel witness remains with its coordinator, as recorded
-in [SHARD-PLATFORM State](../../docs/plans/shard-platform/STATE.md); this archive
+in [SHARD-PLATFORM State](2026-11-04-shard-platform/STATE.md); this archive
 makes no new visual, memory, performance or pixel-acceptance claim.
 
 Jake, 2026-10-22 ~23:45 Cancun: *"the tiling and the streaming and the 62.5 meter grids … the only way of fixing the

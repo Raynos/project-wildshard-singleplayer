@@ -1,8 +1,8 @@
 # Plan: HOST-AUDIT — score every engine and game host, fix the ruler, put shard code back in the shard
 
-**State:** `parked` 2026-10-24 — an off-shoot of [SHARD-PLATFORM](SHARD-PLATFORM.md), like template-free and KITCHEN-SINK: it starts only after every SHARD-PLATFORM mini plan is finished and Jake says go (G679). Its starting point is accepted: all 114 recommendations in [the inventory](../../project/archive/reviews/2026-10-24-host-audit-inventory.md) (95 keep, 18 fold, 1 retire). It owns G594's ruler fix and G595's host-by-host approvals.
+**State:** `parked` 2026-10-24 — an off-shoot of [SHARD-PLATFORM](../../project/archive/2026-11-04-shard-platform.md), like template-free and KITCHEN-SINK: it starts only after every SHARD-PLATFORM mini plan is finished and Jake says go (G679). Its starting point is accepted: all 114 recommendations in [the inventory](../../project/archive/reviews/2026-10-24-host-audit-inventory.md) (95 keep, 18 fold, 1 retire). It owns G594's ruler fix and G595's host-by-host approvals.
 It overlaps [SHARD-PLATFORM-NEXT](SHARD-PLATFORM-NEXT.md) N4; both plans stay as they are (Jake, 2026-10-22: *"leave them alone"*). Decisions
-stay in [shard-platform/decisions.md](shard-platform/decisions.md); the bar is [docs/HOST-BAR.md](../HOST-BAR.md).
+stay in [shard-platform/decisions.md](decisions.md); the bar is [docs/HOST-BAR.md](../HOST-BAR.md).
 
 Jake, 2026-10-22, after the G594 audit found Pine/Driftwood code hidden in one-user TypeScript hosts: *"Tell me of
 those TypeScript hosts in the engine. Do they even live in the engine? Do they live in a game workspace? Where do they
@@ -114,6 +114,7 @@ Exceptions will cut that; the ruler gives the honest figure (HA0).
 | **HA4e** | **Plugin scaffolding**: list which data products still route through `game/plugin/` and hand each route to SHARD-PLATFORM-NEXT N2/N5 (deleted there, not here) | 0.5 day |
 | **HA5** | **One host register so it can't drift.** One JSON row per host (module or binding, verdict, score, deciding G row, recheck date) replaces `platform-pending-users.json`, the HOST-BAR G571 prose parse and `platform-chargebacks.mjs`. The ruler fails on a one-user host with no row; a row past its recheck charges back; a platform verdict needs a G row Jake made. HOST-BAR keeps the bar, not the list | 1–2 days |
 | **HA6** | **Re-measure every shard honestly** after HA0 and again after HA4: custom % and net platform lines per shard, written into SHARD-PLATFORM's numbers | 0.5 day |
+| **HA8** | **Rows folded from SHARD-PLATFORM** (CO8, 2026-11-04): the pending-user host rows (G441), the named future users (G474–G477), SF48's Nalati pending users, the W2 / W2b custom-section exits (G453) and the named-JSON remainder (G491), names unchanged, in [host-audit/shard-platform-rows.md](host-audit/shard-platform-rows.md); `lint/platform-pending-users.json` and `lint/ratchet.json` point there. Scored in HA2, replaced by HA5's register, the exits retired in HA7. SF76 is HA4a | with HA2 / HA5 / HA7 |
 
 ## Order
 

@@ -397,7 +397,7 @@ def print_reading(repo, since, observations):
             if 'credits' in resources:
                 parts.append('credits %s' % resources['credits'].get('available'))
             budgets.append('%s: %s%s' % (name, ', '.join(parts), ' (stale)' if provider.get('stale') else ''))
-    queue = Path(repo) / 'docs/plans/shard-platform/lanes/sim-queue.md'
+    queue = Path(repo) / 'project/archive/2026-11-04-shard-platform/lanes/sim-queue.md'
     try:
         open_sim = sum('| open' in line or '| in flight' in line for line in queue.read_text().splitlines())
     except OSError:

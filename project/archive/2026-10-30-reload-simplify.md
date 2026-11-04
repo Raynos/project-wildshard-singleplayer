@@ -19,7 +19,7 @@ everything that's downloaded?"*
 Seen on live `8621318d9` (iPhone 17 Pro PWA): RELOAD → ~8 s boat shell → "Waiting for Application modules · 8.1 s" +
 Retry → title; again 8.5 s. Cold: ~6 s black, boat stuck at 13.5 s until Retry brought the title at once.
 
-**Supersedes** [qa-2026-10-29-2](../../docs/plans/shard-platform/qa-2026-10-29-2-mini-plan.md) **QB3 and QB4** and folds in **QB1** (black boot: RL1,
+**Supersedes** [qa-2026-10-29-2](2026-10-30-qa-2026-10-29-2.md) **QB3 and QB4** and folds in **QB1** (black boot: RL1,
 RL3). sp-o3 holds those three; per no mid-task re-briefs it finishes its current slice, then takes RL rows. QB2 is done.
 QB5 (the bar's total) stays. **RL7–RL9 close QB9** (13:49: *"The downloading is supposed to be fucking instant. Like
 0.1 seconds, download bar full, out of the cache."*). QB6's crash line is a keep here.

@@ -17,10 +17,10 @@ download bar full, out of the cache"*; *"Don't fucking reject the checksums … 
 are we not loading and downloading everything correctly? … Such a shitty experience"*; *"If it's good enough, it's good
 enough. I just want it to be done."*
 
-Evidence read: [QA 2](../../docs/plans/shard-platform/qa-2026-10-29-2-mini-plan.md) (QB1–QB17), [QA 1](../../docs/plans/shard-platform/qa-2026-10-29-mini-plan.md)
-(QA1–QA14), [reload-simplify](../../docs/plans/shard-platform/reload-simplify-mini-plan.md) (RL1–RL10), the
-[download audit](../../docs/plans/shard-platform/download-audit-2026-10-29-mini-spike.md) (DA-1–7), the
-[Nine pop-in audit](../../docs/plans/shard-platform/nine-popin-2026-10-29-mini-spike.md) (NP-1–5), all 40 unresolved Sentry issues
+Evidence read: [QA 2](2026-10-30-qa-2026-10-29-2.md) (QB1–QB17), [QA 1](2026-10-30-qa-2026-10-29.md)
+(QA1–QA14), [reload-simplify](2026-10-30-reload-simplify.md) (RL1–RL10), the
+[download audit](2026-11-04-shard-platform/download-audit-2026-10-29-mini-spike.md) (DA-1–7), the
+[Nine pop-in audit](2026-11-04-shard-platform/nine-popin-2026-10-29-mini-spike.md) (NP-1–5), all 40 unresolved Sentry issues
 (7 days), the 59 `/api/errors` reports in `.review/inbox/`, and git churn since 10-15 (10,377 commits).
 
 ## One screen
@@ -318,7 +318,7 @@ current slice (no mid-task re-briefs, G492); none starts new work after this is 
 4. **Memory is measured on the Simulator; the estimate stops being the reported number.** Recommended: yes.
 5. **Standalone moves are page navigations** (extends QA12 / G877). Recommended: yes.
 
-**Battery bar (G890, Jake 14:24, [iOS Battery screen](../../art/qa-2026-10-29/battery-1423.jpg): Web 20 %, Safari 13 % today, 57 % used by 14:23 vs a 24 % average):** 20 min of phone-tier play at 60 fps costs a measured, capped share of battery and the phone stays cool enough to keep playing; no work at full rate when nothing changes; the title, loading card and pause menu draw at a low rate. Measured on the Simulator (energy / CPU / GPU time per frame) and confirmed on Jake's phone. Owned by MF7 in wave 1. **MF7b, frame cost (G909):** [frame-cost-mini-plan.md](../../docs/plans/shard-platform/frame-cost-mini-plan.md) (6e0374d7dd), FC1–FC15: the game draws only when seen (FC1–FC6 first, with MF7), then every frame cheaper (FC7–FC15).
+**Battery bar (G890, Jake 14:24, [iOS Battery screen](../../art/qa-2026-10-29/battery-1423.jpg): Web 20 %, Safari 13 % today, 57 % used by 14:23 vs a 24 % average):** 20 min of phone-tier play at 60 fps costs a measured, capped share of battery and the phone stays cool enough to keep playing; no work at full rate when nothing changes; the title, loading card and pause menu draw at a low rate. Measured on the Simulator (energy / CPU / GPU time per frame) and confirmed on Jake's phone. Owned by MF7 in wave 1. **MF7b, frame cost (G909):** [frame-cost-mini-plan.md](2026-10-30-frame-cost.md) (6e0374d7dd), FC1–FC15: the game draws only when seen (FC1–FC6 first, with MF7), then every frame cheaper (FC7–FC15).
 
 ## Risks and what not to do
 

@@ -367,6 +367,6 @@ Roblox (Creator docs unless noted):
 - Rojo project format: https://rojo.space/docs/v7/project-format/
 
 Ours: `docs/SHARDFILE.md`, `docs/SCRIPT-ABI.md`, `docs/HOST-BAR.md`, `docs/SHARDS.md`, `docs/GRID-SIMULATION.md`,
-`docs/CONTENT-CACHE.md`, `docs/SDK-DEV.md`, `docs/plans/SHARD-PLATFORM.md`, `docs/plans/WASM-HOST.md`,
+`docs/CONTENT-CACHE.md`, `docs/SDK-DEV.md`, `project/archive/2026-11-04-shard-platform.md`, `docs/plans/WASM-HOST.md`,
 `src/shards/_template/`, `src/shards/sunscar-dunes/`, `src/format/`, `src/game/grid/`, `src/commons/catalogue.ts`,
 `src/engine/saves/store.ts`, `api/telemetry.ts`, and the built `public/shardfiles/_template/shard.json`.

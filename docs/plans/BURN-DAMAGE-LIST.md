@@ -2,7 +2,7 @@
 
 **State:** `parked` (draft, 2026-10-27): starts when SHARD-PLATFORM completes, on Jake's word. Nothing here is built
 during the mega build; lanes only add items to the list. Decisions stay in
-[shard-platform/decisions.md](shard-platform/decisions.md) (G768, G769, G771, G780, G788, G798, G799).
+[shard-platform/decisions.md](decisions.md) (G768, G769, G771, G780, G788, G798, G799).
 
 **This file is the damage list's only home, never STATE.md (Jake). This file is never compacted; every break stays
 until it's fixed and marked.**
@@ -192,7 +192,7 @@ Option 1 of each is "Skip for now".
 - Jake's own after-plan work: the tiny repo, the git history rewrite, worktrees, and merging only when green.
 - The tooling rows G770 moved to the end of the queue (green-main GM1, ci-flow, shared-waits, GS4/GS5): they are
   counted SHARD-PLATFORM rows, built in that plan.
-- [HOST-AUDIT](HOST-AUDIT.md) and the other parked off-shoots of [SHARD-PLATFORM](SHARD-PLATFORM.md).
+- [HOST-AUDIT](HOST-AUDIT.md) and the other parked off-shoots of [SHARD-PLATFORM](../../project/archive/2026-11-04-shard-platform.md).
 
 | D94 | Native full-CLI directory traversal skipped an ignored mirror parent; no-ignore also reported No files found, while explicit-file control found1file/6diagnostics | observed d1308217c1; source coverage cause in directory enumeration | sp-x6 census repair; sp-ci-deploy pinned control | fixed `ef8bd9e457` and covered clean-HEAD native CLI witnessed0a89f691ca:7445 explicit files linted,567 numeric rises plus15 partial-slack lines, exit1. Exact tmp/sp-ci-deploy-covered-head-ratchet.log; no debt updated from the earlier empty witness. D53/global debt audit remains owned sp-x6  x2 final source-batch witness explicitly linted7851files,9 rising pairs/11 excess sites remain outside its DW/Far/Sunscar scope; traversal/coverage policy unchanged.  Coverage is fixed independently of D53: current native full CLI explicitly counts7954 files and refuses the eight retained manual CLIs; no debt/allowance change or full-green claim. |
 | D95 | Folded layer types refuse nalatiCaptureInventory ../discovery.generated and Nine signAtlasOutput node:zlib | observed a38820bbb1; first-bad not established | sp-x1 (Nalati provider); sp-ci-deploy (Nine authoring) | fixed `acc161da7e` + `30f6a1ea47`: Nine acc161da7e uses existing SDK byteCodec at native level3 with both original glyph planes byte-identical. Nalati source fixed30f6a1ea47: reusable capture borrows the same real manifest explicitly; its CLI loads the official current provider through shardManifestPath. Touched source types/lint pass; no placeholder, native capture or full-layer green claim. |

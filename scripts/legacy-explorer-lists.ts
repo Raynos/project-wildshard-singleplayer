@@ -228,7 +228,7 @@ if (side === '--legacy' || side === '--shardfile') {
     const shardfile = recorded ? cached() : read('--shardfile');
     const gapRow = followups[name];
     if (gapRow === undefined) throw new Error(`Missing LD4 follow-up owner for ${name}`);
-    return { shard: name, followup: { plan: 'docs/plans/shard-platform/legacy-deletion-mini-plan.md', row: gapRow,
+    return { shard: name, followup: { plan: 'project/archive/2026-11-04-shard-platform/legacy-deletion-mini-plan.md', row: gapRow,
       owner: 'sp-x2', status: 'open', covers: ['every missing/added identifier below', ...legacy.gaps, ...shardfile.gaps] },
       legacy, shardfile, differences: Object.fromEntries(Object.keys(legacy.lists).map(key => {
       const list = key as keyof Lists, a = legacy.lists[list], b = shardfile.lists[list];

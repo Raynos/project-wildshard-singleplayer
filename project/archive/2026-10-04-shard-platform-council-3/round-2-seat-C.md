@@ -1,6 +1,6 @@
 # SHARD-PLATFORM council 3, round 2: seat C (Claude, red team)
 
-Scope: `git diff 19a9720a8..HEAD -- docs/plans/SHARD-PLATFORM.md` (`5fe45736c`, `0c4fea8c8`, `ded4ebd3b`), rows SF55a,
+Scope: `git diff 19a9720a8..HEAD -- project/archive/2026-11-04-shard-platform.md` (`5fe45736c`, `0c4fea8c8`, `ded4ebd3b`), rows SF55a,
 SF55, SF56, SF57, SF57b, SF58, G159–G164, §5, §6 and the Handoff, plus the battery. Lens: SF57b's reload transaction,
 SF55a for a stranger, SF58's leftovers, G164, and whether the order runs unattended. Round-1 rows are not repeated; every
 finding below is new evidence against text added or kept since round 1.

@@ -5,9 +5,9 @@ import { parsePlan,parsePlaytest } from './markdown.mjs';
 import { readAdminBundle,readLoadingReport,readItemizedReport } from './validate.mjs';
 
 const MAX_TEXT_BYTES=32_000_000;
-export const PLAN='docs/plans/SHARD-PLATFORM.md';
+export const PLAN='project/archive/2026-11-04-shard-platform.md';
 /** The plan folder files that hold the plan's SF rows and G decisions (SHARD-PLATFORM G375). */
-export const PLAN_PARTS=['docs/plans/shard-platform/rows.md','docs/plans/shard-platform/decisions.md'];
+export const PLAN_PARTS=['project/archive/2026-11-04-shard-platform/rows.md','docs/plans/decisions.md'];
 const MAX_MEDIA_BYTES=64_000_000;
 /** @param {Uint8Array} bytes */
 export const digest=bytes=>createHash('sha256').update(bytes).digest('hex');

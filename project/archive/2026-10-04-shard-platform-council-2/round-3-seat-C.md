@@ -1,8 +1,8 @@
 # SHARD-PLATFORM council 2, round 3 (final): seat C (Claude, red team)
 
-Surface: `git diff 24d0b2674 1f442aa55 -- docs/plans/SHARD-PLATFORM.md`, battery 12–17, and the red-team lens (G138–G146,
+Surface: `git diff 24d0b2674 1f442aa55 -- project/archive/2026-11-04-shard-platform.md`, battery 12–17, and the red-team lens (G138–G146,
 Driftwood's lowered sea, the public / `sdk/runtime` measure split, the ordered M2-ready path). Line numbers are
-`docs/plans/SHARD-PLATFORM.md` at `1f442aa55`. I checked every closed register row before filing. Where a finding
+`project/archive/2026-11-04-shard-platform.md` at `1f442aa55`. I checked every closed register row before filing. Where a finding
 touches a closed row, the new evidence is named.
 
 ## Findings

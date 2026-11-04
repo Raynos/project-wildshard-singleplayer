@@ -4,7 +4,7 @@
 > the fundamentals (`sources/WILDSHARD.md`, `sources/wildshard/FUNDAMENTALS.md`), the
 > [one-shot review](ONE-SHOT-REVIEW.md) and an audit of this repo at `06de6df0e`. Where this doc and VISION.md
 > disagree, this doc is newer: it records Jake's 2026-10-03 decisions (§6). The route to the first milestone is the
-> plan [SHARD-PLATFORM](../../plans/SHARD-PLATFORM.md) (the 80/20 split). The thinking behind it (code vs data, WASM,
+> plan [SHARD-PLATFORM](../../../project/archive/2026-11-04-shard-platform.md) (the 80/20 split). The thinking behind it (code vs data, WASM,
 > the lock-ins, shard ideas) is [SHARD-PLATFORM-PLAN](SHARD-PLATFORM-PLAN.md) and [SHARD-IDEAS](SHARD-IDEAS.md);
 > the terms are in [GLOSSARY](GLOSSARY.md).
 

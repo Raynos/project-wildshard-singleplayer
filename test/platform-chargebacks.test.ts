@@ -127,7 +127,7 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
   const path = 'src/game/boss/encounterView.ts';
   const allowance: PendingPlatformUser = { module: path, documentation: 'docs/HOST-BAR.md',
-    approvedFeature: { name: 'painterly look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G478' } } };
+    approvedFeature: { name: 'painterly look host', decision: { path: 'docs/plans/decisions.md', row: 'G478' } } };
   const painterly = { path, name: 'SlotEncounterView', exported: true, lines: 40 };
   const rows = [painterly,
     { path, name: 'ElitePageRows', exported: true, lines: 80 }];
@@ -158,10 +158,10 @@ test('whole-module cuts retire their old receipts while unknown missing modules 
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync('tmp/retired-host-test-');
   try {
-    mkdirSync(`${root}/lint`); mkdirSync(`${root}/docs/plans/shard-platform`, { recursive: true });
-    writeFileSync(`${root}/docs/plans/shard-platform/decisions.md`, '| G475 | approved toon |');
+    mkdirSync(`${root}/lint`); mkdirSync(`${root}/project/archive/2026-11-04-shard-platform`, { recursive: true });
+    writeFileSync(`${root}/docs/plans/decisions.md`, '| G475 | approved toon |');
     const receipt = (module: string): PendingPlatformUser => ({ module, documentation: 'docs/ENGINE.md',
-      approvedFeature: { name: 'toon look host', decision: { path: 'docs/plans/shard-platform/decisions.md', row: 'G475' } } });
+      approvedFeature: { name: 'toon look host', decision: { path: 'docs/plans/decisions.md', row: 'G475' } } });
     const put = (modules: string[]) => writeFileSync(`${root}/lint/platform-pending-users.json`, JSON.stringify({
       schema: 'platform-pending-users/1', entries: modules.map(receipt),
     }));
@@ -501,11 +501,11 @@ test('pending native continuation receipts name the actual defining schema and t
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync('tmp/native-continuation-receipts-');
   try {
-    mkdirSync(`${root}/lint`); mkdirSync(`${root}/src/format`, { recursive: true }); mkdirSync(`${root}/docs/plans/shard-platform`, { recursive: true });
+    mkdirSync(`${root}/lint`); mkdirSync(`${root}/src/format`, { recursive: true }); mkdirSync(`${root}/docs/plans/host-audit`, { recursive: true });
     writeFileSync(`${root}/lint/platform-pending-users.json`, JSON.stringify({ schema: pendingRows.schema, entries: rows }));
     writeFileSync(`${root}/src/format/eliteContinuation.ts`, readFileSync('src/format/eliteContinuation.ts', 'utf8'));
     writeFileSync(`${root}/docs/ENGINE.md`, 'format/eliteContinuation');
-    writeFileSync(`${root}/docs/plans/shard-platform/open-x-queue.md`, '| W3 Nalati elite rule continuation (G441) | Nalati |');
+    writeFileSync(`${root}/docs/plans/host-audit/shard-platform-rows.md`, '| W3 Nalati elite rule continuation (G441) | Nalati |');
     expect(pendingPlatformUsers(root)).toEqual(rows);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

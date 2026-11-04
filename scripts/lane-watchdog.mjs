@@ -213,7 +213,7 @@ async function poll() {
     // while it stays idle; the coordinator hears only after two nudges went unanswered.
     if (status === 'idle/done') {
       if (age < 3 * 60_000 || now - (observed.nudged ?? 0) < 10 * 60_000) continue;
-      const nudge = '[watchdog] idle: take your next open ready-queue row now (docs/plans/shard-platform/lanes/ready-queue.md); don\'t wait for a reply. If your own check is still running, start the next row meanwhile.';
+      const nudge = '[watchdog] idle: take your next open row now (your live plan in docs/plans/; download reviews: docs/plans/download/STATE.md); don\'t wait for a reply. If your own check is still running, start the next row meanwhile.';
       try { await command('bash', ['scripts/herdr-prompt.sh', name, nudge]); }
       catch { continue; } // herdr-prompt.sh refuses while the lane has a question open.
       observed.nudged = now;

@@ -117,7 +117,7 @@ function brief() {
   const log = git('log', '--since=30.days', '--format=%cs%x09%h%x09%s');
   for (const name of livePlans()) {
     // The coordinator's STATE.md (≤ 3 KB) is the plan's status once it exists; it is refreshed per landing batch, not per
-    // commit. Plan folders are lower-case (docs/plans/shard-platform/ beside SHARD-PLATFORM.md).
+    // commit. Plan folders are lower-case (docs/plans/download/ beside DOWNLOAD.md).
     const stateFile = [name.toLowerCase(), name].map((dir) => `${PLANS}/${dir}/STATE.md`).find((p) => existsSync(resolve(ROOT, p)));
     if (stateFile !== undefined) {
       const line = readFileSync(resolve(ROOT, stateFile), 'utf8').split('\n').map((l) => l.trim()).find((l) => l !== '' && !l.startsWith('#')) ?? '(empty)';

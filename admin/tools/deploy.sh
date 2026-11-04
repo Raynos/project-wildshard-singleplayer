@@ -29,10 +29,10 @@ work="$(mktemp -d "${TMPDIR:-/tmp}/wildshard-admin-deploy.XXXXXX")"
 work="$(cd "$work" && pwd -P)"
 trap 'rm -rf "$work"' EXIT
 # the site, sp-x2's admin-data pipeline and every report path it reads (scripts/admin-data.mjs exportedAdminTree)
-reports=(progress/memory art/playtest docs/plans/SHARD-PLATFORM.md)
+reports=(progress/memory art/playtest project/archive/2026-11-04-shard-platform.md)
 if git cat-file -e "$full:progress/loading/sf67" 2>/dev/null; then reports+=(progress/loading/sf67); fi
 # the plan's rows and decisions moved into its folder (G375; scripts/admin-data/collect.mjs PLAN_PARTS)
-for part in docs/plans/shard-platform/rows.md docs/plans/shard-platform/decisions.md; do
+for part in project/archive/2026-11-04-shard-platform/rows.md docs/plans/decisions.md; do
   if git cat-file -e "$full:$part" 2>/dev/null; then reports+=("$part"); fi
 done
 code=(scripts src pnpm-lock.yaml pnpm-workspace.yaml)

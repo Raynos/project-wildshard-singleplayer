@@ -2,7 +2,7 @@
 
 Reviewed against local `main` at `74cc3361d`, 2026-10-17, for G484(b).
 This is the executable contract, including its gaps. The design and future
-feature ownership are recorded in [G484](plans/shard-platform/decisions.md).
+feature ownership are recorded in [G484](plans/decisions.md).
 Source links give the defining file and line at this revision; concurrent
 uncommitted work is excluded. Z9 retires the unused client-field fallback;
 weather step rows supply eased presentation state (G484/G486).
@@ -195,9 +195,9 @@ this does not promise validation of every unused slot.
 | 11 | `reward`: `[playerOr0, reward, 0, 0]` | Works through same ledger fact port/dedupe; only local player or 0 | [game/shardfile/decisions.ts:311](../src/game/shardfile/decisions.ts#L311) |
 | 12 | `cue`: `[actorOr0, cue, 0, 0]` | Works: publishes cue event for presentation | [game/shardfile/decisions.ts:315](../src/game/shardfile/decisions.ts#L315) [game/shardfile/decisions.ts:438](../src/game/shardfile/decisions.ts#L438) |
 | 13 | `channel`: `[0, channel, value, 0]` | Works: publishes declared numeric channel | [game/shardfile/decisions.ts:318](../src/game/shardfile/decisions.ts#L318) [game/shardfile/decisions.ts:438](../src/game/shardfile/decisions.ts#L438) |
-| 14 | `impulse`: `[target, impulse, 0, 0]` | Refused at installation; **boss host** feature commit must own it; registry has no impulse IDs yet | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/decisionBindings.ts:58](../src/format/decisionBindings.ts#L58) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200) |
+| 14 | `impulse`: `[target, impulse, 0, 0]` | Refused at installation; **boss host** feature commit must own it; registry has no impulse IDs yet | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/decisionBindings.ts:58](../src/format/decisionBindings.ts#L58) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
 | 15 | `encounter`: `[0, verb, value, 0]` | Works only for own encounter binding: 1 phase, 2 win, 3 fail; encounter validates value | [engine/script/decision.ts:376](../src/engine/script/decision.ts#L376) [game/shardfile/decisions.ts:320](../src/game/shardfile/decisions.ts#L320) [sdk/decisionScriptBindings.ts:84](../src/sdk/decisionScriptBindings.ts#L84) |
-| 16 | `weather`: `[0, weather, 0, 0]` | Refused at installation; **weather reactions** feature commit must own it | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200) |
+| 16 | `weather`: `[0, weather, 0, 0]` | Refused at installation; **weather reactions** feature commit must own it | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
 | 100 | `view.channel`: `[0, channel, value, 0]` | Not wired: no v1 view runner; refused by sim host | [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
 | 101 | `view.clip`: `[actor, clip, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
 | 102 | `view.vfx`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
@@ -210,7 +210,7 @@ capability is sufficient to refuse `ShardDecisions` construction. There is no
 `mover` command. G484 keeps winch/well behavior in interaction rows; `view.field`
 105 remains the optional future fallback. G484 keeps Signal dusk on an
 eased-field row by preference.
-[game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+[game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 
 Z9 removes the unused isolated `ViewFieldHost` and its tests. The approved
 weather field table selects first-match flag targets, snaps on loaded saves
@@ -331,7 +331,7 @@ not v1 command/event IDs: the director admits event-only effects, can dispatch
 at zero elapsed time using the same tick allowances, and saves guest memory/
 globals with its host checkpoint. V0 is retired per shard and deleted with its
 last user (G484), not silently reinterpreted as v1.
-[format/scriptAbi.ts:4](../src/format/scriptAbi.ts#L4) [game/shardfile/scriptComposition.ts:17](../src/game/shardfile/scriptComposition.ts#L17) [game/shardfile/clientScripts.ts:17](../src/game/shardfile/clientScripts.ts#L17) [sdk/buildBehaviour.ts:29](../src/sdk/buildBehaviour.ts#L29) [game/plugin/director.ts:21](../src/game/plugin/director.ts#L21) [game/plugin/director.ts:48](../src/game/plugin/director.ts#L48) [game/plugin/director.ts:75](../src/game/plugin/director.ts#L75) [game/plugin/director.ts:97](../src/game/plugin/director.ts#L97) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+[format/scriptAbi.ts:4](../src/format/scriptAbi.ts#L4) [game/shardfile/scriptComposition.ts:17](../src/game/shardfile/scriptComposition.ts#L17) [game/shardfile/clientScripts.ts:17](../src/game/shardfile/clientScripts.ts#L17) [sdk/buildBehaviour.ts:29](../src/sdk/buildBehaviour.ts#L29) [game/plugin/director.ts:21](../src/game/plugin/director.ts#L21) [game/plugin/director.ts:48](../src/game/plugin/director.ts#L48) [game/plugin/director.ts:75](../src/game/plugin/director.ts#L75) [game/plugin/director.ts:97](../src/game/plugin/director.ts#L97) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 
 ## Gaps between the design and code
 
@@ -340,7 +340,7 @@ These are findings, not additional API promises or code changes:
 - **Interaction:** the design says no caller, but native simulation already
   routes picker-selected interactions to `ShardDecisions.interact`. G484's
   first-script proof remains required.
-  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:82](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L82) [game/plugin/simulation.ts:575](../src/game/plugin/simulation.ts#L575) [game/shardfile/decisions.ts:431](../src/game/shardfile/decisions.ts#L431) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:82](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L82) [game/plugin/simulation.ts:575](../src/game/plugin/simulation.ts#L575) [game/shardfile/decisions.ts:431](../src/game/shardfile/decisions.ts#L431) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 - **Membership:** `player.join/leave` are delivered on binding lifetime changes,
   despite the design's “id only” status. They do not prove multiplayer joins.
   Spawn-owned programs produce `spawned`; `strike.target` still lacks a
@@ -356,7 +356,7 @@ These are findings, not additional API promises or code changes:
   owned population/elite programs bind them to concrete native/page bodies.
   Impulse and weather remain install-time refusals. No mover command exists. View
   ids 100–105 lack runtime adapters after Z9; weather field tables supply
-  eased presentation state without a view guest. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/shard-platform/decisions.md:200](../docs/plans/shard-platform/decisions.md#L200)
+  eased presentation state without a view guest. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](../src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 - **Saves:** migration chains are checked by format admission, but decision
   restore requires exact stateVersion; it does not run those migrations.
   Player-scoped state is per binding with owner validation, not a multiplayer

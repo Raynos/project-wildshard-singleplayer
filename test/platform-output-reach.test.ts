@@ -139,10 +139,10 @@ it('shares syntax facts without merging source and output attribution',()=>{
   put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./shared':'./shared.ts'}}));
   put('src/game/shared.ts','export function shared() { return 1; }');
   put('docs/ENGINE.md','game/shared');
-  put('docs/plans/shard-platform/decisions.md','| G475 | approved toon |');
+  put('docs/plans/decisions.md','| G475 | approved toon |');
   put('lint/platform-pending-users.json',JSON.stringify({schema:'platform-pending-users/1',entries:[{
    module:'src/game/shared.ts',export:'shared',documentation:'docs/ENGINE.md',
-   approvedFeature:{name:'toon look host',decision:{path:'docs/plans/shard-platform/decisions.md',row:'G475'}}
+   approvedFeature:{name:'toon look host',decision:{path:'docs/plans/decisions.md',row:'G475'}}
   }]}));
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {shared} from '@wildshard/game/shared'; export const value=shared();"});
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const value=1;'});
@@ -156,9 +156,9 @@ it('shares syntax facts without merging source and output attribution',()=>{
   expect(changed.inventory).toEqual(sourceProgressInventory(root));
   expect(changed.inventory).not.toEqual(expected.inventory);
   // A new report must validate current policy and exports even with a warm disk cache.
-  put('docs/plans/shard-platform/decisions.md','| G476 | unrelated |');
+  put('docs/plans/decisions.md','| G476 | unrelated |');
   expect(()=>outputCensus(root)).toThrow('Missing platform feature decision');
-  put('docs/plans/shard-platform/decisions.md','| G475 | approved toon |');
+  put('docs/plans/decisions.md','| G475 | approved toon |');
   put('src/game/shared.ts','export function renamed() { return 2; }');
   expect(()=>outputCensus(root)).toThrow('Missing pending platform export');
  }finally{vi.unstubAllEnvs();rmSync(root,{recursive:true,force:true});}

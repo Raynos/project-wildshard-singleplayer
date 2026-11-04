@@ -2,7 +2,7 @@
 
 **State:** `done` 2026-10-29 (every row closed; archived) 2026-10-28 ~15:30 Cancun. Spike by a wildshard-v subagent for wildshard-new, which hands the rows to
 lanes. Jake (10-28): *"The floating island Far Reach looks like absolute dog shit in the shard file. It's a really
-obvious visual regression."* Part of [close-out](../../docs/plans/shard-platform/close-out-mini-plan.md) after CO6; archives with SHARD-PLATFORM (CO8).
+obvious visual regression."* Part of [close-out](2026-11-04-shard-platform/close-out-mini-plan.md) after CO6; archives with SHARD-PLATFORM (CO8).
 Start board: [CO6 Sky sheet](../../art/legacy-vs-shardfile/round-1-2026-10-28/far-reach-board.jpg) (`93eb52800f`).
 Captured on `4990c215fb` (before the fix) and HEAD `30388a573b`; boards:
 [round-43](../../art/far-reach/round-43-shardfile-regressions).

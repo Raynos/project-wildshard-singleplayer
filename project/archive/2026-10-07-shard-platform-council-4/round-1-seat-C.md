@@ -1,7 +1,7 @@
 # SHARD-PLATFORM council 4, round 1, seat C (Claude, red team)
 
 Lens: a senior engine / UGC-platform lead attacking what changed since council 3 closed (`git diff e6f8d32e4..HEAD --
-docs/plans/SHARD-PLATFORM.md`), plus the code those changes lean on. Read at HEAD `6041c31cc` … `5e2ab6eb2` (commits kept
+project/archive/2026-11-04-shard-platform.md`), plus the code those changes lean on. Read at HEAD `6041c31cc` … `5e2ab6eb2` (commits kept
 landing while I read). Plan line numbers are from that read.
 
 ## Findings

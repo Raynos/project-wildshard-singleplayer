@@ -41,8 +41,8 @@ jobs:
             admin 'scripts/admin-data*' scripts/admin-data \
             'scripts/memory-report*.mjs' scripts/shard-net-lines.mjs \
             progress/memory progress/loading/sf67 art/playtest \
-            docs/plans/SHARD-PLATFORM.md docs/plans/shard-platform/rows.md \
-            docs/plans/shard-platform/decisions.md \
+            project/archive/2026-11-04-shard-platform.md project/archive/2026-11-04-shard-platform/rows.md \
+            docs/plans/decisions.md \
             package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json \
             .github/workflows/admin-deploy.yml; then
             echo 'changed=false' >> "$GITHUB_OUTPUT"

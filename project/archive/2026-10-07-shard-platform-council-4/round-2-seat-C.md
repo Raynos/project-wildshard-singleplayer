@@ -1,6 +1,6 @@
 # SHARD-PLATFORM council 4, round 2, seat C (Claude, red team)
 
-Scope: `git diff 592d2b7d6..HEAD -- docs/plans/SHARD-PLATFORM.md` (38d535441, 7756cd204, f5f4327d7), the rows it touched,
+Scope: `git diff 592d2b7d6..HEAD -- project/archive/2026-11-04-shard-platform.md` (38d535441, 7756cd204, f5f4327d7), the rows it touched,
 and the code that landed for G186 / G190 in the same hour (f44fa29f7, 253be6717). The lens: a senior engine / UGC-platform
 lead attacking G183–G190 and asking whether §5, §6 and the Handoff let an unattended agent run 24–48 h without guessing.
 Closed round-1 rows are not repeated; each finding below brings new evidence (code, a measurement, or a contradiction

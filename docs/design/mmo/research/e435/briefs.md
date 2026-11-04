@@ -16,7 +16,7 @@ code and git, and judge the strategy from first principles, not from the docs' o
 
 ## What to audit
 
-- `docs/plans/SHARD-PLATFORM.md` — the plan (phases P0–P6, rows SP0–SP32, decisions, metric).
+- `project/archive/2026-11-04-shard-platform.md` — the plan (phases P0–P6, rows SP0–SP32, decisions, metric).
 - `docs/design/mmo/` — MMO-REQUIREMENTS.md, SHARD-PLATFORM-PLAN.md, VISION.md, GLOSSARY.md, SHARD-IDEAS.md,
   ONE-SHOT-REVIEW.md.
 - The code they describe: `src/engine/`, `src/game/`, `src/kit/`, `src/shards/<slug>/`, `lint/`, `scripts/`
