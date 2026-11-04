@@ -91,7 +91,6 @@ export const DONE = {
     // bf05c8c27: same Pine wildlife / Nalati flock instance draw, shared owner.
     'src/game/looks/posedInstances.ts': { why: 'bf05c8c27: the existing posed creature instance owner shared by Pine wildlife and the Nalati flock (creatures, M5); geometry and poses stay with their model', counts: { InstancedMesh: 1 } },
     'src/sdk/sceneGraph.ts': { why: 'DS1.2 authoring-only Node reconstruction of persisted scene data: restores the authored instance matrices for build compilers without a renderer, runtime host or newly placed world thing', counts: { InstancedMesh: 1 } },
-    'src/engine/render/graph/compile.ts': { why: "SF59 step 7: a material graph's outline stage is a second draw of the mesh it outlines (an inverted hull sharing that mesh's geometry and instance matrices), never a thing of its own", counts: { InstancedMesh: 1 } },
     'src/engine/render/precompile.ts': { why: 'Compile-only detached shader stand-in borrows the source instance layout and buffers; never placed or drawn as world content', counts: { InstancedMesh: 1 } },
     'src/engine/render/calibrationGpu.ts': { why: 'E357 S1.6 synthetic unit-cost scene: temporary calibration geometry, never shard content or a Model Explorer asset', counts: { InstancedMesh: 1 } },
     'src/engine/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },

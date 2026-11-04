@@ -1,7 +1,7 @@
 /**
  * A shard's own post stack on the client (SHARD-PLATFORM SF59 step 4, G158): the admitted `look.post` passes compiled by the
- * lazy graph back-end into composer passes (`GraphPostPass`, plus one `GraphNormalPrepass` when a pass reads
- * `sceneNormal`), inserted before the engine's colour pass (so the platform's grade, tone mapping and anti-aliasing
+ * classic graph back-end into composer passes (`ScenePostGraphCompiler.compilePass`, plus one normal pre-pass when a pass
+ * reads `sceneNormal`), inserted before the engine's colour pass (so the platform's grade, tone mapping and anti-aliasing
  * still run after them) and removed with the scope.
  *
  * - **Default off:** the stack is built only while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on (the row the graph
@@ -12,10 +12,10 @@
  *   frame owner's hour samples the shard's own look keys, a state binding reads the live public state (the field's
  *   declared default until `bind` hands the source); `tick` moves them each frame.
  */
-import { Texture, type Camera, type Scene } from 'three';
+import type { Camera, Scene } from 'three';
 import type { EffectComposer, Pass } from 'postprocessing';
 import { validateGraph } from '@wildshard/format/materialGraph';
-import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
+import type { ScenePostGraphCompiler, ScenePostPass } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources, graphFileJson } from '@wildshard/format/materials';
 import { graphParamFeeds, type GraphSources } from './clientGraphs';
@@ -48,39 +48,33 @@ function insertAt(composer: Pick<EffectComposer, 'passes'>): number {
  * `composer()` stops throwing (the page builds its composer after the world stage). `scene` / `camera` are what the
  * composer's render pass draws (the normal pre-pass draws them again).
  */
-export async function clientPostStack(shard: Pick<Shardfile, 'identity' | 'look' | 'state'>, assets: ReadonlyMap<string, Uint8Array>, page: { readonly compiler: () => Promise<GraphCompiler>; readonly composer: () => Pick<EffectComposer, 'passes' | 'addPass' | 'removePass'>; readonly scene: Scene; readonly camera: Camera }, scope: Scope, options: { readonly enabled: boolean }): Promise<ClientPost | null> {
+export async function clientPostStack(shard: Pick<Shardfile, 'identity' | 'look' | 'state'>, assets: ReadonlyMap<string, Uint8Array>, page: { readonly compiler: () => Promise<ScenePostGraphCompiler>; readonly composer: () => Pick<EffectComposer, 'passes' | 'addPass' | 'removePass'>; readonly scene: Scene; readonly camera: Camera }, scope: Scope, options: { readonly enabled: boolean }): Promise<ClientPost | null> {
   const stack = shard.look.post ?? [];
   if (!options.enabled || stack.length === 0) return null;
   const compiler = await page.compiler();
   if (scope.disposed) throw new Error('Post stack scope unloaded during the graph compiler load');
-  const { GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass } = compiler;
-  if (PostPass === undefined || NormalPrepass === undefined) throw new Error('graph back-end without post passes');
   const { day, state } = graphBindingSources(shard);
   const graphs = stack.map((pass, index) => {
     const checked = validateGraph('graph' in pass ? pass.graph : graphFileJson(pass.file, (hash) => assets.get(hash)), { dayKeys: [...day.keys()], stateFields: state });
     if (!checked.ok || checked.graph.kind !== 'post') throw new Error(`post[${index}] refused: ${checked.ok ? 'not a post graph' : checked.errors.join('; ')}`);
     return checked;
   });
-  const normal = graphs.some((checked) => checked.inputs.normal) ? new NormalPrepass(page.scene, page.camera) : null;
-  // the scene and depth inputs compile against a placeholder until the first frame moves them to the composer's own
-  // buffers (`GraphPostPass.render`, `setDepthTexture`); the placeholder is never drawn
-  const placeholder = new Texture();
+  const normal = graphs.some((checked) => checked.inputs.normal) ? compiler.normalPrepass(page.scene, page.camera) : null;
+  // the scene and depth inputs are unbound until the first frame moves them to the composer's own buffers
+  // (`ClassicPostPass.render`, `setDepthTexture`)
   const passes: Pass[] = [];
   const feeds = graphParamFeeds(shard);
-  const posts = graphs.map((checked) => {
-    const compiled = compiler.compileGraph(checked.graph, {
+  const posts: ScenePostPass[] = graphs.map((checked) => {
+    const compiled = compiler.compilePass(checked.graph, {
       dayKeys: [...day.keys()], stateFields: state, validated: checked,
-      scene: placeholder,
-      ...(checked.inputs.depth ? { depth: { texture: placeholder, near: 0.1, far: 1000 } } : {}),
-      ...(normal === null ? {} : { normal: normal.texture }),
+      camera: page.camera, depth: checked.inputs.depth, normal: normal === null ? null : normal.texture,
     });
-    feeds.attach(compiled, checked.graph.params);
-    return new PostPass(compiled, page.camera, checked.inputs.depth);
+    feeds.attach(compiled.graph, checked.graph.params);
+    return compiled.pass;
   });
   let weight = 1, installed: Pick<EffectComposer, 'passes' | 'addPass' | 'removePass'> | null = null;
   scope.onDispose(() => {
     for (const pass of [...(normal === null ? [] : [normal]), ...posts]) { installed?.removePass(pass); pass.dispose(); }
-    placeholder.dispose();
   });
   return {
     install: () => {

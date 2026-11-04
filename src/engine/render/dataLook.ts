@@ -18,7 +18,7 @@ import { PATCH_ORDER, patchShader, setInheritedPatch, type ShaderSource } from '
 import { Scope } from '../app/scope';
 import { curveAt, type Curve } from '@wildshard/format/materials';
 import type { GraphIr } from '@wildshard/format/materialGraph';
-import { loadGraphCompiler } from './graphBackend';
+import { loadLookGraphCompiler } from './graphBackend';
 import { EmissiveLook } from './families/emissive';
 import { familyMaterial } from './families/registry';
 import { ToonLook } from './families/toon';
@@ -373,7 +373,7 @@ export interface PaintedDressing { readonly group: THREE.Group; readonly update:
  * material is the dressing's own, like every material it builds, and is freed with the dressing (the look's compose scope
  * standalone, the grid cell's layer otherwise); `textures` resolves the graph's texture params to textures the caller keeps
  * (list them in the dressing's `textures` to have the look free them). On a grid cell's layer a graph material is drawn in
- * its level's frame like any dressing piece (`BackdropLayer`, `render/nodeLayerFrame.ts`).
+ * its level's frame like any dressing piece (`BackdropLayer`'s frame defines).
  */
 export interface PaintedDressingContext {
   readonly graph: (ir: GraphIr, textures?: (ref: string) => THREE.Texture) => Promise<THREE.Material>;
@@ -531,7 +531,7 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
   if (!('haze' in skySpec)) makeSky();
   // the dressing and a graph dome are built once, by the backdrop (it has the page's renderer, and runs before the compose)
   const graphOn = (renderer: THREE.WebGLRenderer): PaintedDressingContext['graph'] => async (ir, textures) => {
-    const { compileGraph } = await loadGraphCompiler(renderer);
+    const { compileGraph } = await loadLookGraphCompiler(renderer);
     return compileGraph(ir, textures === undefined ? {} : { textures }).material;
   };
   let building: Promise<BuiltDressing | null> | null = null, domeGraph: Promise<void> | null = null;
@@ -549,9 +549,9 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
   };
   const freePainted = (): void => { if (painted) { painted.scope.dispose(); for (const t of painted.textures) t.dispose(); painted = null; } };
   const worldPatch: NonNullable<LookStrategy['worldPatch']> = (material, scope) => {
-    // a graph (an SF59 node material, or its classic GLSL program) carries its own fog: the haze is a classic fog-chunk
-    // patch, a graph's fog the epilogue's
-    if (haze === null || !('haze' in skySpec) || Reflect.get(material, 'isNodeMaterial') === true || Reflect.get(material, 'isGraphShaderMaterial') === true) return;
+    // a graph (an SF59 graph's classic GLSL program) carries its own fog: the haze is a classic fog-chunk patch, a graph's
+    // fog the epilogue's
+    if (haze === null || !('haze' in skySpec) || Reflect.get(material, 'isGraphShaderMaterial') === true) return;
     const { strip } = sky ?? makeSky();
     if (strip !== null) patchShader(material, skySpec.haze.name, PATCH_ORDER.decorate, (shader) => { haze(shader, strip); }, { scope });
   };

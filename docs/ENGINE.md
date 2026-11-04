@@ -1273,9 +1273,7 @@ One whole-pass compile, driver query or node build remains atomic; slicing canno
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
 Paced herd pages retain their original 16-slot capacity; loading-screen construction starts at eight slots.
-`EngineNodesHandler.prepareProgram` resolves node uniform metadata in the linked-program slice.
-`prepareCachedProgram` refuses a missing `NodePlainUniforms.hasProgram` catalogue without GL calls.
-Known catalogues pair new groups on CPU; actual draws retain their ordinary value uploads/bindings.
+Actual draws retain their ordinary value uploads/bindings.
 A two-sided material can still issue two variants; one native query can still overshoot. Paced live world
 preparation uses the existing 6 ms slice on both browser families. Initial boot retains its
 ordinary grouping and 12 ms bound; readiness still awaits the complete inventory before exposure.
@@ -1746,15 +1744,16 @@ patchShader(material, 'template.linear-fog', PATCH_ORDER.decorate, (shader) => {
 The renderer type is named only in `src/engine/render/**` (`wildshard/no-renderer-type`). The handle is `Renderer`
 (`probeRenderer`). No WebGPU. **Facade multi-draw is banned everywhere** (AGENTS.md E271).
 
-Coarse prop masks keep classic shader sources unchanged. The loaded node handler explicitly installs the internal
-`render/nodeCoarseMask.ts` port: node materials compose their existing `maskNode` with the quadrant predicate using
-their final world position, including instances. The port itself imports no TSL. Raw GLSL3 chunk shaders use matching
-`out highp` / `in highp` declarations; node shaders use their native mask because they have no classic chunk anchors.
+Coarse prop masks keep classic shader sources unchanged; graph programs are built on the same chunks, so the mask's
+`project_vertex` / `clipping_planes_fragment` anchors reach them too. Raw GLSL3 chunk shaders use matching
+`out highp` / `in highp` declarations.
 
-**Material graphs (SF59, lazy, not on the default path).** TSL is reached only through `render/graphBackend.ts`:
-`loadGraphBackend(renderer)` installs `EngineNodesHandler` (the output transform, the upright target sample and scene environment, the fog
-epilogue, the tent and cascade shadows as nodes, and the coarse-mask port); `loadGraphCompiler(renderer)` then loads `compileGraph(ir)`
-(`render/graph/compile.ts`), which turns a graph IR into a node material. The renderer-neutral IR (`core/materialGraph.ts`,
+**Material graphs (SF59, lazy, not on the default path).** A graph reaches the renderer only through
+`render/graphBackend.ts`: `loadLookGraphCompiler(renderer)`, `loadPostGraphCompiler(renderer)` and
+`loadScenePostGraphCompiler(renderer)` install the classic shader host and lower a graph IR (`emitGraphGlsl`,
+`render/graph/glsl.ts`) into a plain `ShaderMaterial` (`compileClassicGraph`, `render/graph/glslMaterial.ts`; a shard's
+post stack draws it as a `ClassicPostPass`, `render/graph/glslPost.ts`). NF18 removed the TSL node runtime; the SDK's
+build-time `graph(spec)` authoring may still write TSL, lowered to the same IR. The renderer-neutral IR (`core/materialGraph.ts`,
 `GRAPH_IR_VERSION` 1) is data: `nodes` of an allowlisted vocabulary (`GRAPH_OPS`: inputs, safe maths, comparisons and a
 branch-light `select`, swizzles, MaterialX noise, an admitted texture, a constant-count `loop`), the stages
 `vertex.offset`, `surface`, `lighting` and `post`, typed `params` that are uniforms only (bindable to a day key
@@ -1762,9 +1761,9 @@ or a declared shard-state field; `setParam` never recompiles; a texture param wi
 its trusted runtime lends the sampled texture (a decoded baked key, say) with `setTexture`, which swaps every sample of it,
 a 1×1 black stand-in until then, through `runtimeLookMaterials` and the backdrop's `lookGraphMaterials`), and a
 per-program budget. `validateGraph(ir, opts)`
-refuses unknown ops, type mismatches, cycles and over-budget graphs before any node exists. A select with cheap sides
+refuses unknown ops, type mismatches, cycles and over-budget graphs before any program exists. A select with cheap sides
 compiles branch-free (`mix`); one with an expensive side nothing else reads becomes a real `if / else`. Presets
-(`render/graph/presets.ts`) re-express a family for the parity bench (`scripts/tsl-spike/`, the `graph` variants):
+(`render/graph/presets.ts`) re-express a family for parity checks:
 `pbrMeasureGraph` (PBR + the SF56 measure layer, size labels included) and `emissiveGraph` (the emissive surface and
 tube), `toonGraph` and `painterlyGraph` (their light models through the `lighting` stage), compiled under
 `PRESET_GRAPH_BUDGET` (the labelled measure preset runs past the content budget). The `lighting` stage (a `standard`
@@ -1780,8 +1779,8 @@ surface normal. It includes the environment's rotation and live intensity, keeps
 black without an environment. It also makes ambient own the whole indirect term. A reflected crown can sample its
 own normal while the water body retains `environmentIrradiance`.
 `surface.normal` (vec3, world space, lit models only) replaces the shading normal
-the lights, the environment and the lighting stage's `normalView` use: a per-pixel ripple or detail normal. The compiler's
-`GraphLitMaterial` keeps three's physical model and the engine's light nodes (tent, cascades, fade) underneath, so the
+the lights, the environment and the lighting stage's `normalView` use: a per-pixel ripple or detail normal. The classic
+program keeps three's physical model chunks and the engine's light chunks (tent, cascades, fade) underneath, so the
 epilogue is unchanged. `toonGraph` refuses caustics and `painterlyGraph` a wind sway (not ported yet);
 `emissiveGraph` refuses a sky, an additive blend or a fog share other than 1. No shipped material uses a preset, and
 today's families stay hand-written GLSL.
@@ -7012,14 +7011,13 @@ or colour conversion, and remains separate from the fog epilogue.
 fog's frame), plus its params, lists, lent textures and the safe maths;
 alpha passes through. A material graph selects it with
 `effectState.fog: '<catalogue id>'` (`false` still bypasses fog). The
-compiler builds the fog graph once (an inert carrier material keeps its
-`setParam` / `setTexture` / `setLentParam` by catalogue id and its bound
-params on the day feeds) and hands its patch to each selecting material
-through `fogPatches.ownMaterialNodeFog`, so the engine epilogue runs it
+compiler builds the fog graph once (its `setParam` / `setTexture` /
+`setLentParam` by catalogue id and its bound params on the day feeds)
+and lends its lowering and uniform objects to each selecting material
+(`compileClassicGraph`'s `fog` resolver), whose fog epilogue runs it
 instead of the engine fog, for the material and its outline hull. One
-program per fog per compile (the program key carries it); a region's
-`bindMaterialNodeFog` still overrides it while bound. The fog graph is
-costed under its own budget and adds to each selecting program.
+program per fog per compile (the program key carries it). The fog graph
+is costed under its own budget and adds to each selecting program.
 `materialGraphRules` refuses a selection that names no inline fog graph.
 Users: Nalati's painted fog `nalati-fog` (the grass, water and puddles;
 `look/fog.ts syncPaintedFog` writes the air and tint each frame) and Nine
@@ -7539,9 +7537,9 @@ rows, including immediate settlement if the physics cap removes its body.
 ### Graph shadow-depth warm-up (E435)
 
 A graph material that moves its vertices (`graphShadowDepth`) draws its
-shadow casters with the node handler's own depth variant
-(`EngineNodesHandler.shadowDepthOf`), swapped in inside the shadow
-draw. The handler registers that substitution on its renderer
+shadow casters with the classic back-end's own depth variant
+(`glslMaterial.ts` `classicShadowDepth`), swapped in inside the shadow
+draw. The back-end registers that substitution on its renderer
 (`render/shadowDepthVariants.ts`), and precompile's `shadowJobs` compile
 the same configured variant, one job per source material, configured
 just before its compile (`CompileJob.prepare`), so the first shadow

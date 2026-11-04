@@ -2,7 +2,6 @@ import { expect, test } from 'vitest';
 import { validateGraph, type GraphIr, type GraphRef } from '@wildshard/format/materialGraph';
 import { emitGraphGlsl } from './glsl';
 import { compileClassicGraph } from './glslMaterial';
-import { compileGraph } from './compile';
 
 function rounded(value: GraphRef): GraphIr {
   const width = typeof value === 'number' ? 1 : Array.isArray(value) ? value.length : 1;
@@ -22,8 +21,7 @@ test('native half packing keeps each numeric width and spends every component un
     expect(validateGraph({ ...graph, budget: { instructions: checked.cost.instructions - 1 } }).ok).toBe(false);
     const body = emitGraphGlsl(graph).program?.fragment.body;
     expect(body).toContain('unpackHalf2x16(packHalf2x16(');
-    const classic = compileClassicGraph(graph), legacy = compileGraph(graph);
-    classic.material.dispose(); legacy.material.dispose();
+    compileClassicGraph(graph).material.dispose();
   }
 });
 

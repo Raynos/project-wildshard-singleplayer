@@ -8,14 +8,12 @@ import { onCellField, onCellMethods } from './cellChanges';
 import { skinEnvelope, uploadedSkinBounds } from './skinEnvelope';
 import { guardObjectDraw, type DrawGuard } from '@wildshard/engine/render/drawGuards';
 import { instanceEnvelope } from '@wildshard/engine/render/instancedGeometry';
-import { shareGraphOwner } from '@wildshard/engine/render/graphBackend';
 
 
 /** `material.clone()` with its `userData` shallow-copied by reference (G639: three's Material.copy deep-copies userData through
  *  JSON, and a painted ground's userData holds its textures, so every clipped variant serialised them to data URLs: 224 ms
- *  of one desktop Nalati drive frame, for a copy that kept no texture). D189: three's NodeMaterial.copy drops `alphaTest`;
- *  the engine's graph classes restore it in their copy (engine/render/nodeMaterialCopy), and this keeps it for any other
- *  node material a clip clones. */
+ *  of one desktop Nalati drive frame, for a copy that kept no texture). D189: the clone keeps the source's `alphaTest`
+ *  (a material class whose copy drops it still clips as its source). */
 function cloneKeepingData(material: Material): Material {
   const data = material.userData;
   material.userData = {};
@@ -319,7 +317,7 @@ export function cellClip(root: Object3D, half: number, scope: Scope, options: Ce
       if ([...patched.values()].includes(material)) return material;
       let variant = patched.get(material);
       if (variant === undefined) {
-        variant = cloneKeepingData(material); ownedVariants.add(variant); copyShaderPatches(material, variant); shareGraphOwner(variant, material); fresh.push(variant);
+        variant = cloneKeepingData(material); ownedVariants.add(variant); copyShaderPatches(material, variant); fresh.push(variant);
         // G639: Material.copy carries no defines (only ShaderMaterial's does): the cascades' USE_CSM / CSM_CASCADES / CSM_FADE
         // set on the source (Sky.setupMaterial) went missing, so a clipped piece drew unshadowed on a program of its own
         // that linked on its first sight (161 ms of a Nalati look frame at phone 4x)

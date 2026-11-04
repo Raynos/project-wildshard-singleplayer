@@ -1,7 +1,6 @@
 // Deterministic native component scene for draw-hook parity. No game clock or post.
 import * as T from 'three';
 import { createRenderer } from '../../src/engine/render/renderer';
-import { EngineNodesHandler } from '../../src/engine/render/nodes/engineNodesHandler';
 import { Scope } from '../../src/engine/app/scope';
 import { AssetService } from '../../src/engine/app/assets';
 import { ownSceneTree } from '../../src/engine/app/sceneOwnership';
@@ -17,7 +16,7 @@ const scope = new Scope('draw-components'), assets = new AssetService();
 const uploads = new UploadOwnership(scope, assets);
 const renderer = createRenderer(canvas, context, {assets, scope, uploads});
 renderer.setPixelRatio(2); renderer.setSize(402, 874); renderer.shadowMap.enabled = true;
-renderer.setNodesHandler(new EngineNodesHandler()); installMemorySaver(renderer);
+installMemorySaver(renderer);
 const scene = new T.Scene(); scene.background = new T.Color('#153449');
 const camera = new T.PerspectiveCamera(42, 402 / 874, .1, 100);
 camera.position.set(9, 11, 19); camera.lookAt(0, 1, 0);

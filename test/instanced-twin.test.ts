@@ -23,6 +23,4 @@ test('a classic material\'s instanced twin reads the material live, files its ow
   material.dispose();
   expect([materialDisposed, twinDisposed]).toEqual([1, 1]); // the twin goes with its material
   expect(instancedMaterial(material)).not.toBe(twin); // a disposed twin is forgotten
-  const graph = new THREE.MeshBasicMaterial(); Reflect.set(graph, 'isNodeMaterial', true);
-  expect(instancedMaterial(graph)).toBe(graph); // node materials keep the shared material
 });

@@ -21,7 +21,6 @@ import { prepareSceneResources } from './scenePreparation';
 import { readbackPreparation } from './readbackPreparation';
 import { postTriangle } from './postPreparation';
 import { shadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVariants';
-import { installedGraphBackend } from './graphBackend';
 import { boundEntryWarmup } from './entryWarmupBound';
 import { workSlice } from '../core/workSlice';
 import { SHADOW_LAYER } from '../core/shadowLayer';
@@ -209,7 +208,7 @@ export async function warmComposerFrame(composer: Pick<EffectComposer, 'render'>
 /** any scene object, with the mesh-ish fields the program key reads (all optional: lights, groups and bones have none) */
 type MeshLike = THREE.Object3D & { isMesh?: boolean; geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[]; isInstancedMesh?: boolean; instanceColor?: THREE.InstancedBufferAttribute | null; isSkinnedMesh?: boolean; skeleton?: THREE.Skeleton; isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
 
-/** The parts of an object that change its material's program (including node shadow/skin layouts); `positionOnly` drops the
+/** The parts of an object that change its material's program (including shadow/skin layouts); `positionOnly` drops the
  * attribute bits a position-only override pass never reads. */
 export function programObjectKey(o: BatchedLike, positionOnly = false): string {
   const g = o.geometry;
@@ -916,7 +915,6 @@ export async function boundedLinkWait(ready: () => boolean | Promise<boolean>, w
 
 // Program identities are renderer-owned; preparation must not keep a retired renderer or revisit its resolved links.
 const resolvedPrograms = new WeakSet<ProgramLike>();
-const preparedBlocks = new WeakMap<ProgramLike, WeakSet<THREE.Material>>();
 
 /** The Developer tool's budget for other browsers' slices: under the 12 ms checked after the fact, and 64 MiB. */
 
@@ -1051,13 +1049,12 @@ function compileSignature(renderer: Renderer, job: CompileJob, camera: THREE.Cam
 function field(holder: unknown, name: string): string {
   return typeof holder === 'object' && holder !== null ? String(Reflect.get(holder, name)) : '-';
 }
-/** Each compiled object's material keys under `signature`; none for a node material (its build cache is its own). */
+/** Each compiled object's material keys under `signature`. */
 function compiledKeys(job: CompileJob, signature: string, use: (material: THREE.Material, key: string) => boolean): boolean {
   let any = false, all = true;
   job.root.traverse(object => {
     if (!all) return;
     for (const material of materialsOf(object)) {
-      if (Reflect.get(material, 'isNodeMaterial') === true) { all = false; return; }
       any = true;
       if (!use(material, `${String(material.version)}|${object.type}|${programObjectKey(object)}|${String(object.receiveShadow)}|${signature}`)) { all = false; return; }
     }
@@ -1132,25 +1129,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // draw was their first use: a blocking link query (53-99 ms getProgramInfoLog on the Simulator) in one frame.
   const jobPrograms = new Set<unknown>();
   const issuedPrograms = new Set<unknown>();
-  const nodeMaterials = new Map<unknown, Set<THREE.Material>>();
-  const prepareBlocks = (program: ProgramLike, cachedOnly = false): boolean => {
-    const handler = installedGraphBackend(renderer);
-    if (handler === null) return false;
-    let prepared = preparedBlocks.get(program);
-    if (prepared === undefined) { prepared = new WeakSet(); preparedBlocks.set(program, prepared); }
-    for (const material of nodeMaterials.get(program) ?? []) {
-      if (prepared.has(material)) continue;
-      if (cachedOnly) { if (!handler.prepareCachedProgram(material, program)) return false; }
-      else handler.prepareProgram(material, program);
-      prepared.add(material);
-    }
-    return true;
-  };
-  const needsBlocks = (program: ProgramLike): boolean => {
-    for (const material of nodeMaterials.get(program) ?? []) if (preparedBlocks.get(program)?.has(material) !== true) return true;
-    return false;
-  };
-  const needsPreparation = (program: ProgramLike): boolean => !resolvedPrograms.has(program) || needsBlocks(program);
+  const needsPreparation = (program: ProgramLike): boolean => !resolvedPrograms.has(program);
   // Holding at a wall can lend builders more shared frame time, but must not
   // enlarge this caller's explicit shader slice and join two slow native units.
   const spent = (start: number): boolean => performance.now() - start >= sliceMs || nativeBudgetSpent(sliceMs);
@@ -1167,12 +1146,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   };
   const resolveProgram = async (program: ProgramLike, start: number): Promise<void> => {
     // Completion queries and first-use queries are separate native units. A slow ready() must not admit a second
-    // expensive query, or its node-block preparation, into the same continuation. Cheap queries still batch.
-    let sliceStart = start;
-    if (spent(sliceStart)) { await pauseIssue(); sliceStart = tFrame; }
+    // expensive query into the same continuation. Cheap queries still batch.
+    if (spent(start)) await pauseIssue();
     if (!resolvedPrograms.has(program)) { program.getUniforms(); reportLinkFailure(renderer.getContext(), program); }
-    if (spent(sliceStart) && needsBlocks(program)) await pauseIssue();
-    prepareBlocks(program); resolvedPrograms.add(program);
+    resolvedPrograms.add(program);
   };
   // Keep issue and first use on one painted slice when the driver has already finished linking.
   // An incomplete link is queued; it never blocks issuing the next material or loses its owner fence.
@@ -1270,10 +1247,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         for (const program of materialPrograms(renderer, material)) {
           jobPrograms.add(program);
           issuedPrograms.add(program);
-          if (Reflect.get(material, 'isNodeMaterial') !== true) continue;
-          let variants = nodeMaterials.get(program);
-          if (variants === undefined) { variants = new Set(); nodeMaterials.set(program, variants); }
-          variants.add(material);
         }
       } });
     } finally {
@@ -1294,10 +1267,6 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     let knownPrograms = 0;
     const acquired = isolateImageUploads ? snapshotPrograms(renderer) : undefined;
     if (acquired !== undefined) for (const program of acquired) if (issuedPrograms.has(program)) {
-      // A later material can reuse this resolved program with new CPU-only
-      // group bindings. The handler must prove its native catalogue exists;
-      // missing catalogues retain the ordinary first-use/link queue.
-      if (cachedOnly && buildHeld() && presenting() && resolvedPrograms.has(program) && needsBlocks(program)) prepareBlocks(program, true);
       knownPrograms++; if (needsPreparation(program)) cachedOnly = false;
     }
     cachedOnly &&= knownPrograms > 0 && knownPrograms === issuedPrograms.size;
@@ -1578,14 +1547,11 @@ export function arrivalSet(root: THREE.Object3D, at: THREE.Vector3, radius: numb
 }
 
 /**
- * T10 (G808): the programs an arrival links before its reveal: `arrivalSet`, and every drawable of the destination that
- * wears a node (TSL) material wherever it is. A node material's first build is one unsliceable 30-90 ms job at 4x; left
- * to the after-reveal warm (`Game.warmArrivalRest`) it landed whole in a moving drive frame (a Pine drive's 67-133 ms
- * frames). Its parked first draws still follow the reveal with the rest.
+ * T10 (G808): the programs an arrival links before its reveal: `arrivalSet` (the node materials it also took, each one
+ * unsliceable build, retired with the node runtime in NF18). Its parked first draws still follow the reveal with the rest.
  */
 export function arrivalPrograms(root: THREE.Object3D, at: THREE.Vector3, radius: number): (object: THREE.Object3D) => boolean {
-  const near = arrivalSet(root, at, radius);
-  return object => near(object) || materialsOf(object).some(material => Reflect.get(material, 'isNodeMaterial') === true);
+  return arrivalSet(root, at, radius);
 }
 
 /** The level supplies compile policy; the mechanism owns all shader jobs. */

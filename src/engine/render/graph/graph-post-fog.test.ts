@@ -103,8 +103,3 @@ test('independent row owners share only their own clone uniforms and retain nume
   expect(()=>a.setParam('density',2)).toThrow(/range/);expect(()=>a.setParam('density',[1,2])).toThrow(/type/);expect(()=>a.setArrayParam('strength',[1,2])).toThrow(/capacity/);expect(()=>a.setTexture('density',texture)).toThrow(/lent texture/);
  }finally{copy.dispose();a.material.dispose();b.material.dispose();expect(disposed).toBe(false);texture.dispose();}
 });
-
-test('the legacy node backend refuses this labelled classic-post feature before building its nodes',async()=>{
- const {compileGraph}=await import('./compile');
- expect(()=>compileGraph(post(fog()),{trustedBudget:true})).toThrow(/classic post compiler/);
-});

@@ -1,8 +1,8 @@
 import { sceneScalarValue } from './sceneInputs';
 /**
  * The shardfile's graph materials on the client (SHARD-PLATFORM SF59 step 5): a `look.materials` (or skin binding) entry
- * `{ family: "graph", graph }` compiles to a node material through the engine's lazy graph back-end
- * (`render/graphBackend.ts`), so nothing here imports `three/webgpu` or `three/tsl`.
+ * `{ family: "graph", graph }` compiles to a classic GLSL program through the engine's lazy graph back-end
+ * (`render/graphBackend.ts`'s `loadLookGraphCompiler`).
  *
  * - **Admitted names only:** every graph is validated against the shard's real binding lists (`graphBindingSources`: the
  *   day-key channels its look keys carry and its declared public numeric state fields), never a compiler default that
@@ -29,7 +29,7 @@ import type { ToonLook } from '@wildshard/engine/render/families/toon';
 import { Color, Mesh, PointsMaterial, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType, type GraphLiteral } from '@wildshard/format/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
-import { graphMeshMapBase, tslLookCompiler, type GraphCompiler, type LookGraphCompiler, type LookGraphFog } from '@wildshard/engine/render/graphBackend';
+import { graphMeshMapBase, type LookGraphCompiler, type LookGraphFog } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources, graphFileJson, presetLooks } from '@wildshard/format/materials';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
@@ -177,7 +177,7 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided' 
  * `trustedGraphs` is host authority from an admitted runtime, never a field read from graph JSON.
  * An explicit budget refuses on admission failure instead of using a family material.
  */
-export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime' | 'questHost'>>, options: { compiler: LookGraphCompiler | Pick<GraphCompiler, 'compileGraph' | 'attachOutline'> | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
+export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime' | 'questHost'>>, options: { compiler: LookGraphCompiler | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
   /** Update a compiled material uniform; unknown/fallback materials and invalid values refuse. */
   setParam: (material: Material, name: string, value: GraphLiteral) => void;
   /** Lend a compiled material's `role: 'lent'` texture param its texture; unknown/fallback materials refuse. */
@@ -191,8 +191,8 @@ export function clientGraphs(source: Pick<Shardfile, 'identity' | 'look' | 'stat
   const outlines = new WeakMap<Material, GraphOutline>();
   const setters = new WeakMap<Material, (name: string, value: GraphLiteral) => void>();
   const lenders = new WeakMap<Material, (name: string, texture: Texture) => void>();
-  // either back-end behind the look-material contract (a bare TSL compiler, as tests hand one, through its adapter)
-  const lookCompiler = options.compiler === null ? null : 'backend' in options.compiler ? options.compiler : tslLookCompiler(options.compiler);
+  // the classic back-end behind the look-material contract (null: the Debug row off, every graph falls back)
+  const lookCompiler = options.compiler;
   /** the shard's declared fogs (O11): each `kind: 'fog'` entry compiles once (its carrier, by entry) and lends its patch */
   const fogCarriers = new WeakMap<GraphMaterialEntry, Material>();
   const fogPatches = new WeakMap<Material, LookGraphFog>();

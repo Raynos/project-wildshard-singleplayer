@@ -1,67 +1,22 @@
 /**
- * The lazy door to the TSL back-end (SHARD-PLATFORM SF59 step 2; sf59-tsl-spike.md §5 point 4). `three/webgpu` +
- * `three/tsl` add ≈ 117 KB gzip (the spike's surface; up to ≈ 256 KB for all of it), so they load as their own chunk, only
- * when a graph material is about to be used: `await loadGraphBackend(renderer)` installs the engine's node handler
- * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
- * shard without a graph material pays nothing and its programs stay byte for byte.
+ * The lazy door to the material graph back-end: an SF59 graph IR compiles to its classic GLSL program (`graph/glslMaterial.ts`,
+ * nine-fix NF14; the TSL node runtime retired in NF18) only when a graph is about to be used, so a shard without a graph
+ * material loads none of it. `loadLookGraphCompiler` compiles look materials (their outlines, declared fogs and displaced
+ * casters' shadow depth), `loadPostGraphCompiler` scaled post programs and `loadScenePostGraphCompiler` a shard's own post
+ * stack; `bindGraphMeshMap` lends a compiled graph a model's maps in scope-owned clones.
  */
 import { Texture, Material, Object3D, Vector2, type Camera, type Mesh, type MeshDepthMaterial, type Scene } from 'three';
 import type { Pass } from 'postprocessing';
 import type { GraphBinding, GraphLiteral, GraphValidation, GraphValidationOptions } from '@wildshard/format/materialGraph';
 import type { ToonLook } from './families/toon';
 import type { Scope } from '../app/scope';
-import { graphNodeOwner, ownGraphNodes } from './nodes/graphOwners';
-import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
-import type { EngineNodesHandler } from './nodes/engineNodesHandler';
-import type { NodeMaterial } from 'three/webgpu';
 import type { Renderer } from './renderer';
 import { installClassicShadowDepth } from './shadowMaterialOwnership';
 import { registerShadowDepthResolver, type ShadowDepthResolver } from './shadowDepthVariants';
 
-const installed = new WeakMap<Renderer, Promise<EngineNodesHandler>>();
-const ready = new WeakMap<Renderer, EngineNodesHandler>();
-
-/** the renderer's node handler once installed, else null (never loads the back-end; diagnostics read its counters) */
-export function installedGraphBackend(renderer: Renderer): EngineNodesHandler | null { return ready.get(renderer) ?? null; }
-
-/** install the engine's node handler on this renderer (once; later calls return the same handler) */
-export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler> {
-  const known = installed.get(renderer);
-  if (known !== undefined) return known;
-  const loading = import('./nodes/engineNodesHandler').then(({ EngineNodesHandler: Handler }) => {
-    const handler = new Handler();
-    renderer.setNodesHandler(handler);
-    ready.set(renderer, handler);
-    return handler;
-  });
-  installed.set(renderer, loading);
-  return loading;
-}
-
-/** the graph compiler's entry points, once its chunk has loaded */
-export interface GraphCompiler {
-  readonly compileGraph: typeof compileGraph;
-  /** add a compiled graph's outline stage to a mesh as its second draw (SF59 step 7) */
-  readonly attachOutline: typeof attachOutline;
-  /** a compiled post graph as a composer pass (SF59 step 4) */
-  readonly GraphPostPass?: typeof GraphPostPass;
-  /** the normal pre-pass a post stack reading `sceneNormal` pays once */
-  readonly GraphNormalPrepass?: typeof GraphNormalPrepass;
-}
-
-/**
- * install the engine's node handler on this renderer, then load the material graph compiler (`graph/compile.ts`,
- * SF59 step 3) from the same lazy chunk family: a graph IR becomes a node material only through this door
- */
-export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompiler> {
-  await loadGraphBackend(renderer);
-  const { attachOutline: attach, compileGraph: compile, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass } = await import('./graph/compile');
-  return { compileGraph: compile, attachOutline: attach, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass };
-}
-
 /** a compiled declared fog (`kind: 'fog'`), opaque outside the back-end that compiled it */
-export interface LookGraphFog { readonly backend: 'tsl' | 'glsl' }
-/** what a look material's compile takes, on either back-end */
+export interface LookGraphFog { readonly backend: 'glsl' }
+/** what a look material's compile takes */
 export interface LookGraphOptions extends GraphValidationOptions {
   readonly toon?: ToonLook;
   readonly replaceEnvironmentDiffuse?: boolean;
@@ -70,7 +25,7 @@ export interface LookGraphOptions extends GraphValidationOptions {
   readonly fog?: (id: string) => LookGraphFog;
   readonly validated?: Extract<GraphValidation, { ok: true }>;
 }
-/** a compiled look material, on either back-end */
+/** a compiled look material */
 export interface LookGraph {
   readonly material: Material;
   readonly outline: Material | null;
@@ -79,50 +34,34 @@ export interface LookGraph {
   readonly setParam: (name: string, value: GraphLiteral) => void;
   readonly setTexture: (name: string, texture: Texture) => void;
 }
-/** A look material's graph compiler: the shipped TSL one (`graph/compile.ts`) or the classic GLSL one
- *  (`graph/glslMaterial.ts`, nine-fix NF14). A compile's declared fogs and outlines are its own back-end's. */
+/** A look material's graph compiler: the classic GLSL one (`graph/glslMaterial.ts`, nine-fix NF14). A compile's declared
+ *  fogs are its own. */
 export interface LookGraphCompiler {
-  readonly backend: 'tsl' | 'glsl';
+  readonly backend: 'glsl';
   readonly compileGraph: (input: unknown, opts: LookGraphOptions) => LookGraph;
   readonly attachOutline: (mesh: Mesh, outline: Material) => Mesh;
 }
-/** a back-end's declared fogs behind their tokens */
-function fogTokens<P>(backend: 'tsl' | 'glsl'): { readonly wrap: (fog: P | null) => LookGraphFog | null; readonly unwrap: (token: LookGraphFog) => P } {
+/** a compiler's declared fogs behind their tokens */
+function fogTokens<P>(): { readonly wrap: (fog: P | null) => LookGraphFog | null; readonly unwrap: (token: LookGraphFog) => P } {
   const own = new WeakMap<LookGraphFog, P>();
   return {
-    wrap: (fog) => { if (fog === null) return null; const token: LookGraphFog = { backend }; own.set(token, fog); return token; },
-    unwrap: (token) => { const fog = own.get(token); if (fog === undefined) throw new Error(`material graph: a declared fog of another ${backend === 'tsl' ? 'back-end' : 'compile'}`); return fog; },
+    wrap: (fog) => { if (fog === null) return null; const token: LookGraphFog = { backend: 'glsl' }; own.set(token, fog); return token; },
+    unwrap: (token) => { const fog = own.get(token); if (fog === undefined) throw new Error('material graph: a declared fog of another compile'); return fog; },
   };
 }
-const isNodeMaterial = (material: Material): material is NodeMaterial => Reflect.get(material, 'isNodeMaterial') === true;
-/** The shipped TSL compiler behind the look-material contract (its declared fogs as tokens). */
-export function tslLookCompiler(compiler: Pick<GraphCompiler, 'compileGraph' | 'attachOutline'>): LookGraphCompiler {
-  const fogs = fogTokens<NonNullable<ReturnType<GraphCompiler['compileGraph']>['fog']>>('tsl');
-  return {
-    backend: 'tsl',
-    compileGraph: (input, { fog, ...opts }) => {
-      const compiled = compiler.compileGraph(input, { ...opts, ...(fog === undefined ? {} : { fog: (id: string) => fogs.unwrap(fog(id)) }) });
-      return { material: compiled.material, outline: compiled.outline, fog: fogs.wrap(compiled.fog), bindings: compiled.bindings, setParam: compiled.setParam, setTexture: compiled.setTexture };
-    },
-    attachOutline: (mesh, outline) => {
-      if (!isNodeMaterial(outline)) throw new Error('material graph: a TSL outline is a node material');
-      return compiler.attachOutline(mesh, outline);
-    },
-  };
-}
-/** a compiled post graph, on either back-end: a scaled post pass lends its inputs as textures and moves its params */
+/** a compiled post graph: a scaled post pass lends its inputs as textures and moves its params */
 export interface PostGraph {
   readonly material: Material;
   readonly setParam: (name: string, value: GraphLiteral) => void;
   readonly setTexture: (name: string, texture: Texture) => void;
   readonly setArrayParam: (name: string, value: readonly GraphLiteral[]) => void;
 }
-/** A post graph compiler: the shipped TSL one or the classic GLSL one (nine-fix NF16's seam). */
+/** A post graph compiler: the classic GLSL one (nine-fix NF16's seam). */
 export interface PostGraphCompiler {
-  readonly backend: 'tsl' | 'glsl';
+  readonly backend: 'glsl';
   readonly compileGraph: (input: unknown, opts: GraphValidationOptions) => PostGraph;
 }
-/** The post compiler: the classic GLSL one (the default since PF10, G941; it loads no node runtime). */
+/** The post compiler: the classic GLSL one (the default since PF10, G941). */
 export async function loadPostGraphCompiler(renderer: Renderer): Promise<PostGraphCompiler> {
   const [{ compileClassicGraph }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
   installGraphShaderHost(renderer);
@@ -150,7 +89,7 @@ export interface ScenePostGraphCompiler {
   readonly compilePass: (input: unknown, opts: ScenePostOptions) => { readonly graph: PostGraph & Pick<LookGraph, 'bindings'>; readonly pass: ScenePostPass };
   readonly normalPrepass: (scene: Scene, camera: Camera) => ScenePostPrepass;
 }
-/** The scene post compiler: classic GLSL passes (nine-fix NF18; it loads no node runtime). */
+/** The scene post compiler: classic GLSL passes (nine-fix NF18). */
 export async function loadScenePostGraphCompiler(renderer: Renderer): Promise<ScenePostGraphCompiler> {
   const [{ compileClassicGraph }, { installGraphShaderHost }, { ClassicPostPass, GraphNormalPrepass }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram'), import('./graph/glslPost')]);
   installGraphShaderHost(renderer);
@@ -171,17 +110,14 @@ function classicDepthResolver(depthOf: (source: unknown, stock: MeshDepthMateria
   if (resolve === undefined) { resolve = (source, stock) => depthOf(source, stock, compileCaster); classicDepthResolvers.set(depthOf, resolve); }
   return resolve;
 }
-/**
- * The look-material compiler: the classic GLSL one (the default since PF10, G941), which loads no node runtime and
- * installs no node handler. The TSL compiler stays `loadGraphCompiler`'s until NF18.
- */
+/** The look-material compiler: the classic GLSL one (the default since PF10, G941). */
 export async function loadLookGraphCompiler(renderer: Renderer): Promise<LookGraphCompiler> {
   const [{ compileClassicGraph, attachClassicOutline, classicShadowDepth }, { installGraphShaderHost }] = await Promise.all([import('./graph/glslMaterial'), import('./graph/glslProgram')]);
   installGraphShaderHost(renderer);
   installClassicShadowDepth(classicShadowDepth);
   // precompile's shadow jobs warm each classic caster's own depth program (it links in the loading, not at its first cast)
   registerShadowDepthResolver(renderer, classicDepthResolver(classicShadowDepth));
-  const fogs = fogTokens<NonNullable<ReturnType<typeof compileClassicGraph>['fog']>>('glsl');
+  const fogs = fogTokens<NonNullable<ReturnType<typeof compileClassicGraph>['fog']>>();
   return {
     backend: 'glsl',
     compileGraph: (input, { fog, ...opts }) => {
@@ -233,19 +169,8 @@ export function bindGraphMeshMap(material: Material, map: Texture | Material | n
   return variant;
 }
 
-/** A scope-owned clone of a compiled graph material that shares its nodes, and so its compile's node owner: a clone with
- *  no owner was a full node build per mesh map (nodeBuildReuse rebinds an equal graph's build, and refuses what it cannot) */
-function graphClone(material: Material, scope: Scope): Material {
-  const variant = scope.own(material.clone());
-  shareGraphOwner(variant, material);
-  return variant;
-}
-/** `variant`, a clone of `source` sharing its nodes (a cell's clip variant), builds as `source`'s compile would: an equal
- *  earlier build is rebound to it instead of a full node build (no-op for a material no graph compile made) */
-export function shareGraphOwner(variant: Material, source: Material): void {
-  const owner = graphNodeOwner(source);
-  if (owner !== undefined) ownGraphNodes(variant, owner);
-}
+/** A scope-owned clone of a compiled graph material (a classic graph's clone shares its uniforms, `GraphShaderMaterial.copy`). */
+function graphClone(material: Material, scope: Scope): Material { return scope.own(material.clone()); }
 
 /** Resolve the compiled graph that owns a borrowed-map variant, including its outline and live parameter feeds. */
 export function graphMeshMapBase(material: Material): Material { return meshMapBases.get(material) ?? material; }

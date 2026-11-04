@@ -5,7 +5,7 @@ import { onGpuRestored } from '@wildshard/engine/core/gpuOnly';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { loadLookGraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
 import { registerOffscreenPreparation } from '@wildshard/engine/render/offscreenPreparation';
@@ -81,9 +81,9 @@ export class StaticCapture {
 
   /** Admit the rows, load the graph compiler and compile the contact pass over `tHeight`, then make the capture. */
   static async create(renderer: Renderer, scene: THREE.Scene, tHeight: THREE.Texture, scope: Scope, input: unknown, uniforms: StaticCaptureUniforms): Promise<StaticCapture> {
-    const row = v.parse(StaticCaptureSchema, input), compiler = await loadGraphCompiler(renderer);
+    const row = v.parse(StaticCaptureSchema, input), compiler = await loadLookGraphCompiler(renderer);
     if (scope.disposed) throw new Error('Static capture scope unloaded during the graph compiler load');
-    const compiled = compiler.compileGraph(STATIC_CONTACT_GRAPH); compiled.setTexture('height', tHeight);
+    const compiled = compiler.compileGraph(STATIC_CONTACT_GRAPH, {}); compiled.setTexture('height', tHeight);
     return new StaticCapture(renderer, scene, scope, row, uniforms, { material: compiled.material, setParam: (name, value) => { compiled.setParam(name, value); } });
   }
   private constructor(private readonly renderer: Renderer, private readonly scene: THREE.Scene, scope: Scope, row: StaticCaptureRows, private readonly uniforms: StaticCaptureUniforms,

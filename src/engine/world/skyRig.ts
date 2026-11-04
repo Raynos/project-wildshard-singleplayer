@@ -146,7 +146,7 @@ export class SkyRig {
       this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
-    // SF59: node materials gate the cascades too (cascadeLights.ts); NF17: a classic graph program takes the chunk setup
+    // NF17: a classic graph program takes the chunk setup (cascadeLights.ts)
     registerCascades({ csm: this.csm, ghosts: this.shadowFade?.ghosts ?? [], fade: sunFadeUniform, setup: (mat) => { this.setupCascades(mat); } });
     if (this.level.tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     // a low sun (golden hour, dawn) grazes flat decks: a shadow style may take more normal bias, or the planks speckle with acne
@@ -364,7 +364,7 @@ export class SkyRig {
   private static fillers: { white: THREE.DataTexture; flatNormal: THREE.DataTexture } | null = null;
   private static fillSlots(mat: THREE.Material) {
     const m = mat as THREE.MeshStandardMaterial;
-    if (!m.isMeshStandardMaterial || Reflect.get(mat, 'isNodeMaterial') === true || hasProgramKey(mat)) return;
+    if (!m.isMeshStandardMaterial || hasProgramKey(mat)) return;
     if (!SkyRig.fillers) {
       const tex = (rgb: [number, number, number], srgb: boolean) => { const t = new THREE.DataTexture(new Uint8Array([...rgb, 255]), 1, 1); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; return t; };
       SkyRig.fillers = { white: tex([255, 255, 255], true), flatNormal: tex([128, 128, 255], false) };

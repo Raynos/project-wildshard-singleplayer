@@ -13,15 +13,15 @@ import { Scope } from '../app/scope';
  * (programs are shared by key, so a precompiled variant links nothing again), and neither flips. This is the one allowed
  * second program of a lent look (the look library's no-recompile rule's exception): no shader, value or texture is
  * duplicated. The twin's version and needs-update follow the material's; it has its own events, and goes with the
- * material's dispose. Node materials (their graph is read from their own fields) keep the shared material.
+ * material's dispose.
  */
 const twins = new WeakMap<THREE.Material, THREE.Material>();
 const made = new WeakSet<THREE.Material>();
 const isMaterial = (value: unknown): value is THREE.Material => value instanceof THREE.Material;
 
-/** `material`'s instanced twin (made once, kept while both live); a node material or a twin itself stays as it is */
+/** `material`'s instanced twin (made once, kept while both live); a twin itself stays as it is */
 export function instancedMaterial(material: THREE.Material): THREE.Material {
-  if (made.has(material) || Reflect.get(material, 'isNodeMaterial') === true) return material;
+  if (made.has(material)) return material;
   const known = twins.get(material);
   if (known !== undefined) return known;
   const created: unknown = Object.create(material);

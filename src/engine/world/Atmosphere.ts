@@ -3,7 +3,7 @@
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
 import { setInheritedPatch } from '../render/shaderPatches';
-import { FOG_SLOT, installFogPatch, type NodeFogPanorama, type NodeFogPatch } from '../render/fogPatches';
+import { FOG_SLOT, installFogPatch, type NodeFogPanorama } from '../render/fogPatches';
 
 export const fogUniforms: { fogSunDir: { value: THREE.Vector3; }; fogSunColor: { value: THREE.Color; }; fogHeight: { value: number; }; // metres; fog is densest below this
 fogHeightFalloff: { value: number; }; fogHeightDensity: { value: number; }; fogDistDensity: { value: number; }; 
@@ -62,7 +62,7 @@ export const weatherFogUniforms: { fogWeather: { value: THREE.Vector4; }; fogWea
 let weatherFogOn = false;
 let edgeHazeOn = false;
 
-/** which optional terms the installed fog chunk compiled in (the TSL back-end's fog, render/nodes/engineFog.ts, follows) */
+/** which optional terms the installed fog chunk compiled in */
 export function atmosphereTerms(): { edgeHaze: boolean; weather: boolean; wetSurfaces: boolean } {
   return { edgeHaze: edgeHazeOn, weather: weatherFogOn, wetSurfaces: pineWeather };
 }
@@ -182,7 +182,7 @@ function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean; we
 
 /** a level's colour ramp over the integrated fog (ColourRampFog): crisp to `fogRampStart`, then from the aerial `fogRampNear`
  *  into the sky's own gradient (horizon `fogColor` to `fogRampZenith`) by `fogRampEnd`, warmer toward the sun, high ground
- *  keeping more contrast; under the sea the dense fog wins in its own colour (engineFog.ts `colourRampFog` is its node twin) */
+ *  keeping more contrast; under the sea the dense fog wins in its own colour */
 const RAMP_COLOUR = `float rampR = smoothstep( fogRampStart, fogRampEnd, rayLen );
         float rampF = pow( rampR, 0.8 ) * mix( 1.0, 0.72, smoothstep( 4.0, 40.0, vFogWorldPos.y ) );
         vec3 fogCol = mix( fogRampNear, mix( fogColor, fogRampZenith, pow( smoothstep( 0.0, 0.75, max( viewDir.y, 0.0 ) ), 0.62 ) ), smoothstep( 0.0, 0.55, rampR ) );
@@ -230,8 +230,7 @@ const PANORAMA_PARS = /* glsl */`
   uniform sampler2D fogPanoLut; uniform vec4 fogPanoAerial; uniform vec4 fogPanoEdge; uniform vec3 fogPanoKey; uniform float fogPanoMoon;
   uniform vec3 fogPanoLight; uniform float fogPanoVeil; uniform vec3 fogPanoVeilColour; uniform float fogPanoFlash;
 #endif`;
-/** the panorama fog's chunk: aerial haze thinning with height, the integrated height fog, the edge haze, the re-graded LUT
- *  (engineFog.ts `colourRampFog` with a panorama is its node twin) */
+/** the panorama fog's chunk: aerial haze thinning with height, the integrated height fog, the edge haze, the re-graded LUT */
 const PANORAMA_FRAGMENT = /* glsl */`
     #ifdef USE_FOG
       {
@@ -258,8 +257,7 @@ const PANORAMA_FRAGMENT = /* glsl */`
 
 /**
  * A level's colour-ramp fog (Firewatch-style distance × height haze into the sky's own gradient), one live set of
- * uniforms for both paths: `model(order)` is the look's `fog` (the classic chunk with the ramp term above, and the graph
- * node `{ colourRamp }`), `control` its `fogControl` (Explore's overhead map turns the haze off for its shot). A day clock
+ * uniforms: `model(order)` is the look's `fog` (the classic chunk with the ramp term above), `control` its `fogControl` (Explore's overhead map turns the haze off for its shot). A day clock
  * moves `near` / `zenith` (linear colours) and the range (m) in place; no shader rebuilds. With `panorama` (a painted
  * world: fogPatches.ts `NodeFogPanorama`) the haze's colour and curve are the panorama's instead of the ramp's; `zenith` stays the colour a
  * graph's `fogZenithColour` reads.
@@ -282,8 +280,8 @@ export class ColourRampFog {
   }
 
   /** the look's fog in its slot: the ramp replaces the engine's fog chunk (installed first) and rides every fogged material */
-  model(order: number): { readonly order: number; readonly install: () => void; readonly node: NodeFogPatch } {
-    return { order, node: { colourRamp: this }, install: () => {
+  model(order: number): { readonly order: number; readonly install: () => void } {
+    return { order, install: () => {
       THREE.ShaderChunk.fog_pars_fragment += this.panorama !== undefined ? PANORAMA_PARS
         : '\n#ifdef USE_FOG\n  #define WS_FOG_RAMP_ZENITH\n  uniform vec3 fogRampZenith; uniform vec3 fogRampNear; uniform float fogRampStart; uniform float fogRampEnd;\n#endif';
       THREE.ShaderChunk.fog_fragment = this.panorama !== undefined ? PANORAMA_FRAGMENT : fogFragment(false, false, true);

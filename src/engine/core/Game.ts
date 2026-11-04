@@ -23,7 +23,6 @@ import type { N8AOPostPass } from 'n8ao';
 import { halfGodRaysMask, ldrOutputBuffer, quarterBloom } from '../render/lighterTargets';
 import { installAoTransparency } from '../render/aoTransparency';
 import { protectDisplayColour, protectDisplayColourAo } from '../render/displayColour';
-import { installedGraphBackend } from '../render/graphBackend';
 import { retried } from '../boot/retry';
 import { RegionCinematic } from '../render/regionCinematic';
 import { prepareWorldLook, CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
@@ -530,7 +529,7 @@ export class Game {
     const render = loadLook === undefined ? null : retried(loadLook); // the render code downloads while the sky builds; buildComposer reads both
     this.lookStrategy = await render;
     const fog = this.lookStrategy?.fog; // after installAtmosphere (the constructor), before the sky or anything compiles (01 §13.2: its slot)
-    if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install, this.level.id, fog.node);
+    if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install, this.level.id);
     this._sky = await new Sky(this.rootScene, this.camera, this.renderer).build(this.lookStrategy, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null }); // its lighting, shadows, backdrop and sky dressing
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     await prepareWorldLook(this.lookStrategy, { renderer: this.renderer, sky: this._sky, scope: this.levelScope });
@@ -956,26 +955,10 @@ export class Game {
   /** Last entered-frame preparation's running phase, measured work counts and scalar timings. Painted waits are
    * included; no content resources are retained. The root identifies the exact destination. */
   get entryPreparation(): Readonly<EntryPreparation> | null { return this._entryPreparation; }
-  /** The node (graph material) programs built so far and the recent build log (`EngineNodesHandler.buildLog`); null
-   *  before any graph material loaded the back-end. Preparation and stock frontend times subdivide each total;
-   *  frontendMs is null on reuse. The frame floor counts builds after an entry's warm-up. */
-  get nodeBuilds(): { readonly builds: number; readonly buildMs: number; readonly log: readonly { at: number; ms: number; prepareMs: number; frontendMs: number | null; material: string; object: string; how: string }[] } | null {
-    const handler = installedGraphBackend(this.renderer);
-    return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs, log: handler.buildLog };
-  }
-  /** reuses a kept (disposed) build served and the kept builds a compile could not use, by reason
-   *  (`EngineNodesHandler.keptReuses` / `keptMisses`); a diagnostic the frame floor's leak cycle reads */
-  get nodeKeptBuilds(): { readonly reuses: number; readonly misses: Readonly<Record<string, number>> } | null {
-    const handler = installedGraphBackend(this.renderer);
-    return handler === null ? null : { reuses: handler.keptReuses, misses: { ...handler.keptMisses } };
-  }
-  /** each `nodeBuilds.log` row's program parameters at the same index (`EngineNodesHandler.buildKeys`); a diagnostic */
-  get nodeBuildKeys(): readonly string[] | null { return installedGraphBackend(this.renderer)?.buildKeys ?? null; }
-  /** node program key asks and the whole keys they built (`EngineNodesHandler.keyAsks` / `keyBuilds`); a diagnostic */
-  get nodeKeyAsks(): { readonly asks: number; readonly builds: number } | null {
-    const handler = installedGraphBackend(this.renderer);
-    return handler === null ? null : { asks: handler.keyAsks, builds: handler.keyBuilds };
-  }
+  /** The node (graph material) programs built so far: none since NF18 retired the node runtime (every graph is a classic
+   *  GLSL program, linked by precompile). Kept null for its readers (session/settlePrograms.ts, the frame-floor and loading
+   *  scripts) until LD10's member sweep retires them together. */
+  readonly nodeBuilds: { readonly builds: number; readonly buildMs: number; readonly log: readonly { at: number; ms: number; prepareMs: number; frontendMs: number | null; material: string; object: string; how: string }[] } | null = null;
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot uses the ordinary shaders/firstFrame stages for its final draw. If its composer already exists,
@@ -1148,18 +1131,10 @@ export class Game {
     const thaw = futureRoot !== undefined && futureRoot !== this.rootScene && !futureRoot.visible && parkedMatricesFrozen() ? freezeParkedMatrices(futureRoot, { shown: 'skip' }) : undefined;
     try {
     const shaderStart = diagnosticNow();
-    // OP2: the node (TSL) builds this warm-up ran: on Safari each is one long frame of the entry
-    const nodeStats = (): { builds: number; buildMs: number } | null => {
-      const handler = installedGraphBackend(this.renderer);
-      return handler === null ? null : { builds: handler.builds, buildMs: handler.buildMs };
-    };
-    const nodesBefore = nodeStats();
     const bootDrawn = this.frameCount === 0;
     await warmComposerFrame(composer, this.renderer,
       () => this.prepareEnteredPrograms(owner, composer, current, futureRoot, arrival, onStage, progress), current);
     onStage('shaders-and-composer', diagnosticNow() - shaderStart, 1);
-    const nodesAfter = nodeStats();
-    if (nodesAfter !== null) onStage('node-builds', nodesAfter.buildMs - (nodesBefore?.buildMs ?? 0), nodesAfter.builds - (nodesBefore?.builds ?? 0));
     const { warmParkedDraws, warmOffscreenPasses, HELD_PARKED_BUDGET, HELD_WEBKIT_PARKED_BUDGET, LIVE_PARKED_BUDGET } = await import('../render/parkedDraws');
     // WebKit first draws can block despite cheap JavaScript submissions. Pace cold
     // bindings one per completed frame; bounded copies share that already-warmed layout.

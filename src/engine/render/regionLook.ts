@@ -34,7 +34,6 @@
  * The patches leave with the region's scope. Generic engine code (E405): no level is named here.
  */
 import * as THREE from 'three';
-import { bindMaterialNodeFog } from './fogPatches';
 import type { Scope } from '../app/scope';
 import { captureFogUniforms } from '../world/Atmosphere';
 import { PATCH_ORDER, hasShaderPatch, patchShader, type ShaderSource } from './shaderPatches';
@@ -246,12 +245,7 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     // look: patching it again re-keyed the variant, so a clipped piece linked a second program after its first draw
     if (hasShaderPatch(material, 'region.look')) return;
     if (parts.worldPatch !== undefined) { parts.worldPatch(material, scope); material.needsUpdate = true; }
-    const nodeFog = parts.fog?.node;
-    if (parts.fog !== undefined) bindMaterialNodeFog(material, { id: look.id, origin, ...(nodeFog === undefined ? {} : { node: nodeFog }) }, scope);
-    if (lookChunksFor(material, look).size === 0) {
-      if (nodeFog !== undefined && Reflect.get(material, 'isNodeMaterial') === true) count++;
-      return;
-    }
+    if (lookChunksFor(material, look).size === 0) return;
     // three keys a program by its shader id (or a ShaderMaterial's original source id) and this key, never the patched text
     patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look, origin); }, { scope, key: (before) => `${before}|look:${look.id}`, pureKey: true, sceneShapeKey: true });
     material.needsUpdate = true; count++;

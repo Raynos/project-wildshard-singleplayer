@@ -1,6 +1,4 @@
-import type { Color, Fog, FogExp2, Material, Texture, Vector3, Vector4 } from 'three';
-import type { Node } from 'three/webgpu';
-import type { Scope } from '../app/scope';
+import type { Color, Texture, Vector4 } from 'three';
 
 /**
  * The fog-patch registry (01 §13.2, 10 §X5). The fog chunks (`fog_pars_*`, `fog_*`) are whole-chunk writes on three's
@@ -11,24 +9,6 @@ import type { Scope } from '../app/scope';
  */
 export const FOG_SLOT = { engine: 100, stylize: 200, level: 300 } as const;
 
-/** Trusted fog replacement receives colours after output transform and positions in its own level frame. */
-export interface NodeFogContext {
-  readonly engine: Node<'vec4'>;
-  readonly fog: Fog | FogExp2;
-  readonly position: Node<'vec3'>;
-  readonly camera: Node<'vec3'>;
-  readonly scale?: Node<'float'>;
-}
-/** A node equivalent of a classic fog chunk replacement; no shader text is parsed. */
-export interface NodeFogColourRamp {
-  /** Borrowed live range and linear colours; the day clock and map capture keep ownership. */
-  readonly start: { readonly value: number };
-  readonly end: { readonly value: number };
-  readonly near: { readonly value: Color };
-  readonly zenith: { readonly value: Color };
-  /** A painted world's panorama haze in place of the ramp's colour and curve. */
-  readonly panorama?: NodeFogPanorama | undefined;
-}
 /**
  * A painted world's panorama fog (G478 painterly look host): the haze takes the colour of the painting straight behind
  * each fragment, read from a heading LUT and re-tinted live by the hour and the weather, so the 3D world dissolves into its
@@ -49,48 +29,20 @@ export interface NodeFogPanorama {
     readonly veil: { readonly value: number }; readonly veilColour: { readonly value: Color }; readonly flash: { readonly value: number };
   };
 }
-/** A trusted callback or the engine's distance/height colour ramp; both replace classic fog in the same slot. */
-export type NodeFogPatch = ((out: Node<'vec4'>, context: NodeFogContext) => Node<'vec4'>) | { readonly colourRamp: NodeFogColourRamp };
-export interface FogPatchEntry { id: string; order: number; readonly node?: NodeFogPatch }
-/** A region's replacement (absent node: retain engine fog) and its borrowed origin (absent: the layer frame's, else none). */
-export interface MaterialNodeFog { readonly id: string; readonly node?: NodeFogPatch; readonly origin?: { readonly value: Vector3 } }
-const materialFog = new WeakMap<Material, MaterialNodeFog>();
-/**
- * A material's own fog for its whole life (O11: a graph material that selects a shard's declared fog graph,
- * `effectState.fog: '<id>'`). Set before the material's first build; a region binding still overrides it while bound
- * and restores it on release. The program key carries the fog's id (one program per fog, not per material).
- */
-export function ownMaterialNodeFog(material: Material, fog: MaterialNodeFog): void {
-  if (materialFog.has(material)) throw new Error(`Material already has a node fog (${fog.id})`);
-  materialFog.set(material, fog);
-}
-/** Scope a region's fog to its own materials; imports no TSL runtime and does not alter classic shaders. */
-export function bindMaterialNodeFog(material: Material, fog: MaterialNodeFog, scope: Scope): void {
-  if (scope.disposed) throw new Error('Node fog needs a live scope');
-  const previous = materialFog.get(material);
-  materialFog.set(material, fog);
-  const changed = (): void => { if (Reflect.get(material, 'isNodeMaterial') === true) material.needsUpdate = true; };
-  changed();
-  scope.onDispose(() => {
-    if (materialFog.get(material) !== fog) return;
-    if (previous === undefined) materialFog.delete(material); else materialFog.set(material, previous);
-    changed();
-  });
-}
-/** A material's region fog, else undefined for the page fog. */
-export function materialNodeFogOf(material: Material): MaterialNodeFog | undefined { return materialFog.get(material); }
+/** A fog patch's installed slot. */
+export interface FogPatchEntry { id: string; order: number }
 
 /** one page's fog patches: the page has one (installFogPatch); a test builds its own (E422) */
 export class FogPatchRegistry {
   private readonly installed: FogPatchEntry[] = [];
   private readonly lastByStage = new Map<string | undefined, FogPatchEntry>();
   /** Run once per id; enforce slot order in the engine stage (omitted) or the supplied level stage. */
-  install(id: string, order: number, install: () => void, stage?: string, node?: NodeFogPatch): boolean {
+  install(id: string, order: number, install: () => void, stage?: string): boolean {
     if (this.installed.some((p) => p.id === id)) return false;
     const last = this.lastByStage.get(stage);
     if (last !== undefined && order <= last.order) throw new Error(`[fog] patch ${id} (slot ${order}) installs after ${last.id} (slot ${last.order})`);
     install();
-    const entry: FogPatchEntry = { id, order, ...(node === undefined ? {} : { node }) };
+    const entry: FogPatchEntry = { id, order };
     this.installed.push(entry);
     this.lastByStage.set(stage, entry);
     return true;
@@ -101,7 +53,7 @@ export class FogPatchRegistry {
 const page = new FogPatchRegistry();
 
 /** Run once per id; enforce slot order in the engine stage (omitted) or the supplied level stage. */
-export function installFogPatch(id: string, order: number, install: () => void, stage?: string, node?: NodeFogPatch): boolean { return page.install(id, order, install, stage, node); }
+export function installFogPatch(id: string, order: number, install: () => void, stage?: string): boolean { return page.install(id, order, install, stage); }
 
 /** the page's installed fog patches, in install order (the WebGPU port inventory, tests) */
 export function fogPatches(): readonly FogPatchEntry[] { return page.patches(); }
