@@ -16,7 +16,8 @@ export interface CaptureJob {
 }
 export interface CaptureResult { readonly fine: readonly RoadTileReference[]; readonly coarse: readonly RoadTileReference[] }
 
-/** The bytes a job copies to the worker (its arrays): the backpressure the page capture's scratch had. */
+/** The bytes a job copies to the worker (its arrays, each its own whole buffer: `captureJob` copies views tight, so
+ *  structured clone copies exactly these): the backpressure the page capture's scratch had. */
 export function captureJobBytes(job: CaptureJob): number {
   return job.attributes.reduce((sum, row) => sum + row.array.byteLength, 0) + job.source.byteLength;
 }
@@ -26,10 +27,16 @@ export function captureJob(id: number, origin: string, geometry: BufferGeometry,
   for (const name of Object.keys(geometry.attributes)) {
     const attribute = geometry.getAttribute(name);
     if (!(attribute instanceof BufferAttribute)) return null;
-    attributes.push({ name, array: attribute.array, itemSize: attribute.itemSize, normalized: attribute.normalized });
+    attributes.push({ name, array: tight(attribute.array), itemSize: attribute.itemSize, normalized: attribute.normalized });
   }
   const bins = plan.bins.map(({ sphere, visibility: _visibility, ...bin }) => ({ ...bin, sphere: [sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius] as const }));
-  return { id, origin, attributes, source: plan.source, lod: [...plan.lod], bins, parents };
+  return { id, origin, attributes, source: tight(plan.source), lod: [...plan.lod], bins, parents };
+}
+
+/** An array that owns its whole buffer: structured clone copies a view's entire backing buffer, so a view is copied
+ *  tight first (the copy is the view's bytes, not the buffer's). */
+function tight<T extends TypedArray>(array: T): T {
+  return array.byteOffset === 0 && array.byteLength === array.buffer.byteLength ? array : array.slice() as T;
 }
 
 export class RoadTileCaptureWorker {
