@@ -305,23 +305,29 @@ the cut, and no production rendering or HUD source changes.
 
 ### DC12: lint, budget and allow-list entries that name deleted files (~355 entries, 7 files) · Codex · S
 
-**open (2026-11-04, sp-x2 LAST after the other deletions; G1015).** No
-DC12 global census or shared allow-list/budget changes by X8. DC8/DC9
-already retired only their own exact deleted-test timing rows and DC9
-deleted-file debt rows; preserve every peer hunk and start from fresh HEAD.
-Recompute missing-file entries after all deletion lanes finish, retain
-live source/data/reference entries, then run the required ratchet/path
-checks. The stale working plan copy must never be committed whole-file.
+**source committed (2026-11-04, sp-x2): `793c258d2e`.** Fresh HEAD
+census and policy-reader searches retired **2,413 missing-file entries in
+six policies**, after DC7 qualification: 1,488 performance sites, 906
+coupling sites, 13 obsolete SDK dist chunks, two private product JSON
+allowances and four historical baseline references (three X7, one Nalati).
+The path allow-list has zero stale entries and stays untouched. All two
+live Sunscar performance sites stay exact. Coupling counts decrease only
+by their removed site rows; six unattributed metric headroom values stay
+unchanged rather than inventing a deletion proof. Every numeric render,
+memory and wire ceiling, source/review field and live baseline reference
+stays exact. HEAD-only patches preserve peer debt additions in the tree.
+No test, timing, product or chargeback row is deleted by this metadata cut.
 
-- `lint/runtime-performance.json` 133 of 1,490 (old `src/shards/*/runtime/**` paths)
-- `lint/shard-coupling.json` 79 of 906 (old `_template` combat, species and weapons TS)
-- `lint/generated-source-debt.json` 13 (hashed `src/sdk/dist/*` chunks)
-- `lint/no-binary-json.json` 2
-- `scripts/check-paths.allow.json` 125 of 285
-- `budgets/x7-ceiling-sources.json` 3 and `budgets/nalati-ceiling-sources.json` 1 (gone `test/parity/baselines/gh-macos15/*` files)
-- **Note:** `lint/*.json` and `budgets/ceiling-sources.json` have another lane's uncommitted edits right now. Take this
-  row after those land, and patch by content (`--patch`). **Check:** `node lint/ratchet.mjs`,
-  `node scripts/check-paths.mjs`.
+Root types, 6 guard suites / 46 cases, direct policy shape/shrink controls
+and scoped scratch-baseline ratchet pass; `vitest related` finds no suites.
+Required full ratchet was attempted and **refused** a foreign shared-index
+entry for missing `src/engine/render/graph/compile.ts` (absent from HEAD).
+Required full path check was attempted and reports 708 existing generated,
+layout and tooling-path failures, including current ignored SDK outputs,
+old empty generator globs and a missing storage pin. Neither failure is
+suppressed or represented as passing. Raw untruncated reader/census and
+check logs: `tmp/sp-x2-dc12/`. The unchanged guards remain authoritative;
+publication is handled by the scheduled committed-source gate.
 
 ### DC13: loading-benchmark leftovers (16 files, 918 lines) · Codex · S · medium
 
