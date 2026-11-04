@@ -2661,6 +2661,7 @@
     {
       "name": "roost",
       "gate": true,
+      "lap": { "boost": false, "why": "DL17 lap: the board at Developer boost leaves the narrow sloping hover bridges (on foot you fall through), so the lap drives it on the board at normal speed" },
       "start": {
         "x": -52,
         "z": 4,
@@ -2730,6 +2731,7 @@
     {
       "name": "keeper",
       "gate": true,
+      "lap": { "boost": false, "why": "DL17 lap: the board at Developer boost leaves the narrow sloping hover bridges (on foot you fall through), so the lap drives it on the board at normal speed" },
       "start": {
         "x": 56,
         "z": -14,
@@ -2823,6 +2825,7 @@
     {
       "name": "keeper-to-roost",
       "gate": true,
+      "lap": { "boost": false, "why": "DL17 lap: the board at Developer boost leaves the narrow sloping hover bridges (on foot you fall through), so the lap drives it on the board at normal speed" },
       "start": {
         "x": -57,
         "z": -58,
