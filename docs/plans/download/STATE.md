@@ -15,8 +15,11 @@ recordings · DL24 first 30 s.
 tool (`e452f315d9`, `2477dc4e09`): sp-x9 12:31.
 
 **Autonomous decisions (for Jake's review, carried from SHARD-PLATFORM STATE):**
+- 11-04 G872: Pine ClientAssets wire released at control, default on (5bee95719d, -33 MB heap); geometry-array drop only if the Sim reading still breaks 1.2 GB. Fossil map-stamp-only delta qualifies. Ruler copied-runtime basis retired (76c7745bd9). FR18 golden promoted (defect); FR24 not (LEGACY has the veil: D229). A section read only by a test fixture is not shipped custom content.
 - DL5 "whole level" = the tier's whole inventory at control (no reach list). Grid neighbours keep today's loading (G828).
 - DL17 (A): distance show / hide / LOD of resident models is listed, not red. DL1 shipped before its yield fix (no revert).
 - Piano full banks before control (G1000 over I7, +1.6 s).
 
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
+
+**14:15:** 5 Opus (83 % weekly, G1007; my 2-lane step was an error). SHARD-PLATFORM archived 6d103d9bc2. Live 86f2590; CI fixes all on main, first green due from 262ea0da34 or later. DL24 phone link: 0 frames > 250 ms. For wildshard-v: RENDERING.md / JAKE.md still say 1.2 GB "until SHARD-PLATFORM closes" (G534/G556 keep it); AGENTS.md's Codex-lane clause names SHARD-PLATFORM (G1009 keeps them on DOWNLOAD / HOST-AUDIT / OPEN-PLOTS).
