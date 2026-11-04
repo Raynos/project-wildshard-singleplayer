@@ -4,46 +4,77 @@
 // on foot, on the hoverboard or at boost.
 //
 // scripts/browser-lane.sh node scripts/complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid
-//   [--engine=chromium|webkit] [--lap=<seconds, default 20>] [--out=<new json under ./tmp>]
+//   [--engine=chromium|webkit] [--sw=on|off] [--lap=<seconds, default 20>] [--out=<new json under ./tmp>]
 //
-// One cold visit of a served build (`scripts/serve-build.sh --rev`), phone tier, 2x, muted iPhone 16 Pro, Developer on.
-//   1. Requests: every request is timed on the Node side; control is the page's `ws:control-ready` plus its next frame.
-//      A level-content request still open at control, or started after it, fails the gate.
+// One cold visit of a served build (`scripts/serve-build.sh --rev`), phone tier, 2x, muted iPhone 16 Pro, Developer on,
+// the service worker ON by default (a fresh context, so it installs during the visit, as a player's first visit does).
+//   1. Requests: every request of the context is timed on the Node side, the page's, its dedicated workers' and (Chromium)
+//      the service worker's own fetches; control is the page's `ws:control-ready` plus its next frame. Level content is
+//      every same-origin request that does not name another level (its hashed JS, shared code, common and canonical audio
+//      all count); a level-content request still open at control, or started after it, fails the gate. A post-control
+//      fetch of a URL the visit already fetched before control (the worker's precache) is listed as a re-fetch, not a pop.
 //   2. Stand-ins at control: the grid's rings (far / l1 / l0 in flight or queued, cells showing a far proxy, tiles or near
 //      placeholders), the shardfile residency, and the spawn-view refinement queue (`wildshard.spawn-view*` marks) must
 //      show nothing pending and nothing standing in.
 //   3. A boost lap: the hoverboard at Developer boost (56 m/s) round a square of `reach` metres from spawn, sampling the
 //      same residency every 250 ms; any tile, refinement job, scene object or level request added during the lap is a pop.
 // Exit 0 = complete at control, 1 = the gate fails (the report lists every violation), 2 = no reading.
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
-import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
+import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach'].map(key => [key, { type: 'string' }])) });
+// the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
+process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
-  console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--lap=20] [--reach=220] [--out=tmp/<file>.json]');
+  console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--lap=20] [--reach=220] [--out=tmp/<file>.json]');
   process.exit(2);
 }
-const engine = values.engine ?? 'chromium', lapSeconds = Number(values.lap ?? '20'), reach = Number(values.reach ?? '220');
-if (!['chromium', 'webkit'].includes(engine) || !(lapSeconds > 0) || !(reach > 0)) { console.error('bad --engine / --lap / --reach'); process.exit(2); }
+const engine = values.engine ?? 'chromium', lapSeconds = Number(values.lap ?? '20'), reach = Number(values.reach ?? '220'), sw = values.sw ?? 'on';
+if (!['chromium', 'webkit'].includes(engine) || !['on', 'off'].includes(sw) || !(lapSeconds > 0) || !(reach > 0)) { console.error('bad --engine / --sw / --lap / --reach'); process.exit(2); }
 const out = resolve(values.out ?? `tmp/complete-at-control/${flow}-${rev.slice(0, 10)}-${engine}.json`);
 if (!out.startsWith(`${resolve('tmp')}/`)) { console.error('--out must be under ./tmp'); process.exit(2); }
 if (existsSync(resolve('.git/quiet'))) { console.error('Official Simulator quiet is active'); process.exit(2); }
 
-/** The level's own content: its shardfile files and its shard's assets. Other shards' precache and the app shell are not.
- *  In the grid the level is every cell a boost lap from spawn can reach (filled in at control from the grid's state). */
-const levelSlugs = new Set(flow === 'grid' ? [] : [flow]);
-const isLevelContent = (url) => {
-  const path = new URL(url).pathname;
-  for (const slug of levelSlugs) {
-    if (path.startsWith(`/shardfiles/${slug}/`) || path.startsWith(`/assets/${slug}/`) || path.startsWith(`/assets/baked/${slug}/`)) return true;
-    if (path.startsWith(`/assets/horizon/${slug}-`)) return true; // the level's sky panorama is on screen from the first frame
+/** Every level's slug: the grid's cells and the shard folders. */
+const ALL_SLUGS = new Set([
+  ...JSON.parse(readFileSync(resolve('src/game/grid/singleplayer.json'), 'utf8')).grid.cells.map(cell => cell.slug),
+  ...readdirSync(resolve('src/shards'), { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name),
+]);
+/** The level a URL names, or null for shared content: its shardfile files, its assets, baked files, music, sfx, horizon,
+ *  an open plot's asset folder, or a Rolldown chunk named after the shard. */
+function slugOf(path) {
+  const named = [/^\/shardfiles\/([^/]+)\//u, /^\/assets\/(?:baked\/|music\/|sfx\/)?([^/]+)\//u, /^\/assets\/horizon\/(.+?)-(?:day|night|dusk|dawn)/u,
+    /^\/assets\/shard-(.+?)-/u];
+  for (const pattern of named) {
+    const slug = pattern.exec(path)?.[1];
+    if (slug !== undefined && ALL_SLUGS.has(slug)) return slug;
   }
-  return false;
+  const plot = /^\/assets\/open-plots\/([^/]+)\//u.exec(path)?.[1];
+  if (plot !== undefined && ALL_SLUGS.has(`open-plot-${plot}`)) return `open-plot-${plot}`;
+  // flat hashed files named after a level: its chunks (`shard-<slug>-…`) and its card art (`<slug>-…`, an open plot's `<idea>-…`)
+  for (const slug of ALL_SLUGS) {
+    const idea = slug.replace(/^open-plot-/u, '');
+    if (path.startsWith(`/assets/shard-${slug}-`) || path.startsWith(`/assets/${slug}-`) || path.startsWith(`/assets/${idea}-`)) return slug;
+  }
+  return null;
+}
+/** The level's dependency set: every same-origin request that names no other level. In the grid the level is every cell a
+ *  boost lap from spawn can reach (filled in at control from the grid's state). */
+const levelSlugs = new Set(flow === 'grid' ? [] : [flow]);
+const origin = new URL(base).origin;
+const isLevelContent = (url) => {
+  const at = new URL(url);
+  // blob: and data: URLs are in-memory reads, not downloads
+  if (!at.protocol.startsWith('http') || at.origin !== origin || at.pathname === '/version.json') return false;
+  // SHARD SELECT card art (a level's thumb, portrait and landscape cards) is menu art, never drawn in the level
+  if (/^\/assets\/[a-z0-9-]+?-(?:landscape|portrait)-[\w-]+\.(?:jpg|webp)$/u.test(at.pathname) || /^\/assets\/card-[\w-]+\.jpg$/u.test(at.pathname)) return false;
+  const slug = slugOf(at.pathname);
+  return slug === null || levelSlugs.has(slug);
 };
 
 /** In-page residency snapshot: everything that could still change what is drawn near the player. */
@@ -94,18 +125,26 @@ try {
   await context.addInitScript(() => {
     document.addEventListener('ws:control-ready', () => { requestAnimationFrame(() => { Reflect.apply(Reflect.get(window, '__dl17Control'), window, []); }); }, { once: true });
   });
+  // the whole context's requests: the page's, its dedicated workers' and the service worker's own fetches
+  const open = new Map();
+  context.on('request', req => {
+    const row = { url: req.url(), start: Date.now(), end: null, failed: null, by: req.serviceWorker() === null ? 'page' : 'service-worker' };
+    open.set(req, row); requests.push(row);
+  });
+  context.on('requestfinished', req => { const row = open.get(req); if (row) row.end = Date.now(); });
+  context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
+  if (engine === 'webkit' && sw === 'on') report.limitations = ['Playwright WebKit reports no service-worker network events: worker-owned fetches are not counted'];
   const page = await context.newPage();
   page.setDefaultTimeout(240000);
   page.on('pageerror', error => report.errors.push(error.message));
-  const open = new Map();
-  page.on('request', req => { const row = { url: req.url(), start: Date.now(), end: null, failed: null }; open.set(req, row); requests.push(row); });
-  page.on('requestfinished', req => { const row = open.get(req); if (row) row.end = Date.now(); });
-  page.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
   const version = await (await fetch(new URL('/version.json', base))).json();
   if (typeof version.build !== 'string' || !version.build.startsWith(rev.slice(0, 7))) throw new Error(`Served build ${version.build} is not ${rev}`);
   report.build = version.build;
-  const url = new URL(flow === 'grid' ? floorGridBenchmarkUrl(base) : new URL('/', base).href);
-  if (flow !== 'grid') for (const [key, value] of Object.entries({ chunk: flow, tier: 'phone', skipintro: '1', nolock: '1', sw: '0', mute: '1' })) url.searchParams.set(key, value);
+  // the grid's title route (frame-floor's, but with the worker on unless --sw=off) or the shard's direct chunk route
+  const url = new URL('/', base);
+  const query = flow === 'grid' ? { mute: '1', nolock: '1' } : { chunk: flow, tier: 'phone', skipintro: '1', nolock: '1', mute: '1' };
+  for (const [key, value] of Object.entries({ ...query, ...(sw === 'off' ? { sw: '0' } : {}) })) url.searchParams.set(key, value);
+  report.sw = sw; report.url = url.href;
   const t0 = Date.now();
   await page.goto(url.href, { waitUntil: 'load' });
   if (flow === 'grid') {
@@ -148,12 +187,24 @@ try {
   report.afterLap = await page.evaluate(snapshot);
 
   // verdict
-  const level = requests.filter(r => isLevelContent(r.url));
+  const path = r => new URL(r.url).pathname;
+  // Who asked decides a shared file: the page (or its workers) fetching it means the running level needs it; the service
+  // worker fetching it alone is its precache (DL1), which no draw waits on. A file named after this level counts either way.
+  const precache = r => r.by === 'service-worker' && slugOf(path(r)) === null;
+  const level = requests.filter(r => isLevelContent(r.url) && !precache(r));
+  const fetchedBefore = new Set(level.filter(r => r.start < controlAt && r.end !== null && r.end <= controlAt && r.failed === null).map(path));
   const pending = level.filter(r => r.start < controlAt && (r.end === null || r.end > controlAt));
-  const after = level.filter(r => r.start >= controlAt);
-  report.requests = { total: requests.length, level: level.length, pendingAtControl: pending.map(r => r.url), afterControl: after.map(r => ({ url: r.url, msAfterControl: r.start - controlAt })), otherAfterControl: requests.filter(r => r.start >= controlAt && !isLevelContent(r.url)).map(r => r.url) };
+  const lateAll = level.filter(r => r.start >= controlAt), refetch = lateAll.filter(r => fetchedBefore.has(path(r))), after = lateAll.filter(r => !fetchedBefore.has(path(r)));
+  const shared = requests.filter(r => isLevelContent(r.url) && precache(r));
+  const row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - controlAt });
+  report.requests = { total: requests.length, byServiceWorker: requests.filter(r => r.by === 'service-worker').length, level: level.length,
+    pendingAtControl: pending.map(r => ({ url: r.url, by: r.by })), afterControl: after.map(row), refetchAfterControl: refetch.map(row),
+    precacheOpenAtControl: shared.filter(r => r.start < controlAt && (r.end === null || r.end > controlAt)).map(r => r.url),
+    precacheAfterControl: shared.filter(r => r.start >= controlAt).length,
+    otherAfterControl: requests.filter(r => r.start >= controlAt && !isLevelContent(r.url)).map(r => ({ url: r.url, by: r.by })) };
+  if (report.requests.precacheOpenAtControl.length > 0) report.warnings = [`${report.requests.precacheOpenAtControl.length} service-worker precache fetches still open at control (they compete with the level's download: DL1's target, not a pop)`];
   if (pending.length > 0) report.violations.push(`${pending.length} level-content requests still open at control`);
-  if (after.length > 0) report.violations.push(`${after.length} level-content requests started after control`);
+  if (after.length > 0) report.violations.push(`${after.length} level-content requests started after control (first: ${after.slice(0, 3).map(r => path(r)).join(', ')})`);
   const g = report.atControl.grid;
   if (g && !g.error) {
     const rings = g.rings ?? {};
