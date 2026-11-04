@@ -136,7 +136,8 @@ export function analyse(rows) {
     const perSecond = [];
     for (let s = 0; s < BAR.playS; s++) perSecond.push(inside.filter(g => g.at > control + s * 1000 && g.at <= control + (s + 1) * 1000).length);
     const top = worst(inside);
-    const settled = perSecond.slice(10).filter(n => n > 0).sort((a, b) => a - b);
+    // every covered second counts, a second with no frame too (sp-x1: dropping zeros let a stopped world read as settled)
+    const settled = perSecond.slice(10).sort((a, b) => a - b);
     return { source, sampledS: round(seen), frames: inside.length, fps: seen > 0 ? round(inside.length / seen) : 0,
       firstSecondFps: perSecond[0], settledFps: settled.length > 0 ? settled[Math.floor(settled.length / 2)] : 0,
       lowestSecondFps: Math.min(...perSecond.slice(0, Math.max(1, Math.floor(seen)))),
@@ -159,6 +160,11 @@ export function analyse(rows) {
       }
       prev = row;
     }
+    // a ring that stops advancing while the polls go on is a world that stopped drawing (sp-x1): the time from its last
+    // drawn frame to its last poll in the window is one open frame, as the HUD meter counts its pending interval
+    const lastDrawnAt = drawn.at(-1)?.at ?? control, windowEnd = control + BAR.playS * 1000;
+    const lastPoll = polls.findLast(row => row.drawn && row.t <= windowEnd);
+    if (drawn.length > 0 && lastPoll !== undefined && lastPoll.t > lastDrawnAt) drawn.push({ at: lastPoll.t, ms: lastPoll.t - lastDrawnAt, open: true });
     const page = playStats(gaps, 'page requestAnimationFrame');
     // what the player did: metres walked and boarded, top speed on the board (drive.mjs's walk, then hoverboard + boost)
     const motion = { walkM: 0, boostM: 0, boostTopMps: 0, boostEngaged: false };
@@ -194,7 +200,7 @@ export function analyse(rows) {
     // without the game's frame ring is no reading, so it fails rather than passes on the page's 60 Hz rAF
     playNoFrameOver250ms: playJudged && play.framesOver250 === 0 && (play.page?.framesOver250 ?? 0) === 0,
     // "normal fps from second one": no second of the first five below 80 % of the shard's settled rate (seconds 10-30)
-    playSteadyFromSecondOne: playJudged && play.perSecond.slice(0, 5).every(n => n >= 0.8 * play.settledFps),
+    playSteadyFromSecondOne: playJudged && play.settledFps > 0 && play.perSecond.slice(0, 5).every(n => n >= 0.8 * play.settledFps),
     stuckShowsRetry: control !== null || retryShown,
     // the play window really walked and boosted (an unmoved player would read a smooth standstill)
     playWalkedAndBoosted: play !== null && play.motion.walkM >= 5 && play.motion.boostEngaged && play.motion.boostM > play.motion.walkM,

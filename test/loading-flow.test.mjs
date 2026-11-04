@@ -170,3 +170,14 @@ test('profile.mjs: the samples inside a long loading frame name the function hol
   expect(frame.self[0]).toEqual({ fn: 'update animals.js:12', samples: frame.samples });
   expect(frame.inclusive.map(row => row.fn)).toContain('stepFrame Game.js:900');
 });
+
+test('a frame ring that stops advancing while the polls go on is a world that stopped drawing (sp-x1)', () => {
+  const rows = [{ ev: 'tapEnter', t: TAP }, card(0), card(0.5, { dl: 'Spawn view · 9.00 MB' }), frames(0, 40, 16.7)];
+  const drawn = ring();
+  // 60 fps for the first 10 s after control, then the ring stands still through 32 s while the page and polls run on
+  for (let s = 1; s <= 33; s += 0.5) rows.push(card(s, { shown: false, control: true, origin: TAP, drawn: drawn(s === 1 || s > 11 ? 0 : 30, 17) }));
+  const { play, bar } = analyse(rows);
+  expect(play.longestFrameMs).toBeGreaterThanOrEqual(19_000);
+  expect(play.settledFps).toBe(0);
+  expect(bar).toMatchObject({ playNoFrameOver250ms: false, playSteadyFromSecondOne: false });
+});
