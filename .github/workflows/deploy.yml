@@ -652,6 +652,8 @@ jobs:
 
       - name: Verify preparation, checks and build (parallel)
         run: |
+          python3 scripts/ci-disk-census.py prepare-before-parallel
+          trap 'python3 scripts/ci-disk-census.py prepare-after-parallel' EXIT
           # shellcheck disable=SC2016 # Expand CI identity only inside the owned child shell.
           python3 scripts/ci-fail-fast.py -- node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs --prepared \
             'python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs && node scripts/check-devserver.mjs dist' \
