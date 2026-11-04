@@ -191,15 +191,15 @@ const ITEMS = [
     } },
 
   // ───────────── quests and the world ─────────────
-  { id: 'UI-12', slug: 'quest-givers', title: 'Quest-giver markers: yellow ! (eligible), grey ! (too low) (W1b · HC6)', setup: atCamp,
-    note: 'Wendell and Maren stand in for the tier givers',
+  { id: 'UI-12', slug: 'quest-givers', title: 'Quest-giver markers: yellow ! (eligible), grey ! (too low) (W1b · HC6)', setup: atCamp, // Jake 11-03: the ! sits just above the head
+    note: 'Wendell and Maren stand in',
     inject: (page) => page.evaluate(() => {
-      const givers = [{ x: -19.6, y: 21.6, z: -72.2, cls: '', sub: 'YARD BOSS · L1–6' }, { x: -24.4, y: 21.6, z: -73.5, cls: 'grey', sub: 'SURVEYOR · LV 7' }];
+      const givers = [{ x: -19.6, y: 19.6, z: -72.2, cls: '', sub: 'YARD BOSS · L1–6' }, { x: -24.4, y: 19.6, z: -73.5, cls: 'grey', sub: 'SURVEYOR · LV 7' }];
       const layer = window.__P.add('#hud', '<div class="ws-combat-layer"></div>');
       const mm = document.querySelector('.ws-minimap'), r = mm.getBoundingClientRect();
       for (const g of givers) {
         const p = window.__P.project(g.x, g.y, g.z);
-        window.__P.at(window.__P.add(layer, `<div class="ws-quest-giver ${g.cls}"><b>!</b><span>${g.sub}</span></div>`), p, 0, -30);
+        window.__P.at(window.__P.add(layer, `<div class="ws-quest-giver ${g.cls}"><span>${g.sub}</span><b>!</b></div>`), p, 0, -56);
         const l = window.__P.local(g.x, g.y, g.z), k = (r.width / 2) / 110;
         const pip = window.__P.add(mm, `<i class="ws-quest-mappip ${g.cls}">!</i>`);
         pip.style.left = `${r.width / 2 + l.right * k}px`; pip.style.top = `${r.height / 2 - l.ahead * k}px`;

@@ -101,9 +101,15 @@ const fig = ([id, slug, title, kind, cap]) => {
     + `<figure><img loading="lazy" src="${f}-before.jpg" alt="${id} before"><figcaption>BEFORE · live</figcaption></figure>`
     + `<figure><img loading="lazy" src="${id === 'UI-29' ? 'ui-29-opt-a' : f + '-after'}.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div>`
     + (id === 'UI-14' ? '<p class="notes">All the quest screens: the list, one quest’s details, a locked quest, the map with the tracked quest:</p><figure><img loading="lazy" src="ui-14-q-board.jpg" alt="UI-14 quest screens"><figcaption>QUESTS list · details · locked · MAP</figcaption></figure>' : '')
+    + (id === 'UI-35' ? '<p class="notes">Variants (A · B · C · D):</p><figure><img loading="lazy" src="ui-35-board.jpg" alt="UI-35 variants"><figcaption>A tap to cycle · B hold for a stack · C tabs on the chip · D in the bag only</figcaption></figure>' : '')
+    + (id === 'UI-23' ? '<p class="notes">Variants (A · B · C):</p><figure><img loading="lazy" src="ui-23-board.jpg" alt="UI-23 variants"><figcaption>A the quest chip says UNSEEN · B one eye row · C the screen edge</figcaption></figure>' : '')
     + (id === 'UI-29' ? '<p class="notes">The options you chose from (you picked A):</p><figure><img loading="lazy" src="ui-29-board.jpg" alt="UI-29 options"><figcaption>A · the vault’s own quest chip · B · nothing stays · C · room pips only</figcaption></figure>' : '')
     + '</section>';
 };
+// Jake 11-03: two lists, everything still open on top, everything approved at the bottom
+const isApproved = (id) => PICKS.get(id)?.st === 'approved';
+const isCut = (id) => PICKS.get(id)?.st === 'cut';
+const PARTS = [['Still open', 'open', (id) => !isApproved(id) && !isCut(id)], ['Approved', 'ok', isApproved], ['Cut', 'cut', isCut]];
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kitchen Sink v2 · UI in engine</title><style>
 :root{color-scheme:dark}body{margin:0;background:#1f2124;color:#eceae6;font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;margin:0 auto;padding:20px 14px 60px}
@@ -118,9 +124,10 @@ figcaption{font-size:11px;color:#9aa3a8;text-align:center;padding-top:3px}
 </style></head><body><main><h1>Kitchen Sink v2 · every UI change, in engine</h1>
 <p>Round 12 (2026-11-03). Every frame is the real game on a phone in portrait, from a served build of main. BEFORE is the live page as it is today. AFTER is the same live page with the new element added, built from the engine's own HUD classes. Driftwood Isle's crabs, Wendell and Maren stand in for the showcase's robots and NPCs. The names and numbers are the showcase's. Nalati and Pine Hollow are used where their live component is the one the showcase extends. Only the personal-best board (a 3D sign) is a generated edit. Tap a frame to see it big.</p>
 <p>Each HUD change still needs your pick before it is built (the HUD rule). <b>Picks so far: ${tally('approved')} approved · ${tally('changes')} changes asked · ${tally('cut')} cut · ${tally('pending')} pending.</b></p>
-<p><b>The 38, grouped by what kind of change each is:</b> 4 fight-HUD controls, 6 banners sharing one style, 3 chips sharing one slot, 3 end cards sharing one card, 5 menus, 7 small additions to existing screens, 2 world things, and 8 I'd suggest cutting (shown, not cut).</p>
-<nav class="toc">${SECTIONS.map(([name, , ids], i) => `<a href="#s${i + 1}">${esc(name)} (${ids.length})</a>`).join('')}</nav>
-${SECTIONS.map(([name, blurb, ids], i) => `<h2 id="s${i + 1}">${esc(name)}</h2><p>${esc(blurb)}</p><div class="pairs">${ids.map((id) => fig(BY_ID.get(id))).join('')}</div>`).join('\n')}
+<p><a href="#open" style="color:#8fe3ff">Still open</a> is first; <a href="#ok" style="color:#8fe3ff">Approved</a> is at the bottom. <b>The 38, grouped by what kind of change each is:</b> 4 fight-HUD controls, 6 banners sharing one style, 3 chips sharing one slot, 3 end cards sharing one card, 5 menus, 7 small additions to existing screens, 2 world things, and 8 I'd suggest cutting (shown, not cut).</p>
+${PARTS.map(([part, pid, keep]) => { const secs = SECTIONS.map(([name, blurb, ids], i) => [name, blurb, ids.filter(keep), i]).filter(([, , ids]) => ids.length > 0); const n = secs.reduce((t, [, , ids]) => t + ids.length, 0);
+  return `<h1 id="${pid}" style="margin-top:40px">${part} (${n})</h1><nav class="toc">${secs.map(([name, , ids, i]) => `<a href="#${pid}${i + 1}">${esc(name)} (${ids.length})</a>`).join('')}</nav>`
+    + secs.map(([name, blurb, ids, i]) => `<h2 id="${pid}${i + 1}">${esc(name)}</h2>${pid === 'open' ? `<p>${esc(blurb)}</p>` : ''}<div class="pairs">${ids.map((id) => fig(BY_ID.get(id))).join('')}</div>`).join('\n'); }).join('\n')}
 </main><div id="z"><img alt=""></div><script>
 const z=document.getElementById('z'),zi=z.querySelector('img');
 for(const i of document.querySelectorAll('figure img'))i.onclick=()=>{zi.src=i.src;z.style.display='flex';};

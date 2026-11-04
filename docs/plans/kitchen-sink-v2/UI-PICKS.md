@@ -34,19 +34,19 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-13 | REQUIRES LV in the dialogue | 6 Small additions | pending | 2026-11-03, redone for re-review: "if there’s a level requirement, you can’t have a next button … you got to choose something"; NEXT is gone: the greyed quest or LATER |
 | UI-09 | Death card + XP loss | 6 Small additions | approved | 2026-11-03: "UI9 is fine" |
 | UI-34 | The 20-slot pack | 6 Small additions | approved | 2026-11-03: "UI 34 looks fine to me" |
-| UI-35 | Ammo pouch + picker | 6 Small additions | changes | 2026-11-03: "I don’t know how I feel about this … show me better variants for how to choose ammo … the main weapon wheel is somewhere else … it looks very messy. Show me a bunch of variants" (variants board coming) |
+| UI-35 | Ammo pouch + picker | 6 Small additions | changes | 2026-11-03: "I don’t know how I feel about this … show me better variants for how to choose ammo … the main weapon wheel is somewhere else … it looks very messy. Show me a bunch of variants" Variants board ui-35-board.jpg: A tap BOLTS to cycle (recommended), B hold BOLTS for a short stack of three, C three ammo tabs on the bolts chip, D pick the ammo in the bag only |
 | UI-08 | Boss bar with phases | 6 Small additions | approved | 2026-11-03: "UI08 is fine" |
-| UI-23 | Stealth: UNSEEN | 6 Small additions | pending | |
-| UI-25 | Portal ENTER prompt | 6 Small additions | pending | |
-| UI-12 | Quest-giver ! markers | 7 In the world | pending | |
-| UI-21 | Personal-best board | 7 In the world | pending | |
-| UI-11 | The DEFLECT first hint | 8 Could be cut | pending | |
-| UI-27 | Map heat map | 8 Could be cut | pending | |
-| UI-28 | Minimap band border | 8 Could be cut | pending | |
-| UI-38 | Scrip chip + salvage part | 8 Could be cut | pending | |
-| UI-37 | The range's loaner | 8 Could be cut | pending | |
-| UI-36 | Trophy perk card | 8 Could be cut | pending | |
-| UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
+| UI-23 | Stealth: UNSEEN | 6 Small additions | changes | 2026-11-03: "feels busy. Show me a couple of variants. Definitely looks busy on top right with like the two pills". Variants board ui-23-board.jpg: A the quest chip becomes the stealth chip (recommended), B one small eye row top left, C no words: a dark screen edge and an eye over the crosshair |
+| UI-25 | Portal ENTER prompt | 6 Small additions | approved | 2026-11-03: "UI 25 is fine" |
+| UI-12 | Quest-giver ! markers | 7 In the world | pending | 2026-11-03, redone for re-review: "fine, but … the exclamation mark is way above his head … we can do a bit better"; the ! now sits just above the head, its label above it |
+| UI-21 | Personal-best board | 7 In the world | approved | 2026-11-03: "looks really funny. But yeah, you can show billboards with information in the world … as signs … it’s gonna look a lot better when placed correctly in the right place" (build it as a real sign, placed properly) |
+| UI-11 | The DEFLECT first hint | 8 Could be cut | approved | 2026-11-03: "having a hint is fine … the first time something happened, to … teach mechanisms" |
+| UI-27 | Map heat map | 8 Could be cut | cut | 2026-11-03: "quite busy … I don’t think we want levels and colors on the map … the map is already busy enough" |
+| UI-28 | Minimap band border | 8 Could be cut | cut | 2026-11-03: "No, we don’t want this" |
+| UI-38 | Scrip chip + salvage part | 8 Could be cut | cut | 2026-11-03: "no thanks" |
+| UI-37 | The range's loaner | 8 Could be cut | cut | 2026-11-03: "no thanks" |
+| UI-36 | Trophy perk card | 8 Could be cut | approved | 2026-11-03: "I think UI 36 can be nice" |
+| UI-15 | Shift Orientation tour step | 8 Could be cut | cut | 2026-11-03: "I don’t think we need this" |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 23 approved · 1 changes · 14 pending (2 redone for re-review: UI-14 quest screens, UI-13; UI-35 variants coming).
+**Tally:** 27 approved · 5 cut · 2 changes · 4 pending (3 redone for re-review: UI-14 quest screens, UI-13, UI-12; UI-35 and UI-23 have variant boards; UI-18 not reviewed yet).
