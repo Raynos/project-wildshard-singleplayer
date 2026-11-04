@@ -26,7 +26,7 @@ import { admittedRuntimeProduct, completeManifestCache, releaseManifestTransport
 import { enterSkyClock } from './clockSettings';
 import { settleEntryPrograms } from './settlePrograms';
 import { prepareSpawnView } from '../shardfile/controlRefinement';
-import { settleTileDrivers } from '../shardfile/tileDriver';
+import { settleTileDrivers, settlingTiles } from '../shardfile/tileDriver';
 import { observeTitlePreparation, prepareTitleFrame } from './titlePreparation';
 import { installCrashCheckpoint } from './crashResume';
 import { GAME_STRINGS } from '../strings';
@@ -199,7 +199,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     // Nine's cold step 27 for 3.5 s in the DL23 recording with no read in flight). The three run together and fail as one
     // (spawnViewThenNamed); the spawn view counts its fence jobs from its opening, the tile settle included ('Spawn view ·
     // n of m · MB'), and the minimap and horizon are named after it, while they still run.
-    await spawnViewThenNamed(prepareSpawnView(wholeLevel ? Infinity : undefined, () => settleTileDrivers(() => { game.hiddenFrame(); })),
+    await spawnViewThenNamed(prepareSpawnView(wholeLevel ? Infinity : undefined, () => settleTileDrivers(() => { game.hiddenFrame(); }), 'camera', settlingTiles),
       [['Minimap', waitEntryWork(game.levelScope, () => ctx.minimap.prepare())], ['Horizon paintings', edgeDressing.horizonReady]]);
   });
   // P0: the phone's spawn programs settle while loading still covers the reveal.

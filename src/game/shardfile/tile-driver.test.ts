@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing, productTileRing, settleTileDrivers } from './tileDriver';
+import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing, productTileRing, settleTileDrivers, settlingTiles } from './tileDriver';
 import { FENCE_LANES } from './controlRefinement';
 import { ring, type TileContent } from './tileContent';
 import { tileOrder, tileOf } from './tileOrder';
@@ -429,5 +429,24 @@ test('a fence that makes no progress rejects after its bound instead of passing 
     driver.step(-40, -40);
     // the hanging tile holds one of the loader's lanes for good, and its count never moves
     await expect(settleTileDrivers(undefined, 200)).rejects.toThrow(/Tile fence stalled: \d+ tiles inside it made no progress for 0 s \(first: 28/u);
+  } finally { scope.dispose(); }
+});
+
+// DL21: the spawn view's card counts the settle's tiles ('tiles n of m'); outside the settle there is nothing to count
+test('settlingTiles counts the fence tiles while the loader settles, and nothing outside it', async () => {
+  const scope = new Scope('tiles'), made = content(), seen: { done: number; total: number }[] = [];
+  const counting: TileContent = { ...made, attach: (tile, owner) => {
+    const count = settlingTiles(); if (count !== null) seen.push({ ...count });
+    return made.attach(tile, owner);
+  } };
+  const driver = new TileDriver(scope, [counting], () => 1, () => Promise.resolve());
+  try {
+    expect(settlingTiles()).toBeNull();
+    driver.step(-40, -40);
+    await settleTileDrivers(undefined, 5000);
+    expect(settlingTiles()).toBeNull();
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every(count => count.total === 9 && count.done <= 9)).toBe(true);
+    expect(Math.max(...seen.map(count => count.done))).toBeGreaterThan(0);
   } finally { scope.dispose(); }
 });

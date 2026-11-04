@@ -21,6 +21,7 @@ import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { macrotask } from '@wildshard/engine/boot/plan';
+import { loadingUnits } from '@wildshard/engine/boot/waits';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { FENCE_LANES, SPAWN_VIEW_M, spawnViewUsesCamera } from './controlRefinement';
 import { streamingDistance, streamingOrder, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
@@ -47,6 +48,14 @@ export async function settleTileDrivers(frame?: () => void, stallMs = 20000): Pr
     frame?.();
     for (const driver of Array.from(liveDrivers)) await driver.settle(stallMs);
   } finally { loaderMode = false; }
+}
+/** DL21: while the loader settles, the render tiles inside its fence across the live drivers and how many are complete (the
+ *  spawn view's card counts them); null outside the settle. */
+export function settlingTiles(): { readonly done: number; readonly total: number } | null {
+  if (!loaderMode) return null;
+  let done = 0, total = 0;
+  for (const driver of liveDrivers) { const count = driver.fenceTiles(); done += count.done; total += count.total; }
+  return { done, total };
 }
 
 type Layer = 'render' | 'colliders';
@@ -125,17 +134,32 @@ export class TileDriver {
     }
   }
 
+  /** The render tiles inside the loader's fence (the settle's `open` rule) and how many are complete (`settlingTiles`). */
+  fenceTiles(): { readonly done: number; readonly total: number } {
+    if (this.last === null || this.plan === null) return { done: 0, total: 0 };
+    const view = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null;
+    let done = 0, total = 0;
+    for (const key of this.plan.nearest.render) {
+      if (!this.inView(key, view)) continue;
+      total++; if (this.complete(key)) done++;
+    }
+    return { done, total };
+  }
+
   /** The tiles attached now, by layer (the overlay and tests read them). */
   resident(layer: Layer): ReadonlySet<number> {
     return new Set([...this.attached[layer].keys()].filter(key => layer === 'colliders' || this.complete(key)));
   }
 
-  /** Attach `keys` in order, render and colliders, before the player has controls (the rank-0 tiles); rejects a live content failure. */
-  async require(keys: Iterable<number>): Promise<void> {
+  /** Attach `keys` in order, render and colliders, before the player has controls (the rank-0 tiles); rejects a live content
+   *  failure. `progress` hears each tile done (DL21: the card counts them). */
+  async require(keys: Iterable<number>, progress?: (done: number) => void): Promise<void> {
+    let done = 0;
     for (const key of keys) {
       this.live();
       await this.attach(key, 'render', true); this.live();
       await this.attach(key, 'colliders', true); this.live();
+      progress?.(++done);
       await this.pause(); this.live();
     }
   }
@@ -382,7 +406,12 @@ export function residentTiles(resident: Scope, contents: readonly TileContent[],
     live();
     const entry = residentTileEntry(resident), at = entry ?? spawn;
     const driver = drivers.get(resident) ?? new TileDriver(resident, contents, radius, () => buildYield(resident), tileBounds.get(resident)), order = tileOrder(at);
-    await driver.require(tileKeys(order.tiles.filter(tile => order.rank(tile) === 0))); live();
+    // DL21: the card counts the spawn's tiles, then names the coarse cover (Nine's 'assembly resident tiles' held
+    // 1.7-2.8 s on the Simulator with no count)
+    const keys = tileKeys(order.tiles.filter(tile => order.rank(tile) === 0)), units = loadingUnits('Spawn tiles', keys.length);
+    units(0);
+    await driver.require(keys, count => { units(count); }); live();
+    units(keys.length, 'coarse cover');
     await driver.coarse(at.x, at.z); live();
     drivers.set(resident, driver);
     noteEnteredTiles(resident, () => ({ render: driver.resident('render'), colliders: driver.resident('colliders'), bytes: tileBytes.get(resident) ?? new Map() }));

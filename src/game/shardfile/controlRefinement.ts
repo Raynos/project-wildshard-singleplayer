@@ -31,7 +31,8 @@ const queues = new Set<ControlRefinement>();
  * reference. Later fences and controlled streaming use the real camera. */
 export function spawnViewUsesCamera(): boolean { return spawnView?.reference !== 'player'; }
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
-export async function prepareSpawnView(radius: number = spawnViewRadius(), settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera'): Promise<void> {
+export async function prepareSpawnView(radius: number = spawnViewRadius(), settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera',
+  tiles?: () => { readonly done: number; readonly total: number } | null): Promise<void> {
   spawnView = { radius, reference };
   // DL17: a queue whose refinement failed refuses the fence (the job's error, not an incomplete level at control)
   const refused = (): void => { for (const queue of queues) { const failure = queue.refusal(); if (failure !== undefined) throw failure; } };
@@ -49,7 +50,11 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
     const waiting = [...queues].reduce((sum, queue) => sum + queue.fenceWaiting(), 0);
     // The total never goes back within the fence (sp-x2's review): jobs leave the queue's count as each one finishes.
     known = Math.max(known, fenceDone + waiting);
-    const counted = `${fenceDone} of ${known} · ${(reads.bytes() / 1e6).toFixed(1)} MB`;
+    // DL21: the settle's tiles count too ('tiles 31 of 48'): with packs on the whole cell attaches here while the fence
+    // holds one job, and Nine's cold Simulator card sat 2.5 s on 'Spawn view · 1 of 1' (8985b4e)
+    const settled = tiles?.() ?? null;
+    const tileCount = settled === null || settled.total === 0 ? '' : ` · tiles ${String(settled.done)} of ${String(settled.total)}`;
+    const counted = `${fenceDone} of ${known}${tileCount} · ${(reads.bytes() / 1e6).toFixed(1)} MB`;
     reportLoadingWait(wait, { label: `Spawn view · ${counted}`, progress: counted });
   };
   const ticker = pageScope.child('spawn-view.count'); ticker.interval(250, report);
