@@ -14,9 +14,10 @@ import { tileOf, tileOrder } from '../src/game/shardfile/tileOrder';
 function isGroup(object: Object3D): object is Group { return object instanceof Group; }
 
 const camera = { x: -31.25, z: -31.25, vx: 0, vz: 0 };
-function fixture(coarse = true, fail = false, holdDistant = false) {
+function fixture(coarse = true, fail = false, holdDistant = false, cell = false) {
   const scope = new Scope('page'), resident = scope.child('resident'), allocator = new ResidencyAllocator(), decoder = new TileDecoder();
   const source = emptyShardfile({ slug: 'registered-fixture', name: 'Registered', author: 'Test', seed: 1, revision: 1 });
+  if (cell) source.ring = 'cell';
   const wire = new Map<string, Uint8Array>(), rows: NonNullable<Shardfile['props']>['tiles'] = [];
   for (const lod of coarse ? [1, 0] as const : [0] as const) for (let z = 0; z < (lod === 1 ? 4 : 8); z++) for (let x = 0; x < (lod === 1 ? 4 : 8); x++) {
     const bytes = new Uint8Array([lod, x, z]), hash = hashImmutableBytes(bytes), size = lod === 1 ? 125 : 62.5;
@@ -108,6 +109,19 @@ test('initial entry and a later return both wait for full coverage', async () =>
     expect(f.coverage(returning.root)).toEqual(Array.from({length: 64}, () => 1));
     owner.dispose();
   } finally {f.scope.dispose();}
+  expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
+});
+
+test('a whole-cell home holds every fine tile before entry resolves (DL17)', async () => {
+  const f = fixture(true, false, false, true), required = vi.spyOn(f.streamer, 'require');
+  try {
+    const pending = f.registration.enter('home', f.entered, f.resident, camera);
+    await f.drive(); const world = await pending;
+    expect(world.fine.size).toBe(64);
+    expect([...required.mock.calls[2]?.[1] ?? []]).toHaveLength(64);
+    // pinned until the owner leaves: walking to the far corner retires none of them
+    await f.drive({ x: 240, z: 240, vx: 0, vz: 0 }); expect(world.fine.size).toBe(64);
+  } finally { required.mockRestore(); f.scope.dispose(); }
   expect(f.pins()).toBe(0); expect(f.allocator.entries()).toHaveLength(0);
 });
 

@@ -475,7 +475,18 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
         const spawn = await pinSpawn(instance, start, requirements, ownerLeft, 'Entered tile owner left', critical);
         // Broad render demand must not compete ahead of the spawn ring and
         // mandatory entryways during initial preparation. In play it is exact.
+        const whole = ringRadius(entry.source, radius) === CELL_RING;
         streamer.setFullRing(instance, ringRadius(entry.source, radius));
+        // DL17: a whole-cell home is complete at control, so entry holds every
+        // fine tile (none retires in play) and waits for complete coverage
+        // instead of letting a far proxy cover it while the cell streams in
+        if (whole) {
+          const fine = streamer.require(instance, entry.source.tiles.filter(tile => tile.lod === 0 && keys.has(`0/${tile.x}/${tile.z}`))
+            .map(tile => tile.z * TILES_PER_SIDE + tile.x));
+          requirements.push(fine);
+          await fine.ready;
+          if (ownerLeft()) throw new Error('Entered tile owner left');
+        }
         // Pin complete coverage for this owner, but let an admitted far proxy
         // cover the unfinished quadrants while the page scheduler fills them.
         const coarse = streamer.require(instance, Array.from({ length: 16 }, (_, key) => key), 'l1');
@@ -484,7 +495,7 @@ export function clientTileRegistration(instances: Map<string, ClientRingInstance
           await coarse.ready;
           if (!ownerLeft() && !closed) covered.add(instance);
         };
-        if (retainFar(instance)) void (async () => {
+        if (!whole && retainFar(instance)) void (async () => {
           try { await complete(); }
           catch (error: unknown) {
             if (!ownerLeft() && !closed) console.warn('[tiles] distant coverage retains its far proxy', error);
