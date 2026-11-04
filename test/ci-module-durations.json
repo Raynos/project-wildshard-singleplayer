@@ -616,7 +616,6 @@
   "src/game/shardfile/world-site-lifetime.test.ts": 11.310200286,
   "src/game/systems/looks/meadow-data.test.ts": 0.060434661,
   "src/game/systems/looks/trample-trail.test.ts": 0.106510682,
-  "src/game/travel/travel-entry.test.ts": 0.067713837,
   "src/game/weapons/mounted-pass.test.ts": 0.14274303,
   "src/game/weapons/polearm-contact.test.ts": 0.057843113,
   "src/sdk/assetHandle.test.ts": 0.065156089,

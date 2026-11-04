@@ -533,7 +533,6 @@
  "src/game/shardfile/world-site-lifetime.test.ts": 13.3,
  "src/game/systems/looks/meadow-data.test.ts": 0,
  "src/game/systems/looks/trample-trail.test.ts": 0,
- "src/game/travel/travel-entry.test.ts": 0,
  "src/sdk/bake-owned.test.ts": 1.6,
  "src/sdk/bake/actor-moves.test.ts": 0.3,
  "src/sdk/bake/arm-palette.test.ts": 0,
