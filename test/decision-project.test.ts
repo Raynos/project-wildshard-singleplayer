@@ -9,7 +9,7 @@ import { prepareProjectDecisions, projectDecisionOptions } from '@wildshard/sdk/
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import { outputDecisionScripts } from '@wildshard/sdk/outputProduct';
-import { decisionLegacyLines, legacyGeneratedPaths } from '../scripts/decision-legacy-lines.mjs';
+import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 import { codeLines } from '../scripts/shard-platform.mjs';
 import { legacyLineBasis } from './fixtures/legacyLineBasis';
 
@@ -36,35 +36,22 @@ test('the project intake compiles declared decisions without reading obsolete pr
   await expect(prepareProjectOutput(root, input, { source, options: projectDecisionOptions(undefined) })).rejects.toThrow('buildOptions.asLineCeiling');
   await expect(prepareProjectOutput(root, input, { source, options: projectDecisionOptions({ asLineCeiling: 999 }, 19) })).rejects.toThrow('2 > 1');
 });
-test('root build budgets retain pinned counts independently of frozen inventory changes', () => {
-  const root = project(), folder = resolve(root, 'src/shards/example-legacy'); mkdirSync(folder, { recursive: true });
+test('root build budgets retain pinned counts independently of producers and source folders', () => {
+  const root = project(), folder = resolve(root, 'src/shards/example'); mkdirSync(folder, { recursive: true });
   mkdirSync(resolve(root, 'lint')); mkdirSync(resolve(root, 'scripts'));
   const files: Record<string, string> = { 'manifest.ts': 'export const a=1; // tail\n', 'plugin.ts': '// comment\nexport const b="// kept";\nexport const c=2;\n',
     'generated.ts': 'export const generated=1;\n', 'types.d.ts': 'declare const hidden:number;\n', 'law.test.ts': 'test();\n' };
   for (const [path, text] of Object.entries(files)) writeFileSync(resolve(folder, path), text);
-  writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify({ version: 1, sealed: true, shards: { 'example-legacy': { primary: 'example', source: 'a'.repeat(40), files: Object.fromEntries(Object.keys(files).map(path => [path, 'b'.repeat(64)])) } } }));
   writeFileSync(resolve(root, 'scripts/source-generation-outputs.json'), JSON.stringify({ schema: 'source-generation-outputs/1', producers: { 'build.mjs': ['src/shards/example/generated.ts'] } }));
   legacyLineBasis(root, 'example', files, ['generated.ts']);
-  const generated = legacyGeneratedPaths(root);
-  const old = Object.entries(files).filter(([path]) => /\.tsx?$/u.test(path) && !path.endsWith('.d.ts') && !path.endsWith('.test.ts') && !generated.has(`src/shards/example-legacy/${path}`))
+  const old = Object.entries(files).filter(([path]) => /\.tsx?$/u.test(path) && !path.endsWith('.d.ts') && !path.endsWith('.test.ts') && path !== 'generated.ts')
     .reduce((sum, [path, text]) => sum + codeLines(text, path), 0);
   expect(old).toBe(3); expect(decisionLegacyLines(root, 'example')).toBe(old); expect(decisionLegacyLines(root, 'standalone')).toBeUndefined();
-  expect(generated.has('src/shards/example-legacy/generated.ts')).toBe(true);
-  // Retiring a producer and adding compatibility-only frozen source cannot move history.
+  // Retiring a producer, editing or deleting source cannot move history.
   writeFileSync(resolve(root, 'scripts/source-generation-outputs.json'), JSON.stringify({ schema: 'source-generation-outputs/1', producers: {} }));
   writeFileSync(resolve(folder, 'plugin.ts'), `${files['plugin.ts']}export const compatibility=3;\n`);
-  mkdirSync(resolve(folder, 'species'));
-  writeFileSync(resolve(folder, 'species/compatibility.ts'), 'export const restored=4;\n');
-  writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify({ version: 1, sealed: true, shards: { 'example-legacy': {
-    primary: 'example', source: 'a'.repeat(40), files: Object.fromEntries([...Object.keys(files), 'species/compatibility.ts'].map(path => [path, 'b'.repeat(64)])),
-  } } }));
   expect(decisionLegacyLines(root, 'example')).toBe(old);
-  expect(legacyGeneratedPaths(root)).toEqual(generated);
-  const inventory = { version: 1, sealed: true, shards: { 'example-legacy': { primary: 'example', source: 'c'.repeat(40), files: { 'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'b'.repeat(64) } } } };
-  writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify(inventory));
-  expect(decisionLegacyLines(root, 'example')).toBe(old);
-  expect(() => legacyGeneratedPaths(root)).toThrow('missing matching frozen line basis');
-  writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify({ version: 1, sealed: true, shards: {} }));
+  rmSync(folder, { recursive: true, force: true });
   expect(decisionLegacyLines(root, 'example')).toBe(old);
 });
 

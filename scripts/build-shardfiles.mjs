@@ -8,7 +8,6 @@ import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
-import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, verifyMapPixels } from './map-hash.mjs';
 import { borrowShardfileEntry, readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 import { randomBytes } from 'node:crypto';
@@ -45,7 +44,7 @@ async function buildShardfilesWork(root, { strict = [process.env.CI, process.env
   const outputRoot = resolve(root, 'out');
   // Discard the retired discovery artifact left by older builds.
   rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
-  const projects = resolve(root, 'src/shards'), frozen = legacyInventory(root);
+  const projects = resolve(root, 'src/shards');
   let count = 0;
   const stale = [], runtimeReport = [], measured = [];
   // A folder may emit many products. Its shared source closure and prerequisite
@@ -60,13 +59,13 @@ async function buildShardfilesWork(root, { strict = [process.env.CI, process.env
     if (issues === undefined) { issues = runtimeCopyIssues(root, project); runtimeChecks.set(project, issues); }
     return issues;
   };
-  const folders = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort((a, b) => a.localeCompare(b));
+  const folders = readdirSync(projects, { withFileTypes: true }).filter(entry => entry.isDirectory() && existsSync(resolve(projects, entry.name, 'shard.config.ts'))).map(entry => entry.name).sort((a, b) => a.localeCompare(b));
   // SF88g: a folder with declared outputs (scripts/shard-outputs.mjs) builds one product per output, each to out/<slug>
   const products = folders.flatMap(folder => (shardOutputs(root, folder) ?? [{ slug: folder }]).map(row => ({ name: row.slug, folder, output: row.slug === folder ? undefined : row.slug })));
   const built = products.map(row => row.name).sort((a, b) => a.localeCompare(b));
   // A product folder no source declares any more (a folder that now emits outputs, a dropped output) never ships stale
   for (const entry of existsSync(outputRoot) ? readdirSync(outputRoot, { withFileTypes: true }) : []) {
-    if (entry.isDirectory() && !entry.name.startsWith('.') && !built.includes(entry.name) && !Object.hasOwn(frozen.shards, entry.name) && existsSync(resolve(outputRoot, entry.name, 'shard.json'))) {
+    if (entry.isDirectory() && !entry.name.startsWith('.') && !built.includes(entry.name) && existsSync(resolve(outputRoot, entry.name, 'shard.json'))) {
       rmSync(resolve(outputRoot, entry.name), { recursive: true, force: true }); console.info(`wildshard build: ${entry.name} is no longer a product; removed`);
     }
   }

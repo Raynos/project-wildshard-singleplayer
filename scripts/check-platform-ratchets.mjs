@@ -4,15 +4,12 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { parseSync } from 'vite';
-import { importsOf } from './check-graph.mjs';
 import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
-import { compareLegacyInventory, legacyInventory, registeredLegacyFile, LEGACY_INVENTORY } from './legacy-shards.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 import { compareCustomSections, CUSTOM_SECTION_POLICY } from './custom-section-policy.mjs';
 import { compareClosedComponents } from './check-closed-components.mjs';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', CUSTOM_SECTION_POLICY, 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY, RUNTIME_FILES_LIST];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', CUSTOM_SECTION_POLICY, 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', RUNTIME_FILES_LIST];
 
 const RUNTIME_REKEY_ABOUT = 'SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.';
 
@@ -93,85 +90,6 @@ function rekeyedRuntimeSites(before, after, trees) {
     const key = group(site, item), available = credit.get(key) ?? 0;
     if (!Number.isSafeInteger(item.count) || item.count <= 0 || actual(trees.candidateRoot, site) !== item.count || available < item.count) continue;
     credit.set(key, available - item.count); admitted.add(site);
-  }
-  return admitted;
-}
-
-// Retired primary debt can remain at an unchanged, already registered frozen source only.
-function frozenRuntimeRetentions(after, trees, sources) {
-  const admitted = new Set();
-  if (trees === undefined && sources === undefined) return admitted;
-  const readBefore = sources?.before ?? (file => {
-    const path = join(trees.baselineRoot, file);
-    return existsSync(path) ? readFileSync(path, 'utf8') : undefined;
-  });
-  const readAfter = sources?.after ?? (file => {
-    const path = join(trees.candidateRoot, file);
-    return existsSync(path) ? readFileSync(path, 'utf8') : undefined;
-  });
-  const inventoryText = sources === undefined ? undefined : readBefore(LEGACY_INVENTORY);
-  const inventory = sources === undefined ? legacyInventory(trees.baselineRoot)
-    : inventoryText === undefined ? { shards: {} } : JSON.parse(inventoryText);
-  for (const [site, item] of Object.entries(after.sites)) {
-    const match = /^(src\/shards\/([^/]+)\/(runtime\/[^:]+\.ts)):([^:]+):([a-f0-9]{64})$/u.exec(site);
-    if (match === null || !Number.isSafeInteger(item.count) || item.count <= 0) continue;
-    const [, file, folder, relativeFile, rule, hash] = match;
-    if (!Object.hasOwn(inventory.shards, folder) || !Object.hasOwn(inventory.shards[folder].files, relativeFile) || file.split('/').includes('..')) continue;
-    const digest = inventory.shards[folder].files[relativeFile];
-    const source = readBefore(file), next = readAfter(file);
-    if (source === undefined || next === undefined) continue;
-    if (createHash('sha256').update(source).digest('hex') !== digest || next !== source) continue;
-    if ((siteCounts(source, file).get(`${rule}:${hash}`) ?? 0) === item.count) admitted.add(site);
-  }
-  return admitted;
-}
-
-// Frozen callers keep their original module until SF73 retirement. Only their primary may own
-// one verbatim native copy; arbitrary retained platform modules still grant no new allowance.
-function legacyRuntimeCopies(after, trees) {
-  const admitted = new Set();
-  if (trees === undefined) return admitted;
-  const inventory = legacyInventory(trees.baselineRoot), exists = file => existsSync(join(trees.baselineRoot, file));
-  const originals = new Map(), consumed = new Set();
-  const body = (source, filename) => {
-    const imports = parseSync(filename, source).program.body.filter(node => node.type === 'ImportDeclaration');
-    let end = 0, value = '';
-    for (const node of imports) { value += source.slice(end, node.start); end = node.end; }
-    return (value + source.slice(end)).trim();
-  };
-  for (const [folder, row] of Object.entries(inventory.shards)) {
-    for (const file of Object.keys(row.files)) {
-      const from = `src/shards/${folder}/${file}`;
-      if (!file.endsWith('.ts') || !registeredLegacyFile(inventory, from) || !exists(from)) continue;
-      const frozen = readFileSync(join(trees.baselineRoot, from), 'utf8');
-      if (createHash('sha256').update(frozen).digest('hex') !== row.files[file]) continue;
-      for (const edge of importsOf(from, frozen, exists)) {
-        const collect = original => {
-          const key = `${row.primary}:${original}`;
-          if (originals.has(key) || !/^src\/(?:engine|game|sdk)\/.+\.ts$/u.test(original) || !exists(original)) return;
-          const next = join(trees.candidateRoot, original), source = readFileSync(join(trees.baselineRoot, original), 'utf8');
-          if (!existsSync(next) || readFileSync(next, 'utf8') !== source) return;
-          originals.set(key, { primary: row.primary, original, source, body: body(source, original), counts: siteCounts(source, original) });
-          for (const dependency of importsOf(original, source, exists)) collect(dependency.to);
-        };
-        collect(edge.to);
-      }
-    }
-  }
-  const files = new Map();
-  for (const [site, item] of Object.entries(after.sites)) {
-    const match = /^(src\/shards\/([^/]+)\/(?:runtime|generators)\/[^:]+\.ts):([^:]+):([a-f0-9]{64})$/u.exec(site);
-    if (match === null || !Number.isSafeInteger(item.count) || item.count <= 0) continue;
-    const [, file, primary, rule, hash] = match;
-    if (file.split('/').includes('..') || existsSync(join(trees.baselineRoot, file)) || !existsSync(join(trees.candidateRoot, file))) continue;
-    if (!files.has(file)) {
-      const source = readFileSync(join(trees.candidateRoot, file), 'utf8'), normalized = body(source, file);
-      const original = [...originals.values()].find(value => value.primary === primary && value.body === normalized && !consumed.has(value.original));
-      if (original !== undefined) { consumed.add(original.original); files.set(file, { counts: siteCounts(source, file), original }); }
-      else files.set(file, null);
-    }
-    const target = files.get(file), key = `${rule}:${hash}`;
-    if (target !== null && target !== undefined && (target.counts.get(key) ?? 0) >= item.count && (target.original.counts.get(key) ?? 0) >= item.count) admitted.add(site);
   }
   return admitted;
 }
@@ -277,11 +195,6 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees, se
     if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: ceiling list removed`] : [];
     return compareRuntimeFiles(existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')) : undefined, JSON.parse(readFileSync(candidateFile, 'utf8')));
   }
-  if (list === LEGACY_INVENTORY) {
-    if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: frozen policy removed; retire its rows instead`] : [];
-    const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')) : { version: 1, sealed: false, shards: {} };
-    return compareLegacyInventory(before, JSON.parse(readFileSync(candidateFile, 'utf8')), [], 'Legacy-Crash-Fix: hash updates are checked by commit-msg');
-  }
 
   if (list === WEAPON_TRANSFER_LIST) {
     if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: transfer policy was removed; retire its entries instead`] : [];
@@ -308,12 +221,10 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees, se
     // Newly visible debt is paid by exact syntax consumed from engine/game/SDK,
     // not by a review label. Charge ordinary sites to the existing row ceilings.
     const migrated = verbatimRuntimeMoves(before, after, trees);
-    for (const site of frozenRuntimeRetentions(after, trees, sources)) migrated.add(site);
     const charged = Object.fromEntries(Object.entries(after.sites).filter(([site]) => !migrated.has(site)));
     const ceilings = totals(before.sites);
     for (const [key, count] of totals(charged)) if (count > (ceilings.get(key) ?? 0)) failures.push(`${list}: ${key} total rose`);
     for (const site of rekeyedRuntimeSites(before, after, trees)) migrated.add(site);
-    for (const site of legacyRuntimeCopies(after, trees)) migrated.add(site);
     if (after.baselineAt !== before.baselineAt || (after.about !== before.about && after.about !== RUNTIME_REKEY_ABOUT) || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
     for (const [site, item] of Object.entries(after.sites)) {
       const previous = before.sites[site];

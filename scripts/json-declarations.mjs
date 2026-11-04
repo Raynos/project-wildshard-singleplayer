@@ -4,7 +4,6 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync, writeFileSync, globSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import ts from '@typescript/typescript6';
-import {legacyInventory,registeredLegacyFile} from './legacy-shards.mjs';
 
 /** Retain managed sources across threshold changes and refuse orphaned types.
  * @param {string[]} tracked
@@ -32,7 +31,6 @@ export function largeJsonInputs() {
 /** Derive the native import type; ignore existing companions during regeneration.
  * @param {string[]} files */
 export function jsonDeclarations(files) {
-  const frozen = legacyInventory(process.cwd());
   const paths = files.map(file => resolve(file));
   const companions = new Set(paths.map(file => `${file.slice(0, -5)}.d.json.ts`));
   const probe = resolve('.json-declarations-probe.ts');
@@ -61,7 +59,7 @@ export function jsonDeclarations(files) {
     if (node === undefined) throw new Error(`Cannot express complete JSON type: ${file}`);
     const shape = printer.printNode(ts.EmitHint.Unspecified, node, unit);
     if (/\bimport\s*\(/u.test(shape)) throw new Error(`JSON type must be self-contained: ${file}`);
-    let nativeOnly = file.startsWith('public/') || frozen.sealed && registeredLegacyFile(frozen, file); // Never publish a type-only file as an asset.
+    let nativeOnly = file.startsWith('public/'); // Never publish a type-only file as an asset.
     const inspect = current => { if (current.kind === ts.SyntaxKind.AnyKeyword || ts.isTypeLiteralNode(current) && current.members.length === 0) nativeOnly = true; ts.forEachChild(current, inspect); };
     inspect(node);
     const hash = createHash('sha256').update(readFileSync(file)).digest('hex');

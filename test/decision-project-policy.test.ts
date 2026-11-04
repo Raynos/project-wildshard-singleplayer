@@ -39,11 +39,10 @@ test('early target refusal does not invent missing execution evidence', () => {
   }
 });
 
-test('all six declared AS budgets compile with an empty legacy list and no legacy folders', async () => {
+test('all six declared AS budgets compile with no legacy registry or folders', async () => {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/decision-no-legacy-')); directories.push(root);
   mkdirSync(resolve(root, 'lint'));
   writeFileSync(resolve(root, 'lint/legacy-line-basis.json'), readFileSync('lint/legacy-line-basis.json'));
-  writeFileSync(resolve(root, 'lint/legacy-shards.json'), JSON.stringify({ version: 1, sealed: true, shards: {} }));
   const expected = new Map([['driftwood-isle', 1716], ['pine-hollow', 2130], ['nalati-grasslands', 2837],
     ['far-reach', 677], ['sunscar-dunes', 412], ['nine-dragon-stack', 2111]]);
   expect(shardLineBaselines(root).size).toBe(expected.size);

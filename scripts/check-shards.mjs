@@ -1,24 +1,13 @@
-// G694 F3: source-only primary layout; exact legacy inventory is held for LD.
+// G694 F3: source-only primary layout; a -legacy suffix grants nothing.
 import { existsSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { legacyInventory } from './legacy-shards.mjs';
 import { shardOutputs } from './shard-outputs.mjs';
 
-const EMPTY_FROZEN = { shards: {} };
-
-/** Primary folders have one source layout. Frozen legacy paths are inventoried
- * individually and keep their historical layout until LD; a suffix grants nothing. */
-export function checkShardLayout(entries, config, frozen = EMPTY_FROZEN, outputs = {}) {
+/** Every shard folder has one source layout; a -legacy suffix grants nothing. */
+export function checkShardLayout(entries, config, outputs = {}) {
   const failures = [], source = config.sourceLayout;
   for (const [slug, names] of Object.entries(entries)) {
-    const legacy = frozen.shards[slug];
-    if (legacy !== undefined) {
-      const files = Object.keys(legacy.files ?? {});
-      for (const name of names) if (!files.some(file => file === name || name.endsWith('/') && file.startsWith(name)))
-        failures.push(`${slug}/${name}: outside the registered legacy inventory`);
-      continue;
-    }
     if (slug !== '_template' && !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(slug)) failures.push(`${slug}: folder name must be a kebab-case slug`);
     const allowed = new Set([...source.requiredFiles, ...source.allowedFiles, ...source.folders.map(name => `${name}/`)]);
     const productFiles = new Set((outputs[slug] ?? []).map(output => `discovery.${output}.generated.ts`));
@@ -100,7 +89,7 @@ export function checkShards(root, selected) {
         : !entry.isFile() || !generated.has(`src/shards/${dir.name}/${entry.name}`)))
       .map(entry => entry.name + (entry.isDirectory() ? '/' : ''));
   }
-  return checkShardLayout(entries, config, legacyInventory(root), outputs);
+  return checkShardLayout(entries, config, outputs);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const root = resolve(import.meta.dirname, '..');

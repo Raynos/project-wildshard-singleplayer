@@ -6,7 +6,6 @@ import { tmpdir } from 'node:os';
 import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
-import { registeredLegacyFile } from './legacy-shards.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 function filesIn(root) {
@@ -33,15 +32,13 @@ function specifiers(path, source) {
 export function gamePluginInventory(root = ROOT) {
   const manifest = layer => JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8'));
   const game = manifest('game'), sdk = manifest('sdk');
-  const frozenFile = resolve(root, 'lint/legacy-shards.json');
-  const frozen = existsSync(frozenFile) ? JSON.parse(readFileSync(frozenFile, 'utf8')).shards : {};
   const modules = new Map();
   const target = (layer, specifier) => {
     const entry = (layer === 'game' ? game : sdk).exports?.[`.${specifier.slice(`@wildshard/${layer}`.length)}`];
     return typeof entry === 'string' ? resolve(root, `src/${layer}`, entry) : null;
   };
   for (const entry of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
-    if (!entry.isDirectory() || Object.hasOwn(frozen, entry.name)) continue;
+    if (!entry.isDirectory()) continue;
     const shard = resolve(root, 'src/shards', entry.name), seen = new Set(), queue = filesIn(resolve(shard, 'runtime'));
     while (queue.length > 0) {
       const path = queue.pop();
@@ -71,22 +68,19 @@ export function gamePluginInventory(root = ROOT) {
 }
 
 
-/** Report the complete export surface and its exact registered frozen consumers. */
+/** Report the complete export surface and its consumers. */
 export function gamePluginSurface(root = ROOT) {
   const manifest = JSON.parse(readFileSync(resolve(root, 'src/game/package.json'), 'utf8'));
-  const frozenFile = resolve(root, 'lint/legacy-shards.json');
-  const frozen = existsSync(frozenFile) ? JSON.parse(readFileSync(frozenFile, 'utf8')).shards : {};
   const entries = Object.entries(manifest.exports).map(([key, target]) => ({
     key, target: typeof target === 'string' ? target : null,
     plugin: key.startsWith('./plugin/'),
     published: typeof target === 'string' && existsSync(resolve(root, 'src/game', target)),
-    primaryConsumers: [], frozenConsumers: [], otherConsumers: [],
+    primaryConsumers: [], otherConsumers: [],
   }));
   const byKey = new Map(entries.map(row => [row.key, row])), unresolved = new Map();
   for (const directory of ['src', 'test', 'scripts', 'api', 'vite']) for (const file of filesIn(resolve(root, directory))) {
-    const path = relative(root, file), shard = /^src\/shards\/([^/]+)\/(.+)$/u.exec(path);
-    const group = shard === null ? 'otherConsumers'
-      : registeredLegacyFile({ shards: frozen }, path) ? 'frozenConsumers' : 'primaryConsumers';
+    const path = relative(root, file);
+    const group = /^src\/shards\/[^/]+\/.+$/u.test(path) ? 'primaryConsumers' : 'otherConsumers';
     for (const specifier of specifiers(file, readFileSync(file, 'utf8'))) {
       if (!specifier.startsWith('@wildshard/game/')) continue;
       const key = `.${specifier.slice('@wildshard/game'.length)}`, row = byKey.get(key);
@@ -95,7 +89,7 @@ export function gamePluginSurface(root = ROOT) {
     }
   }
   entries.sort((a, b) => a.key.localeCompare(b.key));
-  for (const row of entries) for (const group of ['primaryConsumers', 'frozenConsumers', 'otherConsumers']) row[group].sort((a, b) => a.localeCompare(b));
+  for (const row of entries) for (const group of ['primaryConsumers', 'otherConsumers']) row[group].sort((a, b) => a.localeCompare(b));
   const pluginExports = entries.filter(row => row.plugin).length;
   return {
     enforcement: 'report-only', limit: 20, totalExports: entries.length, pluginExports,
@@ -119,14 +113,12 @@ export function checkGamePluginExports(root = ROOT, surface = gamePluginSurface(
       if (row.target !== `${row.key}.ts`) failures.push(`${row.key}: plugin export must name its defining module`);
       continue;
     }
-    if (row.frozenConsumers.length > 0) continue;
     const exception = TEMPORARY_EXPORTS[row.key];
     if (exception !== undefined && row.target === exception.target) temporary.push({ key: row.key, ...exception });
-    else failures.push(`${row.key}: non-plugin export has no registered legacy importer`);
+    else failures.push(`${row.key}: non-plugin export is not a defining plugin or a named migration tail`);
   }
   for (const row of surface.unresolved) failures.push(`${row.specifier}: unresolved import in ${row.consumers.join(', ')}`);
-  return { failures, pluginExports: surface.pluginExports,
-    legacyExports: surface.entries.filter(row => !row.plugin && row.frozenConsumers.length > 0).length, temporary };
+  return { failures, pluginExports: surface.pluginExports, temporary };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

@@ -29,9 +29,6 @@ function fixture(): string {
   put('lint/tile-bake-debt.json', { version: 1, products: {} });
   cpSync(resolve('lint/nine-tiling-baseline.json'), resolve(root, 'lint/nine-tiling-baseline.json'));
   put('src/format/memoryGates.json', { explorerMB: 1200, loadingMB: 1800 });
-  put('lint/legacy-shards.json', { version: 1, sealed: true, shards: Object.fromEntries(MILESTONE_SHARDS.map(primary => [`${primary}-legacy`, {
-    primary, source: 'a'.repeat(40), files: { 'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'b'.repeat(64) },
-  }])) });
   put('lint/legacy-line-basis.json', { schema: 'legacy-line-basis/1', revision: 'a'.repeat(40), shards: Object.fromEntries(MILESTONE_SHARDS.map(slug => [slug, {
     source: 'a'.repeat(40), excluded: [], files: { 'plugin.ts': 100 },
   }])) });

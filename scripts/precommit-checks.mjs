@@ -7,7 +7,6 @@ import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { untypedLintConfig } from './push-lint-config.mjs';
 import { ratchetApprovalFailures } from './ratchet-approval.mjs';
 import { linkNodeModules } from './link-node-modules.mjs';
-import { legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 
 const lintThreads = `--threads=${Math.min(8, availableParallelism())}`;
 
@@ -35,7 +34,7 @@ export async function stagedRatchet(files, executable, repository) {
   const root = process.cwd(), baseline = JSON.parse(readFileSync('.commit-baseline-ratchet.json', 'utf8'));
   /** @type {Record<string, Record<string, number>>} */
   const current = {};
-  const hard = hardRules('.oxlintrc.json'), frozen = legacyInventory(root);
+  const hard = hardRules('.oxlintrc.json');
   const selected = files.filter(file => file.startsWith('src/'));
   /** @param {string} directory @param {string[]} paths */
   const measureCounts = (directory, paths) => {
@@ -56,7 +55,6 @@ export async function stagedRatchet(files, executable, repository) {
       const match = /^wildshard\(([^)]+)\)$/u.exec(diagnostic.code ?? '');
       if (match === null || typeof diagnostic.filename !== 'string') throw new Error(`Unexpected ratchet diagnostic: ${JSON.stringify(diagnostic)}`);
       const key = `wildshard/${match[1]}`, file = relative(directory, resolve(directory, diagnostic.filename));
-      if (!hard.has(key) && registeredLegacyFile(frozen, file)) continue;
       const rows = Object.hasOwn(counts, key) ? counts[key] : {};
       rows[file] = (Object.hasOwn(rows, file) ? rows[file] : 0) + 1; counts[key] = rows;
     }

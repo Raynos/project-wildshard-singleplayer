@@ -1,7 +1,6 @@
 // G450/P4: closure is a per-shard work queue, never a source percentage.
 import {existsSync,readdirSync,readFileSync} from 'node:fs';
 import {relative,resolve} from 'node:path';
-import {legacyInventory} from './legacy-shards.mjs';
 import {shardfileBoundaryViolations} from '../lint/shardfile-boundaries.mjs';
 
 function files(folder) {
@@ -15,9 +14,9 @@ function files(folder) {
 /** Count every raw P0 escape, without baseline allowances or running shard code.
  * @param {string} root @returns {Record<string,import('./shard-runtime-closure.mjs').RuntimeClosure>} */
 export function runtimeClosures(root) {
-  const frozen=legacyInventory(root),result={};
+  const result={};
   for(const entry of readdirSync(resolve(root,'src/shards'),{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))) {
-    if(!entry.isDirectory()||Object.hasOwn(frozen.shards,entry.name))continue;
+    if(!entry.isDirectory())continue;
     const directory=resolve(root,'src/shards',entry.name);
     const escapes=files(resolve(directory,'runtime')).flatMap(path=>{
       const file=relative(root,path).replaceAll('\\','/');

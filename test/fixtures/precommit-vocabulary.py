@@ -8,7 +8,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp',prefix='staged-vocabulary-') as 
  def git(*args):return subprocess.check_output(['git',*args],cwd=root,env=env)
  def put(name,text):p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text)
  git('init','-q');git('config','user.email','fixture@example.invalid');git('config','user.name','fixture');git('config','core.hooksPath','/dev/null')
- for name in ['git-source-view.mjs','gen-shard-words.mjs','shard-outputs.mjs','legacy-shards.mjs']:
+ for name in ['git-source-view.mjs','gen-shard-words.mjs','shard-outputs.mjs']:
   put('scripts/'+name,(repo/'scripts'/name).read_text())
  put('package.json','{"type":"module"}')
  put('scripts/precommit-source.py','pass\n');put('scripts/push_input_cache.py','pass\n');put('scripts/precommit-checks.mjs','export {};\n')

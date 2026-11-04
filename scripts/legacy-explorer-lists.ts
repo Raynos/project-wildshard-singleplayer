@@ -7,8 +7,7 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { resolve, relative, isAbsolute } from 'node:path';
-import { pathToFileURL, fileURLToPath } from 'node:url';
-import ts from '@typescript/typescript6';
+import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 import { parseOutputIndex, assembleOutputShardfile } from '@wildshard/format/outputIndex';
 import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
@@ -23,7 +22,6 @@ import { borrowShardfileEntry, readBuildKey, shardfileCacheRoot } from './shardf
 import { installBakeEnvironment } from './bake/environment.mjs';
 import { initializeTier } from '@wildshard/engine/core/tier';
 import { recorderCacheRoot, recorderOutputHashes } from './native-recorder-cache.mjs';
-import { legacyInventory } from './legacy-shards.mjs';
 
 const slugs = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'far-reach', 'sunscar-dunes'];
 /** Every observed difference and unresolved native registration stays in the live LD4 prep rows. */
@@ -110,118 +108,74 @@ async function withPublicBytes<T>(inputs: Record<string, string>, read: () => Pr
   try { return await read(); } finally { globalThis.fetch = original; }
 }
 
-/** Literal declarations are separate from runtime membership. Keep every
- * conditional/dynamic registration visible in the coverage gap below. */
-function legacySets(slug: string, inputs: Record<string, string>): string[] {
-  const files = execFileSync('git', ['ls-files', `src/shards/${slug}-legacy`], { encoding: 'utf8' }).trim().split('\n');
-  const result: string[] = [];
-  for (const file of files.filter(name => name.endsWith('.ts'))) {
-    const source = readFileSync(file, 'utf8');
-    if (!source.includes('placeSet(')) continue;
-    inputs[file] = hash(source);
-    const tree = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
-    const collect = (node: ts.Node): void => {
-      if (ts.isObjectLiteralExpression(node)) {
-        const properties = node.properties.filter(ts.isPropertyAssignment);
-        const property = properties.find(row => row.name.getText(tree) === 'id') ?? properties.find(row => row.name.getText(tree) === 'place');
-        if (property !== undefined && ts.isStringLiteral(property.initializer) && property.initializer.text.startsWith(`${slug}/`)) result.push(property.initializer.text);
-      }
-      ts.forEachChild(node, collect);
-    };
-    const visit = (node: ts.Node): void => {
-      if (ts.isVariableDeclaration(node) && ['SETS', 'PLACE_SETS', 'REGIONS'].includes(node.name.getText(tree)) && node.initializer !== undefined) collect(node.initializer);
-      if (ts.isCallExpression(node) && node.expression.getText(tree) === 'placeSet') for (const argument of node.arguments) collect(argument);
-      ts.forEachChild(node, visit);
-    };
-    visit(tree);
-  }
-  return sorted(result);
-}
-
 async function capture(slug: string, side: string): Promise<Capture> {
   initializeTier('phone');
   const inputs: Record<string, string> = {}, gaps: string[] = [], infrastructureWarnings: string[] = [];
   const lists: Lists = { models: null, sets: null, world: null, arenas: null };
   if (side === 'legacy') {
-    if (legacyInventory(root).shards[`${slug}-legacy`] === undefined) {
-      gaps.push('legacy: frozen entry retired; no live comparison or parity claim');
-      return {lists,inputs,gaps,infrastructureWarnings};
-    }
-    const module = async (file: string): Promise<Fields> => {
-      inputs[file] = hash(readFileSync(file));
-      const value: unknown = await import(pathToFileURL(resolve(file)).href); return object(value);
-    };
-    const { installLegacyKitSpecies } = await import('../src/game/systems/species/install');
-    await installLegacyKitSpecies();
-    lists.models = ids((await module(`src/shards/${slug}-legacy/roster.ts`)).ROSTER);
-    const manifest = object((await module(`src/shards/${slug}-legacy/manifest.ts`)).default);
-    lists.world = ids(manifest.pois ?? []);
-    lists.sets = legacySets(slug, inputs);
-    lists.arenas = ['practice'];
-    gaps.push('models: roster captured; world-placement registrations require a separate native world-list adapter');
-    gaps.push('sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified');
-    gaps.push('world: manifest POIs captured; late runtime map registrations are not qualified');
-  } else {
-    const folder = inheritedProduct ?? resolve(root, 'out', slug), bytes = readFileSync(resolve(folder, 'shard.json'));
-    if (inheritedProduct !== undefined && (inheritedIndex === undefined || hash(bytes) !== inheritedIndex)) throw new Error('Recorded product index changed');
-    inputs[`out/${slug}/shard.json`] = hash(bytes);
-    const raw: unknown = JSON.parse(bytes.toString('utf8')), index = parseOutputIndex(raw);
-    const sections = new Map<string, unknown>();
-    for (const row of index.sections) {
-      const data = readFileSync(resolve(folder, row.path));
-      if (data.byteLength !== row.bytes || hash(data) !== row.hash) throw new Error(`Invalid section ${row.name}`);
-      const value: unknown = JSON.parse(data.toString('utf8')); sections.set(row.name, value);
-    }
-    const source = assembleOutputShardfile(raw, sections);
-    const payloadUrl = (path: string): string => new URL(`/shardfiles/${slug}/${path}`, 'http://localhost').href;
-    const readPayload = (hashId: string): Promise<Uint8Array> => {
-      const row = index.files.find(file => file.hash === hashId); if (row === undefined) throw new Error(`Missing file ${hashId}`);
-      const data = readFileSync(resolve(folder, row.path)); if (hash(data) !== hashId || data.byteLength !== row.compressed) throw new Error(`Invalid file ${row.path}`);
-      inputs[`product:${slug}:${row.path}`] = hashId;
-      return Promise.resolve(data);
-    };
-    const product = createShardProduct({ slug, revision: 0, shardfile: source, sections, builtJson: true,
-      files: new Map(index.files.flatMap(row => row.name === undefined ? [] : [[row.name, { hash: row.hash, url: payloadUrl(row.path),
-        ...(row.jsonSchema === undefined ? {} : { jsonSchema: row.jsonSchema }) }]])),
-      read: readPayload });
-    const features = rows(object(sections.get('client/plan')).features).map(object);
-    const scope = new Scope('ld4-product-species'), species = new SpeciesService(() => scope);
-    const environment = installBakeEnvironment(root);
-    const originalError = console.error, diagnostics: string[] = [];
-    console.error = (...args: unknown[]): void => {
-      const only = args.length === 1 && typeof args[0] === 'string' ? args[0].trim() : null;
-      if (only !== null && /^\(node:\d+\) ExperimentalWarning: Transform Types is an experimental feature and might change at any time(?:\n\(Use [^\n]+ to show where the warning was created\))?$/u.test(only)) infrastructureWarnings.push(only);
-      else diagnostics.push(args.map(value => typeof value === 'string' ? value : value instanceof Error ? value.message : '[non-string diagnostic]').join(' '));
-      originalError(...args);
-    };
-    try {
-      // Same pure product catalogue and scoped service used by App/EngineRows;
-      // no live-world wrapper, legacy seed, preload or specimen build.
-      for (const feature of features.filter(row => row.kind === 'species.program')) {
-        const catalogueSource = v.parse(ClientSpeciesProgramSchema, feature).catalogue;
-        if (catalogueSource === undefined) continue;
-        const actors = v.parse(v.object({ species: v.pick(SpeciesPresentationSchema, ['lookBook']) }), await product.json<unknown>(catalogueSource.actors));
-        const catalogue = productSpeciesCatalogue(product, actors.species, await product.json<unknown>(catalogueSource.looks));
-        for (const row of catalogue.rows) species.registerRow(row, scope);
-        for (const row of catalogue.looks) species.registerLook(row, scope);
-      }
-      setSpeciesResolver(kind => species.get(kind));
-      lists.models = await withPublicBytes(inputs, async () => (await explorerRoster(product)).map(row => row.id), url => {
-        const file = index.files.find(row => payloadUrl(row.path) === url);
-        return file === undefined ? undefined : readPayload(file.hash);
-      });
-      if (diagnostics.length > 0) throw new Error(`Catalogue source diagnostics: ${diagnostics.slice(0, 8).join('; ')}`);
-    } catch (error) { lists.models = null; gaps.push(`models: ${error instanceof Error ? error.message : String(error)}`); }
-    finally { console.error = originalError; try { scope.dispose(); } finally { environment.dispose(); } }
-    lists.sets = features.filter(row => row.kind === 'world.sets').flatMap(row => ids(row.rows));
-    lists.world = ids(object(object(sections.get('ui/level')).manifest).pois ?? []);
-    lists.arenas = ['practice', ...features.filter(row => row.kind === 'practice.course').flatMap(row => {
-      const course = row.course; if (typeof course !== 'string') throw new Error('Missing course'); return [course];
-    })];
-    gaps.push('models/sets: late native and world.assembly registrations are not qualified by the declared catalogue');
-    gaps.push('world: ui/level manifest POIs captured; late runtime map registrations are not qualified');
-    gaps.push('product: hash-verified existing output; no claim that it matches current source or visual/physics parity');
+    // LD5-LD7 deleted every frozen copy; LD8 retired its registry. The recorded LD4 report keeps the old lists.
+    gaps.push('legacy: frozen entry retired; no live comparison or parity claim');
+    return { lists, inputs, gaps, infrastructureWarnings };
   }
+  const folder = inheritedProduct ?? resolve(root, 'out', slug), bytes = readFileSync(resolve(folder, 'shard.json'));
+  if (inheritedProduct !== undefined && (inheritedIndex === undefined || hash(bytes) !== inheritedIndex)) throw new Error('Recorded product index changed');
+  inputs[`out/${slug}/shard.json`] = hash(bytes);
+  const raw: unknown = JSON.parse(bytes.toString('utf8')), index = parseOutputIndex(raw);
+  const sections = new Map<string, unknown>();
+  for (const row of index.sections) {
+    const data = readFileSync(resolve(folder, row.path));
+    if (data.byteLength !== row.bytes || hash(data) !== row.hash) throw new Error(`Invalid section ${row.name}`);
+    const value: unknown = JSON.parse(data.toString('utf8')); sections.set(row.name, value);
+  }
+  const source = assembleOutputShardfile(raw, sections);
+  const payloadUrl = (path: string): string => new URL(`/shardfiles/${slug}/${path}`, 'http://localhost').href;
+  const readPayload = (hashId: string): Promise<Uint8Array> => {
+    const row = index.files.find(file => file.hash === hashId); if (row === undefined) throw new Error(`Missing file ${hashId}`);
+    const data = readFileSync(resolve(folder, row.path)); if (hash(data) !== hashId || data.byteLength !== row.compressed) throw new Error(`Invalid file ${row.path}`);
+    inputs[`product:${slug}:${row.path}`] = hashId;
+    return Promise.resolve(data);
+  };
+  const product = createShardProduct({ slug, revision: 0, shardfile: source, sections, builtJson: true,
+    files: new Map(index.files.flatMap(row => row.name === undefined ? [] : [[row.name, { hash: row.hash, url: payloadUrl(row.path),
+      ...(row.jsonSchema === undefined ? {} : { jsonSchema: row.jsonSchema }) }]])),
+    read: readPayload });
+  const features = rows(object(sections.get('client/plan')).features).map(object);
+  const scope = new Scope('ld4-product-species'), species = new SpeciesService(() => scope);
+  const environment = installBakeEnvironment(root);
+  const originalError = console.error, diagnostics: string[] = [];
+  console.error = (...args: unknown[]): void => {
+    const only = args.length === 1 && typeof args[0] === 'string' ? args[0].trim() : null;
+    if (only !== null && /^\(node:\d+\) ExperimentalWarning: Transform Types is an experimental feature and might change at any time(?:\n\(Use [^\n]+ to show where the warning was created\))?$/u.test(only)) infrastructureWarnings.push(only);
+    else diagnostics.push(args.map(value => typeof value === 'string' ? value : value instanceof Error ? value.message : '[non-string diagnostic]').join(' '));
+    originalError(...args);
+  };
+  try {
+    // Same pure product catalogue and scoped service used by App/EngineRows;
+    // no live-world wrapper, legacy seed, preload or specimen build.
+    for (const feature of features.filter(row => row.kind === 'species.program')) {
+      const catalogueSource = v.parse(ClientSpeciesProgramSchema, feature).catalogue;
+      if (catalogueSource === undefined) continue;
+      const actors = v.parse(v.object({ species: v.pick(SpeciesPresentationSchema, ['lookBook']) }), await product.json<unknown>(catalogueSource.actors));
+      const catalogue = productSpeciesCatalogue(product, actors.species, await product.json<unknown>(catalogueSource.looks));
+      for (const row of catalogue.rows) species.registerRow(row, scope);
+      for (const row of catalogue.looks) species.registerLook(row, scope);
+    }
+    setSpeciesResolver(kind => species.get(kind));
+    lists.models = await withPublicBytes(inputs, async () => (await explorerRoster(product)).map(row => row.id), url => {
+      const file = index.files.find(row => payloadUrl(row.path) === url);
+      return file === undefined ? undefined : readPayload(file.hash);
+    });
+    if (diagnostics.length > 0) throw new Error(`Catalogue source diagnostics: ${diagnostics.slice(0, 8).join('; ')}`);
+  } catch (error) { lists.models = null; gaps.push(`models: ${error instanceof Error ? error.message : String(error)}`); }
+  finally { console.error = originalError; try { scope.dispose(); } finally { environment.dispose(); } }
+  lists.sets = features.filter(row => row.kind === 'world.sets').flatMap(row => ids(row.rows));
+  lists.world = ids(object(object(sections.get('ui/level')).manifest).pois ?? []);
+  lists.arenas = ['practice', ...features.filter(row => row.kind === 'practice.course').flatMap(row => {
+    const course = row.course; if (typeof course !== 'string') throw new Error('Missing course'); return [course];
+  })];
+  gaps.push('models/sets: late native and world.assembly registrations are not qualified by the declared catalogue');
+  gaps.push('world: ui/level manifest POIs captured; late runtime map registrations are not qualified');
+  gaps.push('product: hash-verified existing output; no claim that it matches current source or visual/physics parity');
   for (const key of Object.keys(lists) as (keyof Lists)[]) { const list = lists[key]; if (list !== null) lists[key] = sorted(list); }
   return { lists, inputs, gaps, infrastructureWarnings };
 }

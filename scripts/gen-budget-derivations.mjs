@@ -5,12 +5,10 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { legacyInventory } from './legacy-shards.mjs';
 
 /** Refresh computed entries only; never touch measured ceilings, captures or approvals. */
 export async function genBudgetDerivations(root = resolve(import.meta.dirname, '..'), check = false, shard = '') {
-  const frozen = legacyInventory(root);
-  const folders = readdirSync(resolve(root, 'src/shards'), { withFileTypes: true }).filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && (existsSync(resolve(root, 'src/shards', entry.name, 'manifest.ts')) || existsSync(resolve(root, 'src/shards', entry.name, 'manifest.json')))).map((entry) => entry.name).sort();
+  const folders = readdirSync(resolve(root, 'src/shards'), { withFileTypes: true }).filter((entry) => entry.isDirectory() && (existsSync(resolve(root, 'src/shards', entry.name, 'manifest.ts')) || existsSync(resolve(root, 'src/shards', entry.name, 'manifest.json')))).map((entry) => entry.name).sort();
   const products = shardProducts(root, folders), slugs = products.map((row) => row.slug);
   if (shard && (!/^[a-z0-9_-]+$/.test(shard) || !slugs.includes(shard))) throw new Error(`gen-budgets: unknown shard ${shard}`);
   const file = resolve(root, 'budgets/ceiling-sources.json');

@@ -9,7 +9,7 @@ import {platformOutput} from './fixtures/platformOutputs';
 
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
-it('keeps all six ruler baselines and zero verdicts when the legacy list is emptied',()=>{
+it('keeps all six ruler baselines and zero verdicts with no legacy registry',()=>{
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/ruler-no-legacy-'));owned.push(root);
   mkdirSync(resolve(root,'lint'));
   writeFileSync(resolve(root,'lint/legacy-line-basis.json'),readFileSync('lint/legacy-line-basis.json'));
@@ -21,14 +21,9 @@ it('keeps all six ruler baselines and zero verdicts when the legacy list is empt
     platformOutput(root,slug,index++===0?{'runtime/index.ts':'export const LIVE=1;'}:{});
     writeFileSync(resolve(root,`src/shards/${slug}/manifest.ts`),'export default {};');
   }
-  writeFileSync(resolve(root,'lint/legacy-shards.json'),JSON.stringify({version:1,sealed:true,
-    shards:Object.fromEntries([...baselines].map(([slug,row])=>[`${slug}-legacy`,{primary:slug,source:row.source,
-      files:{'manifest.ts':'a'.repeat(64),'plugin.ts':'b'.repeat(64)}}]))}));
   const before=shardLines(root);
   expect(Object.keys(before).sort()).toEqual([...baselines.keys()].sort());
   expect(Object.values(before).filter(row=>row.conversion.passed)).toHaveLength(5);
   for(const [slug,baseline] of baselines)expect(before[slug]?.conversion).toMatchObject({
     legacyLines:baseline.lines,legacyRevision:baseline.source,metric:'runtime-vs-legacy'});
-  writeFileSync(resolve(root,'lint/legacy-shards.json'),JSON.stringify({version:1,sealed:true,shards:{}}));
-  expect(shardLines(root)).toEqual(before);
 });

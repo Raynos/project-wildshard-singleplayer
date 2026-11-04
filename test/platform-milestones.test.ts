@@ -91,9 +91,6 @@ it('keeps admin source progress in one unit across closed and unclosed runtimes'
   mkdirSync(join(root,'lint'),{recursive:true});
   writeFileSync(join(root,'lint/ratchet.json'),JSON.stringify({allow:{},budgets:{}}));
   const slugs=['far-reach','pine-hollow'];
-  writeFileSync(join(root,'lint/legacy-shards.json'),JSON.stringify({version:1,sealed:true,
-   shards:Object.fromEntries(slugs.map(primary=>[`${primary}-legacy`,{primary,source:'a'.repeat(40),
-    files:{'manifest.ts':'b'.repeat(64),'plugin.ts':'b'.repeat(64)}}]))}));
   writeFileSync(join(root,'lint/legacy-line-basis.json'),JSON.stringify({schema:'legacy-line-basis/1',revision:'a'.repeat(40),
    shards:Object.fromEntries(slugs.map(slug=>[slug,{source:'a'.repeat(40),excluded:[],files:{'plugin.ts':100}}]))}));
   const canonical=await outputReport(root,{build:false});

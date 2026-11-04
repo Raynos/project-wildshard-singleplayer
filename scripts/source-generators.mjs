@@ -62,7 +62,7 @@ export const SOURCE_GENERATORS = [
   {
     id: 'shard-list',
     outputs: ['src/shards.generated.ts'],
-    inputs: ['src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/game/grid/singleplayer.json', 'lint/legacy-shards.json', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs', 'scripts/generated-source.mjs', 'lint/generated-source-debt.json', 'lint/generated-import-debt.json', 'scripts/legacy-shards.mjs'],
+    inputs: ['src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/game/grid/singleplayer.json', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs', 'scripts/generated-source.mjs', 'lint/generated-source-debt.json', 'lint/generated-import-debt.json'],
     committed: true,
     note: 'literal composition imports derive from authored declarations; no discovery contents or products are read',
     generate: async root => ({ 'src/shards.generated.ts': (await import(pathToFileURL(`${root}/scripts/gen-shards.mjs`).href)).shardSource(root) }),

@@ -7,7 +7,7 @@ import { frameFloorShards } from '../scripts/frame-floor-inventory.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 
-test('covers the 28 shipped discoveries and grid without frozen legacy copies', () => {
+test('covers the 28 shipped discoveries and grid', () => {
   const rows = frameFloorShards(root);
   expect(rows).toHaveLength(29);
   expect(new Set(rows).size).toBe(rows.length);
@@ -28,14 +28,8 @@ test('follows declared multi-product outputs and refuses duplicates before measu
   };
   try {
     write('src/shards/first/manifest.json', {});
-    write('src/shards/first-legacy/manifest.json', {});
     write('src/shards/many/manifest.json', {});
     write('src/shards/many/outputs.json', { outputs: [{ slug: 'plot-a' }, { slug: 'plot-b' }] });
-    write('lint/legacy-shards.json', { version: 1, sealed: true, shards: {
-      'first-legacy': { primary: 'first', source: 'a'.repeat(40), files: {
-        'manifest.ts': 'b'.repeat(64), 'plugin.ts': 'c'.repeat(64),
-      } },
-    } });
     expect(frameFloorShards(fixture)).toEqual(['first', 'plot-a', 'plot-b', 'grid']);
     write('src/shards/many/outputs.json', { outputs: [{ slug: 'plot-a' }, { slug: 'plot-a' }] });
     expect(() => frameFloorShards(fixture)).toThrow('duplicate output slug');

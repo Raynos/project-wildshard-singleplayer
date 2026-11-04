@@ -8,7 +8,6 @@ import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TIME_ALLOW } from './wildshard-plugin.js';
 import { compareCounts, hardRules, requiredGuardRules } from '../scripts/guard-counts.mjs';
-import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
 import { closedComponents } from '../scripts/check-closed-components.mjs';
 import { parseSync } from 'vite';
 import { pruneSchemaTypeAllowances } from './schema-types.mjs';
@@ -56,7 +55,6 @@ function counts(root, baselineFile, files = null, /** @type {{guardRequirement?:
   // Oxlint with no path arguments scans cwd. An empty staged scope must
   // measure no files, while main still prunes deleted rows and checks policy.
   if (measuredFiles?.length === 0) return {};
-  const frozen = legacyInventory(root), hard = hardRules(resolve(REPO, '.oxlintrc.json')); 
   if (!existsSync(resolve(root, 'src'))) throw new Error(`Missing source directory: ${root}/src`);
   if (files !== null && !files.some(file => existsSync(resolve(root,file)))) return {};
   let measuredConfig = configFile;
@@ -90,7 +88,6 @@ function counts(root, baselineFile, files = null, /** @type {{guardRequirement?:
       if (!key || !ruleNames.has(key) || typeof diagnostic.filename !== 'string') throw new Error(`Unexpected lint diagnostic: ${JSON.stringify(diagnostic)}`);
       const file = relative(root, resolve(root, diagnostic.filename)).replaceAll('\\', '/');
       if (files === null && !file.startsWith('src/') && key !== 'wildshard/no-generated-json-import') continue;
-      if (key !== 'wildshard/no-generated-json-import' && !hard.has(key) && registeredLegacyFile(frozen, file)) continue;
       current[key] ??= {};
       current[key][file] = (current[key][file] ?? 0) + 1;
     }
@@ -109,11 +106,9 @@ function debugCount(root, cacheDir) {
     for (const file of globSync('src/**/*',{cwd:root}).filter(path=>/\.[cm]?[jt]sx?$/u.test(path) && !path.startsWith('src/sdk/dist/')).sort()) {
       digest.update(JSON.stringify([file,createHash('sha256').update(readFileSync(resolve(root,file))).digest('hex')]));
     }
-    for (const file of ['lint/ratchet.mjs','lint/debug-flags.mjs','scripts/legacy-shards.mjs','package.json','pnpm-lock.yaml','node_modules/vite/package.json']) {
+    for (const file of ['lint/ratchet.mjs','lint/debug-flags.mjs','package.json','pnpm-lock.yaml','node_modules/vite/package.json']) {
       digest.update(JSON.stringify([file,existsSync(resolve(REPO,file)) ? createHash('sha256').update(readFileSync(resolve(REPO,file))).digest('hex') : null]));
     }
-    const legacy=resolve(root,'lint/legacy-shards.json');
-    if (existsSync(legacy)) digest.update(readFileSync(legacy));
     key=digest.digest('hex');receipt=resolve(cacheDir,'debug-census',`${key}.json`);
     try {
       const saved=readJSON(receipt);
@@ -124,8 +119,7 @@ function debugCount(root, cacheDir) {
       }
     } catch { /* a missing or corrupt receipt requires the actual AST census */ }
   }
-  const frozen = legacyInventory(root);
-  const count=debugFlags(root, cacheDir).filter((row) => row.purpose !== 'developer' && !registeredLegacyFile(frozen, relative(root, row.file).replaceAll('\\', '/'))).length;
+  const count=debugFlags(root, cacheDir).filter((row) => row.purpose !== 'developer').length;
   if (receipt!==undefined) {
     mkdirSync(resolve(cacheDir,'debug-census'),{recursive:true});
     save(receipt,{key,count,digest:createHash('sha256').update(JSON.stringify([key,count])).digest('hex')});

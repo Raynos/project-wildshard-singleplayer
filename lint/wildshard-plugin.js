@@ -25,9 +25,8 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
-import { runtimeCommonsClosure } from './commons-closure.mjs';
-import { runtimePerformanceViolations, frozenRuntimePerformanceViolations } from './runtime-performance.mjs';
-import { shardGameImport, shardEngineImport, generatorImportViolation, legacyNpcImport } from './shard-imports.mjs';
+import { runtimePerformanceViolations } from './runtime-performance.mjs';
+import { shardGameImport, shardEngineImport, generatorImportViolation } from './shard-imports.mjs';
 import { shardfileBoundaryVisitors } from './shardfile-boundaries.mjs';
 import { hostCallbackSites } from './host-callback-syntax.mjs';
 import { hostPlayFile } from './host-files.mjs';
@@ -400,13 +399,8 @@ const layerWalk = (kind) => (context) => {
     if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
     if (kind === 'layer' && shardLocal !== undefined) {
-      const runtime = legacySourcePath(pathOf(context)) !== null && shardLocal.startsWith('runtime/');
-      if (runtime) {
-        const commons = runtimeCommonsClosure(context.filename, source);
-        if (commons !== null) report(context, node, `Runtime import closure reaches build-time commons: ${commons}`);
-      }
-      if (!runtime && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/'))) report(context, node, `Primary shards cannot import trusted SDK runtime: ${source}`);
-      if (target?.name === 'commons' && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts' && !runtime) report(context, node, `Commons packs are build-time imports: ${source}`);
+      if (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Primary shards cannot import trusted SDK runtime: ${source}`);
+      if (target?.name === 'commons' && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts') report(context, node, `Commons packs are build-time imports: ${source}`);
     }
     if (!target) {
       if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
@@ -435,7 +429,7 @@ const layerWalk = (kind) => (context) => {
 };
 // G143: runtime/ never reaches build-time commons (SF54 retired every kit site and dissolved the kit; a hard rule since).
 const runtimeCommons = rule('Runtime cannot import build-time commons code (G143 / SF54)', (context) => {
-  if (legacySourcePath(pathOf(context)) === null || !/^src\/shards\/[^/]+\/runtime\//u.test(pathOf(context))) return {};
+  if (!/^src\/shards\/[^/]+\/runtime\//u.test(pathOf(context))) return {};
   return importsVisitor((node) => {
     const source = importPrefix(node.source);
     if (typeof source !== 'string') return;
@@ -445,25 +439,12 @@ const runtimeCommons = rule('Runtime cannot import build-time commons code (G143
 });
 // SF62: only the reviewed exact predecessor sites remain during the first-party conversions.
 const runtimeDebt = JSON.parse(readFileSync(new URL('runtime-performance.json', import.meta.url), 'utf8')).sites;
-const frozenFile = new URL('legacy-shards.json', import.meta.url);
-const frozenShards = existsSync(frozenFile) ? JSON.parse(readFileSync(frozenFile, 'utf8')).shards : {};
-/** Historical source identity only for a reviewed frozen file. It grants no new import or runtime-site allowance. */
-export function legacySourcePath(filename) {
-  const match = /^src\/shards\/([^/]+)\/(.+)$/u.exec(filename);
-  const row = match === null ? undefined : frozenShards[match[1]];
-  return row !== undefined && Object.hasOwn(row.files, match[2]) ? `src/shards/${row.primary}/${match[2]}` : null;
-}
 
 const runtimePerformance = rule('Custom runtime has bounded work and no frame allocations, raw rendering, DOM, timers or fetch', context => {
   const filename = pathOf(context);
   if (!/^src\/shards\/[^/]+\/runtime\/.*\.[jt]s$/u.test(filename)) return {};
   return { Program(program) {
-    const primary = legacySourcePath(filename), match = /^src\/shards\/([^/]+)\/(.+)$/u.exec(filename);
-    const digest = match === null ? undefined : frozenShards[match[1]]?.files[match[2]];
-    const violations = primary !== null && digest !== undefined
-      ? frozenRuntimePerformanceViolations(context.sourceCode.text, filename, primary, digest, runtimeDebt, program)
-      : runtimePerformanceViolations(context.sourceCode.text, filename, runtimeDebt, program);
-    for (const site of violations) {
+    for (const site of runtimePerformanceViolations(context.sourceCode.text, filename, runtimeDebt, program)) {
       context.report({ loc: { line: site.line, column: 0 }, message: `${site.kind}: ${site.message}` });
     }
   } };
@@ -896,8 +877,7 @@ const engineInternalRule = rule('Game-only engine exports stay out of the shards
 const SHARD_SERVICES = new Set(['app', 'saves', 'hudSlots', 'practiceRoom', 'lockOn']);
 const shardServices = rule('Shards get engine services through ShardContext (E362 AG12)', (context) => {
   const filename = pathOf(context);
-  // G606: keep the exact registered predecessor files outside this primary rule.
-  if (!filename.startsWith('src/shards/') || legacySourcePath(filename) !== null) return {};
+  if (!filename.startsWith('src/shards/')) return {};
   return { ImportDeclaration(node) {
     if (!(stringOf(node.source) ?? '').startsWith('@wildshard/engine/') || node.importKind === 'type') return; // any engine module (E434)
     for (const s of node.specifiers ?? []) {
@@ -927,9 +907,7 @@ const shardNames = rule('The game names no particular shard (E405 LAYER-PURITY)'
 const ownModule = (source) => typeof source === 'string' && (source.startsWith('.') || source.startsWith('@wildshard/'));
 // SF54/G136: the author boundary is the SDK; existing direct game imports are shrink-only transition debt.
 const shardGameImports = rule('Primary shards import the authoring SDK, not the game', (context) => {
-  const filename = pathOf(context);
-  if (legacySourcePath(filename) !== null) return {};
-  const local = /^src\/shards\/[^/]+\/(.+)$/u.exec(filename)?.[1];
+  const local = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
   if (local === undefined) return {};
   const check = (node, source) => {
     if (shardGameImport(context.filename, source)) report(context, node, `Primary shards use SDK authoring imports, not game code: ${source}`);
@@ -943,7 +921,6 @@ const shardGameImports = rule('Primary shards import the authoring SDK, not the 
 // G307: report-only during SF76; the standalone report enables this same rule without changing hard guards.
 const shardGamePlugins = rule('Trusted runtime imports only defining game plugin exports (G307)', (context) => {
   if (!/^src\/shards\/[^/]+\//u.test(pathOf(context))) return {};
-  if (legacySourcePath(pathOf(context)) !== null) return {};
   const check = (node, source, computed = false) => {
     // Load the same package surface used by public-index; no second list to drift.
     exported('@wildshard/game/shard/context');
@@ -978,7 +955,7 @@ const shardHostCallback = {
     schema: [{ type: 'object', properties: { count: { type: 'boolean' } }, additionalProperties: false }] },
   create(context) {
     const file = pathOf(context);
-    if (!file.startsWith('src/shards/') || legacySourcePath(file) !== null) return {};
+    if (!file.startsWith('src/shards/')) return {};
     const index = context.filename.replaceAll('\\', '/').lastIndexOf('/src/');
     const root = index === -1 ? REPO : context.filename.slice(0, index);
     if (!hostPlayFile(root, file)) return {};
@@ -995,7 +972,7 @@ const shardfileBoundaryRule = name => ({
     schema: [{ type: 'object', properties: { count: { type: 'boolean' }, closedShards: { type: 'array', items: { type: 'string' }, uniqueItems: true } }, additionalProperties: false }] },
   create(context) {
     const file = pathOf(context);
-    if (legacySourcePath(file) !== null || name === 'runtime-standalone') return {};
+    if (name === 'runtime-standalone') return {};
     const index = context.filename.replaceAll('\\', '/').lastIndexOf('/src/');
     const root = index === -1 ? REPO : context.filename.slice(0, index);
     const slug = /^src\/shards\/([^/]+)\//u.exec(file)?.[1];
@@ -1020,7 +997,7 @@ for (const target of Object.values(blenderTargets)) for (const file of [target.s
 // F3: hard structural boundary. No count option or debt allowance exists.
 const noShardRuntime = rule('Primary shards contain authoring and declarations only (G694 F3)', context => {
   const file = pathOf(context), local = /^src\/shards\/[^/]+\/(.+)$/u.exec(file)?.[1];
-  if (local === undefined || legacySourcePath(file) !== null) return {};
+  if (local === undefined) return {};
   const allowed = local.startsWith('generators/') || blenderSources.has(file) || /(?:\.d|\.d\.json|\.generated)\.ts$/u.test(local);
   return {
     Program(node) {
@@ -1035,17 +1012,14 @@ const noShardRuntime = rule('Primary shards contain authoring and declarations o
   };
 });
 
-const generatorImports = rule('Generator and data imports stay on the authoring surface (DS0.3)', context => {
-  if(legacySourcePath(pathOf(context))!==null)return {};
-  return boundaryVisitors((node,source,computed)=>{
-    const reason=(computed || source===null) && generatorImportViolation(context.filename,'<computed>')!==null
-      ? 'author imports require a literal module path' : generatorImportViolation(context.filename,source);
-    if(reason!==null)report(context,node,`${reason}: ${source}`);
-  });
-});
+const generatorImports = rule('Generator and data imports stay on the authoring surface (DS0.3)', context => boundaryVisitors((node,source,computed)=>{
+  const reason=(computed || source===null) && generatorImportViolation(context.filename,'<computed>')!==null
+    ? 'author imports require a literal module path' : generatorImportViolation(context.filename,source);
+  if(reason!==null)report(context,node,`${reason}: ${source}`);
+}));
 
 const shardEngineImports = rule('Direct shard engine imports shrink during the plugin migration (DS0.3)', context => {
-  if(!pathOf(context).startsWith('src/shards/') || legacySourcePath(pathOf(context))!==null)return {};
+  if(!pathOf(context).startsWith('src/shards/'))return {};
   return boundaryVisitors((node,source)=>{
     if(shardEngineImport(context.filename,source))report(context,node,`Direct engine import belongs to the plugin migration count: ${source}`);
   });
@@ -1108,16 +1082,6 @@ const sdkNoFacade = rule('The authoring SDK never aliases a game or engine runti
       if(typeof source==='string' && external(source))report(context,candidate.node,`Delete SDK facade ${candidate.name}; import the defining runtime module directly: ${source}`);
     }
   } };
-});
-
-// SF54/SF73: the unchanged historical implementations serve registered frozen copies only.
-const legacyNpcImports = rule('Historical NPC exports serve only registered frozen consumers', (context) => {
-  const filename = pathOf(context);
-  if (!filename.startsWith('src/') || legacySourcePath(filename) !== null) return {};
-  const check = (node, source) => {
-    if (legacyNpcImport(context.filename, source)) report(context, node, `Historical NPC imports are for exact SF73 registered legacy files only; primary shards use their local implementation: ${source}`);
-  };
-  return { ...importsVisitor(node => { check(node, importPrefix(node.source)); }), TSImportType(node) { check(node, importPrefix(node.source)); } };
 });
 
 const noReexport = rule('No barrels: no module re-exports one of ours (E434)', (context) => {
@@ -1185,7 +1149,6 @@ const plugin = {
     'no-shard-runtime': noShardRuntime,
     'shard-engine-imports': shardEngineImports,
     'sdk-no-facade': sdkNoFacade,
-    'legacy-npc-imports': legacyNpcImports,
     'runtime-commons': runtimeCommons,
     'runtime-standalone': shardfileBoundaryRule('runtime-standalone'),
     'no-shard-host-callback': shardHostCallback,
@@ -1216,8 +1179,7 @@ const plugin = {
 // its existing AST pass. Default census behavior and hard rules stay intact.
 for(const name of ['no-raw-random-time','shard-sandbox','shard-game-imports','shard-game-plugins',
   'generator-imports','shard-engine-imports','sdk-no-facade']) {
-  plugin.rules[name]=recordedDebtRule(plugin.rules[name],`wildshard/${name}`,shardfileDebt,pathOf,
-    file=>legacySourcePath(file)!==null);
+  plugin.rules[name]=recordedDebtRule(plugin.rules[name],`wildshard/${name}`,shardfileDebt,pathOf);
 }
 for (const name of TEST_DOMAIN_RUNTIME_RULES) {
   const original = plugin.rules[name];

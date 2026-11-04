@@ -4,7 +4,6 @@ import { shardFolders } from './gen-shards.mjs';
 import { shardProducts } from './shard-outputs.mjs';
 import { productManifestPath } from './authored-manifest.mjs';
 import { pathToFileURL } from 'node:url';
-import { legacyInventory } from './legacy-shards.mjs';
 
 /** Emit data and image imports only, never a shard's executable discovery graph.
  * @param {readonly import('../src/game/shard/titleList').TitleManifest[]} rows */
@@ -34,8 +33,7 @@ export async function readTitleCatalogue() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   process.stdout.write(`TITLE-CATALOGUE ${JSON.stringify(await readTitleCatalogue())}\n`);
-  const identities=Object.fromEntries(Object.entries(legacyInventory(process.cwd()).shards).map(([copy,row])=>[copy,row.primary]));
-  process.stdout.write(`TITLE-SELECTION ${JSON.stringify(selectionCatalogueSource(selectionModules(process.cwd()),identities))}\n`);
+  process.stdout.write(`TITLE-SELECTION ${JSON.stringify(selectionCatalogueSource(selectionModules(process.cwd())))}\n`);
 }
 
 /** The same discovered modules and original placement rows, without importing them.

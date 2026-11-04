@@ -6,7 +6,6 @@ import {pathToFileURL} from 'node:url';
 import * as v from 'valibot';
 import {customSectionGrowthFailures,customSectionIdentityFailures} from './custom-section-policy.mjs';
 import {outputSections} from './shard-platform-output.mjs';
-import {legacyInventory} from './legacy-shards.mjs';
 
 const natural=v.pipe(v.number(),v.integer(),v.minValue(0));
 const measures=v.record(v.string(),v.strictObject({count:natural,bytes:natural}));
@@ -15,11 +14,9 @@ const receipt=v.strictObject({revision:v.string(),shards:measures});
 /** @param {string} root @param {string} repo @param {string} base @param {string} revision @param {string} receipts */
 export function checkCustomSectionGrowth(root,repo,base,revision,receipts) {
   const budgets=JSON.parse(readFileSync(resolve(root,'lint/ratchet.json'),'utf8')).budgets;
-  const frozen=legacyInventory(root).shards;
   // Enumerate projects, not existing outputs: a missing product must refuse.
   const projects=execFileSync('git',['ls-tree','-r','--name-only',revision,'--','src/shards'],{cwd:repo,encoding:'utf8'})
-    .split('\n').flatMap(path=>/^src\/shards\/([^/]+)\/shard.config.ts$/u.exec(path)?.slice(1)??[])
-    .filter(slug=>!Object.hasOwn(frozen,slug));
+    .split('\n').flatMap(path=>/^src\/shards\/([^/]+)\/shard.config.ts$/u.exec(path)?.slice(1)??[]);
   const identities={};
   const after=Object.fromEntries(projects.map(slug=>{
     const row=outputSections(root,slug); identities[slug]=row;

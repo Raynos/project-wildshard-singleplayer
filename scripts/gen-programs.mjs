@@ -2,7 +2,6 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseSync } from 'vite';
-import { legacyInventory } from './legacy-shards.mjs';
 import { manifestFolders, outputManifest, shardProducts } from './shard-outputs.mjs';
 import { usesProgramDiscovery } from './program-discovery.mjs';
 
@@ -22,13 +21,13 @@ export function hasProjectGenerator(source) {
 }
 
 /** @typedef {{products:string[],folders:string[],scoped:boolean}} GenerationPlan */
-/** Resolve product slugs to source folders once; frozen legacy is never built.
+/** Resolve product slugs to source folders once.
  * Every current shard constructs its own source inputs; no scheduler catalogue is read.
  * @param {string} root @param {string} [requested] @returns {GenerationPlan} */
 export function generationPlan(root, requested) {
-  const frozen = legacyInventory(root), directory = resolve(root, 'src/shards');
+  const directory = resolve(root, 'src/shards');
   const folders = readdirSync(directory, { withFileTypes: true }).filter(row => row.isDirectory()
-    && !Object.hasOwn(frozen.shards, row.name) && existsSync(resolve(directory, row.name, 'shard.config.ts'))).map(row => row.name).sort();
+    && existsSync(resolve(directory, row.name, 'shard.config.ts'))).map(row => row.name).sort();
   const products = shardProducts(root, folders);
   const selected = requested === undefined ? products.map(row => row.slug) : requested.split(',');
   if (selected.length === 0 || new Set(selected).size !== selected.length

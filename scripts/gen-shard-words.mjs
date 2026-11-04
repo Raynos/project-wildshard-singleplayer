@@ -4,7 +4,6 @@ import { outputManifest, shardOutputs } from './shard-outputs.mjs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
-import { legacyInventory } from './legacy-shards.mjs';
 
 const unwrap = (node) => {
   let value = node;
@@ -24,10 +23,7 @@ const walk = (node, visit) => {
 
 /** Read only the static data used by manifests and declared species/weapon rows. */
 export function shardWordData(root, shard) {
-  // Frozen copies use their exact reviewed primary's vocabulary and ownership. They never create new engine words;
-  // the lint guard resolves their inventoried paths to the same primary, while all hard rules remain active.
-  const aliases = legacyInventory(root).shards;
-  const requested = shard !== undefined && Object.hasOwn(aliases, shard) ? aliases[shard].primary : shard;
+  const requested = shard;
   if (requested !== undefined && (!/^[a-z0-9_-]+$/.test(requested) || !(existsSync(resolve(root, 'src/shards', requested, 'manifest.ts')) || existsSync(resolve(root, 'src/shards', requested, 'manifest.json'))))) {
     throw new Error(`gen-shards: unknown shard ${shard}`);
   }
@@ -119,7 +115,6 @@ export function shardWordData(root, shard) {
   };
   const shards = {};
   for (const entry of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-    if (Object.hasOwn(aliases, entry.name)) continue;
     if (requested !== undefined && entry.name !== requested) continue;
     if (!entry.isDirectory()) continue;
     const file = resolve(root, 'src/shards', entry.name, 'manifest.ts');

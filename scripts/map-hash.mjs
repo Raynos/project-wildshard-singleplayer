@@ -6,7 +6,6 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { legacyInventory } from './legacy-shards.mjs';
 
 // Reuse the SDK's pinned Node image decoder; root scripts have no separate Sharp dependency.
 const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
@@ -127,9 +126,9 @@ export function mapTilesHash(shardDir) {
 
 /** Every shard folder with a shardfile project. @param {string} repoRoot @returns {{slug: string, dir: string}[]} */
 export function mapShards(repoRoot) {
-  const shards = resolve(repoRoot, 'src/shards'), frozen = legacyInventory(repoRoot);
+  const shards = resolve(repoRoot, 'src/shards');
   return readdirSync(shards, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(join(shards, entry.name, 'shard.config.ts')))
+    .filter((entry) => entry.isDirectory() && existsSync(join(shards, entry.name, 'shard.config.ts')))
     .map((entry) => ({ slug: entry.name, dir: join(shards, entry.name) }))
     .sort((a, b) => a.slug.localeCompare(b.slug));
 }

@@ -13,7 +13,6 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
-import { LEGACY_INVENTORY, legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
 import { checkSimRuntime } from './sim-in-runtime.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
@@ -117,9 +116,7 @@ export function allowedGraphDirection(key) {
   return rank(from) >= 0 && rank(to) >= 0 && rank(from) > rank(to);
 }
 /** the counts of cross-layer edges: { 'game → engine': 887, … } (minus APPROVED_DOWNWARD) and the reach violations */
-const EMPTY_FROZEN = { shards: {} };
-/** Frozen sources remain in every reach/cycle check; only reviewed file identities leave the measured counts. */
-export function graph(files, read, exists, frozen = EMPTY_FROZEN) {
+export function graph(files, read, exists) {
   const edges = {}, hardEdges = {}, violations = [];
   for (const from of files) {
     const fromLayer = layerOf(from);
@@ -133,7 +130,7 @@ export function graph(files, read, exists, frozen = EMPTY_FROZEN) {
       if (toLayer === fromLayer || (from === GENERATED_TABLE && reachViolation(from, to, dynamic) === null && toLayer.startsWith('shards/'))) continue;
       const key = `${fromLayer} → ${toLayer}`;
       hardEdges[key] = (hardEdges[key] ?? 0) + 1;
-      if (!registeredLegacyFile(frozen, from) && !APPROVED_DOWNWARD.test(key)) edges[key] = (edges[key] ?? 0) + 1;
+      if (!APPROVED_DOWNWARD.test(key)) edges[key] = (edges[key] ?? 0) + 1;
     }
   }
   violations.push(...compareEdges(hardEdges, hardEdges).failures);
@@ -179,8 +176,7 @@ function main(input) {
     const deleted = execFileSync('git', ['diff', '--cached', '--no-renames', '--name-only', '--diff-filter=D', '--', 'src'], { cwd: ROOT, encoding: 'utf8' }).split('\n')
       .filter((p) => /^src\/.*\.[cm]?[jt]sx?$/u.test(p) && !p.endsWith('.d.ts') && !paths.includes(p));
     const stagedFiles = new Set(execFileSync('git', ['ls-files', '--cached', '--', 'src'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }).split('\n'));
-    const frozen = (read) => { const value = read(LEGACY_INVENTORY); return value === '' ? EMPTY_FROZEN : JSON.parse(value); };
-    const now = graph(present, staged, (p) => headModuleExists(p, stagedFiles, exists), frozen(staged)), before = graph([...paths, ...deleted].filter((p) => head(p) !== ''), head, (p) => headModuleExists(p, headFiles, exists), frozen(head));
+    const now = graph(present, staged, (p) => headModuleExists(p, stagedFiles, exists)), before = graph([...paths, ...deleted].filter((p) => head(p) !== ''), head, (p) => headModuleExists(p, headFiles, exists));
     const failures = [];
     // a rise the same commit records in lint/layer-edges.json (`--update`, a reviewed crossing) passes
     const recorded = (read) => { try { return JSON.parse(read(EDGES_FILE)).edges ?? {}; } catch { return {}; } };
@@ -198,7 +194,7 @@ function main(input) {
     if (failures.length > 0) { console.error(`check-graph (AG7):\n  ${failures.join('\n  ')}`); return 1; }
     return 0;
   }
-  const { edges, violations } = graph(sourceFiles(), (p) => readFileSync(resolve(ROOT, p), 'utf8'), exists, legacyInventory(ROOT));
+  const { edges, violations } = graph(sourceFiles(), (p) => readFileSync(resolve(ROOT, p), 'utf8'), exists);
   const file = resolve(ROOT, EDGES_FILE);
   if (argv[0] === '--update') {
     writeFileSync(file, `${JSON.stringify({ about: 'E362 AG7: cross-layer import counts (scripts/check-graph.mjs). A new pair or a rising count fails; lower with --update.', edges: sorted(edges) }, null, 2)}\n`);

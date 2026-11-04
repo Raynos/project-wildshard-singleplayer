@@ -2,8 +2,6 @@
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The guard compares actual immutable Node source trees.
 import { tmpdir } from 'node:os';
-// oxlint-disable-next-line import/no-nodejs-modules -- Exact frozen fixture identity uses the policy's SHA256.
-import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the owned fixture trees.
 import { join } from 'node:path';
 import { expect, test } from 'vitest';
@@ -99,19 +97,15 @@ test('only consumed verbatim platform sites pay newly visible runtime debt', () 
 });
 
 
-test('retains exact frozen sites after primary debt retires', () => {
+test('a -legacy folder name retains no runtime sites after the registry retired', () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync('tmp/runtime-frozen-retention-');
   const baselineRoot = join(root, 'before'), candidateRoot = join(root, 'after');
-  const relative = 'runtime/life.ts', file = `src/shards/example-legacy/${relative}`;
+  const file = 'src/shards/example-legacy/runtime/life.ts';
   const source = 'export function update(items) { for (const item of items) consume(item); }';
   const put = (base: string, path: string, text: string) => {
     const target = join(base, path); mkdirSync(join(target, '..'), { recursive: true }); writeFileSync(target, text);
   };
-  const digest = createHash('sha256').update(source).digest('hex');
-  const inventory = { version: 1, sealed: true, shards: { 'example-legacy': {
-    primary: 'example', source: 'a'.repeat(40), files: { 'manifest.ts': digest, 'plugin.ts': digest, [relative]: digest },
-  } } };
   const before = { about: 'reviewed', baselineAt: 'fixed', sites: {} };
   const sites: Record<string, { count: number; row: string }> = {};
   for (const issue of runtimePerformanceSites(source, file)) {
@@ -121,24 +115,14 @@ test('retains exact frozen sites after primary debt retires', () => {
   expect(Object.keys(sites).length).toBeGreaterThan(0);
   const list = 'lint/runtime-performance.json';
   put(baselineRoot, file, source);
-  put(baselineRoot, 'lint/legacy-shards.json', JSON.stringify(inventory));
   put(baselineRoot, list, JSON.stringify(before));
   put(candidateRoot, list, JSON.stringify({ ...before, sites }));
-  const check = () => comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), { baselineRoot, candidateRoot });
   const read = (base: string) => (path: string) => existsSync(join(base, path)) ? readFileSync(join(base, path), 'utf8') : undefined;
-  const checkBlobs = () => comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), undefined, undefined,
-    { before: read(baselineRoot), after: read(candidateRoot) });
   try {
     put(candidateRoot, file, source);
-    expect(check()).toEqual([]);
-    expect(checkBlobs()).toEqual([]);
+    expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), { baselineRoot, candidateRoot })).not.toEqual([]);
+    expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list), undefined, undefined,
+      { before: read(baselineRoot), after: read(candidateRoot) })).not.toEqual([]);
     expect(comparePlatformList(list, join(baselineRoot, list), join(candidateRoot, list))).not.toEqual([]);
-    put(candidateRoot, file, `${source}\nchanged();`);
-    expect(check()).not.toEqual([]);
-    expect(checkBlobs()).not.toEqual([]);
-    put(candidateRoot, file, source);
-    put(baselineRoot, 'lint/legacy-shards.json', JSON.stringify({ version: 1, sealed: true, shards: {} }));
-    expect(check()).not.toEqual([]);
-    expect(checkBlobs()).not.toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

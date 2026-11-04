@@ -3,10 +3,10 @@ export interface GamePluginModule { specifier: string; target: string | null; fa
 /** Discover the migration's plugin surface without rebinding values or admitting a new module. */
 export function gamePluginInventory(root?: string): GamePluginModule[];
 
-/** One explicit package export and all literal consumers, classified by the exact sealed legacy inventory. */
+/** One explicit package export and all literal consumers, split into shard and other consumers. */
 export interface GamePluginExport {
   key: string; target: string | null; plugin: boolean; published: boolean;
-  primaryConsumers: string[]; frozenConsumers: string[]; otherConsumers: string[];
+  primaryConsumers: string[]; otherConsumers: string[];
 }
 /** Export counts stay independent of compatibility consumers; this report grants no exception or permission. */
 export function gamePluginSurface(root?: string): {
@@ -15,8 +15,8 @@ export function gamePluginSurface(root?: string): {
   unresolved: { specifier: string; consumers: string[] }[];
 };
 
-/** Hard export audit: twenty defining plugins, actual registered legacy imports, four named migration tails. */
+/** Hard export audit: twenty defining plugins and the named migration tails. */
 export function checkGamePluginExports(root?: string, surface?: ReturnType<typeof gamePluginSurface>): {
-  failures: string[]; pluginExports: number; legacyExports: number;
+  failures: string[]; pluginExports: number;
   temporary: { key: string; target: string; owner: string; reason: string }[];
 };

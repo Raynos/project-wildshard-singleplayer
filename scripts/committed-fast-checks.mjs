@@ -111,8 +111,6 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       } else {
         await deriveGitVocabulary(view);
         const debt=v.parse(v.object({rules:v.record(v.string(),v.unknown()),ignorePatterns:v.optional(v.array(v.string()),[]),jsPlugins:v.array(v.union([v.string(),v.object({name:v.string(),specifier:v.string()})]))}),json(view,'.oxlintrc.ratchet.json'));
-        const {legacyInventory,registeredLegacyFile}=/** @type {typeof import('./legacy-shards.mjs')} */(await module('scripts/legacy-shards.mjs'));
-        const frozen=legacyInventory(root);
         /** @type {Record<string,Record<string,number>>} */
         const counts={};
         for(const spec of debt.jsPlugins) {
@@ -125,7 +123,7 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
             if(setting===undefined||setting==='off'||setting===0||['no-authored-html','no-shard-host-callback'].includes(name))continue;
             const options=Array.isArray(setting)?setting.slice(1):[];
             v.parse(v.looseObject({create:v.function()}),rule);
-            const selected=roots.filter(file=>file.startsWith('src/')&&!debt.ignorePatterns.some(pattern=>matchesGlob(file,pattern))&&(hard.has(key)||!registeredLegacyFile(frozen,file)));
+            const selected=roots.filter(file=>file.startsWith('src/')&&!debt.ignorePatterns.some(pattern=>matchesGlob(file,pattern)));
             for(const file of selected) {
               const current=gitRuleCount(/** @type {Parameters<typeof gitRuleCount>[0]} */(rule),resolve(root,file),view.read(file).toString('utf8'),options,root);
               (counts[key]??={})[file]=current;

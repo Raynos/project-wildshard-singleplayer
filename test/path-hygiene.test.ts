@@ -61,12 +61,9 @@ literal = "src/live.ts"
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('frozen layout accepts only explicitly inventoried legacy entries', () => {
+test('a -legacy folder suffix grants no layout exemption', () => {
   const config = { sourceLayout: { requiredFiles: [], allowedFiles: [], folders: [] } };
-  const frozen = { shards: { 'sample-legacy': { primary: 'sample', files: { 'retired.ts': 'hash' } } } };
-  expect(checkShardLayout({ 'sample-legacy': ['retired.ts'] }, config, frozen)).toEqual([]);
-  expect(checkShardLayout({ 'sample-legacy': ['unlisted.ts'] }, config, frozen)).toEqual(['sample-legacy/unlisted.ts: outside the registered legacy inventory']);
-  expect(checkShardLayout({ 'fake-legacy': ['retired.ts'] }, config, frozen)).toEqual(['fake-legacy/retired.ts: outside the standalone source layout']);
+  expect(checkShardLayout({ 'sample-legacy': ['retired.ts'] }, config)).toEqual(['sample-legacy/retired.ts: outside the standalone source layout']);
 });
 
 test('primary layout refuses runtime and stale root modules even beside a manifest bridge', () => {
@@ -82,8 +79,8 @@ test('declared output catalogues admit only their own generated discovery files'
   const config = { sourceLayout: { requiredFiles: [], allowedFiles: ['manifest.json'], folders: [] } };
   const files = ['manifest.json', 'outputs.json', 'discovery.plot-one.generated.ts'];
   const outputs = { plots: ['plot-one'] };
-  expect(checkShardLayout({ plots: files }, config, undefined, outputs)).toEqual([]);
-  expect(checkShardLayout({ plots: [...files, 'discovery.rogue.generated.ts'] }, config, undefined, outputs))
+  expect(checkShardLayout({ plots: files }, config, outputs)).toEqual([]);
+  expect(checkShardLayout({ plots: [...files, 'discovery.rogue.generated.ts'] }, config, outputs))
     .toEqual(['plots/discovery.rogue.generated.ts: outside the standalone source layout']);
   expect(checkShardLayout({ plots: files }, config)).toHaveLength(2);
 });

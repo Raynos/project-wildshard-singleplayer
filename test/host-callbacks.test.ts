@@ -44,21 +44,18 @@ accept.call(null,{run:named}); accept.apply(null,[{run:named}]);`);
   } finally { f.close(); }
 });
 
-test('ordinary helpers, array callbacks, data, build inputs and frozen files do not count', () => {
+test('ordinary helpers, array callbacks, data and build inputs do not count', () => {
   const f = fixture(`import {host} from '../../../game/host';
 function local(fn:()=>void) { fn(); } local(()=>{}); [1].map(x=>x+1);
 host({rows:[{value:1}]}); { const host=(fn:()=>void)=>fn(); host(()=>{}); }`);
   try {
     f.write('src/shards/sample/data/build.ts', `import {host} from '../../../game/host'; host(()=>{});`);
-    f.write('lint/legacy-shards.json', JSON.stringify({ shards: { sample: { files: { 'runtime/frozen.ts': 'hash' } } } }));
-    f.write('src/shards/sample/runtime/frozen.ts', `import {host} from '../../../game/host'; host(()=>{});`);
     f.write('src/shards/sample/runtime/module.mts', `import {host} from '../../../game/host'; host(()=>{});`);
     expect(hostCallbackViolations(f.root, file)).toEqual([]);
     expect(hostCallbackSites(f.root, file, parseSync(file, readFileSync(resolve(f.root, file), 'utf8')).program)).toEqual([]);
     expect(hostCallbackViolations(f.root, 'src/shards/sample/data/build.ts')).toEqual([]);
-    expect(hostCallbackViolations(f.root, 'src/shards/sample/runtime/frozen.ts')).toEqual([]);
     expect(hostCallbackViolations(f.root, 'src/shards/sample/runtime/module.mts')).toHaveLength(1);
-    for (const [target,count] of [['src/shards/sample/data/build.ts',0],['src/shards/sample/runtime/frozen.ts',0],['src/shards/sample/runtime/module.mts',1]] as const) {
+    for (const [target,count] of [['src/shards/sample/data/build.ts',0],['src/shards/sample/runtime/module.mts',1]] as const) {
       expect(hostCallbackSites(f.root,target,parseSync(target,readFileSync(resolve(f.root,target),'utf8')).program)).toHaveLength(count);
     }
   } finally { f.close(); }

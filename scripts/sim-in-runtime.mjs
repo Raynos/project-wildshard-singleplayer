@@ -3,7 +3,6 @@ import {existsSync,readFileSync,readdirSync,globSync} from 'node:fs';
 import {dirname,relative,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseSync} from 'vite';
-import {legacyInventory} from './legacy-shards.mjs';
 
 const ROOT=resolve(import.meta.dirname,'..');
 const code=/\.[cm]?[jt]sx?$/u;
@@ -23,9 +22,9 @@ const sorted=values=>[...values].sort((a,b)=>a.localeCompare(b));
  * @param {string} root
  * @returns {Record<string,{entries:string[],files:string[]}>} */
 export function simRuntimeInventory(root=ROOT) {
- const frozen=legacyInventory(root),result={};
+ const result={};
  for(const entry of readdirSync(resolve(root,'src/shards'),{withFileTypes:true})) {
-  if(!entry.isDirectory()||Object.hasOwn(frozen.shards,entry.name))continue;
+  if(!entry.isDirectory())continue;
   const prefix=`src/shards/${entry.name}/`,all=[];
   const scan=folder=>{for(const item of readdirSync(resolve(root,folder),{withFileTypes:true})){
    const path=`${folder}/${item.name}`;

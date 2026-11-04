@@ -11,7 +11,6 @@ import { parseSync } from 'vite';
 import * as v from 'valibot';
 import { resolveSpecifier } from './check-graph.mjs';
 import { g571HostApprovals, approvedG571Host } from './g571-hosts.mjs';
-import { legacyInventory } from './legacy-shards.mjs';
 import { declarationConfigProgram } from '../lint/declaration-config.mjs';
 import { shardLineBaselines } from './decision-legacy-lines.mjs';
 import { componentInventory, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
@@ -654,7 +653,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const {probes,targets,edges,texts,graphs,sources,masks}=memo;
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
   const counts = new Map();
-  const frozen = legacyInventory(root), baselines = shardLineBaselines(root);
+  const baselines = shardLineBaselines(root);
   /** @type {Set<string>} */
   const generated = new Set();
   // Retained source tables also have exact producer/output identities; older tooling predates generation jobs.
@@ -674,10 +673,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   };
   // G458 alone retains the predecessor source-progress reading. It is never an
   // output percentage or a source fallback, and is not available to port badges.
-  const sourceData = path => {
-    const match=/^src\/shards\/([^/]+)\/data\/.*\.tsx?$/u.exec(path);
-    return match!==null&&!Object.hasOwn(frozen.shards,match[1]);
-  };
+  const sourceData = path => /^src\/shards\/[^/]+\/data\/.*\.tsx?$/u.test(path);
   const ignored = path => sourceProgress ? generated.has(path)&&!sourceData(path)
     : !path.startsWith(`${relative(root, products).replaceAll('\\', '/')}/`) && generated.has(path);
   const parseCache = process.env.WS_SHARD_PARSE_CACHE;
@@ -748,7 +744,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     return graphs.get(path);
   };
   if(!memo.authored.has(root))memo.authored.set(root,Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name)).sort((a, b) => a.name.localeCompare(b.name))
+    .filter((entry) => entry.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))])));
   const authoredFiles=memo.authored.get(root);
   // Build tools are visible debt, never a runtime root or a second runtime user.
