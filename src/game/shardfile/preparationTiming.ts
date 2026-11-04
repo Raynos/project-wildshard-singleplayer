@@ -13,7 +13,7 @@ export function preparationCardLabel(step: string): string {
 // The spans running on each step, newest last, the step's own detail before the first, and what they last wrote: spans
 // overlap (regionalWorld's presentation inputs run beside its inputs), so an ending span shows the newest one still running,
 // or the step's own detail after the last (sp-x1's review: a label compare restored a finished span's name)
-interface StepSpans { readonly base: string; readonly running: { readonly label: string }[]; wrote: string }
+interface StepSpans { base: string; readonly running: { readonly label: string }[]; wrote: string }
 const spansByTimeline = new WeakMap<object, Map<string, StepSpans>>();
 function nameOnCard(step: string): () => void {
   const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current ?? null;
@@ -21,6 +21,8 @@ function nameOnCard(step: string): () => void {
   const detail = (): string | undefined => timeline.snapshot().rows.find(row => row.key === key)?.detail;
   const steps = spansByTimeline.get(timeline) ?? new Map<string, StepSpans>(); spansByTimeline.set(timeline, steps);
   const spans: StepSpans = steps.get(key) ?? { base: detail() ?? '', running: [], wrote: '' }; steps.set(key, spans);
+  // the step reported its own detail since the spans last wrote ('Home models 3 / 9'): that is what to come back to
+  const now = detail(); if (spans.running.length > 0 && now !== undefined && now !== spans.wrote) spans.base = now;
   const span = { label: preparationCardLabel(step) };
   spans.running.push(span); spans.wrote = span.label; timeline.report(key, span.label);
   return () => {

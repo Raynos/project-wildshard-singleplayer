@@ -147,6 +147,14 @@ test('DL21: a running span names itself on its loading step and gives the step i
     releaseB(); await b;
     expect(atAEnd).toBe('native inputs');
     expect(detail()).toBe('Home models 3 / 9');
+    // the step's own report during a span is what the step comes back to, even after a later span (sp-x1)
+    let releaseC = (): void => undefined;
+    const heldC = new Promise<void>(resolve => { releaseC = resolve; });
+    const c = timeClientPreparation('fixture', 'native.terrain', () => heldC);
+    timeline.report('region', 'Home models 4 / 9');
+    await timeClientPreparation('fixture', 'native.tree-factory', () => undefined);
+    releaseC(); await c;
+    expect(detail()).toBe('Home models 4 / 9');
     region.end();
   } finally { uninstall(); }
   // outside a loading step the span changes nothing
