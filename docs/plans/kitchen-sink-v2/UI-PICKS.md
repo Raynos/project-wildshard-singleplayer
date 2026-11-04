@@ -26,16 +26,16 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-03 | Level-up card, out of combat | 4 End cards | approved | 2026-11-03: "UI 03 looks good to me" |
 | UI-19 | Shard-complete card | 4 End cards | approved | 2026-11-03: "Ui 19 approved" |
 | UI-30 | SHRINE COMPLETE card | 4 End cards | approved | 2026-11-03: redone frame approved, "UI 30 looks fine". First round: "nice but all the buttons have to be different: leaving the mini dungeon means walking through a real portal, not hitting a button, and you can restart, it needs a change"; now one CONTINUE that only closes the card, and a line: the exit portal is open behind the chest, walk through it to leave, walk back in to run it again |
-| UI-10 | Character tab | 5 Menus | pending | 2026-11-03, redone for re-review: "Gear and character can be turned into a single item in the 5 menu icons … two nested tabs for gear and character underneath, default to character"; now five tabs (MAP · CHARACTER · FINDS · PACK · FEATS), CHARACTER / GEAR inside, opens on CHARACTER |
-| UI-14 | Quest list on the map tab | 5 Menus | pending | 2026-11-03, redone for re-review: "same thing, map and quests can be shared but it must be two nested tabs to toggle them"; now MAP / QUESTS sub-tabs in the map tab, the frame shows QUESTS |
+| UI-10 | Character tab | 5 Menus | approved | 2026-11-03: redone frame approved, "UI 10 looks fine". First round: "Gear and character can be turned into a single item in the 5 menu icons … two nested tabs for gear and character underneath, default to character"; now five tabs (MAP · CHARACTER · FINDS · PACK · FEATS), CHARACTER / GEAR inside, opens on CHARACTER |
+| UI-14 | Quest list on the map tab | 5 Menus | pending | 2026-11-03, redone for re-review: "same thing, map and quests can be shared but it must be two nested tabs to toggle them"; now MAP / QUESTS sub-tabs in the map tab, the frame shows QUESTS. Then: "now that we have far more space for quests … show me … the quest list, the quest details … all the quest related screens"; board ui-14-q-board.jpg: the list grouped by tier, one quest’s details, a locked quest, the MAP sub-tab with the tracked quest |
 | UI-16 | Kill-contract board | 5 Menus | approved | 2026-11-03: "Ui 16 sure" |
 | UI-32 | Tinker Rook: UPGRADES / BENCH | 5 Menus | approved | 2026-11-03: "Ui 32 sure" |
-| UI-33 | The weapons shop | 5 Menus | pending | |
-| UI-13 | REQUIRES LV in the dialogue | 6 Small additions | pending | |
-| UI-09 | Death card + XP loss | 6 Small additions | pending | |
-| UI-34 | The 20-slot pack | 6 Small additions | pending | |
-| UI-35 | Ammo pouch + picker | 6 Small additions | pending | |
-| UI-08 | Boss bar with phases | 6 Small additions | pending | |
+| UI-33 | The weapons shop | 5 Menus | approved | 2026-11-03: "UI 33 is fine" |
+| UI-13 | REQUIRES LV in the dialogue | 6 Small additions | pending | 2026-11-03, redone for re-review: "if there’s a level requirement, you can’t have a next button … you got to choose something"; NEXT is gone: the greyed quest or LATER |
+| UI-09 | Death card + XP loss | 6 Small additions | approved | 2026-11-03: "UI9 is fine" |
+| UI-34 | The 20-slot pack | 6 Small additions | approved | 2026-11-03: "UI 34 looks fine to me" |
+| UI-35 | Ammo pouch + picker | 6 Small additions | changes | 2026-11-03: "I don’t know how I feel about this … show me better variants for how to choose ammo … the main weapon wheel is somewhere else … it looks very messy. Show me a bunch of variants" (variants board coming) |
+| UI-08 | Boss bar with phases | 6 Small additions | approved | 2026-11-03: "UI08 is fine" |
 | UI-23 | Stealth: UNSEEN | 6 Small additions | pending | |
 | UI-25 | Portal ENTER prompt | 6 Small additions | pending | |
 | UI-12 | Quest-giver ! markers | 7 In the world | pending | |
@@ -49,4 +49,4 @@ Status: `pending` · `approved` · `changes` (Jake's notes in the last column) �
 | UI-15 | Shift Orientation tour step | 8 Could be cut | pending | |
 | UI-18 | Feat toast + FINDS toast | 8 Could be cut | pending | |
 
-**Tally:** 18 approved · 20 pending (2 redone for re-review: UI-10, UI-14).
+**Tally:** 23 approved · 1 changes · 14 pending (2 redone for re-review: UI-14 quest screens, UI-13; UI-35 variants coming).

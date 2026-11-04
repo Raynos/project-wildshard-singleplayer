@@ -205,7 +205,7 @@ const ITEMS = [
         pip.style.left = `${r.width / 2 + l.right * k}px`; pip.style.top = `${r.height / 2 - l.ahead * k}px`;
       }
     }) },
-  { id: 'UI-13', slug: 'requires-level', title: 'Dialogue: a quest above your level, REQUIRES LV 7 (W1b)',
+  { id: 'UI-13', slug: 'requires-level', title: 'Dialogue: a quest above your level ends on a choice (W1b)', note: 'no NEXT: greyed quest or LATER',
     setup: async (page) => {
       await pose(page, WENDELL, 2600); await clearToasts(page);
       await page.evaluate(() => { const i = window.__wildshard.world.interactables.find((x) => x.label === 'Talk to Wendell'); i.onInteract(); });
@@ -219,6 +219,8 @@ const ITEMS = [
         const gate = document.createElement('div'); gate.className = 'ws-quest-talk-gate';
         gate.innerHTML = '<span class="quest">Quest · tier 2<b>Drone Season</b></span><span class="btn">REQUIRES LV 7</span>';
         foot.before(gate);
+        // Jake 11-03: a level-gated offer is the last line, so no NEXT; you choose (the gated quest is greyed, so: leave)
+        foot.innerHTML = '<span>Come back at LV 7</span><b>Later ▸</b>';
       });
     }),
     teardown: async (page) => { await page.keyboard.press('Escape').catch(() => {}); await page.evaluate(() => { document.querySelector('.ws-quest-talk.show')?.click(); }); await sleep(600); } },

@@ -100,6 +100,7 @@ const fig = ([id, slug, title, kind, cap]) => {
   return `<section class="pair"><h3>${badge} ${id} · ${esc(title)} <span>${esc(kind)}</span></h3><p>${esc(cap)}</p>${cut}<div class="two">`
     + `<figure><img loading="lazy" src="${f}-before.jpg" alt="${id} before"><figcaption>BEFORE · live</figcaption></figure>`
     + `<figure><img loading="lazy" src="${id === 'UI-29' ? 'ui-29-opt-a' : f + '-after'}.jpg" alt="${id} after"><figcaption>AFTER · prototype</figcaption></figure></div>`
+    + (id === 'UI-14' ? '<p class="notes">All the quest screens: the list, one quest’s details, a locked quest, the map with the tracked quest:</p><figure><img loading="lazy" src="ui-14-q-board.jpg" alt="UI-14 quest screens"><figcaption>QUESTS list · details · locked · MAP</figcaption></figure>' : '')
     + (id === 'UI-29' ? '<p class="notes">The options you chose from (you picked A):</p><figure><img loading="lazy" src="ui-29-board.jpg" alt="UI-29 options"><figcaption>A · the vault’s own quest chip · B · nothing stays · C · room pips only</figcaption></figure>' : '')
     + '</section>';
 };
