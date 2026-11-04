@@ -128,6 +128,8 @@ skill (24 SHARDFILE cameras) is now the look check (AGENTS.md).
 
 ### DC4: retired commit and push gate machinery (19 files, 940 lines) · Codex · S
 
+**Done (2026-11-04, sp-x9): `a0683f3a83`.** Fresh full-tree and relative importer searches include tests, data and references. Delete 19 retired files and five exclusive suites, their nine timing entries, and the one retired local-checker case in the otherwise live project tests. Root types, all six retained project tests and scoped scratch-baseline ratchet pass. The current commit hook still runs successfully. No live hook/workflow/publisher reader remains.
+
 CF1's walk, candidate planner and related checks were retired by DL3 (`18fa9fcfe6`, GIT.md). The 45 s push gate (G768)
 replaced the local gate.
 
@@ -140,6 +142,8 @@ replaced the local gate.
   **Check:** the re-grep, then commit through `scripts/commit.sh` (the hook itself proves it does not need them).
 
 ### DC5: GAME-NORMALIZATION and E357 one-offs (10 files, 830 lines) · Codex · S
+
+**Done with live dependencies retained (2026-11-04, sp-x9): `16383f934c`.** Delete six unread script/declaration files. Keep `normalize/classify.mjs`, `core.mjs` and their declarations: the explicitly retained `move.mjs` imports both, a fresh-search correction to the original list. Root types and scoped scratch-baseline ratchet pass; related finds no surviving suites and exits 0. No timing/product/chargeback row names these deleted paths.
 
 - `scripts/normalize/{classify,core,port-probe}.mjs` (E357 F6: `normalize/move.mjs` and `move.dry-run.json` stay,
   because `check-paths.mjs` reads them)
@@ -226,6 +230,8 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
   `node scripts/check-paths.mjs`.
 
 ### DC13: loading-benchmark leftovers (16 files, 918 lines) · Codex · S · medium
+
+**Done with live accuracy dependencies retained (2026-11-04, sp-x9): `3af513134e`.** Delete 11 unread files (ten scripts and one declaration). Keep `arrival.mjs`, `crossing.mjs`, its declaration and its two-case proof: retained `accuracy.mjs` and `accuracy-safari.mjs` import them. Keep every `accuracy*.mjs`, including `accuracy-summary`, and the explicitly listed benchmark/capture/safari-data. Root types, two retained crossing cases and scoped scratch-baseline ratchet pass. No deleted-test timing/product/chargeback rows need pruning.
 
 - `scripts/loading-benchmark/{accuracy-summary,analyze,arrival,crossing,matched,report,worker-bootstrap-safari,worker-core-chromium,worker-revalidation-safari,worker-timing-replay,safari,safari-fixture,safari-matched}.mjs`
 - `test/loading-crossing-proof.test.ts`
