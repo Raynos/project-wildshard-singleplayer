@@ -5,17 +5,18 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 6bb4c9b-mw1rvmms** (02:28 Cancun; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done (P2 measured not built, P3 parked: +3 MB for 3 s CPU).
+**LIVE f1d6a43-mw1twggd** (03:26; last fully qualified c0a75ad 03:17; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**03:00:** Pine cold 128.5 -> 117 s (DL22 lists + read-once, 0 MB refetch); KTX2 swap gone; D209 closed, D208/D210 = road on Home main thread. Opus ladder: G960 (5 until 85 %) supersedes G853, so 3 Opus stay at 59 %.
+**04:00:** Driftwood DL17 GREEN (first home pass; +3.2 s for horizon + full piano). Grid home: ring cell (e679) shipped before goldens, o2 qualifying. Golden drift: G913 folds + NF4 Nine 22 promoted; DW23 hands = GLSL shadow.offset bug (o1). D199/D208/D210 closed measured. 3 Opus per G990 + G960.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
 **Autonomous decisions (for Jake's review):**
 - DL5 "whole level" = the tier's whole inventory at control (Jake's quote; no reach list). Grid neighbours keep today's loading: Jake's call (G828).
 - DL17 (A): distance show/hide/LOD of resident models is listed, not red; literal = raise every hide distance (Jake's look call). DL1 shipped before its yield fix (no revert).
+- Piano full banks before control (G1000 over I7, +1.6 s; Jake alt: richness after control). e679 shipped before goldens (no clean candidate).
 - GLSL is the global default (public too): Pine 44-55 dB, Driftwood 45.7, Nine 41-75; banyan canopy ruled B = GLSL
   (keeps haze TSL dropped, closer to legacy; board 9557e1dc93). Nalati 7/8 at 52-63 dB; grid +170 far crag facets
   41 dB / 1.29 % accepted (slight tone shift 140 m out). Sunscar pass. Sky Reach fixed to the TSL look (c9354ebb83,
