@@ -369,3 +369,31 @@ test('DL11: two demanded files are fetched first in the order asked, once each (
   expect(order).toHaveLength(10);
   vi.unstubAllGlobals();
 });
+
+test('DL11: a page read of a versioned file\'s bare path waits for that file and reads its stored copy (Pine\'s card art)', async () => {
+  // The build lists unhashed /assets files with ?v=<hash>; the page reads the bare path. It is the listed file, not an
+  // unlisted read that waits for the whole set.
+  const network = vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network')));
+  vi.stubGlobal('fetch', network);
+  const disk = new Map<string, Response>();
+  const real = '5d7c2f3d9613121977266f80ec7258fa83cb534f57aadebdf4e41b8dfd8aaa53'; // sha256 of the four 3s every file here holds
+  const rows = [{url: '/assets/card.jpg?v=bf08299f', bytes: 4, hash: real}, {url: '/shardfiles/example/blobs/bin/'.concat('1'.repeat(64), '.bin'), bytes: 4, hash: real}];
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 8});
+  const at = {url: '/assets/spawn/example-bare-1234567890abcdef.json', bytes: plain.length, totalBytes: 8, files: 2};
+  let release = (): void => undefined;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const download = downloadSpawnManifest(at, {
+    cached: url => Promise.resolve(disk.get(url)?.clone()),
+    store: (url, response) => { disk.set(url, response); return Promise.resolve(); },
+    fetch: async url => { const path = new URL(url).pathname; if (path === '/assets/card.jpg') await held; return new Response(path === at.url ? plain : new Uint8Array(4).fill(3)); },
+  }, base);
+  await download.listed;
+  let done = false;
+  const reading = (async () => { const card = new Uint8Array(await (await window.fetch(new URL('/assets/card.jpg', base).href)).arrayBuffer()); done = true; return card; })();
+  await new Promise(resolve => { setTimeout(resolve, 10); });
+  expect(done).toBe(false); // waits for the listed file
+  release(); await download.ready;
+  expect(network).not.toHaveBeenCalled();
+  expect((await reading).byteLength).toBe(4);
+  vi.unstubAllGlobals();
+});
