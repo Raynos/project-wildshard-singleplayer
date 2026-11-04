@@ -1,0 +1,564 @@
+# Dead code: what to delete now that custom shard TypeScript is gone (mini plan)
+
+**State:** `open` 2026-11-04. Audit only (ask E531): nothing is deleted yet. 13 rows, about **17,500 lines: 175 files
+deleted, ~190 trimmed**, all believed safe. One more row needs Jake's word (DC14, the soak, 1,713 lines). A "Needs a
+closer look" list holds ~13,800 more lines (6,100 of them trailer tooling) that need an owner's check first. Builder:
+take the rows in order. Each row is one or two small commits. Mark it here with the SHA when it lands.
+
+Jake, 2026-11-04 (E531): *"Hey, shard platforms closed, all the custom codes deleted, spin up a sub-agent into audit and
+review, what dead code we have to remove from the whole repository now that all the custom TypeScript has been deleted.
+I feel like there must be so much fucking dead code everywhere, in the runtime, in the engine, just everywhere. So I need
+a sub-agent that can use a cheaper Explorer sub-agent to just like really figure out where the hell is going on, where's
+all the dead code, make a mini plan, dead code deletion."*
+
+## The short answer
+
+The runtime and engine are **cleaner than they feel at the file level**. The engine, game, SDK and format layers have no
+whole module that nothing imports, apart from four (the legacy species catalogue and three frozen "before" copies). The
+custom-TS deletions (SF/LD/NF18) took the modules with them. What is left falls into two groups:
+
+1. **Dead functions and types inside live modules.** About 230 exports have no importer anywhere and are not used in their
+   own file (~2,150 lines), plus ~100 more that are probably dead. Many are the `installNative*` / `native*` hosts that
+   custom shard TypeScript used to call: today only tests call them.
+2. **`scripts/`, the real graveyard.** Of the 737 scripts, about 230 are run by nothing (no `package.json` script, CI
+   workflow, hook, skill, process doc or other live script). Most are one-off capture or measure tools for closed asks
+   (E172, E314, E334, E350, SF22), SHARD-PLATFORM proofs and retired gate machinery. That is ~13,000 lines.
+
+## How the audit was done, and its limits
+
+- **Module graph (`tmp/dead-code-audit/`, deleted after):** every tracked `.ts/.mts/.mjs/.js` file outside
+  `progress/ art/ project/ docs/` (7,797 files, with the git-ignored `discovery*.generated.ts` included because they
+  import shard data). Static, dynamic and `vi.mock` imports were resolved through each workspace `package.json`
+  `exports`. Reachability started from the app entries, the HTML pages, the Vite configs, `shard.config.ts`,
+  `package.json`, `.github/`, `.githooks/`, `.claude/`, `AGENTS.md` and `docs/process/`. It followed import edges and any
+  path or file name written in a reachable file. This was run twice: once leniently (comments and JSON count), once
+  strictly (code only). A file counts as dead only if both runs missed it.
+- **Per-file check:** each candidate's stem was grepped across the whole tree (bare word, `scripts/`, JSON registries,
+  `.as`, `.py`, `.sh`). Candidates were kept only if no live non-test file names them, or if every file that names them is
+  itself dead (computed as a greatest fixed point, so dead cycles count). Files with a commit since 2026-11-01 or a dirty
+  working copy were moved to "Needs a closer look".
+- **Export check:** for every `export function|const|class|type|interface|enum` in `src/{engine,game,sdk,format,commons,shards}`,
+  the audit looked for named imports from that module, namespace and dynamic imports (where the export name must appear
+  in the importing file), and string literals. "Dead" means no production importer and no other use in its own file.
+  "High" means the bare name also appears in no other non-test file in the repo.
+- **Also checked:** `scripts/unused-assets.mjs` finds **0 unused files under `public/`** (126 dev-only, kept). All 12
+  `*.merge.d.ts` are live (each merged member has a reader). The Debug registry has no row whose winner was picked and
+  is still live: the comparison capacity is 4 and every row has an open pick (`lint/ratchet.json` `debugRows`).
+- **Limits:** a script an agent runs by hand from memory looks dead. So does a symbol reached only through a computed
+  name or a dynamic path built at runtime. The audit already found one example and removed it from the rows:
+  `placeUndergrowth`, which `scripts/bake-chunk.mjs` calls through a namespace. **Every row's check re-greps its own list
+  first.** Templated runners (`scripts/bake-check.mjs` builds `bake-${baker}.mjs`) were checked by hand. Test fixtures
+  are read through template paths, so this audit does not judge them. The subagent cap kept this a one-agent audit (the
+  Explore fan-out was refused by `guard-subagents.sh`).
+
+## Summary
+
+| Category | Rows | Files | Lines | Confidence |
+|---|---|---|---|---|
+| Scripts nothing runs (one-off captures, old proofs, gate machinery, GAME-NORMALIZATION tools, loading bench) | DC1–DC5, DC13 | 149 deleted | 13,329 | high (DC13 medium) |
+| Tests that only test dead scripts (counted in the row above) | DC1, DC3, DC4, DC13 | 9 | 603 | high |
+| Engine / game / SDK / format whole modules (legacy species, "before" copies) | DC8, DC10 | 9 deleted | 1,212 | high / medium |
+| Dead exports in engine / game / SDK / format / commons | DC6, DC11 | ~97 trimmed | ~1,310 | high |
+| Dead exports in shard generators | DC7 | 84 trimmed | ~850 | high |
+| Shard generator witness files only tests read | DC9 | 17 deleted | 817 | medium |
+| Lint / budget / allow-list entries naming deleted files | DC12 | 7 trimmed | ~355 entries | high |
+| `*.merge.d.ts`, `public/` assets, Debug rows | — | 0 | 0 | checked, nothing dead |
+| Soak harness (needs Jake's word) | DC14 | 12 | 1,713 | high, ruling |
+| Needs a closer look | list | ~200 | ~13,800 | owner's call |
+
+By layer (DC1–DC13): **scripts/ + lint/ + test/ ~13,500 lines**, **engine/game/SDK/format/commons ~2,350**, **shards
+~1,670**. Total ~17,500.
+
+## Rows (biggest and safest first)
+
+Every row lands as small commits with `scripts/commit.sh`. Re-grep the row's list first: the bare stem across the
+tree, including `scripts/`, `.github/`, `.githooks/`, `.claude/`, JSON registries, `.as` and `.py`. Delete only what is
+still unread. Each row's check:
+
+- **Types:** `node scripts/typecheck-root.mjs` plus `tsc -b tsconfig.engine.json tsconfig.game.json` for layer rows. Run
+  the SDK tests' own `src/sdk/tsconfig.test.json` when SDK files change.
+- **Lint:** `node lint/ratchet.mjs --files-from` on touched files.
+- **Tests:** `vitest related` on the edited files.
+
+Deleting a `.mjs` also deletes its `.d.mts`. A deleted test also comes out of `test/durations.json` and
+`test/ci-module-durations.json`. `*` marks a symbol that a test imports: delete that test case with it.
+
+### DC1: one-off capture, measure and probe scripts for closed asks (73 files, 7,597 lines) · Codex · M
+
+Nothing runs them. No `package.json` script, workflow, hook, skill, process doc or other live script names them, and
+their asks or waves are closed.
+
+- Ask captures: `scripts/{e172-clear-downloads,e314-nine-bag-capture,e314-pine-bag-capture,e334-fp-capture,e334-look-review-capture,e350-king-measure}.mjs`
+- SF22: `scripts/sf22-{cadence,drawn-frames,shader-observer,shaders}.mjs`
+- Pine shots: `scripts/pine-hollow-{audio-wiring,crag-shots,fps,hero-shots,perf-lap,polish-shots,sound-gaps}.mjs`
+- Nalati captures: `scripts/nalati-{bow-capture,capture,creature-motion,hud-capture,king-music,ragdoll-check,reach,ride-b1,ride-capture,ride-physics,walk,creature-lineup}.mjs`, `scripts/creature-lineup.mjs`
+- Other tools: `scripts/{playground-cards,playground-hubs,popin-fly,explore-multitouch,explore-view-taps,batch-first-frame,pwa-reload-check,grid-ready-chromium,number-path-probe,latch-grid-evidence,benchmark-generation,test-home-build-cache}.mjs`
+- Folders: `scripts/{mem-trim/heap,memory/pausedSnapshot,graph-mesh-map/run,library-cache/run,tone-parity/run,music/export-midi,img2mesh/strip_backdrop,crossroads-rig/production-probe,bake/far-board,bake/rings-drive,parity/glbytes-probe,parity/prove-speed}.mjs`
+- Practice: `scripts/practice/{bake_unimate_clips,capture_unimate_arena,unimate-rig-input}.mjs`
+- Oneshot: `scripts/oneshot/{browser-broker,browser-channel,browser-policy,seat-browser}.mjs`
+- Test: `test/generation-benchmark.test.ts`
+- **Evidence:** the strict and lenient reach both miss them, and the stem grep finds no live reader. **Risk:** an agent
+  still runs one by hand. Its git history keeps it. **Check:** the re-grep, then types.
+
+### DC2: SHARD-PLATFORM M3 look-parity proofs (15 files, 1,661 lines) · Codex · S
+
+These are base-vs-candidate pixel proofs from SHARD-PLATFORM M3 and W1 C1. That plan is archived, and the `goldens`
+skill (24 SHARDFILE cameras) is now the look check (AGENTS.md).
+
+- `scripts/proof-{driftwood,pine,nalati,signal,sky}-look-parity.mjs`
+- `scripts/{look-parity-creatures,w1-c1-parity,nalati-parity,nalati-paintover,nalati-poses,proof-texture-retirement}.mjs`
+- `scripts/parity/{shader-code,terrain-settle}.mjs`
+- **Evidence:** they only reference each other (a dead cycle). **Risk:** none at runtime. **Check:** the re-grep, then
+  types.
+
+### DC3: tile-plan, tile-census and draw-hook proof tools (16 files, 1,383 lines) · Codex · S
+
+- `scripts/tile-plan-{page,reading,report}.mjs`, `scripts/tile-retirement-{chromium,proof}.mjs`
+- `scripts/parity/tile-census{,-scene}.mjs`
+- `scripts/perf/draw-hook-component{s,-build,-scene}.mjs`
+- Tests: `test/tile-census.test.ts`, `test/tile-census-scene.test.ts`
+- `test/tile-retirement-proof.test.ts` also imports `scripts/frame-floor-grid.mjs` (live): keep that test's
+  frame-floor-grid cases and drop only its tile-retirement cases.
+- **Evidence:** only each other and their tests read them. Three were swept by `d0d8d26283` today (an ENTER WORLD rename),
+  which is upkeep, not use. **Risk:** a manual tile proof. **Check:** the re-grep, types, `vitest related`.
+
+### DC4: retired commit and push gate machinery (19 files, 940 lines) · Codex · S
+
+CF1's walk, candidate planner and related checks were retired by DL3 (`18fa9fcfe6`, GIT.md). The 45 s push gate (G768)
+replaced the local gate.
+
+- `scripts/precommit-{imports,selection,projects}.mjs`, `scripts/push-committed-check.mjs`,
+  `scripts/local-gate-checks.mjs`, `scripts/check-staged-inputs.mjs`
+- `lint/commons-closure.mjs` (G143: nothing loads it)
+- Tests: `test/precommit-{imports,projects,selection}.test.ts`, `test/push-committed-check.test.ts`,
+  `test/commons-closure-cache.test.ts`
+- **Evidence:** nothing in `.githooks/`, `scripts/commit.sh`, `scripts/push-loop.py` or CI names them. **Risk:** low.
+  **Check:** the re-grep, then commit through `scripts/commit.sh` (the hook itself proves it does not need them).
+
+### DC5: GAME-NORMALIZATION and E357 one-offs (10 files, 830 lines) · Codex · S
+
+- `scripts/normalize/{classify,core,port-probe}.mjs` (E357 F6: `normalize/move.mjs` and `move.dry-run.json` stay,
+  because `check-paths.mjs` reads them)
+- `scripts/plan-lint.mjs` (the GAME-NORMALIZATION v2 plan's lint; the plan is archived)
+- `scripts/shard-custom-inventory.mjs` (G396 custom-TS inventory: custom TS is now zero)
+- `scripts/check-asset-case.mjs` (E357 F3.2)
+- **Evidence:** no live reader. **Check:** the re-grep, then types.
+
+### DC6: dead exports in engine, game, SDK, format and commons, non-visual (~98 symbols, ~937 lines, 80 files) · Codex · M
+
+These are mostly the `installNative*` / `native*` hosts that custom shard TS called, now reached only by tests:
+`installNativeTaming`, `installNativeEliteFeature`, `installNativeQuestProps`, `installNativeHerdShelter`, the
+`nativeQuestChannels` set, `installHostPortalRide`, `nativeDecisionAuthority`. The rest are input and output types and
+parsers that nothing reads. The exact list is in the appendix "DC6".
+
+- **Evidence:** no named import, no namespace or dynamic importer that names them, not used in their own file, and the
+  bare name appears in no other non-test file.
+- **Risk:** a test may be the only harness for a host that a shardfile still binds by name. The re-grep covers `.as`
+  and JSON. Delete the starred test cases with the symbol, then remove the helpers that `noUnusedLocals` reports in the
+  same commit.
+- **Check:** types (layers + root), lint, `vitest related`.
+
+### DC7: dead exports in shard generators (~111 symbols, ~850 lines, 84 files) · Codex · M
+
+These are generator-side exports that no build path, test or other generator imports. The list is in the appendix
+"DC7". **Risk:** a generator's output could change if a deleted function was reached through a computed name. **Check:**
+types, `vitest related`, then rebuild the touched shards' products with `node scripts/build-shardfiles.mjs`. The shard
+outputs (`git status` on the shard's output paths) must be byte-identical. If any changes, it was not dead.
+
+### DC8: legacy species catalogue (4 files, 693 lines, plus 2 edits) · Codex · S
+
+- `src/game/systems/species/legacy/{deer,elk,install}.ts`
+- `test/legacy-species-install.test.ts`
+- Edits: `installLegacyKitSpecies` in `src/game/systems/species/install.ts`, and the two `legacy/*` names in
+  `src/game/isolated-game-rig-default-declarations.test.ts`
+- **Evidence:** "Held for LD: only a frozen legacy boot requests the original procedural catalogue". The LD waves
+  deleted legacy boots, and only the test calls `installLegacyKitSpecies`. **Risk:** none at runtime.
+  **Check:** types, `vitest related`.
+
+### DC9: shard generator witness files only tests read (17 files, 817 lines) · Codex · S · medium
+
+These are retained native "witness" and equivalence files from the port. No shardfile build path imports them:
+
+- `src/shards/_template/generators/templateScene.ts`
+- `src/shards/driftwood-isle/generators/{cumulus,entryWalk,keeperRows,nativeFauna,trailParams}.ts`
+- `src/shards/far-reach/generators/{worldPackProgram,worldPlacementProgram}.ts`
+- `src/shards/nalati-grasslands/generators/{horizon,nalatiCaptureInventory}.ts`, `.../{bake-species,nalati-world-inventory}.mjs`
+- `src/shards/nine-dragon-stack/generators/canopyGraphs.ts`
+- `src/shards/pine-hollow/generators/coatFlap.ts`, `.../pine-world-inventory.mjs`
+
+The tests that import them: `test/{template-props-generation,driftwood-cumulus,native-keeper-rows,native-fauna-boot,specimen-catalogue,sky-world-pack-program,sky-world-placement-program,nalati-generation-order,scene-author-ports,light-emitters}.test.ts`
+and the fixtures `test/fixtures/{driftwood-headless,mixed-population,driftwood-trail-models,check-nalati-species-source}.ts`.
+Delete the cases that pin the witness and keep the ones that pin live outputs. **Risk:** these pins guard port equivalence.
+Under G416, a pin of a finished port is a fragile test. **Check:** types, `vitest related`.
+
+### DC10: frozen "before" copies kept for equivalence tests (5 files, 519 lines) · Codex · S · medium
+
+- `src/engine/test/{hud-markers-before,uniform-caches-before,weapon-strip-before}.ts`
+- `test/hud-marker-values.test.ts`, `test/weapon-strip-values.test.ts`
+- The before-vs-after cases in `src/engine/render/uniform-vector-buffer.test.ts`
+- **Evidence:** each is the pre-refactor copy of a live module, kept only to assert equal output. The refactors
+  landed weeks ago. **Check:** types, `vitest related`.
+
+### DC11: dead exports near rendering, and lowpolyKit's legacy plants (~25 symbols, ~370 lines, 17 files) · Opus · S
+
+- The appendix "DC11" list (render, world, look and weapon modules).
+- `src/engine/world/lowpolyKit.ts` lines ~156–262: `hibiscusBush`, `lilyPad`, `grassTuft`, `vineStrand` and their
+  private helpers. The file's own comment says only the frozen legacy authoring folder imported them, and Driftwood's
+  generators carry their own copy (the name match in `foliageModels.ts` is that copy, not an import).
+- **Evidence:** the same export check as DC6. **Risk:** nothing calls these, so pixels cannot change. These are render
+  files, so G848 keeps them on Opus. **Check:** types, lint, `vitest related`. Goldens are not needed, since no reachable
+  code changes.
+
+### DC12: lint, budget and allow-list entries that name deleted files (~355 entries, 7 files) · Codex · S
+
+- `lint/runtime-performance.json` 133 of 1,490 (old `src/shards/*/runtime/**` paths)
+- `lint/shard-coupling.json` 79 of 906 (old `_template` combat, species and weapons TS)
+- `lint/generated-source-debt.json` 13 (hashed `src/sdk/dist/*` chunks)
+- `lint/no-binary-json.json` 2
+- `scripts/check-paths.allow.json` 125 of 285
+- `budgets/x7-ceiling-sources.json` 3 and `budgets/nalati-ceiling-sources.json` 1 (gone `test/parity/baselines/gh-macos15/*` files)
+- **Note:** `lint/*.json` and `budgets/ceiling-sources.json` have another lane's uncommitted edits right now. Take this
+  row after those land, and patch by content (`--patch`). **Check:** `node lint/ratchet.mjs`,
+  `node scripts/check-paths.mjs`.
+
+### DC13: loading-benchmark leftovers (16 files, 918 lines) · Codex · S · medium
+
+- `scripts/loading-benchmark/{accuracy-summary,analyze,arrival,crossing,matched,report,worker-bootstrap-safari,worker-core-chromium,worker-revalidation-safari,worker-timing-replay,safari,safari-fixture,safari-matched}.mjs`
+- `test/loading-crossing-proof.test.ts`
+- **Keep:** `benchmark.mjs` (the admin page reads it), `accuracy*.mjs`, `capture.mjs` and `safari-data.mjs` (touched
+  today).
+- **Check:** the re-grep, types, `vitest related`.
+
+### DC14: the soak harness (12 files, 1,713 lines) · Codex · S · **Jake rules**
+
+- `scripts/soak/{bisect,drive,gl,owned,pine-events,pine-rate,report,soak}.mjs`, `scripts/soak/route.ts`
+- `test/tooling/soak/{drive,gl,pine-events}.test.mjs`
+- `scripts/soak/boundary.mjs` and `test/tooling/soak/owned.test.mjs` stay if the boundary is still read.
+- Jake, 2026-10-03 (E388): *"Don't soak at all"*. The soak verdicts were deleted then, but the harness stayed.
+  AGENTS.md still lists "the soak" among the per-milestone heavy proofs. **Recommended:** delete the harness and drop
+  "the soak" from that AGENTS.md line in the same commit.
+
+## Needs a closer look (not rows)
+
+Each item needs its owner, or a reading, to say it is dead. Most of these look dead to the graph but have one live
+signal: a live plan, a process doc, a commit this week, or a runtime name.
+
+1. **Trailer tooling**: `scripts/progress-trailer/`, `scripts/steam-trailer/`, `scripts/trailer/`. That is 127 files:
+   6,145 code lines plus ~18 MB that includes three `.wav` files. Storage policy keeps audio inside `public/`. TRAILERS is
+   still `in progress`. Recommend deleting it when TRAILERS archives, and moving the WAVs out now.
+2. **Probably-dead exports** (~98 symbols, ~1,250 lines, 75 files). These are dead by import but their bare name appears
+   elsewhere (a same-named local, a comment, an inventory string). Listed in the appendix "Closer look"; each needs a
+   look by eye. Example: `placeUndergrowth` is live through a namespace in `scripts/bake-chunk.mjs`.
+3. **Manual bakers whose output still ships** (543 lines). Keep them while the output they rebuild is committed:
+   `scripts/bake-{pickups,nine-decal-atlas,nalati-poi-contacts,nalati-sign-atlases,query-terrain,map-rest,sky-maps,template-shardfile}.mjs`,
+   `src/shards/nine-dragon-stack/generators/decalAtlasPage.ts`, `src/shards/pine-hollow/generators/bake-hdri-keys.mjs`.
+4. **Tools a live plan names** (~4,100 lines). That plan's owner decides:
+   - E525 spikes: `scripts/bulk-pack*.mjs`, `scripts/download-bench/*` (751)
+   - OPEN-PLOTS: `scripts/open-plots/{audio-check,audio-observer,card-capture,clay-review,life-capture,make-poster,template,tiling,walk}.mjs` (512)
+   - NINE-DRAGON-STACK: `scripts/nine-dragon-{budget,domes,grapple-touch}.mjs` (659)
+   - FINISH-LINE, NATIVE-APPS, DOWNLOAD and WORLDCLAW: `scripts/king-rig-gate.mjs`, `scripts/practice/verify_unimate_skin.mjs`,
+     `scripts/roc-fight/*`, `scripts/native-android-e2e.mjs`, `scripts/gpu-gate/{matrix,probe,status}.mjs` (1,444)
+   - Title hero: `scripts/capture-main-menu-hero.mjs`, `scripts/main-menu-aerial-{plan.mjs,poses.ts}` (754, re-shot 11-03)
+5. **Scripts a process or reference doc still names as current** (1,407 lines). Either the doc is stale or something runs
+   them that the graph cannot see:
+   - `scripts/authoring-inputs.mjs` (AUTHORING-CLEAN-ROOM.md)
+   - `scripts/native-recorder-cache.mjs` (GENERATION.md)
+   - `scripts/witness-{manifests,generation,checkpoints}.mjs` (GIT.md: "the pusher's"; `test/proof/*` reads them)
+   - `scripts/shards.mjs`, `scripts/gen-shard-layout-doc.mjs` (SHARDS.md)
+   - `scripts/section-inventory.ts` (PLATFORM-FILE-FAMILIES.md)
+   - `scripts/proof-rig-normalization.mjs` with `src/sdk/bake/normalizeRig.ts` (ENGINE.md)
+   - `scripts/pine-hollow-{views,nan-scan}.mjs`, `scripts/docs/proof-standalone.mjs`
+6. **Touched this week** (364 lines): `scripts/generated-files.mjs` and `scripts/legacy-explorer-lists.ts` (both
+   11-04), `scripts/push-tables.mjs` (11-03, only `test/discovery-output-placement.test.mjs` reads it),
+   `src/shards/nalati-grasslands/generators/nativeGroupWire.ts` (11-03). `legacy-explorer-lists.ts` is an "LD4 legacy
+   Explorer comparison" and is likely dead with the legacy boots.
+7. **Headless proof hosts**: `bindHeadlessCommands`, `headlessSpecCatalogue` and `PrepareHeadlessRuntime` in
+   `src/sdk/headlessRuntime.ts`, and `productHeadlessSections` in `src/sdk/headlessSections.ts` (~80 of 274 lines). Only the
+   `test/proof/*` headless witnesses and fixtures use them. Delete them only if those proofs are retired too.
+8. **AssemblyScript ABI export**: `queryPoints` in `src/sdk/as/wsV2.ts`. Hosts and scripts call it by name, so no
+   import is expected. Check the host binding table before deleting.
+9. **Oracle and provenance test fixtures from the custom-TS port**: 256 files and ~11 MB in `test/fixtures/` whose names
+   contain oracle, original, legacy, provenance or before. Many name the deleted `src/shards/*/runtime|species|combat`
+   files as their source. They pin port equivalence. Under G416 this is a test-pruning pass of its own, not something
+   for this plan.
+10. **Small loose ends:**
+    - `'item.reaction'` is asked by `src/game/plugin/nativeItems.ts`, but only a test answers it.
+    - The empty untracked folder `src/shards/far-reach-legacy/` sits on disk, not in git: `rmdir` it locally.
+    - The `src/engine/test/`, `src/sdk/test/` and `src/game/test/` helpers stay with their live tests.
+11. **Docs about deleted systems** (low priority, list only): the AGENTS.md soak mention (DC14),
+    `docs/tasks/asks/E388.md`'s soak table, `docs/MOVED.md` entries for files deleted since.
+
+## Appendix: export lists
+
+`*` means a test imports the symbol; the number is the approximate line span of the declarations. Re-grep each before
+deleting it.
+
+### DC6 (non-visual layers)
+
+- `src/commons/practiceCourse.ts`: buildCourseProgram* (9)
+- `src/engine/ai/eliteRoster.ts`: nativeEliteBindings* (2)
+- `src/engine/ai/herd.ts`: HerdMode, StallionState* (6)
+- `src/engine/boot/download.ts`: readDownloadFiles* (14)
+- `src/engine/boot/idle.ts`: controlIdle* (17)
+- `src/engine/boot/shardPrefetch.ts`: ktx2Ready (6)
+- `src/engine/core/assets.ts`: decodedImageCount* (5)
+- `src/engine/core/deflate.ts`: base64Bytes* (8)
+- `src/engine/physics/navmesh.ts`: readNavmesh* (8)
+- `src/engine/physics/query.ts`: hasStaticGround* (12)
+- `src/engine/script/moduleV2.ts`: scriptMemoryCensus*, consumeScriptMemory (9)
+- `src/engine/sim/edgeProfiles.ts`: nativeEdgeProfiles (7)
+- `src/engine/sim/snapshot.ts`: onSimHostRestored* (9)
+- `src/format/arenaScriptRows.ts`: parseArenaScriptData* (7)
+- `src/format/audioRouting.ts`: parseAudioRouting (3)
+- `src/format/bowVariantRows.ts`: BowSourceMultipliersSchema* (2)
+- `src/format/brains.ts`: ShardGuardianPatternInput (11)
+- `src/format/chapterDirector.ts`: chapterObservations* (9)
+- `src/format/commonsCosts.ts`: CommonsCostsInput (1)
+- `src/format/decisionScripts.ts`: decisionScriptRules*, DecisionScriptsInput (26)
+- `src/format/eliteContinuation.ts`: EliteContinuationRows* (4)
+- `src/format/fenceReads.ts`: fenceReadIdentity* (4)
+- `src/format/flyers.ts`: DiverRowsInput, DiverRows (39)
+- `src/format/grapple.ts`: parseGrappleFilament* (3)
+- `src/format/grazers.ts`: ShardGrazerInput (13)
+- `src/format/heldArms.ts`: parseToonArmsLook*, HeldArmsRowsInput (5)
+- `src/format/inputDeclarations.ts`: InputActionRowsInput, InputKeyRowsInput (3)
+- `src/format/outputIndex.ts`: OutputPlatformSectionName* (3)
+- `src/format/plumbing.ts`: PlumbingRowsInput, PlumbingRows (3)
+- `src/format/questPageComposition.ts`: QuestPageCompositionRows (5)
+- `src/format/questSteps.ts`: parseQuestKillRows* (8)
+- `src/format/questStory.ts`: parseAdventureContent* (3)
+- `src/format/sceneRefs.ts`: admitSceneRefs* (10)
+- `src/format/scriptGroupStepV2.ts`: groupStepColumnV2* (6)
+- `src/format/scriptWireV2.ts`: V2_HEADER_BYTES (1)
+- `src/format/speciesBookRows.ts`: NativeSpeciesLookBookSchema* (3)
+- `src/format/speciesPrograms.ts`: readSpeciesPrograms* (3)
+- `src/format/state.ts`: StateRowsInput, StateRows (3)
+- `src/format/terrain.ts`: ShardTerrainInput (1)
+- `src/format/toonLook.ts`: ToonDayRow* (4)
+- `src/format/uiStrings.ts`: parseUiStrings* (3)
+- `src/format/weaponProfiles.ts`: parseHeldModelRows*, parseHeldPresentation* (7)
+- `src/game/achievements.ts`: AchievementCounterBook* (23)
+- `src/game/cosmetics/locker.ts`: CosmeticDef (1)
+- `src/game/grid/compiledStrips.ts`: decodeCompiledGridStrips* (7)
+- `src/game/grid/refusal.ts`: FarViewStatus (3)
+- `src/game/inventoryLaw.ts`: grantNativeInventory* (6)
+- `src/game/plugin/director.ts`: nativeStageLane* (3)
+- `src/game/plugin/headless.ts`: bindRuntimeItemContexts, spawnRuntimeHome*, bindRuntimeActor (24)
+- `src/game/plugin/nativeItems.ts`: nativeMeleeItem* (3)
+- `src/game/plugin/quests.ts`: installNativeQuestProps*, bindQuestTableSpots* (33)
+- `src/game/population/perchBody.ts`: nativePerchProgram* (5)
+- `src/game/population/respawn.ts`: ReturnGate* (16)
+- `src/game/population/shelter.ts`: installNativeHerdShelter* (29)
+- `src/game/population/spawnScript.ts`: installNativeSpawnScript* (15)
+- `src/game/quest/contractBoard.ts`: CONTRACT_ACTION* (4)
+- `src/game/quest/eliteFeature.ts`: installNativeEliteFeature* (68)
+- `src/game/quest/nativeInputs.ts`: nativeQuestInputs*, installNativeQuestChannels*, nativeQuestChannels* (14)
+- `src/game/quest/nativeProps.ts`: lendQuestBodyScripts* (6)
+- `src/game/riding/nativePopulation.ts`: installNativeBootRoster*, installNativePopulationHunt* (30)
+- `src/game/riding/nativeTaming.ts`: installNativeTaming*, respawnNativeMounted* (145)
+- `src/game/shard/registry.ts`: chunkUrl (7)
+- `src/game/shard/retainedHooks.ts`: installEnteredRuntimeUpdate (8)
+- `src/game/shardfile/bakedKinds.ts`: loadBakedKinds (16)
+- `src/game/shardfile/borrowedDecisions.ts`: nativeDecisions*, nativeDecisionAuthority* (17)
+- `src/game/shardfile/clientViewProgram.ts`: lendViewSlots (3)
+- `src/game/shardfile/controlRefinement.ts`: spawnViewBusy (3)
+- `src/game/shardfile/enteredTileReadout.ts`: enteredTiles* (5)
+- `src/game/shardfile/portalRideBinding.ts`: installPortalRide*, installHostPortalRide* (37)
+- `src/game/shardfile/sceneDressing.ts`: readSceneNumericTable* (4)
+- `src/game/shardfile/shardProduct.ts`: CustomSectionSchemas (3)
+- `src/sdk/bake/contactRows.ts`: admitContactRows* (6)
+- `src/sdk/bake/export.ts`: sampleSkinClip* (19)
+- `src/sdk/bake/mapRaster.ts`: mapPixel* (3)
+- `src/sdk/bake/wholePieceJoin.ts`: joinWholePieces* (13)
+- `src/sdk/formatJsonSchema.ts`: composeNamedJsonSchema* (7)
+- `src/sdk/outputRuntime.ts`: runtimeCodeLines* (16)
+- `src/sdk/productOutput.ts`: writeAuthoredProduct (14)
+- `src/sdk/rows.ts`: questStepRows* (3)
+- `src/sdk/sections.ts`: defineSection* (13)
+
+
+### DC11 (render, world, looks, weapons; Opus)
+
+- `src/engine/combat/view/ranged.ts`: TRACER_ORDER, TRACER_RED (3)
+- `src/engine/render/compileLights.ts`: compileLightSource*, compileSceneSource* (11)
+- `src/engine/render/displayColour.ts`: DISPLAY_COLOUR_ALPHA (6)
+- `src/engine/render/parkedDraws.ts`: warmOffscreenPass (14)
+- `src/engine/render/programRetention.ts`: retainRendererPrograms (13)
+- `src/engine/render/shaderPatches.ts`: shaderPatchSet*, shaderPatchSceneShape* (32)
+- `src/engine/world/BakedTerrain.ts`: bakedUndergrowth (6)
+- `src/engine/world/forest/placement.ts`: sameChecksum (5)
+- `src/engine/world/forest/treeSet.ts`: loadTreeSetGeometry*, patchBarkArrays, patchCardCrownTop (66)
+- `src/engine/world/interact/flags.ts`: bindInteractionTransitions* (54)
+- `src/engine/world/voxelAO.ts`: withVoxelAOBake (9)
+- `src/engine/world/water/body.ts`: swellBody (14)
+- `src/game/looks/keyedSkyClock.ts`: keyedSkyDaySpec* (6)
+- `src/game/systems/looks/trample.ts`: installTrampleTrail* (15)
+- `src/game/systems/npc/npcRig.ts`: NpcFace (5)
+- `src/game/weapons/Sword.ts`: HEAVY_CHARGE (4)
+
+### DC7 (shard generators)
+
+- `src/shards/_template/generators/mapInputs.ts`: templateMapInputs* (8)
+- `src/shards/_template/generators/templateScene.ts`: templateScene* (9)
+- `src/shards/driftwood-isle/generators/coarseTiles.ts`: driftwoodCoarseOutput (9)
+- `src/shards/driftwood-isle/generators/economy.ts`: FULL_CLEAR (4)
+- `src/shards/driftwood-isle/generators/entryWalk.ts`: ENTRY_WALK* (4)
+- `src/shards/driftwood-isle/generators/islandCover.ts`: islandCoverUrl (4)
+- `src/shards/driftwood-isle/generators/keeperRows.ts`: keeperRows* (36)
+- `src/shards/driftwood-isle/generators/mapProgram.ts`: driftwoodMapPixels (6)
+- `src/shards/driftwood-isle/generators/nativeBake.ts`: driftwoodNativeRows* (33)
+- `src/shards/driftwood-isle/generators/nativeQuest.ts`: DRIFTWOOD_NATIVE_QUEST* (18)
+- `src/shards/driftwood-isle/generators/nativeQuestProps.ts`: NATIVE_QUEST_PROPS* (14)
+- `src/shards/driftwood-isle/generators/reefScatter.ts`: reefLayoutJson (5)
+- `src/shards/driftwood-isle/generators/scene.ts`: exactShape*, driftwoodScene* (13)
+- `src/shards/driftwood-isle/generators/seaGlassChime.ts`: CHIME_PIECES (2)
+- `src/shards/far-reach/generators/bookStand.ts`: bakeSkyBookStand (2)
+- `src/shards/far-reach/generators/crown.ts`: bakeSkyCrown (2)
+- `src/shards/far-reach/generators/dressing.ts`: bakeSkyDressing (3)
+- `src/shards/far-reach/generators/fileInventory.ts`: BRIDGES_URL, MILL_MODEL_URL (8)
+- `src/shards/far-reach/generators/geometries.ts`: bakeSkyGeometries (2)
+- `src/shards/far-reach/generators/isletRig.ts`: bakeSkyIsletRig (2)
+- `src/shards/far-reach/generators/knoll.ts`: bakeSkyKnolls (2)
+- `src/shards/far-reach/generators/mill.ts`: bakeSkyMill (2)
+- `src/shards/far-reach/generators/questRows.ts`: questPageFiles (9)
+- `src/shards/far-reach/generators/restScene.ts`: winchGlb, hover0Glb, hover1Glb, hover2Glb, stormGlb, bookStandGlb (11)
+- `src/shards/far-reach/generators/risingIslets.ts`: risingIsletSource* (7)
+- `src/shards/far-reach/generators/roost.ts`: bakeSkyRoost (2)
+- `src/shards/far-reach/generators/routeScene.ts`: skyRouteSource* (5)
+- `src/shards/far-reach/generators/rows/equipment.ts`: FAN_PRESENTATION (2)
+- `src/shards/far-reach/generators/rows/rocFight.ts`: ROC_FIGHT (4)
+- `src/shards/far-reach/generators/rows/stormNoise.ts`: STORM_NOISE_SAMPLER* (3)
+- `src/shards/far-reach/generators/scene.ts`: skyReachBake (9)
+- `src/shards/far-reach/generators/skyDock.ts`: bakeSkyDocks (2)
+- `src/shards/far-reach/generators/stormNoise.ts`: bakeStormNoise* (8)
+- `src/shards/far-reach/generators/viewData.ts`: skyViewData* (5)
+- `src/shards/far-reach/generators/winchHouse.ts`: bakeSkyWinchHouse (2)
+- `src/shards/far-reach/generators/worldPackProgram.ts`: skyWorldPackProgram* (10)
+- `src/shards/far-reach/generators/worldPlacementProgram.ts`: skyWorldPlacementProgram* (9)
+- `src/shards/ink-cel-valley/generators/materials.ts`: inkMaterials (5)
+- `src/shards/nalati-grasslands/generators/bodies.ts`: tamingPoses* (21)
+- `src/shards/nalati-grasslands/generators/campProps.ts`: CLUTTER_KINDS (3)
+- `src/shards/nalati-grasslands/generators/heldSlots.ts`: heldSlotRows* (16)
+- `src/shards/nalati-grasslands/generators/horizon.ts`: NALATI_HORIZON_V2* (29)
+- `src/shards/nalati-grasslands/generators/horseCourse.ts`: LAP_M (3)
+- `src/shards/nalati-grasslands/generators/kurganLayout.ts`: COLLISION (3)
+- `src/shards/nalati-grasslands/generators/modelParts.ts`: nalatiModelParts* (7)
+- `src/shards/nalati-grasslands/generators/nalatiWorldRows.ts`: bakeNalatiWorldRows* (15)
+- `src/shards/nalati-grasslands/generators/nativeGroupWire.ts`: nalatiNativeGroupWire* (12)
+- `src/shards/nalati-grasslands/generators/output.ts`: nalatiOutputRows* (5)
+- `src/shards/nalati-grasslands/generators/packGroup.ts`: PACK_RESULT_CHANNELS (1)
+- `src/shards/nalati-grasslands/generators/paint.ts`: bakeSmoothAO (10)
+- `src/shards/nalati-grasslands/generators/places.ts`: buildPeopleFallback (5)
+- `src/shards/nalati-grasslands/generators/sabre.ts`: SABRE_PROFILE* (12)
+- `src/shards/nalati-grasslands/generators/sheep.ts`: SHEEP_BONES, sheepSkinnedGeometry (12)
+- `src/shards/nalati-grasslands/generators/spear.ts`: JAVELIN (7)
+- `src/shards/nine-dragon-stack/generators/canopyGraphs.ts`: canopyGraphs* (152)
+- `src/shards/nine-dragon-stack/generators/castSources.ts`: CAST_BLOBS* (2)
+- `src/shards/nine-dragon-stack/generators/composite.ts`: compositeRows (9)
+- `src/shards/nine-dragon-stack/generators/layoutProjection.ts`: restoreLayoutZeros* (16)
+- `src/shards/nine-dragon-stack/generators/lightVolumes.ts`: LightPoolProfilesSchema*, LIGHT_POOL_INPUTS (2)
+- `src/shards/nine-dragon-stack/generators/mapProgram.ts`: nineMapPixels* (5)
+- `src/shards/nine-dragon-stack/generators/product.ts`: nineProduct (5)
+- `src/shards/nine-dragon-stack/generators/sections.ts`: GeometryLibrarySchema*, FixedRowsSchema*, parseFixedRows*, NINE_SECTION_INPUTS (13)
+- `src/shards/nine-dragon-stack/generators/spillBake.ts`: bakedSpill (9)
+- `src/shards/pastel-plain/generators/materials.ts`: pastelMaterials (5)
+- `src/shards/pine-hollow/generators/cabinLivingContribution.ts`: CabinLivingProfile* (3)
+- `src/shards/pine-hollow/generators/contractRows.ts`: CONTRACT_ROWS* (4)
+- `src/shards/pine-hollow/generators/cragScene.ts`: pineCragWorldScene (14)
+- `src/shards/pine-hollow/generators/nativeQuest.ts`: PINE_NATIVE_QUEST* (17)
+- `src/shards/pine-hollow/generators/populationEnvironment.ts`: POPULATION_ENVIRONMENT* (9)
+- `src/shards/pine-hollow/generators/questBeats.ts`: isBeat (3)
+- `src/shards/pine-hollow/generators/questPrompts.ts`: PINE_INTERACT*, PINE_ACT*, PINE_AMMO (6)
+- `src/shards/pine-hollow/generators/sections.ts`: CabinAmbienceSchema*, PropKindSchema, NativeViewSchema*, parsePineQuestRows*, parseTradeCatalogue*, ThrallLookSchema, CabinRowsSchema, CabinAppearanceSchema*, TradeGoodSchema, PineTradeSkinSchema, parseQuestLeadRows* (53)
+- `src/shards/pine-hollow/generators/sourceOutput.ts`: staticOutput* (9)
+- `src/shards/pine-hollow/generators/treeSet.ts`: PINE_TREE_IDS* (2)
+- `src/shards/pine-hollow/generators/undergrowth.ts`: pineUndergrowthBake (15)
+- `src/shards/pine-hollow/generators/wildlifeKinds.ts`: WILD_BAKE_KINDS, WildRows (10)
+- `src/shards/pine-hollow/generators/wildlifeLook.ts`: WILDLIFE_LOOK* (3)
+- `src/shards/sunscar-dunes/generators/dressing.ts`: bakeSignalDressing (2)
+- `src/shards/sunscar-dunes/generators/landscape.ts`: signalAuthorGround (12)
+- `src/shards/sunscar-dunes/generators/places.ts`: bakeSignalCaravan, bakeSignalWell, bakeSignalBraziers (11)
+- `src/shards/sunscar-dunes/generators/rocks.ts`: bakeSignalRocks (2)
+- `src/shards/sunscar-dunes/generators/rows/items.ts`: WHIP_MOVES (3)
+- `src/shards/sunscar-dunes/generators/rows/whip.ts`: STRAND_A (3)
+- `src/shards/sunscar-dunes/generators/scene.ts`: signalDunesBake (9)
+
+### Closer look (probably dead; check each)
+
+- `src/commons/bake/portableMath.ts`: portableMath* (3)
+- `src/engine/ai/pack.ts`: PackPhase (3)
+- `src/engine/audio/AmbienceBeds.ts`: AmbienceBeds (24)
+- `src/engine/audio/score/score.ts`: Mode (2)
+- `src/engine/boot/filePolicy.ts`: resolveBootSources* (8)
+- `src/engine/combat/view/ranged.ts`: edgeWear (14)
+- `src/engine/core/assets.ts`: pbrUrls (4)
+- `src/engine/debug/probe.ts`: programHash* (3)
+- `src/engine/entities/species/loft.ts`: setShapeFn (8)
+- `src/engine/entities/species/registry.ts`: speciesKinds (3)
+- `src/engine/events/maps.ts`: Tag (2)
+- `src/engine/models/model.ts`: withModelPlacementVisitor (12)
+- `src/engine/physics/box.ts`: siteFloor* (6)
+- `src/engine/ui/offlineDownload.ts`: offlineDownload (3)
+- `src/engine/world/blenderArea.ts`: blenderAreaFor (5)
+- `src/engine/world/forest/placement.ts`: plantSpecs, placementChecksum, placeUndergrowth (131)
+- `src/engine/world/forest/treeSet.ts`: standIn, patchImpostorCrownTop (38)
+- `src/engine/world/geometryBake.ts`: decodeGeometryBake, encodeGeometryBake*, geometryBakeStats* (64)
+- `src/engine/world/geometryKit.ts`: sagLine*, withoutHidden* (18)
+- `src/engine/world/interact/Interactables.ts`: canSee (6)
+- `src/engine/world/terrainField.ts`: landscapeHash (18)
+- `src/engine/world/voxelAO.ts`: recordVoxelAO*, encodeVoxelAOBake*, voxelAOBakeStats* (45)
+- `src/format/contentCost.ts`: contentEstimate (16)
+- `src/format/gridReadiness.ts`: parseGridStructuralEvidence (5)
+- `src/format/materialFamilies.ts`: Rgb (7)
+- `src/format/scriptAdmissionV2.ts`: parseScriptArtifactV2* (8)
+- `src/game/audio/theme.ts`: ArrangementName (4)
+- `src/game/inventoryLaw.ts`: NativeInventory* (42)
+- `src/game/models/specimenCatalogue.ts`: PackedSpecimenBake, SpecimenModelRow (7)
+- `src/game/plugin/brain.ts`: sampleCreatureGroup*, selectCreatureSites* (98)
+- `src/game/plugin/quests.ts`: createReadingRoster* (63)
+- `src/game/shard/registry.ts`: setActiveChunk* (16)
+- `src/game/shardfile/worldSceneWeld.ts`: worldSceneWeldFile* (4)
+- `src/game/systems/looks/rainCurtain.ts`: rainCurtain (13)
+- `src/game/systems/props/interact.ts`: chestGlint, altarSocket (18)
+- `src/game/systems/viewmodel/armRig.ts`: GRIP, solveArm (43)
+- `src/game/weapons/Sword.ts`: REACH (4)
+- `src/game/weapons/starterBowProfile.ts`: BOW* (6)
+- `src/sdk/bake/placeholders.ts`: placeholderJson, bakedTerrainGrid (11)
+- `src/sdk/buildDecisionScripts.ts`: buildDecisionScripts* (7)
+- `src/sdk/director.ts`: DirectorData (4)
+- `src/sdk/interactions.ts`: InteractionRows (3)
+- `src/sdk/kit/geometryPack.ts`: fetchDeflated (9)
+- `src/sdk/speciesBrains.ts`: speciesBrains* (10)
+- `src/sdk/weapons/thrownProfile.ts`: ThrownProfile* (4)
+- `src/shards/_template/generators/farLook.ts`: farLook (16)
+- `src/shards/driftwood-isle/generators/far.ts`: farLook (9)
+- `src/shards/driftwood-isle/generators/questStory.ts`: QUEST_EXTERNAL* (4)
+- `src/shards/driftwood-isle/generators/reefSpecimenRows.ts`: ReefKind (2)
+- `src/shards/driftwood-isle/generators/sections.ts`: EnemyPlacements (2)
+- `src/shards/driftwood-isle/generators/trailParams.ts`: CatalogueParams* (8)
+- `src/shards/far-reach/generators/bootInventory.ts`: BOOT_FILES* (3)
+- `src/shards/far-reach/generators/layoutMath.ts`: spanYaw, spanPitch (3)
+- `src/shards/far-reach/generators/preparedModels.ts`: bakePreparedModels* (6)
+- `src/shards/ink-cel-valley/generators/farLook.ts`: farLook (17)
+- `src/shards/nalati-grasslands/generators/coats.ts`: produceNalatiCoats* (22)
+- `src/shards/nalati-grasslands/generators/farLook.ts`: farLook (16)
+- `src/shards/nalati-grasslands/generators/layout.ts`: KOKBORI_DEN, QARA_CAIRN (6)
+- `src/shards/nalati-grasslands/generators/panoramaData.ts`: PANO_HORIZON_V, PANO_DEG_PER_V (7)
+- `src/shards/nine-dragon-stack/generators/canopyGeometry.ts`: LEAVES (2)
+- `src/shards/nine-dragon-stack/generators/facades.ts`: buildWall (113)
+- `src/shards/nine-dragon-stack/generators/farLook.ts`: farLook (24)
+- `src/shards/nine-dragon-stack/generators/floorRows.ts`: SLAB (3)
+- `src/shards/nine-dragon-stack/generators/fragmentFloor.ts`: fragmentFloor* (14)
+- `src/shards/nine-dragon-stack/generators/layoutBlobs.ts`: layoutBlobs* (17)
+- `src/shards/nine-dragon-stack/generators/meshLod.ts`: triCount (11)
+- `src/shards/nine-dragon-stack/generators/util.ts`: INK, SILK (5)
+- `src/shards/nine-dragon-stack/generators/well-plan.ts`: DEEP (3)
+- `src/shards/pastel-plain/generators/farLook.ts`: farLook (17)
+- `src/shards/pastel-plain/generators/world.ts`: poolMask (15)
+- `src/shards/pine-hollow/generators/crags.ts`: shuffleLanes (12)
+- `src/shards/pine-hollow/generators/farLook.ts`: farLook (15)
+- `src/shards/pine-hollow/generators/questPrompts.ts`: QUEST_STEP*, PineSpots* (3)
+- `src/shards/pine-hollow/generators/sections.ts`: PineQuestRows, TradeGood, TradeItem, PineTradeSkin, FILE_SCHEMAS (10)
+- `src/shards/sunscar-dunes/generators/farLook.ts`: farLook (15)
+- `src/shards/sunscar-dunes/generators/lash.ts`: lashTip (25)
+
