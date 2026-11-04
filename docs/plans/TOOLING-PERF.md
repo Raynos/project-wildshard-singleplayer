@@ -236,7 +236,7 @@ or is deleted;** no tooling commit breaks every commit unnoticed. 8. No wait ove
 
 | Row | What | Expected win | Size | Done when |
 |---|---|---|---|---|
-| M1 | Previews from the live tree into `tmp/<lane>/dist` (BUILD-SPEED 3.1 A); exact-SHA previews keep a slot | preview < 3 min; fewer slot holds | S | lane previews take no mirror slot |
+| M1 | Previews from the live tree into `tmp/<lane>/dist` (BUILD-SPEED 3.1 A); exact-SHA previews keep a slot. **Current-product recheck closed (2026-11-04, coordinator accepted):** the retained `Missing current product` preview refusals target `c0a75ade84`, `1d05b5fde7` and Fossil `0e0f1ba1c3`, all before receipt-retention fix `793ceb58d8`. Log `failed-20261104-113252-4406.log` belongs to Fossil, not `4cc0796427`; the exact `4cc` reproduction instead refused the separate Nalati 2 MB index cap. No post-fix currentness regression or additional tooling patch is established. HEAD previews retain the original receipt guards; green prepare on the cap carrier remains the qualification | preview < 3 min; fewer slot holds | S | lane previews take no mirror slot |
 | M2 | Mirror down to ruler + 2 check slots once M1 and K2 land (D4) | ~−20 GB | S | three slots; no 5-min timeouts in a day |
 | M3 | Quiet vs not measured once, then one path kept (BUILD-SPEED 3.4/3.5) | 90 of 483 ticks held on 10-22 | S | numbers in the commit |
 | M4 | Linux container for CPU work only if the Mac still drops under 10 % idle (BUILD-SPEED 3.2) | — | M | triggered or struck |
