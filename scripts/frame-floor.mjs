@@ -31,7 +31,7 @@ import { frameFloorStanding } from './frame-floor-standing.mjs';
 import { createServer } from 'node:http';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
-import { frameFloorSettingsCode } from './frame-floor-settings.mjs';
+import { frameFloorSettingsCode, assertFrameFloorFixture, frameFloorBootstrapHtml } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
 import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate, frameFloorDrawBudgetMode, frameFloorChromiumAngle, frameFloorSoftwareCensus } from './frame-floor-args.mjs';
 import { frameFloorCpuPhase, assertFrameFloorRenderer } from './frame-floor-report-phase.mjs';
@@ -226,6 +226,7 @@ const fixture = (tier) => [
   ...Object.entries(deviceSaves).map(([key, data]) => saveFixtureCode({ scope: 'device', key, data })),
   ...(publicGrid ? [publicGridIntentCode({instance:'driftwood-isle',slug:'driftwood-isle'})] : []),
 ].join(';');
+const fixtureCheck = `(${assertFrameFloorFixture.toString()})(${JSON.stringify({ ...settings, tier: 'phone' })},${developer === 'on'},${JSON.stringify(deviceSaves)})`;
 const query = (shard) => (shard === 'grid' && !publicGrid ? '?mute=1&nolock=1&sw=0' : `?chunk=${encodeURIComponent(shard === 'grid' ? 'driftwood-isle' : shard)}&mute=1&skipintro=1&nolock=1&sw=0`); // the public pre-release probe seeds only the existing intent
 const errorText = (e) => e instanceof Error ? e.message : String(e);
 
@@ -1116,9 +1117,10 @@ async function worker() {
         load: async (shard) => {
           inspector?.close(); inspector = undefined;
           try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Safari is not running on first boot. */ }
-          xcrun(['openurl', udid, `${base}version.json`]);
-          await connect(`${base}version.json`);
-          if (!wasmMemoryProbe) await retryEvaluate(`(() => { ${fixture('phone')}; return true; })()`);
+          const preparationUrl = `${base}${wasmMemoryProbe ? 'version.json' : 'frame-floor-bootstrap.html'}`;
+          xcrun(['openurl', udid, preparationUrl]);
+          await connect(preparationUrl);
+          if (!wasmMemoryProbe) await retryEvaluate(`(() => { ${fixtureCheck}; if(window.__frameFloorBootstrapReady!==true)throw new Error('Frame-floor preparation document did not finish'); return true; })()`);
           if (nativeDirectory !== '') {
             const directory = shards.length === 1 ? nativeDirectory : join(nativeDirectory, shard);
             if (shards.length > 1) mkdirSync(directory);
@@ -1236,6 +1238,7 @@ async function main() {
       const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
       const helper = join(dist, 'frame-floor-safari.html');
       writeFileSync(helper, html.replace('<head>', `<head><script>${ablationSelected ? BUFFER_PRESSURE_SCRIPT : ''}${NATIVE_PRESSURE}${WASM_CONSTRUCTORS}${fixture('phone')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}</script>`));
+      writeFileSync(join(dist, 'frame-floor-bootstrap.html'), frameFloorBootstrapHtml(fixture('phone'), fixtureCheck));
     }
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);

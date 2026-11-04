@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute the serialized Safari init in isolated storage contexts
 import { runInNewContext } from 'node:vm';
-import { frameFloorSettingsCode, resetFrameFloorDebug } from '../scripts/frame-floor-settings.mjs';
+import { frameFloorSettingsCode, resetFrameFloorDebug, assertFrameFloorFixture, frameFloorBootstrapHtml } from '../scripts/frame-floor-settings.mjs';
+import { saveFixtureCode } from '../scripts/debug-settings.mjs';
 import { validateFrameFloorArgs } from '../scripts/frame-floor-args.mjs';
 
 test('quiet requires one explicit Simulator surface before any build', () => {
@@ -55,4 +56,34 @@ test('isolates successive Safari picks and clears omitted core and shard Debug r
 test('refuses a reset when Safari storage cannot be written', () => {
   const localStorage = { getItem: () => null, setItem: () => { throw new Error('blocked'); } };
   expect(() => { runInNewContext(`(${resetFrameFloorDebug.toString()})()`, { localStorage }); }).toThrow('blocked');
+});
+
+test('cold Safari HTML prepares and verifies every fixture without booting the game', () => {
+  const localStorage = storage(), sessionStorage = storage();
+  const settings = { tier: 'phone', fps: 'auto' };
+  const code = [frameFloorSettingsCode(settings),
+    saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
+    saveFixtureCode({ scope: 'device', key: 'floor.test', data: 'on' })].join(';');
+  const check = `(${assertFrameFloorFixture.toString()})(${JSON.stringify(settings)},true,{"floor.test":"on"})`;
+  const html = frameFloorBootstrapHtml(code, check);
+  const script = /<script>([\s\S]*)<\/script>/u.exec(html)?.[1];
+  if (script === undefined) throw new Error('Missing preparation script');
+  const window: { __frameFloorBootstrapReady?: boolean } = {};
+  runInNewContext(script, { localStorage, sessionStorage, window });
+  expect(window.__frameFloorBootstrapReady).toBe(true);
+  expect(read(localStorage, 'global')).toEqual({ keys: { settings: { v: 1, data: settings } } });
+  expect(read(localStorage, 'device')).toEqual({ keys: {
+    devMode: { v: 1, data: true }, 'floor.test': { v: 1, data: 'on' },
+  } });
+});
+
+test('refuses a silent fixture write failure before admitting the game document', () => {
+  const localStorage = storage(), sessionStorage = storage();
+  const settings = { tier: 'phone', fps: 'auto' };
+  runInNewContext(frameFloorSettingsCode(settings), { localStorage, sessionStorage });
+  const check = `(${assertFrameFloorFixture.toString()})(${JSON.stringify(settings)},true,{})`;
+  expect(() => { runInNewContext(check, { localStorage }); }).toThrow('did not retain');
+  runInNewContext(saveFixtureCode({ scope: 'device', key: 'devMode', data: true }), { localStorage });
+  expect(() => { runInNewContext(check, { localStorage }); }).not.toThrow();
+  expect(() => { runInNewContext(`(${assertFrameFloorFixture.toString()})(${JSON.stringify(settings)},true,{"missing":"on"})`, { localStorage }); }).toThrow('did not retain');
 });
