@@ -43,7 +43,12 @@ export function earlyPrograms(): Promise<void> { bakedStopped = true; return pen
  *  on any repeat, in the same or a new context or page), so linking the exact sources from the renderer step on lets the
  *  Shaders step's own links find them compiled, while the download and the world build still run. A program the build
  *  no longer makes only costs its link. */
-export interface BakedPrograms { readonly version: 1; readonly shaders: readonly string[]; readonly programs: readonly (readonly [number, number])[] }
+/** Shaders share most of their lines (three's chunks), so each shader is a list of indices into one line table (Nine:
+ *  3.9 MB of sources in 1.6 MB); a program is a [vertex, fragment] pair of shader indices. */
+export interface BakedPrograms {
+  readonly version: 2; readonly lines: readonly string[]; readonly shaders: readonly (readonly number[])[];
+  readonly programs: readonly (readonly [number, number])[];
+}
 interface Held { readonly gl: WebGL2RenderingContext; readonly programs: WebGLProgram[]; readonly shaders: WebGLShader[] }
 let held: Held | null = null;
 /** The game queues the level's list (fetched in parallel) before the renderer exists; `null` = none for this level. */
@@ -61,13 +66,13 @@ export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>):
   owner.onDispose(() => { releaseBakedPrograms(); });
   void (async () => {
     const data = await list.catch(() => null);
-    if (data === null || data.version !== 1) return;
+    if (data === null || data.version !== 2) return;
     const { queuedLinks } = await import('../render/precompile');
     const perFrame = queuedLinks() ? 1 : Number.POSITIVE_INFINITY;
     const compiled = new Map<number, WebGLShader>();
     const shader = (at: number, type: number): WebGLShader | null => {
       const known = compiled.get(at); if (known !== undefined) return known;
-      const source = data.shaders[at], made = source === undefined ? null : gl.createShader(type);
+      const rows = data.shaders[at], source = rows?.map(line => data.lines[line] ?? '').join('\n'), made = source === undefined ? null : gl.createShader(type);
       if (made === null || source === undefined) return null;
       gl.shaderSource(made, source); gl.compileShader(made); compiled.set(at, made); mine.shaders.push(made);
       return made;

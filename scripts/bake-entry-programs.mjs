@@ -60,15 +60,18 @@ try{
     const {build,pairs}=await record(browser,slug),file=`public/programs/${slug}.json`;
     if(check){
       const held=existsSync(file)?JSON.parse(readFileSync(file,'utf8')):null;
-      const known=new Set((held?.programs??[]).map(([v,f])=>`${held.shaders[v]}\0${held.shaders[f]}`));
+      const text=at=>held.shaders[at].map(line=>held.lines[line]).join('\n');
+      const known=new Set((held?.programs??[]).map(([v,f])=>`${text(v)}\0${text(f)}`));
       const hits=pairs.filter(([v,f])=>known.has(`${v}\0${f}`)).length;
       console.log(`${slug}: ${hits} / ${pairs.length} entry programs on ${build} are in ${file}${held?` (baked on ${held.build})`:' (none)'}`);
       continue;
     }
-    const shaders=[],at=new Map(),index=text=>{if(!at.has(text)){at.set(text,shaders.length);shaders.push(text);}return at.get(text);};
+    // three's shaders share most lines (its chunks): one line table, each shader a list of line indices
+    const lines=[],lineAt=new Map(),line=text=>{if(!lineAt.has(text)){lineAt.set(text,lines.length);lines.push(text);}return lineAt.get(text);};
+    const shaders=[],at=new Map(),index=text=>{if(!at.has(text)){at.set(text,shaders.length);shaders.push(text.split('\n').map(line));}return at.get(text);};
     const seen=new Set(),programs=[];
     for(const [vs,fs] of pairs){const pair=[index(vs),index(fs)],key=pair.join(',');if(!seen.has(key)){seen.add(key);programs.push(pair);}}
-    writeFileSync(file,`${JSON.stringify({version:1,build,shaders,programs})}\n`);
-    console.log(`${slug}: ${programs.length} programs, ${shaders.length} shaders, ${(readFileSync(file).length/1048576).toFixed(2)} MB -> ${file} (${build})`);
+    writeFileSync(file,`${JSON.stringify({version:2,build,lines,shaders,programs})}\n`);
+    console.log(`${slug}: ${programs.length} programs, ${shaders.length} shaders, ${lines.length} lines, ${(readFileSync(file).length/1048576).toFixed(2)} MB -> ${file} (${build})`);
   }
 }finally{await browser.close();}

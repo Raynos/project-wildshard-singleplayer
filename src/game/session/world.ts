@@ -46,12 +46,14 @@ async function bakedEntryPrograms(slug: string): Promise<BakedPrograms | null> {
   const response = await fetch(new URL(`programs/${slug}.json`, document.baseURI));
   if (!response.ok) return null;
   const data: unknown = await response.json();
-  if (typeof data !== 'object' || data === null || !('version' in data) || data.version !== 1 || !('shaders' in data) || !('programs' in data)) return null;
-  const { shaders, programs } = data;
-  if (!Array.isArray(shaders) || !shaders.every((s: unknown): s is string => typeof s === 'string')) return null;
-  if (!Array.isArray(programs) || !programs.every((p: unknown): p is [number, number] => Array.isArray(p) && p.length === 2
-    && typeof p[0] === 'number' && typeof p[1] === 'number')) return null;
-  return { version: 1, shaders, programs };
+  if (typeof data !== 'object' || data === null || !('version' in data) || data.version !== 2 || !('lines' in data) || !('shaders' in data)
+    || !('programs' in data)) return null;
+  const { lines, shaders, programs } = data;
+  const indices = (row: unknown): row is number[] => Array.isArray(row) && row.every((at: unknown) => typeof at === 'number');
+  if (!Array.isArray(lines) || !lines.every((line: unknown): line is string => typeof line === 'string')) return null;
+  if (!Array.isArray(shaders) || !shaders.every(indices)) return null;
+  if (!Array.isArray(programs) || !programs.every((p: unknown): p is [number, number] => indices(p) && p.length === 2)) return null;
+  return { version: 2, lines, shaders, programs };
 }
 
 async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: LevelContext | undefined) : Promise<{ world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: DeclarationWater | null; streams: null; horizon: Horizon; horizonReady: Promise<void>; }; boundary: Boundary; water: DeclarationWater | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: LevelAudio; music: LevelMusic; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
