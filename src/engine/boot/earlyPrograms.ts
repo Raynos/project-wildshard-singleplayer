@@ -52,7 +52,11 @@ export interface BakedPrograms {
 interface Held { readonly gl: WebGL2RenderingContext; readonly programs: WebGLProgram[]; readonly shaders: WebGLShader[] }
 let held: Held | null = null;
 /** The game queues the level's list (fetched in parallel) before the renderer exists; `null` = none for this level. */
-export function queueBakedPrograms(list: Promise<BakedPrograms | null>): void { baked = list; bakedStopped = false; }
+export function queueBakedPrograms(list: Promise<BakedPrograms | null>): void {
+  // an optional list: a failed read (offline, an HTML fallback page) is no list, settled here at once, so it never reaches
+  // the page's unhandled-rejection boot failure before the renderer step would have read it (sp-x8's C25)
+  baked = list.catch(() => null); bakedStopped = false;
+}
 /** After the renderer step: link the queued list on the game's own context, one program a painted frame where links
  *  queue in the GPU process ahead of frames (WebKit), all at once elsewhere. Nothing is read back (no status query
  *  waits on the GPU process); the objects are kept until `releaseBakedPrograms` so no link is cut short. */
@@ -65,7 +69,7 @@ export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>):
   held = mine;
   owner.onDispose(() => { releaseBakedPrograms(); });
   void (async () => {
-    const data = await list.catch(() => null);
+    const data = await list;
     if (data === null || data.version !== 2) return;
     const { queuedLinks } = await import('../render/precompile');
     const perFrame = queuedLinks() ? 1 : Number.POSITIVE_INFINITY;
