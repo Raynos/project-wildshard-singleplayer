@@ -124,6 +124,9 @@ async function showPageTitle(): Promise<void> {
       ...(lines === '' ? {} : { notice: lines }),
     });
   });
+  // DL10 (Debug 'Early shader compile', default off): after the title's first frames, one trivial shader link starts the
+  // GPU process's compiler, so a cold entry's first program does not pay its 1-1.4 s start-up
+  void (async () => { const { warmShaderCompiler } = await import('@wildshard/engine/boot/earlyPrograms'); warmShaderCompiler(entryScope); })();
 }
 
 export const entered: Promise<unknown> = enterPage();

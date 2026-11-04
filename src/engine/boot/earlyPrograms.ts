@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import type { Scope } from '../app/scope';
 import type { Game } from '../core/Game';
 import { jsonSlot } from '../saves/slots';
 
@@ -92,6 +93,28 @@ export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>):
     }
   })();
 }
+/** DL10 (same Debug row): a cold Safari's first shader link pays a one-time start-up (1.0-1.4 s on the Simulator, whatever
+ *  the program; the Sim link probe, 11-04), which the GPU process keeps for later contexts and pages. On the title, after
+ *  its first frames are drawn, one trivial program links on a throwaway context, so a cold entry finds the compiler up.
+ *  The context is released at once. Off, nothing runs. */
+export function warmShaderCompiler(scope: Pick<Scope, 'raf' | 'timeout'>): void {
+  if (!earlyProgramsOn()) return;
+  // after two painted frames and a beat: the title's own first frame never waits for it
+  scope.raf(() => { scope.raf(() => { scope.timeout(250, () => {
+    const gl = document.createElement('canvas').getContext('webgl2');
+    if (gl === null) return;
+    const program = gl.createProgram();
+    for (const [type, source] of [[gl.VERTEX_SHADER, '#version 300 es\nvoid main() { gl_Position = vec4(0.0); }'],
+      [gl.FRAGMENT_SHADER, '#version 300 es\nprecision mediump float;\nout vec4 colour;\nvoid main() { colour = vec4(1.0); }']] as const) {
+      const shader = gl.createShader(type);
+      if (shader === null) return;
+      gl.shaderSource(shader, source); gl.compileShader(shader); gl.attachShader(program, shader);
+    }
+    gl.linkProgram(program); // not read back: the GPU process links it on its own time
+    scope.timeout(2000, () => { gl.getExtension('WEBGL_lose_context')?.loseContext(); });
+  }); }); });
+}
+
 /** The Shaders step has linked the level's own programs: the baked copies go. */
 export function releaseBakedPrograms(): void {
   const mine = held; held = null;
