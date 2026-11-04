@@ -169,7 +169,7 @@ export function buildWall(ctx: Ctx, s: WallSpec, rng: Rng): void {
  * it are rolled as before and not built, so every later shop, sign and lantern in the city stays where it was.
  */
 export function shopfronts(ctx: Ctx, kitName: string, p0: Vector3, nIn: Vector3, length: number, y: number, rng: Rng,
-  words: readonly string[], colors: readonly number[], skip?: readonly [number, number]): void {
+  words: readonly string[], colors: readonly number[], skip?: readonly [number, number], signs = true): void {
   const k = ctx.kit(kitName, true);
   k.compact = true;
   const { u, n } = frame(nIn);
@@ -226,7 +226,8 @@ export function shopfronts(ctx: Ctx, kitName: string, p0: Vector3, nIn: Vector3,
     const hexs = `#${col.toString(16).padStart(6, '0')}`;
     const style = rng.chance(0.55) ? 'tube' : 'box';
     const flicker = rng.chance(0.1) ? rng.range(0.1, 1) : 0;
-    if (on) ctx.signs.place({
+    // (`signs` false: the boards stay rolled but unplaced, so a run added late re-rolls no sign word in the city, §12)
+    if (on && signs) ctx.signs.place({
       at: c.clone().addScaledVector(n, 0.45).setY(y + 3.75), normal: n.clone(), size: Math.min(0.72, (w - 0.5) / (chars(word).length + 0.62)),
       spec: style === 'tube' ? { text: word, color: hexs, vertical: false, style: 'tube' } : { text: word, color: hexs, vertical: false, style: 'box' },
       flicker,

@@ -273,6 +273,10 @@ function southStreet(ctx: Ctx): void {
     const q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), sr.chance(0.5) ? sr.range(-0.3, 0.3) : Math.PI + sr.range(-0.3, 0.3));
     ctx.walkers.push(new Matrix4().compose(new Vector3(sr.range(S.x0 + 1.8, S.x1 - 1.8), Y0, z), q, new Vector3(1, 1, 1).multiplyScalar(sr.range(0.94, 1.04))));
   }
+  // QD12 (E527): the square's corner tower stands on the street's east side for its first 12 m, but its end face starts
+  // at Y0 + 5 and no shops ran under it, so the street saw the mist through a 5 m slot under the tower (Jake: a flat
+  // pale-blue wall). Its own shops close it, from their own stream and with no sign boards, so nothing else re-rolls.
+  shopfronts(ctx, 'south-shops', new Vector3(S.x1, 0, z0), west, 12, Y0, new Rng(8118), WORDS, NEONS, undefined, false);
   ctx.fd.late = false;
 }
 
