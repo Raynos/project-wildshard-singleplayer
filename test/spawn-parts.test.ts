@@ -63,3 +63,25 @@ test('public entries steer the merge within the over-fetch cap; the grammar refu
   expect(() => readSpawnManifest({ ...base, parts: [part([[0, 0], [1, 3200]])] })).toThrow('Invalid spawn part member'); // past the end
   expect(readSpawnManifest({ ...base, parts: [part([[0, 0], [1, 1008]])] }).parts?.[0]?.members).toEqual([[0, 0], [1, 1008]]);
 });
+
+test('a resized named file changes only its own part', () => {
+  // Twelve 1 MB models in one group: more than one part. Model 3 is re-exported larger under a new content name.
+  const named = (at: number, bytes: number, edit = ''): SpawnFile => file(`/shardfiles/s/blobs/glb/${at}${edit}.glb`, bytes);
+  const before = Array.from({ length: 12 }, (_, at) => named(at, 1_000_000));
+  const after = before.map((row, at) => at === 3 ? named(3, 1_400_000, '-edited') : row);
+  const keyOf = (url: string): string => `models/${/\/(\d+)(?:-edited)?\.glb$/u.exec(url)?.[1] ?? url}.glb`;
+  // Bodies differ per file (the shared helper only varies with URL length, which would make equal parts collide).
+  const seed = (url: string): number => Array.from(url, char => char.codePointAt(0) ?? 0).reduce((sum, code) => sum + code, 0);
+  const read = (rows: SpawnFile[]) => (url: string): Uint8Array =>
+    Uint8Array.from({ length: rows.find(row => row.url === url)?.bytes ?? 0 }, (_, at) => (seed(url) + at) % 251);
+  const pack = (rows: SpawnFile[]): Map<string, string> => {
+    const [parts] = writeSpawnParts(out, [manifest(rows)], read(rows), keyOf);
+    return new Map((parts ?? []).flatMap(part => part.members.map(([member]) => [rows[member]?.url ?? '', part.url] as const)));
+  };
+  const first = pack(before), second = pack(after);
+  expect(new Set(first.values()).size).toBeGreaterThan(1);
+  const changed = new Set<string>();
+  for (const [url, part] of second) if (first.get(url) !== part) changed.add(part);
+  // Only the edited model's part has new bytes; every other part keeps its exact name.
+  expect([...changed]).toEqual([second.get(named(3, 0, '-edited').url)]);
+});

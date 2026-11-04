@@ -72,33 +72,55 @@ export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
   return [...groups.values()];
 }
 
+/** DL5 (sp-x2's review): a member's part depends on its own stable key (the sha256 of its name), never on what
+ * precedes it, so an edited or resized file changes only its own part. A group of B bytes is cut into
+ * ceil(B / PART_TARGET_BYTES) buckets by that key;
+ * a bucket that skews past PART_BYTES splits again on the next hash bits. Members sit in hash order inside a part.
+ * (The bucket count moves only when the group crosses a multiple of the target.) */
+export const PART_TARGET_BYTES = 9_000_000;
+export function placeByContent(urls: readonly string[], size: (url: string) => number, hash: (url: string) => string, depth = 0): string[][] {
+  const total = urls.reduce((sum, url) => align(sum) + size(url), 0);
+  if (total <= PART_BYTES && (depth > 0 || total <= PART_TARGET_BYTES) || urls.length <= 1 || depth >= 7) {
+    return urls.length === 0 ? [] : [[...urls].sort((a, b) => hash(a).localeCompare(hash(b)))];
+  }
+  const count = depth === 0 ? Math.ceil(total / PART_TARGET_BYTES) : Math.ceil(total / PART_TARGET_BYTES) + 1;
+  const buckets: string[][] = Array.from({length: count}, () => []);
+  for (const url of urls) buckets[Number.parseInt(hash(url).slice(depth * 8, depth * 8 + 8), 16) % count]?.push(url);
+  return buckets.flatMap(bucket => placeByContent(bucket, size, hash, depth + 1));
+}
 /** Write every part under `outDir/assets/spawn/parts/` and return each manifest's part table (same order as input). */
-export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInput[], read: (url: string) => Uint8Array): SpawnPart[][] {
+export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInput[], read: (url: string) => Uint8Array,
+  stableKey: (url: string) => string | undefined = () => undefined): SpawnPart[][] {
   const placed = new Map<string, {url: string; bytes: number; hash: string; offset: number}>(), written: {url: string; bytes: number; hash: string}[] = [];
   mkdirSync(join(outDir, 'assets/spawn/parts'), {recursive: true});
   const sizes = new Map(manifests.flatMap(manifest => manifest.rows.map(row => [row.url, row.bytes] as const)));
-  for (const group of spawnPartGroups(manifests)) {
-    let batch: string[] = [], at = 0;
-    const flush = (): void => {
-      if (batch.length === 0) return;
-      const body = new Uint8Array(at), offsets = new Map<string, number>(); let cursor = 0;
-      for (const url of batch) {
-        cursor = align(cursor); const bytes = read(url);
-        if (bytes.length !== sizes.get(url)) throw new Error(`Spawn part member size differs: ${url}`);
-        body.set(bytes, cursor); offsets.set(url, cursor); cursor += bytes.length;
-      }
-      const hash = createHash('sha256').update(body).digest('hex'), url = `/assets/spawn/parts/${hash.slice(0, 16)}.pack`;
-      writeFileSync(join(outDir, url.slice(1)), body);
-      for (const [member, offset] of offsets) placed.set(member, {url, bytes: body.length, hash, offset});
-      written.push({url, bytes: body.length, hash}); batch = []; at = 0;
-    };
-    for (const url of group.urls) {
-      const bytes = sizes.get(url) ?? 0, end = align(at) + bytes;
-      if (bytes > PART_BYTES) throw new Error(`Spawn file larger than a part (${bytes} > ${PART_BYTES}): ${url}`);
-      if (batch.length > 0 && end > PART_BYTES) flush();
-      at = align(at) + bytes; batch.push(url);
+  // A file's placement follows its stable name (a model's or section's name; else its URL), so an edit that
+  // renames its content-named blob still lands in the same part.
+  const keys = new Map<string, string>();
+  const placementKey = (url: string): string => {
+    let key = keys.get(url);
+    if (key === undefined) { key = createHash('sha256').update(stableKey(url) ?? url).digest('hex'); keys.set(url, key); }
+    return key;
+  };
+  const write = (batch: readonly string[]): void => {
+    const length = batch.reduce((at, url) => align(at) + (sizes.get(url) ?? 0), 0);
+    const body = new Uint8Array(length), offsets = new Map<string, number>(); let cursor = 0;
+    for (const url of batch) {
+      cursor = align(cursor); const bytes = read(url);
+      if (bytes.length !== sizes.get(url)) throw new Error(`Spawn part member size differs: ${url}`);
+      body.set(bytes, cursor); offsets.set(url, cursor); cursor += bytes.length;
     }
-    flush();
+    const hash = createHash('sha256').update(body).digest('hex'), url = `/assets/spawn/parts/${hash.slice(0, 16)}.pack`;
+    writeFileSync(join(outDir, url.slice(1)), body);
+    for (const [member, offset] of offsets) placed.set(member, {url, bytes: body.length, hash, offset});
+    written.push({url, bytes: body.length, hash});
+  };
+  for (const group of spawnPartGroups(manifests)) {
+    for (const url of group.urls) {
+      const bytes = sizes.get(url) ?? 0;
+      if (bytes > PART_BYTES) throw new Error(`Spawn file larger than a part (${bytes} > ${PART_BYTES}): ${url}`);
+    }
+    for (const batch of placeByContent(group.urls, url => sizes.get(url) ?? 0, placementKey)) write(batch);
   }
   return manifests.map(manifest => {
     const parts = new Map<string, {url: string; bytes: number; hash: string; members: [number, number][]}>();

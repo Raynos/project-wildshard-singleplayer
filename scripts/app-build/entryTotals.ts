@@ -52,6 +52,8 @@ export function writeSpawnManifests(outDir: string, input: unknown,
   };
   // DL5: each listed URL's own bytes, read again only when its part is written.
   const sources = new Map<string, () => Uint8Array>();
+  // DL5: a product file's stable name (model or section), so an edit keeps its part placement.
+  const stableKeys = new Map<string, string>();
   const asset = (url: string, declared?: number): SpawnFile => {
     const previous = assets.get(url); if (previous !== undefined) {
       if (declared !== undefined && previous.bytes !== declared) throw new Error('Spawn asset size differs'); return previous;
@@ -92,7 +94,7 @@ export function writeSpawnManifests(outDir: string, input: unknown,
       sections.set(row.name, JSON.parse(bytes.toString('utf8')));
     }
     const source = assembleOutputShardfile(raw, sections), headerHash = createHash('sha256').update(header).digest('hex');
-    const productFile = (path: string, bytes: number, hash: string): SpawnFile => {
+    const productFile = (path: string, bytes: number, hash: string, name?: string): SpawnFile => {
       let wire = wireSizes.get(`${hash}:${path}`);
       if (wire === undefined) {
         const body = readFileSync(join(product, path));
@@ -101,15 +103,17 @@ export function writeSpawnManifests(outDir: string, input: unknown,
       }
       const url = /\/[a-f0-9]{64}\.[a-z0-9]+$/u.test(path) ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`;
       sources.set(url, () => readFileSync(join(product, path)));
+      if (name !== undefined) stableKeys.set(url, `${prefix}${name}`);
       return {url, bytes, hash, wireBytes: wire};
     };
     const headerURL = `${prefix}shard.json?v=${headerHash.slice(0, 8)}`; sources.set(headerURL, () => header);
     const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = [], mode = '000'): number => {
       const selected = new Map<string, SpawnFile>(), add = (row: SpawnFile): void => {selected.set(row.url, row);};
       add({url: headerURL, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
-      for (const row of [...index.sections, ...index.schemas]) add(productFile(row.path, row.bytes, row.hash));
+      for (const row of index.sections) add(productFile(row.path, row.bytes, row.hash, `section:${row.name}`));
+      for (const row of index.schemas) add(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
       const wanted = entryReadSet(source, tier, index, sections);
-      for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash));
+      for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash, row.name));
       for (const row of common) add(row);
       for (const [url, bytes] of [...bank.common, ...bank[flow]]) add(asset(url, bytes));
       const selections = flow === 'grid' ? Object.values(bank.selection) : [bank.selection[directory] ?? []];
@@ -152,7 +156,7 @@ export function writeSpawnManifests(outDir: string, input: unknown,
   // DL5: every manifest is known, so pack their files into shared parts, then write each manifest with its own table.
   const partTables = writeSpawnParts(output, pending.map(row => ({rows: row.manifest.files, public: row.public})), url => {
     const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read();
-  });
+  }, url => stableKeys.get(url));
   const written: SpawnManifestAddress[] = [];
   for (const [index, {manifest: base}] of pending.entries()) {
     const manifest = readSpawnManifest({...base, parts: partTables[index] ?? []});
