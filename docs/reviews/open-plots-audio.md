@@ -542,3 +542,39 @@ No audio/plots/docs push request was made under Jake's hold. Local Git
 ancestry now confirms the Pastel activation is already contained in
 `origin/main` through the coordinated carrier; no CI-green or live
 claim follows from that publication alone.
+
+## Clockwork Canyon — preparation and guard refusal
+
+Two MiniMax Music 3 takes finish in **392 s**. A / seed 701 decodes to
+**39.08 s**, B / seed 702 to **75.08 s**. Both pass the unchanged
+25 s minimum, clipping and internal-silence checks; their measured
+loop scores are **0.381 / 0.315**. Vocal-energy qualification and CLAP
+theme comparison remain pending. Neither take is activated or claimed
+fully qualified, and no listening verdict is inferred.
+
+The first MOSS batch exits in **15 s**, before generating any take.
+The existing per-take `mem-ok2.sh` guard reports pressure 1 (normal),
+80% free and 3,068.69 MB swap, but another process, Codex PID 9728,
+reports **16 GB**, above its unchanged **15 GB** process bound. The
+model's own process is correctly excluded. The outer shared admission
+had passed at 40.6 GiB anonymous memory; the stricter inner refusal is
+retained, not relabelled as general memory pressure. The owned model
+process exits and releases its lock. No failed audio take exists.
+
+The coordinator accepts the refusal: this is a seven-day peer session,
+about 12 GB resident, which nobody kills or evicts. **MOSS stays parked
+until that session ends or shrinks.** No guard edit, unchanged retry,
+new seed or substitute route around the refusal is authorized. The six
+spot families and bed keep their original ranking descriptions.
+
+Model-free preparation binds both raw score/metadata hashes, measured
+loops, required MiniMax and Stability credits, and the existing native
+source identity `clockwork-canyon`. The six real anchors and seven cue
+IDs match the maintained full bar-10 checker: own stems score, sustained
+bed, six positive positional gains and heading pan flips, pause/resume,
+iPhone 16 Pro phone tier at 2x, and no errors. This is a wiring audit,
+**not a native playback pass**. The working preparation manifest stays
+in `tmp/wave-a-audio/clockwork-canyon-readings/publication-prep.json`;
+no partial catalogue or active binding is published. Both-engine SFX,
+full score qualification, bounded AAC/credits publication, body/wire
+proof and full native playback remain open.
