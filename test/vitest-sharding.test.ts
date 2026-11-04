@@ -106,7 +106,7 @@ test('parallel and dedicated native CI discover every existing file exactly once
  for(const file of ['test/pine-quest-verbs.test.ts','test/pine-door-continuation.test.ts','test/native-runtime-observation.test.ts','test/driftwood-story-verbs.test.ts','test/sky-progression-verbs.test.ts','test/nalati-discovery-verbs.test.ts','test/nalati-chapter-one.test.ts','test/nalati-titan-verbs.test.ts','test/driftwood-optional-verbs.test.ts','test/driftwood-trade-verbs.test.ts','test/nalati-patrol-verbs.test.ts','test/physics-nalati-headless.test.ts','test/nalati-chapter-binding.test.ts','test/nalati-qara-verbs.test.ts'])
   expect(serial).toContain(file);
  expect(CI_NATIVE_GROUPS['native-routes']).toContain('test/driftwood-trade-verbs.test.ts');
- for(const file of ['test/nalati-discovery-verbs.test.ts','test/native-runtime-observation.test.ts']){
+ for(const file of ['test/nalati-discovery-verbs.test.ts','test/native-runtime-observation.test.ts','test/physics-headless.test.ts','test/physics-shards-headless.test.ts']){
   expect(CI_NATIVE_GROUPS['native-routes']).toContain(file);
   expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain(file);
  }

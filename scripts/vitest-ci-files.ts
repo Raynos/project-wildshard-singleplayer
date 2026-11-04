@@ -13,6 +13,8 @@ export const CI_NATIVE_GROUPS = {
     'test/nalati-chapter-binding.test.ts',
     'test/nalati-discovery-verbs.test.ts',
     'test/native-runtime-observation.test.ts',
+    'test/physics-headless.test.ts',
+    'test/physics-shards-headless.test.ts',
   ],
   'stories-qara': [
     'test/pine-quest-verbs.test.ts',

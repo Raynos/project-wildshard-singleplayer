@@ -12,8 +12,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
 - **Push / PR CI runs the whole vitest suite once**: twelve duration-balanced `behaviour` shards plus the blocking,
-  single-worker `native-escape` job (**without coverage**, Jake G287/G691). The native trusted-input file keeps its
-  original deadlines on its own Ubuntu runner, without sibling test or product-build I/O; `typecheck-lint` runs typecheck and lint;
+  single-worker `native-escape` groups (**without coverage**, Jake G287/G691). The native trusted-input file keeps its
+  original deadlines on its own Ubuntu runner, without sibling test or product-build I/O. All three native physics
+  ruler files run sequentially in the existing `native-routes` group, outside the parallel behaviour shards, with
+  their original setup and case deadlines. `typecheck-lint` runs typecheck and lint;
   `prepare` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage is reserved for nightly and
   milestone runs** (Jake G287); it is not a normal push-release prerequisite. **A push that only touches
