@@ -7,7 +7,7 @@ import { brotliDecompressSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Part hashes.
 import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
-import { PART_BYTES, createPartEncoder, packable, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
+import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
 import { readSpawnManifest, type SpawnFile } from '../src/format/spawnManifest';
 
 mkdirSync('tmp', { recursive: true });
@@ -117,7 +117,7 @@ test('parts ship as q11 Brotli bodies, kept by content between builds', async ()
   try {
     const rows = Array.from({length: 4}, (_, at) => file(`/shardfiles/s/blobs/bin/${at}.bin`, 5_000_000));
     const build = async (name: string) => {
-      const dir = join(root, name), parts = encoder(cache), [table] = await writeSpawnParts(dir, [manifest(rows)], url => body(`${url}x`, 5_000_000), undefined, parts);
+      const dir = join(root, name), parts = encoder(cache), [table] = await writeSpawnParts(dir, [manifest(rows)], url => Uint8Array.from({length: 5_000_000}, (_, at) => ((url.codePointAt(url.length - 5) ?? 0) * 7 + at) % 251), undefined, parts);
       return {dir, table: table ?? [], result: parts.stats()};
     };
     const first = await build('one');
@@ -137,4 +137,29 @@ test('parts ship as q11 Brotli bodies, kept by content between builds', async ()
     expect(third.result.encoded).toBe(1);
     expect(existsSync(join(third.dir, (third.table[0]?.url ?? '').slice(1)))).toBe(true);
   } finally { rmSync(root, {recursive: true, force: true}); }
+});
+
+test('DL18: an edit that rewrites one section\'s blobs changes only the parts that hold them', () => {
+  // sp-x2's real pair (5adf2b0 -> fe210797ab): one Nine edit rewrote 41 bodies, and hashed placement scattered them over
+  // 20 of 25 parts. Members now sit in key order (a section's blobs together) and parts end at key-defined boundaries.
+  const scene = (at: number, edit = ''): SpawnFile => file(`/shardfiles/s/blobs/glb/${String(at).padStart(4, '0')}${edit}.glb`, 900_000 + at * 1000);
+  const model = (at: number): SpawnFile => file(`/shardfiles/s/blobs/bin/m${at}.bin`, 1_200_000);
+  const keyOf = (url: string): string => placementKey(url, /\/(\d{4})(?:-edited)?\.glb$/u.test(url)
+    ? `world/scenes:libraries.24.tiles.0.files.${/\/(\d{4})/u.exec(url)?.[1] ?? ''}.file` : `models/${url.split('/').pop() ?? ''}`);
+  const before = [...Array.from({ length: 40 }, (_, at) => scene(at)), ...Array.from({ length: 40 }, (_, at) => model(at))];
+  // The edit rewrites scenes 10-17 (new content-named URLs, new sizes); every other file is byte-identical.
+  const after = before.map(row => { const at = Number(/\/(\d{4})\.glb$/u.exec(row.url)?.[1] ?? -1); return at >= 10 && at < 18 ? { ...scene(at, '-edited'), bytes: row.bytes + 250_000 } : row; });
+  const sizeOf = (rows: SpawnFile[]) => (url: string): number => rows.find(row => row.url === url)?.bytes ?? 0;
+  const partsOf = (rows: SpawnFile[]): string[] => placeByKey(rows.map(row => row.url), sizeOf(rows), keyOf).map(part => part.join(','));
+  const first = new Set(partsOf(before)), second = partsOf(after);
+  const changed = second.filter(part => !first.has(part));
+  // 8 rewritten files (about 9 MB) touch the parts that hold them and at most one neighbour on each side.
+  expect(changed.length).toBeLessThanOrEqual(Math.ceil(9_200_000 / PART_BYTES) + 2);
+  expect(second.length).toBeGreaterThan(changed.length * 2);
+  // Volatile files (sections, build assets) never share a part with level content.
+  const mixed = [...before.map(row => row.url), '/shardfiles/s/sections/look/map.json?v=aaaaaaaa', '/assets/boot-tables-0123abcd.json'];
+  const volatileKey = (url: string): string => placementKey(url, url.includes('/sections/') ? 'section:look/map' : url.startsWith('/assets/') ? undefined : keyOf(url).split('|')[1]);
+  for (const part of placeByKey(mixed, url => url.endsWith('.json') || url.includes('.json?') ? 500 : sizeOf(before)(url), volatileKey)) {
+    expect(new Set(part.map(url => volatileKey(url).split('|')[0])).size).toBe(1);
+  }
 });

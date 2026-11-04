@@ -98,6 +98,14 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       sections.set(row.name, JSON.parse(bytes.toString('utf8')));
     }
     const source = assembleOutputShardfile(raw, sections), headerHash = createHash('sha256').update(header).digest('hex');
+    // Each string's first place in the sections (`world/scenes:libraries.24.tiles.0.files.3.file`), in section order.
+    const namedAt = new Map<string, string>();
+    const walk = (value: unknown, at: string): void => {
+      if (typeof value === 'string') { if (!namedAt.has(value)) namedAt.set(value, at); return; }
+      if (Array.isArray(value)) { value.forEach((item: unknown, row) => { walk(item, `${at}.${row}`); }); return; }
+      if (typeof value === 'object' && value !== null) for (const [key, item] of Object.entries(value)) walk(item, `${at}.${key}`);
+    };
+    for (const [name, value] of sections) walk(value, `${name}:`);
     const productFile = (path: string, bytes: number, hash: string, name?: string): SpawnFile => {
       let wire = wireSizes.get(`${hash}:${path}`);
       if (wire === undefined) {
@@ -107,7 +115,9 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       }
       const url = /\/[a-f0-9]{64}\.[a-z0-9]+$/u.test(path) ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`;
       sources.set(url, () => readFileSync(join(product, path)));
-      if (name !== undefined) stableKeys.set(url, `${prefix}${name}`);
+      // DL18: an unnamed blob keeps its place by where a section names it (its rewritten version takes the same key).
+      const at = name ?? namedAt.get(hash) ?? namedAt.get(path);
+      if (at !== undefined) stableKeys.set(url, `${prefix}${at}`);
       return {url, bytes, hash, wireBytes: wire};
     };
     const headerURL = `${prefix}shard.json?v=${headerHash.slice(0, 8)}`; sources.set(headerURL, () => header);

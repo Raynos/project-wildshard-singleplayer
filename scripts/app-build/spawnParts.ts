@@ -80,21 +80,35 @@ export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
   return [...groups.values()];
 }
 
-/** DL5 (sp-x2's review): a member's part depends on its own stable key (the sha256 of its name), never on what
- * precedes it, so an edited or resized file changes only its own part. A group of B bytes is cut into
- * ceil(B / PART_TARGET_BYTES) buckets by that key;
- * a bucket that skews past PART_BYTES splits again on the next hash bits. Members sit in hash order inside a part.
- * (The bucket count moves only when the group crosses a multiple of the target.) */
+/** A part's average decoded size: a key boundary falls after a member with probability size / PART_TARGET_BYTES (DL18). */
 export const PART_TARGET_BYTES = 9_000_000;
-export function placeByContent(urls: readonly string[], size: (url: string) => number, hash: (url: string) => string, depth = 0): string[][] {
-  const total = urls.reduce((sum, url) => align(sum) + size(url), 0);
-  if (total <= PART_BYTES && (depth > 0 || total <= PART_TARGET_BYTES) || urls.length <= 1 || depth >= 7) {
-    return urls.length === 0 ? [] : [[...urls].sort((a, b) => hash(a).localeCompare(hash(b)))];
+/** DL18 (sp-x2's real pair 5adf2b0 -> fe210797ab: one Nine edit rewrote 41 bodies, and hashed placement scattered them
+ * over 20 of 25 parts). Members are ordered by their readable stable key, so the files one generator writes (keys under
+ * one section path or name prefix) sit together, and a part ends where the keys say: after a member whose key hash falls
+ * under its own share of the target (its size / PART_TARGET_BYTES), or before PART_BYTES would be passed. A boundary
+ * depends on its member alone, so an edit changes the parts holding the edited members (and a neighbour where a forced
+ * cut moves) instead of a scatter. Volatile members (sections, schemas, build assets: `volatile|` keys) form their own
+ * run, so a rebuild's restamped files never share a part with content. */
+export function placeByKey(urls: readonly string[], size: (url: string) => number, key: (url: string) => string): string[][] {
+  const order = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+  const sorted = [...urls].sort((a, b) => order(key(a), key(b)) || order(a, b));
+  const parts: string[][] = []; let current: string[] = [], bytes = 0, run = '';
+  const cut = (): void => { if (current.length > 0) { parts.push(current); current = []; bytes = 0; } };
+  for (const url of sorted) {
+    const name = key(url), kind = name.slice(0, name.indexOf('|') + 1);
+    if (kind !== run) { cut(); run = kind; }
+    if (current.length > 0 && align(bytes) + size(url) > PART_BYTES) cut();
+    current.push(url); bytes = align(bytes) + size(url);
+    if (Number.parseInt(createHash('sha256').update(name).digest('hex').slice(0, 8), 16) / 2 ** 32 < size(url) / PART_TARGET_BYTES) cut();
   }
-  const count = depth === 0 ? Math.ceil(total / PART_TARGET_BYTES) : Math.ceil(total / PART_TARGET_BYTES) + 1;
-  const buckets: string[][] = Array.from({length: count}, () => []);
-  for (const url of urls) buckets[Number.parseInt(hash(url).slice(depth * 8, depth * 8 + 8), 16) % count]?.push(url);
-  return buckets.flatMap(bucket => placeByContent(bucket, size, hash, depth + 1));
+  cut();
+  return parts;
+}
+/** A member's placement key: `volatile|` for sections, schemas and build assets, `content|` for level files; then its
+ *  stable name (a model's, a section's, or where a section names an unnamed blob), else its URL without content hashes. */
+export function placementKey(url: string, stable: string | undefined): string {
+  const volatile = stable?.startsWith('section:') === true || stable?.startsWith('schema:') === true || url.startsWith('/assets/');
+  return `${volatile ? 'volatile' : 'content'}|${stable ?? url.replaceAll(/[a-f0-9]{8,}/gu, '').replace(/\?v=$/u, '')}`;
 }
 /** Write every part under `outDir/assets/spawn/parts/` and return each manifest's part table (same order as input).
  * DL15 / CI disk: a part is encoded while it is built and only its q11 body is written (`<name>.pack.br`); no raw part
@@ -104,12 +118,11 @@ export async function writeSpawnParts(outDir: string, manifests: readonly SpawnP
   const placed = new Map<string, {url: string; bytes: number; hash: string; offset: number}>(), wire = new Map<string, number>();
   mkdirSync(join(outDir, 'assets/spawn/parts'), {recursive: true});
   const sizes = new Map(manifests.flatMap(manifest => manifest.rows.map(row => [row.url, row.bytes] as const)));
-  // A file's placement follows its stable name (a model's or section's name; else its URL), so an edit that
-  // renames its content-named blob still lands in the same part.
+  // A file's placement follows its stable key, so an edit that renames its content-named blob keeps its place (DL18).
   const keys = new Map<string, string>();
-  const placementKey = (url: string): string => {
+  const keyOf = (url: string): string => {
     let key = keys.get(url);
-    if (key === undefined) { key = createHash('sha256').update(stableKey(url) ?? url).digest('hex'); keys.set(url, key); }
+    if (key === undefined) { key = placementKey(url, stableKey(url)); keys.set(url, key); }
     return key;
   };
   const inflight = new Set<Promise<void>>();
@@ -135,7 +148,7 @@ export async function writeSpawnParts(outDir: string, manifests: readonly SpawnP
         const bytes = sizes.get(url) ?? 0;
         if (bytes > PART_BYTES) throw new Error(`Spawn file larger than a part (${bytes} > ${PART_BYTES}): ${url}`);
       }
-      for (const batch of placeByContent(group.urls, url => sizes.get(url) ?? 0, placementKey)) await write(batch);
+      for (const batch of placeByKey(group.urls, url => sizes.get(url) ?? 0, keyOf)) await write(batch);
     }
     await Promise.all(inflight);
   } finally { await encoder.close(); }
