@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { assetIdentities, assetStem, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, packPartIdentities, readFenceReads, resolveFenceReads } from './fenceReads';
+import { assetIdentities, assetStem, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, packMembers, readFenceReads, resolveFenceReads } from './fenceReads';
 
 // DL22: Pine's cold boot read 143 files before control that its spawn set lacked (late models by name, props tiles by
 // tile); the recorded list keeps stable identities so a content edit (new hashes) still maps to the right files.
@@ -59,15 +59,25 @@ test('every alias of a shared file is recorded, so a later split leaves a stale 
   expect([...split.hashes].sort()).toEqual([h('5'), h('6')].sort()); expect(split.unresolved).toEqual([]);
 });
 
-test('/assets identities: stems without content hashes, pack parts by pack and part, and colliding stems refused', () => {
+test('/assets identities: hash-free stems, pack parts by their members, and unstable names only by a section reference', () => {
   expect(assetStem('/assets/gpu/x/rifle.phone-fd73a325.glb')).toBe('/assets/gpu/x/rifle.phone.glb');
   expect(assetStem('/assets/sfx/best/bed-forest-2-0cd11be5.m4a')).toBe('/assets/sfx/best/bed-forest-2.m4a');
   expect(assetStem('/assets/baked/p/navmesh.bin?v=93aaa10d')).toBe('/assets/baked/p/navmesh.bin');
-  const parts = packPartIdentities({ 'pine-hollow': { phone: { parts: [{ url: '/assets/packs/pine.phone-11111111.bin' }, { url: '/assets/packs/pine.phone-22222222.bin' }] } } });
-  const ids = assetIdentities(['/assets/packs/pine.phone-11111111.bin', '/assets/packs/pine.phone-22222222.bin', '/assets/sfx/a-0cd11be5.m4a',
-    '/assets/x/b-aaaaaaaa.png', '/assets/x/b-bbbbbbbb.png'], parts);
-  expect(ids.get('/assets/packs/pine.phone-22222222.bin')).toBe('asset-pack:pine-hollow:phone:1');
-  expect(ids.get('/assets/sfx/a-0cd11be5.m4a')).toBe('asset:/assets/sfx/a.m4a');
-  expect(ids.has('/assets/x/b-aaaaaaaa.png')).toBe(false); // two files share the stem: no stable identity
-  expect(readFenceReads({ version: 1, files: ['asset:/assets/sfx/a.m4a', 'asset-pack:pine-hollow:phone:1'] }).files).toHaveLength(2);
+  const table = (first: string[], second: string[]) => packMembers({ 'pine-hollow': { phone: { parts: [
+    { url: '/assets/packs/pine.phone-11111111.bin', files: first.map(path => [path, 0, 1, 'x']) },
+    { url: '/assets/packs/pine.phone-22222222.bin', files: second.map(path => [path, 0, 1, 'x']) }] } } });
+  const before = table(['/assets/m/a-0cd11be5.m4a'], ['/assets/m/b-7faf0468.m4a']);
+  const cabin = `/assets/pine-hollow/baked/cabin-materials/${h('7')}.glb`;
+  const ids = assetIdentities(['/assets/packs/pine.phone-22222222.bin', '/assets/sfx/a-0cd11be5.m4a', '/assets/x/b-aaaaaaaa.png',
+    '/assets/x/b-bbbbbbbb.png', cabin, '/assets/y/c-BpZPbf24.bin'], before, new Map([[cabin, 'ref:world/props:/cabins/0/material']]));
+  expect(ids.get('/assets/packs/pine.phone-22222222.bin')).toEqual(['asset-pack-member:pine-hollow:phone:/assets/m/b.m4a']);
+  expect(ids.get('/assets/sfx/a-0cd11be5.m4a')).toEqual(['asset:/assets/sfx/a.m4a']);
+  expect(ids.has('/assets/x/b-aaaaaaaa.png')).toBe(false); // two files share the stem
+  expect(ids.get(cabin)).toEqual(['ref:world/props:/cabins/0/material']); // a pure-hash name: its section reference
+  expect(ids.has('/assets/y/c-BpZPbf24.bin')).toBe(false); // a bundler hash and no reference: no identity
+  // A rebuild moves member b into the other part: its identity now resolves to that part, never to the old ordinal.
+  const after = table(['/assets/m/b-7faf0468.m4a'], ['/assets/m/a-0cd11be5.m4a']);
+  expect(assetIdentities(['/assets/packs/pine.phone-11111111.bin'], after).get('/assets/packs/pine.phone-11111111.bin'))
+    .toEqual(['asset-pack-member:pine-hollow:phone:/assets/m/b.m4a']);
+  expect(readFenceReads({ version: 1, files: ['asset:/assets/sfx/a.m4a', 'asset-pack-member:pine-hollow:phone:/assets/m/b.m4a'] }).files).toHaveLength(2);
 });

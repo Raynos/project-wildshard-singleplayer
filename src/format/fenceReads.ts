@@ -61,39 +61,63 @@ export function assetStem(url: string): string {
   const path = url.split('?')[0] ?? url, at = path.lastIndexOf('/');
   return path.slice(0, at + 1) + path.slice(at + 1).replace(/[-.][a-f0-9]{8,}(?=\.[a-z0-9]+$)/u, '');
 }
-/** DL22 (Pine's 54.8 MB of `/assets` reads after its spawn download): each `/assets` URL's identity. A pack part is
- *  `asset-pack:<bank>:<pack>:<part>` from the boot asset tables (`packParts`: part URL → that identity; parts share a
- *  stem); any other file is `asset:<stem>` when no other file has that stem. */
-export function assetIdentities(urls: readonly string[], packParts: ReadonlyMap<string, string>): ReadonlyMap<string, string> {
-  const stems = new Map<string, string[]>();
-  for (const url of urls) if (!packParts.has(url.split('?')[0] ?? url)) { const stem = assetStem(url); stems.set(stem, [...stems.get(stem) ?? [], url]); }
-  const identities = new Map<string, string>();
-  for (const url of urls) {
-    const path = url.split('?')[0] ?? url, pack = packParts.get(path);
-    if (pack !== undefined) { identities.set(url, pack); continue; }
-    const same = stems.get(assetStem(url)) ?? [];
-    if (same.length === 1) identities.set(url, `asset:${assetStem(url)}`);
-  }
-  return identities;
+/** A stem that still carries a hash (a pure-hash basename like `cabin-materials/<64 hex>.glb`, or a bundler's base64
+ *  suffix) changes with the bytes: it is no identity (sp-x8's review). */
+function stableStem(stem: string): boolean {
+  const name = stem.slice(stem.lastIndexOf('/') + 1).replace(/\.[a-z0-9]+$/u, '');
+  return !/[a-f0-9]{8,}/u.test(name) && !/-(?=[A-Za-z0-9_-]{8}$)(?=.*[0-9A-Z])[A-Za-z0-9_-]{8}$/u.test(name);
 }
-/** Pack part URL → identity, from a boot asset table's `packs` (bank → pack name → {parts: [{url}]}). */
-export function packPartIdentities(packs: unknown): ReadonlyMap<string, string> {
-  const parts = new Map<string, string>();
+/** Where the sections name each of `paths` (a JSON Pointer `ref:<section>:<pointer>`), first place first. */
+export function sectionRefs(sections: ReadonlyMap<string, unknown>, paths: ReadonlySet<string>): ReadonlyMap<string, string> {
+  const refs = new Map<string, string>(), segment = (key: string): string => key.replaceAll('~', '~0').replaceAll('/', '~1');
+  const walk = (value: unknown, at: string): void => {
+    if (typeof value === 'string') { const path = value.split('?')[0] ?? value; if (paths.has(path) && !refs.has(path)) refs.set(path, `ref:${at}`); return; }
+    if (Array.isArray(value)) { value.forEach((item: unknown, row) => { walk(item, `${at}/${row}`); }); return; }
+    if (object(value)) for (const [key, item] of Object.entries(value)) walk(item, `${at}/${segment(key)}`);
+  };
+  for (const [name, value] of sections) walk(value, `${name}:`);
+  return refs;
+}
+/** A boot asset table's pack parts (`packs`: bank → pack → {parts: [{url, files: [[path, …]]}]}): each part URL and the
+ *  identity of every member file in it, `asset-pack-member:<bank>:<pack>:<member stem>`. A pack is named by its members,
+ *  not its part ordinal, so a member a rebuild moves to another part re-resolves to that part, and a member that is gone
+ *  leaves a stale entry (sp-x8's review). */
+export function packMembers(packs: unknown): ReadonlyMap<string, readonly string[]> {
+  const parts = new Map<string, string[]>();
   if (!object(packs)) return parts;
   for (const [bank, named] of Object.entries(packs)) {
     if (!object(named)) continue;
     for (const [pack, def] of Object.entries(named)) {
-      const rows = object(def) && Array.isArray(def['parts']) ? def['parts'] : [];
-      rows.forEach((row: unknown, at) => { if (object(row) && typeof row['url'] === 'string') parts.set(row['url'], `asset-pack:${bank}:${pack}:${at}`); });
+      for (const row of object(def) && Array.isArray(def['parts']) ? def['parts'] : []) {
+        if (!object(row) || typeof row['url'] !== 'string' || !Array.isArray(row['files'])) continue;
+        const members = row['files'].flatMap((file: unknown) => Array.isArray(file) && typeof file[0] === 'string' ? [`asset-pack-member:${bank}:${pack}:${assetStem(file[0])}`] : []);
+        parts.set(row['url'], [...parts.get(row['url']) ?? [], ...members]);
+      }
     }
   }
   return parts;
+}
+/** DL22 (Pine's 54.8 MB of `/assets` reads after its spawn download): each `/assets` URL's identities. A pack part is
+ *  its members' identities (`packMembers`); any other file is `asset:<stem>` when its stem is hash-free and no other
+ *  file shares it, else where a section names it (`refs`); a file with neither has none, and a recording refuses it. */
+export function assetIdentities(urls: readonly string[], packs: ReadonlyMap<string, readonly string[]>, refs: ReadonlyMap<string, string> = new Map()): ReadonlyMap<string, readonly string[]> {
+  const stems = new Map<string, number>();
+  for (const url of urls) if (!packs.has(url.split('?')[0] ?? url)) { const stem = assetStem(url); stems.set(stem, (stems.get(stem) ?? 0) + 1); }
+  const identities = new Map<string, readonly string[]>();
+  for (const url of urls) {
+    const path = url.split('?')[0] ?? url, members = packs.get(path), stem = assetStem(url);
+    if (members !== undefined) { if (members.length > 0) identities.set(url, members); continue; }
+    if (stableStem(stem) && stems.get(stem) === 1) { identities.set(url, [`asset:${stem}`]); continue; }
+    const ref = refs.get(path);
+    if (ref !== undefined) identities.set(url, [ref]);
+  }
+  return identities;
 }
 /** A committed list, checked. */
 export function readFenceReads(input: unknown): FenceReads {
   const files: unknown = object(input) ? input['files'] : undefined;
   if (!object(input) || input['version'] !== 1 || !Array.isArray(files) || files.length > 20_000
     || !files.every((row: unknown): row is string => typeof row === 'string'
-      && /^(?:name:.+|ref:[^:]+:.+|props-tile:\d+\/\d+\/\d+:(?:file|\d+)|asset:\/assets\/[^?]+|asset-pack:[^:]+:[^:]+:\d+)$/u.test(row))) throw new Error('Invalid fence reads');
+      && /^(?:name:.+|ref:[^:]+:.+|props-tile:\d+\/\d+\/\d+:(?:file|\d+)|asset:\/assets\/[^?]+|asset-pack-member:[^:]+:[^:]+:\/assets\/[^?]+)$/u.test(row))) throw new Error('Invalid fence reads');
   return {version: 1, files: [...new Set(files)].sort()};
 }

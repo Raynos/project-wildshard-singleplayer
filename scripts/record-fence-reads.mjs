@@ -4,7 +4,8 @@
 //
 //   node --import ./scripts/bake-loader.mjs scripts/record-fence-reads.mjs --run=<cold run .json> --base=<preview URL>
 //        --dist=<the preview's dist> --slug=<shard> [--flow=client|grid] [--check]
-// The run must be a qualified cold phone run of that entry on the served preview's build, its control witness on that
+// The run must be a qualified cold phone run of that entry on the served preview's build (a --head or --rev preview: a
+// working-tree preview links public folders, which this reader does not follow), its control witness on that
 // shard (a grid run: its grid home). Scope: page requests between the tap and control under /shardfiles/<slug>/ and the
 // shell's /assets files (asset packs, gpu models, sfx, music, hdri, baked; not code, boot tables or spawn files);
 // title-started, worker and member-only reads are not seen, and a grid run is read against the grid mode 000 book.
@@ -12,7 +13,7 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parseArgs } from 'node:util';
-import { assetIdentities, fenceReadAliases, fenceReadIdentities, packPartIdentities, readFenceReads } from '../src/format/fenceReads.ts';
+import { assetIdentities, fenceReadAliases, fenceReadIdentities, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
 
 const { values } = parseArgs({ options: { run: { type: 'string' }, base: { type: 'string' }, dist: { type: 'string' }, slug: { type: 'string' },
   flow: { type: 'string', default: 'client' }, check: { type: 'boolean', default: false } } });
@@ -57,10 +58,10 @@ const assetUrls = readdirSync(join(dist, 'assets'), { recursive: true, withFileT
   .map(entry => `/${relative(dist, join(entry.parentPath, entry.name)).split(sep).join('/')}`);
 const parts = new Map();
 for (const url of assetUrls.filter(name => /^\/assets\/boot-tables-[a-f0-9]{8}\.json$/u.test(name))) {
-  for (const [part, identity] of packPartIdentities(JSON.parse(readFileSync(join(dist, url.slice(1)), 'utf8')).packs)) parts.set(part, identity);
+  for (const [part, members] of packMembers(JSON.parse(readFileSync(join(dist, url.slice(1)), 'utf8')).packs)) parts.set(part, members);
 }
-const assetIds = assetIdentities(assetUrls, parts);
-for (const path of assetsOutside) { const identity = assetIds.get(path); if (identity === undefined) unknown.push(path); else recorded.push(identity); }
+const assetIds = assetIdentities(assetUrls, parts, sectionRefs(sections, new Set(assetUrls)));
+for (const path of assetsOutside) { const ids = assetIds.get(path); if (ids === undefined) unknown.push(path); else recorded.push(...ids); }
 const total = outside.size + assetsOutside.size;
 console.log(`${slug} ${flow}: control at ${((control - run.tap) / 1000).toFixed(1)} s; ${outside.size} level and ${assetsOutside.size} /assets files read before control outside the spawn set; ${unknown.length} unidentified`);
 for (const name of unknown) console.log(`  unidentified ${name}`);

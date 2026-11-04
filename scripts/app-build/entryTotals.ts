@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {assetIdentities, packPartIdentities, readFenceReads, resolveFenceReads} from '../../src/format/fenceReads';
+import {assetIdentities, packMembers, readFenceReads, resolveFenceReads, sectionRefs} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -69,7 +69,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     assets.set(url, row); sources.set(row.url, () => bytesFor(url)); return row;
   };
   // DL22: this build's /assets files (emitted and authored) and its pack parts, for the fence lists' /assets entries.
-  let assetsSeen: readonly string[] | undefined, partsSeen: ReadonlyMap<string, string> | undefined;
+  let assetsSeen: readonly string[] | undefined, partsSeen: ReadonlyMap<string, readonly string[]> | undefined;
   const publicAssets = (): readonly string[] => {
     if (assetsSeen !== undefined) return assetsSeen;
     const urls = new Set<string>();
@@ -82,10 +82,10 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     }
     assetsSeen = [...urls]; return assetsSeen;
   };
-  const packParts = (): ReadonlyMap<string, string> => {
+  const packParts = (): ReadonlyMap<string, readonly string[]> => {
     if (partsSeen !== undefined) return partsSeen;
-    const banks = readAssetTables(root), parts = new Map<string, string>();
-    for (const table of [banks.all, ...Object.values(banks.packs)]) for (const [url, identity] of packPartIdentities((JSON.parse(table.source) as {packs?: unknown}).packs)) parts.set(url, identity);
+    const banks = readAssetTables(root), parts = new Map<string, readonly string[]>();
+    for (const table of [banks.all, ...Object.values(banks.packs)]) for (const [url, members] of packMembers((JSON.parse(table.source) as {packs?: unknown}).packs)) parts.set(url, members);
     partsSeen = parts; return parts;
   };
   const common: SpawnFile[] = [];
@@ -124,12 +124,14 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     let fence: ReadonlySet<string> = new Set(), fenceAssets: readonly string[] = [];
     if (existsSync(fencePath)) {
       const reads = readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8')));
-      const level = reads.files.filter(row => !row.startsWith('asset')), shell = reads.files.filter(row => row.startsWith('asset'));
-      const resolved = resolveFenceReads({version: 1, files: level}, index.files, sections);
+      const resolved = resolveFenceReads({version: 1, files: reads.files.filter(row => !row.startsWith('asset'))}, index.files, sections);
+      // `/assets` entries, and a section reference that names an /assets file rather than a product file.
+      const shell = [...reads.files.filter(row => row.startsWith('asset')), ...resolved.unresolved.filter(row => row.startsWith('ref:'))];
       // `/assets` reads (Pine's asset packs, gpu models, sfx, music): this build's emitted files and pack tables.
-      const byIdentity = new Map([...assetIdentities(publicAssets(), packParts()).entries()].map(([url, identity]) => [identity, url]));
-      fenceAssets = shell.flatMap(identity => { const url = byIdentity.get(identity); return url === undefined ? [] : [url]; });
-      const unresolved = [...resolved.unresolved, ...shell.filter(identity => !byIdentity.has(identity))];
+      const urls = publicAssets(), refs = sectionRefs(sections, new Set(urls)), byIdentity = new Map<string, string>();
+      for (const [url, ids] of assetIdentities(urls, packParts(), refs)) for (const identity of ids) if (!byIdentity.has(identity)) byIdentity.set(identity, url);
+      fenceAssets = [...new Set(shell.flatMap(identity => { const url = byIdentity.get(identity); return url === undefined ? [] : [url]; }))];
+      const unresolved = [...resolved.unresolved.filter(row => !row.startsWith('ref:')), ...shell.filter(identity => !byIdentity.has(identity))];
       // A stale entry fails the build (sp-x8's review): skipping it would quietly bring back an on-demand fetch.
       if (unresolved.length > 0) throw new Error(`${fencePath} lists ${unresolved.length} files this build no longer has `
         + `(${unresolved.slice(0, 3).join(', ')}); re-record with scripts/record-fence-reads.mjs`);
