@@ -50,7 +50,7 @@ import { MaterialsSchema } from '@wildshard/format/materials';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
 import { TimedEncountersSchema, CloudSpecimenSchema, CloudBodySchema } from '@wildshard/format/encounterRows';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
-import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
+import { PopulationProjectionSchema, EnemyPlacementsSchema } from '@wildshard/format/populationProjection';
 import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { SceneScatterPageSchema, SceneDressingSchema, SceneBakedGeometrySchema, SceneFloorSchema, SceneDressingContactsSchema } from '@wildshard/format/sceneDressing';
 import { CueDirectorWireSchema } from '@wildshard/format/cueDirector';
@@ -252,6 +252,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'encounterRows.CloudSpecimen': CloudSpecimenSchema,
   'roamingCombat.RoamingCombat': RoamingCombatSchema,
   'populationProjection.PopulationProjection': PopulationProjectionSchema,
+  'populationProjection.EnemyPlacements': EnemyPlacementsSchema,
   'sceneDressing.SceneDressing': SceneDressingSchema,
   'clientChannels.NumericPose': NumericPoseSchema,
   'populationKeeper.PopulationKeeperRows': PopulationKeeperRowsSchema,
@@ -975,6 +976,7 @@ interface AuthorFormatObjects {
   readonly 'bodySlots.BodySlotsSchema': typeof BodySlotsSchema;
   readonly 'bakedTiles.BakedTilesSchema': typeof BakedTilesSchema;
   readonly 'populationProjection.PopulationProjectionSchema': typeof PopulationProjectionSchema;
+  readonly 'populationProjection.EnemyPlacementsSchema': typeof EnemyPlacementsSchema;
   readonly 'populationKeeper.PopulationKeeperRowsSchema': typeof PopulationKeeperRowsSchema;
   readonly 'scalarChannel.ScalarTripletSchema': typeof ScalarTripletSchema;
   readonly 'scalarChannel.ScalarLatticeSchema': typeof ScalarLatticeSchema;
@@ -1030,6 +1032,7 @@ const authorFormats: AuthorFormatObjects = {
   'bodySlots.BodySlotsSchema': BodySlotsSchema,
   'bakedTiles.BakedTilesSchema': BakedTilesSchema,
   'populationProjection.PopulationProjectionSchema': PopulationProjectionSchema,
+  'populationProjection.EnemyPlacementsSchema': EnemyPlacementsSchema,
   'populationKeeper.PopulationKeeperRowsSchema': PopulationKeeperRowsSchema,
   'scalarChannel.ScalarTripletSchema': ScalarTripletSchema,
   'scalarChannel.ScalarLatticeSchema': ScalarLatticeSchema,

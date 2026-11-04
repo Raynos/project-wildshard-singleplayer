@@ -58,13 +58,14 @@ import { AdventurePersistenceSchema,PageReturnRowsSchema,PosedLibrarySchema,Ques
 import { WorldScenePlacementSchema,parseWorldScenePlacement,WorldScenePlacementPageSchema,parseWorldScenePlacementPage } from './worldScenePlacement';
 import { QuestPageInteractionsSchema,parseQuestPageInteractions } from './questInteractions';
 import { PageLifeSchema,parsePageLife } from './pageLife';
-import { PopulationProjectionSchema } from './populationProjection';
+import { PopulationProjectionSchema, EnemyPlacementsSchema } from './populationProjection';
 import { PopulationShelterSchema,parsePopulationShelter } from './herdShelter';
 import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks';
 
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'sim/enemy-placement.json':{readonly schema:typeof EnemyPlacementsSchema;readonly source:'@wildshard/format/populationProjection#EnemyPlacementsSchema'};
   readonly 'data/physics.generated.json':{readonly schema:typeof ForestNativeInputsSchema;readonly source:'@wildshard/format/forestNativeInputs#ForestNativeInputsSchema'};
   readonly 'world/water.json':{readonly schema:typeof WaterWorldSchema;readonly source:'@wildshard/format/waterWorld#WaterWorldSchema'};
   readonly 'weapons/bow-page.json':{readonly schema:typeof HeldBowFileSchema;readonly source:'@wildshard/format/weaponProfiles#HeldBowFileSchema'};
@@ -180,6 +181,7 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'sim/enemy-placement.json':{schema:EnemyPlacementsSchema,source:'@wildshard/format/populationProjection#EnemyPlacementsSchema'},
   'data/physics.generated.json':{schema:ForestNativeInputsSchema,source:'@wildshard/format/forestNativeInputs#ForestNativeInputsSchema'},
   'world/water.json':{schema:WaterWorldSchema,source:'@wildshard/format/waterWorld#WaterWorldSchema'},
   'weapons/bow-page.json':{schema:HeldBowFileSchema,source:'@wildshard/format/weaponProfiles#HeldBowFileSchema'},
@@ -374,6 +376,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'sim/enemy-placement.json':v.parse(EnemyPlacementsSchema,value);break;
     case 'data/physics.generated.json':v.parse(ForestNativeInputsSchema,value);break;
     case 'world/water.json':v.parse(WaterWorldSchema,value);break;
     case 'weapons/bow-page.json':v.parse(HeldBowFileSchema,value);break;

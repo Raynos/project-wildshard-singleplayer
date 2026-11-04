@@ -33,6 +33,33 @@ export const PopulationProjectionSchema: v.GenericSchema<PopulationProjectionRow
 });
 
 
+const placementNatural=v.pipe(n,v.integer(),v.minValue(0));
+const enemyPlacement=v.strictObject({
+  enemies:v.pipe(v.array(v.strictObject({kind:v.picklist(['crab','monkey','sailor']),variant:v.nullable(v.pipe(v.string(),v.maxLength(512))),
+    x:n,z:n,yaw:n,herd:n,practice:v.exactOptional(v.literal(true))})),v.maxLength(64)),
+  herds:placementNatural,centres:v.pipe(v.array(point),v.maxLength(16)),
+  kinds:v.pipe(v.array(v.picklist(['crab','monkey'])),v.maxLength(16)),
+  stream:v.strictObject({version:v.literal(1),state:placementNatural,initial:placementNatural,scrambledFork:v.boolean()}),
+});
+/** G1004: complete offline placements; original BodySlots/RNG/native ownership
+ * is still admitted at its existing consumer. */
+export const EnemyPlacementsSchema:v.GenericSchema<EnemyPlacementsInput,EnemyPlacementsRows>=v.strictObject({
+  seed:placementNatural,volley:BodySlotsSchema,practice:point,hold:point,
+  page:v.strictObject({phone:enemyPlacement,desktop:enemyPlacement}),native:enemyPlacement,
+});
+export interface EnemyPlacementRows {
+  enemies:{kind:'crab'|'monkey'|'sailor';variant:string|null;x:number;z:number;yaw:number;herd:number;practice?:true}[];
+  herds:number;centres:{x:number;z:number}[];kinds:('crab'|'monkey')[];
+  stream:{version:1;state:number;initial:number;scrambledFork:boolean};
+}
+export interface EnemyPlacementsInput {
+  seed:number;volley:v.InferInput<typeof BodySlotsSchema>;practice:{x:number;z:number};hold:{x:number;z:number};
+  page:{phone:EnemyPlacementRows;desktop:EnemyPlacementRows};native:EnemyPlacementRows;
+}
+export interface EnemyPlacementsRows extends Omit<EnemyPlacementsInput,'volley'> {
+  volley:v.InferOutput<typeof BodySlotsSchema>;
+}
+
 /** Admitted data contracts, independent of validator implementation metadata. */
 interface PopulationProjectionRowsInputFields {
     id: string;
