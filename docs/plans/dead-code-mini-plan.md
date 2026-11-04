@@ -104,7 +104,7 @@ their asks or waves are closed.
 
 ### DC2: SHARD-PLATFORM M3 look-parity proofs (15 files, 1,661 lines) · Codex · S
 
-**DC2 source:** in flight (2026-11-04, sp-x2): remove 13 unread proof files; keep parity/shader-code.mjs and its declaration because world-scene-baked-model.test.ts imports the shader normalizer.
+**DC2 source:** done (2026-11-04, `b8a2e57b12e2100badc13ae64a91458b0ff90984`; types, related and scoped ratchet pass): remove 13 unread proof files; keep parity/shader-code.mjs and its declaration because world-scene-baked-model.test.ts imports the shader normalizer.
 
 These are base-vs-candidate pixel proofs from SHARD-PLATFORM M3 and W1 C1. That plan is archived, and the `goldens`
 skill (24 SHARDFILE cameras) is now the look check (AGENTS.md).
@@ -116,6 +116,8 @@ skill (24 SHARDFILE cameras) is now the look check (AGENTS.md).
   types.
 
 ### DC3: tile-plan, tile-census and draw-hook proof tools (16 files, 1,383 lines) · Codex · S
+
+**DC3 source:** in flight (2026-11-04, sp-x2): remove 17 unread files, including all eight retirement-only cases. The frame-floor-grid import was type-only; there were no frame-floor-grid runtime cases in that test to retain. Live frame-floor-grid and its dedicated tests remain.
 
 - `scripts/tile-plan-{page,reading,report}.mjs`, `scripts/tile-retirement-{chromium,proof}.mjs`
 - `scripts/parity/tile-census{,-scene}.mjs`
