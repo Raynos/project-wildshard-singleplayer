@@ -3,6 +3,7 @@ import {entryFileSteps, tierLibrarySteps} from '../../src/format/tierSelection';
 import type {Shardfile} from '../../src/format/shardSchema';
 import type {OutputIndex} from '../../src/format/outputIndex';
 import {wholeGeometryInputs} from '../../src/game/shardfile/wholeInputs';
+import {spawnViewSceneFiles} from '../../src/format/spawnView';
 
 /** The same required, active entry selection for totals and read-ahead. Default (the Shardfile path every player gets):
  * today's entry set; streamed/late-only bodies and the other device's variants are not entry IO. `whole` (DL5, G872:
@@ -20,7 +21,10 @@ export function entryReadSet(source: Shardfile, tier: 'phone' | 'desktop', index
   const late = new Set((source.late ?? []).map(row => row.hash)), byHash = new Map(source.files.map(file => [file.hash, file]));
   const tileFiles = whole ? source.tiles.flatMap(tile => tile.files.map(ref => ref.replace(/^commons:/u, ''))) : [];
   const tierOf = new Map(index.files.map(file => [file.hash, file.tier])), seen = new Set<string>();
-  const pending = whole ? [...source.library.filter(hash => late.has(hash)), ...tileFiles] : [];
+  // DL21: the spawn-view fence attaches a tiled scene library's chunks within its reach before control, `late` or not
+  // (Nine's native-slabs: 8 files a cold visit fetched one by one inside the fence, none in this set), so the default
+  // set carries them and they download with the rest, in parallel and counted.
+  const pending = whole ? [...source.library.filter(hash => late.has(hash)), ...tileFiles] : [...spawnViewSceneFiles(sections)];
   while (pending.length > 0) {
     const hash = pending.pop(); if (hash === undefined || seen.has(hash)) continue;
     seen.add(hash); pending.push(...byHash.get(hash)?.dependencies ?? []);
