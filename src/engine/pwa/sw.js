@@ -173,7 +173,16 @@ workerScope.listen(self, 'fetch', event => {
 workerScope.listen(self, 'message', event => {
   const type = event.data?.type;
   if (type === 'SKIP_WAITING') { event.waitUntil(self.skipWaiting()); return; }
-  if (type === 'PRECACHE') { event.waitUntil(precacheGeneration()); return; }
+  if (type === 'PRECACHE') {
+    // Adoption waits on this reply: a build is offered as the next document's worker only once its code is held.
+    const port = event.ports?.[0];
+    event.waitUntil((async () => {
+      let ok = true;
+      try { await precacheGeneration(); } catch { ok = false; }
+      port?.postMessage({ type, ok, build: BUILD });
+    })());
+    return;
+  }
   if (type !== 'BUILD' && type !== 'VERSION') return;
   const value = { type, build: BUILD };
   const port = event.ports?.[0];

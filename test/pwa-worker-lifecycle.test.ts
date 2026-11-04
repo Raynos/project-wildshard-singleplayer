@@ -205,10 +205,13 @@ test('an incomplete precache never publishes a generation or prunes working code
   const f = fixture(request => Promise.resolve(new Response('code', { status: fail && request.url.endsWith('/assets/b-bbbbbbbb.js') ? 503 : 200 })));
   const a = f.load('A', ['/assets/a-aaaaaaaa.js']); await a.dispatch('install'); await a.dispatch('activate'); await a.dispatch('message', precached); fail = true;
   const b = f.load('B', ['/assets/b-bbbbbbbb.js']); await b.dispatch('install'); await b.dispatch('activate');
-  await expect(b.dispatch('message', precached)).rejects.toThrow('Precache failed');
+  const replies: unknown[] = [], port = { postMessage: (value: unknown) => { replies.push(value); } };
+  await b.dispatch('message', { ...precached, ports: [port] });
+  expect(replies).toEqual([{ type: 'PRECACHE', ok: false, build: 'B' }]); // adoption refuses an update it cannot hold
   expect(await (await f.open(ASSET_CACHE_NAME)).match(url('/assets/a-aaaaaaaa.js'))).toBeDefined();
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
-  fail = false; await b.dispatch('message', precached);
+  fail = false; replies.length = 0; await b.dispatch('message', { ...precached, ports: [port] });
+  expect(replies).toEqual([{ type: 'PRECACHE', ok: true, build: 'B' }]);
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(2);
 });
 
@@ -354,7 +357,9 @@ test('precache never publishes HTML in place of its required code', async () => 
   const f = fixture(() => Promise.resolve(new Response('<html>missing</html>', { headers: { 'content-type': 'text/html' } })));
   const worker = f.load('A', ['/assets/a-aaaaaaaa.js'], []);
   await worker.dispatch('install');
-  await expect(worker.dispatch('message', precached)).rejects.toThrow('Precache failed');
+  const replies: unknown[] = [];
+  await worker.dispatch('message', { ...precached, ports: [{ postMessage: (value: unknown) => { replies.push(value); } }] });
+  expect(replies).toEqual([{ type: 'PRECACHE', ok: false, build: 'A' }]);
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(0);
   expect((await (await f.open(ASSET_CACHE_NAME)).keys())).toHaveLength(0);
 });

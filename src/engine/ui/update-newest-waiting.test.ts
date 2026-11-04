@@ -15,11 +15,11 @@ class Worker extends EventTarget {
   constructor(build: string) { super(); this.build = build; }
   postMessage(message: unknown, transfer?: Transferable[]): void {
     this.messages.push(message); const port: unknown = transfer?.[0];
-    if (replyPort(port)) { if (this.hold) this.replies.push(port); else port.postMessage({build: this.build}); }
+    if (replyPort(port)) { if (this.hold) this.replies.push(port); else port.postMessage({build: this.build, ok: true}); }
   }
   async reply(): Promise<void> {
     for (const port of this.replies.splice(0)) {
-      const closed = vi.spyOn(port, 'close'); port.postMessage({build: this.build});
+      const closed = vi.spyOn(port, 'close'); port.postMessage({build: this.build, ok: true});
       await vi.waitFor(() => { expect(closed).toHaveBeenCalled(); });
     }
   }

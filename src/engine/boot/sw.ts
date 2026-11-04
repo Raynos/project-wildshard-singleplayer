@@ -63,7 +63,7 @@ const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
 let watched: ServiceWorkerRegistration | null = null;
 let newestBuild: string | null = null;
 let discovery = 0;
-let controlReached = false, precacheTarget: ServiceWorkerRegistration | null = null, precacheAsked = false;
+let controlEvent = false, controlFrames = false, controlReached = false, precacheTarget: ServiceWorkerRegistration | null = null, precacheAsked = false;
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
 const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, adopt, version };
 
@@ -125,7 +125,7 @@ function discovered(build: string): void {
 }
 
 /** A worker reply or a real retirement/error ends a request; elapsed time never does. */
-function workerReply<T>(worker: ServiceWorker, type: 'BUILD' | 'VERSION', read: (value: unknown) => T | null): Promise<T | null> {
+function workerReply<T>(worker: ServiceWorker, type: 'BUILD' | 'VERSION' | 'PRECACHE', read: (value: unknown) => T | null): Promise<T | null> {
   if (pageScope.disposed || pageScope.disposing || worker.state === 'redundant') return Promise.resolve(null);
   return new Promise(resolve => {
     const owner = pageScope.child('worker-reply'), channel = new MessageChannel();
@@ -192,6 +192,10 @@ async function activateWaiting(): Promise<boolean> {
   const [build, target] = await Promise.all([buildOf(w), newest()]);
   if (pageScope.disposed || pageScope.disposing || registration?.waiting !== w
     || !adoptable(w) || target !== newestBuild || !matchesNewest(build, target)) return false;
+  // DL1: an update installs shell-only. Adopt it only once its code is held (offline-safe next document); a failed
+  // precache leaves the current worker in place and the ordinary fallback.
+  const held = await workerReply(w, 'PRECACHE', value => typeof value === 'object' && value !== null && 'ok' in value && value.ok === true ? true : null);
+  if (held !== true || pageScope.disposed || pageScope.disposing || registration?.waiting !== w || !adoptable(w)) return false;
   return new Promise<boolean>((resolve) => {
     const attempt = pageScope.child('worker-adoption');
     const finish = (claimed: boolean): void => { resolve(claimed); attempt.dispose(); };
@@ -278,25 +282,36 @@ function boot(): Promise<void> {
   // Start first-install work early enough for the next visit, without returning
   // to the old activation-blocked readiness. Existing registrations still take
   // PR2's non-job lookup/watch path; no document is claimed.
-  pageScope.listen(document, 'ws:control-ready', () => { controlReached = true; askPrecache(); }, { once: true });
+  pageScope.listen(document, 'ws:control-ready', () => { controlEvent = true; afterControl(); }, { once: true });
   void register(s);
   return Promise.resolve();
 }
 
+/** Control is `ws:control-ready` plus its next frame (phone-loading, DL17): the precache is asked one frame after that,
+ * so none of its fetches starts before control or is open at it. Frames are requested only once a registration exists. */
+function afterControl(): void {
+  if (!controlEvent || precacheTarget === null || controlFrames) return;
+  controlFrames = true;
+  pageScope.raf(() => { pageScope.raf(() => { controlReached = true; askPrecache(); }); });
+}
 /** DL1: install stays shell-only; the activated worker precaches its build's code once this page reaches control, so
  * the cold level download has the link to itself. Asked once a page; a first install still activating is asked when
- * it activates. A waiting update is never asked: it precaches after its own adoption and control. */
+ * it activates. A waiting update is asked too, in the background; adoption still waits for its PRECACHE reply. */
 function askPrecache(): void {
   const reg = precacheTarget;
   if (!controlReached || reg === null || precacheAsked) return;
-  const ask = (w: ServiceWorker | null): void => {
-    if (precacheAsked || w?.state !== 'activated' || pageScope.disposed || pageScope.disposing) return;
-    precacheAsked = true;
+  const post = (w: ServiceWorker): void => {
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
     try { w.postMessage({ type: 'PRECACHE' }); } catch { /* A retired worker is asked again on the next visit's control. */ }
   };
+  const ask = (w: ServiceWorker | null): void => {
+    if (precacheAsked || w?.state !== 'activated' || pageScope.disposed || pageScope.disposing) return;
+    precacheAsked = true; post(w);
+  };
   ask(reg.active);
+  if (reg.waiting?.state === 'installed') post(reg.waiting);
   const installing = reg.installing;
+  ask(installing); // it may have activated while the control frames ran
   if (!precacheAsked && installing !== null) pageScope.listen(installing, 'statechange', () => { ask(installing); });
 }
 
@@ -316,7 +331,7 @@ async function register(s: ServiceWorkerContainer): Promise<void> {
   // Treat that as unavailable support, just like a rejected registration.
   if (reg === undefined) return;
   watch(reg);
-  precacheTarget = reg; askPrecache();
+  precacheTarget = reg; afterControl();
   // Standalone installs live for days: keep discovering updates so the pill can offer them.
   pageScope.listen(document, 'visibilitychange', () => {
     if (!document.hidden) void reg.update().catch(() => undefined);

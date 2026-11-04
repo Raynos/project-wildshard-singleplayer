@@ -11,7 +11,7 @@ class Worker extends EventTarget {
   postMessage(message: unknown, transfer?: Transferable[]): void {
     this.messages.push(message);
     const port: unknown = transfer?.[0];
-    if (replyPort(port)) port.postMessage({ build: 'fixture-after-stamp' });
+    if (replyPort(port)) port.postMessage({ build: 'fixture-after-stamp', ok: true });
   }
 }
 

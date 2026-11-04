@@ -12,10 +12,11 @@ class WorkerHandle extends EventTarget implements ServiceWorker {
   readonly messages:unknown[]=[];
   refuse=false;
   build:string|undefined='after-build-stamp';
+  precached=true;
   postMessage(message:unknown,transfer?:Transferable[]|StructuredSerializeOptions):void{
     if(this.refuse)throw new Error('Worker retired');this.messages.push(message);
     const port=Array.isArray(transfer)?transfer[0]:undefined;
-    if(buildPort(port)&&this.build!==undefined){port.postMessage({type:'VERSION',build:this.build});}
+    if(buildPort(port)&&this.build!==undefined){port.postMessage({type:'VERSION',build:this.build,ok:this.precached});}
   }
 }
 
@@ -55,9 +56,13 @@ test('adoption skips stale workers, fences its controller and retires unavailabl
   await vi.advanceTimersByTimeAsync(0);expect(replace).not.toHaveBeenCalled();
   announced.state='activated';announced.dispatchEvent(new Event('statechange'));await adoption;
   expect(replace).toHaveBeenCalledExactlyOnceWith('/resume');
+  // DL1: an update installs shell-only; one whose code cannot be precached is never activated.
+  const unheld=new WorkerHandle();unheld.precached=false;wsSw.waiting=registration.waiting=unheld;
+  expect(await swAdopt('/unheld')).toBe(false);expect(unheld.messages).toEqual([{type:'BUILD'},{type:'PRECACHE'}]);
+  expect(replace).toHaveBeenCalledOnce();
   const boundary=new WorkerHandle();wsSw.waiting=registration.waiting=boundary;
-  const boundaryAttempt=swAdopt('/boundary');await vi.advanceTimersByTimeAsync(999);
-  expect(boundary.messages).toEqual([{type:'BUILD'},{type:'SKIP_WAITING'}]);
+  const boundaryAttempt=swAdopt('/boundary');await vi.waitFor(()=>{expect(boundary.messages).toContainEqual({type:'SKIP_WAITING'});});
+  expect(boundary.messages).toEqual([{type:'BUILD'},{type:'PRECACHE'},{type:'SKIP_WAITING'}]);
   let boundaryFinished = false;
   void boundaryAttempt.then(() => { boundaryFinished = true; return undefined; });
   await vi.advanceTimersByTimeAsync(180_000); expect(boundaryFinished).toBe(false);

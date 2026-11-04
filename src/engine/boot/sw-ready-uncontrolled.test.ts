@@ -26,7 +26,10 @@ test('first registration starts before control without gating readiness or claim
     expect(register).toHaveBeenCalledTimes(1);
     complete(registration); await vi.advanceTimersByTimeAsync(0);
     worker.state = 'activated'; worker.dispatchEvent(new Event('statechange'));
-    // DL1: control (already reached) asks the newly activated first install, once, to precache its build's code.
+    // DL1: control (already reached) asks the newly activated first install, once, to precache its build's code, a
+    // frame after control's own frame, so no precache fetch is open at control.
+    expect(worker.postMessage).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(50);
     expect(container.controller).toBeNull(); expect(worker.postMessage).toHaveBeenCalledExactlyOnceWith({ type: 'PRECACHE' });
     worker.dispatchEvent(new Event('statechange')); expect(worker.postMessage).toHaveBeenCalledOnce();
     expect(vi.getTimerCount()).toBe(pageTimers);
