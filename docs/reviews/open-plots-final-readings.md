@@ -30,7 +30,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
-| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
+| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete |
@@ -1428,3 +1428,36 @@ real poses `(0,1.7,-241,pi,0)` and `(0,1.7,-62,pi,0)`. Raw primary report:
 `tmp/sp-x1-open-plots/showcase-final/cpu/b752d4903-80937-1793802250706.json`; its adjacent `-draw-budget.json` retains all paired ratios.
 Browser closes normally. Walk, eight goldens and separate memory/official
 Simulator scopes remain open; this C report does not close a full cohort.
+
+
+## Clockwork Canyon — maintained walk and golden bridge (sp-x1, November 4)
+
+Exact final audio source **b752d49037c8ed98611376418069becb7c2599c0**,
+normal immutable all-product preview **b752d49-mw2bzahj** (:4404). This is
+a fresh process for the untimed walk and golden bridge, separate from the
+earlier Chromium/control build. Its raw Clockwork index and all **206
+payload bodies / 201 pack entries** match the admitted audio candidate
+exactly. Across the four audio plots the bridge checks 825 bodies and
+803 pack entries; 192 newly compiled runtime endpoints match served
+bytes to disk. The earlier compiled runtime inventory was not retained,
+so this is not a claim of old-versus-new compiled JavaScript byte parity.
+
+The maintained `road-avenue-plaza-scaffold` leg reaches all **14 waypoints**
+in **164.445 s**, with **0 stuck / 0 out**. Final plot-local feet are
+`(0.001, 0.020, -61.977)`. The original source-pinned controller, route,
+waypoint checks and 180 s bound remain intact. Raw result:
+`tmp/sp-x1-open-plots/audio4-untimed/clockwork-canyon/walk.json`.
+
+All **eight** maintained GOLDEN | NOW rows were read individually and are
+**green**: road entry, road 40 m, neighbour 100 m, top down, plaza landmark,
+landmark up, side avenue and far corner. The capture is complete, with
+errors empty, phone DPR 2, the original camera/residency guards and no
+golden promotion. The existing G994 visual omissions stay accepted;
+this result does not reopen the plot's design. SSIM ranges 0.979–0.996
+and is descriptive only.
+
+[Labelled eight-view board](../../art/golden-runs/open-plots/clockwork-canyon/2026-11-04-b752d49037-board.jpg).
+Raw capture and per-view rows:
+`tmp/sp-x1-open-plots/audio4-untimed/clockwork-canyon-goldens/`.
+Both Clockwork browsers closed normally before review. Memory/official
+Simulator remains open, so full-cohort coverage stays **3/10**.
