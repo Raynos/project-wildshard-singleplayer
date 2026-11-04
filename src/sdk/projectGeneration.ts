@@ -22,6 +22,7 @@ import { proveStaticPortalEntries } from './projectEntryProof';
 import { readImagePixels, writeImagePixels } from './bake/image';
 import { normalizeWorldGlb } from './bake/world';
 import { createBasisEncoder } from './bake/basisEncoder';
+import { phoneAstcKtx2 } from './bake/phoneAstc';
 import { encodeGainKeyMemo } from './bake/keyedSkyMemo';
 import { encodePortableBytesMemo } from './bake/portableBytesMemo';
 import { encodeZstdBytesMemo } from './bake/zstdBytesMemo';
@@ -85,6 +86,9 @@ export interface ProjectGenerationContext {
   meshoptNoLarger?: (packed: Uint8Array, input: Uint8Array) => Promise<boolean>;
   /** Trusted original UASTC build recipe; older adapters may omit this capability. */
   basisEncoder?: typeof createBasisEncoder;
+  /** DL9: a phone-tier UASTC KTX2 as ASTC 4×4 (`bake/phoneAstc.ts`, three's own transcoder at build time); older
+   *  adapters may omit it, and the phone keeps transcoding at load. */
+  phoneAstcKtx2?: typeof phoneAstcKtx2;
   /** Fresh bounded names below project-relative directories or declared URL roots; older adapters may omit it. */
   inputFiles?: (prefixes: readonly string[]) => readonly string[];
   cached: (step: ProjectGenerationStep, generate: (inputs: ReadonlyMap<string, Uint8Array>) => ReadonlyMap<string, Uint8Array> | Promise<ReadonlyMap<string, Uint8Array>>) => Promise<ReadonlyMap<string, Uint8Array>>;
@@ -127,7 +131,7 @@ export function createProjectGeneration(project: string, programHash: string, as
     compileDecisionRows: (input, registries, authored, options) => compileDecisionScripts(input, registries, authored, { ...options, compileMemo: memoAssemblyScript }),
     compileReturnProjection: (input, registries, authored, options) => compileReturnProjectionV2(input, registries, authored, { ...options, compileMemo: memoAssemblyScript }),
     proveStaticPortalEntries, readImagePixels, writeImagePixels, normalizeWorldGlb,
-    basisEncoder: createBasisEncoder, encodeGainKey: encodeGainKeyMemo, encodePortableBytes: encodePortableBytesMemo, encodeZstdBytes: encodeZstdBytesMemo, meshoptNoLarger: meshoptNoLargerMemo,
+    basisEncoder: createBasisEncoder, phoneAstcKtx2, encodeGainKey: encodeGainKeyMemo, encodePortableBytes: encodePortableBytesMemo, encodeZstdBytes: encodeZstdBytesMemo, meshoptNoLarger: meshoptNoLargerMemo,
     inputFiles: prefixes => projectInputFiles(roots, prefixes, root),
     asset(bytes) {
       if (!(bytes instanceof Uint8Array) || bytes.byteLength > 256_000_000) throw new Error('Invalid generation asset bytes');

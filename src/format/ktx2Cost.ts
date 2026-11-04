@@ -27,7 +27,9 @@ export function parseKtx2(bytes: Uint8Array, support?: TextureTranscodeSupport):
   const model = view.getUint8(dfd + 12);
   const basis = view.getUint32(12, true) === 0;
   const compressed = basis && ((model === 166 && support?.astc === true) || ((model === 163 || model === 166) && support?.bc7 === true));
-  if (compressed) gpu = textureMipBytes(width, height, levels, true);
+  // DL9: raw ASTC 4x4 (157 linear / 158 sRGB, a phone file) uploads its own blocks; no device expands it to RGBA.
+  const astc = view.getUint32(12, true) === 157 || view.getUint32(12, true) === 158;
+  if (compressed || astc) gpu = textureMipBytes(width, height, levels, true);
   return { decoded: 0, gpu, triangles: 0, draws: 0 };
 }
 

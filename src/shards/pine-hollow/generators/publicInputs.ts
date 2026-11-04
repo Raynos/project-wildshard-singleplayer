@@ -46,7 +46,7 @@ function rigInputs(): { name: string; raw: string; twin: string; tier: 'desktop'
 }
 
 /** The rigged creatures: each hull's admitted geometry and its base and normal maps from the existing KTX2 bake. */
-export async function pineRigBlobs(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<EmittedBlobs> {
+export async function pineRigBlobs(ctx: Pick<ProjectGenerationContext, 'cached' | 'phoneAstcKtx2'>): Promise<EmittedBlobs> {
   const rigs = rigInputs();
   const files = await ctx.cached({ id: 'rig-inputs', inputs: rigs.flatMap(rig => [rig.raw, rig.twin]) }, inputs => new Map(rigs.flatMap(rig => {
     const raw = inputs.get(rig.raw), twin = inputs.get(rig.twin);
@@ -58,9 +58,10 @@ export async function pineRigBlobs(ctx: Pick<ProjectGenerationContext, 'cached'>
     const raw = files.get(`${rig.name}.glb`), twin = files.get(`${rig.name}.ktx2.glb`);
     if (raw === undefined || twin === undefined) throw new Error(`Missing cached Pine rig ${rig.name}`);
     // I2: each tier fetches only its own rig (PINE_HULL_BOOK names `<hull>[.phone]` per tier), as its coat pages do
-    const baked = split(twin), tier = { tier: rig.tier };
-    blobs.push(nameBlob(`models/creatures/${rig.name}.base.ktx2`, 'ktx2', texture(baked, 'base'), tier),
-      nameBlob(`models/creatures/${rig.name}.normal.ktx2`, 'ktx2', texture(baked, 'normal'), tier),
+    // DL9: the phone's maps ship as ASTC 4x4
+    const baked = split(twin), tier = { tier: rig.tier }, map = (bytes: Uint8Array): Promise<Uint8Array> => rig.tier === 'phone' ? ctx.phoneAstcKtx2?.(bytes) ?? Promise.resolve(bytes) : Promise.resolve(bytes);
+    blobs.push(nameBlob(`models/creatures/${rig.name}.base.ktx2`, 'ktx2', await map(texture(baked, 'base')), tier),
+      nameBlob(`models/creatures/${rig.name}.normal.ktx2`, 'ktx2', await map(texture(baked, 'normal')), tier),
       await nameMeshoptBlob(`models/creatures/${rig.name}.rigged.glb`, geometry(split(raw)), tier));
   }
   return emitNamedBlobs(blobs);
