@@ -62,7 +62,7 @@ measured and not built (or folded); **open** = what is left, in one line.
 | DL2 | open | first-visit read-ahead landed `0fc2f95cbe` (11-03: the title reads the first card's home, the grid entry) | its reading: cold, title dwell 3 s vs 0 s, −3 s expected |
 | DL3 | closed | kept, a real reader (Driftwood's compiled strip page) | — |
 | DL4 | done (pass 2, 11-04) | inventory table `884738902f`; pass 2 rows for Sky, Equipment and HUD, Texture formats and audio catalogue, First drawn frames and minimap | every card step has inputs, a mark and a row |
-| DL5 | open (n = 3 timing) | parts + reader `40bc516d5c`, `921c9776fb`, `a69dda496d`, `f944a93c73`; whole level in the set `7683b302b5`; Pine packs only its before-control set (11-04, sp-o2) | DL5 n = 3: packs vs Shardfile, Driftwood cold + Nine warm, and Pine cold with its smaller set; neighbours' loading is Jake's (G828, G1011). **Driftwood packs +33.6 s on 9e91f01 (sp-x2's n=3, Simulator, shaped link), cause (sp-o4, 18:00):** (1) a measurement artifact: Safari over http refuses br and the preview server sent parts decoded (53.0 MB moved for 21.6 MB of .br; loose Shardfile files were gzipped); the books give Driftwood phone 26.8 MB packs vs 23.5 MB default (+3.3); fixed `c24ea060e7` (+ HEAD `65a3f41ce9`): a gzip-only client gets the part gzipped; (2) real: setup waited for the sections part, sixth of 13 behind 18 MB of level content (setup moved at 23.8 s vs 2.7 s); `4dc4022b10` lists each manifest's parts sections -> build assets -> content. Nalati, the one whole-level byte gap (88.1 vs 57.5 MB), selects packs-set 'fence' `f6aedff3c9` (DL17 proof pending). Next: the Driftwood pair again on a fresh preview |
+| DL5 | open (HTTP n=3 measured; gzip follow-up) | parts + reader `40bc516d5c`, `921c9776fb`, `a69dda496d`, `f944a93c73`; whole level in the set `7683b302b5`; Pine packs only its before-control set (11-04, sp-o2) | DL5 n = 3: packs vs Shardfile, Driftwood cold + Nine warm, and Pine cold with its smaller set; neighbours' loading is Jake's (G828, G1011). **Driftwood packs +33.6 s on 9e91f01 (sp-x2's n=3, Simulator, shaped link), cause (sp-o4, 18:00):** (1) a measurement artifact: Safari over http refuses br and the preview server sent parts decoded (53.0 MB moved for 21.6 MB of .br; loose Shardfile files were gzipped); the books give Driftwood phone 26.8 MB packs vs 23.5 MB default (+3.3); fixed `c24ea060e7` (+ HEAD `65a3f41ce9`): a gzip-only client gets the part gzipped; (2) real: setup waited for the sections part, sixth of 13 behind 18 MB of level content (setup moved at 23.8 s vs 2.7 s); `4dc4022b10` lists each manifest's parts sections -> build assets -> content. Nalati, the one whole-level byte gap (88.1 vs 57.5 MB), selects packs-set 'fence' `f6aedff3c9` (DL17 proof pending). Next: the Driftwood pair again on a fresh preview |
 | DL6 | open | census and byte verdicts `fb97fc9057`, `48dc48420e`; **intake split 11-04 (sp-o3, Nine cold phone-link Chromium, 703cb64eda vs 69fa647d12):** `scene.library-intake` 3.3 s after the download vs 7.7 s overlapped with it, `whole:native` read-wait 1.3 vs 3.4 s, the 15 signs + 3 casts pools 0.05–0.9 s each in series; Props spans 8.0–43.3 s overlapped, ending with Nine's ≈ 38 MB. Overlapped, intake is paced by bytes (DL11 already took that, −7 to −15 s); DL6's own target is the CPU the base build shows (3.3 s intake + whole assembly), so build-time buffers, not more overlap. **Design (11-04, sp-o3):** the GPU-ready buffers already have a reader seam: owned models read `readHomeBuildGeometry(…, 'owned:<key>')` before any GLB decode (`worldSceneGeometry.ts`), and whole libraries restore the `whole:` snapshot (`homeGeometrySnapshot.ts`), the IndexedDB home-build cache warm visits use. Writing those snapshots at build as packs-book members and seeding the cold miss from them is DL7's reopened P3, so DL6 and P3 are one build, not two: owned + whole through that seam (behind the packs book and a Debug row), then pool libraries (`sceneModelSource().preload`, no snapshot seam yet) as DL6's own piece. Bytes decide it on the byte-bound link (P3's census: a `whole:` seed costs about its inputs' wire again, Driftwood 2.95 vs 3.25 MB, Nine 5.97 vs 4.91 at q3), so it ships only if a cold DL23 run shows tap → control lower with the seed | not built; done when Model libraries + intake fall to ≤ 1 s on the DL23 recordings (Nine 4.5 s Sim / 14.0 s Chromium cold); the I3 byte floor is void (G1008) **Next (11-04, sp-o3 stepping down):** owned + whole ride sp-o1's P3 home seed (`3c35a8580c`, `52ba310c0c`, `4644786eb2`, `59dd168809`; Debug 'Home geometry seed'); DL6's own piece is the pool libraries (`sceneModelSource().preload`, Nine's 15 sign + 3 cast pools in series) as `pool:<library>:<file>` keys through `homeSeedKey`, only if sp-o1's cold A/B shows the seed lowers tap → control. **Pool piece closed as measured (11-04, sp-o2; wildshard-new G872):** built as a pool rest store before the GLB parse, behind a third Home geometry seed choice (`cc2d568054`), then measured before any key was recorded: only Nine has pool libraries (59 phone files, 20.1 MB GLB); the runtime's own parse of all 59 takes 125 ms in Node (≈ 1.2 s at 10×), a snapshot restore 2 ms, and their seed is 27.7 MB raw, added on top of the packs (the GLBs stay in the spawn parts, as with owned / whole): ≈ +20 s at 1.25 MB/s for < 1.2 s of CPU, a time loss. The choice and the seam are deleted (E451); Nine's pools keep parsing their GLBs. |
 | DL7 | partly done; P3 seed measured, no win, deleted 11-04 (sp-o2, G872) | P1 landed `364328bd4d` (Nine −1.89 MB q3, Pine −0.13); P2 measured, not built `45e0f0e19e`; P3 parked `061ee291d8` | P3 as a cold seed, bytes allowed (G1008; Sim cold `world.world.assembly` 7.3 s vs 3.3 s warm); scenes / assembly tables (the 11.4 s target) |
 | DL8 | closed | measured `192db91620`; re-checked 11-04 under G1008 | — (+2.9 MB ≈ +2.3 s on the phone link for −0.4 s at 10×: a time loss) |
@@ -324,3 +324,53 @@ on top of DL5. DL14 and DL15 any time. DL16 closes.
 
 **Out of scope:** streaming level content during play, in any form (Jake, above); the shardfile format itself (G934
 keeps it); one-world crossings (G828, Jake's plan).
+
+### DL5 local HTTP n=3 — 2026-11-04, sp-x2
+
+Normal immutable source `9e91f0183c67ab87f581575b9d4dad8b90487039`,
+build `9e91f01-mw2ocnjt`; Simulator Safari, shared 10 Mb/s plus 100 ms.
+Predeclared interleaved arms; original 180 s control / 15-minute wrapper
+limits unchanged. **HTTP, parts decoded:** retained preview process predates
+`c24ea060e7`; Safari refuses br on HTTP, so parts arrived decoded while
+loose files used gzip. This is not an HTTPS/Brotli timing verdict. Every
+per-visit build binding and the six recorder/link/helper hashes stayed exact.
+The final lease release removed the preview dist normally; no independent
+post-stop dist-seal claim is made.
+
+| Flow | Shardfile samples (s) | Packs samples (s) | Median S → P (s) | Δ packs (s) |
+|---|---|---|---|---|
+| driftwood cold | 36.014, 35.753, 35.710 | 69.377, 62.260, 69.326 | 35.753 → 69.326 | +33.573 |
+| nine warm | 11.176, 10.433, 10.532 | 10.684, 11.347, 10.516† | 10.532 → 10.684 | +0.152 |
+| pine cold | 123.242, 120.529, 120.712† | 147.003, 150.337, 146.683 | 120.712 → 147.003 | +26.291 |
+
+† Exactly two wildshard-new-authorized replacements, chosen by publication
+overlap, not outcome. Original Nine packs warm 2 **12.161 s** (visit prep
+overlapped publication; tap→control clear) stays beside **10.516 s** after
+a matching cold seed. Original Pine Shardfile cold 2 **123.041 s** overlapped
+publication and was median-deciding; its conditional replacement is
+**120.712 s**. Every original/seed/replacement remains retained. The two
+earlier browser-overlapped prefixes remain excluded with raw refusals intact.
+CI gaps and the full-suite hold occurred between measured arms; no cap,
+guard or threshold changed. Routine publication was held for the remainder.
+
+**Strict packs-no-slower: false on all three groups.** All 18 selected visits
+reached control/end. Separate original DL23 card/frame refusals remain
+visible in every report; a timing result grants no bar waiver.
+
+Pine Chromium, prescribed unmodified `phone-loading --preset phone`, explicit
+Runtime packs: cold raw **126.981 s**, shared-link counter
+**110,977,387 B**. **Reader rc 1:** complete request
+accounting refused one native encoded-transfer row for
+`ktx2Zstd.worker-BLefVLXs.js` (zero metadata deadlines over 5 s). Raw clock
+and link counter retained; no complete-accounting or qualified historical
+wire-win claim. Built-in warm companion **35.103 s**, accounting
+complete/errors empty, is not another cold retry. Historical 160.5 s /
+137.5 MB on `6d103d9` stays historical.
+
+Exact selection/raw: `tmp/sp-x2-dl5-n3/final-summary.json`; Simulator
+`clean-after-222055/`, `replacement/`, `pine-replacement/`; Chromium
+`tmp/phone-loading/2026-11-04T23-50-12-349Z-9e91f01-mw2ocnjt/`. Next:
+separately admitted Driftwood cold n=3 both arms with preview gzip fix
+`c24ea060e7` + HEAD failure fix `65a3f41ce9`, on a new preview process.
+DL5 stays open; no runtime edit or guard allowance.
+
