@@ -16,7 +16,7 @@ const state = v.strictObject({ name: local, type: v.picklist(['bool', 'i32', 'f6
 /** Named ids that must resolve in another platform section. Timers are binding-local names. */
 export const SCRIPT_V1_REFERENCE_KINDS = ['actors', 'moves', 'strikes', 'cues', 'fields', 'flags', 'zones', 'spots', 'targets', 'spawns', 'signals', 'facts', 'rewards', 'channels', 'impulses', 'weather', 'bodies', 'colliders'] as const;
 export type ScriptV1ReferenceKind = typeof SCRIPT_V1_REFERENCE_KINDS[number];
-const row: v.GenericSchema<DecisionScriptRowInput, DecisionScriptRow> = v.strictObject({
+const rowEntries = {
   // per-frame view is the v2 view lane's (view/modules, client view.program); a v1 script is simulation only
   id, abi: v.literal('1.0'), side: v.literal('sim'),
   module: v.pipe(v.string(), v.regex(/^blobs\/wasm\/[a-f0-9]{64}\.wasm$/u)),
@@ -37,7 +37,8 @@ const row: v.GenericSchema<DecisionScriptRowInput, DecisionScriptRow> = v.strict
   timers: v.optional(v.pipe(v.array(local), v.maxLength(64), v.check(values => unique(values), 'unique timer names')), []),
   stateVersion: positive, state: v.pipe(v.array(state), v.maxLength(16)),
   params: v.pipe(v.record(local, finite), v.check(value => Object.keys(value).length <= 32, 'bounded script parameters')),
-});
+} as const;
+const row: v.GenericSchema<DecisionScriptRowInput, DecisionScriptRow> = v.strictObject(rowEntries);
 
 /** Unused additive namespaces have no wire representation in pre-extension programs. */
 function omitEmptyBodyMaps(script: DecisionScriptRow): DecisionScriptRow {
@@ -93,6 +94,34 @@ export const DecisionScriptsSchema: v.GenericSchema<unknown, DecisionScripts> & 
   // G20a / G769: the host's instance cap (nine), so Pine's contract guest ships as a named module beside its eight others.
   v.check(rows => new Set(rows.map(value => value.module)).size <= SCRIPT_LIMITS.instances, 'at most nine decision modules'),
   v.transform(rows => rows.map(omitEmptyBodyMaps)));
+
+/** Exact authored script document: the original native admission validates the
+ * untouched value, while the structural view preserves omitted default fields.
+ * Runtime parsing still owns normalization and every resource/owner check. */
+export const DecisionScriptRowDocumentSchema: v.GenericSchema<unknown, DecisionScriptRowInput> = v.pipe(
+  v.unknown(), v.check(input => v.safeParse(DecisionScriptsSchema, [input]).success, 'Complete native script admission'),
+  v.strictObject({ ...rowEntries,
+    pages: v.exactOptional(rowEntries.pages.wrapped),
+    tick: v.exactOptional(rowEntries.tick.wrapped),
+    actors: v.exactOptional(rowEntries.actors.wrapped),
+    moves: v.exactOptional(rowEntries.moves.wrapped),
+    strikes: v.exactOptional(rowEntries.strikes.wrapped),
+    cues: v.exactOptional(rowEntries.cues.wrapped),
+    fields: v.exactOptional(rowEntries.fields.wrapped),
+    flags: v.exactOptional(rowEntries.flags.wrapped),
+    zones: v.exactOptional(rowEntries.zones.wrapped),
+    spots: v.exactOptional(rowEntries.spots.wrapped),
+    targets: v.exactOptional(rowEntries.targets.wrapped),
+    spawns: v.exactOptional(rowEntries.spawns.wrapped),
+    signals: v.exactOptional(rowEntries.signals.wrapped),
+    facts: v.exactOptional(rowEntries.facts.wrapped),
+    rewards: v.exactOptional(rowEntries.rewards.wrapped),
+    channels: v.exactOptional(rowEntries.channels.wrapped),
+    impulses: v.exactOptional(rowEntries.impulses.wrapped),
+    weather: v.exactOptional(rowEntries.weather.wrapped),
+    timers: v.exactOptional(rowEntries.timers.wrapped),
+  }),
+);
 
 /** Parse unknown direct input only after rejecting accessors, prototypes and non-JSON values. */
 export function parseDecisionScripts(input: unknown): DecisionScripts {

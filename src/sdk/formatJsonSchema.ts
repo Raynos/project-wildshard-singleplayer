@@ -7,7 +7,7 @@ import { ForestNativeInputsSchema } from '@wildshard/format/forestNativeInputs';
 import { FindsCatalogueSchema } from '@wildshard/format/findsCatalogue';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ArenaRoomDocumentSchema, ArenaRoomDocumentRowsSchema, ArenaKingRowsSchema } from '@wildshard/format/arenaRoomDocument';
-import { ReturnProgramDocumentSchema } from '@wildshard/format/returnProgramDocument';
+import { ReturnProgramDocumentSchema, ReturnProgramWireDocumentSchema } from '@wildshard/format/returnProgramDocument';
 import { WeatherBundleSchema, WeatherDocumentSchema } from '@wildshard/format/weatherBundle';
 import { WeatherEffectsSchema, WeatherGeometrySchema, WeatherGeometryDataSchema } from '@wildshard/format/weatherEffects';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
@@ -476,6 +476,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+  'returnProgramDocument.ReturnProgramWireDocument': ReturnProgramWireDocumentSchema,
   'populationEnvironment.PopulationHabitat': PopulationHabitatSchema,
   'populationRoster.TamingPoseFile': TamingPoseFileSchema,
   'questStory.AdventureContent': AdventureContentSchema,

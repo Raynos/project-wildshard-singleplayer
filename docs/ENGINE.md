@@ -8958,6 +8958,15 @@ input before reading properties. Rows declare ABI `1.0`, an immutable
 `{shard:true}` binding, capabilities, local aliases, state and parameters.
 The registry and SDK `emitPlatformSections` share this defining schema.
 
+`format/decisionScripts.DecisionScriptRowDocumentSchema` admits one exact
+input row through the same full native admission, preserving omitted
+script defaults in named-file documents. Runtime parsing still applies
+those defaults. `format/returnProgramDocument.ReturnProgramWireDocumentSchema`
+wraps that row with the existing bytes, optional v2 projection and signal;
+its output metadata accepts the original unnormalized wire. The existing
+`ReturnProgramDocumentSchema` retains its normalized output contract.
+Neither document schema replaces module/resource/owner admission.
+
 Local admission bounds modules, IO dimensions and fixed pages; verifies
 side-specific events/reads/commands, 1/2/5/10 Hz tick subscriptions, typed
 state defaults/ranges and generated identifiers. View slots are `local`;

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { DecisionScriptsSchema, type DecisionScriptRowInput, type DecisionScriptRow } from './decisionScripts';
+import { DecisionScriptRowDocumentSchema, DecisionScriptsSchema, type DecisionScriptRowInput, type DecisionScriptRow } from './decisionScripts';
 import { ReturnProjectionV2Schema } from './returnProjectionV2';
 import { isJsonData } from './json';
 
@@ -26,6 +26,15 @@ export const ReturnProgramDocumentSchema: v.GenericSchema<unknown, ReturnProgram
   v.check(input => isJsonData(input) && typeof input === 'object' && input !== null && !Array.isArray(input)
     && v.safeParse(DecisionScriptsSchema, [Reflect.get(input, 'script')]).success, 'Complete native return-script admission'),
   v.strictObject({ script: DecisionScriptsSchema.pipe[2].item,
+    bytes: v.pipe(v.string(), v.maxLength(2_000_000)), v2: v.exactOptional(ReturnProjectionV2Schema),
+    signal: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(128))) }),
+);
+
+/** Exact return-program wire document. Native script defaults remain absent
+ * until the existing installer parses them; complete validation is unchanged. */
+export const ReturnProgramWireDocumentSchema: v.GenericSchema<unknown, ReturnProgramDocumentInput> = v.pipe(
+  v.unknown(), v.check(isJsonData),
+  v.strictObject({ script: DecisionScriptRowDocumentSchema,
     bytes: v.pipe(v.string(), v.maxLength(2_000_000)), v2: v.exactOptional(ReturnProjectionV2Schema),
     signal: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(128))) }),
 );
