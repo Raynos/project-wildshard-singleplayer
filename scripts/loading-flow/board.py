@@ -64,7 +64,7 @@ def panels(mode, r):
     return [(tap + t, text) for t, text in out]
 
 
-rows = [mode for mode in ('cold', 'warm') if mode in timeline]
+rows = [mode for mode in ('cold', 'warm', 'upgrade') if mode in timeline]
 board = Image.new('RGB', (COLS * (W + PAD) + PAD, 130 + len(rows) * (H + LAB + 60 + PAD)), (14, 18, 24))
 d = ImageDraw.Draw(board)
 build = (timeline.get('version') or {}).get('build', '?')

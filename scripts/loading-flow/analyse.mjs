@@ -4,7 +4,7 @@
 // shard's normal fps from second one, no frame over 250 ms". The input is drive.mjs's <mode>-timeline.jsonl (card polls
 // every ~200 ms, page frame stamps from a requestAnimationFrame sampler, events); the output is the run's timeline JSON
 // (seconds after the tap) with a pass / fail per bar line.
-//   node scripts/loading-flow/analyse.mjs <run-dir> [cold|warm ...]   # writes <run-dir>/timeline.json, prints the verdicts
+//   node scripts/loading-flow/analyse.mjs <run-dir> [cold|warm|upgrade ...]   # writes <run-dir>/timeline.json, prints the verdicts
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -198,8 +198,8 @@ export function readRun(dir, mode) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [dir, ...asked] = process.argv.slice(2);
-  if (!dir) { console.error('usage: analyse.mjs <run-dir> [cold|warm ...]'); process.exit(2); }
-  const modes = asked.length > 0 ? asked : ['cold', 'warm'].filter(mode => existsSync(join(dir, `${mode}-timeline.jsonl`)));
+  if (!dir) { console.error('usage: analyse.mjs <run-dir> [cold|warm|upgrade ...]'); process.exit(2); }
+  const modes = asked.length > 0 ? asked : ['cold', 'warm', 'upgrade'].filter(mode => existsSync(join(dir, `${mode}-timeline.jsonl`)));
   const meta = existsSync(join(dir, 'run.json')) ? JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8')) : {};
   const out = { ...meta, bar: BAR };
   for (const mode of modes) {

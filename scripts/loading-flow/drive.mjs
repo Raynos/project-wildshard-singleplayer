@@ -2,9 +2,11 @@
 // DL23 (E529, G1006, G1008): record one player's load of a shard in Safari on the iPhone Simulator, the way Jake does it:
 // title → (Developer) → SHARD SELECT → the shard → ENTER WORLD, then 30 s of play after control. Grown from wildshard-v's
 // E526 recording (tmp/e526-sim/drive.mjs). Runs inside scripts/sim-lane.sh run ($SIM_UDID); run.sh wraps it.
-//   node scripts/loading-flow/drive.mjs <cold|warm> --shard <name regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--public]
+//   node scripts/loading-flow/drive.mjs <cold|warm|upgrade> --shard <name regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--public]
 // cold: Safari's website data wiped on disk, worker, caches and storage cleared at the origin; warm: the same Simulator
-// right after a cold run (caches kept; the session is ended as an exit to title would, so the title flow is the same).
+// right after a cold run (caches kept; the session is ended as an exit to title would, so the title flow is the same);
+// upgrade: a warm visit made right after a deploy, so Safari still holds the previous build's worker and caches (Jake's
+// phone on a new build). Its prep page navigation lets Safari check for the new worker, as opening the app does.
 // Writes <out>/<mode>-timeline.jsonl (events, card polls every ~200 ms, page frame stamps from a requestAnimationFrame
 // sampler), <out>/<mode>-perf.json (resources, marks, measures of the world page) and <out>/<mode>-raw.mp4.
 import { spawn, execFileSync } from 'node:child_process';
@@ -17,7 +19,7 @@ import { saveFixtureCode } from '../debug-settings.mjs';
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(`--${name}`); return i === -1 ? fallback : args[i + 1]; };
 const mode = args[0];
-if (mode !== 'cold' && mode !== 'warm') { console.error('usage: drive.mjs <cold|warm> --shard <regex> --out <dir> [--base <url>] [--play <s>]'); process.exit(2); }
+if (!['cold', 'warm', 'upgrade'].includes(mode)) { console.error('usage: drive.mjs <cold|warm|upgrade> --shard <regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--public]'); process.exit(2); }
 const udid = process.env.SIM_UDID;
 if (!udid) { console.error('drive.mjs: run inside scripts/sim-lane.sh run (SIM_UDID unset)'); process.exit(2); }
 const BASE = opt('base', 'https://wildshard-singleplayer.vercel.app').replace(/\/$/u, '');
@@ -119,6 +121,11 @@ if (mode === 'cold') {
       try { const d = JSON.parse(localStorage.getItem(k)); if (d?.keys?.['session.crash-position']) { delete d.keys['session.crash-position']; localStorage.setItem(k, JSON.stringify(d)); out.push(k + ':session.crash-position'); } } catch { /* already gone */ } }
     return out; })())`);
   log({ ev: 'warmPrep', cleared });
+  if (mode === 'upgrade') {
+    // what the previous build left: its worker and cache names (the build id is in them), before this visit's own load
+    const held = await settle(`async () => ({ caches: await caches.keys(), worker: (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null })`);
+    say('held from the previous build', JSON.stringify(held)); log({ ev: 'held', held });
+  }
 }
 // mute with the game's own volume setting (no URL switch on the player's path)
 await page.evaluate(`(() => { const n='wildshard.save.v2.global'; const d=JSON.parse(localStorage.getItem(n)||'{"keys":{}}'); d.keys ??= {}; const s=d.keys.settings?.data ?? {}; d.keys.settings={v:1,data:{...s,volume:0}}; localStorage.setItem(n, JSON.stringify(d)); return true; })()`);
