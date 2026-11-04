@@ -1,9 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The packer writes its parts into an owned ./tmp folder.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths for the owned fixture folder.
 import { join, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The encoded parts are checked by decoding them.
+import { brotliDecompressSync } from 'node:zlib';
+// oxlint-disable-next-line import/no-nodejs-modules -- Part hashes.
+import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
-import { PART_BYTES, packable, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
+import { PART_BYTES, encodeSpawnParts, packable, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
 import { readSpawnManifest, type SpawnFile } from '../src/format/spawnManifest';
 
 mkdirSync('tmp', { recursive: true });
@@ -26,7 +30,7 @@ test('every manifest file is one aligned member of a shared part, with its exact
     expect(parts.flatMap(part => part.members.map(([member]) => member)).sort((left, right) => left - right))
       .toEqual(rows.flatMap((row, at) => row.url.endsWith('.js') ? [] : [at]));
     for (const part of parts) {
-      const bytes = readFileSync(join(out, part.url.slice(1)));
+      const bytes = readFileSync(join(out, part.url.slice(1).replace(/\.br$/u, ''))); // the raw body, before encodeSpawnParts
       expect(bytes.length).toBe(part.bytes);
       for (const [member, offset] of part.members) {
         const row = rows[member]; if (row === undefined) throw new Error('Missing member row');
@@ -57,7 +61,7 @@ test('public entries steer the merge within the over-fetch cap; the grammar refu
   expect(packable('/shardfiles/s/blobs/png/a.png')).toBe(true);
   expect(packable('/assets/title/hero-0123abcd.webp')).toBe(false); expect(packable('/assets/code-0123abcd.js')).toBe(false);
   const base = { version: 1, shard: 's', tier: 'phone', flow: 'grid', files: [rows[0], rows[1]], totalBytes: 2000 } as const;
-  const part = (members: [number, number][]) => ({ url: `/assets/spawn/parts/${'b'.repeat(16)}.pack`, bytes: 4096, hash: 'b'.repeat(64), members });
+  const part = (members: [number, number][]) => ({ url: `/assets/spawn/parts/${'b'.repeat(16)}.pack.br`, bytes: 4096, hash: 'b'.repeat(64), members });
   expect(() => readSpawnManifest({ ...base, parts: [part([[0, 0], [1, 1000]])] })).toThrow('Invalid spawn part member'); // overlap + misaligned
   expect(() => readSpawnManifest({ ...base, parts: [part([[0, 0]]), part([[0, 1008]])] })).toThrow('Invalid spawn part member'); // packed twice
   expect(() => readSpawnManifest({ ...base, parts: [part([[0, 0], [1, 3200]])] })).toThrow('Invalid spawn part member'); // past the end
@@ -99,4 +103,32 @@ test('two builds that differ only in shard.json stamps keep every part name', ()
   };
   expect(packable('/shardfiles/s/shard.json?v=aaaaaaaa')).toBe(false);
   expect(parts('aaaaaaaa')).toEqual(parts('bbbbbbbb'));
+});
+
+test('parts ship as q11 Brotli bodies, kept by content between builds', async () => {
+  // DL15: encodeSpawnParts replaces each raw part with its .pack.br; a second build reuses the kept encodings, and a
+  // kept encoding that no longer decodes to its body is made again.
+  const root = mkdtempSync(resolve('tmp/spawn-parts-br-')), cache = join(root, 'cache');
+  try {
+    const rows = Array.from({length: 4}, (_, at) => file(`/shardfiles/s/blobs/bin/${at}.bin`, 5_000_000));
+    const build = async (name: string) => {
+      const dir = join(root, name), [table] = writeSpawnParts(dir, [manifest(rows)], url => body(`${url}x`, 5_000_000));
+      return {dir, table: table ?? [], result: await encodeSpawnParts(dir, cache)};
+    };
+    const first = await build('one');
+    expect(first.table.length).toBeGreaterThan(1);
+    expect(first.result).toMatchObject({parts: first.table.length, encoded: first.table.length, rawBytes: first.table.reduce((sum, part) => sum + part.bytes, 0)});
+    expect(first.result.wireBytes).toBeLessThan(first.result.rawBytes);
+    expect(readdirSync(join(first.dir, 'assets/spawn/parts')).every(name => name.endsWith('.pack.br'))).toBe(true);
+    for (const part of first.table) {
+      const decoded = brotliDecompressSync(readFileSync(join(first.dir, part.url.slice(1))));
+      expect(decoded.length).toBe(part.bytes); expect(createHash('sha256').update(decoded).digest('hex')).toBe(part.hash);
+    }
+    expect((await build('two')).result.encoded).toBe(0);
+    const [kept] = readdirSync(cache); if (kept === undefined) throw new Error('Missing kept encoding');
+    writeFileSync(join(cache, kept), 'not brotli');
+    const third = await build('three');
+    expect(third.result.encoded).toBe(1);
+    expect(existsSync(join(third.dir, (third.table[0]?.url ?? '').slice(1)))).toBe(true);
+  } finally { rmSync(root, {recursive: true, force: true}); }
 });

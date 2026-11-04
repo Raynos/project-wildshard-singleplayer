@@ -85,12 +85,13 @@ checkNoTopLevelAwait(outDir, resolve('public'));
 
 // which modules land in which chunk, and the title and grid session budgets over the bytes as written (was
 // vite/chunkReport.ts); then the boot module bank into index.html and each home's extra file table (was
-// vite/bootModules.ts). The web build only, which writes the manifest and hidden source maps they read.
+// vite/bootModules.ts), and the spawn parts' q11 Brotli bodies (DL15, cached by content). The web build only, which
+// writes the manifest and hidden source maps they read.
 if (mode !== 'native') {
   try { writeChunkReport(outDir, process.cwd()); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd()); (await import('./scripts/app-build/entryDownloads.ts')).writeEntryBootstrap(process.argv[1], process.cwd());", outDir]);
+    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd()); (await import('./scripts/app-build/entryDownloads.ts')).writeEntryBootstrap(process.argv[1], process.cwd()); const started = Date.now(), parts = await (await import('./scripts/app-build/spawnParts.ts')).encodeSpawnParts(process.argv[1]); console.log('[spawn parts] ' + parts.parts + ' parts, ' + (parts.rawBytes / 1e6).toFixed(1) + ' MB raw, ' + (parts.wireBytes / 1e6).toFixed(1) + ' MB q11 (' + parts.encoded + ' encoded) in ' + ((Date.now() - started) / 1000).toFixed(1) + ' s');", outDir]);
 }
 
 // HTML owns the deploy identity; hashed runtime code stays reusable across builds.

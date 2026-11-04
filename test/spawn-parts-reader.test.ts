@@ -7,7 +7,7 @@ const hash = 'c'.repeat(64), base = 'https://example.test/';
 const bin = {url: `/shardfiles/example/blobs/bin/${'a'.repeat(64)}.bin`, bytes: 4, hash: '27ecd0a598e76f8a2fd264d427df0a119903e8eae384e478902541756f089dd1'};
 const glb = {url: `/shardfiles/example/blobs/glb/${'b'.repeat(64)}.glb`, bytes: 5, hash: '7dfd2b6c5b422920757984cf2cbce642dca9a05207c57af24ad995b2d90fb4e9'};
 const code = {url: '/assets/code-12345678.js', bytes: 3, hash: 'd'.repeat(64)};
-const part = {url: `/assets/spawn/parts/${hash.slice(0, 16)}.pack`, bytes: 21, hash, members: [[0, 0], [1, 16]]};
+const part = {url: `/assets/spawn/parts/${hash.slice(0, 16)}.pack.br`, bytes: 21, hash, members: [[0, 0], [1, 16]]};
 // The part holds bin at 0 and glb at 16 (16-byte aligned); the JS module stays loose.
 const partBytes: Uint8Array<ArrayBuffer> = Uint8Array.from({length: 21}, (_, at) => at < 4 ? 1 : at >= 16 ? 2 : 0);
 const manifest = {version: 1, shard: 'example', tier: 'phone', flow: 'grid', files: [bin, glb, code], totalBytes: 12, parts: [part]};

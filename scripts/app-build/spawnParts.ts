@@ -5,10 +5,16 @@
  * entries read together; files no public entry needs group by every manifest that lists them. While a public entry
  * still needs more than PART_TARGET parts, its two smallest groups merge, but only when no public entry's over-fetch
  * passes OVER_FETCH of its own bytes. Each group is cut into parts of at most PART_BYTES raw, never inside a file.
- * A part is the raw member bodies on 16-byte boundaries, named by its sha256; the offsets live in each manifest. */
-import {createHash} from 'node:crypto';
-import {mkdirSync, writeFileSync} from 'node:fs';
-import {join} from 'node:path';
+ * A part is the raw member bodies on 16-byte boundaries, named by its sha256; the offsets live in each manifest.
+ * DL15: a part ships as q11 Brotli (`<name>.pack.br`): the packer writes each raw body at `<name>.pack` and
+ * `encodeSpawnParts` replaces it with its encoding. */
+import {createHash, randomBytes} from 'node:crypto';
+import {existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync} from 'node:fs';
+import {once} from 'node:events';
+import {availableParallelism, homedir} from 'node:os';
+import {join, resolve} from 'node:path';
+import {Worker} from 'node:worker_threads';
+import {brotliDecompressSync} from 'node:zlib';
 import {SPAWN_PART_ALIGN, type SpawnFile, type SpawnPart} from '../../src/format/spawnManifest';
 
 export const PART_BYTES = 12_000_000, PART_TARGET = 10, OVER_FETCH = 0.1;
@@ -113,8 +119,8 @@ export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInp
       if (bytes.length !== sizes.get(url)) throw new Error(`Spawn part member size differs: ${url}`);
       body.set(bytes, cursor); offsets.set(url, cursor); cursor += bytes.length;
     }
-    const hash = createHash('sha256').update(body).digest('hex'), url = `/assets/spawn/parts/${hash.slice(0, 16)}.pack`;
-    writeFileSync(join(outDir, url.slice(1)), body);
+    const hash = createHash('sha256').update(body).digest('hex'), url = `/assets/spawn/parts/${hash.slice(0, 16)}.pack.br`;
+    writeFileSync(join(outDir, `assets/spawn/parts/${hash.slice(0, 16)}.pack`), body); // encodeSpawnParts publishes `url`
     for (const [member, offset] of offsets) placed.set(member, {url, bytes: body.length, hash, offset});
     written.push({url, bytes: body.length, hash});
   };
@@ -136,4 +142,52 @@ export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInp
     for (const part of parts.values()) part.members.sort((a, b) => a[1] - b[1]);
     return [...parts.values()];
   });
+}
+
+/** One q11 Brotli encoder thread; compression runs off the build's main thread, several parts at once. Its source runs
+ * as CommonJS or as a module (an eval worker takes the parent's --input-type), hence getBuiltinModule. */
+const ENCODER = `const {parentPort} = process.getBuiltinModule('node:worker_threads'), zlib = process.getBuiltinModule('node:zlib');
+parentPort.on('message', body => parentPort.postMessage(zlib.brotliCompressSync(body, {params: {[zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+  [zlib.constants.BROTLI_PARAM_LGWIN]: 24, [zlib.constants.BROTLI_PARAM_SIZE_HINT]: body.length}})));`;
+const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
+/** DL15 (BP6 / DS5): replace every raw `<name>.pack` the packer wrote with its q11 Brotli `<name>.pack.br`, which
+ * vercel.json and the preview server serve as-is with `Content-Encoding: br`. On 40bc516d5c that is 1.0 to 6.2 MB less
+ * on the wire per Runtime packs entry than Vercel's on-the-fly q3 (sp-x2), at about 1 MB/s of encoder time cold; parts
+ * keep their names across builds (DL18), so each encoding is kept by its body's sha256 in `cacheDir`, and a kept one is
+ * used only after it decodes to that body. */
+export async function encodeSpawnParts(outDir: string, cacheDir = process.env['WILDSHARD_SPAWN_PART_CACHE']
+  ?? resolve(homedir(), '.cache/wildshard/gen/spawn-parts-br/1')): Promise<{parts: number; rawBytes: number; wireBytes: number; encoded: number}> {
+  const directory = join(outDir, 'assets/spawn/parts');
+  const names = existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.pack')).sort() : [];
+  const workers: Worker[] = [];
+  let cursor = 0, rawBytes = 0, wireBytes = 0, encoded = 0;
+  const encode = async (worker: Worker, body: Uint8Array): Promise<Uint8Array> => {
+    const reply = once(worker, 'message'); // rejects on the worker's 'error'
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- a worker_threads port has no origin.
+    worker.postMessage(body);
+    const [wire]: unknown[] = await reply;
+    if (!(wire instanceof Uint8Array)) throw new Error('Spawn part encoder returned no bytes');
+    return wire;
+  };
+  const lane = async (): Promise<void> => {
+    let worker: Worker | undefined;
+    for (let at = cursor++; at < names.length; at = cursor++) {
+      const name = names[at] ?? '', path = join(directory, name), body = readFileSync(path), hash = sha256(body);
+      const kept = join(cacheDir, `${hash}.br`);
+      let wire: Uint8Array | undefined;
+      try { const saved = readFileSync(kept); if (sha256(brotliDecompressSync(saved)) === hash) wire = saved; } catch { /* not kept yet */ }
+      if (wire === undefined) {
+        if (worker === undefined) { worker = new Worker(ENCODER, {eval: true}); workers.push(worker); }
+        wire = await encode(worker, body); encoded++;
+        const temporary = `${kept}.${process.pid}.${randomBytes(8).toString('hex')}.tmp`;
+        try { mkdirSync(cacheDir, {recursive: true}); writeFileSync(temporary, wire, {flag: 'wx'}); renameSync(temporary, kept); }
+        catch { rmSync(temporary, {force: true}); /* an unwritable cache only costs the next build its encode */ }
+      }
+      writeFileSync(`${path}.br`, wire); rmSync(path);
+      rawBytes += body.length; wireBytes += wire.length;
+    }
+  };
+  try { await Promise.all(Array.from({length: Math.min(names.length, Math.max(1, availableParallelism() - 2))}, lane)); }
+  finally { await Promise.all(workers.map(worker => worker.terminate())); }
+  return {parts: names.length, rawBytes, wireBytes, encoded};
 }

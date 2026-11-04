@@ -1,6 +1,6 @@
 /** Build-owned spawn IO, in fetch order. Later streaming is a different set. */
 export interface SpawnFile {readonly url: string; readonly bytes: number; readonly hash: string; readonly wireBytes?: number}
-/** DL5: a content-named concatenation of spawn files, shared by every manifest that lists it. `members` are
+/** DL5: a content-named concatenation of spawn files (DL15: served as q11 Brotli, `.pack.br`), shared by every manifest that lists it. `members` are
  * `[file index in this manifest, byte offset in the part]`; each body starts on a 16-byte boundary. A part may also
  * hold bytes another manifest needs (bounded over-fetch); its loose files stay deployed as the fallback. */
 export interface SpawnPart {readonly url: string; readonly bytes: number; readonly hash: string; readonly members: readonly (readonly [number, number])[]}
@@ -41,7 +41,7 @@ function readSpawnParts(input: unknown, files: readonly SpawnFile[]): SpawnPart[
   if (!Array.isArray(input) || input.length > 64) throw new Error('Invalid spawn parts');
   const parts: SpawnPart[] = [], packed = new Set<number>();
   for (const part of input) {
-    if (!object(part) || !path(part['url']) || !/^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack$/u.test(part['url']) || !size(part['bytes']) || part['bytes'] > 64_000_000
+    if (!object(part) || !path(part['url']) || !/^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack\.br$/u.test(part['url']) || !size(part['bytes']) || part['bytes'] > 64_000_000
       || typeof part['hash'] !== 'string' || !/^[a-f0-9]{64}$/u.test(part['hash']) || !part['url'].includes(part['hash'].slice(0, 16))
       || !Array.isArray(part['members']) || part['members'].length === 0 || part['members'].length > 8192) throw new Error('Invalid spawn part');
     const members: [number, number][] = []; let end = 0;

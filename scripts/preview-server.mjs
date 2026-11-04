@@ -12,7 +12,7 @@ import { createServer } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
-import { brotliCompressSync, constants as zlib, createBrotliCompress, createGzip } from 'node:zlib';
+import { brotliCompressSync, brotliDecompressSync, constants as zlib, createBrotliCompress, createGzip } from 'node:zlib';
 import { createEncodedFileCache } from './preview-encoded-cache.mjs';
 import { createPreviewTelemetrySink } from './preview-telemetry.mjs';
 
@@ -130,6 +130,17 @@ const server = createServer((req, res) => {
   const compressible = COMPRESSIBLE.test(type(file)) && stat.size >= 1024;
   if (compressible) varyEncoding(res);
   if (req.headers['if-none-match'] === etag) { res.statusCode = 304; res.end(); return; }
+  // DL15: a spawn part is its q11 Brotli body; production (vercel.json) sends it as-is with Content-Encoding: br.
+  // A client that refuses br (http Safari) gets the decoded body, so local runs never see raw Brotli bytes.
+  if (/^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack\.br$/u.test(pathname)) {
+    varyEncoding(res);
+    const accepted = encodingQuality(acceptEncoding, 'br') > 0, encoded = readFileSync(file);
+    if (accepted) res.setHeader('Content-Encoding', 'br');
+    const body = accepted ? encoded : brotliDecompressSync(encoded);
+    res.setHeader('Content-Length', String(body.length));
+    res.end(req.method === 'HEAD' ? undefined : body);
+    return;
+  }
   const range = /^bytes=(\d*)-(\d*)$/u.exec(req.headers.range ?? '');
   if (range !== null && (range[1] !== '' || range[2] !== '')) {
     const start = range[1] === '' ? Math.max(0, stat.size - Number(range[2])) : Number(range[1]);
