@@ -158,7 +158,6 @@ export type QueryTerrainRows = Omit<{
 }, 'collider'> & {
     collider: string;
 };
-export type ShardTerrainInput = (RenderedTerrainRowsInput) | (QueryTerrainRowsInput);
 export type ShardTerrain = (RenderedTerrainRows) | (QueryTerrainRows);
 export type GroundRowsInput = unknown;
 interface GroundRowsFields {

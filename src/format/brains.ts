@@ -225,17 +225,6 @@ interface ShardPerchHunterFields {
     noticeCue: string;
 }
 export type ShardPerchHunter = { [Key in keyof ShardPerchHunterFields]: ShardPerchHunterFields[Key] };
-export type ShardGuardianPatternInput = (Omit<v.InferInput<(typeof GuardianSchema)['pipe'][0]>, keyof ({
-    pattern: 'interior';
-})> & {
-    pattern: 'interior';
-}) | (Omit<v.InferInput<(typeof PerchHunterSchema)['pipe'][0]>, keyof ({
-    kind: 'guardian';
-    pattern: 'perch';
-})> & {
-    kind: 'guardian';
-    pattern: 'perch';
-});
 export type ShardGuardianPattern = (Omit<v.InferOutput<(typeof GuardianSchema)['pipe'][0]>, keyof ({
     pattern: 'interior';
 })> & {

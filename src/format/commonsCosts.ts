@@ -25,5 +25,4 @@ interface CommonsCostRowsFields {
     draws: number;
 }
 export type CommonsCostRows = { [Key in keyof CommonsCostRowsFields]: CommonsCostRowsFields[Key] };
-export type CommonsCostsInput = Record<string, CommonsCostRowsInput>;
 export type CommonsCosts = Record<string, CommonsCostRows>;

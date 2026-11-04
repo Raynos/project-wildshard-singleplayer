@@ -54,8 +54,6 @@ export const AudioRoutingSchema: v.GenericSchema<CueRouteInput[],AudioRouting> =
   actions: v.pipe(v.array(action), v.maxLength(16)) })), v.maxLength(512));
 /** Canonical cue routes accepted by the audio interpreter; array order preserves today's dispatch boundaries. */
 export type AudioRouting = CueRoute[];
-/** Validate author cue routing before any sound is scheduled or installed. */
-export function parseAudioRouting(input: unknown): AudioRouting { return v.parse(AudioRoutingSchema, input); }
 
 const member=v.pipe(id,v.regex(/^[A-Za-z][A-Za-z0-9_]*$/u),v.check(key=>!['constructor','prototype','__proto__','caller','callee','arguments'].includes(key)));
 const voiceValue=v.variant('kind',[

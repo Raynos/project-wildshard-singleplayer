@@ -149,19 +149,6 @@ interface ShardChallengeGrazerFields {
     recoveryField: string;
 }
 export type ShardChallengeGrazer = { [Key in keyof ShardChallengeGrazerFields]: ShardChallengeGrazerFields[Key] };
-export type ShardGrazerInput = (Omit<v.InferInput<(typeof RamGrazerSchema)['pipe'][0]>, keyof ({
-    kind: 'grazer';
-    pattern: 'wander-ram';
-})> & {
-    kind: 'grazer';
-    pattern: 'wander-ram';
-}) | (Omit<v.InferInput<(typeof ChallengeGrazerSchema)['pipe'][0]>, keyof ({
-    kind: 'grazer';
-    pattern: 'circle-challenge';
-})> & {
-    kind: 'grazer';
-    pattern: 'circle-challenge';
-});
 export type ShardGrazer = (Omit<v.InferOutput<(typeof RamGrazerSchema)['pipe'][0]>, keyof ({
     kind: 'grazer';
     pattern: 'wander-ram';

@@ -53,11 +53,7 @@ export function inputWhenMatches(when: InputWhen | undefined, state: InputObserv
   return when === undefined || (when.mode === undefined || state.mode === when.mode) && (when.notMode === undefined || state.mode !== when.notMode)
     && (when.item === undefined || state.item === when.item) && (when.flag === undefined || state.flags.includes(when.flag));
 }
-
-/** Admitted data contracts, independent of validator implementation metadata. */
-export type InputActionRowsInput = InputActionRows;
 export type InputActionRows = ((typeof coreActions)[number]) | (`${string}.${string}`);
-export type InputKeyRowsInput = InputKeyRows;
 export type InputKeyRows = (string)[];
 export type InputWhenInput = InputWhen;
 interface InputWhenFields {

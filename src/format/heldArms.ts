@@ -402,7 +402,6 @@ interface ToonArmsLookFields {
     };
 }
 export type ToonArmsLook = { [Key in keyof ToonArmsLookFields]: ToonArmsLookFields[Key] };
-export type HeldArmsRowsInput = (ToonHeldArmsRowsInput) | (DeclaredPrimaryRowsInput);
 export type HeldArmsRows = (ToonHeldArmsRows) | (DeclaredPrimaryRows);
 export type HeldGraphCardsRowsInput = HeldGraphCardsRows;
 interface HeldGraphCardsRowsFields {

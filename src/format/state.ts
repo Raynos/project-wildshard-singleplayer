@@ -59,5 +59,3 @@ interface StateFields {
     player: (StateFieldRows)[];
 }
 export type State = { [Key in keyof StateFields]: StateFields[Key] };
-export type StateRowsInput = StateInput;
-export type StateRows = State;

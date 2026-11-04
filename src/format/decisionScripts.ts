@@ -321,5 +321,4 @@ interface BorrowedDecisionRowsFields {
     })[];
 }
 export type BorrowedDecisionRows = { [Key in keyof BorrowedDecisionRowsFields]: BorrowedDecisionRowsFields[Key] };
-export type DecisionScriptsInput = unknown;
 export type DecisionScripts = (DecisionScriptRow)[];

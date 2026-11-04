@@ -163,5 +163,3 @@ interface PlumbingDataFields {
     debug: (PlumbingDebugRows)[];
 }
 export type PlumbingData = { [Key in keyof PlumbingDataFields]: PlumbingDataFields[Key] };
-export type PlumbingRowsInput = unknown;
-export type PlumbingRows = PlumbingData;
