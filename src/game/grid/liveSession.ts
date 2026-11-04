@@ -821,6 +821,11 @@ export class LiveGridSession {
   warmPreparation(instance: string): NonNullable<PreparedRegionalRuntime['warmPreparation']> | null {
     return this.runtimeRegions.get(instance)?.warmPreparation ?? null;
   }
+  /** The entered cell its resident regional runtime draws (the home's built world on arrival), else null. */
+  runtimeDrawnCell(): string | null {
+    const current = this.live.current();
+    return current !== null && this.runtimeRegions.has(current) ? current : null;
+  }
   /** G555: the entered runtime hooks' timings (the one running and those finished), for the cell loading screen. */
   hookTimings(): ReturnType<HybridRuntimeSession['timings']> { return this.hybrid.timings(); }
   /** Admission opens the strip first; hooks freeze gameplay only after the committed traveller reaches the interior. */

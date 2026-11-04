@@ -6,6 +6,8 @@
 // scripts/browser-lane.sh node scripts/complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid
 //   [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--level-download=shardfile|packs] [--lap=<seconds>]
 //   [--reach=<m, 220>] [--out=<json under ./tmp>]
+//   --trace=on (Chromium): who asked for level content after control (each request's initiator stack, CDP) and every
+//   `wildshard.prepare:*` measure against control on the page clock, as report.trace; not part of the verdict
 //   --warm=on: no lap: the cold visit, an exit and re-entry 1 s after control while the service worker's post-control
 //   precache still runs (039d's trap), and a re-entry once the worker has gone quiet, each visit judged by checks 1 and 2
 //
@@ -42,7 +44,7 @@ import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
@@ -137,6 +139,7 @@ try {
   await context.addInitScript(() => {
     document.addEventListener('ws:control-ready', () => {
       requestAnimationFrame(() => {
+        Reflect.set(window, '__dl17ControlNow', performance.now());
         Reflect.set(window, '__dl17AtControl', Reflect.apply(Reflect.get(window, '__dl17Snapshot'), window, []));
         Reflect.apply(Reflect.get(window, '__dl17Control'), window, []);
       });
@@ -171,6 +174,20 @@ try {
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
   const page = await context.newPage();
   page.setDefaultTimeout(240000);
+  const initiators = [];
+  if (values.trace === 'on' && engine === 'chromium') {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Network.enable');
+    // async parents too (an awaited read's caller), bounded: a trace run is not a timed reading
+    await cdp.send('Debugger.enable'); await cdp.send('Debugger.setAsyncCallStackDepth', { maxDepth: 32 });
+    cdp.on('Network.requestWillBeSent', ({ request, initiator }) => {
+      if (control.at === null || !isLevelContent(request.url)) return;
+      const frames = [];
+      for (let stack = initiator.stack; stack !== undefined && frames.length < 48; stack = stack.parent)
+        for (const frame of stack.callFrames) if (frames.length < 48) frames.push(`${frame.functionName || '?'} ${frame.url.split('/').pop()}:${frame.lineNumber + 1}:${frame.columnNumber + 1}${stack.description === undefined ? '' : ` [${stack.description}]`}`);
+      initiators.push({ url: request.url, msAfterControl: Date.now() - control.at, type: initiator.type, frames });
+    });
+  }
   page.on('pageerror', error => report.errors.push(error.message));
   const version = await (await fetch(new URL('/version.json', base))).json();
   if (typeof version.build !== 'string' || !version.build.startsWith(rev.slice(0, 7))) throw new Error(`Served build ${version.build} is not ${rev}`);
@@ -398,6 +415,11 @@ try {
     lap.push(await page.evaluate(snapshot));
     await harvest();
     report.requests = judge('', cold, Infinity, reachCells, lap);
+    if (values.trace === 'on') report.trace = { initiators, measures: await page.evaluate(() => {
+      const at = Reflect.get(window, '__dl17ControlNow');
+      return performance.getEntriesByType('measure').filter(entry => entry.name.startsWith('wildshard.prepare'))
+        .map(entry => ({ name: entry.name, msFromControl: Math.round(entry.startTime - at), ms: Math.round(entry.duration) }));
+    }) };
     report.atControl = strip(cold.at);
     report.afterLap = strip(lap.at(-1));
     for (const s of lap) strip(s);

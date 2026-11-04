@@ -1093,7 +1093,11 @@ export class GridSession {
     // Match L1's 400 m reach plus the rings' four-second travel lookahead. Distant
     // cells keep their baked proxy without admitting their full product at boot.
     if (this.startOuterRoad !== null && this.roadSettled && this.host.backgroundReady?.() !== false) { const start = this.startOuterRoad; this.startOuterRoad = null; start(); }
+    // DL17 (G872): the cell the player is in, drawn by its regional runtime, admits no second tile copy of itself (the
+    // home re-read ~225 of its files after control for it); leaving starts it while the runtime is still resident
+    const drawn = this.live?.runtimeDrawnCell() ?? null;
     if (this.initialFarReady && this.host.backgroundReady?.() !== false) for (const cell of this.neighbours) {
+      if (cell.instance === drawn) continue;
       const distance = Math.hypot(Math.max(0, Math.abs(at.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(at.z - cell.origin.z) - CHUNK_HALF));
       if (this.assembly.approaching(distance, 400 + Math.min(speed, 60) * 4)) void this.admitNeighbour?.(cell).catch(() => undefined);
     }
