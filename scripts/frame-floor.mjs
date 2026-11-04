@@ -469,7 +469,6 @@ async function standingSample(driver, pose) {
   const traceAnchor = driver.trace ? await driver.trace.start(pose.name) : null;
   const stopScript = driver.scriptProfile && safariWindow === null && safariSteadyPose === '' && safariDrive === '' && safariPrefix === '' ? await driver.scriptProfile.start() : undefined;
   let result, raw, script;
-  const buildsFrom = chromiumPhone ? await driver.evaluate('performance.now()') : 0;
   try { result = await driver.evaluate(`(${sample.toString()})(${frames},${frameTimeline})`); }
   finally {
     if (stopScript !== undefined) script = await stopScript();
@@ -478,8 +477,6 @@ async function standingSample(driver, pose) {
   }
   if (taskClock) result.taskClock = await driver.evaluate('window.__frameFloorTaskTake?.() ?? null');
   assertStandingPosition(pose, result);
-  // G717 diagnostic (--chromium-phone): the node builds inside this standing window
-  if (chromiumPhone) result.standingBuilds = await driver.evaluate(`(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= ${buildsFrom} && row.at <= ${result.sampleRange.endMs}).map(row => ({ at: row.at, ms: row.ms, material: row.material, object: row.object, how: row.how }))`);
   if (raw !== undefined) { await saveProfileMaps(raw); writeFileSync(join(cpuProfileDir, `${pose.name}-${Date.now()}.cpuprofile`), JSON.stringify(raw)); }
   const cpuProfile = raw === undefined ? undefined : summarizeTravelProfile(raw, started, await driver.evaluate('window.__frameFloorLongTasks ?? []'), pose.name);
   const scriptProfile = script === undefined ? undefined : await saveSafariProfile(pose.name, script, result.sampleRange);
@@ -591,8 +588,6 @@ async function measureShard(driver, shard, deadline) {
     if (shard === 'grid' && gridScenario !== 'baseline') {
       // Standing camera probes did not cross: reset only the initial source pose, then use real input at every seam.
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
-      // G782 (grid-crossing T2): every node-build key this run built, so a drive counts the builds an earlier leg already made
-      const builtKeys = new Map();
       for (let plan of selectFloorGridPlans(publicGrid ? publicGridPlans(state) : gridFloorPlans(state, gridScenario, { cell: gridCell, roadApproach, entrySocket, ...(risingIslet === '' ? {} : { risingIslet }) }), gridRoutes)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
         // nine-return also leaves Nine by its declared portal (a plan from a cell to the road)
@@ -625,7 +620,7 @@ async function measureShard(driver, shard, deadline) {
         const prefixFile = join(safariProfileDir, `${plan.name}-prefix20s-${Date.now()}.scriptprofile.json`);
         const stopPrefix = driver.scriptProfile && safariPrefix === plan.name ? await driver.scriptProfile.prefix(capture => writeFileSync(prefixFile, JSON.stringify(capture))) : undefined;
         const windowSelected = safariWindow !== null && safariWindow.route === plan.name;
-        const scriptMemoryBefore = await driver.evaluate(`(window.__frameFloorDriveDone = false, window.__frameFloorBuildsFrom = performance.now(), ${windowSelected ? 'window.__frameFloorBuildsFrom' : wasmConstructorsDir === '' ? 'true' : SCRIPT_MEMORY_POOL})`);
+        const scriptMemoryBefore = await driver.evaluate(`(window.__frameFloorDriveDone = false, window.__frameFloorDriveFrom = performance.now(), ${windowSelected ? 'window.__frameFloorDriveFrom' : wasmConstructorsDir === '' ? 'true' : SCRIPT_MEMORY_POOL})`);
         const windowFile = join(safariProfileDir, `${plan.name}-window-${Date.now()}.scriptprofile.json`);
         const stopWindow = driver.scriptProfile && windowSelected ? await driver.scriptProfile.window(scriptMemoryBefore, safariWindow,
           capture => writeFileSync(windowFile, JSON.stringify(capture))) : undefined;
@@ -687,18 +682,7 @@ async function measureShard(driver, shard, deadline) {
           sampleRange: whole.value.sampleRange, diagnostic: true,
         }));
         const { glFrames, ...wholeValue } = whole.value;
-        const builds = nodeBuildsByHook(await driver.evaluate('(window.__wildshard.world.game.nodeBuilds?.log ?? []).filter(row => row.at >= window.__frameFloorBuildsFrom)'), hookTimes);
-        // G717 diagnostic (--chromium-phone): each build's program key, to tell a churned variant from a first build
-        if (chromiumPhone) builds.keys = await driver.evaluate('(() => { const g = window.__wildshard.world.game, log = g.nodeBuilds?.log ?? [], keys = g.nodeBuildKeys ?? []; return log.map((row, i) => ({ at: row.at, object: row.object, how: row.how, key: keys[i] ?? null })).filter(row => row.at >= window.__frameFloorBuildsFrom); })()');
-        // a build whose key an earlier leg of this run built: a re-entry rebuilt it (the keep or the approach pre-build missed it)
-        if (chromiumPhone) {
-          const repeated = builds.keys.filter(row => row.key !== null && row.key !== '' && builtKeys.has(row.key));
-          builds.repeats = { count: repeated.length, keys: new Set(repeated.map(row => row.key)).size, objects: repeated.slice(0, 40).map(row => row.object) };
-          for (const row of builds.keys) if (row.key !== null && row.key !== '') builtKeys.set(row.key, (builtKeys.get(row.key) ?? 0) + 1);
-          // the run so far: reuses a kept (disposed) build served, and kept builds refused, by reason
-          builds.kept = await driver.evaluate('window.__wildshard.world.game.nodeKeptBuilds ?? null');
-        }
-        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes), nodeBuilds: builds,
+        const driveRow = { pose: { name: `grid-${plan.name}-drive` }, window: 'whole-drive', ...wholeValue, longFrameHooks: longFrameHooks(whole.value.longFrames.at, hookTimes),
           ...(wasmConstructorsDir === '' ? {} : { scriptMemoryPool: { before: scriptMemoryBefore, after: scriptMemoryAfter } }),
           over35Hooks: longFrameHooks(whole.value.slowFrames, hookTimes).map((row) => ({ hook: row.hook, frames: row.frames, maxMs: row.maxMs, totalMs: row.totalMs })),
           hookTimes: hookTimes.map((t) => ({ hook: `${t.instance}:${t.hook}`, start: Math.round(t.start), end: Math.round(t.end) })),
@@ -773,7 +757,7 @@ async function measureShard(driver, shard, deadline) {
           rows.at(-1).nativeGcLog = {file, window, pidsBefore, pidsAfter};
         }
         if (gpuBisectOn) rows.at(-1).gpuBisect = await driver.evaluate(`(${gpuBisect.toString()})(60)`, 240000);
-        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive + builds ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; node builds ${builds.total} (${builds.afterPlay} from afterPlay on${builds.repeats === undefined ? '' : `, ${builds.repeats.count} repeating an earlier leg's key`}${builds.kept === undefined || builds.kept === null ? '' : `; kept so far ${builds.kept.reuses} reused, refused ${JSON.stringify(builds.kept.misses)}`}); residents=${witness.after.live.live.residents.join(',')}`);
+        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; whole drive ${whole.value.frames} frames, ${whole.value.medianFps} fps / p95 ${whole.value.p95Ms} / p99 ${whole.value.p99Ms} / max ${whole.value.maxMs} ms, ${whole.value.longFrames.over50Ms} frames > 50 ms (${driveRow.longFrameHooks.map((h) => `${h.hook} ${h.frames}×, max ${h.maxMs}`).join('; ')}); interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
       }
       if (gridCellPose !== null) {
         // the entered cell's own pose (its local frame), held standing once its runtime is ready again
@@ -822,24 +806,6 @@ async function measureShard(driver, shard, deadline) {
 /** Each long frame (>50 ms, [startMs, ms] on the page clock) attributed to the runtime hook it overlapped
  *  (`instance:hook`, from the grid's runtimeTiming), else `between hooks`: where a whole drive's long frames came from,
  *  on either surface, with no profiler running. */
-/** O14: the node (graph) program builds of a drive, per runtime hook ('between hooks': a live frame). `afterPlay` counts
- *  the builds from the entered cell's last afterPlay on (its entry warm-up runs there), `late` lists them in order. */
-function nodeBuildsByHook(log, completed) {
-  const byHook = {};
-  for (const { at } of log) {
-    const hit = completed.find((t) => at >= t.start && at < t.end);
-    const key = hit === undefined ? 'between hooks' : `${hit.instance}:${hit.hook}`;
-    byHook[key] = (byHook[key] ?? 0) + 1;
-  }
-  const play = completed.findLast((t) => t.hook === 'afterPlay');
-  // each build from afterPlay on: [ms after afterPlay's start, material@object]
-  const late = play === undefined ? [] : log.filter((row) => row.at >= play.start);
-  return { total: log.length, afterPlay: late.length, byHook, afterPlayAt: play?.start ?? null, afterPlayMs: play === undefined ? null : Math.round(play.end - play.start),
-    late: late.map((row) => [Math.round(row.at - play.start), `${row.material}@${row.object}`]),
-    // Keep world/boot builds too: a sampled long compile can precede afterPlay.
-    // Existing bounded scalar records only; older pins have no per-build duration.
-    events: log.map((row) => ({ at: row.at, ms: row.ms ?? null, prepareMs: row.prepareMs ?? null, frontendMs: row.frontendMs ?? null, material: row.material, object: row.object, how: row.how })) };
-}
 function longFrameHooks(at, completed) {
   const out = new Map();
   for (const [start, ms, gl, glStart] of at ?? []) {

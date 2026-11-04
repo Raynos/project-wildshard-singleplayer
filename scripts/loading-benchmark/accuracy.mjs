@@ -102,9 +102,6 @@ try {
         const frame = await page.evaluate(() => window.__wildshard?.world?.game.renderer.info.render.frame ?? -1);
         await page.waitForFunction(previous => (window.__wildshard?.world?.game.renderer.info.render.frame ?? -1) > previous,
           frame, { timeout: 10_000 });
-        // Read existing bounded diagnostics after the recorded first frame;
-        // this does not extend the byte/cadence measurement window.
-        receipt.nodeBuilds = await page.evaluate(() => window.__wildshard?.world?.game.nodeBuilds ?? null);
         if (path === 'grid' && arg('arrival', '0') === '1') {
           await page.waitForFunction(() => window.__wsReveal?.startedAt >= 0, undefined, { timeout: 10_000 });
           await page.locator('.ws-grid-reveal').dispatchEvent('pointerdown'); // R1: the layer takes no pointer; any touch skips

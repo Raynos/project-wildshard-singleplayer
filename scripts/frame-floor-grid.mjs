@@ -143,8 +143,7 @@ export function gridFloorPlans(state, scenario, options = {}) {
     return [entry, leave, back, { ...entry, name: 'nine-reentry', start: homeRoad }, { ...leave, name: 'nine-leave-2' }, { ...back, name: 'home-return-2' }];
   }
   if (scenario === 'sky-cycle') {
-    // G782 / grid-crossing T2: the leak cycle. Sky Reach entered from the road, left to the road, home again, three times:
-    // a node build a re-entry repeats is a key the keep (nodeBuildReuse.ts keepBuild) or the approach pre-build missed
+    // G782 / grid-crossing T2: the leak cycle. Sky Reach entered from the road, left to the road, home again, three times
     const sky = state.cells.find(cell => cell.slug === 'far-reach');
     if (!sky) throw new Error('Sky cycle requires the Sky Reach cell');
     const [entry] = gridFloorPlans(state, 'cell', { cell: sky.instance, roadApproach: true });
