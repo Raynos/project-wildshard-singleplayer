@@ -7,10 +7,11 @@ import { installShards, shards } from '../src/game/shard/list';
 import { sourceManifest, type ShardContext } from '../src/game/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { emptyShardfile } from '@wildshard/sdk/author';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 // A five-field state source versus a twenty-field one: an explicit state-law fixture (LD6 retired the frozen Nine config
 // it was copied from, and with it the copy's content-identity remap).
 const base = emptyShardfile({ slug: 'state-fixture', name: 'State fixture', author: 'Test', revision: 1, seed: 1 });
-const source = { ...base, runtime: { entry: 'runtime/index.ts', binds: ['items' as const, 'state' as const] },
+const source = { ...base, runtime: { kind: 'client-plan' as const, cost: FIXTURE_RUNTIME_COST, binds: ['items' as const, 'state' as const] },
   state: { ...base.state, shared: Array.from({length:5},(_,id)=>({
   id:id+1,name:`native.fixture.${id}`,type:'string' as const,privacy:'host' as const,default:'{}',
 })) } };

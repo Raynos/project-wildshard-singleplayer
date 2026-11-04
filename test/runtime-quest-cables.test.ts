@@ -8,10 +8,11 @@ import { boundQuestState } from '../src/game/quest/boundState';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 test('page quests bind admitted cable rows when authoring config has no modes', () => {
   const source = emptyShardfile({ slug: 'cable-quest', name: 'Cable quest', author: 'Test', revision: 1, seed: 1 });
-  source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'modes'] };
+  source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['quests', 'modes'] };
   source.quests = { flags: ['done', 'arrived'], quests: [{ id: 'cross', title: 'Cross', completeFlag: 'done',
     steps: [{ id: 'arrive', objective: 'Arrive', done: { all: ['arrived'] } }] }], triggers: [], dialogue: [] };
   const built = { ...source, modes: PINE_MODES }, scope = new Scope('cable-quest');
@@ -27,7 +28,7 @@ test('page quests bind admitted cable rows when authoring config has no modes', 
     expect(() => bound.cables.state('missing')).toThrow('Unknown cable mode');
     const legacyScope = new Scope('unbound-legacy-quest');
     try {
-      const legacy: typeof source = { ...source, runtime: { entry: 'runtime/index.ts', binds: ['quests'] } };
+      const legacy: typeof source = { ...source, runtime: { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['quests'] } };
       expect(() => bindRuntimeQuest({ app: new App(), scope: legacyScope }, source, 'cross',
         { flags: new Flags('missing-product', false) })).toThrow('Runtime-bound modes require an admitted product');
       expect(() => bindRuntimeQuest({ app: new App(), scope: legacyScope },
@@ -38,7 +39,7 @@ test('page quests bind admitted cable rows when authoring config has no modes', 
 
 test('quest id reads borrow the original scoped state without replaying effects', () => {
   const source = emptyShardfile({ slug: 'quest-state', name: 'Quest state', author: 'Test', revision: 1, seed: 1 });
-  source.runtime = { entry: 'runtime/index.ts', binds: ['quests'] };
+  source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['quests'] };
   source.quests = { flags: ['done', 'arrived'], quests: [{ id: 'cross', title: 'Cross', completeFlag: 'done',
     steps: [{ id: 'arrive', objective: 'Arrive', done: { all: ['arrived'] } }] }], triggers: [], dialogue: [] };
   const a = new Scope('first entry'), b = new Scope('second entry'), empty = new Scope('unbound entry');

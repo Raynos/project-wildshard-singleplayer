@@ -3,14 +3,13 @@
 import { build } from 'vite';
 import { createBuildCacheCounters, observeBuildCache, formatBuildCacheReport } from './build-cache-report.mjs';
 import { captureProductInputs, recordBundle, inputRecorderPlugin } from './shardfile-inputs.mjs';
-import { basename, relative, resolve, sep } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { importBundle } from './import-bundle.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 import { rapierAlias } from '../vite/rapier.ts';
-import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 import { authorBundleCached } from './author-bundle-cache.mjs';
 import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { outputManifest, shardOutputs } from './shard-outputs.mjs';
@@ -58,10 +57,7 @@ export async function runWildshard(args) {
     imageRoots: [{ prefix: `/src/shards/${basename(project)}/`, directory: project }, { prefix: '/assets/', directory: resolve(root, 'public/assets') }],
   };
   const legacy = project === undefined ? undefined : decisionLegacyLines(root, basename(project));
-  await (await runner)(args, { ...(legacy === undefined ? {} : { decisionLegacyLines: legacy }), ...(manifest === undefined ? {} : { manifest }), runtimeCheck: (/** @type {string} */ path, /** @type {string} */ source) => {
-    const file = relative(root, resolve(args[1] ?? root, path)).split(sep).join('/');
-    return shardfileBoundaryViolations(root, file, source).filter(issue => issue.rule === 'runtime-standalone');
-  } });
+  await (await runner)(args, { ...(legacy === undefined ? {} : { decisionLegacyLines: legacy }), ...(manifest === undefined ? {} : { manifest }) });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

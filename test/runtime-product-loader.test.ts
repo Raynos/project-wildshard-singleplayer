@@ -25,6 +25,7 @@ import { parseImageAsset } from '../src/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
 import { bootWaits } from '../src/engine/boot/waits';
 import * as customValidators from '../src/game/shardfile/customSchema';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); Reflect.deleteProperty(globalThis, '__SHARDFILE_VALIDATOR__'); Reflect.deleteProperty(globalThis, '__SHARDFILE_VERDICTS__'); });
@@ -629,7 +630,7 @@ test('bound props stream tiles and whole geometry while retaining neighbour pane
   const f = fixture(), panel = 'b'.repeat(64), texture = 'c'.repeat(64);
   const file = f.source.files[0]; if (file === undefined) throw new Error('Missing fixture file');
   f.source.files.push({ ...file, hash: panel, dependencies: [texture] }, { ...file, hash: texture, dependencies: [] });
-  f.source.runtime = { entry: 'runtime/index.ts', binds: ['props'] };
+  f.source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['props'] };
   f.source.props = { version: 1, family: 'toon', tiles: [{ lod: 0, x: 0, z: 0, file: f.ref }],
     wholeLibrary: [f.ref], models: [], panels: [{ id: 'door', file: panel, visible: true }], far: null, colliders: [], textures: [] };
   f.source.tiles.push({ lod: 0, x: 0, z: 0, files: [f.ref], compressed: 3, decoded: 3, gpu: 0, triangles: 0, draws: 0,
@@ -662,7 +663,7 @@ test('failed durable writes retain runtime bytes instead of shrinking admission'
 
 test('bound terrain queries reread on entry while unbound simulation inputs remain', () => {
   const f = fixture();
-  f.source.runtime = { entry: 'runtime/index.ts', binds: ['terrain'] };
+  f.source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['terrain'] };
   f.source.terrain = { version: 1, form: 'query', family: 'toon', collider: f.ref, tiles: [],
     sampling: { law: 'bilinear', file: f.ref, normalEpsilon: 0.25, datum: 0 } };
   expect(neighbourProductFiles(f.source)).toEqual([f.ref]);
@@ -693,7 +694,7 @@ test.each([
   const f = fixture(false, source => {
     const ref = source.files[0]?.hash;
     if (ref === undefined) throw new Error('Missing runtime fixture wire');
-    source.runtime = { entry: 'runtime/index.ts', binds: ['props'] };
+    source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['props'] };
     source.props = { version: 1, family: 'toon', tiles: [], wholeLibrary: [ref],
       models: [], panels: [], far: null, colliders: [], textures: [] };
     if (shared) source.sim.scripts.push(ref);
@@ -730,10 +731,9 @@ test('shrinking residency cannot grow, underflow or revive a released claim', ()
   claim.release(); claim.shrink(1); expect(allocator.entries()).toHaveLength(0);
 });
 
-function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' | 'reader' = 'none', legacy = false, cells: boolean | 'water' = false) {
+function tierTransportFixture(retain: 'none' | 'critical' | 'dependency' | 'reader' = 'none', cells: boolean | 'water' = false) {
   const desktopBytes = new Uint8Array([9]), desktop = hashImmutableBytes(desktopBytes);
   const f = fixture(false, source => {
-    if (legacy) source.runtime = { entry: 'runtime/index.ts' };
     source.files.push({ hash: desktop, kind: 'binary', compressed: 1, decoded: 700, gpu: 300, triangles: 0, draws: 0, dependencies: [], critical: false });
     source.library.push(desktop); source.budgets.library.resident += 1000; source.budgets.library.compressed += 1;
     if (retain === 'critical') source.critical.push(desktop);
@@ -825,7 +825,7 @@ test('visited entry remains offline-ready without an unused manifest image body'
 });
 
 test.each(['phone', 'desktop'] as const)('world construction admits only its %s cover-cell bank', async tier => {
-  const f = tierTransportFixture('none', false, true); trust(f.receipt);
+  const f = tierTransportFixture('none', true); trust(f.receipt);
   const urls: string[] = [], progress: { bytesTotal: number; filesTotal: number }[] = [];
   const admitted = await admitProduct(f.index, { ...f.options, tier,
     fetch: url => { urls.push(url); return f.options.fetch(url); }, progress: row => { progress.push(row); } });
@@ -839,13 +839,13 @@ test.each(['phone', 'desktop'] as const)('world construction admits only its %s 
 });
 
 test.each(['phone', 'desktop'] as const)('a water row admits only its %s grid (iPhone downloads I8)', async tier => {
-  const f = tierTransportFixture('none', false, 'water'); trust(f.receipt);
+  const f = tierTransportFixture('none', 'water'); trust(f.receipt);
   const admitted = await admitProduct(f.index, { ...f.options, tier });
   expect([...admitted.assets.keys()]).toEqual([tier === 'phone' ? f.ref : f.desktop]);
 });
 
 test.each(['critical', 'dependency', 'reader'] as const)('a %s keeps a shared off-tier cover-cell bank', async retain => {
-  const f = tierTransportFixture(retain, false, true); trust(f.receipt);
+  const f = tierTransportFixture(retain, true); trust(f.receipt);
   const admitted = await admitProduct(f.index, { ...f.options, tier: 'phone' });
   expect([...admitted.assets.keys()]).toEqual([f.ref, f.desktop]);
 });
@@ -877,7 +877,7 @@ test('an unspecified device tier retains complete transport admission', async ()
 });
 
 test.each([false, true])('tier caches re-enter offline and repair missing inputs online (cover %s)', async cells => {
-  const f = tierTransportFixture('none', false, cells); trust(f.receipt);
+  const f = tierTransportFixture('none', cells); trust(f.receipt);
   let visited: Awaited<ReturnType<ProductCache['product']>> = null;
   const stored = new Map<string, Uint8Array>();
   const cache: ProductCache = { product: () => Promise.resolve(visited),
@@ -900,12 +900,6 @@ test('a selected tier file still refuses corrupt network bytes', async () => {
   const f = tierTransportFixture(); trust(f.receipt);
   f.wires.set(`blobs/bin/${f.ref}.bin`, new Uint8Array([3, 2, 1]));
   await expect(admitProduct(f.index, { ...f.options, tier: 'phone' })).rejects.toThrow('Shardfile asset hash mismatch');
-});
-
-test.each([false, true])('legacy constructors retain every immutable input (cover %s)', async cells => {
-  const f=tierTransportFixture('none',true,cells);trust(f.receipt);
-  const admitted=await admitProduct(f.index,{...f.options,tier:'phone'});
-  expect(admitted.assets.has(f.ref)).toBe(true);expect(admitted.assets.has(f.desktop)).toBe(true);
 });
 
 test('tier selection never bypasses full validation without an exact trusted receipt', async () => {

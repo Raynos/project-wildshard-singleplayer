@@ -17,6 +17,7 @@ import { admitScriptContract, decisionModuleContracts, decisionScriptsFromSectio
 import { assetCost } from '../src/format/product';
 import { validateShardfileAssets } from '../src/format/assetAdmission';
 import { HeadlessSimulation } from '../src/sdk/headless';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 let bytes: Uint8Array = new Uint8Array();
 const directories: string[] = [];
@@ -135,7 +136,7 @@ test('unlisted modules, conflicting contracts, legacy host mixing and memory und
 test('runtime-owned encounters admit numeric fields only for their actual sim guest', () => {
   const { shard, assets, scripts } = fixture(), script = scripts[0];
   if (script === undefined) throw new Error('Missing guest');
-  shard.runtime = { entry: 'runtime/index.ts', binds: ['state', 'spawns'], spawns: { homes: [], actors: [],
+  shard.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['state', 'spawns'], spawns: { homes: [], actors: [],
     bosses: [{ id: 'actor.retained', kind: 'animal', look: 'animal', at: [0, 0], yaw: 0 }] } };
   shard.state.shared = [{ id: 1, name: 'pose', type: 'f64', privacy: 'public', default: 0, min: 0, max: 1 }];
   const guest = { ...script, actors: { self: 'actor.retained' }, fields: { pose: 'pose' } };

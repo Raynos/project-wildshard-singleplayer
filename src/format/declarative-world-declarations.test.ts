@@ -22,7 +22,7 @@ import {EliteFeatureSchema} from './eliteFeature';
 import {ReturnProgramSchema,HEADLESS_ASSEMBLY_JSON_SCHEMA} from './namedJsonContracts';
 import type {SpawnScriptRowData} from './spawnScripts';
 import type {BakedTilesRow,BakedPlan} from './bakedTiles';
-import {LegacyRuntimeSchema,ClientPlanRuntimeSchema,type RuntimeDeclaration} from './runtime';
+import {ClientPlanRuntimeSchema,type RuntimeDeclaration} from './runtime';
 import {ContractBoardPageSchema,type ContractReward} from './contracts';
 import {AdventureContentSchema,QuestStorySchema,PersistedQuestPageSchema} from './questStory';
 import type {ViewProgramRows} from './viewProgram';
@@ -34,9 +34,8 @@ declare const decision:DecisionScriptRow;
 export const actor:string|undefined=decision.actors['actor'];
 export const definition=EliteFeatureSchema.entries.fights.pipe[0].item.entries.def;
 export const programme=v.object({...ReturnProgramSchema.entries});
-export const source=v.omit(LegacyRuntimeSchema.pipe[0],['spawns']);
 export const compiled=v.omit(ClientPlanRuntimeSchema.pipe[0],['spawns']);
-export function entry(row:RuntimeDeclaration):string{return 'kind' in row?row.kind:row.entry;}
+export function entry(row:RuntimeDeclaration):string{return row.kind;}
 export const board=v.omit(ContractBoardPageSchema,['contracts','panel','store']);
 export const store=ContractBoardPageSchema.entries.store;
 export const poi=AdventureContentSchema.entries.places.item.entries.at.entries.poi;

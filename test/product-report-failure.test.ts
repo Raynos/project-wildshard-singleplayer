@@ -40,7 +40,8 @@ function fixture(): string {
       source.tiles.push({ lod, x, z, bounds: { min: [-250 + x * size, 0, -250 + z * size], max: [-250 + (x + 1) * size, 0, -250 + (z + 1) * size] },
         files: [], geometricError: 0, decoded: 0, gpu: 0, compressed: 0, triangles: 0, draws: 0 });
     }
-    platformOutput(root, slug, { 'runtime/index.ts': `export const value = '${slug}';` },
+    // LD9: a product ships no copied runtime TypeScript
+    platformOutput(root, slug, {},
       Object.fromEntries([...outputSectionPayloads(source)].map(([name, value]) => [name, JSON.stringify(value)])));
     writeFileSync(resolve(root, `src/shards/${slug}/shard.config.ts`), 'export default {};\n');
     put(`src/shards/${slug}/look/map.json`, { why: 'Fixture has no data-map painter' });

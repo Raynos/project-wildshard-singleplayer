@@ -20,6 +20,7 @@ import * as v from 'valibot';
 import { ClientChannels } from '../src/sdk/clientChannels';
 import { SaveStore } from '../src/engine/saves/store';
 import { GridRegionDurability } from '../src/game/grid/durability';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
 const io = scriptV1Layout(1, 0), state = 16384 + io.state * 8, out = 16384 + io.outbox * 8;
@@ -197,7 +198,7 @@ test('spawnGroupAlive counts the whole declared pack across death and return', a
   const recipes: SimSpawn[] = [];
   for (const [index, id] of ['actor.a', 'actor.b'].entries()) recipes.push({ ...native, id, at: { x: 0, y: 0, z: 5 + index * 2 } });
   f.source.creatures.spawns = []; f.source.encounters = [];
-  f.source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { bosses: [], homes: recipes.map(recipe => ({
+  f.source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['spawns'], spawns: { bosses: [], homes: recipes.map(recipe => ({
     id: recipe.id, kind: native.spec.kind, look: 'boar', at: [recipe.at.x, recipe.at.z], yaw: recipe.yaw, respawn: 1,
   })) } };
   const owner = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier: await rapier });
@@ -393,7 +394,7 @@ test('retained actors lend their actual body, public memory and strike owner wit
     actor.mem['phase'] = 2;
     const source = structuredClone(f.source);
     const cosmetic = new ClientChannels('cosmetic'); cosmetic.output('y', cosmetic.constant(0)); source.clientChannels = [cosmetic.build()];
-    source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], bosses: [], actors: source.creatures.spawns.map(row => ({
+    source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['spawns'], spawns: { homes: [], bosses: [], actors: source.creatures.spawns.map(row => ({
       id: `retained.${row.id}`, kind: row.species, look: row.variant, at: [row.at[0], row.at[2]], yaw: row.yaw,
     })) } };
     source.creatures.spawns = [];
@@ -504,7 +505,7 @@ test('retained pose and eased depth read one admitted body and refuse a bad fram
   try{
     const actor=sim.host.entities.get('actor.a');if(actor===undefined)throw new Error('Missing retained pose body');
     const source=structuredClone(f.source);source.creatures.spawns=[];
-    source.runtime={entry:'runtime/index.ts',binds:['spawns'],spawns:{homes:[],actors:[],bosses:[
+    source.runtime={ kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds:['spawns'],spawns:{homes:[],actors:[],bosses:[
       {id:'actor.a',kind:'boar',look:'boar',at:[0,5],yaw:0},{id:'actor.b',kind:'boar',look:'boar',at:[0,7],yaw:0}]}};
     source.state.shared.push({id:90,name:'lift',type:'f64',privacy:'public',default:0,min:0,max:1});
     const script=f.scripts[0];if(script===undefined)throw new Error('Missing pose fixture guest');
@@ -531,7 +532,7 @@ test('a yielded spawn-group build publishes its step only after every declared b
   const f = fixture(await module('return 0;')), sim = createShardfileSim(f.source, f.assets, { rapier: await rapier });
   try {
     const source = structuredClone(f.source); source.creatures.spawns = [];
-    source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], actors: [], bosses: [
+    source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['spawns'], spawns: { homes: [], actors: [], bosses: [
       { id: 'actor.a', kind: 'boar', look: 'boar', at: [0, 5], yaw: 0 },
       { id: 'actor.b', kind: 'boar', look: 'boar', at: [0, 7], yaw: 0 },
     ] } };

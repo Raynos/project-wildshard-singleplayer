@@ -17,12 +17,13 @@ import { parseItems } from '../src/format/items';
 import { HELD_ARMS } from './fixtures/driftwood-layout-source';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 type Looks = Awaited<ReturnType<typeof compiler.runtimeLookMaterials>>;
 function fixture() {
   const parent = new Scope('kit-parent'), scope = parent.child('kit-entry');
   const rows = { ...HELD_ARMS, slug: 'kit-fixture', claims: [] };
-  const source = { ...emptyShardfile({ slug: rows.slug, name: 'Kit fixture', author: 'Fixture', revision: 1, seed: 7 }), items: parseItems(DRIFTWOOD_SWORDS),runtime:{entry:'runtime/fixture.ts',binds:['items' as const]} };
+  const source = { ...emptyShardfile({ slug: rows.slug, name: 'Kit fixture', author: 'Fixture', revision: 1, seed: 7 }), items: parseItems(DRIFTWOOD_SWORDS),runtime:{kind:'client-plan' as const,cost:FIXTURE_RUNTIME_COST,binds:['items' as const]} };
   const product = createShardProduct({ slug: rows.slug, revision: 1, shardfile: source, sections: new Map([['held/arms', rows]]), files: new Map(),
     read: () => Promise.reject(new Error('No geometry claimed in fixture')) });
   const app=new App(),native=heldSwordWorld();scope.onDispose(native.dispose);

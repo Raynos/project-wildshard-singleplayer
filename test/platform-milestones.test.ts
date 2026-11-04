@@ -85,7 +85,8 @@ it('keeps admin source progress in one unit across closed and unclosed runtimes'
  const root=mkdtempSync(join(tmpdir(),'platform-source-report-'));
  try{
   const shard=emptyShardfile({slug:'far-reach',name:'Fixture',author:'Test',revision:1,seed:1});
-  platformOutput(root,'far-reach',{'runtime/index.ts':'export const value = 1;'},
+  // LD9: a closed product ships no copied runtime TypeScript (only an unclosed source runtime keeps the source basis)
+  platformOutput(root,'far-reach',{},
    Object.fromEntries([...outputSectionPayloads(shard)].map(([name,value])=>[name,JSON.stringify(value)])));
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import value from '../data/rows'; export const rows=value;"});
   mkdirSync(join(root,'lint'),{recursive:true});

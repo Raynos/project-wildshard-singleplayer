@@ -7,7 +7,8 @@ const cost = v.pipe(RuntimeCostSchema, v.check((row) => {
   try { runtimeAccountedBytes(row); return true; } catch { return false; }
 }, 'Runtime cost must contain a positive safe measured content bound'));
 
-/** A first-party transition entry, relative to its own shard folder; never an asset URL or arbitrary import. */
+/** The retired copied-runtime entry row (LD9: no shard can declare it). Kept only for the output index's copied-runtime
+ * inventory, which has no producer left; LD10's orphan sweep removes both with the ruler's output-runtime fixtures. */
 export const LegacyRuntimeSchema: v.SchemaWithPipe<readonly [v.StrictObjectSchema<{ readonly entry: v.GenericSchema<LegacyRuntimeRowsInput['entry'], LegacyRuntimeRows['entry']>; readonly cost: v.OptionalSchema<v.GenericSchema<Exclude<LegacyRuntimeRowsInput['cost'], undefined>, Exclude<LegacyRuntimeRows['cost'], undefined>>, undefined>; readonly binds: v.OptionalSchema<v.GenericSchema<Exclude<LegacyRuntimeRowsInput['binds'], undefined>, Exclude<LegacyRuntimeRows['binds'], undefined>>, undefined>; readonly spawns: v.OptionalSchema<v.GenericSchema<Exclude<LegacyRuntimeRowsInput['spawns'], undefined>, Exclude<LegacyRuntimeRows['spawns'], undefined>>, undefined>; }, undefined>, v.CheckAction<{ [K in keyof LegacyRuntimeRows]: LegacyRuntimeRows[K] }, 'runtime spawns are declared exactly when runtime.binds names spawns'>]> = v.pipe(v.strictObject({
   entry: v.pipe(v.string(), v.maxLength(160), v.regex(/^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u)),
   cost: v.optional(cost),
@@ -23,8 +24,8 @@ export const ClientPlanRuntimeSchema: v.SchemaWithPipe<readonly [v.StrictObjectS
   spawns: v.optional(RuntimeSpawnsSchema),
 }), v.check(row => (row.spawns !== undefined) === row.binds.includes('spawns'),
   'runtime spawns are declared exactly when runtime.binds names spawns'));
-/** Existing trusted source declarations retain their exact wire shape. */
-export const RuntimeSchema: v.GenericSchema<RuntimeDeclarationInput, RuntimeDeclaration> = v.union([LegacyRuntimeSchema, ClientPlanRuntimeSchema]);
+/** A shard's runtime declaration: only the compiled client plan (LD9 retired the copied-runtime `entry` arm). */
+export const RuntimeSchema: v.GenericSchema<RuntimeDeclarationInput, RuntimeDeclaration> = ClientPlanRuntimeSchema;
 /** Serializable runtime ownership, independent of its compiled or legacy constructor. */
 
 
@@ -57,5 +58,5 @@ interface ClientPlanRuntimeRowsFields {
     spawns?: v.InferOutput<typeof RuntimeSpawnsSchema> | undefined;
 }
 export type ClientPlanRuntimeRows = { [Key in keyof ClientPlanRuntimeRowsFields]: ClientPlanRuntimeRowsFields[Key] };
-export type RuntimeDeclarationInput = (LegacyRuntimeRowsInput) | (ClientPlanRuntimeRowsInput);
-export type RuntimeDeclaration = (LegacyRuntimeRows) | (ClientPlanRuntimeRows);
+export type RuntimeDeclarationInput = ClientPlanRuntimeRowsInput;
+export type RuntimeDeclaration = ClientPlanRuntimeRows;

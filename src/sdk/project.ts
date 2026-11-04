@@ -34,7 +34,7 @@ import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { outputScriptAdmissionRows, outputPlatformPayloads, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
 import type { RuntimeMirror } from './runtimeMirrors';
-import { proveRuntimeData, writeRuntimeFiles, type RuntimeCopyOptions } from './outputRuntime';
+import { proveRuntimeData, writeRuntimeFiles } from './outputRuntime';
 import { readManifestSource, type ProjectManifestSource } from './projectManifest';
 import { projectDecisionOptions } from './projectDecisions';
 import { projectDecisionBudget } from './projectPolicy';
@@ -233,7 +233,7 @@ export function projectAssets(project: string, shard: Shardfile, layout: 'projec
  * Build a deterministic shard.json, immutable files and the distributed normal client when present; a shardfile with a
  * terrain gains its far / near placeholders when `placeholders` is set (the CLI's default).
  */
-export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; output?: string; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; runtimeCheck?: RuntimeCopyOptions['check']; devserver?: boolean; client?: string | null; map?: ProjectMap; mapSourceHash?: string; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
+export async function buildProject(project: string, output?: string, options: { decisionLegacyLines?: number; output?: string; outputFormat?: 2; manifest?: ProjectManifestSource; copyRuntime?: boolean; devserver?: boolean; client?: string | null; map?: ProjectMap; mapSourceHash?: string; placeholders?: boolean; admit?: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', sections: ReadonlyMap<string, unknown>) => Promise<void> } = {}): Promise<Shardfile> {
   let phaseStarted = diagnosticNow();
   const phase = (name: string): void => {
     const now = diagnosticNow();
@@ -253,7 +253,7 @@ export async function buildProject(project: string, output?: string, options: { 
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard), outputPlatformPayloads(loaded.output.platform));
   phase('simulation-admission');
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
-  const clientPlan = shard.runtime !== null && !('entry' in shard.runtime);
+  const clientPlan = shard.runtime !== null;
   if (options.copyRuntime === true || clientPlan) {
     const root = realpathSync(project), target = resolve(destination);
     if (target === root || target.startsWith(`${root}${sep}`) || root.startsWith(`${target}${sep}`)) throw new Error('Runtime output must be separate from its author project');
@@ -261,11 +261,10 @@ export async function buildProject(project: string, output?: string, options: { 
   clearOutputProduct(destination);
   let descriptor: ReturnType<typeof writeOutputProduct>;
   try {
-    const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination, { check: options.runtimeCheck ?? (() => []), clientPlan }) : undefined;
-    if (runtime !== undefined && (shard.runtime === null || !('entry' in shard.runtime)) !== (runtime.entry === undefined)) throw new Error('Copied runtime and trusted runtime declaration must agree');
+    const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination) : undefined;
     descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }) });
     phase('product-write');
-    if (runtime !== undefined) await proveRuntimeData(destination, descriptor, loaded.mirrors);
+    if (runtime !== undefined) proveRuntimeData(destination, descriptor, loaded.mirrors);
     phase('runtime-proof');
   } catch (error) { clearOutputProduct(destination); throw error; }
   const directory = import.meta.dirname;

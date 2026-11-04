@@ -498,7 +498,6 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   // of unselected alternatives. Keep the complete descriptor for verified late
   // reads and a later device tier; unknown, critical and shared references stay.
   const selected = options.firstParty && receipt !== null && options.tier !== undefined
-    && (source.runtime === null || 'kind' in source.runtime)
     ? await tierProductFilesPaced(source, options.tier, options.pause) : source.files;
   // Untrusted/unreceipted products retain complete byte validation. The exact
   // first-party phone receipt permits lazy tile reads through ClientAssets.

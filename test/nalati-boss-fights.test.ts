@@ -58,6 +58,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 const geometry = titanGeometryRows();
 
@@ -105,7 +106,7 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
     play: legacyDouble<ShardPlayHost>({ animals: f.manager, hud: legacyDouble<HUD>({ killFeed: () => undefined }) }) });
   const context = legacyDouble<ShardContext>({ app, game: legacyDouble<ShardContext['game']>({ runtime }),
     product: legacyDouble<ShardContext['product']>({ shardfile: legacyDouble<ShardContext['product']['shardfile']>({
-      runtime: { entry: 'runtime/main.ts', binds: ['spawns'], spawns: parseRuntimeSpawns(NALATI_RUNTIME_SPAWNS) },
+      runtime: { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['spawns'], spawns: parseRuntimeSpawns(NALATI_RUNTIME_SPAWNS) },
     }) }) });
   const fight = arenaRoomFight(context, dungeon, king.page);
   const e = encounter(king.encounter, fight.script, f.player.position), direction = new Vector3(0, 0, -1);

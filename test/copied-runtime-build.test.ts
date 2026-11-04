@@ -7,23 +7,22 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { buildProject } from '@wildshard/sdk/project';
 import { proveRuntimeData } from '@wildshard/sdk/outputRuntime';
 import { validateOutputProduct } from '@wildshard/sdk/outputProduct';
-import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const directory of owned.splice(0)) rmSync(directory, { recursive: true, force: true }); });
-function fixture(): { project: string; destination: string } {
+function fixture(runtime: string = 'null', mirrors = true): { project: string; destination: string } {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp', 'copied-runtime-build-')); owned.push(root);
   const project = resolve(root, 'project'), destination = resolve(root, 'output');
   mkdirSync(resolve(project, 'runtime'), { recursive: true });
   const shard = emptyShardfile({ slug: 'runtime-test', name: 'Runtime', author: 'Test', revision: 1, seed: 3 });
-  shard.runtime = { entry: 'runtime/hybrid.ts' };
+  // The declaration is raw config text: LD9 retired the copied-runtime `entry` arm, so it is no longer a typed shape.
   writeFileSync(resolve(project, 'shard.config.ts'), `
 import * as v from 'valibot';
 import { defineSection, emitDefinedSections } from '@wildshard/sdk/sections';
-export default ${JSON.stringify(shard)};
+export default {...${JSON.stringify(shard)}, runtime: ${runtime}};
 export const output = {custom:emitDefinedSections([defineSection('custom/reward',v.strictObject({amount:v.number()}),{amount:3})])};
-export const mirrors = [{name:'REWARD',value:{amount:3}}];
+${mirrors ? "export const mirrors = [{name:'REWARD',value:{amount:3}}];" : ''}
 `);
   writeFileSync(resolve(project, 'runtime/index.ts'), 'throw new Error("Page entry must never execute during a build");\r\n');
   writeFileSync(resolve(project, 'runtime/hybrid.ts'), 'throw new Error("Native entry must never execute during a build");\n');
@@ -31,34 +30,43 @@ export const mirrors = [{name:'REWARD',value:{amount:3}}];
   writeFileSync(resolve(project, 'runtime/const.ts'), 'export const REWARD = {amount:3};\r\n');
   return { project, destination };
 }
-const check = (path: string, source: string) => shardfileBoundaryViolations(resolve('.'), `src/shards/probe/${path}`, source).filter(issue => issue.rule === 'runtime-standalone');
-it('builds copied runtime against emitted JSON and config mirrors without evaluating entry code', async () => {
+it('refuses a copied runtime build with no successful product receipt and never evaluates its entry (LD9)', async () => {
   const { project, destination } = fixture();
-  await buildProject(project, destination, { client: null, copyRuntime: true, runtimeCheck: check });
+  await expect(buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true })).rejects.toThrow('cannot contain executable source');
+  expect(existsSync(resolve(destination, 'validation.json'))).toBe(false);
+  expect(existsSync(resolve(destination, 'runtime'))).toBe(false);
+});
+it('refuses a source entry declaration at admission', async () => {
+  const { project, destination } = fixture(JSON.stringify({ entry: 'runtime/hybrid.ts' }));
+  await expect(buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true })).rejects.toThrow();
+  expect(existsSync(resolve(destination, 'validation.json'))).toBe(false);
+});
+it('proves custom sections from their built schemas, and declared mirrors still need a runtime constant', async () => {
+  const { project, destination } = fixture('null', false);
+  for (const file of ['index.ts', 'hybrid.ts', 'sections.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
+  await buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true });
   const { index } = validateOutputProduct(destination);
-  expect(index.runtime).toMatchObject({entry:'runtime/hybrid.ts'});
-  expect(index.runtime?.files.map(file => file.path)).toEqual(['runtime/const.ts', 'runtime/hybrid.ts', 'runtime/index.ts', 'runtime/sections.ts']);
-  for (const file of index.runtime?.files ?? []) expect(readFileSync(resolve(destination, file.path))).toEqual(readFileSync(resolve(project, file.path)));
-  // The proof must keep using the copy, even if the author file has since changed.
-  writeFileSync(resolve(project, 'runtime/const.ts'), 'export const REWARD = {amount:999};');
-  await expect(proveRuntimeData(destination, index, [{ name: 'REWARD', value: { amount: 3 } }])).resolves.toBeUndefined();
+  expect(index.runtime).toBeNull();
+  expect(() => { proveRuntimeData(destination, index, []); }).not.toThrow();
+  expect(() => { proveRuntimeData(destination, index, [{ name: 'REWARD', value: { amount: 3 } }]); }).toThrow('runtime/const.ts');
 });
-it.each([
-  { file: 'const.ts', source: 'export const REWARD = {amount:4};', error: /REWARD/u },
-  { file: 'sections.ts', source: "import * as v from 'valibot'; export const SECTIONS = {'custom/reward':v.string()};", error: /Expected/u },
-  { file: 'sections.ts', source: 'export const SECTIONS = {};', error: /no runtime schema/u },
-  { file: 'const.ts', source: "export { REWARD } from '../shard.config';", error: /runtime/u },
-])('refuses $file drift or escape with no successful product receipt', async ({ file, source, error }) => {
-  const { project, destination } = fixture();
-  writeFileSync(resolve(project, 'runtime', file), source);
-  await expect(buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true, runtimeCheck: check })).rejects.toThrow(error);
-  expect(existsSync(resolve(destination, 'validation.json'))).toBe(false);
-});
-it('never substitutes source constants when a declared copied module is missing', async () => {
-  const { project, destination } = fixture();
-  rmSync(resolve(project, 'runtime/const.ts'));
-  await expect(buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true })).rejects.toThrow('runtime/const.ts');
-  expect(existsSync(resolve(destination, 'validation.json'))).toBe(false);
+it('refuses a retired copied-runtime inventory before reading any copy, missing or tampered', async () => {
+  const { project, destination } = fixture('null', false);
+  for (const file of ['index.ts', 'hybrid.ts', 'sections.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
+  await buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true });
+  const { index } = validateOutputProduct(destination);
+  // the output index still parses this row (LD10 removes it); the proof must refuse it whatever its copy holds
+  const copy = { path: 'runtime/index.ts', hash: '0'.repeat(64), bytes: 1, lines: 1 };
+  const missing = { ...index, runtime: { entry: 'runtime/index.ts', trust: 'first-party' as const, files: [copy], lines: 1 } };
+  expect(() => { proveRuntimeData(destination, missing, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
+  // the listed copy exists but its bytes differ from the inventory: still refused, before it is read
+  mkdirSync(resolve(destination, 'runtime'), { recursive: true });
+  writeFileSync(resolve(destination, 'runtime/index.ts'), 'export const tampered = true;\n');
+  expect(() => { proveRuntimeData(destination, missing, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
+  // the non-empty inventory arm on its own: a client-plan-shaped row that lists a copy
+  const cost = { webContentMB: 500, glMB: 100, engineBaseMB: 300, rev: 'abcdef1234', device: 'Fixture', evidence: 'progress/memory/fixture.json' };
+  const listed = { ...index, runtime: { kind: 'client-plan' as const, cost, binds: [], trust: 'first-party' as const, files: [copy], lines: 0 as const } };
+  expect(() => { proveRuntimeData(destination, listed, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
 });
 it('refuses overlapping source/output before clearing the author project', async () => {
   const { project } = fixture();

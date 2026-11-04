@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import process from 'node:process';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { RuntimeSchema, LegacyRuntimeSchema } from '../src/format/runtime';
+import { RuntimeSchema } from '../src/format/runtime';
 import { runtimeAccountedBytes } from '../src/format/runtimeCost';
 import { parseManifestMetadata } from '../src/format/minimap';
 import { parseOutputIndex } from '../src/format/outputIndex';
@@ -23,9 +23,11 @@ const row = { kind: 'client-plan', cost, binds: ['terrain', 'props', 'quests', '
 test('compiled ownership retains the exact authority and measured charge with no source entry', () => {
   const parsed = v.parse(RuntimeSchema, row);
   expect(parsed).toEqual(row); expect(runtimeAccountedBytes(parsed.cost)).toBe(runtimeAccountedBytes(cost));
-  expect(v.parse(LegacyRuntimeSchema, {entry:'runtime/index.ts',cost,binds:row.binds})).toEqual({entry:'runtime/index.ts',cost,binds:row.binds});
+  // LD9: the copied-runtime `entry` arm is retired; a source entry is refused on its own as well as beside a client plan
+  expect(v.safeParse(RuntimeSchema, {entry:'runtime/index.ts',cost,binds:row.binds}).success).toBe(false);
+  expect(v.safeParse(RuntimeSchema, {entry:'runtime/index.ts'}).success).toBe(false);
   for (const bad of [{...row,entry:'runtime/index.ts'},{...row,kind:'arbitrary'}, {...row,cost:undefined}, {...row,binds:undefined}, {...row,binds:['state','state']}, {...row,binds:['spawns']}, {...row,load:'runtime/index.ts'}]) expect(v.safeParse(RuntimeSchema,bad).success).toBe(false);
-  // The real converter must admit the defining union and preserve the legacy branch.
+  // The real converter must admit the defining client-plan schema.
   expect(formatJsonSchema(RuntimeSchema)).toBeDefined();
 });
 
@@ -48,9 +50,9 @@ test('compiled output refuses real runtime code and ships no declaration stubs',
   mkdirSync(resolve('tmp'),{recursive:true}); const root=mkdtempSync(resolve('tmp/client-runtime-')),project=join(root,'project'),output=join(root,'output');
   mkdirSync(join(project,'runtime'),{recursive:true});writeFileSync(join(project,'runtime','productSections.generated.d.ts'),'export interface Generated { readonly id: string }');
   try {
-    expect(writeRuntimeFiles(project,output,{clientPlan:true,check:()=>[]})).toEqual({files:[],lines:0});
+    expect(writeRuntimeFiles(project,output)).toEqual({files:[],lines:0});
     writeFileSync(join(project,'runtime','hidden.ts'),'export const value = 3;');
-    expect(()=>writeRuntimeFiles(project,output,{clientPlan:true,check:()=>[]})).toThrow('cannot contain executable source');
+    expect(()=>writeRuntimeFiles(project,output)).toThrow('cannot contain executable source');
   } finally {rmSync(root,{recursive:true,force:true});}
 });
 

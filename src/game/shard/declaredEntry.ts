@@ -10,7 +10,7 @@ export interface ClientPlanEntryPolicy { readonly retainHomeRuntime: boolean; re
  * preparation port preserves trusted fixture/host admission checks. */
 export async function prepareClientPlanShard(ctx: ShardContext, policy: ClientPlanEntryPolicy,
   prepare?: typeof PrepareHybrid): Promise<ShardPlugin> {
-  if (!ctx.product.has('client/plan') || ctx.product.shardfile.runtime === null || 'entry' in ctx.product.shardfile.runtime) throw new Error('Client-plan entry requires its compiled runtime declaration');
+  if (!ctx.product.has('client/plan') || ctx.product.shardfile.runtime === null) throw new Error('Client-plan entry requires its compiled runtime declaration');
   // the hybrid admission stays its own lazy chunk, fetched when world() runs (as before LD9)
   return (prepare ?? (await import('../shardfile/hybrid')).prepareHybridShard)(ctx.product, { firstParty: true }, { residencyContext: ctx,
     retainHomeRuntime: policy.retainHomeRuntime, stagesOwner: policy.stagesOwner,

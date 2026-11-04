@@ -17,6 +17,7 @@ import { buildShardfiles } from '../scripts/build-shardfiles.mjs';
 import { mapPixelHash, mapTilesHash } from '../scripts/map-hash.mjs';
 import { copyOutputProducts } from '../scripts/app-build/outputProducts.mjs';
 import metadata from '../src/shards/far-reach/manifest.json';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 const owned: string[] = [], png = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
 afterEach(() => { vi.restoreAllMocks();vi.unstubAllEnvs(); for (const folder of owned.splice(0)) rmSync(folder, { recursive: true, force: true }); });
@@ -31,7 +32,7 @@ async function fixture(): Promise<string> {
     const project = resolve(root, 'src/shards', slug), image = `public/assets/${slug}/map/top.webp`;
     put(project, 'shard.config.ts', 'export default {};\n');
     put(project, 'look/map.json', JSON.stringify({ why: 'Synthetic map uses the normal project inputs' }));
-    put(project, 'runtime/index.ts', `// ${slug} client\nexport const client = '${slug}';\n`);
+    put(project, 'runtime/client.d.ts', `// ${slug} client declarations only (LD9: a client-plan runtime ships no TypeScript)\nexport declare const client: string;\n`);
     put(root, image, png);
     put(project, 'look/map.baked.json', JSON.stringify({ image: `/assets/${slug}/map/top.webp`, tilesHash: mapTilesHash(project), pixelHash: await mapPixelHash(resolve(root, image)) }));
     placements.push({ slug, instance: slug, cell: [order, 0], size: [500, 500, 500] });
@@ -53,8 +54,8 @@ function builder(calls: string[][], fail?: string, missingTile = false): (args: 
         files: [], geometricError: 0, decoded: 0, gpu: 0, compressed: 0, triangles: 0, draws: 0 });
     }
     if (missingTile && slug === 'alpha') source.tiles.shift();
-    const merged = mergeProjectBlobs({ ...source, manifest: packed.manifest, runtime: { entry: 'runtime/index.ts' } }, new Map(), packed.blobs);
-    const runtime = args.includes('--copy-runtime') ? writeRuntimeFiles(project, destination, { check: () => [] }) : undefined;
+    const merged = mergeProjectBlobs({ ...source, manifest: packed.manifest, runtime: { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: [] } }, new Map(), packed.blobs);
+    const runtime = args.includes('--copy-runtime') ? writeRuntimeFiles(project, destination) : undefined;
     writeOutputProduct(merged.shard, merged.assets, destination, { namedFiles: merged.namedFiles, ...(runtime === undefined ? {} : { runtime }) });
   };
 }
@@ -94,15 +95,13 @@ it('a strict generation phase builds only its scope and never checks another pro
   expect(calls.map(args=>basename(args[1]??''))).toEqual(['alpha']);
   await expect(buildShardfiles(root,{scope:['alpha'],only:['alpha'],build:builder(calls)})).rejects.toThrow('cannot be combined');
 });
-it('builds copied runtimes while publishing only data products with the app', async () => {
+it('builds client-plan runtimes without copying TypeScript while publishing only data products with the app', async () => {
   const root = await fixture(), calls: string[][] = [];
   expect(await buildShardfiles(root, { strict: true, copyRuntime: true, build: builder(calls) })).toBe(2);
   expect(calls.map(call => call[0])).toEqual(['build', 'build']);
   expect(calls.every(call => call.includes('--copy-runtime'))).toBe(true);
   const output = resolve(root, 'out');
-  for (const slug of ['alpha', 'beta']) {
-    expect(readFileSync(resolve(output, slug, 'runtime/index.ts'))).toEqual(readFileSync(resolve(root, 'src/shards', slug, 'runtime/index.ts')));
-  }
+  for (const slug of ['alpha', 'beta']) expect(existsSync(resolve(output, slug, 'runtime'))).toBe(false);
   expect(readdirSync(output).sort()).toEqual(['alpha', 'beta']);
   put(root, 'main.js', 'export const ready = true;\n');
   put(output, 'alpha/.build-key', 'not shipped');
@@ -119,14 +118,14 @@ it('builds copied runtimes while publishing only data products with the app', as
   }
 });
 
-it('copies only closed runtimes without publishing or depending on catalog metadata', async () => {
+it('passes the runtime flag only for closed runtimes and ships no runtime TypeScript', async () => {
   const root = await fixture(), calls: string[][] = [];
   put(root, 'src/shards/beta/runtime/index.ts', "import '../data/native';\n");
   await buildShardfiles(root, { strict: true, copyRuntime: 'closed', build: builder(calls) });
   expect(calls.map(call => call[0])).toEqual(['build', 'build']);
   expect(productCalls(calls).map(call => call.includes('--copy-runtime'))).toEqual([true, false]);
-  expect(existsSync(resolve(root, 'out/alpha/runtime/index.ts'))).toBe(true);
-  expect(existsSync(resolve(root, 'out/beta/runtime/index.ts'))).toBe(false);
+  expect(existsSync(resolve(root, 'out/alpha/runtime'))).toBe(false);
+  expect(existsSync(resolve(root, 'out/beta/runtime'))).toBe(false);
   expect(existsSync(resolve(root, 'out/catalog.json'))).toBe(false);
 });
 

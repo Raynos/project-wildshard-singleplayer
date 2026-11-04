@@ -16,7 +16,7 @@ import type { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 export function useOwnedGridHome(mode: PageMode, manifest: Pick<ShardManifest, 'slug' | 'clientPlanRuntime' | 'gridShardfile'>, source?: Parameters<typeof hasDeclaredClientPage>[0]): boolean {
   if (mode !== 'grid') return false;
   const owned = manifest.clientPlanRuntime === true && manifest.gridShardfile !== undefined
-    || source !== undefined && (source.runtime === null || source.runtime !== undefined && !('entry' in source.runtime));
+    || source !== undefined && source.runtime !== undefined;
   if (!owned) throw new Error(`Grid home ${manifest.slug} cannot be an owned region (no admitted data or compiled client page)`);
   return true;
 }

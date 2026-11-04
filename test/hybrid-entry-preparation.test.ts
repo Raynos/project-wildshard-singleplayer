@@ -104,9 +104,6 @@ test('a compiled data owner parks and restores its actual finite hooks without a
   }};
   const session=new HybridRuntimeSession(new Map([['compiled',resident]]),scope);
   try{
-    const sourceEntry = { ...resident, declaration: { entry: 'runtime/index.ts' } };
-    const sourceSession = new HybridRuntimeSession(new Map([['compiled', sourceEntry]]), scope);
-    await expect(sourceSession.prepare('compiled')).rejects.toThrow('requires a compiled client page');
     const untrusted = new HybridRuntimeSession(new Map([['compiled', { ...resident, firstParty: false }]]), scope);
     await expect(untrusted.prepare('compiled')).rejects.toThrow('requires its admitted client plan');
     await session.prepare('compiled');expect(runtime.hooks.meleeSilent).toBeUndefined();

@@ -9,6 +9,7 @@ import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import NINE from './fixtures/nine-product-inputs';
 import NALATI from './fixtures/nalati-product-source';
+import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 const boundA = 'a'.repeat(64), boundB = 'b'.repeat(64), boundC = 'c'.repeat(64), upperRef = 'A'.repeat(64);
 const boundRefs = [boundA, boundB, boundC, upperRef, 'named-ref', ''];
@@ -23,7 +24,7 @@ test.each([
   { name: 'caller-owned logical reference', text: 'path/named-ref.bin', kept: [boundA, boundB, boundC, upperRef] },
 ])('bound file classification preserves substring ownership: $name', ({ text, kept }) => {
   const source = emptyShardfile({ slug: 'bound-inventory', name: 'Bound inventory', author: 'Test', revision: 1, seed: 1 });
-  source.runtime = { entry: 'runtime/index.ts', binds: ['movers'] }; source.identity.name = text;
+  source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['movers'] }; source.identity.name = text;
   // The helper also serves caller-owned descriptors: their legacy logical/empty references retain the old substring law.
   source.movers = boundRefs.map((module, index) => ({ id: `ref-${String(index)}`, entity: index + 1, module, kind: 'channel',
     at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], input: [] }));
@@ -36,7 +37,7 @@ test.each([
 
 test('bound file classification finds distinct overlapping hashes through the final window', () => {
   const source = emptyShardfile({ slug: 'bound-overlap', name: `${boundA}b`, author: 'Test', revision: 1, seed: 1 });
-  source.runtime = { entry: 'runtime/index.ts', binds: ['movers'] };
+  source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['movers'] };
   source.movers = [boundA, `${'a'.repeat(63)}b`, boundB].map((module, index) => ({ id: `ref-${String(index)}`, entity: index + 1, module, kind: 'channel',
     at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], input: [] }));
   expect([...runtimeBoundWorldFiles(source)]).toEqual([boundB]);
@@ -44,7 +45,7 @@ test('bound file classification finds distinct overlapping hashes through the fi
 
 test('late scheduling keeps real shared readers and never becomes a reader itself', () => {
   const source = emptyShardfile({ slug: 'late-bound', name: boundA, author: 'Test', revision: 1, seed: 1 });
-  source.runtime = { entry: 'runtime/index.ts', binds: ['movers'] };
+  source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['movers'] };
   source.movers = [boundA, boundB].map((module, index) => ({ id: `ref-${String(index)}`, entity: index + 1, module, kind: 'channel',
     at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], input: [] }));
   source.sim.scripts = [boundA, boundB]; source.late = [{ hash: boundA }, { hash: boundB, at: [1, 2] }];
@@ -89,7 +90,7 @@ test('native blob inventory does not announce a data sim; declared behavior stil
 test('explicit runtime loot ownership leaves inventory alone and does not install a second data simulation', () => {
   const source = emptyShardfile({ slug: 'owned-loot', name: 'Owned loot', author: 'Test', revision: 1, seed: 1 });
   source.rows = parseRows({ ...source.rows, loot: [LOOT] });
-  source.runtime = { entry: 'runtime/index.ts', binds: ['loot'] };
+  source.runtime = { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['loot'] };
   const stripped = withoutRuntimeRows(source);
   expect(source.rows.loot).toHaveLength(1); expect(stripped.rows.loot).toEqual([]);
   expect(stripped.rows.species).toBe(source.rows.species); expect(stripped.files).toBe(source.files);

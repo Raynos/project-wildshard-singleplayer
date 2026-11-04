@@ -56,10 +56,12 @@ it('uses actual runtime spawn identities in the same namespace and refuses a sec
   const { emptyShardfile } = await import('../author');
   const source = emptyShardfile({ slug: 'binding-test', name: 'Binding', author: 'Test', seed: 2, revision: 1 });
   const actor = { id: 'actor.retained', kind: 'animal', look: 'animal', at: [0, 0] as [number, number], yaw: 0 };
-  source.runtime = { entry: 'runtime/index.ts', binds: ['spawns'], spawns: { homes: [], bosses: [actor], actors: [] } };
+  const runtime = { kind: 'client-plan' as const, cost: { webContentMB: 500, glMB: 100, engineBaseMB: 300, rev: 'abcdef1234', device: 'Fixture', evidence: 'progress/memory/fixture.json' },
+    binds: ['spawns' as const], spawns: { homes: [], bosses: [actor], actors: [] as (typeof actor)[] } };
+  source.runtime = runtime;
   const before = buildDecisionRegistries(source, []);
   expect(before.actors?.get(actor.id)).toBeDefined(); expect(before.spawns).toEqual(before.actors);
-  source.runtime.spawns?.actors?.push(actor);
+  runtime.spawns.actors.push(actor);
   expect(() => buildDecisionRegistries(source, [])).toThrow('Duplicate');
 });
 

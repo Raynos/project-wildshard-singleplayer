@@ -311,7 +311,7 @@ export async function prepareHybridShard(product: ShardProduct, options: Product
   const productOptions = 'base' in options ? options : browserShardfileOptions(
     new URL(`shardfiles/${product.slug}/`, document.baseURI || location.href).href, options.firstParty);
   const source = product.shardfile;
-  if (source.runtime === null || 'entry' in source.runtime) throw new Error('Hybrid requires a compiled client-plan runtime declaration');
+  if (source.runtime === null) throw new Error('Hybrid requires a compiled client-plan runtime declaration');
   provideHybridDeclaration(source);
   if (bindings.stagesOwner === 'runtime' && !options.firstParty) throw new Error('Runtime stage ownership requires a trusted first-party shard');
   const { residencyContext, retainHomeRuntime, stagesOwner, ...providedBindings } = bindings;
@@ -381,8 +381,6 @@ export class HybridRuntimeSession {
     const resident = this.residents.get(instance);
     if (resident === undefined) return Promise.reject(new Error('Missing hybrid resident'));
     const prior = this.prepared.get(instance); if (prior !== undefined) return prior;
-    // Current regions never resolve source modules (LD9: no TS loader remains).
-    if (resident.declaration !== null && 'entry' in resident.declaration) return Promise.reject(new Error('Regional runtime requires a compiled client page'));
     const product = resident.product;
     if (!resident.firstParty || product === undefined || !product.has('client/plan')) return Promise.reject(new Error('Data resident requires its admitted client plan'));
     admittedProductClientPlan(product);
