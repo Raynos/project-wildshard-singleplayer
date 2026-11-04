@@ -14,20 +14,24 @@ test('a loading stage names its own reads as a counted wait of its step, and dro
     Object.defineProperties(Object.create(PerformanceResourceTiming.prototype) as PerformanceResourceTiming, {
       name: { value: name }, startTime: { value: startTime }, transferSize: { value: transferSize },
       encodedBodySize: { value: transferSize }, initiatorType: { value: 'fetch' } });
-  const entries: PerformanceResourceTiming[] = [];
-  vi.spyOn(performance, 'getEntriesByType').mockImplementation(() => entries);
-  vi.spyOn(performance, 'setResourceTimingBufferSize').mockImplementation(() => undefined);
+  // A resource-timing observer sees every entry, whatever the timeline buffer holds (sp-x2's review: a full 250-entry
+  // buffer froze a getEntriesByType count).
+  const observers: ((list: { getEntries: () => PerformanceResourceTiming[] }) => void)[] = [];
+  // oxlint-disable-next-line promise/prefer-await-to-callbacks -- the observer API delivers entries through its callback.
+  vi.stubGlobal('PerformanceObserver', class { constructor(callback: (list: { getEntries: () => PerformanceResourceTiming[] }) => void) { observers.push(callback); }
+    observe(): void { /* entries arrive through the callback */ } disconnect(): void { observers.length = 0; } });
   let release = (): void => undefined;
   try {
     const stage = loadingStage('spawnDetail', () => new Promise<void>(resolve => { release = resolve; }));
-    const now = performance.now();
-    entries.push(entry(`${location.origin}/shardfiles/pine/blobs/glb/a.glb`, now + 1, 1_500_000),
-      entry(`${location.origin}/shardfiles/pine/blobs/glb/b.glb`, now + 2, 2_600_000), entry('https://elsewhere.test/x.js', now + 3, 9_000_000));
+    const entries = [entry(`${location.origin}/shardfiles/pine/blobs/glb/a.glb`, 1, 1_500_000),
+      entry(`${location.origin}/shardfiles/pine/blobs/glb/b.glb`, 2, 2_600_000), entry('https://elsewhere.test/x.js', 3, 9_000_000)];
+    for (const deliver of observers) deliver({ getEntries: () => entries });
     await vi.waitFor(() => {
       const waits = loadingStepWaits(bootWaits(), null, 'spawnDetail', timeline.waitOwner);
       expect(waits.map(wait => wait.label)).toEqual(['Reading 2 files · 4.1 MB']);
     });
     release(); await stage;
     expect(loadingStepWaits(bootWaits(), null, 'spawnDetail', timeline.waitOwner)).toEqual([]);
-  } finally { restore(); }
+    expect(observers).toHaveLength(0); // disconnected at the stage's end
+  } finally { restore(); vi.unstubAllGlobals(); }
 });

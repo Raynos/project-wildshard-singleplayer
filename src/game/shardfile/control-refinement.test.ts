@@ -158,3 +158,22 @@ test('DL21: before control the fence runs up to FENCE_LANES jobs at once and nam
   expect(await Promise.all(after)).toEqual([true, true]);
   expect(most).toBe(1);
 });
+
+test('DL21: the fence count never goes back while a batch finishes job by job (sp-x2\'s review)', async () => {
+  const f = fixture(), gates: (() => void)[] = [];
+  const jobs = Array.from({ length: 6 }, (_, at) => f.queue.add(`partial-${at}`, { x: 0, y: 0, z: 0 },
+    () => new Promise<void>(resolve => { gates.push(resolve); })));
+  const fence = prepareSpawnView(), seen: string[] = [];
+  const label = (): string => [...loadingWaitState().pending.values()].find(row => row.label.startsWith('Spawn view'))?.progress ?? '';
+  await vi.waitFor(() => { expect(gates).toHaveLength(FENCE_LANES); expect(label()).toMatch(/^0 of 6 /u); });
+  // Release the batch one job at a time: n rises, m stays 6.
+  for (let done = 1; done <= 5; done++) {
+    gates.shift()?.();
+    await vi.waitFor(() => { expect(label()).toMatch(new RegExp(`^${done} of 6 `, 'u')); });
+    seen.push(label().split(' · ')[0] ?? '');
+    if (gates.length === 0) await vi.waitFor(() => { expect(gates.length).toBeGreaterThan(0); });
+  }
+  gates.shift()?.(); await fence; // the last job closes the fence and its wait
+  expect(await Promise.all(jobs)).toEqual(Array.from({ length: 6 }, () => true));
+  expect(seen).toEqual(['1 of 6', '2 of 6', '3 of 6', '4 of 6', '5 of 6']); expect(label()).toBe('');
+});

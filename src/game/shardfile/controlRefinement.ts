@@ -1,10 +1,10 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { pageScope } from '@wildshard/engine/app/resources';
-import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import { beginLoadingWait, finishLoadingWait, reportLoadingWait } from '@wildshard/engine/boot/download';
 import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
+import { observeReads } from '@wildshard/engine/boot/waits';
 import { streamingDistance, streamingVisible, type StreamingPoint, type StreamingView } from './streamingView';
 
 type Point = StreamingPoint;
@@ -51,13 +51,15 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
     // (resource timing of /shardfiles/ reads since the fence opened), so the card never sits unchanged on it.
     fenceDone = 0;
     // The card lists only its current step's waits (Loading.paintWaiting): the wait carries that step and owner.
-    const timeline = currentLoadingTimeline(), opened = diagnosticNow();
+    const timeline = currentLoadingTimeline();
     const wait = beginLoadingWait('Spawn view', { kind: 'work', step: timeline?.snapshot().current ?? null, owner: timeline?.waitOwner ?? null });
-    const fetched = (): number => performance.getEntriesByType('resource').reduce((sum, entry) => sum
-      + (entry.startTime >= opened && entry.name.includes('/shardfiles/') && entry instanceof PerformanceResourceTiming ? entry.transferSize || entry.encodedBodySize : 0), 0);
+    const reads = observeReads(name => name.includes('/shardfiles/'));
+    let known = 0;
     const report = (): void => {
       const waiting = [...queues].reduce((sum, queue) => sum + queue.fenceWaiting(), 0);
-      const counted = `${fenceDone} of ${fenceDone + waiting} · ${(fetched() / 1e6).toFixed(1)} MB`;
+      // The total never goes back within the fence (sp-x2's review): jobs leave the queue's count as each one finishes.
+      known = Math.max(known, fenceDone + waiting);
+      const counted = `${fenceDone} of ${known} · ${(reads.bytes() / 1e6).toFixed(1)} MB`;
       reportLoadingWait(wait, { label: `Spawn view · ${counted}`, progress: counted });
     };
     const ticker = pageScope.child('spawn-view.count'); ticker.interval(250, report);
@@ -69,7 +71,7 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
         if (open.length === 0) break;
         await Promise.all(open.map(queue => queue.spawnViewIdle()));
       }
-    } finally { ticker.dispose(); finishLoadingWait(wait); }
+    } finally { ticker.dispose(); reads.stop(); finishLoadingWait(wait); }
     refused();
     // what the fence left (DL17's complete-at-control gate refuses a level whose queues still wait here)
     performance.mark('wildshard.spawn-view.done', { detail: [...queues].map(queue => queue.describe()) });
@@ -186,9 +188,11 @@ export class ControlRefinement {
         }
         if (batch.length === 0) break;
         const fence = !this.active;
+        // Each job leaves the running count as it finishes, so the fence's 'n of m' counts a finished one once.
         this.running = batch.length;
-        const results = await Promise.allSettled(batch.map(async job => { await job.run(); if (fence) fenceDone++; }));
-        this.running = 0;
+        const results = await Promise.allSettled(batch.map(async job => {
+          try { await job.run(); if (fence) fenceDone++; } finally { this.running--; }
+        }));
         let refusal: Error | undefined;
         results.forEach((result, at) => {
           const job = batch[at]; if (job === undefined) return;
