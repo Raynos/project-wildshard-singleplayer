@@ -99,7 +99,7 @@ SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
 2. **All 10 grid-ready** (latched): only Nalati left.
 3. Infinite Wildshard **loads in < 5 s warm, < 15 s cold** (tap → controls, G619/G622) and **shard to shard < 5 s** (G579).
 4. **Open plots redesigned** (G617/G621/G623).
-5. **Live = main on a green CI**, then **Jake's one iPhone check** of all six shards in SHARD SELECT and the grid (G558, G604).
+5. **Live = main on a green CI**, then **Jake's one iPhone check** of all six shards in SHARD SELECT and the grid (G558, G604). The check also watches what only a cold phone shows: Driftwood's 'Sky · lighting' loading step (D199's 8.8 s frozen frame, never reproduced off the phone) and the first visit's shader compiles (DL10).
 6. Then, on Jake's word, the legacy folders are deleted (LD5–LD8) and the plan archives.
 
 ## 0. Read this first
