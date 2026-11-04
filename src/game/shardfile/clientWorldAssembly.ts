@@ -81,7 +81,7 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
         publishEntryOwner(owner, 'fixed-draws', publish.draws, book.library.loaded());
       }
       return scenes;
-    } finally { await drainGeometry?.(); }
+    } finally { if (drainGeometry !== undefined) await timed('geometry-drain', drainGeometry); }
   };
   let scenes: SceneHandles;
   if (resident === undefined) scenes = await build(scope, false);
@@ -99,7 +99,7 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     const root = entryOwner(scope, 'object', row.entered.root), variant = construction.variant?.[cube === null ? 'standalone' : 'cell'];
     const entry = WorldEntry.admit(entryRows, { root, scope, tier: game.tier, ...(variant === undefined ? {} : { variant }), piece: value => { ctx.piece(value); }, fence: live });
     enteredScopes.add(scope); scope.onDispose(() => { enteredScopes.delete(scope); });
-    for (const block of row.entered.blocks) { live(); await entry.run(block); live(); }
+    await timeClientPreparation(product.slug, 'assembly:entered', async () => { for (const block of row.entered?.blocks ?? []) { live(); await entry.run(block); live(); } });
   }
   if (resident !== undefined && publish !== undefined) {
     lendEntryOwner(scope, resident, 'fixed-draws', publish.draws);
@@ -119,7 +119,10 @@ export async function installClientWorldAssembly(ctx: ShardContext, row: Extract
     if (standIn !== null) scenes.addTiled(standIn);
   }
   // NT1: the product's own ring (its whole cell where it declares `ring: 'cell'`), as the client plan's driver takes it
-  noteTileBytes(owner, source.tiles); await residentTiles(owner, scenes.tiled(), source.spawn, source.entryways, productTileRing(source)); live();
+  // DL21: the resident tiles (coarse cover and the spawn's tiles before controls) are a named span: on Nine they were the
+  // untimed ~1.9 s tail of world assembly, the card on 'Props · world ready' meanwhile
+  noteTileBytes(owner, source.tiles);
+  await timeClientPreparation(product.slug, 'assembly:resident-tiles', () => residentTiles(owner, scenes.tiled(), source.spawn, source.entryways, productTileRing(source))); live();
   const camera = new StreamingCamera(ctx.root, () => world.game.camera);
   const follow = followResidentTiles(owner, () => world.player.position, () => cameraCone(world.game.camera), () => camera.read());
   if (follow !== null) ctx.system({ id: 'client.world.tiles', phase: 'update', run: () => { follow(); } });
