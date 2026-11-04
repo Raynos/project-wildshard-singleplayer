@@ -10,6 +10,11 @@ it('counts only completed manifest content and its exact cache subset', () => {
   expect(loadingDownloadFraction(unrelated)).toBe(0.75);
   expect(loadingDownloadText(unrelated)).toBe(loadingDownloadText(manifest));
 });
+it('DL21: wire bytes still arriving count in the MB as they stream, before their file lands', () => {
+  const wire = {totalBytes: 31_500_000, completedBytes: 0, cachedBytes: 0};
+  expect(loadingDownloadText({...manifest, wire})).toBe('Spawn view · 0.00 MB of 31.5 MB · 0.00 MB from cache');
+  expect(loadingDownloadText({...manifest, wire: {...wire, arrivingBytes: 2_400_000}})).toBe('Spawn view · 2.40 MB of 31.5 MB · 0.00 MB from cache');
+});
 it('reserves completion for the complete file operation, including genuinely empty lists', () => {
   const allBytes = {...manifest, completedBytes: 52_000_000, filesDone: 4};
   expect(loadingDownloadFraction(allBytes)).toBe(0.999);

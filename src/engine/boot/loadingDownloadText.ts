@@ -15,7 +15,7 @@ export interface LoadingDownloadSnapshot {
   /** Native cache presence has not resolved yet; keep its percentage unknown. */
   readonly progressKnown?: boolean;
   /** Build-owned encoded representation sizes, separate from decoded admission/progress. */
-  readonly wire?: {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number};
+  readonly wire?: {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number; readonly arrivingBytes?: number};
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
   /** Bytes streamed so far, verified or not (a part's chunks before its members verify): progress for the stuck-boot
@@ -27,7 +27,8 @@ export function loadingDownloadFraction(row: LoadingDownloadSnapshot): number {
 }
 export function loadingDownloadText(row: LoadingDownloadSnapshot): string {
   const text = row.wire ?? row;
-  return `Spawn view · ${formatMB(text.completedBytes)}${row.complete ? '' : ` of ${formatMB(text.totalBytes)}`} · ${formatMB(text.cachedBytes)} from cache`;
+  // DL21: wire bytes still arriving count as they stream (decoded reads already credit per chunk)
+  return `Spawn view · ${formatMB(text.completedBytes + (row.wire?.arrivingBytes ?? 0))}${row.complete ? '' : ` of ${formatMB(text.totalBytes)}`} · ${formatMB(text.cachedBytes)} from cache`;
 }
 
 /** The grid prefetch's own row: disk bytes against the set discovered so far (a finished run with every product read is 1). */

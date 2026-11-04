@@ -6,7 +6,9 @@ export interface SpawnDownloadSnapshot {
   /** False while native cache presence is unresolved; zero is not yet an observed transfer fact. */
   readonly progressKnown?: boolean;
   /** Compressed representation facts for text only; decoded reads keep their original bounds/progress. */
-  readonly wire?: {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number};
+  readonly wire?: {readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
+    /** DL21: wire bytes of files still arriving (pro rata to their chunks), so the card's MB moves as bytes stream */
+    readonly arrivingBytes?: number};
   readonly totalBytes: number; readonly completedBytes: number; readonly cachedBytes: number;
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
   /** Bytes streamed so far, verified or not: progress for the stuck-boot watch, never shown as downloaded. */
@@ -167,7 +169,17 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   let wireCompleted = 0, wireCached = 0, wireTotal = address.wireBytes;
   // DL21: a part's chunks as they arrive, before its members verify (the stuck-boot watch's progress, never shown as read)
   let streamedBytes = 0;
-  const snapshot = (): SpawnDownloadSnapshot => ({...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
+  // DL21 (Jake's 69fa647 phone shot: 'Spawn view · 0.00 MB' at 16 s): the wire figure credits a file only when it lands,
+  // so a link busy with big files read 0.00 MB. A file still arriving shows its received share of its wire size until it
+  // lands (then its whole size moves to completed) or fails (then it drops out).
+  const arriving = new Map<string, number>();
+  let wireArriving = 0;
+  const arrive = (file: {readonly url: string; readonly bytes: number; readonly wireBytes: number}, received: number): void => {
+    const next = file.bytes > 0 ? Math.floor(Math.min(1, received / file.bytes) * file.wireBytes) : 0, was = arriving.get(file.url) ?? 0;
+    if (next !== was) { arriving.set(file.url, next); wireArriving += next - was; }
+  };
+  const landed = (url: string): void => { wireArriving -= arriving.get(url) ?? 0; arriving.delete(url); };
+  const snapshot = (): SpawnDownloadSnapshot => ({...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached, arrivingBytes: wireArriving}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error, streamedBytes: streamedBytes + completedBytes});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
   ownSignals.add(controller.signal);
@@ -307,7 +319,12 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               body.set(chunk.value, at); at += chunk.value.byteLength;
               // a slow part still shows it moves: every chunk publishes, as a loose file's read does (verified bytes
               // still credit only per member)
-              streamedBytes += chunk.value.byteLength; publish();
+              streamedBytes += chunk.value.byteLength;
+              for (let row = next; row < order.length; row++) {
+                const [index, offset] = order[row] ?? [-1, Infinity], file = files[index]; if (file === undefined || offset >= at) break;
+                arrive(file, at - offset);
+              }
+              publish();
               for (let row = order[next]; row !== undefined; row = order[next]) {
                 const [index, offset] = row, file = files[index]; if (file === undefined || offset + file.bytes > at) break;
                 // DL13: a member is a view into its part (no copy): page reads and the keep share the part's bytes
@@ -316,7 +333,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
                 if (await sha256(member) !== file.hash) throw new Error(`Spawn part member differs: ${part.url}`);
                 await ports.keep?.(file.url, new Response(member, {headers: {'content-type': typeOf(file.url), 'content-length': String(member.length)}}));
                 settle.get(index)?.(member); done.add(index); settleFile(file.url, true);
-                completedBytes += file.bytes; wireCompleted += file.wireBytes; filesDone++; publish();
+                landed(file.url); completedBytes += file.bytes; wireCompleted += file.wireBytes; filesDone++; publish();
               }
             }
             if (at !== part.bytes) throw new Error(`Spawn part size differs: ${part.url}`);
@@ -326,6 +343,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               ...part.members.map(([member]) => files[member]?.url ?? '')])]);
           } catch {
             // Settle first: a page read already waiting on a member must fall through, even when this download aborts.
+            for (const [index] of order) { const file = files[index]; if (file !== undefined) landed(file.url); }
             for (const [index] of order) if (!done.has(index)) {left.add(index); settle.get(index)?.(null);}
             controller.signal.throwIfAborted();
           }
@@ -368,13 +386,13 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               ...ports, fetch: (url, signal, init) => {received = 0; return ports.fetch(url, signal, init);},
             }, controller.signal, size => {
               received += size;
-              if (received > credited) {completedBytes += received - credited; credited = received; publish();}
+              if (received > credited) {completedBytes += received - credited; credited = received; arrive(file, received); publish();}
             });
             if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
             // a job cancelled during the unabortable store publishes nothing to the page (sp-x2: after control it would)
             if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); controller.signal.throwIfAborted(); serve(file); }
-            settleFile(file.url, true); wireCompleted += file.wireBytes; filesDone++; publish();
-          } finally { inFlight.delete(file.url); active--; if (demandedFlight.delete(file.url)) demandsActive--; nudge(); }
+            settleFile(file.url, true); landed(file.url); wireCompleted += file.wireBytes; filesDone++; publish();
+          } finally { landed(file.url); inFlight.delete(file.url); active--; if (demandedFlight.delete(file.url)) demandsActive--; nudge(); }
         }
       }));
       // Settled: every wait answered, so the map leaves the page (the stored copies and part members stay until control).

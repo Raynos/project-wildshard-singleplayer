@@ -129,7 +129,26 @@ test('DL15: on the packs path the wire facts are the parts\' q11 bodies plus the
     return Promise.resolve(new Response(path === at.url ? wired : path === part.url ? partBytes : body(path)));
   }}, base);
   await download.ready;
-  expect(download.snapshot().wire).toEqual({totalBytes: 8, completedBytes: 8, cachedBytes: 0});
+  expect(download.snapshot().wire).toEqual({totalBytes: 8, completedBytes: 8, cachedBytes: 0, arrivingBytes: 0});
+});
+
+test('DL21: the card\'s MB moves with a part\'s chunks before its first member verifies, and nets out when it lands', async () => {
+  // Jake's 69fa647 phone shot: 'Spawn view · 0.00 MB of 31.5 MB' at 16 s, the wire figure credited only landed files
+  const files = [{...bin, wireBytes: 3}, {...glb, wireBytes: 4}, {...code, wireBytes: 2}];
+  const wired = JSON.stringify({...manifest, files, wireBytes: 9, parts: [{...part, wireBytes: 6}]});
+  const at = {...address, url: '/assets/spawn/example-wire-1234567890abcdef.json', bytes: wired.length, wireBytes: 9};
+  let push = (_bytes: Uint8Array<ArrayBuffer>): void => { throw new Error('Part stream not started'); }, close = (): void => undefined;
+  const stream = new ReadableStream<Uint8Array<ArrayBuffer>>({start: controller => {push = bytes => {controller.enqueue(bytes);}; close = () => {controller.close();};}});
+  const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined), fetch: url => {
+    const path = new URL(url).pathname;
+    return Promise.resolve(new Response(path === at.url ? wired : path === part.url ? stream : body(path)));
+  }}, base);
+  await vi.waitFor(() => {expect(download.snapshot().progressKnown).toBe(true);});
+  push(partBytes.slice(0, 2));
+  await vi.waitFor(() => {expect(download.snapshot().wire?.arrivingBytes).toBeGreaterThan(0);});
+  expect(download.snapshot().completedBytes).toBe(0);
+  push(partBytes.slice(2)); close(); await download.ready;
+  expect(download.snapshot().wire).toEqual({totalBytes: 8, completedBytes: 8, cachedBytes: 0, arrivingBytes: 0});
 });
 
 test('DL21: a part streaming one byte every 50 s, before any member verifies, keeps the stuck watch quiet', async () => {
