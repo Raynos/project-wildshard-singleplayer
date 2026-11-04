@@ -16,7 +16,7 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 | C3 | Review sp-o5's NF18 (TSL runtime deletion) when it lands: no TSL import left, goldens cited | NF18 commit |  sp-x2 11:15 |
 | C4 | Review sp-o5's LD9b (copied-runtime arm retired) when it lands: refusals, chargebacks | LD9b commit | sp-x1 11:20 |
 | C5 | Review sp-o2's DL16 flip (packs default on; debug.levelDownload kept for tools only) when it lands | DL16 commit | sp-x6 11:46 |
-| C6 | Review sp-o1's DL7 P3 snapshot seed when it lands: snapshot equals runtime build, fallback intact | DL7 P3 commit |sp-x1 11:50 |
+| C6 | Review sp-o1's DL7 P3 snapshot seed when it lands: snapshot equals runtime build, fallback intact | DL7 P3 commit | sp-x1 11:50; reviewed through `526406cf30`: bake/codec/runtime seam and fallback hold; partial-bake cleanup finding fixed |
 | C7 | Plot walks + 8-view goldens (machine slot; booked: x2 Thin/Fossil/Pastel, x1 Clockwork/Desert/Race/Showcase) | OPEN-PLOTS | x1, x2 |
 
 ## G768 (Jake, 2026-10-27): no gate project
