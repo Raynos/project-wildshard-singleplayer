@@ -92,6 +92,8 @@
   "asset:/assets/baked/pine-hollow/navmesh.bin",
   "asset:/assets/boot-far-reach.json",
   "asset:/assets/boot-sunscar-dunes.json",
+  "asset:/assets/gpu/baked/pine-hollow/tex/clouds.phone.ktx2",
+  "asset:/assets/gpu/baked/pine-hollow/tex/planet.ktx2",
   "asset:/assets/gpu/models/Lantern_01/Lantern_01_lod.phone.glb",
   "asset:/assets/gpu/models/stone_fire_pit/stone_fire_pit.phone.gltf",
   "asset:/assets/gpu/pine-hollow/npcs/miller.phone.glb",
