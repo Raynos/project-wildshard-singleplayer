@@ -37,7 +37,7 @@ const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
 /** DL13's default-path slice (DL22): before the worker controls the page, its reads of a file the spawn download stored go
  * to the network again (the page's HTTP cache evicted them: Pine re-fetched 25.4 MB before control). Until control, a GET
  * of a stored URL is answered from that same store. */
-const storedUrls = new Set<string>();
+const storedUrls = new Map<string, {readonly bytes: number; readonly hash: string}>();
 let storeRead: ((url: string) => Promise<Response | undefined>) | null = null;
 let layer: typeof fetch | null = null;
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
@@ -58,9 +58,17 @@ function installMemberLayer(): boolean {
       const url = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href).href;
       const bytes = await members.get(url);
       if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
-      if (storedUrls.has(url) && storeRead !== null) {
+      const expected = storedUrls.get(url);
+      if (expected !== undefined && storeRead !== null) {
+        // Served only as the manifest's exact file (sp-x2's review): a 200, not a page, its length and sha256; a short,
+        // replaced or corrupt copy goes to the network instead.
         const hit = await storeRead(url).catch(() => undefined);
-        if (hit?.status === 200) return hit;
+        if (hit?.status === 200 && !/\btext\/html\b/iu.test(hit.headers.get('content-type') ?? '')) {
+          const body = new Uint8Array(await hit.arrayBuffer().catch(() => new ArrayBuffer(0)));
+          if (body.byteLength === expected.bytes && await sha256(body) === expected.hash) {
+            return new Response(body, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(body.byteLength)}});
+          }
+        }
       }
     }
     return network(input, init);
@@ -176,12 +184,13 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       }
       progressKnown = true;
       // An uncontrolled page (the `store` port exists only then) reads these from the store until control (read once).
-      const serve = (url: string): void => {
-        if (ports.store === undefined) return;
-        if (storeRead === null) { if (!installMemberLayer()) return; storeRead = ports.cached; }
-        storedUrls.add(url);
+      // The layer is checked on every serve, so a fetch replaced mid-page is wrapped again (sp-x2's review).
+      const serve = (file: {readonly url: string; readonly bytes: number; readonly hash: string}): void => {
+        if (ports.store === undefined || !installMemberLayer()) return;
+        storeRead ??= ports.cached;
+        storedUrls.set(file.url, {bytes: file.bytes, hash: file.hash});
       };
-      for (const file of files) if (!missing.includes(file)) serve(file.url);
+      for (const file of files) if (!missing.includes(file)) serve(file);
       if (missing.length === 0) { complete = true; publish(); return; }
       publish(); let cursor = 0;
       // DL5: every part holding a missing member at once; members are cut out as their bytes land. A part that fails
@@ -252,7 +261,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             if (received > credited) {completedBytes += received - credited; credited = received; publish();}
           });
           if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
-          if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); serve(file.url); }
+          if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); serve(file); }
           wireCompleted += file.wireBytes; filesDone++; publish();
         }
       }));

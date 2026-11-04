@@ -181,3 +181,28 @@ test('DL13 default-path slice: until control, an uncontrolled page re-reads a st
   expect(new TextDecoder().decode(await read())).toBe('network');
   vi.unstubAllGlobals();
 });
+
+test('DL13 read-once serves only the manifest\'s exact file; a fetch replaced mid-page is wrapped again (sp-x2\'s review)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const disk = new Map<string, Response>(), plain = JSON.stringify({ ...manifest, parts: undefined });
+  const at = { ...address, url: '/assets/spawn/example-check-1234567890abcdef.json', bytes: plain.length };
+  const ports = {
+    cached: (url: string) => Promise.resolve(disk.get(url)?.clone()),
+    store: (url: string, response: Response) => { disk.set(url, response); return Promise.resolve(); },
+    fetch: (url: string) => { const path = new URL(url).pathname; return Promise.resolve(new Response(path === at.url ? plain : body(path))); },
+  };
+  await downloadSpawnManifest(at, ports, base).ready;
+  const binURL = new URL(bin.url, base).href, glbURL = new URL(glb.url, base).href;
+  const read = async (url: string): Promise<string> => new TextDecoder().decode(new Uint8Array(await (await window.fetch(url)).arrayBuffer()));
+  // Same length, wrong bytes; a short body; a page: each goes to the network.
+  disk.set(binURL, new Response(new Uint8Array(4).fill(9))); expect(await read(binURL)).toBe('network');
+  disk.set(glbURL, new Response(new Uint8Array(3).fill(2))); expect(await read(glbURL)).toBe('network');
+  disk.set(binURL, new Response('<!doctype html>', { headers: { 'content-type': 'text/html' } })); expect(await read(binURL)).toBe('network');
+  // Something replaces fetch mid-page: the next download's serve wraps it again.
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  disk.clear();
+  await downloadSpawnManifest({ ...at, url: '/assets/spawn/example-check2-1234567890abcdef.json' }, { ...ports,
+    fetch: (url: string) => { const path = new URL(url).pathname; return Promise.resolve(new Response(path.endsWith('.json') ? plain : body(path))); } }, base).ready;
+  expect(new Uint8Array(await (await window.fetch(glbURL)).arrayBuffer())).toEqual(new Uint8Array(5).fill(2));
+  vi.unstubAllGlobals();
+});
