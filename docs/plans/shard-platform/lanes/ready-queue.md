@@ -18,6 +18,11 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 | C5 | Review sp-o2's DL16 flip (packs default on; debug.levelDownload kept for tools only) when it lands | DL16 commit | sp-x6 11:46 |
 | C6 | Review sp-o1's DL7 P3 snapshot seed when it lands: snapshot equals runtime build, fallback intact | DL7 P3 commit | sp-x1 11:50; reviewed through `526406cf30`: bake/codec/runtime seam and fallback hold; partial-bake cleanup finding fixed |
 | C7 | Plot walks + 8-view goldens (machine slot; booked: x2 Thin/Fossil/Pastel, x1 Clockwork/Desert/Race/Showcase) | OPEN-PLOTS | x1, x2 |
+| C8 | Review sp-x8 cap-only 8c64526e31 + sp-x9 wildlife factoring db73663420: no refusal or native check lost, no grammar loosened | 8c64526e31, db73663420 | sp-x1 12:25 |
+| C9 | Review sp-x8's B7/B9 shared fixture wrap: original bytes/hash/url checks kept | 2dcb3acd5d | |
+| C10 | Review sp-o3's Pine early-read list (sky textures) + DL11 member-scoped refs | 1e709cf297, 63020f7c1b | |
+| C11 | Review sp-o1's seed chunks (<= 11 MB, ordered join, packs manifest binding) | 526406cf30 | |
+| C12 | Review sp-o2's D226 route data + DL17 boost-false legs and heap tool | e452f315d9, 2477dc4e09 | |
 
 ## G768 (Jake, 2026-10-27): no gate project
 

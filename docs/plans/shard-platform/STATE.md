@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 86f2590-mw26uru3** (09:34, 30 verified; CI red since; first green due from 4644786eb2; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 86f2590-mw26uru3** (09:34, 30 verified; CI red since (Nalati index > 2 MB): fix 8c64526e31 PREPARE GREEN, db73663420 next; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**12:00:** QD7 done to LD8 + manifest B (o1); o5 NF18 then LD9b, LD10, CO8. DL16 gates green bar goldens (o2); DL7 P3 seed landed off (o1); DL10 pacing (o3). D227: Pine 1.39-1.43 GB Inspector play, pre-packs (Jake).
+**13:00:** DL16 packs-on goldens 6x24 GREEN, flip lands after o4 timed block. Plots: Thin, Clockwork, Pastel full; Desert/Showcase read green; Race neighbour skyline bisect (x6). Missing-product = pre-793ceb58 pins only.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
