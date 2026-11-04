@@ -1,8 +1,8 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { STEP, WINCH_HOUSE } from "./layout";
-import { foldKinds, type KindExtra, type PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { foldKinds, type KindExtra } from '@wildshard/sdk/bake/kinds';
+import { SkyPiece } from './piece';
 import { beam, leanAbove, quad, shackMesh, shackPart, strut, tri, type ShackPart } from './shackKit';
 
 /**
@@ -237,4 +237,3 @@ export function skyWinchHousePiece(): SkyPiece {
   built.group.position.set(0, 0, 0);
   return new SkyPiece('far.winch-house', foldKinds(built.group, { extra: shackRow }), built.colliders, { extra: shackRow, attributes: { _SHK: 'shk' } }, {});
 }
-export function bakeSkyWinchHouse(): PieceBake { return bakeSkyPiece(skyWinchHousePiece()); }

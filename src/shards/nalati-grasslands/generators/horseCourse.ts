@@ -45,6 +45,3 @@ export function ovalLine(step = 4): [number, number][] {
   out.push([LINE_X, R]);
   return out;
 }
-
-/** the lap's length on the centre line (m) */
-export const LAP_M: number = 4 * OVAL.halfLen + 2 * Math.PI * OVAL.radius;

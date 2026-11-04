@@ -1,7 +1,7 @@
 import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { BoxGeometry, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 import { RISING_ISLETS } from './risingIslets';
 import type { RisingIslet } from './rows/isletDesign';
 import { PALETTE, flat } from './palette';
@@ -36,4 +36,3 @@ export function skyIsletRigPiece(): SkyPiece<IsletRigRows> {
   const built = buildIsletRig();
   return new SkyPiece('far.islet.posts', [['post', built.posts], ['lantern', built.lanterns]], built.colliders, {}, skyIsletRigRows());
 }
-export function bakeSkyIsletRig(): IsletRigBake { return bakeSkyPiece(skyIsletRigPiece()); }

@@ -1,7 +1,7 @@
 import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 import { RISING_ISLETS } from './risingIslets';
 import { ISLET, type EntryEdge, type RisingIslet } from './rows/isletDesign';
 import { PALETTE, flat } from './palette';
@@ -127,4 +127,3 @@ export function skyDocksPiece(): SkyPiece<{ tints: Record<string, number[]> }> {
   built.timber.instanceColor = null;
   return new SkyPiece('far.docks', [['timber', built.timber], ['beacon', built.beacon]], built.colliders, {}, { tints });
 }
-export function bakeSkyDocks(): DocksBake { return bakeSkyPiece(skyDocksPiece()); }

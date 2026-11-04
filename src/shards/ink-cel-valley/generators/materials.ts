@@ -1,7 +1,6 @@
 import { Color, SRGBColorSpace } from 'three';
 import { dot, floor, length, mix, normalize, normalLocal, normalView, cameraPosition, positionViewDirection, positionWorld, saturate, select, smoothstep, step, vec3 } from 'three/tsl';
 import { GraphMaterial, ToonMaterial, graph, graphInputs, param } from '@wildshard/sdk/materials';
-import type { MaterialEntry } from '@wildshard/format/materials';
 
 /**
  * The ink / cel valley's materials authored with `@wildshard/sdk/materials` (DS1.4): `ground` is a `ToonMaterial` in
@@ -46,9 +45,4 @@ export function inkRock(): GraphMaterial {
     lighting: { sun: diffuse.mul(keep), ambient, grade: mix(posterised, ink, dark) },
     outline: { offset: hull, colour: ink },
   }));
-}
-
-/** The look's material catalogue, from the materials above. */
-export function inkMaterials(): Record<'ground' | 'rock', MaterialEntry> {
-  return { ground: inkGround().toMaterialEntry(), rock: inkRock().toMaterialEntry() };
 }

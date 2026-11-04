@@ -234,16 +234,6 @@ export interface AOOpts {
 // 9 fixed hemisphere directions (z-up tangent frame), cosine-ish spread — deterministic bakes
 const HEMI = hemisphere([[0.94, 1], [0.66, 3], [0.3, 5]], 2.1);
 
-/** darken a merged, non-indexed, vertex-coloured geometry by how enclosed each vertex position is (smooth: per position;
- *  the one `voxelAO`, welded) */
-export function bakeSmoothAO(geo: THREE.BufferGeometry, o: AOOpts = {}): void {
-  if (!geo.hasAttribute('color') || !geo.hasAttribute('normal')) return;
-  geo.computeBoundingBox();
-  const bb = geo.boundingBox;
-  if (bb === null) return;
-  bakeSmoothAOBounded(geo, o, bb);
-}
-
 function bakeSmoothAOBounded(geo: THREE.BufferGeometry, o: AOOpts, bb: THREE.Box3): void {
   const ext = new THREE.Vector3().subVectors(bb.max, bb.min);
   let cell = o.cell ?? Math.min(0.8, Math.max(0.15, Math.max(ext.x, ext.y, ext.z) / 140));

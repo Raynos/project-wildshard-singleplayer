@@ -1,7 +1,6 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, InstancedMesh, LatheGeometry, Matrix4, MeshStandardMaterial, Quaternion, Vector2, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 import { MILL_COURSES, MILL_TOWER } from './rows/millShape';
 
 /**
@@ -285,4 +284,3 @@ export function buildMillSet(): (readonly [string, InstancedMesh])[] {
 
 /** The mill's code set baked (no colliders: world/build.ts gives the mill its box and its drum's hull). */
 export const skyMillPiece = (): SkyPiece => new SkyPiece('far.mill', buildMillSet(), [], { attributes: { _FARCLOTH: 'farCloth' } }, {});
-export function bakeSkyMill(): PieceBake { return bakeSkyPiece(skyMillPiece()); }

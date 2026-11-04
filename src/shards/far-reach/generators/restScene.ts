@@ -63,10 +63,6 @@ export function restPools(): readonly { readonly url: string; readonly parts: re
     return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
   });
 }
-export function winchGlb(): Uint8Array { return winchRest().glb; }
-export function hover0Glb(): Uint8Array { const made = hoverRestRows()[0]; if (made === undefined) throw new Error('Missing first hover span'); return made.glb; }
-export function hover1Glb(): Uint8Array { const made = hoverRestRows()[1]; if (made === undefined) throw new Error('Missing second hover span'); return made.glb; }
-export function hover2Glb(): Uint8Array { const made = hoverRestRows()[2]; if (made === undefined) throw new Error('Missing updraft span'); return made.glb; }
 
 /** A seeded stream for the bolts' zig-zags (mulberry32): every bake draws the same three bolts. */
 function stormRandom(seed: number): () => number {
@@ -111,7 +107,6 @@ export function stormRest(): ClientSceneBake {
   top.name = 'far.storm';
   return made;
 }
-export function stormGlb(): Uint8Array { return stormRest().glb; }
 
 /** Only the static halo is a new pool; fitted painted models and their maps stay borrowed. */
 function bookHaloRest():ClientSceneBake {
@@ -119,7 +114,6 @@ function bookHaloRest():ClientSceneBake {
   const halo=new Mesh(new SphereGeometry(0.12,12,8),material);halo.name='stand-halo';root.add(halo);
   return clientSceneGlb(root,new Map([[material,'halo']]));
 }
-export function bookStandGlb():Uint8Array { return bookHaloRest().glb; }
 /** Notes and keeper use the same original named hierarchy and explicit whole-model fallback. */
 function bookStandRows(withLantern:boolean):WorldSceneRecipe {
   const [x,y,z]=LECTERN.hook;

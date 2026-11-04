@@ -1,7 +1,6 @@
 import { BufferGeometry, Color, DoubleSide, InstancedMesh, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { buildGeometries } from './geometries';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 import { meadowHoles, meadowPaths } from './placements';
 import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from "./layout";
 import { apothem, knollHeight } from "./layoutMath";
@@ -260,5 +259,3 @@ export function skyDressingPiece(): SkyPiece<{ discs: [number, number, number][]
   });
   return new SkyPiece('far.dressing', kinds, [], { exactInstances: true, extra: (material) => ({ dressing: material.name }) }, { discs: heroStoneDiscs() });
 }
-/** The dressing bake on its own (the stale gate's reader). */
-export function bakeSkyDressing(): PieceBake & { discs: [number, number, number][] } { return bakeSkyPiece(skyDressingPiece()); }

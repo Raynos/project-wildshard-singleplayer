@@ -66,15 +66,9 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house':
   crown: '/assets/far-reach/baked/crown.glb', mill: '/assets/far-reach/baked/mill.glb',
   'book-stand': '/assets/far-reach/baked/book-stand.glb', knolls: '/assets/far-reach/baked/knolls.glb',
   geometries: '/assets/far-reach/baked/geometries.glb', 'islet-rig': '/assets/far-reach/baked/islet-rig.glb', dressing: '/assets/far-reach/baked/dressing.glb' };
-/** The meadow's blades, deflated (world/meadow.ts; SHARD-PLATFORM M3, generators/meadowBlades.ts). */
-/** Every island's baked shape (world/isle.ts `islandMesh`; SHARD-PLATFORM M3, generators/isles.ts). */
-/** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */
-export const BRIDGES_URL = '/assets/far-reach/baked/bridges.bin';
 /** The war fan's baked shapes (weapons/fanModel.ts `fanParts`; SHARD-PLATFORM M3, generators/fan.ts). */
 export const FAN_URL = '/assets/far-reach/baked/fan.glb';
 export const FAN_POOL = {url:FAN_URL,parts:['shape0','shape1','shape2','shape3','shape4','shape5','shape6','shape7','shape8','shape9','shape10','shape11','shape12','shape13']} as const;
-/** The windmill's modelled tower and foot, fitted offline (world/mill.ts; SHARD-PLATFORM M3, generators/millModel.ts). */
-export const MILL_MODEL_URL = '/assets/far-reach/baked/mill-model.bin';
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */
 export const TEX_URL = { rock: '/assets/far-reach/tex/rock.webp', meadow: '/assets/far-reach/tex/meadow.webp', clouds: '/assets/far-reach/tex/clouds.webp', cloudsea: '/assets/far-reach/tex/cloudsea.webp', maelstrom: '/assets/far-reach/tex/maelstrom.webp', stormeye: '/assets/far-reach/tex/stormeye.webp',
   millStone: '/assets/far-reach/tex/mill-stone.webp', millCanvas: '/assets/far-reach/tex/mill-canvas.webp', millIvy: '/assets/far-reach/tex/mill-ivy.webp' } as const;

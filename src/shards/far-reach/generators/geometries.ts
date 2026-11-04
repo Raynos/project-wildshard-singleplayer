@@ -1,6 +1,5 @@
 import { BufferGeometry, Color, CylinderGeometry, Float32BufferAttribute, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 import { PALETTE } from './palette';
 import { fallGeometry } from './fallGeometry';
 
@@ -184,4 +183,3 @@ export function buildGeometries(): (readonly [string, InstancedMesh<BufferGeomet
 
 /** The shapes baked (no colliders). */
 export const skyGeometriesPiece = (): SkyPiece => new SkyPiece('far.geometries', buildGeometries(), [], {}, {});
-export function bakeSkyGeometries(): PieceBake { return bakeSkyPiece(skyGeometriesPiece()); }

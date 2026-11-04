@@ -1,5 +1,5 @@
 import { smoothstep as sstep } from '@wildshard/sdk/noise';
-import { loft, S, mix, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station, type BoneDef } from '@wildshard/sdk/bake/species';
+import { loft, S, mix, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station } from '@wildshard/sdk/bake/species';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -144,16 +144,6 @@ export function buildSheepGeometry(): THREE.BufferGeometry {
  * (src/engine/entities/creatureRigBake.ts via scripts/nalati-rig-bake.mjs; the result is read back into aRig in Flock.ts).
  */
 export const SHEEP_PART_NAMES = ['body', 'head', 'FL', 'FR', 'BL', 'BR', 'tail'] as const;
-export const SHEEP_BONES: BoneDef[] = SHEEP_PART_NAMES.map((name, i) => ({ name, parent: i === 0 ? null : 'body', pos: SHEEP_PIVOTS[i] ?? [0, 0, 0] }));
-export function sheepSkinnedGeometry(): THREE.BufferGeometry {
-  const g = buildSheepGeometry();
-  const rig = g.getAttribute('aRig'), n = rig.count;
-  const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) { si[i * 4] = rig.getX(i); si[i * 4 + 1] = rig.getY(i); sw[i * 4] = 1 - rig.getZ(i); sw[i * 4 + 1] = rig.getZ(i); }
-  g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
-  g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
-  return g;
-}
 
 /** `k` stations for every gap (linear in position, radii and skin weight) — finer rings for the wool curls */
 function densify(st: Station[], k: number): Station[] {

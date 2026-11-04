@@ -24,9 +24,6 @@ export const ROC_DEFINITION = { id: ROC_ID, name: STRINGS.roc, title: STRINGS.ro
 export const ROC_BOSS_PROFILE = { kind: 'boss', pattern: 'held', fight: { arena: { x: LAYOUT.CROWN.x, z: LAYOUT.CROWN.z, r: LAYOUT.CROWN.r * 0.9, floor: LAYOUT.CROWN.y - 2 }, hpShares: PHASES,
   rewardPoint: { x: LAYOUT.DAIS.x, y: LAYOUT.CROWN.y + LAYOUT.DAIS.h, z: LAYOUT.DAIS.z }, respawn: { x: LAYOUT.FALLEN_BRIDGE.x1, y: LAYOUT.CROWN.y + 0.2, z: LAYOUT.FALLEN_BRIDGE.z1 - 2, yaw: 0 } } } as const;
 
-/** Historical row name; its source is the same authored held-pattern boss profile. */
-export const ROC_FIGHT = ROC_BOSS_PROFILE.fight;
-
 /** Native encounter continuation and ledger identity. */
 export const ROC_STEP = 'far.roc.encounter';
 export const ROC_FACT = 'far-reach.roc';

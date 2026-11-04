@@ -738,9 +738,6 @@ const gatewayPaint: Paint<Streamed> = (kit, at, p, c) => {
   return { boxes };
 };
 
-/** the camps' loose clutter: 0 firewood tipi · 1 dung-cake stack · 2 chopping block + rounds · 3 pots + bucket · 4 sacks · 5 folded felts · 6 kumis churn */
-export const CLUTTER_KINDS = ['Firewood tipi', 'Dung-cake stack', 'Chopping block', 'Pots and a bucket', 'Sacks', 'Folded felts', 'Kumis churn'] as const;
-
 export interface ClutterParams extends Streamed { readonly kind: number }
 
 const clutterPaint: Paint<ClutterParams> = (kit, at, p, c) => {

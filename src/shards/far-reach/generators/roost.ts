@@ -3,7 +3,7 @@ import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
 import { NEST, ROOST, SPIRES } from "./layout";
 import { spireAt } from "./layoutMath";
 import { foldKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/roost.glb` + `data/roost.json`;
@@ -122,4 +122,3 @@ export function skyRoostPiece(): SkyPiece<{ tints: Record<string, number[]> }> {
   }
   return new SkyPiece('far.roost', [...kinds, ...foldKinds(plain)], built.colliders, {}, { tints });
 }
-export function bakeSkyRoost(): RoostBake { return bakeSkyPiece(skyRoostPiece()); }

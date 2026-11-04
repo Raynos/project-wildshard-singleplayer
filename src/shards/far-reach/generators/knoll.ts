@@ -1,6 +1,5 @@
 import { BufferGeometry, Color, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial } from 'three';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 import { ISLES, KNOLLS, type Knoll } from "./layout";
 import { knollHeight } from "./layoutMath";
 
@@ -72,4 +71,3 @@ export function skyKnollsPiece(): SkyPiece<{ hulls: KnollHullRow[] }> {
   const built = buildKnolls();
   return new SkyPiece('far.knolls', built.kinds, [], { extra: (m) => { const rockMix: unknown = m.userData['paint']; return typeof rockMix === 'number' ? { paint: rockMix } : {}; } }, { hulls: built.hulls });
 }
-export function bakeSkyKnolls(): PieceBake & { hulls: KnollHullRow[] } { return bakeSkyPiece(skyKnollsPiece()); }

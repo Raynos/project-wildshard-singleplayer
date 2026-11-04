@@ -1,7 +1,6 @@
 import { Color, SRGBColorSpace } from 'three';
 import { dot, mix, normalView, normalWorld, positionViewDirection, positionWorld, saturate, smoothstep, vec3 } from 'three/tsl';
 import { GraphMaterial, PainterlyMaterial, graph, graphInputs, noise, param } from '@wildshard/sdk/materials';
-import type { MaterialEntry } from '@wildshard/format/materials';
 
 /**
  * The pastel alien plain's materials authored with `@wildshard/sdk/materials` (DS1.4): `ground` is a `PainterlyMaterial`
@@ -53,9 +52,4 @@ export function pastelRock(): GraphMaterial {
     surface: { colour: base, roughness: 0.9, metalness: 0, emissive: 0 },
     lighting: { sun: diffuse.add(rimTerm), ambient, grade: graded },
   }));
-}
-
-/** The look's material catalogue, from the materials above. */
-export function pastelMaterials(): Record<'ground' | 'rock', MaterialEntry> {
-  return { ground: pastelGround().toMaterialEntry(), rock: pastelRock().toMaterialEntry() };
 }

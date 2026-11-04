@@ -1,7 +1,6 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeSkyPiece, SkyPiece } from './piece';
+import { SkyPiece } from './piece';
 import { CROWN, DAIS } from "./layout";
 import { CROWN_RING, CROWN_STONES, type Stone } from "./crownLayout";
 
@@ -61,4 +60,3 @@ export function skyCrownPiece(): SkyPiece {
   const built = buildCrownSet();
   return new SkyPiece('far.crown', built.kinds, built.colliders, {}, {});
 }
-export function bakeSkyCrown(): PieceBake { return bakeSkyPiece(skyCrownPiece()); }

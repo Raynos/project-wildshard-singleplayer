@@ -1,5 +1,4 @@
 import { Scene } from 'three';
-import { bake, type BakedScene } from '@wildshard/sdk/bake';
 import { SKY_IDENTITY, type SkyPiece } from './piece';
 import { skyWinchHousePiece } from './winchHouse';
 import { skyRoostPiece } from './roost';
@@ -28,12 +27,3 @@ export function skyReachScene(): Scene {
   for (const { piece } of SKY_PIECES) scene.add(piece());
   return scene;
 }
-
-/**
- * SF80 (`bake(scene, identity)`): Sky's scene through the SDK's one bake call: each piece's kinds GLB and rows
- * (`public/assets/far-reach/baked/<piece>.glb`, `data/<rows>.json`) and `scene.json` in
- * `<project>/.wildshard/cache/far-reach/` when a project (repository) root is given. Run by `bake-sky-world.mjs`. The
- * islands float over the void (no ground recipe, so no terrain tiles) and are not in the scene yet: they stay
- * `baked/isles.bin`, drawn in the runtime's painted material.
- */
-export const skyReachBake = (project?: string): BakedScene => bake(skyReachScene(), SKY_IDENTITY, project === undefined ? {} : { project });
