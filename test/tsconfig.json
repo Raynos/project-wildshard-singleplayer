@@ -68,7 +68,9 @@
     "fixtures/nalati-poi-paint-original.json",
     "fixtures/nalati-weatherChannels-original.json",
     "fixtures/phone-loading-a6701db71.json",
-    "fixtures/quest-step-legacy-saves.json"
+    "fixtures/quest-step-legacy-saves.json",
+    "fixtures/approved-model-geometry-roots.json",
+    "fixtures/approved-population-families.json"
   ],
   "files": [
     "../scripts/section-inventory.ts",
