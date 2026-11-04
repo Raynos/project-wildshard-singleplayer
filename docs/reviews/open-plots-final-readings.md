@@ -32,7 +32,7 @@ audio handoffs. Admission alone earns no reading qualification.
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | Awaiting audio handoff | Open | Open |
-| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a` / `5fcb0ac-mw1c7hz2` | C/control measured; walk + goldens open | Memory complete; fresh-process official Sim queued |
+| Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete |
 | Showcase Template | `open-plot-sw` / (-1,-1) | Awaiting audio handoff | Open | Open |
 
 All ten plots have eight committed golden cameras and maintained route
@@ -824,6 +824,9 @@ The full cohort remains open.
 
 ## Pastel Alien Plain — Memory/Simulator queue (sp-x8)
 
+This preserves the initial memory-boundary queue. The completed first
+fresh-process official admission is recorded below.
+
 Final admitted audio source **5fcb0ac75ac4d47e695dfec2953b280e80445cbc**,
 build **5fcb0ac-mw1c7hz2**, remains bound to the reused shared :4404 preview.
 All 166 files, 35 sections and four packs (**205 listed payloads**, 200 pack
@@ -1153,7 +1156,106 @@ joined :4436 lease.
 
 **Memory/official scope is complete; X1's maintained walk and eight goldens
 remain open.** The full qualified/published count stays **3/10**, with
-memory/official scope now qualified on five plots. Pastel's official scope
-and four unadmitted audio candidates remain open. No new official window
+memory/official scope then qualified on five plots. At that boundary,
+Pastel's official scope and four unadmitted audio candidates remained open. No new official window
 is reserved, no visual changes are made and no audio/plot/docs push is
 requested under Jake's hold.
+
+## Pastel Alien Plain — fresh-process official reading (sp-x8)
+
+The first official Pastel command binds final audio source
+**5fcb0ac75ac4d47e695dfec2953b280e80445cbc**, fresh normal pinned preview
+**:4437**, PID **22451**, actual build **5fcb0ac-mw1gxenk**. All old :4404
+owners released normally after X6's last capture and body proof. A new
+`serve-build --rev` starts after X2's codec CPU release. This is a **fresh
+process on a new port**, with no prior browser or Simulator game visit.
+
+The original literal product index, **205 payloads / 200 pack entries** and
+all their hashes remain exact. There are no additional schema/runtime file
+rows in this Pastel index. The full source pin comes from the normal preview
+registry; all **190 new HTML/version/SW/compiled JS/CSS endpoints** match disk.
+No retained old compiled-runtime inventory exists, so no old compiled-byte
+parity is inferred. This bridges the earlier C/memory candidate to the fresh
+server while preserving both actual build identities.
+
+Race's model turn, X6's final golden browser, X2's VM/codec work and X9's two
+builders release before admission. Global preflight catches other finite
+browsers and waits for their owners' literal ends. It then verifies **0/4
+game browsers, zero outside the lane**, unchanged committed reader, exact
+source/build/index, absent quiet and empty native/result directories. The
+normal model and Simulator lanes are acquired independently. Quiet PID
+**62186** is actually observed; peers defer new competing work until release.
+One scratch metadata preflight initially treated valid `runtime:null` as an
+object; it stopped before any Simulator command, then handles that absence
+explicitly. No game measurement was replayed on that refusal.
+
+The original `frame-floor --surface=sim --quiet` command completes in
+**89.422 s**, exit 0, **complete=true/pass=true**. Every one of eight windows
+retains **120/120 drawn frames**, zero skips and page errors,
+**30.303 fps / p95 34 ms**. All **strict 33.3 ms flags remain false**.
+Apple GPU uses portrait CSS 402×714, canvas 804×1428, phone 2× and the shipped
+auto/30 fps policy. The clock, texture mode, sampling and original caps are
+unchanged; this remains Mac-backed Simulator evidence, not physical-phone
+clearance.
+
+| Scope / pose | Max draws | Reported triangles | p99 / max ms |
+|---|---:|---:|---:|
+| Standalone spawn | 55 | 61,398 | 34 / 34 |
+| Standalone road | 58 | 66,141 | 34 / 34 |
+| Standalone plaza | 58 | 65,889 | 34 / 34 |
+| Grid home spawn | 107 | 1,081,916 | 44 / 47 |
+| Junction −135° | 60 | 137,558 | 38 / 44 |
+| Junction −45° | 60 | 99,062 | 37 / 38 |
+| Junction +45° | 76 | 146,866 | 34 / 34 |
+| Junction +135° | 50 | 128,495 | 34 / 34 |
+
+Native memory uses decimal **MB**, separate from Chromium **MiB**. The
+conservative envelope adds each native phase maximum to the global GPU
+ledger maximum; the maxima need not coincide. GPU-process footprint and
+logical script-pool capacity are not added again. The native sampler grants
+no timing credit; cadence comes from the original drawn-frame observer.
+
+| Scope | Native playing/loading MB | GPU ledger MB | Envelope playing/loading MB | Phase samples playing/loading | GPU samples |
+|---|---:|---:|---:|---:|---:|
+| Standalone | 243.338 / 321.495 | 21.591 | 264.929 / 343.085 | 219 / 27 | 47 |
+| Pooled grid page | 698.322 / 608.592 | 164.435 | 862.757 / 773.027 | 364 / 71 | 77 |
+
+Standalone fits the unchanged **1,200 MB playing / 1,800 MB loading**
+limits. G556 gives the pooled page **no 1.2 GB cap**. Complete phase and GPU
+coverage retains **1.654 MB standalone / 2.803 MB grid** unattributed memory
+and one Inspector-closed entry in each scope. No absent witness is filled
+with zero and no refusal is hidden.
+
+At all four northwest-junction directions, actual **Nine Dragon, Desert,
+Pastel and Ember Forge** neighbours are independently **near and drawn**,
+**pending=[]**, crossing **settled**. Road current is null and residents
+empty, so this does not claim four resident gameplay worlds. Grid home has
+six pending neighbours; no whole-grid settled-residency claim is made.
+
+Every standalone pool observation retains **45 available logical blocks /
+3,080,192 B**, zero hits/misses/blocked. Grid home retains **40 blocks /
+2,752,512 B**, five virgin hits and 45 cumulative returns. Every junction
+retains **41 blocks / 2,818,048 B**, five virgin hits, 46 cumulative returns,
+zero recycled hits, misses or blocked blocks. These are reusable logical
+capacity, not another physical-RAM charge.
+
+Raw result is
+`tmp/sp-x8-plot-readings/pastel-fresh/simulator/5fcb0ac75-61775-1793758277472.json`;
+checked `summary.json`, process/runtime/body bridge, source poses, preflight
+and native/GPU logs share that root. The result records harness revision
+`e75d1a9962647fe8bb274c0569d001597fbdd04c`. A separate DL9 source/body
+handoff lives in `dl9-body-bridge.json`; its initial scratch tally omission
+of Pine's schema row is retained in the original audit log and grants no
+DL9 timing credit.
+
+The command releases quiet, Simulator and the model lock before parsing;
+global browser inventory is zero. Peers receive literal resource release.
+The own :4437 preview use releases normally, retained by actual X1 and DL9
+joined leases. No additional official window is reserved.
+
+**Memory/official scope is complete on six of ten plots.** Full cohorts stay
+**3/10 qualified/published**, with Thin, Fossil and Pastel's maintained walks
+and eight goldens still open under X1. Four final audio handoffs remain open.
+No source, visuals, collider, budget, threshold, comparator or capture-clock
+change belongs to this reading. This is a local documentation commit under
+Jake's push hold; no audio/plot/docs push is requested.
