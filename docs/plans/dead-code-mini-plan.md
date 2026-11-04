@@ -177,6 +177,16 @@ outputs (`git status` on the shard's output paths) must be byte-identical. If an
 
 ### DC8: legacy species catalogue (4 files, 693 lines, plus 2 edits) · Codex · S
 
+**done (2026-11-04, sp-x8): `4b0c5fe400`.** Fresh untruncated whole-tree
+module/symbol and bare-stem searches found no live legacy installer caller.
+The four retired files (693 lines), dead API, two legacy declaration cases,
+manual references and the deleted test's duration/module rows are gone.
+Modern shared species and shard-owned deer/elk hulls stay unchanged; no
+product/chargeback registry entry named the deleted test or modules.
+Root and engine/game types, typed lint and scoped ratchet pass; original
+`vitest related` passes 26 suites / 116 cases in 49.14 s. The HEAD patch
+preserves peer timing rows; ratchet reductions remain pusher-owned.
+
 - `src/game/systems/species/legacy/{deer,elk,install}.ts`
 - `test/legacy-species-install.test.ts`
 - Edits: `installLegacyKitSpecies` in `src/game/systems/species/install.ts`, and the two `legacy/*` names in
