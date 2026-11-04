@@ -19,7 +19,15 @@ export class WaitRegistry {
       retry: null, progress: '', inline: false,
       ...(resource === undefined ? {} : {resource}) });
     try { return await promise; }
-    finally { state.pending.delete(id); }
+    finally {
+      state.pending.delete(id);
+      // DL11: a wait of a second or more is named on the page's timeline, so a stalled step shows what held it (Pine's
+      // sky step sat 82 s on a wait the card named only by count); only the injected-clock registry skips it.
+      const ended = this.now();
+      if (ended - now >= 1000 && this.now === diagnosticNow && typeof performance !== 'undefined') {
+        performance.measure(`wildshard.prepare:wait:${label}`, { start: now, end: ended, detail: { step, kind } });
+      }
+    }
   }
   snapshot(): BootWait[] {
     const now = this.now();
