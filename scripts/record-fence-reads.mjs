@@ -58,9 +58,10 @@ const assetUrls = readdirSync(join(dist, 'assets'), { recursive: true, withFileT
   .map(entry => `/${relative(dist, join(entry.parentPath, entry.name)).split(sep).join('/')}`);
 const parts = new Map();
 for (const url of assetUrls.filter(name => /^\/assets\/boot-tables-[a-f0-9]{8}\.json$/u.test(name))) {
-  for (const [part, members] of packMembers(JSON.parse(readFileSync(join(dist, url.slice(1)), 'utf8')).packs)) parts.set(part, members);
+  for (const [part, row] of packMembers(JSON.parse(readFileSync(join(dist, url.slice(1)), 'utf8')).packs)) parts.set(part, row);
 }
-const assetIds = assetIdentities(assetUrls, parts, sectionRefs(sections, new Set(assetUrls)));
+const memberPaths = [...parts.values()].flatMap(row => row.members.map(member => member.split('?')[0]));
+const assetIds = assetIdentities(assetUrls, parts, sectionRefs(sections, new Set([...assetUrls, ...memberPaths])));
 for (const path of assetsOutside) { const ids = assetIds.get(path); if (ids === undefined) unknown.push(path); else recorded.push(...ids); }
 const total = outside.size + assetsOutside.size;
 console.log(`${slug} ${flow}: control at ${((control - run.tap) / 1000).toFixed(1)} s; ${outside.size} level and ${assetsOutside.size} /assets files read before control outside the spawn set; ${unknown.length} unidentified`);

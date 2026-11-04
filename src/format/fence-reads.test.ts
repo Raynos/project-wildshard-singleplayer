@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { assetIdentities, assetStem, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, packMembers, readFenceReads, resolveFenceReads } from './fenceReads';
+import { assetIdentities, assetStem, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
 
 // DL22: Pine's cold boot read 143 files before control that its spawn set lacked (late models by name, props tiles by
 // tile); the recorded list keeps stable identities so a content edit (new hashes) still maps to the right files.
@@ -69,15 +69,35 @@ test('/assets identities: hash-free stems, pack parts by their members, and unst
   const before = table(['/assets/m/a-0cd11be5.m4a'], ['/assets/m/b-7faf0468.m4a']);
   const cabin = `/assets/pine-hollow/baked/cabin-materials/${h('7')}.glb`;
   const ids = assetIdentities(['/assets/packs/pine.phone-22222222.bin', '/assets/sfx/a-0cd11be5.m4a', '/assets/x/b-aaaaaaaa.png',
-    '/assets/x/b-bbbbbbbb.png', cabin, '/assets/y/c-BpZPbf24.bin'], before, new Map([[cabin, 'ref:world/props:/cabins/0/material']]));
+    '/assets/x/b-bbbbbbbb.png', cabin, '/assets/y/c-BpZPbf24.bin'], before, new Map([[cabin, ['ref:world/props:/cabins/0/material']]]));
   expect(ids.get('/assets/packs/pine.phone-22222222.bin')).toEqual(['asset-pack-member:pine-hollow:phone:/assets/m/b.m4a']);
   expect(ids.get('/assets/sfx/a-0cd11be5.m4a')).toEqual(['asset:/assets/sfx/a.m4a']);
   expect(ids.has('/assets/x/b-aaaaaaaa.png')).toBe(false); // two files share the stem
-  expect(ids.get(cabin)).toEqual(['ref:world/props:/cabins/0/material']); // a pure-hash name: its section reference
+  expect(ids.get(cabin)).toEqual(['ref:world/props:/cabins/0/material']); // a pure-hash name: its section references
   expect(ids.has('/assets/y/c-BpZPbf24.bin')).toBe(false); // a bundler hash and no reference: no identity
   // A rebuild moves member b into the other part: its identity now resolves to that part, never to the old ordinal.
   const after = table(['/assets/m/b-7faf0468.m4a'], ['/assets/m/a-0cd11be5.m4a']);
   expect(assetIdentities(['/assets/packs/pine.phone-11111111.bin'], after).get('/assets/packs/pine.phone-11111111.bin'))
     .toEqual(['asset-pack-member:pine-hollow:phone:/assets/m/b.m4a']);
   expect(readFenceReads({ version: 1, files: ['asset:/assets/sfx/a.m4a', 'asset-pack-member:pine-hollow:phone:/assets/m/b.m4a'] }).files).toHaveLength(2);
+});
+
+test('sp-x8\'s third round: colliding member stems and hash-only members refuse their part; every /assets reference is kept', () => {
+  const part = (url: string, files: string[]) => ({ url, files: files.map(path => [path, 0, 1, 'x']) });
+  // Two revisions of one slot in different parts share a stem: both parts are refused, never one silently chosen.
+  const revisions = packMembers({ p: { phone: { parts: [part('/assets/packs/p-11111111.bin', ['/assets/t/diffuse-11111111.ktx2']),
+    part('/assets/packs/p-22222222.bin', ['/assets/t/diffuse-22222222.ktx2'])] } } });
+  const both = assetIdentities(['/assets/packs/p-11111111.bin', '/assets/packs/p-22222222.bin'], revisions);
+  expect(both.has('/assets/packs/p-11111111.bin')).toBe(false); expect(both.has('/assets/packs/p-22222222.bin')).toBe(false);
+  // A pure-hash member needs a section reference, or its part is refused.
+  const hashed = `/assets/m/${h('8')}.glb`, pack = packMembers({ p: { phone: { parts: [part('/assets/packs/q-33333333.bin', [hashed, '/assets/m/rock-0cd11be5.glb'])] } } });
+  expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack).has('/assets/packs/q-33333333.bin')).toBe(false);
+  expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack, new Map([[hashed, ['ref:world/props:/rocks/0']]])).get('/assets/packs/q-33333333.bin'))
+    .toEqual(['ref:world/props:/rocks/0', 'asset-pack-member:p:phone:/assets/m/rock.glb']);
+  // A hash-only /assets file two sections name keeps both references; when one is split off, the other still resolves to
+  // the old file and the split one is a different file, so a recording made before the split no longer covers it.
+  const shared = `/assets/x/${h('9')}.bin`;
+  const refs = sectionRefs(new Map<string, unknown>([['a', { file: shared }], ['b', { file: shared }]]), new Set([shared]));
+  expect(refs.get(shared)).toEqual(['ref:a:/file', 'ref:b:/file']);
+  expect(assetIdentities([shared], new Map(), refs).get(shared)).toEqual(['ref:a:/file', 'ref:b:/file']);
 });

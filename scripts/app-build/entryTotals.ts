@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {assetIdentities, packMembers, readFenceReads, resolveFenceReads, sectionRefs} from '../../src/format/fenceReads';
+import {assetIdentities, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -69,7 +69,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     assets.set(url, row); sources.set(row.url, () => bytesFor(url)); return row;
   };
   // DL22: this build's /assets files (emitted and authored) and its pack parts, for the fence lists' /assets entries.
-  let assetsSeen: readonly string[] | undefined, partsSeen: ReadonlyMap<string, readonly string[]> | undefined;
+  let assetsSeen: readonly string[] | undefined, partsSeen: ReadonlyMap<string, PackPart> | undefined;
   const publicAssets = (): readonly string[] => {
     if (assetsSeen !== undefined) return assetsSeen;
     const urls = new Set<string>();
@@ -82,10 +82,10 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     }
     assetsSeen = [...urls]; return assetsSeen;
   };
-  const packParts = (): ReadonlyMap<string, readonly string[]> => {
+  const packParts = (): ReadonlyMap<string, PackPart> => {
     if (partsSeen !== undefined) return partsSeen;
-    const banks = readAssetTables(root), parts = new Map<string, readonly string[]>();
-    for (const table of [banks.all, ...Object.values(banks.packs)]) for (const [url, members] of packMembers((JSON.parse(table.source) as {packs?: unknown}).packs)) parts.set(url, members);
+    const banks = readAssetTables(root), parts = new Map<string, PackPart>();
+    for (const table of [banks.all, ...Object.values(banks.packs)]) for (const [url, part] of packMembers((JSON.parse(table.source) as {packs?: unknown}).packs)) parts.set(url, part);
     partsSeen = parts; return parts;
   };
   const common: SpawnFile[] = [];
@@ -128,7 +128,8 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       // `/assets` entries, and a section reference that names an /assets file rather than a product file.
       const shell = [...reads.files.filter(row => row.startsWith('asset')), ...resolved.unresolved.filter(row => row.startsWith('ref:'))];
       // `/assets` reads (Pine's asset packs, gpu models, sfx, music): this build's emitted files and pack tables.
-      const urls = publicAssets(), refs = sectionRefs(sections, new Set(urls)), byIdentity = new Map<string, string>();
+      const urls = publicAssets(), members = [...packParts().values()].flatMap(part => part.members);
+      const refs = sectionRefs(sections, new Set([...urls, ...members].map(url => url.split('?')[0] ?? url))), byIdentity = new Map<string, string>();
       for (const [url, ids] of assetIdentities(urls, packParts(), refs)) for (const identity of ids) if (!byIdentity.has(identity)) byIdentity.set(identity, url);
       fenceAssets = [...new Set(shell.flatMap(identity => { const url = byIdentity.get(identity); return url === undefined ? [] : [url]; }))];
       const unresolved = [...resolved.unresolved.filter(row => !row.startsWith('ref:')), ...shell.filter(identity => !byIdentity.has(identity))];
