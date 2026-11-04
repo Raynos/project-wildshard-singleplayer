@@ -1,6 +1,6 @@
 # SIGNAL-DUNES — shard 5's full content (E374)
 
-**State:** `in progress` 2026-10-03 — built, and it **passed the mockup council at 7.00** (round 25: 6.9 / 7.1 / 7.0, `7952baa90`, Jake's 7.0 bar); its original top-10 is finished and archived (`project/archive/2026-10-03-signal-dunes-top10.md`). Open: P6 (Jake plays it), P10 (closing captures: hero re-shoot + parity baselines, E423) and P9 (what the round-25 seats still name; Jake: "7/10 is enough", so it waits on Jake raising the bar).
+**State:** `archived 2026-11-04 (Jake, 11-04 ~09:35 Cancun: "Signal tunes and Skyreach, I don't know why they're not archived. Like, clearly they can be archived"; open leftovers dropped)` — was: `in progress` 2026-10-03 — built, and it **passed the mockup council at 7.00** (round 25: 6.9 / 7.1 / 7.0, `7952baa90`, Jake's 7.0 bar); its original top-10 is finished and archived (`project/archive/2026-10-03-signal-dunes-top10.md`). Open: P6 (Jake plays it), P10 (closing captures: hero re-shoot + parity baselines, E423) and P9 (what the round-25 seats still name; Jake: "7/10 is enough", so it waits on Jake raising the bar).
 
 Shard 5, slug `sunscar-dunes`, Jake's pick **C · Signal Dunes** (E363 round 2): realistic dusk dunes, an orange band under
 indigo, first stars, cool blue hollows; a braided leather bullwhip; a ray-like flyer; "Light the signal fire". No

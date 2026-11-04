@@ -22,7 +22,7 @@ hands and weapon, and the quest's staging, held to the other four shards' standa
 1. Read AGENTS.md (the repo's rules) and this file.
 2. Read the lead's last report for your shard (the plan's STATE.md, else `docs/tasks/asks/E374.md`'s last Handoff, now
    historical). It is where the previous builder stopped. Continue from it; never rebuild from scratch (Jake, P25).
-3. Your plan: `docs/plans/SIGNAL-DUNES.md` or `docs/plans/SKY-REACH.md` (polish rows P1–P6). Your style bible:
+3. Your plan: `project/archive/2026-11-04-signal-dunes.md` or `project/archive/2026-11-04-sky-reach.md` (polish rows P1–P6). Your style bible:
    `docs/design/sunscar-dunes/style-bible.md` ("Last Light") or the far-reach one ("Gilded Air"). Your review:
    `docs/design/<slug>/review-2026-10-01.md`. The method: `docs/design/LOOK-LOOP.md`.
 4. Look at the other four shards' captures in `art/` (their latest look-loop rounds) so you know the bar.

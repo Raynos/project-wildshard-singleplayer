@@ -1,9 +1,9 @@
 # CI-FIRST-PRINCIPLES: what GitHub Actions does per push, why it is slow, and what it should do
 
-**State:** `in progress` 2026-11-03 — G989 (Jake, 09:00) approves the close-out spike. 13/14 rows done; CI10 is retired by deletion, CI9 capacity cuts are landed; one working day of measurement remains. Owner: sp-x6.
+**State:** `archived 2026-11-04 (Jake, 11-04 ~09:35 Cancun: "CI first principles done, don't care about it")` — was: `in progress` 2026-11-03 — G989 (Jake, 09:00) approves the close-out spike. 13/14 rows done; CI10 is retired by deletion, CI9 capacity cuts are landed; one working day of measurement remains. Owner: sp-x6.
 on every push, in far less wall clock; pins are deleted outright; the tested build ships as soon as it is green; the
 Simulator stays on GitHub Actions (G921); the Node harness is the main integration test; test-quarantine goes.
-**2026-11-03 close-out spike** ([ci-close-mini-spike.md](ci-close-mini-spike.md), 100 deploy runs read): **12 of 14
+**2026-11-03 close-out spike** ([ci-close-mini-spike.md](2026-11-04-ci-close-mini-spike.md), 100 deploy runs read): **12 of 14
 rows done** (CI12 marked done on today's evidence). **Two open, both stuck on GitHub runner capacity, not on code:**
 CI9 (push → live 28–65 min against 15) and CI10 (the push Simulator job has not passed once: 0 of 45 today). Proposed
 close: cut CI10 (delete the push phone job) and rescope CI9 to its built half plus three capacity cuts, about 5 h of

@@ -3,7 +3,7 @@
 Floating grass islands over a sea of cloud at golden hour (Jake's pick **B · Sky Reach**, E364). Rope bridges carry
 you on foot; the glowing hover bridges and the updraft carry only a hoverboard rider, so on foot you fall straight
 through. Built from `docs/SHARDS.md`, the template and `docs/ENGINE.md` alone (E357 Z3 round 4), then the full content
-of [SKY-REACH](../../../docs/plans/SKY-REACH.md) (E374): eight islands, four creatures, a four-step quest chain, the
+of [SKY-REACH](../../../project/archive/2026-11-04-sky-reach.md) (E374): eight islands, four creatures, a four-step quest chain, the
 Storm Roc.
 
 ## What it declares

@@ -1,6 +1,6 @@
 # Plan: MARKETING-SITE — the home of Project Wildshard (E465)
 
-**State:** `in progress` 2026-10-10 — **live at https://wildshard.io, four pages now** (home, /play, /build, /mmo, plus a 404). The 2026-10-10 clean-room audit (Opus + Codex, §9) opened MS23–MS32: done are the fixes, crisp phone media, the home page in 11.5 phone screens (Jake's B), the code tidy and the three saga pages (Jake: play, build, the MMO). **Open:** MS26 AAA wave 2 (a board for Jake first), MS27 the shard-crossing clip (waits on the grid), MS1 Jake reads the site ([review](../reviews/marketing-site.md)), MS7 the Discord link.
+**State:** `parked 2026-11-04 (Jake, 11-04 ~09:35 Cancun: "Marketing website, we're not working on that"; restarts on his word)` — was: `in progress` 2026-10-10 — **live at https://wildshard.io, four pages now** (home, /play, /build, /mmo, plus a 404). The 2026-10-10 clean-room audit (Opus + Codex, §9) opened MS23–MS32: done are the fixes, crisp phone media, the home page in 11.5 phone screens (Jake's B), the code tidy and the three saga pages (Jake: play, build, the MMO). **Open:** MS26 AAA wave 2 (a board for Jake first), MS27 the shard-crossing clip (waits on the grid), MS1 Jake reads the site ([review](../reviews/marketing-site.md)), MS7 the Discord link.
 **Reviews:** [marketing-site](../reviews/marketing-site.md)
 **Refresh (E506, 2026-10-27):** [marketing-site/refresh-mini-plan.md](marketing-site/refresh-mini-plan.md), draft: the world map, the stale claims, MR1–MR25 ([review](../reviews/marketing-site-refresh.md)).
 

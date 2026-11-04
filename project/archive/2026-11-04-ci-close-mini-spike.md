@@ -1,6 +1,6 @@
 # CI close-out mini spike (2026-11-03)
 
-How to close [CI-FIRST-PRINCIPLES](CI-FIRST-PRINCIPLES.md) fast. Read-only research by a wildshard-v subagent, about
+How to close [CI-FIRST-PRINCIPLES](2026-11-04-ci-first-principles.md) fast. Read-only research by a wildshard-v subagent, about
 08:20 Cancun. Sources: the 100 `deploy` runs created 2026-11-03 04:38–12:45Z (`gh run view --json jobs` on all of
 them, with failed-step logs for the phone and draw-budget jobs), `.github/workflows/deploy.yml`, the plan at HEAD
 `2ec2da8a9e`, and git history.
