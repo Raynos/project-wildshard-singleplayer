@@ -1290,11 +1290,6 @@ opaque upload packing keeps every draw/cap. `warmOffscreenPasses` takes progress
 and `runPrecompile`'s argument after `uploadBudget`. `cached-compile` counts cheap,
 resolved-program jobs sharing a held native budget; other fences stay unchanged.
 
-`Game.nodeBuilds.log` retains 1,024 scalar records with total `ms`, names and reuse
-reason. `prepareMs` times shape/key/reuse lookup; `frontendMs` times only the stock
-builder (null on reuse; the reader reports null for old pins). These exclude
-native link/GPU time.
-
 Isolation costs a drawn frame per image: Pine's entered warm-up took 7.8 s on the Simulator at 30 fps (op-hitch27).
 An optional `UploadBudget` (`{ ms, bytes }`, `precompileLevel`'s `uploadBudget`, `prepareSceneRoots`' and
 `runPrecompile`'s last argument) batches the image uploads instead: several per frame while their measured time stays

@@ -957,10 +957,6 @@ export class Game {
   /** Last entered-frame preparation's running phase, measured work counts and scalar timings. Painted waits are
    * included; no content resources are retained. The root identifies the exact destination. */
   get entryPreparation(): Readonly<EntryPreparation> | null { return this._entryPreparation; }
-  /** The node (graph material) programs built so far: none since NF18 retired the node runtime (every graph is a classic
-   *  GLSL program, linked by precompile). Kept null for its readers (session/settlePrograms.ts, the frame-floor and loading
-   *  scripts) until LD10's member sweep retires them together. */
-  readonly nodeBuilds: { readonly builds: number; readonly buildMs: number; readonly log: readonly { at: number; ms: number; prepareMs: number; frontendMs: number | null; material: string; object: string; how: string }[] } | null = null;
 
   /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
    * Initial boot uses the ordinary shaders/firstFrame stages for its final draw. If its composer already exists,

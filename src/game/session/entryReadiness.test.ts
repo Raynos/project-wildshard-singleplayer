@@ -47,16 +47,16 @@ test('a retired entry starts no work and original preparation failures propagate
   finally { live.dispose(); }
 });
 
-test('the actual spawn continuation waits for linking and three unchanged offscreen draws', async () => {
+test('the actual spawn continuation waits for linking and three offscreen draws', async () => {
   const source = readFileSync(new URL('settlePrograms.ts', import.meta.url), 'utf8');
   const start = source.indexOf('const QUIET_DRAWS');
   if (start === -1) throw new Error('Missing spawn settle continuation');
   const owner = new Scope('spawn-programs'), compiled = deferred(), frames: FrameRequestCallback[] = [];
   let now = 0, draws = 0, ready = false;
-  const nodeBuilds = { builds: 0 }, mark = vi.fn();
+  const mark = vi.fn();
   let posted = deferred();
   vi.spyOn(owner, 'raf').mockImplementation(frame => { frames.push(frame); posted.finish(); return 0; });
-  const game = {levelScope: owner, nodeBuilds, offscreenDraw: () => { draws++; if (draws === 1 || draws === 3) nodeBuilds.builds++; }};
+  const game = {levelScope: owner, offscreenDraw: () => { draws++; }};
   const run: unknown = runInNewContext(`${stripTypeScriptTypes(source.slice(start)).replace('export async function', 'async function')}\nsettleEntryPrograms`, {
     waitEntryWork, diagnosticNow: () => now, performance: {mark}, liveWarmPacing: () => ({}),
     precompileLevel: (_game: unknown, _progress: unknown, options: {drawnOnly: boolean; warmPost: boolean; current: () => boolean}): Promise<void> => {
@@ -71,13 +71,13 @@ test('the actual spawn continuation waits for linking and three unchanged offscr
     now = 100_000; await Promise.resolve();
     expect(ready).toBe(false); expect(draws).toBe(0);
     compiled.finish(); await compiled.promise;
-    for (let turn = 0; turn < 6; turn++) {
+    for (let turn = 0; turn < 3; turn++) {
       await posted.promise;
       const frame = frames.shift(); if (frame === undefined) throw new Error('Missing settle draw');
       posted = deferred(); frame(now); await Promise.resolve();
-      if (turn < 5) expect(ready).toBe(false);
+      if (turn < 2) expect(ready).toBe(false);
     }
-    await expect(work).resolves.toMatchObject({ms: 100_000, builds: 2, stalled: null});
-    expect(draws).toBe(6); expect(mark).toHaveBeenCalledOnce();
+    await expect(work).resolves.toMatchObject({ms: 100_000, draws: 3, stalled: null});
+    expect(draws).toBe(3); expect(frames).toHaveLength(0); expect(mark).toHaveBeenCalledOnce();
   } finally { compiled.finish(); owner.dispose(); await work.catch(() => undefined); }
 });
