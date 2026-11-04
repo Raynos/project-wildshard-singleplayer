@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 6ea1a4b-mw24gn7k** (08:21, fully qualified, 27 verified tonight; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 69fa647-mw264yum** (09:10, fully qualified, 29 verified; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**09:00:** DL17: every home complete at control on content (Pine --rev e265a70539; Far Reach content, lap legs stuck -> damage row). Plots audio 4/4 in (misses ship best measured). **Jake: Pine ships 41.9 MB legacy asset packs before control (G908, keep?).**
+**10:00:** G1005 Nine PASSES: QD7 running (o1 LD5 d3143de1cf + LD6/7 1d4f2e2fe3 landed, LD8 next; o5 LD9/NF18/LD10). G1007 five Opus: o4 DL21+DL23 (G1006 every-second bar), o2 post-control hitch (G1008: Nine 10.6 s frame). G1004 custom-sections batch: Codex on Z rows. Plots: audio live, C 10/10.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
