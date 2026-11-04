@@ -21,7 +21,7 @@ import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack
 import { canopyGraphs } from '../src/shards/nine-dragon-stack/generators/canopyGraphs';
 import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 import { validateGraph, type GraphRef } from '../src/format/materialGraph';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import type { ShardContext } from '../src/game/plugin/context';
 
 /** colours as linear [r, g, b], vectors as arrays: the frozen oracle's reading (fixtures/legacy-oracles/nine-light.json) */
@@ -147,7 +147,7 @@ test('Nine canopy graphs retain vertex fog and fit both catalogue caps', () => {
     expect(new TextEncoder().encode(JSON.stringify(graph)).byteLength).toBeLessThanOrEqual(64_000);
     expect(graph.effectState?.fog).toBe(false);
     expect(graph.stages.surface?.targetAlpha).toBeDefined();
-    const compiled = compileGraph(graph, { trustedBudget: true });
+    const compiled = compileClassicGraph(graph, { trustedBudget: true });
     if (id === 'nine-canopy-cards') {
       const texture = new DataTexture(new Uint8Array(4), 1, 1);
       compiled.setTexture('atlas', texture); compiled.setParam('atlasSize', [1024, 1024]); texture.dispose();
