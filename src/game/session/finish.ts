@@ -196,9 +196,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     const wholeLevel = ctx.grid === null && ctx.product.shardfile.ring === 'cell';
     // DL21: the step names what it waits on, so the card never shows only its reads tally ('Reading 8 files · 0.0 MB' held
     // Nine's cold step 27 for 3.5 s in the DL23 recording with no read in flight). The three run together and fail as one
-    // (spawnViewThenNamed); the tile settle is named inside the spawn view (whose own wait counts its jobs), the minimap
-    // and horizon after it, while they still run.
-    await spawnViewThenNamed(prepareSpawnView(wholeLevel ? Infinity : undefined, () => waitFor('Spawn view · placing tiles', settleTileDrivers(() => { game.hiddenFrame(); }))),
+    // (spawnViewThenNamed); the spawn view counts its fence jobs from its opening, the tile settle included ('Spawn view ·
+    // n of m · MB'), and the minimap and horizon are named after it, while they still run.
+    await spawnViewThenNamed(prepareSpawnView(wholeLevel ? Infinity : undefined, () => settleTileDrivers(() => { game.hiddenFrame(); })),
       [['Minimap', waitEntryWork(game.levelScope, () => ctx.minimap.prepare())], ['Horizon paintings', edgeDressing.horizonReady]]);
   });
   // P0: the phone's spawn programs settle while loading still covers the reveal.

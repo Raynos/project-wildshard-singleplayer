@@ -37,6 +37,24 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
   spawnView = { radius, reference };
   // DL17: a queue whose refinement failed refuses the fence (the job's error, not an incomplete level at control)
   const refused = (): void => { for (const queue of queues) { const failure = queue.refusal(); if (failure !== undefined) throw failure; } };
+  // DL21 (E526): the fence names its wait and counts it: jobs done of jobs known, and the level bytes they fetched
+  // (resource timing of /shardfiles/ reads since the fence opened), so the card never sits unchanged on it. It counts from
+  // the fence's opening, the tile settle included: the DL23 recording of Nine on 2477dc4 held 3.8 s on the settle's bare
+  // name while its fence jobs ran
+  fenceDone = 0;
+  // The card lists only its current step's waits (Loading.paintWaiting): the wait carries that step and owner.
+  const timeline = currentLoadingTimeline();
+  const wait = beginLoadingWait('Spawn view', { kind: 'work', step: timeline?.snapshot().current ?? null, owner: timeline?.waitOwner ?? null });
+  const reads = observeReads(name => name.includes('/shardfiles/'));
+  let known = 0;
+  const report = (): void => {
+    const waiting = [...queues].reduce((sum, queue) => sum + queue.fenceWaiting(), 0);
+    // The total never goes back within the fence (sp-x2's review): jobs leave the queue's count as each one finishes.
+    known = Math.max(known, fenceDone + waiting);
+    const counted = `${fenceDone} of ${known} · ${(reads.bytes() / 1e6).toFixed(1)} MB`;
+    reportLoadingWait(wait, { label: `Spawn view · ${counted}`, progress: counted });
+  };
+  const ticker = pageScope.child('spawn-view.count'); ticker.interval(250, report);
   try {
     if (settle !== undefined) {
       // the content a frame asks for while the fence is open (the tile driver attaches only ready content) queues its jobs
@@ -47,35 +65,17 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
     }
     // what the fence saw, for the loading rulers (a viewer far from its jobs runs nothing)
     performance.mark('wildshard.spawn-view', { detail: [...queues].map(queue => queue.describe()) });
-    // DL21 (E526): the fence names its wait and counts it: jobs done of jobs known, and the level bytes they fetched
-    // (resource timing of /shardfiles/ reads since the fence opened), so the card never sits unchanged on it.
-    fenceDone = 0;
-    // The card lists only its current step's waits (Loading.paintWaiting): the wait carries that step and owner.
-    const timeline = currentLoadingTimeline();
-    const wait = beginLoadingWait('Spawn view', { kind: 'work', step: timeline?.snapshot().current ?? null, owner: timeline?.waitOwner ?? null });
-    const reads = observeReads(name => name.includes('/shardfiles/'));
-    let known = 0;
-    const report = (): void => {
-      const waiting = [...queues].reduce((sum, queue) => sum + queue.fenceWaiting(), 0);
-      // The total never goes back within the fence (sp-x2's review): jobs leave the queue's count as each one finishes.
-      known = Math.max(known, fenceDone + waiting);
-      const counted = `${fenceDone} of ${known} · ${(reads.bytes() / 1e6).toFixed(1)} MB`;
-      reportLoadingWait(wait, { label: `Spawn view · ${counted}`, progress: counted });
-    };
-    const ticker = pageScope.child('spawn-view.count'); ticker.interval(250, report);
-    try {
-      for (const queue of queues) queue.wake();
-      for (;;) {
-        refused(); report();
-        const open = [...queues].filter(queue => queue.spawnViewOpen());
-        if (open.length === 0) break;
-        await Promise.all(open.map(queue => queue.spawnViewIdle()));
-      }
-    } finally { ticker.dispose(); reads.stop(); finishLoadingWait(wait); }
+    for (const queue of queues) queue.wake();
+    for (;;) {
+      refused(); report();
+      const open = [...queues].filter(queue => queue.spawnViewOpen());
+      if (open.length === 0) break;
+      await Promise.all(open.map(queue => queue.spawnViewIdle()));
+    }
     refused();
     // what the fence left (DL17's complete-at-control gate refuses a level whose queues still wait here)
     performance.mark('wildshard.spawn-view.done', { detail: [...queues].map(queue => queue.describe()) });
-  } finally { spawnView = null; }
+  } finally { ticker.dispose(); reads.stop(); finishLoadingWait(wait); spawnView = null; }
 }
 
 /** One resident's low-priority refinement cursor. Outside the loader fence,
