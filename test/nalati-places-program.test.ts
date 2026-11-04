@@ -41,7 +41,9 @@ function runOwnedPlaceCheck(checks: string): void {
     };
     try{${checks}}finally{rmSync(cache,{recursive:true,force:true});}
   `;
-  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
+  // This owned bake needs source resolution, not the app's global shard and
+  // asset-table installation. The simulation loader also refuses render code.
+  execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '--eval', source, '--', '--generation-shard=nalati-grasslands']);
 }
 
 test('fresh owned places stay service-free and cache hits isolate caller mutations', () => {
