@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- the recorded run is a committed fixture file.
 import { readFileSync } from 'node:fs';
 import { analyse } from '../scripts/loading-flow/analyse.mjs';
+import { profileFrames } from '../scripts/loading-flow/profile.mjs';
 
 // DL23: the analyser that judges every Simulator recording against Jake's loading bar (E529, G1006, G1008).
 const TAP = 1_000_000;
@@ -149,4 +150,16 @@ test('a row whose only change is its own running time is a still card (sp-x1\'s 
   for (let s = 0; s <= 2; s += 0.2) rows.push(card(s, { lastRow: `▸ 1 · Application modulesPreparing application services${Math.round(400 + s * 1000)} ms` }));
   rows.push(card(2.2, { lastRow: '▸ 2 quick steps1.4 s' }), card(2.4, { shown: false, control: true }), frames(0, 40, 16.7));
   expect(analyse(rows).cardStill_ge1s[0]).toMatchObject({ from: 0, s: 2.2 });
+});
+
+test('profile.mjs: the samples inside a long loading frame name the function holding it', () => {
+  const origin = TAP;
+  const rows = [{ ev: 'tapEnter', t: TAP }, frames(0, 2, 16.7, origin), frames(3.7, 5, 16.7, origin), { ev: 'control', t: TAP + 6000 }];
+  // the profiler's clock starts at 100 s when the page reads 1000 ms; samples every 1 ms through the 1.7 s frame
+  const samples = [];
+  for (let ms = 2000; ms <= 3700; ms += 1) samples.push({ t: 100 + (ms - 1000) / 1000, frames: [['update', 'animals.js', 12], ['stepFrame', 'Game.js', 900]] });
+  const [frame] = profileFrames(rows, { calibration: { profilerS: 100, pageMs: 1000, origin }, samples });
+  expect(frame.ms).toBeGreaterThanOrEqual(1700);
+  expect(frame.self[0]).toEqual({ fn: 'update animals.js:12', samples: frame.samples });
+  expect(frame.inclusive.map(row => row.fn)).toContain('stepFrame Game.js:900');
 });

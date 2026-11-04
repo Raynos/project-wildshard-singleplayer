@@ -2,7 +2,7 @@
 // DL23 (E529, G1006, G1008): record one player's load of a shard in Safari on the iPhone Simulator, the way Jake does it:
 // title → (Developer) → SHARD SELECT → the shard → ENTER WORLD, then 30 s of play after control. Grown from wildshard-v's
 // E526 recording (tmp/e526-sim/drive.mjs). Runs inside scripts/sim-lane.sh run ($SIM_UDID); run.sh wraps it.
-//   node scripts/loading-flow/drive.mjs <cold|warm|upgrade> --shard <name regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--device-save <key>=<value>]... [--public]
+//   node scripts/loading-flow/drive.mjs <cold|warm|upgrade> --shard <name regex> --out <dir> [--base <url>] [--play <s>] [--packs] [--device-save <key>=<value>]... [--profile] [--public]
 // cold: Safari's website data wiped on disk, worker, caches and storage cleared at the origin; warm: the same Simulator
 // right after a cold run (caches kept; the session is ended as an exit to title would, so the title flow is the same);
 // upgrade: a warm visit made right after a deploy, so Safari still holds the previous build's worker and caches (Jake's
@@ -27,6 +27,9 @@ const SHARD = new RegExp(opt('shard', 'nine'), 'iu');
 const PLAY_S = Number(opt('play', '30'));
 // DL16's gate: the same flow with Debug ▸ Loading & memory ▸ Level download on Runtime packs (the row's own slot)
 const LEVEL_DOWNLOAD = args.includes('--packs') ? 'packs' : 'shardfile';
+// --profile: WebKit's sampling profiler (ScriptProfiler) on the world page from its first poll to control, written to
+// <mode>-profile.json for profile.mjs (the stacks inside each long loading frame). Sampling costs time: diagnosis only
+const PROFILE = args.includes('--profile');
 // any other device-scope Debug row, as its own slot write (--device-save debug.earlyPrograms=on, repeatable): a row's A / B
 const DEVICE_SAVES = deviceSavePicks(args.flatMap((arg, i) => arg === '--device-save' && args[i + 1] !== undefined ? [args[i + 1]] : []));
 const OUT = resolvePath(opt('out', '.'));
@@ -219,6 +222,31 @@ const READ = `JSON.stringify((() => {
     control, sw: navigator.serviceWorker?.controller ? 'controlled' : 'none', now: performance.now(), origin: performance.timeOrigin };
 })())`;
 let controlAt = null, lastHref = '', lastDrain = 0;
+let profiling = null;
+const startProfile = async () => {
+  if (!PROFILE || profiling !== null) return;
+  const complete = new Promise((resolve) => { page.on('ScriptProfiler.trackingComplete', resolve); });
+  const started = new Promise((resolve) => { page.on('ScriptProfiler.trackingStart', resolve); });
+  await page.send('ScriptProfiler.startTracking', { includeSamples: true });
+  const start = await Promise.race([started, sleep(3000).then(() => null)]);
+  // the profiler's clock (seconds) against the page's performance.now, read together
+  const pageNow = Number(await page.evaluate('performance.now()'));
+  profiling = { complete, calibration: { profilerS: start?.timestamp ?? null, pageMs: pageNow, origin: Number(await page.evaluate('performance.timeOrigin')) } };
+  log({ ev: 'profileStart', ...profiling.calibration });
+};
+const stopProfile = async () => {
+  if (profiling === null) return;
+  const { complete, calibration } = profiling; profiling = null;
+  try {
+    await page.send('ScriptProfiler.stopTracking');
+    const done = await Promise.race([complete, sleep(30000).then(() => null)]);
+    const traces = done?.samples?.stackTraces ?? [];
+    // each sample: its time and its frames, innermost first (name, url tail, line)
+    const samples = traces.map(trace => ({ t: trace.timestamp, frames: (trace.stackFrames ?? []).slice(0, 24).map(f => [[f.name].find(name => typeof name === 'string' && name !== '') ?? '(anonymous)', (f.url ?? '').replace(/^.*\//u, ''), f.line ?? 0]) }));
+    writeFileSync(`${OUT}/${mode}-profile.json`, `${JSON.stringify({ calibration, samples })}\n`);
+    say('profile', samples.length, 'samples');
+  } catch (e) { say('profile failed', String(e)); }
+};
 const drain = async () => { const v = await page.evaluate(DRAIN); if (v) { const d = JSON.parse(v); if (d.f.length > 0) log({ ev: 'frames', ...d }); } lastDrain = Date.now(); };
 while (controlAt === null ? Date.now() - tapAt < 180000 : Date.now() - controlAt < (PLAY_S + 2) * 1000) {
   let row = null;
@@ -227,12 +255,16 @@ while (controlAt === null ? Date.now() - tapAt < 180000 : Date.now() - controlAt
     if (Date.now() - lastDrain > 1000) await drain();
   } catch { try { await connect(gamePage, 5000); } catch { /* already gone */ } continue; }
   log({ ev: 'poll', at: rel(), ...row });
+  if (PROFILE && controlAt === null && row.href !== lastHref && lastHref !== '') {
+    try { await startProfile(); } catch (error) { say('profile start failed', String(error)); }
+  }
   if (row.href !== lastHref) { say('href', row.href, 'at', rel()); lastHref = row.href; }
   if (row.err) say('ERR', row.err.slice(0, 200));
-  if (row.control && controlAt === null) { controlAt = Date.now(); log({ ev: 'control', at: rel(), play: await page.evaluate(PLAY) }); say('control at', rel(), `(${((controlAt - tapAt) / 1000).toFixed(1)} s after the tap)`); }
+  if (row.control && controlAt === null) { await stopProfile(); controlAt = Date.now(); log({ ev: 'control', at: rel(), play: await page.evaluate(PLAY) }); say('control at', rel(), `(${((controlAt - tapAt) / 1000).toFixed(1)} s after the tap)`); }
   await sleep(controlAt === null ? 200 : 500);
 }
 try { await drain(); } catch { /* already gone */ }
+await stopProfile();
 // network + marks of the world page
 try {
   const perf = await page.evaluate(`JSON.stringify({origin: performance.timeOrigin, nav: performance.getEntriesByType('navigation').map(e=>({name:e.name,start:e.startTime,resp:e.responseEnd,dcl:e.domContentLoadedEventEnd,type:e.type})),

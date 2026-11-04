@@ -3,7 +3,7 @@
 # the default level download (Shardfile), then the same pair on Runtime packs (DL16's gate; --no-packs skips it). Each
 # run plays 30 s after control: 10 s on foot with a slow look, then the hoverboard at boost.
 # Run after every boot / download / loading landing and each deploy; a row touching loading closes on a passing run.
-#   scripts/loading-flow/run.sh [--base <url>] [--out <dir>] [--no-packs] [--upgrade] [--device-save <key>=<value>]... <shard regex>...
+#   scripts/loading-flow/run.sh [--base <url>] [--out <dir>] [--no-packs] [--upgrade] [--device-save <key>=<value>]... [--profile] <shard regex>...
 #   e.g. run.sh driftwood pine nine; a Debug row's A / B: run.sh --no-packs --device-save debug.earlyPrograms=on nine
 # --upgrade: one visit per shard and download with Safari's data kept, run once right after a deploy so it meets the
 # previous build's worker and caches (the last run.sh before the deploy left them); no cold or warm run.
@@ -24,6 +24,7 @@ while [ "$#" -gt 0 ]; do
     --no-packs) downloads=(shardfile); shift ;;
     --upgrade) modes='upgrade'; shift ;;
     --device-save) saves="$saves --device-save '$2'"; shift 2 ;;
+    --profile) saves="$saves --profile"; shift ;;
     *) shards+=("$1"); shift ;;
   esac
 done
