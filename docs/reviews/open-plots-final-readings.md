@@ -1768,3 +1768,40 @@ comes from this preflight-only attempt.
 All own previews, browsers, Simulator, model lock and quiet ownership were
 released before the slot passed to sp-o2. The four officials remain open;
 **6/10 fully qualified** stays unchanged.
+
+
+## Remaining four — Safari fixture diagnosis (sp-x1, November 4)
+
+The next clean Clockwork official used fresh `1bc5e17-mw2jk8m3` (:4454),
+with the 206-body / 201-entry bridge intact. Preparation readback passed,
+but the game again lost settings/gfx/devMode. The original configuration
+check refused: **26.062 s, exit 3, zero windows**, `complete=false` and
+`pass=false`. Grid also reported a modules-step internal error. This run
+has no foreign CPU overlap and earns no official qualification. Raw
+configuration, native diagnostics and refusal remain at
+`tmp/sp-x1-open-plots/audio4-official-qualified-window/clockwork-canyon/`.
+Thus `70ecf8e5c9` supplied the preparation check; it did not cure the loss.
+
+Presence-only boot provenance (`db9f1d2acb`) reproduced the loss on Safari
+build `1bc5e17-mw2kgfpf` (:4455): all three fixtures remained through
+1.225 s and were absent by 2.313 s. No traced remove/clear explained the
+simultaneous global and device loss. The subsequent global summary write
+is the first observed missing-state witness, not an established cause.
+Chromium on current carrier `e337209-mw2k1qlk` retained the fixtures; its
+ready wait used `playing` instead of the actual `play` state, so its 30 s
+expiry remains recorded rather than being presented as an app failure.
+
+The changed-navigation Safari boot on `1bc5e17-mw2kvo66` (:4456) kept the
+preparation tab and navigated it with `location.replace`. At the 15 s
+observation the game was in `play` with all three fixtures retained;
+32 writes and four presence transitions were recorded, with zero storage
+events and native Storage methods restored. These are untimed boot
+observations, not floor or memory credit. Raw traces:
+`tmp/sp-x1-open-plots/fixture-boot-{chromium,safari,safari-same-tab}.json`.
+
+Reader repair `eb0a4f255a` adopts that navigation while retaining the
+original configuration guard, fixture readback, frame counts, native
+sampler and deadlines. Related four-path checks passed in 18.1 s, the final
+navigation control in 0.6 s, and named typed lint passed. The four fresh
+quiet officials are still required; **6/10 fully qualified** is unchanged.
+All diagnostic browsers, Simulators and preview leases were released.
