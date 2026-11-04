@@ -218,7 +218,11 @@ try {
     const row = { url: req.url(), start: Date.now(), end: null, failed: null, by: req.serviceWorker() === null ? 'page' : 'service-worker' };
     open.set(req, row); requests.push(row);
   });
-  context.on('requestfinished', req => { const row = open.get(req); if (row) row.end = Date.now(); });
+  // the encoded body bytes each request moved (Playwright's transfer sizes; a cache or worker answer moves none over the wire)
+  context.on('requestfinished', req => {
+    const row = open.get(req); if (!row) return; row.end = Date.now();
+    void (async () => { const [size, response] = await Promise.all([req.sizes(), req.response()]); row.bytes = response?.fromServiceWorker() === true ? 0 : size.responseBodySize; })().catch(() => undefined);
+  });
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
   const page = await context.newPage();
   page.setDefaultTimeout(240000);
@@ -379,7 +383,7 @@ try {
       report.lapAdds = { fineTiles: found.fine, meshesAtControl: at.scene?.meshes ?? null, pops: found.pops, distanceLod: found.distanceLod, reattached: found.reattached, neighbourPops: found.neighbourPops, actorsShown: found.actors, lods: found.lods, textures: found.textures, cellPops: [...cellPops.values()] };
     }
     if (neighbourList.length > 0) (report.neighbour ??= []).push(...neighbourList);
-    return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
+    return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, bytesBeforeControl: mine.filter(r => r.start < c).reduce((sum, r) => sum + (r.bytes ?? 0), 0), level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
       pendingAtControl: pending.map(r => ({ url: r.url, by: r.by, msBeforeControl: c - r.start, msAfterControl: r.end === null ? null : r.end - c, failed: r.failed })), afterControl: after.map(row), neighbourWorkAfterControl: byInitiator.map(r => Object.assign(row(r), { work: r.work })), readsAfterControl: lateReads.slice(0, 40),
       precacheAfterControl: precache.filter(r => r.start >= c).length, precacheOpenAtControl: precache.filter(r => r.start < c && (r.end === null || r.end > c)).length,
       neighbour: { pendingAtControl: nPending.length, afterControl: nAfter.length, readsAfterControl: nReads.length },
