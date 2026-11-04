@@ -68,3 +68,13 @@ test('a model re-attached by the ring after control is listed, a new one is a po
   expect(found.reattached).toEqual(['re-attached Mesh<driftwood-isle/pier<Scene']);
   expect(found.pops).toEqual(['added Mesh<crate<Scene']);
 });
+
+test('a look-alike is a pop: another texture, or the control mesh never retired (sp-x9)', () => {
+  const at = sample([row('pier-a', 'Mesh<driftwood-isle/pier<piers.world-0<Scene', 'g-pier', 't-wood')]);
+  // the original left the scene, but the newcomer draws another texture: new content, not the same model
+  const retexture = lapPops(at, [sample([row('pier-b', 'Mesh<driftwood-isle/pier<Scene', 'g-pier-2', 't-gold')])], undefined);
+  expect(retexture.reattached).toEqual([]); expect(retexture.pops).toEqual(['added Mesh<driftwood-isle/pier<Scene']);
+  // same signature, but the control mesh is still there: a second copy appeared, nothing was re-attached
+  const extra = lapPops(at, [sample([row('pier-a', 'Mesh<driftwood-isle/pier<piers.world-0<Scene', 'g-pier', 't-wood'), row('pier-b', 'Mesh<driftwood-isle/pier<Scene', 'g-pier-2', 't-wood')])], undefined);
+  expect(extra.reattached).toEqual([]); expect(extra.pops).toEqual(['added Mesh<driftwood-isle/pier<Scene']);
+});

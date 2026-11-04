@@ -75,16 +75,21 @@ function sigParts(sig) {
  *  actor: listed, never a pop. */
 export function lapPops(at, lap, homeRegion) {
   const atList = at.scene?.list ?? [], atMeshes = new Map(atList.map(([id, , sig, on]) => [id, { sig, on }]));
-  // DL5 target (root, G872): the Shardfile ring retires a tile beyond it and re-attaches the same model on return; a mesh
-  // added after control with the name, owner and vertex count of one shown at control is that model re-attached: listed
-  const model = (chain, sig) => `${chain.split('<').slice(0, 2).join('<')}|${sig.split('|')[1] ?? ''}`;
-  const atModels = new Set(atList.map(([, chain, sig]) => model(chain, sig))), reattached = new Map();
+  // DL5 target (root, G872): the Shardfile ring retires a tile beyond it and re-attaches the same model on return. A mesh
+  // added after control is that model re-attached (listed, not a pop) only when one shown at control had its name, owner,
+  // vertex and index counts and materials and textures (the whole signature but the new geometry's id), and that mesh
+  // left the scene in an earlier sample (its retirement, sp-x9's review); anything else is a pop
+  const model = (chain, sig) => `${chain.split('<').slice(0, 2).join('<')}|${sig.split('|').slice(1).join('|')}`;
+  const atModels = new Map(), reattached = new Map(), retired = new Set();
+  for (const [id, chain, sig, on] of atList) if (on) { const ids = atModels.get(model(chain, sig)) ?? []; ids.push(id); atModels.set(model(chain, sig), ids); }
   const residentGeometry = new Set(), residentMaps = new Set();
   for (const row of atList) { const parts = sigParts(row[2]); residentGeometry.add(parts.geometry); for (const map of parts.maps) residentMaps.add(map); }
   const pops = new Map(), neighbourPops = new Map(), actors = new Map(), distance = new Map();
   const fineAt = new Set(at.fine), fine = new Set(), lods = new Set(at.scene?.lods), textures = new Set();
   const neighbourChain = chain => homeRegion !== undefined && /region:[\w-]+/u.test(chain) && !chain.includes(`region:${homeRegion}`);
   for (const s of lap) {
+    const present = new Set((s.scene?.list ?? []).map(([id]) => id));
+    for (const [key, ids] of atModels) if (ids.some(id => !present.has(id))) retired.add(key);
     for (const key of s.fine ?? []) if (!fineAt.has(key)) fine.add(key);
     for (const lod of s.scene?.lods ?? []) lods.add(lod);
     for (const texture of s.scene?.texturesPending ?? []) textures.add(texture);
@@ -93,7 +98,7 @@ export function lapPops(at, lap, homeRegion) {
       if (skinned) { if (atMeshes.get(id)?.on !== true) actors.set(id, chain); continue; }
       const was = atMeshes.get(id);
       let red = null;
-      if (was === undefined && atModels.has(model(chain, sig))) { reattached.set(id, `re-attached ${chain}`); continue; }
+      if (was === undefined && retired.has(model(chain, sig))) { reattached.set(id, `re-attached ${chain}`); continue; }
       if (was === undefined) red = 'added';
       else if (was.sig !== sig) {
         const parts = sigParts(sig);

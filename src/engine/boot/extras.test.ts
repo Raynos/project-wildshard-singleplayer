@@ -157,10 +157,11 @@ test('G1000: the phone bar reads and decodes the whole boot audio set before con
       expect([...new Uint8Array(await read(sfx))]).toEqual([4,5,6]);
       return bank;
     });
-    // a profile that still names a control subset (I7) gets its whole boot set anyway, and the full decode
+    // a profile that still names a control subset and a title track (I7) gets its whole boot set anyway, and the full
+    // decode, called as the session's data stage calls it on a direct play (sp-x9: no late title music either)
     const control=vi.fn<NonNullable<LevelAudioProfile['controlDecode']>>(()=>Promise.resolve(bank));
-    const selected={...profile,controlFiles:()=>[music],controlDecode:control,decode:decoded};
-    const files=bootFiles(level,'img',selected),preload=startDeferredAudioPreload(files,level,selected);
+    const selected={...profile,controlFiles:()=>[music],titleFiles:()=>[music],controlDecode:control,decode:decoded};
+    const files=bootFiles(level,'img',selected,true),preload=startDeferredAudioPreload(files,level,selected);
     await preload.wait({set:()=>undefined,detail:()=>undefined});await preload.decode();
     expect(new Set(fetch.mock.calls.map(([input])=>input))).toEqual(new Set([music,sfx]));
     expect(decoded).toHaveBeenCalledTimes(1); expect(control).not.toHaveBeenCalled();

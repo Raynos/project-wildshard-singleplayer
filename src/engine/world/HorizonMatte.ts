@@ -133,8 +133,9 @@ export class HorizonMatte {
 
   /**
    * fetch + decode both paintings; resolves once both are decoded. `instant` (the loader's own call, DL17: before
-   * control) shows the band whole at once; otherwise it fades in over FADE_IN. `replaces`: geometry the painting stands
-   * in for, hidden as the band shows; it stays the fallback when the paintings fail to load.
+   * control) shows the band whole at once and rejects when the paintings fail (the level is not complete without them);
+   * otherwise it fades in over FADE_IN and a failure leaves the band off. `replaces`: geometry the painting stands in
+   * for, hidden as the band shows; it stays the fallback when a later load fails.
    */
   async load(replaces?: THREE.Object3D, instant = false): Promise<void> {
     const strips = this.strips;
@@ -148,6 +149,8 @@ export class HorizonMatte {
       if (instant) { this.fade = 1; this.u.uFade.value = 1; }
       if (replaces) replaces.visible = false;
     } catch (e) {
+      // the loader's own load (DL17): a level without its horizon is not complete at control, so the boot fails visibly
+      if (instant) throw new Error(`Horizon paintings did not load: ${e instanceof Error ? e.message : String(e)}`, { cause: e });
       console.warn('[horizon-matte] paintings not loaded; the band stays off', e);
     }
   }

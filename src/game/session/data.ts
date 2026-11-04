@@ -47,8 +47,9 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
   loading.waiting('Preparing audio catalogue');
   const audioProfile = await stage('audio.preload', () => manifest.audio?.preload?.());
-  const directPlay = manifest.legacy !== true && (currentPageMode() === 'grid' || session.arrival?.mode === 'enter' || session.arrival?.mode === 'arena');
-  const files = bootFiles(manifest, undefined, audioProfile ?? NO_AUDIO, currentPageMode() !== 'grid', directPlay); // Grid never opens the menu card bank.
+  // G1000 (DL17, root's ruling over I7): a direct play no longer holds its title music past control: the whole score is
+  // downloaded and decoded in the bar (sp-x9: a held title kept the phone on its control decode, island tension after it)
+  const files = bootFiles(manifest, undefined, audioProfile ?? NO_AUDIO, currentPageMode() !== 'grid'); // Grid never opens the menu card bank.
   useShardSteps(manifest.boot?.steps, manifest.boot?.bytes); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)
   const plan = createBootPlan((view) => { loading.paint(view); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
