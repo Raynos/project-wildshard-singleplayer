@@ -1,3 +1,4 @@
+import { ReturnProgramDocumentSchema } from '@wildshard/format/returnProgramDocument';
 import { WeatherBundleSchema, WeatherDocumentSchema } from '@wildshard/format/weatherBundle';
 import { WeatherEffectsSchema } from '@wildshard/format/weatherEffects';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
@@ -462,7 +463,9 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'paintedResources.PainterlyWorld': PainterlyWorldSchema,
   'postGraphLook.PostGraphLook': PostGraphLookSchema,
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
- };
+ 
+  'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+};
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
 const wireRegexes = new Set<object>();

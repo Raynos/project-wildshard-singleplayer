@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./returnProgramDocument": "./returnProgramDocument.ts",
     "./sceneSources": "./sceneSources.ts",
     "./registeredJson": "./registeredJson.ts",
     "./sourceResidency": "./sourceResidency.ts",
