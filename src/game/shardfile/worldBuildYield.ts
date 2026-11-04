@@ -1,11 +1,5 @@
-import { ShardPlugin as OwnedShardPlugin, type ShardContext } from '../plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { buildYield } from '@wildshard/engine/core/workSlice';
-
-/** Frozen entries retain the exact staged constructor; primaries use plugin/context. */
-// oxlint-disable-next-line eslint/no-redeclare -- TypeScript value and instance-type namespaces intentionally share the frozen name.
-export const ShardPlugin: typeof OwnedShardPlugin = OwnedShardPlugin;
-/** Frozen context typing refers to that same constructor's instance. */
-export type ShardPlugin = OwnedShardPlugin;
 
 /**
  * End a stretch of a shard's world build (op-hitch45): `await worldBuildYield(ctx)` between pieces. A fresh timer task of

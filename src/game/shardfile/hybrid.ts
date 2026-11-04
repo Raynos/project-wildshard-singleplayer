@@ -7,7 +7,7 @@ import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
-import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellRef, ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
+import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellRef, ShardPlugin } from '../plugin/context';
 
 import type { ShardRuntime } from '../shard/runtime';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
@@ -18,7 +18,7 @@ import { shardfileSource } from './clientSource';
 import type { ProductOptions } from './product';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { reserveMapImage } from './mapImage';
-import { browserShardfileOptions, loadShardProduct, provideHybridDeclaration, runtimeProduct } from './runtimeProduct';
+import { browserShardfileOptions, provideHybridDeclaration, runtimeProduct } from './runtimeProduct';
 import type { ShardProduct } from './shardProduct';
 import type { ShardfileClientBindings } from './client';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -34,12 +34,10 @@ async function runtimeClientPhase(ctx: ShardContext, phase: ClientPhase, residen
 
 /** A finite data runtime has no source entry or hooks of its own. */
 class ClientPlanRuntime extends ShardPlugin {}
-function preparePageRuntime(declaration: RuntimeDeclaration | null, product: ShardProduct | undefined,
-  slug: string, firstParty: boolean, entries: readonly TrustedRuntimeEntry[]): Promise<new () => ShardPlugin> {
-  if (declaration !== null && 'entry' in declaration) return prepareTrustedRuntime(declaration, slug, firstParty, entries);
-  if (!firstParty || product === undefined || !product.has('client/plan')) return Promise.reject(new Error('Data resident requires its admitted client plan'));
+function preparePageRuntime(product: ShardProduct, firstParty: boolean): new () => ShardPlugin {
+  if (!firstParty || !product.has('client/plan')) throw new Error('Data resident requires its admitted client plan');
   admittedProductClientPlan(product);
-  return Promise.resolve(ClientPlanRuntime);
+  return ClientPlanRuntime;
 }
 
 /** A resident's data world stays alive when its independently scoped trusted play hooks leave. */
@@ -296,7 +294,7 @@ export class HybridShardPlugin extends ShardPlugin {
 }
 
 /** Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. */
-export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, 'identity'>, options: ProductOptions | { firstParty: true },
+export async function prepareHybridShard(product: ShardProduct, options: ProductOptions | { firstParty: true },
   bindings: Omit<ShardfileClientBindings, 'instance' | 'trustedRuntime'> & {
     /** The game adapter forwards the page owner; the shard need not read or own another service. */
     readonly residencyContext?: Pick<ShardContext, 'game' | 'scope'>;
@@ -305,19 +303,12 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
     /** First-party transition whose runtime installs every admitted world/kit/play declaration.
      * Admission and residency still run; the data client must not install a second simulation. */
     readonly stagesOwner?: 'declared' | 'runtime';
-  },
-  entries: readonly TrustedRuntimeEntry[]): Promise<ShardPlugin> {
-  // Frozen callers provide only identity; their authored data is never read.
-  // Every current entry passes the product already loaded before its hooks.
-  const expectedIdentity = 'shardfile' in input ? input.slug : input.identity.slug;
+  }): Promise<ShardPlugin> {
+  // Every entry passes the product already loaded before its hooks.
   const productOptions = 'base' in options ? options : browserShardfileOptions(
-    new URL(`shardfiles/${expectedIdentity}/`, document.baseURI || location.href).href, options.firstParty);
-  if (!('shardfile' in input) && !options.firstParty) throw new Error('Hybrid requires an admitted product');
-  const product = 'shardfile' in input ? input : await loadShardProduct(expectedIdentity, productOptions);
+    new URL(`shardfiles/${product.slug}/`, document.baseURI || location.href).href, options.firstParty);
   const source = product.shardfile;
-  const { slug: actualIdentity } = source.identity;
-  if (!('shardfile' in input) && (actualIdentity !== expectedIdentity || source.identity.revision !== input.identity.revision)) throw new Error('Built hybrid descriptor differs from its trusted identity');
-  if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
+  if (source.runtime === null || 'entry' in source.runtime) throw new Error('Hybrid requires a compiled client-plan runtime declaration');
   provideHybridDeclaration(source);
   if (bindings.stagesOwner === 'runtime' && !options.firstParty) throw new Error('Runtime stage ownership requires a trusted first-party shard');
   const { residencyContext, retainHomeRuntime, stagesOwner, ...providedBindings } = bindings;
@@ -339,12 +330,11 @@ export async function prepareHybridShard(input: ShardProduct | Pick<Shardfile, '
       ...(binding.residency === undefined ? {} : { residency: binding.residency }),
     });
   };
-  const declaration = source.runtime;
   const { load, mapImage } = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, runtimeStagesOnly: stagesOwner === 'runtime', planLifetime: 'resident', audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) })
     .then(data => ({ load: data.load, mapImage: data.minimap?.image }));
   if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
-  const [installed, Runtime] = await Promise.all([load().then(({ default: Data }) => new Data()),
-    preparePageRuntime(declaration, product, source.identity.slug, productOptions.firstParty, entries)]);
+  const Runtime = preparePageRuntime(product, productOptions.firstParty);
+  const installed = await load().then(({ default: Data }) => new Data());
   const mapped: ShardPlugin = source.map === undefined ? installed : {
     async world(ctx) {
       const allocator = clientBindings.residency?.allocator ?? clientBindings.allocator;
@@ -385,8 +375,7 @@ export class HybridRuntimeSession {
     const resident = this.residents.get(instance);
     if (resident === undefined) return Promise.reject(new Error('Missing hybrid resident'));
     const prior = this.prepared.get(instance); if (prior !== undefined) return prior;
-    // Current regions never resolve source modules. The shared legacy composite
-    // above retains its explicit loaders until LD.
+    // Current regions never resolve source modules (LD9: no TS loader remains).
     if (resident.declaration !== null && 'entry' in resident.declaration) return Promise.reject(new Error('Regional runtime requires a compiled client page'));
     const product = resident.product;
     if (!resident.firstParty || product === undefined || !product.has('client/plan')) return Promise.reject(new Error('Data resident requires its admitted client plan'));

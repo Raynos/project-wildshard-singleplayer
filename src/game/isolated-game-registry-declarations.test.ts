@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["Inventory","grid/budgetPoints","grid/cellEvents","grid/roadLayout","loot/Owned","models/interact","models/mountedSpecimen","shardfile/movers","systems/viewmodel/armRig","weapons/starterMoves","shard/plugin"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["Inventory","grid/budgetPoints","grid/cellEvents","grid/roadLayout","loot/Owned","models/interact","models/mountedSpecimen","shardfile/movers","systems/viewmodel/armRig","weapons/starterMoves"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);

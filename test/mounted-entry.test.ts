@@ -8,6 +8,7 @@ import power from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {t
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
+import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
@@ -109,8 +110,8 @@ test('the compiled entry installs its full kit plan against the original prepare
   publishEntryOwner(f.ctx.scope, 'claims', mounted.claims, f.arsenal);
   f.weapon.mockImplementation(() => { order.push('mounted'); });
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => { order.push('paths'); });
-  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }).default;
-  const plugin = new Entry(undefined, undefined, () => false);
+  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }, clientPlanPhases).default;
+  const plugin = new Entry();
   try {
     await plugin.world(f.ctx); expect(f.weapon).not.toHaveBeenCalled();
     await plugin.kit(f.ctx); await plugin.play(f.ctx);

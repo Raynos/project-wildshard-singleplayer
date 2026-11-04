@@ -8,7 +8,7 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { WorldSceneSurface } from '@wildshard/format/worldSceneSurface';
 import type { ShardProduct } from './shardProduct';
 import { productCoverAppearance } from '../looks/coverAppearance';
-import { gridPage } from '../shard/runtimeVariant';
+import { gridPage } from '../grid/pageMode';
 import { lentMappedLook, setLentTexture } from './lentLooks';
 import { app } from '@wildshard/engine/app/runtime';
 

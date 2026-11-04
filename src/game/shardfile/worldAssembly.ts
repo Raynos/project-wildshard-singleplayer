@@ -13,7 +13,7 @@ import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { BakedTiles } from './bakedTiles';
 import { Group, Mesh, Vector3, type BufferGeometry, type Object3D } from 'three';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { worldBuildYield } from '../shard/plugin';
+import { worldBuildYield } from './worldBuildYield';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { createStreamedCover } from '../looks/streamedCover';
 import { toonLightingOf } from '../looks/toonLighting';

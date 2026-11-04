@@ -135,7 +135,7 @@ const reviewedW2Owners = new Map([
   ['src/game/shard/retainedHooks.ts#installEnteredRuntimeAttachment', 'C9'],
   ['src/game/shard/retainedHooks.ts#installEnteredRuntimeObserver', 'C9'],
   ['src/game/shard/retainedHooks.ts#installEnteredRuntimeUpdate', 'C9'],
-  ['src/game/shard/runtimeVariant.ts#gridPage', 'C9'],
+  ['src/game/grid/pageMode.ts#gridPage', 'C9'],
 ]);
 function namedRole(name,path='') {
   const reviewed = reviewedW2Owners.get(`${path}#${name}`); if (reviewed !== undefined) return reviewed;
@@ -166,7 +166,7 @@ const w3SharedOwners = new Map([
   ['src/engine/core/ktx2.ts', 'C2'],
   ...['src/game/plugin/quests.ts'].map(path => [path, 'C5']),
   ['src/game/shardfile/portalLinkProof.ts', 'C7'],
-  ...['src/game/shard/runtimeVariant.ts', 'src/sdk/assets.ts',
+  ...['src/game/grid/pageMode.ts', 'src/sdk/assets.ts',
     'src/sdk/buildBehaviour.ts', 'src/engine/app/systems.ts'].map(path => [path, 'C9']),
 ]);
 function w3FileRole(path) {

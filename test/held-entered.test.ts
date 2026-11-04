@@ -7,6 +7,7 @@ import { bakedLayout } from '../src/shards/nine-dragon-stack/generators/layoutPr
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import type { PlatformDataSectionName } from '../src/format/platformDataSections';
 import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
+import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { App } from '../src/engine/app/app';
 
 async function refusal(run: Promise<unknown>): Promise<unknown> {
@@ -77,8 +78,8 @@ test('compiled kit and play install the same primary before the grapple without 
   const f = await heldEntry(false), order: string[] = [];
   const install=vi.spyOn(f.ctx.rows,'weapon');
   const tool = vi.spyOn(GrappleTool.prototype, 'install').mockImplementation(() => { order.push('grapple'); });
-  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }).default;
-  const plugin = new Entry(undefined, undefined, () => false);
+  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }, clientPlanPhases).default;
+  const plugin = new Entry();
   try {
     await plugin.world(f.ctx); expect(install).not.toHaveBeenCalled(); f.level.openKit(); await plugin.kit(f.ctx);expect(install).toHaveBeenCalledOnce();order.push('primary');f.level.closeKit();await f.build(); await plugin.play(f.ctx);
     expect(order).toEqual(['primary', 'grapple']);

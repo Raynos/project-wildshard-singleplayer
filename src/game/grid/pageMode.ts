@@ -10,6 +10,9 @@ let mode: PageMode = 'shard';
 export function currentPageMode(): PageMode { return mode; }
 /** @internal grid/boot.ts bootPageMode only */
 export function setPageMode(next: PageMode): void { mode = next; }
+/** Whether this page runs the grid (home or neighbour cell): a surface may pick a different texture cap there. Read at
+ *  build time, after the boot consumed the page's intent. */
+export function gridPage(): boolean { return mode === 'grid'; }
 
 /** Grid-owned walls and horizon yield to the platform; standalone keeps the original spec identity. */
 export function gridLevel(spec: LevelSpec): LevelSpec {

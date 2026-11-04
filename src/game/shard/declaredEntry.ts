@@ -1,32 +1,44 @@
-import { standaloneHybridEntry, ShardPlugin, type ShardContext } from '../plugin/context';
-import { prepareStandaloneHybrid, shardfileEntry } from './runtimeVariant';
-import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from '../shardfile/clientPlan';
+import { ShardPlugin, type ShardContext } from '../plugin/context';
+import type { prepareHybridShard as PrepareHybrid } from '../shardfile/hybrid';
 
-/** Built-in client-plan entry. Its policy names ownership only; all content
- * arrives through admitted finite features and there is no trusted TS lookup. */
-export function declaredClientPlanEntry(policy: { readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime' }): {
-  default: ReturnType<typeof standaloneHybridEntry>;
-} {
-  class EmptyRuntime extends ShardPlugin {}
-  const Native = clientPlanNative(EmptyRuntime);
-  return { default: standaloneHybridEntry(Native, ctx => {
-    if (!ctx.product.has('client/plan') || ctx.product.shardfile.runtime === null || 'entry' in ctx.product.shardfile.runtime) throw new Error('Client-plan entry requires its compiled runtime declaration');
-    return prepareStandaloneHybrid(ctx, { name: 'client-plan runtime', platform: 'client-plan', ...policy });
-  }, shardfileEntry, 'client-plan runtime') };
+/** A shard's declared home/stage ownership (its manifest's `bindings.entry`): Driftwood false/declared, Nalati and Nine
+ * true/declared, Pine true/runtime. Data at the one entry, never a shard-name lookup. */
+export interface ClientPlanEntryPolicy { readonly retainHomeRuntime: boolean; readonly stagesOwner: 'declared' | 'runtime' }
+
+/** Admit the product's compiled client plan as the shard's staged plugin: its data client plus the client-plan resident,
+ * with the declared ownership. The page's residency owner and image scope come from the boot context. An injected
+ * preparation port preserves trusted fixture/host admission checks. */
+export async function prepareClientPlanShard(ctx: ShardContext, policy: ClientPlanEntryPolicy,
+  prepare?: typeof PrepareHybrid): Promise<ShardPlugin> {
+  if (!ctx.product.has('client/plan') || ctx.product.shardfile.runtime === null || 'entry' in ctx.product.shardfile.runtime) throw new Error('Client-plan entry requires its compiled runtime declaration');
+  // the hybrid admission stays its own lazy chunk, fetched when world() runs (as before LD9)
+  return (prepare ?? (await import('../shardfile/hybrid')).prepareHybridShard)(ctx.product, { firstParty: true }, { residencyContext: ctx,
+    retainHomeRuntime: policy.retainHomeRuntime, stagesOwner: policy.stagesOwner,
+    catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
+    icon: () => { throw new Error('Client-plan runtime has no declared item icon'); },
+  });
 }
 
-function clientPlanNative(Native: new () => ShardPlugin): new () => ShardPlugin {
-  return class extends Native {
-    private plan: AdmittedClientPlan | undefined;
-    private async phase(ctx: ShardContext, phase: ClientPhase): Promise<void> {
-      if (this.plan === undefined) {
-        const plan = admitClientPlan(ctx.product.section('client/plan'), ctx.product);
-        this.plan = plan;
-      }
-      await installClientPhase(ctx, this.plan, phase, ctx.scope);
+/** The one built-in shard entry (LD9): world() admits the client plan once, then kit/play run that same composite in the
+ * staged order world → native world → world-bindings, native kit → plan kit, prepare-play → native play → plan play. No
+ * service runs on import; an injected preparation port keeps trusted fixture/host admission checks. */
+export function declaredClientPlanEntry(policy: ClientPlanEntryPolicy,
+  prepare: (ctx: ShardContext, policy: ClientPlanEntryPolicy) => Promise<ShardPlugin> = prepareClientPlanShard): {
+  default: new () => Required<ShardPlugin>;
+} {
+  return { default: class extends ShardPlugin {
+    private composite: ShardPlugin | undefined;
+    override async world(ctx: ShardContext): Promise<void> {
+      this.composite = await prepare(ctx, policy);
+      await this.composite.world?.(ctx);
     }
-    override async world(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'world'); await super.world?.(ctx); await this.phase(ctx, 'world-bindings'); }
-    override async kit(ctx: ShardContext): Promise<void> { await super.kit?.(ctx); await this.phase(ctx, 'kit'); }
-    override async play(ctx: ShardContext): Promise<void> { await this.phase(ctx, 'prepare-play'); await super.play?.(ctx); await this.phase(ctx, 'play'); }
-  };
+    override async kit(ctx: ShardContext): Promise<void> {
+      if (this.composite === undefined) throw new Error('Client-plan world is not admitted');
+      await this.composite.kit?.(ctx);
+    }
+    override async play(ctx: ShardContext): Promise<void> {
+      if (this.composite === undefined) throw new Error('Client-plan world is not admitted');
+      await this.composite.play?.(ctx);
+    }
+  } };
 }

@@ -5,6 +5,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
+import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
 import { Vector3 } from 'three';
 import { heldSwordWorld } from './fixtures/heldNativeSword';
@@ -98,8 +99,8 @@ test('the compiled entry runs the primary kit once before play consumes its exac
   if (item?.kind !== 'weapon') throw new Error('Missing fixture weapon');
   const expected=v.parse(MeleeWeaponProfileSchema,item.profile);
   const install=f.weapon;
-  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }).default;
-  const plugin = new Entry(undefined, undefined, () => false);
+  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }, clientPlanPhases).default;
+  const plugin = new Entry();
   try {
     await plugin.world(f.ctx); expect(install).not.toHaveBeenCalled();
     await plugin.kit(f.ctx); expect(install).toHaveBeenCalledOnce();

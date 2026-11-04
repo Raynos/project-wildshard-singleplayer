@@ -11,7 +11,7 @@ import { WorldRegistry } from '../src/engine/world/registry';
 import { Scope } from '../src/engine/app/scope';
 import * as boot from '../src/engine/boot/plan';
 import * as model from '../src/engine/models/model';
-import * as plugin from '../src/game/shard/plugin';
+import * as plugin from '../src/game/shardfile/worldBuildYield';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import * as gpu from '../src/engine/core/gpuOnly';

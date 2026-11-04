@@ -1,6 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { pageGridCells } from '../grid/cellEvents';
-import * as v from "valibot";
 import type { HomeResidencyClaim, PageResidency } from '../grid/pageResidency';
 import { currentPageMode } from '../grid/pageMode';
 import type { ShardManifest } from '../shard/manifest';
@@ -15,7 +14,6 @@ import { normalizeItemRow, type ItemRow } from '../bag/items';
 import type { ContentRow, EngineRows, LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { AudioData } from '@wildshard/format/audio';
-import { RuntimeSchema, type RuntimeDeclaration } from '@wildshard/format/runtime';
 import { parseShardSlug } from '../shard/slug';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { ownedPresentationImages } from '../shardfile/presentation';
@@ -142,27 +140,6 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
 export function buildProgress(context: Pick<ShardContext, 'progress'>): ShardContext['progress'] { return context.progress; }
 
 
-/** Held for LD: frozen legacy composition roots explicitly supply their own same-shard loader. */
-export interface TrustedRuntimeEntry {
-  readonly slug: string;
-  readonly entry: string;
-  readonly load: () => Promise<{ default: new () => ShardPlugin }>;
-}
-/** Held for LD: resolve only explicitly registered first-party legacy code, without running hooks. */
-export async function prepareTrustedRuntime(declaration: RuntimeDeclaration, slug: string, firstParty: boolean,
-  entries: readonly TrustedRuntimeEntry[]): Promise<new () => ShardPlugin> {
-  const parsed = v.parse(RuntimeSchema, declaration);
-  if (!firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
-  if (!('entry' in parsed)) throw new Error('Client-plan runtime requires its admitted product, not a trusted module');
-  const registered = new Map<string, TrustedRuntimeEntry[]>();
-  for (const entry of entries) { const group = registered.get(entry.slug) ?? []; group.push(entry); registered.set(entry.slug, group); }
-  const matches = (registered.get(slug) ?? []).filter((entry) => entry.entry === parsed.entry);
-  if (matches.length !== 1) throw new Error('Runtime entry must have exactly one matching trusted shard binding');
-  const match = matches[0];
-  if (match === undefined) throw new Error('Missing trusted runtime entry');
-  return (await match.load()).default;
-}
-
 /** A fully declared page reads world bytes through its admitted product, not
  * the authored predecessor's eager pack inventory. Preserve other boot policy. */
 export function compiledPageBoot(authored: ShardManifest['boot'], compiled: ShardManifest['boot']): NonNullable<ShardManifest['boot']> {
@@ -214,37 +191,4 @@ export abstract class ShardPlugin {
   world?(ctx: ShardContext): Promise<void> | void;
   kit?(ctx: ShardContext): Promise<void> | void;
   play?(ctx: ShardContext): Promise<void> | void;
-}
-
-/** Standalone admission factory; caller-owned data and native constructors retain their original staged hook order.
- * The instance chooses its entry once in world(), then kit/play reuse that same composite. No service runs on import.
- * Optional constructor ports preserve existing LEGACY and SHARDFILE test/host injection without a second boot. */
-export function standaloneHybridEntry(Native: new () => ShardPlugin, admitDefault: (ctx: ShardContext) => Promise<ShardPlugin>,
-  shardfileDefault: (ctx: ShardContext) => boolean, name: string): new (
-    Legacy?: new () => ShardPlugin, admit?: (ctx: ShardContext) => Promise<ShardPlugin>,
-    shardfile?: (ctx: ShardContext) => boolean,
-  ) => Required<ShardPlugin> {
-  return class extends ShardPlugin {
-    private composite: ShardPlugin | undefined;
-    private readonly Legacy: new () => ShardPlugin;
-    private readonly admit: (ctx: ShardContext) => Promise<ShardPlugin>;
-    private readonly shardfile: (ctx: ShardContext) => boolean;
-    constructor(Legacy: new () => ShardPlugin = Native,
-      admit: (ctx: ShardContext) => Promise<ShardPlugin> = admitDefault,
-      shardfile: (ctx: ShardContext) => boolean = shardfileDefault) {
-      super(); this.Legacy = Legacy; this.admit = admit; this.shardfile = shardfile;
-    }
-    override async world(ctx: ShardContext): Promise<void> {
-      this.composite = this.shardfile(ctx) ? await this.admit(ctx) : new this.Legacy();
-      await this.composite.world?.(ctx);
-    }
-    override async kit(ctx: ShardContext): Promise<void> {
-      if (this.composite === undefined) throw new Error(`${name} hybrid world is not admitted`);
-      await this.composite.kit?.(ctx);
-    }
-    override async play(ctx: ShardContext): Promise<void> {
-      if (this.composite === undefined) throw new Error(`${name} hybrid world is not admitted`);
-      await this.composite.play?.(ctx);
-    }
-  };
 }

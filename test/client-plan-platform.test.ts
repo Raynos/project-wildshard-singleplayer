@@ -35,8 +35,9 @@ import * as clientPhases from '../src/game/shardfile/clientPlan';
 import { admitClientPlan, admittedProductClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { ShardfileClient } from '../src/game/shardfile/client';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
-import { ShardPlugin, standaloneHybridEntry, type ShardContext } from '../src/game/plugin/context';
+import { declaredClientPlanEntry, prepareClientPlanShard, type ClientPlanEntryPolicy } from '../src/game/shard/declaredEntry';
+import { clientPlanPhases } from './fixtures/clientPlanHost';
+import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
 import { parseClientPlan, RuntimeBoundsSchema } from '../src/format/clientPlan';
 import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
@@ -153,25 +154,35 @@ test('Nalati lazy admission selects the compiled plan without a trusted TS resol
 
 
 
-test.each([false, true])('standalone entry preserves constructor and admission injection: %s', async shardfile => {
+test('the one entry admits once through its injected preparation and keeps the staged order', async () => {
   const f = context(), order: string[] = [], release = vi.fn();
-  class Native extends ShardPlugin { constructor() { super(); throw new Error('Unexpected default constructor'); } }
   class Injected extends ShardPlugin {
     override world(ctx: ShardContext): void { order.push('world'); ctx.scope.onDispose(() => { release(); }); }
     override kit(): void { order.push('kit'); }
     override play(): void { order.push('play'); }
   }
-  const admit = vi.fn((ctx: ShardContext) => { expect(ctx).toBe(f.ctx); order.push('admit'); return Promise.resolve(new Injected()); });
-  const select = vi.fn(() => shardfile);
-  const Entry = standaloneHybridEntry(Native, admit, select, 'Held legacy fixture');
-  const plugin = new Entry(Injected, admit, select);
+  const policy = { retainHomeRuntime: true, stagesOwner: 'declared' } as const;
+  const admit = vi.fn((ctx: ShardContext, rows: ClientPlanEntryPolicy) => { expect(ctx).toBe(f.ctx); expect(rows).toEqual(policy); order.push('admit'); return Promise.resolve(new Injected()); });
+  const Entry = declaredClientPlanEntry(policy, admit).default;
+  const plugin = new Entry(), early = new Entry();
   try {
+    await expect(early.kit(f.ctx)).rejects.toThrow('Client-plan world is not admitted');
+    await expect(early.play(f.ctx)).rejects.toThrow('Client-plan world is not admitted');
     await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
-    expect(order).toEqual(shardfile ? ['admit', 'world', 'kit', 'play'] : ['world', 'kit', 'play']);
-    expect(select).toHaveBeenCalledOnce(); expect(admit).toHaveBeenCalledTimes(shardfile ? 1 : 0);
+    expect(order).toEqual(['admit', 'world', 'kit', 'play']);
+    expect(admit).toHaveBeenCalledOnce();
     expect(release).not.toHaveBeenCalled();
   } finally { f.ctx.scope.dispose(); }
   expect(release).toHaveBeenCalledOnce();
+});
+
+test('the one entry refuses a product without its compiled client plan before admission', async () => {
+  const f = context(), prepare = vi.fn();
+  f.sections.delete('client/plan');
+  try {
+    await expect(prepareClientPlanShard(f.ctx, { retainHomeRuntime: false, stagesOwner: 'declared' }, prepare)).rejects.toThrow('Client-plan entry requires its compiled runtime declaration');
+    expect(prepare).not.toHaveBeenCalled();
+  } finally { f.ctx.scope.dispose(); }
 });
 
 test('retained client strings unpublish on leave and replay on re-entry', async () => {
@@ -295,8 +306,8 @@ test.each(['native', 'regional', 'data'] as const)('finite preparation precedes 
 
   try {
     if (surface === 'native') {
-      const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'runtime' }).default;
-      const plugin = new Entry(undefined, undefined, () => false);
+      const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'runtime' }, clientPlanPhases).default;
+      const plugin = new Entry();
       await plugin.world(f.ctx); await plugin.kit(f.ctx); await plugin.play(f.ctx);
       expect(entryOwner(f.ctx.scope, 'quest-spawns', 'orchard.spawns')).toBe(result); order.push('view');
     } else if (surface === 'regional') {
@@ -351,8 +362,8 @@ test.each(['native', 'regional', 'data'] as const)('world bindings follow constr
   try {
     if (surface === 'native') {
       publishEntryOwner(ctx.scope, 'floor', 'orchard.floor', floor); order.push('constructed');
-      const Entry = declaredClientPlanEntry({ retainHomeRuntime: false, stagesOwner: 'runtime' }).default;
-      const plugin = new Entry(undefined, undefined, () => false);
+      const Entry = declaredClientPlanEntry({ retainHomeRuntime: false, stagesOwner: 'runtime' }, clientPlanPhases).default;
+      const plugin = new Entry();
       await plugin.world(ctx); expect(runtime.hooks.spawnFloor).toBe(floor); await plugin.kit(ctx); order.push('kit');
     } else if (surface === 'regional') {
       const resident: HybridResident = { instance: 'orchard', slug: f.source.identity.slug, declaration: null, product: f.ctx.product, firstParty: true, scope: ctx.scope, runtime,
@@ -423,8 +434,8 @@ test('the compiled standalone native entry installs finite phases with no TS con
   const f=context(),order:string[]=[];
   f.sections.set('client/plan',{version:1,features:[{kind:'strings.register'},{kind:'debug.expose',name:'compiled'}]});
   f.strings.mockImplementation(()=>{order.push('world');});f.expose.mockImplementation(()=>{order.push('play');});
-  const Entry=declaredClientPlanEntry({retainHomeRuntime:true,stagesOwner:'runtime'}).default;
-  const plugin=new Entry(undefined,undefined,()=>false);
+  const Entry=declaredClientPlanEntry({retainHomeRuntime:true,stagesOwner:'runtime'}, clientPlanPhases).default;
+  const plugin=new Entry();
   try{await plugin.world(f.ctx);expect(order).toEqual(['world']);await plugin.kit(f.ctx);await plugin.play(f.ctx);expect(order).toEqual(['world','play']);}
   finally{f.ctx.scope.dispose();}
 });
@@ -439,9 +450,9 @@ test('compiled metadata registration allocates no second look constructor', asyn
   f.sections.set('client/plan', { version: 1, features: [{ kind: 'strings.register' }] });
   f.strings.mockImplementation(() => { order.push('strings'); });
   const compile = vi.spyOn(lookCompiler, 'runtimeLookMaterials').mockRejectedValue(new Error('Metadata cannot prepare visual looks'));
-  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }).default;
+  const Entry = declaredClientPlanEntry({ retainHomeRuntime: true, stagesOwner: 'declared' }, clientPlanPhases).default;
   try {
-    await new Entry(undefined, undefined, () => false).world(f.ctx);
+    await new Entry().world(f.ctx);
     expect(order).toEqual(['strings']); expect(compile).not.toHaveBeenCalled();
   } finally { compile.mockRestore(); f.ctx.scope.dispose(); }
 });
