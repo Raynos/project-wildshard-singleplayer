@@ -23,6 +23,7 @@ export class TileDecoder {
   private disposed = false;
   private jobs = 0;
   private idle: ReturnType<Scope['timeout']> | undefined;
+  private held = false;
   constructor(private readonly size = 2) {}
   private start(): void {
     if (this.disposed || this.workers.length > 0) return;
@@ -41,7 +42,10 @@ export class TileDecoder {
   }
   /** True when decoding runs off the main thread. */
   get threaded(): boolean { return this.workers.length > 0; }
+  /** Start the pool now and keep it to disposal (DL17, G872): a page that decodes in play fetches no worker script after control. */
+  hold(): void { this.held = true; this.start(); }
   private watchIdle(): void {
+    if (this.held) return;
     if (this.jobs === 0 && !this.disposed && this.workers.length > 0) this.idle = this.scope.timeout(30_000, () => {
       this.idle = undefined; this.retire();
     });

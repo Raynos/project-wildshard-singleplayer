@@ -34,6 +34,7 @@ import * as v from 'valibot';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { onPageEnvironment } from '@wildshard/engine/render/drawnEnvironment';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
+import { browserLiveJsonParser } from '@wildshard/engine/boot/liveJsonParser';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -222,6 +223,9 @@ function neighbourTiles(scope: Scope, prepare: (tile: PreparedRingTile) => Promi
   frame: ((step: () => void) => void) | undefined): { instances: Map<string, ClientRingInstance>; ports: RingPorts<PreparedRingTile> } {
   const instances = new Map<string, ClientRingInstance>(), decoder = new TileDecoder();
   scope.onDispose(() => { decoder.dispose(); });
+  // DL17 (G872): the neighbours decode and parse in play; their workers start in loading and stay, so no worker script is
+  // fetched after control (the live parser's page owner keeps it to the page's end)
+  decoder.hold(); browserLiveJsonParser().hold();
   return { instances, ports: clientRingPorts(instances, { scope, decoder, prepare, retired, ...(frame === undefined ? {} : { frame }) }) };
 }
 

@@ -21,6 +21,7 @@ export class LiveJsonParser {
   private worker: Worker | null = null;
   private thread: Scope | null = null;
   private idle: Scope | null = null;
+  private held = false;
   private sequence = 0;
   private readonly pending = new Map<number, Pending>();
   private readonly createWorker: () => Worker;
@@ -46,7 +47,7 @@ export class LiveJsonParser {
     this.pending.delete(id); request.scope.dispose();
     if (Reflect.get(data, 'ok') === true && Object.hasOwn(data, 'value')) request.resolve(Reflect.get(data, 'value'));
     else request.reject(replyError(Reflect.get(data, 'error')));
-    if (this.pending.size === 0 && this.thread !== null) {
+    if (this.pending.size === 0 && this.thread !== null && !this.held) {
       this.idle?.dispose(); this.idle = this.thread.child('idle');
       this.idle.timeout(30_000, () => { if (this.pending.size === 0) this.stop(new Error('Live JSON idle')); });
     }
@@ -99,6 +100,9 @@ export class LiveJsonParser {
       return waitFor('Read world data', measured, 'worker');
     } catch (error) { return Promise.reject(error instanceof Error ? error : new Error(String(error))); }
   }
+  /** Start the worker now and keep it to the owner's end (DL17, G872): a page that parses in play fetches no worker script
+   * after control; an idle worker no longer retires. */
+  hold(): void { this.held = true; if (typeof Worker !== 'undefined') this.start(); }
   /** Native worker parsing with bounded transferable pages and paced reconstruction.
    * Avoids a whole descriptor structured clone on the live page thread. */
   async parsePaced(bytes: Uint8Array, pause: () => Promise<void>): Promise<unknown> {
