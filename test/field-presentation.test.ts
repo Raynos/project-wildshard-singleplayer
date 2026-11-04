@@ -6,7 +6,7 @@ import { GrassPresentationSchema, StaticCaptureSchema, grassPresentationFiles } 
 import { GrassPresentationProfile } from '../src/game/looks/grassPresentation';
 import { STATIC_CONTACT_GRAPH, staticCaptureUniforms } from '../src/game/looks/staticCapture';
 import { validateGraph } from '../src/format/materialGraph';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { scatterLayer, captureScatterSource, instanceBoxes } from '../src/engine/render/scatterInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { AmbientWingField } from '../src/game/ambient/wingField';
@@ -53,7 +53,7 @@ it('refuses unbounded field draws and invalid capture bounds before allocating',
 });
 it('compiles the host contact pass as a graph with its height texture and frame',()=>{
   expect(validateGraph(STATIC_CONTACT_GRAPH).ok).toBe(true);
-  const pass=compileGraph(STATIC_CONTACT_GRAPH),height=new THREE.DataTexture(new Float32Array(4),2,2,THREE.RedFormat,THREE.FloatType);
+  const pass=compileClassicGraph(STATIC_CONTACT_GRAPH),height=new THREE.DataTexture(new Float32Array(4),2,2,THREE.RedFormat,THREE.FloatType);
   try{pass.setTexture('height',height);pass.setParam('xf',[-256,-256,1/512,3]);expect(()=>{pass.setParam('xf',[1,2]);}).toThrow();}
   finally{pass.material.dispose();height.dispose();}
 });
