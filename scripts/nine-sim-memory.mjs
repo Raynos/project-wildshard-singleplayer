@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { saveFixtureCode } from './debug-settings.mjs';
+import { deviceSavePicks, saveFixtureCode } from './debug-settings.mjs';
 // nine-sim-memory.mjs — Nine Dragon's memory in the iOS Simulator's Safari, per phase, for one or more builds (E264).
 //
 // A REGRESSION CHECK, NOT PHONE EVIDENCE: the Simulator runs on the Mac's memory and GPU. The phone killed WebContent at
@@ -8,6 +8,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 //
 //   node scripts/nine-sim-memory.mjs [--rev=HEAD] [--rev=f9ca6490 …] [--runs=2] [--play=60] [--fly=60]
 //        [--setting=key=value …] [--out=<dir>] [--max=<min>] [--clear-website-data]
+//        [--device-save=key=value …]  a device-scope Debug value before every load, as sim-memory.mjs's (debug.levelDownload=packs: DL16)
 //   node scripts/nine-sim-memory.mjs --url=http://127.0.0.1:4401/=mine …     (an already served build, labelled)
 //   node scripts/nine-sim-memory.mjs --table=<out dir>                         (reprint a finished run's table)
 //
@@ -198,7 +199,7 @@ async function oneRun(udid, run, opts) {
     // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
     const arrival = { slug: 'nine-dragon-stack', mode: 'enter', at: Date.now() };
-    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};1`); // developer mode: EXPLORE WORLD is developer-only (E386)
+    await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${Object.entries(opts.deviceSaves).map(([key, data]) => `${saveFixtureCode({ scope: 'device', key, data })};`).join('')}1`); // developer mode: EXPLORE WORLD is developer-only (E386)
     setPhase('loading');
     const loadStart = Date.now();
     await evaluate(`location.href = ${JSON.stringify(`${run.base}?chunk=nine-dragon-stack&mute=1`)}; 1`);
@@ -308,7 +309,7 @@ async function main() {
   mkdirSync(out, { recursive: true });
   if (readdirSync(out).length > 0) throw new Error(`${out} is not empty`);
   const runs = Number(flag('runs', '2'));
-  const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting'), clearWebsiteData: argv.includes('--clear-website-data') };
+  const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting'), deviceSaves: deviceSavePicks(flags('device-save')), clearWebsiteData: argv.includes('--clear-website-data') };
   const targets = [];
   const served = [];
   try {
