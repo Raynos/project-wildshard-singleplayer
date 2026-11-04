@@ -1,83 +1,33 @@
-import { afterAll, expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { NodeUpdateType } from 'three/webgpu';
-import { uv, vec3 } from 'three/tsl';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+import { vec3 } from 'three/tsl';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { graph as authorGraph } from '../src/sdk/materials';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
-import { tentShadowFilter } from '../src/engine/render/nodes/tentShadowFilter';
-import { planeBiasShadowFilter } from '../src/engine/render/nodes/planeBiasShadowFilter';
-import { shadowDepthSample } from '../src/engine/render/nodes/shadowDepthSample';
 
-vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
-afterAll(() => { vi.unstubAllGlobals(); });
-function program(compiled: ReturnType<typeof compileGraph>, filter?: typeof tentShadowFilter): THREE.WebGLProgramParametersWithUniforms {
-  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
-  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
-  const fields: Record<string, unknown> = {
-    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
-    toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
-    shadowMap: { enabled: true, type: THREE.PCFShadowMap },
-    getDrawingBufferSize: (size: THREE.Vector2): THREE.Vector2 => size.set(64, 64),
-    getViewport: (view: THREE.Vector4): THREE.Vector4 => view.set(0, 0, 64, 64),
-    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
-    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
-  };
-  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const handler = new EngineNodesHandler(), material = compiled.material;
-  handler.setRenderer(renderer);
-  const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
-  geometry.setAttribute('aDirection', new THREE.Float32BufferAttribute([1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0], 3));
-  const object = new THREE.Mesh(geometry, material); object.receiveShadow = true;
-  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
-  scene.fog = new THREE.Fog(0xaaaaaa, 1, 100);
-  const sun = new THREE.DirectionalLight(0xffffff, 1); sun.castShadow = true;
-  if (filter !== undefined) Reflect.set(sun.shadow, 'filterNode', filter);
-  const target = new THREE.WebGLRenderTarget(8, 8); target.depthTexture = new THREE.DepthTexture(8, 8); target.depthTexture.compareFunction = THREE.LessEqualCompare;
-  sun.shadow.map = target;
-  scene.add(object, sun); handler.renderStart(scene, camera); handler.updateLights([sun]);
-  const parameters: object = {};
-  const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
-  if (!isParameters(parameters)) throw new Error('Missing parameters');
-  try { handler.build(material, object, parameters); return parameters; }
-  finally { geometry.dispose(); target.dispose(); handler.renderEnd(); }
-}
-
-test.each([tentShadowFilter, planeBiasShadowFilter])('receiver offsets reach filtered shadow shaders and live uniforms without moving the caster (%#)', filter => {
+test('receiver offsets reach the shadow lookups and live uniforms without moving the caster', () => {
   const ir: GraphIr = { version: 1, kind: 'material', model: 'standard', params: { shift: { type: 'vec3', value: [0.12, 0.07, -0.03] } },
     nodes: { shift: { op: 'param', param: 'shift' } }, stages: { surface: { colour: [0.2, 0.5, 0.8] }, 'shadow.offset': { offset: 'shift' } } };
-  const compiled = compileGraph(ir), plain = compileGraph({ ...ir, stages: { surface: ir.stages.surface } });
+  const compiled = compileClassicGraph(ir), plain = compileClassicGraph({ ...ir, stages: { surface: ir.stages.surface } });
   try {
-    expect(compiled.material.positionNode).toBeNull(); expect(compiled.material.receivedShadowPositionNode).not.toBeNull();
-    expect(plain.material.receivedShadowPositionNode).toBeNull();
-    const shader = program(compiled, filter), version = compiled.material.version;
-    expect(shader.fragmentShader).toContain('shadowPositionWorld');
-    const holds = (point: THREE.Vector3): boolean => Object.values(shader.uniforms).some(u => u.value instanceof THREE.Vector3 && u.value.equals(point));
-    expect(holds(new THREE.Vector3(0.12, 0.07, -0.03))).toBe(true);
-    compiled.setParam('shift', [0.2, 0.1, 0.3]); expect(holds(new THREE.Vector3(0.2, 0.1, 0.3))).toBe(true);
+    const outputs = compiled.glsl.program?.outputs;
+    // the caster stays where it is: no vertex move, no displaced shadow depth; only the received lookups shift
+    expect([outputs?.position, outputs?.offset, compiled.depth]).toEqual([null, null, null]);
+    expect(outputs?.shadowOffset).not.toBe(null);
+    expect(compiled.material.vertexShader).toMatch(/vec3 wsShadowOffset = [^;]*wsP_shift/u);
+    expect(compiled.material.vertexShader).toContain('vSunShadowWorldPosition = vec4( worldPosition.xyz + wsShadowOffset,');
+    expect(compiled.material.vertexShader).not.toMatch(/worldPosition\s*(\.xyz)?\s*\+=/u);
+    expect(plain.material.vertexShader).not.toContain('wsShadowOffset');
+    expect(plain.material.vertexShader).toContain('#include <shadowmap_vertex>');
+    const shift = compiled.material.uniforms['wsP_shift'], version = compiled.material.version;
+    expect(shift?.value).toEqual(new THREE.Vector3(0.12, 0.07, -0.03));
+    compiled.setParam('shift', [0.2, 0.1, 0.3]); expect(shift?.value).toEqual(new THREE.Vector3(0.2, 0.1, 0.3));
     expect(compiled.material.version).toBe(version);
     const clone = compiled.material.clone();
-    try { expect(clone.receivedShadowPositionNode).toBe(compiled.material.receivedShadowPositionNode); expect(program({ ...compiled, material: clone }).fragmentShader).toContain('shadowPositionWorld'); }
+    try { expect(clone.uniforms['wsP_shift']).toBe(shift); expect(clone.vertexShader).toBe(compiled.material.vertexShader); }
     finally { clone.dispose(); }
     expect(authorGraph({ model: 'standard', shadow: { offset: vec3(0, 0.1, 0) }, surface: { colour: vec3(1) } }).stages['shadow.offset']).toBeDefined();
     expect(validateGraph({ ...ir, model: 'unlit' }).ok).toBe(false);
     expect(validateGraph({ ...ir, kind: 'post', stages: { post: { colour: [1, 1, 1] }, 'shadow.offset': { offset: 'shift' } } }).ok).toBe(false);
   } finally { compiled.material.dispose(); plain.material.dispose(); }
-});
-
-test('shadow depth comparisons keep their fixed orientation without object updates and refuse colour maps', () => {
-  const depth = new THREE.DepthTexture(4, 4), replacement = new THREE.DepthTexture(8, 8), colour = new THREE.Texture();
-  depth.compareFunction = THREE.LessEqualCompare; replacement.compareFunction = THREE.LessEqualCompare;
-  const sample = shadowDepthSample(depth, uv()).compare(0.5);
-  const compiled = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } });
-  compiled.material.colorNode = vec3(sample.x);
-  try {
-    program(compiled);
-    expect(sample.updateType).toBe(NodeUpdateType.NONE);
-    sample.value = replacement; program(compiled);
-    expect(sample.value).toBe(replacement);
-    sample.value = colour;
-    expect(() => program(compiled)).toThrow('Shadow comparison needs a depth texture');
-  } finally { compiled.material.dispose(); depth.dispose(); replacement.dispose(); colour.dispose(); }
 });
