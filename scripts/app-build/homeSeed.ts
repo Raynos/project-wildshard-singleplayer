@@ -18,12 +18,13 @@ import { Scope } from '../../src/engine/app/scope';
 import { AssetService } from '../../src/engine/app/assets';
 import { initializeTier, TIER, type Tier } from '../../src/engine/core/tier';
 import { parseOutputIndex } from '../../src/format/outputIndex';
-import { parseWorldScenes } from '../../src/format/worldScenes';
+import { parseWorldScenes, worldScenesForTier } from '../../src/format/worldScenes';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
 import { readWholeGeometry } from '../../src/game/plugin/geometry';
 import { provideRuntimeProduct } from '../../src/game/shardfile/runtimeProduct';
 import { readWorldSceneGeometry, worldSceneTemplateKey } from '../../src/game/shardfile/worldSceneGeometry';
 import { snapshotHomeGeometry, type HomeGeometrySnapshot } from '../../src/game/shardfile/homeGeometrySnapshot';
+import { scenePoolKey, tierFile, worldScenePool, type WorldScenePoolRow } from '../../src/game/shardfile/scenePools';
 import { encodeHomeSeed, homeSeedKey, homeSeedPath, readHomeSeedKeys, splitHomeSeed } from '../../src/game/shardfile/homeSeed';
 
 /** An owned model's decode inputs, as the scene reader passes them (its file already picked for the tier). */
@@ -68,6 +69,32 @@ export async function bakeOwnedEntry(product: GeometryProduct, row: OwnedSeedRow
   }
 }
 
+/** DL6: each pool file's origin-free key at the current tier (scenePoolKey, as the scene intake saves it) to its row
+ *  and file. */
+export function poolSeedIndex(product: Pick<GeometryProduct, 'url'>, section: unknown, tier: Tier): Map<string, { row: WorldScenePoolRow; file: WorldScenePoolRow['files'][number] }> {
+  const index = new Map<string, { row: WorldScenePoolRow; file: WorldScenePoolRow['files'][number] }>();
+  for (const row of worldScenesForTier(parseWorldScenes(section), tier).libraries) {
+    if (row.kind !== 'pool') continue;
+    for (const file of row.files) {
+      const key = homeSeedKey(scenePoolKey({ url: product.url(tierFile(file.file)), parts: file.parts, ...(file.channels === undefined ? {} : { channels: file.channels }) }));
+      if (!index.has(key)) index.set(key, { row, file });
+    }
+  }
+  return index;
+}
+
+/** The runtime's own pool parse of one file (its parts and channel rules, no painted models), snapshotted as the scene
+ *  intake saves it: one identity-matrix view per part. Null when the file's pool keeps atlases (never saved). */
+export async function bakePoolEntry(product: GeometryProduct, row: WorldScenePoolRow, file: WorldScenePoolRow['files'][number]): Promise<HomeGeometrySnapshot | null> {
+  let snapshot: HomeGeometrySnapshot | null = null, parts: BufferGeometry[] = [];
+  const library = worldScenePool(product, row, [file], { read: () => Promise.resolve(null), save: (_pool, prepared) => {
+    parts = [...prepared.values()];
+    snapshot = snapshotHomeGeometry(new Map([...prepared].map(([name, geometry]) => [name, { geometry, matrix: new Matrix4() }])));
+  } });
+  try { await library.preload(); return snapshot; }
+  finally { for (const geometry of parts) geometry.dispose(); }
+}
+
 /** The runtime's own whole read of exactly the key's refs, snapshotted before any release is attached (as it saves it). */
 export async function bakeWholeEntry(source: Parameters<typeof provideRuntimeProduct>[0]['source'], assets: ReadonlyMap<string, Uint8Array>,
   base: string, refs: readonly string[]): Promise<HomeGeometrySnapshot | null> {
@@ -109,6 +136,7 @@ export async function bakeHomeSeeds(root: string, outDir: string, report: (line:
         initializeTier(tier);
         const owned = product.has('world/scenes') ? ownedSeedIndex(geometryProduct, ownedSceneRows(product.section('world/scenes'), tier))
           : new Map<string, { row: OwnedSeedRow; revisit: boolean }>();
+        const pools = product.has('world/scenes') ? poolSeedIndex(geometryProduct, product.section('world/scenes'), tier) : new Map<string, never>();
         const entries = new Map<string, HomeGeometrySnapshot>(), skipped: string[] = [];
         for (const key of keys) {
           const prefix = key.slice(0, key.indexOf(':'));
@@ -128,6 +156,10 @@ export async function bakeHomeSeeds(root: string, outDir: string, report: (line:
               const match = owned.get(key);
               if (match === undefined) { skipped.push(`${key.slice(0, 120)}: no world-scene owned model gives this template key`); continue; }
               snapshot = await bakeOwnedEntry(geometryProduct, match.row, match.revisit);
+            } else if (prefix === 'pool') {
+              const match = pools.get(key);
+              if (match === undefined) { skipped.push(`${key.slice(0, 120)}: no world-scene pool file gives this key`); continue; }
+              snapshot = await bakePoolEntry(geometryProduct, match.row, match.file);
             } else { skipped.push(`${key.slice(0, 80)}: no baker for '${prefix}:' keys`); continue; }
             if (snapshot === null) { skipped.push(`${key.slice(0, 80)}: the snapshot writer refused its geometry`); continue; }
             entries.set(key, snapshot);
