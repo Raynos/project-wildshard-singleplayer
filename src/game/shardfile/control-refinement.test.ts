@@ -1,10 +1,18 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { reachControl } from '@wildshard/engine/boot/prefetch';
 import { ControlRefinement, FENCE_LANES, prepareSpawnView } from './controlRefinement';
 import { loadingWaitState } from '@wildshard/engine/boot/download';
 import { Group, PerspectiveCamera } from 'three';
 import { StreamingCamera, type StreamingView } from './streamingView';
+import { jsonSlot } from '@wildshard/engine/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
+
+// Retain the loose-file radius/posed-camera rulers independently of the
+// shipped whole-cell packs fence, which has its own default-mode controls.
+const download = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device'), previous = download.read();
+beforeAll(() => { download.write('shardfile'); expect(runtimePacksOn()).toBe(false); });
+afterAll(() => { download.write(previous); });
 
 const scopes: Scope[] = [];
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); vi.restoreAllMocks(); });

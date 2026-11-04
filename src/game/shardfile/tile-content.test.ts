@@ -1,6 +1,12 @@
 import { TILES_PER_SIDE, type CellTile } from './tileOrder';
-import { expect, test } from 'vitest';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import { bucketByTile, CELL_RING, compactResident, followTile, ring, ringRadius, tileKey, tileRanges } from './tileContent';
+import { jsonSlot } from '@wildshard/engine/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
+
+const download = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device'), previous = download.read();
+beforeAll(() => { download.write('shardfile'); expect(runtimePacksOn()).toBe(false); });
+afterAll(() => { download.write(previous); });
 
 const TILES = TILES_PER_SIDE * TILES_PER_SIDE;
 

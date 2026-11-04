@@ -2,9 +2,15 @@
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- List the game layer's sources from the checkout.
 import { execFileSync } from 'node:child_process';
-import { expect, test } from 'vitest';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import { productTileRing } from '../src/game/shardfile/tileDriver';
 import { CELL_RING } from '../src/game/shardfile/tileContent';
+import { jsonSlot } from '../src/engine/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/boot/loadingPacks';
+
+const download = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device'), previous = download.read();
+beforeAll(() => { download.write('shardfile'); expect(runtimePacksOn()).toBe(false); });
+afterAll(() => { download.write(previous); });
 
 // NT1: a driver started without its product's ring falls back to the device's 5 x 5, so Nine's `ring: 'cell'` held only
 // 5 of 25 fabric unions from the west deck. Every caller hands residentTiles the product's own ring.

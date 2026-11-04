@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import { Group, type Object3D } from 'three';
 import { TileStreamer } from '../src/engine/world/tileStreamer';
 import { TileDecoder } from '../src/game/grid/tileDecoder';
@@ -11,6 +11,13 @@ import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientRingCatalogue, clientRingPorts, clientTileRegistration, ring } from '../src/game/shardfile/tileContent';
 import type { ClientTileViews } from '../src/game/shardfile/clientViews';
 import type { Shardfile } from '../src/format/shardSchema';
+import { jsonSlot } from '../src/engine/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/boot/loadingPacks';
+
+// These pending-read and retirement rulers require a moving device ring.
+const download = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device'), previous = download.read();
+beforeAll(() => { download.write('shardfile'); expect(runtimePacksOn()).toBe(false); });
+afterAll(() => { download.write(previous); });
 
 function fixture() {
   const source = emptyShardfile({ slug: 'residency-fixture', name: 'Residency', author: 'Test', seed: 1, revision: 1 });
