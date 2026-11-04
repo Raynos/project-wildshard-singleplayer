@@ -34,7 +34,8 @@ const receiveTelemetry = await createPreviewTelemetrySink(telemetryDirectory);
 
 /** `vercel.json` `source` → RegExp. Only the forms the file uses: literal paths and `(.*)` groups (Vercel's
  *  path-to-regexp escapes everything else, `.` included). The rules replay in order; the last match wins per header. */
-const sourceRegex = source => new RegExp(`^${source.split('(.*)').map(s => s.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)).join('(.*)')}/?$`);
+// A source's `\.` is a literal dot (vercel.json escapes it); it becomes a plain dot before the rest is escaped.
+const sourceRegex = source => new RegExp(`^${source.split('(.*)').map(s => s.replaceAll(String.raw`\.`, '.').replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)).join('(.*)')}/?$`);
 const vercel = join(root, 'vercel.json');
 const rules = existsSync(vercel) ? (JSON.parse(readFileSync(vercel, 'utf8')).headers ?? []).map(rule => ({ re: sourceRegex(rule.source), headers: rule.headers })) : [];
 
@@ -117,7 +118,10 @@ const server = createServer((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.statusCode = 405; res.end(); return; }
 
   const acceptEncoding = req.headers['accept-encoding'] ?? '';
+  // DL15: a spawn part is its q11 Brotli body (see below); a missing one is a 404, never the page's fallback.
+  const part = /^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack\.br$/u.test(pathname);
   let found = lookup(pathname);
+  if (found === null && part) { res.removeHeader('Content-Encoding'); res.statusCode = 404; res.end(); return; }
   if (found === null) {
     const accept = req.headers.accept;
     // the preview server's SPA fallback: index.html for a missing path a page or a fetch (`*/*`) asks for
@@ -130,13 +134,17 @@ const server = createServer((req, res) => {
   const compressible = COMPRESSIBLE.test(type(file)) && stat.size >= 1024;
   if (compressible) varyEncoding(res);
   if (req.headers['if-none-match'] === etag) { res.statusCode = 304; res.end(); return; }
-  // DL15: a spawn part is its q11 Brotli body; production (vercel.json) sends it as-is with Content-Encoding: br.
-  // A client that refuses br (http Safari) gets the decoded body, so local runs never see raw Brotli bytes.
-  if (/^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack\.br$/u.test(pathname)) {
+  // Production (vercel.json) sends a part as-is with Content-Encoding: br. A client that refuses br (http Safari)
+  // gets the decoded body without that header (the replayed rule set it), so local runs never see raw Brotli bytes.
+  if (part) {
     varyEncoding(res);
     const accepted = encodingQuality(acceptEncoding, 'br') > 0, encoded = readFileSync(file);
+    let body = encoded;
     if (accepted) res.setHeader('Content-Encoding', 'br');
-    const body = accepted ? encoded : brotliDecompressSync(encoded);
+    else {
+      res.removeHeader('Content-Encoding');
+      try { body = brotliDecompressSync(encoded); } catch { res.statusCode = 500; res.end(); return; }
+    }
     res.setHeader('Content-Length', String(body.length));
     res.end(req.method === 'HEAD' ? undefined : body);
     return;

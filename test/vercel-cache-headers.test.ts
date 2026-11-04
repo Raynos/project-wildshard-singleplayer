@@ -121,3 +121,31 @@ test('binary preview transport keeps exact quality-3 bytes, headers, ranges and 
     server.close(); rmSync(root, { recursive: true, force: true });
   }
 }, 20_000);
+
+// DL15 (sp-x9's review of 36550ecc1b): a part is served as its q11 body with Content-Encoding: br (the vercel.json rule
+// now replays), decoded without that header for a client that refuses br, and a missing or broken part is an error
+// response, never the page's fallback or a crashed server.
+test('spawn parts: br as-is, decoded for identity clients, 404 and 500 instead of the fallback', async () => {
+  mkdirSync(resolve('tmp'), { recursive: true });
+  const root = mkdtempSync(resolve('tmp/vercel-parts-'));
+  writeFileSync(join(root, 'vercel.json'), readFileSync('vercel.json'));
+  const raw = Buffer.alloc(4096, 7), encoded = brotliCompressSync(raw, { params: { [constants.BROTLI_PARAM_QUALITY]: 11 } });
+  const good = `assets/spawn/parts/${'a'.repeat(16)}.pack.br`, broken = `assets/spawn/parts/${'b'.repeat(16)}.pack.br`;
+  mkdirSync(join(root, 'dist/assets/spawn/parts'), { recursive: true });
+  writeFileSync(join(root, 'dist', good), encoded); writeFileSync(join(root, 'dist', broken), 'not brotli');
+  writeFileSync(join(root, 'dist/index.html'), '<!doctype html>');
+  const server = await previewServer(root);
+  try {
+    const { base } = server, all = { accept: '*/*' };
+    const br = await wire(new URL(good, base), { ...all, 'accept-encoding': 'br' });
+    expect([br.status, br.headers['content-encoding'], br.headers['content-type']]).toEqual([200, 'br', 'application/octet-stream']);
+    expect(br.bytes.equals(encoded)).toBe(true); expect(brotliDecompressSync(br.bytes).equals(raw)).toBe(true);
+    const plain = await wire(new URL(good, base), { ...all, 'accept-encoding': 'identity' });
+    expect([plain.status, plain.headers['content-encoding']]).toEqual([200, undefined]); expect(plain.bytes.equals(raw)).toBe(true);
+    const missing = await wire(new URL(`assets/spawn/parts/${'c'.repeat(16)}.pack.br`, base), all);
+    expect([missing.status, missing.headers['content-encoding'], missing.bytes.length]).toEqual([404, undefined, 0]);
+    expect((await wire(new URL(broken, base), { ...all, 'accept-encoding': 'identity' })).status).toBe(500);
+    // The server is still up.
+    expect((await wire(new URL(good, base), { ...all, 'accept-encoding': 'br' })).status).toBe(200);
+  } finally { server.close(); rmSync(root, { recursive: true, force: true }); }
+});

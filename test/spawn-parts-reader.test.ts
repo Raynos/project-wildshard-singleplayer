@@ -108,3 +108,16 @@ test('DL18: a warm visit answers every packed member from the held-parts index, 
   expect(reads).toEqual([part.url]);
   expect(index[hash]).toEqual([new URL(bin.url, base).href, new URL(glb.url, base).href]);
 });
+
+test('DL15: on the packs path the wire facts are the parts\' q11 bodies plus the loose files', async () => {
+  // Loose q3 estimates: bin 3, glb 4, code 2 (9). The part's q11 body is 6 bytes, so the wire is 6 + 2.
+  const files = [{...bin, wireBytes: 3}, {...glb, wireBytes: 4}, {...code, wireBytes: 2}];
+  const wired = JSON.stringify({...manifest, files, wireBytes: 9, parts: [{...part, wireBytes: 6}]});
+  const at = {...address, url: '/assets/spawn/example-wire-1234567890abcdef.json', bytes: wired.length, wireBytes: 9};
+  const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined), fetch: url => {
+    const path = new URL(url).pathname;
+    return Promise.resolve(new Response(path === at.url ? wired : path === part.url ? partBytes : body(path)));
+  }}, base);
+  await download.ready;
+  expect(download.snapshot().wire).toEqual({totalBytes: 8, completedBytes: 8, cachedBytes: 0});
+});

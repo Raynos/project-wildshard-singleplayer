@@ -91,7 +91,7 @@ if (mode !== 'native') {
   try { writeChunkReport(outDir, process.cwd()); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd()); (await import('./scripts/app-build/entryDownloads.ts')).writeEntryBootstrap(process.argv[1], process.cwd()); const started = Date.now(), parts = await (await import('./scripts/app-build/spawnParts.ts')).encodeSpawnParts(process.argv[1]); console.log('[spawn parts] ' + parts.parts + ' parts, ' + (parts.rawBytes / 1e6).toFixed(1) + ' MB raw, ' + (parts.wireBytes / 1e6).toFixed(1) + ' MB q11 (' + parts.encoded + ' encoded) in ' + ((Date.now() - started) / 1000).toFixed(1) + ' s');", outDir]);
+    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd()); const started = Date.now(); await (await import('./scripts/app-build/entryDownloads.ts')).writeEntryBootstrap(process.argv[1], process.cwd(), parts => { console.log('[spawn parts] ' + parts.parts + ' parts, ' + (parts.rawBytes / 1e6).toFixed(1) + ' MB raw, ' + (parts.wireBytes / 1e6).toFixed(1) + ' MB q11 (' + parts.encoded + ' encoded) in ' + ((Date.now() - started) / 1000).toFixed(1) + ' s'); });", outDir]);
 }
 
 // HTML owns the deploy identity; hashed runtime code stays reusable across builds.

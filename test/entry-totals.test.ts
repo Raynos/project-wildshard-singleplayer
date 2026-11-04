@@ -40,19 +40,19 @@ test('spawn manifests prioritize code stably without changing bytes or the compl
       products: {'/shardfiles/example/': [3, 1000, 100, 200]}, extras: {},
       code: {entries: {example: ['/assets/code/pack.pack', 7, 100, [0]]}}};
     const strips = {'100': {example: [{url: '/assets/seam.bin', bytes: 9}]}};
-    const totals = writeSpawnManifests(output, input, strips, root);
+    const totals = await writeSpawnManifests(output, input, strips, root);
     expect(totals.client['example']?.phone.totalBytes).toBe(metadata + 39);
     expect(totals.grid['100']?.['example']?.phone.totalBytes).toBe(metadata + 66);
-    expect(writeSpawnManifests(output, input, strips, root)).toEqual(totals);
+    expect(await writeSpawnManifests(output, input, strips, root)).toEqual(totals);
     const address = totals.client['example']?.phone; if (address === undefined) throw new Error('Missing manifest');
     const text = readFileSync(resolve(output, address.url.slice(1)), 'utf8');
     expect(address.wireBytes).toBeDefined(); expect(address.wireBytes).toBeLessThan(address.totalBytes);
     expect(text).not.toContain('code/pack.pack'); expect(text).not.toContain('/assets/other.js');
-    expect(() => writeSpawnManifests(output, {...input, products: {'/shardfiles/example/': [3, -1]}}, {}, root)).toThrow();
-    expect(() => writeSpawnManifests(output, {...input, optional: {...input.optional, groups: {'home:/shardfiles/example/': [9]}}}, {}, root)).toThrow('module index');
+    await expect(writeSpawnManifests(output, {...input, products: {'/shardfiles/example/': [3, -1]}}, {}, root)).rejects.toThrow();
+    await expect(writeSpawnManifests(output, {...input, optional: {...input.optional, groups: {'home:/shardfiles/example/': [9]}}}, {}, root)).rejects.toThrow('module index');
     const physics=Uint8Array.from({length:4096},(_byte,i)=>(i*77+i%7)%251),physicsPath=resolve(root,'public/assets/physics/rapier.wasm');
     mkdirSync(resolve(physicsPath,'..'),{recursive:true});writeFileSync(physicsPath,physics);
-    const native=writeSpawnManifests(output,input,strips,root),nativeAddress=native.client['example']?.phone;
+    const native=await writeSpawnManifests(output,input,strips,root),nativeAddress=native.client['example']?.phone;
     if(nativeAddress===undefined)throw new Error('Missing native manifest');
     const nativeManifest=readSpawnManifest(JSON.parse(readFileSync(resolve(output,nativeAddress.url.slice(1)),'utf8')));
     const row=nativeManifest.files.find(file=>file.url.startsWith('/assets/physics/rapier.wasm?'));
@@ -93,6 +93,6 @@ test('spawn manifests prioritize code stably without changing bytes or the compl
     release(); await download.ready;
     expect(download.snapshot()).toMatchObject({complete: true, filesDone: nativeAddress.files, completedBytes: nativeAddress.totalBytes});
     expect([...reads].sort()).toEqual(nativeManifest.files.map(file => file.url).sort());
-    expect(writeSpawnManifests(output,input,strips,root)).toEqual(native);
+    expect(await writeSpawnManifests(output,input,strips,root)).toEqual(native);
   } finally {rmSync(root, {recursive: true, force: true});}
 });

@@ -94,8 +94,8 @@ async function readSpawnFile(url: string, maximum: number, ports: SpawnDownloadP
 export function downloadSpawnManifest(address: SpawnManifestAddress, ports: SpawnDownloadPorts, base: string): SpawnDownload {
   const controller = new AbortController(), listeners = new Set<(snapshot: SpawnDownloadSnapshot) => void>(), aliases = new Map<string, string>();
   let completedBytes = 0, cachedBytes = 0, filesDone = 0, complete = false, progressKnown = false, error: string | null = null;
-  let wireCompleted = 0, wireCached = 0;
-  const snapshot = (): SpawnDownloadSnapshot => ({...(address.wireBytes === undefined ? {} : {wire: {totalBytes: address.wireBytes, completedBytes: wireCompleted, cachedBytes: wireCached}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
+  let wireCompleted = 0, wireCached = 0, wireTotal = address.wireBytes;
+  const snapshot = (): SpawnDownloadSnapshot => ({...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
   const ready = (async () => {
@@ -115,6 +115,19 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       // DL18: on a warm visit the held-parts index and the cache's keys answer every packed member at once; the few
       // loose files left are looked up one by one, so no bulk read of the cache runs.
       const parts = ports.packs === true ? manifest.parts : undefined, heldFiles = new Set<string>();
+      // DL15 (sp-x9): on the packs path the wire is each part's q11 body, not its members' loose q3 sizes. A member's
+      // wire is its share of its part's body by decoded bytes, so a part's members sum to exactly that body.
+      if (wireTotal !== undefined && parts !== undefined && parts.length > 0 && parts.every(part => part.wireBytes !== undefined)) {
+        for (const part of parts) {
+          const listed = part.members.reduce((sum, [at]) => sum + (files[at]?.bytes ?? 0), 0), body = part.wireBytes ?? 0;
+          let left = body;
+          part.members.forEach(([at], row) => {
+            const file = files[at]; if (file === undefined) return;
+            file.wireBytes = row === part.members.length - 1 ? left : Math.floor(body * file.bytes / Math.max(1, listed)); left -= file.wireBytes;
+          });
+        }
+        wireTotal = files.reduce((sum, file) => sum + file.wireBytes, 0);
+      }
       let heldIndex: HeldParts = {}, keys: ReadonlySet<string> = new Set();
       if (parts !== undefined && ports.held !== undefined) {
         [heldIndex, keys] = await Promise.all([ports.held.read().catch(() => ({})), ports.held.keys()]);

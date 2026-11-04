@@ -1,6 +1,6 @@
 import {expect, test, vi} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the complete output-metadata fixture.
-import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Address only this fixture's owned files.
 import {resolve} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin original metadata bytes exactly like the compiler.
@@ -9,6 +9,7 @@ import {emptyShardfile} from '@wildshard/sdk/author';
 import {outputSectionPayloads} from '../src/format/outputFields';
 import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
 import {writeSpawnManifests} from '../scripts/app-build/entryTotals';
+import {readSpawnManifest} from '../src/format/spawnManifest';
 import {gridEntryDownloads} from '../scripts/app-build/gridEntryDownloads';
 import {startGridStripDownload, gridStripDownloadRows} from '../src/game/grid/entryDownloads';
 import {entryReadSet} from '../scripts/app-build/entryReadSet';
@@ -38,7 +39,7 @@ test('named native assembly declares the same ordered whole inputs it actually r
   expect([...named]).toEqual([library, fine, extra]); expect(named.has(coarse)).toBe(false);
 });
 
-test('plain build publishes exact tier spawn files and rejects changed section bytes', () => {
+test('plain build publishes exact tier spawn files and rejects changed section bytes', async () => {
   mkdirSync('tmp/entry-downloads', {recursive: true});
   const root = mkdtempSync(resolve('tmp/entry-downloads/compiler-')), product = resolve(root, 'out/example'), out = resolve(root, 'dist');
   const digest = (value: string): string => createHash('sha256').update(value).digest('hex');
@@ -68,7 +69,7 @@ test('plain build publishes exact tier spawn files and rejects changed section b
     // The default (Shardfile) book: each tier's own file. The packs book (DL16, Runtime packs) is the whole level and
     // adds the untiered late library file: 'late' is only a schedule.
     const expected = Buffer.byteLength(indexBytes) + sections.reduce((sum, row) => sum + row.bytes, 0) + 3;
-    const manifests = writeSpawnManifests(out, {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
+    const manifests = await writeSpawnManifests(out, {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
       products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}, code: {entries: {}}}, {}, root);
     const spawn = manifests.client['example']; if (spawn === undefined) throw new Error('Missing spawn manifests');
     expect(spawn.phone.totalBytes).toBe(expected); expect(spawn.desktop.totalBytes).toBe(expected);
@@ -78,11 +79,15 @@ test('plain build publishes exact tier spawn files and rejects changed section b
     expect(whole.phone.totalBytes).toBe(expected + 3);
     const wholePhone = readFileSync(resolve(out, whole.phone.url.slice(1)), 'utf8');
     expect(wholePhone).toContain(hashes[0]); expect(wholePhone).not.toContain(hashes[1]); expect(wholePhone).toContain(hashes[2]);
+    // DL15: each part row carries its q11 body's exact size, the file the build serves.
+    const wholeParts = readSpawnManifest(JSON.parse(wholePhone)).parts ?? [];
+    expect(wholeParts.length).toBeGreaterThan(0);
+    for (const part of wholeParts) expect(part.wireBytes).toBe(statSync(resolve(out, part.url.slice(1))).size);
     const moduleBank = {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
       products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}};
     writeFileSync(resolve(out, 'index.html'), `<head><script type="application/json" id="boot-module-files">${JSON.stringify(moduleBank)}</script></head>`);
     writeFileSync(resolve(out, 'version.json'), JSON.stringify({build: 'fixture-build'}));
-    writeEntryBootstrap(out, root);
+    await writeEntryBootstrap(out, root);
     const html = readFileSync(resolve(out, 'index.html'), 'utf8'), match = /id="boot-module-files">([^<]+)</u.exec(html);
     const bank: unknown = JSON.parse(match?.[1] ?? 'null');
     if (typeof bank !== 'object' || bank === null) throw new Error('Missing complete compiler bank');
@@ -94,7 +99,7 @@ test('plain build publishes exact tier spawn files and rejects changed section b
     expect(html).not.toContain('blobs/pack');
     const first = sections[0]; if (first === undefined) throw new Error('Missing original section');
     writeFileSync(resolve(product, first.path), '{}');
-    expect(() => writeEntryBootstrap(out, root)).toThrow('Spawn section differs from index');
+    await expect(writeEntryBootstrap(out, root)).rejects.toThrow('Spawn section differs from index');
   } finally {rmSync(root, {recursive: true, force: true});}
 });
 

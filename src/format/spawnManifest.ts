@@ -2,8 +2,9 @@
 export interface SpawnFile {readonly url: string; readonly bytes: number; readonly hash: string; readonly wireBytes?: number}
 /** DL5: a content-named concatenation of spawn files (DL15: served as q11 Brotli, `.pack.br`), shared by every manifest that lists it. `members` are
  * `[file index in this manifest, byte offset in the part]`; each body starts on a 16-byte boundary. A part may also
- * hold bytes another manifest needs (bounded over-fetch); its loose files stay deployed as the fallback. */
-export interface SpawnPart {readonly url: string; readonly bytes: number; readonly hash: string; readonly members: readonly (readonly [number, number])[]}
+ * hold bytes another manifest needs (bounded over-fetch); its loose files stay deployed as the fallback. `bytes` is the
+ * decoded part; `wireBytes` its q11 body as served (the bar's wire facts on the Runtime packs path). */
+export interface SpawnPart {readonly url: string; readonly bytes: number; readonly hash: string; readonly members: readonly (readonly [number, number])[]; readonly wireBytes?: number}
 export interface SpawnManifest {
   readonly version: 1; readonly shard: string; readonly tier: 'phone' | 'desktop'; readonly flow: 'client' | 'grid';
   readonly files: readonly SpawnFile[]; readonly totalBytes: number; readonly wireBytes?: number;
@@ -43,7 +44,8 @@ function readSpawnParts(input: unknown, files: readonly SpawnFile[]): SpawnPart[
   for (const part of input) {
     if (!object(part) || !path(part['url']) || !/^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack\.br$/u.test(part['url']) || !size(part['bytes']) || part['bytes'] > 64_000_000
       || typeof part['hash'] !== 'string' || !/^[a-f0-9]{64}$/u.test(part['hash']) || !part['url'].includes(part['hash'].slice(0, 16))
-      || !Array.isArray(part['members']) || part['members'].length === 0 || part['members'].length > 8192) throw new Error('Invalid spawn part');
+      || !Array.isArray(part['members']) || part['members'].length === 0 || part['members'].length > 8192
+      || part['wireBytes'] !== undefined && (!size(part['wireBytes']) || part['wireBytes'] > 64_000_000)) throw new Error('Invalid spawn part');
     const members: [number, number][] = []; let end = 0;
     for (const member of part['members']) {
       if (!Array.isArray(member) || member.length !== 2) throw new Error('Invalid spawn part member');
@@ -52,7 +54,7 @@ function readSpawnParts(input: unknown, files: readonly SpawnFile[]): SpawnPart[
         || offset + file.bytes > part['bytes']) throw new Error('Invalid spawn part member');
       packed.add(index); members.push([index, offset]); end = offset + file.bytes;
     }
-    parts.push({url: part['url'], bytes: part['bytes'], hash: part['hash'], members});
+    parts.push({url: part['url'], bytes: part['bytes'], hash: part['hash'], members, ...(size(part['wireBytes']) ? {wireBytes: part['wireBytes']} : {})});
   }
   return parts;
 }

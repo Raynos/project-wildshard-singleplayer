@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {writeSpawnParts} from './spawnParts';
+import {encodeSpawnParts, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
 import {BrotliSizeCache} from '../brotli-size-cache.mjs';
@@ -34,8 +34,9 @@ export interface SpawnManifestBook {
 
 /** Write the complete ordered spawn IO, rather than estimating a number from
  * a full product. This is the only list the new loader and bar consume. */
-export function writeSpawnManifests(outDir: string, input: unknown,
-  strips: Readonly<Record<string, Readonly<Record<string, readonly Address[]>>>>, root: string): SpawnManifestBook {
+export async function writeSpawnManifests(outDir: string, input: unknown,
+  strips: Readonly<Record<string, Readonly<Record<string, readonly Address[]>>>>, root: string,
+  report?: (parts: SpawnPartEncoding) => void): Promise<SpawnManifestBook> {
   const bank = v.parse(schema, input), publicRoot = resolve(root, 'public'), output = resolve(outDir), assets = new Map<string, SpawnFile>();
   const encoded = new BrotliSizeCache(process.env['WILDSHARD_WIRE_SIZE_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/served-bytes/1'));
   const precompressed = new BrotliSizeCache(process.env['WILDSHARD_WIRE_SIZE_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/served-bytes/1'), 'precompressed');
@@ -165,9 +166,15 @@ export function writeSpawnManifests(outDir: string, input: unknown,
   const packedTables = writeSpawnParts(output, packed.map(index => ({rows: pending[index]?.manifest.files ?? [], public: pending[index]?.public === true})), url => {
     const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read();
   }, url => stableKeys.get(url));
+  // DL15: each part's q11 body is written before the manifests, so every part row carries its exact wire size.
+  const encoding = await encodeSpawnParts(output);
+  report?.(encoding);
+  const wireOf = (url: string): number => { const bytes = encoding.wire.get(url); if (bytes === undefined) throw new Error(`Spawn part not encoded: ${url}`); return bytes; };
   const written: SpawnManifestAddress[] = [];
   for (const [index, {manifest: base}] of pending.entries()) {
-    const at = packed.indexOf(index), manifest = readSpawnManifest(at === -1 ? base : {...base, parts: packedTables[at] ?? []});
+    const at = packed.indexOf(index), table = packedTables[at] ?? [];
+    for (const part of table) Object.assign(part, {wireBytes: wireOf(part.url)});
+    const manifest = readSpawnManifest(at === -1 ? base : {...base, parts: table});
     const text = JSON.stringify(manifest), hash = createHash('sha256').update(text).digest('hex'), name = `assets/spawn/${base.shard}-${base.flow}-${base.tier}-${hash.slice(0, 16)}.json`;
     writeFileSync(join(output, name), text);
     written.push({url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes: base.totalBytes, files: base.files.length, ...(base.wireBytes === undefined ? {} : {wireBytes: base.wireBytes})});

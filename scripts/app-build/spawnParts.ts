@@ -155,11 +155,16 @@ const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes)
  * on the wire per Runtime packs entry than Vercel's on-the-fly q3 (sp-x2), at about 1 MB/s of encoder time cold; parts
  * keep their names across builds (DL18), so each encoding is kept by its body's sha256 in `cacheDir`, and a kept one is
  * used only after it decodes to that body. */
+export interface SpawnPartEncoding {
+  readonly parts: number; readonly rawBytes: number; readonly wireBytes: number; readonly encoded: number;
+  /** Each part's served URL (`/assets/spawn/parts/<name>.pack.br`) → its q11 body's length. */
+  readonly wire: ReadonlyMap<string, number>;
+}
 export async function encodeSpawnParts(outDir: string, cacheDir = process.env['WILDSHARD_SPAWN_PART_CACHE']
-  ?? resolve(homedir(), '.cache/wildshard/gen/spawn-parts-br/1')): Promise<{parts: number; rawBytes: number; wireBytes: number; encoded: number}> {
+  ?? resolve(homedir(), '.cache/wildshard/gen/spawn-parts-br/1')): Promise<SpawnPartEncoding> {
   const directory = join(outDir, 'assets/spawn/parts');
   const names = existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.pack')).sort() : [];
-  const workers: Worker[] = [];
+  const workers: Worker[] = [], sizes = new Map<string, number>();
   let cursor = 0, rawBytes = 0, wireBytes = 0, encoded = 0;
   const encode = async (worker: Worker, body: Uint8Array): Promise<Uint8Array> => {
     const reply = once(worker, 'message'); // rejects on the worker's 'error'
@@ -175,7 +180,8 @@ export async function encodeSpawnParts(outDir: string, cacheDir = process.env['W
       const name = names[at] ?? '', path = join(directory, name), body = readFileSync(path), hash = sha256(body);
       const kept = join(cacheDir, `${hash}.br`);
       let wire: Uint8Array | undefined;
-      try { const saved = readFileSync(kept); if (sha256(brotliDecompressSync(saved)) === hash) wire = saved; } catch { /* not kept yet */ }
+      // Decoding is bounded by the body's own length: a kept file that would decode larger is refused, not inflated.
+      try { const saved = readFileSync(kept); if (sha256(brotliDecompressSync(saved, {maxOutputLength: body.length})) === hash) wire = saved; } catch { /* not kept yet */ }
       if (wire === undefined) {
         if (worker === undefined) { worker = new Worker(ENCODER, {eval: true}); workers.push(worker); }
         wire = await encode(worker, body); encoded++;
@@ -184,10 +190,10 @@ export async function encodeSpawnParts(outDir: string, cacheDir = process.env['W
         catch { rmSync(temporary, {force: true}); /* an unwritable cache only costs the next build its encode */ }
       }
       writeFileSync(`${path}.br`, wire); rmSync(path);
-      rawBytes += body.length; wireBytes += wire.length;
+      rawBytes += body.length; wireBytes += wire.length; sizes.set(`/assets/spawn/parts/${name}.br`, wire.length);
     }
   };
   try { await Promise.all(Array.from({length: Math.min(names.length, Math.max(1, availableParallelism() - 2))}, lane)); }
   finally { await Promise.all(workers.map(worker => worker.terminate())); }
-  return {parts: names.length, rawBytes, wireBytes, encoded};
+  return {parts: names.length, rawBytes, wireBytes, encoded, wire: sizes};
 }
