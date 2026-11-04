@@ -4,28 +4,65 @@ import {setSpawnPacks, startSpawnDownload} from '../src/game/boot/spawnDownload'
 const initialStorage = globalThis.localStorage;
 afterEach(() => { setSpawnPacks(false); vi.unstubAllGlobals(); vi.stubGlobal('localStorage', initialStorage); });
 
-// sp-x9's review of 40bc516d5c: with Runtime packs on, a packs book that fails or lacks the entry must fail the
-// download (admission refuses control with the reason), never run the default set and report it complete.
-test.each([
-  ['a missing book', 'book-missing', () => new Response(null, {status: 404}), 'Packs book unavailable (404)'],
-  ['an unreadable book', 'book-broken', () => new Response('{not json'), 'JSON'],
-  ['a book without the entry', 'book-entryless', () => Response.json({client: {}}), 'Packs book has no client entry for book-entryless (phone, 000)'],
-] as const)('%s fails the Runtime packs download instead of running the default set', async (_name, slug, book, reason) => {
-  const address = {url: `/assets/spawn/${slug}-0123456789abcdef.json`, bytes: 10, totalBytes: 3, files: 1};
+const BOOK = /\/assets\/spawn\/packs-[^/]+\.json$/u;
+const body = new Uint8Array([1, 2, 3]), file = {url: '/shardfiles/fixture/blobs/bin/a.bin', bytes: 3, hash: '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81'};
+const manifestOf = (slug: string, parts: boolean): string => JSON.stringify({version: 1, shard: slug, tier: 'phone', flow: 'client', files: [file], totalBytes: 3, ...(parts ? {parts: []} : {})});
+interface Address {url: string; bytes: number; totalBytes: number; files: number}
+const addressOf = (url: string, text: string): Address => ({url, bytes: text.length, totalBytes: 3, files: 1});
+
+/** One Runtime packs download of `slug` against a served packs book; returns the download and every URL read. The
+ * build id is the slug's own: the reader keeps one good book per build URL. */
+function run(slug: string, book: (whole: Address, fallback: Address) => Response, wholeParts = true) {
+  const fallbackText = manifestOf(slug, false), wholeText = manifestOf(slug, wholeParts);
+  const fallback = addressOf(`/assets/spawn/${slug}-client-phone-0123456789abcdef.json`, fallbackText);
+  const whole = addressOf(`/assets/spawn/${slug}-client-phone-fedcba9876543210.json`, wholeText);
   vi.stubGlobal('document', {baseURI: 'http://localhost/', getElementById: () => ({textContent: JSON.stringify({spawnManifests: {
-    cacheName: 'ws-assets-v1', client: {[slug]: {phone: address}}}})})});
-  vi.stubGlobal('caches', undefined); vi.stubGlobal('__BUILD_ID__', 'test-build');
+    cacheName: 'ws-assets-v1', client: {[slug]: {phone: fallback}}}})})});
+  vi.stubGlobal('caches', undefined); vi.stubGlobal('__BUILD_ID__', `build-${slug}`);
   const reads: string[] = [];
   vi.stubGlobal('fetch', (input: RequestInfo | URL): Promise<Response> => {
     const url = input instanceof Request ? input.url : String(input); reads.push(url);
-    return Promise.resolve(/\/assets\/spawn\/packs-[^/]+\.json$/u.test(url) ? book() : new Response(null, {status: 500}));
+    const path = new URL(url).pathname;
+    return Promise.resolve(BOOK.test(path) ? book(whole, fallback) : path === whole.url ? new Response(wholeText)
+      : path === fallback.url ? new Response(fallbackText) : path === file.url ? new Response(body) : new Response(null, {status: 404}));
   });
   setSpawnPacks(true);
   const download = startSpawnDownload(slug, 'client', 'phone');
   if (download === null) throw new Error('Missing spawn download');
+  return {download, reads};
+}
+const entry = (slug: string, address: Address) => ({client: {[slug]: {phone: address}}});
+
+// sp-x9's reviews of 40bc516d5c and bbceabe137: with Runtime packs on, any book that is not this build's whole-level
+// book fails the download (admission refuses control with the reason); the default set never runs as complete.
+test.each([
+  ['a missing book', 'book-missing', () => new Response(null, {status: 404}), 'Packs book unavailable (404)'],
+  ['an unreadable book', 'book-broken', () => new Response('{not json'), 'JSON'],
+  ['the default book in its place', 'book-default', (_whole: Address, fallback: Address) => Response.json({cacheName: 'ws-assets-v1', ...entry('book-default', fallback)}),
+    'not this build\'s whole-level book'],
+  ['another build\'s book', 'book-stale', (whole: Address) => Response.json({book: 'packs', build: 'old-build', ...entry('book-stale', whole)}),
+    'not this build\'s whole-level book'],
+  ['a book without the entry', 'book-entryless', () => Response.json({book: 'packs', build: 'build-book-entryless', client: {}}),
+    'Packs book has no client entry for book-entryless (phone, 000)'],
+  ['a book naming the default manifest', 'book-subset', (_whole: Address, fallback: Address) => Response.json({book: 'packs', build: 'build-book-subset', ...entry('book-subset', fallback)}),
+    'Packs book names the default manifest'],
+] as const)('%s fails the Runtime packs download before any level file', async (_name, slug, book, reason) => {
+  const {download, reads} = run(slug, book);
   await expect(download.ready).rejects.toThrow(reason);
   expect(download.snapshot()).toMatchObject({complete: false, error: expect.stringContaining(reason)});
-  // Only the book was read: the default manifest and its files never started.
-  expect(reads).toHaveLength(1);
-  expect(reads[0]).toMatch(/\/assets\/spawn\/packs-[^/]+\.json$/u);
+  // Only the book was read: no manifest and no level file started.
+  expect(reads).toHaveLength(1); expect(new URL(reads[0] ?? '').pathname).toMatch(BOOK);
+});
+
+test('a whole-level address whose manifest has no part table is refused', async () => {
+  const {download, reads} = run('book-partless', whole => Response.json({book: 'packs', build: 'build-book-partless', ...entry('book-partless', whole)}), false);
+  await expect(download.ready).rejects.toThrow('Packs manifest has no part table');
+  expect(reads.map(url => new URL(url).pathname)).not.toContain(file.url);
+});
+
+test('this build\'s packs book runs the whole-level manifest to completion', async () => {
+  const {download, reads} = run('book-good', whole => Response.json({book: 'packs', build: 'build-book-good', ...entry('book-good', whole)}));
+  await download.ready;
+  expect(download.snapshot()).toMatchObject({complete: true, error: null, filesDone: 1});
+  expect(reads.map(url => new URL(url).pathname)).toEqual([expect.stringMatching(BOOK), '/assets/spawn/book-good-client-phone-fedcba9876543210.json', file.url]);
 });

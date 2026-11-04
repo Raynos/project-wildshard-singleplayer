@@ -21,6 +21,8 @@ export interface SpawnDownloadPorts {
   readonly packs?: boolean;
   /** Publish one part member under its own URL, whatever controls the page: members never pass the worker. */
   readonly keep?: (url: string, response: Response) => Promise<void>;
+  /** Runtime packs: the manifest must be a whole-level one, which always carries its part table (sp-x9). */
+  readonly whole?: boolean;
 }
 
 /** DL5: part members by their exact URL until control, so this page's own reads of them (product reads, engine
@@ -100,6 +102,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const text = new TextDecoder().decode(bytes);
       const manifest = readSpawnManifest(JSON.parse(text));
       if (manifest.totalBytes !== address.totalBytes || manifest.wireBytes !== address.wireBytes || manifest.files.length !== address.files) throw new Error('Spawn address differs from manifest');
+      // A default manifest never carries a part table, so it cannot pass as the whole level.
+      if (ports.whole === true && manifest.parts === undefined) throw new Error('Packs manifest has no part table');
       if (copy !== undefined) await ports.store?.(manifestURL, copy);
       const files = manifest.files.map(file => {
         const url = new URL(file.url, base); aliases.set(url.pathname, url.href); return {bytes: file.bytes, hash: file.hash, wireBytes: file.wireBytes ?? 0, url: url.href};
@@ -218,19 +222,25 @@ function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | '
 /** DL16: the packs book (the whole level with its parts) is this build's own file, fetched only with Runtime packs on,
  * so the default page carries nothing for an off row. */
 declare const __BUILD_ID__: string;
-let packsBook: Promise<unknown> | undefined;
+let packsBook: {readonly url: string; readonly book: Promise<unknown>} | undefined;
 function readPacksBook(): Promise<unknown> {
-  packsBook ??= (async () => {
+  const url = new URL(`/${packsBookPath(__BUILD_ID__)}`, document.baseURI).href;
+  if (packsBook?.url === url) return packsBook.book;
+  const book = (async () => {
     try {
-      const response = await fetch(new URL(`/${packsBookPath(__BUILD_ID__)}`, document.baseURI).href);
+      const response = await fetch(url);
       if (!response.ok) throw new Error(`Packs book unavailable (${response.status})`);
-      return await (response.json() as Promise<unknown>);
+      const value: unknown = await response.json();
+      // Bound to its purpose and this build: a valid default book or another build's book is refused (sp-x9).
+      if (get(value, 'book') !== 'packs' || get(value, 'build') !== __BUILD_ID__) throw new Error('Packs book is not this build\'s whole-level book');
+      return value;
     } catch (error) {
-      packsBook = undefined; // a failed read is not kept: the next attempt fetches the book again
+      if (packsBook?.url === url) packsBook = undefined; // a failed read is not kept: the next attempt fetches again
       throw error;
     }
   })();
-  return packsBook;
+  packsBook = {url, book};
+  return book;
 }
 /** Adopt only a matching complete live operation. This performs no cache or
  * network IO and never promotes a receipt, saved size or inferred progress. */
@@ -254,6 +264,7 @@ function downloadPorts(cacheName: unknown, packs: boolean): SpawnDownloadPorts {
     }}),
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
     ...(store === null || !packs ? {} : {packs: true, keep: async (url: string, response: Response) => {await (await store).put(url, response);}}),
+    ...(packs ? {whole: true} : {}),
   };
 }
 /** A download whose manifest is known only after the packs book arrives; until then its progress is unknown. */
@@ -294,6 +305,7 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
     : lateDownload((async () => {
       const address = bookSelection(await readPacksBook(), slug, flow, tier, mode);
       if (address === null) throw new Error(`Packs book has no ${flow} entry for ${slug} (${tier}, ${mode})`);
+      if (address.url === selected.address.url) throw new Error('Packs book names the default manifest');
       return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), document.baseURI);
     })());
   current?.download.cancel(); current = {key, download, foreground}; return download;
