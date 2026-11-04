@@ -31,7 +31,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
-| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; official Sim open; original refused/overlapped run retained |
+| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; clean standalone Sim 3 windows pass; grid configuration refusal retained; full official scope open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Chromium memory complete; official Sim open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Chromium memory complete; official Sim open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
@@ -1805,3 +1805,41 @@ sampler and deadlines. Related four-path checks passed in 18.1 s, the final
 navigation control in 0.6 s, and named typed lint passed. The four fresh
 quiet officials are still required; **6/10 fully qualified** is unchanged.
 All diagnostic browsers, Simulators and preview leases were released.
+
+
+## Clockwork — clean standalone pass, grid configuration refusal (sp-x1, November 4)
+
+The first attempt after `eb0a4f255a` refused before any game load: its
+navigation snippet was statement-shaped inside an expression evaluator.
+Build `1bc5e17-mw2l8flw` (:4457) produced **16.819 s, zero windows**, exit 3.
+The exact source fence, syntax refusal and missing native/GPU samples are
+retained at `tmp/sp-x1-open-plots/audio4-same-tab-officials/clockwork-canyon/`.
+Reader correction `63981217c5` uses one expression and acknowledges the
+intentional preparation navigation directly through Inspector. The
+configuration and measurement fences are unchanged; related checks passed
+in 9.2 s with named typed lint green.
+
+Fresh build **1bc5e17-mw2lcws0** (:4458) then completed Clockwork's three
+standalone windows: **120 frames each, zero skipped, 30.303 fps, p95 34 ms,
+all floor PASS**; original strict 33.3 ms flags remain false. Settings,
+graphics pins and Developer mode were retained. The native envelope was
+**307.949 MB playing / 400.652 MB loading**, with 214/31 phase samples and
+46 GPU samples. These are decimal native-plus-GPU-ledger MB, separate from
+the accepted Chromium process MiB.
+
+Grid subsequently lost the fixture documents after its title handoff and
+refused the original configuration guard, with **zero grid windows**.
+The whole command is therefore **incomplete / not qualified**: 54.717 s,
+exit 3, `complete=false`, `pass=false`. Raw evidence, exact before/after
+reader-source fence and resource closure are under
+`tmp/sp-x1-open-plots/audio4-expression-officials/clockwork-canyon/`.
+Sampling began only after sp-x8's literal heavy-work END at 20:47:27 UTC;
+no overlap is recorded. All resources were released at 20:52:08 UTC.
+
+The cohort stopped on this refusal; Desert, Race and Showcase were not
+started. Loading-only diagnostic `621100fe66` adds bounded presence read
+transitions and cross-document storage events, with native methods and
+listeners restored before sampling. Its focused controls passed in 12.4 s
+with typed lint green. It supplies attribution, not a configuration reset
+or a cause cure. The queued grid boot remains untimed. Full qualification
+stays **6/10**; the clean standalone result does not close Clockwork's grid.
