@@ -309,12 +309,11 @@ async function oneRun(udid, run, opts) {
     }
 
     setPhase('menu');
-    await evaluate('document.dispatchEvent(new Event("ws:pause")); 1');
-    await evaluate('(() => { const exit = document.querySelector(".ws-gmenu-exit"); if (!exit) throw new Error("missing EXIT TO MAIN"); exit.click(); return 1; })()');
-    await sleep(3000);
+    // Exit to Main now retires this world and navigates to the title. Its default Explore card can load another shard.
+    // The existing HUD entry opens Explorer over this same admitted runtime (also for hidden teaching shards).
+    await checkIdentity();
+    await evaluate('window.__wildshard.world.hud.startExplore(); 1');
     setPhase('explorer');
-    // A hidden teaching shard has no player-facing title card; use its own HUD's same Explore entry.
-    await evaluate(run.shard === '_template' ? 'window.__wildshard.world.hud.startExplore(); 1' : 'document.querySelector(".ws-menu-explore")?.click(); 1');
     let hub = false;
     for (let i = 0; i < 60 && !hub; i++) {
       hub = (await evaluate('Boolean(document.querySelector(\'.ws-x-card[data-m="world"]\'))')) === true;
@@ -324,6 +323,7 @@ async function oneRun(udid, run, opts) {
     await sleep(1000);
     await evaluate('document.querySelector(\'.ws-x-card[data-m="world"]\')?.click(); 1');
     await sleep(2000);
+    result.explorerEntryIdentity = await checkIdentity(); // never measure a different runtime and discover it only at the end
     const key = (type, code) => `window.dispatchEvent(new KeyboardEvent(${JSON.stringify(type)}, { code: ${JSON.stringify(code)}, bubbles: true }));`;
     const legs = [['KeyW'], ['KeyD'], ['KeyS'], ['KeyA'], ['KeyW', 'KeyE'], ['KeyS', 'KeyQ']];
     let held = [];
