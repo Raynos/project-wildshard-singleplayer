@@ -5,7 +5,7 @@ const sorted = value => Array.isArray(value) ? value.map(sorted) : record(value)
   ? Object.fromEntries(Object.keys(value).sort(order).map(key => [key, sorted(value[key])])) : value;
 const describe = value => value instanceof RegExp ? value.toString() : typeof value === 'function' ? '[function; not executed]'
   : value === undefined ? 'undefined' : JSON.stringify(sorted(value));
-const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'lazy', 'literal', 'loose_object', 'never', 'null', 'nullable', 'number', 'object', 'object_with_rest', 'optional', 'picklist', 'record', 'strict_object', 'strict_tuple', 'string', 'tuple', 'tuple_with_rest', 'union', 'unknown', 'variant']);
+const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'intersect', 'lazy', 'literal', 'loose_object', 'never', 'null', 'nullable', 'number', 'object', 'object_with_rest', 'optional', 'picklist', 'record', 'strict_object', 'strict_tuple', 'string', 'tuple', 'tuple_with_rest', 'union', 'unknown', 'variant']);
 const actions = new Set(['check', 'finite', 'integer', 'length', 'max_length', 'max_entries', 'max_value', 'min_entries', 'min_length', 'min_value', 'multiple_of', 'raw_check', 'raw_transform', 'transform', 'regex', 'safe_integer']);
 
 /** Extract every declared path, preserving alternative branches and refusing unknown metadata. */
@@ -50,6 +50,7 @@ export function schemaInventory(schema, root = '$') {
       if (base.type === 'custom') row.constraints.push('custom predicate; not executed');
       if (base.type === 'lazy') row.constraints.push('lazy schema factory; not executed');
       if (base.type === 'loose_object') row.constraints.push('unknown fields are preserved');
+      if (base.type === 'intersect') row.constraints.push('every intersection branch must pass');
       rows.push(row);
       if (base.type === 'object' || base.type === 'strict_object' || base.type === 'loose_object' || base.type === 'object_with_rest') {
         if (!record(base.entries)) throw new Error(`Missing object fields at ${path}`);
@@ -62,6 +63,7 @@ export function schemaInventory(schema, root = '$') {
         if (base.type === 'tuple_with_rest') visit(base.rest, `${path}[rest]`);
       }
       else if (base.type === 'union' || base.type === 'variant') base.options.forEach((option, index) => visit(option, `${path}<${index}>`));
+      else if (base.type === 'intersect') base.options.forEach((option, index) => visit(option, `${path}&<${index}>`));
     } finally { stack.delete(input); }
   }
   visit(schema, root);

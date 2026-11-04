@@ -18,6 +18,22 @@ test('public specimen schemas load through the renderer-free reference reader', 
   expect(reference.fields.some(row => typeof row === 'object' && row !== null && 'path' in row && typeof row.path === 'string' && row.path.startsWith('$format["./specimenCatalogue"].SpecimenCatalogueSchema'))).toBe(true);
 });
 
+test('intersection references preserve every branch without executing checks', () => {
+  let checks = 0;
+  const schema = v.intersect([
+    v.pipe(v.object({ left: v.string() }), v.check(() => { checks++; return false; })),
+    v.object({ right: v.number() }),
+  ]);
+  const rows = schemaInventory(schema);
+  expect(rows.map(row => row.path)).toEqual(['$', '$&<0>', '$&<0>.left', '$&<1>', '$&<1>.right']);
+  expect(rows[0]).toMatchObject({ type: 'intersect', constraints: ['every intersection branch must pass'] });
+  expect(rows[1]?.constraints).toEqual(['check [function; not executed]']);
+  expect(checks).toBe(0);
+  const unknown = v.intersect([v.string(), v.number()]);
+  Object.defineProperty(unknown.options[1], 'type', { value: 'unreviewed' });
+  expect(() => schemaInventory(unknown)).toThrow('Unsupported schema');
+});
+
 
 test('empty hull part arrays retain their never item contract in the reference', () => {
   const parts = v.array(v.never());
