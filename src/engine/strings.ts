@@ -295,6 +295,7 @@ export const ENGINE_STRINGS = {
   "s_1b1d70827dbb": "Shardfile",
   "s_f8ef34e9ccbf": "Runtime packs",
   "s_debug_early_programs": "Early shader compile",
+  "s_debug_home_seed": "Home geometry seed",
   "s_442aded87a55": "Performance",
   "s_c57f1e7056cf": "Creatures & NPCs",
   "s_6cb4be24e5ce": "Combat & weapons",

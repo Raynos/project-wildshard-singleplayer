@@ -78,7 +78,9 @@ import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
 
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage, type RegionalRuntimeTextures } from './regionalRuntime';
-import { bindHomeBuildCache } from '../shardfile/homeBuildCache';
+import { bindHomeBuildCache, installHomeSeedLoader } from '../shardfile/homeBuildCache';
+import { loadHomeSeedAsset } from '../shardfile/homeSeedAsset';
+import { homeSeedOn, runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import type { ClientTileRegistration } from '../shardfile/tileContent';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
@@ -775,7 +777,11 @@ export class LiveGridSession {
       });
       let prepared: PreparedRegionalRuntime;
       try {
-        if (cell.instance === this.ports.home.instance) bindHomeBuildCache(retained.admitted.source);
+        if (cell.instance === this.ports.home.instance) {
+          // DL7 P3 + DL6: the build's cold seed is a packs-book member behind its Debug row; otherwise nothing is installed.
+          if (runtimePacksOn() && homeSeedOn()) installHomeSeedLoader(loadHomeSeedAsset);
+          bindHomeBuildCache(retained.admitted.source);
+        }
         const feet = this.live.worldFeet();
         const entryPoint = { x: feet.x - cell.origin.x, z: feet.z - cell.origin.z };
         prepared = await factory({ cell, admitted: retained.admitted, manifest, page, textures, allocator: this.ports.allocator, claim, scope: this.runtimeScope, entryPoint });

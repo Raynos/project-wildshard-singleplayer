@@ -19,7 +19,7 @@ import { engineString } from '../strings';
 import type { LevelSpec } from '../level/spec';
 import { jsonSlot } from '../saves/slots';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
-import { LEVEL_DOWNLOAD_SLOT } from '../boot/loadingPacks';
+import { HOME_SEED_SLOT, LEVEL_DOWNLOAD_SLOT } from '../boot/loadingPacks';
 import { EARLY_PROGRAMS_SLOT } from '../boot/earlyPrograms';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { markReload } from '../boot/lastEnd';
@@ -152,6 +152,16 @@ const earlyProgramsRow: DebugRow = { id: 'earlyPrograms', group: 'loading', labe
   on: () => undefined,
   note: 'DL10: compile the spawn view\'s shader programs during loading, as soon as the world is built; default off until a Simulator / iPhone reading.',
   ask: 'E526', reviewBy: '2026-12-30' };
+/** DL7 P3 + DL6: a cold level restores its completed geometry from the build's seed (with runtime packs); read once at
+ *  boot, so a pick reloads. Default off until a Simulator / iPhone reading (E451). */
+const homeSeedSlot = jsonSlot(HOME_SEED_SLOT, 'device');
+const homeSeedRow: DebugRow = { id: 'homeSeed', group: 'loading', label: engineString('s_debug_home_seed'), reload: true, when: always,
+  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'on', text: engineString('s_130011756125') }],
+  get: () => homeSeedSlot.read() === 'on' ? 'on' : 'off',
+  set: (next) => { if (next === 'off' || next === 'on') homeSeedSlot.write(next); },
+  on: () => undefined,
+  note: 'DL7 P3 + DL6: with runtime packs, a cold entry restores its whole and owned geometry from the build\'s seed instead of decoding their files; default off until a Simulator / iPhone reading.',
+  ask: 'E526', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);
   const r = await clearDownloads();
@@ -182,6 +192,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Loading & memory ──
   levelDownloadRow,
   earlyProgramsRow,
+  homeSeedRow,
   clearDownloadsRow,
 
   // ── Developer tools ──
