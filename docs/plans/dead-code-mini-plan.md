@@ -188,13 +188,33 @@ parsers that nothing reads. The exact list is in the appendix "DC6".
 
 ### DC7: dead exports in shard generators (~111 symbols, ~850 lines, 84 files) · Codex · M
 
-**open (2026-11-04, sp-x2 after DC10; G1015).** No source edits or
-per-symbol fresh importer proof by X8. Re-check every appendix candidate,
-including namespace/dynamic/test/data readers, on the new HEAD. DC9 has
-already removed some candidate modules and documented six live keeps;
-especially do not classify ENTRY_WALK, keeperRows or pressFlap as dead
-from this old appendix. Required touched-shard rebuild and exact output
-comparison remain unrun for this row.
+**done (2026-11-04, sp-x2 + sp-x6): `a6f68ae757` + `5967f0bdb7`.**
+Fresh 111-symbol importer/namespace/dynamic/test/data searches retained
+actual readers, including Nalati's namespace-spread COLLISION and the
+original Spear profile admission. Removed 54 unread exports across 42
+modules (sp-x2: 23/18; sp-x6: 31/24); five older appendix candidates were
+already retired by DC9. Root/shard/SDK-test types, typed lint and scoped
+ratchets pass. Related: sp-x2 59 suites/157 cases pass; sp-x6 161/165
+suites passed initially, then the four pre-existing Z15 fixture failures
+were aligned in `6277ba41d9` (4 suites/23 cases pass). Schema controls pass;
+the ignored generated reference still needs the pusher's Z15 max-0 refresh.
+
+Normal immutable all-28 BEFORE `dba567db5c` / `dba567d-mw2n0ivo` and
+combined AFTER `5967f0bdb7` / `5967f0b-mw2o1po8` qualified. Independent
+physical eight-shard audit: 2,750 files, 382 sections, 112 packs and 3,063
+members; every file and 375 sections exact. Seven 164-byte look/map bodies
+change only tilesHash, with identical image hashes; Pine's payload is exact.
+Pack order, offsets, lengths and every byte outside those map members stay
+exact. All other raw header fields stay exact except seven sourceHash and
+eight validator receipts. Validator hashes were independently reproduced
+from package/lock plus recursive format, game/shardfile, engine/boot and
+engine/pwa sources; only clientWorldAssembly.ts and earlyPrograms.ts changed
+within that defining set. **G872, wildshard-new:** these seven volatile-map
+stamps and receipt changes qualify, as for Fossil/Z15; this is not a claim
+of literal all-payload parity and the staleness guard stays unchanged.
+Raw: `tmp/sp-x2-dc7/{comparison,header-deltas,validator-trace}.json`;
+maintained native/index/census checks pass on all eight, independently
+cross-checked for sp-x6's four in `tmp/sp-x6-dc7/product-audit.json`.
 
 These are generator-side exports that no build path, test or other generator imports. The list is in the appendix
 "DC7". **Risk:** a generator's output could change if a deleted function was reached through a computed name. **Check:**
