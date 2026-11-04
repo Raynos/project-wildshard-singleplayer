@@ -67,8 +67,12 @@ export function readDriftwoodNativeOracle(): Promise<ReturnType<typeof driftwood
 /** Direct native calls retain every Driftwood gameplay recorder and continuation. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation) => {
     const { product, assets } = preparation, shard = product.shardfile;
-    const lendReturns = await prepareReturns(preparation);
-    const constants = await readDriftwoodNativeOracle();
+    // Both independent admissions must finish before product reads or native
+    // installation. Overlap their existing async preparation, as the other
+    // native factories do, without changing either full-source comparison.
+    const [lendReturns, constants] = await Promise.all([
+      prepareReturns(preparation), readDriftwoodNativeOracle(),
+    ]);
     const dayStyle = product.section('look/toon').sky.day;
     const nativeSea = structuredClone(need(product.shardfile.water.find(row => row.id === "sea" && row.kind === "sea"), "Driftwood requires its admitted sea"));
     const interaction = await product.json<{ constants: { interact: NativeQuestCompositionInput["table"]; interactSpots: NativeQuestCompositionInput["spots"]["rows"] } }>("quests/interaction-source.json");
