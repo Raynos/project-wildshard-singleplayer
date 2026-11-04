@@ -7502,11 +7502,12 @@ transforming positionLocal again applies placement twice.
 ### Graph shadow receiver shift
 
 `shadow: { offset }` in the SDK (`stages['shadow.offset']` in the IR)
-adds a world-space vec3 to the receiver's shadow lookup position. For a
-sun shift, use the live atmosphereSunDirection times an admitted distance
-param. This output is charged by the existing graph budget and is limited
-to lit meshes. It leaves vertex placement, visible geometry and caster
-depth unchanged; clones retain it and parameter updates need no rebuild.
+adds a world vec3 to the receiver's shadow lookup position (sun shift:
+atmosphereSunDirection times a distance param). Lit meshes only, graph
+budget. A vertex expression (G872, was fragment): varying, derivatives,
+frontFacing refuse. Only shadow lookups move: not spot map coords,
+placement, geometry or caster depth; clones keep it, params need no
+rebuild. Gap: it sees the vertex before vertex.position/offset.
 Absent keeps the normal lookup. It is separate from vertex shadow:true.
 
 `physics/bodies.DynamicBodySlots<T>` is the bounded slot/lifecycle owner for

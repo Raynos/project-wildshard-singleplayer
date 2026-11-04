@@ -241,18 +241,32 @@ ${program.vertex.end}
 }`;
 }
 
-/** three's per-vertex shadow coordinates, looked up at the world position moved by the graph's `shadow.offset` (as TSL's
- *  receivedShadowPositionNode): only the shadow lookup moves; the vertex's world position is restored after it */
+/** three's shadow chunk with each shadow lookup moved by `wsShadowOffset` and nothing else: the directional, point and sun
+ *  shadow positions, and a spot light's only where it casts a shadow (its projected-map coordinates stay at the vertex) */
+const SHADOW_SHIFTS: readonly (readonly [string, string])[] = [
+  ['vSunShadowWorldPosition = vec4( worldPosition.xyz,', 'vSunShadowWorldPosition = vec4( worldPosition.xyz + wsShadowOffset,'],
+  ['shadowWorldPosition = worldPosition + vec4( shadowWorldNormal * directionalLightShadows[ i ].shadowNormalBias, 0 );',
+    'shadowWorldPosition = worldPosition + vec4( shadowWorldNormal * directionalLightShadows[ i ].shadowNormalBias + wsShadowOffset, 0 );'],
+  ['shadowWorldPosition = worldPosition + vec4( shadowWorldNormal * pointLightShadows[ i ].shadowNormalBias, 0 );',
+    'shadowWorldPosition = worldPosition + vec4( shadowWorldNormal * pointLightShadows[ i ].shadowNormalBias + wsShadowOffset, 0 );'],
+  ['shadowWorldPosition.xyz += shadowWorldNormal * spotLightShadows[ i ].shadowNormalBias;',
+    'shadowWorldPosition.xyz += shadowWorldNormal * spotLightShadows[ i ].shadowNormalBias + wsShadowOffset;'],
+];
+/**
+ * three's per-vertex shadow coordinates, looked up at the world position moved by the graph's `shadow.offset` (as TSL's
+ * receivedShadowPositionNode moves the received shadow only): the vertex, its normal-bias and any SpotLight map's
+ * projected coordinates are unchanged. The offset is a vertex expression (the format admits it in vertex context only)
+ * built in the graph's vertex body, before its `vertex.position` / `vertex.offset` displacement: an offset reading the
+ * world position sees the undisplaced vertex. A three whose chunk no longer has these lines refuses the program.
+ */
 function shadowCoords(offset: string | null): string {
   if (offset === null) return '#include <shadowmap_vertex>';
-  return `#ifdef USE_SHADOWMAP
-  vec4 wsUnshadowedWorld = worldPosition;
-  worldPosition.xyz += ${offset};
-#endif
-#include <shadowmap_vertex>
-#ifdef USE_SHADOWMAP
-  worldPosition = wsUnshadowedWorld;
-#endif`;
+  let chunk = THREE.ShaderChunk.shadowmap_vertex;
+  for (const [from, to] of SHADOW_SHIFTS) {
+    if (chunk.split(from).length !== 2) throw new Error('material graph: three\'s shadowmap_vertex changed; shadow.offset cannot be applied');
+    chunk = chunk.replace(from, to);
+  }
+  return `  vec3 wsShadowOffset = ${offset};\n${chunk}`;
 }
 
 /** the fog epilogue: the engine's chunk (scaled by the graph's fog share), or a declared fog graph in its place */

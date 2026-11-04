@@ -1015,7 +1015,9 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       if (!isRecord(shadowOffset)) fail('stages.shadow.offset: not an object');
       else {
         for (const key of Object.keys(shadowOffset)) if (key !== 'offset') fail(`stages.shadow.offset: unknown output ${key}`);
-        want(shadowOffset.offset, 'fragment', 'vec3', 'stages.shadow.offset.offset');
+        // per vertex, as both back-ends evaluate it: the classic program moves three's per-vertex shadow coordinates by it
+        // (no varying, derivative or facing reads), and TSL's received-shadow position interpolates the same value
+        want(shadowOffset.offset, 'vertex', 'vec3', 'stages.shadow.offset.offset');
       }
     }
     const s = stages.surface;
