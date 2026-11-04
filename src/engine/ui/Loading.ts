@@ -439,9 +439,13 @@ export class Loading {
     // with the download's bytes ('Spawn download · 3.1 of 9.8 MB'), never the step's first file ('Read audio 1 / 77')
     const spawnHold = files.find(row => row.resource?.startsWith('spawn-download:') === true);
     const wait = pending.find(row => row.retry !== null) ?? spawnHold ?? files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
+    // DL21: a step's file waits come and go one at a time ('Read Model data · 0.1 s' held Nalati's step 8 unchanged for 6.3 s
+    // in the DL23 recording while its reads kept landing): the step's reads tally rides along, so the line moves per read,
+    // and its count is progress (sp-x1's review: else 'No reported progress' would sit beside a growing count)
+    const tally = wait?.kind === 'file' && wait !== spawnHold ? pending.find(row => row.resource === STAGE_READS) : undefined;
     const transfer = this.downloadProgress();
     const current = timeline.rows.find(row => row.key === timeline.current);
-    const signature = `${timeline.display}:${timeline.current}:${transfer.completedBytes}:${transfer.cachedBytes}:${transfer.filesDone}:${wait?.id ?? 0}`;
+    const signature = `${timeline.display}:${timeline.current}:${transfer.completedBytes}:${transfer.cachedBytes}:${transfer.filesDone}:${wait?.id ?? 0}:${tally?.label ?? ''}`;
     const spawnLabel = wait !== undefined && wait === spawnHold
       ? `${wait.label} · ${(transfer.completedBytes / 1e6).toFixed(1)} of ${(transfer.totalBytes / 1e6).toFixed(1)} MB` : undefined;
     const label = spawnLabel ?? wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
@@ -457,9 +461,6 @@ export class Loading {
     setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');
     setData(this.root, 'filesInFlight', String(files.length));
-    // DL21: a step's file waits come and go one at a time ('Read Model data · 0.1 s' held Nalati's step 8 unchanged for 6.3 s
-    // in the DL23 recording while its reads kept landing): the step's reads tally rides along, so the line moves per read
-    const tally = wait?.kind === 'file' && wait !== spawnHold ? pending.find(row => row.resource === STAGE_READS) : undefined;
     const readsSoFar = tally === undefined ? '' : ` · ${tally.label.replace(/^Reading /u, '')} read so far`;
     const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label}${readsSoFar} · ${(wait.ageMs / 1000).toFixed(1)} s${files.length > 0 ? ` · ${files.length} files in flight` : ''}${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
     // A quiet phase still reports its actual age, without advancing a byte,

@@ -86,3 +86,12 @@ test('zero-duration steps retain actual equal clocks while future steps stay unk
   row.startedAt = 999;
   expect(timeline.snapshot().rows[1]?.startedAt).toBe(20);
 });
+
+test('DL21: a sub-stage begun under its step\'s alias names itself on the step', () => {
+  const timeline = new LoadingTimeline({id: 'fixture', steps: [{key: 'modules', label: 'Modules', weight: 1},
+    {key: 'loadout', label: 'Equipment and HUD', weight: 1, aliases: ['level.kit', 'fieldModels', 'sword']}]}, 0, () => 0);
+  const detail = (): string | undefined => timeline.snapshot().rows.find(row => row.key === 'loadout')?.detail;
+  const kit = timeline.begin('level.kit'); expect(detail()).toBe('level kit'); kit.end();
+  const models = timeline.begin('fieldModels'); expect(detail()).toBe('field models'); models.end();
+  timeline.begin('sword', 'Blade of the shore'); expect(detail()).toBe('Blade of the shore');
+});

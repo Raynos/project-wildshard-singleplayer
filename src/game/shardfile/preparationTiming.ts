@@ -1,15 +1,37 @@
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { isDev } from '@wildshard/engine/core/devMode';
+import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
 
-/** Developer-only spans retain one result per product/step, including failed preparation. */
+/** A span's name as the card shows it: 'world.world.dressing' -> 'world dressing', 'assembly:painted' -> 'assembly painted'. */
+export function preparationCardLabel(step: string): string {
+  return step.split(/[.:]/u).filter((part, index, parts) => part !== '' && part !== parts[index - 1]).join(' ').replaceAll('-', ' ');
+}
+/** DL21 (E529: no step sits unchanged without naming its work): while a preparation span runs under the loading card, its
+ *  step's detail names it ('Region world · world dressing'), and gets back the step's own detail when it ends (unless a
+ *  later report replaced it). Nalati's Region world step read 'Home scenes 0 / 0' for 2.9 s in the DL23 recording while
+ *  world dressing (3.1 s) and world assembly (1.3 s) ran. Outside a loading step it does nothing. */
+function nameOnCard(step: string): () => void {
+  const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current ?? null;
+  if (timeline === undefined || key === null) return () => undefined;
+  const detail = (): string | undefined => timeline.snapshot().rows.find(row => row.key === key)?.detail;
+  const before = detail() ?? '', label = preparationCardLabel(step);
+  timeline.report(key, label);
+  return () => { if (detail() === label) timeline.report(key, before); };
+}
+
+/** Developer-only spans retain one result per product/step, including failed preparation; every page names the running
+ *  span on its loading step (above). */
 export async function timeClientPreparation<T>(slug: string, step: string, work: () => T | Promise<T>): Promise<T> {
-  if (!isDev()) return work();
-  const name = `wildshard.prepare:${slug}:${step}`, start = diagnosticNow();
-  try { return await work(); }
-  finally {
-    performance.clearMeasures(name);
-    performance.measure(name, { start, end: diagnosticNow() });
-  }
+  const named = nameOnCard(step);
+  try {
+    if (!isDev()) return await work();
+    const name = `wildshard.prepare:${slug}:${step}`, start = diagnosticNow();
+    try { return await work(); }
+    finally {
+      performance.clearMeasures(name);
+      performance.measure(name, { start, end: diagnosticNow() });
+    }
+  } finally { named(); }
 }
 
 interface PreparationPhase { start: number | undefined; end: number; calls: number; failures: number; elapsedMs: number; longestMs: number }

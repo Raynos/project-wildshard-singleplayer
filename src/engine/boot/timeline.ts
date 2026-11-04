@@ -25,6 +25,8 @@ export function repeatedStep(step: Pick<LoadingStep, 'key' | 'label'>, pass: num
   return { key: `${step.key}#${pass}`, label: engineString('s_loading_step_repeat', [step.label, pass]), weight: 1 };
 }
 /** Nested/parallel waits never double-count elapsed seconds: the most recently entered stage owns each interval. */
+/** An alias as the card shows it: 'fieldModels' -> 'field models', 'level.kit' -> 'level kit'. */
+export function aliasLabel(name: string): string { return name.replaceAll(/([a-z])([A-Z])/gu, '$1 $2').replaceAll('.', ' ').toLowerCase(); }
 export class LoadingTimeline {
   /** Attempt identity for wait attribution; it carries no work or serialized state. */
   readonly waitOwner: symbol = Symbol('loading-waits');
@@ -106,7 +108,9 @@ export class LoadingTimeline {
     const known = this.aliases.get(name);
     const base = known ?? this.current()?.base ?? this.last ?? this.path.steps[0]?.key;
     if (base === undefined) throw new Error('Loading work requires a declared step');
-    const initialDetail = known === undefined ? `${name}${detail ? ` · ${detail}` : ''}` : detail;
+    // DL21: a sub-stage begun under its step's alias names itself when it brings no detail ('Equipment and HUD · field
+    // models'): the step read only its own title for ~2 s in the DL23 recordings while its parts ran
+    const initialDetail = known === undefined ? `${name}${detail ? ` · ${detail}` : ''}` : detail || (name === known ? '' : aliasLabel(name));
     const count = this.occurrences.get(base) ?? 0;
     const already = [...this.active.values()].find(stage => stage.base === base);
     const repeated = known !== undefined && count > 0 && already === undefined;

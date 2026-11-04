@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { isDev, setDev } from '@wildshard/engine/core/devMode';
-import { clientPreparationBatch, timeClientPreparation } from './preparationTiming';
+import { installLoadingTimeline, LoadingTimeline } from '@wildshard/engine/boot/timeline';
+import { clientPreparationBatch, preparationCardLabel, timeClientPreparation } from './preparationTiming';
 
 test('ordered marks partition the complete wall interval without counting overlapping children twice', () => {
   const previous = isDev(), prefix = 'wildshard.prepare:fixture:ordered.';
@@ -118,4 +119,26 @@ test('optional completion totals keep synchronous progress and actual waited fai
     expect(detail).toEqual({ calls: 4, failures: 2, elapsedMs: 64, longestMs: 50 });
     expect(() => batch.checkpoint('yield', () => undefined)).toThrow('Client preparation batch is finished');
   } finally { setDev(previous); clock.mockRestore(); performance.clearMeasures(name); }
+});
+
+test('DL21: a running span names itself on its loading step and gives the step its detail back', async () => {
+  expect(preparationCardLabel('world.world.dressing')).toBe('world dressing');
+  expect(preparationCardLabel('assembly:painted')).toBe('assembly painted');
+  expect(preparationCardLabel('native.presentation.props-library')).toBe('native presentation props library');
+  const timeline = new LoadingTimeline({ id: 'fixture', steps: [{ key: 'modules', label: 'Modules', weight: 1 }, { key: 'region', label: 'Region world', weight: 1 }] }, 0);
+  const uninstall = installLoadingTimeline(timeline);
+  const detail = (): string | undefined => timeline.snapshot().rows.find(row => row.key === 'region')?.detail;
+  try {
+    const region = timeline.begin('region', 'Home scenes 0 / 0');
+    let seen: string | undefined;
+    await timeClientPreparation('fixture', 'world.world.dressing', () => { seen = detail(); });
+    expect(seen).toBe('world dressing');
+    expect(detail()).toBe('Home scenes 0 / 0');
+    // a later report during the span is kept, not overwritten by the restore
+    await timeClientPreparation('fixture', 'world.world.assembly', () => { timeline.report('region', 'Home models 3 / 9'); });
+    expect(detail()).toBe('Home models 3 / 9');
+    region.end();
+  } finally { uninstall(); }
+  // outside a loading step the span changes nothing
+  expect(await timeClientPreparation('fixture', 'world.data', () => 5)).toBe(5);
 });

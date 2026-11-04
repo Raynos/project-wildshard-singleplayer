@@ -391,6 +391,13 @@ it('DL21: a file wait carries its step\'s reads tally, so the line moves with ev
     reportLoadingWait(tally, {label: 'Reading 37 files · 4.1 MB'});
     now = 700; vi.advanceTimersByTime(100);
     expect(foot()).toContain('Read Model data · 37 files · 4.1 MB read so far');
+    // the tally is progress (sp-x1's review): a stalled tally ages, a moving one is no 'No reported progress'
+    now = 1500; vi.advanceTimersByTime(800);
+    expect(foot()).toContain('No reported progress');
+    reportLoadingWait(tally, {label: 'Reading 38 files · 4.2 MB'});
+    now = 1900; vi.advanceTimersByTime(400);
+    expect(foot()).not.toContain('No reported progress');
+    expect(foot()).toContain('38 files · 4.2 MB read so far');
     steppe.end();
   } finally { finish(); await read; if (tally !== undefined) finishLoadingWait(tally); loading.scope.dispose(); }
 });
