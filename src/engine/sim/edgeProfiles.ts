@@ -70,12 +70,6 @@ export function immutableEdgeProfile(profile: StripProfile): StripProfile {
   admittedProfiles.add(snapshot);
   return snapshot;
 }
-/** Copy every boundary vertex from a row-major native lattice, preserving its height and linear colour. */
-export function nativeEdgeProfiles(grid: { resolution: number; heights: ArrayLike<number>; colourAt: (index: number) => EdgeColour }): EdgeProfiles {
-  const count = resolution(grid.resolution);
-  if (grid.heights.length !== count ** 2) throw new RangeError('Invalid native edge lattice');
-  return copyEdges(count, index => grid.heights[index], index => grid.colourAt(index));
-}
 /** Only boundary samples are observed; the caller admits the complete lattice layout. */
 function copyEdges(count: EdgeResolution, heightAt: (index: number) => number | undefined, colourAt: (index: number) => EdgeColour): EdgeProfiles {
   const edge = (side: typeof sides[number]): StripProfile => {

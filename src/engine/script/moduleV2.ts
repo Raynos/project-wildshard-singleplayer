@@ -42,11 +42,6 @@ export function consumeScriptStorage(token: PreparedScriptMemory, bytes: Uint8Ar
   return entry.storage;
 }
 
-/** Low-level consumers expose memory and consequently cannot recycle it. */
-export function consumeScriptMemory(token: PreparedScriptMemory, bytes: Uint8Array, pages: number, scope: Scope): WebAssembly.Memory {
-  return consumeScriptStorage(token, bytes, pages, scope).expose();
-}
-
 const callable = (value: unknown): value is (...args: number[]) => unknown => typeof value === 'function';
 function budget(value: number): void { if (!Number.isInteger(value) || value < 0 || value > 0x7fffffff) throw new Error('Invalid v2 i32 fuel budget'); }
 /** One fixed memory per module per lane. Initialized scratch and every mutable

@@ -102,12 +102,6 @@ export function setHash(files: readonly string[]): string {
 }
 /** the marker the background download writes once the worker holds every file of the set (localStorage: read synchronously at boot) */
 export const ktx2MarkerKey = (slug: string): string => `ktx2set:${slug}.${TIER}`;
-/** Auto (src/engine/boot/gpuFiles.ts): this shard's KTX2 set for this tier is cached — the marker names the current set */
-export function ktx2Ready(def: BootLevel): boolean {
-  const set = ktx2Set(def);
-  if (set.length === 0) return false;
-  try { return savedStorage.getItem(ktx2MarkerKey(def.slug)) === setHash(set); } catch { return false; }
-}
 function markKtx2(def: BootLevel, complete: boolean, hash: string): void {
   try {
     if (complete) savedStorage.setItem(ktx2MarkerKey(def.slug), hash);

@@ -1,8 +1,6 @@
 import type { AnimalSim } from '../entities/AnimalSim';
-import { GrazerBrain, type GuardedHerdMode, type GuardedStallionState, type GuardedHerdSpec, type GuardedHerdContext, type GuardedHerdPorts } from './grazer';
+import { GrazerBrain, type GuardedStallionState, type GuardedHerdSpec, type GuardedHerdContext, type GuardedHerdPorts } from './grazer';
 
-/** Existing guarded-herd modes, defined by the shared grazer law. */
-export type HerdMode = GuardedHerdMode;
 /** Existing guard/taming states, preserving all native callbacks and saved state. */
 export type StallionState = GuardedStallionState;
 /** Existing bounded guarded-herd tuning, with no new field in the native contract. */
