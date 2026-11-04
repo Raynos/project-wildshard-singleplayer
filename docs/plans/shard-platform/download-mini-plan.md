@@ -186,6 +186,17 @@ consumer is reported to Jake before anything above it is rewritten.
 Today's build also loads some things after control on purpose (PL16's distant coverage, the ring speculation of PL10).
 DL17 lists them; each one either loads before control or is shown to be out of reach at boost speed.
 
+**DL17's reds (11-03, the hardened gate on `d525bf2f86`, `phone` link, worker on; each is a row's target, never a gate
+exception):**
+- **Texture swap after control (DL9, DL16; sp-x6's DL9 find):** Auto fixes a page's texture mode at boot, so a cold
+  Driftwood (shard and grid) draws images at control while its KTX2 set downloads after it, and the next visit draws
+  KTX2. A warm visit 180 s later still drew images (the set was not yet marked cached).
+- **Level requests after control (DL1, DL5):** Driftwood 167 (165 by the worker: `basis_transcoder`, other shards'
+  boot JSON, the KTX2 set), grid 343–551; 2 Driftwood piano audio pack parts still open at control (DL5).
+- **Grid streaming at control (DL11, PL10/PL16):** 8 rings in flight, Far Reach `loading`, ~3,050 Cache Storage reads of
+  `grid-road` bins after control, Driftwood switching to its far proxy and Far Reach to `near` during the lap.
+- **Pops within reach on the lap:** Driftwood's `ground-cover-*-far` instances shown on approach (10–22 meshes).
+
 **Order:** DL17 and DL0 first (the gate and the measurement), then DL1–DL3 (small, independent). DL4 next, then DL5
 (the format everything else writes into) with DL18 (the handshake that serves it). DL6–DL13 and DL19 run in parallel
 on top of DL5. DL14 and DL15 any time. DL16 closes.
