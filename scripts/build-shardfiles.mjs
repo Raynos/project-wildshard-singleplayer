@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { runWildshard } from './wildshard.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { mapInputHashes, mapTilesHash, verifyMapPixels } from './map-hash.mjs';
-import { readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
+import { borrowShardfileEntry, readBuildKey, reuseOrBuild, shardfileCacheRoot, shardfileKey, treeHashes } from './shardfile-cache.mjs';
 import { randomBytes } from 'node:crypto';
 import { InputHashMemo } from './bake-input-hashes.mjs';
 import { productInputKey, productToolchainKey, matchingProductInputKey, publishProductInputs } from './shardfile-inputs.mjs';
@@ -23,7 +23,7 @@ import { orderProductBuilds, readProductBuildTimes, recordProductBuildTimes } fr
 import { prepareProductBuildTools } from './product-build-tools.mjs';
 import { checkTileBake } from './tile-bakes.mjs';
 import { reportTileBake } from './tile-bake-report.mjs';
-import { runtimeCopyIssues, productMapInput, publishProductMap, productFlags, productRecipe, readBuiltShardfile as selectBuiltShardfile } from './built-product.mjs';
+import { runtimeCopyIssues, productMapInput, publishProductMap, productFlags, productRecipe, retainProductInputs, readBuiltShardfile as selectBuiltShardfile } from './built-product.mjs';
 
 /** Read CI's output or a matching immutable product without invoking the builder.
  * @param {string} root @param {string} name
@@ -120,6 +120,7 @@ async function buildShardfilesWork(root, { strict = [process.env.CI, process.env
     // stage then never ran (677bd1cf1: "Shardfile requires the normal play stage", the page held at 82 %).
     const destination = resolve(root, 'out', name);
     const { normalized, recipe, receipts } = productRecipe(root, name, flags, toolchain, shardfileCacheRoot());
+    if (recorded) borrowShardfileEntry(receipts, true);
     const currentKey = () => recorded ? matchingProductInputKey(root,receipts,recipe,inputHashes) : shardfileKey(files ?? new Map(),name,folders.filter(other=>other!==folder),normalized);
     const key = currentKey();
     if (selected !== undefined && !selected.includes(name)) {
@@ -135,10 +136,17 @@ async function buildShardfilesWork(root, { strict = [process.env.CI, process.env
       if (recorded && toolchainOf() !== toolchain) throw new Error('Product toolchain changed during build');
       const next = recorded ? productInputKey(root,receipt,recipe,inputHashes) : currentKey();
       if (next === undefined) throw new Error(`Missing complete product input receipt: ${name}`);
-      if(recorded)publishProductInputs(receipts,receipt,next);
+      if(recorded) {
+        retainProductInputs(root,name,receipt,next,recipe,inputHashes);
+        publishProductInputs(receipts,receipt,next);
+      }
       return next;
       } finally { if(recorded)rmSync(receipt,{force:true}); }
     } });
+    if (recorded && how !== 'built') {
+      const retained = readBuildKey(destination);
+      retainProductInputs(root,name,resolve(receipts,`${retained}.json`),retained,recipe,inputHashes);
+    }
     // Cache transport never substitutes for current strict admission, including
     // file hashes, schemas, budgets and executing the admitted script bytes.
     if (strict && how !== 'built') await buildOne(['validate',destination]);

@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Prove refusal precedes worker setup in a tiny real Vitest run.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { afterEach, expect, test } from 'vitest';
-import { assertBuiltTestProducts, productMapInput, productFlags, readBuiltShardfile, selectBuiltTestProducts } from '../scripts/built-product.mjs';
+import { assertBuiltTestProducts, productMapInput, productFlags, readBuiltShardfile, retainProductInputs, selectBuiltTestProducts } from '../scripts/built-product.mjs';
 import { captureProductInputs, productInputKey, productToolchainKey, publishProductInputs, recordBundle } from '../scripts/shardfile-inputs.mjs';
 import { mapTilesHash } from '../scripts/map-hash.mjs';
 import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
@@ -45,7 +45,7 @@ async function fixture(named = false) {
   const receipts = resolve(cacheRoot, '.inputs-v2', name, createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
   publishProductInputs(receipts, receipt, key);
   const directory = resolve(cacheRoot, name, key); write(directory, '.build-key', key); write(directory, 'shard.json', '{}');
-  return { root, name, cacheRoot, directory, key, source, receipt: resolve(receipts, `${key}.json`), options: { cacheRoot, env: {} } };
+  return { root, name, cacheRoot, directory, key, source, recipe, receipt: resolve(receipts, `${key}.json`), options: { cacheRoot, env: {} } };
 }
 
 test('local reads require current input bytes and leave product and output bytes untouched', async () => {
@@ -63,9 +63,29 @@ test('a returned cache path remains readable through this consumer process under
   const f = await fixture();
   const directory = readBuiltShardfile(f.root, f.name, f.options);
   const result = pruneShardfileCache(f.cacheRoot, { capBytes: 0 });
-  expect(result.locked).toBe(1);
+  expect(result.locked).toBe(2); // the live body and its sealed input-receipt namespace
   expect(readFileSync(resolve(directory, 'shard.json'), 'utf8')).toBe('{}');
   expect(existsSync(resolve(f.root, 'out'))).toBe(false);
+  // The live product loan also needs its sealed read receipt on the next
+  // discovery lookup; evicting that proof strands otherwise current bytes.
+  expect(readBuiltShardfile(f.root, f.name, f.options)).toBe(directory);
+});
+
+test('slot proof survives shared cache eviction and still rejects stale or corrupt input receipts', async () => {
+  const f = await fixture(), output = resolve(f.root, 'out', f.name);
+  write(output, '.build-key', f.key); write(output, 'shard.json', '{}');
+  retainProductInputs(f.root, f.name, f.receipt, f.key, f.recipe, new InputHashMemo(f.root));
+  const local = resolve(f.root, 'out/.app/product-inputs', `${f.name}.json`), original = readFileSync(local, 'utf8');
+  expect(original).toBe(readFileSync(f.receipt, 'utf8'));
+  expect(pruneShardfileCache(f.cacheRoot, {capBytes: 0}).deleted).toBe(2);
+  expect(existsSync(f.receipt)).toBe(false); expect(existsSync(f.directory)).toBe(false);
+  expect(readBuiltShardfile(f.root, f.name, f.options)).toBe(output);
+  writeFileSync(local, original.replace(/("seal":")[a-f0-9]{64}/u, `$1${'f'.repeat(64)}`));
+  expect(() => readBuiltShardfile(f.root, f.name, f.options)).toThrow('Missing current product');
+  writeFileSync(local, original); write(output, '.build-key', 'f'.repeat(64));
+  expect(() => readBuiltShardfile(f.root, f.name, f.options)).toThrow('Missing current product');
+  write(output, '.build-key', f.key); write(f.root, f.source, 'export default {changed:true};');
+  expect(() => readBuiltShardfile(f.root, f.name, f.options)).toThrow('Missing current product');
 });
 
 test('a stale local output never shadows the matching immutable cache product', async () => {

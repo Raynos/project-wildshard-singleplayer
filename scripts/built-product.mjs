@@ -1,13 +1,13 @@
 // Read-only product selection and the exact recipe shared with the normal builder.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import * as v from 'valibot';
 import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
 import { mapStampPath, mapSettingsPath, mapTilesHash } from './map-hash.mjs';
 import { borrowShardfileEntry, readBuildKey, shardfileCacheRoot } from './shardfile-cache.mjs';
 import { InputHashMemo } from './bake-input-hashes.mjs';
-import { productToolchainKey, matchingProductInputKey } from './shardfile-inputs.mjs';
+import { productInputKey, productToolchainKey, matchingProductInputKey } from './shardfile-inputs.mjs';
 import { productFolder } from './shard-outputs.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
 
@@ -59,6 +59,26 @@ export function productRecipe(root, name, flags, toolchain, cacheRoot) {
   const receipts = resolve(cacheRoot,'.inputs-v2',name,createHash('sha256').update(JSON.stringify(recipe)).digest('hex'));
   return { normalized, recipe, receipts };
 }
+/** Slot-owned proof is build metadata, outside every shipped product. Shared
+ * cache eviction must not strand a completed product between CLI phases.
+ * @param {string} root @param {string} name */
+function slotInputReceipt(root, name) {
+  if (!/^[a-z0-9_-]+$/u.test(name)) throw new Error('Invalid built product name');
+  return resolve(root, 'out/.app/product-inputs', `${name}.json`);
+}
+/** Preserve the original sealed receipt, never a new freshness assertion.
+ * Readers replay every original source/tool/host check and bind its key to the
+ * product's own buildKey. Publish before shared cache pruning can remove it.
+ * @param {string} root @param {string} name @param {string} receipt
+ * @param {string} key @param {string[]} recipe
+ * @param {InputHashMemo} memo */
+export function retainProductInputs(root, name, receipt, key, recipe, memo) {
+  if (!/^[a-f0-9]{64}$/u.test(key) || productInputKey(root, receipt, recipe, memo) !== key) throw new Error(`Current product input receipt differs: ${name}`);
+  const path = slotInputReceipt(root, name), temporary = `${path}.${process.pid}-${randomBytes(8).toString('hex')}.tmp`;
+  mkdirSync(dirname(path), {recursive: true});
+  try { writeFileSync(temporary, readFileSync(receipt), {flag: 'wx'}); renameSync(temporary, path); }
+  finally { rmSync(temporary, {force: true}); }
+}
 /** Locate a normal build's product without generating or publishing bytes.
  * A cache path loan remains pinned through this consumer process's lifetime.
  * CI consumes its exact build output. Local callers require a matching sealed input receipt.
@@ -78,6 +98,12 @@ export function readBuiltShardfile(sourceRoot, name, { cacheRoot = shardfileCach
   const memo = new InputHashMemo(root);
   const toolchain = `${productToolchainKey(root,memo)}:${shardfileValidationRevision(root)}`;
   const { recipe, receipts } = productRecipe(root, name, flags, toolchain, cacheRoot);
+  const here = readBuildKey(destination);
+  if (here !== '' && productInputKey(root, slotInputReceipt(root, name), recipe, memo) === here
+    && existsSync(resolve(destination, 'shard.json'))) return destination;
+  // A lazy consumer's product loan also needs its original freshness proof on
+  // later discovery reads. Pin both, rather than only the cached body below.
+  borrowShardfileEntry(receipts, true);
   const key = matchingProductInputKey(root, receipts, recipe, memo);
   if (key !== undefined) for (const directory of [destination, resolve(cacheRoot, name, key)]) {
     if (directory !== destination) {
