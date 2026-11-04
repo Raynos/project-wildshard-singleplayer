@@ -40,15 +40,19 @@ const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
 const storedUrls = new Map<string, {readonly bytes: number; readonly hash: string}>();
 let storeRead: ((url: string) => Promise<Response | undefined>) | null = null;
 let layer: typeof fetch | null = null;
+/** The network beneath the first layer. The download reads only through it, never through `window.fetch`: a layer
+ *  installed later (the byte counter's texture-pack reads) can wrap this one, and a request of the download's that
+ *  entered such a reader would come back here under the reader's own signal and wait for itself (sp-x2's review). */
+let beneath: typeof fetch | null = null;
+const downloadFetch = (): typeof fetch => beneath ?? fetch;
 /** DL11: loading overlaps the download. Each listed file's download (true once it is stored), so a page read of it waits
  *  for that file, not the whole set; the download's own requests (by their abort signal) pass straight through. */
 const pendingFiles = new Map<string, Promise<boolean>>(), ownSignals = new WeakSet<AbortSignal>();
 /** While the entry's download runs, a level read it does not list (a loader reading a file its set lacks) waits for the
  *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
- *  tables, code or the shell's own images. */
+ *  tables or code. The shell's art loads through `<img>`, which no fetch layer sees. */
 let unlistedWait: Promise<void> | null = null;
-const levelRead = (path: string): boolean => /^\/(?:shardfiles\/|assets\/(?!spawn\/|boot-tables-))/u.test(path)
-  && !/\.(?:js|mjs|css|map)$/u.test(path) && !/^\/assets\/(?:title\/)?[^/]+\.(?:png|jpe?g|webp|avif|svg)$/u.test(path);
+const levelRead = (path: string): boolean => /^\/(?:shardfiles\/|assets\/(?!spawn\/|boot-tables-))/u.test(path) && !/\.(?:js|mjs|css|map)$/u.test(path);
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
   ktx2: 'image/ktx2', bin: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
   gif: 'image/gif', avif: 'image/avif', svg: 'image/svg+xml'};
@@ -60,17 +64,19 @@ function installMemberLayer(): boolean {
   if (typeof window === 'undefined' || typeof window.fetch !== 'function') return false;
   if (layer !== null && window.fetch === layer) return true;
   const network = window.fetch.bind(window);
+  beneath ??= network;
   layer = async (input, init) => {
     const request = input instanceof Request ? input : undefined;
     const method = (init?.method ?? request?.method ?? 'GET').toUpperCase(), cache = init?.cache ?? request?.cache;
     const signal = init?.signal ?? request?.signal, own = signal !== undefined && signal !== null && ownSignals.has(signal);
     if ((members.size > 0 || storedUrls.size > 0 || pendingFiles.size > 0 || unlistedWait !== null) && !own && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
       const address = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href), url = address.href;
-      const bytes = await members.get(url);
-      if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
+      // the file's download first: a packed member's bytes are keyed only once its part starts (sp-x2's review)
       const pending = pendingFiles.get(url);
       if (pending !== undefined) await pending;
       else if (unlistedWait !== null && address.origin === location.origin && levelRead(address.pathname)) await unlistedWait;
+      const bytes = await members.get(url);
+      if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
       const expected = storedUrls.get(url);
       if (expected !== undefined && storeRead !== null) {
         // Served only as the manifest's exact file (sp-x2's review): a 200, not a page, its length and sha256; a short,
@@ -139,11 +145,19 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     filesTotal: address.files, filesDone, complete, error, streamedBytes: streamedBytes + completedBytes});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
   ownSignals.add(controller.signal);
-  const settles = new Map<string, (stored: boolean) => void>();
+  // Every page read this download holds: a listed file's wait and a part member's bytes, settled when the file lands or
+  // at once when the download fails or is cancelled (a cancel never waits for a storage call to return, sp-x2's review).
+  const settles = new Map<string, (stored: boolean) => void>(), memberSettles = new Set<(bytes: null) => void>();
   const settleFile = (url: string, stored: boolean): void => { settles.get(url)?.(stored); settles.delete(url); };
-  let markListed = (): void => undefined;
+  const releaseWaits = (): void => {
+    for (const resolve of settles.values()) resolve(false);
+    for (const resolve of memberSettles) resolve(null);
+    settles.clear(); memberSettles.clear();
+  };
+  let markListed = (): void => undefined, markStopped = (_reason: unknown): void => undefined;
   const listedOnly = new Promise<void>(resolve => { markListed = resolve; });
-  const ready = (async () => {
+  const stopped = new Promise<never>((_resolve, reject) => { markStopped = reject; });
+  const work = (async () => {
     try {
       const manifestURL = new URL(address.url, base).href, held = await ports.cached(manifestURL);
       const {bytes, copy} = await readSpawnFile(manifestURL, address.bytes, ports, controller.signal, undefined, held);
@@ -228,7 +242,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           const settle = new Map<number, (bytes: Uint8Array<ArrayBuffer> | null) => void>(), done = new Set<number>();
           for (const [index] of order) {
             const file = files[index]; if (file === undefined) continue;
-            members.set(file.url, new Promise(resolve => {settle.set(index, resolve);}));
+            members.set(file.url, new Promise(resolve => {settle.set(index, resolve); memberSettles.add(resolve);}));
           }
           try {
             const response = await ports.fetch(new URL(part.url, base).href, controller.signal);
@@ -291,18 +305,20 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       controller.signal.throwIfAborted(); complete = true; publish();
     } catch (failure) {
       // A read waiting on a file this download will not store falls through to the network.
-      for (const resolve of settles.values()) resolve(false);
-      settles.clear();
+      releaseWaits();
       error = failure instanceof Error ? failure.message : String(failure); publish(); controller.abort(); throw failure;
     }
   })();
+  // A cancel settles `ready` (and every wait on it) at once, whatever the work is still awaiting.
+  const ready = Promise.race([work, stopped]);
   // The tap starts work before its composition root reaches the await. Keep
   // its original rejection for that await without a premature global report.
-  void ready.catch(() => undefined);
+  void work.catch(() => undefined); void ready.catch(() => undefined);
   const listed = Promise.race([listedOnly, ready]);
   void listed.catch(() => undefined);
   return {ready, listed, snapshot, subscribe: listener => {listeners.add(listener); listener(snapshot()); return () => {listeners.delete(listener);};},
-    resolve: input => {const url = new URL(input, base); return url.origin === new URL(base).origin ? aliases.get(url.pathname) ?? url.href : url.href;}, cancel: () => {controller.abort(); listeners.clear();}};
+    resolve: input => {const url = new URL(input, base); return url.origin === new URL(base).origin ? aliases.get(url.pathname) ?? url.href : url.href;},
+    cancel: () => {controller.abort(); releaseWaits(); markStopped(controller.signal.reason); listeners.clear();}};
 }
 
 let current: {key: string; download: SpawnDownload; foreground: boolean} | undefined;
@@ -389,7 +405,7 @@ function downloadPorts(cacheName: unknown, packs: boolean): SpawnDownloadPorts {
   const store = typeof caches === 'undefined' ? null : typeof cacheName === 'string' ? caches.open(cacheName) : null;
   const controller = navigator.serviceWorker?.controller;
   return {
-    fetch: (url, signal, init) => fetch(url, {...init, signal}),
+    fetch: (url, signal, init) => downloadFetch()(url, {...init, signal}),
     cached: async url => typeof caches === 'undefined' ? undefined : store === null ? caches.match(url, {ignoreVary: true}) : (await store).match(url, {ignoreVary: true}),
     ...(store === null ? {} : {present: async (urls: readonly string[]) => {
       const wanted = new Set(urls), found = new Set<string>();
@@ -410,8 +426,10 @@ function downloadPorts(cacheName: unknown, packs: boolean): SpawnDownloadPorts {
 function lateDownload(inner: Promise<SpawnDownload>): SpawnDownload {
   let resolved: SpawnDownload | undefined, failure: string | null = null, cancelled = false;
   const listeners = new Map<(snapshot: SpawnDownloadSnapshot) => void, () => void>();
+  let markStopped = (_reason: unknown): void => undefined;
+  const stopped = new Promise<never>((_resolve, reject) => { markStopped = reject; });
   const waiting = (): SpawnDownloadSnapshot => ({progressKnown: false, totalBytes: 0, completedBytes: 0, cachedBytes: 0, filesTotal: 0, filesDone: 0, complete: false, error: failure});
-  const ready = (async () => {
+  const work = (async () => {
     let download: SpawnDownload;
     try { download = await inner; } catch (error) {
       failure = error instanceof Error ? error.message : String(error);
@@ -423,7 +441,9 @@ function lateDownload(inner: Promise<SpawnDownload>): SpawnDownload {
     for (const listener of listeners.keys()) listeners.set(listener, download.subscribe(listener));
     await download.ready;
   })();
-  void ready.catch(() => undefined);
+  // a cancel settles at once, even while the packs book is still arriving (sp-x2's review)
+  const ready = Promise.race([work, stopped]);
+  void work.catch(() => undefined); void ready.catch(() => undefined);
   const listed = Promise.race([ready, (async () => { const download = await inner; await (download.listed ?? download.ready); })()]);
   void listed.catch(() => undefined);
   return {ready, listed, snapshot: () => resolved?.snapshot() ?? waiting(),
@@ -433,7 +453,7 @@ function lateDownload(inner: Promise<SpawnDownload>): SpawnDownload {
       return () => {listeners.get(listener)?.(); listeners.delete(listener);};
     },
     resolve: url => resolved?.resolve(url) ?? new URL(url, document.baseURI).href,
-    cancel: () => {cancelled = true; resolved?.cancel(); for (const off of listeners.values()) off(); listeners.clear();}};
+    cancel: () => {cancelled = true; resolved?.cancel(); markStopped(new DOMException('Spawn download cancelled', 'AbortError')); for (const off of listeners.values()) off(); listeners.clear();}};
 }
 function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
   const selected = spawnSelection(slug, flow, tier, mode); if (selected === null) return null;
@@ -459,8 +479,9 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
 /** The entry's own download only: a title read-ahead never holds the title's reads. */
 function holdUnlisted(ready: Promise<void>): void {
   if (!installMemberLayer()) return;
-  const wait: Promise<void> = (async () => { await ready.catch(() => undefined); if (unlistedWait === wait) unlistedWait = null; })();
+  const wait = ready.then(() => undefined, () => undefined);
   unlistedWait = wait;
+  void wait.then(() => { if (unlistedWait === wait) unlistedWait = null; return undefined; });
 }
 export function currentSpawnDownload(): SpawnDownload | undefined { return current?.download; }
 

@@ -253,3 +253,41 @@ test('DL11: a read waiting on a file the download will not store falls through t
   expect(await (await reading).text()).toBe('network');
   vi.unstubAllGlobals();
 });
+
+test('DL11: a cancel settles every waiting read at once, even while a storage call never returns (sp-x2\'s review)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const plain = JSON.stringify({ ...manifest, parts: undefined });
+  const at = { ...address, url: '/assets/spawn/example-overlap-held-1234567890abcdef.json', bytes: plain.length };
+  // the cache census after the list hangs (an unabortable storage call)
+  const download = downloadSpawnManifest(at, {
+    cached: url => url.endsWith('.json') ? Promise.resolve(undefined) : new Promise<Response | undefined>(() => { /* never settles */ }),
+    store: () => Promise.resolve(),
+    fetch: url => Promise.resolve(new Response(new URL(url).pathname === at.url ? plain : body(new URL(url).pathname))),
+  }, base);
+  await download.listed;
+  const reading = window.fetch(new URL(bin.url, base).href);
+  download.cancel();
+  await expect(download.ready).rejects.toThrow();
+  expect(await (await reading).text()).toBe('network');
+  vi.unstubAllGlobals();
+});
+
+test('DL11: a read made before its part starts waits for the file, then gets the member, not the network (sp-x2\'s review)', async () => {
+  const network = vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network')));
+  vi.stubGlobal('fetch', network);
+  const at = { ...address, url: '/assets/spawn/example-overlap-parts-1234567890abcdef.json' };
+  let census = (): void => undefined;
+  const held = new Promise<void>(resolve => { census = resolve; });
+  const download = downloadSpawnManifest(at, {packs: true,
+    cached: async url => { if (!url.endsWith('.json')) await held; return undefined; },
+    fetch: url => { const path = new URL(url).pathname; return Promise.resolve(new Response(path === at.url ? text : path === part.url ? partBytes : body(path))); },
+  }, base);
+  await download.listed;
+  // listed, but the census holds the parts loop: no member is keyed yet
+  const reading = window.fetch(new URL(glb.url, base).href);
+  census();
+  expect(new Uint8Array(await (await reading).arrayBuffer())).toEqual(new Uint8Array(5).fill(2));
+  await download.ready;
+  expect(network).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
+});
