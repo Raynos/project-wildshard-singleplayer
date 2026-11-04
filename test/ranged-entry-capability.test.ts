@@ -18,6 +18,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';
 import { rangedPage } from '../src/shards/pine-hollow/generators/rangedPage';
 import { PINE_SOURCES } from './fixtures/pine-sources';
+import { fixtureJsonCheck, fixtureProductFile } from './fixtures/productFile';
 
 const { RANGED_PAGE } = await rangedPage(PINE_SOURCES);
 
@@ -27,9 +28,9 @@ function fixture(finish = true, file = true) {
   const pack = { url: 'https://example.invalid/finish.bin', rows: { bytes: 0, geometries: [] } };
   const sections = new Map<string, unknown>([['held/finishes', finish ? { source: pack } : {}], ['combat/items', {}]]);
   const name = 'client/ranged-page.json', rows = new TextEncoder().encode(JSON.stringify(RANGED_PAGE));
-  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections,
+  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections, jsonCheck: fixtureJsonCheck,
     files: new Map([
-      ...file ? [[name, { hash: 'ranged', url: 'https://example.invalid/ranged.json' }] as const] : [],
+      ...file ? [[name, fixtureProductFile(name, { hash: 'ranged', url: 'https://example.invalid/ranged.json' })] as const] : [],
       [RANGED_PAGE.collection.pack.url, { hash: 'collection', url: 'https://example.invalid/collection.bin' }],
     ]), read: hash => hash === 'ranged' ? Promise.resolve(rows) : Promise.reject(new Error('Unexpected decode')) });
   const runtime: ShardRuntime = { world: null, play: null, step: null, interactables: [], overhead: [], objects: {}, hooks: {},
