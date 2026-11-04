@@ -12,7 +12,7 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 | # | Codex row | Ref | Taken |
 |---|---|---|---|
 | C1 | Review sp-o3's DL10 early compile + WebKit link pacing (Debug row, default off) | 359b6fecd2, cb7ceccab4 |sp-x8 11:12 |
-| C2 | Review sp-o4's DL21 card commits: named spans/sub-stages, step 27 jobs, link counts | 5730708c5c, 42bd0ec286, 1b240a289a | sp-x1 11:13 |
+| C2 | Review sp-o4's DL21 card commits: named spans/sub-stages, step 27 jobs, link counts | 5730708c5c, 42bd0ec286, 1b240a289a | sp-x1 11:13; reviewed: 3 findings fixed in `4cc0796427` + `ac94241956`, source confirmed |
 | C3 | Review sp-o5's NF18 (TSL runtime deletion) when it lands: no TSL import left, goldens cited | NF18 commit |  sp-x2 11:15 |
 | C4 | Review sp-o5's LD9b (copied-runtime arm retired) when it lands: refusals, chargebacks | LD9b commit | sp-x1 11:20 |
 | C5 | Review sp-o2's DL16 flip (packs default on; debug.levelDownload kept for tools only) when it lands | DL16 commit | |
