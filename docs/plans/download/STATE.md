@@ -24,3 +24,5 @@ tool (`e452f315d9`, `2477dc4e09`): sp-x9 12:31.
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
 
 **15:15:** Jake G1010 (1.2 GB/shard), G1011 (neighbours keep loading), G1012 (Opus: DOWNLOAD, then OPEN-PLOTS visual; Codex: HA8 Z rows, then plot audio/readings). Correction: DL16 had no WebKit goldens; sp-o3 runs every shard Chromium + WebKit on packs-on HEAD. Grid fails DL17 on packs (13 requests after control, pre-existing): sp-o4. DL10 Sim cold 27.3 -> 19.6 s, confirm running. Live 86f2590; push hold until one full CI run passes.
+
+**For wildshard-v (15:30): publication HOLD** until run 41904227600 (ba4d865de8) finishes, so pushes stop cancelling CI. Please don't restart sp-tools: at 15:26 it restarted the publisher too. Reef timeout: sp-x9, top priority.
