@@ -521,6 +521,13 @@ jobs:
     env:
       NODE_COMPILE_CACHE: ${{ github.workspace }}/.cache/node-compile
     steps:
+      - name: Reclaim unused runner toolchains
+        run: |
+          df -h .
+          # G872: this web producer uses none of these preinstalled toolchains.
+          # Keep Node, Python, native compilers and every preparation cache.
+          sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /usr/share/swift /opt/hostedtoolcache/CodeQL
+          df -h .
       - uses: actions/checkout@v4
         with:
           filter: blob:none
@@ -682,11 +689,18 @@ jobs:
           WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA" \
             python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs --mode native
 
+      - name: Retire verified preparation transport
+        # The uploaded exact-run artifact and its last local native consumer
+        # have finished. Packaging reads dist; reusable product caches remain.
+        run: rm -f -- test-products.tar test-products.tar.zst
+
       - name: Pack the exact web build for boot smoke
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
+          df -h .
+          trap 'df -h .' EXIT
           set -- --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
           if [ "$GITHUB_EVENT_NAME" = push ]; then set -- "$@" --vercel --cli-ready "$RUNNER_TEMP/prepare-vercel-cli.txt"; fi
           python3 scripts/ci-fail-fast.py -- node scripts/prepare-release-packs.mjs "$@"
