@@ -5,6 +5,8 @@ session (TRAILERS Parts A–E, `docs/plans/TRAILERS.md`), at Jake's ask (E475): 
 generation, those are really useful techniques. Let's get them written down. Everything in the session that we learned
 about cinematic trailers."* The plan that uses this for the game itself: [IN-GAME-CUTSCENES](../plans/IN-GAME-CUTSCENES.md).
 
+**Tooling retired (2026-11-04, G1014 / dead-code DC15):** the trailer directories and their WAVs are deleted; the named scripts below describe historical productions, not current runnable commands. TRAILERS is parked. Recover a specific tool with `git log --all -- scripts/trailer/ scripts/steam-trailer/ scripts/progress-trailer/`, or build future generic tooling when that plan resumes. The visual lessons and honesty rules still apply.
+
 ## 1. Jake's verdicts (the bar, in his words)
 
 | Made | Jake | Lesson |
@@ -44,7 +46,7 @@ The two that matter most:
 - **Two audiences, two trailers** (Jake, E472): builders (Claude Code makes a shard) and players (the worlds). Don't mix
   the pitches; the end card's line follows the audience.
 
-## 3. The pipeline (what to run)
+## 3. The historical pipeline
 
 | Step | Tool | Notes |
 |---|---|---|

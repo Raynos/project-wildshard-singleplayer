@@ -117,7 +117,7 @@ skill (24 SHARDFILE cameras) is now the look check (AGENTS.md).
 
 ### DC3: tile-plan, tile-census and draw-hook proof tools (16 files, 1,383 lines) · Codex · S
 
-**DC3 source:** in flight (2026-11-04, sp-x2): remove 17 unread files, including all eight retirement-only cases. The frame-floor-grid import was type-only; there were no frame-floor-grid runtime cases in that test to retain. Live frame-floor-grid and its dedicated tests remain.
+**DC3 source:** done (2026-11-04, `c12abf07402398b4ea0f255748d1862d99d0341d`; types, related and scoped ratchet pass): remove 17 unread files, including all eight retirement-only cases. The frame-floor-grid import was type-only; there were no frame-floor-grid runtime cases in that test to retain. Live frame-floor-grid and its dedicated tests remain.
 
 - `scripts/tile-plan-{page,reading,report}.mjs`, `scripts/tile-retirement-{chromium,proof}.mjs`
 - `scripts/parity/tile-census{,-scene}.mjs`
@@ -261,6 +261,8 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
   "the soak" from that AGENTS.md line in the same commit.
 
 ### DC15: trailer tooling (127 files, ~6,145 lines + ~18 MB) · Codex · M · **approved (G1014)**
+
+**DC15 source:** in flight (2026-11-04, sp-x2): remove the 126 retired trailer files, including three WAVs; TRAILERS stays parked under G1014. Current gameplay music and the independent progress-recording helper/tests remain.
 
 - `scripts/progress-trailer/`, `scripts/steam-trailer/`, `scripts/trailer/`, their tests, and the three `.wav` files outside `public/`.
 - Jake: "Nuke the soak, nuke the trailer, we can bring him back from Git history." Future trailers start from a generic tool, built fresh or restored from git (`git log --all -- scripts/trailer/` names the last commit). TRAILERS is parked in the same commit.

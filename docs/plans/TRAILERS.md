@@ -6,6 +6,8 @@ Part D's three AAA-style player cinematics (*"great"* but *"imply a product that
 engine-true trailer** (real frames + our in-game rider, E474). The lessons: `docs/process/CINEMATICS.md`. Open: TR9,
 CT2–CT6 (superseded in practice by Parts C–E), T15-6, Jake's verdict on E15 and where it goes on the site.
 
+**DC15 tooling retirement (2026-11-04, G1014):** the 126 files in `scripts/progress-trailer/`, `scripts/steam-trailer/` and `scripts/trailer/` (including three WAVs) are deleted. Paths and recipes below are historical; the shipped trailer media stays. Future trailer tooling starts generic or is restored from Git history when Jake resumes this parked plan.
+
 ## 0. Why
 
 Jake (E466, 2026-10-09): *"We want to make a new trailer for the game. The existing trailer is old. This is a trailer
