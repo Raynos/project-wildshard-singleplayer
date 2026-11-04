@@ -1,6 +1,5 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshLambertMaterial, MeshStandardMaterial } from 'three';
-import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '@wildshard/engine/app/scope';
 import { cellClip } from './cellClip';
 
@@ -19,10 +18,10 @@ test('a clipped variant keeps its source\'s defines (the cascades\' USE_CSM), so
   } finally { scope.dispose(); }
 });
 
-test('a clipped node material keeps its alpha cutoff (D189: three\'s NodeMaterial.copy drops alphaTest)', () => {
+test('a clipped material keeps its alpha cutoff (D189: a cut-out card clipped as an opaque quad)', () => {
   const scope = new Scope('clip alpha'), root = new Group();
   try {
-    const cards = new MeshStandardNodeMaterial(); cards.alphaTest = 0.45;
+    const cards = new MeshStandardMaterial(); cards.alphaTest = 0.45;
     const guard = cellClip(root, 250, scope); guard.sweep();
     const crossing = new Mesh(new BoxGeometry(2, 40, 2), cards); crossing.position.x = 250; root.add(crossing);
     expect(crossing.material).not.toBe(cards);

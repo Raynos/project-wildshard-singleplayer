@@ -169,21 +169,20 @@ test('only unpatched opaque native depth drops unused alpha textures, without ch
   } finally { page.dispose(); geometry.dispose(); source.dispose(); map.dispose(); alpha.dispose(); }
 });
 
-test('a main-pass instanced draw of a classic material wears its twin; plain, shadow and node draws keep theirs', () => {
+test('a main-pass instanced draw of a classic material wears its twin; plain and shadow draws keep theirs', () => {
   const page = new Scope('renderer'), assets = new AssetService(), camera = new PerspectiveCamera(), scene = new Scene(), geometry = new BufferGeometry();
   const submit = vi.fn<Renderer['renderBufferDirect']>();
   let pass: () => void = () => undefined;
   const renderer = { renderBufferDirect: submit, shadowMap: { render: vi.fn<Renderer['shadowMap']['render']>(() => { pass(); }) } };
   installShadowMaterialOwnership(renderer, assets, page);
-  const shared = new MeshStandardMaterial(), node = new MeshStandardMaterial(); Reflect.set(node, 'isNodeMaterial', true);
-  const instanced = new InstancedMesh(geometry, shared, 2), plain = new Mesh(geometry, shared), graph = new InstancedMesh(geometry, node, 2);
+  const shared = new MeshStandardMaterial();
+  const instanced = new InstancedMesh(geometry, shared, 2), plain = new Mesh(geometry, shared);
   const group = { start: 0, count: 0, materialIndex: 0 };
   renderer.renderBufferDirect(camera, scene, geometry, shared, instanced, group);
   renderer.renderBufferDirect(camera, scene, geometry, shared, plain, group);
-  renderer.renderBufferDirect(camera, scene, geometry, node, graph, group);
   const drawn = submit.mock.calls.map(call => call[3]);
   expect(drawn[0]).not.toBe(shared); expect(Object.getPrototypeOf(drawn[0])).toBe(shared);
-  expect(drawn[1]).toBe(shared); expect(drawn[2]).toBe(node);
+  expect(drawn[1]).toBe(shared);
   const depth = new MeshDepthMaterial();
   pass = () => { renderer.renderBufferDirect(camera, scene, geometry, depth, instanced, group); };
   renderer.shadowMap.render([], scene, camera);

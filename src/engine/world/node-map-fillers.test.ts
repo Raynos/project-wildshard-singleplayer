@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { MeshStandardMaterial, Texture } from 'three';
-import { MeshStandardNodeMaterial } from 'three/webgpu';
+import { compileClassicGraph } from '../render/graph/glslMaterial';
 import { SkyRig } from './skyRig';
 
 test('sky setup preserves graph-owned maps while classic materials retain their filler slots', () => {
@@ -9,7 +9,7 @@ test('sky setup preserves graph-owned maps while classic materials retain their 
   Reflect.set(sky, 'materials', new WeakSet());
   Reflect.set(sky, 'csm', { setupMaterial: (): void => undefined });
   Reflect.set(sky, 'shadowFade', null);
-  const graph = new MeshStandardNodeMaterial(), classic = new MeshStandardMaterial(), lent = new Texture();
+  const graph = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material, classic = new MeshStandardMaterial(), lent = new Texture();
   graph.roughnessMap = lent;
   try {
     sky.setupMaterial(graph); sky.setupMaterial(classic);

@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { MeshBasicMaterial, WebGLRenderer } from 'three';
-import { MeshStandardNodeMaterial } from 'three/webgpu';
+import { compileClassicGraph } from './graph/glslMaterial';
 import { Scope } from '../app/scope';
 import { SkyRig } from '../world/skyRig';
 import { bindLowPolyMaterial, lowPolyLookMaterial, lowPolyMaterial } from '../world/lowpolyKit';
@@ -11,7 +11,7 @@ test('world preparation lends kit materials once, unwinds scopes and preserves t
   if (!(sky instanceof SkyRig) || !(renderer instanceof WebGLRenderer)) throw new Error('Missing world ports');
   const setup = vi.fn((): void => undefined); Reflect.set(sky, 'setupMaterial', setup);
   const classic = lowPolyMaterial(sky), owner = new Scope('world-look-test'), newer = owner.child('newer');
-  const graph = new MeshStandardNodeMaterial(), overlay = new MeshBasicMaterial(), disposed = vi.fn((): void => undefined);
+  const graph = compileClassicGraph({ version: 1, kind: 'material', model: 'standard', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } }).material, overlay = new MeshBasicMaterial(), disposed = vi.fn((): void => undefined);
   graph.addEventListener('dispose', disposed); overlay.addEventListener('dispose', disposed);
   const init = vi.fn((): void => undefined), events: string[] = [];
   const look: LookStrategy = { compose: () => ({}), prepareWorld: async context => {

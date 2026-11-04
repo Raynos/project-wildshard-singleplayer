@@ -1,6 +1,5 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, SkinnedMesh, Vector3 } from 'three';
-import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { arrivalPrograms, arrivalSet } from './precompile';
 
 test('an arrival keeps page content, its nearby, unbounded or hidden drawables, and leaves far shown ones (D188)', () => {
@@ -18,15 +17,13 @@ test('an arrival keeps page content, its nearby, unbounded or hidden drawables, 
   geometry.dispose(); material.dispose();
 });
 
-// T10 (G808): a far node-material drawable links before the reveal (its first build is one unsliceable job that landed
-// whole in a moving drive frame after it); a far classic one still waits for the after-reveal warm
-test('an arrival links every node material before its reveal, wherever it is', () => {
-  const root = new Group(), geometry = new BoxGeometry(), classic = new MeshBasicMaterial(), node = new MeshStandardNodeMaterial();
-  const at = (x: number, material: MeshBasicMaterial | MeshStandardNodeMaterial): Mesh => {
-    const mesh = new Mesh(geometry, material); mesh.position.x = x; root.add(mesh); return mesh; };
-  const farClassic = at(300, classic), farNode = at(300, node), nearClassic = at(10, classic);
+// T10 (G808): an arrival links its arrival set before the reveal; a far classic drawable waits for the after-reveal warm
+test('an arrival links its nearby drawables before its reveal and leaves far classic ones to the warm', () => {
+  const root = new Group(), geometry = new BoxGeometry(), classic = new MeshBasicMaterial();
+  const at = (x: number): Mesh => { const mesh = new Mesh(geometry, classic); mesh.position.x = x; root.add(mesh); return mesh; };
+  const farClassic = at(300), nearClassic = at(10);
   root.visible = false; root.updateMatrixWorld(true);
   const programs = arrivalPrograms(root, new Vector3(0, 0, 0), 125);
-  expect([programs(farClassic), programs(farNode), programs(nearClassic)]).toEqual([false, true, true]);
-  geometry.dispose(); classic.dispose(); node.dispose();
+  expect([programs(farClassic), programs(nearClassic)]).toEqual([false, true]);
+  geometry.dispose(); classic.dispose();
 });

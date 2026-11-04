@@ -2,7 +2,6 @@ import { expect, test, vi } from 'vitest';
 import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, WebGLRenderer, type Material } from 'three';
 import { runPrecompile, sceneJobs, shadowJobs } from './precompile';
 import type { ProgramLike } from '../boot/perflog';
-import { loadGraphBackend } from './graphBackend';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { linkedGl } from '../test/linkedGl';
@@ -168,55 +167,6 @@ test('shadow preparation compiles the depth variant a registered shadow draw sub
   geometry.dispose(); moving.dispose(); still.dispose(); variant.dispose();
 });
 
-test('every acquired node layout prepares blocks across paced frames', async () => {
-  const renderer: unknown = Object.create(WebGLRenderer.prototype);
-  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
-  const geometry = new BoxGeometry(), material = new MeshStandardMaterial();
-  Reflect.set(material, 'isNodeMaterial', true);
-  const scene = new Scene(), plain = new Mesh(geometry, material), receiver = new Mesh(geometry, material);
-  receiver.receiveShadow = true; scene.add(plain, receiver);
-  const programs = new Map<string, ProgramLike>(), properties: { programs: typeof programs; currentProgram?: ProgramLike } = { programs };
-  let frame = 0;
-  const resolved: string[] = [], blocks: { material: Material; program: ProgramLike; frame: number }[] = [];
-  const make = (name: string): ProgramLike => ({ name, type: 'node', cacheKey: name, id: programs.size, usedTimes: 1,
-    program: {}, isReady: () => true, getUniforms: () => { resolved.push(name); } });
-  const first = make('plain'), last = make('receiver');
-  const fields: Record<string, unknown> = {
-    info: { programs: [first, last], render: { frame: 0 } }, extensions: { has: () => true },
-    properties: { get: () => properties, has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
-    getContext: linkedGl, setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
-    compile: () => { programs.set('plain', first); programs.set('receiver', last); properties.currentProgram = last; },
-  };
-  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const handler = await loadGraphBackend(renderer);
-  const prepareProgram = vi.spyOn(handler, 'prepareProgram').mockImplementation((value: Material, program) => {
-    const acquired = [first, last].find(candidate => candidate === program);
-    if (acquired === undefined) throw new Error('Unknown program');
-    blocks.push({ material: value, program: acquired, frame });
-  });
-  const warm = async (): Promise<void> => {
-    const jobs = sceneJobs(scene, null).jobs;
-    await runPrecompile(renderer, new PerspectiveCamera(), jobs, 1, undefined, [], () => true, true, () => { frame++; return Promise.resolve(); });
-  };
-  await warm();
-  expect(resolved).toEqual(['plain', 'receiver']);
-  expect(blocks.map(row => row.program)).toEqual([first, last]);
-  expect(new Set(blocks.map(row => row.frame)).size).toBe(2);
-  expect(properties.currentProgram).toBe(last);
-  await warm();
-  expect(blocks).toHaveLength(2); expect(resolved).toHaveLength(2);
-  // Another material can acquire an already-resolved program. Its groups still
-  // need preparation without resolving the program or selecting another variant.
-  const shared = material.clone(); Reflect.set(shared, 'isNodeMaterial', true);
-  plain.material = shared; receiver.material = shared;
-  await warm();
-  expect(blocks.slice(2).map(row => row.material)).toEqual([shared, shared]);
-  expect(blocks.slice(2).map(row => row.program)).toEqual([first, last]);
-  expect(new Set(blocks.slice(2).map(row => row.frame)).size).toBe(2);
-  expect(resolved).toHaveLength(2); expect(properties.currentProgram).toBe(last);
-  prepareProgram.mockRestore(); geometry.dispose(); material.dispose(); shared.dispose();
-});
-
 test.each([[false, true], [true, true], [true, false]] as const)(
   'preparation preserves issue and discovery (parallel %s, immediately ready %s)', async (parallel, immediate) => {
     const renderer: unknown = Object.create(WebGLRenderer.prototype);
@@ -289,26 +239,24 @@ test.each([
   { query: 20, resolve: 20, cancel: false, held: true },
   { query: 20, resolve: 20, cancel: true, held: true },
   { query: 0, resolve: 0, cancel: false, held: true },
-])('slow native queries separate resolve/block preparation (query $query, resolve $resolve, cancel $cancel, held $held)', async ({ query, resolve, cancel, held }) => {
+])('slow native queries separate readiness from first-use resolution (query $query, resolve $resolve, cancel $cancel, held $held)', async ({ query, resolve, cancel, held }) => {
   const renderer: unknown = Object.create(WebGLRenderer.prototype);
   if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
   const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), scene = new Scene();
-  Reflect.set(material, 'isNodeMaterial', true); scene.add(new Mesh(geometry, material));
+  scene.add(new Mesh(geometry, material));
   let now = 1000, frame = 0, current = true;
   const events: { kind: string; frame: number }[] = [];
-  const program: ProgramLike = { name: 'slow-driver', type: 'node', cacheKey: 'slow-driver', id: 1, usedTimes: 1, program: {},
+  const program: ProgramLike = { name: 'slow-driver', type: 'standard', cacheKey: 'slow-driver', id: 1, usedTimes: 1, program: {},
     isReady: () => { events.push({ kind: 'query', frame }); now += query; return true; },
     getUniforms: () => { events.push({ kind: 'resolve', frame }); now += resolve; } };
   const programs = new Map<string, ProgramLike>();
   const fields: Record<string, unknown> = {
     info: { programs: [program], render: { frame: 0 } }, extensions: { has: () => true },
     properties: { get: () => ({ programs }), has: () => true }, getRenderTarget: () => null, setRenderTarget: () => undefined,
-    getContext: linkedGl, setNodesHandler: (handler: { setRenderer: (value: WebGLRenderer) => void }) => { handler.setRenderer(renderer); },
+    getContext: linkedGl,
     compile: () => { programs.set('slow-driver', program); },
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const handler = await loadGraphBackend(renderer);
-  const blocks = vi.spyOn(handler, 'prepareProgram').mockImplementation(() => { events.push({ kind: 'blocks', frame }); now += 2; });
   const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
   noteFrameDrawn(now, now, 60); setBuildHeld(held);
   try {
@@ -317,10 +265,9 @@ test.each([
     if (cancel) { await expect(warm).rejects.toThrow('Shader warm-up owner left'); expect(events.map(event => event.kind)).toEqual(['query']); }
     else {
       await warm;
-      expect(events.map(event => event.kind)).toEqual(['query', 'resolve', 'blocks']);
+      expect(events.map(event => event.kind)).toEqual(['query', 'resolve']);
       if (query > 0) expect(events[1]?.frame).toBeGreaterThan(events[0]?.frame ?? -1);
-      if (resolve > 0) expect(events[2]?.frame).toBeGreaterThan(events[1]?.frame ?? -1);
-      else expect(events[2]?.frame).toBe(events[1]?.frame);
+      else expect(events[1]?.frame).toBe(events[0]?.frame);
     }
-  } finally { setBuildHeld(false); clock.mockRestore(); blocks.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); material.dispose(); }
+  } finally { setBuildHeld(false); clock.mockRestore(); noteFrameDrawn(Number.NEGATIVE_INFINITY); geometry.dispose(); material.dispose(); }
 });
