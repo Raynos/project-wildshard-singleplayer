@@ -8,7 +8,7 @@ import { deviceSavePicks, saveFixtureCode } from './debug-settings.mjs';
 //
 //   node scripts/nine-sim-memory.mjs [--rev=HEAD] [--rev=f9ca6490 …] [--runs=2] [--play=60] [--fly=60]
 //        [--setting=key=value …] [--out=<dir>] [--max=<min>] [--clear-website-data]
-//        [--device-save=key=value …]  a device-scope Debug value before every load, as sim-memory.mjs's (debug.levelDownload=packs: DL16)
+//        [--device-save=key=value …]  a device-scope Debug value before every load, as sim-memory.mjs's (debug.levelDownload.harness=shardfile: DL16's loose files)
 //   node scripts/nine-sim-memory.mjs --url=http://127.0.0.1:4401/=mine …     (an already served build, labelled)
 //   node scripts/nine-sim-memory.mjs --table=<out dir>                         (reprint a finished run's table)
 //

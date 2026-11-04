@@ -4,11 +4,15 @@ import { jsonSlot } from '../saves/slots';
  *  The device slot below is a test-harness selector, not a toggle: no UI, no URL; the measuring tools (DL17, DL23, the
  *  goldens, the Simulator readings) write 'shardfile' to read the loose files instead, which also stay the packs' 404
  *  fallback and DL5 / DL20's per-shard choice. The composition root reads it once, before any download starts. */
-export const LEVEL_DOWNLOAD_SLOT = 'debug.levelDownload';
-// The first read of a page is its value: a pick takes effect only through the row's reload.
+// Versioned key (sp-x6's review of d0683e4e38): the deleted Debug row saved players' picks under 'debug.levelDownload',
+// and a device that once picked Shardfile there (Jake's phone included) would never get packs. Only the tools write this key.
+export const LEVEL_DOWNLOAD_SLOT = 'debug.levelDownload.harness';
+// The first read of a page is its value.
 let frozen: boolean | undefined;
+/** The device's choice now: packs unless the harness's own key selects the loose files. */
+export function levelDownloadPacks(): boolean { return jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device').read() !== 'shardfile'; }
 export function runtimePacksOn(): boolean {
-  frozen ??= jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device').read() !== 'shardfile';
+  frozen ??= levelDownloadPacks();
   return frozen;
 }
 

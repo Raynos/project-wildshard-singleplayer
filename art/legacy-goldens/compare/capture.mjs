@@ -16,7 +16,7 @@
 import {chromium,webkit,devices} from 'playwright';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
-import {saveFixture,developerSettings,hideDeveloperOverlays} from '../../../scripts/debug-settings.mjs';
+import {saveFixture,developerSettings,hideDeveloperOverlays,levelDownloadFixtures} from '../../../scripts/debug-settings.mjs';
 import {loadingCardIndex} from '../../../scripts/loading-benchmark/catalogue.mjs';
 import {pressEscape} from '../../../scripts/parity/browser-escape.mjs';
 import {DEFAULT_GOLDEN_CAMERAS,goldenPreviewIdentity,selectGoldenShards,selectGoldenCameraNumbers} from '../../../scripts/goldens/capture-inputs.mjs';
@@ -77,7 +77,7 @@ try{for(const slug of slugs){
   await developerSettings(context,{tier:'phone',volume:0,time:'midday',weather:'clear'});
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
-  if (LEVEL_DOWNLOAD!=='') await saveFixture(context,{scope:'device',key:'debug.levelDownload',data:LEVEL_DOWNLOAD});
+  if (LEVEL_DOWNLOAD!=='') for (const fixture of levelDownloadFixtures(LEVEL_DOWNLOAD)) await saveFixture(context,fixture);
   if (HOME_SEED!=='') await saveFixture(context,{scope:'device',key:'debug.homeSeed',data:HOME_SEED});
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(textures=>{window.__wildshardHarness={seed:357,capture:null,...(textures===''?{}:{textures})};},TEXTURES);

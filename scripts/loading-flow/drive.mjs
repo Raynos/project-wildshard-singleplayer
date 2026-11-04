@@ -14,7 +14,7 @@ import { appendFileSync, writeFileSync, rmSync, existsSync, readdirSync, mkdirSy
 import { resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { soakInspector } from '../soak/inspector.mjs';
-import { deviceSavePicks, saveFixtureCode } from '../debug-settings.mjs';
+import { deviceSavePicks, saveFixtureCode, levelDownloadFixtures } from '../debug-settings.mjs';
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(`--${name}`); return i === -1 ? fallback : args[i + 1]; };
@@ -134,7 +134,7 @@ if (mode === 'cold') {
 }
 // mute with the game's own volume setting (no URL switch on the player's path)
 await page.evaluate(`(() => { const n='wildshard.save.v2.global'; const d=JSON.parse(localStorage.getItem(n)||'{"keys":{}}'); d.keys ??= {}; const s=d.keys.settings?.data ?? {}; d.keys.settings={v:1,data:{...s,volume:0}}; localStorage.setItem(n, JSON.stringify(d)); return true; })()`);
-await page.evaluate(saveFixtureCode({ scope: 'device', key: 'debug.levelDownload', data: LEVEL_DOWNLOAD }));
+await page.evaluate(levelDownloadFixtures(LEVEL_DOWNLOAD).map(saveFixtureCode).join(';'));
 for (const [key, data] of Object.entries(DEVICE_SAVES)) await page.evaluate(saveFixtureCode({ scope: 'device', key, data }));
 page.close(); page = null;
 terminateSafari(); await sleep(2000);

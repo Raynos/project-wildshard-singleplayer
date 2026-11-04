@@ -16,7 +16,7 @@ import { join, resolve as resolvePath } from 'node:path';
 import { parseArgs } from 'node:util';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { soakInspector } from './soak/inspector.mjs';
-import { saveFixtureCode, harnessPinCode } from './debug-settings.mjs';
+import { saveFixtureCode, harnessPinCode, levelDownloadFixtures } from './debug-settings.mjs';
 import { snapshot, lapPops } from './complete-at-control-snapshot.mjs';
 
 const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'level-download', 'reach', 'out'].map(key => [key, { type: 'string' }])) });
@@ -45,7 +45,7 @@ const prelude = [
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
   saveFixtureCode({ scope: 'global', key: 'settings', merge: true, data: { tier: 'phone', volume: 0 } }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
-  ...(levelDownload === undefined ? [] : [saveFixtureCode({ scope: 'device', key: 'debug.levelDownload', data: levelDownload })]),
+  ...(levelDownload === undefined ? [] : levelDownloadFixtures(levelDownload).map(saveFixtureCode)),
   harnessPinCode({ seed: 357, browser: 'Safari / iOS Simulator', lane: 'dl17-sim', sha: rev }),
   `window.__dl17Reach=${JSON.stringify(reach)};window.__dl17Snapshot=${snapshot.toString()}`,
   "document.addEventListener('ws:control-ready',()=>{requestAnimationFrame(()=>{window.__dl17AtControl=window.__dl17Snapshot();window.__dl17ControlMs=performance.now();});},{once:true})",

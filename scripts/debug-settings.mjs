@@ -56,6 +56,11 @@ export function hideDeveloperOverlays() {
 export function harnessPinCode(pins) { return `window.__wildshardHarness=Object.assign(window.__wildshardHarness??{},${JSON.stringify(pins)});`; }
 /** @param {{addInitScript: Function}} target @param {Record<string, string | number | boolean>} pins */
 export async function harnessPins(target, pins) { await target.addInitScript({ content: harnessPinCode(pins) }); }
+/** DL16's level download pin for a served build of any age (sp-x1's review): builds from the key's versioning on read only
+ *  'debug.levelDownload.harness' (a stale pick of the deleted Debug row under the old key never steers them), older builds
+ *  read only 'debug.levelDownload'; a tool pin writes both, so the build it measures runs the mode the report names.
+ *  @param {'packs' | 'shardfile'} data */
+export function levelDownloadFixtures(data) { return ['debug.levelDownload.harness', 'debug.levelDownload'].map(key => ({ scope: 'device', key, data })); }
 /** @param {{scope: string, key: string, data: unknown, merge?: boolean, once?: string}} fixture */
 export function saveFixtureCode(fixture) { return `(${writeSaveFixture.toString()})(${JSON.stringify(fixture)})`; }
 /** Browser-side raw JSON codec for script evaluators which cannot accept addInitScript callbacks. @param {string} scope */

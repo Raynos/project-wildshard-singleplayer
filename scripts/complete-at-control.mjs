@@ -44,7 +44,7 @@ import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
-import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
+import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays, levelDownloadFixtures } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 import { snapshot, lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from './complete-at-control-snapshot.mjs';
 import { execFileSync } from 'node:child_process';
@@ -64,6 +64,12 @@ const engine = values.engine ?? 'chromium', reach = Number(values.reach ?? '220'
 const lapSeconds = Number(values.lap ?? '60');
 const frameSeconds = Number(values.frames ?? '0');
 if (![undefined, 'shardfile', 'packs'].includes(values['level-download'])) { console.error('bad --level-download'); process.exit(2); }
+// --profile and --heap read the --frames window in Chromium only: refuse a combination that would collect nothing (sp-x9)
+for (const flag of ['profile', 'heap']) {
+  if (values[flag] === undefined) continue;
+  if (values[flag] !== 'on') { console.error(`bad --${flag}`); process.exit(2); }
+  if (!(Number(values.frames ?? '0') > 0) || (values.engine ?? 'chromium') !== 'chromium') { console.error(`--${flag}=on needs --frames=<s> and Chromium`); process.exit(2); }
+}
 // --textures=ktx2|img pins the page's texture mode (the harness pin): a texture-policy change measured on a clean build
 if (![undefined, 'ktx2', 'img'].includes(values.textures)) { console.error('bad --textures'); process.exit(2); }
 if (!['chromium', 'webkit'].includes(engine) || !['on', 'off'].includes(sw) || !['none', 'phone'].includes(linkName) || !(lapSeconds > 0) || !(reach > 0)) { console.error('bad --engine / --sw / --link / --lap / --reach'); process.exit(2); }
@@ -180,7 +186,7 @@ try {
   await developerSettings(context, { tier: 'phone', volume: 0 });
   await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
   // DL16's Debug ▸ Loading & memory ▸ Level download (src/engine/boot/loadingPacks.ts), read once at boot
-  if (values['level-download'] !== undefined) await saveFixture(context, { scope: 'device', key: 'debug.levelDownload', data: values['level-download'] });
+  if (values['level-download'] !== undefined) for (const fixture of levelDownloadFixtures(values['level-download'])) await saveFixture(context, fixture);
   await context.addInitScript(hideDeveloperOverlays);
   await harnessPins(context, { seed: 357, browser: `${engine} / iPhone 16 Pro`, lane: 'dl17', sha: rev, ...(values.textures === undefined ? {} : { textures: values.textures }) });
   const control = { at: null };
