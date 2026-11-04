@@ -182,8 +182,8 @@ export class TileDriver {
           const tile = this.attached[layer].get(key);
           // NT8's full camera ranking supersedes the horizontal-only defer rule:
           // filtering visible tiles here would let off-view work win the scan.
-          // (a tile already attaching is another lane's)
-          if ((tile !== undefined && tile.pending !== null) || !this.inView(key, layer === 'render' ? streamView : null) || (layer === 'render' && streamView === null && this.deferred(key, cone, now))
+          // (under the loader a tile already attaching is another lane's; play re-awaits it, one at a time, as before DL21)
+          if ((loaderMode && tile !== undefined && tile.pending !== null) || !this.inView(key, layer === 'render' ? streamView : null) || (layer === 'render' && streamView === null && this.deferred(key, cone, now))
             || !(tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false)))
             || this.failed.has(`${layer}:${String(key)}`)) continue;
           if (next === undefined) next = key;
