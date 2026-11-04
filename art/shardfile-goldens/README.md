@@ -36,3 +36,8 @@ label strip naming the shard, the camera and the source.
   with that fixed its hands are bright again, as before, and it is re-taken with the fold changes only. Captured on
   `f437ca63d6` + the shadow-offset fix + DL7 P1, Chromium; WebKit matched. Boards:
   `../golden-runs/<slug>/2026-11-04-f437ca63d6-p1-dw23{,-webkit}-board.jpg`.
+- 2026-11-04, far-reach 18 and nine-dragon-stack 13: D228. Far Reach 18's 10-29 golden was captured without the viewmodel
+  (LEGACY, `793ceb58` and every later frame draw the fan and hand): golden defect, promoted per wildshard-new's ruling
+  (G872). Nine 13 kept the pre-QD3 streaks when QD3 (`4567995448`, G995 B) promoted 12 cameras; the frame now shows the
+  intended on-screen-light gloss. Captured on `0bf578e89b`, Chromium. Boards:
+  `../golden-runs/{far-reach,nine-dragon-stack}/2026-11-04-0bf578e89b-d228-board.jpg`.
