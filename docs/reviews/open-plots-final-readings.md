@@ -32,7 +32,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
-| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | C/control + walk complete; 8 views read, neighbour views 1–4 open | Open |
+| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
 | Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
@@ -1585,13 +1585,16 @@ The maintained routes keep the original controller, waypoints and bounds:
 
 - `road-avenue-plaza-tower`: **164.046 s**, complete, **0 stuck / 0 out**; final feet `(0.001, 0.021, -61.972)`.
 
-All eight rows were read. Sp-o2 confirmed that Race's own track, gates, decks,
-parks, billboard and street furniture match. **Views 1–4 stay open for neighbour
-drift**: the west/north-west skyline replaces Nine's old silhouette with mountains
-(1–3), and the strip beyond the north edge changes in top down (4). That change
-has not been bound to an approved source; the coordinator assigned its skyline
-bisect to sp-x6. Views 5–8 match. No golden promotion, fix, or eight-green verdict
-is claimed.
+**Eight golden rows read green.** Sp-o2's G848 Opus classification of
+sp-x6's retained bisect boards accepts views 1–4 as **Far Reach's far tier**
+(far proxy, `far=true / near=false` at both `793ceb5` and `b752d49`). The low
+ridge replaces an older floating-structure silhouette in the neighbour skyline;
+Race's own track, gates, decks, parks, billboard and street furniture match.
+Views 5–8 match directly. This is an accepted neighbour state, with no fix or
+golden promotion. Both states predate `793ceb58`; no culprit commit is claimed.
+The labelled board retains its original pending-classification labels; this
+paragraph records the later owner verdict. Source boards:
+`tmp/sp-x6-race-bisect/`.
 
 The capture is complete, all eight original camera/residency guards hold at phone
 DPR 2, and errors are empty. Raw walk and per-view rows:
