@@ -1,17 +1,17 @@
 import { expect, test } from 'vitest';
 import { selectedManifests, gridManifests } from '../src/selectedManifests';
-import { legacyContentIdentity, shards } from '../src/game/shard/list';
+import { shards } from '../src/game/shard/list';
+import type { ShardManifest } from '../src/game/shard/manifest';
 import { prepareBootImports } from '../src/bootDownloads';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 
 await installCatalogueFixture();
 
 function fixture() {
-  const copy = shards().find(row => row.legacy === true);
-  if (copy === undefined) throw new Error('Missing inventoried legacy fixture');
-  const primaryId = legacyContentIdentity(copy.slug), primary = shards().find(row => row.slug === primaryId);
-  const other = shards().find(row => row.legacy !== true && row.slug !== primaryId);
-  if (primary === undefined || other === undefined) throw new Error('Missing original primary fixtures');
+  // LD6 retired the last real frozen copy; the pair law is kept on a flagged clone of a third catalogue row.
+  const [primary, flagged, other] = shards().filter(row => row.legacy !== true);
+  if (primary === undefined || flagged === undefined || other === undefined) throw new Error('Missing original primary fixtures');
+  const copy: ShardManifest = { ...flagged, legacy: true };
   const calls: string[] = [], declared: string[] = [];
   const loaders = Object.fromEntries([primary, copy, other].map(row => [row.slug, () => { calls.push(row.slug); return Promise.resolve(row); }]));
   return { primary, copy, other, calls, declared, loaders, identities: { [copy.slug]: primary.slug }, before: (id: string): void => { declared.push(id); } };

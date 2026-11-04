@@ -1,4 +1,4 @@
-import type { FirearmProfile } from '../../../src/sdk/weapons/firearmProfile';
+import type { FirearmProfile } from './firearmProfile';
 
 /** Existing carbine tuning retained as shard-owned data during the weapon row conversion. */
 export const AR15: FirearmProfile = {

@@ -28,7 +28,7 @@ test('cold title installation supplies every smoke case without preparing any wo
     { ...metadata, slug: 'sunscar-dunes', status: 'experimental' },
     { ...metadata, slug: '_template', status: 'hidden' },
     { ...metadata, slug: 'open-plot-alien-plain', status: 'hidden', shardSelect: false },
-    { ...metadata, slug: 'nine-dragon-stack-legacy', status: 'live', legacy: true },
+    { ...metadata, slug: 'far-reach', status: 'live', legacy: true }, // a flagged frozen copy (LD6 retired the last real one)
   ];
   Object.defineProperty(globalThis, worldSlot, { configurable: true, get() { throw new Error('Prepared worlds must not be read'); } });
   installTitleManifests(rows);

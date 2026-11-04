@@ -68,7 +68,7 @@ test('the ratchet refuses stale paths even with zero counts or an empty measurem
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('hard service imports preserve only registered legacy files, never a legacy suffix', () => {
+test('hard service imports exempt no legacy suffix (LD6 retired the last registered copy)', () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/service-freeze-')), config = resolve(root, 'lint.json');
   const files = ['src/shards/nine-dragon-stack-legacy/plugin.ts',
@@ -84,7 +84,7 @@ test('hard service imports preserve only registered legacy files, never a legacy
       ...files.map(file => resolve(root, file))], { encoding: 'utf8' });
     expect(result.status, result.stdout + result.stderr).toBe(1);
     const output = v.parse(v.object({ diagnostics: v.array(v.object({ filename: v.string(), code: v.string() })) }), JSON.parse(result.stdout));
-    expect(output.diagnostics.map(row => row.code)).toEqual(['wildshard(shard-services)', 'wildshard(shard-services)']);
-    expect(output.diagnostics.map(row => resolve(row.filename)).sort()).toEqual(files.slice(1).map(file => resolve(root, file)).sort());
+    expect(output.diagnostics.map(row => row.code)).toEqual(['wildshard(shard-services)', 'wildshard(shard-services)', 'wildshard(shard-services)']);
+    expect(output.diagnostics.map(row => resolve(row.filename)).sort()).toEqual(files.map(file => resolve(root, file)).sort());
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

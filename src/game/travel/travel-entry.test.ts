@@ -8,9 +8,9 @@ test('an enter request reaches the shard it names, in its shardfile', () => {
   expect(shardEntry(primary)).toBe('shardfile');
 });
 
-test('a frozen copy is never entered, by name or by suffix', () => {
-  const copy = { slug: 'nine-dragon-stack-legacy', legacy: true, entries: { legacy: true, shardfile: false } } as const;
+test('a frozen copy is never entered: the flag refuses it, whatever its name', () => {
+  const copy = { slug: 'pine-hollow', legacy: true, entries: { legacy: true, shardfile: false } } as const;
   expect(resolveTravelEntry(copy)).toBeUndefined();
-  const suffix = { slug: 'nine-dragon-stack-legacy', entries: { legacy: false, shardfile: true } } as const;
-  expect(resolveTravelEntry(suffix)).toBe(suffix);
+  const ordinary = { slug: 'pine-hollow', entries: { legacy: false, shardfile: true } } as const;
+  expect(resolveTravelEntry(ordinary)).toBe(ordinary);
 });

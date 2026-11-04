@@ -20,10 +20,10 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     'sample/generators/late.ts': "export const run = () => import('@wildshard/sdk/runtime/sim');",
     'sample-legacy/runtime/index.ts': 'export default {};',
     'nine-dragon-stack-legacy/unregistered.ts': 'export default {};',
+    // LD6 retired the last inventoried copy: its old runtime path is an ordinary refusal now.
+    'nine-dragon-stack-legacy/runtime/index.ts': 'export default {};',
     'sample/blender/unregistered.mjs': 'export const author = () => 1;',
     'sample/runtime/index.mjs': 'export const run = () => 1;',
-    // Exact inventoried legacy identity keeps its original import/layout path.
-    'nine-dragon-stack-legacy/runtime/index.ts': "import { run } from '@wildshard/sdk/runtime/sim'; export default run;",
     'sample/generators/output.ts': 'export const build = () => 1;',
     'sample/data/row.d.json.ts': 'declare const row: { readonly x: number }; export default row;',
     'sample/data/row.d.ts': 'export interface Row { readonly x: number }',
@@ -44,7 +44,7 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     const output = v.parse(v.object({ diagnostics: v.array(v.object({ filename: v.string(), code: v.string() })) }), JSON.parse(result.stdout));
     expect(result.status, result.stdout + result.stderr).toBe(1);
     expect(output.diagnostics.every(row => row.code === 'wildshard(no-shard-runtime)')).toBe(true);
-    expect(output.diagnostics.map(row => resolve(row.filename)).sort()).toEqual(Object.keys(files).slice(0, 10)
+    expect(output.diagnostics.map(row => resolve(row.filename)).sort()).toEqual(Object.keys(files).slice(0, 11)
       .map(file => resolve(root, 'src/shards', file)).sort());
     const registered = resolve(root, 'src/shards/driftwood-isle/blender/fp-arms/gate.mjs');
     writeFileSync(registered, "import '@wildshard/sdk/runtime/sim';");

@@ -158,7 +158,6 @@ async function capture(slug: string, side: string): Promise<Capture> {
     lists.world = ids(manifest.pois ?? []);
     lists.sets = legacySets(slug, inputs);
     lists.arenas = ['practice'];
-    if (slug === 'nine-dragon-stack') lists.arenas.push((await import('../src/shards/nine-dragon-stack-legacy/playground/registration')).GRAPPLE_PLAYGROUND.id);
     gaps.push('models: roster captured; world-placement registrations require a separate native world-list adapter');
     gaps.push('sets: literal id/place declaration union; conditional membership and computed identifiers are not qualified');
     gaps.push('world: manifest POIs captured; late runtime map registrations are not qualified');

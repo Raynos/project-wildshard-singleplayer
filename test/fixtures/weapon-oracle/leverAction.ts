@@ -1,4 +1,4 @@
-import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
+import type { FirearmProfile } from './firearmProfile';
 import { AR15 } from './pineFirearmProfile';
 
 /** The tube's rounds; one more rides in the chamber (7 in the gun). */

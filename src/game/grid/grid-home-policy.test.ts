@@ -10,8 +10,9 @@ test('a compiled grid home needs its declared product; admitted data keeps its e
 });
 
 test('trusted source flags grant no grid ownership and standalone legacy selection stays outside the grid', () => {
-  const legacy = { slug: 'nine-dragon-stack-legacy' as const, gridShardfile: 'fixture/shard.json',
-    trustedRuntime: { slug: 'nine-dragon-stack-legacy', entry: 'runtime/index.ts' } };
+  // a trusted-runtime source under any slug (LD6 retired the last frozen copy's)
+  const legacy = { slug: 'far-reach' as const, gridShardfile: 'fixture/shard.json',
+    trustedRuntime: { slug: 'far-reach', entry: 'runtime/index.ts' } };
   expect(() => useOwnedGridHome('grid', legacy)).toThrow('no admitted data or compiled client page');
   expect(() => useOwnedGridHome('grid', legacy, { runtime: { entry: 'runtime/index.ts' } })).toThrow('cannot be an owned region');
   expect(useOwnedGridHome('shard', legacy)).toBe(false);

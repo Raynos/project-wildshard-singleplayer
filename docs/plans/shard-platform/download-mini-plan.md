@@ -5,29 +5,6 @@
 [bulk-download-mini-spike.md](../bulk-download-mini-spike.md); Jake's brief:
 [Download Speed Plan](https://claude.ai/artifact/24CcAJ4uMT32DFt4sVj83e).
 
-## Goal and spine (11-04, after Jake ~09:25: *"Don't fucking forget what the goal of the plan is"*)
-
-**Goal (G1000, G1008):** the phone downloads a few game-ready packs instead of ~1,300 files, and the loading bar's steps
-mostly vanish because the build already did them; what counts is tap → control and a smooth first 30 s, not bytes.
-**Spine: Runtime packs on by default (DL16).** Today they are off (`5d149d3512`), so every player still takes the
-Shardfile path and its whole bar. Every other row either makes packs safe to turn on, or deletes a step the packs can
-then carry baked. Each card step below is removed by a named row or kept as main-thread-only (GPU upload, DOM). Seconds
-from the ENTER WORLD tap, Nine on live `69fa647`: Simulator Safari ([board](../../../art/download/dl23-flow/nine-69fa647-sim-safari-cold-warm.jpg))
-and Chromium phone link ([board](../../../art/download/dl23-flow/nine-69fa647-chromium-phone-cold-warm.jpg)), cold (warm).
-
-| Card step | Sim | Chromium phone | Removed or shrunk by | Left on the phone |
-| --- | --- | --- | --- | --- |
-| Application + Runtime modules | 0.4 (< 0.2) | 6.0 at 0 % (0.8) | DL16 (tables in the first part), DL11 read order | entry JS evaluation |
-| Texture formats and audio catalogue | 0.2 (< 0.2) | 2.3 (0.2) | DL16 (catalogue a validated member) | the format probe |
-| Region world · Sky | 1.9 (1.0) | 2.1 (2.1) | DL7 (world); Sky unsorted → DL4 pass 2 | GPU lighting, if GPU-only |
-| Props while the download runs ("Read audio 1 / 10") | 6.7 (0) | 25.5 (0) | DL11 slice 4: parts in setup's read order | nothing: setup runs as bytes land |
-| Props after the last byte (Model libraries, "Reading 1,314 files") | 3.8 (3.8) | 11.4 (20.5) | DL16 (≈ 20 parts), DL6 (no GLB parse), DL7 P3 | `bufferData` uploads |
-| Equipment and HUD | 1.4 (0.5) | 3.9 (1.6) | DL4 pass 2 → DL6 / DL7 | HUD DOM |
-| Shaders (50 links + 33 textures) · program links | 6.2 (1.0) | 2.8 (2.0) | DL10, reopened | texture upload |
-| First drawn frames and minimap (step 27) | 3.9 (2.2) | 4.7 (3.5) | DL21 (split, name), DL22 (its late reads), DL10 | the warm frames (GPU) |
-| First second after control | 5 fps, meter 10.4 s | 11 fps, 9.6 s | DL24 (new) | 30 fps from second 1 |
-| **Control** | **26.1 (10.1)** | **62.2 (35.7)** | | |
-
 Jake, 2026-11-03 ~18:30: *"A shard file is not what the engine needs, right? A shard file is a output format. It's a
 machine and human readable output format for generating these levels and these shards. The actual freaking engine, when
 it comes to downloading, loading, running, executing, we can have a full static build pipeline that converts a shard

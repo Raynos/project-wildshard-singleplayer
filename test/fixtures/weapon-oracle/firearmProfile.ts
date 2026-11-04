@@ -1,4 +1,4 @@
-/** Numeric firearm tuning for authored rows consumed by the trusted trigger family. */
+/** Numeric firearm tuning of the weapon-oracle fixtures (QD7 LD6/7 moved it here from the SDK: no shipped reader left). */
 export interface FirearmProfile {
   family: 'firearm'; action: 'semi' | 'lever'; magazine: number; reserve: number; interval: number;
   reload: number; autoReload: number; damageScale: number; range: number; kick: number;

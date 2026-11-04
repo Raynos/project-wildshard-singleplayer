@@ -8,7 +8,6 @@ import { parseItems } from '@wildshard/format/items';
 import * as v from 'valibot';
 import type { Progress } from "../Progress";
 import { legacyContentIdentity } from "../shard/list";
-import { legacyRuntimeStateInstance } from "../shard/legacy/runtimeState";
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
 import type { QuestState, QuestMarker } from '@wildshard/engine/quest/core';
@@ -120,7 +119,7 @@ export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, sourc
   // Frozen copies never existed under the primary save namespace; fresh fields start from declared defaults.
   const content = legacyContentIdentity(source.identity.slug);
   const migrate = content === undefined ? legacyRead : () => null;
-  return installRuntimeState(ctx.app.saves, ctx.scope, source, legacyRuntimeStateInstance(source.identity.slug, instance), key, migrate);
+  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, migrate);
 }
 
 /** A typed JSON record on one declared state field. Legacy reads run only at first initialization;

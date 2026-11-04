@@ -227,7 +227,6 @@
     "./plugin/ui": "./plugin/ui.ts",
     "./plugin/audio": "./plugin/audio.ts",
     "./plugin/shaderFamily": "./plugin/shaderFamily.ts",
-    "./shardfile/portalLink": "./shardfile/portalLink.ts",
     "./shardfile/dataCreaturePorts": "./shardfile/dataCreaturePorts.ts",
     "./bag/findsCatalogue": "./bag/findsCatalogue.ts",
     "./plugin/channels": "./plugin/channels.ts",

@@ -89,8 +89,6 @@
     "./headlessRuntime": "./headlessRuntime.ts",
     "./commons": "./commons.ts",
     "./commonsCosts": "./commonsCosts.ts",
-    "./runtime/weapons/Firearm": "./runtime/weapons/Firearm.ts",
-    "./weapons/firearmProfile": "./weapons/firearmProfile.ts",
     "./worldSource": "./worldSource.ts",
     "./weapons/meleeProfile": "./weapons/meleeProfile.ts",
     "./weapons/thrownProfile": "./weapons/thrownProfile.ts",
@@ -98,7 +96,6 @@
     "./weapons/bowProfile": "./weapons/bowProfile.ts",
     "./bake/textureWasm": "./bake/textureWasm.ts",
     "./bake/worldLod": "./bake/worldLod.ts",
-    "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts",
     "./bake/worldCollision": "./bake/worldCollision.ts",
     "./bake/nativeLattice": "./bake/nativeLattice.ts",
     "./bake/splatGround": "./bake/splatGround.ts",
@@ -463,14 +460,6 @@
         "types": "./dist/types/sdk/commonsCosts.d.ts",
         "default": "./dist/commonsCosts.js"
       },
-      "./runtime/weapons/Firearm": {
-        "types": "./dist/types/sdk/runtime/weapons/Firearm.d.ts",
-        "default": "./dist/runtime/weapons/Firearm.js"
-      },
-      "./weapons/firearmProfile": {
-        "types": "./dist/types/sdk/weapons/firearmProfile.d.ts",
-        "default": "./dist/weapons/firearmProfile.js"
-      },
       "./worldSource": {
         "types": "./dist/types/sdk/worldSource.d.ts",
         "default": "./dist/worldSource.js"
@@ -498,10 +487,6 @@
       "./bake/worldLod": {
         "types": "./dist/types/sdk/bake/worldLod.d.ts",
         "default": "./dist/bake/worldLod.js"
-      },
-      "./runtime/weapons/starterBow": {
-        "types": "./dist/types/sdk/runtime/weapons/starterBow.d.ts",
-        "default": "./dist/runtime/weapons/starterBow.js"
       },
       "./bake/worldCollision": {
         "types": "./dist/types/sdk/bake/worldCollision.d.ts",

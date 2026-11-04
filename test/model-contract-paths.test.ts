@@ -2,11 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { checkModels } from '../scripts/check-models.mjs';
 
 describe('model contract after client relocation', () => {
-  it.each(['src/shards/nine-dragon-stack-legacy/vm/geo.ts'])('retains the frozen merge ceiling at %s', (file) => {
-    expect(checkModels({ [file]: 'mergeGeometries(parts);' }).violations).toEqual([]);
-    expect(checkModels({ [file]: 'mergeGeometries(parts); mergeGeometries(parts);' }).violations)
-      .toEqual([expect.stringContaining('2 × mergeGeometries')]);
-  });
 
 
 
@@ -65,7 +60,6 @@ describe('model contract after client relocation', () => {
     ['src/game/boss/arenaFire.ts', 'new THREE.InstancedMesh();', 2],
     ['src/game/practice/course.ts', 'registry.add({ object });', 1],
     ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
-    ['src/shards/nine-dragon-stack-legacy/world/portals.ts', 'new InstancedMesh();', 2],
   ] as const)('retains the relocated draw ceiling at %s', (file, draw, ceiling) => {
     expect(checkModels({ [file]: draw.repeat(ceiling) }).violations).toEqual([]);
     expect(checkModels({ [file]: draw.repeat(ceiling + 1) }).violations)

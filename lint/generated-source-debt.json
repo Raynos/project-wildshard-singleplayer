@@ -120,7 +120,6 @@
     "src/shards/nalati-grasslands/data/bodies.json",
     "src/shards/nalati-grasslands/generators/edges.ts",
     "src/shards/nalati-grasslands/generators/panoramaData.ts",
-    "src/shards/nine-dragon-stack-legacy/ktx2.generated.ts",
     "src/shards/nine-dragon-stack/assets/0005afe3b1043a080e66952d62e438df931f335eacd43ba661d4477b023bc85b",
     "src/shards/nine-dragon-stack/assets/00061baef9a19dbace9ddcbbd24320167063a5c3cd433bd91236e50aa9eaaa2f",
     "src/shards/nine-dragon-stack/assets/00851925a73de4eca374aca2f33e9cc1ffb65f9c0e27bb6ae6545aab707a7b73",
