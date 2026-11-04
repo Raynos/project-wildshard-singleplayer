@@ -1,6 +1,6 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **5/10 fully qualified; C/control measured on 10/10**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **6/10 fully qualified; C/control measured on 10/10**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
@@ -26,7 +26,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
-| Fossil Badlands | `open-plot-1-0` / (-1,-2) | `0e0f1ba1c3`; admitted `0e0f1ba-mw1c0i2g`, fresh Sim `0e0f1ba-mw1fkttz` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete |
+| Fossil Badlands | `open-plot-1-0` / (-1,-2) | `0e0f1ba1c3`; admitted `0e0f1ba-mw1c0i2g`, fresh Sim `0e0f1ba-mw1fkttz`; walk/goldens carrier `1bc5e17-mw2gfb2r` | Complete: C/control, walk 0 stuck/out, goldens 8/8; G872 provenance bridge | Memory + fresh-process standalone/grid official Sim complete |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
@@ -1642,3 +1642,58 @@ credit.
 All own browsers closed and the normal :4404 preview lease was released. Memory
 and official Simulator remain open, so this section does not increase the
 full-cohort count.
+
+## Fossil Badlands — final walk and golden bridge (sp-x2, November 4)
+
+The reading uses current normal all-product carrier
+**1bc5e1758a41f7324af1d9d2796844b50a35835c**, build
+**1bc5e17-mw2gfb2r**, under the coordinator's specific **G872** approval.
+The final audio pin remains **0e0f1ba1c35e2ff4ea16ac25260a29cf5f0a6e47**;
+this is a cross-source payload/native bridge, not a new performance,
+memory or audio-playback reading and not old compiled-JavaScript parity.
+
+All **205 current served bodies** pass size/hash and HTTP/disk checks.
+Against the retained audio admission, **166/166 files, 34/35 sections and
+3/4 packs** are byte-identical. The exception is the **164 B `look/map`
+source stamp** and its containing pack. The same **200 total ordered pack
+entries** retain their sizes, order and offsets; only entry `(0,11)` in
+pack 0 (35 entries) has the changed map hash. The raw index differences
+are retained: build source/validator, that section hash, that pack member
+hash and the containing pack hash/path.
+
+The **20,598 B map image** remains SHA256
+`6a9fd00954c686159ba3f9d42d905e947bd237407579a298d81461039f1347d8`.
+The original final map body/stamp was not retained: the original strict
+MapSchema and sole baseline image establish the image proof, not literal
+old-map-byte equality. G872 explicitly accepts this `tilesHash` provenance
+stamp as the same isolated volatile field allowed by DL18. The strict
+bridge reports the difference unchanged; the staleness guard is untouched.
+All **ten defining native source roots**, including exact original UTF8
+output/binding object spans, are byte-identical to the audio pin.
+
+The unchanged maintained `road-avenue-plaza-skeleton` route completes all
+**14 waypoints in 164.0247 s**, with **zero stuck and bounds failures**.
+Endpoint is `(0.001, 0.020, -61.974)`, maximum Y 0.194 m. The route source
+is identical across the audio and carrier pins. This is an untimed route
+check with the original controller, waypoint and timeout guards.
+
+The eight-view phone 2× capture is complete with empty errors. Every
+individual GOLDEN · NOW row was read; **sp-o2's G848 Opus verdict is 8/8
+green for Fossil's own look**. Views 3/4 retain their automatic colour flags:
+the north neighbour cell is now populated, and Fossil's lantern/bench arcs
+and dot clusters show fuller fine-tile residency of the unchanged authored
+bodies. Views 7/8 have tiny ground markers that shade pale instead of black;
+the owner classifies this as a shading-only presentation note. Views 1, 2,
+5 and 6 match. No visual source changed and no golden was promoted.
+
+![Fossil Badlands: eight reviewed golden comparisons, with original automatic flags retained](../../art/golden-runs/open-plot-fossil-badlands/2026-11-04-1bc5e1758a-board.jpg)
+
+Raw evidence is under `tmp/sp-x2-open-plots/fossil/`:
+`carrier-bridge.json`, `carrier-native-source.json`, `ruling.json`,
+`walk-current-carrier.json` and `goldens-current-carrier/capture.json`.
+The earlier historical build refusal is retained separately; it preceded
+app build and earns no failed-walk or new tooling-regression claim.
+Both commands closed their browsers, and the lane released its own
+carrier lease normally while preserving the peer's lease. Together with
+the existing qualified C/control, memory and fresh-process official
+Simulator scopes, this completes Fossil's cohort: **6/10 fully qualified**.
