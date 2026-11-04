@@ -41,6 +41,10 @@ const listed = new Set(manifest.files.map(row => row.url.split('?')[0]));
 // Title art loads through <img> on the title page; any other image read before control is recorded (DL11: an unlisted
 // read waits for the whole set).
 const prefix = `/shardfiles/${slug}/`, shell = /^\/assets\/(?!spawn\/|boot-tables-)[^?]+$/u, code = /\.(?:js|mjs|css|map)$/u;
+// DL11 slice 4: setup reads only its selected boot audio (`profile.bootFiles`, extras.ts); every other music / sfx read
+// before control is the extras queue's speculative prefetch (`prefetchAfter`). Listing those made control wait for them
+// (Nalati packs +19.7 MB wire), so an audio file is recorded only when the run held it for the whole set (below).
+const audio = /^\/assets\/(?:music|sfx)\//u;
 const outside = new Set(), assetsOutside = new Set();
 let matched = 0;
 for (const row of run.requests) {
@@ -49,7 +53,7 @@ for (const row of run.requests) {
   if (path.startsWith(prefix)) matched++;
   if (listed.has(path)) continue;
   if (path.startsWith(prefix) && !path.endsWith('/shard.json')) outside.add(/([a-f0-9]{64})/u.exec(path)?.[1] ?? path);
-  else if (shell.test(path) && !code.test(path) && !path.startsWith('/assets/title/')) assetsOutside.add(path);
+  else if (shell.test(path) && !code.test(path) && !path.startsWith('/assets/title/') && !audio.test(path)) assetsOutside.add(path);
 }
 // DL11: a read the page's spawn layer held for the whole set names itself on the timeline
 // (wildshard.prepare:unlisted:<path>) even when no network request follows it (a pack reader read the loose member of a
