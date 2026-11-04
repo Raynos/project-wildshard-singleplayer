@@ -114,7 +114,8 @@ function markKtx2(def: BootLevel, complete: boolean, hash: string): void {
     else savedStorage.removeItem(ktx2MarkerKey(def.slug));
   } catch { /* private mode: Auto stays on images */ }
 }
-setAutoKtx2Check((slug) => { const def = bootCatalog().find(slug); return def !== undefined && ktx2Ready(def); });
+// DL17: Auto boots a shard's KTX2 set from the first visit (no images-then-KTX2 swap); the marker still records the cached set
+setAutoKtx2Check((slug) => { const def = bootCatalog().find(slug); return def !== undefined && ktx2Set(def).length > 0; });
 
 export interface PrefetchEnv {
   /** a service worker controls the page (its caches are where the files go) */
@@ -231,12 +232,12 @@ export function startShardPrefetch(active: BootLevel): PrefetchHandle {
     await Promise.all(order.filter((def) => def !== active).map((def) => prepareBootAudio(def.boot)));
     await Promise.all(order.map(async (def) => { if (def.ktx2 !== undefined) registerGpuFiles((await def.ktx2()).GPU_FILES); }));
     const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
-    // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the harness pin, or Auto's — images until the
-    //    shard's KTX2 set is cached. The page's own shard first: what its boot fetched before the worker controlled it.
+    // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the harness pin, or Auto's — KTX2 for a
+    //    shard with a set (DL17). The page's own shard first: what its boot fetched before the worker controlled it.
     const picked = texturePin();
     // a GPU the capability probe already turned to images (render/ktx2Probe.ts) loads images next time too: no KTX2 sets
     const vetoed = (ktx2ProbeResult()?.veto ?? null) !== null;
-    const modeFor = (def: BootLevel): TexMode => (vetoed ? 'img' : picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');
+    const modeFor = (def: BootLevel): TexMode => (vetoed ? 'img' : picked !== 'auto' ? picked : ktx2Set(def).length > 0 ? 'ktx2' : 'img');
     for (const def of order) {
       const urls = shardPrefetchList(def, def === active ? texMode() : modeFor(def));
       state.shards[def.slug] = { files: urls.length, hit: 0, stored: 0, failed: 0, bytes: 0 };

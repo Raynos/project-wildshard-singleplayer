@@ -41,7 +41,7 @@ import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
@@ -51,6 +51,8 @@ const engine = values.engine ?? 'chromium', reach = Number(values.reach ?? '220'
 // --lap overrides each boost-lap leg's time bound (default: the leg's length at 20 m/s plus 15 s)
 const lapSeconds = Number(values.lap ?? '60');
 if (![undefined, 'shardfile', 'packs'].includes(values['level-download'])) { console.error('bad --level-download'); process.exit(2); }
+// --textures=ktx2|img pins the page's texture mode (the harness pin): a texture-policy change measured on a clean build
+if (![undefined, 'ktx2', 'img'].includes(values.textures)) { console.error('bad --textures'); process.exit(2); }
 if (!['chromium', 'webkit'].includes(engine) || !['on', 'off'].includes(sw) || !['none', 'phone'].includes(linkName) || !(lapSeconds > 0) || !(reach > 0)) { console.error('bad --engine / --sw / --link / --lap / --reach'); process.exit(2); }
 if (values.warm === 'on' && (linkName !== 'phone' || engine !== 'chromium' || sw !== 'on')) { console.error('--warm=on needs --link=phone, Chromium and the worker on: a localhost link finishes the precache before any re-entry'); process.exit(2); }
 const out = resolve(values.out ?? `tmp/complete-at-control/${flow}-${rev.slice(0, 10)}-${engine}.json`);
@@ -115,7 +117,7 @@ const requests = [], reads = [];
 const link = linkName === 'phone' ? await startSharedLink(profiles.phone.down) : null;
 const browser = await (engine === 'webkit' ? webkit : chromium).launch({ headless: true, args: engine === 'chromium'
   ? ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', ...(link === null ? [] : [`--proxy-server=${link.proxy}`, '--proxy-bypass-list=<-loopback>'])] : [] });
-const report = { schema: 2, gate: 'DL17 complete-at-control', rev, base, flow, engine, reach, levelDownload: values['level-download'] ?? null, link: link === null ? null : { preset: 'phone', bytesPerSecond: link.bytesPerSecond },
+const report = { schema: 2, gate: 'DL17 complete-at-control', rev, base, flow, engine, reach, levelDownload: values['level-download'] ?? null, textures: values.textures ?? 'auto', link: link === null ? null : { preset: 'phone', bytesPerSecond: link.bytesPerSecond },
   when: new Date().toISOString(), violations: [], errors: [], limitations: ['Cache Storage and blob: / data: reads are logged on the page only, not in its dedicated workers'] };
 try {
   // Playwright WebKit reports none of the service worker's own fetches: a worker-on WebKit run cannot see them, so it refuses
@@ -126,7 +128,7 @@ try {
   // DL16's Debug ▸ Loading & memory ▸ Level download (src/engine/boot/loadingPacks.ts), read once at boot
   if (values['level-download'] !== undefined) await saveFixture(context, { scope: 'device', key: 'debug.levelDownload', data: values['level-download'] });
   await context.addInitScript(hideDeveloperOverlays);
-  await harnessPins(context, { seed: 357, browser: `${engine} / iPhone 16 Pro`, lane: 'dl17', sha: rev });
+  await harnessPins(context, { seed: 357, browser: `${engine} / iPhone 16 Pro`, lane: 'dl17', sha: rev, ...(values.textures === undefined ? {} : { textures: values.textures }) });
   const control = { at: null };
   await context.exposeBinding('__dl17Control', () => { control.at ??= Date.now(); });
   // the baseline is the control frame itself: the snapshot runs in it, before the binding returns to Node

@@ -4,7 +4,7 @@
 // Run through scripts/browser-lane.sh on a serve-build.sh preview (version.json is the source authority).
 //
 //   node art/legacy-goldens/compare/capture.mjs --base=http://127.0.0.1:44xx/ --out=tmp/golden-compare/raw [--shards=a,b]
-//     [--cameras=art/legacy-goldens/compare/cameras24.json] [--mode=legacy|shardfile] [--cams=1,5,9]
+//     [--cameras=art/legacy-goldens/compare/cameras24.json] [--mode=legacy|shardfile] [--cams=1,5,9] [--textures=ktx2|img]
 // --cameras: the 24-camera set (G859); its frames hide every element but the canvases (no HUD), at device pixels, named <nn>-<camera>-<mode>.png. A camera
 // without an eye takes the player's settled eye plus its lift; receipts-<slug>.json records it, and the LEGACY run's
 // eyes are written back into the set (compare.py eyes) so SHARDFILE renders the same camera.
@@ -36,6 +36,9 @@ const only=selectGoldenCameraNumbers(arg('cams',''));
 const slugs=selectGoldenShards(canonical,arg('shards',undefined));
 const nativeBinding=mode==='shardfile'&&slugs.includes('nine-dragon-stack')?await goldenRefinementBinding(base,source):null;
 const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
+// --textures=ktx2|img pins the page's texture mode (the harness pin, src/engine/boot/gpuFiles.ts) to judge a texture-policy
+// change on a clean build; omitted, the shipped Auto policy picks
+const TEXTURES=arg('textures','');if(!['','ktx2','img'].includes(TEXTURES))throw Error(`--textures=${TEXTURES}`);
 mkdirSync(root,{recursive:true});
 
 // --engine=webkit: Playwright's WebKit (muted by the game's volume 0; its Escape is a plain key press)
@@ -73,7 +76,7 @@ try{for(const slug of slugs){
   await saveFixture(context,{scope:'device',key:'debug.global.legacyShardButtons',data:'on'});
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
   await context.addInitScript(hideDeveloperOverlays);
-  await context.addInitScript(()=>{window.__wildshardHarness={seed:357,capture:null};});
+  await context.addInitScript(textures=>{window.__wildshardHarness={seed:357,capture:null,...(textures===''?{}:{textures})};},TEXTURES);
   if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`window.__installGoldenResidency=()=>window.__goldenResidencyPromise??=(async()=>{
     try {
       if(document.readyState==='loading'||window.__wildshard?.world?.hud?.entered)throw new Error('Native observer requires DOM readiness before world entry');

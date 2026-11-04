@@ -19,12 +19,12 @@
  *   harness pin textures = 'img'    never KTX2;
  *                        = 'ktx2'   always KTX2 (a set not cached yet downloads with the boot);
  *   no pin (every player)           a measured over-cap phone estimate selects KTX2 immediately;
- *                                                      otherwise the tier policy wins, or KTX2 once THIS shard's
- *                                                      whole KTX2 set for this tier is in the service
- *                                                      worker's cache — src/engine/boot/shardPrefetch.ts downloads it in the
- *                                                      background after the first visit and, when the worker has confirmed
- *                                                      every file, writes a marker (the set's hash) that the next page load
- *                                                      reads here. A half-downloaded set has no marker: images.
+ *                                                      otherwise the tier policy wins, or KTX2 whenever THIS shard has a
+ *                                                      KTX2 set for this tier, from the first visit (DL17, G1000: textures
+ *                                                      are in their final format at control; the old "images until the set
+ *                                                      is cached" rule drew images and swapped on the next visit). The set
+ *                                                      downloads with the boot; src/engine/boot/shardPrefetch.ts still
+ *                                                      caches and marks it (the marker's hash) for the record.
  * G188: a measured images-first playing estimate above the phone cap selects KTX2 on the first visit.
  * A harness pin still wins; desktop is unchanged.
  * Whatever picks KTX2, the KTX2 capability probe (src/engine/render/ktx2Probe.ts) runs once first and turns it into Images
@@ -116,7 +116,9 @@ export function texModeWhy(): { mode: TexMode; why: string } {
     else {
       const slug = state.level ?? PAGE_LEVEL;
       if (state.policy !== undefined) state.resolved = state.policy;
-      else state.resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
+      // DL17 (G1000): textures are in their final format at control, so a shard with a KTX2 set boots with it from the first
+      // visit (its stand-ins download with the boot) instead of drawing images and swapping on the next visit
+      else state.resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug} has a KTX2 set (its final format from the first visit)` } : { mode: 'img', why: `auto: ${slug} has no KTX2 set for this tier` };
     }
     // last, whatever picked KTX2 (a harness pin included): a GPU that samples the transcoder's only compressed targets
     // wrong when mipmapped loads images (render/ktx2Probe.ts — the iOS Simulator's zeroed sRGB ASTC / ETC2 mips; a
