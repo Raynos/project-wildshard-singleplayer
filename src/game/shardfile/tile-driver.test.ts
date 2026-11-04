@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { TileDriver, tileKeys, residentTiles, followResidentTiles, tileRing, productTileRing, settleTileDrivers } from './tileDriver';
+import { FENCE_LANES } from './controlRefinement';
 import { ring, type TileContent } from './tileContent';
 import { tileOrder, tileOf } from './tileOrder';
 import { noteFrameDrawn, setBuildHeld } from '@wildshard/engine/core/framePacing';
@@ -386,6 +387,29 @@ test('the loader fence resolves only once every in-fence render tile is attached
   } finally { scope.dispose(); }
 });
 
+// DL21: under the loader up to FENCE_LANES tiles attach at once (their reads overlap); in play one at a time
+test('the loader settle attaches up to FENCE_LANES tiles at once', async () => {
+  const scope = new Scope('tiles');
+  let running = 0, most = 0;
+  const releases: (() => void)[] = [];
+  const slow: TileContent = { id: 'slow', tiles: () => new Set(Array.from({ length: 64 }, (_, key) => key)), attach: () => {
+    running++; most = Math.max(most, running);
+    return new Promise<void>(resolve => { releases.push(() => { running--; resolve(); }); });
+  } };
+  const driver = new TileDriver(scope, [slow], () => 1, () => Promise.resolve());
+  try {
+    driver.step(-40, -40);
+    const settled = settleTileDrivers(undefined, 5000);
+    for (let turn = 0; turn < 200 && driver.resident('render').size < 9; turn++) {
+      await new Promise<void>(resolve => { setTimeout(resolve, 0); });
+      releases.splice(0).forEach(release => { release(); });
+    }
+    await settled;
+    expect(driver.resident('render').size).toBe(9);
+    expect(most).toBe(FENCE_LANES);
+  } finally { scope.dispose(); }
+});
+
 test('an in-fence tile that fails is tried once more, then its error rejects the fence', async () => {
   const scope = new Scope('tiles'), made = content(28);
   const driver = new TileDriver(scope, [made], () => 1, () => Promise.resolve());
@@ -403,7 +427,7 @@ test('a fence that makes no progress rejects after its bound instead of passing 
   const driver = new TileDriver(scope, [hang], () => 1, () => Promise.resolve());
   try {
     driver.step(-40, -40);
-    // one tile attaches at a time, so the hanging tile holds the ones queued behind it too
+    // the hanging tile holds one of the loader's lanes for good, and its count never moves
     await expect(settleTileDrivers(undefined, 200)).rejects.toThrow(/Tile fence stalled: \d+ tiles inside it made no progress for 0 s \(first: 28/u);
   } finally { scope.dispose(); }
 });

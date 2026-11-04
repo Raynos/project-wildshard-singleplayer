@@ -22,7 +22,7 @@ import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { SPAWN_VIEW_M, spawnViewUsesCamera } from './controlRefinement';
+import { FENCE_LANES, SPAWN_VIEW_M, spawnViewUsesCamera } from './controlRefinement';
 import { streamingDistance, streamingOrder, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
 
 /** MF5: the live drivers, and whether the loader is settling them (no world frames under the card since FC2). */
@@ -67,9 +67,9 @@ export class TileDriver {
   private readonly retried = new Set<string>();
   private centre: CellTile | null = null;
   private renderRing: ReadonlySet<number> = new Set();
-  private busy = false;
-  /** the attach `step` started, while it runs (the loader's settle waits on it) */
-  private inflight: Promise<void> | null = null;
+  /** the attaches `step` started, while they run (the loader's settle waits on them): one in play, FENCE_LANES under the
+   *  loader */
+  private readonly inflight = new Set<Promise<void>>();
   private plan: TileRingPlan | null = null;
   private coarseScope: Scope | null = null;
   private coarseCount = 0;
@@ -108,19 +108,19 @@ export class TileDriver {
       }
       this.step(this.last.x, this.last.z);
       const plan = this.plan, open = plan === null ? [] : plan.nearest.render.filter(key => this.inView(key, view) && (this.attached.render.get(key) === undefined || !this.complete(key)));
-      if (!this.busy && open.length === 0) return;
+      if (this.inflight.size === 0 && open.length === 0) return;
       let finished = 0;
       for (const tile of this.attached.render.values()) finished += tile.done.size;
       const now = diagnosticNow();
       if (finished !== progress) { progress = finished; since = now; }
       else if (now - since > stallMs) throw new Error(`Tile fence stalled: ${String(open.length)} tiles inside it made no progress for ${String(Math.round(stallMs / 1000))} s (first: ${open.slice(0, 4).join(', ')})`);
-      // DL21: wait on the attach in flight (re-checking the stall at least every SETTLE_POLL_MS), then one fresh task, so the
-      // next tile starts as this one lands. Polling on timer hops spent the browser's 4 ms nested-timer clamp per turn: the
+      // DL21: wait on the attaches in flight (re-checking the stall at least every SETTLE_POLL_MS), then one fresh task, so
+      // the next tile starts as one lands. Polling on timer hops spent the browser's 4 ms nested-timer clamp per turn: the
       // whole cell's 64 tiles attach here with packs on (Nine's step 27, 3.0-3.5 s on the phone link, ~17 % of it idle)
       // (nothing in flight: a content not ready yet; the timer hop keeps that wait from spinning)
-      const inflight = this.inflight;
-      if (inflight === null) { await task(); continue; }
-      await Promise.race([inflight.then(() => undefined, () => undefined), new Promise<void>(resolve => { pageScope.timeout(SETTLE_POLL_MS, resolve); })]);
+      if (this.inflight.size === 0) { await task(); continue; }
+      await Promise.race([...[...this.inflight].map(run => run.then(() => undefined, () => undefined)),
+        new Promise<void>(resolve => { pageScope.timeout(SETTLE_POLL_MS, resolve); })]);
       await macrotask();
     }
   }
@@ -157,7 +157,8 @@ export class TileDriver {
   }
 
   /** Once a frame with the player's cell-local position: retire the tiles outside the rings, then start the nearest wanted
-   *  tile not yet attached (colliders first), one at a time. Render owners retire one tile beyond the attach ring;
+   *  tile not yet attached (colliders first), one at a time in play; under the loader up to FENCE_LANES at once (DL21: the
+   *  fence's slab reads and decodes then overlap, where one tile at a time held its queue at one job). Render owners retire one tile beyond the attach ring;
    *  collider owners retain the exact 3 x 3 physical ring (D2 B). */
   step(x: number, z: number): void {
     if (this.scope.disposed || this.scope.disposing) return;
@@ -168,37 +169,41 @@ export class TileDriver {
       if (plan.retained[layer].has(key)) continue;
       this.attached[layer].delete(key); tile.scope.dispose();
     }
-    if (this.busy) return;
+    const lanes = loaderMode ? FENCE_LANES : 1;
+    if (this.inflight.size >= lanes) return;
     const now = diagnosticNow(), cone = loaderMode || this.view === null ? null : this.view(), streamView = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null;
     for (const key of this.wantedAt.keys()) if (!wanted.render.has(key)) this.wantedAt.delete(key);
-    for (const layer of ['colliders', 'render'] as const) {
-      // a tile with every content done (done.size >= contents.length, as everywhere here) skips the content scan
-      let next: number | undefined;
-      for (const key of plan.nearest[layer]) {
-        const tile = this.attached[layer].get(key);
-        // NT8's full camera ranking supersedes the horizontal-only defer rule:
-        // filtering visible tiles here would let off-view work win the scan.
-        if (!this.inView(key, layer === 'render' ? streamView : null) || (layer === 'render' && streamView === null && this.deferred(key, cone, now))
-          || !(tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false)))
-          || this.failed.has(`${layer}:${String(key)}`)) continue;
-        if (next === undefined) next = key;
-        else if (layer === 'render' && streamView !== null) {
-          const candidate = this.targets.get(key), prior = this.targets.get(next);
-          if (candidate === undefined || prior === undefined) throw new Error('Missing streaming tile');
-          if (streamingOrder(candidate, prior, streamView) < 0) next = key;
+    for (let started = true; started && this.inflight.size < lanes;) {
+      started = false;
+      for (const layer of ['colliders', 'render'] as const) {
+        // a tile with every content done (done.size >= contents.length, as everywhere here) skips the content scan
+        let next: number | undefined;
+        for (const key of plan.nearest[layer]) {
+          const tile = this.attached[layer].get(key);
+          // NT8's full camera ranking supersedes the horizontal-only defer rule:
+          // filtering visible tiles here would let off-view work win the scan.
+          // (a tile already attaching is another lane's)
+          if ((tile !== undefined && tile.pending !== null) || !this.inView(key, layer === 'render' ? streamView : null) || (layer === 'render' && streamView === null && this.deferred(key, cone, now))
+            || !(tile === undefined || tile.done.size < this.contents.length && this.contents.some(content => !tile.done.has(content) && (layer === 'colliders' || content.ready?.() !== false)))
+            || this.failed.has(`${layer}:${String(key)}`)) continue;
+          if (next === undefined) next = key;
+          else if (layer === 'render' && streamView !== null) {
+            const candidate = this.targets.get(key), prior = this.targets.get(next);
+            if (candidate === undefined || prior === undefined) throw new Error('Missing streaming tile');
+            if (streamingOrder(candidate, prior, streamView) < 0) next = key;
+          }
+          // Physics retains its original nearest-player priority. Only visual
+          // preparation follows the camera; the collider ring is not a view.
+          if (layer === 'colliders' || streamView === null) break;
         }
-        // Physics retains its original nearest-player priority. Only visual
-        // preparation follows the camera; the collider ring is not a view.
-        if (layer === 'colliders' || streamView === null) break;
+        if (next === undefined) continue;
+        // MF13: in play, each render tile's attach and whether the camera sees it then (the walk probes read these)
+        if (layer === 'render' && cone !== null) performance.mark('wildshard.tile.render', { detail: { key: next, seen: this.seen(next, cone), waited: Math.round(now - (this.wantedAt.get(next) ?? now)) } });
+        const run: Promise<void> = this.attach(next, layer).finally(() => { this.inflight.delete(run); });
+        this.inflight.add(run);
+        started = true;
+        break;
       }
-      if (next === undefined) continue;
-      // MF13: in play, each render tile's attach and whether the camera sees it then (the walk probes read these)
-      if (layer === 'render' && cone !== null) performance.mark('wildshard.tile.render', { detail: { key: next, seen: this.seen(next, cone), waited: Math.round(now - (this.wantedAt.get(next) ?? now)) } });
-      this.busy = true;
-      const run = this.attach(next, layer).finally(() => { this.busy = false; if (this.inflight === run) this.inflight = null; });
-      this.inflight = run;
-      void run;
-      return;
     }
   }
 
