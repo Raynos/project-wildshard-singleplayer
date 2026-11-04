@@ -62,8 +62,6 @@ const TENT = /* glsl */`
 				#undef TENT_TAP`;
 
 let tentOn = false;
-/** the tent is installed (the TSL back-end gives node materials the same filter: render/nodes/tentShadowFilter.ts) */
-export function tentShadowFilterOn(): boolean { return tentOn; }
 
 /**
  * Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map
@@ -103,8 +101,6 @@ const PLANE_TAPS = /* glsl */`vec2 texelSize = vec2( 1.0 ) / shadowMapSize;$1#de
 				) * 0.2;`;
 
 let planeBiasOn = false;
-/** three's PCF carries the receiver-plane bias (node materials get the same: render/nodes/planeBiasShadowFilter.ts); off under the tent */
-export function planeBiasShadowFilterOn(): boolean { return planeBiasOn && !tentOn; }
 
 /**
  * Patch the receiver-plane bias into three's 5-tap PCF (once, at boot, before any material compiles). The tent

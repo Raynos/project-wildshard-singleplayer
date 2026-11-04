@@ -19,25 +19,13 @@ export interface CascadeSet {
   readonly setup?: (material: THREE.Material) => void;
 }
 
-const byLight = new WeakMap<THREE.Light, { set: CascadeSet; index: number }>();
-const ghosts = new WeakMap<THREE.Light, { set: CascadeSet; index: number }>();
 
 let latest: CascadeSet | null = null;
 /** the sky rig's cascades (after the CSM and its fade exist); a light belongs to the last set registered for it */
 export function registerCascades(set: CascadeSet): void {
   latest = set;
-  set.csm.lights.forEach((light, index) => { byLight.set(light, { set, index }); });
-  set.ghosts.forEach((light, index) => { ghosts.set(light, { set, index }); });
 }
 
 /** the newest registered sky's cascades (a classic graph program gates its sun by them, as the node back-end does), or null */
 export function latestCascades(): CascadeSet | null { return latest; }
 
-/** the cascade a light draws, or undefined for any other light */
-export function cascadeOf(light: THREE.Light): { set: CascadeSet; index: number } | undefined { return byLight.get(light); }
-
-/** the fade ghost that belongs to cascade `index` of `set`, if any */
-export function ghostOf(set: CascadeSet, index: number): THREE.DirectionalLight | undefined { return set.ghosts[index]; }
-
-/** a fade ghost (intensity 0: it only lends its shadow map to its cascade) */
-export function isCascadeGhost(light: THREE.Light): boolean { return ghosts.has(light); }

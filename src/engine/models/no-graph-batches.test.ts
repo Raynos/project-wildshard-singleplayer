@@ -55,8 +55,8 @@ test('PF1 / PF13: a graph look\'s levels that share a material but not their sha
     expect(after.every(Boolean)).toBe(true);
     return seen;
   };
-  for (const material of [nodeMaterial(), Object.defineProperty(new MeshStandardMaterial(), 'isGraphShaderMaterial', { value: true })]) {
-    // PF3: a graph on the GLSL back-end (a classic program, `isGraphShaderMaterial`) keys its levels the same way
+  // PF3: a graph look is a classic program (`isGraphShaderMaterial`; NF18 retired the node back-end's flag)
+  for (const material of [Object.defineProperty(new MeshStandardMaterial(), 'isGraphShaderMaterial', { value: true })]) {
     const [one, ...rest] = batches(material);
     if (one === undefined) throw new Error('Missing graph batch');
     expect(rest).toEqual([]); expect(one.castShadow).toBe(true); expect(one.instanceCount).toBe(8);

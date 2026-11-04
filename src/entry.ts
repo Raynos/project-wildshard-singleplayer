@@ -209,19 +209,19 @@ async function startSelected(): Promise<void> {
   // cannot publish content: the memory bank and full import barrier still
   // precede admission and installation, with their original refusal order.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
-    voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
+    voicesModule, boarModule, familiesModule, sourceModule, runtimeModule,
     pathsModule, prefetchModule] = [
     import('@wildshard/game/systems/species/install'), import('@wildshard/game/icons'),
     import('@wildshard/game/models/specimenCatalogue'), import('@wildshard/game/data/pickupCatalogue'),
     import('@wildshard/game/models/interact'), import('@wildshard/game/bag/starter.generated'),
-    import('@wildshard/game/systems/tools/hoverboard'), import('@wildshard/sdk/runtime/audio/weaponVoices'), import('@wildshard/sdk/runtime/audio/combatCues'),
+    import('@wildshard/game/systems/tools/hoverboard'), import('@wildshard/game/plugin/audio'),
     import('@wildshard/game/systems/species/view/boar'), import('@wildshard/game/plugin/weaponFamily'),
     import('@wildshard/game/shardfile/clientSource'), import('@wildshard/game/shardfile/runtimeProduct'),
     import('@wildshard/game/boot/loadingPaths'),
     import('@wildshard/game/grid/prefetch'),
   ] as const;
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
-    starterModule, hoverboardModule, voicesModule, combatModule, boarModule, familiesModule, sourceModule, runtimeModule,
+    starterModule, hoverboardModule, voicesModule, boarModule, familiesModule, sourceModule, runtimeModule,
     gridEntryModule, pathsModule, prefetchModule]));
   // Cover the full-ALL route's five observed misses; never recycle growables.
   const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
@@ -278,7 +278,7 @@ async function startSelected(): Promise<void> {
     selectedImages = imageOwner;
     previousImages?.dispose();
     const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installPickupCatalogue, preparePickupCatalogue },
-      { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL }, , { sharedCombatCues }] = await imports.ready();
+      { default: PICKUP_CATALOGUE }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL }, { sharedCombatCues }] = await imports.ready();
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
     installKitSpecies();
     installKitIcons();

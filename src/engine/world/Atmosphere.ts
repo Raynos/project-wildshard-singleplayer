@@ -60,12 +60,7 @@ export const weatherFogUniforms: { fogWeather: { value: THREE.Vector4; }; fogWea
   fogWeatherColor: { value: new THREE.Color(1, 1, 1) },
 };
 let weatherFogOn = false;
-let edgeHazeOn = false;
 
-/** which optional terms the installed fog chunk compiled in */
-export function atmosphereTerms(): { edgeHaze: boolean; weather: boolean; wetSurfaces: boolean } {
-  return { edgeHaze: edgeHazeOn, weather: weatherFogOn, wetSurfaces: pineWeather };
-}
 
 export interface WeatherFogSpec {
   /** distance density per metre at full strength (exponential: about 3 / dist m is where far things are gone) */
@@ -122,7 +117,6 @@ function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean; we
   weatherFogOn = weather;
   // Pine Hollow's slab edge haze (fogEdge): only its fog chunk carries it, every other shard's source stays byte-for-byte
   const edge = policy.edgeHaze === true;
-  edgeHazeOn = edge;
   pineWeather = policy.wetSurfaces === true;
 
   THREE.ShaderChunk.fog_pars_vertex = /* glsl */`

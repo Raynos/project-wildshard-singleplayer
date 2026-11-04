@@ -271,8 +271,6 @@
   "wildshard/sdk-no-facade": {
     "src/sdk/kit/bakedGeometry.ts": 7,
     "src/sdk/phasedBoss.ts": 9,
-    "src/sdk/runtime/audio/combatCues.ts": 1,
-    "src/sdk/runtime/audio/weaponVoices.ts": 3,
     "src/sdk/species/clips.ts": 11,
     "src/sdk/speciesBrains.ts": 3,
     "src/sdk/weapons/bowProfile.ts": 4,

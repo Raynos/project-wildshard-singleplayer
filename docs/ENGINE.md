@@ -3,18 +3,16 @@
 `Game.bindHiddenFrameRoot(owner, root)` skips hidden roots in frame matrix walks only;
 manual preparation and visible roots keep normal updates.
 
-`@wildshard/game/systems/audio/weaponVoices` owns sample-first recipes and `WeaponSynth`,
-used through `@wildshard/sdk/runtime/audio/weaponVoices`. The three modules retain
-oscillator parameters, cue taps and audio random-draw order.
-`@wildshard/game/systems/audio/silentScore.installSilentScore` scopes a score-only
-gain mute and restores the previous value at disposal; its SDK defining facade is
-`@wildshard/sdk/runtime/audio/silentScore`. Both systems install only when called.
+`@wildshard/game/plugin/audio` owns the sample-first weapon recipes (`sharedWeaponVoices`,
+`declaredWeaponVoices`) and `WeaponSynth`; boot (`src/entry.ts`) imports it directly (LD10 retired the
+`@wildshard/sdk/runtime/audio/*` wrappers). The recipes retain oscillator parameters, cue taps and audio
+random-draw order. `@wildshard/game/systems/audio/silentScore.installSilentScore` scopes a score-only
+gain mute and restores the previous value at disposal. Both install only when called.
 
 `@wildshard/game/systems/viewmodel/{rigArms,armClips,armRig}` define the first-person arm player
 (`RigArms`, `swordArmsOf`, `vmScale`), the arm rigs' clip alias tables and the two-bone arm IK the
-arm bakes and `measure` share; they moved unchanged from the kit (SF54). Trusted runtimes reach them through
-`@wildshard/sdk/runtime/viewmodel/*`, whose facades bind the same values; legacy shard files outside `runtime/`
-import the game modules until their -p port. Nothing installs on import.
+arm bakes and `measure` share; they moved unchanged from the kit (SF54). Shard code imports these
+defining game modules directly; no SDK viewmodel facade remains. Nothing installs on import.
 
 `@wildshard/game/models/{interact,pickups}` and `src/game/systems/props/interact.ts` hold the shared interactables' models
 (sea chest, key, door, lever, plate, barrel, beacon, bench, glyph altar) and pickup looks with the low-poly prop
@@ -94,9 +92,8 @@ HUD changes or import-time installation. `StatusMovement` callers derive the mov
 `game/bag/starter.generated.ts`; boot installs those rows explicitly. No import
 registers a row.
 
-`@wildshard/game/systems/audio/combatCues` defines the shared equipment cue router.
-Trusted runtimes use `@wildshard/sdk/runtime/audio/combatCues.sharedCombatCues(audio, meleeSilent)`;
-its SDK facade refers to the same function. It calls the supplied mixer's existing
+`@wildshard/game/plugin/audio` defines the shared equipment cue router,
+`sharedCombatCues(audio, meleeSilent)`. It calls the supplied mixer's existing
 sound operations exactly once, preserves surface / pan / gain and the melee-silence
 policy, returns false for unknown cues, and installs nothing on import. Sound
 recipes and authored audio assets remain separate content; this router carries none.
@@ -165,9 +162,9 @@ contains numeric data, with no procedural pose callback.
 
 `@wildshard/engine/level/installation` constructs the ordinary level registration context for a supplied scope;
 `LevelLoader` and child installations share that implementation and the same kit registration window.
-`@wildshard/game/plugin/context` resolves a declared `runtime/*.ts` entry only through a trusted first-party
-registry. `prepareHybridShard` admits the shardfile and its trusted entry, chooses the catalogue instance inside
-the game layer, and composes their world, kit and play stages. Empty transitional data adds no gameplay services.
+`declaredClientPlanEntry` (`@wildshard/game/shard/declaredEntry`) is the one entry: `prepareHybridShard` admits the
+shardfile's compiled client plan, chooses the catalogue instance inside the game layer, and composes its world, kit and
+play stages. Empty transitional data adds no gameplay services.
 `HybridRuntimeSession.prepare` prefetches module code without running hooks. `installAhead(instance)` requires an
 inactive, retained, fully claimed resident with reversible construction bindings; it builds world/kit/play and warms
 programs while entered callbacks, input actions, parent runtime slots and presentation stay unpublished. Input
@@ -1269,7 +1266,7 @@ measured work and the shared frame deadline; cheap desktop queries retain their 
 scans and every timeout-fallback resolve, with the prior render target/face/mip restored before
 any yield. The optional current-owner callback is checked around those waits. `boundedLinkWait`
 accepts synchronous or sliced asynchronous readiness scans and retains its 10 s fallback bound.
-One whole-pass compile, driver query or node build remains atomic; slicing cannot preempt it.
+One whole-pass compile or driver query remains atomic; slicing cannot preempt it.
 Ready programs are not polled again; weak resolved identities avoid repeating work for borrowed variants.
 KHR completion is checked before uniforms are resolved, and shader-error diagnostics remain enabled.
 Paced herd pages retain their original 16-slot capacity; loading-screen construction starts at eight slots.
@@ -1788,10 +1785,6 @@ today's families stay hand-written GLSL.
 
 [Post fog](POST-FOG.md).
 
-Node builds scope `render/nodes/nodeChildren.ts` child snapshots to one synchronous build. Immediate children
-retain stock order, duplicates and eager snapshot semantics without property/index descriptor allocations; custom
-collectors retain the original traversal. Success and failure restore the previous method, including nested builds.
-No graph snapshot survives the build, and shader sources, uniform declarations and program keys stay unchanged.
 
 SF59 effect graphs may add `effectState: { blend?, fog?, depthWrite?, depthBias? }`.
 `blend` is `alpha` (straight RGB), `additive` (straight RGB multiplied by alpha
@@ -3404,7 +3397,7 @@ initialization and any later identity addition require exact coordinator approva
 with `wildshard/public-index` hard on `src/` and no debt allowance. Engine
 `ui/StartTitle`, `native/boot` and `telemetry/runtime` expose the existing
 entry installers. Game `mainMenu`, `identity`, `engineStrings`, `audio/theme`,
-`icons`, `bag/starter.generated`, `boot/loadingPaths`, `shard/entryMode`,
+`icons`, `bag/starter.generated`, `boot/loadingPaths`,
 `session/session`, `systems/species/install`, `models/interact`,
 `systems/tools/hoverboard` and `shardfile/product` expose their existing
 bindings. Importing a defining module grants no new installation or lifetime;
@@ -3890,13 +3883,8 @@ binding by NPC identity. Missing identities refuse before resource lookup. Root
 admission requires native quest ownership, declared dialogue/met flags and unique
 NPC ids, talk spots and update-system ids; absent declarations add no wire field.
 
-Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
-`prepareHeadlessRuntime` from rows: the baked metadata (`bakedSpecs`, `bakedSpots`), the homes and their brains (with
-`holds`: a home's memory field held until a flag), the marked boss, the lash item, the quest graph and the terrain entry
-walk (`@wildshard/game/plugin/productEntries` `proveTerrainEntries`). Signal’s private `runtime/shard/standaloneEntry.ts`
-`standaloneHybridEntry(Native, { name, source, entry, runtime })` is a first-party primary's standalone hybrid entry.
-These one-user implementations and their SDK facades returned to Signal under DS0.1; its bindings live in
-`runtime/headlessRows.ts`, `quests/graph.ts`, `quests/scout.ts` and `runtime/quest/matriarchFight.ts`.
+Signal (`sunscar-dunes`) has no runtime TypeScript left: its homes, brains, boss, lash item, quest graph and terrain
+entry walk are data in its product, and it enters through the declared client-plan entry like every shard.
 
 
 ### Exported creature skins and clips
@@ -4241,10 +4229,11 @@ expanded the same way by `scripts/gen-starter-weapons.mjs`; the starter profile 
 needs two real shard users of the pack itself; these shards read the game tables, not the pack).
 
 `@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
-`@wildshard/game/plugin/context` defines the staged `ShardPlugin` base class. Its `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky: choose one composite in the world stage, await admission, then forward kit/play to that same owner. Shards retain their own admitted source, bindings, native constructor and entry choice; optional constructor ports keep existing test-host injection. Calling the factory or importing it installs no service.
-Internal game consumers import these defining modules relatively. The frozen
-`./shard/context` and `./shard/plugin` export keys point to those distinct modules,
-preserving the exact constructor identity without collapsing distinct frozen imports. They retire with the old consumers; no duplicate class or service
+`@wildshard/game/plugin/context` also defines the internal staged `ShardPlugin` base class of the page shell and the one
+declared entry (`@wildshard/game/shard/declaredEntry` `declaredClientPlanEntry`, LD9). Importing it installs no service.
+Internal game consumers import these defining modules relatively. The `./shard/context`
+export key is a compatibility alias of `plugin/context.ts` for its remaining test/lint readers;
+no duplicate class or service
 registry exists. DS0.2 admits at most twenty defining `./plugin/*` modules beyond compatibility exports.
 `node scripts/game-plugins.mjs --check` enforces this in the push gate and CI checks.
 Compatibility is derived from actual literal imports in files registered by `lint/legacy-shards.json`;
@@ -4313,7 +4302,7 @@ same files while runtime consumers and sealed legacy copies migrate.
 |---|---|
 | `plugin/context` | `ShardContext`, `shardContext` |
 | `plugin/context` | staged `ShardPlugin` constructor |
-| `plugin/lifecycle` | retained context and entered-service/input lifetime hooks |
+| `shard/retainedHooks` | retained context and entered-service/input lifetime hooks |
 | `plugin/headless` | runtime row bindings for quests, items, ledger, state and spawns |
 
 `projectRuntimeFacts(emit, progress)` in `@wildshard/game/plugin/headless` projects an already bound runtime ledger into its caller-owned Progress view. The original ledger owns grants, writes and pending retries; its exact achievement/flush ports are retained. Emission refreshes the view once after the receipt, including duplicates; an undeclared fact throws before refresh. An absent view adds no presentation. Nine and Signal use this same binding.
@@ -4476,7 +4465,7 @@ shader code (G306).
     geometry attribute named `a` plus a capital (never one of three's own),
     typed float to vec4. It is a mesh-place op and is refused in a post graph.
   - `screenCoordinate` is the `fragCoord` input: the pixel's window coordinate,
-    from the top left as three's node back-end gives it. It is a mesh-fragment
+    from the top left. It is a mesh-fragment
     input; a full-screen pass uses `screenUV`.
   - `surface.discard` is a bool: the fragment is dropped where it is true (three's
     `maskNode`), for an ordered dither or a clip.
@@ -7079,18 +7068,6 @@ the authored point identity; `attempt()` does not change schedule state.
 There is no save owner, flight/pose code or random generator in the controller.
 Malformed profiles, invalid points/steps/clocks and missing periodic ports refuse.
 
-The node handler pairs compiled programs and selects their original uniforms
-on the first draw, even when renderer.compile selected a program without a
-program-switch callback. A material shared by a main/composer scene and a
-PMREM scene retains every program's own uniform blocks and sampler list.
-Actual material disposal releases them; environment refresh does not.
-
-The stock node model-world matrix uses the classic renderer's `modelMatrix`
-uniform. Custom, high-precision and normal-matrix inputs retain their original
-nodes and blocks. Consecutive graph draws retain indexed UBO bindings until a
-classic draw, render boundary or disposal displaces them; live values still
-upload when changed, including callback edits inside a render.
-
 Model-library `geometry(name, { borrow: true })` lends its cached rest primitive. The default remains an independent owned clone. Borrowers must never transform, recolour, replace attributes or dispose the immutable geometry; bake all geometry transforms before admission. Held crossbow and fallback sword meshes use this door without retaining a second backing.
 
 `clientMaterials` and `runtimeLookMaterials` return `toon`, the live
@@ -7411,9 +7388,9 @@ Use it before an aggregate encounter restore applies any body effects.
 
 Set `shadow: true` on `vertex.offset` or `vertex.position` to cast with the
 graph's object-space displacement, surface alpha cutoff and discard mask.
-The existing node handler caches one depth variant per material, including
-clones, borrows its live parameters and mapped textures, and uses the actual
-shadow camera without advancing the clock. Explicit custom depth/distance
+`compileClassicGraph` builds the graph's depth material from the same vertex
+stage (`render/graph/glslMaterial.ts` `classicShadowDepth`), borrows its live
+parameters and mapped textures, and uses the actual shadow camera. Explicit custom depth/distance
 materials remain authoritative. Clip-position plus matching shadow is refused:
 a camera-space position cannot be reused in another camera. Absent/false keeps
 the existing stock shadow path. The variant leaves with its source material.
@@ -7743,7 +7720,7 @@ The lowpolyKit bindLowPolyMaterial(sky, variant, material, scope) API lends a
 material to the existing kit factory. The newest live binding wins for that
 sky and variant; manual unbind or scope disposal restores the previous binding.
 The loan is never patched or disposed. lowPolyMaterial returns Material,
-including node materials; without a loan its classic cache and initializer
+including a lent classic graph material; without a loan its classic cache and initializer
 remain unchanged. Meshes already built retain their material.
 
 A look may declare LookStrategy.prepareWorld(context) to compile and lend its
@@ -7834,7 +7811,7 @@ attribute/index set to the live view and Explorer wrappers: cards change
 only drawRange and their own instance pose. Missing channels, repeated
 kinds, gaps and out-of-range indices refuse before the view is installed.
 
-**Animal graph materials.** `AnimalMaterial` also accepts a compiled standard/toon node material; body colour, map and emissive hit-flash ports retain the same types. This is a type-only extension and adds no eager graph-backend import.
+**Animal graph materials.** `AnimalMaterial` also accepts a lit classic graph material (`GraphShaderMaterial` with `lights`); body colour, map and emissive hit-flash ports retain the same types.
 
 **View-space position.** Graph `positionView` is the camera-space position after skinning and instancing, with forward along negative Z. SDK graphs accept both `graphInputs.positionView` and TSL `positionView`.
 
@@ -8116,21 +8093,6 @@ as the W3 adopter, rechecked at the end of W3.
 `ModelPose` YXZ composition used by both authoring and runtime placement.
 It returns a fresh matrix in the original operation order and imports only
 Three, without registry, renderer or placement-service dependencies.
-
-`src/engine/models/placementBatch.ts` provides `ModelPlacementBatch` over
-existing `place` / `placeSliced`. It borrows a model context and registry,
-optionally collecting collider descriptors and attaching unregistered
-objects to a fallback parent. Await successive typed calls to retain
-heterogeneous model order. A supplied `due` uses the existing slicer.
-`frames` keeps full matrices and params; `poses` applies a front yaw then
-composes the authored YXZ transform with `modelPoseMatrix`. Corrected pose
-rows and the original `Placed` result remain available to callers.
-Floors, materials, lights and gameplay remain caller-owned.
-
-G441's W3 users are Nine's `world/squareProps.ts` (ordered matrices,
-per-copy params, parent/culler and sliced registration) and
-`world/props3d.ts#place` (authored yaw/scale frames). Their existing share
-selection, names and named sets remain local; pending credit ends at W3.
 
 `game/Boss.installBossEncounter(rows, makeScript, ports)` assembles the existing
 rendered `Boss`: the original `BossBar` is made before `makeScript` prepares
@@ -11130,9 +11092,8 @@ First-party `bindings.entry` names the built-in client-plan entry and its
 compiled entry and literal CSS imports. `declaredClientPlanEntry` runs the
 complete finite phase sequence without a source constructor registry or
 `nativePlan` phase/feature selection. No client-plan module path selects
-JavaScript. Frozen legacy composition roots retain their explicit loaders,
-standalone constructor injection and trusted composite until LD; those
-helpers are not current-manifest entry options. Runtime saves keep their
+JavaScript. `declaredClientPlanEntry` is the only entry; no source constructor registry,
+standalone constructor injection or copied-runtime entry remains (LD9). Runtime saves keep their
 existing owners.
 
 `currentPageMode()` (`@wildshard/game/grid/pageMode`) reads the existing leaf
@@ -12297,8 +12258,8 @@ spawns and measured cost without naming a TypeScript entry. Its matching
 manifest entry policy has platform `client-plan`, retainHomeRuntime and
 stagesOwner, plus the existing optional CSS styles. The generated loader
 calls declaredClientPlanEntry in game/shard/declaredEntry; it imports no
-shard constructor and exposes no trusted-module resolver. Frozen legacy entry metadata, explicit trusted loaders and the shared
-prepareHybridShard composite keep their existing wire and lifecycle until LD.
+shard constructor and exposes no trusted-module resolver. The shared prepareHybridShard
+composite is the declared entry's only composite.
 Only a frozen manifest with `legacy: true` awaits `installLegacyKitSpecies`.
 Its original deer/elk definitions and procedural bodies live in
 `game/systems/species/legacy`, held for LD in wave 3. Modern boots keep

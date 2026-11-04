@@ -37,7 +37,6 @@
     "./projectManifest": "./projectManifest.ts",
     "./headlessProduct": "./headlessProduct.ts",
     "./outputRuntime": "./outputRuntime.ts",
-    "./runtime/audio/combatCues": "./runtime/audio/combatCues.ts",
     "./reportCard": "./reportCard.ts",
     "./crowds": "./crowds.ts",
     "./species": "./species.ts",
@@ -101,7 +100,6 @@
     "./bake/splatGround": "./bake/splatGround.ts",
     "./bake/worldRows": "./bake/worldRows.ts",
     "./bake/staticMaterials": "./bake/staticMaterials.ts",
-    "./runtime/audio/weaponVoices": "./runtime/audio/weaponVoices.ts",
     "./interactions": "./interactions.ts",
     "./questGraph": "./questGraph.ts",
     "./kit/geometryPack": "./kit/geometryPack.ts",
@@ -275,10 +273,6 @@
       "./outputRuntime": {
         "types": "./dist/types/sdk/outputRuntime.d.ts",
         "default": "./dist/outputRuntime.js"
-      },
-      "./runtime/audio/combatCues": {
-        "types": "./dist/types/sdk/runtime/audio/combatCues.d.ts",
-        "default": "./dist/runtime/audio/combatCues.js"
       },
       "./reportCard": {
         "types": "./dist/types/sdk/reportCard.d.ts",
@@ -507,10 +501,6 @@
       "./bake/staticMaterials": {
         "types": "./dist/types/sdk/bake/staticMaterials.d.ts",
         "default": "./dist/bake/staticMaterials.js"
-      },
-      "./runtime/audio/weaponVoices": {
-        "types": "./dist/types/sdk/runtime/audio/weaponVoices.d.ts",
-        "default": "./dist/runtime/audio/weaponVoices.js"
       },
       "./interactions": {
         "types": "./dist/types/sdk/interactions.d.ts",

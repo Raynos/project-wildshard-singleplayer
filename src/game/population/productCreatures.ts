@@ -50,9 +50,8 @@ export async function installProductCreatures(ctx: ShardContext, decisions: Spec
 }
 
 
-/** a lit graph material of either back-end: the node path's standard material, or a lit classic graph program */
-const isLitGraph = (m: THREE.Material): m is AnimalMaterial => Reflect.get(m, 'isMeshStandardNodeMaterial') === true
-  || (Reflect.get(m, 'isGraphShaderMaterial') === true && Reflect.get(m, 'lights') === true);
+/** a lit graph material: a lit classic graph program (NF18 retired the node back-end) */
+const isLitGraph = (m: THREE.Material): m is AnimalMaterial => Reflect.get(m, 'isGraphShaderMaterial') === true && Reflect.get(m, 'lights') === true;
 /** a lent creature body (a lit graph); refuses before the lend or on another kind of look */
 function body(id: string): AnimalMaterial {
   const m = lentLook(id);

@@ -136,7 +136,7 @@ function selectedEntry(admissionFailure?: Error, packs = false) {
   for (const name of ['@wildshard/game/systems/species/install', '@wildshard/game/icons',
     '@wildshard/game/models/specimenCatalogue', '@wildshard/game/data/pickupCatalogue', '@wildshard/game/models/interact',
     '@wildshard/game/bag/starter.generated', '@wildshard/game/systems/tools/hoverboard',
-    '@wildshard/sdk/runtime/audio/weaponVoices', '@wildshard/sdk/runtime/audio/combatCues', '@wildshard/game/plugin/audio',
+    '@wildshard/game/plugin/audio',
     '@wildshard/game/systems/species/view/boar', '@wildshard/game/plugin/weaponFamily']) modules[name] = kit;
   const result: unknown = runInNewContext(stripTypeScriptTypes(`${body}; startSelected();`), {
     runtimePacksOn: () => packs,

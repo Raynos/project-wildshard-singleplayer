@@ -55,5 +55,3 @@ const page = new FogPatchRegistry();
 /** Run once per id; enforce slot order in the engine stage (omitted) or the supplied level stage. */
 export function installFogPatch(id: string, order: number, install: () => void, stage?: string): boolean { return page.install(id, order, install, stage); }
 
-/** the page's installed fog patches, in install order (the WebGPU port inventory, tests) */
-export function fogPatches(): readonly FogPatchEntry[] { return page.patches(); }

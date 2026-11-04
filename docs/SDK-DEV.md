@@ -1,21 +1,12 @@
 # Build and preview an author project
 
-`@wildshard/sdk/runtime/audio/weaponVoices` exposes `sharedWeaponVoices` and
-`declaredWeaponVoices` from the game-owned audio recipes. They preserve the existing
-sample-first selection, authored melee-cue precedence, audio RNG order, timestamps
-and mixer parameters. These are trusted runtime systems, not commons build imports.
-`@wildshard/sdk/runtime/audio/silentScore.installSilentScore(music, scope)` mutes
-only the score output and restores its previous gain on disposal; other sound buses
-and the user's volume setting are untouched. Neither module installs on import.
+The weapon audio recipes (`sharedWeaponVoices`, `declaredWeaponVoices`) and the equipment
+cue router (`sharedCombatCues`) live in the game, `@wildshard/game/plugin/audio`; LD10 retired
+their `@wildshard/sdk/runtime/audio/*` wrappers. `@wildshard/game/systems/audio/silentScore`
+mutes only the score output and restores its previous gain on disposal.
 
-The trusted `@wildshard/sdk/runtime/viewmodel/rigArms`, `armClips` and `armRig` modules expose the
-platform first-person arm player, clip alias tables and arm IK measures by binding the defining game
-systems; they own no second parse cache or mixer and carry no commons content.
-
-The trusted `@wildshard/sdk/runtime/audio/combatCues` system routes stable equipment
-cues into a supplied mixer through `sharedCombatCues`. It preserves existing sound
-recipes, surface routing and silence policy without installing services on import.
-This runtime module contains no commons content or build-time code.
+The first-person arm player, clip alias tables and arm IK measures are the defining
+`@wildshard/game/systems/viewmodel/{rigArms,armClips,armRig}` modules; no SDK facade remains.
 
 The [SDK API catalogue](api/SDK.md) is generated from the package's defining public
 modules and their JSDoc. The [schema and ABI reference](api/SHARDFILE.md) lists every

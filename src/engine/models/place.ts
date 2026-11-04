@@ -21,7 +21,6 @@ import type { BoxSpec } from '../physics/box';
  * allocate nothing per frame (./cull.ts).
  */
 import { app } from '../app/runtime';
-import { graphLook } from './instancedBatch';
 import { frameBudgetSpent, paceYield, presenting } from '../core/framePacing';
 import { WORK_SLICE_MS, yieldTask } from '../core/workSlice';
 import * as THREE from 'three';
@@ -831,7 +830,7 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
   // as one batch per material it cast every far tree's shadow again (PF3, Pine's mill: 54 shadow trees, TSL 17)
   interface Group { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }
   const byMat = new Map<THREE.Material | string, Group>();
-  const flagged = (material: THREE.Material): boolean => graphLook(material) || Reflect.get(material, 'isGraphShaderMaterial') === true;
+  const flagged = (material: THREE.Material): boolean => Reflect.get(material, 'isGraphShaderMaterial') === true;
   const batchKey = (part: ModelPart): THREE.Material | string => !flagged(part.material) ? part.material
     : `${part.material.uuid}|${String(part.castShadow ?? false)}|${String(part.receiveShadow ?? false)}|${String(part.tint !== false)}|${part.customDepthMaterial?.uuid ?? ''}`;
   // a part's `scale` (a level drawn at another variant's shape, model.ts) is per-copy instancing's; a batch takes the
