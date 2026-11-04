@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { AdditiveBlending } from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { validateGraph } from '../src/format/materialGraph';
 import lookGraphs from '../src/shards/nalati-grasslands/data/lookGraphs.json' with { type: 'json' };
 
@@ -20,7 +20,7 @@ test("Nalati's former GLSL programs validate as look graphs, compile and take th
   for (const [id, values] of Object.entries(LIVE)) {
     const checked = validateGraph(GRAPHS[id], { trustedBudget: true });
     if (!checked.ok) throw new Error(`${id}: ${checked.errors.join('; ')}`);
-    const compiled = compileGraph(checked.graph, { trustedBudget: true });
+    const compiled = compileClassicGraph(checked.graph, { trustedBudget: true });
     try {
       for (const [name, value] of Object.entries(values)) compiled.setParam(name, value);
     } finally { compiled.material.dispose(); }
@@ -30,7 +30,7 @@ test("Nalati's former GLSL programs validate as look graphs, compile and take th
   // the balbal telegraph keeps its render state: additive, no depth write, pulled toward the eye over the ground
   const tell = validateGraph(GRAPHS['nalati-tell'], { trustedBudget: true });
   if (!tell.ok) throw new Error(tell.errors.join('; '));
-  const wedge = compileGraph(tell.graph, { trustedBudget: true }).material;
+  const wedge = compileClassicGraph(tell.graph, { trustedBudget: true }).material;
   try { expect([wedge.blending, wedge.depthWrite, wedge.polygonOffset, wedge.polygonOffsetFactor, wedge.polygonOffsetUnits]).toEqual([AdditiveBlending, false, true, -4, -4]); }
   finally { wedge.dispose(); }
 });

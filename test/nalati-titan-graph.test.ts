@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
 import lookGraphs from '../src/shards/nalati-grasslands/data/lookGraphs.json' with { type: 'json' };
 
@@ -17,7 +17,7 @@ test("the Storm Titan's cloud, flame and smoke graphs validate, compile and take
     if (!checked.ok) throw new Error(`${id}: ${checked.errors.join('; ')}`);
     const graph: GraphIr = checked.graph;
     expect(graph.effectState?.fog).toBe(false);
-    const compiled = compileGraph(graph, { trustedBudget: true });
+    const compiled = compileClassicGraph(graph, { trustedBudget: true });
     try {
       for (const [name, value] of Object.entries(values)) compiled.setParam(name, value);
     } finally { compiled.material.dispose(); }

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { validateGraph } from '../src/format/materialGraph';
 import FOREST_LOOKS from '../src/shards/pine-hollow/data/forestLook.json' with { type: 'json' };
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
@@ -24,7 +24,7 @@ test("Pine's forest graphs validate in their budgets and compile swayed, dissolv
     expect(graph.stages.surface?.discard, id).toBeDefined();
     // the cards and the bark cast their swayed, dissolving shadow; the impostor casts none
     expect(graph.stages['vertex.offset']?.shadow === true, id).toBe(id !== FOREST_LOOKS.far);
-    const compiled = compileGraph(graph, { trustedBudget: true });
+    const compiled = compileClassicGraph(graph, { trustedBudget: true });
     try {
       compiled.setParam('fade', [48, 60]);
       compiled.setParam('viewer', [10, 2, -30]);

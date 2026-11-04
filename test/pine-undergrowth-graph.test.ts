@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { DataTexture, DoubleSide } from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { DataTexture, DoubleSide, ShaderMaterial } from 'three';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { bindGraphMeshMap } from '../src/engine/render/graphBackend';
 import { Scope } from '../src/engine/app/scope';
 import { validateGraph } from '../src/format/materialGraph';
@@ -20,7 +20,7 @@ test("Pine's undergrowth graph validates in its budget and compiles a swaying, c
   if (graph === undefined) throw new Error('no undergrowth graph');
   const checked = validateGraph(graph, { trustedBudget: true });
   expect(checked.ok ? [] : checked.errors).toEqual([]);
-  const compiled = compileGraph(graph, { trustedBudget: true }), scope = new Scope('undergrowth-test');
+  const compiled = compileClassicGraph(graph, { trustedBudget: true }), scope = new Scope('undergrowth-test');
   const fern = new DataTexture(new Uint8Array([40, 90, 30, 255]), 1, 1), reed = new DataTexture(new Uint8Array([90, 100, 40, 255]), 1, 1);
   try {
     const m = compiled.material;
@@ -34,7 +34,8 @@ test("Pine's undergrowth graph validates in its budget and compiles a swaying, c
     expect(bindGraphMeshMap(m, fern, scope)).toBe(a);
     a.alphaTest = 0.5; b.alphaTest = 0.45;
     expect(a.alphaTest).not.toBe(b.alphaTest);
-    expect(Reflect.get(a, 'positionNode')).toBe(Reflect.get(m, 'positionNode'));
+    // the variants share the graph's program and its uniforms (one swayed vertex stage)
+    expect([a, b].map(v => v instanceof ShaderMaterial && v.vertexShader === m.vertexShader && v.uniforms['wsP_viewer'] === m.uniforms['wsP_viewer'])).toEqual([true, true]);
     compiled.setParam('viewer', [1, 2, 3]);
     compiled.setParam('fade', [45, 13.5]);
   } finally { scope.dispose(); compiled.material.dispose(); fern.dispose(); reed.dispose(); }

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { DoubleSide } from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { validateGraph } from '../src/format/materialGraph';
 import { WILDLIFE_LOOK } from '../src/shards/pine-hollow/generators/wildlifeLook';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
@@ -13,10 +13,11 @@ test("Pine's wildlife graph validates in its budget and compiles a posed, double
   if (graph === undefined) throw new Error('no wildlife graph');
   const checked = validateGraph(graph, { trustedBudget: true });
   expect(checked.ok ? [] : checked.errors).toEqual([]);
-  const compiled = compileGraph(graph, { trustedBudget: true });
+  const compiled = compileClassicGraph(graph, { trustedBudget: true });
   try {
     expect(compiled.material.side).toBe(DoubleSide);
-    expect(Reflect.get(compiled.material, 'positionNode')).toBeTruthy();
+    expect(compiled.glsl.program?.outputs.position).toBeTruthy();
+    expect(compiled.material.vertexShader).toContain(compiled.glsl.program?.outputs.position ?? 'no position');
     compiled.setParam('glow', 0.8);
   } finally { compiled.material.dispose(); }
 });

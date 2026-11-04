@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { validateGraph } from '../src/format/materialGraph';
 import { PINE_GRAPHS } from '../src/shards/pine-hollow/generators/lookMaterials';
 import { KING_FX_LOOKS } from '../src/shards/pine-hollow/generators/kingFxLook';
@@ -16,7 +16,7 @@ test("the Antler King's fog wall and lantern flame graphs validate, compile and 
     const checked = validateGraph(graph, { trustedBudget: true });
     expect(checked.ok ? [] : checked.errors).toEqual([]);
     expect(graph.effectState?.fog).toBe(false);
-    const compiled = compileGraph(graph, { trustedBudget: true });
+    const compiled = compileClassicGraph(graph, { trustedBudget: true });
     try {
       compiled.setParam('alpha', 0.92);
       compiled.setParam('colour', [0.3, 0.32, 0.36]);

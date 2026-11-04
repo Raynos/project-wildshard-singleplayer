@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { validateGraph } from '../src/format/materialGraph';
 import { CRAG_LOOK } from '../src/shards/pine-hollow/generators/cragLook';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
@@ -18,7 +18,7 @@ test("Pine's crag graph validates in its budget and compiles a lit, sun-reach-sc
   for (const name of ['rockMap', 'rockNormal', 'rockArm', 'gritMap', 'gritNormal']) expect(graph.params?.[name]?.role).toBe('lent');
   expect(graph.stages['vertex.scale']?.sun).toBeDefined();
   expect(graph.stages['vertex.scale']?.fog).toBeDefined();
-  const compiled = compileGraph(graph, { trustedBudget: true });
+  const compiled = compileClassicGraph(graph, { trustedBudget: true });
   try {
     compiled.setParam('caveFill', 0.4);
     expect(() => { compiled.setParam('caveFill', 9); }).toThrow();
