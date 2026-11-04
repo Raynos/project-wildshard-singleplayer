@@ -28,7 +28,8 @@ export interface SpawnDownloadPorts {
 const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
 let layered = false;
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
-  ktx2: 'image/ktx2', bin: 'application/octet-stream'};
+  ktx2: 'image/ktx2', bin: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
+  gif: 'image/gif', avif: 'image/avif', svg: 'image/svg+xml'};
 const typeOf = (url: string): string => TYPES[/\.([a-z0-9]+)(?:\?|$)/u.exec(url)?.[1] ?? ''] ?? 'application/octet-stream';
 /** A GET of a member URL waits for its bytes; anything else, a retry or a failed member goes to the network. */
 function installMemberLayer(): void {

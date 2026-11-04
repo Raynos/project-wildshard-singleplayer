@@ -16,10 +16,11 @@ export interface SpawnPartInput {readonly rows: readonly SpawnFile[]; readonly p
 interface Group {readonly key: string; readonly members: ReadonlySet<number>; readonly urls: string[]; bytes: number}
 
 const align = (at: number): number => Math.ceil(at / SPAWN_PART_ALIGN) * SPAWN_PART_ALIGN;
-/** Only files the page reads with fetch go in parts; the reader answers those. JS modules (`<script>`, `import()`) and
- * images (`<img>` textures) load past any fetch layer, so on a first, uncontrolled visit they would download twice:
- * they stay loose (DL14 cuts the code requests). */
-export const packable = (url: string): boolean => !/\.(?:js|mjs|css|png|jpe?g|webp|gif|avif|svg)(?:\?|$)/u.test(url);
+/** Only files the page reads with fetch go in parts; the reader answers those. Shard images do (`fetchImage` reads
+ * them with fetch); JS modules (`<script>`, `import()`) and the shell's `/assets/` images (DOM `<img>`) load past any
+ * fetch layer, so on a first, uncontrolled visit they would download twice: they stay loose (DL14 decides code). */
+export const packable = (url: string): boolean => !/\.(?:js|mjs|css)(?:\?|$)/u.test(url)
+  && (url.startsWith('/shardfiles/') || !/\.(?:png|jpe?g|webp|gif|avif|svg)(?:\?|$)/u.test(url));
 /** The groups after the steered merge (exported for the census and tests). */
 export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
   const need = new Map<string, Set<number>>(), size = new Map<string, number>(), order: string[] = [];
@@ -93,6 +94,7 @@ export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInp
     };
     for (const url of group.urls) {
       const bytes = sizes.get(url) ?? 0, end = align(at) + bytes;
+      if (bytes > PART_BYTES) throw new Error(`Spawn file larger than a part (${bytes} > ${PART_BYTES}): ${url}`);
       if (batch.length > 0 && end > PART_BYTES) flush();
       at = align(at) + bytes; batch.push(url);
     }

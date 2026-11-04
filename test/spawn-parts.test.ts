@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths for the owned fixture folder.
 import { join, resolve } from 'node:path';
 import { afterAll, expect, test } from 'vitest';
-import { PART_BYTES, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
+import { PART_BYTES, packable, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
 import { readSpawnManifest, type SpawnFile } from '../src/format/spawnManifest';
 
 mkdirSync('tmp', { recursive: true });
@@ -50,8 +50,12 @@ test('public entries steer the merge within the over-fetch cap; the grammar refu
   expect(roomy.reduce((sum, group) => sum + group.bytes, 0)).toBe(1_012_000); // every file once, nothing copied
   // With a 5 KB core, any merge adds 1 KB to an entry of 6 KB (17 %): the cap holds and nothing merges.
   expect(parts(spawnPartGroups(setOf(file('/shardfiles/s/blobs/bin/core.bin', 5000))))).toBe(13);
-  // A file larger than a part still lives alone in one part.
-  expect(spawnPartGroups([manifest([file('/shardfiles/s/blobs/bin/big.bin', PART_BYTES + 1)])])).toHaveLength(1);
+  // A file larger than a part is refused: every part stays within 12 MB.
+  const big = file('/shardfiles/s/blobs/bin/big.bin', PART_BYTES + 1);
+  expect(() => writeSpawnParts(out, [manifest([big])], () => new Uint8Array(PART_BYTES + 1))).toThrow('Spawn file larger than a part');
+  // Shard images are fetched, so they pack; the shell's /assets/ images and code stay loose.
+  expect(packable('/shardfiles/s/blobs/png/a.png')).toBe(true);
+  expect(packable('/assets/title/hero-0123abcd.webp')).toBe(false); expect(packable('/assets/code-0123abcd.js')).toBe(false);
   const base = { version: 1, shard: 's', tier: 'phone', flow: 'grid', files: [rows[0], rows[1]], totalBytes: 2000 } as const;
   const part = (members: [number, number][]) => ({ url: `/assets/spawn/parts/${'b'.repeat(16)}.pack`, bytes: 4096, hash: 'b'.repeat(64), members });
   expect(() => readSpawnManifest({ ...base, parts: [part([[0, 0], [1, 1000]])] })).toThrow('Invalid spawn part member'); // overlap + misaligned
