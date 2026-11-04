@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node's zstd writes the fixture as the SDK bake does, and decodes it.
 import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
-import { plainKtx2, unsupercompressKtx2, zstdLevels } from './ktx2Zstd';
+import { plainKtx2, prepareKtx2Zstd, unsupercompressKtx2, zstdLevels } from './ktx2Zstd';
 
 /** A raw RGBA8 KTX2 with one zstd level, laid out as sdk/bake/texture.ts `bakeRawColourTexture` writes it. */
 function rawZstdKtx2(pixels: Uint8Array, width: number, height: number, vkFormat = 43): Uint8Array {
@@ -43,4 +43,21 @@ test('Basis and unsupercompressed files pass through untouched', async () => {
   // no Worker in this environment: the file is handed on unchanged
   const buffer = new ArrayBuffer(rawZstdKtx2(pixels, 2, 2).byteLength); new Uint8Array(buffer).set(rawZstdKtx2(pixels, 2, 2));
   expect(await unsupercompressKtx2(buffer)).toBe(buffer);
+});
+
+// DL17: the decoder starts on the caller's stack, before its first parse, only when a file needs it, and once
+test('prepare starts the decoder worker for a raw zstd file only, once', () => {
+  let made = 0;
+  class FakeWorker extends EventTarget { constructor() { super(); made++; } postMessage(): void { /* unused */ } terminate(): void { /* unused */ } }
+  vi.stubGlobal('Worker', FakeWorker);
+  try {
+    const plain = new Uint8Array(200);
+    prepareKtx2Zstd([plain, undefined]);
+    expect(made).toBe(0);
+    const file = rawZstdKtx2(new Uint8Array(8 * 4 * 4), 8, 4);
+    prepareKtx2Zstd([plain, file]);
+    expect(made).toBe(1);
+    prepareKtx2Zstd([file]);
+    expect(made).toBe(1);
+  } finally { vi.unstubAllGlobals(); }
 });

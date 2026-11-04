@@ -35,10 +35,12 @@ import { harnessPins } from '../app/identity';
 import { applyKtx2Probe, ktx2ProbeResult, linearAstcSurvives } from '../render/ktx2Probe';
 import { workSlice } from './workSlice';
 import { TIER } from './tier';
-import { unsupercompressKtx2 } from './ktx2Zstd';
+import { prepareKtx2Zstd, unsupercompressKtx2 } from './ktx2Zstd';
 import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 
 /** where scripts/app-build/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
+/** Before transcoding `files`: start what their parses will need (the raw-texel zstd decoder) from the caller's stack. */
+export function prepareKtx2Decode(files: Iterable<Uint8Array | undefined>): void { prepareKtx2Zstd(files); }
 export const BASIS_PATH: Parameters<KTX2Loader['setTranscoderPath']>[0] = `/basis/r${THREE.REVISION}/`;
 
 let loader: KTX2Loader | null = null;

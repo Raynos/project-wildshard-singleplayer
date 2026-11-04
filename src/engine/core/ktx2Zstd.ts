@@ -38,10 +38,13 @@ function receive(event: MessageEvent<unknown>): void {
     const message: unknown = Reflect.get(reply, 'error');
     request.reject(new Error(typeof message === 'string' ? message : 'zstd decode failed'));
   }
-  if (pending.size === 0 && scope !== null) {
-    idle?.dispose(); const owner = scope.child('idle'); idle = owner;
-    owner.timeout(30_000, () => { if (pending.size === 0) stop(new Error('zstd decoder idle'), false); });
-  }
+  armIdle();
+}
+/** With nothing pending the worker stops after 30 s */
+function armIdle(): void {
+  if (pending.size > 0 || scope === null) return;
+  idle?.dispose(); const owner = scope.child('idle'); idle = owner;
+  owner.timeout(30_000, () => { if (pending.size === 0) stop(new Error('zstd decoder idle'), false); });
 }
 function start(): Worker {
   if (worker !== null) return worker;
@@ -55,6 +58,18 @@ function start(): Worker {
     owner.onDispose(() => { if (scope === owner) stop(new Error('zstd decoder disposed'), false); });
     return made;
   } catch (error) { owner.dispose(); failed = true; throw error; }
+}
+/** Start the decoder now when any of `files` needs it (a raw-texel zstd KTX2), so a caller about to transcode them spins
+ *  it up from its own stack before its first parse (DL17: a grid neighbour's lazily made decoder showed only a material
+ *  loop's resumed frames, no caller, and its script fetch after control read as the home level's). Unused, it idles out
+ *  as after a decode. */
+export function prepareKtx2Zstd(files: Iterable<Uint8Array | undefined>): void {
+  if (failed || worker !== null || typeof Worker !== 'function') return;
+  for (const bytes of files) {
+    if (bytes === undefined || zstdLevels(bytes) === null) continue;
+    try { start(); } catch { return; } // the first parse falls back to three's own decode, as before
+    armIdle(); return;
+  }
 }
 function decodeLevels(levels: { data: Uint8Array; size: number }[]): Promise<Uint8Array[]> {
   const decoder = start(), owner = scope;

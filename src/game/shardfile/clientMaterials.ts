@@ -7,7 +7,7 @@ import { sceneVectors, sceneScalarValue } from './sceneInputs';
  */
 import { MeshStandardMaterial, ClampToEdgeWrapping, CompressedTexture, DataTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
-import { BASIS_PATH, releaseAfterUpload, detectKtx2Support } from '@wildshard/engine/core/ktx2';
+import { BASIS_PATH, releaseAfterUpload, detectKtx2Support, prepareKtx2Decode } from '@wildshard/engine/core/ktx2';
 import { markGpuOnly } from '@wildshard/engine/core/gpuOnly';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
@@ -151,6 +151,8 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
     let retired = false;
     const retire = (): void => { if (retired) return;retired = true;loader.dispose(); };
     const forget = scope.capture('disposers', retire);
+    // DL17: the zstd decoder starts here, on the caller's stack (a grid neighbour's admission, the home's boot)
+    prepareKtx2Decode([...refs].map(ref => assets.get(ref)));
     try {
     for (const ref of refs) {
       const bytes = assets.get(ref); if (bytes === undefined) throw new Error(`Missing admitted material texture ${ref} (${shard.identity.slug})`);
