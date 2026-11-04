@@ -46,8 +46,8 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
   producers: v.record(producerPath, v.array(producerPath)) });
 // G291/G294's classification table. Audit findings adjust these rules explicitly, never hidden import heuristics.
 // Unit on BOTH sides: nonblank physical lines after parser comment removal, in .ts/.tsx only;
-// .as, .d.ts and tests do not enter the TS ratio. Only verified copied
-// out/<slug>/runtime files enter it, including generated TS that ships there.
+// .as, .d.ts and tests do not enter the TS ratio. A built product ships no runtime TS (LD10 retired the
+// copied-runtime measurement), so the output basis counts its section hosts and private bytes only.
 // Authoring directories have no numerator exemption rules: they are not inputs.
 // The registered frozen denominator pins historical per-file counts and producer exclusions.
 // G294 adds one-user platform modules to the numerator; relocating a helper into engine/game/SDK cannot reduce it.
@@ -768,9 +768,13 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       for (const edge of graph(path)) if (edge.to !== null) queue.push(edge.to);
     }
   }
-  const outputs = Object.fromEntries(slugs.map(slug => [slug, sourceProgress
-    ? {runtime:authoredFiles[slug],sections:reader.sections(slug).sections,customSectionBytes:0,customSections:[]}
-    : reader.runtime(slug)]));
+  // LD10: a built product ships no runtime TypeScript, so the output basis roots only its verified sections (and
+  // charges its private section / named JSON bytes); authored runtime files are measured by source progress alone.
+  const outputs = Object.fromEntries(slugs.map(slug => {
+    const { sections, customSectionBytes, customSections } = reader.sections(slug);
+    return [slug, sourceProgress ? {runtime:authoredFiles[slug],sections,customSectionBytes:0,customSections:[]}
+      : {runtime:[],sections,customSectionBytes,customSections}];
+  }));
   const prefixOf = slug => `${relative(root, resolve(products, representativeProduct(root, slug))).replaceAll('\\', '/')}/`;
   const shardFiles = Object.fromEntries(Object.entries(outputs).map(([slug, output]) => [slug, output.runtime.filter(path => !path.endsWith('.d.ts'))]));
   const hostFiles = new Map();
@@ -998,7 +1002,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   }
   return out;
 }
-/** Authoritative P4 measure. Missing, partial or non-standalone copies refuse;
+/** Authoritative P4 measure over verified output sections. A missing or corrupt product refuses;
  * authoring files never substitute for missing output or supply G294 users. */
 /** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]|null} only */
 export function outputShardLines(root = ROOT, includeSources = false, products = resolve(root, 'out'), only = null) {

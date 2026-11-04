@@ -9,7 +9,9 @@ import {outputCensus,outputShardLines,sourceProgressLines,sourceProgressInventor
 import {sectionHostImports} from '../scripts/shard-platform-hosts.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
-it('roots G294 in copied runtime and emitted section hosts, never build imports',()=>{
+// LD10: a product ships no runtime TypeScript. The output basis roots only its emitted section hosts; authored runtime
+// roots its G294 users on the source basis. Build imports are users on neither.
+it('roots G294 in emitted section hosts and authored runtime, never build imports',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-output-reach-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
@@ -21,14 +23,16 @@ it('roots G294 in copied runtime and emitted section hosts, never build imports'
   put('src/shards/driftwood-isle/data/build.ts',"import {live,authored} from '@wildshard/game/private'; export const table=[live(),authored()];");
   const pine=outputShardLines(root,true)['pine-hollow'];
   expect(pine?.measurement).toBe('built-output');
-  expect(pine?.conversion.shardRuntimeLines).toBe(1);
-  expect(pine?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/private.ts');
+  expect(pine?.conversion.shardRuntimeLines).toBe(0);
   expect(pine?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/shard/declaredRows.ts');
-  expect(pine?.customSources?.filter(row=>row.kind==='runtime-ts').map(row=>row.path)).toEqual(['out/pine-hollow/runtime/index.ts']);
-  expect(pine?.customSources?.some(row=>row.path.includes('data/'))).toBe(false);
+  expect(pine?.customSources?.some(row=>row.kind==='runtime-ts'||row.path.includes('data/'))).toBe(false);
+  const source=sourceProgressInventory(root)['pine-hollow'];
+  expect(source?.conversion.shardRuntimeLines).toBe(1);
+  expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/private.ts');
+  expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/shard/declaredRows.ts');
   // A real second runtime user, unlike the authoring import above, shares the module.
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {live} from '@wildshard/game/private'; export const value=live();"});
-  expect(outputShardLines(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).not.toContain('src/game/private.ts');
+  expect(sourceProgressInventory(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).not.toContain('src/game/private.ts');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
@@ -39,7 +43,7 @@ it('rejects unknown section hosts and absent outputs instead of measuring source
  try{
   mkdirSync(join(root,'src/shards/_template/runtime'),{recursive:true});
   writeFileSync(join(root,'src/shards/_template/runtime/index.ts'),'export const value=1;');
-  expect(()=>outputShardLines(root)).toThrow('built output missing');
+  expect(()=>outputShardLines(root)).toThrow('section inventory missing');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
@@ -98,7 +102,7 @@ it('keeps a data-selected native plan as a real user after its wrapper is remove
   platformOutput(root,'far-reach',{'runtime/index.ts':'export const view=1;'},{'sim/runtime-plan':'{}'});
   expect(before).toBe(3);
   expect(sourceProgressLines(root)['sunscar-dunes']?.customLines).toBe(1);
-  expect(outputShardLines(root)['sunscar-dunes']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).not.toContain('prepareRuntimePlan');
+  expect(sourceProgressInventory(root)['sunscar-dunes']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).not.toContain('prepareRuntimePlan');
   expect(sectionHostImports([{name:'sim/runtime-plan'}])).toContain('prepareProductRuntimePlan');
   const index=join(root,'out/far-reach/shard.json');
   unlinkSync(index);
@@ -121,7 +125,6 @@ it('does not grant runtime users to inert JSON proof module strings',()=>{
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const value=1;'});
   put('src/shards/driftwood-isle/data/headlessAssembly.json',JSON.stringify({version:1,modules:{'src/game/proof':['admitted']}}));
   expect(sourceProgressLines(root)['pine-hollow']?.customLines).toBe(3);
-  expect(outputShardLines(root)['pine-hollow']?.conversion.customRuntimeLines).toBe(3);
   put('src/shards/driftwood-isle/data/headlessAssembly.json',JSON.stringify({version:1,modules:{'src/game/proof':['missing']}}));
   expect(sourceProgressLines(root)['pine-hollow']?.customLines).toBe(3);
  }finally{rmSync(root,{recursive:true,force:true});}
@@ -150,7 +153,8 @@ it('shares syntax facts without merging source and output attribution',()=>{
   const changed=outputCensus(root);
   expect(changed.measures).toEqual(outputShardLines(root,true));
   expect(changed.source).toEqual(sourceProgressLines(root));
-  expect(changed.measures).not.toEqual(expected.measures);
+  expect(changed.inventory).toEqual(sourceProgressInventory(root));
+  expect(changed.inventory).not.toEqual(expected.inventory);
   // A new report must validate current policy and exports even with a warm disk cache.
   put('docs/plans/shard-platform/decisions.md','| G476 | unrelated |');
   expect(()=>outputCensus(root)).toThrow('Missing platform feature decision');
@@ -176,7 +180,7 @@ it.each([
   put('src/sdk/inner.ts',inner);put('src/sdk/outer.ts',outer);
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {privateWork} from '@wildshard/game/implementation'; export const value=privateWork();"});
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {sharedWork} from '@wildshard/game/implementation'; export const value=sharedWork();"});
-  const defining=()=>outputShardLines(root,true)['pine-hollow']?.customSources?.filter(row=>row.path==='src/game/implementation.ts');
+  const defining=()=>sourceProgressInventory(root)['pine-hollow']?.customSources?.filter(row=>row.path==='src/game/implementation.ts');
   const direct=defining();
   expect(direct?.map(row=>row.name)).toEqual(['helper','privateWork']);
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {chosen} from '@wildshard/sdk/outer'; export const value=chosen();"});

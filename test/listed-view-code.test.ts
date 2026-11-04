@@ -4,7 +4,7 @@ import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {dirname,resolve} from 'node:path';
 import {afterEach,expect,test} from 'vitest';
 import {loadListedViews,listedViewInventory,type ListedViewRegister} from '../scripts/listed-view-code.mjs';
-import {codeLines,outputShardLines} from '../scripts/shard-platform.mjs';
+import {codeLines,sourceProgressInventory} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
 const owned:string[]=[];
@@ -16,13 +16,14 @@ function register(root:string,rows:ListedViewRegister['shards']['pine-hollow']):
   const value:ListedViewRegister={schema:1,shards:{'pine-hollow':rows}};put(root,'lint/listed-view-code.json',JSON.stringify(value));return loadListedViews(root);
 }
 
-test('named view declarations partition real output custom without changing credit or closure',()=>{
+// LD10: a product ships no runtime TypeScript, so authored runtime is measured on the source basis
+test('named view declarations partition real source custom without changing credit or closure',()=>{
   const root=fixture(),path='src/shards/pine-hollow/runtime/index.ts';
   const source=['export interface ViewRows { colour: string }','export function draw() { return "// literal"; }','export function decide() { return 4; }'].join('\n');
   platformOutput(root,'pine-hollow',{'runtime/index.ts':source});
-  const before=outputShardLines(root)['pine-hollow'];if(before===undefined)throw new Error('Missing fixture output');
+  const before=sourceProgressInventory(root)['pine-hollow'];if(before===undefined)throw new Error('Missing fixture output');
   register(root,[{path,name:'ViewRows',...reason},{path,name:'draw',...reason}]);
-  const after=outputShardLines(root)['pine-hollow'];if(after===undefined)throw new Error('Missing fixture output');
+  const after=sourceProgressInventory(root)['pine-hollow'];if(after===undefined)throw new Error('Missing fixture output');
   expect(after.listedView).toMatchObject({totalCustomLines:3,listedViewLines:2,otherCustomLines:1});
   expect(after.conversion).toEqual(before.conversion);expect(after.components).toEqual(before.components);
   expect(after.listedView?.register.every(row=>row.matched)).toBe(true);

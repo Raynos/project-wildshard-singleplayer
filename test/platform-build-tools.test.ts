@@ -5,12 +5,13 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable fixture, never a repository export.
 import {tmpdir} from 'node:os';
-import {checkShares,shardLines,sourceProgressInventory,codeLines} from '../scripts/shard-platform.mjs';
+import {checkShares,sourceProgressInventory,codeLines} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 import {legacyLineBasis} from './fixtures/legacyLineBasis';
 import {authoredManifestSource} from '../scripts/authored-manifest.mjs';
 import generatedSources from '../scripts/source-generation-outputs.json' with {type:'json'};
 
+// LD10: a product ships no runtime TypeScript, so authored runtime roots its G294 users on the source basis
 it('excludes only the G456 build-tool paths from whole-module charges',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-build-tools-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
@@ -22,7 +23,7 @@ it('excludes only the G456 build-tool paths from whole-module charges',()=>{
   put('src/sdk/projectOther.ts','export const other=1;');
   put('src/sdk/runtimeHelper.ts','export const helper=1;');
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {bake} from '@wildshard/sdk/bake/tool'; import {project} from '@wildshard/sdk/project'; import {runtimeTool} from '@wildshard/sdk/bakeTools'; import {other} from '@wildshard/sdk/projectOther'; export const live=[bake,project,runtimeTool,other];"});
-  expect(shardLines(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toEqual(['src/sdk/bakeTools.ts','src/sdk/projectOther.ts','src/sdk/runtimeHelper.ts']);
+  expect(sourceProgressInventory(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toEqual(['src/sdk/bakeTools.ts','src/sdk/projectOther.ts','src/sdk/runtimeHelper.ts']);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
@@ -33,7 +34,7 @@ it('also excludes sole declarations inside shared build modules, retaining runti
   put('src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',exports:{'./bake/tool':'./bake/tool.ts','./project':'./project.ts','./runtime':'./runtime.ts'}}));
   for(const path of ['src/sdk/bake/tool.ts','src/sdk/project.ts','src/sdk/runtime.ts'])put(path,'export const first=1;\nexport const second=2;');
   for(const [slug,name]of [['pine-hollow','first'],['driftwood-isle','second']] as const)platformOutput(root,slug,{'runtime/index.ts':`import {${name} as bake} from '@wildshard/sdk/bake/tool'; import {${name} as project} from '@wildshard/sdk/project'; import {${name} as runtime} from '@wildshard/sdk/runtime'; export const live=[bake,project,runtime];`});
-  const rows=shardLines(root);
+  const rows=sourceProgressInventory(root);
   expect(rows['pine-hollow']?.conversion.gameSystemAttribution.exports).toEqual([{path:'src/sdk/runtime.ts',name:'first',exported:true,lines:1}]);
   expect(rows['driftwood-isle']?.conversion.gameSystemAttribution.exports).toEqual([{path:'src/sdk/runtime.ts',name:'second',exported:true,lines:1}]);
  }finally{rmSync(root,{recursive:true,force:true});}
@@ -46,14 +47,14 @@ it.each([0,1])('reports AS excess without enforcing it while checking %i custom 
   platformOutput(root,'pine-hollow',{'runtime/index.ts':custom===0?'':'export const LIVE=1;'});
   put('src/shards/pine-hollow/behaviour/brain.as','export function step(): i32 {\n return 1;\n}');
   legacyLineBasis(root,'pine-hollow',{'manifest.ts':'export default {};','plugin.ts':Array.from({length:9},(_,i)=>`export const V${i}=${i};`).join('\n')});
-  const row=shardLines(root)['pine-hollow'];
+  const row=sourceProgressInventory(root)['pine-hollow'];
   if(row===undefined)throw new Error('Missing fixture measure');
   expect(row.conversion.customRuntimeLines).toBe(custom);
   expect(row.assemblyScriptBudget).toEqual({ceiling:1,share:.3,passed:false,enforcement:'report-only'});
   expect(checkShares({baseline:{'pine-hollow':10},enforced:{'pine-hollow':2}},{'pine-hollow':row}))
    .toEqual(custom===0?[]:['pine-hollow: custom runtime is not zero (G604)']);
   platformOutput(root,'pastel-plain',{'runtime/index.ts':'export const LIVE=1;'});
-  expect(shardLines(root)['pastel-plain']?.assemblyScriptBudget).toEqual({ceiling:null,share:null,passed:null,enforcement:'report-only'});
+  expect(sourceProgressInventory(root)['pastel-plain']?.assemblyScriptBudget).toEqual({ceiling:null,share:null,passed:null,enforcement:'report-only'});
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 

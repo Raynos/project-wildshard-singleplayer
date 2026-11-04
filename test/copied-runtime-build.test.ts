@@ -7,10 +7,11 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { buildProject } from '@wildshard/sdk/project';
 import { proveRuntimeData } from '@wildshard/sdk/outputRuntime';
 import { validateOutputProduct } from '@wildshard/sdk/outputProduct';
+import { parseOutputIndex } from '../src/format/outputIndex';
 
 const owned: string[] = [];
 afterEach(() => { for (const directory of owned.splice(0)) rmSync(directory, { recursive: true, force: true }); });
-function fixture(runtime: string = 'null', mirrors = true): { project: string; destination: string } {
+function fixture(runtime = 'null', mirrors = true): { project: string; destination: string } {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp', 'copied-runtime-build-')); owned.push(root);
   const project = resolve(root, 'project'), destination = resolve(root, 'output');
@@ -50,22 +51,22 @@ it('proves custom sections from their built schemas, and declared mirrors still 
   expect(() => { proveRuntimeData(destination, index, []); }).not.toThrow();
   expect(() => { proveRuntimeData(destination, index, [{ name: 'REWARD', value: { amount: 3 } }]); }).toThrow('runtime/const.ts');
 });
-it('refuses a retired copied-runtime inventory before reading any copy, missing or tampered', async () => {
+it('refuses a copied-runtime inventory: the index schema refuses an entry row, the proof refuses any listed copy', async () => {
   const { project, destination } = fixture('null', false);
   for (const file of ['index.ts', 'hybrid.ts', 'sections.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
   await buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true });
   const { index } = validateOutputProduct(destination);
-  // the output index still parses this row (LD10 removes it); the proof must refuse it whatever its copy holds
   const copy = { path: 'runtime/index.ts', hash: '0'.repeat(64), bytes: 1, lines: 1 };
-  const missing = { ...index, runtime: { entry: 'runtime/index.ts', trust: 'first-party' as const, files: [copy], lines: 1 } };
-  expect(() => { proveRuntimeData(destination, missing, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
-  // the listed copy exists but its bytes differ from the inventory: still refused, before it is read
-  mkdirSync(resolve(destination, 'runtime'), { recursive: true });
-  writeFileSync(resolve(destination, 'runtime/index.ts'), 'export const tampered = true;\n');
-  expect(() => { proveRuntimeData(destination, missing, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
-  // the non-empty inventory arm on its own: a client-plan-shaped row that lists a copy
+  // LD10 tail: the retired `entry` inventory row no longer parses at all
+  const raw: unknown = JSON.parse(readFileSync(resolve(destination, 'shard.json'), 'utf8'));
+  if (typeof raw !== 'object' || raw === null) throw new Error('Missing output index');
+  expect(() => parseOutputIndex({ ...raw, runtime: { entry: 'runtime/index.ts', trust: 'first-party', files: [copy], lines: 1 } })).toThrow();
+  // a client-plan row that lists a copy is refused before the copy is read, whether it is missing or tampered
   const cost = { webContentMB: 500, glMB: 100, engineBaseMB: 300, rev: 'abcdef1234', device: 'Fixture', evidence: 'progress/memory/fixture.json' };
   const listed = { ...index, runtime: { kind: 'client-plan' as const, cost, binds: [], trust: 'first-party' as const, files: [copy], lines: 0 as const } };
+  expect(() => { proveRuntimeData(destination, listed, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
+  mkdirSync(resolve(destination, 'runtime'), { recursive: true });
+  writeFileSync(resolve(destination, 'runtime/index.ts'), 'export const tampered = true;\n');
   expect(() => { proveRuntimeData(destination, listed, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
 });
 it('refuses overlapping source/output before clearing the author project', async () => {

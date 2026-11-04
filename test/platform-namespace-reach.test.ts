@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Construct confined fixture paths.
 import { dirname, join } from 'node:path';
-import { shardLines } from '../scripts/shard-platform.mjs';
+import { sourceProgressInventory } from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
 function charges(loader: string, initialization = '', shell = '', shellRoot = 'src/entry.ts', pineMember = 'createAmbientLife'): string[] {
@@ -18,7 +18,8 @@ function charges(loader: string, initialization = '', shell = '', shellRoot = 's
     if (shell !== '') put(shellRoot, shell);
     platformOutput(root,'pine-hollow',{'runtime/index.ts': `import { ${pineMember} } from '@wildshard/game/plugin/ui'; export const life = ${pineMember}();`});
     platformOutput(root,'driftwood-isle',{'runtime/index.ts': "import { modelCatalogue } from '@wildshard/game/model'; export const model = modelCatalogue;"});
-    const row = shardLines(root)['pine-hollow'];
+    // LD10: a product ships no runtime TypeScript, so authored runtime roots its G294 users on the source basis
+    const row = sourceProgressInventory(root)['pine-hollow'];
     if (row === undefined) throw new Error('Pine measurement absent');
     return row.conversion.gameSystemAttribution.exports.filter(entry => entry.path === 'src/game/plugin/ui.ts').map(entry => entry.name);
   } finally { rmSync(root, { recursive: true, force: true }); }

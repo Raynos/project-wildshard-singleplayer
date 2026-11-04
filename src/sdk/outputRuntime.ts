@@ -56,8 +56,8 @@ export function validateRuntimeData(sections: ReadonlyMap<string, unknown>,
  * emitted inventory only, never the author folder. A client-plan product ships no runtime TypeScript (LD9), so no
  * copied module is compiled or evaluated. */
 export function proveRuntimeData(destination: string, index: OutputIndex, mirrors: readonly RuntimeMirror[]): void {
-  // the output index still parses a retired copied-runtime inventory (LD10 removes it): this proof never accepts one
-  if (index.runtime !== null && ('entry' in index.runtime || index.runtime.files.length > 0)) throw new Error('Runtime proof requires a client-plan output with no copied TypeScript');
+  // a client-plan output lists no copied TypeScript (the index schema caps it at none); this proof never accepts one
+  if (index.runtime !== null && index.runtime.files.length > 0) throw new Error('Runtime proof requires a client-plan output with no copied TypeScript');
   const read = (file: { readonly path: string; readonly hash: string; readonly bytes: number }): Uint8Array => {
     const bytes = readBoundedFile(resolve(destination, file.path), file.bytes);
     if (bytes.length !== file.bytes || hashImmutableBytes(bytes) !== file.hash) throw new Error(`Runtime proof input changed: ${file.path}`);

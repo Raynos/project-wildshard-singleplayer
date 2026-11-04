@@ -1,65 +1,21 @@
-// G450: the product, not an authoring folder, is the only runtime census input.
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+// G450: the product, not an authoring folder, is the only output census input. LD10 retired the copied-runtime
+// reader: a product ships no runtime TypeScript, so only its verified sections and named JSON are read.
+import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { outputFormat, platformFileFamiliesFormat } from './shard-platform-format.mjs';
-import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
-import { representativeProduct, shardOutputs } from './shard-outputs.mjs';
+import { shardOutputs } from './shard-outputs.mjs';
 
 const {parseOutputIndex}=outputFormat;
 const {validatePlatformFile}=platformFileFamiliesFormat;
 const digest = value => createHash('sha256').update(value).digest('hex');
-function files(folder) {
-  return !existsSync(folder) ? [] : readdirSync(folder,{withFileTypes:true}).flatMap(entry => {
-    const file=resolve(folder,entry.name);
-    if(entry.isSymbolicLink())throw new Error(`Output runtime contains a symbolic link: ${file}`);
-    return entry.isDirectory()?files(file):[file];
-  });
-}
-/** Verify the manifest against the actual copied bytes, including an intentionally empty runtime.
- * Source is consulted only to verify P3's verbatim-copy contract, never as a missing-output fallback.
- * @param {string} root @param {string} slug @param {string} [products] */
-export function outputRuntime(root,slug,products=resolve(root,'out')) {
-  return readOutputRuntime(root,slug,products,()=>outputSections(root,slug,products));
-}
-function readOutputRuntime(root,slug,products,readSections) {
-  if(!/^[a-z0-9_-]+$/u.test(slug))throw new Error('Invalid output shard slug');
-  // SF88g: a source shard that emits several outputs (one source, no runtime of its own) is read through its first output
-  const folder=resolve(products,representativeProduct(root,slug)), indexPath=resolve(folder,'shard.json');
-  if(!existsSync(indexPath))throw new Error(`${slug}: built output missing; build out/<slug> before measuring`);
-  const {index,sections,customSections,customSectionBytes}=readSections();
-  const listed=new Set(), runtime=[];
-  for(const entry of index.runtime?.files??[]) {
-    if(!entry.path.startsWith('runtime/')||!entry.path.endsWith('.ts')||listed.has(entry.path))throw new Error(`${slug}: invalid runtime inventory: ${entry.path}`);
-    listed.add(entry.path);
-    const file=resolve(folder,entry.path), content=readFileSync(file);
-    if(content.length!==entry.bytes||digest(content)!==entry.hash)throw new Error(`${slug}: runtime hash/size mismatch: ${entry.path}`);
-    const authored=resolve(root,'src/shards',slug,entry.path);
-    if(!existsSync(authored)||!content.equals(readFileSync(authored)))throw new Error(`${slug}: runtime is not a verbatim source copy: ${entry.path}`);
-    const issues=shardfileBoundaryViolations(root,`src/shards/${slug}/${entry.path}`,content.toString('utf8')).filter(issue=>issue.rule==='runtime-standalone');
-    if(issues.length>0)throw new Error(`${slug}: output runtime is not standalone: ${entry.path}: ${issues[0].message}`);
-    runtime.push(relative(root,file).replaceAll('\\','/'));
-  }
-  if(index.runtime!==null&&'entry' in index.runtime&&!listed.has(index.runtime.entry))throw new Error(`${slug}: missing output runtime entry`);
-  const actual=files(resolve(folder,'runtime')).map(file=>relative(folder,file).replaceAll('\\','/'));
-  if(actual.length!==listed.size||actual.some(file=>!listed.has(file)))throw new Error(`${slug}: unlisted output runtime file`);
-  const authoredRuntime=files(resolve(root,'src/shards',slug,'runtime')).filter(file=>file.endsWith('.ts')&&!file.includes('.generated.')).map(file=>relative(resolve(root,'src/shards',slug),file).replaceAll('\\','/'));
-  if(authoredRuntime.some(file=>!listed.has(file)))throw new Error(`${slug}: output omits authored runtime files`);
-
-  return {index,runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
-}
-
 /** One immutable report shares verified bytes, never a process-wide verdict.
  * @param {string} root @param {string} [products] */
 export function createOutputReader(root,products=resolve(root,'out')) {
-  const sections=new Map(),runtimes=new Map(),sources=new Map();
+  const sections=new Map(),sources=new Map();
   const readSections=slug=>{
     if(!sections.has(slug))sections.set(slug,outputSections(root,slug,products));
     return sections.get(slug);
-  };
-  const readRuntime=slug=>{
-    if(!runtimes.has(slug))runtimes.set(slug,readOutputRuntime(root,slug,products,()=>readSections(slug)));
-    return runtimes.get(slug);
   };
   const readSource=slug=>{
     if(!sources.has(slug)){
@@ -68,7 +24,7 @@ export function createOutputReader(root,products=resolve(root,'out')) {
     }
     return sources.get(slug);
   };
-  return {sections:readSections,runtime:readRuntime,source:readSource};
+  return {sections:readSections,source:readSource};
 }
 
 

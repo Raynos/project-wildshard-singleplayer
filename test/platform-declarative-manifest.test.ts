@@ -31,7 +31,7 @@ it('keeps any runtime logic, side effect or unknown expression custom', () => {
   ]) expect(declarationOnlyManifest(source), source).toBe(false);
 });
 
-it('counts only emitted runtime, regardless of authoring manifest logic', () => {
+it('the output basis counts no authored runtime or manifest logic (LD10: a product ships no TypeScript)', () => {
   const root = mkdtempSync(join(tmpdir(), 'platform-manifest-'));
   const put = (file: string, text: string): void => { const path = join(root, file); mkdirSync(dirname(path), {recursive: true}); writeFileSync(path, text); };
   try {
@@ -42,8 +42,8 @@ it('counts only emitted runtime, regardless of authoring manifest logic', () => 
     platformOutput(root,'_template',{'runtime/index.ts':'export const LIVE=1;'});
     platformOutput(root,'pine-hollow',{'runtime/index.ts':'export const LIVE=1;'});
     const rows = shardLines(root,true);
-    expect(rows['_template']?.conversion.shardRuntimeLines).toBe(1);
-    expect(rows['pine-hollow']?.conversion.shardRuntimeLines).toBe(1);
-    expect(rows['_template']?.customSources?.map(row=>row.path)).toEqual(['out/_template/runtime/index.ts']);
+    expect(rows['_template']?.conversion.shardRuntimeLines).toBe(0);
+    expect(rows['pine-hollow']?.conversion.shardRuntimeLines).toBe(0);
+    expect(rows['_template']?.customSources).toEqual([]);
   } finally { rmSync(root, {recursive: true, force: true}); }
 });

@@ -6,7 +6,7 @@ import {join,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Small disposable test roots.
 import {tmpdir} from 'node:os';
 import {componentInventory,componentStates} from '../scripts/shard-components.mjs';
-import {codeLines,outputShardLines} from '../scripts/shard-platform.mjs';
+import {codeLines,sourceProgressInventory} from '../scripts/shard-platform.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
 test('crumbs stay with their file while executable owner APIs keep their component',()=>{
@@ -34,6 +34,7 @@ test('crumbs stay with their file while executable owner APIs keep their compone
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 
+// LD10: a product ships no runtime TypeScript, so authored runtime roots its G294 users on the source basis
 test('type-only users share their declarations without sharing unrelated combat exports',()=>{
   const root=mkdtempSync(join(tmpdir(),'combat-type-users-'));
   const put=(path:string,source:string):void=>{mkdirSync(dirname(join(root,path)),{recursive:true});writeFileSync(join(root,path),source);};
@@ -48,17 +49,17 @@ test('type-only users share their declarations without sharing unrelated combat 
       'export function sourceMultiplier(rows: SourceMulDef[]) { return anyTag() ? rows.length : 0; }',
     ].join('\n'));
     platformOutput(root,'nalati-grasslands',{'runtime/index.ts':"import {sourceMultiplier,type EffectDef} from '@wildshard/engine/combat/types'; import type {RayTargets} from '@wildshard/engine/combat/targets'; export const value=sourceMultiplier([]); export type Effect=EffectDef; export type Ray=RayTargets;"});
-    const only=outputShardLines(root)['nalati-grasslands'];
+    const only=sourceProgressInventory(root)['nalati-grasslands'];
     expect(only?.conversion.gameSystemAttribution.modules).toContainEqual({path:'src/engine/combat/types.ts',lines:4});
     platformOutput(root,'pine-hollow',{'runtime/index.ts':"import type {EffectDef} from '@wildshard/engine/combat/types'; export type Effect=EffectDef;"});
     platformOutput(root,'driftwood-isle',{'runtime/index.ts':"export type {EffectDef} from '@wildshard/engine/combat/types';"});
-    const rows=outputShardLines(root);
+    const rows=sourceProgressInventory(root);
     expect(rows['nalati-grasslands']?.conversion.gameSystemAttribution.modules).toEqual([{path:'src/engine/combat/targets.ts',lines:2}]);
     expect(rows['nalati-grasslands']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).toEqual(['SourceMulDef','anyTag','sourceMultiplier']);
     expect(rows['pine-hollow']?.conversion.gameSystemAttribution.lines).toBe(0);
     expect(rows['driftwood-isle']?.conversion.gameSystemAttribution.lines).toBe(0);
     platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {type SourceMulDef} from '@wildshard/engine/combat/types'; export type Source=SourceMulDef;"});
-    expect(outputShardLines(root)['nalati-grasslands']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).toEqual(['anyTag','sourceMultiplier']);
+    expect(sourceProgressInventory(root)['nalati-grasslands']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).toEqual(['anyTag','sourceMultiplier']);
   }finally{rmSync(root,{recursive:true,force:true});}
 });
 

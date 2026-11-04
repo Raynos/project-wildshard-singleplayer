@@ -6,7 +6,7 @@ import { OUTPUT_SECTIONS, assembleOutputTransport, isPlatformDataSection, type O
 import * as v from 'valibot';
 import { assertCellBounds } from './cellBounds';
 import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSchema';
-import { LegacyRuntimeSchema, ClientPlanRuntimeSchema } from './runtime';
+import { ClientPlanRuntimeSchema } from './runtime';
 import { RuntimeSpawnsSchema } from './runtimeSpawns';
 import { RowsSchema } from './rows';
 import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema, type ShardIdentityInput, type ShardRequiresInput, type ShardReferencesInput, type ShardIdentity, type ShardRequires, type ShardReferences } from './shardSections';
@@ -22,10 +22,7 @@ const measuredFile = { path, hash: ShardHashSchema, bytes: ShardNaturalSchema };
 const section = v.strictObject({ ...measuredFile, name: sectionName, schema: v.pipe(v.string(), v.maxLength(240)) });
 const costs = v.omit(FilesSchema.pipe[0].item, ['kind']).entries;
 const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), tier: v.exactOptional(v.picklist(['phone', 'desktop'])), variantOf: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))), commons: v.exactOptional(v.literal(true)), jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())) });
-const runtime = v.union([
-  v.strictObject({ ...v.omit(LegacyRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), lines: ShardNaturalSchema }),
-  v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.pipe(v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), v.maxLength(0)), lines: v.literal(0) }),
-]);
+const runtime = v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.pipe(v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), v.maxLength(0)), lines: v.literal(0) });
 /** Format 2 inventories every emitted byte except its index and validation receipt. */
 export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputIndexRows> & { readonly entries: { readonly [Key in keyof OutputIndexRows]-?: v.GenericSchema<OutputIndexRowsInput[Key], OutputIndexRows[Key]> } } = v.strictObject({
   format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2), sdk: v.literal('0.2'), version: v.literal(SHARDFILE_VERSION),
@@ -207,35 +204,6 @@ interface OutputIndexRowsInputFields {
             hash: string;
             bytes: number;
         }[];
-        lines: number;
-        entry: string;
-        cost?: {
-            imagesFirst?: {
-                webContentMB: number;
-                glMB: number;
-                engineBaseMB: number;
-                residentBaseMB?: number;
-                rev: string;
-                device: string;
-                evidence: string;
-            } | undefined;
-            webContentMB: number;
-            glMB: number;
-            engineBaseMB: number;
-            residentBaseMB?: number;
-            rev: string;
-            device: string;
-            evidence: string;
-        } | undefined;
-        binds?: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[] | undefined;
-    } | {
-        trust: "first-party";
-        files: {
-            lines: number;
-            path: string;
-            hash: string;
-            bytes: number;
-        }[];
         lines: 0;
         kind: "client-plan";
         cost: {
@@ -320,35 +288,6 @@ interface OutputIndexRowsFields {
         }[];
     }[];
     runtime: {
-        trust: "first-party";
-        files: {
-            lines: number;
-            path: string;
-            hash: string;
-            bytes: number;
-        }[];
-        lines: number;
-        entry: string;
-        cost?: {
-            imagesFirst?: {
-                webContentMB: number;
-                glMB: number;
-                engineBaseMB: number;
-                residentBaseMB?: number;
-                rev: string;
-                device: string;
-                evidence: string;
-            } | undefined;
-            webContentMB: number;
-            glMB: number;
-            engineBaseMB: number;
-            residentBaseMB?: number;
-            rev: string;
-            device: string;
-            evidence: string;
-        } | undefined;
-        binds?: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[] | undefined;
-    } | {
         trust: "first-party";
         files: {
             lines: number;

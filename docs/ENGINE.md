@@ -8860,10 +8860,11 @@ stay unchanged; buffer decoding and native installation stay in the SDK.
 
 ### Copied runtime compatibility (legacy)
 
-Frozen legacy configurations retain their runtime schema and verified
-copied-runtime transport until legacy deletion is approved. The unused
-output catalogue and its runtime registry are retired; live discovery
-continues through authored metadata and the existing LEGACY entry.
+LD9 retired the copied-runtime `entry` declaration and LD10 its output
+index row: a format-2 index lists no runtime TypeScript, and the platform
+ruler's output basis measures verified sections only (authored runtime is
+measured on the source basis). The unused output catalogue and its runtime
+registry are retired; live discovery continues through authored metadata.
 
 `wildshard build <project> <output> --copy-runtime` enables the strict
 copied-runtime build path (`buildProject` option `copyRuntime: true`). It

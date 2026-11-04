@@ -3,7 +3,7 @@ import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep every fixture below the repository scratch root.
 import {resolve} from 'node:path';
 import {afterEach,expect,it} from 'vitest';
-import {shardLines} from '../scripts/shard-platform.mjs';
+import {sourceProgressInventory} from '../scripts/shard-platform.mjs';
 import {shardLineBaselines} from '../scripts/decision-legacy-lines.mjs';
 import {platformOutput} from './fixtures/platformOutputs';
 
@@ -21,7 +21,8 @@ it('keeps all six ruler baselines and zero verdicts with no legacy registry',()=
     platformOutput(root,slug,index++===0?{'runtime/index.ts':'export const LIVE=1;'}:{});
     writeFileSync(resolve(root,`src/shards/${slug}/manifest.ts`),'export default {};');
   }
-  const before=shardLines(root);
+  // LD10: a product ships no runtime TypeScript, so the live authored line is measured on the source basis
+  const before=sourceProgressInventory(root);
   expect(Object.keys(before).sort()).toEqual([...baselines.keys()].sort());
   expect(Object.values(before).filter(row=>row.conversion.passed)).toHaveLength(5);
   for(const [slug,baseline] of baselines)expect(before[slug]?.conversion).toMatchObject({

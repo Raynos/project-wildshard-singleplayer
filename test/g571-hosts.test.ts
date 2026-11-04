@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all fixture writes under repository scratch.
 import { dirname, resolve } from 'node:path';
 import { g571HostApprovals } from '../scripts/g571-hosts.mjs';
-import { outputShardLines } from '../scripts/shard-platform.mjs';
+import { sourceProgressInventory } from '../scripts/shard-platform.mjs';
 import { platformOutput } from './fixtures/platformOutputs';
 
 const owned: string[] = [];
@@ -17,7 +17,8 @@ function fixture(source = 'export const approved = 1;') {
   platformOutput(root, 'pine-hollow', { 'runtime/index.ts': "import { approved } from '@wildshard/game/approved'; import { unnamed } from '@wildshard/game/unnamed'; export const live = [approved, unnamed];" });
   return root;
 }
-function row(root: string) { const measured = outputShardLines(root, true)['pine-hollow']; if (measured === undefined) throw new Error('Missing fixture output'); return measured; }
+// LD10: a product ships no runtime TypeScript, so a shard's authored runtime roots its G294 users on the source basis
+function row(root: string) { const measured = sourceProgressInventory(root)['pine-hollow']; if (measured === undefined) throw new Error('Missing fixture output'); return measured; }
 
 test('an explicitly named G571 module is platform while an unnamed one-user host remains charged', () => {
   const root = fixture(), before = row(root);
