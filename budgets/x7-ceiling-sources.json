@@ -2,18 +2,6 @@
   "source": "F2 baseline max(lanes) plus original recorded noise band; existing ratchet ceilings preserved exactly",
   "files": [
     {
-      "file": "test/parity/baselines/gh-macos15/driftwood-isle.phone.json",
-      "blob": "cd4f7ded081f9af8a84e3e8facb3b8b93430684b"
-    },
-    {
-      "file": "test/parity/baselines/gh-macos15/nalati-grasslands.phone.json",
-      "blob": "d5968b526b95b4d3a52544c5b8d1d48d60fbdef2"
-    },
-    {
-      "file": "test/parity/baselines/gh-macos15/nine-dragon-stack.phone.json",
-      "blob": "bdf5c3a6616309c96bbaf1b6d984a517226b7deb"
-    },
-    {
       "file": "test/parity/baselines/gh-macos15/pine-hollow.phone.json",
       "blob": "1098886836b0ebc2d7dfde57d14351dadd40a9eb"
     },

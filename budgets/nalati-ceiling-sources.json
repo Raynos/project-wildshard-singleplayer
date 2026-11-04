@@ -13,12 +13,6 @@
       "sha": "ee0dd78b2f2977f36f0ed5e44cf0d1da172f13ea",
       "recorded": "2026-10-01T11:10:15.627Z",
       "blob": "30bdaf27ddf9af70cc71fb4e76385258ac934078"
-    },
-    {
-      "file": "test/parity/baselines/gh-macos15/nalati-grasslands.phone.json",
-      "sha": "f1cef37485a683afa08b9e1881a7d6b01c97c9b0",
-      "recorded": "2026-10-01T12:03:34.133Z",
-      "blob": "d5968b526b95b4d3a52544c5b8d1d48d60fbdef2"
     }
   ],
   "ceilings": {
