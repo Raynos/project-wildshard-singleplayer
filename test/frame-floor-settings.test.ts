@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute the serialized Safari init in isolated storage contexts
 import { runInNewContext } from 'node:vm';
-import { frameFloorSettingsCode, resetFrameFloorDebug, assertFrameFloorFixture, frameFloorBootstrapHtml } from '../scripts/frame-floor-settings.mjs';
+import { frameFloorSettingsCode, resetFrameFloorDebug, assertFrameFloorFixture, frameFloorBootstrapHtml, traceFrameFloorFixtureWrites } from '../scripts/frame-floor-settings.mjs';
 import { saveFixtureCode } from '../scripts/debug-settings.mjs';
 import { validateFrameFloorArgs } from '../scripts/frame-floor-args.mjs';
 
@@ -86,4 +86,33 @@ test('refuses a silent fixture write failure before admitting the game document'
   runInNewContext(saveFixtureCode({ scope: 'device', key: 'devMode', data: true }), { localStorage });
   expect(() => { runInNewContext(check, { localStorage }); }).not.toThrow();
   expect(() => { runInNewContext(`(${assertFrameFloorFixture.toString()})(${JSON.stringify(settings)},true,{"missing":"on"})`, { localStorage }); }).toThrow('did not retain');
+});
+
+test('fixture provenance identifies deletion, bounds records and restores native methods', () => {
+  class MemoryStorage {
+    private readonly data = new Map<string, string>();
+    getItem(key: string): string | null { return this.data.get(key) ?? null; }
+    setItem(key: string, value: string): void { this.data.set(key, value); }
+    removeItem(key: string): void { this.data.delete(key); }
+    clear(): void { this.data.clear(); }
+  }
+  const localStorage = new MemoryStorage(), nativeSet = Object.getOwnPropertyDescriptor(MemoryStorage.prototype, 'setItem')?.value;
+  const window = {}, context = { Storage: MemoryStorage, localStorage, window, performance: { now: () => 7 } };
+  runInNewContext(`(${traceFrameFloorFixtureWrites.toString()})()`, context);
+  localStorage.setItem('wildshard.save.v2.global', JSON.stringify({ keys: { settings: { v: 1, data: { tier: 'phone' } } } }));
+  localStorage.setItem('player.secret', 'never retained');
+  localStorage.removeItem('wildshard.save.v2.global');
+  for (let i = 0; i < 80; i++) localStorage.setItem('wildshard.save.v2.device', '{"keys":{}}');
+  const result: unknown = runInNewContext('window.__frameFloorFixtureWrites.finish()', context);
+  expect(result).toMatchObject({ final: { settings: false }, restored: true });
+  expect(runInNewContext('window.__frameFloorFixtureWrites.finish().rows.slice(0,3)', context)).toMatchObject([
+    { operation: 'before-fixture', state: { settings: false } },
+    { operation: 'setItem', state: { settings: true } },
+    { operation: 'removeItem', state: { settings: false } },
+  ]);
+  expect(JSON.stringify(result)).not.toContain('player.secret');
+  expect(JSON.stringify(result)).not.toContain('never retained');
+  expect(runInNewContext('window.__frameFloorFixtureWrites.finish().rows.length', context)).toBe(64);
+  expect(Object.getOwnPropertyDescriptor(MemoryStorage.prototype, 'setItem')?.value).toBe(nativeSet);
+  expect(localStorage.getItem('player.secret')).toBe('never retained');
 });

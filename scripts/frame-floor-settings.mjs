@@ -44,3 +44,49 @@ export function assertFrameFloorFixture(settings, developer, deviceSaves) {
 export function frameFloorBootstrapHtml(fixture, check) {
   return `<!doctype html><html><head><meta charset="utf-8"><title>Frame-floor preparation</title><script>${fixture};${check};window.__frameFloorBootstrapReady=true;</script></head><body>Frame-floor preparation</body></html>`;
 }
+
+/** Bounded pre-measurement fixture provenance. Observe only the two fixture
+ * documents, never player payloads; restore native methods before sampling. */
+export function traceFrameFloorFixtureWrites() {
+  const proto = Storage.prototype;
+  const set = Object.getOwnPropertyDescriptor(proto, 'setItem');
+  const remove = Object.getOwnPropertyDescriptor(proto, 'removeItem');
+  const clear = Object.getOwnPropertyDescriptor(proto, 'clear');
+  if (!set || !remove || !clear) throw new Error('Native Storage methods are unavailable');
+  const rows = [];
+  const snapshot = () => {
+    try {
+      const global = JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}');
+      const device = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}');
+      return { settings: global.keys?.settings !== undefined, gfx: global.keys?.gfx !== undefined,
+        developer: device.keys?.devMode !== undefined };
+    } catch { return { unavailable: true }; }
+  };
+  const record = (operation, key) => {
+    if (rows.length < 64) rows.push({ operation, key, at: performance.now(), state: snapshot(), stack: new Error('Fixture storage write').stack?.slice(0, 1600) ?? '' });
+  };
+  const named = key => key === 'wildshard.save.v2.global' || key === 'wildshard.save.v2.device';
+  const setWrapper = function setWrapper(...args) {
+    Reflect.apply(set.value, this, args);
+    if (this === localStorage && named(args[0])) record('setItem', args[0]);
+  };
+  const removeWrapper = function removeWrapper(...args) {
+    Reflect.apply(remove.value, this, args);
+    if (this === localStorage && named(args[0])) record('removeItem', args[0]);
+  };
+  const clearWrapper = function clearWrapper(...args) {
+    Reflect.apply(clear.value, this, args);
+    if (this === localStorage) record('clear', '*');
+  };
+  proto.setItem = setWrapper; proto.removeItem = removeWrapper; proto.clear = clearWrapper;
+  record('before-fixture', '');
+  Reflect.set(window, '__frameFloorFixtureWrites', {
+    finish: () => {
+      if (Object.getOwnPropertyDescriptor(proto, 'setItem')?.value === setWrapper) Object.defineProperty(proto, 'setItem', set);
+      if (Object.getOwnPropertyDescriptor(proto, 'removeItem')?.value === removeWrapper) Object.defineProperty(proto, 'removeItem', remove);
+      if (Object.getOwnPropertyDescriptor(proto, 'clear')?.value === clearWrapper) Object.defineProperty(proto, 'clear', clear);
+      return { rows, final: snapshot(), restored: Object.getOwnPropertyDescriptor(proto, 'setItem')?.value === set.value
+        && Object.getOwnPropertyDescriptor(proto, 'removeItem')?.value === remove.value && Object.getOwnPropertyDescriptor(proto, 'clear')?.value === clear.value };
+    },
+  });
+}

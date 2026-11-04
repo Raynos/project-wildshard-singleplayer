@@ -31,7 +31,7 @@ import { frameFloorStanding } from './frame-floor-standing.mjs';
 import { createServer } from 'node:http';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
-import { frameFloorSettingsCode, assertFrameFloorFixture, frameFloorBootstrapHtml } from './frame-floor-settings.mjs';
+import { frameFloorSettingsCode, assertFrameFloorFixture, frameFloorBootstrapHtml, traceFrameFloorFixtureWrites } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
 import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate, frameFloorDrawBudgetMode, frameFloorChromiumAngle, frameFloorSoftwareCensus } from './frame-floor-args.mjs';
 import { frameFloorCpuPhase, assertFrameFloorRenderer } from './frame-floor-report-phase.mjs';
@@ -285,6 +285,7 @@ function metadata() {
     entrySettle: performance.getEntriesByName('wildshard.entry.programs-settled')[0]?.detail ?? null, entryControls: performance.getEntriesByName('wildshard.grid.entry-policy')[0]?.startTime ?? null,
     viewport: [innerWidth, innerHeight], devicePixelRatio, renderScale: g.renderer.getPixelRatio(), canvas: [g.canvas.width, g.canvas.height], developer: Object.hasOwn(document.documentElement.dataset,'dev'),
     settings: saved.keys?.settings?.data, effectiveDebugSettings: window.__wildshard.debugSettings?.() ?? null, settingsReset: 'replace-settings-and-clear-debug-overrides', gfx: saved.keys?.gfx?.data, deviceSaves: Object.fromEntries(Object.entries(deviceSaved.keys ?? {}).map(([key, value]) => [key, value.data])), clock: g.app.clock.mode,
+    fixtureWrites: window.__frameFloorFixtureWrites?.finish() ?? null,
     bootTrace: deviceSaved.keys?.['boot.trace']?.data, console: window.__frameFloorConsole ?? [],
     textures: window.__wildshard.textures?.() ?? null,
     systems: Object.values(g.app.systemsByPhase()).flat().map((system) => system.id),
@@ -1203,7 +1204,7 @@ async function main() {
       const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
       const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
       const helper = join(dist, 'frame-floor-safari.html');
-      writeFileSync(helper, html.replace('<head>', `<head><script>${ablationSelected ? BUFFER_PRESSURE_SCRIPT : ''}${NATIVE_PRESSURE}${WASM_CONSTRUCTORS}${fixture('phone')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}</script>`));
+      writeFileSync(helper, html.replace('<head>', `<head><script>(${traceFrameFloorFixtureWrites.toString()})();${ablationSelected ? BUFFER_PRESSURE_SCRIPT : ''}${NATIVE_PRESSURE}${WASM_CONSTRUCTORS}${fixture('phone')};window.__wildshardHarness=${HARNESS_PINS};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${GL_TIME_SCRIPT}${TASK_CLOCK}${travelGl}</script>`));
       writeFileSync(join(dist, 'frame-floor-bootstrap.html'), frameFloorBootstrapHtml(fixture('phone'), fixtureCheck));
     }
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
