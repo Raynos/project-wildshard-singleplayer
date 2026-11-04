@@ -30,7 +30,7 @@ import { legacyAsset } from './legacyAsset';
 
 import { productResourceRole } from './resourceRole';
 import { entryTransport } from './entryTransport';
-import { currentSpawnDownload } from '../boot/spawnDownload';
+import { currentSpawnDownload, releaseSpawnMembers } from '../boot/spawnDownload';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -77,7 +77,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
   const spawn = currentSpawnDownload(), resolve = (url: string): string => spawn?.resolve(url) ?? url;
   if (typeof document !== 'undefined' && !observesProductControl) {
     observesProductControl = true;
-    pageScope.listen(document, 'ws:control-ready', () => { productControlsReady = true; entryTransport()?.stop(); });
+    pageScope.listen(document, 'ws:control-ready', () => { productControlsReady = true; entryTransport()?.stop(); releaseSpawnMembers(); });
     pageScope.listen(window, 'pagehide', () => { entryTransport()?.stop(); }, {once: true});
     pageScope.onDispose(() => { entryTransport()?.stop(); });
   }

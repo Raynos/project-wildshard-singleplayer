@@ -17,7 +17,41 @@ export interface SpawnDownloadPorts {
   readonly present?: (urls: readonly string[]) => Promise<ReadonlySet<string>>;
   /** First install has no controller. Publish into the same worker cache. */
   readonly store?: (url: string, response: Response) => Promise<void>;
+  /** DL5 (Debug 'Loading: runtime packs', default off): read the manifest's parts instead of their loose files. */
+  readonly packs?: boolean;
+  /** Publish one part member under its own URL, whatever controls the page: members never pass the worker. */
+  readonly keep?: (url: string, response: Response) => Promise<void>;
 }
+
+/** DL5: part members by their exact URL until control, so this page's own reads of them (product reads, engine
+ * fetches) are answered from the part instead of the network. A member that failed is null and reads fall through. */
+const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
+let layered = false;
+const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
+  ktx2: 'image/ktx2', bin: 'application/octet-stream'};
+const typeOf = (url: string): string => TYPES[/\.([a-z0-9]+)(?:\?|$)/u.exec(url)?.[1] ?? ''] ?? 'application/octet-stream';
+/** A GET of a member URL waits for its bytes; anything else, a retry or a failed member goes to the network. */
+function installMemberLayer(): void {
+  if (layered || typeof window === 'undefined') return;
+  layered = true;
+  const network = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    const request = input instanceof Request ? input : undefined;
+    const method = (init?.method ?? request?.method ?? 'GET').toUpperCase(), cache = init?.cache ?? request?.cache;
+    if (members.size > 0 && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
+      const url = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href).href;
+      const bytes = await members.get(url);
+      if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
+    }
+    return network(input, init);
+  };
+}
+/** Control: the level is complete and its reads are done, so the member bytes go. */
+export function releaseSpawnMembers(): void { members.clear(); }
+/** Debug 'Loading: runtime packs / shardfile' (DL16, default shardfile): set by the composition root before a spawn
+ * download starts; this leaf reads no engine setting itself. */
+let packsOn = false;
+export function setSpawnPacks(on: boolean): void { packsOn = on; }
 export interface SpawnDownload {
   readonly ready: Promise<void>; readonly snapshot: () => SpawnDownloadSnapshot;
   readonly subscribe: (listener: (snapshot: SpawnDownloadSnapshot) => void) => () => void;
@@ -80,9 +114,50 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       progressKnown = true;
       if (missing.length === 0) { complete = true; publish(); return; }
       publish(); let cursor = 0;
-      await Promise.all(Array.from({length: Math.min(8, missing.length)}, async () => {
-        for (let index = cursor++; index < missing.length; index = cursor++) {
-          const file = missing[index]; if (file === undefined) throw new Error('Missing spawn demand');
+      // DL5: every part holding a missing member at once; members are cut out as their bytes land. A part that fails
+      // hands its unfinished members to the loose loop below (its files stay deployed).
+      let loose = missing;
+      const parts = ports.packs === true ? manifest.parts : undefined;
+      if (parts !== undefined && parts.length > 0) {
+        installMemberLayer();
+        const wanted = new Set(missing), left = new Set<number>();
+        await Promise.all(parts.map(async part => {
+          const order = part.members.filter(([index]) => {const file = files[index]; return file !== undefined && wanted.has(file);});
+          if (order.length === 0) return;
+          const settle = new Map<number, (bytes: Uint8Array<ArrayBuffer> | null) => void>(), done = new Set<number>();
+          for (const [index] of order) {
+            const file = files[index]; if (file === undefined) continue;
+            members.set(file.url, new Promise(resolve => {settle.set(index, resolve);}));
+          }
+          try {
+            const response = await ports.fetch(new URL(part.url, base).href, controller.signal);
+            if (!response.ok || response.body === null) throw new Error(`Spawn part unavailable: ${part.url}`);
+            const body = new Uint8Array(part.bytes), reader = response.body.getReader();
+            let at = 0, next = 0;
+            for (;;) {
+              const chunk = await reader.read(); if (chunk.done) break;
+              if (at + chunk.value.byteLength > part.bytes) {void reader.cancel(); throw new Error(`Spawn part longer than listed: ${part.url}`);}
+              body.set(chunk.value, at); at += chunk.value.byteLength;
+              for (let row = order[next]; row !== undefined; row = order[next]) {
+                const [index, offset] = row, file = files[index]; if (file === undefined || offset + file.bytes > at) break;
+                const member = body.slice(offset, offset + file.bytes); next++;
+                await ports.keep?.(file.url, new Response(member, {headers: {'content-type': typeOf(file.url), 'content-length': String(member.length)}}));
+                settle.get(index)?.(member); done.add(index);
+                completedBytes += file.bytes; wireCompleted += file.wireBytes; filesDone++; publish();
+              }
+            }
+            if (at !== part.bytes) throw new Error(`Spawn part size differs: ${part.url}`);
+          } catch {
+            controller.signal.throwIfAborted();
+            for (const [index] of order) if (!done.has(index)) {left.add(index); settle.get(index)?.(null);}
+          }
+        }));
+        controller.signal.throwIfAborted();
+        loose = missing.filter(file => !parts.some(part => part.members.some(([index]) => files[index] === file)) || left.has(files.indexOf(file)));
+      }
+      await Promise.all(Array.from({length: Math.min(8, loose.length)}, async () => {
+        for (let index = cursor++; index < loose.length; index = cursor++) {
+          const file = loose[index]; if (file === undefined) throw new Error('Missing spawn demand');
           let received = 0, credited = 0;
           const {bytes: body, copy: cachedCopy} = await readSpawnFile(file.url, file.bytes, {
             ...ports, fetch: (url, signal, init) => {received = 0; return ports.fetch(url, signal, init);},
@@ -156,6 +231,7 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
       return found;
     }}),
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
+    ...(store === null || !packsOn ? {} : {packs: true, keep: async (url: string, response: Response) => {await (await store).put(url, response);}}),
   }, document.baseURI);
   current?.download.cancel(); current = {address, download, foreground}; return download;
 }
