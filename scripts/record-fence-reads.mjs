@@ -44,7 +44,10 @@ const prefix = `/shardfiles/${slug}/`, shell = /^\/assets\/(?!spawn\/|boot-table
 // DL11 slice 4: setup reads only its selected boot audio (`profile.bootFiles`, extras.ts); every other music / sfx read
 // before control is the extras queue's speculative prefetch (`prefetchAfter`). Listing those made control wait for them
 // (Nalati packs +19.7 MB wire), so an audio file is recorded only when the run held it for the whole set (below).
-const audio = /^\/assets\/(?:music|sfx)\//u;
+// A level's own boot file (`/assets/boot-<slug>-<hash>.json`, not the shared boot tables) read before control is the
+// title's shard prefetch: two cold Far Reach runs on the same build read Far Reach's in one and Sunscar's in the other,
+// so it is recorded, as audio is, only when the run held it.
+const heldOnly = /^\/assets\/(?:(?:music|sfx)\/|boot-(?!tables-)[a-z0-9-]+-[0-9a-f]{8}\.json$)/u;
 const outside = new Set(), assetsOutside = new Set();
 let matched = 0;
 for (const row of run.requests) {
@@ -53,7 +56,7 @@ for (const row of run.requests) {
   if (path.startsWith(prefix)) matched++;
   if (listed.has(path)) continue;
   if (path.startsWith(prefix) && !path.endsWith('/shard.json')) outside.add(/([a-f0-9]{64})/u.exec(path)?.[1] ?? path);
-  else if (shell.test(path) && !code.test(path) && !path.startsWith('/assets/title/') && !audio.test(path)) assetsOutside.add(path);
+  else if (shell.test(path) && !code.test(path) && !path.startsWith('/assets/title/') && !heldOnly.test(path)) assetsOutside.add(path);
 }
 // DL11: a read the page's spawn layer held for the whole set names itself on the timeline
 // (wildshard.prepare:unlisted:<path>) even when no network request follows it (a pack reader read the loose member of a
@@ -91,7 +94,11 @@ for (const path of assetsOutside) { const ids = (assetIds.get(path) ?? []).filte
 const total = outside.size + assetsOutside.size;
 console.log(`${slug} ${flow}: control at ${((control - run.tap) / 1000).toFixed(1)} s; ${outside.size} level and ${assetsOutside.size} /assets files read before control outside the spawn set; ${unknown.length} unidentified`);
 for (const name of unknown) console.log(`  unidentified ${name}`);
-if (check) { if (total > 0) throw new Error(`${total} files read before control are not in the spawn set`); }
+if (check) {
+  // name what the check counts (a /assets file the list holds but the set lacks reads here as recorded, not unidentified)
+  for (const name of [...outside, ...assetsOutside]) console.log(`  outside the set: ${name}`);
+  if (total > 0) throw new Error(`${total} files read before control are not in the spawn set`);
+}
 else {
   const file = join('src/shards', slug, 'fence-reads.json');
   // --allow-unidentified writes the identified files; the rest stay on-demand reads, named above.
