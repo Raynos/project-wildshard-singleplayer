@@ -88,7 +88,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const { notice, onGrid, screen: first, cards = titleCards(), whatsNew = WHATS_NEW, whatsNewStore, ...deckOpts } = opts;
   // leaving the title for a world resets it: pause ▸ EXIT TO MAIN opens on the main menu again
   const deck = buildTitleDeck({ ...deckOpts, cards,
-    onEnter: (card, entry) => { leaveTitle(); screen = 'main'; deckOpts.onEnter(card, entry); },
+    onEnter: (card) => { leaveTitle(); screen = 'main'; deckOpts.onEnter(card); },
     onExplore: (card) => { leaveTitle(); screen = 'main'; deckOpts.onExplore(card); } });
   const grid = gridEntryShown(mode());
   const s = GAME_STRINGS.mainMenu;

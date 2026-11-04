@@ -87,7 +87,7 @@ function navigateNow(request: TravelRequest): void {
 export function travel(request: TravelRequest): void {
   const manifest = findTitleManifest(request.to);
   if (manifest === undefined) return;
-  const target = request.mode === 'enter' ? resolveTravelEntry(titleManifests(), manifest) : manifest;
+  const target = request.mode === 'enter' ? resolveTravelEntry(manifest) : manifest;
   if (target !== undefined) service.travel({ ...request, to: target.slug });
 }
 export function consumeTravelHandoff(to: ShardSlug): TravelHandoff | null { return service.consume(to); }

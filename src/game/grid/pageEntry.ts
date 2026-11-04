@@ -13,7 +13,6 @@ import { setPageMode } from './pageMode';
 import { pageGridCells as gridCells } from './cellEvents';
 import type { PageMode } from '../plugin/context';
 import { findTitleManifest } from '../shard/titleList';
-import { chooseShardEntry } from '../shard/entryMode';
 import { travel, travelSlot } from '../travel/travel';
 import { startEntryDownload } from '../shardfile/entryTransport';
 import { startGridStripDownload } from './entryDownloads';
@@ -62,8 +61,6 @@ export function enterGrid(): void {
     // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
     if (!gridRecovery(saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');
     clearGridRecovery();
-    // INFINITE WILDSHARD enters the catalogue home, never SHARD SELECT's frozen LEGACY copy.
-    chooseShardEntry(target.slug, 'shardfile');
     pageGridIntents().set({ instance: home.instance, slug: target.slug });
     travel({ to: target.slug, mode: 'enter' });
   }, document.querySelector<HTMLButtonElement>('.ws-main-grid'));

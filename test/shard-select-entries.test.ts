@@ -2,12 +2,12 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { setDev } from '../src/engine/core/devMode';
 import { authoredRows } from '../src/engine/ui/authoredDebugRows';
-import { shardEntryManifest } from '../src/game/shard/legacy';
+import { jsonSlot } from '../src/engine/saves/slots';
 import type { ShardManifest } from '../src/game/shard/manifest';
 import { installShards, shards } from '../src/game/shard/list';
-import { shardEntry, type ShardEntryChoices } from '../src/game/shard/entryMode';
+import { shardEntry } from '../src/game/shard/entryMode';
+import { resolveTravelEntry } from '../src/game/travel/entry';
 import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDeck';
-import { GAME_STRINGS } from '../src/game/strings';
 import { SHARDS, LEGACY_SHARDS } from '../src/shards.generated';
 import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
 import inkManifest from '../src/shards/ink-cel-valley/manifest.json' with { type: 'json' };
@@ -18,18 +18,19 @@ import { bootSourceFiles } from '../src/engine/boot/filePolicy';
 import { bootFetches } from '../src/engine/boot/prefetch';
 import { installAssetFixture } from './fixtures/bootSetup';
 
-// G531: SHARD SELECT shows one entry per shard, its shardfile; the Developer-tools row Legacy shard buttons brings LEGACY back.
+// G531 / QD7 LD5: SHARD SELECT shows one ENTER WORLD per shard, its shardfile, in the public build and in Developer. The
+// LEGACY / SHARDFILE pair, its Developer row and the saved per-tab choice are gone.
 const card = (slug: TitleCard['slug'], legacy: boolean): TitleCard => ({ slug, name: slug, label: slug, thumbnail: '', heroPortrait: '', heroLandscape: '',
   entries: { legacy, shardfile: true } });
 const CARDS = [card('nine-dragon-stack', true), card('pine-hollow', false), card('far-reach', false)];
 const decks: ReturnType<typeof buildTitleDeck>[] = [];
 const paintFrames = (): Promise<void> => new Promise(resolve => { requestAnimationFrame(() => { requestAnimationFrame(() => { resolve(); }); }); });
 
-function deck(): { root: HTMLElement; select: (i: number) => void; entered: [string, string][] } {
+function deck(developer = true): { root: HTMLElement; select: (i: number) => void; entered: string[] } {
   installShards([]);
-  const entered: [string, string][] = [];
-  const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: (c, entry) => { entered.push([c.slug, entry]); }, onExplore: () => undefined, onSettings: () => undefined,
-    mode: () => ({ developer: true, devserver: true }) });
+  const entered: string[] = [];
+  const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: (c) => { entered.push(c.slug); }, onExplore: () => undefined, onSettings: () => undefined,
+    mode: () => ({ developer, devserver: developer }) });
   decks.push(built);
   document.body.append(built.root);
   return { root: built.root, select: (i) => { built.select(i, false); }, entered };
@@ -37,96 +38,73 @@ function deck(): { root: HTMLElement; select: (i: number) => void; entered: [str
 /** the entry buttons a player can see on the selected card */
 const shown = (root: HTMLElement): string[] => [...root.querySelectorAll<HTMLButtonElement>('.ws-menu-modes button')]
   .filter((button) => button.hidden === false).map((button) => button.querySelector('b')?.textContent ?? '');
-const row = (): { set: (v: string) => void; purpose?: 'developer' } => {
-  const found = [...authoredRows].find((r) => r.id === 'legacyShardButtons');
-  if (found === undefined) throw new Error('missing Legacy shard buttons row');
-  return found;
-};
 const play = (root: HTMLElement): void => { root.querySelector<HTMLButtonElement>('.ws-menu-play')?.click(); };
 
 afterEach(() => { for (const built of decks.splice(0)) built.dispose(); setDev(false); document.body.replaceChildren(); vi.unstubAllGlobals(); });
 
-test('row off (the default): every card shows only ENTER WORLD and enters its shardfile, in Developer too', async () => {
-  setDev(true);
-  const d = deck();
-  expect(row().purpose).toBe('developer');
+test.each([true, false])('developer %s: every card shows only ENTER WORLD and enters it once', async developer => {
+  setDev(developer);
   for (const [i, c] of CARDS.entries()) {
-    const visit = i === 0 ? d : deck(); visit.select(i);
+    const visit = deck(developer); visit.select(i);
     expect(shown(visit.root)).toEqual(['Enter world']);
+    expect(visit.root.querySelector('.ws-menu-shardfile')).toBeNull();
     play(visit.root);
     expect(visit.entered).toEqual([]);
     expect(document.querySelector('[data-navigation] [data-el="slug"]')?.textContent).toBe(c.name);
     await paintFrames();
-    expect(visit.entered).toEqual([[c.slug, 'shardfile']]);
+    expect(visit.entered).toEqual([c.slug]);
     decks.at(-1)?.dispose();
   }
+  expect([...authoredRows].some(row => row.id === 'legacyShardButtons')).toBe(false);
 });
 
-test('row on in Developer: LEGACY and SHARDFILE come back where a legacy copy is left, and LEGACY enters it', async () => {
+test('a saved Legacy shard buttons pick from before LD5 resurrects nothing', async () => {
+  jsonSlot('debug.global.legacyShardButtons', 'device').write('on');
   setDev(true);
-  const d = deck();
-  row().set('on');
-  CARDS.forEach((c, i) => {
-    d.select(i);
-    // a card whose legacy copy is retired (LD6 / LD7) keeps the one ENTER WORLD
-    expect(shown(d.root)).toEqual(c.entries?.legacy === true ? [GAME_STRINGS.entry.legacy, GAME_STRINGS.entry.shardfile] : ['Enter world']);
-    expect(d.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(false);
-  });
-  d.select(0); play(d.root);
-  expect(d.entered).toEqual([]);
-  await paintFrames();
-  expect(d.entered).toEqual([['nine-dragon-stack', 'legacy']]);
-  row().set('off');
+  const d = deck(); d.select(0);
   expect(shown(d.root)).toEqual(['Enter world']);
+  expect([...authoredRows].some(row => row.id === 'legacyShardButtons')).toBe(false);
+  play(d.root); await paintFrames();
+  expect(d.entered).toEqual(['nine-dragon-stack']);
+  expect(shardEntry({ entries: { legacy: true, shardfile: true } })).toBe('shardfile');
 });
 
-test('the public build ignores the row: one button, the shardfile', () => {
-  setDev(true); const d = deck(); row().set('on'); setDev(false);
-  row().set('off'); // ignored outside Developer: the saved pick waits
-  d.select(1);
-  expect(shown(d.root)).toEqual(['Enter world']);
-  setDev(true); d.select(0);
-  expect(shown(d.root)).toEqual([GAME_STRINGS.entry.legacy, GAME_STRINGS.entry.shardfile]);
-});
-
-test('the boot honours a LEGACY pick only with the legacy buttons on', () => {
-  const choices: ShardEntryChoices = { choose: () => undefined, read: () => 'legacy' };
-  const nine = { slug: 'nine-dragon-stack', entries: { legacy: true, shardfile: true } } as const;
-  expect(shardEntry(nine, false, () => choices)).toBe('shardfile');
-  expect(shardEntry(nine, true, () => choices)).toBe('legacy');
-  expect(shardEntry({ slug: 'nine-dragon-stack-legacy', entries: { legacy: true, shardfile: false, public: 'legacy' } }, false, () => choices)).toBe('legacy');
-});
-
-test.each([
-  ['driftwood-isle', false], ['nalati-grasslands', false],
-  ['sunscar-dunes', false], ['far-reach', false],
-  ['nine-dragon-stack', true], ['pine-hollow', false],
-] as const)('%s card offers legacy only while its frozen copy remains', async (slug, legacy) => {
-  const manifests = [...SHARDS, ...LEGACY_SHARDS];
-  installShards(manifests); setDev(true);
-  const choice = titleCards(true).find(candidate => candidate.slug === slug);
-  const manifest = manifests.find(candidate => candidate.slug === slug);
-  if (choice === undefined || manifest === undefined) throw new Error('Missing real shard card');
-  expect(choice.entries).toEqual({legacy, shardfile: true});
-  expect(LEGACY_SHARDS.some(copy => copy.slug === `${slug}-legacy`)).toBe(legacy);
-  const entered: [string, string | undefined][] = [];
-  const built = buildTitleDeck({cards: [choice], active: null,
-    onEnter: (selected, entry) => { entered.push([selected.slug, entry]); },
-    onExplore: () => undefined, onSettings: () => undefined,
-    mode: () => ({developer: true, devserver: true})});
+test('a locked card offers no entry and a legacy-only manifest boots as itself', () => {
+  setDev(false);
+  const d = deck(false), locked = { ...card('_template', false), badge: 'Developer only' as const };
+  const built = buildTitleDeck({ cards: [locked], active: null, onEnter: () => { throw new Error('entered a locked card'); },
+    onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: false, devserver: false }) });
   decks.push(built); document.body.append(built.root);
-  row().set('on');
-  try {
-    expect(shown(built.root)).toEqual(legacy
-      ? [GAME_STRINGS.entry.legacy, GAME_STRINGS.entry.shardfile] : ['Enter world']);
-    if (!legacy) {
-      // A saved pick from before retirement must not revive the deleted entry.
-      expect(shardEntry(manifest, true, () => ({choose: () => undefined, read: () => 'legacy'}))).toBe('shardfile');
-      play(built.root); await paintFrames();
-      expect(entered).toEqual([[slug, 'shardfile']]);
-    }
-  } finally { row().set('off'); installShards([]); }
+  expect(shown(built.root)).toEqual(['Coming soon']);
+  expect(built.root.querySelector<HTMLButtonElement>('.ws-menu-play')?.disabled).toBe(true);
+  expect(shown(d.root)).toEqual(['Enter world']);
+  expect(shardEntry({ entries: { legacy: true, shardfile: false, public: 'legacy' } })).toBe('legacy');
+  expect(shardEntry({ load: () => Promise.reject(new Error('unused')) })).toBe('legacy');
+  expect(shardEntry({})).toBe('shardfile');
 });
+
+test.each(['driftwood-isle', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'pine-hollow'] as const)(
+  '%s card enters its shardfile through ENTER WORLD, never a frozen copy', async (slug) => {
+    const manifests = [...SHARDS, ...LEGACY_SHARDS];
+    installShards(manifests); setDev(true);
+    expect(titleCards(true).some(candidate => candidate.slug.endsWith('-legacy'))).toBe(false);
+    const choice = titleCards(true).find(candidate => candidate.slug === slug);
+    const manifest = manifests.find(candidate => candidate.slug === slug);
+    if (choice === undefined || manifest === undefined) throw new Error('Missing real shard card');
+    expect(choice.entries?.shardfile).toBe(true);
+    expect(shardEntry(manifest)).toBe('shardfile');
+    expect(resolveTravelEntry(manifest)).toBe(manifest);
+    for (const copy of LEGACY_SHARDS) expect(resolveTravelEntry(copy)).toBeUndefined();
+    const entered: string[] = [];
+    const built = buildTitleDeck({cards: [choice], active: null, onEnter: (selected) => { entered.push(selected.slug); },
+      onExplore: () => undefined, onSettings: () => undefined, mode: () => ({developer: true, devserver: true})});
+    decks.push(built); document.body.append(built.root);
+    try {
+      expect(shown(built.root)).toEqual(['Enter world']);
+      play(built.root); await paintFrames();
+      expect(entered).toEqual([slug]);
+    } finally { installShards([]); }
+  });
 
 
 const buildOutPlots = ['frostline-peaks', 'lantern-bayou', 'ember-forge', 'mosslight-ruins', 'coral-drift'];
@@ -197,15 +175,15 @@ test.each(buildOutPlots)('%s retains standalone loading and card metadata after 
   expect(choice.heroPortrait).toBe(manifest.card.portrait);
   expect(choice.heroLandscape).toBe(manifest.card.landscape);
   expect(manifest.card.thumb).toContain(`/open-plots/thumbs/${idea}.jpg`);
-  const entered: [string, string][] = [];
+  const entered: string[] = [];
   const built = buildTitleDeck({ cards: [choice], active: null,
-    onEnter: (selected, entry) => { entered.push([selected.slug, entry]); },
+    onEnter: (selected) => { entered.push(selected.slug); },
     onExplore: () => undefined, onSettings: () => undefined,
     mode: () => ({ developer: false, devserver: false }) });
   decks.push(built); document.body.append(built.root);
   expect(shown(built.root)).toEqual(['Enter world']);
   play(built.root); await paintFrames();
-  expect(entered).toEqual([[slug, 'shardfile']]);
+  expect(entered).toEqual([slug]);
   installShards([]);
 });
 
@@ -296,47 +274,3 @@ test('the click iOS sends after the title SHARD SELECT tap enters no world and m
   await paintFrames();
   expect(entered).toHaveBeenCalledTimes(1);
 });
-
-test('every retained Legacy button resolves and boots its original plugin and look modules', async () => {
-  const manifests = [...SHARDS, ...LEGACY_SHARDS];
-  installShards(manifests); setDev(true);
-  const cards = titleCards(true), selected: ShardManifest[] = [];
-  const makeDeck = (): ReturnType<typeof buildTitleDeck> => buildTitleDeck({ cards, active: null, onEnter: (choice, mode) => {
-    const manifest = shardEntryManifest(manifests, choice.slug, mode ?? 'legacy');
-    if (manifest === undefined) throw new Error('Missing selected manifest');
-    selected.push(manifest);
-  }, onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
-  let built = makeDeck();
-  document.body.append(built.root);
-  const option = [...authoredRows].find(optionRow => optionRow.id === 'legacyShardButtons');
-  if (option === undefined) throw new Error('Missing Legacy shard buttons');
-  option.set('on');
-
-  try {
-    for (const copy of LEGACY_SHARDS) {
-      // Each retained entry is a fresh page in production, not a second tap on
-      // the already-departing title. Preserve every plugin/look qualification.
-      if (selected.length > 0) { built.dispose(); built.root.remove(); built = makeDeck(); document.body.append(built.root); }
-      const primary = copy.slug.slice(0, -'-legacy'.length);
-      const index = cards.findIndex(choice => choice.slug === primary);
-      expect(index, copy.slug).toBeGreaterThanOrEqual(0);
-      built.select(index, false);
-      const button = built.root.querySelector<HTMLButtonElement>('.ws-menu-play');
-      expect(button?.disabled, copy.slug).toBe(false); button?.click();
-      await paintFrames();
-      expect(selected.at(-1), copy.slug).toBe(copy);
-      if (copy.load === undefined || copy.render === undefined) throw new Error('Frozen boot loader missing');
-      const loaded = await copy.load();
-      const Plugin = loaded.default, plugin = new Plugin();
-      expect(typeof plugin.world, copy.slug).toBe('function');
-      // Frozen render loaders predate products and consume no arguments.
-      const look: unknown = await Reflect.apply(copy.render, undefined, []);
-      expect(look, copy.slug).toBeTypeOf('object');
-      if (typeof look === 'object' && look !== null) {
-        const dispose: unknown = Reflect.get(look, 'dispose');
-        if (typeof dispose === 'function') Reflect.apply(dispose, look, []);
-      }
-    }
-    expect(selected).toEqual(LEGACY_SHARDS);
-  } finally { built.dispose(); option.set('off'); installShards([]); }
-}, 60_000); // Six real lazy plugin/look graphs compile once; no world, renderer or network double.
