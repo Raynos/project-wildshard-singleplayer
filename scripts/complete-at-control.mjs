@@ -63,7 +63,7 @@ const ALL_SLUGS = new Set([
  *  an open plot's asset folder, or a Rolldown chunk named after the shard. */
 function slugOf(path) {
   const named = [/^\/shardfiles\/([^/]+)\//u, /^\/assets\/(?:baked\/|music\/|sfx\/)?([^/]+)\//u, /^\/assets\/horizon\/(.+?)-(?:day|night|dusk|dawn)/u,
-    /^\/assets\/shard-(.+?)-/u];
+    /^\/assets\/shard-(.+?)-/u, /^\/assets\/boot-(.+?)-[\w]+\.json$/u];
   for (const pattern of named) {
     const slug = pattern.exec(path)?.[1];
     if (slug !== undefined && ALL_SLUGS.has(slug)) return slug;
@@ -77,17 +77,31 @@ function slugOf(path) {
   }
   return null;
 }
-/** The level's dependency set: every same-origin request that names no other level. In the grid the level is every cell a
- *  boost lap from spawn can reach (filled in at control from the grid's state). */
+/** The level's dependency set: every same-origin request that names no other level. In the grid the level is the home
+ *  cell (filled in at control from the grid's state); the other cells and the road between them are its neighbours. */
 const levelSlugs = new Set(flow === 'grid' ? [] : [flow]);
+const GRID_SLUGS = new Set(JSON.parse(readFileSync(resolve('src/game/grid/singleplayer.json'), 'utf8')).grid.cells.map(cell => cell.slug));
 const origin = new URL(base).origin;
-const isLevelContent = (url) => {
+/** A same-origin http path that is not version.json or SHARD SELECT card art (a level's thumb, portrait and landscape
+ *  cards are menu art, never drawn in the level); null otherwise. blob: and data: URLs are in-memory reads, not downloads. */
+const contentPath = (url) => {
   const at = new URL(url);
-  // blob: and data: URLs are in-memory reads, not downloads
-  if (!at.protocol.startsWith('http') || at.origin !== origin || at.pathname === '/version.json') return false;
-  // SHARD SELECT card art (a level's thumb, portrait and landscape cards) is menu art, never drawn in the level
-  if (/^\/assets\/[a-z0-9-]+?-(?:landscape|portrait)-[\w-]+\.(?:jpg|webp)$/u.test(at.pathname) || /^\/assets\/card-[\w-]+\.jpg$/u.test(at.pathname)) return false;
-  const slug = slugOf(at.pathname);
+  if (!at.protocol.startsWith('http') || at.origin !== origin || at.pathname === '/version.json') return null;
+  if (/^\/assets\/[a-z0-9-]+?-(?:landscape|portrait)-[\w-]+\.(?:jpg|webp)$/u.test(at.pathname) || /^\/assets\/card-[\w-]+\.jpg$/u.test(at.pathname)) return null;
+  return at.pathname;
+};
+/** The grid's neighbour content: another cell's files and the grid road (G828: today's loading stays until Jake rules). */
+const isNeighbour = (url) => {
+  const at = flow === 'grid' ? contentPath(url) : null;
+  if (at === null) return false;
+  if (at.startsWith('/assets/grid-road/')) return true;
+  const slug = slugOf(at);
+  return slug !== null && !levelSlugs.has(slug) && GRID_SLUGS.has(slug);
+};
+const isLevelContent = (url) => {
+  const at = contentPath(url);
+  if (at === null || isNeighbour(url)) return false;
+  const slug = slugOf(at);
   return slug === null || levelSlugs.has(slug);
 };
 
@@ -127,7 +141,8 @@ function snapshot() {
         if (empty && texturesPending.length < 50) texturesPending.push(`${chain.join('<')}.${key}`);
       }
     });
-    scene = { meshes, visible, list, lods, texturesPending, player: [p.x, p.y, p.z], speed: Math.hypot(v.x, v.z), hover: world.player.hover, boost: world.player.hoverBoost };
+    scene = { meshes, visible, list, lods, texturesPending, player: [p.x, p.y, p.z], speed: Math.hypot(v.x, v.z), hover: world.player.hover, boost: world.player.hoverBoost,
+      limit: typeof world.player.hoverSpeedLimit === 'function' ? world.player.hoverSpeedLimit() : null };
   } catch (error) { scene = { error: String(error) }; }
   let gridState = null;
   if (grid !== undefined) {
@@ -239,13 +254,14 @@ try {
     return { start, control: control.at, ms: control.at - start, workerFetchesOpenAtNavigation, at };
   };
   /** The grid's reach cells (each cell whose square meets the lap's box round spawn; a cell's centre is its index times the
-   *  pitch) join the level's dependency set. */
+   *  pitch); the home cell joins the level's dependency set. */
   const reachOf = at => {
     const g = at.grid;
     if (flow !== 'grid' || !g || g.error) return [];
     const half = g.pitch / 2, fx = g.feet.x, fz = g.feet.z;
     const inReach = (g.cells ?? []).filter(c => Math.abs(c.cell[0] * g.pitch - fx) < half + reach && Math.abs(c.cell[1] * g.pitch - fz) < half + reach);
-    for (const c of inReach) levelSlugs.add(c.slug);
+    const home = (g.cells ?? []).find(c => c.id === g.home);
+    if (home !== undefined) levelSlugs.add(home.slug);
     return inReach.map(c => ({ id: c.id, slug: c.slug, shows: c.shows }));
   };
   const path = r => new URL(r.url).pathname;
@@ -260,9 +276,12 @@ try {
     }
     return found;
   };
-  /** Checks 1 and 2 for one visit (its requests and reads from its navigation to `until`), and check 3 for its lap. */
+  /** Checks 1 and 2 for one visit (its requests and reads from its navigation to `until`), and check 3 for its lap. In the
+   *  grid the verdict is the home cell's: its own and shared content. What the neighbour cells load (their files, the grid
+   *  road, the rings, their stand-ins and draws) keeps today's loading pending Jake (G828) and is listed apart. */
   const judge = (name, visit, until, reachCells, lap = []) => {
     const flag = text => { report.violations.push(name === '' ? text : `${name}: ${text}`); };
+    const neighbourList = [], note = text => { neighbourList.push(name === '' ? text : `${name}: ${text}`); };
     const c = visit.control, at = visit.at, row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - c });
     const mine = requests.filter(r => r.start >= visit.start && r.start < until), level = mine.filter(r => isLevelContent(r.url));
     const pending = level.filter(r => r.start < c && (r.end === null || r.end > c)), after = level.filter(r => r.start >= c);
@@ -270,13 +289,20 @@ try {
     if (pending.length > 0) flag(`${pending.length} level-content requests still open at control (first: ${pending.slice(0, 3).map(path).join(', ')})`);
     if (after.length > 0) flag(`${after.length} level-content requests started after control, ${after.filter(r => r.by === 'service-worker').length} by the service worker (first: ${after.slice(0, 3).map(path).join(', ')})`);
     if (lateReads.length > 0) flag(`${lateReads.length} Cache Storage / blob / data reads of level content after control (first: ${lateReads.slice(0, 3).map(r => `${r.kind} ${r.url}`).join(', ')})`);
+    const nPending = mine.filter(r => isNeighbour(r.url) && r.start < c && (r.end === null || r.end > c)), nAfter = mine.filter(r => isNeighbour(r.url) && r.start >= c);
+    const nReads = reads.filter(r => r.at >= c && r.at < until && isNeighbour(r.url));
+    if (nPending.length + nAfter.length > 0) note(`${nPending.length} neighbour requests open at control, ${nAfter.length} started after it (first: ${[...nPending, ...nAfter].slice(0, 3).map(path).join(', ')})`);
+    if (nReads.length > 0) note(`${nReads.length} Cache Storage reads of neighbour content after control (first: ${nReads.slice(0, 2).map(r => r.url).join(', ')})`);
     const g = at.grid;
     if (g && !g.error) {
+      // the ring streamer feeds the cells round the one being played (home draws its own scene, 0 ring tiles at control)
       const rings = g.rings ?? {};
-      if ((rings.inFlight ?? 0) > 0 || (rings.queued ?? 0) > 0) flag(`grid rings at control: ${rings.inFlight ?? 0} in flight, ${rings.queued ?? 0} queued`);
+      if ((rings.inFlight ?? 0) > 0 || (rings.queued ?? 0) > 0) note(`grid rings at control: ${rings.inFlight ?? 0} in flight, ${rings.queued ?? 0} queued`);
       const reachIds = new Set(reachCells.map(cell => cell.id));
       const standIns = (g.cells ?? []).filter(cell => reachIds.has(cell.id) && ['far proxy', 'tiles', 'loading', 'near', 'frozen'].includes(cell.shows));
-      if (standIns.length > 0) flag(`cells standing in at control: ${standIns.map(cell => `${cell.id}=${cell.shows}`).join(', ')}`);
+      const homeStandIn = standIns.filter(cell => cell.id === g.home), nStandIns = standIns.filter(cell => cell.id !== g.home);
+      if (homeStandIn.length > 0) flag(`the home cell stands in at control: ${homeStandIn.map(cell => `${cell.id}=${cell.shows}`).join(', ')}`);
+      if (nStandIns.length > 0) note(`neighbour cells within reach standing in at control: ${nStandIns.map(cell => `${cell.id}=${cell.shows}`).join(', ')}`);
     }
     const done = at.marks.findLast(m => m.name === 'wildshard.spawn-view.done');
     if (done === undefined) flag('no wildshard.spawn-view.done mark at control: the spawn-view fence never finished, completeness unproven');
@@ -289,27 +315,28 @@ try {
     // is not cached yet downloads that set after control and the next visit draws other textures (sp-x6's DL9 red)
     if (at.textures?.mode === 'img' && /KTX2 set is not cached/u.test(at.textures.why ?? '')) flag(`textures drawn as images at control while the level's KTX2 set downloads after it, so the next visit swaps them (${at.textures.why})`);
     if ((at.scene?.lods ?? []).length > 0) flag(`${at.scene.lods.length} LODs within reach below full detail at control (first: ${at.scene.lods.slice(0, 3).join(', ')})`);
-    // pops during the lap: anything shown within reach of the player that control did not show as it is now
-    const atMeshes = new Map((at.scene?.list ?? []).map(([id, , sig, on]) => [id, { sig, on }])), pops = new Map(), dynamic = new Map();
+    // pops during the lap: anything shown within reach of the player that control did not show as it is now; a mesh under
+    // another cell's region is the neighbour's
+    const atMeshes = new Map((at.scene?.list ?? []).map(([id, , sig, on]) => [id, { sig, on }])), pops = new Map(), nPops = new Map(), dynamic = new Map();
     const fineAt = new Set(at.fine), addedFine = new Set(), lapLods = new Set(), lapTextures = new Set();
-    let speedMax = 0;
+    const homeRegion = flow === 'grid' ? (g?.cells ?? []).find(cell => cell.id === g?.home)?.id : undefined;
+    const neighbourChain = chain => homeRegion !== undefined && /region:[\w-]+/u.test(chain) && !chain.includes(`region:${homeRegion}`);
     for (const s of lap) {
       for (const key of s.fine ?? []) if (!fineAt.has(key)) addedFine.add(key);
-      speedMax = Math.max(speedMax, s.scene?.speed ?? 0);
       for (const lod of s.scene?.lods ?? []) lapLods.add(lod);
       for (const texture of s.scene?.texturesPending ?? []) lapTextures.add(texture);
       for (const [id, chain, sig, , close, skinned] of s.scene?.list ?? []) {
-        if (!close || pops.has(id) || dynamic.has(id)) continue;
+        if (!close || pops.has(id) || nPops.has(id) || dynamic.has(id)) continue;
         // a skinned mesh (an animal, a person) is a moving actor the level culls by distance: listed, never a pop
         if (skinned) { if (atMeshes.get(id)?.on !== true) dynamic.set(id, chain); continue; }
         const was = atMeshes.get(id), why = was === undefined ? 'added' : !was.on ? 'shown' : was.sig === sig ? null : 'swapped';
-        if (why !== null) pops.set(id, `${why} ${chain}`);
+        if (why !== null) (neighbourChain(chain) ? nPops : pops).set(id, `${why} ${chain}`);
       }
     }
     if (lap.length > 0) {
-      if (speedMax < 45) report.errors.push(`the lap never reached boost speed (max ${speedMax.toFixed(1)} m/s < 45): no boost reading`);
       if (addedFine.size > 0) flag(`${addedFine.size} fine tiles became resident during the boost lap`);
       if (pops.size > 0) flag(`${pops.size} meshes popped within reach during the boost lap: ${[...pops.values()].slice(0, 6).join('; ')}`);
+      if (nPops.size > 0) note(`${nPops.size} neighbour meshes popped within reach during the boost lap: ${[...nPops.values()].slice(0, 4).join('; ')}`);
       if (lapLods.size > 0) flag(`${lapLods.size} LODs within reach below full detail during the boost lap (first: ${[...lapLods].slice(0, 3).join(', ')})`);
       if (lapTextures.size > 0) flag(`${lapTextures.size} textures within reach not decoded during the boost lap (first: ${[...lapTextures].slice(0, 3).join(', ')})`);
       // grid tiles join batched meshes, so a ring pop shows as a reach cell's drawn layers changing, not as a new mesh
@@ -321,12 +348,16 @@ try {
           cellPops.set(cell.id, `${cell.id}: l0 ${before.l0}->${cell.drawn.l0}, l1 ${before.l1}->${cell.drawn.l1}, far ${before.far}->${cell.drawn.far}, near ${before.near}->${cell.drawn.near}`);
         }
       }
-      if (cellPops.size > 0) flag(`${cellPops.size} reach cells changed what they draw during the boost lap: ${[...cellPops.values()].join('; ')}`);
-      report.lapAdds = { fineTiles: [...addedFine], meshesAtControl: at.scene?.meshes ?? null, pops: [...pops.values()], actorsShown: [...dynamic.values()], lods: [...lapLods], textures: [...lapTextures], cellPops: [...cellPops.values()], speedMax };
+      const homePops = [...cellPops].filter(([id]) => id === g?.home).map(([, text]) => text), nCellPops = [...cellPops].filter(([id]) => id !== g?.home).map(([, text]) => text);
+      if (homePops.length > 0) flag(`the home cell changed what it draws during the boost lap: ${homePops.join('; ')}`);
+      if (nCellPops.length > 0) note(`neighbour cells changed what they draw during the boost lap: ${nCellPops.join('; ')}`);
+      report.lapAdds = { fineTiles: [...addedFine], meshesAtControl: at.scene?.meshes ?? null, pops: [...pops.values()], neighbourPops: [...nPops.values()], actorsShown: [...dynamic.values()], lods: [...lapLods], textures: [...lapTextures], cellPops: [...cellPops.values()] };
     }
+    if (neighbourList.length > 0) (report.neighbour ??= []).push(...neighbourList);
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
       pendingAtControl: pending.map(r => ({ url: r.url, by: r.by })), afterControl: after.map(row), readsAfterControl: lateReads.slice(0, 40),
-      otherAfterControl: mine.filter(r => r.start >= c && !isLevelContent(r.url)).map(r => ({ url: r.url, by: r.by })) };
+      neighbour: { pendingAtControl: nPending.length, afterControl: nAfter.length, readsAfterControl: nReads.length },
+      otherAfterControl: mine.filter(r => r.start >= c && !isLevelContent(r.url) && !isNeighbour(r.url)).map(r => ({ url: r.url, by: r.by })) };
   };
   const strip = s => { if (s?.scene) delete s.scene.list; return s; };
 
@@ -387,21 +418,25 @@ try {
         const seconds = bound(hover);
         if (hover) await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; });
         const walk = page.evaluate(l => window.__wildshard.walkLeg({ name: `dl17-${l.name}`, start: { ...l.start, hover: l.hover }, waypoints: l.points.map(([x, z]) => ({ x, z })), timeout: l.seconds, stuckSeconds: 5 }), { ...leg, seconds, hover });
-        const legEnd = Date.now() + seconds * 1000 + 2000, finished = { done: false };
+        const first = lap.length, legEnd = Date.now() + seconds * 1000 + 2000, finished = { done: false };
         const settledWalk = (async () => {
           try { return await walk; } catch (error) { report.errors.push(`lap ${leg.name}: ${String(error)}`); return null; } finally { finished.done = true; }
         })();
         await page.waitForTimeout(300);
         if (hover) await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
         while (!finished.done && Date.now() < legEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
-        const result = await settledWalk;
+        const result = await settledWalk, mine = lap.slice(first).map(s => s.scene ?? {});
+        // what the board did: its top speed (samples, and the trace frame to frame), boost and any speed cap it ran under
+        let traceTop = 0;
+        for (let i = 1; i < (result?.trace ?? []).length; i++) { const [t0, x0, , z0] = result.trace[i - 1], [t1, x1, , z1] = result.trace[i]; if (t1 > t0) traceTop = Math.max(traceTop, Math.hypot(x1 - x0, z1 - z0) / (t1 - t0)); }
+        const board = { top: Math.max(0, ...mine.map(s => s.speed ?? 0)), traceTop, hover: [...new Set(mine.map(s => s.hover))], boost: [...new Set(mine.map(s => s.boost))], limit: [...new Set(mine.map(s => s.limit))] };
         const trace = result?.trace ?? [], passed = new Set(trace.map(frame => frame[9]));
         const ordered = trace.every((frame, i) => i === 0 || frame[9] >= trace[i - 1][9]);
         const [lx, lz] = leg.points.at(-1) ?? [leg.start.x, leg.start.z];
         const off = result?.end === undefined ? Infinity : Math.hypot(result.end.x - lx, result.end.z - lz);
         const stuck = (result?.stuck ?? []).length;
         const complete = result !== null && trace.length > 0 && ordered && leg.points.every((_, i) => passed.has(i)) && stuck === 0 && result.seconds < seconds && off <= 3;
-        return { leg: leg.name, on: hover ? 'board' : 'foot', complete, frames: trace.length, waypointsPassed: passed.size, of: leg.points.length, stuck, seconds: result?.seconds ?? null, bound: seconds, end: result?.end ?? null, offEnd: Number.isFinite(off) ? Math.round(off * 10) / 10 : null };
+        return { leg: leg.name, on: hover ? 'board' : 'foot', complete, board, frames: trace.length, waypointsPassed: passed.size, of: leg.points.length, stuck, stuckAt: result?.stuck ?? [], maxY: result?.maxY ?? null, seconds: result?.seconds ?? null, bound: seconds, end: result?.end ?? null, offEnd: Number.isFinite(off) ? Math.round(off * 10) / 10 : null };
       };
       report.lapRoute.legs.push({ leg: leg.name, waypoints: leg.points.length, metres: Math.round(metres) });
       // a walk course the board cannot climb (stairs, ladders) is driven again on foot: the player reaches it that way
@@ -412,6 +447,13 @@ try {
       if (!run.complete) report.errors.push(`the boost lap's ${leg.name} leg did not complete on board or on foot: ${run.waypointsPassed} of ${run.of} waypoints in its trace, ${run.stuck} stuck, ended ${run.offEnd === null ? 'with no result' : `${run.offEnd} m from its last waypoint`}, ${run.seconds?.toFixed(1) ?? '?'} of ${run.bound} s`);
     }
     report.lapComplete = legs.every(leg => report.lapResults.some(r => r.leg === leg.name && r.complete));
+    // boost is proven engaged (every board sample: Developer boost on, a cap of none or the grid interior 14 m/s, so a 56 m/s
+    // top, src/engine/player/hoverSpeed.ts); the speed
+    // travelled is the course's (frame to frame in the trace: a velocity sample reads 56 against a wall it is stuck on)
+    const boardRuns = report.lapResults.filter(r => r.on === 'board');
+    const engaged = boardRuns.length > 0 && boardRuns.every(r => r.board.boost.every(Boolean) && r.board.hover.includes(true) && r.board.limit.every(l => l === null || l <= 14));
+    report.boost = { engaged, travelledTop: Math.max(0, ...boardRuns.map(r => r.board.traceTop)) };
+    if (!engaged) report.errors.push(`boost never engaged on the board: ${JSON.stringify(boardRuns.map(r => ({ leg: r.leg, hover: r.board.hover, boost: r.board.boost, limit: r.board.limit })))}`);
     report.lapSamples = lap.length;
     lap.push(await page.evaluate(snapshot));
     await harvest();
@@ -431,5 +473,5 @@ try {
 }
 const timing = report.warm === undefined ? '' : ` (warm: cold ${report.warm.coldMs} ms, re-entry during precache ${report.warm.duringPrecacheMs} ms with ${report.warm.workerFetchesOpenAtReentry} worker fetches open, settled ${report.warm.settledMs} ms)`;
 const verdict = `${report.pass ? 'COMPLETE AT CONTROL' : 'FAIL'}${timing}`;
-console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
+console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${(report.neighbour ?? []).length > 0 ? `\n  neighbours (G828, not in the verdict):\n  ~ ${report.neighbour.join('\n  ~ ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
 process.exit(report.pass === null ? 2 : report.pass ? 0 : 1);
