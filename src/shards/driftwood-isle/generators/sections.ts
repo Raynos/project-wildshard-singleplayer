@@ -10,6 +10,6 @@ export const FixedGeometryGroupsSchema:ReturnType<typeof authorFormatSchema<'isl
 const bridgeSpan = ({ kind: "object", mode: "strict", entries: { a: ({ kind: "tuple", items: [number, number] } as const), b: ({ kind: "tuple", items: [number, number] } as const), sag: number } } as const);
 const BridgeRowsSchema = defineNamedRows(({ kind: "object", mode: "strict", entries: { world: bridgeSpan, specimen: bridgeSpan } } as const)).schema;
 /** Admit authored bridge endpoints through their defining grammar without an erased JSON shim. */
-export function readBridgeSpans(input: unknown): NamedRowValue<typeof BridgeRowsSchema> {
+export function readBridgeSpans(input: unknown): { world: { a: [number, number]; b: [number, number]; sag: number }; specimen: { a: [number, number]; b: [number, number]; sag: number } } {
     return defineNamedRows(BridgeRowsSchema).parse(input);
 }

@@ -1,7 +1,7 @@
 // Per-shard runtime/ file ceilings (lint/runtime-files.mjs): a shard above its ceiling refuses, and a ceiling never rises
 // without an explicit raises line.
 // oxlint-disable-next-line import/no-nodejs-modules -- Writes stay inside an owned temporary checkout fixture.
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture checkout lives in the OS temporary folder.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the fixture and the repository's own runtime folders.
@@ -54,8 +54,8 @@ test('the checked-in ceilings are self-consistent and every first-party shard fi
   // The current policy may have shrunk since its historical raises;
   // predecessor transition tests and the gate enforce those changes.
   expect(runtimeFilesShape(checkedIn)).toEqual([]);
-  const count = (folder: string): number => readdirSync(folder, { withFileTypes: true }).reduce((total, entry) => total
-    + (entry.isDirectory() ? count(join(folder, entry.name)) : /\.[cm]?[jt]sx?$/u.test(entry.name) && !entry.name.endsWith('.d.ts') ? 1 : 0), 0);
+  const count = (folder: string): number => existsSync(folder) ? readdirSync(folder, { withFileTypes: true }).reduce((total, entry) => total
+    + (entry.isDirectory() ? count(join(folder, entry.name)) : /\.[cm]?[jt]sx?$/u.test(entry.name) && !entry.name.endsWith('.d.ts') ? 1 : 0), 0) : 0;
   for (const slug of ['pine-hollow', 'driftwood-isle']) {
     expect(count(join(repo, 'src/shards', slug, 'runtime')), slug).toBeLessThanOrEqual(runtimeFileCeiling(checkedIn, slug));
   }

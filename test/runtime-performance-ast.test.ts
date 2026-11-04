@@ -27,11 +27,13 @@ function cold() { return new Set(); }
   expect(sites).toHaveLength(4);
 });
 
-test('supplied lint AST retains every standalone runtime site and frozen allowance', () => {
+test('supplied lint AST retains its controls after shard runtime retirement', () => {
   const inventory = spawnSync('git', ['ls-files', '-z', '--', 'src/shards'], { encoding: 'utf8' });
   expect(inventory.status, inventory.stderr).toBe(0);
   const files = inventory.stdout.split('\0').filter(file => /^src\/shards\/[^/]+\/runtime\/.*\.[jt]s$/u.test(file));
-  expect(files.length).toBeGreaterThan(0);
+  // LD9 retires every copied shard runtime; the owned edge fixture below
+  // still exercises all original AST, native-site and frozen-digest checks.
+  expect(files).toEqual([]);
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/runtime-ast-'));
   try {
