@@ -77,7 +77,7 @@ test('a part whose bytes differ from the manifest is never kept: its members loa
   expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3});
 });
 
-test('DL18: a warm visit answers every packed member from the held-parts index, with no part request or bulk read', async () => {
+test('DL18: a warm visit answers every packed member from the held-parts index, with no part request or bulk read; an unfit entry refetches its part', async () => {
   // One in-memory asset cache shared by a cold visit and the warm visit after it.
   const disk = new Map<string, Response>(), reads: string[] = [], lookups: string[] = [];
   let index: HeldParts = {}, bulk = 0;
@@ -98,15 +98,24 @@ test('DL18: a warm visit answers every packed member from the held-parts index, 
   reads.length = 0; lookups.length = 0; bulk = 0;
   const warm = downloadSpawnManifest(address, ports(), base);
   await warm.ready;
-  // The manifest and the loose module come from the cache by their own lookups; the packed members need none.
+  // Every file is answered by its own cache lookup (each held member is checked: a 200, not a page, its exact length).
   expect(reads).toEqual([]); expect(bulk).toBe(0);
-  expect(lookups.sort()).toEqual([address.url, code.url].sort());
+  expect(lookups.sort()).toEqual([address.url, bin.url, glb.url, code.url].sort());
   expect(warm.snapshot()).toMatchObject({complete: true, cachedBytes: 12, filesDone: 3});
-  // The worker pruned a member: the index no longer holds its part, so the part is fetched again and re-listed.
-  disk.delete(new URL(glb.url, base).href); reads.length = 0;
-  await downloadSpawnManifest(address, ports(), base).ready;
-  expect(reads).toEqual([part.url]);
-  expect(index[hash]).toEqual([new URL(bin.url, base).href, new URL(glb.url, base).href]);
+  // The worker pruned a member, or its entry is unfit (sp-x9's review of 77f9b5489f): the part is fetched again, the
+  // member re-kept and the part re-listed; the download is complete only with the right bytes.
+  const glbURL = new URL(glb.url, base).href;
+  for (const unfit of [undefined, new Response('gone', {status: 404}), new Response('<!doctype html>', {headers: {'content-type': 'text/html'}}),
+    new Response(new Uint8Array(4), {headers: {'content-length': '4'}}), new Response(new Uint8Array(4))]) {
+    if (unfit === undefined) disk.delete(glbURL); else disk.set(glbURL, unfit);
+    reads.length = 0;
+    const again = downloadSpawnManifest(address, ports(), base);
+    await again.ready;
+    expect(reads).toEqual([part.url]);
+    expect(new Uint8Array(await (disk.get(glbURL)?.clone().arrayBuffer() ?? new ArrayBuffer(0)))).toEqual(new Uint8Array(5).fill(2));
+    expect(again.snapshot()).toMatchObject({complete: true, filesDone: 3});
+    expect(index[hash]).toEqual([new URL(bin.url, base).href, glbURL]);
+  }
 });
 
 test('DL15: on the packs path the wire facts are the parts\' q11 bodies plus the loose files', async () => {

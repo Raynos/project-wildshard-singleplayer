@@ -136,16 +136,25 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           if (urls.every(url => stored.has(url) && keys.has(url))) for (const url of urls) heldFiles.add(url);
         }
       }
-      const rest = files.filter(file => !heldFiles.has(file.url));
+      // A key only proves an entry exists. Each held member is credited only when its entry is a 200, not a page, and
+      // exactly its listed length (the header `keep` wrote, else the body); any other entry is fetched again with its
+      // part (sp-x9's review of 77f9b5489f).
+      const unfit = new Set<string>();
+      await Promise.all(files.map(async file => {
+        if (!heldFiles.has(file.url) || await heldMember(await ports.cached(file.url), file.bytes)) return;
+        heldFiles.delete(file.url); unfit.add(file.url);
+      }));
+      const rest = files.filter(file => !heldFiles.has(file.url) && !unfit.has(file.url));
       const present = heldFiles.size > 0 && rest.length <= 64 ? undefined : await ports.present?.(rest.map(file => file.url));
       // Bulk native metadata avoids hundreds of cache IPC calls. Unmapped
       // responses (older synthetic URLs/redirects) retain the exact hit check.
-      const cached = await Promise.all(files.map(file => heldFiles.has(file.url) || present?.has(file.url) === true ? Promise.resolve(undefined) : ports.cached(file.url)));
+      const cached = await Promise.all(files.map(file => heldFiles.has(file.url) || unfit.has(file.url) || present?.has(file.url) === true ? Promise.resolve(undefined) : ports.cached(file.url)));
       controller.signal.throwIfAborted();
       const missing: typeof files = [];
       for (let index = 0; index < files.length; index++) {
         const file = files[index]; if (file === undefined) throw new Error('Missing spawn file');
-        if (heldFiles.has(file.url) || present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; }
+        if (unfit.has(file.url)) missing.push(file);
+        else if (heldFiles.has(file.url) || present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; }
         else missing.push(file);
       }
       progressKnown = true;
@@ -291,6 +300,14 @@ export function adoptCompletedSpawnDownload(slug: string, flow: 'client' | 'grid
 }
 /** DL18: the held-parts index's own key in the asset cache; no page or worker route serves it. */
 const HELD_PARTS = new URL('/__wildshard/spawn-held-parts', typeof location === 'undefined' ? 'http://localhost/' : location.href).href;
+/** A held member's cache entry is usable: a 200 that is not a page, exactly `bytes` long. `keep` writes the decoded
+ * length as Content-Length; an entry the network wrote may carry its encoded length instead, so its body is measured. */
+async function heldMember(response: Response | undefined, bytes: number): Promise<boolean> {
+  if (response?.status !== 200 || /\btext\/html\b/iu.test(response.headers.get('content-type') ?? '')) return false;
+  const length = response.headers.get('content-length');
+  if (length !== null && response.headers.get('content-encoding') === null) { void response.body?.cancel().catch(() => undefined); return Number(length) === bytes; }
+  return (await response.arrayBuffer()).byteLength === bytes;
+}
 async function readHeldParts(response: Response | undefined): Promise<HeldParts> {
   const value: unknown = response === undefined ? {} : await response.json();
   if (typeof value !== 'object' || value === null) return {};
