@@ -45,6 +45,15 @@ export function frameFloorBootstrapHtml(fixture, check) {
   return `<!doctype html><html><head><meta charset="utf-8"><title>Frame-floor preparation</title><script>${fixture};${check};window.__frameFloorBootstrapReady=true;</script></head><body>Frame-floor preparation</body></html>`;
 }
 
+/** Keep Safari's prepared storage context when entering the game. The boot
+ * trace lost fixture writes after a second native openurl, while same-tab
+ * navigation retained them. Acknowledge the Inspector evaluation first, then
+ * reconnect to the exact game URL; this runs before any measurement window.
+ * @param {string} url */
+export function frameFloorGameNavigationCode(url) {
+  return `setTimeout(() => location.replace(${JSON.stringify(url)}), 100); true`;
+}
+
 /** Bounded pre-measurement fixture provenance. Observe only the two fixture
  * documents, never player payloads; restore native methods before sampling. */
 export function traceFrameFloorFixtureWrites() {

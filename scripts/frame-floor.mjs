@@ -31,7 +31,7 @@ import { frameFloorStanding } from './frame-floor-standing.mjs';
 import { createServer } from 'node:http';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
-import { frameFloorSettingsCode, assertFrameFloorFixture, frameFloorBootstrapHtml, traceFrameFloorFixtureWrites } from './frame-floor-settings.mjs';
+import { frameFloorSettingsCode, assertFrameFloorFixture, frameFloorBootstrapHtml, frameFloorGameNavigationCode, traceFrameFloorFixtureWrites } from './frame-floor-settings.mjs';
 import { startFloorNative } from './frame-floor-native.mjs';
 import { validateFrameFloorArgs, parseSafariWindow, frameFloorChromiumCpuRate, frameFloorDrawBudgetMode, frameFloorChromiumAngle, frameFloorSoftwareCensus } from './frame-floor-args.mjs';
 import { frameFloorCpuPhase, assertFrameFloorRenderer } from './frame-floor-report-phase.mjs';
@@ -1098,9 +1098,10 @@ async function worker() {
           }
           // Reconnect after navigation: an inspector evaluation envelope can disappear in a WebContent process swap.
           // The helper sets live pose pins before the clean build's modules boot.
-          inspector.close(); inspector = undefined;
           const gameUrl = `${base}frame-floor-safari.html${query(shard)}`;
-          xcrun(['openurl', udid, gameUrl]);
+          if (!wasmMemoryProbe) await retryEvaluate(frameFloorGameNavigationCode(gameUrl));
+          inspector.close(); inspector = undefined;
+          if (wasmMemoryProbe) xcrun(['openurl', udid, gameUrl]);
           await connect(gameUrl);
         },
         refreshInspector: async () => { await connect(currentUrl); return JSON.parse(await inspector.raw(`JSON.stringify((${gridFloorDocumentIdentity.toString()})())`)); },

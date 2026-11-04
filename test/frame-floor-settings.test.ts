@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- execute the serialized Safari init in isolated storage contexts
 import { runInNewContext } from 'node:vm';
-import { frameFloorSettingsCode, resetFrameFloorDebug, assertFrameFloorFixture, frameFloorBootstrapHtml, traceFrameFloorFixtureWrites } from '../scripts/frame-floor-settings.mjs';
+import { frameFloorSettingsCode, resetFrameFloorDebug, assertFrameFloorFixture, frameFloorBootstrapHtml, frameFloorGameNavigationCode, traceFrameFloorFixtureWrites } from '../scripts/frame-floor-settings.mjs';
 import { saveFixtureCode } from '../scripts/debug-settings.mjs';
 import { validateFrameFloorArgs } from '../scripts/frame-floor-args.mjs';
 
@@ -86,6 +86,27 @@ test('refuses a silent fixture write failure before admitting the game document'
   runInNewContext(saveFixtureCode({ scope: 'device', key: 'devMode', data: true }), { localStorage });
   expect(() => { runInNewContext(check, { localStorage }); }).not.toThrow();
   expect(() => { runInNewContext(`(${assertFrameFloorFixture.toString()})(${JSON.stringify(settings)},true,{"missing":"on"})`, { localStorage }); }).toThrow('did not retain');
+});
+
+test('acknowledges Safari preparation before navigating its existing context', () => {
+  vi.useFakeTimers();
+  const saved = storage(), destinations: string[] = [];
+  const settings = { tier: 'phone', fps: 'auto' };
+  const context = { localStorage: saved, sessionStorage: storage(),
+    location: { replace: (url: string) => { destinations.push(url); } }, setTimeout };
+  try {
+    runInNewContext(frameFloorSettingsCode(settings), context);
+    runInNewContext(saveFixtureCode({ scope: 'device', key: 'devMode', data: true }), context);
+    const url = 'http://127.0.0.1:4456/frame-floor-safari.html?chunk=open-plot-clockwork-canyon&mute=1';
+    expect(runInNewContext(frameFloorGameNavigationCode(url), context)).toBe(true);
+    expect(destinations).toEqual([]);
+    vi.advanceTimersByTime(99);
+    expect(destinations).toEqual([]);
+    vi.advanceTimersByTime(1);
+    expect(destinations).toEqual([url]);
+    expect(read(saved, 'global')).toEqual({ keys: { settings: { v: 1, data: settings } } });
+    expect(read(saved, 'device')).toEqual({ keys: { devMode: { v: 1, data: true } } });
+  } finally { vi.useRealTimers(); }
 });
 
 test('fixture provenance identifies deletion, bounds records and restores native methods', () => {
