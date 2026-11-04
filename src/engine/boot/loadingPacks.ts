@@ -1,14 +1,14 @@
 import { jsonSlot } from '../saves/slots';
 
-/** DL16 (E525): Debug ▸ Loading & memory ▸ Level download. 'packs' makes a level's download read its runtime packs
- *  (DL5: a few content-named parts) instead of its loose files; 'shardfile' (default) keeps the loose files. A reload
- *  row: the composition root reads it once, before any download starts. The row goes when a phone reading flips it
- *  on for everyone (E451). */
+/** DL16 (E525, on for everyone 2026-11-04): a level's download reads its runtime packs (DL5: a few content-named parts).
+ *  The device slot below is a test-harness selector, not a toggle: no UI, no URL; the measuring tools (DL17, DL23, the
+ *  goldens, the Simulator readings) write 'shardfile' to read the loose files instead, which also stay the packs' 404
+ *  fallback and DL5 / DL20's per-shard choice. The composition root reads it once, before any download starts. */
 export const LEVEL_DOWNLOAD_SLOT = 'debug.levelDownload';
 // The first read of a page is its value: a pick takes effect only through the row's reload.
 let frozen: boolean | undefined;
 export function runtimePacksOn(): boolean {
-  frozen ??= jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device').read() === 'packs';
+  frozen ??= jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device').read() !== 'shardfile';
   return frozen;
 }
 
