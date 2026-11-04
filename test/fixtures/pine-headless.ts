@@ -1,6 +1,7 @@
 import type { InferOutput } from 'valibot';
 import { fencedNativeOracle } from './native-oracle';
 import { pineNativeOracleInputs } from './pine-native-oracle-inputs';
+import { pineNativeOracleSpec } from './pine-native-oracle-spec';
 // oxlint-disable-next-line import/no-nodejs-modules -- The direct native proof lends the original committed terrain/nav inputs, as its recorder does.
 import { readFileSync } from 'node:fs';
 import TERRAIN from '../../src/shards/pine-hollow/data/terrainBindings.json' with {type:'json'};
@@ -42,10 +43,7 @@ import type { PrepareHeadlessRuntime, HeadlessRuntimePreparation, HeadlessRuntim
 import { need, readJson, fresh, installCombatMotion, coalesce, prepareReturns } from './headless-plan';
 /** Fresh source child and typed parent must agree before native installation. */
 export function readPineNativeOracle(): Promise<ReturnType<typeof pineNativeOracleInputs>> {
-  return fencedNativeOracle({ id: 'pine-native-oracle', script: 'test/fixtures/pine-native-oracle.mjs',
-    inputs: ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons',
-      'src/shards/pine-hollow', 'test/fixtures', 'package.json', 'pnpm-lock.yaml',
-      'scripts/native-recorder-cache.mjs', 'scripts/bake-input-hashes.mjs'], transformTypes: true, loader: 'simulation' }, pineNativeOracleInputs);
+  return fencedNativeOracle(pineNativeOracleSpec(), pineNativeOracleInputs);
 }
 /** Explicit proof-only inputs outside the product's hashed runtime inventory. */
 export function pineHeadlessAssets(assets: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {

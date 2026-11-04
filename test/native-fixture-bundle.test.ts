@@ -8,6 +8,7 @@ import {nalatiNativeProgramSpec} from './fixtures/nalati-native-program';
 import {nalatiNativeAssemblySpec} from './fixtures/nalati-native-assembly';
 import {nalatiNativeBootSpec} from './fixtures/nalati-native-boot';
 import {nativeProgramFixture} from './fixtures/native-program';
+import {pineNativeOracleSpec} from './fixtures/pine-native-oracle-spec';
 import {nativeFixtureIdentity,packNativeFixtures,restoreNativeFixtures} from './fixtures/native-fixture-bundle';
 import {encodeCanonicalJson,hashImmutableBytes} from '../src/sdk/immutable';
 
@@ -125,4 +126,16 @@ test('the dedicated eight-input Nalati cache leaves other recorders on their ori
   vi.stubEnv('WS_NALATI_NATIVE_CACHE','');
   expect(nalatiNativeProgramSpec('titan').cacheDir).toBeUndefined();expect(nalatiNativeAssemblySpec().cacheDir).toBeUndefined();
   expect(nalatiNativeBootSpec().cacheDir).toBeUndefined();
+});
+
+
+test('the Pine oracle alone selects its dedicated restored construction cache',async()=>{
+  const f=await fixture(),original=resolve(f.root,'original-pine-family'),dedicated=resolve(f.root,'pine-cache');
+  vi.stubEnv('WILDSHARD_GENERATE_CACHE',original);vi.stubEnv('WS_PINE_NATIVE_CACHE',dedicated);
+  expect(pineNativeOracleSpec().cacheDir).toBe(dedicated);
+  expect(nalatiNativeProgramSpec('geography').cacheDir).toBeUndefined();
+  await nativeProgramFixture({...f.spec,id:'other-pine-family'});
+  expect(existsSync(resolve(original,'fixture-other-pine-family'))).toBe(true);
+  expect(existsSync(dedicated)).toBe(false);
+  vi.stubEnv('WS_PINE_NATIVE_CACHE','');expect(pineNativeOracleSpec().cacheDir).toBeUndefined();
 });

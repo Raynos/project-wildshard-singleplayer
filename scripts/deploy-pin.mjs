@@ -277,6 +277,7 @@ function nativeFixtureSource(source) {
   const all = createHash('sha256').update(native).update('\0').update(fixtures).update('\0').update(behaviour).digest('hex');
   if (/^ {6}NATIVE_INPUT_PROOF: 'cache-v2'$/mu.test(native) && all === 'b1c6b6b881cad24467ed7524e1c1817a9d455b5e6ba3295279a152f149ab8b4e') return 'v2';
   if (/^ {6}NATIVE_INPUT_PROOF: 'cache-v3'$/mu.test(native) && all === '106425c7fd56d11ea2abb1a2d28ed75913506f57bdb4ed5e7b802f4976884458') return 'v3';
+  if (/^ {6}NATIVE_INPUT_PROOF: 'cache-v4'$/mu.test(native) && all === 'ce4897403277862407dd752126c4aaecd4062d4a53da69d6fe8ea24f1548c5a0') return 'v4';
   throw new Error('Source native fixture publisher topology differs');
 }
 
@@ -570,7 +571,7 @@ function recoveryEvidence(runId, query, deadline, ready = false) {
     if (details === null) throw new SourceGateError('Native fixture input jobs lack exact metadata');
     for (const [name, expectedStep] of [['fixtures','Publish source-host native constructor inputs'],
       ...nativeJobs.map(jobName => [jobName,'Restore source-host native constructor inputs']),
-      ...(nativeFixtures === 'v2' || nativeFixtures === 'v3' ? matrix.map(index => [`behaviour (${index})`,'Restore source-host native constructor inputs']) : [])]) {
+      ...(nativeFixtures === 'v2' || nativeFixtures === 'v3' || nativeFixtures === 'v4' ? matrix.map(index => [`behaviour (${index})`,'Restore source-host native constructor inputs']) : [])]) {
       const matches = details.filter(job => job.name === name), job = matches[0];
       if (matches.length !== 1 || job === undefined || job.run_id !== Number(runId)
         || job.run_attempt !== run.run_attempt || job.head_sha !== sha)

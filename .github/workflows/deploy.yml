@@ -790,8 +790,9 @@ jobs:
       matrix:
         group: [escape-titan, stories-qara, chapter-one, native-routes]
     env:
-      NATIVE_INPUT_PROOF: 'cache-v3'
+      NATIVE_INPUT_PROOF: 'cache-v4'
       WS_NALATI_NATIVE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
+      WS_PINE_NATIVE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
       WS_VITEST_MAX_WORKERS: '1'
       VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
       WS_TEST_PRODUCTS_SHA: ${{ github.sha }}
@@ -1024,6 +1025,7 @@ jobs:
     if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.fixtures.result == 'success' && (github.event_name == 'push' || github.event_name == 'pull_request') }}
     env:
       WS_NALATI_NATIVE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
+      WS_PINE_NATIVE_CACHE: ${{ github.workspace }}/.cache/native-fixtures
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:

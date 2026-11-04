@@ -7,6 +7,7 @@ import {nalatiNativeProgramSpec} from '../test/fixtures/nalati-native-program.ts
 import {NALATI_NATIVE_ASSEMBLY_SPEC} from '../test/fixtures/nalati-native-assembly.ts';
 import {NALATI_NATIVE_BOOT_SPEC} from '../test/fixtures/nalati-native-boot.ts';
 import {nativeOracleProgramSpec} from '../test/fixtures/native-oracle.ts';
+import {pineNativeOracleSpec} from '../test/fixtures/pine-native-oracle-spec.ts';
 import {nativeFixtureIdentity,packNativeFixtures,restoreNativeFixtures} from '../test/fixtures/native-fixture-bundle.ts';
 
 const [mode,cachePath,...extra]=process.argv.slice(2);
@@ -18,7 +19,8 @@ if(repo!=='Raynos/project-wildshard-singleplayer'||execFileSync('git',['rev-pars
 const identity=nativeFixtureIdentity({sha,run,attempt});
 const names=/** @type {const} */ (['kokpar','titan','riding','charge','geography','view']);
 const specs=[...names.map(name=>nalatiNativeProgramSpec(name)),
-  nativeOracleProgramSpec(NALATI_NATIVE_ASSEMBLY_SPEC),nativeOracleProgramSpec(NALATI_NATIVE_BOOT_SPEC)];
+  nativeOracleProgramSpec(NALATI_NATIVE_ASSEMBLY_SPEC),nativeOracleProgramSpec(NALATI_NATIVE_BOOT_SPEC),
+  nativeOracleProgramSpec(pineNativeOracleSpec())];
 const cache=resolve(cachePath??'.cache/native-fixtures'),archive='tmp/ci-native-fixtures/native-fixtures.bundle.json';
 if(!cache.startsWith(`${resolve('.')}/`))throw new Error('Native fixture cache must stay inside the checkout');
 if(mode==='build'){
