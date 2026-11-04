@@ -3,7 +3,7 @@ import type * as v from 'valibot';
 import type { MoversSchema } from '@wildshard/format/movers';
 
 /** Frozen legacy mover adapters retain their type path; format owns the declaration. */
-export type MoverData = v.InferOutput<typeof MoversSchema>;
+type MoverData = v.InferOutput<typeof MoversSchema>;
 /** Six entity-local fields: YXZ Euler pose, collision enabled, raised and raising. They never expose a player record. */
 export const MOVER_FIELDS: Readonly<{ pitch: 1; yaw: 2; roll: 3; enabled: 4; raised: 5; raising: 6; }> = Object.freeze({ pitch: 1, yaw: 2, roll: 3, enabled: 4, raised: 5, raising: 6 });
 /** Lower-only entity field ranges supplied to the session's one script effect world. */

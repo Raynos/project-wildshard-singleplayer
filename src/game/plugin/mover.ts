@@ -135,7 +135,7 @@ export async function createMoverHost(data: MoverData, assets: ReadonlyMap<strin
 /** Verified extra author modules and trusted roles share the existing 32-entity mover host. */
 export interface MoverRoleComposition { modules: ReadonlyMap<string, Uint8Array>; roles: readonly ScriptRole[]; declarations?: readonly DeclaredScriptRoleBinding[]; schedules?: readonly ScriptSchedule[]; seed: number }
 /** Declared constants are read only and selected by the trusted calling entity; physics queries keep their adapter. */
-export function moverQueries(data: MoverData, physicsQueries: ScriptQuery): ScriptQuery {
+function moverQueries(data: MoverData, physicsQueries: ScriptQuery): ScriptQuery {
   const parameters = new Map(parseMovers(data).map((m) => [m.entity, [...m.input]]));
   return (kind, input, entity) => {
     if (kind !== SCRIPT_PARAMETER_QUERY) return physicsQueries(kind, input, entity);

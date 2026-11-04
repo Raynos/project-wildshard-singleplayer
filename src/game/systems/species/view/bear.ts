@@ -20,7 +20,7 @@ import type { AnimalSpecies, BoneDef, VariantDef } from '@wildshard/engine/entit
  * Palette keys (VariantDef.tint): base tip dark muzzle blaze nose claw eye pad.
  */
 
-export const BEAR_PALETTE: { // exported: pineCoats.ts recolours the rigged hull per variant from it
+const BEAR_PALETTE: {
 // black bear: near-black coat with a warm brown cast in the light, tan muzzle
 base: [number, number, number]; tip: [number, number, number]; dark: [number, number, number]; muzzle: [number, number, number]; blaze: [number, number, number]; nose: [number, number, number]; claw: [number, number, number]; eye: [number, number, number]; pad: [number, number, number]; } = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // black bear: near-black coat with a warm brown cast in the light, tan muzzle

@@ -12,7 +12,7 @@ import { BufferGeometry, DoubleSide, FrontSide, Group, InstancedBufferAttribute,
  */
 
 /** A baked kind's row, as the bake writes it; a shard's own extra fields ride along (`K` in the calls below). */
-export interface BakedKindRow {
+interface BakedKindRow {
   readonly name: string; readonly count: number; readonly color: number; readonly roughness: number; readonly metalness: number; readonly flat: boolean;
   readonly emissive: number; readonly emissiveIntensity: number; readonly vertexColors: boolean; readonly doubleSided: boolean;
 }
@@ -25,7 +25,7 @@ export interface BakedMeshKindRow extends BakedKindRow {
 }
 
 /** A baked collider row (a box; JSON keeps a yaw or a quaternion `rot`). */
-export interface BakedColliderRow {
+interface BakedColliderRow {
   readonly kind: string; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number;
   readonly yaw?: number; readonly rot?: { readonly x: number; readonly y: number; readonly z: number; readonly w: number }; readonly surface: string;
 }
@@ -60,7 +60,7 @@ export interface BakedColliderInput {
   readonly rot?: { readonly x: number; readonly y: number; readonly z: number; readonly w: number }; readonly points?: readonly number[];
 }
 /** Decode owned hull words and box poses before handing them to the registry. */
-export const bakedColliders = (rows: readonly BakedColliderInput[]): ColliderDesc[] => rows.map((c): ColliderDesc => {
+const bakedColliders = (rows: readonly BakedColliderInput[]): ColliderDesc[] => rows.map((c): ColliderDesc => {
   const own = surface(c.surface);
   if (c.kind === 'hull' && c.points !== undefined) return { kind:'hull',x:c.x,y:c.y,z:c.z,points:new Float32Array(c.points),surface:own };
   if (c.kind !== 'box' || c.hx === undefined || c.hy === undefined || c.hz === undefined) throw new Error('Invalid baked collider shape');
@@ -77,7 +77,7 @@ export interface BakedKindsDraw<K extends BakedKindRow> {
 }
 
 /** A piece's group from its loaded nodes: each kind one `InstancedMesh` in its own material; a kind not loaded is skipped. */
-export function bakedKindsGroup<K extends BakedKindRow>(nodes: ReadonlyMap<string, InstancedMesh> | undefined, kinds: readonly K[], draw: BakedKindsDraw<K> = {}): Group {
+function bakedKindsGroup<K extends BakedKindRow>(nodes: ReadonlyMap<string, InstancedMesh> | undefined, kinds: readonly K[], draw: BakedKindsDraw<K> = {}): Group {
   const root = new Group();
   for (const kind of kinds) {
     const node = nodes?.get(kind.name); if (node === undefined) continue;

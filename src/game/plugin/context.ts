@@ -100,7 +100,7 @@ export interface ShardContext extends LevelContext {
   readonly product: ShardProduct;
 }
 /** A grid cell's extent in shard-local metres (G99): the cube's half width, its centre at the shard's origin. */
-export interface ShardCube { readonly half: number }
+interface ShardCube { readonly half: number }
 const GRID_CUBE: ShardCube = Object.freeze({ half: CHUNK_HALF });
 
 /** Construct the owned game context without installing services at import time. */

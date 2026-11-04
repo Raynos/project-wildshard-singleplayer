@@ -41,7 +41,7 @@ export interface GearLoot {
   /** the purse */
   coins?: number;
 }
-export interface CosmeticSlot { id: string; name: string; icon: IconId; owned: boolean; worn: boolean; /** how to get it, while locked */ how: string }
+interface CosmeticSlot { id: string; name: string; icon: IconId; owned: boolean; worn: boolean; /** how to get it, while locked */ how: string }
 
 export interface FindsView {
   counters: { label: string; n: number; of: number }[];

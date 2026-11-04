@@ -31,7 +31,7 @@ const TEXEL = 0.5;
 const SPAN = SIZE * TEXEL;       // 128 m
 /** seconds a fully flattened patch takes to stand back up (design: 20 s) */
 export const RECOVER = 20;
-export const MAX_MOVERS = 16;
+const MAX_MOVERS = 16;
 
 /**
  * A trample map's whole continuation as plain JSON values (TrampleField.snapshot / restore, SF72): every flattened texel as

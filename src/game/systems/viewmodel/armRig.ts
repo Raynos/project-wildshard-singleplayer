@@ -88,7 +88,7 @@ export interface ArmWorld {
   clamped: number;
 }
 
-export interface JointAngles {
+interface JointAngles {
   /** elbow flexion (0 = straight) */
   elbow: number;
   /** + pronation / − supination from neutral (thumb up) */

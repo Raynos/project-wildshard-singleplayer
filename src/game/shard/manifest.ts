@@ -76,9 +76,9 @@ export interface FieldModelsContext<Floor = unknown> {
 }
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
-export type Vec2 = [number, number];
+type Vec2 = [number, number];
 /** linear-space RGB triple, 0..1 (values above 1 are allowed for HDR sun colours) */
-export type RGB = [number, number, number];
+type RGB = [number, number, number];
 
 export interface CabinSite { x: number; z: number; rot: number }
 export interface PondDef { x: number; z: number; r: number }
@@ -406,7 +406,7 @@ export interface ChunkStructures {
  * `level` when this is set (the pond's line otherwise); everything below it is sea floor. The
  * ocean surface itself is `src/shards/driftwood-isle/world/Ocean.ts`.
  */
-export interface OceanDef {
+interface OceanDef {
   /** sea-surface height in metres */
   level: number;
   /** shallow-water colour (over sand) and deep-water colour, linear RGB */

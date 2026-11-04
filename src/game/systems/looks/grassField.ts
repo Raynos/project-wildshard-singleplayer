@@ -14,8 +14,7 @@ import { parse, type InferOutput } from 'valibot';
  * GPU draws without any readback.
  *
  *   grassBaseHeightAt(x, z)  metres (0 = bare: water, trail bed, rock, snow, yurt floor) — before trampling
- *   grassToneAt(x, z)        0 = fresh valley green … 1 = plateau gold
- *   grassBloomAt / flowerSpeciesAt   where the flower drifts are and which species each leans to
+ *   flowerPatchAt(x, z)      0..1 flower-drift strength (GrassField.sample channels: 1 tone, 3 species, 7 bloom)
  *
  * The field is sampled on a 4 m lattice (cached per chunk) and bilinearly interpolated, so it is smooth, cheap
  * to query many times a frame, and identical for the grass and the senses.
@@ -31,12 +30,12 @@ import { parse, type InferOutput } from 'valibot';
 const LATTICE = 4;
 
 /** tall-grass height of the stealth fields (m) */
-export const TALL_GRASS = 1.12;
+const TALL_GRASS = 1.12;
 
 interface Zone { x: number; z: number; r: number; h: number }
 
 /** Authored meadow geography is supplied by the level plugin. */
-export interface GrassFieldLayout {
+interface GrassFieldLayout {
   short: readonly Zone[]; tall: readonly Zone[]; bare: readonly Zone[];
   valley: number; plateau: number;
   riverZ: (x: number) => number; riverHalf: (x: number) => number;
@@ -238,11 +237,6 @@ function meadowLayout(): GrassFieldLayout | null {
 /** the page field, the level-change listener installed on first use (as the field always has) */
 function page(): GrassField { meadowLayout(); return field; }
 
-/** trails: the page field's bare bed and verge (GrassField.trailGrass) */
-export function trailGrass(h: number, td: number): number {
-  return page().trailGrass(h, td);
-}
-
 /**
  * Grass height before trampling, metres (0 = no grass), on the page's field (GrassField.baseHeightAt). `td` =
  * trailDistance(x, z) when the caller has it (pass Infinity far from any trail); `exact` also tests the splat at the point.
@@ -251,15 +245,6 @@ export function grassBaseHeightAt(x: number, z: number, td: number = trailDistan
   return page().baseHeightAt(x, z, td, exact);
 }
 
-/** 0 = fresh valley green … 1 = plateau gold */
-export function grassToneAt(x: number, z: number): number { return page().sample(x, z, 1); }
-
 /** 0..1 flower-drift strength */
 export function flowerPatchAt(x: number, z: number): number { return page().sample(x, z, 2); }
-
-/** 0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — the flower odds (FLOWER_VS in src/shards/level/look/grass.ts) */
-export function grassBloomAt(x: number, z: number): number { return page().sample(x, z, 7); }
-
-/** 0..1 which species a drift leans to (FLOWER_VS in src/shards/level/look/grass.ts) */
-export function flowerSpeciesAt(x: number, z: number): number { return page().sample(x, z, 3); }
 

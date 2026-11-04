@@ -20,7 +20,7 @@ geometry they are built from, moved unchanged from the kit (SF54). The compositi
 `installKitPickups`; nothing installs on import. Their baked commons entries are SF54 step 4.
 
 `@wildshard/game/systems/species/view/{boar,bear}` define the lofted boar and bear looks (`BOAR_LOOK`, `BEAR_LOOK`, the
-palettes); `@wildshard/game/systems/npc/npcRig` is the procedural humanoid leg rig (`NpcRig`, `rigLegs`, `legBones`, `legPose`, `WALK`).
+palettes); `@wildshard/game/systems/npc/npcRig` is the procedural humanoid leg rig (`legBones`, `legPose`, `WALK`).
 Both moved unchanged from the kit (SF54); shard files outside `runtime/` import them directly. They stay runtime
 builders until their baked commons entries (SF54 step 4) replace the procedural path.
 
@@ -35,7 +35,7 @@ All moved unchanged from the kit (SF54); species ids (`kit.creature.*`) and mode
 custom programs, the rain curtain), moved unchanged from the kit (SF54). Shard world files import them directly;
 Nalati and Pine runtime world hooks lazily import these defining modules. The kit `lookApi` loaders are removed.
 `grassField.populationMeadow(rows)` borrows an already-admitted population
-field's river/meadow rows as a `GrassFieldLayout`, retaining its zone arrays
+field's river/meadow rows as the field's layout, retaining its zone arrays
 and exact clamped river interpolation. It performs no decode or installation.
 The native field and `configureGrassFieldData(input, scope)` share this reader;
 the latter keeps schema admission and scoped page installation.
@@ -181,7 +181,7 @@ keeps its legacy presentation and gameplay in the declared entry; it does not cl
 `MoverRuntime` projects admitted script output in fixed.pre before collision; Rapier bodies and joints stay in
 `@wildshard/engine/physics/mover` and `physics/ropeChain`. A session injects its one script host and calls
 beginTick once for the entire tick. Parameter opcode 410 reads immutable declared constants selected by the
-host's trusted calling entity; `moverQueries` delegates physics opcodes 1–4 to the existing query adapter.
+host's trusted calling entity; the mover host delegates physics opcodes 1–4 to the existing query adapter.
 The 32-number input limit, query count/fuel and bounded memory buffers stay unchanged. Full Wasm state and
 entity fields belong to that shared host; pending mover interactions have a separate continuation adapter.
 `@wildshard/sdk/movers.parseMoverRows` admits numeric headers. Its `compileMoverMotion` lowers an authored
@@ -731,8 +731,8 @@ export const TEMPLATE: ShardManifest = {
 export default TEMPLATE;
 ```
 
-`@wildshard/game` also exports `ShardSword` (a legacy `sword` field's viewmodel), `ChunkTerrain` (the built terrain functions),
-and `RGB` / `Vec2` (`@wildshard/engine/level/data` has `Vec2`, `TerrainNoise` too).
+`@wildshard/game` also exports `ShardSword` (a legacy `sword` field's viewmodel), `ChunkTerrain` (the built terrain functions);
+`@wildshard/engine/level/data` has `Vec2` and `TerrainNoise`.
 
 ### 6.1 Authored diagnostic cameras
 
@@ -2496,7 +2496,7 @@ It writes only caller-owned vectors; collision queries, pickup cadence, attachme
 
 `SlashTrail` (`@wildshard/engine`) is the shared melee ribbon drawing block. `SlashTrailProfile` supplies capacity, subdivisions, motion threshold and the age/alpha channel. `sample(inner, tip, time)`, `reset()` and `rebuild(time, life, alpha?)` keep caller-owned materials and clocks; `geometry`, `count` and `newest` expose drawing and expiry handles.
 
-`GroundTell` (`@wildshard/game`) supports ring, lane and wedge decals. `GroundTellWedgeStyle` supplies the cone and authored material/fill/alpha uniforms; `wedge(x, z, yaw, reach, fill, alpha, lift?)` uses animal yaw convention and drapes the sector onto terrain. Existing ring/lane shader behavior remains unchanged.
+`GroundTell` (`@wildshard/game`) supports ring, lane and wedge decals. A wedge style supplies the cone and authored material/fill/alpha uniforms; `wedge(x, z, yaw, reach, fill, alpha, lift?)` uses animal yaw convention and drapes the sector onto terrain. Existing ring/lane shader behavior remains unchanged.
 
 `smoothstep` (`@wildshard/engine/core/noise`) also drives DeathFade and the bow/spear authored curves; the normalized fade uses edges zero and one. Unclamped and early-return curves retain their distinct behavior.
 
@@ -2738,7 +2738,7 @@ spawn tables. Register the ids in `kit` with `ctx.rows.encounter` / `ctx.rows.sp
 
 | Export | What it is |
 |---|---|
-| `BossBrain`, `BossDefinition`, `BossScript`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossState`, `BossDef` | the boss runtime: intro, HP-threshold phases, checkpoint and retry, victory. Your `BossScript` supplies the fight |
+| `BossBrain`, `BossDefinition`, `BossScript`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossState` | the boss runtime: intro, HP-threshold phases, checkpoint and retry, victory. Your `BossScript` supplies the fight |
 | `EliteBrain`, `EliteDefinition`, `EliteActor`, `ElitePorts` | the elite runtime: lair, aware / leash radii, spawn / despawn |
 | `EncounterDefinition`, `SpawnTableRow`, `SpawnEntry`, `SpawnContext`, `SpawnPoint`, `Spawner` | rows and spawning |
 | `setEliteBrain`, `setEliteDamage`, `setEliteAct`, `eliteThink`, `eliteDamageMul`, `eliteAct` | elite hooks on the legacy creature manager (ports) |
@@ -2780,8 +2780,8 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 
 | Part | Exports | Notes |
 |---|---|---|
-| Shard | `ShardPlugin`, `ShardContext`, `GameServices`, `GameRows`, `GameRowMap`, `BagVerbs`, `shardContext`, `toLevelSpec`, `ShardManifest`, `ShardSword`, `ChunkTerrain`, `RGB`, `Vec2`, `ShardRuntime`, `ShardWorld`, `game`, `findShard`, `findChunk`, `getActiveChunk` | §6, §7 |
-| Bag and items | `ItemRow`, `RegisteredItemRow`, `normalizeItemRow`, `registerItemRow`, `ItemId`, `ITEMS`, `isItemId`, `renderFinds`, `GearLoot`, `CosmeticSlot`, `FindsView` | `ctx.rows.item(row)`; an item row's `travels` flag (default off) carries it between shards |
+| Shard | `ShardPlugin`, `ShardContext`, `GameServices`, `GameRows`, `GameRowMap`, `BagVerbs`, `shardContext`, `toLevelSpec`, `ShardManifest`, `ShardSword`, `ChunkTerrain`, `ShardRuntime`, `ShardWorld`, `game`, `findShard`, `findChunk`, `getActiveChunk` | §6, §7 |
+| Bag and items | `ItemRow`, `RegisteredItemRow`, `normalizeItemRow`, `registerItemRow`, `ItemId`, `ITEMS`, `isItemId`, `renderFinds`, `GearLoot`, `FindsView` | `ctx.rows.item(row)`; an item row's `travels` flag (default off) carries it between shards |
 | Coins and loot | `installLoot`, `installRuntimeLoot`, `ScopedLootHost`, `ScopedLoot`, `LootPresentation`, `LootShop`, `CoinBurst`, `registerLootTable`, `getLootTable`, `rollLoot`, `LootTableRow`, `LootContext`, `onCreatureDeath`, `DEATH_ORDER`, `CreatureDeathSource`, `ShopPanel`, `ShopGood`, `ShopState`, `ShopOpts` | the purse is per shard (`purseSave`); trusted runtime calls `installRuntimeLoot(context, presentation)` without a scene handle |
 | Gear | `Owned`, `OWNED`, `isOwnedId`, `isCosmetic`, `OwnedId` | owned gear and cosmetics |
 | Compendium and feats | `installCompendium`, `CompendiumHost`, `CompendiumWallPort`, `AchievementDef` | `ctx.rows.compendium(row)`, `ctx.rows.feat(row)` |

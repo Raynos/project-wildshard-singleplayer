@@ -73,7 +73,7 @@ export interface TrophySlot {
 export interface TabDef { id: string; label: string }
 
 /** a skin: how a shard's book looks and reads. The DOM is the engine's; the skin adds its class, words and art. */
-export interface CompendiumSkin {
+interface CompendiumSkin {
   /** modifier class on the book root (`ws-cmp journal`) — its look lives in compendium.css */
   className: string;
   /** the book's title (the menu button, the aria label) */

@@ -69,7 +69,7 @@ const distance = (a: { x: number; y: number; z: number }, b: readonly [number, n
 const options = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] } as const;
 
 /** Walk, command, ride and return through actual collision. Feet are initialized once; every later move comes from the motor. */
-export function proveSocketLift(entry: SocketLiftEntry, ports: SocketLiftProofPorts): SocketLiftProof {
+function proveSocketLift(entry: SocketLiftEntry, ports: SocketLiftProofPorts): SocketLiftProof {
   const errors = socketLiftRules([entry], ports.runtime.data, ports.approachSource); if (errors.length > 0) throw new Error(errors.join('; '));
   const lift = parseSocketLift(entry.lift), motor = new CharacterMotor(ports.physics, options);
   const inward = entry.edge === 'north' ? [0, -1] : entry.edge === 'south' ? [0, 1] : entry.edge === 'east' ? [-1, 0] : [1, 0];

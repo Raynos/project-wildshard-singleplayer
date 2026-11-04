@@ -140,7 +140,7 @@ export interface BossReward {
 }
 
 /** a boss's row: its id (saved), name and title, phases, retry card, reward and intro lengths */
-export interface BossDef {
+interface BossDef {
   /** unique per shard; persisted */
   id: string;
   /** the name on the bar and the card ("THE GOLDEN KING") and the card's title line ("LORD OF THE GREAT KURGAN") */

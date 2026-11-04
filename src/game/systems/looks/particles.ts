@@ -373,7 +373,7 @@ function makeMoteSprite() {
 }
 
 /** Soft noise blob: many faint overlapping discs inside a radial falloff, alpha only. */
-export function makeMistTexture(): THREE.CanvasTexture {
+function makeMistTexture(): THREE.CanvasTexture {
   const S = 256;
   const c = document.createElement('canvas'); c.width = c.height = S;
   const g = ctx2d(c);

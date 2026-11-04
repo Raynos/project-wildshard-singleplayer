@@ -130,7 +130,7 @@ const SIGHT_EVERY = 0.2;
 const _h = new THREE.Vector3();
 
 /** Optional typed persistence for runtime-bound lairs; the default remains the legacy shard slot. */
-export interface ElitePersistence {
+interface ElitePersistence {
   read: (slug: string) => ReturnType<typeof elitesSave.read>;
   write: (value: ReturnType<typeof elitesSave.read>, slug: string) => void;
 }
@@ -363,7 +363,7 @@ export class Elites {
  * width, alpha)` re-drape it (≤ 130 heightAt calls — only when it moves); `hide()`.
  */
 /** Wedge-specific shader parameters are authored by the caller; geometry/draping is shared. */
-export interface GroundTellWedgeStyle {
+interface GroundTellWedgeStyle {
   cone: number;
   material: THREE.Material;
   /** the fill (0 at the feet .. 1 at the tip) and opacity the material reads: a uniform, or a port onto a look's params */

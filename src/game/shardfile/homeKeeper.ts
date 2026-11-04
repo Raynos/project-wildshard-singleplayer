@@ -51,7 +51,7 @@ export function orderedNativeReinstall<B extends { readonly id: string }>(saved:
  *  install-time registration (a body that lands once the world it stands on is in place). */
 export interface KeptHomeRow { readonly id: string; readonly kind: string; readonly at: readonly [number, number]; readonly yaw: number; readonly respawn: number; readonly late?: boolean }
 /** A declared boss row (`runtime.spawns.bosses`): one more body of the same keeper, never refilled; its encounter draws and frees it. */
-export interface KeptBossRow { readonly id: string; readonly kind: string; readonly at: readonly [number, number]; readonly yaw: number }
+interface KeptBossRow { readonly id: string; readonly kind: string; readonly at: readonly [number, number]; readonly yaw: number }
 /** One live body's policy, built at its spawn: decisions on the keeper's cadence, movement every tick, its own continuation. */
 export interface KeptPolicy { decide: (dt: number) => void; move: (dt: number) => void; snapshot: () => SimValue; restore: (value: SimValue) => void }
 /** A home as the keeper lends it to `beforeStep` and `homes()`: its declared id and kind, its live body and refill clock. */

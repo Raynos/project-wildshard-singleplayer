@@ -1,7 +1,7 @@
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { HuntTuning } from '@wildshard/engine/ai/hunt';
 
-export const BOAR_TUNING: HuntTuning = {
+const BOAR_TUNING: HuntTuning = {
   hp: 100, sightRange: 22, sightRangeGraze: 14, sightCone: 60 * Math.PI / 180,
   hearStill: 4, hearCrouch: 7, hearWalk: 14, hearSprint: 28,
   noticeRate: 0.5, forgetRate: 0.2, alertAt: 0.35, boltAt: 1.0,
