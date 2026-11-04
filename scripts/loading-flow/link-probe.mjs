@@ -61,6 +61,8 @@ const PROBE = (slug) => `async () => {
   const text = at => data.shaders[at].map(line => data.lines[line]).join('\\n');
   const name = source => (source.match(/#define SHADER_NAME (.+)/) ?? source.match(/#define SHADER_TYPE (.+)/) ?? [, '?'])[1];
   const gl = document.createElement('canvas').getContext('webgl2');
+  // as on the game's context: three enables extensions its shaders require (BatchedMesh: GL_ANGLE_multi_draw)
+  for (const name of gl.getSupportedExtensions() ?? []) gl.getExtension(name);
   const pass = () => data.programs.map(([v, f]) => {
     const vs = text(v), fs = text(f), t = performance.now(), program = gl.createProgram();
     for (const [type, source] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) {
