@@ -21,7 +21,8 @@ interface WorkerEvent {
   addRoutes?: (rules: NativeRoute[]) => Promise<void>;
   data?: { type: string };
   ports?: { postMessage: (value: unknown) => void }[];
-  source?: { postMessage: (value: unknown) => void };
+  source?: { postMessage: (value: unknown) => void; id?: string };
+  clientId?: string;
   waitUntil: (work: Promise<unknown>) => void;
   respondWith: (work: Response | Promise<Response>) => void;
 }
@@ -56,8 +57,8 @@ function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = 
       .replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME).replace("'__DOCUMENT__'", JSON.stringify(document)).replace("'__FILES__'", JSON.stringify(JSON.stringify(files)))
       .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shellFiles)));
     // Deliberately no clock, crypto, scheduler or accounting ports.
-    runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent });
-    const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'request' | 'data' | 'ports' | 'source'> = {}): Promise<Response | undefined> => {
+    runInNewContext(`${owner}\n${source}`, { self, caches, fetch, URL, Request, Response, Set, JSON, encodeURIComponent, AbortController });
+    const dispatch = async (kind: string, payload: Pick<WorkerEvent, 'request' | 'data' | 'ports' | 'source' | 'clientId'> = {}): Promise<Response | undefined> => {
       const work: Promise<unknown>[] = []; let response: Response | undefined;
       for (const listener of listeners.get(kind) ?? []) listener({ ...payload, ...(nativeRoutes && kind === 'install' ? {addRoutes: routes} : {}),
         waitUntil: promise => { work.push(promise); }, respondWith: promise => { work.push(Promise.resolve(promise).then(value => { response = value; return value; })); } });
@@ -85,6 +86,31 @@ test('install precaches only the shell; control precaches hashed files before pu
   expect(await (await worker.dispatch('fetch', { request: new Request(url(shared)) }))?.text()).toBe(`body:${url(shared)}`);
   expect(await (await worker.dispatch('fetch', { request: new Request(url('/')) }))?.text()).toBe(document);
   expect(f.fetch).toHaveBeenCalledTimes(3);
+});
+
+test('the post-control precache yields to a loading page and resumes at that page\'s control', async () => {
+  let holding = true;
+  const f = fixture(request => new Promise((resolve, reject) => {
+    request.signal.addEventListener('abort', () => { reject(new DOMException('aborted', 'AbortError')); });
+    const answer = (): void => { resolve(new Response(`body:${request.url}`)); };
+    if (!holding) answer();
+  }));
+  const files = Array.from({ length: 8 }, (_, at) => `/assets/f${at}-0000000${at}.js`);
+  const worker = f.load('A', files, []); await worker.dispatch('install'); await worker.dispatch('activate');
+  const source = (id: string) => ({ id, postMessage: () => undefined });
+  const first = worker.dispatch('message', { ...precached, source: source('page-1') });
+  await vi.waitFor(() => { expect(f.fetch).toHaveBeenCalledTimes(6); }); // a few lanes, not every file at once
+  // A new document loads (its client has not reported control): the precache steps aside and frees the link.
+  await worker.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-2' });
+  holding = false; await new Promise(resolve => { setTimeout(resolve, 0); });
+  expect(f.fetch).toHaveBeenCalledTimes(6);
+  // The first page's own reads never pause it; page 2 reaching control resumes it to one complete generation.
+  await worker.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-1' });
+  await worker.dispatch('message', { ...precached, source: source('page-2') }); await first;
+  expect(f.fetch).toHaveBeenCalledTimes(14); // 6 aborted and re-queued, then all 8
+  const assets = await f.open(ASSET_CACHE_NAME);
+  for (const path of files) expect(await assets.match(url(path))).toBeDefined();
+  expect(await (await f.open('ws-builds-v1')).keys()).toHaveLength(1);
 });
 
 test('native title routes use exact same-origin bare GETs and the existing cache owners', async () => {

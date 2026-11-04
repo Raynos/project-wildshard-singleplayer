@@ -88,12 +88,57 @@ workerScope.listen(self, 'install', event => {
 // DL1: the build's hashed code is precached only when a page reports control (PRECACHE), so a cold visit's level
 // download has the link to itself. Chunks that page already loaded come from the HTTP cache (force-cache).
 // Only a completely precached build is a generation; a failed precache never evicts working code and is asked again.
-let precaching;
+// It yields to a page that is loading (G872, sp-o2's quick-return gate): a navigation, or a fetch from a page that has
+// not reported control yet, pauses it and aborts its in-flight fetches (re-queued); the next PRECACHE (that page's
+// control, or an explicit adoption) resumes it. A few fetches at a time, so a pause frees the link at once.
+const PRECACHE_LANES = 6;
+let precaching, paused = false, resume = () => undefined;
+const inflight = new Set(), controlled = new Set();
+function pausePrecache() {
+  if (precaching === undefined || paused) return;
+  paused = true;
+  for (const lane of inflight) lane.abort();
+}
+function resumePrecache() {
+  paused = false;
+  const waiting = resume;
+  resume = () => undefined;
+  waiting();
+}
+/** Resolves at once, or on the resume that ends the current pause. */
+function whilePaused() {
+  if (!paused) return Promise.resolve();
+  return new Promise(resolve => { const previous = resume; resume = () => { previous(); resolve(); }; });
+}
+async function precacheQueue(cache, urls) {
+  const pending = [...urls];
+  const lane = async () => {
+    for (;;) {
+      await whilePaused();
+      const path = pending.shift();
+      if (path === undefined) return;
+      const key = abs(path), control = new AbortController();
+      inflight.add(control);
+      try {
+        const held = await cache.match(key, MATCH);
+        if (held !== undefined && !isHtml(held)) continue;
+        if (held !== undefined) await cache.delete(key);
+        const response = await fetch(new Request(key, { cache: 'force-cache', signal: control.signal }));
+        if (!response.ok || isHtml(response)) throw new Error(`Precache failed: ${path} (${response.status})`);
+        await cache.put(key, response);
+      } catch (error) {
+        if (!control.signal.aborted) throw error;
+        pending.unshift(path); // paused mid-fetch: fetch it again after the resume
+      } finally { inflight.delete(control); }
+    }
+  };
+  await Promise.all(Array.from({ length: PRECACHE_LANES }, lane));
+}
 function precacheGeneration() {
   precaching ??= (async () => {
     try {
       const [assets, books] = await Promise.all([store(ASSETS), caches.open(BOOKS)]);
-      await precache(assets, FILES, true);
+      await precacheQueue(assets, FILES);
       await books.put(bookKey(BUILD), Response.json({ files: FILES.map(abs) }));
     } catch (error) { precaching = undefined; throw error; }
   })();
@@ -155,6 +200,8 @@ async function cached(request, name) {
 
 workerScope.listen(self, 'fetch', event => {
   const request = event.request, url = new URL(request.url);
+  // A loading page (a navigation, or a client that has not reported control) gets the link: the precache waits.
+  if (request.mode === 'navigate' || !controlled.has(event.clientId)) pausePrecache();
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.searchParams.get('sw') === '0') return;
   if (url.pathname === '/version.json' || url.pathname === '/sw.js' || url.pathname.startsWith('/api/')) return;
   if (request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
@@ -175,7 +222,10 @@ workerScope.listen(self, 'message', event => {
   if (type === 'SKIP_WAITING') { event.waitUntil(self.skipWaiting()); return; }
   if (type === 'PRECACHE') {
     // Adoption waits on this reply: a build is offered as the next document's worker only once its code is held.
-    const port = event.ports?.[0];
+    // A page asks once it reaches control, so it no longer counts as loading, and the precache resumes.
+    const port = event.ports?.[0], client = event.source?.id;
+    if (typeof client === 'string') controlled.add(client);
+    resumePrecache();
     event.waitUntil((async () => {
       let ok = true;
       try { await precacheGeneration(); } catch { ok = false; }
