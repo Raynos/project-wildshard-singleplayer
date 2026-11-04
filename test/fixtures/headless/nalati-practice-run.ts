@@ -14,9 +14,22 @@ import {beginProductSession} from './productSession';
 const State=v.object({state:v.object({open:v.boolean(),pitch:v.number(),current:v.string(),available:v.array(v.string()),swapping:v.boolean(),rifle:v.string(),
   at:v.object({x:v.number(),y:v.number(),z:v.number()}),board:v.boolean()})});
 const session=await beginProductSession('nalati-grasslands','nalati-practice'),{product,assets}=session;
-let replay=await session.ready();
-const resident=await createNativeProofResident({product,assets,shard:product.shardfile,rapier:await loadRapier(readFileSync('public/assets/physics/rapier.wasm'))},prepareHeadlessRuntime)
-  .catch(async(error:unknown)=>{await replay.dispose();throw error;});
+// The independent worker is already admitting its inputs. Build the existing
+// direct owner alongside it, then join both before recording or replaying.
+// Observe both failures immediately and retire either successful peer.
+const residentReady=(async()=>{
+  try{
+    const resident=await createNativeProofResident({product,assets,shard:product.shardfile,
+      rapier:await loadRapier(readFileSync('public/assets/physics/rapier.wasm'))},prepareHeadlessRuntime);
+    return {ok:true as const,resident};
+  }catch(error:unknown){return {ok:false as const,error};}
+})();
+let replay:Awaited<ReturnType<typeof session.ready>>;
+try{replay=await session.ready();}
+catch(error:unknown){const direct=await residentReady;if(direct.ok)direct.resident.dispose();throw error;}
+const direct=await residentReady;
+if(!direct.ok){await replay.dispose();throw direct.error;}
+const resident=direct.resident;
 const frames:HeadlessCommand[][]=[],marks:{id:string;tick:number;state:string;position:number[]}[]=[];
 const step=(commands:readonly HeadlessCommand[]):void=>{frames.push(structuredClone([...commands]));resident.step(commands);};
 const press=(name:'enter'|'exit'|'swap'|'rifle'):void=>{step([{kind:'script',actorId:`nalati.practice.${name}`,value:1}]);};
