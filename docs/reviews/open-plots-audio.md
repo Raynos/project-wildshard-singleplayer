@@ -736,3 +736,40 @@ Evidence is under `tmp/sp-x1-audio/`: the three new MOSS inventories,
 resource turn, after sp-o2's Auto/KTX2 cohort, sp-x6's isolated bisect and
 sp-o1's P1 goldens. Remaining generation, measured selection, bounded AAC
 publication, native bar 10 and all four final-audio C reports stay open.
+
+
+### Race and Showcase model-free publication preparation
+
+The coordinator's next model-free turn describes the remaining **14 MOSS
+takes**: seven original seed-701 recordings for Race and seven for Showcase,
+each set totaling 102 s (one 30 s bed and six 12 s spots). Every wave and
+sidecar has independent SHA-256 checks before and after measurement;
+family, prompt, ranking description, mono 48,000 Hz PCM and duration match
+the prepared jobs. The seven defining job/helper/anchor source hashes also
+remain unchanged across the bounded serial process. No model loads.
+
+Race's raw integrated loudness spans **-41.6 to -7.7 LUFS**. Its circuit
+and paddock takes have **163 / 14 samples at absolute amplitude >=0.999**;
+pit-garages has a **2.549 s** internal interval below -45 dBFS. Showcase's
+raw loudness spans **-47.3 to -27.6 LUFS**, with no samples at that amplitude
+threshold; gardens and houses have **3.911 / 4.618 s** internal quiet
+intervals. These descriptive diagnostics neither add shipping guards nor
+select or reject a recording. No by-ear judgement is claimed.
+
+The two publication-prep inputs retain both credits, six original anchors,
+exact source and metrics hashes, the existing score recommendation formula,
+paired-engine top-five CLAP rule, 64 kb/s AAC normalization targets and
+decoded-loop/package/blob checks. Race's existing two raw score measures
+remain included with vocal checks explicitly unmeasured. Showcase's two
+score slots and both plots' seven Medium slots explicitly say **not
+generated**. All SFX winners remain null; no catalogue, asset or activation
+is written.
+
+Evidence: `tmp/sp-x1-audio/prepare-moss-only.py`, its log and hashed
+`raw_descriptive.py` helper, plus
+`{sky-race,showcase-template}-publication-prep.json`. The source-bound
+physical before-audio inventories remain `baseline-8fff/`; native semantic
+and actual phone-wire proofs are still open. CLAP and all remaining model
+batches wait for the coordinator's model slot, after the updated DL21,
+sp-o2 DL17/goldens, sp-x6 bisect and sp-o1 P1 sequence. All four final-audio
+C/control reports remain open.
