@@ -1,9 +1,9 @@
 import { FindsCatalogueSchema } from '@wildshard/format/findsCatalogue';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
-import { ArenaRoomDocumentSchema } from '@wildshard/format/arenaRoomDocument';
+import { ArenaRoomDocumentSchema, ArenaRoomDocumentRowsSchema, ArenaKingRowsSchema } from '@wildshard/format/arenaRoomDocument';
 import { ReturnProgramDocumentSchema } from '@wildshard/format/returnProgramDocument';
 import { WeatherBundleSchema, WeatherDocumentSchema } from '@wildshard/format/weatherBundle';
-import { WeatherEffectsSchema } from '@wildshard/format/weatherEffects';
+import { WeatherEffectsSchema, WeatherGeometrySchema, WeatherGeometryDataSchema } from '@wildshard/format/weatherEffects';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
 import { ForestWeatherObservationSchema, RangedPageSchema } from '@wildshard/format/rangedPage';
 import { PostGraphLookSchema, ScaledPostInputSchema, postGraphIdentityTransforms } from '@wildshard/format/postGraphLook';
@@ -42,7 +42,7 @@ import { SpeciesActorsFileSchema, SpeciesLookBookSchema, CreatureGuestSchema } f
 import { PaintedLookSchema } from '@wildshard/format/paintedLook';
 import { MaterialsSchema } from '@wildshard/format/materials';
 import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
-import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';
+import { TimedEncountersSchema, CloudSpecimenSchema, CloudBodySchema } from '@wildshard/format/encounterRows';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { CreatureInstallSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
@@ -520,6 +520,35 @@ if (typeof wakeCheck !== 'object' || wakeCheck === null
 }
 wireChecks.set(wakeCheck, '@wildshard/format/bossEncounter#WakeEncounterSchema.pipe.1');
 
+/** Share only complete native grammars within these exact documents. The
+ * defining format parsers still own every semantic and resource admission. */
+function encounterDefinitions(schema: GenericSchema): Record<string, GenericSchema> | undefined {
+  if (schema === ArenaScriptFightFileSchema) return {
+    room: ArenaRoomDocumentRowsSchema, king: ArenaKingRowsSchema, privateScene: PrivateSceneSchema,
+    bossProfile: BossProfileSchema, legacyReturn: ReturnProgramSchema, completeReturn: ReturnProgramDocumentSchema,
+    projection: ReturnProjectionV2Schema,
+  };
+  if (schema === ArenaRoomDocumentSchema) return {
+    room: ArenaRoomDocumentRowsSchema, privateScene: PrivateSceneSchema, bossProfile: BossProfileSchema,
+    legacyReturn: ReturnProgramSchema, completeReturn: ReturnProgramDocumentSchema, projection: ReturnProjectionV2Schema,
+  };
+  if (schema === ArenaScriptGeometrySchema) return {
+    privateScene: PrivateSceneSchema, nativeGeometry: WeatherGeometrySchema, channelPrograms: ClientChannelsSchema,
+  };
+  if (schema === CloudSpecimenSchema) return {
+    cloudBody: CloudBodySchema, privateScene: PrivateSceneSchema,
+    nativeGeometry: WeatherGeometrySchema, channelPrograms: ClientChannelsSchema,
+  };
+  if (schema === ClientRidingSessionSchema) return {
+    legacyReturn: ReturnProgramSchema, completeReturn: ReturnProgramDocumentSchema, projection: ReturnProjectionV2Schema,
+  };
+  if (schema === TimedEncountersSchema) return {
+    nativeGeometryData: WeatherGeometryDataSchema, projection: ReturnProjectionV2Schema,
+  };
+  if (schema === MountedSpecimenSeatSchema) return { bakedGeometry: SceneBakedGeometrySchema };
+  return undefined;
+}
+
 /**
  * Convert an author schema with the official converter, refusing every unrecognised custom check or transform.
  * The extracted format checks have explicit bridges. Plumbing's cross-field checks remain named mandatory
@@ -528,6 +557,7 @@ wireChecks.set(wakeCheck, '@wildshard/format/bossEncounter#WakeEncounterSchema.p
  * This structural document never replaces the defining format parser's admission verdict.
  */
 export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'draft-2020-12' = 'draft-2020-12'): FormatJsonSchema {
+  const definitions = encounterDefinitions(schema);
   return toJsonSchema(schema, {
     target, errorMode: 'throw', typeMode: 'output',
     // Both page kinds share the complete node grammar. A local definition
@@ -535,6 +565,7 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     ...(schema === WorldScenePageSchema ? { definitions: { sceneNode: WorldSceneWeldNodeSchema } } : {}),
     // Both existing weather wires contain the same complete phase program.
     ...(schema === WeatherDocumentSchema ? { definitions: { weatherProgram: WeatherProgramSchema } } : {}),
+    ...(definitions === undefined ? {} : { definitions }),
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
       if (postIdentityTransforms.has(valibotAction)) return jsonSchema;
