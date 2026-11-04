@@ -103,6 +103,9 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
     // the painted land horizon (Pine Hollow, PH-L5) likewise: its phone pack was read 0.2 s after control (DL17)
     const painted = horizon.painted;
     if (painted !== null) horizonReady = Promise.all([horizonReady, painted.load(true)]).then(() => undefined);
+    // observed now (sp-x6): an early refusal must not surface as an unhandled rejection before the loader's own failure;
+    // the reveal's join (finish.ts) still awaits, and fails on, this same promise
+    void horizonReady.catch(() => undefined);
     return { boundary, water, streams, horizon, horizonReady };
   });
   const { boundary, water, horizon } = edgeDressing;

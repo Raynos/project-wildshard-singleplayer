@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { retainCachedResources, ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import { cacheUntilDisposed } from '@wildshard/engine/app/disposalCache';
 import { loadTexture } from '@wildshard/engine/core/assets';
+import { emitFault } from '@wildshard/engine/core/faults';
 import { viewmodelRowMaterial, type RangedWorld, type TexSet, type ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
 import { prepareRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
 import type { ShardContext } from './context';
@@ -85,11 +86,17 @@ export class HeldEquipment {
     await host.library.preload(); await host.preloadFirearm(); await host.preloadTool(); return host;
   }
   /** DL17 (G1000): the held tool's file is level content, read with the level rather than after control (Pine's knife
-   *  was read 0.5 s after it); a failed read stays retryable through the tool's own delayed load. */
+   *  was read 0.5 s after it). Only a failed preload keeps the stand-in and the tool's own delayed retry in play (root's
+   *  ruling, G872, as the dressing textures' fallback); the failure is reported as a fault, never silent. */
   async preloadTool(): Promise<HeldToolFile | null> {
     this.toolLoad ??= loadHeldToolFile(heldToolRows(this.rows.tool));
     try { this.toolReady = await this.toolLoad; return this.toolReady; }
-    catch (error: unknown) { this.toolLoad = null; console.warn('[held tool] preload failed; the tool loads in play', error); return null; }
+    catch (error: unknown) {
+      this.toolLoad = null;
+      console.warn('[held tool] preload failed; the stand-in holds and the tool loads in play', error);
+      emitFault({ system: 'held.tool', error, verdict: 'retry' });
+      return null;
+    }
   }
   /** Refuse an unprepared catalogue, rather than inventing a default weapon. */
   static current(slug: string): HeldEquipment { const host = catalogues.get(slug); if (host === undefined) throw new Error(`Held equipment not admitted: ${slug}`); return host; }
