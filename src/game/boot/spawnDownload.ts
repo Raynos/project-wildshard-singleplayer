@@ -54,10 +54,12 @@ let jobWaits: ReadonlyMap<string, Promise<boolean>> | null = null;
  *  the job's queue, so a loader never waits behind the rest of the set (Pine's boot tables were 649th of 651: setup waited
  *  86 s for them on the phone link). Set and cleared with `jobWaits`. */
 let jobDemand: ((url: string) => void) | null = null;
-/** DL11: the listed URL of each file the build versions with a query (`/assets/pine-hollow-C8hPt5PZ.jpg?v=bf08299f`), by
- *  its origin and path. A page read of the bare path is that file: keyed by the listed URL only, Pine's card art read as
- *  unlisted and held the sky step until the whole set landed (89 s). Until control. */
-const listedPaths = new Map<string, string>();
+/** DL11: the current job's listed URL for each of its files by origin and path (`/assets/pine-hollow-C8hPt5PZ.jpg` →
+ *  `…?v=bf08299f`). A page read of the bare path is that file: keyed by the listed URL only, Pine's card art read as
+ *  unlisted and held the sky step until the whole set landed (89 s). Owned by its job (sp-x2's review of c7e739c346):
+ *  current from the job's listing, replaced by the next job's, dropped when its job fails or is cancelled, kept after a
+ *  completed job until control. */
+let jobPaths: ReadonlyMap<string, string> | null = null;
 const ownSignals = new WeakSet<AbortSignal>();
 /** While the entry's download runs, a level read it does not list (a loader reading a file its set lacks) waits for the
  *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
@@ -82,7 +84,7 @@ function installMemberLayer(): boolean {
     const signal = init?.signal ?? request?.signal, own = signal !== undefined && signal !== null && ownSignals.has(signal);
     if ((members.size > 0 || storedUrls.size > 0 || jobWaits !== null || unlistedWait !== null) && !own && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
       const address = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href);
-      const url = (address.search === '' ? listedPaths.get(address.origin + address.pathname) : undefined) ?? address.href;
+      const url = (address.search === '' ? jobPaths?.get(address.origin + address.pathname) : undefined) ?? address.href;
       // the file's download first: a packed member's bytes are keyed only once its part starts (sp-x2's review)
       const pending = jobWaits?.get(url);
       if (pending !== undefined) jobDemand?.(url);
@@ -112,7 +114,7 @@ async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Control: the level is complete and its reads are done, so the member bytes go. */
-export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); listedPaths.clear(); jobWaits = null; jobDemand = null; storeRead = null; }
+export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); jobPaths = null; jobWaits = null; jobDemand = null; storeRead = null; }
 /** Debug 'Loading: runtime packs / shardfile' (DL16, default shardfile): set by the composition root before a spawn
  * download starts; this leaf reads no engine setting itself. */
 let packsOn = false;
@@ -161,7 +163,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   // Every page read this download holds: a listed file's wait and a part member's bytes, settled when the file lands or
   // at once when the download fails or is cancelled (a cancel never waits for a storage call to return, sp-x2's review).
   const settles = new Map<string, (stored: boolean) => void>(), memberSettles = new Set<(bytes: null) => void>();
-  const waits = new Map<string, Promise<boolean>>();
+  const waits = new Map<string, Promise<boolean>>(), paths = new Map<string, string>();
   // DL11: files page reads are waiting on, in the order asked; the loose lanes take them before the manifest order.
   const demanded: string[] = [], taken = new Set<string>();
   const demand = (url: string): void => { if (!taken.has(url) && !demanded.includes(url)) demanded.push(url); };
@@ -172,6 +174,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     for (const resolve of memberSettles) resolve(null);
     settles.clear(); memberSettles.clear();
     if (jobWaits === waits) { jobWaits = null; jobDemand = null; }
+    if (jobPaths === paths) jobPaths = null;
   };
   let markListed = (): void => undefined, markStopped = (_reason: unknown): void => undefined;
   const listedOnly = new Promise<void>(resolve => { markListed = resolve; });
@@ -196,7 +199,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       if (installMemberLayer()) {
         for (const file of files) waits.set(file.url, new Promise<boolean>(resolve => { settles.set(file.url, resolve); }));
         jobWaits = waits; jobDemand = demand;
-        for (const file of files) { const listed = new URL(file.url); if (listed.search !== '') listedPaths.set(listed.origin + listed.pathname, file.url); }
+        // every listed file, bare or versioned: a bare entry of this job replaces an older job's versioned route
+        for (const file of files) { const listed = new URL(file.url); paths.set(listed.origin + listed.pathname, file.url); }
+        jobPaths = paths;
       }
       markListed();
       // DL18: on a warm visit the held-parts index and the cache's keys answer every packed member at once; the few

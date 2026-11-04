@@ -397,3 +397,44 @@ test('DL11: a page read of a versioned file\'s bare path waits for that file and
   expect((await reading).byteLength).toBe(4);
   vi.unstubAllGlobals();
 });
+
+test('DL11: a cancelled job\'s versioned routes never answer for the next job\'s bare file (sp-x2\'s review of c7e739c346)', async () => {
+  // A lists /assets/card.jpg?v=aaaaaaaa and stores it, then stays busy; B lists the bare /assets/card.jpg and is still
+  // fetching it when A is cancelled. A read of the bare path waits for B's file and gets B's bytes.
+  const network = vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network')));
+  vi.stubGlobal('fetch', network);
+  const disk = new Map<string, Response>(), one = new Uint8Array(4).fill(1), two = new Uint8Array(4).fill(2);
+  const oneHash = '27ecd0a598e76f8a2fd264d427df0a119903e8eae384e478902541756f089dd1', twoHash = 'bb72b4e4eb29dc59328668f32e0511e3ac0e5ce4026b1591965216e49ca1f5d7';
+  const manifestOf = (slug: string, rows: readonly {url: string; bytes: number; hash: string}[]): {text: string; at: {url: string; bytes: number; totalBytes: number; files: number}} => {
+    const json = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: rows.length * 4});
+    return {text: json, at: {url: `/assets/spawn/example-${slug}-1234567890abcdef.json`, bytes: json.length, totalBytes: rows.length * 4, files: rows.length}};
+  };
+  const busy = '/shardfiles/example/blobs/bin/'.concat('9'.repeat(64), '.bin');
+  const first = manifestOf('route-a', [{url: '/assets/card.jpg?v=aaaaaaaa', bytes: 4, hash: oneHash}, {url: busy, bytes: 4, hash: oneHash}]);
+  const second = manifestOf('route-b', [{url: '/assets/card.jpg', bytes: 4, hash: twoHash}]);
+  const store = (url: string, response: Response): Promise<void> => { disk.set(url, response); return Promise.resolve(); };
+  const cached = (url: string): Promise<Response | undefined> => Promise.resolve(disk.get(url)?.clone());
+  const a = downloadSpawnManifest(first.at, {cached, store, fetch: async (url, signal) => {
+    const path = new URL(url).pathname;
+    if (path === busy) await new Promise((_resolve, reject) => { signal.addEventListener('abort', () => { reject(new Error('aborted')); }); });
+    return new Response(path === first.at.url ? first.text : one);
+  }}, base);
+  await vi.waitFor(() => { expect(disk.has(new URL('/assets/card.jpg?v=aaaaaaaa', base).href)).toBe(true); });
+  let release = (): void => undefined;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const b = downloadSpawnManifest(second.at, {cached, store, fetch: async url => {
+    const path = new URL(url).pathname;
+    if (path === '/assets/card.jpg') await held;
+    return new Response(path === second.at.url ? second.text : two);
+  }}, base);
+  await b.listed;
+  a.cancel(); await expect(a.ready).rejects.toThrow(); // A's late cleanup
+  let done = false;
+  const reading = (async () => { const card = new Uint8Array(await (await window.fetch(new URL('/assets/card.jpg', base).href)).arrayBuffer()); done = true; return card; })();
+  await new Promise(resolve => { setTimeout(resolve, 10); });
+  expect(done).toBe(false); // waits for B's file
+  release(); await b.ready;
+  expect(await reading).toEqual(two);
+  expect(network).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
+});
