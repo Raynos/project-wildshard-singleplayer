@@ -45,9 +45,6 @@ export function refusalReason(refusal: ShardRefusal): string {
   return refusal === 'upgrade' ? s.upgrade : refusal === 'too-big' ? s.tooBig : refusal === 'safety' ? s.safety : s.load;
 }
 
-/** The cell's far view: drawn (resident in the rings), still on its way, or none (it failed, or the shard has none). */
-export type FarViewStatus = 'resident' | 'loading' | 'none';
-
 const schema: v.GenericSchema<unknown, Readonly<Record<string, ShardRefusal>>> = v.record(v.string(), v.picklist(REFUSALS));
 /** the app's save store (src/engine/saves/store.ts) */
 type Store = typeof saves;

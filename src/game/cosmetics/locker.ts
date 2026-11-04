@@ -7,7 +7,6 @@ import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
 
 export interface CosmeticState { owned: string[]; worn: Record<string, string> }
-export interface CosmeticDef<Slot extends string> { id: string; slot: Slot }
 export interface CosmeticProfile<Slot extends string, Row extends { id: string }> { slot: (row: Row) => Slot; save: Pick<SaveSlot<CosmeticState>, 'read' | 'write'>; autoWear?: boolean; migrations?: DeclaredMigrations }
 
 const skinSave = saves.define({ key: 'skins', scope: 'shard', version: 1,

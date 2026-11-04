@@ -30,8 +30,6 @@ const queues = new Set<ControlRefinement>();
 /** The first boot fence precedes camera posing and explicitly keeps the player
  * reference. Later fences and controlled streaming use the real camera. */
 export function spawnViewUsesCamera(): boolean { return spawnView?.reference !== 'player'; }
-/** A spawn-view job waits or runs in some queue (the tile driver's settle stops when none does). */
-export function spawnViewBusy(): boolean { return [...queues].some(queue => queue.spawnViewOpen()); }
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
 export async function prepareSpawnView(radius: number = spawnViewRadius(), settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera'): Promise<void> {
   spawnView = { radius, reference };

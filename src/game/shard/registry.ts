@@ -71,12 +71,4 @@ export function setActiveChunk(slug: string): ShardManifest {
   return game.shard;
 }
 
-
-/** URL for the same page with another chunk selected (other params kept). */
-export function chunkUrl(slug: string, from: string = location.href): string {
-  const url = new URL(from);
-  url.searchParams.set('chunk', slug);
-  return url.toString();
-}
-
 export { findShard as findChunk, shardSlugFromUrl as chunkSlugFromUrl, defaultShard as defaultChunk };

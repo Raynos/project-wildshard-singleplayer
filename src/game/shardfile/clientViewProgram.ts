@@ -39,8 +39,6 @@ export function preflightViewLends(scope:Scope,rows:{readonly values?:readonly s
     if(new Set(ids).size!==ids.length||ids.some(id=>!/^[A-Za-z][A-Za-z0-9_.:-]{0,255}$/u.test(id)||book.get(scope)?.has(id)===true))throw new Error(`Conflicting view ${kind} loans`);
   }
 }
-/** An owner lends a native group's ordered actor slots to its scope's view programs (pools name the group). */
-export function lendViewSlots(scope: Scope, group: string, slots: ViewSlots): void { lend(lentSlots, scope, group, slots, 'slots'); }
 /** An owner lends a numeric snapshot (named finite fields, read once a frame and never written back) to its scope's view programs. */
 export function lendViewValues(scope: Scope, source: string, read: (field: string) => number): void { lend(lentValues, scope, source, read, 'values'); }
 /** An owner lends its inline frame slot, after the values, cells and tells the slot's program samples and writes: the

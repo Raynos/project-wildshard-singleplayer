@@ -1,4 +1,4 @@
-import { bindPageHomes, bindPageBoss, bindPageActor, spawnPageHome } from '../population/pageHomes';
+import { bindPageHomes, bindPageBoss, spawnPageHome } from '../population/pageHomes';
 import { installPageItems, installPageItemContexts } from '../shardfile/pageItems';
 import { bindPageQuest } from '../quest/pageState';
 import { createQuestLedger } from '../quest/ledger';
@@ -332,14 +332,6 @@ export interface RuntimeActor {
   /** The caller may lend native floor/altitude placement; identity follows the binder's policy. */
   readonly spawn: (placement?: { readonly y?: number; readonly fromY?: number }) => Animal | null;
   readonly retire: (animal: Animal) => void;
-}
-/**
- * Bind one `runtime.spawns.actors` row. Default retained identities are declared; `identity: runtime` preserves the
- * runtime's native allocation order for existing saves. The caller owns when to spawn and retire, with no refill.
- */
-export function bindRuntimeActor(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, id: string,
-  spawned?: (animal: Animal) => void, options: RuntimeBossOptions = {}): RuntimeActor {
-  return bindPageActor(ctx, runtimeSpawnRows(source), id, spawned, options);
 }
 
 type BuildEquipment = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
