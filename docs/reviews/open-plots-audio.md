@@ -852,3 +852,58 @@ native AAC indexing, decoded-loop bounds and required credits retained.
 The four chosen SFX provenance rows carry the decision and the label
 above. Gameplay binding, native bar 10 and final C/control qualification
 follow separately; this publication alone claims none of them.
+
+
+### Four final gameplay activations and C reports — November 4
+
+Clockwork, Desert, Floating Island Race and Showcase are activated by
+`b00b361bd5`, with the four source-bound G872 fit decisions retained in
+`73f65674ef` and labelled **best measured, below top-5** above. The final
+admitted source is **b752d49037c8ed98611376418069becb7c2599c0**, normal
+immutable all-product build **b752d49-mw26ziu7**. Both score comparisons,
+loop checks and all required model credits remain in each plot's own
+folders. The shared listening page now includes all four sets. No ear
+judgement or further retake round is claimed.
+
+Wildshard-new explicitly approves these exact G990 audio content ceilings
+under G872, with no margin; `b752d49037` records the approval trailers.
+
+| Plot | Before content B | Before ceiling B | Final content and ceiling B |
+|---|---:|---:|---:|
+| Clockwork | 5,277,693 | 5,503,249 | 6,516,702 |
+| Desert | 5,525,056 | 5,525,056 | 6,654,231 |
+| Floating Island Race | 3,767,340 | 3,767,340 | 4,660,075 |
+| Showcase | 6,646,908 | 6,646,908 | 7,679,142 |
+
+The original candidate correctly refuses before this approved policy change;
+its raw refusal is retained. The successful final build admits all products.
+Before source `d6ec6b963f` and final inventories validate literal file/section
+hashes, complete pack hashes, dense member offsets, member bytes and lengths.
+All **633 original files / 44,500,053 B** and **128 unchanged sections** are
+exact. Per plot, only old `audio/audio` and `look/map` sections change, and
+`client/plan` is added. Every map image string stays literal-exact; only its
+`tilesHash` source stamp changes. Retained pack-member order remains exact.
+No visual or collider source changes; no physics walk is warranted.
+
+All four maintained native bar-10 runs **PASS** on the final immutable pin:
+own score/stems slot, bank of one bed plus six spots, sustained score/bed
+gains, six spatial anchors with opposite-heading pan, and pause/resume.
+Each reports iPhone 16 Pro, 2× render, muted browser and errors empty; all
+browsers close normally. This proves live playback after the maintained
+admission boundary, not complete-at-control download readiness.
+
+The four C/control commands each complete six 120-frame windows, **2,880
+paired frames in total**, on the same final pin and matched Night Market.
+Cadence is 30.03 fps / p95 33.4 ms, with no skipped samples, page errors,
+context losses or standing builds. All draw windows fit 150; the original
+30 µs/draw CPU target misses on every plot and control window, and strict
+33.3 ms flags remain false. Detailed pose numbers are in
+[final readings](open-plots-final-readings.md). This earns no official
+Simulator or physical-device timing credit. Walks, golden bridges and four
+new memory/official windows remain open; full cohorts stay 3/10.
+
+Evidence: `tmp/sp-x1-audio/audio4-{body-proof,native-bar10,C-summary}.json`,
+`audio4-before-wire.json`, `audio4-after-wire.json`, original refused build
+log and four retained native/C logs. Focused audio/catalogue suites pass
+13 cases in three files; four provenance tests pass, including changed
+approved-source refusal. No gate, comparator or measured rank is weakened.

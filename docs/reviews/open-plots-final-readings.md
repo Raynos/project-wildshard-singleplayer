@@ -1,14 +1,15 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **3/10 fully qualified and published; C/control measured on 6/10**.
+**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **3/10 fully qualified and published; C/control measured on 10/10**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
 and the eight-view golden bridge. Sp-x8 owns separate Chromium memory and
 the official Simulator window. Sp-x6 owns audio/native bar 10, body/pack/wire proof, activation and joint
-row integration for Saltwind, Fossil, Clockwork, Desert, Floating Island Race
-and Showcase. Sp-x2 owns those audio requirements for Sky Harbor, Starfall,
-Thin Ice and Pastel Alien Plain. This is their agreed 4/6 split. Jungle and
+row integration for Saltwind and Fossil. Sp-x1 takes the final audio,
+activation, native bar 10 and C reports for Clockwork, Desert, Floating
+Island Race and Showcase after the agreed transfer. Sp-x2 owns those audio requirements for Sky Harbor, Starfall,
+Thin Ice and Pastel Alien Plain. The original 4/6 audio split is narrowed by that transfer. Jungle and
 Fairground's complete cohorts stay with sp-x6; the twelve plots are covered.
 No visual source changes belong to these readings.
 
@@ -19,8 +20,8 @@ not qualify a later audio candidate. Saltwind's final admitted candidate is
 `f8a1406288`; Sky Harbor's is `a8593f8ac6`, and Starfall's is
 `aa33a361f5`. Fossil Badlands (`0e0f1ba1c3`), Thin Ice
 (`6ce898ee5f`) and Pastel Alien Plain (`5fcb0ac75a`) are also admitted.
-Clockwork, Floating Island Race, Desert and Showcase still await final
-audio handoffs. Admission alone earns no reading qualification.
+Clockwork, Floating Island Race, Desert and Showcase are admitted on
+`b752d49037`, build `b752d49-mw26ziu7`, with native bar 10 complete. Admission alone earns no reading qualification.
 
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
@@ -29,11 +30,11 @@ audio handoffs. Admission alone earns no reading qualification.
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
-| Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
-| Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
-| Desert Ruin | `open-plot-3-0` / (1,-2) | Awaiting audio handoff | Open | Open |
+| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
+| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
+| Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete |
-| Showcase Template | `open-plot-sw` / (-1,-1) | Awaiting audio handoff | Open | Open |
+| Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
 
 All ten plots have eight committed golden cameras and maintained route
 inputs. Saltwind's `db418c06d7` adds `road-avenue-plaza`: 14 waypoints with
@@ -1259,3 +1260,171 @@ and eight goldens still open under X1. Four final audio handoffs remain open.
 No source, visuals, collider, budget, threshold, comparator or capture-clock
 change belongs to this reading. This is a local documentation commit under
 Jake's push hold; no audio/plot/docs push is requested.
+
+## Four final audio candidates — common admission (sp-x1)
+
+The four November 4 candidates below share exact source `b752d49037` and
+normal all-product build `b752d49-mw26ziu7`. All four native bar-10 runs pass
+with their own score, bed and six spatial spots, including heading/pan and
+pause/resume checks. Every one of 633 original file bodies (44,500,053 B)
+and 128 unchanged sections remains exact. Only audio and map source stamp
+change among old sections; each adds its audio client plan. Map images and
+retained pack-member order remain exact. This is audio-only: no visuals or
+colliders change. Four separately measured C reports bring C/control to
+**10/10**. Full cohorts remain **3/10**, and memory/official remains **6/10**;
+all outstanding walks, golden bridges and four new memory/official scopes
+stay open. Earlier local-under-hold paragraphs record their actual landing
+boundaries; that hold has since lifted and the earlier reading commits are
+published. No new memory or visual qualification is inferred.
+
+## Clockwork Canyon — Chromium/control (sp-x1, November 4)
+
+Exact admitted source **b752d49037c8ed98611376418069becb7c2599c0**, normal all-product build
+**b752d49-mw26ziu7** (:4401). Audio publication, gameplay binding and exact
+content ceilings are `73f65674ef`, `b00b361bd5` and `b752d49037`; the
+shared four-plot body/native proof is recorded in the audio review.
+
+One maintained matched command takes **51.720 s**: muted iPhone
+16 Pro, Chromium ANGLE Metal M5 Max, CSS 402×874, canvas 804×1748 / phone
+2×, live clock, boot CPU 1× then acknowledged ready/new-draw CPU 4×. Each
+of the six windows has **120/120 paired drawn frames and render-CPU
+samples**, zero skips, page errors, context losses or standing builds.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Clockwork Canyon / spawn | 51 | 95,492 | 44.967 / 64.706 |
+| Clockwork Canyon / road | 60 | 105,964 | 36.903 / 58.333 |
+| Clockwork Canyon / plaza | 55 | 111,038 | 34.636 / 52.727 |
+| Night Market / spawn | 48 | 225,198 | 37.396 / 62.500 |
+| Night Market / road | 56 | 140,577 | 43.765 / 69.643 |
+| Night Market / plaza | 57 | 283,280 | 38.289 / 56.140 |
+
+All six windows report **30.03 fps / p95 33.4 ms**; maximum intervals are
+33.4–33.5 ms, with no sampled interval over 50 or 100 ms.
+The original strict 33.3 ms flags remain **false**. Cadence and the unchanged
+150-draw limit pass; the unchanged **30 µs/draw CPU target misses on every
+plot and control window**. The worst whole-frame ratio gates this target,
+not the mean. These are descriptive matched readings under the existing
+OB8-RENDER-CPU follow-up, with no isolated saving or cause claim and no
+official Simulator or physical-device timing credit.
+
+Standing file `tmp/sp-x1-open-plots/clockwork-canyon-standing.json` has SHA-256
+`cb06d2b776ba7856d59060c756c082e339e702fb7d7c790932502ae464f2d70c`. Road and plaza retain the maintained
+real poses `(0,1.7,-241,pi,0)` and `(0,1.7,-62,pi,0)`. Raw primary report:
+`tmp/sp-x1-open-plots/clockwork-final/cpu/b752d4903-45984-1793801772706.json`; its adjacent `-draw-budget.json` retains all paired ratios.
+Browser closes normally. Walk, eight goldens and separate memory/official
+Simulator scopes remain open; this C report does not close a full cohort.
+
+## Desert Ruin — Chromium/control (sp-x1, November 4)
+
+Exact admitted source **b752d49037c8ed98611376418069becb7c2599c0**, normal all-product build
+**b752d49-mw26ziu7** (:4401). Audio publication, gameplay binding and exact
+content ceilings are `73f65674ef`, `b00b361bd5` and `b752d49037`; the
+shared four-plot body/native proof is recorded in the audio review.
+
+One maintained matched command takes **51.443 s**: muted iPhone
+16 Pro, Chromium ANGLE Metal M5 Max, CSS 402×874, canvas 804×1748 / phone
+2×, live clock, boot CPU 1× then acknowledged ready/new-draw CPU 4×. Each
+of the six windows has **120/120 paired drawn frames and render-CPU
+samples**, zero skips, page errors, context losses or standing builds.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Desert Ruin / spawn | 41 | 91,287 | 59.492 / 80.488 |
+| Desert Ruin / road | 51 | 111,887 | 40.474 / 66.667 |
+| Desert Ruin / plaza | 51 | 138,383 | 34.788 / 50.980 |
+| Night Market / spawn | 48 | 225,198 | 40.278 / 62.500 |
+| Night Market / road | 56 | 140,577 | 37.128 / 62.500 |
+| Night Market / plaza | 57 | 283,280 | 34.020 / 50.877 |
+
+All six windows report **30.03 fps / p95 33.4 ms**; maximum intervals are
+33.4–33.5 ms, with no sampled interval over 50 or 100 ms.
+The original strict 33.3 ms flags remain **false**. Cadence and the unchanged
+150-draw limit pass; the unchanged **30 µs/draw CPU target misses on every
+plot and control window**. The worst whole-frame ratio gates this target,
+not the mean. These are descriptive matched readings under the existing
+OB8-RENDER-CPU follow-up, with no isolated saving or cause claim and no
+official Simulator or physical-device timing credit.
+
+Standing file `tmp/sp-x1-open-plots/desert-ruin-standing.json` has SHA-256
+`d43346ef3aac90cb0c9327b146e6fd560e2945a6c4ce7dd427dde36e09d694d4`. Road and plaza retain the maintained
+real poses `(0,1.7,-241,pi,0)` and `(0,1.7,-62,pi,0)`. Raw primary report:
+`tmp/sp-x1-open-plots/desert-final/cpu/b752d4903-74654-1793801870277.json`; its adjacent `-draw-budget.json` retains all paired ratios.
+Browser closes normally. Walk, eight goldens and separate memory/official
+Simulator scopes remain open; this C report does not close a full cohort.
+
+## Floating Island Race — Chromium/control (sp-x1, November 4)
+
+Exact admitted source **b752d49037c8ed98611376418069becb7c2599c0**, normal all-product build
+**b752d49-mw26ziu7** (:4401). Audio publication, gameplay binding and exact
+content ceilings are `73f65674ef`, `b00b361bd5` and `b752d49037`; the
+shared four-plot body/native proof is recorded in the audio review.
+
+One maintained matched command takes **51.583 s**: muted iPhone
+16 Pro, Chromium ANGLE Metal M5 Max, CSS 402×874, canvas 804×1748 / phone
+2×, live clock, boot CPU 1× then acknowledged ready/new-draw CPU 4×. Each
+of the six windows has **120/120 paired drawn frames and render-CPU
+samples**, zero skips, page errors, context losses or standing builds.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Floating Island Race / spawn | 41 | 97,850 | 50.285 / 73.171 |
+| Floating Island Race / road | 47 | 82,922 | 49.202 / 74.468 |
+| Floating Island Race / plaza | 48 | 112,010 | 44.757 / 64.583 |
+| Night Market / spawn | 48 | 225,198 | 50.087 / 66.667 |
+| Night Market / road | 56 | 140,577 | 45.342 / 71.429 |
+| Night Market / plaza | 57 | 283,280 | 40.892 / 57.895 |
+
+All six windows report **30.03 fps / p95 33.4 ms**; maximum intervals are
+33.4–33.5 ms, with no sampled interval over 50 or 100 ms.
+The original strict 33.3 ms flags remain **false**. Cadence and the unchanged
+150-draw limit pass; the unchanged **30 µs/draw CPU target misses on every
+plot and control window**. The worst whole-frame ratio gates this target,
+not the mean. These are descriptive matched readings under the existing
+OB8-RENDER-CPU follow-up, with no isolated saving or cause claim and no
+official Simulator or physical-device timing credit.
+
+Standing file `tmp/sp-x1-open-plots/sky-race-standing.json` has SHA-256
+`1209b27a52236d7a6f087e88c214c2a792ea6a1b0921903d8565eb6819dbad4d`. Road and plaza retain the maintained
+real poses `(0,1.7,-241,pi,0)` and `(0,1.7,-62,pi,0)`. Raw primary report:
+`tmp/sp-x1-open-plots/race-final/cpu/b752d4903-87258-1793801961267.json`; its adjacent `-draw-budget.json` retains all paired ratios.
+Browser closes normally. Walk, eight goldens and separate memory/official
+Simulator scopes remain open; this C report does not close a full cohort.
+
+## Showcase Template — Chromium/control (sp-x1, November 4)
+
+Exact admitted source **b752d49037c8ed98611376418069becb7c2599c0**, normal all-product build
+**b752d49-mw26ziu7** (:4401). Audio publication, gameplay binding and exact
+content ceilings are `73f65674ef`, `b00b361bd5` and `b752d49037`; the
+shared four-plot body/native proof is recorded in the audio review.
+
+One maintained matched command takes **51.525 s**: muted iPhone
+16 Pro, Chromium ANGLE Metal M5 Max, CSS 402×874, canvas 804×1748 / phone
+2×, live clock, boot CPU 1× then acknowledged ready/new-draw CPU 4×. Each
+of the six windows has **120/120 paired drawn frames and render-CPU
+samples**, zero skips, page errors, context losses or standing builds.
+
+| Plot / pose | Max draws | Median reported triangles | Mean / worst render CPU µs per draw |
+|---|---:|---:|---:|
+| Showcase Template / spawn | 43 | 152,062 | 49.748 / 69.767 |
+| Showcase Template / road | 53 | 136,180 | 47.830 / 83.019 |
+| Showcase Template / plaza | 50 | 191,836 | 39.417 / 60.000 |
+| Night Market / spawn | 48 | 225,198 | 47.413 / 64.583 |
+| Night Market / road | 56 | 140,577 | 45.074 / 73.214 |
+| Night Market / plaza | 57 | 283,280 | 40.658 / 56.140 |
+
+All six windows report **30.03 fps / p95 33.4 ms**; maximum intervals are
+33.4–33.5 ms, with no sampled interval over 50 or 100 ms.
+The original strict 33.3 ms flags remain **false**. Cadence and the unchanged
+150-draw limit pass; the unchanged **30 µs/draw CPU target misses on every
+plot and control window**. The worst whole-frame ratio gates this target,
+not the mean. These are descriptive matched readings under the existing
+OB8-RENDER-CPU follow-up, with no isolated saving or cause claim and no
+official Simulator or physical-device timing credit.
+
+Standing file `tmp/sp-x1-open-plots/showcase-template-standing.json` has SHA-256
+`21f583e7202e36b907cd59f3cbad64dc2cb90565b50b445653a4b0242e0140c8`. Road and plaza retain the maintained
+real poses `(0,1.7,-241,pi,0)` and `(0,1.7,-62,pi,0)`. Raw primary report:
+`tmp/sp-x1-open-plots/showcase-final/cpu/b752d4903-80937-1793802250706.json`; its adjacent `-draw-budget.json` retains all paired ratios.
+Browser closes normally. Walk, eight goldens and separate memory/official
+Simulator scopes remain open; this C report does not close a full cohort.
