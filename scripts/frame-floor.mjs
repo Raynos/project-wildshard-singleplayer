@@ -1099,7 +1099,10 @@ async function worker() {
           // Reconnect after navigation: an inspector evaluation envelope can disappear in a WebContent process swap.
           // The helper sets live pose pins before the clean build's modules boot.
           const gameUrl = `${base}frame-floor-safari.html${query(shard)}`;
-          if (!wasmMemoryProbe) await retryEvaluate(frameFloorGameNavigationCode(gameUrl));
+          // Intentional preparation navigation has no measurement envelope to
+          // preserve. Read its acknowledgement directly before reconnecting.
+          if (!wasmMemoryProbe && await inspector.raw(frameFloorGameNavigationCode(gameUrl)) !== true)
+            throw new Error('Safari preparation did not acknowledge game navigation');
           inspector.close(); inspector = undefined;
           if (wasmMemoryProbe) xcrun(['openurl', udid, gameUrl]);
           await connect(gameUrl);

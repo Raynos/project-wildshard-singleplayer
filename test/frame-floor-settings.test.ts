@@ -98,7 +98,8 @@ test('acknowledges Safari preparation before navigating its existing context', (
     runInNewContext(frameFloorSettingsCode(settings), context);
     runInNewContext(saveFixtureCode({ scope: 'device', key: 'devMode', data: true }), context);
     const url = 'http://127.0.0.1:4456/frame-floor-safari.html?chunk=open-plot-clockwork-canyon&mute=1';
-    expect(runInNewContext(frameFloorGameNavigationCode(url), context)).toBe(true);
+    // The Inspector evaluator serializes one expression, not a statement list.
+    expect(runInNewContext(`JSON.stringify((${frameFloorGameNavigationCode(url)}))`, context)).toBe('true');
     expect(destinations).toEqual([]);
     vi.advanceTimersByTime(99);
     expect(destinations).toEqual([]);

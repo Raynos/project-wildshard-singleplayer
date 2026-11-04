@@ -51,7 +51,7 @@ export function frameFloorBootstrapHtml(fixture, check) {
  * reconnect to the exact game URL; this runs before any measurement window.
  * @param {string} url */
 export function frameFloorGameNavigationCode(url) {
-  return `setTimeout(() => location.replace(${JSON.stringify(url)}), 100); true`;
+  return `(() => { setTimeout(() => location.replace(${JSON.stringify(url)}), 100); return true; })()`;
 }
 
 /** Bounded pre-measurement fixture provenance. Observe only the two fixture
