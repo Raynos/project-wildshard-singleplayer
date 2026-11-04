@@ -130,12 +130,17 @@ test('the dedicated eight-input Nalati cache leaves other recorders on their ori
 
 
 test('the Pine oracle alone selects its dedicated restored construction cache',async()=>{
-  const f=await fixture(),original=resolve(f.root,'original-pine-family'),dedicated=resolve(f.root,'pine-cache');
+  const f=await fixture(),original=resolve(f.root,'original-pine-family'),dedicated=resolve(f.root,'pine-cache'),nalati=resolve(f.root,'nalati-cache');
   vi.stubEnv('WILDSHARD_GENERATE_CACHE',original);vi.stubEnv('WS_PINE_NATIVE_CACHE',dedicated);
+  vi.stubEnv('WS_NALATI_NATIVE_CACHE',nalati);
   expect(pineNativeOracleSpec().cacheDir).toBe(dedicated);
-  expect(nalatiNativeProgramSpec('geography').cacheDir).toBeUndefined();
+  expect(nalatiNativeProgramSpec('geography').cacheDir).toBe(nalati);
   await nativeProgramFixture({...f.spec,id:'other-pine-family'});
   expect(existsSync(resolve(original,'fixture-other-pine-family'))).toBe(true);
-  expect(existsSync(dedicated)).toBe(false);
+  expect(existsSync(dedicated)).toBe(false);expect(existsSync(nalati)).toBe(false);
   vi.stubEnv('WS_PINE_NATIVE_CACHE','');expect(pineNativeOracleSpec().cacheDir).toBeUndefined();
+  expect(nalatiNativeProgramSpec('geography').cacheDir).toBe(nalati);
+  vi.stubEnv('WS_NALATI_NATIVE_CACHE','');vi.stubEnv('WS_PINE_NATIVE_CACHE',dedicated);
+  expect(nalatiNativeProgramSpec('geography').cacheDir).toBeUndefined();
+  expect(pineNativeOracleSpec().cacheDir).toBe(dedicated);
 });
