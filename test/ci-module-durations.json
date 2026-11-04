@@ -1158,7 +1158,6 @@
   "test/generated-input-reading.test.ts": 0.740581691,
   "test/generated-isolated-declarations.test.ts": 0.826548637,
   "test/generated-source-guard.test.ts": 0.777264608,
-  "test/generation-benchmark.test.ts": 0.070457302,
   "test/generation-ground-map.test.ts": 6.229320282,
   "test/generator-import-paths.test.ts": 0.04470058,
   "test/geography-held-author-ports.test.ts": 0.188079277,

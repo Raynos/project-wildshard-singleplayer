@@ -85,6 +85,8 @@ Deleting a `.mjs` also deletes its `.d.mts`. A deleted test also comes out of `t
 
 ### DC1: one-off capture, measure and probe scripts for closed asks (73 files, 7,597 lines) · Codex · M
 
+**DC1 source:** in flight (2026-11-04, sp-x2): remove 66 unread files. Keep number-path-probe and declaration (DW witness/fake reads), latch-grid-evidence and declaration (maintained latch tests), MIDI exporter (byte/hash tests), crossroads production-probe (current production recipe), and grid-ready-chromium (open KITCHEN-SINK finish rows). Fresh tracked-tree basename/path search includes tests, registries and data references; historical prose is not an importer.
+
 Nothing runs them. No `package.json` script, workflow, hook, skill, process doc or other live script names them, and
 their asks or waves are closed.
 
