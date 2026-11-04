@@ -9,7 +9,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**00:00:** DL21 card: clock from tap + index.html clock pushed; step 27 = 8 serial Nine chunk GLBs, fixed 637a3afd4f; stuck-boot rescue (o2). CI disk-full: +315 MB .pack.br, census next run. DL11 slice 2 road capture in a worker (o1).
+**01:00:** CI: 3 prepare disk-fulls; raw parts dropped 82449159d6, prepare census green. Candidate 3fe1c72dcb (QD12 + DL21 + tile fence) in CI; its fence/stuck P1s (sp-x8) being fixed by o2. Golden drift on HEAD (DW 6 cams, Nine 22): x6 bisects, ruling after.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
@@ -24,7 +24,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 - GLSL programs accepted: Nine 72 (bar 70), Pine 111 (bar 100; distinct states). EP3 / NF22 / PF15 closed (sort ~1-4).
 - PF4 closes at the leather-grip merge (skins). PF6 holstered bow freezes (lever trade rejected). PF5 far idle elites
   pause (bca6ac13c7; ~4 m drift at 132 m removed, wake identical).
-- Not built: cabin merge, Rapier skip, EP11, PF17. Nine flake pixels (569,1139), (591,715), (635,1097; any source, 06:00) ruled exact, also together.
+- Not built: cabin merge, Rapier skip, EP11, PF17. Nine flake pixels (569,1139), (591,715), (635,1097), (782,1133; <=1 LSB, 00:30) ruled exact, also together.
 - Staged deploy (G872): prepare stages --skip-domain behind SSO, ship promotes; fallback = today's path.
 - EP9 kept, cell re-chunk ships (boards 6c23d7d7a6, 4152abcd85); toon gloss gate stays off.
 
