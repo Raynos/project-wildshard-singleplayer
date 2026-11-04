@@ -84,7 +84,7 @@ test('approval-only ledger entries require the exact decision and complete ordin
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync('tmp/approved-host-test-');
   try {
-    for (const dir of ['lint', 'src/game/looks', 'project/archive/2026-11-04-shard-platform']) mkdirSync(join(root, dir), { recursive: true });
+    for (const dir of ['lint', 'src/game/looks', 'docs/plans']) mkdirSync(join(root, dir), { recursive: true });
     writeFileSync(join(root, 'src/game/looks/fixture.ts'), 'export const feature = 1;');
     writeFileSync(join(root, 'docs/ENGINE.md'), 'game/looks/fixture');
     writeFileSync(join(root, 'docs/plans/decisions.md'), '| G475 | approved toon |');

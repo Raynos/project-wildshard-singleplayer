@@ -158,7 +158,7 @@ test('whole-module cuts retire their old receipts while unknown missing modules 
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync('tmp/retired-host-test-');
   try {
-    mkdirSync(`${root}/lint`); mkdirSync(`${root}/project/archive/2026-11-04-shard-platform`, { recursive: true });
+    mkdirSync(`${root}/lint`); mkdirSync(`${root}/docs/plans`, { recursive: true });
     writeFileSync(`${root}/docs/plans/decisions.md`, '| G475 | approved toon |');
     const receipt = (module: string): PendingPlatformUser => ({ module, documentation: 'docs/ENGINE.md',
       approvedFeature: { name: 'toon look host', decision: { path: 'docs/plans/decisions.md', row: 'G475' } } });
