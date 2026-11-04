@@ -125,6 +125,18 @@ export function bundlerSources(manifest: unknown): ReadonlyMap<string, readonly 
   }
   return found;
 }
+/** DL11: the engine's KTX2 stand-in map (tier → authored source → the GPU file shipped for it, ktx2.generated.ts) as a
+ *  reference source: each GPU file named by every authored source it stands in for, `ref:gpu-<tier>:/<source>`. Pine packs
+ *  two variants of one texture set (`pine_bark/diffuse_1k.phone.webp` and its `#layer` array layer) whose stems collide;
+ *  the source key tells them apart, and stays put when the bytes change. */
+export function standInRefs(files: Readonly<Record<string, Readonly<Record<string, string>>>>): ReadonlyMap<string, readonly string[]> {
+  const refs = new Map<string, string[]>(), segment = (key: string): string => key.replaceAll('~', '~0').replaceAll('/', '~1');
+  for (const [tier, map] of Object.entries(files)) for (const [source, file] of Object.entries(map)) {
+    const path = file.split('?')[0] ?? file;
+    refs.set(path, [...refs.get(path) ?? [], `ref:gpu-${tier}:/${segment(source)}`]);
+  }
+  return refs;
+}
 /** Each identity's files. An identity two distinct files share (two vendor versions under one package path, sp-x9) is
  *  ambiguous: the build refuses it and the recorder never records it; one file's own aliases are fine. */
 export function identityFiles(identities: ReadonlyMap<string, readonly string[]>): ReadonlyMap<string, readonly string[]> {

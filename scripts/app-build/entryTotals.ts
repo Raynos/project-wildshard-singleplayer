@@ -9,7 +9,8 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '../../src/format/fenceReads';
+import {GPU_FILES} from '../../src/engine/boot/ktx2.generated';
+import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -147,7 +148,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       const urls = publicAssets(), members = [...packParts().values()].flatMap(part => part.members);
       // Section references, then the boot tables' audio slots (Pine's colliding sfx revisions).
       const refs = joinRefs(sectionRefs(sections, new Set([...urls, ...members].map(url => url.split('?')[0] ?? url))),
-        audioTableRefs(JSON.parse(readAssetTables(root).common.source) as {sfx?: unknown; music?: unknown}));
+        audioTableRefs(JSON.parse(readAssetTables(root).common.source) as {sfx?: unknown; music?: unknown}), standInRefs(GPU_FILES));
       // An identity is one file or none: one naming two distinct files (two vendor versions, sp-x9) refuses, never the first.
       const owners = identityFiles(assetIdentities(urls, packParts(), refs, {digests: assetDigests, sources: bundlerSources()}));
       const ambiguous = shell.filter(identity => (owners.get(identity)?.length ?? 0) > 1);

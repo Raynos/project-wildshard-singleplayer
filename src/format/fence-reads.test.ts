@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { assetIdentities, assetStem, audioTableRefs, bundlerSources, identityFiles, type AssetDigests, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
+import { assetIdentities, assetStem, audioTableRefs, bundlerSources, identityFiles, standInRefs, type AssetDigests, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
 
 // DL22: Pine's cold boot read 143 files before control that its spawn set lacked (late models by name, props tiles by
 // tile); the recorded list keeps stable identities so a content edit (new hashes) still maps to the right files.
@@ -180,4 +180,20 @@ test('sp-x9: a project folder named node_modules keeps its project path, and two
   // one output's own aliases stay one file
   const shared = identityFiles(new Map([['/assets/s.jpg', ['asset-source:a.jpg', 'asset-source:b.jpg']]]));
   expect(shared.get('asset-source:a.jpg')).toEqual(['/assets/s.jpg']);
+});
+
+test('DL11: two packed variants of one texture set are told apart by the source each stands in for (Pine\'s pine_bark)', () => {
+  const plain = '/assets/gpu/tex/pine_bark/diffuse-e1721a67.ktx2', layer = '/assets/gpu/tex/pine_bark/diffuse-74f225f1.ktx2';
+  const refs = standInRefs({phone: {'/assets/tex/pine_bark/diffuse_1k.phone.webp': plain, '/assets/tex/pine_bark/diffuse_1k.phone.webp#layer': layer,
+    '/assets/tex/pine_bark/diffuse.jpg': plain}});
+  expect(refs.get(plain)).toEqual(['ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp', 'ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse.jpg']);
+  expect(refs.get(layer)).toEqual(['ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp#layer']);
+  // the two parts share member stems, so only these references can name them
+  const pack = packMembers({'pine-hollow': {phone: {parts: [
+    {url: '/assets/packs/pine-hollow.phone-cd012952.bin', files: [[layer, 0, 1, 'x']]},
+    {url: '/assets/packs/pine-hollow.phone-7949990b.bin', files: [[plain, 0, 1, 'x']]}]}}});
+  const ids = assetIdentities(['/assets/packs/pine-hollow.phone-cd012952.bin', '/assets/packs/pine-hollow.phone-7949990b.bin'], pack, refs, {digests: real});
+  expect(ids.get('/assets/packs/pine-hollow.phone-cd012952.bin')).toEqual(['ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp#layer']);
+  expect(ids.get('/assets/packs/pine-hollow.phone-7949990b.bin')?.[0]).toBe('ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp');
+  expect(readFenceReads({version: 1, files: ['ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp#layer']}).files).toHaveLength(1);
 });

@@ -14,7 +14,8 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parseArgs } from 'node:util';
-import { assetIdentities, audioTableRefs, bundlerSources, fenceReadAliases, identityFiles, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
+import { GPU_FILES } from '../src/engine/boot/ktx2.generated.ts';
+import { assetIdentities, audioTableRefs, bundlerSources, fenceReadAliases, identityFiles, standInRefs, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
 
 const { values } = parseArgs({ options: { run: { type: 'string' }, base: { type: 'string' }, dist: { type: 'string' }, slug: { type: 'string' },
   flow: { type: 'string', default: 'client' }, check: { type: 'boolean', default: false }, 'allow-unidentified': { type: 'boolean', default: false } } });
@@ -70,7 +71,7 @@ const memberPaths = [...parts.values()].flatMap(row => row.members.map(member =>
 const digests = path => { try { const bytes = readFileSync(join(dist, path.slice(1))); return ['sha1', 'sha256'].map(kind => createHash(kind).update(bytes).digest('hex')); } catch { return []; } };
 const manifestPath = join(dist, '.vite/manifest.json');
 const sources = existsSync(manifestPath) ? bundlerSources(JSON.parse(readFileSync(manifestPath, 'utf8'))) : new Map();
-const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs), { digests, sources });
+const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs, standInRefs(GPU_FILES)), { digests, sources });
 // an identity two distinct files share is ambiguous: never recorded (sp-x9)
 const owners = identityFiles(assetIds);
 for (const path of assetsOutside) { const ids = (assetIds.get(path) ?? []).filter(id => owners.get(id)?.length === 1); if (ids.length === 0) unknown.push(path); else recorded.push(...ids); }
