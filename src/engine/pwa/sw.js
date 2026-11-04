@@ -81,11 +81,24 @@ workerScope.listen(self, 'install', event => {
     await importPrevious(assets, books);
     const namedShell = SHELL_FILES.filter(path => immutable(new URL(abs(path))));
     await Promise.all([precache(shell, SHELL_FILES.filter(path => !namedShell.includes(path))),
-      precache(assets, [...FILES, ...namedShell], true)]);
-    // Only a completely installed build is a generation. Failed installs never evict working code.
-    await books.put(bookKey(BUILD), Response.json({ files: FILES.map(abs) }));
+      precache(assets, namedShell, true)]);
   })());
 });
+
+// DL1: the build's hashed code is precached only when a page reports control (PRECACHE), so a cold visit's level
+// download has the link to itself. Chunks that page already loaded come from the HTTP cache (force-cache).
+// Only a completely precached build is a generation; a failed precache never evicts working code and is asked again.
+let precaching;
+function precacheGeneration() {
+  precaching ??= (async () => {
+    try {
+      const [assets, books] = await Promise.all([store(ASSETS), caches.open(BOOKS)]);
+      await precache(assets, FILES, true);
+      await books.put(bookKey(BUILD), Response.json({ files: FILES.map(abs) }));
+    } catch (error) { precaching = undefined; throw error; }
+  })();
+  return precaching;
+}
 
 workerScope.listen(self, 'activate', event => {
   event.waitUntil((async () => {
@@ -160,6 +173,7 @@ workerScope.listen(self, 'fetch', event => {
 workerScope.listen(self, 'message', event => {
   const type = event.data?.type;
   if (type === 'SKIP_WAITING') { event.waitUntil(self.skipWaiting()); return; }
+  if (type === 'PRECACHE') { event.waitUntil(precacheGeneration()); return; }
   if (type !== 'BUILD' && type !== 'VERSION') return;
   const value = { type, build: BUILD };
   const port = event.ports?.[0];

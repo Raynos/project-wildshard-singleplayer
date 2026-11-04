@@ -68,11 +68,17 @@ function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = 
   return { caches, open, books, fetch, load };
 }
 
-test('install precaches its complete shell and hashed files before publishing a generation', async () => {
+const precached = { data: { type: 'PRECACHE' } };
+test('install precaches only the shell; control precaches hashed files before publishing a generation', async () => {
   const f = fixture(), worker = f.load('A', ['/assets/a-aaaaaaaa.js', shared]);
   await worker.dispatch('install'); await worker.dispatch('activate');
-  expect(f.fetch).toHaveBeenCalledTimes(3); expect(worker.claim).not.toHaveBeenCalled();
+  // DL1: nothing of the build's code shares a cold visit's level download.
+  expect(f.fetch).toHaveBeenCalledTimes(1); expect(worker.claim).not.toHaveBeenCalled();
   const assets = await f.open(ASSET_CACHE_NAME), current = await f.open('ws-shell-v3-A');
+  expect(await assets.match(url(shared))).toBeUndefined();
+  expect(await (await f.open('ws-builds-v1')).keys()).toHaveLength(0);
+  await worker.dispatch('message', precached); await worker.dispatch('message', precached);
+  expect(f.fetch).toHaveBeenCalledTimes(3); expect(await (await f.open('ws-builds-v1')).keys()).toHaveLength(1);
   expect(await (await assets.match(url(shared)))?.text()).toBe(`body:${url(shared)}`);
   expect(await current.match(url('/index.html'))).toBeUndefined();
   f.fetch.mockRejectedValue(new Error('offline'));
@@ -181,11 +187,11 @@ test('same-build content and versioned metadata read from the one asset cache wi
 test('retention keeps current plus previous code, shared chunks and immutable content', async () => {
   const f = fixture(), a = '/assets/a-aaaaaaaa.js', b = '/assets/b-bbbbbbbb.js', c = '/assets/c-cccccccc.js';
   const content = `/assets/models/${'d'.repeat(64)}.glb`;
-  const first = f.load('A', [a, shared]); await first.dispatch('install'); await first.dispatch('activate');
+  const first = f.load('A', [a, shared]); await first.dispatch('install'); await first.dispatch('activate'); await first.dispatch('message', precached);
   await first.dispatch('fetch', { request: new Request(url(content)) });
-  const second = f.load('B', [b, shared]); await second.dispatch('install'); await second.dispatch('activate');
+  const second = f.load('B', [b, shared]); await second.dispatch('install'); await second.dispatch('activate'); await second.dispatch('message', precached);
   const assets = await f.open(ASSET_CACHE_NAME); expect(await assets.match(url(a))).toBeDefined();
-  const third = f.load('C', [c, shared]); await third.dispatch('install'); await third.dispatch('activate');
+  const third = f.load('C', [c, shared]); await third.dispatch('install'); await third.dispatch('activate'); await third.dispatch('message', precached);
   expect(await assets.match(url(a))).toBeUndefined(); expect(await assets.match(url(b))).toBeDefined();
   expect(await assets.match(url(c))).toBeDefined(); expect(await assets.match(url(shared))).toBeDefined();
   expect(await assets.match(url(content))).toBeDefined();
@@ -194,19 +200,22 @@ test('retention keeps current plus previous code, shared chunks and immutable co
   expect(await f.caches.keys()).not.toContain('ws-shell-v3-B');
 });
 
-test('an incomplete install never publishes a generation or prunes working code', async () => {
+test('an incomplete precache never publishes a generation or prunes working code, and is asked again', async () => {
   let fail = false;
   const f = fixture(request => Promise.resolve(new Response('code', { status: fail && request.url.endsWith('/assets/b-bbbbbbbb.js') ? 503 : 200 })));
-  const a = f.load('A', ['/assets/a-aaaaaaaa.js']); await a.dispatch('install'); await a.dispatch('activate'); fail = true;
-  const b = f.load('B', ['/assets/b-bbbbbbbb.js']); await expect(b.dispatch('install')).rejects.toThrow('Precache failed');
+  const a = f.load('A', ['/assets/a-aaaaaaaa.js']); await a.dispatch('install'); await a.dispatch('activate'); await a.dispatch('message', precached); fail = true;
+  const b = f.load('B', ['/assets/b-bbbbbbbb.js']); await b.dispatch('install'); await b.dispatch('activate');
+  await expect(b.dispatch('message', precached)).rejects.toThrow('Precache failed');
   expect(await (await f.open(ASSET_CACHE_NAME)).match(url('/assets/a-aaaaaaaa.js'))).toBeDefined();
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
+  fail = false; await b.dispatch('message', precached);
+  expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(2);
 });
 
 test('install repairs an older HTML precache hit without trusting its content-named key', async () => {
   const f = fixture(), file = '/assets/a-aaaaaaaa.js', assets = await f.open(ASSET_CACHE_NAME);
   await assets.put(url(file), new Response('<html>missing</html>', {headers: {'content-type': 'text/html'}}));
-  const worker = f.load('A', [file]); await worker.dispatch('install'); await worker.dispatch('activate');
+  const worker = f.load('A', [file]); await worker.dispatch('install'); await worker.dispatch('activate'); await worker.dispatch('message', precached);
   expect(await (await assets.match(url(file)))?.text()).toBe(`body:${url(file)}`);
   expect(f.fetch.mock.calls.filter(([input]) => (typeof input === 'string' ? input : input.url) === url(file))).toHaveLength(1);
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
@@ -217,7 +226,7 @@ test('rewrite migration skips HTML masquerading as old code or immutable content
   const html = (): Response => new Response('<html>missing</html>', {headers: {'content-type': 'text/html;charset=utf-8'}});
   await (await f.open('ws-immutable')).put(url(code), html());
   await (await f.open('ws-static-old')).put(url(content), html());
-  const worker = f.load('A', []); await worker.dispatch('install'); await worker.dispatch('activate');
+  const worker = f.load('A', []); await worker.dispatch('install'); await worker.dispatch('activate'); await worker.dispatch('message', precached);
   const assets = await f.open(ASSET_CACHE_NAME);
   expect(await assets.match(url(code))).toBeUndefined(); expect(await assets.match(url(content))).toBeUndefined();
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(1);
@@ -229,7 +238,7 @@ test('the one-time rewrite preserves named legacy bodies and one old code genera
   await (await f.open('ws-immutable')).put(url(oldCode), new Response('old code'));
   await (await f.open('ws-static-old')).put(url(named), new Response('named model'));
   await (await f.open('ws-static-old')).put(url('/assets/baked/mutable.bin'), new Response('mutable old'));
-  const a = f.load('A', ['/assets/a-aaaaaaaa.js']); await a.dispatch('install'); await a.dispatch('activate');
+  const a = f.load('A', ['/assets/a-aaaaaaaa.js']); await a.dispatch('install'); await a.dispatch('activate'); await a.dispatch('message', precached);
   const assets = await f.open(ASSET_CACHE_NAME);
   expect(await (await assets.match(url(oldCode)))?.text()).toBe('old code');
   expect(await (await assets.match(url(named)))?.text()).toBe('named model');
@@ -341,10 +350,11 @@ test('explicit retry bypasses current and legacy content copies without changing
   expect(await (await assets.match(request))?.text()).toBe(`body:${request.url}`);
 });
 
-test('install never publishes HTML in place of its required code', async () => {
+test('precache never publishes HTML in place of its required code', async () => {
   const f = fixture(() => Promise.resolve(new Response('<html>missing</html>', { headers: { 'content-type': 'text/html' } })));
   const worker = f.load('A', ['/assets/a-aaaaaaaa.js'], []);
-  await expect(worker.dispatch('install')).rejects.toThrow('Precache failed');
+  await worker.dispatch('install');
+  await expect(worker.dispatch('message', precached)).rejects.toThrow('Precache failed');
   expect((await (await f.open('ws-builds-v1')).keys())).toHaveLength(0);
   expect((await (await f.open(ASSET_CACHE_NAME)).keys())).toHaveLength(0);
 });

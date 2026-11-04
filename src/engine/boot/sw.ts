@@ -7,9 +7,10 @@ import { pageScope } from '../app/resources';
  * at the very first line of boot. Two jobs, both before the first big fetch:
  *
  *  1. Every document is ready immediately. Boot watches an existing registration without joining a register job;
- *     the first registration starts in the background so its full precache can finish during cold entry, before
- *     a quick return. Neither registration nor activation gates navigation. Deferring the first install until
- *     control left the next document uncontrolled (039d: warm Home 13.84 -> 19.62 s). No document is claimed.
+ *     the first registration starts in the background so its shell install finishes during cold entry and the next
+ *     document is controlled. Neither registration nor activation gates navigation. Deferring the first install until
+ *     control left the next document uncontrolled (039d: warm Home 13.84 -> 19.62 s). No document is claimed. The
+ *     build's code is precached only after control (DL1, `askPrecache`), so it never shares the level's download.
  *
  *  2. Announce updates without replacing gameplay. Adoption is explicit on the
  *     title or a fresh document; a running world never changes its controller.
@@ -62,6 +63,7 @@ const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
 let watched: ServiceWorkerRegistration | null = null;
 let newestBuild: string | null = null;
 let discovery = 0;
+let controlReached = false, precacheTarget: ServiceWorkerRegistration | null = null, precacheAsked = false;
 // declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
 const api: WsSw = { ready: boot(), enabled: swAllowed(), waiting: null, adopt, version };
 
@@ -276,8 +278,26 @@ function boot(): Promise<void> {
   // Start first-install work early enough for the next visit, without returning
   // to the old activation-blocked readiness. Existing registrations still take
   // PR2's non-job lookup/watch path; no document is claimed.
+  pageScope.listen(document, 'ws:control-ready', () => { controlReached = true; askPrecache(); }, { once: true });
   void register(s);
   return Promise.resolve();
+}
+
+/** DL1: install stays shell-only; the activated worker precaches its build's code once this page reaches control, so
+ * the cold level download has the link to itself. Asked once a page; a first install still activating is asked when
+ * it activates. A waiting update is never asked: it precaches after its own adoption and control. */
+function askPrecache(): void {
+  const reg = precacheTarget;
+  if (!controlReached || reg === null || precacheAsked) return;
+  const ask = (w: ServiceWorker | null): void => {
+    if (precacheAsked || w?.state !== 'activated' || pageScope.disposed || pageScope.disposing) return;
+    precacheAsked = true;
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter.
+    try { w.postMessage({ type: 'PRECACHE' }); } catch { /* A retired worker is asked again on the next visit's control. */ }
+  };
+  ask(reg.active);
+  const installing = reg.installing;
+  if (!precacheAsked && installing !== null) pageScope.listen(installing, 'statechange', () => { ask(installing); });
 }
 
 async function register(s: ServiceWorkerContainer): Promise<void> {
@@ -296,6 +316,7 @@ async function register(s: ServiceWorkerContainer): Promise<void> {
   // Treat that as unavailable support, just like a rejected registration.
   if (reg === undefined) return;
   watch(reg);
+  precacheTarget = reg; askPrecache();
   // Standalone installs live for days: keep discovering updates so the pill can offer them.
   pageScope.listen(document, 'visibilitychange', () => {
     if (!document.hidden) void reg.update().catch(() => undefined);

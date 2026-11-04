@@ -26,8 +26,9 @@ test('an uncontrolled return watches its pending first install without another r
     document.dispatchEvent(new Event('ws:control-ready'));
     await vi.advanceTimersByTimeAsync(180_000);
     expect(register).not.toHaveBeenCalled(); expect(getRegistration).toHaveBeenCalledTimes(1);
+    expect(worker.postMessage).not.toHaveBeenCalled(); // an installing worker is asked only once it activates
     worker.state = 'activated'; worker.dispatchEvent(new Event('statechange'));
-    expect(container.controller).toBeNull(); expect(worker.postMessage).not.toHaveBeenCalled();
+    expect(container.controller).toBeNull(); expect(worker.postMessage).toHaveBeenCalledExactlyOnceWith({ type: 'PRECACHE' });
     expect(wsSw.waiting).toBeNull(); expect(vi.getTimerCount()).toBe(pageTimers);
   } finally {
     (await import('../app/resources')).pageScope.dispose();
