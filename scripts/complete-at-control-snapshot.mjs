@@ -127,3 +127,55 @@ export function splitRequests(rows, isLevelContent) {
   const held = new Set(precache);
   return { level: rows.filter(row => isLevelContent(row.url) && !held.has(row)), precache };
 }
+
+/** Root's ruling (G872, wildshard-new 11-04): neighbour and outer-road work, as source spans of the grid session. A span runs
+ *  from its `from` line up to its `to` line, both found once in the served build's own source of `file`. */
+export const NEIGHBOUR_WORK = [
+  { file: 'src/game/grid/session.ts', what: 'outer-ring strips', from: /^\s*const outerStrips = async /u, to: /^\s*const roadInput = /u },
+  { file: 'src/game/grid/session.ts', what: 'outer-ring road', from: /^\s*const outer = async \(\): Promise<PlatformRoad>/u, to: /^\s*const completed = await /u },
+  { file: 'src/game/grid/session.ts', what: 'outer-ring start', from: /this\.startOuterRoad = \(\) => \{/u, to: /^\s*const given = preparedRoad/u },
+  { file: 'src/game/grid/session.ts', what: 'outer-ring platform', from: /^\s*prepareOuterStrips\(\): Promise<void> \{/u, to: /^\s*\/\*\* Step 2: the live crossing/u },
+  // the cell the player is in admits no tile copy of itself (ce0ac0fa3c): these views are the cells round it
+  { file: 'src/game/grid/session.ts', what: 'neighbour tile views', from: /^\s*private tileAdmission\(/u, to: /^\s*private refuse\(/u },
+];
+/** Each span's lines in `read(file)`'s source; an anchor missing or found twice refuses (the spans must follow edits). */
+export function neighbourSpans(read, spans = NEIGHBOUR_WORK) {
+  return spans.map(span => {
+    const lines = read(span.file).split('\n'), at = re => lines.flatMap((line, i) => (re.test(line) ? [i + 1] : []));
+    const [from, to] = [at(span.from), at(span.to)];
+    if (from.length !== 1 || to.length !== 1 || to[0] <= from[0]) throw new Error(`neighbour span '${span.what}' has no single ${span.file} anchor pair`);
+    return { file: span.file, what: span.what, from: from[0], to: to[0] };
+  });
+}
+/** The neighbour span a source-mapped stack passes through (frames' `src` "path:line [name]"), else null. */
+export function neighbourFrame(frames, spans) {
+  for (const frame of frames) {
+    const at = /^(.*):(\d+)(?: |$)/u.exec(frame.src ?? '');
+    if (at === null) continue;
+    const line = Number(at[2]), span = spans.find(s => at[1].endsWith(s.file) && line >= s.from && line < s.to);
+    if (span !== undefined) return span.what;
+  }
+  return null;
+}
+/** Post-control level requests split by who asked (root's ruling, G872): a URL naming no level whose every page fetch and
+ *  worker construction was initiated from neighbour work is the neighbour's (G828); a URL with no initiator stack, or any
+ *  from elsewhere, stays the level's. The worker's fetch of a URL follows that URL's verdict. */
+export function splitByInitiator(after, trace, spans, namesLevel) {
+  const path = url => { try { return new URL(url).pathname; } catch { return url; } }, stacks = new Map();
+  for (const row of [...trace.initiators, ...trace.workers]) {
+    if (row.frames.length === 0) continue;
+    const list = stacks.get(path(row.url)) ?? []; list.push(row.frames); stacks.set(path(row.url), list);
+  }
+  const verdict = new Map();
+  const of = url => {
+    const key = path(url);
+    if (!verdict.has(key)) {
+      const list = namesLevel(url) ? [] : stacks.get(key) ?? [], found = list.map(frames => neighbourFrame(frames, spans));
+      verdict.set(key, list.length > 0 && found.every(what => what !== null) ? found[0] : null);
+    }
+    return verdict.get(key);
+  };
+  const neighbour = [], level = [];
+  for (const row of after) { const what = of(row.url); if (what === null) level.push(row); else neighbour.push({ ...row, work: what }); }
+  return { level, neighbour };
+}

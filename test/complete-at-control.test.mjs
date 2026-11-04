@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
-import { lapPops, splitRequests } from '../scripts/complete-at-control-snapshot.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The span anchors are checked against today's grid session source.
+import { readFileSync } from 'node:fs';
+import { lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from '../scripts/complete-at-control-snapshot.mjs';
 
 // a snapshot's mesh row: [uuid, chain, signature `geometry|positions|indices|material:map:width`, shown, within reach, skinned]
 const row = (id, chain, geometry, map, shown = true, close = true, skinned = false) => [id, chain, `${geometry}|36|0|mat:${map}:256`, shown, close, skinned];
@@ -77,4 +79,32 @@ test('a look-alike is a pop: another texture, or the control mesh never retired 
   // same signature, but the control mesh is still there: a second copy appeared, nothing was re-attached
   const extra = lapPops(at, [sample([row('pier-a', 'Mesh<driftwood-isle/pier<piers.world-0<Scene', 'g-pier', 't-wood'), row('pier-b', 'Mesh<driftwood-isle/pier<Scene', 'g-pier-2', 't-wood')])], undefined);
   expect(extra.reattached).toEqual([]); expect(extra.pops).toEqual(['added Mesh<driftwood-isle/pier<Scene']);
+});
+
+test('a shared fetch only neighbour work asked for is the neighbour\'s; no stack or home work stays red (G872)', () => {
+  const source = ['class S {', '  private tileAdmission(r) {', '    admit();', '  }', '  private refuse(c) {}', '}'].join('\n');
+  const spans = neighbourSpans(() => source, [{ file: 'src/game/grid/session.ts', what: 'tile views', from: /^\s*private tileAdmission\(/u, to: /^\s*private refuse\(/u }]);
+  expect(spans).toEqual([{ file: 'src/game/grid/session.ts', what: 'tile views', from: 2, to: 5 }]);
+  const at = (line) => ({ src: `build-mirror/check/tree/src/game/grid/session.ts:${line}` }), home = { src: 'src/game/session/finish.ts:300' };
+  const trace = {
+    initiators: [
+      { url: 'https://x.test/basis/basis_transcoder.wasm', frames: [{ src: null }, at(3)] },        // the neighbour's tile views
+      { url: 'https://x.test/assets/a.worker.js', frames: [] },                                      // a worker script: no stack ...
+      { url: 'https://x.test/assets/mixed.js', frames: [at(3)] }, { url: 'https://x.test/assets/mixed.js', frames: [home] },
+      { url: 'https://x.test/shardfiles/driftwood-isle/blobs/glb/h', frames: [at(3)] },             // names the level: never moved
+    ],
+    workers: [{ url: 'https://x.test/assets/a.worker.js', frames: [at(4)] }, { url: 'https://x.test/assets/b.worker.js', frames: [] }],
+  };
+  const after = ['https://x.test/basis/basis_transcoder.wasm', 'https://x.test/assets/a.worker.js', 'https://x.test/assets/b.worker.js',
+    'https://x.test/assets/mixed.js', 'https://x.test/shardfiles/driftwood-isle/blobs/glb/h', 'https://x.test/assets/none.js'].map(url => ({ url, by: 'page' }));
+  after.push({ url: 'https://x.test/assets/a.worker.js?v=2', by: 'service-worker' });
+  const { level, neighbour } = splitByInitiator(after, trace, spans, url => url.includes('/shardfiles/'));
+  expect(neighbour.map(entry => `${entry.by} ${new URL(entry.url).pathname} ${entry.work}`)).toEqual(['page /basis/basis_transcoder.wasm tile views', 'page /assets/a.worker.js tile views', 'service-worker /assets/a.worker.js tile views']);
+  expect(level.map(entry => new URL(entry.url).pathname)).toEqual(['/assets/b.worker.js', '/assets/mixed.js', '/shardfiles/driftwood-isle/blobs/glb/h', '/assets/none.js']);
+});
+
+test('the neighbour spans refuse a missing or doubled anchor, and today\'s session source has each once', () => {
+  expect(() => neighbourSpans(() => 'private tileAdmission(\nprivate tileAdmission(\nprivate refuse(', [NEIGHBOUR_WORK[4]])).toThrow(/single/u);
+  const spans = neighbourSpans(file => readFileSync(file, 'utf8'));
+  expect(spans.map(span => span.what)).toEqual(NEIGHBOUR_WORK.map(span => span.what));
 });

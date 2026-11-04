@@ -7,7 +7,8 @@
 //   [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--level-download=shardfile|packs] [--lap=<seconds>]
 //   [--reach=<m, 220>] [--out=<json under ./tmp>]
 //   --trace=on (Chromium): who asked for level content after control (each request's initiator stack, CDP) and every
-//   `wildshard.prepare:*` measure against control on the page clock, as report.trace; not part of the verdict
+//   `wildshard.prepare:*` measure against control on the page clock, as report.trace; not part of the verdict;
+//   --dist=<the served build's dist> maps every frame through its hidden source maps
 //   --warm=on: no lap: the cold visit, an exit and re-entry 1 s after control while the service worker's post-control
 //   precache still runs (039d's trap), and a re-entry once the worker has gone quiet, each visit judged by checks 1 and 2
 //
@@ -19,7 +20,10 @@
 //      in the page. Level content is every same-origin URL that does not name another level (its hashed JS, shared code,
 //      packs, common and canonical audio all count, whoever fetches it); a level-content request still open at control,
 //      or any level-content request or read started after it, fails the gate. The one exception is the worker's offline
-//      precache: a service-worker fetch of a URL the page never requests in the visit, lap included (listed apart). WebKit with the worker on is no reading:
+//      precache: a service-worker fetch of a URL the page never requests in the visit, lap included (listed apart).
+//      With --trace=on --dist, a fetch of a URL naming no level whose every initiator stack passes through neighbour
+//      or outer-road work (NEIGHBOUR_WORK's spans of the grid session) is the neighbour's (root's ruling, G872, 11-04);
+//      no stack, or one from anywhere else, stays red. WebKit with the worker on is no reading:
 //      Playwright WebKit reports none of the worker's fetches.
 //   2. Completeness at control: the grid's rings (far / l1 / l0 in flight or queued, reach cells showing a far proxy,
 //      tiles or near placeholders), the shardfile residency, the spawn-view fence (`wildshard.spawn-view.done` must exist
@@ -35,16 +39,18 @@
 import { mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapPops, splitRequests } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapPops, splitRequests, neighbourSpans, splitByInitiator } from './complete-at-control-snapshot.mjs';
+import { execFileSync } from 'node:child_process';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
@@ -115,6 +121,24 @@ const isLevelContent = (url) => {
 
 
 const requests = [], reads = [];
+/** The neighbour split needs the mapped trace and the served build's own session source (`git show <rev>:<file>`). */
+const byWork = (rows, trace) => (trace?.mapped !== true ? { level: rows, neighbour: [] }
+  : splitByInitiator(rows, trace, neighbourSpans(file => execFileSync('git', ['show', `${rev}:${file}`], { encoding: 'utf8' })), url => slugOf(contentPath(url) ?? '') !== null));
+// --dist: the build's hidden source maps (dist/assets/*.js.map) name each trace frame's source, as loading-benchmark does
+const sourceMaps = new Map();
+const mapped = (rows) => {
+  if (values.dist === undefined) return rows;
+  const require = createRequire(resolve('package.json')), { TraceMap, originalPositionFor } = require('@jridgewell/trace-mapping');
+  const where = (frame) => {
+    const file = /\/assets\/([^?#]+\.js)/u.exec(frame.url)?.[1];
+    if (file === undefined) return null;
+    const path = resolve(values.dist, 'assets', file);
+    if (!sourceMaps.has(path)) sourceMaps.set(path, existsSync(`${path}.map`) ? new TraceMap(readFileSync(`${path}.map`, 'utf8')) : null);
+    const map = sourceMaps.get(path), at = map === null ? null : originalPositionFor(map, { line: frame.line, column: Math.max(0, frame.col - 1) });
+    return at?.source ? `${at.source.replace(/^(?:\.\.\/)+/u, '')}:${at.line}${at.name ? ` ${at.name}` : ''}` : null;
+  };
+  return rows.map(row => ({ ...row, frames: row.frames.map(frame => ({ ...frame, src: where(frame) })) }));
+};
 // --link=phone: DL0's one shared downlink (scripts/phone-loading/link.ts) at the phone preset's rate, page and service worker
 // on the same proxy, loopback included (latency and CPU stay unshaped here)
 const link = linkName === 'phone' ? await startSharedLink(profiles.phone.down) : null;
@@ -174,18 +198,36 @@ try {
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
   const page = await context.newPage();
   page.setDefaultTimeout(240000);
-  const initiators = [];
+  const initiators = [], workers = [];
   if (values.trace === 'on' && engine === 'chromium') {
     const cdp = await context.newCDPSession(page);
-    await cdp.send('Network.enable');
+    await cdp.send('Network.enable'); await cdp.send('Runtime.enable');
     // async parents too (an awaited read's caller), bounded: a trace run is not a timed reading
-    await cdp.send('Debugger.enable'); await cdp.send('Debugger.setAsyncCallStackDepth', { maxDepth: 32 });
+    await cdp.send('Debugger.enable'); await cdp.send('Debugger.setAsyncCallStackDepth', { maxDepth: 32 }); await cdp.send('Runtime.setAsyncCallStackDepth', { maxDepth: 32 });
+    const framesOf = (stack) => {
+      const frames = [];
+      for (let at = stack; at !== undefined && frames.length < 48; at = at.parent)
+        for (const frame of at.callFrames) if (frames.length < 48) frames.push({ fn: frame.functionName, url: frame.url, line: frame.lineNumber + 1, col: frame.columnNumber + 1, ...(at.description === undefined ? {} : { async: at.description }) });
+      return frames;
+    };
     cdp.on('Network.requestWillBeSent', ({ request, initiator }) => {
       if (control.at === null || !isLevelContent(request.url)) return;
-      const frames = [];
-      for (let stack = initiator.stack; stack !== undefined && frames.length < 48; stack = stack.parent)
-        for (const frame of stack.callFrames) if (frames.length < 48) frames.push(`${frame.functionName || '?'} ${frame.url.split('/').pop()}:${frame.lineNumber + 1}:${frame.columnNumber + 1}${stack.description === undefined ? '' : ` [${stack.description}]`}`);
-      initiators.push({ url: request.url, msAfterControl: Date.now() - control.at, type: initiator.type, frames });
+      initiators.push({ url: request.url, msAfterControl: Date.now() - control.at, type: initiator.type, frames: framesOf(initiator.stack) });
+    });
+    // a worker's script fetch carries no initiator stack: its constructor's call (and async parents) stands for it
+    cdp.on('Runtime.consoleAPICalled', ({ type, args, stackTrace }) => {
+      if (type !== 'debug' || args[0]?.value !== '[dl17-worker]' || typeof args[1]?.value !== 'string') return;
+      workers.push({ url: args[1].value, msAfterControl: control.at === null ? null : Date.now() - control.at, frames: framesOf(stackTrace) });
+    });
+    await context.addInitScript(() => {
+      for (const name of ['Worker', 'SharedWorker']) {
+        const Original = Reflect.get(window, name);
+        if (typeof Original !== 'function') continue;
+        Reflect.set(window, name, new Proxy(Original, { construct(target, args, newTarget) {
+          console.debug('[dl17-worker]', new URL(String(args[0]), location.href).href);
+          return Reflect.construct(target, args, newTarget);
+        } }));
+      }
     });
   }
   page.on('pageerror', error => report.errors.push(error.message));
@@ -254,7 +296,9 @@ try {
     const c = visit.control, at = visit.at, row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - c });
     // the worker's offline precache is listed apart (splitRequests: root's ruling, G872 (a)); any page request stays red
     const mine = requests.filter(r => r.start >= visit.start && r.start < until), { level, precache } = splitRequests(mine, isLevelContent);
-    const pending = level.filter(r => r.start < c && (r.end === null || r.end > c)), after = level.filter(r => r.start >= c);
+    const pending = level.filter(r => r.start < c && (r.end === null || r.end > c));
+    // --trace with --dist: a shared fetch only neighbour work asked for is the neighbour's (root's ruling, G872)
+    const { level: after, neighbour: byInitiator } = byWork(level.filter(r => r.start >= c), report.trace);
     const lateReads = reads.filter(r => r.at >= c && r.at < until && (r.kind === 'blob-data' || isLevelContent(r.url)));
     if (pending.length > 0) flag(`${pending.length} level-content requests still open at control (first: ${pending.slice(0, 3).map(path).join(', ')})`);
     if (after.length > 0) flag(`${after.length} level-content requests started after control, ${after.filter(r => r.by === 'service-worker').length} by the service worker (first: ${after.slice(0, 3).map(path).join(', ')})`);
@@ -262,6 +306,7 @@ try {
     const nPending = mine.filter(r => isNeighbour(r.url) && r.start < c && (r.end === null || r.end > c)), nAfter = mine.filter(r => isNeighbour(r.url) && r.start >= c);
     const nReads = reads.filter(r => r.at >= c && r.at < until && isNeighbour(r.url));
     if (nPending.length + nAfter.length > 0) note(`${nPending.length} neighbour requests open at control, ${nAfter.length} started after it (first: ${[...nPending, ...nAfter].slice(0, 3).map(path).join(', ')})`);
+    if (byInitiator.length > 0) note(`${byInitiator.length} shared fetches after control initiated by neighbour work (--trace): ${[...new Set(byInitiator.map(r => `${path(r)} (${r.work})`))].slice(0, 6).join(', ')}`);
     if (nReads.length > 0) note(`${nReads.length} Cache Storage reads of neighbour content after control (first: ${nReads.slice(0, 2).map(r => r.url).join(', ')})`);
     const g = at.grid;
     if (g && !g.error) {
@@ -311,7 +356,7 @@ try {
     }
     if (neighbourList.length > 0) (report.neighbour ??= []).push(...neighbourList);
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
-      pendingAtControl: pending.map(r => ({ url: r.url, by: r.by, msBeforeControl: c - r.start, msAfterControl: r.end === null ? null : r.end - c, failed: r.failed })), afterControl: after.map(row), readsAfterControl: lateReads.slice(0, 40),
+      pendingAtControl: pending.map(r => ({ url: r.url, by: r.by, msBeforeControl: c - r.start, msAfterControl: r.end === null ? null : r.end - c, failed: r.failed })), afterControl: after.map(row), neighbourWorkAfterControl: byInitiator.map(r => Object.assign(row(r), { work: r.work })), readsAfterControl: lateReads.slice(0, 40),
       precacheAfterControl: precache.filter(r => r.start >= c).length, precacheOpenAtControl: precache.filter(r => r.start < c && (r.end === null || r.end > c)).length,
       neighbour: { pendingAtControl: nPending.length, afterControl: nAfter.length, readsAfterControl: nReads.length },
       otherAfterControl: mine.filter(r => r.start >= c && !isLevelContent(r.url) && !isNeighbour(r.url)).map(r => ({ url: r.url, by: r.by })) };
@@ -414,12 +459,12 @@ try {
     report.lapSamples = lap.length;
     lap.push(await page.evaluate(snapshot));
     await harvest();
-    report.requests = judge('', cold, Infinity, reachCells, lap);
-    if (values.trace === 'on') report.trace = { initiators, measures: await page.evaluate(() => {
+    if (values.trace === 'on') report.trace = { initiators: mapped(initiators), workers: mapped(workers.filter(w => w.msAfterControl !== null)), mapped: values.dist !== undefined, measures: await page.evaluate(() => {
       const at = Reflect.get(window, '__dl17ControlNow');
       return performance.getEntriesByType('measure').filter(entry => entry.name.startsWith('wildshard.prepare'))
         .map(entry => ({ name: entry.name, msFromControl: Math.round(entry.startTime - at), ms: Math.round(entry.duration) }));
     }) };
+    report.requests = judge('', cold, Infinity, reachCells, lap);
     report.atControl = strip(cold.at);
     report.afterLap = strip(lap.at(-1));
     for (const s of lap) strip(s);
