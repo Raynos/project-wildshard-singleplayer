@@ -153,7 +153,7 @@ does not close a Z row.
 | **Z1** | **done (2026-11-03, sp-x1; `890d8f05ce`, `4ac0585b6f`; G941 exact-pair capture ruling).** Nineteen shared grammars remove exactly 98 baseline files / 2459046 B. Fresh-seat sp-x8: 6/6; 52 focused cases and format/SDK types green. All 187 runtime JS/CSS assets and Pine/Nine payload/pack inventories exact (build metadata only). Pine 18 Metal frames / 12 raw-zero comparisons, both tiers. Nine canonical P1 uses only the existing approved (569,1139) RGBA pair; the extra-frame experiment at (627,1271) stays refused and grants no allowance. **Platform file families.** A registry in `@wildshard/format` beside `PLATFORM_DATA_SECTIONS`: name pattern → one format schema. The measure counts a named file only if its family is unregistered. The census follows emitted routing rows so every family has a known reader | 98 already on a shared schema: placement pages 12, scene recipes 42, scene buffers 9, world-scene models 3, quests 19, actors 9, people catalogue 2, forest weather 2 | Codex | 2 |
 | **Z2** | **Done (2026-11-03, sp-x8): `9a3952f83c`, `a2a0e604ff`; ratchet `a131158d0c`.** Nine streamed placement pages and complete cast/fabric weld roots; byte, refusal, strict capture and golden qualification below | **72 removed:** 70 placement files + `world/casts`, `world/fabric`; Nine custom count **82 → 10** | Codex (G958) | 2.5 |
 | **Z3** | **Done (2026-11-04, G1004): Pine 68 landed `c98d1cffe0`; sp-x2 admits the two exact DW plan files under Jake's single-user approval (2 / 651,474 B).** Sixteen bounded family pages reconstruct all 68 original Pine graphs byte-for-byte; Driftwood's trader is the second whole-page user. Fresh-seat sp-x2: 6/6. Native payload 1,733,628 → 1,419,651 B; page schema definitions save 302,816 index bytes. G998: Pine and Driftwood 24/24 green in Chromium and WebKit on `d4c2e8d15d-mw0u2vw4`; Pine 11/20 are verified moving native animals. Four reviewed boards are under `art/golden-runs/pine-hollow/` and `art/golden-runs/driftwood-isle/`, named `2026-11-03-d4c2e8d15d-z3-board.jpg` and `2026-11-03-d4c2e8d15d-z3-webkit-board.jpg`. `BakedPlacementPlanSchema` has only Driftwood as a complete emitter (`sets` and `smallRocks` included): G1004 admits both `world/island/plan-{phone,desktop}.json` under that exact complete type. Native bytes, resource checks, collider owners and the existing E11/Z3 qualification remain intact. **Streamed scene pages: Pine cabins and DW island.** Specimens and living roots become pages; tier / shadow variants derived at load | 70: Pine specimens 56, living 8, tier/shadow copies 4; DW `world/island/plan-{phone,desktop}` | Opus | 4.5 |
-| **Z4** | **G1004 source dispositions: 12/13 (2026-11-04, sp-x9): 11 registered plus one fixture-only keeper retired, 625,445 custom B addressed.** Projection/perch retain exact raw/native wire. The sole `sim/keeper.json` reader is a maintained test fixture, so G872 retires its 15,874 B shipping copy into exact fixture data; original keeper compiler/RNG/restore/refusal checks remain. Sheep is separately owned by sp-x8. | **12 of 13 source dispositions**; emitted census and Sheep qualification pending | Codex | 4.5 |
+| **Z4** | **done (2026-11-04, G1004/G872, sp-x9 + sp-x8): 13/13 dispositions; 12 complete platform files retain 717,776 original B and the fixture-only keeper retires 15,874 B.** Immutable `cee1f1ec35` / `cee1f1e-mw2knnlh` proves all owned bodies, native/wire contracts, current pack hashes/ranges, keeper absence and independent census. | **0 custom files / 0 custom B**; original 733,650 B fully addressed; scoped proof below | Codex | 4.5 |
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
 | **Z6** | **Done (2026-11-04, sp-x8, G1004): 0 charged.** `b56d04c2a9` admits the six complete held documents under Jake’s exact one-user approval. Immutable `8b80aff221` preserves all **484,106 B**, native owners, full return guests and defining metadata; native gate and independent census both report zero owned custom files. Earlier four transport/copy retirements and their strict held/G998 qualifications remain intact. The exact original CI witness passes before and after b56 (3/3 each; jobs `126780531813` and `126793504221`), as recorded below | **10 source-qualified:** four retired plus six registered; **0 owned custom files**, clean CI witness attribution qualified | Codex (G958/G1004) | 0 |
 | **Z7** | **0 charged (2026-11-04, sp-x6 + sp-x9, G1004).** Prior six exits (`3c42144c50`, `50267bfcd2`) and seven X9 complete roots / 302,097 B (`186e52971c`, `c7330e616f`, `58ecff17bc`) remain qualified. The last cloud root / 962,762 B was already fully qualified by X6 in `437638730e` and `18cf2c0507`: exact body SHA-256 `d4b0727222dff41bab3d2079cb3574ecee3ad1ce65996dadda7b3be5625bcc33`, complete CloudSpecimen grammar, original native reader and immutable platform census. It is counted once under Z14, not again here. This closes stale overlap bookkeeping without another registration or invented user. | **0** (six retired; eight registered, 1,264,859 B; cloud counted once in Z14) | Codex (G958/G1004) | 4.5 |
@@ -4786,3 +4786,33 @@ remain separately reported; this is no blanket related or hosted verdict.
 Raw qualification: `tmp/sp-x8-sheep/final-body-audit.json` and
 `final-scoped-census.json`. X9 integrates the complete Z4 row after its
 separate Driftwood qualification; this paragraph credits only Sheep.
+
+
+### G1004 Z4 final immutable closure (2026-11-04, sp-x9)
+
+Z4 is **13/13, zero custom files and zero custom bytes** on the normal
+all-28 immutable source `cee1f1ec35174fb0f6240b1f884a127139f94492`, build
+`cee1f1e-mw2knnlh`. The twelve retained full documents total 717,776 B;
+every raw body is byte-identical to its original captured value and passes
+complete defining native, wire and exact-family admission. Independent
+`productSectionEntries` census and the native output gate agree on all
+twelve platform-file classifications. The 15,874 B keeper is absent from
+the shipping inventory and retained as its exact fixture-only data under
+the coordinator's G872 ruling. Thus all original 733,650 B are addressed.
+
+The written Driftwood, Pine and Nalati indexes are respectively 981,359,
+1,813,389 and 1,810,704 B, all below the unchanged 2,000,000 B cap.
+Current pack bytes and every ordered member range/hash verify: Driftwood
+13 packs / 434 entries / 31,534,046 B; Pine 39 / 857 / 113,537,836 B;
+Nalati 22 / 370 / 61,755,899 B. Owned membership and keeper absence are
+checked. No unavailable whole-Driftwood historical inventory comparison,
+whole old-pack equality, new pixel cohort or whole-CI verdict is claimed.
+
+Source slices include `425f7759ab`, `b6bbd23045`, `8b3db275bf`,
+`418dda5175`, `836620dcff` and Sheep `f0b8e98d56` (qualified separately by
+sp-x8 in `2430cdcaa6`). Original owner/RNG/native/refusal controls remain;
+source slices record their bounded related/direct-reader/type/lint proofs.
+Final scoped evidence is retained at
+`tmp/sp-x9-g1004/z4-final-body-audit.json` and
+`tmp/sp-x9-g1004/z4-final-scoped-census.json`; Sheep additionally has
+`tmp/sp-x8-sheep/final-body-audit.json` and `final-scoped-census.json`.
