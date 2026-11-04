@@ -1,9 +1,5 @@
 {
   "gridShardfile": "/shardfiles/driftwood-isle/shard.json",
-  "entries": {
-    "legacy": false,
-    "shardfile": true
-  },
   "uses": [
     "dayCycle"
   ],

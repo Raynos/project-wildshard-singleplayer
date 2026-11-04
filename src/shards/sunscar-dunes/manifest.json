@@ -391,10 +391,6 @@
     }
   },
   "pois": [],
-  "entries": {
-    "legacy": false,
-    "shardfile": true
-  },
   "boundary": {
     "visible": false
   },

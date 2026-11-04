@@ -451,9 +451,6 @@ export interface ChunkHud {
 
 /** Compatibility names for manifests not yet migrated to the engine look contract. */
 
-/** SF65's retired entry rows, still spelled by six authored manifests; only toLevelSpec's baked-map check reads
- *  `shardfile` (QD7: the rows, this type and that read leave together with the manifest schema field). */
-export interface ShardEntries { readonly legacy: boolean; readonly shardfile: boolean }
 
 export interface ShardManifest {
   /** Interior board cruise: road preserves the grid road speed; absent/shard keeps the ordinary 14 m/s. */
@@ -471,8 +468,6 @@ export interface ShardManifest {
   clientPlanRuntime?: true;
   /** Definition-owned raw scalar preparation; never an authored callback. */
   scalarBlocks?: ScalarLatticeBindings;
-  /** Retired SF65 entry rows (inert authored data, see ShardEntries). */
-  entries?: ShardEntries;
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin;

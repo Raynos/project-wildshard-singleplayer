@@ -150,10 +150,6 @@
       "practice": "/src/shards/far-reach/explore/practice-far-reach.webp"
     }
   },
-  "entries": {
-    "legacy": false,
-    "shardfile": true
-  },
   "ground": {
     "structures": true,
     "paths": "plugin"

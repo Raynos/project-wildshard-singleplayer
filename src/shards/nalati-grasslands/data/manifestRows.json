@@ -15,10 +15,6 @@
   ],
   "api": 1,
   "gridShardfile": "/shardfiles/nalati-grasslands/shard.json",
-  "entries": {
-    "legacy": true,
-    "shardfile": true
-  },
   "loadout": {
     "weapons": [
       "bow",
