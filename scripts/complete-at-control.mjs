@@ -16,7 +16,8 @@
 //      (Chromium) the service worker's own fetches; Cache Storage matches and blob: / data: fetches of the page are logged
 //      in the page. Level content is every same-origin URL that does not name another level (its hashed JS, shared code,
 //      packs, common and canonical audio all count, whoever fetches it); a level-content request still open at control,
-//      or any level-content request or read started after it, fails the gate. WebKit with the worker on is no reading:
+//      or any level-content request or read started after it, fails the gate. The one exception is the worker's offline
+//      precache: a service-worker fetch of a URL the page never requests in the visit, lap included (listed apart). WebKit with the worker on is no reading:
 //      Playwright WebKit reports none of the worker's fetches.
 //   2. Completeness at control: the grid's rings (far / l1 / l0 in flight or queued, reach cells showing a far proxy,
 //      tiles or near placeholders), the shardfile residency, the spawn-view fence (`wildshard.spawn-view.done` must exist
@@ -35,7 +36,7 @@ import { parseArgs } from 'node:util';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapPops } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapPops, splitRequests } from './complete-at-control-snapshot.mjs';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
 
@@ -234,7 +235,8 @@ try {
     const flag = text => { report.violations.push(name === '' ? text : `${name}: ${text}`); };
     const neighbourList = [], note = text => { neighbourList.push(name === '' ? text : `${name}: ${text}`); };
     const c = visit.control, at = visit.at, row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - c });
-    const mine = requests.filter(r => r.start >= visit.start && r.start < until), level = mine.filter(r => isLevelContent(r.url));
+    // the worker's offline precache is listed apart (splitRequests: root's ruling, G872 (a)); any page request stays red
+    const mine = requests.filter(r => r.start >= visit.start && r.start < until), { level, precache } = splitRequests(mine, isLevelContent);
     const pending = level.filter(r => r.start < c && (r.end === null || r.end > c)), after = level.filter(r => r.start >= c);
     const lateReads = reads.filter(r => r.at >= c && r.at < until && (r.kind === 'blob-data' || isLevelContent(r.url)));
     if (pending.length > 0) flag(`${pending.length} level-content requests still open at control (first: ${pending.slice(0, 3).map(path).join(', ')})`);
@@ -291,6 +293,7 @@ try {
     if (neighbourList.length > 0) (report.neighbour ??= []).push(...neighbourList);
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
       pendingAtControl: pending.map(r => ({ url: r.url, by: r.by })), afterControl: after.map(row), readsAfterControl: lateReads.slice(0, 40),
+      precacheAfterControl: precache.filter(r => r.start >= c).length, precacheOpenAtControl: precache.filter(r => r.start < c && (r.end === null || r.end > c)).length,
       neighbour: { pendingAtControl: nPending.length, afterControl: nAfter.length, readsAfterControl: nReads.length },
       otherAfterControl: mine.filter(r => r.start >= c && !isLevelContent(r.url) && !isNeighbour(r.url)).map(r => ({ url: r.url, by: r.by })) };
   };

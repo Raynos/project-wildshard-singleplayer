@@ -1,5 +1,5 @@
 // DL17's in-page readings, shared by the complete-at-control gate (scripts/complete-at-control.mjs, Chromium) and the
-// Simulator boost lap (scripts/sim-boost-lap.mjs): the residency snapshot the page runs, and the lap's pops.
+// Simulator boost lap (scripts/sim-boost-lap.mjs): the residency snapshot the page runs, the lap's pops and the request rule.
 
 /** In-page residency snapshot: everything that could still change what is drawn near the player. Self-contained: it also
  *  runs from the init script in the control frame. */
@@ -101,4 +101,15 @@ export function lapPops(at, lap, homeRegion) {
   for (const id of pops.keys()) distance.delete(id);
   return { fine: [...fine], pops: [...pops.values()], neighbourPops: [...neighbourPops.values()], actors: [...actors.values()],
     distanceLod: [...distance.values()], lods: [...lods], textures: [...textures] };
+}
+
+/** DL17's request rule (root's ruling, G872 (a)): of one visit's requests (`{ url, by: 'page' | 'service-worker' }`),
+ *  the level's are every level-content URL (`isLevelContent`) except the worker's offline precache: a service-worker
+ *  fetch of a URL the page never requests in the visit, lap included. A file the level needs shows as a page request too
+ *  (also when the worker answers it from its cache), so any page request stays the level's. */
+export function splitRequests(rows, isLevelContent) {
+  const path = row => new URL(row.url).pathname, pageRead = new Set(rows.filter(row => row.by === 'page').map(path));
+  const precache = rows.filter(row => row.by === 'service-worker' && !pageRead.has(path(row)) && isLevelContent(row.url));
+  const held = new Set(precache);
+  return { level: rows.filter(row => isLevelContent(row.url) && !held.has(row)), precache };
 }

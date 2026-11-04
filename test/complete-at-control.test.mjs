@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { lapPops } from '../scripts/complete-at-control-snapshot.mjs';
+import { lapPops, splitRequests } from '../scripts/complete-at-control-snapshot.mjs';
 
 // a snapshot's mesh row: [uuid, chain, signature `geometry|positions|indices|material:map:width`, shown, within reach, skinned]
 const row = (id, chain, geometry, map, shown = true, close = true, skinned = false) => [id, chain, `${geometry}|36|0|mat:${map}:256`, shown, close, skinned];
@@ -42,4 +42,18 @@ test('in the grid, a mesh under another cell is the neighbour\'s', () => {
   const found = lapPops(at, [sample([row('n', 'Mesh<region-scene:far-reach<region:far-reach', 'g-n', 't-n'), row('h', 'Mesh<region:driftwood-isle', 'g-h', 't-h')])], 'driftwood-isle');
   expect(found.neighbourPops).toEqual(['added Mesh<region-scene:far-reach<region:far-reach']);
   expect(found.pops).toEqual(['added Mesh<region:driftwood-isle']);
+});
+
+test('a worker fetch the page never requests in the visit is precache; any page request stays the level\'s (G872 (a))', () => {
+  const level = url => !url.includes('/version.json');
+  const rows = [
+    { url: 'https://x.test/assets/late-Explore-a1.js', by: 'service-worker' },            // offline precache: never read by the page
+    { url: 'https://x.test/assets/packs/spawn-b2.bin', by: 'service-worker' },            // the worker fetches it ...
+    { url: 'https://x.test/assets/packs/spawn-b2.bin?v=1', by: 'page' },                   // ... and the page reads it (query ignored)
+    { url: 'https://x.test/assets/gpu/horizon/day-c3.ktx2', by: 'page' },                  // a page read answered from the worker's cache
+    { url: 'https://x.test/version.json', by: 'service-worker' },                          // not level content at all
+  ];
+  const { level: levelRows, precache } = splitRequests(rows, level);
+  expect(precache.map(entry => entry.url)).toEqual(['https://x.test/assets/late-Explore-a1.js']);
+  expect(levelRows.map(entry => entry.url)).toEqual(['https://x.test/assets/packs/spawn-b2.bin', 'https://x.test/assets/packs/spawn-b2.bin?v=1', 'https://x.test/assets/gpu/horizon/day-c3.ktx2']);
 });
