@@ -13,7 +13,7 @@ import { stairFloor, stairPlanData } from '../src/shards/nine-dragon-stack/gener
 import { BoxGeometry, InstancedMesh, MeshBasicMaterial, type Object3D, PerspectiveCamera } from 'three';
 import { defineModel, modelContext } from '../src/engine/models/model';
 import { place } from '../src/engine/models/place';
-import { compileGraph } from '../src/engine/render/graph/compile';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import lookGraphs from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
 const rows = nineWorldInstallRows(), caps = deckCapRows(), stair = stairPlanData();
@@ -85,7 +85,7 @@ test('native model culling retains colour, range and distance levels', () => {
 });
 
 test('lantern sway seed follows the instance pose through native LOD packing', () => {
-  const compiled = compileGraph({ ...lookGraphs['nine-lantern'], effectState: { ...lookGraphs['nine-lantern'].effectState, fog: false } }, { trustedBudget: true });
+  const compiled = compileClassicGraph({ ...lookGraphs['nine-lantern'], effectState: { ...lookGraphs['nine-lantern'].effectState, fog: false } }, { trustedBudget: true });
   expect(compiled.material).toBeDefined();
   expect(Object.values(lookGraphs['nine-lantern'].nodes).some(node => 'name' in node && node.name === 'aSeed')).toBe(false);
   compiled.material.dispose();

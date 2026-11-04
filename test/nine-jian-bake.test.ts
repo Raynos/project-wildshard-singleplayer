@@ -89,9 +89,9 @@ test('the held row changes only its geometry references', async () => {
 
 test('held effects are admitted graph rows with independent frame params', async () => {
   const { heldEffects } = await import('../src/shards/nine-dragon-stack/generators/heldEffects');
-  const { compileGraph } = await import('../src/engine/render/graph/compile');
+  const { compileClassicGraph } = await import('../src/engine/render/graph/glslMaterial');
   for (const [id, row] of Object.entries(heldEffects())) {
-    const graph = compileGraph(row, { trustedBudget: true });
+    const graph = compileClassicGraph(row, { trustedBudget: true });
     try {
       expect(graph.cost.nodes).toBeGreaterThan(0);
       if (id === 'nine-vm-edge') {
