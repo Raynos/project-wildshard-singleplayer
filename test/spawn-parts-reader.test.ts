@@ -587,3 +587,33 @@ test('DL20: a packs download counts parts read, parts failed and the files left 
   expect(await run('dl20-fallback', true)).toEqual({parts: 0, failed: 1, fallbackFiles: 2}); // bin and glb fetched loose
   vi.unstubAllGlobals();
 });
+
+test('DL11 slice 4: parts run on two lanes in order, and a read of a later part\'s member moves that part ahead', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const fills = [1, 2, 7, 1], hashes: Record<number, string> = {1: '27ecd0a598e76f8a2fd264d427df0a119903e8eae384e478902541756f089dd1',
+    2: 'bb72b4e4eb29dc59328668f32e0511e3ac0e5ce4026b1591965216e49ca1f5d7', 7: 'b451d8a7cc6defde9cb05a0bdc0b13e9c01860479d86fce7db4d093e0793b349'};
+  const rows = fills.map((fill, at) => ({url: `/shardfiles/example/blobs/bin/${(at + 3).toString(16).repeat(64)}.bin`, bytes: 4, hash: hashes[fill] ?? ''}));
+  const partRows = rows.map((_, at) => ({url: `/assets/spawn/parts/${(at + 10).toString(16).repeat(16).slice(0, 16)}.pack.br`, bytes: 4, hash: (at + 10).toString(16).repeat(64).slice(0, 64), members: [[at, 0]]}));
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 16, parts: partRows});
+  const at = {url: '/assets/spawn/example-part-lanes-1234567890abcdef.json', bytes: plain.length, totalBytes: 16, files: 4};
+  const started: string[] = [], release = new Map<string, () => void>();
+  const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined),
+    fetch: async url => {
+      const path = new URL(url).pathname;
+      if (path === at.url) return new Response(plain);
+      started.push(path); await new Promise<void>(resolve => { release.set(path, resolve); });
+      const index = partRows.findIndex(row => row.url === path);
+      return new Response(new Uint8Array(4).fill(fills[index] ?? 0));
+    }}, base);
+  const free = async (index: number): Promise<void> => { const path = partRows[index]?.url ?? ''; await vi.waitFor(() => { expect(release.has(path)).toBe(true); }); release.get(path)?.(); };
+  await vi.waitFor(() => { expect(started).toHaveLength(2); }); // two lanes: parts 0 and 1
+  await new Promise(resolve => { setTimeout(resolve, 10); });
+  expect(started).toEqual([partRows[0]?.url, partRows[1]?.url]);
+  const reading = window.fetch(new URL(rows[3]?.url ?? '', base).href); // the page needs the last part's member
+  await free(0);
+  await vi.waitFor(() => { expect(started).toHaveLength(3); });
+  expect(started[2]).toBe(partRows[3]?.url); // the demanded part goes before part 2
+  await free(3); await free(1); await free(2);
+  await download.ready; await reading;
+  vi.unstubAllGlobals();
+});

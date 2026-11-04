@@ -65,6 +65,8 @@ let jobDemand: ((url: string) => void) | null = null;
  *  completed job until control. */
 let jobPaths: ReadonlyMap<string, string> | null = null;
 const ownSignals = new WeakSet<AbortSignal>();
+/** DL11 slice 4: parts read at once. Two keep the link full while a demanded part gets half of it, not a twelfth. */
+const PART_LANES = 2;
 /** While the entry's download runs, a level read it does not list (a loader reading a file its set lacks) waits for the
  *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
  *  tables or code. The shell's art loads through `<img>`, which no fetch layer sees. */
@@ -200,7 +202,10 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   // asks for a file a lane already took in manifest order).
   let active = 0, demandsActive = 0;
   const inFlight = new Set<string>(), demandedFlight = new Set<string>();
+  // DL11 slice 4: set while this job reads parts; a demand for a member moves its part ahead of the manifest order.
+  let partDemand: ((url: string) => void) | null = null;
   const demand = (url: string): void => {
+    partDemand?.(url);
     if (inFlight.has(url)) { if (!demandedFlight.has(url)) { demandedFlight.add(url); demandsActive++; } return; }
     if (!taken.has(url) && !demanded.includes(url)) { demanded.push(url); nudge(); }
   };
@@ -297,14 +302,16 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       for (const file of files) if (!missing.includes(file)) serve(file);
       if (missing.length === 0) { complete = true; if (jobWaits === waits) { jobWaits = null; jobDemand = null; } publish(); return; }
       publish(); let cursor = 0;
-      // DL5: every part holding a missing member at once; members are cut out as their bytes land. A part that fails
-      // hands its unfinished members to the loose loop below (its files stay deployed).
+      // DL5: parts holding missing members, members cut out as their bytes land. A part that fails hands its unfinished
+      // members to the loose loop below (its files stay deployed). DL11 slice 4: parts run on PART_LANES lanes in
+      // manifest order, and a page read waiting on a member moves its part to the front (all at once, Nine's dozen parts
+      // each got a twelfth of the link: Props waited 25.5 s on 'Read audio 1/10' in Chromium).
       let loose = missing;
       if (parts !== undefined && parts.length > 0) {
         installMemberLayer();
         const counts = {parts: 0, failed: 0, fallbackFiles: 0}; partCounts = counts;
         const wanted = new Set(missing), left = new Set<number>(), stored = new Map<string, readonly string[]>();
-        await Promise.all(parts.map(async part => {
+        const readPart = async (part: (typeof parts)[number]): Promise<void> => {
           const order = part.members.filter(([index]) => {const file = files[index]; return file !== undefined && wanted.has(file);});
           if (order.length === 0) return;
           const settle = new Map<number, (bytes: Uint8Array<ArrayBuffer> | null) => void>(), done = new Set<number>();
@@ -353,7 +360,20 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             for (const [index] of order) if (!done.has(index)) {left.add(index); counts.fallbackFiles++; settle.get(index)?.(null);}
             controller.signal.throwIfAborted();
           }
+        };
+        const partOf = new Map<string, number>(), demandedParts: number[] = [], takenParts = new Set<number>();
+        parts.forEach((part, at) => { for (const [index] of part.members) { const file = files[index]; if (file !== undefined) partOf.set(file.url, at); } });
+        let partCursor = 0;
+        partDemand = url => { const at = partOf.get(url); if (at !== undefined && !takenParts.has(at) && !demandedParts.includes(at)) demandedParts.push(at); };
+        const nextPart = (): (typeof parts)[number] | undefined => {
+          for (let at = demandedParts.shift(); at !== undefined; at = demandedParts.shift()) if (!takenParts.has(at)) { takenParts.add(at); return parts[at]; }
+          while (partCursor < parts.length) { const at = partCursor++; if (!takenParts.has(at)) { takenParts.add(at); return parts[at]; } }
+          return undefined;
+        };
+        await Promise.all(Array.from({length: Math.min(PART_LANES, parts.length)}, async () => {
+          for (let part = nextPart(); part !== undefined; part = nextPart()) await readPart(part);
         }));
+        partDemand = null;
         controller.signal.throwIfAborted();
         // One index write per download: this download's stored parts, plus earlier entries whose members are all
         // still keyed (the worker prunes old builds' files, so an entry never outlives its members).
