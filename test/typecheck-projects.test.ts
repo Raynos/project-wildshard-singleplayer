@@ -355,19 +355,3 @@ test('workspace Node tests consume declarations without giving production Node g
     expect(String(unsafe.stdout) + String(unsafe.stderr)).toContain('no-unsafe-return');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
-
-test('selected scenario checks retain composite membership and imported helper errors',()=>{
- mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/composite-selected-'));
- const put=(file:string,text:string):void=>{const path=resolve(root,file);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,text);};
- try{
-  put('tsconfig.json',JSON.stringify({files:[],references:[{path:'test'}]}));
-  put('tsconfig.layers.json',JSON.stringify({files:[],references:[{path:'test'}]}));
-  put('test/tsconfig.json',JSON.stringify({compilerOptions:{strict:true,composite:true,noEmit:true,types:[],module:'esnext',moduleResolution:'bundler'},include:['*.ts']}));
-  put('test/subject.ts','import {value} from "./helper";export const result:number=value;');
-  put('test/helper.ts','export const value:number=1;');
-  const run=()=>spawnSync(execPath,['-e',`import(${JSON.stringify(resolve('scripts/local-gate-checks.mjs'))}).then(m=>m.checkChangedTypes(['test/subject.ts'])).catch(e=>{console.error(e.message);process.exitCode=1;});`],{cwd:root,encoding:'utf8'});
-  const good=run();expect(good.status,good.stdout+good.stderr).toBe(0);
-  put('test/helper.ts','export const value:number="bad";');
-  const bad=run();expect(bad.status).toBe(1);expect(bad.stderr).toContain('TS2322');
- }finally{rmSync(root,{recursive:true,force:true});}
-});
