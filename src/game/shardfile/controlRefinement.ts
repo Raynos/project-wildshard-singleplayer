@@ -37,9 +37,11 @@ export async function prepareSpawnView(radius: number = SPAWN_VIEW_M, settle?: (
     for (const queue of queues) queue.wake();
     for (;;) {
       const open = [...queues].filter(queue => queue.spawnViewOpen());
-      if (open.length === 0) return;
+      if (open.length === 0) break;
       await Promise.all(open.map(queue => queue.spawnViewIdle()));
     }
+    // what the fence left (DL17's complete-at-control gate refuses a level whose queues still wait here)
+    performance.mark('wildshard.spawn-view.done', { detail: [...queues].map(queue => queue.describe()) });
   } finally { spawnView = null; }
 }
 
