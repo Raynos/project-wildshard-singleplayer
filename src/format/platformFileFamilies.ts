@@ -1,5 +1,6 @@
+import { PerchBodyFileSchema } from './mixedPopulation';
 import { QuestInteractionSourceSchema } from './questInteractionSource';
-import { EnemyPlacementsSchema } from './populationProjection';
+import { EnemyPlacementsSchema, PopulationProjectionSchema } from './populationProjection';
 import { HeldJianDocumentSchema } from './heldJianDocument';
 import { BladeDocumentSchema, PolearmDocumentSchema, HeldSlotsDocumentSchema } from './heldWeaponDocuments';
 import { HeldBowFileSchema, HeldFirearmPageSchema } from './weaponProfiles';
@@ -77,6 +78,10 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^actors\/projection\.json$/u, schema: PopulationProjectionSchema,
+    source: '@wildshard/format/populationProjection#PopulationProjectionSchema', reader: 'src/game/population/projection.ts' },
+  { pattern: /^poses\/monkey\.json$/u, schema: PerchBodyFileSchema,
+    source: '@wildshard/format/mixedPopulation#PerchBodyFileSchema', reader: 'src/game/population/productCreatures.ts' },
   { pattern: /^quests\/interaction-source\.json$/u, schema: QuestInteractionSourceSchema,
     source: '@wildshard/format/questInteractionSource#QuestInteractionSourceSchema', reader: 'src/game/quest/pageComposition.ts' },
   { pattern: /^sim\/enemy-placement\.json$/u, schema: EnemyPlacementsSchema,

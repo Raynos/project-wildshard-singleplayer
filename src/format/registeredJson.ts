@@ -1,3 +1,4 @@
+import { PerchBodyFileSchema } from './mixedPopulation';
 import { QuestInteractionSourceSchema } from './questInteractionSource';
 import { HeldJianDocumentSchema } from './heldJianDocument';
 import { BladeDocumentSchema, PolearmDocumentSchema, HeldSlotsDocumentSchema } from './heldWeaponDocuments';
@@ -66,6 +67,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'poses/monkey.json':{readonly schema:typeof PerchBodyFileSchema;readonly source:'@wildshard/format/mixedPopulation#PerchBodyFileSchema'};
   readonly 'sim/enemy-placement.json':{readonly schema:typeof EnemyPlacementsSchema;readonly source:'@wildshard/format/populationProjection#EnemyPlacementsSchema'};
   readonly 'data/physics.generated.json':{readonly schema:typeof ForestNativeInputsSchema;readonly source:'@wildshard/format/forestNativeInputs#ForestNativeInputsSchema'};
   readonly 'world/water.json':{readonly schema:typeof WaterWorldSchema;readonly source:'@wildshard/format/waterWorld#WaterWorldSchema'};
@@ -183,6 +185,7 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'poses/monkey.json':{schema:PerchBodyFileSchema,source:'@wildshard/format/mixedPopulation#PerchBodyFileSchema'},
   'sim/enemy-placement.json':{schema:EnemyPlacementsSchema,source:'@wildshard/format/populationProjection#EnemyPlacementsSchema'},
   'data/physics.generated.json':{schema:ForestNativeInputsSchema,source:'@wildshard/format/forestNativeInputs#ForestNativeInputsSchema'},
   'world/water.json':{schema:WaterWorldSchema,source:'@wildshard/format/waterWorld#WaterWorldSchema'},
@@ -379,6 +382,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'poses/monkey.json':v.parse(PerchBodyFileSchema,value);break;
     case 'sim/enemy-placement.json':v.parse(EnemyPlacementsSchema,value);break;
     case 'data/physics.generated.json':v.parse(ForestNativeInputsSchema,value);break;
     case 'world/water.json':v.parse(WaterWorldSchema,value);break;

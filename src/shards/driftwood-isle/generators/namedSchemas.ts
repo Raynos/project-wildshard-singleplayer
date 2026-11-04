@@ -1,10 +1,8 @@
-import { defineNamedRows, type NamedJsonComposition, authorFormatSchema, namedFormatJsonSchema, composeNamedJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { defineNamedRows, type NamedJsonComposition, authorFormatSchema, namedFormatJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
 
-const MixedPopulationSchema: ReturnType<typeof authorFormatSchema<'mixedPopulation.MixedPopulationSchema'>> = authorFormatSchema('mixedPopulation.MixedPopulationSchema');
-const ReturnProgramSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.ReturnProgramSchema'>> = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');
 const QuestTraderSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.QuestTraderSchema'>> = authorFormatSchema('namedJsonContracts.QuestTraderSchema');
 const PosedLibrarySchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.PosedLibrarySchema'>> = authorFormatSchema('namedJsonContracts.PosedLibrarySchema');
 const text = ({ kind: "string" } as const), number = ({ kind: "number" } as const);
@@ -64,19 +62,13 @@ const schemas: Readonly<Record<string, NamedJsonComposition>> = {
             guide: ({ kind: "object", mode: "strict", entries: { wander: number, idle: number, idleSpeed: number, cooldown: number, retry: number } } as const), glassCount: number, shardFlags: ({ kind: "array", item: text } as const) } } as const),
     'sim/enemy-placement.json': EnemyPlacementsSchema,
 };
-const composedSchemas: Readonly<Record<string, Readonly<Record<string, unknown>>>> = {
-    'poses/monkey.json': composeNamedJsonSchema({ kind: 'object', entries: {
-            clips: { kind: 'tuple', items: ['clientChannels.NumericPose', 'clientChannels.NumericPose'] },
-            program: ReturnProgramSchema, perch: MixedPopulationSchema.entries.perch,
-        } }),
-};
 /** Every scene, placement and document names its actual defining consumer. */
 export function driftwoodJsonBlob(name: string, kind: 'json', bytes: Uint8Array): NamedBlob {
     try {
         const contract = name.startsWith('scenes/') ? 'clientChannels.WorldScene'
             : name.startsWith('world/piers/') || name.startsWith('world/foliage/') ? 'worldScenePlacement.WorldScenePlacement' : sharedContracts[name];
         const schema = schemas[name];
-        const jsonSchema = registeredJsonSchema(name)??(contract !== undefined ? namedFormatJsonSchema(contract) : composedSchemas[name] ?? (schema === undefined ? undefined : defineNamedRows(schema).jsonSchema));
+        const jsonSchema = registeredJsonSchema(name)??(contract !== undefined ? namedFormatJsonSchema(contract) : (schema === undefined ? undefined : defineNamedRows(schema).jsonSchema));
         if (jsonSchema === undefined)
             throw new Error(`Missing Driftwood named JSON schema: ${name}`);
         return nameBlob(name, kind, bytes, { jsonSchema });

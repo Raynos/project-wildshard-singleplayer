@@ -1,5 +1,9 @@
 import * as v from 'valibot';
 import { NumericPoseSchema } from './clientChannels';
+import { ReturnProgramSchema } from './namedJsonContracts';
+import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument';
+
+const completeReturn:v.GenericSchema<v.InferInput<typeof ReturnProgramSchema>,v.InferOutput<typeof ReturnProgramSchema>&ReturnProgramDocumentInput>=v.intersect([ReturnProgramSchema,ReturnProgramWireDocumentSchema]);
 
 const finite = v.pipe(v.number(), v.finite());
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -23,6 +27,21 @@ export const MixedPopulationSchema: v.StrictObjectSchema<{ readonly step: v.Gene
       gravity: finite, speed: finite, landing: finite }) }),
 });
 
+
+/** G1004: the complete two-clip perch binding, not a numeric-pose child alone. */
+export const PerchBodyFileSchema:v.GenericSchema<PerchBodyFileInput,PerchBodyFileRows>=v.strictObject({
+  clips:v.tuple([NumericPoseSchema,NumericPoseSchema]),program:completeReturn,perch:MixedPopulationSchema.entries.perch,
+});
+export interface PerchBodyFileInput {
+  clips:[v.InferInput<typeof NumericPoseSchema>,v.InferInput<typeof NumericPoseSchema>];
+  program:v.InferInput<typeof completeReturn>;
+  perch:MixedPopulationRowsInput['perch'];
+}
+export interface PerchBodyFileRows {
+  clips:[v.InferOutput<typeof NumericPoseSchema>,v.InferOutput<typeof NumericPoseSchema>];
+  program:v.InferOutput<typeof completeReturn>;
+  perch:MixedPopulationRows['perch'];
+}
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 interface MixedPopulationRowsInputFields {

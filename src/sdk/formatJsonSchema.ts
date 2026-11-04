@@ -30,7 +30,7 @@ import { ClientRidingSessionSchema } from '@wildshard/format/riding';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { AdventurePersistenceSchema, HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import {NativeQuestCompositionSchema,NativeQuestServiceSpotsSchema} from '@wildshard/format/nativeQuestComposition';
-import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
+import { MixedPopulationSchema, PerchBodyFileSchema } from '@wildshard/format/mixedPopulation';
 import { ResolvedIslandLibrarySchema, FixedGeometryGroupsSchema } from '@wildshard/format/islandLibrary';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
@@ -476,6 +476,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'postGraphLook.PostGraphLook': PostGraphLookSchema,
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
+  'mixedPopulation.PerchBodyFile': PerchBodyFileSchema,
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
   'returnProgramDocument.ReturnProgramWireDocument': ReturnProgramWireDocumentSchema,
   'populationEnvironment.PopulationHabitat': PopulationHabitatSchema,
@@ -606,6 +607,7 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     // The population's six identical return descriptors share their complete
     // native grammars; the defining parser and every wire constraint remain.
     ...(schema === WildlifePopulationSchema ? { definitions: { legacyReturn: ReturnProgramSchema, projection: ReturnProjectionV2Schema } } : {}),
+    ...(schema === PopulationProjectionSchema || schema === PerchBodyFileSchema ? { definitions: { legacyReturn: ReturnProgramSchema, wireReturn: ReturnProgramWireDocumentSchema, projection: ReturnProjectionV2Schema } } : {}),
     overrideSchema: ({ valibotSchema }) => customSchemas.get(valibotSchema),
     overrideAction: ({ valibotAction, jsonSchema, errors }) => {
       if (postIdentityTransforms.has(valibotAction)) return jsonSchema;
