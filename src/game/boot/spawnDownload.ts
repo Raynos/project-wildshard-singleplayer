@@ -1,4 +1,4 @@
-import {readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
+import {packsBookPath, readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
 
 /** This leaf statically imports no engine, renderer or worker. The title can start it on
  * the tap; Loading later adopts the same progress rather than recounting IO. */
@@ -189,10 +189,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     resolve: input => {const url = new URL(input, base); return url.origin === new URL(base).origin ? aliases.get(url.pathname) ?? url.href : url.href;}, cancel: () => {controller.abort(); listeners.clear();}};
 }
 
-let current: {address: SpawnManifestAddress; download: SpawnDownload; foreground: boolean} | undefined;
-function sameAddress(left: SpawnManifestAddress, right: SpawnManifestAddress): boolean {
-  return left.url === right.url && left.bytes === right.bytes && left.totalBytes === right.totalBytes && left.files === right.files && left.wireBytes === right.wireBytes;
-}
+let current: {key: string; download: SpawnDownload; foreground: boolean} | undefined;
+const addressKey = (address: SpawnManifestAddress): string =>
+  `${address.url}|${address.bytes}|${address.totalBytes}|${address.files}|${address.wireBytes ?? ''}`;
 /** The selected entry is explicit; no engine import is needed on the title. */
 export function startSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode = '000'): SpawnDownload | null {
   return spawnDownload(slug, flow, tier, mode, true);
@@ -206,32 +205,41 @@ export function prefetchSpawnDownload(slug: string, tier: 'phone' | 'desktop', f
     if (current?.download === download && !current.foreground) {download.cancel(); current = undefined;}
   }};
 }
+const get = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
+function bookSelection(book: unknown, slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): SpawnManifestAddress | null {
+  const roots = flow === 'grid' ? get(get(book, flow), mode) : get(book, flow), pair = get(get(roots, slug), tier);
+  return pair === undefined ? null : readSpawnManifestAddress(pair);
+}
 function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): {address: SpawnManifestAddress; cacheName: unknown} | null {
   const text = document.getElementById('boot-module-files')?.textContent; if (!text) return null;
-  const bank: unknown = JSON.parse(text), get = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
-  // DL16: Runtime packs read the whole-level book (with parts); the default Shardfile path keeps today's entry set.
-  const manifests = get(bank, 'spawnManifests'), book = packsOn ? get(manifests, 'packs') ?? manifests : manifests;
-  const roots = flow === 'grid' ? get(get(book, flow), mode) : get(book, flow);
-  const pair = get(get(roots, slug), tier);
-  if (pair === undefined) return null;
-  return {address: readSpawnManifestAddress(pair), cacheName: get(manifests, 'cacheName')};
+  const manifests = get(JSON.parse(text), 'spawnManifests'), address = bookSelection(manifests, slug, flow, tier, mode);
+  return address === null ? null : {address, cacheName: get(manifests, 'cacheName')};
+}
+/** DL16: the packs book (the whole level with its parts) is this build's own file, fetched only with Runtime packs on,
+ * so the default page carries nothing for an off row. */
+declare const __BUILD_ID__: string;
+let packsBook: Promise<unknown> | undefined;
+function readPacksBook(): Promise<unknown> {
+  packsBook ??= (async () => {
+    const response = await fetch(new URL(`/${packsBookPath(__BUILD_ID__)}`, document.baseURI).href);
+    if (!response.ok) throw new Error(`Packs book unavailable (${response.status})`);
+    return response.json() as Promise<unknown>;
+  })();
+  return packsBook;
 }
 /** Adopt only a matching complete live operation. This performs no cache or
  * network IO and never promotes a receipt, saved size or inferred progress. */
 export function adoptCompletedSpawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode = '000'): SpawnDownload | null {
-  const selected = spawnSelection(slug, flow, tier, mode);
+  const key = packsOn ? `packs:${flow}|${slug}|${tier}|${mode}` : (() => { const selected = spawnSelection(slug, flow, tier, mode); return selected === null ? null : addressKey(selected.address); })();
   const held = current;
-  if (selected === null || held === undefined || !sameAddress(held.address, selected.address) || !held.download.snapshot().complete) return null;
+  if (key === null || held === undefined || held.key !== key || !held.download.snapshot().complete) return null;
   held.foreground = true;
   return held.download;
 }
-function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
-  const selected = spawnSelection(slug, flow, tier, mode); if (selected === null) return null;
-  const {address, cacheName} = selected;
-  if (current !== undefined && sameAddress(current.address, address)) {current.foreground ||= foreground; return current.download;}
+function downloadPorts(cacheName: unknown, packs: boolean): SpawnDownloadPorts {
   const store = typeof caches === 'undefined' ? null : typeof cacheName === 'string' ? caches.open(cacheName) : null;
   const controller = navigator.serviceWorker?.controller;
-  const download = downloadSpawnManifest(address, {
+  return {
     fetch: (url, signal, init) => fetch(url, {...init, signal}),
     cached: async url => typeof caches === 'undefined' ? undefined : store === null ? caches.match(url, {ignoreVary: true}) : (await store).match(url, {ignoreVary: true}),
     ...(store === null ? {} : {present: async (urls: readonly string[]) => {
@@ -240,9 +248,48 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
       return found;
     }}),
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
-    ...(store === null || !packsOn ? {} : {packs: true, keep: async (url: string, response: Response) => {await (await store).put(url, response);}}),
-  }, document.baseURI);
-  current?.download.cancel(); current = {address, download, foreground}; return download;
+    ...(store === null || !packs ? {} : {packs: true, keep: async (url: string, response: Response) => {await (await store).put(url, response);}}),
+  };
+}
+/** A download whose manifest is known only after the packs book arrives; until then its progress is unknown. */
+function lateDownload(inner: Promise<SpawnDownload>): SpawnDownload {
+  let resolved: SpawnDownload | undefined, failure: string | null = null, cancelled = false;
+  const listeners = new Map<(snapshot: SpawnDownloadSnapshot) => void, () => void>();
+  const waiting = (): SpawnDownloadSnapshot => ({progressKnown: false, totalBytes: 0, completedBytes: 0, cachedBytes: 0, filesTotal: 0, filesDone: 0, complete: false, error: failure});
+  const ready = (async () => {
+    let download: SpawnDownload;
+    try { download = await inner; } catch (error) {
+      failure = error instanceof Error ? error.message : String(error);
+      for (const listener of listeners.keys()) listener(waiting());
+      throw error;
+    }
+    resolved = download;
+    if (cancelled) download.cancel();
+    for (const listener of listeners.keys()) listeners.set(listener, download.subscribe(listener));
+    await download.ready;
+  })();
+  void ready.catch(() => undefined);
+  return {ready, snapshot: () => resolved?.snapshot() ?? waiting(),
+    subscribe: listener => {
+      listeners.set(listener, resolved?.subscribe(listener) ?? (() => undefined));
+      if (resolved === undefined) listener(waiting());
+      return () => {listeners.get(listener)?.(); listeners.delete(listener);};
+    },
+    resolve: url => resolved?.resolve(url) ?? new URL(url, document.baseURI).href,
+    cancel: () => {cancelled = true; resolved?.cancel(); for (const off of listeners.values()) off(); listeners.clear();}};
+}
+function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
+  const selected = spawnSelection(slug, flow, tier, mode); if (selected === null) return null;
+  const key = packsOn ? `packs:${flow}|${slug}|${tier}|${mode}` : addressKey(selected.address);
+  if (current !== undefined && current.key === key) {current.foreground ||= foreground; return current.download;}
+  // Runtime packs: this entry's whole-level manifest from the packs book; a missing book falls back to the default one.
+  const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), document.baseURI)
+    : lateDownload((async () => {
+      let address: SpawnManifestAddress | null = null;
+      try { address = bookSelection(await readPacksBook(), slug, flow, tier, mode); } catch { /* no book: the default manifest */ }
+      return downloadSpawnManifest(address ?? selected.address, downloadPorts(selected.cacheName, address !== null), document.baseURI);
+    })());
+  current?.download.cancel(); current = {key, download, foreground}; return download;
 }
 export function currentSpawnDownload(): SpawnDownload | undefined { return current?.download; }
 

@@ -81,12 +81,15 @@ test('plain build publishes exact tier spawn files and rejects changed section b
     const moduleBank = {common: [], client: [], grid: [], selection: {}, optional: {files: [], groups: {}},
       products: {'/shardfiles/example/': [Buffer.byteLength(indexBytes), 1_000_000]}, extras: {}};
     writeFileSync(resolve(out, 'index.html'), `<head><script type="application/json" id="boot-module-files">${JSON.stringify(moduleBank)}</script></head>`);
+    writeFileSync(resolve(out, 'version.json'), JSON.stringify({build: 'fixture-build'}));
     writeEntryBootstrap(out, root);
     const html = readFileSync(resolve(out, 'index.html'), 'utf8'), match = /id="boot-module-files">([^<]+)</u.exec(html);
     const bank: unknown = JSON.parse(match?.[1] ?? 'null');
     if (typeof bank !== 'object' || bank === null) throw new Error('Missing complete compiler bank');
-    const published: unknown = Reflect.get(bank, 'spawnManifests');
-    expect(published).toEqual(manifests);
+    // DL16: the page's bank is the default book only; the packs book is this build's own file.
+    const published: unknown = Reflect.get(bank, 'spawnManifests'), {packs: packsBook, ...defaults} = manifests;
+    expect(published).toEqual(defaults); expect(html).not.toContain('"packs"'); expect(html).not.toContain('/assets/spawn/parts/');
+    expect(JSON.parse(readFileSync(resolve(out, 'assets/spawn/packs-fixture-build.json'), 'utf8'))).toEqual({cacheName: manifests.cacheName, ...packsBook});
     expect(html).not.toContain('entryTotals'); expect(html).not.toContain('installEntryTransport');
     expect(html).not.toContain('blobs/pack');
     const first = sections[0]; if (first === undefined) throw new Error('Missing original section');

@@ -85,3 +85,18 @@ test('a resized named file changes only its own part', () => {
   // Only the edited model's part has new bytes; every other part keeps its exact name.
   expect([...changed]).toEqual([second.get(named(3, 0, '-edited').url)]);
 });
+
+test('two builds that differ only in shard.json stamps keep every part name', () => {
+  // DL18: the product header (shard.json) carries the build's validator stamp; it stays loose, so parts depend only on
+  // their content-named members.
+  const members = Array.from({ length: 6 }, (_, at) => file(`/shardfiles/s/blobs/glb/${at}.glb`, 2_000_000));
+  const header = (stamp: string): SpawnFile => file(`/shardfiles/s/shard.json?v=${stamp}`, 400);
+  const parts = (stamp: string): string[] => {
+    const rows = [header(stamp), ...members];
+    const [table] = writeSpawnParts(out, [manifest(rows)], url => url.includes('shard.json') ? body(`${url}${stamp}`, 400) : body(url, 2_000_000));
+    expect((table ?? []).some(part => part.members.some(([member]) => member === 0))).toBe(false);
+    return (table ?? []).map(part => part.url).sort();
+  };
+  expect(packable('/shardfiles/s/shard.json?v=aaaaaaaa')).toBe(false);
+  expect(parts('aaaaaaaa')).toEqual(parts('bbbbbbbb'));
+});

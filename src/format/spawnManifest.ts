@@ -10,6 +10,8 @@ export interface SpawnManifest {
   readonly parts?: readonly SpawnPart[];
 }
 export const SPAWN_PART_ALIGN = 16;
+/** DL16: the packs book (spawnManifests' whole-level books with parts) of one build, outside index.html. */
+export const packsBookPath = (build: string): string => `assets/spawn/packs-${build}.json`;
 export interface SpawnManifestAddress {readonly url: string; readonly bytes: number; readonly totalBytes: number; readonly files: number; readonly wireBytes?: number}
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const size = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;

@@ -20,7 +20,10 @@ const align = (at: number): number => Math.ceil(at / SPAWN_PART_ALIGN) * SPAWN_P
  * them with fetch); JS modules (`<script>`, `import()`) and the shell's `/assets/` images (DOM `<img>`) load past any
  * fetch layer, so on a first, uncontrolled visit they would download twice: they stay loose (DL14 decides code). */
 export const packable = (url: string): boolean => !/\.(?:js|mjs|css)(?:\?|$)/u.test(url)
-  && (url.startsWith('/shardfiles/') || !/\.(?:png|jpe?g|webp|gif|avif|svg)(?:\?|$)/u.test(url));
+  && (url.startsWith('/shardfiles/') || !/\.(?:png|jpe?g|webp|gif|avif|svg)(?:\?|$)/u.test(url))
+  // A product's shard.json carries its build's validator stamp, so it changes every build: kept loose (one small
+  // request), parts hold only content-named members and keep their names across builds (DL18).
+  && !/\/shard\.json(?:\?|$)/u.test(url);
 /** The groups after the steered merge (exported for the census and tests). */
 export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
   const need = new Map<string, Set<number>>(), size = new Map<string, number>(), order: string[] = [];
