@@ -46,3 +46,7 @@ label strip naming the shard, the camera and the source.
   build at frame 555 draws it clear and refined (sp-x8's panels `../golden-runs/far-reach/d229-2026-11-04/`). Promoted
   from `0bf578e89b` per wildshard-new's ruling (G872): not a regression. Board:
   `../golden-runs/far-reach/2026-11-04-0bf578e89b-d228-board.jpg`.
+- 2026-11-04, sunscar-dunes 09, 21, 22: golden defects (G872, wildshard-new: the SHARDFILE golden's far horizon band is
+  the outlier; NOW matches LEGACY). Every capture of the packs-on goldens pass draws the thinner band in Chromium and
+  WebKit, on packs and Shardfile alike (`2f17110048`; D228 saw the same band since 11-03 09:25). Promoted from
+  `c280532523` (Chromium, packs). Board: `../golden-runs/sunscar-dunes/2026-11-04-c280532523-packs-chromium-board.jpg`.
