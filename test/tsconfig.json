@@ -104,6 +104,7 @@
     "../scripts/phone-loading/native-body.ts",
     "../scripts/phone-loading/link.ts",
     "../scripts/phone-loading/instrument.ts",
+    "../scripts/phone-loading/play.ts",
     "../scripts/app-build/serviceWorker.ts",
     "../scripts/bake/skyTexturesPage.ts",
     "../scripts/test-build-tools.ts",
