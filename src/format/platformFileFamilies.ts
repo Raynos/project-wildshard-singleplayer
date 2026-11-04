@@ -1,3 +1,4 @@
+import { BakedPlacementPlanSchema } from './bakedTiles';
 import { CoverCompositionSchema } from './streamedCover';
 import { KitFigureCardsSchema } from './questFigures';
 import { BuildingLifeDocumentSchema } from './buildings';
@@ -44,8 +45,12 @@ export interface PlatformFileFamily {
 
 /** G988 Z1: the nineteen already shared grammars (98 files at the baseline).
  * Names stay streamed and payloads stay verbatim. Private placement, cabin,
- * ground and encounter grammars remain outside this registry. */
+ * ground and encounter grammars remain outside this registry unless separately
+ * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  // G1004: Jake approved these exact complete single-user documents.
+  { pattern: /^world\/island\/plan-(?:phone|desktop)\.json$/u, schema: BakedPlacementPlanSchema,
+    source: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema', reader: 'src/game/shardfile/bakedTiles.ts' },
   // G1004: exact single-user documents approved with their existing native owners.
   { pattern: /^people\/cards\.json$/u, schema: KitFigureCardsSchema,
     source: '@wildshard/format/questFigures#KitFigureCardsSchema', reader: 'src/game/models/kitFigureCard.ts' },

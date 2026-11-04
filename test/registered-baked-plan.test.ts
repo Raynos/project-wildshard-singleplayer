@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Check the original complete wire fingerprint.
 import { createHash } from 'node:crypto';
 import { BakedPlanSchema, BakedPlacementPlanSchema } from '@wildshard/format/bakedTiles';
+import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import { REGISTERED_JSON, validateRegisteredJson } from '@wildshard/format/registeredJson';
 import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
@@ -25,6 +26,10 @@ for (const tier of ['phone', 'desktop'] as const) test(`whole ${tier} baked plan
   expect(REGISTERED_JSON[name].schema).toBe(BakedPlacementPlanSchema);
   expect(registeredJsonSchema(name)).toEqual({ ...namedJsonSchema(BakedPlacementPlanSchema), $comment: '@wildshard/format/bakedTiles#BakedPlacementPlanSchema' });
   validateRegisteredJson(name, wire);
+  const source = '@wildshard/format/bakedTiles#BakedPlacementPlanSchema';
+  expect(platformFileFamily(name, source)?.schema).toBe(BakedPlacementPlanSchema);
+  expect(validatePlatformFile(name, source, wire)?.reader).toBe('src/game/shardfile/bakedTiles.ts');
+  expect(encode(wire)).toEqual(bytes);
   expect(v.parse(BakedPlacementPlanSchema, wire)).toEqual(wire);
   expect(v.parse(BakedPlanSchema, v.parse(BakedPlacementPlanSchema, wire))).toEqual(v.parse(BakedPlanSchema, wire));
   expect(nameBlob(name, 'json', bytes, { jsonSchema: registeredJsonSchema(name) }).bytes).toEqual(bytes);
@@ -42,6 +47,16 @@ test('the full contract refuses incomplete support fields and preserves original
     { ...valid, used: 50_001 }, { ...valid, unclaimed: Array.from({ length: 513 }, () => ({ x: 0, z: 0, hw: 1, hd: 1, rot: 0, yTop: 1, yBottom: 0 })) }];
   for (const value of invalid) {
     expect(() => validateRegisteredJson(name, value)).toThrow();
+    expect(() => validatePlatformFile(name, '@wildshard/format/bakedTiles#BakedPlacementPlanSchema', value)).toThrow();
     expect(() => nameBlob(name, 'json', encode(value), { jsonSchema: registeredJsonSchema(name) })).toThrow();
   }
+});
+
+test('G1004 admits only the two exact placement names and defining provenance', () => {
+  const source = '@wildshard/format/bakedTiles#BakedPlacementPlanSchema';
+  for (const name of ['world/island/plan.json', 'world/island/plan-phone-extra.json', 'world/island/plan-tablet.json']) {
+    expect(platformFileFamily(name, source)).toBeUndefined();
+  }
+  expect(platformFileFamily('world/island/plan-phone.json', '@wildshard/format/bakedTiles#BakedPlanSchema')).toBeUndefined();
+  expect(platformFileFamily('world/island/plan-desktop.json', undefined)).toBeUndefined();
 });

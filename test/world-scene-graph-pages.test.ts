@@ -104,5 +104,5 @@ test('native pages keep the aggregate JSON ceiling and complete defining provena
   expect(registeredJsonSchema(name)['$comment']).toBe(registeredJsonContract(name)?.source);
   expect(() => registeredJsonContract('world/scene-pages/../private.json')).toThrow();
   expect(platformFileFamily(name, '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema')).toBeUndefined();
-  expect(platformFileFamily('world/island/plan-phone.json', '@wildshard/format/bakedTiles#BakedPlacementPlanSchema')).toBeUndefined();
+  expect(platformFileFamily('world/island/plan-phone.json', '@wildshard/format/bakedTiles#BakedPlacementPlanSchema')).toBeDefined();
 });
