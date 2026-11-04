@@ -5,20 +5,17 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 8bdf53f-mw10wsjy** (13:57 Cancun; all Nine QA fixes + Patchwork audio; all 37 + Nine P1 crowd / Sky / 3-shard entry PASS): EP2, NF23, every Nine GPU cut
-(G2, kinds 0 + 3, copy cut, Boundary, facade), EP8 crowd, NF11 4 MB cap, Pine uploads -70 %, Sky look. **For Jake:** QC
-table qa-2026-10-30 (2508e90724).
+**LIVE 5d149d3-mw1gp5xc** (21:18 Cancun; all CI green, Sky + Nine P1 entry PASS). **Jake: QD6, test Nine live.** **Jake picks:** DL7 P1/P2/P3 on download-mini-plan.md DL7 row (a889005ebb; wildshard-v asks).
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**21:00:** push hold. Ship 5d149d3512 (B5 fix + whole level only with Runtime packs): entry PASS, CI running. DL1 done (cold -11..-14 s, warm same); DL14 closed measured; DL17 hardened: no PASS yet.
+**22:00:** hold lifted, a01188c7ad in CI. DL1 done; DL8/DL10/DL12/DL14 closed measured; DL15 q11 -3..-6 MB on packs; DL17 trusted, no PASS (home reds owned); o1 DL11, o2 tile fence, o3 DL15 parts.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
-**Closed:** PF7, NT5, NF19, EP6, EP11, PF17, PF5, PF9 (met), PF18 + PF13 (measured; Sim PASS), EP12 / NT4 (look D), NF23 (met), EP8, EP7 Pine (53-59), EP2 / NF21 / PF14 (measured), NF17e (met:
-Far P1 12.2 -> 10.7), NF11 (font warm e853b2f8e8; native max 36 / 47 ms). EP10 + PF19 (measured: 79 us / draw, hooks 11). Open:
-NF18 (QA). PF12 closed measured.
+**Closed:** every fps row (E518); open NF18 (QA).
 
 **Autonomous decisions (for Jake's review):**
 - DL5 "whole level" = the tier's whole inventory at control (Jake's quote; no reach list). Grid neighbours keep today's loading: Jake's call (G828).
+- DL17 (A): distance show/hide/LOD of resident models is listed, not red; literal = raise every hide distance (Jake's look call). DL1 shipped before its yield fix (no revert).
 - GLSL is the global default (public too): Pine 44-55 dB, Driftwood 45.7, Nine 41-75; banyan canopy ruled B = GLSL
   (keeps haze TSL dropped, closer to legacy; board 9557e1dc93). Nalati 7/8 at 52-63 dB; grid +170 far crag facets
   41 dB / 1.29 % accepted (slight tone shift 140 m out). Sunscar pass. Sky Reach fixed to the TSL look (c9354ebb83,
