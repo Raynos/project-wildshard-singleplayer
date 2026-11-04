@@ -109,6 +109,19 @@ export function analyse(rows) {
   const gaps = frameGaps(rows);
   const worst = (list) => list.reduce((a, b) => (b.ms > a.ms ? b : a), { at: tap, ms: 0 });
   const loadGaps = gaps.filter(g => g.at > tap && g.at <= end);
+  // the longest loading frame per Setup step (wildshard-new's ruling: an unpresented frame over 250 ms is a freeze to
+  // Jake's eye whatever the label, and DL10 batches them by step): each gap goes to the step the card showed as it began
+  const stepAt = (at) => {
+    let step = null;
+    for (const row of loading) { if (row.t > at) break; if (row.su) step = row.su.replace(/^step (\d+) \/ \d+ · ([^·]+).*$/u, '$1 $2').trim(); }
+    return step ?? 'before the card';
+  };
+  const byStep = new Map();
+  for (const g of loadGaps) {
+    const step = stepAt(g.at - g.ms), row = byStep.get(step) ?? { step, longestMs: 0, over250: 0 };
+    row.longestMs = Math.max(row.longestMs, Math.round(g.ms)); if (g.ms > BAR.loadingFrameMs) row.over250++;
+    byStep.set(step, row);
+  }
   const loadWorst = worst(loadGaps);
   /** fps, per-second counts and the longest frame of `frames` ({at, ms}) in the play window after control */
   const playStats = (frames, source) => {
@@ -182,7 +195,8 @@ export function analyse(rows) {
     cardStill_ge1s: still,
     setupStalls_ge3s: stalls,
     loading: { frames: loadGaps.length, longestFrameMs: Math.round(loadWorst.ms), longestFrameAt: T(loadWorst.at),
-      framesOver250: loadGaps.filter(g => g.ms > BAR.loadingFrameMs).length },
+      framesOver250: loadGaps.filter(g => g.ms > BAR.loadingFrameMs).length,
+      byStep: [...byStep.values()].filter(row => row.longestMs > 100).sort((a, b) => b.longestMs - a.longestMs) },
     play,
     errors,
     retryShown,
@@ -210,6 +224,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       `unnamed ≥3 s steps ×${result.setupStalls_ge3s.filter(s => !s.named).length}`, `loading frame max ${result.loading.longestFrameMs} ms`];
     if (p) line.push(`play ${p.fps} fps (1st s ${p.firstSecondFps}, settled ${p.settledFps}) max ${p.longestFrameMs} ms`);
     console.log(line.join('  '));
+    const slow = result.loading.byStep.filter(row => row.longestMs > BAR.loadingFrameMs).map(row => `${row.step} ${row.longestMs} ms${row.over250 > 1 ? ` (x${row.over250})` : ''}`);
+    if (slow.length > 0) console.log(`  loading frames > ${BAR.loadingFrameMs} ms by step: ${slow.join(' · ')}`);
     for (const [rule, ok] of Object.entries(result.bar)) if (!ok) console.log(`  ✗ ${rule}`);
   }
   writeFileSync(join(dir, 'timeline.json'), `${JSON.stringify(out, null, 1)}\n`);

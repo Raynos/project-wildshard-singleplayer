@@ -65,7 +65,7 @@ def panels(mode, r):
 
 
 rows = [mode for mode in ('cold', 'warm', 'upgrade') if mode in timeline]
-board = Image.new('RGB', (COLS * (W + PAD) + PAD, 130 + len(rows) * (H + LAB + 60 + PAD)), (14, 18, 24))
+board = Image.new('RGB', (COLS * (W + PAD) + PAD, 130 + len(rows) * (H + LAB + 84 + PAD)), (14, 18, 24))
 d = ImageDraw.Draw(board)
 build = (timeline.get('version') or {}).get('build', '?')
 shard = next((timeline[m].get('shard') for m in rows if timeline[m].get('shard')), timeline.get('shard', '?'))
@@ -87,7 +87,10 @@ for mode in rows:
         item = ('PASS ' if ok else 'FAIL ') + LINES.get(k, k) + '    '
         d.text((x, y + 32), item, font=sfont, fill=(120, 255, 160) if ok else (255, 120, 110))
         x += int(d.textlength(item, font=sfont))
-    y += 60
+    # the measure DL10 batches by (wildshard-new's ruling): the longest unpresented loading frame per Setup step
+    slow = [f"{row['step']} {row['longestMs']} ms" for row in r['loading'].get('byStep', []) if row['longestMs'] > 250]
+    d.text((PAD, y + 56), 'Loading frames > 250 ms by step: ' + (' · '.join(slow) if slow else 'none'), font=sfont, fill=(255, 225, 120) if slow else (120, 255, 160))
+    y += 84
     for i, (at, text) in enumerate(panels(mode, r)):
         x = PAD + i * (W + PAD)
         board.paste(frame(os.path.join(RUN, f'{mode}-raw.mp4'), at, tmp), (x, y + LAB))

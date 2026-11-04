@@ -109,3 +109,15 @@ test('the stage\'s reads tally is not a named wait: a step held 3.5 s behind it 
   rows.push(card(3.8, { shown: false, control: true }), frames(0, 40, 16.7));
   expect(analyse(rows).setupStalls_ge3s[0]).toMatchObject({ named: false, waits: [] });
 });
+
+test('loading frames are measured per Setup step: a 900 ms unpresented frame lands on the step the card showed', () => {
+  const rows = [{ ev: 'tapEnter', t: TAP }];
+  for (let s = 0; s <= 4; s += 0.25) rows.push(card(s, s < 2 ? {} : { su: 'step 24 / 30 · Shaders · 5 / 76 programs linked', suPct: '80', dl: `Spawn view · ${s} MB` }));
+  rows.push(card(4.2, { shown: false, control: true }));
+  // frames every 16.7 ms, then nothing from 2.5 s to 3.4 s (the GPU process linking), then on again
+  rows.push(frames(0, 2.5, 16.7), frames(3.4, 40, 16.7));
+  const r = analyse(rows);
+  expect(r.loading.byStep[0]).toMatchObject({ step: '24 Shaders', over250: 1 });
+  expect(r.loading.byStep[0].longestMs).toBeGreaterThanOrEqual(880);
+  expect(r.bar.noLoadingFrameOver250ms).toBe(false);
+});
