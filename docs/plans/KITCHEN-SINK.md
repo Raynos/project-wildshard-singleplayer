@@ -207,7 +207,8 @@ contracts board's rotating hunts, war fan, whip, mounted combat, lightning, hove
 puzzle, happenings, time trials, thin ice, glide shaft, daily seed. **Not yet:** tooling demos (third-person camera,
 landscape HUD, loading screen, Explore tabs, bot playtest).
 
-**Waiting on Jake:** nothing on levels, attributes or combat (19aa); the loot redesign stays open to revisit.
+**Waiting on Jake:** nothing on levels, attributes or combat (19aa); the loot plan is locked as written (Jake 11-03,
+D62). The remaining slice questions: [OPEN-QUESTIONS.md](kitchen-sink-v2/OPEN-QUESTIONS.md).
 
 ## 3. The map
 

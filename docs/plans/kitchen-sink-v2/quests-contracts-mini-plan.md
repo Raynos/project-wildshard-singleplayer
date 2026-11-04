@@ -72,4 +72,4 @@ quest rewards never give XP.
 
 ## Open
 
-- Quest names and NPC names (placeholders: Quartermaster Ada, Warden Scout, Tinker Rook).
+- ~~Quest names and NPC names~~: NPC names D12; the 12 quest names kept as written (Jake 11-03, D63).

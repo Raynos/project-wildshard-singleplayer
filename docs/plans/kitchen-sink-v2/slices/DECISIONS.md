@@ -74,4 +74,8 @@ families, the parity bar, parallel toy slices) is in [README.md](README.md).
 | D58 | Stealth on the HUD | **One eye + UNSEEN row top left**, the quest chip unchanged, no toast (UI-23 B) | E5b |
 | D59 | Boss intro skip (E12h Q1, enemies plan Q3) | **Hold** (the engine's HOLD TO SKIP ring; UI-26) | E12h |
 | D60 | Signs and markers in the world | **Information boards are real signs placed in the world** (UI-21); the quest-giver "!" just above the head (UI-12); first-time hints teach a mechanic once (UI-11) | W3a, W6d, W1b, E0b |
-| D61 | Cut | **The map's level heat map, the minimap band border, a HUD Scrip chip and the per-kill Scrip toast, the range's LOAN tags and toast, the tour-step toast** (UI-27, UI-28, UI-38, UI-37, UI-15). The features under them (D2's range loan, D4's Shift Orientation quest, Scrip itself) stay | map, E1d, W3a, W1b |
+| D61 | Cut | **The map's level heat map, the minimap band border, a HUD Scrip chip and the per-kill Scrip toast, the range's LOAN tags and toast, the tour-step toast** (UI-27, UI-28, UI-38, UI-37, UI-15). The features under them (D2's range loan, D4's Shift Orientation quest, Scrip itself) stay (Jake confirmed 11-03: "UI only") | map, E1d, W3a, W1b |
+| D62 | Revisit loot? | **Lock the loot plan as written**; revisit after the east play only if it feels off | E1d, E1e, E0i |
+| D63 | The 12 quest names (E13 Q1) | **Keep them** (Clock In … The Last Contract) | W1b, E1g, E13 |
+
+The 67 questions still open, each with a recommendation, are in [OPEN-QUESTIONS.md](../OPEN-QUESTIONS.md) (Jake: "walk me through them").

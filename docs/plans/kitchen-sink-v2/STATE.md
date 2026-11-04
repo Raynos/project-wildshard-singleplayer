@@ -18,5 +18,7 @@ and get redone on round 5: E11 (gauntlet), E13 / E14 / S06 (Titan arena), M03 (a
 **Decided 11-03:** Titan 15 m; the Titan road opens after the first gauntlet clear; wave-3 elite Shift Supervisor. **The 38 UI changes** (one by one): 33 approved, 5 cut ([UI-PICKS.md](UI-PICKS.md); rules in the HUD mini
 plan; D49–D61). The ramps were D7 (launch walls, kickers 2.4 / 3.6 / 4.8 m).
 
-**Open for Jake:** loot may be revisited; the mini plans' open questions (audio Q1–Q4, enemies Q1, Q2, Q4, Q5, the
-Warden Core, the quest names); the slice questions D1–D61 did not answer (each has a recommendation).
+**Decided 11-03 (panel):** loot locked as written (D62); quest names kept (D63); the UI cuts are UI only.
+
+**Open for Jake:** the 67 questions in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) (the walk-through page "Kitchen Sink v2 open
+questions"), each with a recommendation; answers go in its last column.
