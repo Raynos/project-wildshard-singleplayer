@@ -15,6 +15,7 @@ import * as groups from '../src/game/population/pageGroups';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {prepareNalatiPopulation} from './fixtures/nalati-headless';
+import {fixtureJsonCheck,fixtureProductFile} from './fixtures/productFile';
 import * as population from '../src/game/population/environment';
 import * as riding from '../src/game/riding/native';
 import type {SimHost} from '../src/engine/sim';
@@ -31,8 +32,8 @@ function wildlife(owner:Scope,read:()=>Promise<Uint8Array>){
   const original=headlessAssembly.constants.pageWildlife,rows={...original,groups:{...original.groups,world:worldRows}};
   const reads:string[]=[],systems=vi.fn<ShardContext['system']>();
   const source=emptyShardfile({slug:'wet-loan',name:'Wet loan',author:'Fixture',revision:1,seed:7});
-  const product=createShardProduct({slug:'wet-loan',revision:1,shardfile:source,sections:new Map(),
-    files:new Map([['actors/wildlife.json',{hash:'rows',url:'/rows'}],[wetFile,{hash:'wet',url:'/wet'}]]),read:hash=>{
+  const product=createShardProduct({slug:'wet-loan',revision:1,jsonCheck:fixtureJsonCheck,shardfile:source,sections:new Map(),
+    files:new Map([['actors/wildlife.json',fixtureProductFile('actors/wildlife.json',{hash:'rows',url:'/rows'})],[wetFile,{hash:'wet',url:'/wet'}]]),read:hash=>{
       reads.push(hash);if(hash==='rows')return Promise.resolve(new TextEncoder().encode(JSON.stringify(rows)));if(hash==='wet')return read();throw new Error('Unexpected product read');
     }});
   const runtime=legacyDouble<ShardRuntime>({hooks:{},world:legacyDouble<NonNullable<ShardRuntime['world']>>({
