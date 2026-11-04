@@ -46,6 +46,9 @@ function installMemberLayer(): void {
     return network(input, init);
   };
 }
+async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
+}
 /** Control: the level is complete and its reads are done, so the member bytes go. */
 export function releaseSpawnMembers(): void { members.clear(); }
 /** Debug 'Loading: runtime packs / shardfile' (DL16, default shardfile): set by the composition root before a spawn
@@ -141,6 +144,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               for (let row = order[next]; row !== undefined; row = order[next]) {
                 const [index, offset] = row, file = files[index]; if (file === undefined || offset + file.bytes > at) break;
                 const member = body.slice(offset, offset + file.bytes); next++;
+                // The part's bytes are only trusted per member: each must match its manifest row before it is kept or read.
+                if (await sha256(member) !== file.hash) throw new Error(`Spawn part member differs: ${part.url}`);
                 await ports.keep?.(file.url, new Response(member, {headers: {'content-type': typeOf(file.url), 'content-length': String(member.length)}}));
                 settle.get(index)?.(member); done.add(index);
                 completedBytes += file.bytes; wireCompleted += file.wireBytes; filesDone++; publish();
@@ -148,8 +153,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             }
             if (at !== part.bytes) throw new Error(`Spawn part size differs: ${part.url}`);
           } catch {
-            controller.signal.throwIfAborted();
+            // Settle first: a page read already waiting on a member must fall through, even when this download aborts.
             for (const [index] of order) if (!done.has(index)) {left.add(index); settle.get(index)?.(null);}
+            controller.signal.throwIfAborted();
           }
         }));
         controller.signal.throwIfAborted();

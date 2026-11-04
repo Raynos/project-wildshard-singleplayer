@@ -3,8 +3,9 @@ import {afterEach, expect, test, vi} from 'vitest';
 import {downloadSpawnManifest, releaseSpawnMembers} from '../src/game/boot/spawnDownload';
 
 const hash = 'c'.repeat(64), base = 'https://example.test/';
-const bin = {url: `/shardfiles/example/blobs/bin/${'a'.repeat(64)}.bin`, bytes: 4, hash: 'a'.repeat(64)};
-const glb = {url: `/shardfiles/example/blobs/glb/${'b'.repeat(64)}.glb`, bytes: 5, hash: 'b'.repeat(64)};
+// Real sha256 of each body: the reader checks every member against its manifest row.
+const bin = {url: `/shardfiles/example/blobs/bin/${'a'.repeat(64)}.bin`, bytes: 4, hash: '27ecd0a598e76f8a2fd264d427df0a119903e8eae384e478902541756f089dd1'};
+const glb = {url: `/shardfiles/example/blobs/glb/${'b'.repeat(64)}.glb`, bytes: 5, hash: '7dfd2b6c5b422920757984cf2cbce642dca9a05207c57af24ad995b2d90fb4e9'};
 const code = {url: '/assets/code-12345678.js', bytes: 3, hash: 'd'.repeat(64)};
 const part = {url: `/assets/spawn/parts/${hash.slice(0, 16)}.pack`, bytes: 21, hash, members: [[0, 0], [1, 16]]};
 // The part holds bin at 0 and glb at 16 (16-byte aligned); the JS module stays loose.
@@ -61,3 +62,17 @@ test('a failed part hands its members to their loose URLs', async () => {
   expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3});
 });
 
+test('a part whose bytes differ from the manifest is never kept: its members load loose', async () => {
+  const reads: string[] = [], kept: string[] = [];
+  const corrupt = partBytes.map(byte => byte === 2 ? 3 : byte); // same length, wrong glb bytes
+  const download = downloadSpawnManifest(address, {packs: true, cached: () => Promise.resolve(undefined),
+    keep: url => {kept.push(new URL(url).pathname); return Promise.resolve();},
+    fetch: url => {
+      const path = new URL(url).pathname; reads.push(path);
+      return Promise.resolve(new Response(path === address.url ? text : path === part.url ? corrupt : body(path)));
+    }}, base);
+  await download.ready;
+  expect(kept).toEqual([bin.url]); // bin verified before the corrupt glb; glb never kept
+  expect(reads).toContain(glb.url);
+  expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3});
+});
