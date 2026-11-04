@@ -61,6 +61,9 @@ try{
   phase('physics-loaded');
   resident=await createNativeProofResident({shard:product.shardfile,assets,product,rapier},kingStage?prepareKing:prepareHeadlessRuntime,inherited?.snapshot);
   phase('resident-created');
+  // Let the independent owner commit readiness before synchronous recording
+  // can occupy this thread; its original request watchdog keeps running.
+  await session.ready();
   const active=resident,{host}=active,ready=session.ready(),history:ChapterPart[]=inherited?.parts??[],firstTick=host.state.tick;
   let commandsCount=history.reduce((sum,part)=>sum+(part.plan.segments[0]?.frames??[]).reduce((count,frame)=>count+frame.length,0),0);
   if(inherited!==undefined){
