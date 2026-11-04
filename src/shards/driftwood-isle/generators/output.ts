@@ -83,7 +83,6 @@ import { emitNamedBlobs, nameBlob as nameGuestBlob } from '@wildshard/sdk/blobs'
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
 import { enemyPlacements } from './enemyPlacement';
-import { keeperRows } from './keeperRows';
 import { emitDefinedSections, parseSectionValue } from '@wildshard/sdk/sections';
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { DRIFTWOOD_OUTPUT } from '../generators/assets';
@@ -145,8 +144,7 @@ function populationComposition(facts: DriftwoodIslandFacts, guests: DriftwoodGue
 }
 function returnComposition(guests: DriftwoodGuestRows) {
   return [nameBlob('sim/returns.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...ecology, program: guests.returnProgram, water: DECLARED_SEA.level, fixed: ['sailor'], step: 'shard.driftwood-isle.installEcology' }))),
-    nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ clips: monkeyClips, program: guests.returnProgram, perch: mixedPopulation.perch }))),
-    nameBlob('sim/keeper.json', 'json', new TextEncoder().encode(encodeCanonicalJson(keeperRows(placed, guests.returnProgram))))];
+    nameBlob('poses/monkey.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ clips: monkeyClips, program: guests.returnProgram, perch: mixedPopulation.perch })))];
 }
 function directorComposition(guests: DriftwoodGuestRows) {
   return nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: guests.director.module, bytes: '', file: 'behaviour/director.wasm' }, stages: directorStages, bindings: null, seed: 357 })));

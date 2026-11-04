@@ -1,3 +1,4 @@
+import keeperFixture from './driftwood-keeper.json' with { type: 'json' };
 import { driftwoodPhysics } from '../../src/shards/driftwood-isle/generators/physics';
 import { DRIFTWOOD_NATIVE_QUEST } from '../../src/shards/driftwood-isle/generators/nativeQuest';
 import { DRIFTWOOD_SPOTS } from '../../src/shards/driftwood-isle/generators/spots';
@@ -91,8 +92,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (preparation
     const monkeyJson = await (readJson<{
         program: unknown;
     }>(product, "poses/monkey.json", true));
-    const keeperJson = await (readJson(product, "sim/keeper.json", false));
-    const keeper = await (keeperJson);
+    const keeper = keeperFixture;
     const launch = await ((need)(need(shard.items.launches, "Missing launch rows")["coconut"], "Driftwood requires its admitted coconut launch"));
     const navigation = await ((need)((assets["get"])(need(shard.navigation, "Missing navigation").file), "Driftwood requires its admitted navigation asset"));
     const director = await ((readDirectorProduct)(product));

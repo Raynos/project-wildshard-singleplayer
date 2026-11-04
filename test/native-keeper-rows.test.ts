@@ -1,3 +1,5 @@
+import keeperFixture from './fixtures/driftwood-keeper.json' with { type: 'json' };
+import {encodeCanonicalJson,hashImmutableBytes} from '@wildshard/sdk/immutable';
 import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { expect, test } from 'vitest';
@@ -14,6 +16,10 @@ const physics=v.parse(v.object({actors:v.array(v.object({id:v.string(),kind:v.st
 
 test('keeper compilation retains the captured native recipes, placement order and stream checkpoints', () => {
   const placement = enemyPlacements(), rows = v.parse(PopulationKeeperRowsSchema, keeperRows(placement, RETURN_PROGRAM));
+  const original=new TextEncoder().encode(encodeCanonicalJson(v.parse(PopulationKeeperRowsSchema,keeperFixture)));
+  expect(original).toHaveLength(15874);
+  expect(hashImmutableBytes(original)).toBe('126875a57f29fd0c563be7ac06f58171e45cb1325c65b13273b57dffc78123c6');
+  expect(encodeCanonicalJson(rows)).toBe(encodeCanonicalJson({...keeperFixture,ecology:{...keeperFixture.ecology,program:RETURN_PROGRAM}}));
   expect(rows.bodies.map(({ id, kind, variant, seed, scale }) => ({ id, kind, variant, seed, scale })))
     .toEqual(physics.actors.map(({ id, kind, variant, seed, scale }) => ({ id, kind, variant, seed, scale })));
   expect(rows.bodies.filter(row => row.practice).map(row => row.id)).toEqual([physics.habitat.practice]);

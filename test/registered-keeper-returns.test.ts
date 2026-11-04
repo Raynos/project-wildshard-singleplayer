@@ -1,3 +1,4 @@
+import keeperFixture from './fixtures/driftwood-keeper.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify actual admitted product bodies without rebuilding them.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the admitted product member path only.
@@ -18,6 +19,7 @@ const folder = readBuiltShardfile(process.cwd(), 'driftwood-isle');
 const index = v.parse(v.object({ files: v.array(v.object({ name: v.exactOptional(v.string()), path: v.string(), hash: v.string() })) }), JSON.parse(readFileSync(join(folder, 'shard.json'), 'utf8')));
 const names = ['sim/keeper.json', 'sim/returns.json'] as const;
 const documents = names.map(name => {
+  if(name === names[0])return {name,bytes:new TextEncoder().encode(encodeCanonicalJson(keeperFixture)),value:keeperFixture};
   const row = index.files.find(file => file.name === name);
   if (row === undefined) throw new Error(`Missing admitted native document ${name}`);
   const bytes = new Uint8Array(readFileSync(join(folder, row.path)));
@@ -27,6 +29,12 @@ const documents = names.map(name => {
 });
 const keeper = documents[0], returns = documents[1];
 if (keeper === undefined || returns === undefined) throw new Error('Missing complete population documents');
+
+test('the fixture-only keeper is absent from shipping files and retains every original byte',()=>{
+  expect(index.files.some(file=>file.name===names[0])).toBe(false);
+  expect(keeper.bytes).toHaveLength(15874);
+  expect(hashImmutableBytes(keeper.bytes)).toBe('126875a57f29fd0c563be7ac06f58171e45cb1325c65b13273b57dffc78123c6');
+});
 
 for (const document of documents) test(`${document.name} retains the complete native root and exact authored bytes`, () => {
   const contract = REGISTERED_JSON[document.name];
