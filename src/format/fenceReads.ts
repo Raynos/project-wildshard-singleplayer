@@ -1,10 +1,14 @@
 /** DL22: the level files a boot reads before control that its spawn set did not carry (Pine's late models and props
- * tiles, recorded by a cold boot), kept by a stable identity so the list survives content edits: a named file by its
- * name, a props tile file by its tile and slot. The build maps the identities back to the current hashes. */
+ * tiles, recorded by a cold boot), kept by a stable identity so the list survives content edits: a props tile file by its
+ * tile and slot, a file a section names by that section path (`ref:`), a file with a plain authored name by its name. A
+ * name that carries a content hash is not stable (it changes with the bytes, sp-x8's review), so a recording keys such a
+ * file by its section reference. The build maps identities back to the current hashes and refuses one it cannot resolve. */
 export interface FenceReads {readonly version: 1; readonly files: readonly string[]}
-interface IndexFile {readonly hash: string; readonly name?: string}
+interface IndexFile {readonly hash: string; readonly path?: string; readonly name?: string}
 interface PropsTile {readonly lod: number; readonly x: number; readonly z: number; readonly file: string; readonly additionalFiles?: readonly string[]}
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+/** A name without a content hash in it (8+ hex digits) stays the same when the file's bytes change. */
+const stableName = (name: string): boolean => !/[a-f0-9]{8,}/u.test(name);
 function propsTiles(sections: ReadonlyMap<string, unknown>): readonly PropsTile[] {
   const section = sections.get('world/props'), props = object(section) ? section['props'] : undefined, tiles = object(props) ? props['tiles'] : undefined;
   if (!Array.isArray(tiles)) return [];
@@ -13,24 +17,42 @@ function propsTiles(sections: ReadonlyMap<string, unknown>): readonly PropsTile[
 }
 const tileSlots = (tile: PropsTile): readonly (readonly [string, string])[] =>
   [[`props-tile:${tile.lod}/${tile.x}/${tile.z}:file`, tile.file], ...(tile.additionalFiles ?? []).map((hash, at) => [`props-tile:${tile.lod}/${tile.x}/${tile.z}:${at}`, hash] as const)];
-/** Each file's stable identity in this product (`name:<name>`, `props-tile:<lod>/<x>/<z>:<slot>`); unidentifiable files are absent. */
-export function fenceReadIdentities(files: readonly IndexFile[], sections: ReadonlyMap<string, unknown>): ReadonlyMap<string, string> {
-  const identities = new Map<string, string>();
-  for (const tile of propsTiles(sections)) for (const [identity, hash] of tileSlots(tile)) if (!identities.has(hash)) identities.set(hash, identity);
-  for (const file of files) if (file.name !== undefined && !identities.has(file.hash)) identities.set(file.hash, `name:${file.name}`);
+/** Every identity each file has in this product, best first: props tile slots, plain names, section references. A file
+ *  several rows name has several identities (sp-x8: an alias must still resolve when its sibling changes). */
+export function fenceReadIdentities(files: readonly IndexFile[], sections: ReadonlyMap<string, unknown>): ReadonlyMap<string, readonly string[]> {
+  const identities = new Map<string, string[]>(), add = (hash: string, identity: string): void => {
+    const list = identities.get(hash) ?? []; if (!list.includes(identity)) list.push(identity); identities.set(hash, list);
+  };
+  for (const tile of propsTiles(sections)) for (const [identity, hash] of tileSlots(tile)) add(hash, identity);
+  for (const file of files) if (file.name !== undefined && stableName(file.name)) add(file.hash, `name:${file.name}`);
+  // A section names a file by its hash, path or name: each first place is a `ref:` identity.
+  const byText = new Map<string, string>();
+  for (const file of files) for (const text of [file.hash, file.path, file.name]) if (text !== undefined) byText.set(text, file.hash);
+  const walk = (value: unknown, at: string): void => {
+    if (typeof value === 'string') { const hash = byText.get(value); if (hash !== undefined) add(hash, `ref:${at}`); return; }
+    if (Array.isArray(value)) { value.forEach((item: unknown, row) => { walk(item, `${at}.${row}`); }); return; }
+    if (object(value)) for (const [key, item] of Object.entries(value)) walk(item, `${at}.${key}`);
+  };
+  for (const [name, value] of sections) walk(value, `${name}:`);
+  // A name with a content hash still resolves (lists recorded before it was skipped), last: when the bytes change the
+  // name goes, and the build refuses the stale entry instead of quietly fetching it on demand again.
+  for (const file of files) if (file.name !== undefined && !stableName(file.name)) add(file.hash, `name:${file.name}`);
   return identities;
 }
-/** The current hashes of a recorded list's identities in this product (an identity the product no longer has is skipped). */
-export function fenceReadHashes(reads: FenceReads, files: readonly IndexFile[], sections: ReadonlyMap<string, unknown>): ReadonlySet<string> {
-  const byIdentity = new Map([...fenceReadIdentities(files, sections)].map(([hash, identity]) => [identity, hash]));
-  const hashes = new Set<string>();
-  for (const identity of reads.files) { const hash = byIdentity.get(identity); if (hash !== undefined) hashes.add(hash); }
-  return hashes;
+/** The current hashes of a recorded list's identities, and the identities this product no longer has. */
+export function resolveFenceReads(reads: FenceReads, files: readonly IndexFile[], sections: ReadonlyMap<string, unknown>): {readonly hashes: ReadonlySet<string>; readonly unresolved: readonly string[]} {
+  const byIdentity = new Map<string, string>();
+  for (const [hash, identities] of fenceReadIdentities(files, sections)) for (const identity of identities) if (!byIdentity.has(identity)) byIdentity.set(identity, hash);
+  const hashes = new Set<string>(), unresolved: string[] = [];
+  for (const identity of reads.files) { const hash = byIdentity.get(identity); if (hash === undefined) unresolved.push(identity); else hashes.add(hash); }
+  return {hashes, unresolved};
 }
+/** The identity a recording keeps for a file: its first (most stable) one. */
+export function fenceReadIdentity(identities: ReadonlyMap<string, readonly string[]>, hash: string): string | undefined { return identities.get(hash)?.[0]; }
 /** A committed list, checked. */
 export function readFenceReads(input: unknown): FenceReads {
   const files: unknown = object(input) ? input['files'] : undefined;
   if (!object(input) || input['version'] !== 1 || !Array.isArray(files) || files.length > 20_000
-    || !files.every((row: unknown): row is string => typeof row === 'string' && /^(?:name:|props-tile:\d+\/\d+\/\d+:(?:file|\d+)$)/u.test(row))) throw new Error('Invalid fence reads');
+    || !files.every((row: unknown): row is string => typeof row === 'string' && /^(?:name:.+|ref:[^:]+:.+|props-tile:\d+\/\d+\/\d+:(?:file|\d+))$/u.test(row))) throw new Error('Invalid fence reads');
   return {version: 1, files: [...new Set(files)].sort()};
 }

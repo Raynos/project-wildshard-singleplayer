@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {fenceReadHashes, readFenceReads} from '../../src/format/fenceReads';
+import {readFenceReads, resolveFenceReads} from '../../src/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
@@ -101,7 +101,14 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     const source = assembleOutputShardfile(raw, sections), headerHash = createHash('sha256').update(header).digest('hex');
     // DL22: the shard's recorded pre-control reads (scripts/record-fence-reads.mjs), mapped to this product's hashes.
     const fencePath = join(root, 'src/shards', directory, 'fence-reads.json');
-    const fence = existsSync(fencePath) ? fenceReadHashes(readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8'))), index.files, sections) : new Set<string>();
+    let fence: ReadonlySet<string> = new Set();
+    if (existsSync(fencePath)) {
+      const resolved = resolveFenceReads(readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8'))), index.files, sections);
+      // A stale entry fails the build (sp-x8's review): skipping it would quietly bring back an on-demand fetch.
+      if (resolved.unresolved.length > 0) throw new Error(`${fencePath} lists ${resolved.unresolved.length} files this product no longer has `
+        + `(${resolved.unresolved.slice(0, 3).join(', ')}); re-record with scripts/record-fence-reads.mjs`);
+      fence = resolved.hashes;
+    }
     // Each string's first place in the sections (`world/scenes:libraries.24.tiles.0.files.3.file`), in section order.
     const namedAt = new Map<string, string>();
     const walk = (value: unknown, at: string): void => {
