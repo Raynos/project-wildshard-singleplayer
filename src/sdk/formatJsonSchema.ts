@@ -69,7 +69,7 @@ import { LimbRigSchema, LimbBlendSchema, BakedClipTable } from '@wildshard/forma
 import { LimbCollisionBake } from '@wildshard/format/limbCollision';
 import { ToonArmsLookSchema, HeldArmsSchema, HeldGraphCardsSchema } from '@wildshard/format/heldArms';
 import { GraphArmsSchema } from '@wildshard/format/graphArmsRows';
-import { PracticeSceneSchema,RidingPracticeSchema,PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
+import { PracticeSceneSchema,RidingPracticeSchema,PracticeControllerSchema, FixedPracticeFileSchema } from '@wildshard/format/practiceCourseRows';
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
@@ -465,6 +465,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+  'practiceCourseRows.FixedPracticeFile': FixedPracticeFileSchema,
   'islandLibrary.FixedGeometryGroups': FixedGeometryGroupsSchema,
   'specimenCatalogue.SpecimenBook': SpecimenBookSchema,
   'heldArms.HeldGraphCards': HeldGraphCardsSchema,
@@ -906,6 +907,7 @@ interface AuthorFormatObjects {
   readonly 'minimap.ManifestMetadataSchema': typeof ManifestMetadataSchema;
   readonly 'islandLibrary.ResolvedIslandLibrarySchema': typeof ResolvedIslandLibrarySchema;
   readonly 'islandLibrary.FixedGeometryGroupsSchema': typeof FixedGeometryGroupsSchema;
+  readonly 'practiceCourseRows.FixedPracticeFileSchema': typeof FixedPracticeFileSchema;
   readonly 'mixedPopulation.MixedPopulationSchema': typeof MixedPopulationSchema;
   readonly 'nativeQuestComposition.NativeQuestCompositionSchema': typeof NativeQuestCompositionSchema;
   readonly 'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA': typeof HEADLESS_ASSEMBLY_JSON_SCHEMA;
@@ -960,6 +962,7 @@ const authorFormats: AuthorFormatObjects = {
   'minimap.ManifestMetadataSchema': ManifestMetadataSchema,
   'islandLibrary.ResolvedIslandLibrarySchema': ResolvedIslandLibrarySchema,
   'islandLibrary.FixedGeometryGroupsSchema': FixedGeometryGroupsSchema,
+  'practiceCourseRows.FixedPracticeFileSchema': FixedPracticeFileSchema,
   'mixedPopulation.MixedPopulationSchema': MixedPopulationSchema,
   'nativeQuestComposition.NativeQuestCompositionSchema': NativeQuestCompositionSchema,
   'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA': HEADLESS_ASSEMBLY_JSON_SCHEMA,

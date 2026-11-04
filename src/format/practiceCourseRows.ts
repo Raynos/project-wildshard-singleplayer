@@ -1,7 +1,10 @@
 /** Build-only course admission. Native lifecycle and controllers remain counted. */
 import * as v from 'valibot';
 import { ReturnProgramSchema } from './namedJsonContracts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
 import { isJsonData } from './json';
+
+const completeReturn: v.GenericSchema<v.InferInput<typeof ReturnProgramSchema>, v.InferOutput<typeof ReturnProgramSchema> & ReturnProgramDocument> = v.intersect([ReturnProgramSchema, ReturnProgramDocumentSchema]);
 
 const n = v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000));
 const text = v.pipe(v.string(), v.maxLength(256));
@@ -97,6 +100,40 @@ export interface HookPracticeRow {
 export interface HookPracticeLayout {
   controller: PracticeControllerRows; program: unknown; sampleEpsilon: number; frame: Readonly<Record<string, number>>; presentation: PracticeScene; hooks: { pad: string; x: number; y: number; z: number }[]; course: HookPracticeRow;
 }
+
+const hookText=v.string(),hookNumber=v.pipe(v.number(),v.finite());
+/** Complete offline hook-course rows. Geometry and the decision module retain
+ * their original native practice owners. */
+export const HookPracticeCourseSchema:v.GenericSchema<HookPracticeRow,HookPracticeRow>=v.strictObject({
+  id:hookText,title:hookText,chip:hookText,
+  piece:v.strictObject({id:hookText,name:hookText,file:hookText,surface:hookText}),
+  room:v.strictObject({x0:hookNumber,x1:hookNumber,z0:hookNumber,z1:hookNumber,height:hookNumber}),
+  ringUp:hookNumber,ringOut:hookNumber,fallY:hookNumber,slab:hookNumber,
+  pads:v.pipe(v.array(v.strictObject({id:hookText,label:hookText,x:hookNumber,z:hookNumber,w:hookNumber,d:hookNumber,top:hookNumber,kind:hookText,next:v.exactOptional(hookText)})),v.maxLength(256)),
+  column:v.strictObject({x:hookNumber,z:hookNumber,w:hookNumber,d:hookNumber}),
+  hooks:v.pipe(v.array(v.strictObject({pad:hookText,edge:hookText,along:v.exactOptional(hookNumber)})),v.maxLength(256)),
+  run:v.strictObject({from:hookText,to:hookText,goals:hookNumber}),
+  words:v.strictObject({ready:hookText,finish:hookText,running:hookText,between:hookText,done:hookText,best:hookText,fell:hookText}),
+  look:v.strictObject({ceiling:hookNumber,ring:hookNumber,mast:hookNumber,paint:hookNumber,label:hookText,startLabel:hookText,finishLabel:hookText,
+    map:v.strictObject({floor:hookText,grid:hookText,wall:hookText,column:hookText,lit:hookText,pad:hookText,finish:hookText,hook:hookText,label:hookText})}),
+});
+/** G1004: the whole named hook-practice file, including its bounded scene,
+ * controller, frame inputs and original return-program descriptor. */
+export interface FixedPracticeFileInput {
+  practice:Omit<HookPracticeLayout,'controller'|'program'|'presentation'> & {
+    controller:v.InferInput<typeof PracticeControllerSchema>;
+    program:v.InferInput<typeof completeReturn>;
+    presentation:v.InferInput<typeof PracticeSceneSchema>;
+  };
+}
+export interface FixedPracticeFileRows {
+  practice:Omit<HookPracticeLayout,'program'> & {program:v.InferOutput<typeof completeReturn>};
+}
+export const FixedPracticeFileSchema:v.GenericSchema<FixedPracticeFileInput,FixedPracticeFileRows>=v.strictObject({practice:v.strictObject({
+  controller:PracticeControllerSchema,program:completeReturn,sampleEpsilon:v.picklist([0,1e-9]),
+  frame:v.pipe(v.record(hookText,hookNumber),v.maxEntries(115)),presentation:PracticeSceneSchema,
+  hooks:v.pipe(v.array(v.strictObject({pad:hookText,x:hookNumber,y:hookNumber,z:hookNumber})),v.maxLength(256)),course:HookPracticeCourseSchema,
+})});
 
 /** Admitted data contracts, independent of validator implementation metadata. */
 export type PracticeSceneInput = PracticeScene;

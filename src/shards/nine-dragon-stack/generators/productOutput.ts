@@ -8,7 +8,7 @@ import { crowdGraphFile } from './crowdGraph';
 import type { NineHeldInputs } from './heldGraphFiles';
 import { heldView } from './heldView';
 import type { NineSourceCasts } from './castsProgram';
-import { FixedPracticeFileSchema, parseFixedPractice, parseFilamentRows, parseHaloState } from './sections';
+import { parseFixedPractice, parseFilamentRows, parseHaloState } from './sections';
 import { postRows } from './postGraphs';
 import { postGraphRow } from './composite';
 import { NINE_FRAME_CHANNELS, NINE_FRAME_GROUP } from './frameChannels';
@@ -95,7 +95,7 @@ const emitted = emitNamedBlobs(NINE_SCENE_BLOBS.concat(LAYOUT_PLACEMENT_BLOBS, v
   nameBlob(NINE_HELD_CARDS, 'json', json(heldCards),{jsonSchema:registeredJsonSchema('models/held-cards.json')}),
   nameBlob('looks/silk-weave.r8', 'bin', silkWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
   nameBlob('looks/plain-weave.r8', 'bin', plainWeaveBytes(), { decoded: 65_536, gpu: 87_381 }),
-  nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedPractice({ practice: grappleCourseScene(course, inputs.courseProgram) })),{jsonSchema:namedJsonSchema(FixedPracticeFileSchema)}),
+  nameBlob('geometry/fixed-kits.json', 'json', json(parseFixedPractice({ practice: grappleCourseScene(course, inputs.courseProgram) })),{jsonSchema:registeredJsonSchema('geometry/fixed-kits.json')}),
   ...JIAN_GEOMETRY.blobs,
   nameBlob('weapons/jian-row.json', 'json', json({ ...equipmentRows, view: heldView(inputs.held), look: { vm: viewmodelUniforms, post: { ...postGraphRow(postRows()), channels: { group: NINE_FRAME_GROUP, programs: NINE_FRAME_CHANNELS } } } }), { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', required: ['portraitFov', 'aim', 'bursts', 'look', 'view'], additionalProperties: false, properties: { view: inputs.graphArmsSchema, look: { type: 'object', required: ['vm', 'post'], additionalProperties: false, properties: { vm: { type: 'object' }, post: { type: 'object', required: ['passes', 'sides', 'composite', 'inputs', 'uniforms', 'sky'] } } }, portraitFov: { type: 'number' }, aim: { type: 'object' }, bursts: { type: 'object', required: ['muzzle', 'bite', 'dock', 'sparks'], additionalProperties: false, properties: Object.fromEntries(['muzzle', 'bite', 'dock', 'sparks'].map(id => [id, { type: 'object', required: ['name', 'shape', 'count', 'life'], additionalProperties: false, properties: { name: { type: 'string' }, shape: { enum: ['flake', 'streak'] }, count: { type: 'integer', minimum: 1, maximum: 24 }, life: { type: 'number', exclusiveMinimum: 0, maximum: 1 } } }])) } } } }),
 ], rawMovers, decalBlobs, inputs.casts.blobs,

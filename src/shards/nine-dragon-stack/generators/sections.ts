@@ -108,7 +108,7 @@ const SignAtlasSchemaRows: ReturnType<typeof defineNamedRows<typeof SignAtlasSch
 export const SignAtlasSchema: typeof SignAtlasSchemaRows.schema = SignAtlasSchemaRows.schema;
 
 /** Named practice files retain the defining bounded scene contract. */
-const FixedPracticeFileSchemaShape: { readonly kind: 'object'; readonly entries: { readonly practice: { readonly kind: 'object'; readonly entries: Omit<typeof FixedRowsSchemaShape.entries.practice.entries, 'presentation'> & { readonly presentation: typeof PracticeSceneSchema } } } } = { kind: 'object', entries: { practice: { kind: 'object', entries: { ...FixedRowsSchemaShape.entries.practice.entries, presentation: PracticeSceneSchema } } } } as const;
+const FixedPracticeFileSchemaShape:ReturnType<typeof authorFormatSchema<'practiceCourseRows.FixedPracticeFileSchema'>>=authorFormatSchema('practiceCourseRows.FixedPracticeFileSchema');
 const FixedPracticeFileSchemaRows: ReturnType<typeof defineNamedRows<typeof FixedPracticeFileSchemaShape>> = defineNamedRows(FixedPracticeFileSchemaShape);
 export const FixedPracticeFileSchema: typeof FixedPracticeFileSchemaRows.schema = FixedPracticeFileSchemaRows.schema;
 

@@ -1,3 +1,4 @@
+import { FixedPracticeFileSchema } from './practiceCourseRows';
 import { FixedGeometryGroupsSchema } from './islandLibrary';
 import { CoverAppearanceSchema } from './coverAppearance';
 import { HeldGraphCardsSchema } from './heldArms';
@@ -52,6 +53,8 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^geometry\/fixed-kits\.json$/u, schema: FixedPracticeFileSchema,
+    source: '@wildshard/format/practiceCourseRows#FixedPracticeFileSchema', reader: 'src/game/practice/course.ts' },
   { pattern: /^models\/fixed-geometry\.json$/u, schema: FixedGeometryGroupsSchema,
     source: '@wildshard/format/islandLibrary#FixedGeometryGroupsSchema', reader: 'src/game/models/islandLibrary.ts' },
   { pattern: /^models\/cover-phone\.json$/u, schema: SpecimenBookSchema,
