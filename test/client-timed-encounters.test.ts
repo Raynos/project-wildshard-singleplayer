@@ -37,7 +37,8 @@ function fixture(retireOnRead = false) {
   const looks = ['nalati-spray-debris', 'nalati-spray-mist', 'nalati-tell', 'nalati-ghost', 'nalati-ghost-captain', 'nalati-ghost-storm'];
   lendLooks(scope, {materials: new Map(looks.map(id => [id, new MeshBasicMaterial()])), setParam: () => undefined, setTexture: () => undefined,
     bindMeshMap: () => { throw new Error('No mapped watch looks'); }, instance: () => ({material: new MeshBasicMaterial(), setParam: () => undefined})});
-  const raw = v.parse(v.record(v.string(), v.unknown()), structuredClone(NALATI_NIGHT));
+  // Match the emitted combat wire; CueDirector borrows the separate presentation cues.
+  const {cues, ...raw} = v.parse(v.record(v.string(), v.unknown()), structuredClone(NALATI_NIGHT));
   const strikes = v.parse(v.record(v.string(), v.unknown()), JSON.parse(readFileSync('test/fixtures/nalati-strikeProfiles-original.json', 'utf8')));
   const admitted = v.parse(TimedEncountersSchema, {...raw,
     presentation: 'quarry', contact: {strike: strikes['arrow'], tags: ['creature.quarry'], origin: 'actor'}});
@@ -53,7 +54,7 @@ function fixture(retireOnRead = false) {
   const draws: FixedDraws = {ready: true, load: () => Promise.resolve(), handle: id => legacyDouble<ReturnType<FixedDraws['handle']>>({copy() { copies.push(id); return figure.clone(); }})};
   publishEntryOwner(scope, 'fixed-draws', input.draws, draws);
   publishEntryOwner(scope, 'species', input.species, legacyDouble<SpeciesCatalogue>({prepareMemory(id, owner) { expect(id).toBe(input.guest); expect(owner).toBe(scope); return ReturnProgram.prepareMemory(night.program, scope); }, program(id) { expect(id).toBe(input.guest); return ReturnProgram.page(night.program); }}));
-  clientNativeBook(ctx).presentations.set('quarry', new CueDirector(game, raw['cues'], scope));
+  clientNativeBook(ctx).presentations.set('quarry', new CueDirector(game, cues, scope));
   const clock = legacyDouble<DayCycleClock>({dayPhase: 'day'});
   const sky = legacyDouble<NonNullable<ForestWeatherRig['sky']>>({clock});
   const rig = legacyDouble<ForestWeatherRig>({sky, storm: legacyDouble<NonNullable<ForestWeatherRig['storm']>>({})});

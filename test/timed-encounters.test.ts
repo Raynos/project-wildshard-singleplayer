@@ -20,7 +20,8 @@ import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
-const night=withWeatherWitness(nightInput);
+// Match the emitted combat wire; CueDirector borrows the separate presentation cues.
+const {cues, ...night}=withWeatherWitness(nightInput);
 
 /** The night's two spray looks (data/lookGraphs.json), lent as the runtime lends every look before the world builds. */
 function lendSprays(scope: Scope): void {
@@ -45,7 +46,7 @@ test('the listed night binding preserves phases, native identities, figures and 
     const clock = legacyDouble<DayCycleClock>({ dayPhase: 'day' });
     let clockReads=0;
     const watch = new TimedEncounters({ game, player: legacyDouble<Player>({ position: new Vector3(1, 0, 2) }), sky: legacyDouble({}), forest: legacyDouble({}), sites: null, get clock(){clockReads++;return clock;} },
-      parse(TimedEncountersSchema,rows), { rider: figure, captain: figure, storm: figure }, ReturnProgram.page(night.program), new CueDirector(game, night.cues, scope));
+      parse(TimedEncountersSchema,rows), { rider: figure, captain: figure, storm: figure }, ReturnProgram.page(night.program), new CueDirector(game, cues, scope));
     expect(watch.slots).toBeDefined(); expect(watch.riders).toBeDefined();
     expect(watch.target(new Vector3(), new Vector3(0, 0, 1), 10, null)).toBeNull();
     expect(clockReads).toBe(0);watch.update(.05, .05);expect(clockReads).toBe(1);
@@ -62,7 +63,7 @@ test('night contacts preserve origin, strike range and cover before native playe
   const playerRead=vi.spyOn(app,'player','get').mockReturnValue(target),hit=vi.spyOn(app.combat,'hit').mockReturnValue(null),reach=vi.spyOn(reachQueries,'canReach').mockReturnValue(true);
   try{
     const create=(origin:'actor'|'player')=>new TimedEncounters({game,player:legacyDouble<Player>({position}),sky:legacyDouble({}),forest:legacyDouble({}),sites:null,clock:legacyDouble<DayCycleClock>({dayPhase:'day'})},
-      parse(TimedEncountersSchema,{...night,presentation:'night',contact:{strike:strikes.arrow,tags:['creature.ghost-rider'],origin}}),{rider:figure,captain:figure,storm:figure},ReturnProgram.page(night.program),new CueDirector(game,night.cues,scope));
+      parse(TimedEncountersSchema,{...night,presentation:'night',contact:{strike:strikes.arrow,tags:['creature.ghost-rider'],origin}}),{rider:figure,captain:figure,storm:figure},ReturnProgram.page(night.program),new CueDirector(game,cues,scope));
     const watch=create('actor');vi.spyOn(watch.riders,'update').mockReturnValue([{damage:17,from:actor}]);
     watch.update(.1,.1);expect(hit).toHaveBeenCalledTimes(1);const firstHit=hit.mock.calls[0]?.[0];expect(firstHit?.target).toBe(target);expect(firstHit?.amount).toBe(17);expect(firstHit?.point).toBe(actor.position);expect(firstHit?.cause).toEqual({kind:actor.kind,label:actor.label});
     hit.mockClear();reach.mockReturnValue(false);watch.update(.1,.2);expect(hit).not.toHaveBeenCalled();
