@@ -617,3 +617,43 @@ Clockwork vocal/theme qualification, the MOSS pair, CLAP ranking, bounded
 AAC/credits publication, body/wire proof, complete native bar 10 and final
 C/control remain open. No by-ear verdict, activation, new fallback or
 audio/documentation push is claimed.
+
+
+### Clockwork vocal check and Desert raw pair
+
+Clockwork's original locked vocal-analysis batch completes in **24.315 s**,
+exit 0. Both MiniMax takes report vocal-energy share **0.0000** under the
+maintained source-separation measurement, below the unchanged 0.10 limit.
+This is a measured check, without an agent listening verdict; CLAP theme
+and paired SFX qualification remain open.
+
+Desert's two original MiniMax Music 3 takes (seeds 701/702) complete in
+**452.800 s** under the normal shared lock, outer memory admission and
+30-minute cap. Independent headers and SHA-256 checks bind stereo
+44,100 Hz PCM of **75.082 / 40.403 s** to their exact raw wave/metadata
+files. The maintained model-free analyzer reports loop scores
+**0.391 / 0.423**, clipping fractions **0.0000114765 / 0**, and zero
+internal silence gaps. These pass the existing duration, clipping and
+internal-gap checks. Its separate locked vocal-analysis batch completes
+in **22.480 s**, exit 0: vocal-energy shares **0.0046 / 0.0067**, both
+below 0.10. Theme comparison and AAC/decoded-loop qualification remain
+open; no score has been selected or activated.
+
+Desert's original Stable Audio 3 Medium batch then completes in
+**22.900 s**, exit 0, under its normal lock/guards. All seven original
+seed-701 wave/sidecar pairs match their prepared family, prompt and
+ranking description, with positive PCM frames and independent source
+hashes. These remain raw takes, pending the MOSS pair and CLAP ranking.
+The short batches finish and release their owned processes/model locks
+before the next separately admitted model turn.
+
+The model-free `top` snapshot at **20:50:44** still reports peer PID 9728
+at **19G** in the original guard's MEM field. The MOSS resume condition
+is not met; no repeated guard/model attempt, exclusion or bound change
+follows. Race and Showcase still require their complete audio sets; all
+four final-audio C reports remain open.
+
+Raw evidence: `tmp/ob7-audio/{clockwork-canyon-vocals,desert-ruin-score,
+desert-ruin-vocals,desert-ruin-medium}.log`, their original raw sidecars
+and metrics, plus `tmp/sp-x1-audio/{desert-score-inventory,
+desert-medium-inventory}.json`. No partial publication or push.
