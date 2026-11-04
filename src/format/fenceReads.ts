@@ -56,10 +56,14 @@ export function fenceReadIdentity(identities: ReadonlyMap<string, readonly strin
  *  entry that no longer resolves to the same file, and the build refuses it as stale (sp-x8's review). */
 export function fenceReadAliases(identities: ReadonlyMap<string, readonly string[]>, hash: string): readonly string[] { return identities.get(hash) ?? []; }
 /** A `/assets` file's path without its content hash or version query: `/assets/sfx/best/bed-forest-2-0cd11be5.m4a` →
- *  `/assets/sfx/best/bed-forest-2.m4a`, `/assets/gpu/x/rifle.phone-fd73a325.glb` → `/assets/gpu/x/rifle.phone.glb`. */
+ *  `/assets/sfx/best/bed-forest-2.m4a`, `/assets/gpu/x/rifle.phone-fd73a325.glb` → `/assets/gpu/x/rifle.phone.glb`, and
+ *  the bundler's own suffix: `/assets/pine-hollow-C8hPt5PZ.jpg` → `/assets/pine-hollow.jpg` (DL11: images the page
+ *  reads before control must be listed, or they wait for the whole set). */
 export function assetStem(url: string): string {
   const path = url.split('?')[0] ?? url, at = path.lastIndexOf('/');
-  return path.slice(0, at + 1) + path.slice(at + 1).replace(/[-.][a-f0-9]{8,}(?=\.[a-z0-9]+$)/u, '');
+  const name = path.slice(at + 1).replace(/[-.][a-f0-9]{8,}(?=\.[a-z0-9]+$)/u, '');
+  // the bundler emits its files flat under /assets/ (public files keep their folders, where `-forest-2` is a name)
+  return path.slice(0, at + 1) + (at === '/assets'.length ? name.replace(/-(?=[A-Za-z0-9_-]*[0-9A-Z])[A-Za-z0-9_-]{8}(?=\.[a-z0-9]+$)/u, '') : name);
 }
 /** A stem that still carries a hash (a pure-hash basename like `cabin-materials/<64 hex>.glb`, or a bundler's base64
  *  suffix) changes with the bytes: it is no identity (sp-x8's review). */
@@ -78,6 +82,34 @@ export function sectionRefs(sections: ReadonlyMap<string, unknown>, paths: Reado
   };
   for (const [name, value] of sections) walk(value, `${name}:`);
   return refs;
+}
+/** DL22: the boot tables' audio manifests as a reference source (sfx sets and music styles: set → a definition naming
+ *  its files, served at `/assets/<kind>/<set>/<file>`, audioFiles.ts). Each file is named by its slot in the table,
+ *  `ref:boot-<kind>:/<set>/<JSON Pointer>`: two revisions of one clip (Pine's 8 stem collisions) are told apart by the
+ *  slot that names the shipped one, which section references cannot do (sp-x1). */
+export function audioTableRefs(tables: {readonly sfx?: unknown; readonly music?: unknown}): ReadonlyMap<string, readonly string[]> {
+  const refs = new Map<string, string[]>(), segment = (key: string): string => key.replaceAll('~', '~0').replaceAll('/', '~1');
+  for (const [kind, table] of [['sfx', tables.sfx], ['music', tables.music]] as const) {
+    if (!object(table)) continue;
+    for (const [set, definition] of Object.entries(table)) {
+      const walk = (value: unknown, at: string): void => {
+        if (typeof value === 'string') {
+          if (!/^[^/?]+\.(?:m4a|mp3|ogg|opus|wav|aac|flac)$/u.test(value)) return;
+          const path = `/assets/${kind}/${set}/${value}`; refs.set(path, [...refs.get(path) ?? [], `ref:boot-${kind}:/${segment(set)}${at}`]); return;
+        }
+        if (Array.isArray(value)) { value.forEach((item: unknown, row) => { walk(item, `${at}/${row}`); }); return; }
+        if (object(value)) for (const [key, item] of Object.entries(value)) walk(item, `${at}/${segment(key)}`);
+      };
+      walk(definition, '');
+    }
+  }
+  return refs;
+}
+/** Reference maps joined: every identity each path has, in the order given. */
+export function joinRefs(...maps: readonly ReadonlyMap<string, readonly string[]>[]): ReadonlyMap<string, readonly string[]> {
+  const joined = new Map<string, string[]>();
+  for (const map of maps) for (const [path, ids] of map) joined.set(path, [...joined.get(path) ?? [], ...ids]);
+  return joined;
 }
 /** A boot asset table's pack parts (`packs`: bank → pack → {parts: [{url, files: [[path, …]]}]}): each part URL, its bank
  *  and pack, and the paths of its member files. */

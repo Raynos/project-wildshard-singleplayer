@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { assetIdentities, assetStem, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
+import { assetIdentities, assetStem, audioTableRefs, fenceReadAliases, fenceReadIdentities, fenceReadIdentity, joinRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs } from './fenceReads';
 
 // DL22: Pine's cold boot read 143 files before control that its spawn set lacked (late models by name, props tiles by
 // tile); the recorded list keeps stable identities so a content edit (new hashes) still maps to the right files.
@@ -100,4 +100,28 @@ test('sp-x8\'s third round: colliding member stems and hash-only members refuse 
   const refs = sectionRefs(new Map<string, unknown>([['a', { file: shared }], ['b', { file: shared }]]), new Set([shared]));
   expect(refs.get(shared)).toEqual(['ref:a:/file', 'ref:b:/file']);
   expect(assetIdentities([shared], new Map(), refs).get(shared)).toEqual(['ref:a:/file', 'ref:b:/file']);
+});
+
+test('DL11: colliding sfx revisions are told apart by their slot in the boot tables\' sfx manifest', () => {
+  // Pine's 8: two revisions of one clip both ship, so neither has a unique stem; the table names the one the game reads.
+  const urls = ['/assets/sfx/best/bed-forest-2-0cd11be5.m4a', '/assets/sfx/best/bed-forest-2-11112222.m4a',
+    '/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a', '/assets/sfx/best/footstep-planks-2-33334444.m4a', '/assets/music/calm/theme-aaaabbbb.m4a'];
+  const refs = audioTableRefs({sfx: {best: {model: 'x', beds: {forest: {file: 'bed-forest-2-0cd11be5.m4a'}}, oneshots: {'footstep-planks': {files: ['a.m4a', 'footstep-planks-2-ebb5a80c.m4a']}}}},
+    music: {calm: {tracks: ['theme-aaaabbbb.m4a']}}});
+  expect(refs.get('/assets/sfx/best/bed-forest-2-0cd11be5.m4a')).toEqual(['ref:boot-sfx:/best/beds/forest/file']);
+  expect(refs.get('/assets/sfx/best/footstep-planks-2-ebb5a80c.m4a')).toEqual(['ref:boot-sfx:/best/oneshots/footstep-planks/files/1']);
+  expect(refs.get('/assets/music/calm/theme-aaaabbbb.m4a')).toEqual(['ref:boot-music:/calm/tracks/0']);
+  const ids = assetIdentities(urls, new Map(), joinRefs(new Map(), refs));
+  expect(ids.get('/assets/sfx/best/bed-forest-2-0cd11be5.m4a')).toEqual(['ref:boot-sfx:/best/beds/forest/file']);
+  expect(ids.has('/assets/sfx/best/bed-forest-2-11112222.m4a')).toBe(false); // the unshipped revision has no slot
+  expect(readFenceReads({version: 1, files: ['ref:boot-sfx:/best/beds/forest/file']}).files).toEqual(['ref:boot-sfx:/best/beds/forest/file']);
+});
+
+test('DL11: a bundler-hashed image is named by its stem without the hash', () => {
+  expect(assetStem('/assets/pine-hollow-C8hPt5PZ.jpg')).toBe('/assets/pine-hollow.jpg');
+  expect(assetStem('/assets/pine-hollow-portrait-CaUCW0-1.jpg')).toBe('/assets/pine-hollow-portrait.jpg');
+  // a plain name is untouched, and a hex hash still strips first
+  expect(assetStem('/assets/sfx/best/footstep-litter-1-fe9cd8d9.m4a')).toBe('/assets/sfx/best/footstep-litter-1.m4a');
+  expect(assetStem('/assets/models/rock_moss_set_01/rock.glb')).toBe('/assets/models/rock_moss_set_01/rock.glb');
+  expect(assetIdentities(['/assets/pine-hollow-C8hPt5PZ.jpg'], new Map()).get('/assets/pine-hollow-C8hPt5PZ.jpg')).toEqual(['asset:/assets/pine-hollow.jpg']);
 });

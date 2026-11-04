@@ -350,3 +350,22 @@ test('DL11: a page read waiting on a listed file moves it to the front of the do
   expect(new Set(order).size).toBe(10);
   vi.unstubAllGlobals();
 });
+
+test('DL11: two demanded files are fetched first in the order asked, once each (sp-x9\'s review of 62502f386c)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const rows = Array.from({length: 10}, (_, at) => ({url: `/shardfiles/example/blobs/bin/${at.toString(16).repeat(64)}.bin`, bytes: 4, hash: 'f'.repeat(64)}));
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 40});
+  const at = {url: '/assets/spawn/example-demand-two-1234567890abcdef.json', bytes: plain.length, totalBytes: 40, files: 10};
+  const order: string[] = [];
+  const download = downloadSpawnManifest(at, {
+    cached: () => Promise.resolve(undefined), store: () => Promise.resolve(),
+    fetch: url => { const path = new URL(url).pathname; if (path !== at.url) order.push(path); return Promise.resolve(new Response(path === at.url ? plain : new Uint8Array(4))); },
+  }, base);
+  await download.listed;
+  const [eighth, ninth] = [rows[8], rows[9]]; if (eighth === undefined || ninth === undefined) throw new Error('Missing row');
+  const reads = [window.fetch(new URL(ninth.url, base).href), window.fetch(new URL(eighth.url, base).href), window.fetch(new URL(ninth.url, base).href)];
+  await download.ready; await Promise.all(reads);
+  expect(order.slice(0, 2)).toEqual([ninth.url, eighth.url]);
+  expect(order).toHaveLength(10);
+  vi.unstubAllGlobals();
+});

@@ -13,7 +13,7 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parseArgs } from 'node:util';
-import { assetIdentities, fenceReadAliases, fenceReadIdentities, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
+import { assetIdentities, audioTableRefs, fenceReadAliases, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '../src/format/fenceReads.ts';
 
 const { values } = parseArgs({ options: { run: { type: 'string' }, base: { type: 'string' }, dist: { type: 'string' }, slug: { type: 'string' },
   flow: { type: 'string', default: 'client' }, check: { type: 'boolean', default: false }, 'allow-unidentified': { type: 'boolean', default: false } } });
@@ -36,9 +36,9 @@ const bank = JSON.parse(/id="boot-module-files">([^<]+)</u.exec(html)?.[1] ?? 'n
 const address = flow === 'grid' ? bank.spawnManifests.grid['000'][slug].phone : bank.spawnManifests.client[slug].phone;
 const manifest = await (await fetch(new URL(address.url, base))).json();
 const listed = new Set(manifest.files.map(row => row.url.split('?')[0]));
-// The shell's own images (title cards, the loading backdrop) are page UI, not level content.
+// Title art loads through <img> on the title page; any other image read before control is recorded (DL11: an unlisted
+// read waits for the whole set).
 const prefix = `/shardfiles/${slug}/`, shell = /^\/assets\/(?!spawn\/|boot-tables-)[^?]+$/u, code = /\.(?:js|mjs|css|map)$/u;
-const shellImage = /^\/assets\/(?:title\/)?[^/]+\.(?:png|jpe?g|webp|avif|svg)$/u;
 const outside = new Set(), assetsOutside = new Set();
 let matched = 0;
 for (const row of run.requests) {
@@ -47,7 +47,7 @@ for (const row of run.requests) {
   if (path.startsWith(prefix)) matched++;
   if (listed.has(path)) continue;
   if (path.startsWith(prefix) && !path.endsWith('/shard.json')) outside.add(/([a-f0-9]{64})/u.exec(path)?.[1] ?? path);
-  else if (shell.test(path) && !code.test(path) && !shellImage.test(path)) assetsOutside.add(path);
+  else if (shell.test(path) && !code.test(path) && !path.startsWith('/assets/title/')) assetsOutside.add(path);
 }
 // Only the home's own reads before control count as its witness (sp-x8's review).
 if (matched === 0) throw new Error(`The run read nothing under ${prefix} before control: not a ${slug} run`);
@@ -58,12 +58,14 @@ for (const hash of outside) { const aliases = fenceReadAliases(identities, hash)
 // /assets: this build's files and its boot tables' pack parts.
 const assetUrls = readdirSync(join(dist, 'assets'), { recursive: true, withFileTypes: true }).filter(entry => entry.isFile())
   .map(entry => `/${relative(dist, join(entry.parentPath, entry.name)).split(sep).join('/')}`);
-const parts = new Map();
+const parts = new Map(), audioRefs = [];
 for (const url of assetUrls.filter(name => /^\/assets\/boot-tables-[a-f0-9]{8}\.json$/u.test(name))) {
-  for (const [part, row] of packMembers(JSON.parse(readFileSync(join(dist, url.slice(1)), 'utf8')).packs)) parts.set(part, row);
+  const table = JSON.parse(readFileSync(join(dist, url.slice(1)), 'utf8'));
+  for (const [part, row] of packMembers(table.packs)) parts.set(part, row);
+  audioRefs.push(audioTableRefs(table));
 }
 const memberPaths = [...parts.values()].flatMap(row => row.members.map(member => member.split('?')[0]));
-const assetIds = assetIdentities(assetUrls, parts, sectionRefs(sections, new Set([...assetUrls, ...memberPaths])));
+const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs));
 for (const path of assetsOutside) { const ids = assetIds.get(path); if (ids === undefined) unknown.push(path); else recorded.push(...ids); }
 const total = outside.size + assetsOutside.size;
 console.log(`${slug} ${flow}: control at ${((control - run.tap) / 1000).toFixed(1)} s; ${outside.size} level and ${assetsOutside.size} /assets files read before control outside the spawn set; ${unknown.length} unidentified`);
