@@ -1,6 +1,6 @@
 # Plan: TRAILERS — an alpha in-engine trailer and a cinematic vision trailer (E466)
 
-**State:** `in progress` 2026-10-10 — **Part A done** (the alpha trailer, live on wildshard.io). Concept trailers, all
+**State:** `parked 2026-11-04 (Jake, G1014: "We want to make more trailers in the future that should be generic … Nuke the trailer, we can bring him back from Git history"; the tooling is deleted by dead-code DC15)` — was: `in progress` 2026-10-10 — **Part A done** (the alpha trailer, live on wildshard.io). Concept trailers, all
 sent to Jake: CT2's 67 s draft (*"insanely AI"*), Part C's four 15 s builder variants (V1 / V2 kept, T15-6 parked),
 Part D's three AAA-style player cinematics (*"great"* but *"imply a product that would cost millions"*), and **Part E's
 engine-true trailer** (real frames + our in-game rider, E474). The lessons: `docs/process/CINEMATICS.md`. Open: TR9,

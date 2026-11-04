@@ -1,6 +1,6 @@
 # Dead code: what to delete now that custom shard TypeScript is gone (mini plan)
 
-**State:** `open` 2026-11-04. Audit only (ask E531): nothing is deleted yet. 13 rows, about **17,500 lines: 175 files
+**State:** `approved` 2026-11-04 ~15:46 Cancun by Jake (G1014): *"Yeah, the 13,000 lines deleted, 11 items, that plan sounds approved to me … You said it was what, 17,000 lines? Trailer tooling, we probably want to keep some trailer tooling. We want to make more trailers in the future that should be generic … Oh, fuck it. If you want to nuke it, we can bring him back from Git history. Like, just fuck it. Nuke the soak, nuke the trailer, we can bring him back from Git history."* DC1–DC15 are approved; the "Needs a closer look" items are approved too, each deleted once its own fresh importer search shows it dead (keep anything a live reader still uses). Was: `open`. Audit only (ask E531): nothing is deleted yet. 13 rows, about **17,500 lines: 175 files
 deleted, ~190 trimmed**, all believed safe. One more row needs Jake's word (DC14, the soak, 1,713 lines). A "Needs a
 closer look" list holds ~13,800 more lines (6,100 of them trailer tooling) that need an owner's check first. Builder:
 take the rows in order. Each row is one or two small commits. Mark it here with the SHA when it lands.
@@ -229,7 +229,7 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
   today).
 - **Check:** the re-grep, types, `vitest related`.
 
-### DC14: the soak harness (12 files, 1,713 lines) · Codex · S · **Jake rules**
+### DC14: the soak harness (12 files, 1,713 lines) · Codex · S · **approved (G1014): delete, and drop "the soak" from AGENTS.md in the same commit**
 
 - `scripts/soak/{bisect,drive,gl,owned,pine-events,pine-rate,report,soak}.mjs`, `scripts/soak/route.ts`
 - `test/tooling/soak/{drive,gl,pine-events}.test.mjs`
@@ -237,6 +237,12 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
 - Jake, 2026-10-03 (E388): *"Don't soak at all"*. The soak verdicts were deleted then, but the harness stayed.
   AGENTS.md still lists "the soak" among the per-milestone heavy proofs. **Recommended:** delete the harness and drop
   "the soak" from that AGENTS.md line in the same commit.
+
+### DC15: trailer tooling (127 files, ~6,145 lines + ~18 MB) · Codex · M · **approved (G1014)**
+
+- `scripts/progress-trailer/`, `scripts/steam-trailer/`, `scripts/trailer/`, their tests, and the three `.wav` files outside `public/`.
+- Jake: "Nuke the soak, nuke the trailer, we can bring him back from Git history." Future trailers start from a generic tool, built fresh or restored from git (`git log --all -- scripts/trailer/` names the last commit). TRAILERS is parked in the same commit.
+- Check: nothing outside the three folders imports them (`git grep` bare basenames, package.json scripts, CI workflows); root types; ratchet.
 
 ## Needs a closer look (not rows)
 
