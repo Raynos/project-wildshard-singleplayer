@@ -155,13 +155,13 @@ does not close a Z row.
 | **Z3** | **Done (2026-11-04, G1004): Pine 68 landed `c98d1cffe0`; sp-x2 admits the two exact DW plan files under Jake's single-user approval (2 / 651,474 B).** Sixteen bounded family pages reconstruct all 68 original Pine graphs byte-for-byte; Driftwood's trader is the second whole-page user. Fresh-seat sp-x2: 6/6. Native payload 1,733,628 → 1,419,651 B; page schema definitions save 302,816 index bytes. G998: Pine and Driftwood 24/24 green in Chromium and WebKit on `d4c2e8d15d-mw0u2vw4`; Pine 11/20 are verified moving native animals. Four reviewed boards are under `art/golden-runs/pine-hollow/` and `art/golden-runs/driftwood-isle/`, named `2026-11-03-d4c2e8d15d-z3-board.jpg` and `2026-11-03-d4c2e8d15d-z3-webkit-board.jpg`. `BakedPlacementPlanSchema` has only Driftwood as a complete emitter (`sets` and `smallRocks` included): G1004 admits both `world/island/plan-{phone,desktop}.json` under that exact complete type. Native bytes, resource checks, collider owners and the existing E11/Z3 qualification remain intact. **Streamed scene pages: Pine cabins and DW island.** Specimens and living roots become pages; tier / shadow variants derived at load | 70: Pine specimens 56, living 8, tier/shadow copies 4; DW `world/island/plan-{phone,desktop}` | Opus | 4.5 |
 | **Z4** | **G1004 source slices: 8/13 registered (2026-11-04, sp-x9), 433,334 custom B.** Six existing population files (`425f7759ab`) plus complete habitat and taming contracts retain full raw bodies and original native/module/owner/count checks. G872 fixes canopy lengths at 155/155 and maxLedges 6; changed counts refuse. Projection, perch, enemy placement and sheep closure remain next; keeper stays charged on its explicit real-two-user route. | **8 of 13 source-qualified**; four approved closures and keeper pending | Codex | 4.5 |
 | **Z5** | **Done (2026-11-03, sp-x2): `92f8a2e671`, `c9ae94288f`; strict proof and G872 acceptance below.** Complete bake/model envelopes shared by Far + Sun, native full-root admission before publication; fresh sp-x1 HOST-BAR 6/6 for each family. Delete the zero-reader Sun effects duplicate | **6 removed:** Far sources bakes/heroes/sky; Sun sources bakes/models, places-effects; custom counts 3→0 each | Codex | 1.5 |
-| **Z6** | **Four targets qualified (2026-11-03, sp-x8):** Jian cloth/halo GLB transport and Nalati rifle copy `ecec5f75eb`, plus the separate Pine finishes cut. Exact channel/index/body proofs, 16 A/A + 16 A/B held comparisons on both engines/tiers; all six original G998 cohorts green and fresh Pine 24/24 green on both engines. G872 frozen geometry-roughness controls prove every differing hand pixel vanishes; no comparator allowance. Six live one-user roots remain in Jake’s approved batch | **4 retired / 1,426,684 B; 6 charged:** complete sole-user roots, 484,106 B | Codex (G958) | 3 |
+| **Z6** | **G1004 source and immutable census qualified (2026-11-04, sp-x8):** `b56d04c2a9` admits the six complete held documents under Jake’s exact one-user approval. Immutable `8b80aff221` preserves all **484,106 B**, native owners, full return guests and defining metadata; native gate and independent census both report zero owned custom files. Earlier four transport/copy retirements and their strict held/G998 qualifications remain intact. **Final row closure awaits the clean CI Pine witness comparison directed below** | **10 source-qualified:** four retired plus six registered; **0 owned custom files**, witness attribution pending | Codex (G958/G1004) | 0 |
 | **Z7** | **13/14 source contracts qualified (2026-11-04, sp-x9, G1004).** Prior six exits (`3c42144c50`, `50267bfcd2`) remain qualified. All seven own batch roots / 302,097 custom B now have exact complete format contracts: five catalogues (`186e52971c`), geometry groups (`c7330e616f`) and Nine fixed practice. Practice retains full geometry/controller/course and ABI-1/ABI-2 return metadata; its original author encoding is byte-identical. Cloud belongs solely to X6/Z14 and is counted once. | 14 original: **13 source-qualified; X6 cloud pending** | Codex (G958/G1004) | 4.5 |
 | **Z8** | **G1004 source slice: seven batch roots / 23,416 custom B registered (2026-11-04, sp-x9).** Prior ChapterStoryPresentation plus DW dead steps remain qualified (`a209d3e37e`, `98bab03828`). Exact native-spots, contracts, discovery, hints, wake-boss, carried and finds use their original complete contracts and native/reference/continuation owners. Runtime, forest-story, interaction source and complete chapter-view closure remain next; native-story remains charged until real complete Pine/DW production quest readers exist. | Prior **2/14** plus **7/12 batch roots source-qualified**; five pending | Codex | 4.5 |
 | **Z9** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** The prior five dead copies stay retired. Four live Nalati dressing files now use their existing complete defining grammars and original readers (`f2807c2cee`). All four original payloads (**4,284,474 B**) remain byte-identical on immutable all-product build `8b80aff221`; full native/module and serialized admission plus independent native gate/census agree. [Qualification below](#g1004-z9-qualification-2026-11-04-sp-x6) | **9 of 9 resolved:** five retired, four complete registered files | Codex | 0 |
 | **Z10** | **Qualified (2026-11-04, sp-x9, G1004), 3/3 registered / 1,669 custom B retired.** The approved exact KitFigureCards, BuildingLifeDocument and CoverComposition families retain their defining schemas, original payloads and live native owners. No producer, metadata, reference or runtime changes; all 37 focused admission/native cases pass. E9 building-life is counted once. | **3 of 3:** DW people/cards, building-life, cover-composition | Codex | 1 |
 | **Z11** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** Earlier five-file slice `7cc93a3856` remains qualified; `a4c996a8c5` registers the three complete one-user weather grammars. Immutable `437638730e` verifies all three original bodies and defining schema metadata unchanged, native/wire admission and independent gate/census agreement. [G1004 qualification below](#g1004-z11-and-z14-qualification-2026-11-04-sp-x6) | **8 of 8 resolved:** earlier five eligible cuts/families; weather-fx, rain, weather-observations now platform files (**3 / 1,052,415 custom B**; no physical deletion) | Codex | 0 |
-| **Z12** | **One unread copy retired (2026-11-03, sp-x2); eight live files remain charged for Jake’s one-user batch.** Delete only Pine landmark-view, 5,510 B, while the original ForestPage/native models retain its facts. All other 880 Pine bodies / 154,020,452 B and 78 old/new packs reconstruct exactly. Strict native 24 frames / 8 A/A + 8 A/B all zero; Pine 24/24 green in Chromium and WebKit. Seven native physics route legs pass, zero stuck/bounds failures. [Per-file census and qualification](#z12-census-ground-roots-and-one-unread-copy-2026-11-03-sp-x2); no fake field-root credit | **1 of 9 retired; 8 charged:** Pine floor, crag-cave, cave-interior, forest-page, building-sites, physics.generated; Nalati meadow, water | Codex (G958) | 3.5 |
+| **Z12** | **G1004 source and immutable census qualified (2026-11-04, sp-x8):** `b56d04c2a9` admits all eight complete ground/native-owner files. Immutable `8b80aff221` preserves their **4,390,922 B** and original native/resource/consumer checks; native gate and independent census agree at zero owned custom files. The earlier 5,510 B unread landmark retirement, strict frames, G998 and seven-leg zero-stuck physics proof remain qualified. **Final row closure awaits the clean CI Pine witness comparison directed below** | **9 source-qualified:** one retired plus eight registered; **0 owned custom files**, witness attribution pending | Codex (G958/G1004) | 0 |
 | **Z13** | **Headless derivation.** The worker derives its assembly from the shipped sections (`sdk/headlessRuntime.ts`); the files are deleted. **Done (2026-11-03, sp-x1 + sp-x2): 6/6 shipping files retired. Full original production policies enter their typed owners; complete native oracles, input fences and independent proof expectations remain. Qualified per-shard landings below; no family credit.** | 6: `sim/headless-assembly` ×4, Nalati headless-boot, Nine headless-constants | Codex | 2.5 |
 | **Z14** | **Done (2026-11-04, sp-x6, G1004): 0 charged.** Original unread ride/rules cut stays qualified. Full room/King, geometry/pose, timed and closed return-program contracts `d6f1d86040`; exact nine registrations/provenance `437638730e`. All nine original bodies (**2,004,340 B**) remain byte-identical with original native owners, AS decisions and refusals. Immutable all-product build and independent native gate/census qualify the metadata change. [G1004 qualification below](#g1004-z11-and-z14-qualification-2026-11-04-sp-x6) | **10 of 10 resolved:** one unread copy retired plus nine complete registered native roots. Cloud is counted once under Z14, also closing its Z7 overlap | Codex | 0 |
 | **Z15** | **Delete the custom path and lock it at 0.** Delete shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`, `sdk/outputProduct.ts`, `game/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built inline schemas; `scripts/custom-section-policy.mjs`, `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the per-shard ceilings. Output admission refuses any `custom/` name and any unregistered named JSON; one ratchet row `custom-sections/total = 0` | the path itself; count stays 0 | Codex | 1.5 |
@@ -4651,3 +4651,49 @@ Retained raw: `tmp/sp-x6-g1004/z9-{body-audit,scoped-census,test-readers}.json`,
 the reader-test/type logs and `z9-build.log`; the original four-body hashes
 come from `tmp/sp-x8-g1004/baseline/manifest.json`. The shared stale working
 copy of this plan is preserved; this entry is a fresh HEAD-only patch.
+
+### G1004 Z6 and Z12 immutable qualification (2026-11-04, sp-x8)
+
+Source `b56d04c2a99d4b20f57ab6bd944364deac982dd2` registers fourteen
+approved complete documents: Z6 six / **484,106 B**, Z12 eight /
+**4,390,922 B**, total **14 / 4,875,028 B**. No payload encoder, native
+owner, shader, geometry channel, module/resource admission or collider
+changes. Seven payload expressions and the original held-slots source
+are unchanged. Positive fixtures carry the real defining metadata and
+native validator; Jian entry lends its complete authored document. The
+Pine fixture follows the production `world/physics` / named-owner split
+while retaining its original full-body, buffer, collider, restore and
+malformed-ground assertions.
+
+The one shared normal immutable all-28-product build is
+`8b80aff22110a6e149d0d1e3b18e1f2ebcdac939`, build **`8b80aff-mw2gmqc9`**.
+All fourteen c733 baseline body hashes and lengths match exactly;
+HTTP/disk version and index bindings agree. Every defining JSON schema
+matches its complete registered root; both wire and original native
+semantic admission pass without rewriting the caller’s document.
+Native parser defaults for water/blade/polearm remain discarded clones,
+not emitted bytes. Native `outputSections` and the independent
+`productSectionEntries` census agree: **14 platform files, 0 owned custom**.
+Actual index sizes remain below the unchanged 2,000,000 B cap:
+Pine **1,719,913 B**, Nalati **1,682,487 B**, Nine **815,480 B**.
+Raw immutable body and census results remain at
+`tmp/sp-x8-g1004/final-{body-audit,scoped-census}.json`.
+
+Registered-name/schema grep plus dynamic/shared held-reader closure
+was exercised: **43 suites / 264 cases pass**, including the mounted-kit
+loan’s original owner and read-stall guards. Corrected fixture related
+runs pass **9 suites / 61 cases** and **5 suites / 33 cases**; schema
+references, derived docs, root types and typed lint pass. The earlier
+broad SDK run remains a recorded red, not an all-related-green claim.
+Its source/product freshness and fixture failures were handled separately.
+
+**Open final check, per coordinator:** the two Darwin Pine native witness
+regeneration/replay refusals are attributed using clean CI only, not a
+mirror exception or rewritten witness expectations. Exact pre-change
+source `262ea0da34`, run **41886784142**, must bind the actual
+`quest-step-pine-native-parity.test.ts` plan/result; the next b56-containing
+run is post-change. sp-ci-deploy owns that single observation. A green
+pre-change result classifies the earlier local witness refusal as cached
+local evidence under the coordinator’s ruling; a real clean-source red
+is fixed forward before Z6/Z12 row closure. No CI result or final closure
+is inferred here. Z9’s four files are owned and closed separately by sp-x6.
