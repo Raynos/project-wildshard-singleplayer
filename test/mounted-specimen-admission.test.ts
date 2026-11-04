@@ -1,6 +1,5 @@
 import {expect,test} from 'vitest';
-import {MountedSpecimenSeatSchema} from '@wildshard/format/mountedSpecimenRows';
-import {namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import {nameBlob} from '@wildshard/sdk/blobs';
 import {emptyShardfile} from '@wildshard/sdk/author';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
@@ -8,7 +7,7 @@ import {MOUNTED_FIGURE as source} from './fixtures/nalati-poi-paint-original';
 
 const encode=(input:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(input));
 test('the actual mounted figure keeps every clip and rejects invalid seats before native construction',async()=>{
-  const schema=namedJsonSchema(MountedSpecimenSeatSchema),blob=nameBlob('riding/mounted-figure.json','json',encode(source),{jsonSchema:schema});
+  const schema=registeredJsonSchema('riding/mounted-figure.json'),blob=nameBlob('riding/mounted-figure.json','json',encode(source),{jsonSchema:schema});
   const identity={slug:'seat-admission',name:'Seat admission',author:'Wildshard',revision:1,seed:1};
   const product=(input:unknown)=>createShardProduct({slug:identity.slug,revision:1,shardfile:emptyShardfile(identity),sections:new Map(),
     files:new Map([['riding/mounted-figure.json',{...blob.file,url:'https://example.test/seat'}]]),read:()=>Promise.resolve(encode(input))});

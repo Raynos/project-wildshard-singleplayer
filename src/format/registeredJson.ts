@@ -1,3 +1,9 @@
+import { ClientRidingSessionSchema } from './riding';
+import { MountedSpecimenSeatSchema } from './mountedSpecimenRows';
+import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from './arenaScriptRows';
+import { TimedEncountersSchema, CloudSpecimenSchema } from './encounterRows';
+import { ArenaRoomDocumentSchema } from './arenaRoomDocument';
+import { RoamingCombatSchema } from './roamingCombat';
 import { FixedPracticeFileSchema } from './practiceCourseRows';
 import { FixedGeometryGroupsSchema } from './islandLibrary';
 import { CoverAppearanceSchema } from './coverAppearance';
@@ -6,7 +12,7 @@ import { SpecimenBookSchema } from './specimenCatalogue';
 import { WeatherDocumentSchema, parseWeatherDocument } from './weatherBundle';
 import { WeatherEffectsSchema, parseWeatherEffects } from './weatherEffects';
 import { RainPresentationSchema } from './rainPresentation';
-import { ForestWeatherObservationSchema } from './rangedPage';
+import { ForestWeatherObservationSchema, RangedPageSchema } from './rangedPage';
 import { PostGraphLookSchema } from './postGraphLook';
 import { parsePostGraphDocument } from './postGraphDocument';
 import { WorldScenePageSchema } from './worldScenePages';
@@ -52,6 +58,16 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'combat/roaming.json':{readonly schema:typeof RoamingCombatSchema;readonly source:'@wildshard/format/roamingCombat#RoamingCombatSchema'};
+  readonly 'client/ranged-page.json':{readonly schema:typeof RangedPageSchema;readonly source:'@wildshard/format/rangedPage#RangedPageSchema'};
+  readonly 'combat/room-entry.json':{readonly schema:typeof ArenaRoomDocumentSchema;readonly source:'@wildshard/format/arenaRoomDocument#ArenaRoomDocumentSchema'};
+  readonly 'combat/timed-encounters.json':{readonly schema:typeof TimedEncountersSchema;readonly source:'@wildshard/format/encounterRows#TimedEncountersSchema'};
+  readonly 'combat/titan-fight.json':{readonly schema:typeof ArenaScriptFightFileSchema;readonly source:'@wildshard/format/arenaScriptRows#ArenaScriptFightFileSchema'};
+  readonly 'combat/titan-geometry.json':{readonly schema:typeof ArenaScriptGeometrySchema;readonly source:'@wildshard/format/arenaScriptRows#ArenaScriptGeometrySchema'};
+  readonly 'models/cloud-specimen.json':{readonly schema:typeof CloudSpecimenSchema;readonly source:'@wildshard/format/encounterRows#CloudSpecimenSchema'};
+  readonly 'riding/mounted-figure.json':{readonly schema:typeof MountedSpecimenSeatSchema;readonly source:'@wildshard/format/mountedSpecimenRows#MountedSpecimenSeatSchema'};
+  readonly 'riding/session.json':{readonly schema:typeof ClientRidingSessionSchema;readonly source:'@wildshard/format/riding#ClientRidingSessionSchema'};
+
   readonly 'geometry/fixed-kits.json':{readonly schema:typeof FixedPracticeFileSchema;readonly source:'@wildshard/format/practiceCourseRows#FixedPracticeFileSchema'};
   readonly 'models/fixed-geometry.json':{readonly schema:typeof FixedGeometryGroupsSchema;readonly source:'@wildshard/format/islandLibrary#FixedGeometryGroupsSchema'};
   readonly 'models/cover-phone.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
@@ -142,6 +158,16 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'combat/roaming.json':{schema:RoamingCombatSchema,source:'@wildshard/format/roamingCombat#RoamingCombatSchema'},
+  'client/ranged-page.json':{schema:RangedPageSchema,source:'@wildshard/format/rangedPage#RangedPageSchema'},
+  'combat/room-entry.json':{schema:ArenaRoomDocumentSchema,source:'@wildshard/format/arenaRoomDocument#ArenaRoomDocumentSchema'},
+  'combat/timed-encounters.json':{schema:TimedEncountersSchema,source:'@wildshard/format/encounterRows#TimedEncountersSchema'},
+  'combat/titan-fight.json':{schema:ArenaScriptFightFileSchema,source:'@wildshard/format/arenaScriptRows#ArenaScriptFightFileSchema'},
+  'combat/titan-geometry.json':{schema:ArenaScriptGeometrySchema,source:'@wildshard/format/arenaScriptRows#ArenaScriptGeometrySchema'},
+  'models/cloud-specimen.json':{schema:CloudSpecimenSchema,source:'@wildshard/format/encounterRows#CloudSpecimenSchema'},
+  'riding/mounted-figure.json':{schema:MountedSpecimenSeatSchema,source:'@wildshard/format/mountedSpecimenRows#MountedSpecimenSeatSchema'},
+  'riding/session.json':{schema:ClientRidingSessionSchema,source:'@wildshard/format/riding#ClientRidingSessionSchema'},
+
   'geometry/fixed-kits.json':{schema:FixedPracticeFileSchema,source:'@wildshard/format/practiceCourseRows#FixedPracticeFileSchema'},
   'models/fixed-geometry.json':{schema:FixedGeometryGroupsSchema,source:'@wildshard/format/islandLibrary#FixedGeometryGroupsSchema'},
   'models/cover-phone.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
@@ -311,6 +337,16 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'combat/roaming.json':v.parse(RoamingCombatSchema,value);break;
+    case 'client/ranged-page.json':v.parse(RangedPageSchema,value);break;
+    case 'combat/room-entry.json':v.parse(ArenaRoomDocumentSchema,value);break;
+    case 'combat/timed-encounters.json':v.parse(TimedEncountersSchema,value);break;
+    case 'combat/titan-fight.json':v.parse(ArenaScriptFightFileSchema,value);break;
+    case 'combat/titan-geometry.json':v.parse(ArenaScriptGeometrySchema,value);break;
+    case 'models/cloud-specimen.json':v.parse(CloudSpecimenSchema,value);break;
+    case 'riding/mounted-figure.json':v.parse(MountedSpecimenSeatSchema,value);break;
+    case 'riding/session.json':v.parse(ClientRidingSessionSchema,value);break;
+
     case 'geometry/fixed-kits.json':v.parse(FixedPracticeFileSchema,value);break;
     case 'models/fixed-geometry.json':v.parse(FixedGeometryGroupsSchema,value);break;
     case 'models/cover-phone.json':v.parse(SpecimenBookSchema,value);break;

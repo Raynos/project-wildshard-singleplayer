@@ -315,7 +315,8 @@
     "./weatherEffects": "./weatherEffects.ts",
     "./paintedResources": "./paintedResources.ts",
     "./postGraphDocument": "./postGraphDocument.ts",
-    "./scaledPostContract": "./scaledPostContract.ts"
+    "./scaledPostContract": "./scaledPostContract.ts",
+    "./arenaRoomDocument": "./arenaRoomDocument.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

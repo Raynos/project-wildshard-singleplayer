@@ -3,7 +3,7 @@
 import { PINE_ELITE_DEFS } from './eliteRoster';
 import { roamingCombatRows as admitRoamingCombat } from '@wildshard/sdk/bossProfiles';
 import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
-import { namedFormatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { roamingProjection } from './roamingProjection';
 import type { KingKitRows } from './kingKit';
@@ -29,5 +29,5 @@ export function roamingCombat(kit: KingKitRows): ReturnType<typeof admitRoamingC
 }
 /** The roaming combat file over the King's baked kit. */
 export function roamingCombatBlob(kit: KingKitRows): NamedBlobType {
-  return nameBlob('combat/roaming.json', 'json', new TextEncoder().encode(encodeCanonicalJson(roamingCombat(kit))), { jsonSchema: namedFormatJsonSchema('roamingCombat.RoamingCombat') });
+  return nameBlob('combat/roaming.json', 'json', new TextEncoder().encode(encodeCanonicalJson(roamingCombat(kit))), { jsonSchema: registeredJsonSchema('combat/roaming.json') });
 }

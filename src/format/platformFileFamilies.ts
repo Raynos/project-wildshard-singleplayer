@@ -1,3 +1,9 @@
+import { ClientRidingSessionSchema } from './riding';
+import { MountedSpecimenSeatSchema } from './mountedSpecimenRows';
+import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from './arenaScriptRows';
+import { TimedEncountersSchema, CloudSpecimenSchema } from './encounterRows';
+import { ArenaRoomDocumentSchema } from './arenaRoomDocument';
+import { RoamingCombatSchema } from './roamingCombat';
 import { FixedPracticeFileSchema } from './practiceCourseRows';
 import { FixedGeometryGroupsSchema } from './islandLibrary';
 import { CoverAppearanceSchema } from './coverAppearance';
@@ -34,7 +40,7 @@ import { QuestPanelCatalogueSchema } from './panelTemplate';
 import { ForestWeatherSchema } from './forestWeather';
 import { WeatherEffectsSchema } from './weatherEffects';
 import { RainPresentationSchema } from './rainPresentation';
-import { ForestWeatherObservationSchema } from './rangedPage';
+import { ForestWeatherObservationSchema, RangedPageSchema } from './rangedPage';
 import { validateRegisteredJson } from './registeredJson';
 
 /** A streamed platform document has one defining schema and an existing reader.
@@ -53,6 +59,26 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  // G1004: complete encounter/riding roots; original native owners stay authoritative.
+  { pattern: /^combat\/roaming\.json$/u, schema: RoamingCombatSchema,
+    source: '@wildshard/format/roamingCombat#RoamingCombatSchema', reader: 'src/game/combat/roamingSession.ts' },
+  { pattern: /^client\/ranged-page\.json$/u, schema: RangedPageSchema,
+    source: '@wildshard/format/rangedPage#RangedPageSchema', reader: 'src/game/loadout/rangedPage.ts' },
+  { pattern: /^combat\/room-entry\.json$/u, schema: ArenaRoomDocumentSchema,
+    source: '@wildshard/format/arenaRoomDocument#ArenaRoomDocumentSchema', reader: 'src/game/shardfile/worldAssembly.ts' },
+  { pattern: /^combat\/timed-encounters\.json$/u, schema: TimedEncountersSchema,
+    source: '@wildshard/format/encounterRows#TimedEncountersSchema', reader: 'src/game/boss/timedEncounters.ts' },
+  { pattern: /^combat\/titan-fight\.json$/u, schema: ArenaScriptFightFileSchema,
+    source: '@wildshard/format/arenaScriptRows#ArenaScriptFightFileSchema', reader: 'src/game/boss/openArenaFight.ts' },
+  { pattern: /^combat\/titan-geometry\.json$/u, schema: ArenaScriptGeometrySchema,
+    source: '@wildshard/format/arenaScriptRows#ArenaScriptGeometrySchema', reader: 'src/game/boss/openArenaFight.ts' },
+  { pattern: /^models\/cloud-specimen\.json$/u, schema: CloudSpecimenSchema,
+    source: '@wildshard/format/encounterRows#CloudSpecimenSchema', reader: 'src/game/boss/encounterView.ts' },
+  { pattern: /^riding\/mounted-figure\.json$/u, schema: MountedSpecimenSeatSchema,
+    source: '@wildshard/format/mountedSpecimenRows#MountedSpecimenSeatSchema', reader: 'src/game/riding/seatedFigure.ts' },
+  { pattern: /^riding\/session\.json$/u, schema: ClientRidingSessionSchema,
+    source: '@wildshard/format/riding#ClientRidingSessionSchema', reader: 'src/game/riding/client.ts' },
+
   { pattern: /^geometry\/fixed-kits\.json$/u, schema: FixedPracticeFileSchema,
     source: '@wildshard/format/practiceCourseRows#FixedPracticeFileSchema', reader: 'src/game/practice/course.ts' },
   { pattern: /^models\/fixed-geometry\.json$/u, schema: FixedGeometryGroupsSchema,

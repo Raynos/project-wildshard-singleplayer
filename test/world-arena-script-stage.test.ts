@@ -23,9 +23,8 @@ import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { nodeNamedJsonCheck } from '../src/game/shardfile/outputChecksNode';
 import { WorldAssemblySchema } from '../src/format/worldAssembly';
-import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from '../src/format/arenaScriptRows';
 import { emptyShardfile } from '../src/sdk/author';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { fakeWorld } from '@wildshard/engine/test/world';
@@ -43,7 +42,7 @@ const geometry = titanGeometryRows();
 const row = { kind: 'arena-room', id: 'meadow.titan', files: { fight: 'combat/titan-fight.json', geometry: 'combat/titan-geometry.json' },
   weather: 'meadow.weather', anchor: 'meadow.cairn' };
 const fight = { ...titanFightOwners, arenaScript: titan.TITAN_HOST, arenaFire, programs:{attack:programs.attack,wind:programs.wind} };
-const fightSchema = namedJsonSchema(ArenaScriptFightFileSchema), geometrySchema = namedJsonSchema(ArenaScriptGeometrySchema);
+const fightSchema = registeredJsonSchema('combat/titan-fight.json'), geometrySchema = registeredJsonSchema('combat/titan-geometry.json');
 
 function fixture(options: { held?: 'fight' | 'geometry'; parent?: Scope; native?: Scope; missing?: 'weather' | 'point'; point?: Vector3 | null } = {}) {
   mockCanvas();

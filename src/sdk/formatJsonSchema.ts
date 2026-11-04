@@ -1,8 +1,9 @@
+import { ArenaRoomDocumentSchema } from '@wildshard/format/arenaRoomDocument';
 import { ReturnProgramDocumentSchema } from '@wildshard/format/returnProgramDocument';
 import { WeatherBundleSchema, WeatherDocumentSchema } from '@wildshard/format/weatherBundle';
 import { WeatherEffectsSchema } from '@wildshard/format/weatherEffects';
 import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
-import { ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
+import { ForestWeatherObservationSchema, RangedPageSchema } from '@wildshard/format/rangedPage';
 import { PostGraphLookSchema, ScaledPostInputSchema, postGraphIdentityTransforms } from '@wildshard/format/postGraphLook';
 import { PaintedAirSchema, PaintedGroundSchema, PaintedPanoramaSchema, PainterKeyLightSchema, PainterlyWorldSchema } from '@wildshard/format/paintedResources';
 import { WorldScenePageSchema } from '@wildshard/format/worldScenePages';
@@ -469,6 +470,9 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'islandLibrary.FixedGeometryGroups': FixedGeometryGroupsSchema,
   'specimenCatalogue.SpecimenBook': SpecimenBookSchema,
   'heldArms.HeldGraphCards': HeldGraphCardsSchema,
+  'arenaRoomDocument.ArenaRoomDocument': ArenaRoomDocumentSchema,
+  'riding.ClientRidingSession': ClientRidingSessionSchema,
+  'rangedPage.RangedPage': RangedPageSchema,
 };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

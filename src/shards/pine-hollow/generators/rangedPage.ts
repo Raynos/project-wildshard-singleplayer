@@ -48,7 +48,7 @@ export const rangedPage: (sources: PineSources) => Promise<RangedPage> = perSour
     hood: { x: cave.x, z: cave.z, rot: cave.rot, ...PINE_CAVE_HOOD },
     bake: { phone: { url: `${baked}.phone.bin`, rows: rainBake.phone }, desktop: { url: `${baked}.bin`, rows: rainBake.desktop } },
   });
-  const RANGED_PAGE_BLOBS: NamedBlobType[] = [nameBlob('client/ranged-page.json', 'json', new TextEncoder().encode(JSON.stringify(RANGED_PAGE))),
+  const RANGED_PAGE_BLOBS: NamedBlobType[] = [nameBlob('client/ranged-page.json', 'json', new TextEncoder().encode(JSON.stringify(RANGED_PAGE)), { jsonSchema: registeredJsonSchema('client/ranged-page.json') }),
     nameBlob('world/weather-observations.json', 'json', new TextEncoder().encode(JSON.stringify(WEATHER_OBSERVATIONS)), { jsonSchema: registeredJsonSchema('world/weather-observations.json') }),
     nameBlob('world/rain.json', 'json', new TextEncoder().encode(JSON.stringify(RAIN)), { jsonSchema: registeredJsonSchema('world/rain.json') })];
   return { RANGED_PAGE, RAIN, RANGED_PAGE_BLOBS };

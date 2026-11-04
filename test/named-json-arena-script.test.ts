@@ -1,9 +1,8 @@
 import { titanFightOwners } from './fixtures/titanFightOwners';
 import { readArenaScriptData } from '../src/game/boss/openArenaFight';
 import { expect,test } from 'vitest';
-import { ArenaScriptFightFileSchema,ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
-import { TimedEncountersSchema,CloudSpecimenSchema } from '@wildshard/format/encounterRows';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { CloudSpecimenSchema } from '@wildshard/format/encounterRows';
+import { namedJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -24,7 +23,7 @@ const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify
 
 test('real arena payloads have one defining schema at production and product read',async()=>{
   const fight={ ...titanFightOwners, arenaScript:titan.TITAN_HOST,programs:{attack:programs.attack,wind:programs.wind},arenaFire};
-  const fightSchema=namedJsonSchema(ArenaScriptFightFileSchema),geometrySchema=namedJsonSchema(ArenaScriptGeometrySchema);
+  const fightSchema=registeredJsonSchema('combat/titan-fight.json'),geometrySchema=registeredJsonSchema('combat/titan-geometry.json');
   const fightBlob=nameBlob('combat/titan-fight.json','json',encode(fight),{jsonSchema:fightSchema});
   const geometryBlob=nameBlob('combat/titan-geometry.json','json',encode(geometry),{jsonSchema:geometrySchema});
   expect(validateNamedJsonSchema(fightSchema,fightBlob.bytes)).toEqual(fight);
@@ -61,7 +60,7 @@ test('real arena payloads have one defining schema at production and product rea
 test('timed encounter admission bounds rosters before native owners allocate',async()=>{
   const rows={...night,presentation:'night',phases:{slots:['night'],patrol:['night']},lightFloor:.2,
     contact:{strike:strikes.arrow,tags:['creature.rider'],origin:'actor'}};
-  const schema=namedJsonSchema(TimedEncountersSchema);
+  const schema=registeredJsonSchema('combat/timed-encounters.json');
   const blob=nameBlob('combat/timed-encounters.json','json',encode(rows),{jsonSchema:schema});
   const identity={slug:'timed-schema',name:'Timed schema',author:'Wildshard',revision:1,seed:1};
   let payload=blob.bytes;
