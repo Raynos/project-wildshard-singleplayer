@@ -183,7 +183,15 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     // (Pine's 7 jobs at 230 m and beyond waited for control). The grid keeps its reach: its fence also holds the cells
     // round the home, whose queues run in play (an unbounded grid fence never closed)
     const wholeLevel = ctx.grid === null && ctx.product.shardfile.ring === 'cell';
-    await Promise.all([prepareSpawnView(wholeLevel ? Infinity : undefined, () => settleTileDrivers(() => { game.hiddenFrame(); })), waitEntryWork(game.levelScope, () => ctx.minimap.prepare()), edgeDressing.horizonReady]);
+    // DL21: the step names what it waits on, so the card never shows only its reads tally ('Reading 8 files · 0.0 MB' held
+    // Nine's cold step 27 for 3.5 s in the DL23 recording with no read in flight). The three run together; the tile settle
+    // is named inside the spawn view (whose own wait counts its jobs), and the minimap and horizon only if they are still
+    // running when it ends (a wait named earlier would stand in front of the spawn view's count on the card).
+    const minimap = waitEntryWork(game.levelScope, () => ctx.minimap.prepare()), horizon = edgeDressing.horizonReady;
+    // observed now so an early failure is no unhandled rejection; it still rejects the step at the await below
+    void minimap.catch(() => undefined); void horizon.catch(() => undefined);
+    await prepareSpawnView(wholeLevel ? Infinity : undefined, () => waitFor('Spawn view · placing tiles', settleTileDrivers(() => { game.hiddenFrame(); })));
+    await Promise.all([waitFor('Minimap', minimap), waitFor('Horizon paintings', horizon)]);
   });
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.
