@@ -1,3 +1,4 @@
+import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Mesh, MeshStandardMaterial, Points } from 'three';
@@ -5,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
 import { parseWorldScenes } from '../src/format/worldScenes';
-import { parseWorldScene } from '../src/format/clientChannels';
+import { parseWorldScene, WorldSceneSchema } from '../src/format/clientChannels';
 import { emptyShardfile } from '../src/sdk/author';
 import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
@@ -31,11 +32,19 @@ const encode = (value: unknown) => new TextEncoder().encode(JSON.stringify(value
 const emptyLibrary = { rows: { meshes: [], hd: [], meshUrls: {}, hdUrls: {}, hdLooks: {}, aoFloor: 1 } };
 function fixture(slug: string, catalogue: unknown, scenes = parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [] }), blobs: readonly ReturnType<typeof nameBlob>[] = []) {
   const declared = emitNamedBlobs(blobs);
-  return createShardProduct({ slug, revision: 1, shardfile: emptyShardfile({ slug, name: slug, author: 'Fixture', revision: 1, seed: 1 }),
+  const product = createShardProduct({ slug, revision: 1, shardfile: emptyShardfile({ slug, name: slug, author: 'Fixture', revision: 1, seed: 1 }),
     sections: new Map<string, unknown>([['explore/catalogue', parseExplorerCatalogue(catalogue)], ['world/scenes', scenes]]),
     files: new Map(declared.files.flatMap(row => row.name === undefined ? [] : [[row.name, fixtureProductFile(row.name, { ...row, url: row.hash })]])),
     jsonCheck: fixtureJsonCheck,
     read: hash => { const bytes = declared.assets.get(hash); if (bytes === undefined) throw new Error('Missing fixture bytes'); return Promise.resolve(bytes); }, check: true });
+  // This legacy ordering projection is not a shipped posed-library root.
+  const named = product.json.bind(product);
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    if (name !== 'look/birds.json') return named(name);
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
+  return product;
 }
 
 test('catalogue preserves original Sky and Signal order through source references', () => {
@@ -111,12 +120,12 @@ test('unknown species, items and scene definitions refuse the entire roster', as
 
 test('made-up second scene user binds declared lights, sources and cube membership', async () => {
   const recipe = { scene: { version: 1, root: 'root', materials: [], nodes: [{ id: 'root', kind: 'group', children: ['lamp'] }, { id: 'lamp', kind: 'object', source: 'lamp', missing: 'refuse' }] }, imports: [] };
-  const scenes = parseWorldScenes({ version: 1, libraries: [{ id: 'fixture', kind: 'models', file: 'sources/models.json' }], materials: [], steps: [
+  const scenes = parseWorldScenes({ version: 1, libraries: [{ id: 'fixture', kind: 'models', file: 'world/sources/models.json' }], materials: [], steps: [
     { id: 'lamp', scene: 'scenes/lamp.json', lights: [{ id: 'lamp', color: 0xffaa66, intensity: 3, distance: 5, decay: 2 }], publish: { light: { kind: 'point-light', part: 'lamp' } } },
     { id: 'cell', cube: 'cell', scene: 'scenes/lamp.json', lights: [{ id: 'lamp', color: 0xffaa66, intensity: 3, distance: 5, decay: 2 }] },
     { id: 'specimen', load: 'explorer', scene: 'scenes/lamp.json', lights: [{ id: 'lamp', color: 0xffaa66, intensity: 3, distance: 5, decay: 2 }] },
   ] });
-  const product = fixture('fixture-lamp', { version: 1, entries: [] }, scenes, [nameBlob('sources/models.json', 'json', encode(emptyLibrary)), nameBlob('scenes/lamp.json', 'json', encode(recipe))]);
+  const product = fixture('fixture-lamp', { version: 1, entries: [] }, scenes, [nameBlob('world/sources/models.json', 'json', encode(emptyLibrary), {jsonSchema:registeredJsonSchema('world/sources/models.json')}), nameBlob('scenes/lamp.json', 'json', encode(recipe), {jsonSchema:namedJsonSchema(WorldSceneSchema,{provenance:true})})]);
   const scope = new Scope('fixture-lamp'), root = new Group(), registry = new WorldRegistry();
   const context = { product, scope, root, cube: null, game: {}, app: { registry } } as ShardContext;
   try {
@@ -202,8 +211,8 @@ test('specimen hero copies keep declared looks without resident shader decorator
 
 
 test('product pose cards admit their library without a prepared native roster', async () => {
-  const product = fixture('fixture-product-posed', { version: 1, entries: [{ kind: 'posed', source: 'product', file: 'look/poses.json' }] }, undefined,
-    [nameBlob('look/poses.json', 'json', encode(WILDLIFE_DRAW))]);
+  const product = fixture('fixture-product-posed', { version: 1, entries: [{ kind: 'posed', source: 'product', file: 'look/wildlife-draw.json' }] }, undefined,
+    [nameBlob('look/wildlife-draw.json', 'json', encode(WILDLIFE_DRAW), {jsonSchema:registeredJsonSchema('look/wildlife-draw.json')})]);
   expect((await explorerRoster(product)).map(row => row.id)).toEqual(WILDLIFE_DRAW.models.map(row => row.id));
 });
 

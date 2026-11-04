@@ -70,6 +70,6 @@ test('missing and foreign defining metadata refuses before reading any host payl
   const product=createShardProduct({slug:identity.slug,revision:1,shardfile:emptyShardfile(identity),sections:new Map(),
    files:new Map([[name,{hash:'a'.repeat(64),url:'https://example.test/data',...(schema===undefined?{}:{jsonSchema:schema})}]]),
    builtJson:true,read:()=>{reads++;return Promise.reject(new Error('No payload read permitted'));}});
-  await expect(product.json(name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
+  await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');expect(reads).toBe(0);
  }
 });

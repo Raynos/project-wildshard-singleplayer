@@ -70,7 +70,7 @@ test('missing or foreign provenance refuses before a population or elite program
     const product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity), sections: new Map(), builtJson: true,
       files: new Map([[name, { hash: 'a'.repeat(64), url: 'https://example.test/population', ...(jsonSchema === undefined ? {} : { jsonSchema }) }]]),
       read: () => { reads++; return Promise.reject(new Error('No population read permitted')); } });
-    await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+    await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
     expect(reads).toBe(0);
   }
 });
