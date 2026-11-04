@@ -9,7 +9,7 @@ import {writtenBundle} from '../scripts/app-build/writtenBundle';
 import {buildWithBootModules} from './fixtures/written-build';
 import {readModuleFiles} from '../src/engine/boot/download';
 import {catalogueManifests,titleManifests,titleMetadata,installTitleManifests} from '../src/game/shard/titleList';
-import {shards,installShards,legacyContentIdentity} from '../src/game/shard/list';
+import {shards,installShards} from '../src/game/shard/list';
 import {saveCards} from '../src/game/savesSettings';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 
@@ -69,7 +69,6 @@ test('one selected discovery graph excludes other worlds and full catalogue byte
 test('selected manifests override scalar cards while every save and pack policy stays available',()=>{
  const prepared=shards(),previous=titleManifests(),metadata=prepared.map(titleMetadata),selected=prepared[0];
  if(selected===undefined)throw new Error('Missing generated discovery');
- const content=Object.fromEntries(prepared.flatMap(row=>{const primary=legacyContentIdentity(row.slug);return primary===undefined?[]:[[row.slug,primary]];}));
  try{
   installTitleManifests(metadata);installShards([selected]);
   const catalogue=catalogueManifests();
@@ -77,5 +76,5 @@ test('selected manifests override scalar cards while every save and pack policy 
   expect(catalogue.map(row=>row.slug)).toEqual(prepared.map(row=>row.slug));
   for(const developer of [false,true])expect(saveCards(catalogue,developer)).toEqual(saveCards(prepared,developer));
   for(const row of prepared){const card=catalogue.find(candidate=>candidate.slug===row.slug);expect(card?.bag).toEqual(row.bag);}
- }finally{installShards(prepared,content);installTitleManifests(previous);}
+ }finally{installShards(prepared);installTitleManifests(previous);}
 });

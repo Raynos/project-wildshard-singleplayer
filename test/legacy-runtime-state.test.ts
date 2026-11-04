@@ -3,7 +3,7 @@ import { SaveStore } from '../src/engine/saves/store';
 import { Scope } from '../src/engine/app/scope';
 import { installRuntimeState } from '../src/game/shardfile/runtimeState';
 import { bindRuntimeState } from '../src/game/plugin/headless';
-import { installShards, legacyContentIdentity, shards } from '../src/game/shard/list';
+import { installShards, shards } from '../src/game/shard/list';
 import { sourceManifest, type ShardContext } from '../src/game/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -20,16 +20,12 @@ const addedFields = Array.from({length:15},(_,id)=>({
 
 const modern = { ...source, identity: { ...source.identity, slug: 'nine-dragon-stack' },
   state: { ...source.state, shared: [...source.state.shared, ...addedFields] } };
-let previous: ReturnType<typeof shards>, identities: Readonly<Record<string, string>>;
+let previous: ReturnType<typeof shards>;
 beforeEach(() => {
   try { previous = shards(); } catch { previous = []; }
-  identities = Object.fromEntries(previous.flatMap(row => {
-    const primary = legacyContentIdentity(row.slug);
-    return primary === undefined ? [] : [[row.slug, primary]];
-  }));
-  installShards([sourceManifest(modern)], {});
+  installShards([sourceManifest(modern)]);
 });
-afterEach(() => { installShards(previous, identities); });
+afterEach(() => { installShards(previous); });
 
 function fixture() {
   const store = new SaveStore({ local: null, session: null });

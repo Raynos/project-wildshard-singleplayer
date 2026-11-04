@@ -13,5 +13,5 @@ export async function installCatalogueFixture(): Promise<void> {
   const [{ installShards }, catalogue] = await Promise.all([
     import('../../src/game/shard/list'), import('../../src/shards.generated'),
   ]);
-  installShards([...catalogue.SHARDS, ...catalogue.LEGACY_SHARDS], catalogue.LEGACY_CONTENT_IDENTITIES);
+  installShards(catalogue.SHARDS);
 }

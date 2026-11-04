@@ -1,4 +1,4 @@
-import { SHARD_LOADERS, LEGACY_CONTENT_IDENTITIES } from '../out/.app/shardSelection.generated';
+import { SHARD_LOADERS } from '../out/.app/shardSelection.generated';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readModuleGroups } from '@wildshard/engine/boot/download';
 import { installShards } from '@wildshard/game/shard/list';
@@ -26,20 +26,20 @@ export async function prepareSelectedShard():Promise<void>{
   const selected=(named===null?undefined:findTitleManifest(named))??rows[0];
   if(selected===undefined)throw new Error('No shard manifests were generated');
   if(TIER!=='phone'){await completeCatalogue();return;}
-  const prepared=await selectedManifests(selected,SHARD_LOADERS,LEGACY_CONTENT_IDENTITIES,modules);
-  installShards(prepared.manifests,prepared.contentIdentities);
+  const prepared=await selectedManifests(selected,SHARD_LOADERS,modules);
+  installShards(prepared.manifests);
 }
 
 /** A grid may synchronously read every primary neighbour after consuming its
  * intent. Frozen standalone copies remain available through their own loaders. */
 export function preparePageCatalogue():Promise<SelectedManifests>{
-  return gridManifests(titleManifests(),SHARD_LOADERS,LEGACY_CONTENT_IDENTITIES,modules);
+  return gridManifests(titleManifests(),SHARD_LOADERS,modules);
 }
 
 /** Only the original publication barrier installs a prepared catalogue. */
 export async function completePageCatalogue(mode:PageMode, prepared:()=>Promise<SelectedManifests>=preparePageCatalogue):Promise<void>{
   if(mode==='grid'){
     const catalogue=await prepared();
-    installShards(catalogue.manifests,catalogue.contentIdentities);
+    installShards(catalogue.manifests);
   }
 }

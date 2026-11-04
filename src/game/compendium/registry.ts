@@ -5,7 +5,6 @@
  *   registerCompendium(def);   compendiumFor('chunk://local/pine-hollow') → ShardCompendium | undefined
  */
 import type { ShardCompendium } from './types';
-import { shardContentIdentity } from '../shard/list';
 
 const TABLE = new Map<string, ShardCompendium>();
 
@@ -25,5 +24,5 @@ export function registerCompendium(def: ShardCompendium): () => void {
 
 export function compendiumFor(chunkId: string): ShardCompendium | undefined {
   const id = chunkId.replace(/^chunk:\/\/local\//u, '');
-  return TABLE.get(id) ?? TABLE.get(shardContentIdentity(id));
+  return TABLE.get(id);
 }

@@ -7,7 +7,6 @@ import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { parseItems } from '@wildshard/format/items';
 import * as v from 'valibot';
 import type { Progress } from "../Progress";
-import { legacyContentIdentity } from "../shard/list";
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
 import type { QuestState, QuestMarker } from '@wildshard/engine/quest/core';
@@ -116,10 +115,7 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
 export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, key: string,
   legacyRead: () => RuntimeStateValue | null, instance: string = source.identity.slug): RuntimeState {
   requireBound(source, 'state');
-  // Frozen copies never existed under the primary save namespace; fresh fields start from declared defaults.
-  const content = legacyContentIdentity(source.identity.slug);
-  const migrate = content === undefined ? legacyRead : () => null;
-  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, migrate);
+  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, legacyRead);
 }
 
 /** A typed JSON record on one declared state field. Legacy reads run only at first initialization;

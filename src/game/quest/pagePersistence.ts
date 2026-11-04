@@ -8,15 +8,13 @@ import { bossesSave } from '../saves';
 import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags } from '../shardfile/bossRow';
 import { installRuntimeState } from '../shardfile/runtimeState';
 import { projectRuntimeFacts, type RuntimeFacts } from '../plugin/headless';
-import { legacyContentIdentity } from '../shard/list';
 import { createQuestLedger } from './ledger';
 
 /** Bind the existing declared state owner, including its original legacy read.
  * Native page admission owns this call; no runtime declaration is synthesized. */
 function pageState(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, key: string,
   legacy: () => boolean | string | number | null, instance: string) {
-  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key,
-    legacyContentIdentity(source.identity.slug) === undefined ? legacy : () => null);
+  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, legacy);
 }
 
 /** Bind a boss's original legacy seed once, retaining its admitted state or flag

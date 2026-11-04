@@ -6,7 +6,6 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ShardContext } from '../plugin/context';
 import type { RuntimeItemPorts, RuntimeMeleePorts, bindRuntimeItems } from '../plugin/headless';
 import { installEnteredRuntimeInput, retainsRuntimeServices } from '../shard/retainedHooks';
-import { shardContentIdentity } from '../shard/list';
 import { declaredItemContext, installDeclaredItems, type DeclaredItems } from './items';
 
 type RuntimeWeaponFamily = Extract<ItemFamily, { kind: 'weapon' }>;
@@ -20,7 +19,7 @@ export function installPageItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game
   const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
   const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
   return installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: ports.kit ?? new Map(), icon: ports.icon,
-    shardFamilies: { slug: shardContentIdentity(source.identity.slug), families: ports.families }, contexts: 'runtime',
+    shardFamilies: { slug: source.identity.slug, families: ports.families }, contexts: 'runtime',
     aim: () => ({ origin: camera().getWorldPosition(new Vector3()), direction: camera().getWorldDirection(new Vector3()) }),
     runtime: row => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play', targets: () => [], hook: row.hook === null ? null : ports.hooks?.get(row.id) ?? null,
       effect: (target, effect, from) => { const service = ctx.app.effects; if (service === null) throw new Error('Missing normal effect host'); service.apply(target, effect, from); },

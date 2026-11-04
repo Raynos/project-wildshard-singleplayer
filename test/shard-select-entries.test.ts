@@ -8,7 +8,7 @@ import { installShards, shards } from '../src/game/shard/list';
 import { shardEntry } from '../src/game/shard/entryMode';
 import { resolveTravelEntry } from '../src/game/travel/entry';
 import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDeck';
-import { SHARDS, LEGACY_SHARDS } from '../src/shards.generated';
+import { SHARDS } from '../src/shards.generated';
 import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
 import inkManifest from '../src/shards/ink-cel-valley/manifest.json' with { type: 'json' };
 import pastelManifest from '../src/shards/pastel-plain/manifest.json' with { type: 'json' };
@@ -85,7 +85,7 @@ test('a locked card offers no entry and a legacy-only manifest boots as itself',
 
 test.each(['driftwood-isle', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'pine-hollow'] as const)(
   '%s card enters its shardfile through ENTER WORLD, never a frozen copy', async (slug) => {
-    const manifests = [...SHARDS, ...LEGACY_SHARDS];
+    const manifests = SHARDS;
     installShards(manifests); setDev(true);
     expect(titleCards(true).some(candidate => candidate.slug.endsWith('-legacy'))).toBe(false);
     const choice = titleCards(true).find(candidate => candidate.slug === slug);
@@ -94,7 +94,6 @@ test.each(['driftwood-isle', 'nalati-grasslands', 'sunscar-dunes', 'far-reach', 
     expect(choice.entries?.shardfile).toBe(true);
     expect(shardEntry(manifest)).toBe('shardfile');
     expect(resolveTravelEntry(manifest)).toBe(manifest);
-    for (const copy of LEGACY_SHARDS) expect(resolveTravelEntry(copy)).toBeUndefined();
     const entered: string[] = [];
     const built = buildTitleDeck({cards: [choice], active: null, onEnter: (selected) => { entered.push(selected.slug); },
       onExplore: () => undefined, onSettings: () => undefined, mode: () => ({developer: true, devserver: true})});
@@ -115,7 +114,7 @@ function selectionManifests(): readonly ShardManifest[] {
   flags.set(inkManifest.slug, inkManifest.shardSelect);
   flags.set(pastelManifest.slug, pastelManifest.shardSelect);
   const result: ShardManifest[] = [];
-  for (const manifest of [...SHARDS, ...LEGACY_SHARDS]) {
+  for (const manifest of SHARDS) {
     const flag = flags.get(manifest.slug);
     result.push(flag === undefined ? manifest : { ...manifest, shardSelect: flag });
   }
@@ -141,7 +140,7 @@ test('G991 pins six public Shard Select cards and only two Developer templates',
     expect(manifest.shardSelect).toBe(false);
   }
   expect(SHARDS.filter(item => plotSlugs.has(item.slug)).map(item => item.slug).sort()).toEqual([...plotSlugs].sort());
-  expect(shards()).toHaveLength(SHARDS.length + LEGACY_SHARDS.length);
+  expect(shards()).toHaveLength(SHARDS.length);
   installShards([]);
 });
 
