@@ -60,6 +60,9 @@ const product = parseShardfile({ ...base, navigation: navigation.navigation, ser
   // G397: the storm's strength (`shared.storm`) is a host field like the dusk, moving the storm shells' graphs (data/stormLook.ts)
   migrations: slotMigrations, state: { ...base.state, version: 2, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD, { id: 3, name: 'firetime', type: 'f64', privacy: 'host', default: 0, min: 0 }, { id: 4, name: 'burrow', type: 'f64', privacy: 'public', default: 1, min: 0, max: 1 }] },
   look: { ...base.look, families: ['pbr'], materials: { pbr: sand, ...Object.fromEntries(Object.entries({ ...STORM_GRAPHS, ...FIRE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph', graph }])) }, curves: { pbr: SAND_DUSK }, samplers: { [fireBook.hash]: { filter: 'linear', mips: 'gpu' }, [ref('grain')]: { wrap: 'repeat', anisotropy: 8, mips: 'gpu' }, [ref('trail')]: { filter: 'linear' }, [ref('shadow')]: { filter: 'linear' } } },
+  // DL17 (G1000, G872): the level is complete at control: the entered cell attaches every fine tile before control and none
+  // retires in play (a 5 x 5 ring streamed 107 tiles in after control on the boost lap)
+  ring: 'cell',
   terrain: { ...tiles.terrain, shadow: { cast: false, receive: false }, follow: 8, order: -1 }, tiles: tiles.tiles, files: [...tiles.files, ...navigation.files, ...maps].sort((a, b) => a.hash.localeCompare(b.hash)), library: maps.map((file) => file.hash), critical: [...tiles.critical, ...navigation.critical], edge: tiles.edge });
 
 return product;

@@ -57,6 +57,9 @@ export function pineProduct(journal: PineJournal, ground: PineGroundRows, timber
   const libraryFiles = [...world.shardfile.files.filter(file => world.shardfile.library.includes(file.hash)), ...journal.files];
   return parseShardfile({
   ...base, ...world.shardfile, plumbing, props: world.props,
+  // DL17 (G1000, G872): the level is complete at control: the entered cell attaches every fine tile before control and none
+  // retires in play
+  ring: 'cell',
   files: [...world.shardfile.files, ...journal.files], library: [...world.shardfile.library, ...journal.files.map(file => file.hash)],
   budgets: { ...base.budgets, sim: { resident: scriptMemory + criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + scriptMemory + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
