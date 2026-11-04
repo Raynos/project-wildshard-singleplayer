@@ -77,6 +77,7 @@ test('the overlapping census constructs only scene jobs; final preparation still
   if (start === -1) throw new Error('Level preparation missing');
   const scene = new THREE.Scene(), root = new THREE.Group(), owner = {onDispose: (): void => undefined};
   const built: string[] = [], submitted: string[][] = [];
+  let standIns = 0;
   const job = (name: string): {root: THREE.Group; target: THREE.Scene} => {built.push(name); return {root: new THREE.Group(), target: scene};};
   const make = (name: string) => (): {root: THREE.Group; target: THREE.Scene}[] => [job(name)];
   const discover = (): {jobs: {root: THREE.Group; target: THREE.Scene}[]; materials: number} => ({jobs: [job('scene')], materials: 1});
@@ -84,6 +85,8 @@ test('the overlapping census constructs only scene jobs; final preparation still
   if (selectorStart === -1 || selectorEnd < selectorStart) throw new Error('First-view selector missing');
   const method: unknown = runInNewContext(stripTypeScriptTypes(`${source.slice(selectorStart, selectorEnd)}\n${source.slice(start).replace('export async', 'async')}\nprecompileLevel`), {
     THREE, performance, pageScope: owner, resourceScope: () => owner, bootTraceActive: () => false,
+    // DL10: the early scene-only pass runs before buildComposer() and draws to a stand-in target
+    earlyTarget: () => { standIns += 1; return null; },
     prepareSceneResources: (): Promise<void> => Promise.resolve(), shadowDepthResolver: () => undefined,
     entryFrameExclusions: () => new Set(), workSlice: () => ({due: () => false, yield: (): Promise<void> => Promise.resolve()}),
     materialsOf: () => [], pacedSceneJobs: (): Promise<ReturnType<typeof discover>> => Promise.resolve(discover()), sceneJobs: discover,
@@ -96,13 +99,14 @@ test('the overlapping census constructs only scene jobs; final preparation still
     },
   });
   if (typeof method !== 'function') throw new Error('Level preparation is not callable');
-  const game = {scene, rootScene: scene, camera: new THREE.PerspectiveCamera(), composer: {inputBuffer: null},
+  const game = {scene, rootScene: scene, camera: new THREE.PerspectiveCamera(), composer: {inputBuffer: null}, composerBuilt: false,
     renderer: {shadowMap: {type: THREE.PCFShadowMap}}, level: {boot: {shaders: {}}}};
   const common = {owner, chunkCasters: false, futureLighting: root};
   await Reflect.apply(method, undefined, [game, undefined, {...common, sceneOnly: true, drawnOnly: true}]);
-  expect(built).toEqual(['scene']); expect(submitted).toEqual([['scene-other']]);
-  built.length = 0;
+  expect(built).toEqual(['scene']); expect(submitted).toEqual([['scene-other']]); expect(standIns).toBe(1);
+  built.length = 0; game.composerBuilt = true;
   await Reflect.apply(method, undefined, [game, undefined, common]);
+  expect(standIns).toBe(1); // the final preparation draws to the composer's input buffer
   expect(built).toEqual(['scene', 'family', 'offscreen', 'shadow', 'background', 'post', 'shadow', 'exterior', 'readback']);
   expect(submitted[1]).toEqual(['scene-other', 'family', 'offscreen', 'shadow', 'background', 'post', 'previous-shadow', 'exterior', 'readback']);
 });
