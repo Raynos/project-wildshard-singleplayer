@@ -105,6 +105,9 @@ export function nalatiProductRows(species: NalatiSpeciesProgramCosts, held: Nala
   return parseShardfile({ ...base,
     navigation: navigation.navigation, terrain: queryTerrain.terrain, files: [...files, ...renderTiles.files].sort((a, b) => a.hash.localeCompare(b.hash)), critical: [...navigation.critical, ...queryTerrain.critical],
     tiles: renderTiles.tiles, props: renderTiles.props,
+    // DL17 (G1000, G872): the level is complete at control: the entered cell attaches every fine tile before control and
+    // none retires in play
+    ring: 'cell',
     serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident + programMemory },
     budgets: { ...base.budgets, library: { ...base.budgets.library, resident: base.budgets.library.resident + viewMemory }, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0) + programMemory, compressed: files.reduce((sum, file) => sum + file.compressed, 0) + programBytes + held.compiledBytes + ridingPrograms.compiled.bytes+titanProgram.compiled.pasture.bytes+admission.compiled.bytes } },
     look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...lookGraphs, ...presentationGraphs, 'nalati-sky-dome': skyDome }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },

@@ -88,6 +88,14 @@ export function loadSpecimenTexture(row: NonNullable<SpecimenMaterialRow['textur
   return pending;
 }
 
+/** a specimen material's declared texture, settled (loaded or refused: the fallback colour stays) */
+const textureLoads = new WeakMap<THREE.Material, Promise<void>>();
+/** DL17: settles once `material`'s declared texture is on it (or refused, keeping its fallback); at once for a material
+ *  without one. A level's dressing awaits it, so its surfaces are complete at control. */
+export function specimenMaterialReady(material: THREE.Material): Promise<void> {
+  return textureLoads.get(material) ?? Promise.resolve();
+}
+
 /** Bind the same declared surface for a world draw and its catalogue specimen. */
 export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Texture | null): THREE.Material {
   jsonData(input);
@@ -111,7 +119,7 @@ export function specimenMaterial(sky: SkyRig, input: unknown, map?: THREE.Textur
     const white = new THREE.DataTexture(Uint8Array.from(row.textureFallback??[255,255,255,255]), 1, 1);
     white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
     material.map = white;
-    void loadSpecimenTexture(row.texture).then(loaded => { material.map = loaded; return undefined; }).catch(() => undefined);
+    textureLoads.set(material, loadSpecimenTexture(row.texture).then(loaded => { material.map = loaded; return undefined; }).catch(() => undefined));
   }
   bySky.set(row.id, material);
   forgetWhenDisposed(material, bySky, row.id, material);

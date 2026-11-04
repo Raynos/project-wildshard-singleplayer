@@ -26,7 +26,7 @@ import type { StaticCaptureUniforms } from './staticCapture';
 import { GroundMerge } from '../shardfile/groundMerge';
 import { paintedGroundMerge } from './paintedGroundMerge';
 import { tileRing } from '../shardfile/tileDriver';
-import { followTile, ring, tileKey } from '../shardfile/tileContent';
+import { followTile, ring, ringRadius, tileKey } from '../shardfile/tileContent';
 import type { CellTile } from '../shardfile/tileOrder';
 
 /**
@@ -77,7 +77,8 @@ export function paintedGroundPainter(slug: string, input: unknown, tiles: unknow
       // world/terrain/ground-l1-<x>-<z>.glb) stay loaded beyond it, each leaving out the quadrants its drawn L0 tiles cover
       const assets = runtimeProduct(product.shardfile).assets, parent = ground.parent === scene.root ? terrain.group : ground.parent;
       if (parent === null) throw new Error('Painted ground mesh has no parent');
-      const radius = tileRing(), loaded = new Map<number, Scope>();
+      // DL17: a product whose level is complete at control (`ring: 'cell'`) loads its whole cell of ground tiles before play
+      const radius = ringRadius(product.shardfile, tileRing), loaded = new Map<number, Scope>();
       // the merged mesh's draws report where the player looks from; the ring follower takes over once it exists
       const follower = { at: (_x: number, _z: number): void => undefined };
       const merge = new GroundMerge(parent, material, ground.name, paintedGroundMerge(terrain, parent, ground, follower));

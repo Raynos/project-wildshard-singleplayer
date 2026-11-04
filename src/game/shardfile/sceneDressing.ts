@@ -21,7 +21,7 @@ import { instancedQuad } from '@wildshard/engine/render/instancedGeometry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { mergeStaticSiblingsSliced } from '@wildshard/engine/models/staticSets';
-import { createPackedSpecimens, defineSpecimenCatalogue, prepareSpecimenCatalogue, planSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial } from '../models/specimenCatalogue';
+import { createPackedSpecimens, defineSpecimenCatalogue, prepareSpecimenCatalogue, planSpecimenCatalogue, loadBoundSpecimen, loadSpecimenTexture, specimenMaterial, specimenMaterialReady } from '../models/specimenCatalogue';
 import { ControlRefinement } from './controlRefinement';
 import { fetchLaneBake, readBakedGeometry, bakedGeometryBytes } from '../plugin/geometry';
 import { createClientScene } from '../plugin/scene';
@@ -300,15 +300,20 @@ export class SceneDressing {
     // Shapes now own their arrays; retire inflated bake and pack scratch before material/contact preparation.
     bytes.clear();addresses.clear();packs.clear();
     await timeClientPreparation(ctx.product.slug,'dressing.materials',async()=>{
+    // DL17: the dressing's surfaces are complete at control: every declared texture is on its material (or refused, its
+    // fallback kept) before the dressing resolves, not swapped in after the player can move
+    const textures:Promise<unknown>[]=[];
     for(const [key,source]of Object.entries(rows.materials).sort((a,b)=>Number(a[1].kind==='mapped')-Number(b[1].kind==='mapped'))){
       const material=source.kind==='specimen'?specimenMaterial(sky,source.row):source.kind==='asset'?(await loadBoundSpecimen(sky,source.row,files)).material
         :source.kind==='look'?lentLook(source.look):source.kind==='mapped'?lentMappedLook(source.look,requiredMaterial(materials,source.over)):source.kind==='lettering'||source.kind==='lettering-file'?letteringMaterial(sky,source,files):painterlyMaterial(sky,source);
       if(source.kind==='look'){
         for(const [name,value]of Object.entries(source.params??{}))setLentParam(source.look,name,value);
-        for(const [name,row]of Object.entries(source.textures??{}))void loadSpecimenTexture(row).then(texture=>{if(!ctx.scope.disposed)setLentTexture(source.look,name,texture);return null;}).catch(()=>null);
+        for(const [name,row]of Object.entries(source.textures??{}))textures.push(loadSpecimenTexture(row).then(texture=>{if(!ctx.scope.disposed)setLentTexture(source.look,name,texture);return null;}).catch(()=>null));
       }
+      if(source.kind==='specimen')textures.push(specimenMaterialReady(material));
       materials.set(key,material);await pause();
     }
+    await Promise.all(textures);
     });
     const needGeometry=(id:string):THREE.BufferGeometry=>{const value=geometry.get(id);if(value===undefined)throw new Error(`Missing scene shape ${id}`);return value;};
     const needMaterial=(id:string):THREE.Material=>{const value=materials.get(id);if(value===undefined)throw new Error(`Missing scene paint ${id}`);return value;};

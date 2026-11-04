@@ -254,8 +254,10 @@ const SHADOW_SHIFTS: readonly (readonly [string, string])[] = [
 ];
 /**
  * three's per-vertex shadow coordinates, looked up at the world position moved by the graph's `shadow.offset` (as TSL's
- * receivedShadowPositionNode moves the received shadow only): the vertex, its normal-bias and any SpotLight map's
- * projected coordinates are unchanged. The offset is a vertex expression (the format admits it in vertex context only)
+ * receivedShadowPositionNode moves the received shadow only): the vertex, its normal-bias and a map-only SpotLight's
+ * projected coordinates are unchanged. Known gap: a SpotLight that both casts a shadow and carries a map shares one
+ * coordinate (three's vSpotLightCoord) for both, so its map moves with the shadow, as three's normal-bias already moves it;
+ * no light in the game carries a map. The offset is a vertex expression (the format admits it in vertex context only)
  * built in the graph's vertex body, before its `vertex.position` / `vertex.offset` displacement: an offset reading the
  * world position sees the undisplaced vertex. A three whose chunk no longer has these lines refuses the program.
  */
