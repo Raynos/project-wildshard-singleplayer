@@ -336,6 +336,12 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   A third, `core.75239` (11 GB, 11-03 21:18, `Retired/node-2026-11-03-211850.ips`, the same OOM, parent bash), took
   `/cores` to 41 GB. It launched 21:17:58, two minutes after `tmp/sim-boost-lap` was created (21:16; `nine-*` pack and
   shardfile builds, 4.3 GB). That timing is the only link to it.
+  **11-04 11:55: two more**, `core.77823` and `core.79556` (12 GB each, 22 s apart, `node-2026-11-04-1155*.ips`).
+  `/cores` is now 65 GB in five cores. These two differ: each is a **node child of a node parent** (pids 77813 and
+  79453, both gone by 12:47), and each ran about 19 s before OOM. That fits a worker pool (Vitest forks, or a
+  build/bake worker) that was retried once. Same day, `./tmp` passed **1.0M files / 102 GB** with `tmp/vitest` at 7.5 GB
+  (12 run dirs created 11-04). `tmp/goldens` (born 11-03 09:26; dated `2026-11-04-*` pack and ktx2 golden sets) passed
+  2 GB at 2.7 GB.
 - `~/Library/Caches/node-compile-cache` was 3.6 GB at 11-02 22:16 and **29 GB** at 11-03 20:47 (about 1.3 GB an hour).
 
 ## Decisions (Jake, 2026-10-15)
