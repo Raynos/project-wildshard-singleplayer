@@ -7,7 +7,7 @@ interface Event { name: string; data: Record<string, string | number> }
 export const MAX_TELEMETRY_BYTES = 16_384;
 const DAY = 86_400_000;
 const outcomes = new Set(['clean', 'crash', 'context-loss', 'likely-oom']);
-const names = new Set(['death.cause', 'quest.step', 'weapon.used', 'shard.time', 'level.time', 'boss.attempt']);
+const names = new Set(['death.cause', 'quest.step', 'weapon.used', 'shard.time', 'level.time', 'boss.attempt', 'download.parts']);
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown, max = 64): string => typeof value === 'string' ? value.slice(0, max) : '';
 const number = (value: unknown): number => typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0;
@@ -34,6 +34,8 @@ export function cleanTelemetryRecord(body: unknown, now = new Date()): Telemetry
     if (name === 'quest.step') { data['quest'] = text(source['quest']); data['step'] = text(source['step']); }
     if (name === 'weapon.used') data['weapon'] = text(source['weapon']);
     if (name === 'shard.time') data['seconds'] = Math.min(DAY / 1000, number(source['seconds']));
+    // DL20: a packed level download's parts, failed parts and loose fallback files
+    if (name === 'download.parts') for (const key of ['parts', 'failed', 'fallback']) data[key] = Math.min(100_000, number(source[key]));
     if (name === 'boss.attempt') {
       if (!['started', 'won', 'died', 'left'].includes(text(source['outcome']))) return null;
       data['boss'] = text(source['boss']); data['outcome'] = text(source['outcome']);

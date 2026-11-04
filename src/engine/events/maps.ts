@@ -20,6 +20,9 @@ export interface EventMap {
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };
   'fault': FaultEvent;
   'boss.attempt': { boss: string; outcome: 'started' | 'won' | 'died' | 'lost' | 'left'; level?: string };
+  /** a level download that read packed parts, at control: parts read and failed, and files a failed part left to their
+   *  loose copies (telemetry counts them: the loose copies retire only after a week with none) */
+  'download.parts': { level: string; parts: number; failed: number; fallbackFiles: number };
   /** the player jumped (a ground, coyote or air jump) / dodged; any number of listeners (E357 AG19: no chained hooks) */
   'player.jump': true;
   'player.dodge': true;

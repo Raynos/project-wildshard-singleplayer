@@ -207,6 +207,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   try { await loading.done(); }
   finally { if (game.frameGate === loadingFrameGate) game.frameGate = readyFrameGate; }
   if (level === undefined) app.events.emit('level.loaded', { id: slug });
+  // DL20: a packed download's parts and loose fallbacks reach telemetry, so the loose copies retire on a week of evidence
+  const parts = currentSpawnDownload()?.snapshot().parts;
+  if (parts !== undefined) app.events.emit('download.parts', { level: slug, ...parts });
   // js-heap H6: the boot has built everything its admitted product's transport fed (clientAssets.ts `releaseAll`)
   admittedRuntimeProduct(slug)?.assets.releaseAll();
   // and a solo page's own admission (its manifest's); an offline cache check never holds the boot

@@ -54,6 +54,7 @@ function subscribe(app: App): void {
   app.events.on('weapon.fired', ({ id }) => { analytics?.record('weapon.used', { level, weapon: id }); }, scope);
   app.events.on('quest.step', ({ level: questLevel, quest, step }) => { analytics?.record('quest.step', { level: questLevel, quest, step: step ?? 'completed' }); }, scope);
   app.events.on('boss.attempt', (event) => { analytics?.record('boss.attempt', { level, ...event }); }, scope);
+  app.events.on('download.parts', (event) => { analytics?.record('download.parts', { level: event.level, parts: event.parts, failed: event.failed, fallback: event.fallbackFiles }); }, scope);
 }
 /** Bind telemetry counters to the current application. */
 export function bindTelemetry(app: App): void { if (bound === app) return; bound = app; if (health) subscribe(app); }

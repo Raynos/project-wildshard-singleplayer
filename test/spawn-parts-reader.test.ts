@@ -570,3 +570,20 @@ test('DL11: a cancel while every store hangs settles at once and frees waiting r
   expect(await (await reading).text()).toBe('network');
   vi.unstubAllGlobals();
 });
+
+test('DL20: a packs download counts parts read, parts failed and the files left to their loose copies', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const run = async (slug: string, partFails: boolean): Promise<unknown> => {
+    const at = {...address, url: `/assets/spawn/example-${slug}-1234567890abcdef.json`};
+    const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined), fetch: url => {
+      const path = new URL(url).pathname;
+      if (path === part.url && partFails) return Promise.resolve(new Response('gone', {status: 404}));
+      return Promise.resolve(new Response(path === at.url ? text : path === part.url ? partBytes : body(path)));
+    }}, base);
+    await download.ready;
+    return download.snapshot().parts;
+  };
+  expect(await run('dl20-ok', false)).toEqual({parts: 1, failed: 0, fallbackFiles: 0});
+  expect(await run('dl20-fallback', true)).toEqual({parts: 0, failed: 1, fallbackFiles: 2}); // bin and glb fetched loose
+  vi.unstubAllGlobals();
+});

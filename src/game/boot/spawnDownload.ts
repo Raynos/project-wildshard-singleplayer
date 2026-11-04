@@ -13,6 +13,8 @@ export interface SpawnDownloadSnapshot {
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
   /** Bytes streamed so far, verified or not: progress for the stuck-boot watch, never shown as downloaded. */
   readonly streamedBytes?: number;
+  /** DL20: on the packs path, parts read and failed and the files a failed part left to their loose copies. */
+  readonly parts?: {readonly parts: number; readonly failed: number; readonly fallbackFiles: number};
 }
 export interface SpawnDownloadPorts {
   readonly fetch: (url: string, signal: AbortSignal, init?: RequestInit) => Promise<Response>;
@@ -179,7 +181,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     if (next !== was) { arriving.set(file.url, next); wireArriving += next - was; }
   };
   const landed = (url: string): void => { wireArriving -= arriving.get(url) ?? 0; arriving.delete(url); };
-  const snapshot = (): SpawnDownloadSnapshot => ({...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached, arrivingBytes: wireArriving}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
+  let partCounts: {parts: number; failed: number; fallbackFiles: number} | undefined;
+  const snapshot = (): SpawnDownloadSnapshot => ({...(partCounts === undefined ? {} : {parts: {...partCounts}}),...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached, arrivingBytes: wireArriving}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error, streamedBytes: streamedBytes + completedBytes});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
   ownSignals.add(controller.signal);
@@ -299,6 +302,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       let loose = missing;
       if (parts !== undefined && parts.length > 0) {
         installMemberLayer();
+        const counts = {parts: 0, failed: 0, fallbackFiles: 0}; partCounts = counts;
         const wanted = new Set(missing), left = new Set<number>(), stored = new Map<string, readonly string[]>();
         await Promise.all(parts.map(async part => {
           const order = part.members.filter(([index]) => {const file = files[index]; return file !== undefined && wanted.has(file);});
@@ -337,14 +341,16 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               }
             }
             if (at !== part.bytes) throw new Error(`Spawn part size differs: ${part.url}`);
+            counts.parts++;
             // Every member of the part is now stored (kept here, or already credited): the index may name it.
             // A part shared by another entry keeps that entry's members too, while they are still keyed.
             if (ports.keep !== undefined) stored.set(part.hash, [...new Set([...(heldIndex[part.hash] ?? []).filter(url => keys.has(url)),
               ...part.members.map(([member]) => files[member]?.url ?? '')])]);
           } catch {
             // Settle first: a page read already waiting on a member must fall through, even when this download aborts.
+            counts.failed++;
             for (const [index] of order) { const file = files[index]; if (file !== undefined) landed(file.url); }
-            for (const [index] of order) if (!done.has(index)) {left.add(index); settle.get(index)?.(null);}
+            for (const [index] of order) if (!done.has(index)) {left.add(index); counts.fallbackFiles++; settle.get(index)?.(null);}
             controller.signal.throwIfAborted();
           }
         }));
