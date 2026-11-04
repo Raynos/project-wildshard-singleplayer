@@ -257,7 +257,7 @@ test('an orchard installs painterly setup and its frame update from an unordered
 test('a trusted runtime draws its graphs before allocating presentation', async () => {
   const f=context();f.source.look.materials['orchard-water']=parseFamilyMaterial({family:'pbr'});
   f.sections.set('client/plan',{version:1,features:[{kind:'world.scenes'}]});
-  Object.assign(f.runtime,{world:{game:{renderer:{}}}});
+  Object.assign(f.runtime,{world:{game:{renderer:{},levelScope:f.ctx.scope}}});
   Object.assign(f.ctx,{tiers:{knobs:vi.fn()}});
   const assets=new ClientAssets(f.source,new Map(),browserShardfileOptions('https://example.invalid/'));
   const client=new ShardfileClient(f.source,assets,{instance:'orchard-graph',trustedRuntime:true,

@@ -1,4 +1,5 @@
 import {readModuleGroups} from '@wildshard/engine/boot/download';
+import { whenControl } from '@wildshard/engine/boot/prefetch';
 import type * as ScriptPresentation from '../plugin/ui';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type * as LootPresentation from '../loot/runtime';
@@ -247,6 +248,10 @@ export class ShardfileClient {
     const runtime = ctx.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
     ctx.scope.onDispose(this.assets.pin());
+    // D227 (G872, wildshard-new): once play starts the session's admitted file bytes go, as H6 does for the grid's runtime
+    // product (finish.ts): a Pine page still held 33.2 MB here at 30 s of play. The cache pins above stay; a later read
+    // verifies from the content cache or the network (ClientAssets.readReleased).
+    whenControl(world.game.levelScope, ctx.scope, () => { this.assets.releaseAll(); });
     const allocator = this.bindings.allocator; if (allocator === undefined) throw new Error('Shardfile requires its session residency allocator');
     // The reviewed opaque-runtime claim includes its whole home. Cache leases remain pinned above;
     // ordinary data homes account library/commons and tile parts independently in the same allocator.
