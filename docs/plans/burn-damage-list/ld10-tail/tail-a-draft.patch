@@ -1,0 +1,291 @@
+diff --git a/scripts/shard-platform-output.mjs b/scripts/shard-platform-output.mjs
+index 550197665b..50f80f710a 100644
+--- a/scripts/shard-platform-output.mjs
++++ b/scripts/shard-platform-output.mjs
+@@ -3,7 +3,6 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
+ import { createHash } from 'node:crypto';
+ import { relative, resolve } from 'node:path';
+ import { outputFormat, platformFileFamiliesFormat } from './shard-platform-format.mjs';
+-import { shardfileBoundaryViolations } from '../lint/shardfile-boundaries.mjs';
+ import { representativeProduct, shardOutputs } from './shard-outputs.mjs';
+ 
+ const {parseOutputIndex}=outputFormat;
+@@ -16,8 +15,8 @@ function files(folder) {
+     return entry.isDirectory()?files(file):[file];
+   });
+ }
+-/** Verify the manifest against the actual copied bytes, including an intentionally empty runtime.
+- * Source is consulted only to verify P3's verbatim-copy contract, never as a missing-output fallback.
++/** Verify an output's sections and that it ships no runtime TypeScript (LD10: no copied runtime remains); `runtime`
++ * is always empty. Source is never a missing-output fallback.
+  * @param {string} root @param {string} slug @param {string} [products] */
+ export function outputRuntime(root,slug,products=resolve(root,'out')) {
+   return readOutputRuntime(root,slug,products,()=>outputSections(root,slug,products));
+@@ -28,23 +27,13 @@ function readOutputRuntime(root,slug,products,readSections) {
+   const folder=resolve(products,representativeProduct(root,slug)), indexPath=resolve(folder,'shard.json');
+   if(!existsSync(indexPath))throw new Error(`${slug}: built output missing; build out/<slug> before measuring`);
+   const {index,sections,customSections,customSectionBytes}=readSections();
+-  const listed=new Set(), runtime=[];
+-  for(const entry of index.runtime?.files??[]) {
+-    if(!entry.path.startsWith('runtime/')||!entry.path.endsWith('.ts')||listed.has(entry.path))throw new Error(`${slug}: invalid runtime inventory: ${entry.path}`);
+-    listed.add(entry.path);
+-    const file=resolve(folder,entry.path), content=readFileSync(file);
+-    if(content.length!==entry.bytes||digest(content)!==entry.hash)throw new Error(`${slug}: runtime hash/size mismatch: ${entry.path}`);
+-    const authored=resolve(root,'src/shards',slug,entry.path);
+-    if(!existsSync(authored)||!content.equals(readFileSync(authored)))throw new Error(`${slug}: runtime is not a verbatim source copy: ${entry.path}`);
+-    const issues=shardfileBoundaryViolations(root,`src/shards/${slug}/${entry.path}`,content.toString('utf8')).filter(issue=>issue.rule==='runtime-standalone');
+-    if(issues.length>0)throw new Error(`${slug}: output runtime is not standalone: ${entry.path}: ${issues[0].message}`);
+-    runtime.push(relative(root,file).replaceAll('\\','/'));
+-  }
+-  if(index.runtime!==null&&'entry' in index.runtime&&!listed.has(index.runtime.entry))throw new Error(`${slug}: missing output runtime entry`);
++  // LD10: a client-plan output ships no runtime TypeScript (the index schema lists none), so its runtime folder stays
++  // empty; authored source runtime files are measured by the ruler's source mode, never copied
++  if((index.runtime?.files.length??0)>0)throw new Error(`${slug}: output runtime lists TypeScript`);
+   const actual=files(resolve(folder,'runtime')).map(file=>relative(folder,file).replaceAll('\\','/'));
+-  if(actual.length!==listed.size||actual.some(file=>!listed.has(file)))throw new Error(`${slug}: unlisted output runtime file`);
+-  const authoredRuntime=files(resolve(root,'src/shards',slug,'runtime')).filter(file=>file.endsWith('.ts')&&!file.includes('.generated.')).map(file=>relative(resolve(root,'src/shards',slug),file).replaceAll('\\','/'));
+-  if(authoredRuntime.some(file=>!listed.has(file)))throw new Error(`${slug}: output omits authored runtime files`);
++  if(actual.length>0)throw new Error(`${slug}: unlisted output runtime file: ${actual[0]}`);
++  /** @type {string[]} */
++  const runtime=[];
+ 
+   return {index,runtime:runtime.sort((a,b)=>a.localeCompare(b)),customSectionBytes,customSections,sections,indexPath:relative(root,indexPath).replaceAll('\\','/')};
+ }
+diff --git a/src/format/outputFields.ts b/src/format/outputFields.ts
+index 10775df2e3..a935c320c8 100644
+--- a/src/format/outputFields.ts
++++ b/src/format/outputFields.ts
+@@ -100,7 +100,7 @@ export function outputSectionPayloads(source: Shardfile): ReadonlyMap<string, un
+ /** Reconstruct host fields without transport metadata. This returns unknown fields, never an admitted host model. The caller must
+  * verify its exact build hashes or supply the original checked readers. */
+ export function assembleOutputTransport(index: OutputIndex, sections: ReadonlyMap<string, unknown>, checks?: { readonly bounds: (name: string, value: unknown) => void; readonly platform: (name: keyof PlatformDataSections, value: unknown) => void; readonly fields: (name: string, value: object) => Record<string, unknown> }): Record<string, unknown> {
+-  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,tier: _tier,variantOf: _variant,commons: _commons,jsonSchema: _schema,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {...('entry' in index.runtime ? {entry:index.runtime.entry} : {kind:index.runtime.kind}),...(index.runtime.cost === undefined ? {} : {cost:index.runtime.cost}),...(index.runtime.binds === undefined ? {} : {binds:index.runtime.binds})}};
++  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,tier: _tier,variantOf: _variant,commons: _commons,jsonSchema: _schema,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {kind:index.runtime.kind,cost:index.runtime.cost,binds:index.runtime.binds}};
+   if (sections.size !== index.sections.length || index.sections.some(entry => !sections.has(entry.name))) throw new Error('Missing or surplus output section');
+   const rows: Record<string, unknown> = {};
+   for (const entry of index.sections) {
+diff --git a/src/format/outputIndex.ts b/src/format/outputIndex.ts
+index e8a91e8d5e..90692d01dd 100644
+--- a/src/format/outputIndex.ts
++++ b/src/format/outputIndex.ts
+@@ -6,7 +6,7 @@ import { OUTPUT_SECTIONS, assembleOutputTransport, isPlatformDataSection, type O
+ import * as v from 'valibot';
+ import { assertCellBounds } from './cellBounds';
+ import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSchema';
+-import { LegacyRuntimeSchema, ClientPlanRuntimeSchema } from './runtime';
++import { ClientPlanRuntimeSchema } from './runtime';
+ import { RuntimeSpawnsSchema } from './runtimeSpawns';
+ import { RowsSchema } from './rows';
+ import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema, type ShardIdentityInput, type ShardRequiresInput, type ShardReferencesInput, type ShardIdentity, type ShardRequires, type ShardReferences } from './shardSections';
+@@ -22,10 +22,7 @@ const measuredFile = { path, hash: ShardHashSchema, bytes: ShardNaturalSchema };
+ const section = v.strictObject({ ...measuredFile, name: sectionName, schema: v.pipe(v.string(), v.maxLength(240)) });
+ const costs = v.omit(FilesSchema.pipe[0].item, ['kind']).entries;
+ const fileSchema = v.strictObject({ ...costs, path, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'tile', 'bin', 'image']), name: v.exactOptional(v.pipe(v.string(), v.maxLength(240))), tier: v.exactOptional(v.picklist(['phone', 'desktop'])), variantOf: v.exactOptional(v.pipe(v.string(), v.minLength(1), v.maxLength(240))), commons: v.exactOptional(v.literal(true)), jsonSchema: v.exactOptional(v.record(v.string(), v.unknown())) });
+-const runtime = v.union([
+-  v.strictObject({ ...v.omit(LegacyRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), lines: ShardNaturalSchema }),
+-  v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.pipe(v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), v.maxLength(0)), lines: v.literal(0) }),
+-]);
++const runtime = v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['spawns']).entries, trust: v.literal('first-party'), files: v.pipe(v.array(v.strictObject({ ...measuredFile, lines: ShardNaturalSchema })), v.maxLength(0)), lines: v.literal(0) });
+ /** Format 2 inventories every emitted byte except its index and validation receipt. */
+ export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputIndexRows> & { readonly entries: { readonly [Key in keyof OutputIndexRows]-?: v.GenericSchema<OutputIndexRowsInput[Key], OutputIndexRows[Key]> } } = v.strictObject({
+   format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2), sdk: v.literal('0.2'), version: v.literal(SHARDFILE_VERSION),
+@@ -200,35 +197,6 @@ interface OutputIndexRowsInputFields {
+         }[];
+     }[];
+     runtime: {
+-        trust: "first-party";
+-        files: {
+-            lines: number;
+-            path: string;
+-            hash: string;
+-            bytes: number;
+-        }[];
+-        lines: number;
+-        entry: string;
+-        cost?: {
+-            imagesFirst?: {
+-                webContentMB: number;
+-                glMB: number;
+-                engineBaseMB: number;
+-                residentBaseMB?: number;
+-                rev: string;
+-                device: string;
+-                evidence: string;
+-            } | undefined;
+-            webContentMB: number;
+-            glMB: number;
+-            engineBaseMB: number;
+-            residentBaseMB?: number;
+-            rev: string;
+-            device: string;
+-            evidence: string;
+-        } | undefined;
+-        binds?: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[] | undefined;
+-    } | {
+         trust: "first-party";
+         files: {
+             lines: number;
+@@ -320,35 +288,6 @@ interface OutputIndexRowsFields {
+         }[];
+     }[];
+     runtime: {
+-        trust: "first-party";
+-        files: {
+-            lines: number;
+-            path: string;
+-            hash: string;
+-            bytes: number;
+-        }[];
+-        lines: number;
+-        entry: string;
+-        cost?: {
+-            imagesFirst?: {
+-                webContentMB: number;
+-                glMB: number;
+-                engineBaseMB: number;
+-                residentBaseMB?: number;
+-                rev: string;
+-                device: string;
+-                evidence: string;
+-            } | undefined;
+-            webContentMB: number;
+-            glMB: number;
+-            engineBaseMB: number;
+-            residentBaseMB?: number;
+-            rev: string;
+-            device: string;
+-            evidence: string;
+-        } | undefined;
+-        binds?: ("state" | "movers" | "modes" | "terrain" | "quests" | "ledger" | "items" | "props" | "clientChannels" | "spawns" | "loot")[] | undefined;
+-    } | {
+         trust: "first-party";
+         files: {
+             lines: number;
+diff --git a/src/format/runtime.ts b/src/format/runtime.ts
+index fdac1c3460..49882a4a96 100644
+--- a/src/format/runtime.ts
++++ b/src/format/runtime.ts
+@@ -7,16 +7,6 @@ const cost = v.pipe(RuntimeCostSchema, v.check((row) => {
+   try { runtimeAccountedBytes(row); return true; } catch { return false; }
+ }, 'Runtime cost must contain a positive safe measured content bound'));
+ 
+-/** The retired copied-runtime entry row (LD9: no shard can declare it). Kept only for the output index's copied-runtime
+- * inventory, which has no producer left; LD10's orphan sweep removes both with the ruler's output-runtime fixtures. */
+-export const LegacyRuntimeSchema: v.SchemaWithPipe<readonly [v.StrictObjectSchema<{ readonly entry: v.GenericSchema<LegacyRuntimeRowsInput['entry'], LegacyRuntimeRows['entry']>; readonly cost: v.OptionalSchema<v.GenericSchema<Exclude<LegacyRuntimeRowsInput['cost'], undefined>, Exclude<LegacyRuntimeRows['cost'], undefined>>, undefined>; readonly binds: v.OptionalSchema<v.GenericSchema<Exclude<LegacyRuntimeRowsInput['binds'], undefined>, Exclude<LegacyRuntimeRows['binds'], undefined>>, undefined>; readonly spawns: v.OptionalSchema<v.GenericSchema<Exclude<LegacyRuntimeRowsInput['spawns'], undefined>, Exclude<LegacyRuntimeRows['spawns'], undefined>>, undefined>; }, undefined>, v.CheckAction<{ [K in keyof LegacyRuntimeRows]: LegacyRuntimeRows[K] }, 'runtime spawns are declared exactly when runtime.binds names spawns'>]> = v.pipe(v.strictObject({
+-  entry: v.pipe(v.string(), v.maxLength(160), v.regex(/^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u)),
+-  cost: v.optional(cost),
+-  /** Behaviour sections this runtime binds in its own play scope (./runtimeBinds.ts); absent = none. */
+-  binds: v.optional(RuntimeBindsSchema),
+-  /** The runtime's creatures as declared rows (./runtimeSpawns.ts); present exactly when `binds` names `spawns`. */
+-  spawns: v.optional(RuntimeSpawnsSchema),
+-}), v.check((row) => (row.spawns !== undefined) === (row.binds?.includes('spawns') ?? false), 'runtime spawns are declared exactly when runtime.binds names spawns'));
+ /** A compiled client-plan owner keeps its actual binds, spawns and measured cost,
+  * without naming any TypeScript module or introducing another loader registry. */
+ export const ClientPlanRuntimeSchema: v.SchemaWithPipe<readonly [v.StrictObjectSchema<{ readonly kind: v.GenericSchema<ClientPlanRuntimeRowsInput['kind'], ClientPlanRuntimeRows['kind']>; readonly cost: v.GenericSchema<ClientPlanRuntimeRowsInput['cost'], ClientPlanRuntimeRows['cost']>; readonly binds: v.GenericSchema<ClientPlanRuntimeRowsInput['binds'], ClientPlanRuntimeRows['binds']>; readonly spawns: v.OptionalSchema<v.GenericSchema<Exclude<ClientPlanRuntimeRowsInput['spawns'], undefined>, Exclude<ClientPlanRuntimeRows['spawns'], undefined>>, undefined>; }, undefined>, v.CheckAction<{ [K in keyof ClientPlanRuntimeRows]: ClientPlanRuntimeRows[K] }, 'runtime spawns are declared exactly when runtime.binds names spawns'>]> = v.pipe(v.strictObject({
+@@ -30,20 +20,6 @@ export const RuntimeSchema: v.GenericSchema<RuntimeDeclarationInput, RuntimeDecl
+ 
+ 
+ /** Admitted data contracts, independent of validator implementation metadata. */
+-interface LegacyRuntimeRowsInputFields {
+-    entry: string;
+-    cost?: v.InferInput<typeof RuntimeCostSchema> | undefined;
+-    binds?: v.InferInput<typeof RuntimeBindsSchema> | undefined;
+-    spawns?: v.InferInput<typeof RuntimeSpawnsSchema> | undefined;
+-}
+-export type LegacyRuntimeRowsInput = { [Key in keyof LegacyRuntimeRowsInputFields]: LegacyRuntimeRowsInputFields[Key] };
+-interface LegacyRuntimeRowsFields {
+-    entry: string;
+-    cost?: v.InferOutput<typeof RuntimeCostSchema> | undefined;
+-    binds?: v.InferOutput<typeof RuntimeBindsSchema> | undefined;
+-    spawns?: v.InferOutput<typeof RuntimeSpawnsSchema> | undefined;
+-}
+-export type LegacyRuntimeRows = { [Key in keyof LegacyRuntimeRowsFields]: LegacyRuntimeRowsFields[Key] };
+ interface ClientPlanRuntimeRowsInputFields {
+     kind: 'client-plan';
+     cost: v.InferInput<typeof RuntimeCostSchema>;
+diff --git a/src/sdk/outputRuntime.ts b/src/sdk/outputRuntime.ts
+index 01ccaffee7..4a563d396c 100644
+--- a/src/sdk/outputRuntime.ts
++++ b/src/sdk/outputRuntime.ts
+@@ -56,8 +56,8 @@ export function validateRuntimeData(sections: ReadonlyMap<string, unknown>,
+  * emitted inventory only, never the author folder. A client-plan product ships no runtime TypeScript (LD9), so no
+  * copied module is compiled or evaluated. */
+ export function proveRuntimeData(destination: string, index: OutputIndex, mirrors: readonly RuntimeMirror[]): void {
+-  // the output index still parses a retired copied-runtime inventory (LD10 removes it): this proof never accepts one
+-  if (index.runtime !== null && ('entry' in index.runtime || index.runtime.files.length > 0)) throw new Error('Runtime proof requires a client-plan output with no copied TypeScript');
++  // a client-plan output lists no copied TypeScript (the index schema caps it at none); this proof never accepts one
++  if (index.runtime !== null && index.runtime.files.length > 0) throw new Error('Runtime proof requires a client-plan output with no copied TypeScript');
+   const read = (file: { readonly path: string; readonly hash: string; readonly bytes: number }): Uint8Array => {
+     const bytes = readBoundedFile(resolve(destination, file.path), file.bytes);
+     if (bytes.length !== file.bytes || hashImmutableBytes(bytes) !== file.hash) throw new Error(`Runtime proof input changed: ${file.path}`);
+diff --git a/test/copied-runtime-build.test.ts b/test/copied-runtime-build.test.ts
+index 3f94d7fd6c..d9ff62d809 100644
+--- a/test/copied-runtime-build.test.ts
++++ b/test/copied-runtime-build.test.ts
+@@ -7,6 +7,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
+ import { buildProject } from '@wildshard/sdk/project';
+ import { proveRuntimeData } from '@wildshard/sdk/outputRuntime';
+ import { validateOutputProduct } from '@wildshard/sdk/outputProduct';
++import { parseOutputIndex } from '../src/format/outputIndex';
+ 
+ const owned: string[] = [];
+ afterEach(() => { for (const directory of owned.splice(0)) rmSync(directory, { recursive: true, force: true }); });
+@@ -50,23 +51,23 @@ it('proves custom sections from their built schemas, and declared mirrors still
+   expect(() => { proveRuntimeData(destination, index, []); }).not.toThrow();
+   expect(() => { proveRuntimeData(destination, index, [{ name: 'REWARD', value: { amount: 3 } }]); }).toThrow('runtime/const.ts');
+ });
+-it('refuses a retired copied-runtime inventory before reading any copy, missing or tampered', async () => {
++it('refuses a copied-runtime inventory: the index schema refuses an entry row, the proof refuses any listed copy', async () => {
+   const { project, destination } = fixture('null', false);
+   for (const file of ['index.ts', 'hybrid.ts', 'sections.ts', 'const.ts']) rmSync(resolve(project, 'runtime', file));
+   await buildProject(project, destination, { outputFormat: 2, client: null, copyRuntime: true });
+   const { index } = validateOutputProduct(destination);
+-  // the output index still parses this row (LD10 removes it); the proof must refuse it whatever its copy holds
+   const copy = { path: 'runtime/index.ts', hash: '0'.repeat(64), bytes: 1, lines: 1 };
+-  const missing = { ...index, runtime: { entry: 'runtime/index.ts', trust: 'first-party' as const, files: [copy], lines: 1 } };
+-  expect(() => { proveRuntimeData(destination, missing, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
+-  // the listed copy exists but its bytes differ from the inventory: still refused, before it is read
+-  mkdirSync(resolve(destination, 'runtime'), { recursive: true });
+-  writeFileSync(resolve(destination, 'runtime/index.ts'), 'export const tampered = true;\n');
+-  expect(() => { proveRuntimeData(destination, missing, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
+-  // the non-empty inventory arm on its own: a client-plan-shaped row that lists a copy
++  // LD10 tail: the retired `entry` inventory row no longer parses at all
++  const raw: unknown = JSON.parse(readFileSync(resolve(destination, 'shard.json'), 'utf8'));
++  if (typeof raw !== 'object' || raw === null) throw new Error('Missing output index');
++  expect(() => parseOutputIndex({ ...raw, runtime: { entry: 'runtime/index.ts', trust: 'first-party', files: [copy], lines: 1 } })).toThrow();
++  // a client-plan row that lists a copy is refused before the copy is read, whether it is missing or tampered
+   const cost = { webContentMB: 500, glMB: 100, engineBaseMB: 300, rev: 'abcdef1234', device: 'Fixture', evidence: 'progress/memory/fixture.json' };
+   const listed = { ...index, runtime: { kind: 'client-plan' as const, cost, binds: [], trust: 'first-party' as const, files: [copy], lines: 0 as const } };
+   expect(() => { proveRuntimeData(destination, listed, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
++  mkdirSync(resolve(destination, 'runtime'), { recursive: true });
++  writeFileSync(resolve(destination, 'runtime/index.ts'), 'export const tampered = true;\n');
++  expect(() => { proveRuntimeData(destination, listed, []); }).toThrow('Runtime proof requires a client-plan output with no copied TypeScript');
+ });
+ it('refuses overlapping source/output before clearing the author project', async () => {
+   const { project } = fixture();
+diff --git a/test/fixtures/platformOutputs.ts b/test/fixtures/platformOutputs.ts
+index 7ec898e24e..73af9fdc1d 100644
+--- a/test/fixtures/platformOutputs.ts
++++ b/test/fixtures/platformOutputs.ts
+@@ -5,12 +5,12 @@ import { dirname, join } from 'node:path';
+ // oxlint-disable-next-line import/no-nodejs-modules -- Inventory hashes bind exactly the emitted fixture bytes.
+ import { createHash } from 'node:crypto';
+ import { emptyShardfile } from '../../src/sdk/author';
+-import { codeLines } from '../../scripts/shard-platform.mjs';
+ 
+ export function platformOutput(root:string,slug:string,files:Readonly<Record<string,string>>={},sections:Readonly<Record<string,string>>={}):void {
+   const put=(path:string,value:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,value);};
+   const measured=(path:string,text:string):{path:string;hash:string;bytes:number}=>({path,hash:createHash('sha256').update(text).digest('hex'),bytes:Buffer.byteLength(text)});
+-  const runtime=Object.entries(files).map(([path,text])=>{put(`src/shards/${slug}/${path}`,text);put(`out/${slug}/${path}`,text);return {...measured(path,text),lines:codeLines(text,path)};});
++  // LD10: an output ships no runtime TypeScript; `files` are the shard's authored source runtime files only
++  for(const [path,text] of Object.entries(files))put(`src/shards/${slug}/${path}`,text);
+   mkdirSync(join(root,'src/shards',slug),{recursive:true});
+   const schemas:{path:string;hash:string;bytes:number}[]=[];
+   const rows=Object.entries(sections).map(([name,text])=>{
+@@ -23,5 +23,5 @@ export function platformOutput(root:string,slug:string,files:Readonly<Record<str
+   put(`out/${slug}/shard.json`,JSON.stringify({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,
+     identity:source.identity,build:{sourceHash:'0'.repeat(64),validator:'fixture'},requires:source.requires,
+     admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library},
+-    sections:rows,schemas,files:[],runtime:runtime.length===0?null:{entry:runtime[0]?.path??'runtime/index.ts',trust:'first-party',files:runtime,lines:runtime.reduce((sum,row)=>sum+row.lines,0)}}));
++    sections:rows,schemas,files:[],runtime:null}));
+ }
