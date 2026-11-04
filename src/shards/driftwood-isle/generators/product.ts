@@ -53,6 +53,9 @@ return parseShardfile({
   sim: { ...base.sim, scripts: [] },
   navigation: navigation.navigation, files: [...navigation.files, ...fixed.files, coat], critical: [...navigation.critical, ...fixed.critical],
   tiles: fixed.tiles, terrain: fixed.terrain, library: [...fixed.library, coat.hash],
+  // DL17 (G1000, root's ruling for the grid home): the level is complete at control, so the entered cell attaches every
+  // fine tile before control and none retires in play (a 5 x 5 ring streamed tiles in as the boost lap left it)
+  ring: 'cell',
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + 6*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
   budgets: { ...base.budgets, library: { resident: fixed.libraryCost.resident + coat.decoded + coat.gpu + viewMemory, compressed: fixed.libraryCost.compressed + coat.compressed }, sim: { resident: 6*65536 + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
