@@ -135,8 +135,9 @@ test('the play lines need the whole 30 s on the game\'s own frames: a short log 
     return analyse(rows);
   };
   expect(run(33, true).bar).toMatchObject({ playNoFrameOver250ms: true, playSteadyFromSecondOne: true });
-  // a log cut at 12 s after control: smooth so far, but no reading of the rest
-  expect(run(13, true).bar).toMatchObject({ playNoFrameOver250ms: false, playSteadyFromSecondOne: false });
+  // a log cut short of control + 30 s, by 18 s or by a fraction of a second (sp-x1): no reading of the rest
+  for (const until of [13, 30, 30.5]) expect(run(until, true).bar).toMatchObject({ playNoFrameOver250ms: false, playSteadyFromSecondOne: false });
+  expect(run(31, true).bar).toMatchObject({ playNoFrameOver250ms: true, playSteadyFromSecondOne: true });
   // no game frame ring: the page's 60 Hz rAF alone does not judge the world's frame rate
   const pageOnly = run(33, false);
   expect(pageOnly.play.source).toBe('page requestAnimationFrame');

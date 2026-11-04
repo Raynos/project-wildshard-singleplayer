@@ -177,7 +177,12 @@ export function analyse(rows) {
 
   const errors = [...new Set(polls.map(row => row.err).filter(Boolean))];
   const retryShown = polls.some(row => row.retry === true);
-  const playJudged = play !== null && play.source === 'game drawn frames' && play.frames > 0 && play.sampledS >= BAR.playS - 1;
+  // covered means the game's frame ring was read at or after control + 30 s (unrounded; sp-x1: a log ending at 29 s
+  // left its last second unseen)
+  const lastRing = control === null ? undefined : polls.findLast(row => row.drawn && row.t >= control);
+  const playCoveredS = lastRing === undefined || control === null ? 0 : (lastRing.t - control) / 1000;
+  if (play !== null) play.coveredS = round(playCoveredS, 2);
+  const playJudged = play !== null && play.source === 'game drawn frames' && play.frames > 0 && playCoveredS >= BAR.playS;
   const bar = {
     reachesControl: control !== null,
     styledFromFirstFrame: firsts.cardAppears?.styled !== false && polls.filter(row => row.shown && row.t <= end).every(row => row.styled !== false),
