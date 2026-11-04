@@ -125,7 +125,7 @@ test('binary preview transport keeps exact quality-3 bytes, headers, ranges and 
 // DL15 (sp-x9's review of 36550ecc1b): a part is served as its q11 body with Content-Encoding: br (the vercel.json rule
 // now replays), decoded without that header for a client that refuses br, and a missing or broken part is an error
 // response, never the page's fallback or a crashed server.
-test('spawn parts: br as-is, decoded for identity clients, 404 and 500 instead of the fallback', async () => {
+test('spawn parts: br as-is, gzip for gzip-only clients, decoded for identity, 404 and 500 instead of the fallback', async () => {
   mkdirSync(resolve('tmp'), { recursive: true });
   const root = mkdtempSync(resolve('tmp/vercel-parts-'));
   writeFileSync(join(root, 'vercel.json'), readFileSync('vercel.json'));
@@ -142,6 +142,12 @@ test('spawn parts: br as-is, decoded for identity clients, 404 and 500 instead o
     expect(br.bytes.equals(encoded)).toBe(true); expect(brotliDecompressSync(br.bytes).equals(raw)).toBe(true);
     const plain = await wire(new URL(good, base), { ...all, 'accept-encoding': 'identity' });
     expect([plain.status, plain.headers['content-encoding']]).toEqual([200, undefined]); expect(plain.bytes.equals(raw)).toBe(true);
+    // DL5: a client that refuses br but takes gzip (Safari over http) gets the part gzipped, not decoded at full size
+    const gzipped = await wire(new URL(good, base), { ...all, 'accept-encoding': 'gzip, deflate' });
+    expect([gzipped.status, gzipped.headers['content-encoding']]).toEqual([200, 'gzip']);
+    expect(gzipped.bytes.length).toBeLessThan(raw.length); expect(gunzipSync(gzipped.bytes).equals(raw)).toBe(true);
+    expect(gzipped.headers['content-length']).toBe(String(gzipped.bytes.length));
+    expect((await wire(new URL(broken, base), { ...all, 'accept-encoding': 'gzip' })).status).toBe(500);
     const missing = await wire(new URL(`assets/spawn/parts/${'c'.repeat(16)}.pack.br`, base), all);
     expect([missing.status, missing.headers['content-encoding'], missing.bytes.length]).toEqual([404, undefined, 0]);
     expect((await wire(new URL(broken, base), { ...all, 'accept-encoding': 'identity' })).status).toBe(500);

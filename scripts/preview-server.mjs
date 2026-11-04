@@ -12,8 +12,10 @@ import { createServer } from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
-import { brotliCompressSync, brotliDecompressSync, constants as zlib, createBrotliCompress, createGzip } from 'node:zlib';
+import { brotliCompressSync, brotliDecompress, brotliDecompressSync, constants as zlib, createBrotliCompress, createGzip, gzip as gzipCallback } from 'node:zlib';
 import { createEncodedFileCache } from './preview-encoded-cache.mjs';
+import { readFile as readFileAsync } from 'node:fs/promises';
+import { promisify } from 'node:util';
 import { createPreviewTelemetrySink } from './preview-telemetry.mjs';
 
 const args = process.argv.slice(2);
@@ -53,6 +55,12 @@ const LOCAL_ORIGIN = /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\])
 const RAPIER = join(outDir, 'assets/physics/rapier.wasm');
 const rapierBr = existsSync(RAPIER) ? brotliCompressSync(readFileSync(RAPIER), { params: { [zlib.BROTLI_PARAM_QUALITY]: 11 } }) : null;
 const encodedFiles = createEncodedFileCache();
+// DL5 (11-04): a part for a client that refuses br but takes gzip (Safari over http, the Simulator's preview runs) is
+// re-encoded as gzip, as near to production's br as http allows; decoded, Driftwood's parts moved 53.0 MB instead of
+// 21.6 MB and the packs arm read 33 s slower than the Shardfile arm, whose loose files were gzipped
+const brotliDecompressAsync = promisify(brotliDecompress), gzipAsync = promisify(gzipCallback);
+const gzippedParts = createEncodedFileCache({ maxBytes: 512 * 1024 * 1024, maxFileBytes: 64 * 1024 * 1024,
+  encode: async file => gzipAsync(await brotliDecompressAsync(await readFileAsync(file))) });
 
 /** An explicitly refused encoding must not be selected through the wildcard. */
 function encodingQuality(header, encoding) {
@@ -80,6 +88,13 @@ async function streamEncoded(file, encoder, res) {
   catch (error) { res.destroy(error instanceof Error ? error : new Error(String(error))); }
 }
 
+/** A gzipped part's whole body with its length; a part that will not decode is a 500, as the identity path's is. */
+async function sendGzippedPart(gzipped, res) {
+  let body;
+  try { body = await gzipped; } catch { res.removeHeader('Content-Encoding'); res.statusCode = 500; res.end(); return; }
+  if (res.destroyed) return;
+  res.setHeader('Content-Length', String(body.length)); res.end(body);
+}
 async function sendEncoded(encoded, res) {
   try {
     const bytes = await encoded;
@@ -138,7 +153,17 @@ const server = createServer((req, res) => {
   // gets the decoded body without that header (the replayed rule set it), so local runs never see raw Brotli bytes.
   if (part) {
     varyEncoding(res);
-    const accepted = encodingQuality(acceptEncoding, 'br') > 0, encoded = readFileSync(file);
+    const accepted = encodingQuality(acceptEncoding, 'br') > 0;
+    if (!accepted && encodingQuality(acceptEncoding, 'gzip') > 0) {
+      const gzipped = gzippedParts.get(file, etag, stat.size, 'gzip');
+      if (gzipped !== undefined) {
+        res.setHeader('Content-Encoding', 'gzip');
+        if (req.method === 'HEAD') { res.end(); return; }
+        void sendGzippedPart(gzipped, res);
+        return;
+      }
+    }
+    const encoded = readFileSync(file);
     let body = encoded;
     if (accepted) res.setHeader('Content-Encoding', 'br');
     else {
