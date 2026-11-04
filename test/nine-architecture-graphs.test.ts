@@ -14,8 +14,8 @@ import { postChainRows } from '../src/shards/nalati-grasslands/generators/postCh
 import { EffectComposer } from 'postprocessing';
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { classicProgramText, type MacroValue } from './fixtures/classicProgramText';
 import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { viewmodelGraphs } from '../src/shards/nine-dragon-stack/generators/viewmodelGraphs';
 import { architectureGraphs, crowdGraph } from '../src/shards/nine-dragon-stack/generators/architectureGraphs';
@@ -49,28 +49,21 @@ function renderer(): THREE.WebGLRenderer {
   return result;
 }
 
+/**
+ * A graph's classic program as one draw of it runs: its stages with three's chunks expanded under the macros three's prefix
+ * sets for that draw (a fogged scene; an instanced mesh with colours; a skinned mesh) and the material's own defines.
+ */
 function build(graph: GraphIr, instanced: boolean, skinned = false): { vertex: string; fragment: string } {
-  const fogGraph = compileGraph(fog['nine-silk-fog'], { trustedBudget: true });
-  const compiled = compileGraph(graph, { trustedBudget: true, fog: () => { if (fogGraph.fog === null) throw new Error('Missing silk fog'); return fogGraph.fog; } });
-  const geometry = new THREE.PlaneGeometry(1, 1);
-  for (const [name, count] of Object.entries({ aFace: 4, aPat: 4, aMisc: 4, aOff: 2, aSpill: 3, aTan: 3, aWin: 4, aWall: 3, aMat: 4, aNs: 3, aHullN: 3, aCloth: 4, aAge: 1, aUv: 2, aSide: 2, aOut: 1 })) geometry.setAttribute(name, new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * count), count));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(1), 3));
-  if (skinned) {
-    geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(new Uint16Array(geometry.getAttribute('position').count * 4), 4));
-    geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(Array.from({ length: geometry.getAttribute('position').count * 4 }, (_, i) => i % 4 === 0 ? 1 : 0), 4));
-  }
-  const mesh = skinned ? new THREE.SkinnedMesh(geometry, compiled.material) : instanced ? new THREE.InstancedMesh(geometry, compiled.material, 2) : new THREE.Mesh(geometry, compiled.material);
-  if (mesh instanceof THREE.SkinnedMesh) { const bone = new THREE.Bone(); mesh.add(bone); mesh.bind(new THREE.Skeleton([bone])); }
-  if (mesh instanceof THREE.InstancedMesh) { mesh.setMatrixAt(0, new THREE.Matrix4().makeScale(2, 3, 1)); mesh.setColorAt(0, new THREE.Color(1, 0.5, 0.2)); }
-  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(), handler = new EngineNodesHandler();
-  scene.fog = new THREE.Fog(0x8899aa, 5, 300); scene.add(mesh); handler.setRenderer(renderer()); handler.renderStart(scene, camera); handler.updateLights([]);
-  const parameters: object = {};
-  const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
-  if (!isParameters(parameters)) throw new Error('Missing parameters');
+  const fogGraph = compileClassicGraph(fog['nine-silk-fog'], { trustedBudget: true });
+  const compiled = compileClassicGraph(graph, { trustedBudget: true, fog: () => { if (fogGraph.fog === null) throw new Error('Missing silk fog'); return fogGraph.fog; } });
   try {
-    handler.build(compiled.material, mesh, parameters);
-    return { vertex: parameters.vertexShader, fragment: parameters.fragmentShader };
-  } finally { handler.renderEnd(); geometry.dispose(); compiled.material.dispose(); fogGraph.material.dispose(); }
+    const own: Record<string, MacroValue> = {};
+    for (const [name, value] of Object.entries(compiled.material.defines ?? {})) own[name] = typeof value === 'number' ? value : typeof value === 'string' && value !== '' ? value : true;
+    const defines: Record<string, MacroValue> = { ...own, USE_FOG: true };
+    if (instanced) { defines['USE_INSTANCING'] = true; defines['USE_INSTANCING_COLOR'] = true; }
+    if (skinned) defines['USE_SKINNING'] = true;
+    return { vertex: classicProgramText(compiled.material.vertexShader, defines), fragment: classicProgramText(compiled.material.fragmentShader, defines) };
+  } finally { compiled.material.dispose(); fogGraph.material.dispose(); }
 }
 
 const graphs = architectureGraphs();
@@ -90,8 +83,8 @@ function undominatedReads(shader: string): string[] {
     const line = raw.trim();
     if (line.startsWith('} else {')) { const then = stack.pop() ?? 0; open(); arms.set(then, stack.at(-1) ?? 0); continue; }
     for (let i = 0; i < line.split('}').length - 1; i++) stack.pop();
-    const write = /^(nodeVar\d+)\s*=\s*(.*);$/u.exec(line);
-    for (const [name] of (write?.[2] ?? line).matchAll(/\bnodeVar\d+\b/gu)) {
+    const write = /^(?:(?:float|int|bool|vec[234])\s+)?(t\d+_\w+)\s*=\s*(.*);$/u.exec(line);
+    for (const [name] of (write?.[2] ?? line).matchAll(/\bt\d+_\w+\b/gu)) {
       if ([...direct.values()].some(set => set.has(name)) && !stack.some(block => defined(name, block))) bad.add(name);
     }
     const assigned = write?.[1], block = stack.at(-1) ?? 0;
@@ -125,7 +118,7 @@ test('each existing material fits both caps and compiles its real instance chann
     expect(shaders.vertex, id).toContain('instanceColor');
     expect(shaders.fragment, id).toContain('sampler3D');
     expect(shaders.fragment, id).not.toContain('NaN');
-    expect(shaders.fragment, id).not.toContain('sRGBTransferOETF');
+    expect(shaders.fragment.slice(shaders.fragment.indexOf('void main()')), id).not.toContain('linearToOutputTexel');
     if (id === 'nine-architecture-cut') expect(shaders.fragment).toContain('discard');
   }
 });
@@ -149,7 +142,7 @@ test('the kit reads its walker dye channel even when the first mesh built lacks 
 
 test('volume sampling refuses wrong coordinates, dimensions and lent textures', () => {
   const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', params: { volume: { type: 'texture', role: 'lent', value: 'volume' } }, nodes: { sample: { op: 'texture3D', in: [[0.5, 0.5, 0.5]], param: 'volume' }, colour: { op: 'swizzle', in: ['sample'], mask: 'xyz' } }, stages: { surface: { colour: 'colour' } } };
-  const compiled = compileGraph(graph), volume = new THREE.Data3DTexture(new Uint8Array([1, 2, 3, 255]), 1, 1, 1);
+  const compiled = compileClassicGraph(graph), volume = new THREE.Data3DTexture(new Uint8Array([1, 2, 3, 255]), 1, 1, 1);
   expect(() => compiled.setTexture('volume', volume)).not.toThrow();
   expect(() => compiled.setTexture('volume', new THREE.Texture())).toThrow('3D texture');
   expect(validateGraph({ ...graph, nodes: { ...graph.nodes, sample: { op: 'texture3D', in: [[0.5, 0.5]], param: 'volume' } } }).ok).toBe(false);
@@ -165,7 +158,7 @@ test('held toon and hull graphs compile rigid and skinned without adding draws',
     for (const skinned of [false, true]) {
       let shader: ReturnType<typeof build>;
       try { shader = build(graph, false, skinned); } catch (cause) { throw new Error(`${id} skinned=${skinned}`, { cause }); }
-      expect(shader.fragment, id).not.toContain('sRGBTransferOETF');
+      expect(shader.fragment.slice(shader.fragment.indexOf('void main()')), id).not.toContain('linearToOutputTexel');
       expect(shader.vertex.includes('skinWeight'), id).toBe(skinned);
       if (id === 'nine-vm-body' && skinned) expect(shader.vertex).toContain('aNs');
       if (id.includes('cloth')) expect(shader.vertex).toContain('aCloth');
