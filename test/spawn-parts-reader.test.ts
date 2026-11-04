@@ -472,3 +472,33 @@ test('DL11: while a demanded file is in flight, manifest-order files run on at m
   await download.ready; await reading;
   vi.unstubAllGlobals();
 });
+
+test('DL11: a page read of a file a lane already took in manifest order still gets the link (sp-x9\'s review)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const rows = Array.from({length: 12}, (_, at) => ({url: `/shardfiles/example/blobs/bin/${at.toString(16).repeat(64)}.bin`, bytes: 4, hash: 'f'.repeat(64)}));
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 48});
+  const at = {url: '/assets/spawn/example-promote-1234567890abcdef.json', bytes: plain.length, totalBytes: 48, files: 12};
+  const started: string[] = [], release = new Map<string, () => void>();
+  const download = downloadSpawnManifest(at, {
+    cached: () => Promise.resolve(undefined), store: () => Promise.resolve(),
+    fetch: async url => {
+      const path = new URL(url).pathname;
+      if (path === at.url) return new Response(plain);
+      started.push(path); await new Promise<void>(resolve => { release.set(path, resolve); });
+      return new Response(new Uint8Array(4));
+    },
+  }, base);
+  const path = (index: number): string => rows[index]?.url ?? '';
+  const free = async (index: number): Promise<void> => { await vi.waitFor(() => { expect(release.has(path(index))).toBe(true); }); release.get(path(index))?.(); };
+  await vi.waitFor(() => { expect(started).toHaveLength(8); });
+  const reading = window.fetch(new URL(path(7), base).href); // already in flight as a manifest-order file
+  for (let index = 0; index < 7; index++) await free(index);
+  await vi.waitFor(() => { expect(started).toHaveLength(10); });
+  await new Promise(resolve => { setTimeout(resolve, 10); });
+  expect(started).not.toContain(path(10)); // two manifest lanes beside the promoted demand
+  await free(7);
+  await vi.waitFor(() => { expect(started).toHaveLength(12); });
+  for (const index of [8, 9, 10, 11]) await free(index);
+  await download.ready; await reading;
+  vi.unstubAllGlobals();
+});

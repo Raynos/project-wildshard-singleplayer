@@ -166,11 +166,18 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   const waits = new Map<string, Promise<boolean>>(), paths = new Map<string, string>();
   // DL11: files page reads are waiting on, in the order asked; the loose lanes take them before the manifest order.
   const demanded: string[] = [], taken = new Set<string>();
-  // Lanes waiting for a demand or a free slot (below); a demand or a finished file wakes them. A lane sleeps only while a
-  // demanded file is in flight, so an abort rejects that lane and the whole set with it.
+  // Lanes waiting for a demand or a free slot (below); a demand, a finished file, a failure or a cancel wakes them (a woken
+  // lane of an aborted job throws, sp-x9's review).
   const sleepers: (() => void)[] = [];
   const nudge = (): void => { for (const wake of sleepers.splice(0)) wake(); };
-  const demand = (url: string): void => { if (!taken.has(url) && !demanded.includes(url)) { demanded.push(url); nudge(); } };
+  // Loose lanes in flight, and those carrying a file a page read waits on (taken as a demand, or promoted when the page
+  // asks for a file a lane already took in manifest order).
+  let active = 0, demandsActive = 0;
+  const inFlight = new Set<string>(), demandedFlight = new Set<string>();
+  const demand = (url: string): void => {
+    if (inFlight.has(url)) { if (!demandedFlight.has(url)) { demandedFlight.add(url); demandsActive++; } return; }
+    if (!taken.has(url) && !demanded.includes(url)) { demanded.push(url); nudge(); }
+  };
   const settleFile = (url: string, stored: boolean): void => { settles.get(url)?.(stored); settles.delete(url); };
   // A failed or cancelled job: its waits fall through to the network and its map leaves the page whole.
   const releaseWaits = (): void => {
@@ -325,7 +332,6 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       // DL11: a demanded file gets the link, not only the next free lane. While one is in flight, manifest-order files run
       // on at most MANIFEST_FLOOR lanes (the pipe stays full), so a page read is not split eight ways (Pine's sky models
       // crawled at an eighth of the link: control 126-132 s against 121 s).
-      let active = 0, demandsActive = 0;
       const MANIFEST_FLOOR = 2;
       const nextLoose = async (): Promise<{readonly file: (typeof loose)[number]; readonly demanded: boolean} | undefined> => {
         for (;;) {
@@ -333,12 +339,12 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           for (let url = demanded.shift(); url !== undefined; url = demanded.shift()) {
             const file = looseByUrl.get(url);
             // counted as it is taken: lanes a nudge wakes together each see the others' choices
-            if (file !== undefined && !taken.has(url)) { taken.add(url); active++; demandsActive++; return {file, demanded: true}; }
+            if (file !== undefined && !taken.has(url)) { taken.add(url); inFlight.add(url); demandedFlight.add(url); active++; demandsActive++; return {file, demanded: true}; }
           }
           while (cursor < loose.length && taken.has(loose[cursor]?.url ?? '')) cursor++;
           const file = loose[cursor];
           if (file === undefined) return undefined;
-          if (demandsActive === 0 || active - demandsActive < MANIFEST_FLOOR) { cursor++; taken.add(file.url); active++; return {file, demanded: false}; }
+          if (demandsActive === 0 || active - demandsActive < MANIFEST_FLOOR) { cursor++; taken.add(file.url); inFlight.add(file.url); active++; return {file, demanded: false}; }
           await new Promise<void>(resolve => { sleepers.push(resolve); });
         }
       };
@@ -357,7 +363,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             // a job cancelled during the unabortable store publishes nothing to the page (sp-x2: after control it would)
             if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); controller.signal.throwIfAborted(); serve(file); }
             settleFile(file.url, true); wireCompleted += file.wireBytes; filesDone++; publish();
-          } finally { active--; if (next.demanded) demandsActive--; nudge(); }
+          } finally { inFlight.delete(file.url); active--; if (demandedFlight.delete(file.url)) demandsActive--; nudge(); }
         }
       }));
       // Settled: every wait answered, so the map leaves the page (the stored copies and part members stay until control).
@@ -365,7 +371,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     } catch (failure) {
       // A read waiting on a file this download will not store falls through to the network.
       releaseWaits();
-      error = failure instanceof Error ? failure.message : String(failure); publish(); controller.abort(); throw failure;
+      error = failure instanceof Error ? failure.message : String(failure); publish(); controller.abort(); nudge(); throw failure;
     }
   })();
   // A cancel settles `ready` (and every wait on it) at once, whatever the work is still awaiting.
@@ -377,7 +383,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   void listed.catch(() => undefined);
   return {ready, listed, snapshot, subscribe: listener => {listeners.add(listener); listener(snapshot()); return () => {listeners.delete(listener);};},
     resolve: input => {const url = new URL(input, base); return url.origin === new URL(base).origin ? aliases.get(url.pathname) ?? url.href : url.href;},
-    cancel: () => {controller.abort(); releaseWaits(); markStopped(controller.signal.reason); listeners.clear();}};
+    cancel: () => {controller.abort(); releaseWaits(); nudge(); markStopped(controller.signal.reason); listeners.clear();}};
 }
 
 let current: {key: string; download: SpawnDownload; foreground: boolean} | undefined;
