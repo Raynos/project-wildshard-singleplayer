@@ -1,4 +1,5 @@
 import { pageScope } from '../app/resources';
+import { jsonSlot } from '../saves/slots';
 /**
  * The KTX2 side of the texture loaders (E157, src/engine/boot/gpuFiles.ts says what and why).
  *
@@ -197,10 +198,22 @@ export async function prepareCompressedTexture<T extends THREE.Texture>(texture:
  * Clones share the mip data, so it is freed when the last of them has uploaded. An in-place WebGL restore could not
  * re-upload it, so a context loss reloads the page instead (gpuOnly.ts, GpuRecovery.ts — as iOS's GPU-process loss already does).
  */
-export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
-  registerCompressedMipmaps(t);
+export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T, immutable = false): T {
+  registerCompressedMipmaps(t, immutable);
   t.onUpdate = (): void => { compressedMipmapsUploaded(t); };
   return t;
+}
+
+/** D227 (Debug ▸ Loading & memory ▸ Retire glTF texture mips, default off; a risky memory change waits for a Simulator
+ *  reading, RENDERING.md): a glTF model's KTX2 textures retire their CPU mip chains at their first native draw, the
+ *  immutable path, instead of waiting for a consumer that finalizes their sampler (most GLB props never do: one level kept 77
+ *  uploaded textures' mips, 35.1 MB, at 30 s of play). Risks the row guards: a clone made after retirement uploads
+ *  nothing, and a sampler change after the first draw throws (assertCompressedMipmapsUnchanged). Read once per page. */
+export const GLTF_MIPS_SLOT = 'debug.gltfMips';
+let gltfMipsFrozen: boolean | undefined;
+function retireGltfMips(): boolean {
+  gltfMipsFrozen ??= jsonSlot(GLTF_MIPS_SLOT, 'device').read() === 'on';
+  return gltfMipsFrozen;
 }
 
 // every GLTFLoader the game makes (a dozen modules each own one): hand it the KTX2 loader when it parses, so the
@@ -225,7 +238,7 @@ export function installGltfKtx2(type: typeof GLTFLoader): void {
           gltf.scene.traverse((o) => {
             if (!(o instanceof THREE.Mesh)) return;
             const mats: unknown[] = Array.isArray(o.material) ? o.material : [o.material];
-            for (const m of mats) if (m instanceof THREE.Material) for (const v of Object.values(m)) if (v instanceof THREE.CompressedTexture) { releaseAfterUpload(v); textures.add(v); }
+            for (const m of mats) if (m instanceof THREE.Material) for (const v of Object.values(m)) if (v instanceof THREE.CompressedTexture) { releaseAfterUpload(v, retireGltfMips()); textures.add(v); }
           });
           const publish = async (): Promise<void> => {
             try {
