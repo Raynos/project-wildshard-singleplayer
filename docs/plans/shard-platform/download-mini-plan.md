@@ -5,6 +5,29 @@
 [bulk-download-mini-spike.md](../bulk-download-mini-spike.md); Jake's brief:
 [Download Speed Plan](https://claude.ai/artifact/24CcAJ4uMT32DFt4sVj83e).
 
+## Goal and spine (11-04, after Jake ~09:25: *"Don't fucking forget what the goal of the plan is"*)
+
+**Goal (G1000, G1008):** the phone downloads a few game-ready packs instead of ~1,300 files, and the loading bar's steps
+mostly vanish because the build already did them; what counts is tap → control and a smooth first 30 s, not bytes.
+**Spine: Runtime packs on by default (DL16).** Today they are off (`5d149d3512`), so every player still takes the
+Shardfile path and its whole bar. Every other row either makes packs safe to turn on, or deletes a step the packs can
+then carry baked. Each card step below is removed by a named row or kept as main-thread-only (GPU upload, DOM). Seconds
+from the ENTER WORLD tap, Nine on live `69fa647`: Simulator Safari ([board](../../../art/download/dl23-flow/nine-69fa647-sim-safari-cold-warm.jpg))
+and Chromium phone link ([board](../../../art/download/dl23-flow/nine-69fa647-chromium-phone-cold-warm.jpg)), cold (warm).
+
+| Card step | Sim | Chromium phone | Removed or shrunk by | Left on the phone |
+| --- | --- | --- | --- | --- |
+| Application + Runtime modules | 0.4 (< 0.2) | 6.0 at 0 % (0.8) | DL16 (tables in the first part), DL11 read order | entry JS evaluation |
+| Texture formats and audio catalogue | 0.2 (< 0.2) | 2.3 (0.2) | DL16 (catalogue a validated member) | the format probe |
+| Region world · Sky | 1.9 (1.0) | 2.1 (2.1) | DL7 (world); Sky unsorted → DL4 pass 2 | GPU lighting, if GPU-only |
+| Props while the download runs ("Read audio 1 / 10") | 6.7 (0) | 25.5 (0) | DL11 slice 4: parts in setup's read order | nothing: setup runs as bytes land |
+| Props after the last byte (Model libraries, "Reading 1,314 files") | 3.8 (3.8) | 11.4 (20.5) | DL16 (≈ 20 parts), DL6 (no GLB parse), DL7 P3 | `bufferData` uploads |
+| Equipment and HUD | 1.4 (0.5) | 3.9 (1.6) | DL4 pass 2 → DL6 / DL7 | HUD DOM |
+| Shaders (50 links + 33 textures) · program links | 6.2 (1.0) | 2.8 (2.0) | DL10, reopened | texture upload |
+| First drawn frames and minimap (step 27) | 3.9 (2.2) | 4.7 (3.5) | DL21 (split, name), DL22 (its late reads), DL10 | the warm frames (GPU) |
+| First second after control | 5 fps, meter 10.4 s | 11 fps, 9.6 s | DL24 (new) | 30 fps from second 1 |
+| **Control** | **26.1 (10.1)** | **62.2 (35.7)** | | |
+
 Jake, 2026-11-03 ~18:30: *"A shard file is not what the engine needs, right? A shard file is a output format. It's a
 machine and human readable output format for generating these levels and these shards. The actual freaking engine, when
 it comes to downloading, loading, running, executing, we can have a full static build pipeline that converts a shard
@@ -57,49 +80,6 @@ measured and not built (or folded); **open** = what is left, in one line.
 | DL21 | open | card from the tap `ecbf2b2cac`, review `ebe0481fa6` | a stuck boot shows an error with Retry; no Setup step unchanged > 3 s without its wait named; step 27's long frame |
 | DL22 | open | fence reads built `cf80c88836`, `c3b1a62914`, `1bef331141`, `5591d76604` | 12 Pine files with no stable identity; Nalati's and Nine's lists matched with no extra bytes |
 | DL23 | open | E526 recordings `3ab85885b9` (Safari Sim + Chromium boards) | the committed recording script, then every shard cold + warm passing the every-second bar |
-
-## Build order (11-04, for the spine)
-
-One queue, top first; every row is an Opus lane's (G1001), the coordinator assigns them (G1007: five Opus lanes).
-Seconds are Nine on `69fa647`, Simulator / Chromium phone link, cold, unless named.
-
-**A. Make the packs safe to turn on for everyone**
-1. **DL23 script first**: every gate below is read on it. It adds 30 s of walk and boost after control, a Runtime
-   packs run beside each default run, and an *upgrade* visit (last build's worker and cache, as a home-screen PWA): Jake's
-   phone on `69fa647` showed an unstyled card at 3 s and 0.00 MB at 16 s that the wiped-data Simulator run never showed.
-2. **DL16, packs on by default**: no recording has ever run with packs on. Gates: DL23 packs-on cold + warm on every
-   shard, tap → control no slower than the Shardfile run on the same build (bigger bytes fine, G1008); DL17 green on
-   every home with packs on (DL15's and DL17's leftovers); the Simulator whole-level memory reading (Nine, Pine);
-   goldens on every shard + WebKit; physics walk 0 stuck. Then the default flips, and the row goes after a clean week.
-3. **DL5's 'never seen' drops, only where (2) is slower**: Pine's packs book is ≈ 63 MB q11; its 24.8 MB never seen is
-   ≈ 20 s on the 1.25 MB/s link. Dropped for time, never for bytes, and only with the shard owner's word.
-
-**B. Build-time bakes that delete the biggest measured steps** (packs only, behind the Shardfile fallback)
-4. **DL11 slice 4, parts in setup's read order**: Props sits on 'Read audio 1 / 10' while the download runs (6.7 s /
-   25.5 s), and modules sit at 0 % on 'Read Product data section' (6.0 s, Chromium). The build knows the order from
-   DL22's recorded reads; the first part carries what setup reads first. Biggest single block on both recordings.
-5. **DL4 pass 2**: Sky (1.5 / 1.8 s), Equipment and HUD (1.4 / 3.9 s), Texture formats and audio catalogue (2.3 s
-   Chromium) and step 27 are not in the DL4 table; sort each as build / worker / main with its inputs. Small, and it
-   stops a step from hiding unowned.
-6. **DL6, GPU-ready geometry**: Model libraries is the largest CPU block after the last byte (4.5 / 14.0 s cold,
-   0.8 / 8.2 s warm). The I3 byte floor no longer gates it (G1008).
-7. **DL7, P3 reopened and the scene tables**: on the Simulator `world.world.assembly` is 7.3 s cold against 3.3 s warm
-   and `assembly:scenes` 5.0 against 1.0; the warm visit's IndexedDB snapshot is the difference, so ship it as a member.
-8. **DL10, reopened**: Shaders 5.0 s cold against 0.2 s warm on the Simulator (50 program links ≈ 3.5 s), plus 1.2 s of
-   program links; compile them under the 10.4 s download.
-9. DL12, DL13's tail, DL9's tail: built only if pass 2 or a recording puts them on the bar.
-
-**C. The card and the feel**
-10. **DL21**: styled from the first frame, bytes counted as they stream, every ≥ 3 s step names its wait, Retry on a
-    stuck load, step 27 split or explained (Jake's phone shots, moved here from DL0).
-11. **DL24 (new), the first 30 s after control**: nobody owned the post-control frame.
-12. **DL23's bar**: every shard cold, warm and upgrade passing on live, packs on.
-
-**D. Handshake and cleanup**
-13. DL18 bar 1: a one-model deploy changes one part (the handshake serves the packs, so it follows them).
-14. DL22: Nalati's and Nine's lists, Pine's 12 files with no stable identity.
-15. DL20: the loose copies leave the deploy a week after DL16 flips.
-16. DL1 and DL2: their readings are DL23 pairs, then closed.
 
 ## The hard rule: the level is complete when you get control
 
@@ -285,11 +265,11 @@ exception):**
   return (Driftwood's pier after the bridge leg, ~230 m out). The whole-cell home ring becomes the default only when
   Runtime packs do (DL5); until then these re-adds stay listed here.
 
-**Order (11-03; superseded 11-04 by the build order at the top):** DL17 and DL0 first (the gate and the measurement), then DL1–DL3 (small, independent). DL4 next, then DL5
+**Order:** DL17 and DL0 first (the gate and the measurement), then DL1–DL3 (small, independent). DL4 next, then DL5
 (the format everything else writes into) with DL18 (the handshake that serves it). DL6–DL13 and DL19 run in parallel
 on top of DL5. DL14 and DL15 any time. DL16 closes.
 
-**Lanes (Jake, ~18:40, G1001): an Opus 5.5 plan, every row.** *"I think this is definitely an Opus 5.5 plan. I don't trust Codex on this plan. It's too fucking hard. Codex 6.1 can review and assist."* Every DL row is built and landed by an Opus lane. Codex lanes review Opus commits, write tests and run measurements (phone-loading, download-bench, goldens runs) when asked, and land nothing of this plan themselves. The Opus ladder (G853) sets the pace. Jake's CI ask and Nine's QA rows (qa 11-03) come first; this plan takes idle Opus lanes, never a lane off those. **11-04 (G1007):** five Opus lanes until 90 % Claude weekly, then 2; two of them are this plan's (DL21 + DL23 first), and the build order at the top is their queue.
+**Lanes (Jake, ~18:40, G1001): an Opus 5.5 plan, every row.** *"I think this is definitely an Opus 5.5 plan. I don't trust Codex on this plan. It's too fucking hard. Codex 6.1 can review and assist."* Every DL row is built and landed by an Opus lane. Codex lanes review Opus commits, write tests and run measurements (phone-loading, download-bench, goldens runs) when asked, and land nothing of this plan themselves. The Opus ladder (G853) sets the pace. Jake's CI ask and Nine's QA rows (qa 11-03) come first; this plan takes idle Opus lanes, never a lane off those.
 
 **Out of scope:** streaming level content during play, in any form (Jake, above); the shardfile format itself (G934
 keeps it); one-world crossings (G828, Jake's plan).
