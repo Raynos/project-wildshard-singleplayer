@@ -160,3 +160,24 @@ test('DL21: a part streaming one byte every 50 s, before any member verifies, ke
   wait(61); expect(stalls).toEqual([['modules', 60_000]]);
   push(partBytes.slice(3)); close(); await download.ready;
 });
+
+test('DL13 default-path slice: until control, an uncontrolled page re-reads a stored file from the store, not the network', async () => {
+  // Pine's cold first visit (DL22) re-fetched 25.4 MB of files the spawn download had already stored. The page's fetch
+  // layer wraps the stubbed network below, which answers 'network' for anything the layer passes through.
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const disk = new Map<string, Response>(), plain = JSON.stringify({ ...manifest, parts: undefined });
+  const at = { ...address, url: '/assets/spawn/example-plain-1234567890abcdef.json', bytes: plain.length };
+  const download = downloadSpawnManifest(at, {
+    cached: url => Promise.resolve(disk.get(url)?.clone()),
+    store: (url, response) => { disk.set(url, response); return Promise.resolve(); },
+    fetch: url => { const path = new URL(url).pathname; return Promise.resolve(new Response(path === at.url ? plain : body(path))); },
+  }, base);
+  await download.ready;
+  const binURL = new URL(bin.url, base).href, read = async (init?: RequestInit): Promise<Uint8Array> => new Uint8Array(await (await window.fetch(binURL, init)).arrayBuffer());
+  expect(await read()).toEqual(new Uint8Array(4).fill(1));
+  // A retry still reaches the network; after control every read does.
+  expect(new TextDecoder().decode(await read({ cache: 'reload' }))).toBe('network');
+  releaseSpawnMembers();
+  expect(new TextDecoder().decode(await read())).toBe('network');
+  vi.unstubAllGlobals();
+});

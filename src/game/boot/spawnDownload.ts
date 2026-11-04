@@ -34,32 +34,45 @@ export type HeldParts = Readonly<Record<string, readonly string[]>>;
 /** DL5: part members by their exact URL until control, so this page's own reads of them (product reads, engine
  * fetches) are answered from the part instead of the network. A member that failed is null and reads fall through. */
 const members = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>();
-let layered = false;
+/** DL13's default-path slice (DL22): before the worker controls the page, its reads of a file the spawn download stored go
+ * to the network again (the page's HTTP cache evicted them: Pine re-fetched 25.4 MB before control). Until control, a GET
+ * of a stored URL is answered from that same store. */
+const storedUrls = new Set<string>();
+let storeRead: ((url: string) => Promise<Response | undefined>) | null = null;
+let layer: typeof fetch | null = null;
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
   ktx2: 'image/ktx2', bin: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
   gif: 'image/gif', avif: 'image/avif', svg: 'image/svg+xml'};
 const typeOf = (url: string): string => TYPES[/\.([a-z0-9]+)(?:\?|$)/u.exec(url)?.[1] ?? ''] ?? 'application/octet-stream';
-/** A GET of a member URL waits for its bytes; anything else, a retry or a failed member goes to the network. */
-function installMemberLayer(): void {
-  if (layered || typeof window === 'undefined') return;
-  layered = true;
+/** A GET of a member URL waits for its bytes, and of a stored URL reads the store; anything else, a retry, a failed member
+ *  or a store miss goes to the network. */
+function installMemberLayer(): boolean {
+  // Installed once per page, and again only if something replaced it (tests do); a page without fetch gets none.
+  if (typeof window === 'undefined' || typeof window.fetch !== 'function') return false;
+  if (layer !== null && window.fetch === layer) return true;
   const network = window.fetch.bind(window);
-  window.fetch = async (input, init) => {
+  layer = async (input, init) => {
     const request = input instanceof Request ? input : undefined;
     const method = (init?.method ?? request?.method ?? 'GET').toUpperCase(), cache = init?.cache ?? request?.cache;
-    if (members.size > 0 && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
+    if ((members.size > 0 || storedUrls.size > 0) && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
       const url = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href).href;
       const bytes = await members.get(url);
       if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
+      if (storedUrls.has(url) && storeRead !== null) {
+        const hit = await storeRead(url).catch(() => undefined);
+        if (hit?.status === 200) return hit;
+      }
     }
     return network(input, init);
   };
+  window.fetch = layer;
+  return true;
 }
 async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Control: the level is complete and its reads are done, so the member bytes go. */
-export function releaseSpawnMembers(): void { members.clear(); }
+export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); storeRead = null; }
 /** Debug 'Loading: runtime packs / shardfile' (DL16, default shardfile): set by the composition root before a spawn
  * download starts; this leaf reads no engine setting itself. */
 let packsOn = false;
@@ -162,6 +175,13 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         else missing.push(file);
       }
       progressKnown = true;
+      // An uncontrolled page (the `store` port exists only then) reads these from the store until control (read once).
+      const serve = (url: string): void => {
+        if (ports.store === undefined) return;
+        if (storeRead === null) { if (!installMemberLayer()) return; storeRead = ports.cached; }
+        storedUrls.add(url);
+      };
+      for (const file of files) if (!missing.includes(file)) serve(file.url);
       if (missing.length === 0) { complete = true; publish(); return; }
       publish(); let cursor = 0;
       // DL5: every part holding a missing member at once; members are cut out as their bytes land. A part that fails
@@ -232,7 +252,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             if (received > credited) {completedBytes += received - credited; credited = received; publish();}
           });
           if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
-          if (cachedCopy !== undefined) await ports.store?.(file.url, cachedCopy);
+          if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); serve(file.url); }
           wireCompleted += file.wireBytes; filesDone++; publish();
         }
       }));
