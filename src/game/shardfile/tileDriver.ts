@@ -20,6 +20,7 @@ import { TILE_SIZE, TILES_PER_SIDE, tileOf, tileOrder, type CellTile, type TileE
 import { noteEnteredTiles } from './enteredTileReadout';
 import { residentTileEntry } from './tileEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
+import { macrotask } from '@wildshard/engine/boot/plan';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { SPAWN_VIEW_M, spawnViewUsesCamera } from './controlRefinement';
 import { streamingDistance, streamingOrder, type StreamingBounds, type StreamingPoint, type StreamingView } from './streamingView';
@@ -28,6 +29,8 @@ import { streamingDistance, streamingOrder, type StreamingBounds, type Streaming
 const liveDrivers = new Set<TileDriver>();
 let loaderMode = false;
 const task = (): Promise<void> => new Promise(resolve => { pageScope.timeout(0, resolve); });
+/** DL21: the loader's settle re-checks its stall rule at least this often while one attach runs */
+const SETTLE_POLL_MS = 250;
 /** MF13: the longest a render tile in view waits to refine out of sight */
 const VIEW_DEFER_MS = 3000;
 /**
@@ -65,6 +68,8 @@ export class TileDriver {
   private centre: CellTile | null = null;
   private renderRing: ReadonlySet<number> = new Set();
   private busy = false;
+  /** the attach `step` started, while it runs (the loader's settle waits on it) */
+  private inflight: Promise<void> | null = null;
   private plan: TileRingPlan | null = null;
   private coarseScope: Scope | null = null;
   private coarseCount = 0;
@@ -109,7 +114,14 @@ export class TileDriver {
       const now = diagnosticNow();
       if (finished !== progress) { progress = finished; since = now; }
       else if (now - since > stallMs) throw new Error(`Tile fence stalled: ${String(open.length)} tiles inside it made no progress for ${String(Math.round(stallMs / 1000))} s (first: ${open.slice(0, 4).join(', ')})`);
-      await task();
+      // DL21: wait on the attach in flight (re-checking the stall at least every SETTLE_POLL_MS), then one fresh task, so the
+      // next tile starts as this one lands. Polling on timer hops spent the browser's 4 ms nested-timer clamp per turn: the
+      // whole cell's 64 tiles attach here with packs on (Nine's step 27, 3.0-3.5 s on the phone link, ~17 % of it idle)
+      // (nothing in flight: a content not ready yet; the timer hop keeps that wait from spinning)
+      const inflight = this.inflight;
+      if (inflight === null) { await task(); continue; }
+      await Promise.race([inflight.then(() => undefined, () => undefined), new Promise<void>(resolve => { pageScope.timeout(SETTLE_POLL_MS, resolve); })]);
+      await macrotask();
     }
   }
 
@@ -183,7 +195,9 @@ export class TileDriver {
       // MF13: in play, each render tile's attach and whether the camera sees it then (the walk probes read these)
       if (layer === 'render' && cone !== null) performance.mark('wildshard.tile.render', { detail: { key: next, seen: this.seen(next, cone), waited: Math.round(now - (this.wantedAt.get(next) ?? now)) } });
       this.busy = true;
-      void this.attach(next, layer).finally(() => { this.busy = false; });
+      const run = this.attach(next, layer).finally(() => { this.busy = false; if (this.inflight === run) this.inflight = null; });
+      this.inflight = run;
+      void run;
       return;
     }
   }
@@ -271,6 +285,9 @@ export class TileDriver {
   }
 
   private async prepare(key: number, layer: Layer, tile: Attachment, required: boolean): Promise<TileFailure> {
+    // DL21: under the loader each tile's attach is a measure (its contents' ms), so a recording splits step 27 by tile and
+    // content (the card names the step's wait; this says which content holds it)
+    const timed = loaderMode, started = timed ? diagnosticNow() : 0, contents: Record<string, number> = {};
     try {
       for (const content of this.contents) {
         if (tile.done.has(content)) continue;
@@ -280,10 +297,13 @@ export class TileDriver {
         // budget before admitting another stage, including background tiles.
         if (frameBudgetSpent(WORK_SLICE_MS)) await (loaderMode ? task() : this.pause()); // MF5: no frames under the card
         if (tile.scope.disposed || tile.scope.disposing) return null;
+        const at = timed ? diagnosticNow() : 0;
         await (layer === 'render' ? content.attach(key, tile.scope) : content.attachColliders?.(key, tile.scope));
+        if (timed) contents[content.id] = Math.round(diagnosticNow() - at);
         if (tile.scope.disposed || tile.scope.disposing) return null;
         tile.done.add(content);
       }
+      if (timed && Object.keys(contents).length > 0) performance.measure('wildshard.tile.attach', { start: started, detail: { key, layer, contents } });
       return null;
     } catch (error: unknown) {
       if (this.attached[layer].get(key) === tile) this.attached[layer].delete(key);
