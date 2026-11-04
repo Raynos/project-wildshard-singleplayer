@@ -87,8 +87,9 @@ export const PART_TARGET_BYTES = 9_000_000;
  * one section path or name prefix) sit together, and a part ends where the keys say: after a member whose key hash falls
  * under its own share of the target (its size / PART_TARGET_BYTES), or before PART_BYTES would be passed. A boundary
  * depends on its member alone, so an edit changes the parts holding the edited members (and a neighbour where a forced
- * cut moves) instead of a scatter. Volatile members (sections, schemas, build assets: `volatile|` keys) form their own
- * run, so a rebuild's restamped files never share a part with content. */
+ * cut moves) instead of a scatter. Sections and schemas (`section|` keys) and build assets (`volatile|`) each form their
+ * own run, so a rebuild's restamped files never share a part with content, and setup's first reads never sit behind
+ * the build assets. */
 export function placeByKey(urls: readonly string[], size: (url: string) => number, key: (url: string) => string): string[][] {
   const order = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
   const sorted = [...urls].sort((a, b) => order(key(a), key(b)) || order(a, b));
@@ -104,12 +105,15 @@ export function placeByKey(urls: readonly string[], size: (url: string) => numbe
   cut();
   return parts;
 }
-/** A member's placement key: `volatile|` for sections, schemas and build assets, `content|` for level files; then its
- *  stable name (a model's, a section's, or where a section names an unnamed blob), else its URL without content hashes. */
+/** A member's placement key: `section|` for sections and schemas, `volatile|` for build assets (`/assets`), `content|`
+ *  for level files; then its stable name (a model's, a section's, or where a section names an unnamed blob), else its URL
+ *  without content hashes. DL11 slice 4: setup reads the sections first, so they run apart from the build assets; sharing
+ *  one run, Nine's sections sat behind its 3.9 MB of boot audio in one part ('Read Product data section' waited 7.2 s on
+ *  the phone link), and every rebuild's restamped sections rewrote that audio part too (DL18). */
 export function placementKey(url: string, stable: string | undefined): string {
   // Build keys carry the product prefix (`/shardfiles/<shard>/section:world/scenes`).
-  const volatile = stable !== undefined && /(?:^|\/)(?:section|schema):/u.test(stable) || url.startsWith('/assets/');
-  return `${volatile ? 'volatile' : 'content'}|${stable ?? url.replaceAll(/[a-f0-9]{8,}/gu, '').replace(/\?v=$/u, '')}`;
+  const kind = stable !== undefined && /(?:^|\/)(?:section|schema):/u.test(stable) ? 'section' : url.startsWith('/assets/') ? 'volatile' : 'content';
+  return `${kind}|${stable ?? url.replaceAll(/[a-f0-9]{8,}/gu, '').replace(/\?v=$/u, '')}`;
 }
 /** Write every part under `outDir/assets/spawn/parts/` and return each manifest's part table (same order as input).
  * DL15 / CI disk: a part is encoded while it is built and only its q11 body is written (`<name>.pack.br`); no raw part

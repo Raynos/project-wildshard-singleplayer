@@ -159,14 +159,17 @@ test('DL18: an edit that rewrites one section\'s blobs changes only the parts th
   // Volatile files (sections, build assets) never share a part with level content.
   const mixed = [...before.map(row => row.url), '/shardfiles/s/sections/look/map.json?v=aaaaaaaa', '/assets/boot-tables-0123abcd.json'];
   const volatileKey = (url: string): string => placementKey(url, url.includes('/sections/') ? 'section:look/map' : url.startsWith('/assets/') ? undefined : keyOf(url).split('|')[1]);
-  for (const part of placeByKey(mixed, url => url.endsWith('.json') || url.includes('.json?') ? 500 : sizeOf(before)(url), volatileKey)) {
+  const placed = placeByKey(mixed, url => url.endsWith('.json') || url.includes('.json?') ? 500 : sizeOf(before)(url), volatileKey);
+  for (const part of placed) {
     expect(new Set(part.map(url => volatileKey(url).split('|')[0])).size).toBe(1);
   }
+  // DL11 slice 4: a section never waits behind a build asset (Nine's sections sat 4.96 MB into its audio part)
+  expect(placed.find(part => part.includes('/assets/boot-tables-0123abcd.json'))).not.toContain('/shardfiles/s/sections/look/map.json?v=aaaaaaaa');
 });
 
-test('DL18: a product-prefixed section or schema key is volatile; a model or scene key is content', () => {
-  expect(placementKey('/shardfiles/s/sections/look/map.json?v=aaaaaaaa', '/shardfiles/s/section:look/map')).toBe('volatile|/shardfiles/s/section:look/map');
-  expect(placementKey('/shardfiles/s/schemas/a.json', '/shardfiles/s/schema:schemas/a.json').startsWith('volatile|')).toBe(true);
+test('DL18: a product-prefixed section or schema key is a section; a build asset is volatile; a model or scene key is content', () => {
+  expect(placementKey('/shardfiles/s/sections/look/map.json?v=aaaaaaaa', '/shardfiles/s/section:look/map')).toBe('section|/shardfiles/s/section:look/map');
+  expect(placementKey('/shardfiles/s/schemas/a.json', '/shardfiles/s/schema:schemas/a.json').startsWith('section|')).toBe(true);
   expect(placementKey('/assets/boot-tables-0123abcd.json', undefined)).toBe('volatile|/assets/boot-tables-.json');
   expect(placementKey('/shardfiles/s/blobs/glb/x.glb', '/shardfiles/s/world/scenes:libraries.24.tiles.0.files.3.file').startsWith('content|')).toBe(true);
   expect(placementKey('/shardfiles/s/blobs/glb/x.glb', '/shardfiles/s/models/section-gate.glb').startsWith('content|')).toBe(true);
