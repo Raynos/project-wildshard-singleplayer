@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import {expect, test} from 'vitest';
 import {SaveStore} from '../src/engine/saves/store';
-import {titlePrefetchChoice, titlePrefetchTargets} from '../src/game/grid/titlePrefetchChoice';
+import {titlePrefetchChoice, titlePrefetchFlow, titlePrefetchTargets} from '../src/game/grid/titlePrefetchChoice';
 import type {TitleManifest} from '../src/game/shard/titleList';
 import * as v from 'valibot';
 
@@ -44,4 +44,15 @@ test('title selects the compiled home then last, deduplicating and refusing unav
   expect(titlePrefetchTargets('unknown', 'blender-template', rows, true)).toEqual([]);
   expect(titlePrefetchTargets('_template', null, rows, false)).toEqual([]);
   expect(titlePrefetchTargets('_template', null, rows, true)).toEqual(['_template']);
+});
+
+test('a first visit reads ahead for the grid home when INFINITE WILDSHARD is shown; a remembered pick keeps its flow', () => {
+  // DL2: the title's read-ahead stores the files the next document's own spawn manifest asks for.
+  expect(titlePrefetchFlow('driftwood-isle', null, 'client', true)).toBe('grid');
+  expect(titlePrefetchFlow('driftwood-isle', null, 'client', false)).toBe('client');
+  expect(titlePrefetchFlow('nalati-grasslands', 'nalati-grasslands', 'client', true)).toBe('client');
+  expect(titlePrefetchFlow('driftwood-isle', 'driftwood-isle', 'grid', false)).toBe('grid');
+  // A last pick that cannot seed downloads falls back to the home's first card.
+  expect(titlePrefetchFlow('driftwood-isle', 'blender-template', 'client', true)).toBe('grid');
+  expect(titlePrefetchFlow(undefined, null, 'client', true)).toBe('grid');
 });

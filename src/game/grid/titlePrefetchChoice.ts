@@ -26,6 +26,13 @@ export function titlePrefetchChoice(store: Pick<SaveStore, 'define'>): TitlePref
 
 /** The grid home goes first, followed by the last chosen compiled product.
  * Frozen LEGACY-only, hidden and unavailable metadata never seeds downloads. */
+/** DL2: the flow the title reads ahead for. A remembered product keeps its own flow. Otherwise (a first visit, or a
+ * last pick that cannot seed downloads) the title reads the home for its first card: INFINITE WILDSHARD's grid entry
+ * when that card is shown, so the next document finds its own spawn manifest's files already stored. */
+export function titlePrefetchFlow(target: string | undefined, last: string | null, lastFlow: 'client' | 'grid', gridShown: boolean): 'client' | 'grid' {
+  if (target !== undefined && target === last) return lastFlow;
+  return gridShown ? 'grid' : 'client';
+}
 export function titlePrefetchTargets(home: string | undefined, last: string | null, rows: readonly TitleManifest[], developer: boolean): readonly string[] {
   const bySlug = new Map<string, TitleManifest>(rows.map(row => [row.slug, row]));
   return [...new Set([home, last])].filter((slug): slug is string => {

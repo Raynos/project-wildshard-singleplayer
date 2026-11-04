@@ -22,7 +22,7 @@ import { pageScope } from '@wildshard/engine/app/resources';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { titlePrefetchOrder } from './grid/titleOrder';
 import { findTitleManifest, titleManifests } from './shard/titleList';
-import { titlePrefetchChoice, titlePrefetchTargets } from './grid/titlePrefetchChoice';
+import { titlePrefetchChoice, titlePrefetchFlow, titlePrefetchTargets } from './grid/titlePrefetchChoice';
 
 import { GAME_STRINGS } from './strings';
 import { WHATS_NEW, type WhatsNew } from './whatsNew';
@@ -164,7 +164,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     owner.raf(() => {
       const choice = titlePrefetchChoice(saves), selectedMode = gridMode(mode().devserver, mode());
       const targets = titlePrefetchTargets(titlePrefetchOrder(selectedMode)[0], choice.read(), titleManifests(), mode().developer);
-      const flow = targets.at(-1) === choice.read() ? choice.flow() : 'client';
+      const flow = titlePrefetchFlow(targets.at(-1), choice.read(), choice.flow(), gridEntryShown(mode()));
       const load = async (): Promise<void> => {
         const {startTitlePrefetch} = await import('./grid/prefetch');
         if (owner.disposed || leavingTitle) return;
