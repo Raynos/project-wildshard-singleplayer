@@ -142,6 +142,10 @@ function workerReply<T>(worker: ServiceWorker, type: 'BUILD' | 'VERSION' | 'PREC
   });
 }
 
+/** DL1: whether the worker holds its build's code (it precaches now if not); false after failure/retirement. */
+async function precached(worker: ServiceWorker): Promise<boolean> {
+  return await workerReply(worker, 'PRECACHE', value => typeof value === 'object' && value !== null && 'ok' in value && value.ok === true ? true : null) === true;
+}
 /** The exact build answered by the worker, or null after failure/retirement. */
 function buildOf(worker: ServiceWorker): Promise<string | null> {
   return workerReply(worker, 'BUILD', value => typeof value === 'object' && value !== null && 'build' in value && typeof value.build === 'string' ? value.build : null);
@@ -194,8 +198,10 @@ async function activateWaiting(): Promise<boolean> {
     || !adoptable(w) || target !== newestBuild || !matchesNewest(build, target)) return false;
   // DL1: an update installs shell-only. Adopt it only once its code is held (offline-safe next document); a failed
   // precache leaves the current worker in place and the ordinary fallback.
-  const held = await workerReply(w, 'PRECACHE', value => typeof value === 'object' && value !== null && 'ok' in value && value.ok === true ? true : null);
-  if (held !== true || pageScope.disposed || pageScope.disposing || registration?.waiting !== w || !adoptable(w)) return false;
+  const held = await precached(w);
+  // A newer build discovered while this one precached wins: re-check the newest target after the wait.
+  if (!held || pageScope.disposed || pageScope.disposing || registration?.waiting !== w || !adoptable(w)
+    || target !== newestBuild || !matchesNewest(build, newestBuild)) return false;
   return new Promise<boolean>((resolve) => {
     const attempt = pageScope.child('worker-adoption');
     const finish = (claimed: boolean): void => { resolve(claimed); attempt.dispose(); };
@@ -248,6 +254,9 @@ export function refreshWorkerForChunkRecovery(build: string, allowed: () => bool
         if (identity?.startsWith(`${build}-`) !== true) { finish(false); return; }
         if (!allowed()) { finish(false); return; }
         if (worker.state === 'activated') { finish(true); return; }
+        // DL1: an installed update holds only its shell; recovery activates it only once its code is held.
+        if (!await precached(worker)) { finish(false); return; }
+        if (owner.disposed || worker.state !== 'installed' || !allowed()) { finish(false); return; }
         owner.listen(container, 'controllerchange', () => { if (container.controller === worker) finish(true); });
         // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker messages have no targetOrigin.
         worker.postMessage({ type: 'SKIP_WAITING' });
