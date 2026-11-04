@@ -291,3 +291,22 @@ test('DL11: a read made before its part starts waits for the file, then gets the
   expect(network).not.toHaveBeenCalled();
   vi.unstubAllGlobals();
 });
+
+test('DL11: a download cancelled during its manifest store publishes no file waits (sp-x2\'s re-review)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const plain = JSON.stringify({ ...manifest, parts: undefined });
+  const at = { ...address, url: '/assets/spawn/example-overlap-store-1234567890abcdef.json', bytes: plain.length };
+  let stored = (): void => undefined, storeCalled = false;
+  const storing = new Promise<void>(resolve => { stored = resolve; });
+  const download = downloadSpawnManifest(at, {
+    cached: url => url.endsWith('.json') ? Promise.resolve(undefined) : new Promise<Response | undefined>(() => { /* the census never returns */ }),
+    store: url => { if (!url.endsWith('.json')) return Promise.resolve(); storeCalled = true; return storing; },
+    fetch: url => Promise.resolve(new Response(new URL(url).pathname === at.url ? plain : body(new URL(url).pathname))),
+  }, base);
+  await vi.waitFor(() => { expect(storeCalled).toBe(true); });
+  download.cancel(); await expect(download.ready).rejects.toThrow();
+  stored(); await new Promise(resolve => { setTimeout(resolve, 0); });
+  // the store returned after the cancel: a later read of a listed file is not held by the cancelled job
+  expect(await (await window.fetch(new URL(bin.url, base).href)).text()).toBe('network');
+  vi.unstubAllGlobals();
+});

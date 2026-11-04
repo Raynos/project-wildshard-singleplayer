@@ -45,9 +45,12 @@ let layer: typeof fetch | null = null;
  *  entered such a reader would come back here under the reader's own signal and wait for itself (sp-x2's review). */
 let beneath: typeof fetch | null = null;
 const downloadFetch = (): typeof fetch => beneath ?? fetch;
-/** DL11: loading overlaps the download. Each listed file's download (true once it is stored), so a page read of it waits
- *  for that file, not the whole set; the download's own requests (by their abort signal) pass straight through. */
-const pendingFiles = new Map<string, Promise<boolean>>(), ownSignals = new WeakSet<AbortSignal>();
+/** DL11: loading overlaps the download. The running job's file waits (each listed file's download, true once it is
+ *  stored), so a page read of a listed file waits for that file, not the whole set. One map per job, current only from its
+ *  listing until it fails, is cancelled or control releases it: a cancelled job's waits never answer for the next job
+ *  (wildshard-new, after sp-x2's re-review). The download's own requests (by their abort signal) pass straight through. */
+let jobWaits: ReadonlyMap<string, Promise<boolean>> | null = null;
+const ownSignals = new WeakSet<AbortSignal>();
 /** While the entry's download runs, a level read it does not list (a loader reading a file its set lacks) waits for the
  *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
  *  tables or code. The shell's art loads through `<img>`, which no fetch layer sees. */
@@ -69,12 +72,12 @@ function installMemberLayer(): boolean {
     const request = input instanceof Request ? input : undefined;
     const method = (init?.method ?? request?.method ?? 'GET').toUpperCase(), cache = init?.cache ?? request?.cache;
     const signal = init?.signal ?? request?.signal, own = signal !== undefined && signal !== null && ownSignals.has(signal);
-    if ((members.size > 0 || storedUrls.size > 0 || pendingFiles.size > 0 || unlistedWait !== null) && !own && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
+    if ((members.size > 0 || storedUrls.size > 0 || jobWaits !== null || unlistedWait !== null) && !own && method === 'GET' && cache !== 'reload' && cache !== 'no-store') {
       const address = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href), url = address.href;
       // the file's download first: a packed member's bytes are keyed only once its part starts (sp-x2's review)
-      const pending = pendingFiles.get(url);
+      const pending = jobWaits?.get(url);
       if (pending !== undefined) await pending;
-      else if (unlistedWait !== null && address.origin === location.origin && levelRead(address.pathname)) await unlistedWait;
+      else if (unlistedWait !== null && address.origin === new URL(document.baseURI).origin && levelRead(address.pathname)) await unlistedWait;
       const bytes = await members.get(url);
       if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
       const expected = storedUrls.get(url);
@@ -99,7 +102,7 @@ async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Control: the level is complete and its reads are done, so the member bytes go. */
-export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); pendingFiles.clear(); storeRead = null; }
+export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); jobWaits = null; storeRead = null; }
 /** Debug 'Loading: runtime packs / shardfile' (DL16, default shardfile): set by the composition root before a spawn
  * download starts; this leaf reads no engine setting itself. */
 let packsOn = false;
@@ -148,11 +151,14 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   // Every page read this download holds: a listed file's wait and a part member's bytes, settled when the file lands or
   // at once when the download fails or is cancelled (a cancel never waits for a storage call to return, sp-x2's review).
   const settles = new Map<string, (stored: boolean) => void>(), memberSettles = new Set<(bytes: null) => void>();
+  const waits = new Map<string, Promise<boolean>>();
   const settleFile = (url: string, stored: boolean): void => { settles.get(url)?.(stored); settles.delete(url); };
+  // A failed or cancelled job: its waits fall through to the network and its map leaves the page whole.
   const releaseWaits = (): void => {
     for (const resolve of settles.values()) resolve(false);
     for (const resolve of memberSettles) resolve(null);
     settles.clear(); memberSettles.clear();
+    if (jobWaits === waits) jobWaits = null;
   };
   let markListed = (): void => undefined, markStopped = (_reason: unknown): void => undefined;
   const listedOnly = new Promise<void>(resolve => { markListed = resolve; });
@@ -171,8 +177,13 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const files = manifest.files.map(file => {
         const url = new URL(file.url, base); aliases.set(url.pathname, url.href); return {bytes: file.bytes, hash: file.hash, wireBytes: file.wireBytes ?? 0, url: url.href};
       });
-      // DL11: from here a page read of a listed file waits for that file (a cached one settles at once below)
-      if (installMemberLayer()) for (const file of files) pendingFiles.set(file.url, new Promise(resolve => { settles.set(file.url, resolve); }));
+      // DL11: from here a page read of a listed file waits for that file (a cached one settles at once below). A download
+      // cancelled during the manifest's unabortable store publishes nothing (sp-x2's re-review).
+      controller.signal.throwIfAborted();
+      if (installMemberLayer()) {
+        for (const file of files) waits.set(file.url, new Promise<boolean>(resolve => { settles.set(file.url, resolve); }));
+        jobWaits = waits;
+      }
       markListed();
       // DL18: on a warm visit the held-parts index and the cache's keys answer every packed member at once; the few
       // loose files left are looked up one by one, so no bulk read of the cache runs.
@@ -228,7 +239,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         storedUrls.set(file.url, {bytes: file.bytes, hash: file.hash});
       };
       for (const file of files) if (!missing.includes(file)) serve(file);
-      if (missing.length === 0) { complete = true; publish(); return; }
+      if (missing.length === 0) { complete = true; if (jobWaits === waits) jobWaits = null; publish(); return; }
       publish(); let cursor = 0;
       // DL5: every part holding a missing member at once; members are cut out as their bytes land. A part that fails
       // hands its unfinished members to the loose loop below (its files stay deployed).
@@ -302,7 +313,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           settleFile(file.url, true); wireCompleted += file.wireBytes; filesDone++; publish();
         }
       }));
-      controller.signal.throwIfAborted(); complete = true; publish();
+      // Settled: every wait answered, so the map leaves the page (the stored copies and part members stay until control).
+      controller.signal.throwIfAborted(); complete = true; memberSettles.clear(); if (jobWaits === waits) jobWaits = null; publish();
     } catch (failure) {
       // A read waiting on a file this download will not store falls through to the network.
       releaseWaits();
