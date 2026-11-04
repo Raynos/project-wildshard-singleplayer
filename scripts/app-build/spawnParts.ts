@@ -16,11 +16,16 @@ export interface SpawnPartInput {readonly rows: readonly SpawnFile[]; readonly p
 interface Group {readonly key: string; readonly members: ReadonlySet<number>; readonly urls: string[]; bytes: number}
 
 const align = (at: number): number => Math.ceil(at / SPAWN_PART_ALIGN) * SPAWN_PART_ALIGN;
+/** Only files the page reads with fetch go in parts; the reader answers those. JS modules (`<script>`, `import()`) and
+ * images (`<img>` textures) load past any fetch layer, so on a first, uncontrolled visit they would download twice:
+ * they stay loose (DL14 cuts the code requests). */
+export const packable = (url: string): boolean => !/\.(?:js|mjs|css|png|jpe?g|webp|gif|avif|svg)(?:\?|$)/u.test(url);
 /** The groups after the steered merge (exported for the census and tests). */
 export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
   const need = new Map<string, Set<number>>(), size = new Map<string, number>(), order: string[] = [];
   manifests.forEach((manifest, index) => {
     for (const row of manifest.rows) {
+      if (!packable(row.url)) continue;
       const previous = size.get(row.url);
       if (previous !== undefined && previous !== row.bytes) throw new Error(`Spawn file sizes differ: ${row.url}`);
       if (previous === undefined) { size.set(row.url, row.bytes); order.push(row.url); }
@@ -36,7 +41,7 @@ export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
     group.urls.push(url); group.bytes += size.get(url) ?? 0;
   }
   const publicIndices = manifests.flatMap((manifest, index) => manifest.public ? [index] : []);
-  const own = new Map(publicIndices.map(index => [index, manifests[index]?.rows.reduce((sum, row) => sum + row.bytes, 0) ?? 0]));
+  const own = new Map(publicIndices.map(index => [index, manifests[index]?.rows.reduce((sum, row) => sum + (packable(row.url) ? row.bytes : 0), 0) ?? 0]));
   const over = new Map(publicIndices.map(index => [index, 0]));
   const partsOf = (group: Group): number => Math.max(1, Math.ceil(group.bytes / PART_BYTES));
   const needs = (index: number): number => [...groups.values()].reduce((sum, group) => sum + (group.members.has(index) ? partsOf(group) : 0), 0);
@@ -96,6 +101,7 @@ export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInp
   return manifests.map(manifest => {
     const parts = new Map<string, {url: string; bytes: number; hash: string; members: [number, number][]}>();
     manifest.rows.forEach((row, index) => {
+      if (!packable(row.url)) return;
       const at = placed.get(row.url); if (at === undefined) throw new Error(`Spawn file outside every part: ${row.url}`);
       let part = parts.get(at.url); if (part === undefined) { part = {url: at.url, bytes: at.bytes, hash: at.hash, members: []}; parts.set(at.url, part); }
       part.members.push([index, at.offset]);

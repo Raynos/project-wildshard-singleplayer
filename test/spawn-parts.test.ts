@@ -22,7 +22,9 @@ test('every manifest file is one aligned member of a shared part, with its exact
     const rows = inputs[index]?.rows ?? [];
     // The manifest grammar accepts the table as written.
     expect(readSpawnManifest({ version: 1, shard: 'a', tier: 'phone', flow: 'grid', files: rows, totalBytes: rows.reduce((sum, row) => sum + row.bytes, 0), parts }).parts).toEqual(parts);
-    expect(parts.flatMap(part => part.members.map(([member]) => member)).sort((left, right) => left - right)).toEqual(rows.map((_, at) => at));
+    // Fetched files are members; JS modules stay loose (DL14).
+    expect(parts.flatMap(part => part.members.map(([member]) => member)).sort((left, right) => left - right))
+      .toEqual(rows.flatMap((row, at) => row.url.endsWith('.js') ? [] : [at]));
     for (const part of parts) {
       const bytes = readFileSync(join(out, part.url.slice(1)));
       expect(bytes.length).toBe(part.bytes);

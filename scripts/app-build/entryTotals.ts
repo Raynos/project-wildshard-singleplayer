@@ -8,7 +8,8 @@ import {readGridSeams} from './gridSeams.mjs';
 import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/outputIndex';
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
-import {readSpawnManifest, type SpawnFile, type SpawnManifestAddress} from '../../src/format/spawnManifest';
+import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
+import {writeSpawnParts} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
 import {BrotliSizeCache} from '../brotli-size-cache.mjs';
@@ -49,6 +50,8 @@ export function writeSpawnManifests(outDir: string, input: unknown,
     const emitted = join(output, url.slice(1)), authored = join(publicRoot, url.slice(1));
     return readFileSync(existsSync(emitted) ? emitted : authored);
   };
+  // DL5: each listed URL's own bytes, read again only when its part is written.
+  const sources = new Map<string, () => Uint8Array>();
   const asset = (url: string, declared?: number): SpawnFile => {
     const previous = assets.get(url); if (previous !== undefined) {
       if (declared !== undefined && previous.bytes !== declared) throw new Error('Spawn asset size differs'); return previous;
@@ -57,7 +60,7 @@ export function writeSpawnManifests(outDir: string, input: unknown,
     if (declared !== undefined && declared !== bytes.length) throw new Error(`Spawn asset size differs: ${url}`);
     const versioned = contentNamed(url) || /[-_][a-zA-Z0-9_-]{8}\.(?:js|css)$/u.test(url) || url.startsWith('/basis/r');
     const row = {url: versioned ? url : `${url}?v=${hash.slice(0, 8)}`, bytes: bytes.length, hash, wireBytes: wireBytes(url, bytes, hash)};
-    assets.set(url, row); return row;
+    assets.set(url, row); sources.set(row.url, () => bytesFor(url)); return row;
   };
   const common: SpawnFile[] = [];
   if (existsSync(join(publicRoot, 'assets/physics/rapier.wasm'))) common.push(asset('/assets/physics/rapier.wasm'));
@@ -76,6 +79,8 @@ export function writeSpawnManifests(outDir: string, input: unknown,
   const seams = existsSync(join(root, 'out/.app/grid-seams.json')) ? readGridSeams(root).address : undefined;
   const client: Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>> = {}, grid: Record<string, Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>>> = {};
   mkdirSync(join(output, 'assets/spawn'), {recursive: true});
+  const pending: {manifest: Omit<SpawnManifest, 'parts'>; public: boolean}[] = [];
+  const clientAt: Record<string, {phone: number; desktop: number}> = {}, gridAt: Record<string, Record<string, {phone: number; desktop: number}>> = {};
   for (const prefix of Object.keys(bank.products)) {
     const directory = prefix.split('/')[2]; if (directory === undefined || !/^[a-z0-9_-]+$/u.test(directory)) throw new Error('Invalid spawn shard');
     const product = join(root, 'out', directory), header = readFileSync(join(product, 'shard.json')), raw: unknown = JSON.parse(header.toString('utf8')), index = parseOutputIndex(raw);
@@ -94,12 +99,14 @@ export function writeSpawnManifests(outDir: string, input: unknown,
         if (body.length !== bytes || createHash('sha256').update(body).digest('hex') !== hash) throw new Error('Spawn file differs from index');
         wire = wireBytes(path, body, hash);
       }
-      return {url: /\/[a-f0-9]{64}\.[a-z0-9]+$/u.test(path)
-      ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`, bytes, hash, wireBytes: wire};
+      const url = /\/[a-f0-9]{64}\.[a-z0-9]+$/u.test(path) ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`;
+      sources.set(url, () => readFileSync(join(product, path)));
+      return {url, bytes, hash, wireBytes: wire};
     };
-    const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = []): SpawnManifestAddress => {
+    const headerURL = `${prefix}shard.json?v=${headerHash.slice(0, 8)}`; sources.set(headerURL, () => header);
+    const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = [], mode = '000'): number => {
       const selected = new Map<string, SpawnFile>(), add = (row: SpawnFile): void => {selected.set(row.url, row);};
-      add({url: `${prefix}shard.json?v=${headerHash.slice(0, 8)}`, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
+      add({url: headerURL, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
       for (const row of [...index.sections, ...index.schemas]) add(productFile(row.path, row.bytes, row.hash));
       const wanted = entryReadSet(source, tier, index, sections);
       for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash));
@@ -133,15 +140,29 @@ export function writeSpawnManifests(outDir: string, input: unknown,
       const original = [...selected.values()], code = (row: SpawnFile): boolean => /\.(?:js|wasm)(?:\?|$)/u.test(row.url);
       const rows = [...original.filter(code), ...original.filter(row => !code(row))];
       const totalBytes = rows.reduce((sum, row) => sum + row.bytes, 0), wire = rows.reduce((sum, row) => {if (row.wireBytes === undefined) throw new Error('Missing spawn wire size'); return sum + row.wireBytes;}, 0);
-      const manifest = readSpawnManifest({version: 1, shard: directory, tier, flow, files: rows, totalBytes, wireBytes: wire});
-      const text = JSON.stringify(manifest), hash = createHash('sha256').update(text).digest('hex'), name = `assets/spawn/${directory}-${flow}-${tier}-${hash.slice(0, 16)}.json`;
-      writeFileSync(join(output, name), text); return {url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes, files: rows.length, wireBytes: wire};
+      // The public phone entries (client, and grid mode 000) steer how files share parts.
+      pending.push({manifest: {version: 1, shard: directory, tier, flow, files: rows, totalBytes, wireBytes: wire}, public: tier === 'phone' && (flow === 'client' || mode === '000')});
+      return pending.length - 1;
     };
-    client[directory] = {phone: write('phone', 'client'), desktop: write('desktop', 'client')};
-    for (const [mode, homes] of Object.entries(strips)) (grid[mode] ??= {})[directory] = {
-      phone: write('phone', 'grid', homes[directory]), desktop: write('desktop', 'grid', homes[directory]),
+    clientAt[directory] = {phone: write('phone', 'client'), desktop: write('desktop', 'client')};
+    for (const [mode, homes] of Object.entries(strips)) (gridAt[mode] ??= {})[directory] = {
+      phone: write('phone', 'grid', homes[directory], mode), desktop: write('desktop', 'grid', homes[directory], mode),
     };
   }
+  // DL5: every manifest is known, so pack their files into shared parts, then write each manifest with its own table.
+  const partTables = writeSpawnParts(output, pending.map(row => ({rows: row.manifest.files, public: row.public})), url => {
+    const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read();
+  });
+  const written: SpawnManifestAddress[] = [];
+  for (const [index, {manifest: base}] of pending.entries()) {
+    const manifest = readSpawnManifest({...base, parts: partTables[index] ?? []});
+    const text = JSON.stringify(manifest), hash = createHash('sha256').update(text).digest('hex'), name = `assets/spawn/${base.shard}-${base.flow}-${base.tier}-${hash.slice(0, 16)}.json`;
+    writeFileSync(join(output, name), text);
+    written.push({url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes: base.totalBytes, files: base.files.length, ...(base.wireBytes === undefined ? {} : {wireBytes: base.wireBytes})});
+  }
+  const at = (index: number): SpawnManifestAddress => { const address = written[index]; if (address === undefined) throw new Error('Missing spawn manifest'); return address; };
+  for (const [directory, pair] of Object.entries(clientAt)) client[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
+  for (const [mode, shards] of Object.entries(gridAt)) for (const [directory, pair] of Object.entries(shards)) (grid[mode] ??= {})[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
   return {cacheName: ASSET_CACHE_NAME, client, grid};
 }
 
