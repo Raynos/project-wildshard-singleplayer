@@ -150,6 +150,10 @@ export class Perf {
       else this.frameWindow.observe(game.frameCount, game.frameRafTime);
       this.paint(performance.now());
     });
+    // DL24 (G1008): the meter starts at control. Its window still held the loader's last hidden frame, so the first live
+    // one read as one 10.4 s frame (Nine on 69fa647: '5 fps · max 10395 ms' 0.5 s after control) while the card had kept
+    // moving all along
+    this.scope.listen(document, 'ws:control-ready', () => { this.frameWindow.reset(performance.now(), game.frameCount); });
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */

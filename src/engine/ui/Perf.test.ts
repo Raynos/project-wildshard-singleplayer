@@ -50,6 +50,30 @@ test('the real pill reports a freeze from its timer without another game update'
 });
 
 
+test('DL24: the meter starts at control, so the loader\'s hidden frames are no 10 s frame in the first second of play', () => {
+  vi.useFakeTimers();
+  let now = 0, update = (): void => undefined;
+  vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const scope = new Scope('frame-pill-control');
+  const game = legacyDouble<Game>({ app,
+    level: legacyDouble<Game['level']>({ id: 'frame-pill-control', budgets: {} }),
+    renderer: legacyDouble<Game['renderer']>({ getPixelRatio: () => 2 }),
+    gl: legacyDouble<Game['gl']>({ events: 0, restoredAt: 0, lostAt: 0 }),
+    frameMs: new Float32Array(120).fill(1000 / 30), frameCount: 0, frameRafTime: null, frameGate: () => true,
+    lastFrame: { calls: 1, triangles: 1 },
+    onUpdate: tick => { update = () => { tick(0, 0); }; },
+  });
+  try {
+    const meter = withOwner(scope, () => new Perf(game));
+    // the loader's last hidden frame, then 10.4 s under the card with the gate open and no draw
+    now = 100; game.frameCount = 1; game.frameRafTime = now; update(); vi.advanceTimersByTime(100);
+    now = 10_500; vi.advanceTimersByTime(10_400);
+    document.dispatchEvent(new Event('ws:control-ready'));
+    for (let frame = 1; frame <= 30; frame++) { now += 33; game.frameCount++; game.frameRafTime = now; update(); vi.advanceTimersByTime(33); }
+    expect(Number(/^max (\d+) ms$/u.exec(meter.root.querySelector('.ws-perf-ms')?.textContent ?? '')?.[1])).toBeLessThan(100);
+  } finally { scope.dispose(); }
+});
+
 function panelGame(): Game {
   return legacyDouble<Game>({ app,
     level: legacyDouble<Game['level']>({id:'lazy-panel',budgets:{}}),
