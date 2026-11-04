@@ -24,11 +24,11 @@ audio handoffs. Admission alone earns no reading qualification.
 
 | Plot | Actual instance / cell | Final candidate | Chromium/control, walk, goldens | Memory / Simulator |
 |---|---|---|---|---|
-| Fossil Badlands | `open-plot-1-0` / (-1,-2) | `0e0f1ba1c3` / `0e0f1ba-mw1c0i2g` | C/control measured; walk + goldens open | Memory complete; fresh-process official Sim queued |
+| Fossil Badlands | `open-plot-1-0` / (-1,-2) | `0e0f1ba1c3`; admitted `0e0f1ba-mw1c0i2g`, fresh Sim `0e0f1ba-mw1fkttz` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete |
 | Saltwind Lighthouse | `open-plot-2-4` / (0,2) | `f8a1406288` / `f8a1406-mw167rcy` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone Sim + authorized fresh grid complete |
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
-| Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f` / `6ce898e-mw1buojk` | C/control measured; walk + goldens open | Memory complete; original Sim refused/overlapped; one fresh-process retake queued |
+| Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | C/control measured; walk + goldens open | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | Awaiting audio handoff | Open | Open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | Awaiting audio handoff | Open | Open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | Awaiting audio handoff | Open | Open |
@@ -703,6 +703,9 @@ collider, controller, budget, tolerance or verification rule changes.
 
 ## Thin Ice — Memory/Simulator refusal (sp-x8)
 
+This preserves the original refused/overlapped admission and its then-queued
+retake. The completed single fresh-process retake is recorded below.
+
 Final audio-containing source **6ce898ee5fd69dc3a9a7ac3820a6ad562473bb26**,
 admitted build **6ce898e-mw1buojk**, used the **reused shared preview process**
 on :4402. All 166 files, 35 sections and four packs (205 listed payloads,
@@ -779,6 +782,9 @@ released normally; all own browsers and the old preview lease are released.
 The full Thin cohort remains open.
 
 ## Fossil Badlands — Memory/Simulator queue (sp-x8)
+
+This preserves the initial memory-boundary queue. The completed first
+fresh-process official admission is recorded below.
 
 Admitted final audio source **0e0f1ba1c35e2ff4ea16ac25260a29cf5f0a6e47**,
 build **0e0f1ba-mw1c0i2g**, used the reused shared :4400 preview for memory.
@@ -983,3 +989,171 @@ Raw records are `tmp/sp-x1-open-plots/pastel-final/cpu/`, reading
 `5fcb0ac75-23862-1793752689327`. The runner closed its browser and sent
 the literal end before sp-x6's finite DL9 turn. The maintained walk and
 eight-view golden bridge remain open; no visual source changes.
+
+## Thin Ice — authorized fresh-process official retake (sp-x8)
+
+The **one authorized D223 retake** completes memory/official scope on the
+same final audio source **6ce898ee5fd69dc3a9a7ac3820a6ad562473bb26**.
+A normal `serve-build --rev` starts a new preview on **:4435**, PID **2406**,
+actual build **6ce898e-mw1fktul**. The old shared preview had no remaining
+owners and was stopped normally. The new process has no previous browser
+or Simulator game visit before this command. This is a **fresh process**,
+not another lease on the original reused server.
+
+The literal product index and all **205 admitted payloads** are byte-exact
+to the original candidate, including all **201 pack entries**. Full source
+SHA comes from the normal immutable-preview registry. All **190 new runtime
+endpoints**, including HTML/version/SW and compiled JS/CSS, match their fresh
+disk bodies. The old compiled runtime inventory was not retained, so no
+old-versus-new compiled-byte parity is claimed. Build suffixes and these
+limits remain explicit in `fresh-process.json` and `runtime-bodies.json`.
+
+X1's two-score model turn and X6's golden browser released first. Global
+preflight caught a separate active browser and stale profiling command;
+the owners released both before admission. It then verified **0/4 game
+browsers, zero outside the lane**, an unchanged committed reader, the exact
+preview/index and empty result/native directories. The original model lock
+and Simulator lane are acquired normally. Quiet is actually observed at
+PID **23281**. No overlapping workload is reported during this retake.
+
+One original `frame-floor --surface=sim --quiet` command measures standalone
+spawn/road/plaza and grid home plus four source-derived junction directions.
+It completes in **90.269 s**, exit 0, **complete=true/pass=true**. All eight
+windows retain **120/120 drawn frames**, zero skips and page errors,
+**30.303 fps / p95 34 ms**. Every original **strict 33.3 ms flag remains
+false**. Apple GPU uses portrait CSS 402×714, canvas 804×1428, phone 2×
+and the shipped auto/30 fps policy; no texture or clock override.
+
+| Scope / pose | Max draws | Reported triangles | p99 / max ms |
+|---|---:|---:|---:|
+| Standalone spawn | 44 | 41,019 | 34 / 34 |
+| Standalone road | 49 | 40,510 | 34 / 34 |
+| Standalone plaza | 50 | 43,407 | 34 / 34 |
+| Grid home spawn | 107 | 1,082,095 | 38 / 38 |
+| Junction −135° | 57 | 67,982 | 40 / 40 |
+| Junction −45° | 48 | 179,401 | 34 / 38 |
+| Junction +45° | 77 | 138,073 | 34 / 34 |
+| Junction +135° | 68 | 69,009 | 34 / 34 |
+
+The native sampler has complete phase and GPU coverage. These are decimal
+**MB**, separate from the earlier Chromium **MiB** table. Each conservative
+envelope adds the phase's native interval maximum to the global GPU ledger
+maximum; those maxima need not coincide. GPU-process footprint is excluded.
+The memory sampler itself grants no timing credit.
+
+| Scope | Native playing/loading MB | GPU ledger MB | Envelope playing/loading MB | Phase samples playing/loading | GPU samples |
+|---|---:|---:|---:|---:|---:|
+| Standalone | 246.795 / 288.907 | 19.622 | 266.417 / 308.529 | 218 / 27 | 46 |
+| Pooled grid page | 718.606 / 618.914 | 139.607 | 858.213 / 758.521 | 363 / 71 | 77 |
+
+Standalone stays within the unchanged **1,200 MB playing / 1,800 MB loading**
+limits. The pooled grid page has **no 1.2 GB cap under G556**. GPU ledger
+unattributed memory is **0.840 MB standalone / 2.184 MB grid**; each scope
+retains one Inspector-closed entry. Coverage remains
+complete, with no missing-witness refusal.
+
+At all four junction views, actual Pine Hollow, Night Market, Thin Ice and
+Saltwind neighbours are **near and drawn**, **pending=[]**, crossing
+**settled**. The road has current=null and residents=[], so near visibility
+does not claim four gameplay residents. Grid home still has six pending
+neighbours; this is no whole-grid residency claim.
+
+Standalone pool observations retain **45 available logical blocks /
+3,080,192 B**, with zero hits/misses/blocked. Grid home has 40 available
+blocks / 2,752,512 B, five virgin hits and 45 cumulative returns. Each
+junction retains **41 available blocks / 2,818,048 B**, five virgin hits,
+46 cumulative returns, zero recycled hits, misses or blocked blocks.
+Logical reusable capacity is not another physical-memory charge.
+
+The original **371.2 s refused/overlapped attempt** above remains unchanged.
+This fresh-process retake qualifies under the requested conditions; it does
+not isolate the original refusal's cause or establish a memory saving.
+Raw result is
+`tmp/sp-x8-plot-readings/thin-fresh/simulator/6ce898ee5-22570-1793755754998.json`;
+`summary.json`, native logs, original source poses, preflight, process and
+runtime/body bridges share that root. The result records harness revision
+`d525bf2f86d2dfc9cbc77d52621d8cc30d057342`.
+
+Quiet, Simulator and model resources release before parsing; global browser
+inventory is zero. Fossil then seeks a new independent admission. The own
+:4435 preview use is later released normally and retained by X1's actual
+joined lease. **Memory/official scope is complete; X1's maintained walk and
+eight goldens remain open.** No full-cohort promotion or visual/source,
+collider, deadline, threshold or comparator change belongs to this reading.
+
+## Fossil Badlands — fresh-process official reading (sp-x8)
+
+The first official Fossil admission uses final audio source
+**0e0f1ba1c35e2ff4ea16ac25260a29cf5f0a6e47**, normal new preview **:4436**,
+PID **2454**, actual build **0e0f1ba-mw1fkttz**. The old shared process had
+been stopped after every owner released it. The new process has no prior
+game visit. This is a **fresh normal pinned process**, not shared-process
+reuse. The original index and **205 payloads / 200 pack entries** are exact;
+all **190 new runtime endpoints** match disk. Full-source provenance and
+the unretained old-runtime-inventory limit are recorded as for Thin.
+
+After Thin's literal resource release, a new preflight checks the exact
+source/build/index, empty native/result directories, committed reader,
+absent quiet and zero global browsers. It acquires the normal model and
+Simulator lanes independently; quiet PID **40805** is observed. No model,
+browser or timed proof is admitted during the finite window.
+
+The maintained command completes in **88.354 s**, exit 0,
+**complete=true/pass=true**. All eight windows retain **120/120 frames**,
+zero skips and page errors, **30.303 fps / p95 34 ms**. All stricter
+**33.3 ms flags remain false**. The same portrait Apple GPU / phone 2×
+configuration and original caps apply.
+
+| Scope / pose | Max draws | Reported triangles | p99 / max ms |
+|---|---:|---:|---:|
+| Standalone spawn | 53 | 127,656 | 34 / 34 |
+| Standalone road | 56 | 94,167 | 34 / 34 |
+| Standalone plaza | 60 | 137,716 | 34 / 43 |
+| Grid home spawn | 106 | 1,077,526 | 39 / 46 |
+| Junction −135° | 37 | 176,843 | 34 / 41 |
+| Junction −45° | 69 | 111,122 | 34 / 35 |
+| Junction +45° | 73 | 123,338 | 34 / 34 |
+| Junction +135° | 76 | 139,777 | 34 / 34 |
+
+Native coverage and conservative envelopes use the same decimal-MB rule:
+
+| Scope | Native playing/loading MB | GPU ledger MB | Envelope playing/loading MB | Phase samples playing/loading | GPU samples |
+|---|---:|---:|---:|---:|---:|
+| Standalone | 255.511 / 329.523 | 23.956 | 279.468 / 353.479 | 218 / 27 | 46 |
+| Pooled grid page | 787.714 / 637.379 | 138.360 | 926.074 / 775.739 | 365 / 76 | 76 |
+
+Standalone fits the unchanged 1,200/1,800 MB per-shard limits; G556 leaves
+the pooled page uncapped at 1.2 GB. The ledger retains **3.297 MB standalone /
+2.184 MB grid** unattributed and one Inspector-closed entry in each scope.
+Native/GPU phase coverage remains complete; no missing values are filled
+with zero and GPU-process footprint is excluded.
+
+Every northeast-junction direction independently shows actual Far Reach,
+Showcase, Fossil and Floating Island Race neighbours **near and drawn**,
+**pending=[]**, crossing **settled**. Current=null and residents=[] on the
+road, so this is near visibility rather than four gameplay residents.
+Grid home still has six pending neighbours.
+
+Pool observations match Thin's measured counts: standalone **45 blocks /
+3,080,192 B** with zero hits/misses/blocked; grid home **40 blocks /
+2,752,512 B**, five virgin hits and 45 returns; each junction **41 blocks /
+2,818,048 B**, five virgin hits, 46 cumulative returns and zero recycled
+hits, misses or blocked blocks. These are logical reuse diagnostics and are
+not added to native memory.
+
+Raw result is
+`tmp/sp-x8-plot-readings/fossil-fresh/simulator/0e0f1ba1c-40384-1793755924671.json`;
+checked `summary.json`, native/GPU logs, process/runtime bridge, exact source
+poses and admission remain together. Result harness revision is
+`d525bf2f86d2dfc9cbc77d52621d8cc30d057342`. Quiet is removed, Simulator shut
+down, model lock free and global browser inventory zero before parsing.
+Peers receive literal release; X2's required CI proof gets the next finite
+CPU gap. The own preview use releases normally, retained by X1's actual
+joined :4436 lease.
+
+**Memory/official scope is complete; X1's maintained walk and eight goldens
+remain open.** The full qualified/published count stays **3/10**, with
+memory/official scope now qualified on five plots. Pastel's official scope
+and four unadmitted audio candidates remain open. No new official window
+is reserved, no visual changes are made and no audio/plot/docs push is
+requested under Jake's hold.
