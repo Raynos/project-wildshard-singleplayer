@@ -295,6 +295,16 @@ the cut, and no production rendering or HUD source changes.
 
 ### DC11: dead exports near rendering, and lowpolyKit's legacy plants (~25 symbols, ~370 lines, 17 files) · Opus · S
 
+**done (2026-11-04, sp-o1): `2dad4e2e6c`.** Fresh repo-wide search per symbol (src, test, scripts, lint, tools,
+dynamic imports). Deleted, no consumer anywhere: DISPLAY_COLOUR_ALPHA, warmOffscreenPass, retainRendererPrograms,
+bakedUndergrowth, sameChecksum, patchBarkArrays, patchCardCrownTop, NpcFace, HEAVY_CHARGE, swellBody, and lowpolyKit's
+plant block (hibiscusBush, lilyPad, grassTuft, vineStrand plus leaf, leafAt, broadClump, hibiscus, PLANT, Part):
+206 lines, 12 files incl. ENGINE.md and Driftwood's README. Kept by DC6's rule (real readers): compileLight* /
+compileScene*, shaderPatch*, loadTreeSetGeometry, bindInteractionTransitions*, keyedSkyDaySpec*, installTrampleTrail*
+(tests or fixtures), TRACER_ORDER / TRACER_RED (component registry), withVoxelAOBake (native oracle fixture). No
+reachable code changed and no rng-consuming kit call was touched, so no pixel can move; typecheck-root, vitest
+related 979 files green (two reds were a stale local Nalati product: green after build-shardfiles, exit 0).
+
 - The appendix "DC11" list (render, world, look and weapon modules).
 - `src/engine/world/lowpolyKit.ts` lines ~156–262: `hibiscusBush`, `lilyPad`, `grassTuft`, `vineStrand` and their
   private helpers. The file's own comment says only the frozen legacy authoring folder imported them, and Driftwood's
