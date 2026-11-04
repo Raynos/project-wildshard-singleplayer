@@ -58,16 +58,17 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
     if (id.includes('/src/shards/')) return null;
     if (boundary === 'title') return titleMask > 0n ? `title-${roles}` : null;
     if (titleMask > 0n || !/\.(?:[cm]?[jt]sx?|json)$/u.test(id) || id.includes('/out/')) return null;
-    // DL14 (G872): one core across every home, split only at the session boundary (its closure budget and its
-    // no-shard guard). A home may fetch another home's pre-control code: at most 1.45 MB raw, parsed, never run.
-    return `control-${session?.has(id) === true ? 'session' : 'startup'}`;
+    return `control-${roles}`;
   };
 }
 
 /** Phase banks keep exact home requirements and initial/title execution
  * boundaries. Larger banks trade a wider update invalidation for fewer module
  * requests; shard and late banks remain entry-aware, so optional imports stay
- * optional. A content edit cannot fold another shard into a shared bank. */
+ * optional. A content edit cannot fold another shard into a shared bank.
+ * DL14 (11-03, G872): these banks stay byte-exact. The phone link is byte-bound: one shared core (e0fb9c3fef) cut
+ * Driftwood grid's JS requests before control from 104 to 44 but added 0.58-0.93 MB on the wire per entry, and
+ * request counts do not move control there. Any coarser bank must add no bytes to any entry. */
 export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] {
   const startup = startupModuleRoots(root), grid = gridModuleRoots(root);
   const base = [...startup, ...['src/main.ts', 'src/game/shardfile/client.ts', 'src/game/session/session.ts'].map(file => resolve(root, file))];
@@ -87,10 +88,9 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
     // Its dependencies still join their exact shared requirement banks.
     { name: 'grid-session', test: id => id === resolve(root, 'src/game/grid/session.ts'), includeDependenciesRecursively: false },
     { name: controlChunkSelector(root, startup, 'control', homes), includeDependenciesRecursively: false, maxSize: 4_000_000 },
-    // DL14: one chunk per shard (owners never mix: check-chunks) and one late bank, not one per entry set.
     { name: id => { const slug = /\/src\/shards\/([^/]+)\//u.exec(id)?.[1]; return slug === undefined ? null : `shard-${slug}`; },
-      includeDependenciesRecursively: false, maxSize: 4_000_000 },
-    { name: 'late', includeDependenciesRecursively: false, maxSize: 4_000_000 },
+      entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },
+    { name: 'late', entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },
   ];
 }
 
