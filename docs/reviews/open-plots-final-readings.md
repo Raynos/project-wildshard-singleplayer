@@ -31,11 +31,11 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
-| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
-| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Open |
-| Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Open |
+| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; official Sim open; original refused/overlapped run retained |
+| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Chromium memory complete; official Sim open |
+| Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Chromium memory complete; official Sim open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
-| Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
+| Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; official Sim open |
 
 All ten plots have eight committed golden cameras and maintained route
 inputs. Saltwind's `db418c06d7` adds `road-avenue-plaza`: 14 waypoints with
@@ -1697,3 +1697,74 @@ Both commands closed their browsers, and the lane released its own
 carrier lease normally while preserving the peer's lease. Together with
 the existing qualified C/control, memory and fresh-process official
 Simulator scopes, this completes Fossil's cohort: **6/10 fully qualified**.
+
+
+## Remaining four — Chromium memory and official admission (sp-x1, November 4)
+
+The clean memory cohort uses normal all-product carrier
+**1bc5e1758a41f7324af1d9d2796844b50a35835c**, build **1bc5e17-mw2ik5sc**
+(:4452), under the coordinator's G872 ruling. All **825 original plot bodies /
+803 ordered pack entries** and **40 defining native-source roots** are exact
+to audio pin `b752d49037`. Every raw index delta is retained: each differs
+only at `/build/validator`, from
+`e70b242eaddd6f49211ba79bec0ba292c97a21b87aa3064413dee7b7c5e4a2b0` to
+`e19b74438953adc972ff562ae604157ce8006bbdc8de5dea07a74f9f63fb8eb2`.
+All 166 current compiled runtime endpoints match HTTP against disk; no old
+compiled-JavaScript byte parity is claimed. Admission is independent of
+Fossil's separate map-stamp exception.
+
+The maintained `shard-phone-memory.mjs` ran sequentially through browser-lane,
+muted, phone tier at render scale 2, with its original 20 s settle and three
+samples. Each sample series below is in chronological order, in **MiB**.
+
+| Plot | Renderer process | GPU process | JS heap | Draw calls | Page errors |
+|---|---|---|---|---|---|
+| Clockwork | 211 / 180 / 183 | 545 / 542 / 552 | 88 / 62 / 62 | 88 | 0 |
+| Desert | 217 / 185 / 187 | 575 / 571 / 561 | 74 / 66 / 68 | 75 | 0 |
+| Race | 209 / 173 / 174 | 549 / 545 / 545 | 64 / 60 / 60 | 62 | 0 |
+| Showcase | 229 / 197 / 199 | 583 / 577 / 579 | 79 / 71 / 73 | 80 | 0 |
+
+These process readings remain separate from Simulator native WebContent plus
+GPU-ledger bytes; no process figure is added to a native total. Raw per-plot
+`chromium-memory.json`, exact body/native-source bridge and runtime inventory:
+`tmp/sp-x1-open-plots/audio4-clean-current-carrier/` and
+`tmp/sp-x1-open-plots/audio4-current-native-source.json`.
+
+The earlier four Chromium runs on `1bc5e17-mw2gfb2r` (:4401) are retained,
+with no clean-window credit: sp-x9's pre-existing two-worker SDK-related run
+overlapped **18:54:38–19:22:08 UTC**. Its original log is
+`tmp/sp-x9-g1004/return-wire-related.log`; the explicit overlap record is
+`tmp/sp-x1-open-plots/audio4-current-carrier/chromium-memory-overlap.json`.
+The clean replacement cohort above follows the literal CPU releases and is
+accepted by the coordinator. It does not erase the first samples.
+
+Clockwork's first fresh Simulator attempt on `1bc5e17-mw2hxutf` (:4451) is
+**incomplete, not qualified**: 115.379 s, command exit 3, `complete=false`,
+`pass=false`. Standalone refused `Invalid measurement configuration` because
+settings/devMode were absent on its first game visit. Grid's five original
+120-frame windows completed: spawn p95 **36 ms** failed, while the four
+junction headings had p95 **34 ms**. The same foreign CPU run overlapped;
+the coordinator requires a quiet repeat before treating the spawn miss as
+real. Native sampler diagnostics (one `Inspector closed` per shard), the
+full configuration refusal and every raw frame remain retained at
+`tmp/sp-x1-open-plots/audio4-official-current/clockwork-canyon/`.
+The earlier redundant CLI tier/FPS flags also refused before any Simulator
+startup; that argument-only refusal is recorded separately in the same root.
+
+Reader repair **70ecf8e5c9** now prepares fixtures on a non-game HTML page
+and checks settings/devMode/device pins before navigating to the game. The
+original in-game configuration guard and all window/deadline/floor/native
+limits stay unchanged. Four-file related checks, cold/missing-pin controls
+and named lint passed; real Safari qualification remains pending.
+
+The next fresh Clockwork process, `1bc5e17-mw2iruor` (:4453), passed its exact
+206-body / 201-entry bridge but refused its reader-source preflight before
+any game or Simulator command: an unrelated LD10 reader edit was loose.
+The process was released normally, its preflight/refusal is retained at
+`tmp/sp-x1-open-plots/audio4-clean-officials/clockwork-canyon/`, and the owner
+subsequently restored the checked reader boundary. No measurement credit
+comes from this preflight-only attempt.
+
+All own previews, browsers, Simulator, model lock and quiet ownership were
+released before the slot passed to sp-o2. The four officials remain open;
+**6/10 fully qualified** stays unchanged.
