@@ -1764,6 +1764,19 @@
             }
           }
         },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/fossil-badlands.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/fossil-badlands-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/fossil-badlands-landscape.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/fossil-badlands.jpg",
+            "models": "/src/shards/open-plots/thumbs/fossil-badlands.jpg",
+            "sets": "/src/shards/open-plots/thumbs/fossil-badlands.jpg",
+            "practice": "/src/shards/open-plots/thumbs/fossil-badlands.jpg"
+          }
+        },
         "pois": [],
         "assetGlobs": [
           "public/assets/open-plots/**",
@@ -1868,6 +1881,19 @@
             }
           }
         },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/patchwork-fairground.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/patchwork-fairground-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/patchwork-fairground-landscape.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/patchwork-fairground.jpg",
+            "models": "/src/shards/open-plots/thumbs/patchwork-fairground.jpg",
+            "sets": "/src/shards/open-plots/thumbs/patchwork-fairground.jpg",
+            "practice": "/src/shards/open-plots/thumbs/patchwork-fairground.jpg"
+          }
+        },
         "pois": [],
         "assetGlobs": [
           "public/assets/open-plots/**",
@@ -1969,6 +1995,19 @@
               "module": "./data/nightMarketBootSources.json",
               "export": "default"
             }
+          }
+        },
+        "card": {
+          "thumb": "/src/shards/open-plots/thumbs/saltwind-lighthouse.jpg",
+          "portrait": "/src/shards/open-plots/thumbs/saltwind-lighthouse-portrait.jpg",
+          "landscape": "/src/shards/open-plots/thumbs/saltwind-lighthouse-landscape.jpg"
+        },
+        "explore": {
+          "art": {
+            "world": "/src/shards/open-plots/thumbs/saltwind-lighthouse.jpg",
+            "models": "/src/shards/open-plots/thumbs/saltwind-lighthouse.jpg",
+            "sets": "/src/shards/open-plots/thumbs/saltwind-lighthouse.jpg",
+            "practice": "/src/shards/open-plots/thumbs/saltwind-lighthouse.jpg"
           }
         },
         "pois": [],

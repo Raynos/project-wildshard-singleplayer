@@ -435,7 +435,9 @@
     "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
-    "src/shards/open-plots/thumbs/card.jpg"
+    "src/shards/open-plots/thumbs/fossil-badlands-landscape.jpg",
+    "src/shards/open-plots/thumbs/fossil-badlands-portrait.jpg",
+    "src/shards/open-plots/thumbs/fossil-badlands.jpg"
   ],
   "open-plot-frostline-peaks": [
     "src/engine/core/config.ts",
@@ -625,7 +627,9 @@
     "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
-    "src/shards/open-plots/thumbs/card.jpg"
+    "src/shards/open-plots/thumbs/patchwork-fairground-landscape.jpg",
+    "src/shards/open-plots/thumbs/patchwork-fairground-portrait.jpg",
+    "src/shards/open-plots/thumbs/patchwork-fairground.jpg"
   ],
   "open-plot-saltwind-lighthouse": [
     "out/.app/discovery.open-plots.open-plot-saltwind-lighthouse.generated.ts",
@@ -655,7 +659,9 @@
     "src/game/shardfile/fileInputs.ts",
     "src/shards/open-plots/data/nightMarketBootFiles.json",
     "src/shards/open-plots/data/nightMarketBootSources.json",
-    "src/shards/open-plots/thumbs/card.jpg"
+    "src/shards/open-plots/thumbs/saltwind-lighthouse-landscape.jpg",
+    "src/shards/open-plots/thumbs/saltwind-lighthouse-portrait.jpg",
+    "src/shards/open-plots/thumbs/saltwind-lighthouse.jpg"
   ],
   "open-plot-showcase-template": [
     "src/engine/core/config.ts",
