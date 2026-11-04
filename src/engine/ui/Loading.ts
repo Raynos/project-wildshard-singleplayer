@@ -435,11 +435,16 @@ export class Loading {
     const files = pending.filter(wait => wait.kind === 'file');
     // The outer admission promise has no file identity. Let the current
     // reported phase explains its paced CPU/cache work between real waits.
-    const wait = pending.find(row => row.retry !== null) ?? files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
+    // DL21 (sp-o1): a read held for the spawn download's whole set waits on that download, not on its own file: name it
+    // with the download's bytes ('Spawn download · 3.1 of 9.8 MB'), never the step's first file ('Read audio 1 / 77')
+    const spawnHold = files.find(row => row.resource?.startsWith('spawn-download:') === true);
+    const wait = pending.find(row => row.retry !== null) ?? spawnHold ?? files[0] ?? pending.find(row => row.id !== this.waitId && row.kind !== 'admission');
     const transfer = this.downloadProgress();
     const current = timeline.rows.find(row => row.key === timeline.current);
     const signature = `${timeline.display}:${timeline.current}:${transfer.completedBytes}:${transfer.cachedBytes}:${transfer.filesDone}:${wait?.id ?? 0}`;
-    const label = wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
+    const spawnLabel = wait !== undefined && wait === spawnHold
+      ? `${wait.label} · ${(transfer.completedBytes / 1e6).toFixed(1)} of ${(transfer.totalBytes / 1e6).toFixed(1)} MB` : undefined;
+    const label = spawnLabel ?? wait?.label ?? (current === undefined ? undefined : `${current.label}${current.detail ? ` · ${current.detail}` : ''}`) ?? timeline.gaps.find(row => row.state === 'on')?.label ?? 'Final activation';
     reportLoadingWait(this.waitId, { label, step: timeline.current, progress: signature,
       loadedBytes: transfer.completedBytes, totalBytes: transfer.totalBytes > 0 ? transfer.totalBytes : null });
     const fallback = loadingWaitState().pending.get(this.waitId), selected = wait ?? fallback;

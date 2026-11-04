@@ -65,6 +65,10 @@ const ownSignals = new WeakSet<AbortSignal>();
  *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
  *  tables or code. The shell's art loads through `<img>`, which no fetch layer sees. */
 let unlistedWait: Promise<void> | null = null;
+/** DL21 (sp-o1): a read held for the whole set is what its step truly waits on, so the card names it ('Spawn download ·
+ *  n of m MB', not the first file of the step). This leaf imports no engine: the composition root lends the wait registry. */
+let holdObserver: ((held: Promise<void>, path: string) => Promise<void>) | null = null;
+export function observeSpawnHolds(observe: (held: Promise<void>, path: string) => Promise<void>): void { holdObserver = observe; }
 const levelRead = (path: string): boolean => /^\/(?:shardfiles\/|assets\/(?!spawn\/|boot-tables-))/u.test(path) && !/\.(?:js|mjs|css|map)$/u.test(path);
 const TYPES: Readonly<Record<string, string>> = {json: 'application/json', glb: 'model/gltf-binary', wasm: 'application/wasm',
   ktx2: 'image/ktx2', bin: 'application/octet-stream', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
@@ -93,7 +97,7 @@ function installMemberLayer(): boolean {
         // held for the whole set: named on the page's timeline, so a step it stalls shows which file its spawn list is
         // missing (Pine's sky step, DL11)
         const held = performance.mark('wildshard.prepare:unlisted');
-        await unlistedWait;
+        await (holdObserver?.(unlistedWait, address.pathname) ?? unlistedWait);
         performance.measure(`wildshard.prepare:unlisted:${address.pathname}`, {start: held.startTime});
         performance.clearMarks(held.name);
       }

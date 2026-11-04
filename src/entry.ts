@@ -178,8 +178,10 @@ async function startSelected(): Promise<void> {
   // MF4: one spawn manifest per shard / tier / flow (grid: per menu mode) is the whole download; the bar reads only it and
   // admission waits for it (a tap on the title started the same job, so its files may already be in the worker cache)
   // a world entry's own import: the spawn manifest's reader stays out of the title's chunk (check-chunks)
-  const { startSpawnDownload, setSpawnPacks } = await import('@wildshard/game/boot/spawnDownload');
+  const { startSpawnDownload, setSpawnPacks, observeSpawnHolds } = await import('@wildshard/game/boot/spawnDownload');
   setSpawnPacks(runtimePacksOn()); // DL16: Debug ▸ Loading & memory ▸ Level download
+  // DL21: a read the whole-set hold stalls is named on the card as the spawn download, in its step
+  observeSpawnHolds((held, path) => waitFor('Spawn download', held, 'file', `spawn-download:${path}`));
   const spawnMode = gridMode(DEVSERVER), spawnJob = startSpawnDownload(game.shard.slug, earlyPath === 'grid' ? 'grid' : 'client', TIER,
     `${Number(spawnMode.developer)}${Number(spawnMode.devserver)}${Number(spawnMode.nineDragon)}`);
   if (spawnJob !== null) void loading.setDownloadSource(spawnJob);
