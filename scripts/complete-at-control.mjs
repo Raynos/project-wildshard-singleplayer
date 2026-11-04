@@ -60,7 +60,7 @@ function snapshot() {
       ids.push(`${o.uuid}|${chain.join('<')}|${o.geometry?.attributes?.position?.count ?? 0}`);
     });
     const p = world.player.position, v = world.player.velocity;
-    scene = { meshes, visible, ids, player: [p.x, p.y, p.z], speed: Math.hypot(v.x, v.z), hover: world.player.hover === true, boost: world.player.hoverBoost === true };
+    scene = { meshes, visible, ids, player: [p.x, p.y, p.z], speed: Math.hypot(v.x, v.z), hover: world.player.hover, boost: world.player.hoverBoost };
   } catch (error) { scene = { error: String(error) }; }
   let gridState = null;
   if (grid !== undefined) {
