@@ -5,16 +5,13 @@
 
 **Spine:** Runtime packs ON by default for everyone (DL16 `d0683e4e38`). Goal: tap → control and a smooth first 30 s
 (G1000, G1008), every second something moves (G1006, DL23 recordings).
-**Open (13):** DL1 cold reading · DL2 read-ahead reading · DL5 'never seen' drops where packs are slower (Pine) · DL6
-intake · DL7 P3 seed A/B · DL10 early shader compile (Debug, default off) · DL11 slice 4 · DL15 packs-on DL17 reading ·
-DL18 · DL20 a week of live boots, then drop loose copies · DL21 loading card · DL22 Pine's 12 unnamed files · DL23
-recordings · DL24 first 30 s.
+**Open:** DL1, DL2 readings · DL5 n=3 + Pine pair (Codex, commands in row) · DL10 program count (sp-o1) · DL11 (row) · DL15 · DL18 · DL20 a week of boots · DL21 card freezes (sp-o4) · DL23 · DL24 phone. Done today: DL16, DL17 grid (ce0b0191c8), DL22; DL6/DL7 seeds closed as measured.
 **Lanes:** Opus builds and lands every row (G1001); Codex lanes review, test and measure. Opus count by Claude weekly
 (G1007: 5 until 90 %, then 2).
-**Lane queue (from SHARD-PLATFORM's ready queue):** C12 review sp-o2's D226 route data + DL17 boost-false legs and heap
-tool (`e452f315d9`, `2477dc4e09`): sp-x9 12:31.
+**Lanes (G1007 at 90 %, G1015):** Opus sp-o1 DL10, sp-o4 DL21 (sp-o2/o3/o5 released); Codex sp-x6 Z15, sp-x2 dead code (G1014), sp-x1 plot officials; sp-ci-deploy fixes CI and ships (G1013); sp-x8/x9 released.
 
 **Autonomous decisions (for Jake's review, carried from SHARD-PLATFORM STATE):**
+- 11-04 G872: OP25 no holograms for the four new plots (card art instead); Sunscar 21/22 goldens promoted; CI reef child budget 30 -> 60 s (12.5 s local); CI disk cleanup step (0c4092e395).
 - 11-04 G872: DL6 pool seed and DL7 home seed deleted (no tap->control win, +3-28 MB wire). LD10 tail (d) de62f8f027: Interactables instance the lent graph look again (E271/E272), 48/48 motion only, board art/golden-runs/driftwood-isle/2026-11-04-c290a78c54-ld10d-ab-board.jpg.
 - 11-04 G872: Pine ClientAssets wire released at control, default on (5bee95719d, -33 MB heap); geometry-array drop only if the Sim reading still breaks 1.2 GB. Fossil map-stamp-only delta qualifies. Ruler copied-runtime basis retired (76c7745bd9). FR18 golden promoted (defect); FR24 not (LEGACY has the veil: D229). A section read only by a test fixture is not shipped custom content.
 - DL5 "whole level" = the tier's whole inventory at control (no reach list). Grid neighbours keep today's loading (G828).
@@ -23,6 +20,4 @@ tool (`e452f315d9`, `2477dc4e09`): sp-x9 12:31.
 
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
 
-**15:15:** Jake G1010 (1.2 GB/shard), G1011 (neighbours keep loading), G1012 (Opus: DOWNLOAD, then OPEN-PLOTS visual; Codex: HA8 Z rows, then plot audio/readings). Correction: DL16 had no WebKit goldens; sp-o3 runs every shard Chromium + WebKit on packs-on HEAD. Grid fails DL17 on packs (13 requests after control, pre-existing): sp-o4. DL10 Sim cold 27.3 -> 19.6 s, confirm running. Live 86f2590; push hold until one full CI run passes.
-
-**For wildshard-v (15:30): publication HOLD** until run 41904227600 (ba4d865de8) finishes, so pushes stop cancelling CI. Please don't restart sp-tools: at 15:26 it restarted the publisher too. Reef timeout: sp-x9, top priority.
+**16:15:** live 86f2590 still; sp-ci-deploy on the reds (look-save type 38e619edd6, WebKit hover warm tail). Custom sections Z0-Z14 all 0 (cee1 all-28); Z15 next. Goldens packs-on 6 shards x Chromium + WebKit: no packs regression; four older drifts filed. Plots 6/10 (sp-x1 fixing its reader). Dead code: 222+ files gone.
