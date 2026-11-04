@@ -8,21 +8,27 @@ type Prepared = { readonly ok: true; readonly bytes: Uint8Array; readonly page: 
   | { readonly ok: false; readonly error: unknown };
 const decoder = new TextDecoder('utf-8', { fatal: true });
 /** DL21: pages whose reads land together parsed in one task (Nine's cold phone-link card froze 0.6 s at CPU 10x on its
- *  placement pages' JSON guard and schema). `before` each parse: a parse straight after another (within 1 ms of its end)
- *  continues that stretch, and once the stretch has run `budget` the next starts a fresh task (`hop`); any gap starts a
- *  new stretch, so a lone page parses at once. `after` marks a parse's end. */
+ *  placement pages' JSON guard and schema). `run` queues each parse behind the one before it (so every read landing in
+ *  the same turn is judged after the previous parse ended: sp-x1's review of 19f18e419f, where all of a batch checked the
+ *  clock before any had parsed): a parse straight after another (within 1 ms of its end) continues that stretch, and once
+ *  the stretch has run `budget` the next starts a fresh task (`hop`); any gap starts a new stretch, so a lone page parses
+ *  at once, in the same turn. */
 export function parseSlicer(now: () => number = diagnosticNow, hop: () => Promise<void> = macrotask, budget: number = WORK_SLICE_MS): {
-  before: () => Promise<void>; after: () => void;
+  run: <T>(work: () => T) => Promise<T>;
 } {
-  let busySince = Number.NEGATIVE_INFINITY, lastParsed = Number.NEGATIVE_INFINITY;
+  let busySince = Number.NEGATIVE_INFINITY, lastParsed = Number.NEGATIVE_INFINITY, queue: Promise<unknown> = Promise.resolve();
+  const timed = <T>(work: () => T): T => { try { return work(); } finally { lastParsed = now(); } };
   return {
-    before: async () => {
-      const at = now();
-      if (at - lastParsed > 1) { busySince = at; return; }
-      if (at - busySince < budget) return;
-      await hop(); busySince = now();
+    run: <T>(work: () => T): Promise<T> => {
+      const turn = queue.then(async (): Promise<T> => {
+        const at = now();
+        if (at - lastParsed > 1) busySince = at;
+        else if (at - busySince >= budget) { await hop(); busySince = now(); }
+        return timed(work);
+      });
+      queue = turn.then(() => undefined, () => undefined);
+      return turn;
     },
-    after: () => { lastParsed = now(); },
   };
 }
 const pageSlices = parseSlicer();
@@ -40,9 +46,7 @@ export class WorldScenePlacementPages {
   private async prepare(reads: Pick<WorldSceneReads, 'file'>, name: string): Promise<Prepared> {
     try {
       const bytes = await reads.file(name);
-      await pageSlices.before();
-      try { return { ok: true, bytes, page: parseWorldScenePlacementPage(JSON.parse(decoder.decode(bytes))) }; }
-      finally { pageSlices.after(); }
+      return { ok: true, bytes, page: await pageSlices.run(() => parseWorldScenePlacementPage(JSON.parse(decoder.decode(bytes)))) };
     } catch (error) { return { ok: false, error }; }
   }
   async read(name: string, bytes: Uint8Array): Promise<WorldScenePlacementPage> {
