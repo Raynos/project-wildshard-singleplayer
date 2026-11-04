@@ -333,6 +333,9 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
 - **`/cores`:** `core.39665` (11 GB, 11-03 00:51) joins `core.45892` (19 GB, 10-31). Both are node V8
   `FatalProcessOutOfMemory` SIGABRTs started from an iTerm2 shell (`~/Library/Logs/DiagnosticReports/node-2026-11-03-005157.ips`).
   `ulimit -c unlimited` in Jake's `~/.bashrc` turns every node OOM into a heap-sized core; that is Jake's call.
+  A third, `core.75239` (11 GB, 11-03 21:18, `Retired/node-2026-11-03-211850.ips`, the same OOM, parent bash), took
+  `/cores` to 41 GB. It launched 21:17:58, two minutes after `tmp/sim-boost-lap` was created (21:16; `nine-*` pack and
+  shardfile builds, 4.3 GB). That timing is the only link to it.
 - `~/Library/Caches/node-compile-cache` was 3.6 GB at 11-02 22:16 and **29 GB** at 11-03 20:47 (about 1.3 GB an hour).
 
 ## Decisions (Jake, 2026-10-15)
