@@ -4,7 +4,9 @@ import { jsonSlot } from '../saves/slots';
 
 /** DL10 (11-04): Debug ▸ Loading & memory ▸ Early shader compile. 'on' links the level's recorded entry programs from the
  *  renderer step on (issueBakedPrograms) and warms the shader compiler on the title (warmShaderCompiler), so WebKit's GPU
- *  process has them compiled before the Shaders step asks. Default off until a Simulator reading backs it (E451).
+ *  process has them compiled before the Shaders step asks. Default ON since the throttled Simulator pair (11-04, 4a7a88b,
+ *  10 Mb/s + 100 ms, off -> on): cold tap -> control Nine 47.3 -> 40.7 s, Driftwood 36.0 -> 27.0 s; the row stays as the
+ *  off switch until Jake's iPhone confirms it (a rendering change waits for a physical-device reading).
  *  The pass that issued the spawn view's programs at the end of the world build is gone (sp-o1, 11-04): it compiled
  *  before the level's point lights were placed, so lit programs came out with the wrong light count (Driftwood's
  *  ground: 0 point lights instead of 3, links the level never draws, ~0.55 s each on the Simulator), and the baked list
@@ -12,7 +14,7 @@ import { jsonSlot } from '../saves/slots';
 export const EARLY_PROGRAMS_SLOT = 'debug.earlyPrograms';
 let frozen: boolean | undefined;
 export function earlyProgramsOn(): boolean {
-  frozen ??= jsonSlot(EARLY_PROGRAMS_SLOT, 'device').read() === 'on';
+  frozen ??= jsonSlot(EARLY_PROGRAMS_SLOT, 'device').read() !== 'off';
   return frozen;
 }
 

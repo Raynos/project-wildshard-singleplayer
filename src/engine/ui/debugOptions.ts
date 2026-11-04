@@ -131,12 +131,13 @@ export const TITLE_SKIPPERS: string[] = ['skipintro', 'tour', 'explore', 'cam', 
 /** E172 (the user: "I need a button to nuke the cache so i can test it"): every downloaded file gone, the saves kept
  *  (src/engine/boot/clearDownloads.ts), then a reload to the title like a fresh launch — the running shard's ?chunk= stays */
 const CLEAR_IDLE = engineString('s_e94f3b418bf5');
-/** DL10: the spawn view's programs issued as soon as the world is built (src/engine/boot/earlyPrograms.ts), linking while
- *  the rest of loading runs; read once at boot, so a pick reloads. Default off until a Simulator / iPhone reading. */
+/** DL10: the level's baked entry programs linked from the renderer step and the title's compiler warm-up
+ *  (src/engine/boot/earlyPrograms.ts); read once at boot, so a pick reloads. Default on since the throttled Simulator pair
+ *  (11-04); kept as the off switch until Jake's iPhone confirms. */
 const earlyProgramsSlot = jsonSlot(EARLY_PROGRAMS_SLOT, 'device');
 const earlyProgramsRow: DebugRow = { id: 'earlyPrograms', group: 'loading', label: engineString('s_debug_early_programs'), reload: true, when: always,
   choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'on', text: engineString('s_130011756125') }],
-  get: () => earlyProgramsSlot.read() === 'on' ? 'on' : 'off',
+  get: () => earlyProgramsSlot.read() === 'off' ? 'off' : 'on',
   set: (next) => { if (next === 'off' || next === 'on') earlyProgramsSlot.write(next); },
   on: () => undefined,
   note: 'DL10: compile the spawn view\'s shader programs during loading, as soon as the world is built; default off until a Simulator / iPhone reading.',
