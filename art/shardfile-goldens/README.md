@@ -41,3 +41,8 @@ label strip naming the shard, the camera and the source.
   (G872). Nine 13 kept the pre-QD3 streaks when QD3 (`4567995448`, G995 B) promoted 12 cameras; the frame now shows the
   intended on-screen-light gloss. Captured on `0bf578e89b`, Chromium. Boards:
   `../golden-runs/{far-reach,nine-dragon-stack}/2026-11-04-0bf578e89b-d228-board.jpg`.
+- 2026-11-04, far-reach 24: D229. The G992 refresh golden (`592dc655ea`) froze a pre-refinement frame: at equal settle
+  (frame 375) `a258c2941a`, `0d7a022fbb` and `c9ae94288f` all draw a pale veil over the bridge, and the same `c9ae94288f`
+  build at frame 555 draws it clear and refined (sp-x8's panels `../golden-runs/far-reach/d229-2026-11-04/`). Promoted
+  from `0bf578e89b` per wildshard-new's ruling (G872): not a regression. Board:
+  `../golden-runs/far-reach/2026-11-04-0bf578e89b-d228-board.jpg`.
