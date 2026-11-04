@@ -167,7 +167,15 @@ export async function writeSpawnParts(outDir: string, manifests: readonly SpawnP
       part.members.push([index, at.offset]);
     });
     for (const part of parts.values()) part.members.sort((a, b) => a[1] - b[1]);
-    return [...parts.values()];
+    // DL11 slice 4 / DL5: the reader fetches parts in this order on two lanes, so setup's first reads come first: the
+    // sections, then the build assets (boot tables, Rapier, sky textures, boot audio), then the level's content; first
+    // appearance within each. Driftwood's sections sat in the sixth part behind 18 MB of level content and setup started
+    // 21 s after the tap on the Simulator (2.7 s on Shardfile). Bodies and membership are unchanged (DL18).
+    const rank = (part: {members: [number, number][]}): number => Math.min(...part.members.map(([index]) => {
+      const kind = keyOf(manifest.rows[index]?.url ?? '').split('|')[0];
+      return kind === 'section' ? 0 : kind === 'volatile' ? 1 : 2;
+    }));
+    return [...parts.values()].sort((a, b) => rank(a) - rank(b));
   });
 }
 

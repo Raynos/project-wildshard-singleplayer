@@ -8,7 +8,7 @@ import { brotliDecompressSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
 import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
-import { readSpawnManifest, type SpawnFile } from '../src/format/spawnManifest';
+import { readSpawnManifest, type SpawnFile, type SpawnPart } from '../src/format/spawnManifest';
 
 mkdirSync('tmp', { recursive: true });
 const out = mkdtempSync(resolve('tmp/spawn-parts-'));
@@ -173,4 +173,19 @@ test('DL18: a product-prefixed section or schema key is a section; a build asset
   expect(placementKey('/assets/boot-tables-0123abcd.json', undefined)).toBe('volatile|/assets/boot-tables-.json');
   expect(placementKey('/shardfiles/s/blobs/glb/x.glb', '/shardfiles/s/world/scenes:libraries.24.tiles.0.files.3.file').startsWith('content|')).toBe(true);
   expect(placementKey('/shardfiles/s/blobs/glb/x.glb', '/shardfiles/s/models/section-gate.glb').startsWith('content|')).toBe(true);
+});
+
+// DL11 slice 4 / DL5: the reader fetches parts in table order on two lanes, so a manifest lists its section parts first,
+// then the build assets, then level content, whatever order its rows name them in (Driftwood's sections sat sixth)
+test('a manifest lists section parts, then build-asset parts, then content parts', async () => {
+  const content = Array.from({ length: 3 }, (_, at) => file(`/shardfiles/s/blobs/glb/${at}.glb`, 2_000_000));
+  const asset = file('/assets/boot-tables-aaaaaaaa.json', 300_000), section = file('/shardfiles/s/sections/world.json', 200_000);
+  const rows = [...content, asset, section];
+  const keyOf = (url: string): string | undefined => url.includes('/sections/') ? '/shardfiles/s/section:world/world' : undefined;
+  const [table] = await writeSpawnParts(out, [manifest(rows)], url => body(url, rows.find(row => row.url === url)?.bytes ?? 0), keyOf, encoder());
+  const kindOf = (part: SpawnPart): string[] => part.members.map(([index]) => rows[index]?.url ?? '');
+  const order = (table ?? []).map(part => kindOf(part).some(url => url.includes('/sections/')) ? 'section'
+    : kindOf(part).some(url => url.startsWith('/assets/')) ? 'asset' : 'content');
+  expect(order[0]).toBe('section'); expect(order[1]).toBe('asset');
+  expect(order.slice(2).every(kind => kind === 'content')).toBe(true);
 });
