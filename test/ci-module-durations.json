@@ -1175,7 +1175,6 @@
   "test/frame-floor-wasm-constructors.test.ts": 0.26131999,
   "test/frame-floor-wasm-probe.test.ts": 0.065532563,
   "test/frame-floor-worst.test.ts": 0.0477453,
-  "test/frozen-legacy-format.test.ts": 0.366387708,
   "test/g571-hosts.test.ts": 1.511736408,
   "test/gate-related-tests.test.ts": 0.421692684,
   "test/gen-docs.test.ts": 1.096278309,

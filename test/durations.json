@@ -1043,7 +1043,6 @@
  "test/frame-floor-wasm-constructors.test.ts": 0.4,
  "test/frame-floor-wasm-probe.test.ts": 0,
  "test/frame-floor-worst.test.ts": 0,
- "test/frozen-legacy-format.test.ts": 0,
  "test/g571-hosts.test.ts": 1.1,
  "test/gate-related-tests.test.ts": 0,
  "test/gen-docs.test.ts": 1.3,
