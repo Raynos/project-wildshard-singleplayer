@@ -14,7 +14,7 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 | C1 | Review sp-o3's DL10 early compile + WebKit link pacing (Debug row, default off) | 359b6fecd2, cb7ceccab4 | sp-x8 11:12; source-confirmed: early WebKit pacing finding fixed in `1fb729718a`, default-off and owner/final compile fences retained |
 | C2 | Review sp-o4's DL21 card commits: named spans/sub-stages, step 27 jobs, link counts | 5730708c5c, 42bd0ec286, 1b240a289a | sp-x1 11:13; reviewed: 3 findings fixed in `4cc0796427` + `ac94241956`, source confirmed |
 | C3 | Review sp-o5's NF18 (TSL runtime deletion) when it lands: no TSL import left, goldens cited | `13253e2609` |  sp-x2 11:15; reviewed: runtime TSL closure clean, build-time DSL retained; six-shard C/WK 144/144 read by owner; Ink edge-post 5/5 per engine GREEN (sp-o5 G848), [Ink C](../../../../art/golden-runs/ink-cel-valley/2026-11-04-13253e2609-nf18-chromium-board.jpg); [Ink WK](../../../../art/golden-runs/ink-cel-valley/2026-11-04-13253e2609-nf18-webkit-board.jpg) |
-| C4 | Review sp-o5's LD9b (copied-runtime arm retired) when it lands: refusals, chargebacks | LD9b commit | sp-x1 11:20 |
+| C4 | Review sp-o5's LD9b (copied-runtime arm retired) when it lands: refusals, chargebacks | `b32ba9f6f1` | sp-x1 11:20; source-confirmed: early retired-inventory refusal + all three negative controls landed; client-plan grammar, native binds and regional chargebacks retained; no residual finding |
 | C5 | Review sp-o2's DL16 flip (packs default on; debug.levelDownload kept for tools only) when it lands | d0683e4e38 | sp-x6 11:46; source-reviewed: default/entry/UI/fallback hold; old UI-saved shardfile selector survives, sent O2 |
 | C6 | Review sp-o1's DL7 P3 snapshot seed when it lands: snapshot equals runtime build, fallback intact | DL7 P3 commit | sp-x1 11:50; reviewed through `526406cf30`: bake/codec/runtime seam and fallback hold; partial-bake cleanup finding fixed |
 | C7 | Plot walks + 8-view goldens (machine slot; booked: x2 Thin/Fossil/Pastel, x1 Clockwork/Desert/Race/Showcase) | OPEN-PLOTS | x1, x2 |
@@ -25,7 +25,7 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 | C12 | Review sp-o2's D226 route data + DL17 boost-false legs and heap tool | e452f315d9, 2477dc4e09 |sp-x9 12:31 |
 | C13 | Pre-review sp-o4's DL21 fence-count handoff (landed by sp-o2) | tmp/sp-o4/dl21-fence-handoff.patch | sp-x1 (done) |
 | C14 | Pre-review sp-o2's DL16 key versioning (debug.levelDownload.harness) | in tree, lands after sp-o3 | sp-x1 (done) |
-| C15 | Pre-review sp-o5's LD10 slice 1 (orphan deletions, SDK audio wrappers) | tmp/qd7-ld10/ld10-land.patch | sp-x2 |
+| C15 | Review sp-o5's LD10 slice 1 (orphan deletions, SDK audio wrappers) | `0bf578e89b` | sp-x2 pre-review; transferred to sp-x1 by coordinator; source-confirmed: both findings fixed (durable tail row + stale API docs), audio identity/barriers and scoped orphan/key cuts retained; no residual finding |
 
 ## G768 (Jake, 2026-10-27): no gate project
 
