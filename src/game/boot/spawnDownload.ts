@@ -309,7 +309,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             if (received > credited) {completedBytes += received - credited; credited = received; publish();}
           });
           if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
-          if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); serve(file); }
+          // a job cancelled during the unabortable store publishes nothing to the page (sp-x2: after control it would)
+          if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); controller.signal.throwIfAborted(); serve(file); }
           settleFile(file.url, true); wireCompleted += file.wireBytes; filesDone++; publish();
         }
       }));

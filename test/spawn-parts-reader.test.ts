@@ -310,3 +310,24 @@ test('DL11: a download cancelled during its manifest store publishes no file wai
   expect(await (await window.fetch(new URL(bin.url, base).href)).text()).toBe('network');
   vi.unstubAllGlobals();
 });
+
+test('DL13: a download cancelled during a file\'s store never serves it after control (sp-x2\'s re-read of c93770ee65)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const disk = new Map<string, Response>(), plain = JSON.stringify({ ...manifest, parts: undefined });
+  const at = { ...address, url: '/assets/spawn/example-overlap-blob-1234567890abcdef.json', bytes: plain.length };
+  const binURL = new URL(bin.url, base).href;
+  let storeReturns = (): void => undefined, storing = false;
+  const stalled = new Promise<void>(resolve => { storeReturns = resolve; });
+  const download = downloadSpawnManifest(at, {
+    cached: url => Promise.resolve(disk.get(url)?.clone()),
+    // the bin's store stalls (an unabortable storage call); the store itself lands when it returns
+    store: async (url, response) => { if (url === binURL) { storing = true; await stalled; } disk.set(url, response); },
+    fetch: url => Promise.resolve(new Response(new URL(url).pathname === at.url ? plain : body(new URL(url).pathname))),
+  }, base);
+  await vi.waitFor(() => { expect(storing).toBe(true); });
+  download.cancel(); await expect(download.ready).rejects.toThrow();
+  releaseSpawnMembers(); // control
+  storeReturns(); await new Promise(resolve => { setTimeout(resolve, 0); });
+  expect(await (await window.fetch(binURL)).text()).toBe('network');
+  vi.unstubAllGlobals();
+});
