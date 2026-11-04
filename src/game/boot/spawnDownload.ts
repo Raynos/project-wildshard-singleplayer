@@ -302,12 +302,57 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       for (const file of files) if (!missing.includes(file)) serve(file);
       if (missing.length === 0) { complete = true; if (jobWaits === waits) { jobWaits = null; jobDemand = null; } publish(); return; }
       publish(); let cursor = 0;
+      // DL11 slice 4: the loose files (code, the product header, the transcoder) are read on their own lanes from the
+      // start. While parts run those lanes take only files a page read waits on; manifest order and a failed part's
+      // members follow the parts. Read only after the parts, Nine's packs setup waited 31 s for its 67 kB shard.json.
+      const packedFiles = new Set(parts?.flatMap(part => part.members.flatMap(([index]) => files[index] ?? [])));
+      const loose = missing.filter(file => !packedFiles.has(file)), looseByUrl = new Map(loose.map(file => [file.url, file]));
+      let partsRunning = parts !== undefined && parts.length > 0;
+      // DL11: a demanded file gets the link, not only the next free lane. While one is in flight, manifest-order files run
+      // on at most MANIFEST_FLOOR lanes (the pipe stays full), so a page read is not split eight ways (Pine's sky models
+      // crawled at an eighth of the link: control 126-132 s against 121 s).
+      const MANIFEST_FLOOR = 2;
+      const nextLoose = async (): Promise<{readonly file: (typeof loose)[number]; readonly demanded: boolean} | undefined> => {
+        for (;;) {
+          controller.signal.throwIfAborted();
+          for (let url = demanded.shift(); url !== undefined; url = demanded.shift()) {
+            const file = looseByUrl.get(url);
+            // counted as it is taken: lanes a nudge wakes together each see the others' choices
+            if (file !== undefined && !taken.has(url)) { taken.add(url); inFlight.add(url); demandedFlight.add(url); active++; demandsActive++; return {file, demanded: true}; }
+          }
+          while (cursor < loose.length && taken.has(loose[cursor]?.url ?? '')) cursor++;
+          const file = loose[cursor];
+          if (file === undefined && !partsRunning) return undefined;
+          if (file !== undefined && !partsRunning && (demandsActive === 0 || active - demandsActive < MANIFEST_FLOOR)) { cursor++; taken.add(file.url); inFlight.add(file.url); active++; return {file, demanded: false}; }
+          await new Promise<void>(resolve => { sleepers.push(resolve); });
+        }
+      };
+      // with parts, a failed part's members may join the loose files later, so every lane is up from the start
+      const looseLanes = Promise.all(Array.from({length: partsRunning ? 8 : Math.min(8, loose.length)}, async () => {
+        for (let next = await nextLoose(); next !== undefined; next = await nextLoose()) {
+          const {file} = next;
+          try {
+            let received = 0, credited = 0;
+            const {bytes: body, copy: cachedCopy} = await readSpawnFile(file.url, file.bytes, {
+              ...ports, fetch: (url, signal, init) => {received = 0; return ports.fetch(url, signal, init);},
+            }, controller.signal, size => {
+              received += size;
+              if (received > credited) {completedBytes += received - credited; credited = received; arrive(file, received); publish();}
+            });
+            if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
+            // a job cancelled during the unabortable store publishes nothing to the page (sp-x2: after control it would)
+            if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); controller.signal.throwIfAborted(); serve(file); }
+            settleFile(file.url, true); landed(file.url); wireCompleted += file.wireBytes; filesDone++; publish();
+          } finally { landed(file.url); inFlight.delete(file.url); active--; if (demandedFlight.delete(file.url)) demandsActive--; nudge(); }
+        }
+      }));
       // DL5: parts holding missing members, members cut out as their bytes land. A part that fails hands its unfinished
-      // members to the loose loop below (its files stay deployed). DL11 slice 4: parts run on PART_LANES lanes in
+      // members to the loose lanes (its files stay deployed). DL11 slice 4: parts run on PART_LANES lanes in
       // manifest order, and a page read waiting on a member moves its part to the front (all at once, Nine's dozen parts
       // each got a twelfth of the link: Props waited 25.5 s on 'Read audio 1/10' in Chromium).
-      let loose = missing;
-      if (parts !== undefined && parts.length > 0) {
+      const partsWork = (async () => {
+        if (parts === undefined || parts.length === 0) return;
+        try {
         installMemberLayer();
         const counts = {parts: 0, failed: 0, fallbackFiles: 0}; partCounts = counts;
         const wanted = new Set(missing), left = new Set<number>(), stored = new Map<string, readonly string[]>();
@@ -384,46 +429,12 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           const kept = Object.entries(heldIndex).filter(([hash, urls]) => !stored.has(hash) && urls.every(url => keys.has(url)));
           await ports.held.write(Object.fromEntries([...kept, ...stored])).catch(() => undefined);
         }
-        loose = missing.filter(file => !parts.some(part => part.members.some(([index]) => files[index] === file)) || left.has(files.indexOf(file)));
-      }
-      const looseByUrl = new Map(loose.map(file => [file.url, file]));
-      // DL11: a demanded file gets the link, not only the next free lane. While one is in flight, manifest-order files run
-      // on at most MANIFEST_FLOOR lanes (the pipe stays full), so a page read is not split eight ways (Pine's sky models
-      // crawled at an eighth of the link: control 126-132 s against 121 s).
-      const MANIFEST_FLOOR = 2;
-      const nextLoose = async (): Promise<{readonly file: (typeof loose)[number]; readonly demanded: boolean} | undefined> => {
-        for (;;) {
-          controller.signal.throwIfAborted();
-          for (let url = demanded.shift(); url !== undefined; url = demanded.shift()) {
-            const file = looseByUrl.get(url);
-            // counted as it is taken: lanes a nudge wakes together each see the others' choices
-            if (file !== undefined && !taken.has(url)) { taken.add(url); inFlight.add(url); demandedFlight.add(url); active++; demandsActive++; return {file, demanded: true}; }
-          }
-          while (cursor < loose.length && taken.has(loose[cursor]?.url ?? '')) cursor++;
-          const file = loose[cursor];
-          if (file === undefined) return undefined;
-          if (demandsActive === 0 || active - demandsActive < MANIFEST_FLOOR) { cursor++; taken.add(file.url); inFlight.add(file.url); active++; return {file, demanded: false}; }
-          await new Promise<void>(resolve => { sleepers.push(resolve); });
-        }
-      };
-      await Promise.all(Array.from({length: Math.min(8, loose.length)}, async () => {
-        for (let next = await nextLoose(); next !== undefined; next = await nextLoose()) {
-          const {file} = next;
-          try {
-            let received = 0, credited = 0;
-            const {bytes: body, copy: cachedCopy} = await readSpawnFile(file.url, file.bytes, {
-              ...ports, fetch: (url, signal, init) => {received = 0; return ports.fetch(url, signal, init);},
-            }, controller.signal, size => {
-              received += size;
-              if (received > credited) {completedBytes += received - credited; credited = received; arrive(file, received); publish();}
-            });
-            if (body.length !== file.bytes) { void cachedCopy?.body?.cancel().catch(() => undefined); throw new Error(`Spawn file size differs: ${new URL(file.url).pathname}`); }
-            // a job cancelled during the unabortable store publishes nothing to the page (sp-x2: after control it would)
-            if (cachedCopy !== undefined) { await ports.store?.(file.url, cachedCopy); controller.signal.throwIfAborted(); serve(file); }
-            settleFile(file.url, true); landed(file.url); wireCompleted += file.wireBytes; filesDone++; publish();
-          } finally { landed(file.url); inFlight.delete(file.url); active--; if (demandedFlight.delete(file.url)) demandsActive--; nudge(); }
-        }
-      }));
+        // a failed part's unfinished members join the loose files, read after the parts in manifest order
+        for (const [index, file] of files.entries()) if (left.has(index) && !looseByUrl.has(file.url)) { loose.push(file); looseByUrl.set(file.url, file); }
+        } finally { partsRunning = false; nudge(); }
+      })();
+      // the first failure of either fails the job (its catch aborts the other)
+      await Promise.all([partsWork, looseLanes]);
       // Settled: every wait answered, so the map leaves the page (the stored copies and part members stay until control).
       controller.signal.throwIfAborted(); complete = true; memberSettles.clear(); if (jobWaits === waits) { jobWaits = null; jobDemand = null; } publish();
     } catch (failure) {

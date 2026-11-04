@@ -635,3 +635,32 @@ test('DL13: a cancel while a member\'s keep stalls keeps nothing more from the s
   expect(kept).toEqual([bin.url]); // the glb is never kept
   vi.unstubAllGlobals();
 });
+
+test('DL11 slice 4: a loose file a page read waits on is read while the parts run; manifest-order loose files wait for them', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const header = {url: '/shardfiles/example/shard.json?v=12345678', bytes: 3, hash: 'e'.repeat(64)};
+  const plain = JSON.stringify({...manifest, files: [bin, glb, code, header], totalBytes: 15});
+  const at = {url: '/assets/spawn/example-loose-first-1234567890abcdef.json', bytes: plain.length, totalBytes: 15, files: 4};
+  const started: string[] = [];
+  let releasePart = (): void => undefined;
+  const held = new Promise<void>(resolve => { releasePart = resolve; });
+  const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined),
+    fetch: async url => {
+      const path = new URL(url).pathname;
+      if (path === at.url) return new Response(plain);
+      started.push(path);
+      if (path === part.url) { await held; return new Response(partBytes); }
+      return new Response(new Uint8Array(3));
+    }}, base);
+  await vi.waitFor(() => { expect(started).toContain(part.url); });
+  await new Promise(resolve => { setTimeout(resolve, 10); });
+  expect(started).toEqual([part.url]); // the loose code is not read beside the part
+  const reading = window.fetch(new URL(header.url, base).href); // setup reads the product header
+  await vi.waitFor(() => { expect(started).toContain('/shardfiles/example/shard.json'); }); // before the part lands
+  expect((await reading).status).toBe(200);
+  expect(started).not.toContain(code.url);
+  releasePart();
+  await download.ready;
+  expect(started).toEqual([part.url, '/shardfiles/example/shard.json', code.url]);
+  vi.unstubAllGlobals();
+});
