@@ -83,9 +83,10 @@ for (const slug of slugs) {
   const page = await connect(url => url.startsWith(`${base}/version.json`));
   await page.evaluate(`window.__probe = null; (${PROBE(slug)})().then(v => { window.__probe = { v }; }, e => { window.__probe = { v: 'ERR ' + String(e) }; }); 1`);
   let result = 'timeout';
-  for (const end = Date.now() + 300000; Date.now() < end; await sleep(500)) {
+  for (const end = Date.now() + 300000; Date.now() < end;) {
     const value = await page.evaluate('window.__probe ? JSON.stringify(window.__probe.v) : null');
     if (value !== null) { result = JSON.parse(value); break; }
+    await sleep(500);
   }
   page.close();
   report[slug] = result;
