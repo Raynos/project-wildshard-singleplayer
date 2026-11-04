@@ -163,3 +163,11 @@ test('DL18: an edit that rewrites one section\'s blobs changes only the parts th
     expect(new Set(part.map(url => volatileKey(url).split('|')[0])).size).toBe(1);
   }
 });
+
+test('DL18: a product-prefixed section or schema key is volatile; a model or scene key is content', () => {
+  expect(placementKey('/shardfiles/s/sections/look/map.json?v=aaaaaaaa', '/shardfiles/s/section:look/map')).toBe('volatile|/shardfiles/s/section:look/map');
+  expect(placementKey('/shardfiles/s/schemas/a.json', '/shardfiles/s/schema:schemas/a.json').startsWith('volatile|')).toBe(true);
+  expect(placementKey('/assets/boot-tables-0123abcd.json', undefined)).toBe('volatile|/assets/boot-tables-.json');
+  expect(placementKey('/shardfiles/s/blobs/glb/x.glb', '/shardfiles/s/world/scenes:libraries.24.tiles.0.files.3.file').startsWith('content|')).toBe(true);
+  expect(placementKey('/shardfiles/s/blobs/glb/x.glb', '/shardfiles/s/models/section-gate.glb').startsWith('content|')).toBe(true);
+});

@@ -107,7 +107,8 @@ export function placeByKey(urls: readonly string[], size: (url: string) => numbe
 /** A member's placement key: `volatile|` for sections, schemas and build assets, `content|` for level files; then its
  *  stable name (a model's, a section's, or where a section names an unnamed blob), else its URL without content hashes. */
 export function placementKey(url: string, stable: string | undefined): string {
-  const volatile = stable?.startsWith('section:') === true || stable?.startsWith('schema:') === true || url.startsWith('/assets/');
+  // Build keys carry the product prefix (`/shardfiles/<shard>/section:world/scenes`).
+  const volatile = stable !== undefined && /(?:^|\/)(?:section|schema):/u.test(stable) || url.startsWith('/assets/');
   return `${volatile ? 'volatile' : 'content'}|${stable ?? url.replaceAll(/[a-f0-9]{8,}/gu, '').replace(/\?v=$/u, '')}`;
 }
 /** Write every part under `outDir/assets/spawn/parts/` and return each manifest's part table (same order as input).
