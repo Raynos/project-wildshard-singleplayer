@@ -168,6 +168,14 @@ parsers that nothing reads. The exact list is in the appendix "DC6".
 
 ### DC7: dead exports in shard generators (~111 symbols, ~850 lines, 84 files) · Codex · M
 
+**open (2026-11-04, sp-x2 after DC10; G1015).** No source edits or
+per-symbol fresh importer proof by X8. Re-check every appendix candidate,
+including namespace/dynamic/test/data readers, on the new HEAD. DC9 has
+already removed some candidate modules and documented six live keeps;
+especially do not classify ENTRY_WALK, keeperRows or pressFlap as dead
+from this old appendix. Required touched-shard rebuild and exact output
+comparison remain unrun for this row.
+
 These are generator-side exports that no build path, test or other generator imports. The list is in the appendix
 "DC7". **Risk:** a generator's output could change if a deleted function was reached through a computed name. **Check:**
 types, `vitest related`, then rebuild the touched shards' products with `node scripts/build-shardfiles.mjs`. The shard
@@ -195,6 +203,24 @@ preserves peer timing rows; ratchet reductions remain pusher-owned.
 
 ### DC9: shard generator witness files only tests read (17 files, 817 lines) · Codex · S · medium
 
+**done (2026-11-04, sp-x8): `b5923118f3`.** Fresh untruncated
+whole-tree importer/symbol/data-ref review deletes 11 unused source
+modules (596 lines), their obsolete template comparison and retired
+wrapper/equivalence cases. Current Far Reach source-byte inventories,
+complete original output comparisons, input refusals and source boundary
+checks remain. Nine's current graph compilation/sampler/mip/cap checks and
+cumulus geometry/refusals remain. Types/lint/scoped ratchet pass; original
+related passes 5 suites / 18 cases in 4.27 s. Deleted-file timing/debt rows
+are retired by exact HEAD patch.
+
+Six audit candidates are **kept with live readers**: `coatFlap.ts` is
+called by production `coatProducer.readCoatRig`; `entryWalk.ts` feeds the
+maintained typed headless/native oracle; `keeperRows.ts` and `nativeFauna.ts`
+feed maintained native and mixed-population fixtures; `trailParams.ts`
+provides current specimen fixture types; `bake-species.mjs` drives current
+source-byte body/look preparation proofs. No actual native constructor,
+resource/refusal owner, asset, encoder or runtime path changes.
+
 These are retained native "witness" and equivalence files from the port. No shardfile build path imports them:
 
 - `src/shards/_template/generators/templateScene.ts`
@@ -210,6 +236,15 @@ Delete the cases that pin the witness and keep the ones that pin live outputs. *
 Under G416, a pin of a finished port is a fragile test. **Check:** types, `vitest related`.
 
 ### DC10: frozen "before" copies kept for equivalence tests (5 files, 519 lines) · Codex · S · medium
+
+**open (2026-11-04, sp-x2 next after DC6; G1015).** X8 made no source
+edits. Its fresh module-path search found only the dedicated equivalence
+tests, uniform-vector-buffer's two frozen-copy cases, and timing rows.
+Keep that suite's first four actual-Three native upload/skip/array controls;
+retire only the two cases importing `installBefore`, then remove its
+unused fixture injection parameter. Re-run the importer search before
+deleting the three before modules and two dedicated tests; retire their
+duration/module/product rows and check types, related tests and ratchet.
 
 - `src/engine/test/{hud-markers-before,uniform-caches-before,weapon-strip-before}.ts`
 - `test/hud-marker-values.test.ts`, `test/weapon-strip-values.test.ts`
@@ -228,6 +263,14 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
   code changes.
 
 ### DC12: lint, budget and allow-list entries that name deleted files (~355 entries, 7 files) · Codex · S
+
+**open (2026-11-04, sp-x2 LAST after the other deletions; G1015).** No
+DC12 global census or shared allow-list/budget changes by X8. DC8/DC9
+already retired only their own exact deleted-test timing rows and DC9
+deleted-file debt rows; preserve every peer hunk and start from fresh HEAD.
+Recompute missing-file entries after all deletion lanes finish, retain
+live source/data/reference entries, then run the required ratchet/path
+checks. The stale working plan copy must never be committed whole-file.
 
 - `lint/runtime-performance.json` 133 of 1,490 (old `src/shards/*/runtime/**` paths)
 - `lint/shard-coupling.json` 79 of 906 (old `_template` combat, species and weapons TS)
