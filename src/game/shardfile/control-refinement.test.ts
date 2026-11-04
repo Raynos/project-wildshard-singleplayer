@@ -1,7 +1,8 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { reachControl } from '@wildshard/engine/boot/prefetch';
-import { ControlRefinement, prepareSpawnView } from './controlRefinement';
+import { ControlRefinement, FENCE_LANES, prepareSpawnView } from './controlRefinement';
+import { loadingWaitState } from '@wildshard/engine/boot/download';
 import { Group, PerspectiveCamera } from 'three';
 import { StreamingCamera, type StreamingView } from './streamingView';
 
@@ -124,4 +125,36 @@ test('a refinement that fails inside the spawn fence rejects the fence instead o
   await expect(prepareSpawnView()).rejects.toBe(refusal);
   // the fence closed: a later fence for the same failed queue refuses too
   await expect(prepareSpawnView()).rejects.toBe(refusal);
+});
+
+test('DL21: before control the fence runs up to FENCE_LANES jobs at once and names its counted wait; after control, one', async () => {
+  const f = fixture();
+  let inFlight = 0, most = 0;
+  const gates: (() => void)[] = [];
+  const job = (id: string) => f.queue.add(id, { x: 0, y: 0, z: 0 }, async () => {
+    inFlight++; most = Math.max(most, inFlight);
+    await new Promise<void>(resolve => { gates.push(resolve); });
+    inFlight--; f.seen.push(id);
+  });
+  const jobs = Array.from({ length: 6 }, (_, at) => job(`fence-${at}`));
+  const fence = prepareSpawnView();
+  await vi.waitFor(() => { expect(gates).toHaveLength(FENCE_LANES); });
+  // The card names the wait and counts it: none done of six known.
+  const wait = [...loadingWaitState().pending.values()].find(row => row.label === 'Spawn view');
+  await vi.waitFor(() => { expect(wait?.progress).toMatch(/^0 of 6 · /u); });
+  for (const open of gates.splice(0)) open();
+  await vi.waitFor(() => { expect(gates).toHaveLength(2); });
+  for (const open of gates.splice(0)) open();
+  await fence;
+  expect(await Promise.all(jobs)).toEqual(Array.from({ length: 6 }, () => true));
+  expect(most).toBe(FENCE_LANES);
+  expect([...loadingWaitState().pending.values()].some(row => row.label === 'Spawn view')).toBe(false);
+  // After control the queue paces one job at a time.
+  reachControl(f.level); f.paint(); f.paint();
+  most = 0;
+  const after = [job('play-0'), job('play-1')];
+  await vi.waitFor(() => { expect(gates).toHaveLength(1); });
+  gates.shift()?.(); await vi.waitFor(() => { expect(gates).toHaveLength(1); }); gates.shift()?.();
+  expect(await Promise.all(after)).toEqual([true, true]);
+  expect(most).toBe(1);
 });

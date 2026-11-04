@@ -1,7 +1,9 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { pageScope } from '@wildshard/engine/app/resources';
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
+import { beginLoadingWait, finishLoadingWait, reportLoadingWait } from '@wildshard/engine/boot/download';
 import { streamingDistance, streamingVisible, type StreamingPoint, type StreamingView } from './streamingView';
 
 type Point = StreamingPoint;
@@ -18,6 +20,11 @@ export const SPAWN_VIEW_M = 221;
  *  is Runtime packs (the level is downloaded whole, so all of it is attached before control). */
 export function spawnViewRadius(): number { return runtimePacksOn() ? Infinity : SPAWN_VIEW_M; }
 let spawnView: { readonly radius: number; readonly reference: 'camera' | 'player' } | null = null;
+/** DL21: before control a queue runs this many spawn-view jobs at once (no frame is drawn under the loader, so the one-job
+ *  pacing of play only cost time: Pine's cold phone-link fence fetched 143 files the spawn set lacks); after control, one. */
+export const FENCE_LANES = 4;
+/** Spawn-view jobs finished since the fence opened (the card's count). */
+let fenceDone = 0;
 const queues = new Set<ControlRefinement>();
 /** The first boot fence precedes camera posing and explicitly keeps the player
  * reference. Later fences and controlled streaming use the real camera. */
@@ -39,13 +46,26 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
     }
     // what the fence saw, for the loading rulers (a viewer far from its jobs runs nothing)
     performance.mark('wildshard.spawn-view', { detail: [...queues].map(queue => queue.describe()) });
-    for (const queue of queues) queue.wake();
-    for (;;) {
-      refused();
-      const open = [...queues].filter(queue => queue.spawnViewOpen());
-      if (open.length === 0) break;
-      await Promise.all(open.map(queue => queue.spawnViewIdle()));
-    }
+    // DL21 (E526): the fence names its wait and counts it: jobs done of jobs known, and the level bytes they fetched
+    // (resource timing of /shardfiles/ reads since the fence opened), so the card never sits unchanged on it.
+    fenceDone = 0;
+    const wait = beginLoadingWait('Spawn view', { kind: 'work' }), opened = diagnosticNow();
+    const fetched = (): number => performance.getEntriesByType('resource').reduce((sum, entry) => sum
+      + (entry.startTime >= opened && entry.name.includes('/shardfiles/') && entry instanceof PerformanceResourceTiming ? entry.transferSize || entry.encodedBodySize : 0), 0);
+    const report = (): void => {
+      const waiting = [...queues].reduce((sum, queue) => sum + queue.fenceWaiting(), 0);
+      reportLoadingWait(wait, { progress: `${fenceDone} of ${fenceDone + waiting} · ${(fetched() / 1e6).toFixed(1)} MB` });
+    };
+    const ticker = pageScope.child('spawn-view.count'); ticker.interval(250, report);
+    try {
+      for (const queue of queues) queue.wake();
+      for (;;) {
+        refused(); report();
+        const open = [...queues].filter(queue => queue.spawnViewOpen());
+        if (open.length === 0) break;
+        await Promise.all(open.map(queue => queue.spawnViewIdle()));
+      }
+    } finally { ticker.dispose(); finishLoadingWait(wait); }
     refused();
     // what the fence left (DL17's complete-at-control gate refuses a level whose queues still wait here)
     performance.mark('wildshard.spawn-view.done', { detail: [...queues].map(queue => queue.describe()) });
@@ -65,6 +85,7 @@ export class ControlRefinement {
   private scheduled = false;
   private busy = false;
   private sequence = 0;
+  private running = 0;
   private failure: Error | undefined;
   private idle: (() => void)[] = [];
   constructor(owner: Scope, level: Scope | undefined, position: () => Point, pause: () => Promise<void>, private readonly view?: () => StreamingView | null) {
@@ -101,6 +122,13 @@ export class ControlRefinement {
   refusal(): Error | undefined { return this.failure; }
   /** The spawn-view fence opened: run what is in view (prepareSpawnView). */
   wake(): void { this.kick(); }
+  /** Spawn-view jobs waiting or running in this queue before control (the fence's count). */
+  fenceWaiting(): number {
+    if (this.active || spawnView === null) return 0;
+    let waiting = this.running;
+    for (const job of this.waiting.values()) if (this.inFence(job)) waiting++;
+    return waiting;
+  }
   /** A spawn-view job waits or runs before control. */
   spawnViewOpen(): boolean { return !this.active && !this.owner.disposed && !this.owner.disposing && (this.busy || this.inView() !== undefined); }
   /** Resolves once this queue has no spawn-view job waiting or running. */
@@ -111,6 +139,11 @@ export class ControlRefinement {
   private settle(): void { const waiters = this.idle; this.idle = []; for (const resolve of waiters) resolve(); }
   /** Before control, the nearest waiting job inside the open spawn-view fence. */
   private inView(): Job | undefined { return this.select(true); }
+  private inFence(job: Job): boolean {
+    const view = spawnViewUsesCamera() ? this.view?.() ?? null : null, from = view?.eye ?? this.position();
+    const distance = view === null ? (job.at.x - from.x) ** 2 + (job.at.z - from.z) ** 2 : streamingDistance(job.at, view);
+    return distance <= (spawnView?.radius ?? 0) ** 2;
+  }
   private select(beforeControl: boolean): Job | undefined {
     if (this.waiting.size === 0 || (beforeControl && spawnView === null)) return undefined;
     const view = spawnViewUsesCamera() ? this.view?.() ?? null : null, from = view?.eye ?? this.position();
@@ -138,22 +171,36 @@ export class ControlRefinement {
     this.busy = true;
     try {
       while (this.waiting.size > 0 && !this.owner.disposed && !this.owner.disposing) {
-        // The current camera is sampled again after every yielded job.
-        const job = this.active ? this.select(false) : this.inView();
-        if (job === undefined) break;
-        this.waiting.delete(job.id);
-        try {
-          await job.run();
-          this.known.delete(job.id);
-          job.resolve(!this.owner.disposed && !this.owner.disposing);
-          if (this.waiting.size > 0 && !this.owner.disposed && !this.owner.disposing) await this.pause();
-        } catch (error) {
-          if (this.owner.disposed || this.owner.disposing) { job.resolve(false); break; }
-          const refusal = error instanceof Error ? error : new Error('Refinement failed', { cause: error });
-          this.failure = refusal; job.reject(refusal);
+        // The current camera is sampled again after every yielded batch. Before control the fence runs FENCE_LANES jobs
+        // at once (DL21); after control one, paced by frames.
+        const batch: Job[] = [];
+        const lanes = this.active ? 1 : FENCE_LANES;
+        while (batch.length < lanes) {
+          const job = this.active ? this.select(false) : this.inView();
+          if (job === undefined) break;
+          this.waiting.delete(job.id); batch.push(job);
+        }
+        if (batch.length === 0) break;
+        const fence = !this.active;
+        this.running = batch.length;
+        const results = await Promise.allSettled(batch.map(async job => { await job.run(); if (fence) fenceDone++; }));
+        this.running = 0;
+        let refusal: Error | undefined;
+        results.forEach((result, at) => {
+          const job = batch[at]; if (job === undefined) return;
+          if (result.status === 'fulfilled') { this.known.delete(job.id); job.resolve(!this.owner.disposed && !this.owner.disposing); return; }
+          if (this.owner.disposed || this.owner.disposing) { job.resolve(false); return; }
+          const error: unknown = result.reason;
+          refusal ??= error instanceof Error ? error : new Error('Refinement failed', { cause: error });
+          job.reject(refusal);
+        });
+        if (this.owner.disposed || this.owner.disposing) break;
+        if (refusal !== undefined) {
+          this.failure = refusal;
           for (const queued of this.waiting.values()) queued.reject(refusal);
           this.waiting.clear(); this.known.clear(); break;
         }
+        if (this.waiting.size > 0) await this.pause();
       }
     } catch (error) {
       const refusal = error instanceof Error ? error : new Error('Refinement failed', { cause: error });
