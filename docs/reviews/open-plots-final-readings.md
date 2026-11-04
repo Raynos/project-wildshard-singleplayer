@@ -4,8 +4,9 @@
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
-and the eight-view golden bridge. Sp-x8 owns separate Chromium memory and
-the official Simulator window. Sp-x6 owns audio/native bar 10, body/pack/wire proof, activation and joint
+and the eight-view golden bridge. Sp-x8 completed separate Chromium memory
+and official Simulator windows for six plots; sp-x1 owns the four remaining
+Clockwork, Desert, Race and Showcase memory/official cohorts. Sp-x6 owns audio/native bar 10, body/pack/wire proof, activation and joint
 row integration for Saltwind and Fossil. Sp-x1 takes the final audio,
 activation, native bar 10 and C reports for Clockwork, Desert, Floating
 Island Race and Showcase after the agreed transfer. Sp-x2 owns those audio requirements for Sky Harbor, Starfall,
@@ -31,10 +32,10 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
 | Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
-| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
-| Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
+| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | C/control + walk complete; 8 views read, neighbour views 1–4 open | Open |
+| Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
-| Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037` / `b752d49-mw26ziu7` | C/control measured; walk + goldens open | Open |
+| Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Open |
 
 All ten plots have eight committed golden cameras and maintained route
 inputs. Saltwind's `db418c06d7` adds `road-avenue-plaza`: 14 waypoints with
@@ -1536,3 +1537,105 @@ qualification to **5/10**. Thin Ice's closure `4282235f9c` is already
 published; this Pastel closure is local at this boundary. Fossil's fresh
 historical preview refused product freshness before app build, so its
 walk/goldens remain open without a retry or product bypass.
+
+
+## Desert Ruin — maintained walk and golden bridge (sp-x1, November 4)
+
+Exact final audio source **b752d49037c8ed98611376418069becb7c2599c0**, normal
+immutable all-product preview **b752d49-mw2bzahj** (:4404). The raw product index
+and **207 payload bodies / 202 pack entries** match the original admitted audio
+candidate exactly. The combined fresh bridge covers 825 bodies, 803 pack entries
+and 192 new runtime endpoints checked HTTP against disk. The earlier compiled
+runtime inventory was not retained; no old-versus-new compiled JavaScript
+byte-parity claim is made.
+
+The maintained routes keep the original controller, waypoints and bounds:
+
+- `road-avenue-plaza-scaffold`: **164.044 s**, complete, **0 stuck / 0 out**; final feet `(0.002, 0.025, -61.977)`.
+- `plaza-gateway-oasis`: **69.6815 s**, complete, **0 stuck / 0 out**; final feet `(124.996, 0.021, 124.467)`.
+
+All eight rows were read. Desert's own geometry, sign, roads, arch, plaza and
+pools match. Sp-o1 classified views 1–6 **green with an approved neighbour
+change**: Nine's QD1 silhouette now has its dark base, which Jake passed in QD6
+under G1005. Views 7–8 are green. This records that source boundary without
+promoting the stale baseline views.
+
+The capture is complete, all eight original camera/residency guards hold at phone
+DPR 2, and errors are empty. Raw walk and per-view rows:
+`tmp/sp-x1-open-plots/audio4-untimed/desert-ruin/walk.json` and
+`tmp/sp-x1-open-plots/audio4-untimed/desert-ruin-goldens/`.
+
+[Labelled eight-view board](../../art/golden-runs/open-plots/desert-ruin/2026-11-04-b752d49037-board.jpg).
+
+All own browsers closed and the normal :4404 preview lease was released. Memory
+and official Simulator remain open, so this section does not increase the
+full-cohort count.
+
+ ## Floating Island Race — maintained walk and golden bridge (sp-x1, November 4)
+
+Exact final audio source **b752d49037c8ed98611376418069becb7c2599c0**, normal
+immutable all-product preview **b752d49-mw2bzahj** (:4404). The raw product index
+and **205 payload bodies / 200 pack entries** match the original admitted audio
+candidate exactly. The combined fresh bridge covers 825 bodies, 803 pack entries
+and 192 new runtime endpoints checked HTTP against disk. The earlier compiled
+runtime inventory was not retained; no old-versus-new compiled JavaScript
+byte-parity claim is made.
+
+The maintained routes keep the original controller, waypoints and bounds:
+
+- `road-avenue-plaza-tower`: **164.046 s**, complete, **0 stuck / 0 out**; final feet `(0.001, 0.021, -61.972)`.
+
+All eight rows were read. Sp-o2 confirmed that Race's own track, gates, decks,
+parks, billboard and street furniture match. **Views 1–4 stay open for neighbour
+drift**: the west/north-west skyline replaces Nine's old silhouette with mountains
+(1–3), and the strip beyond the north edge changes in top down (4). That change
+has not been bound to an approved source; the coordinator assigned its skyline
+bisect to sp-x6. Views 5–8 match. No golden promotion, fix, or eight-green verdict
+is claimed.
+
+The capture is complete, all eight original camera/residency guards hold at phone
+DPR 2, and errors are empty. Raw walk and per-view rows:
+`tmp/sp-x1-open-plots/audio4-untimed/sky-race/walk.json` and
+`tmp/sp-x1-open-plots/audio4-untimed/sky-race-goldens/`.
+
+[Labelled eight-view board](../../art/golden-runs/open-plots/sky-race/2026-11-04-b752d49037-board.jpg).
+
+All own browsers closed and the normal :4404 preview lease was released. Memory
+and official Simulator remain open, so this section does not increase the
+full-cohort count.
+
+ ## Showcase Template — maintained walk and golden bridge (sp-x1, November 4)
+
+Exact final audio source **b752d49037c8ed98611376418069becb7c2599c0**, normal
+immutable all-product preview **b752d49-mw2bzahj** (:4404). The raw product index
+and **207 payload bodies / 200 pack entries** match the original admitted audio
+candidate exactly. The combined fresh bridge covers 825 bodies, 803 pack entries
+and 192 new runtime endpoints checked HTTP against disk. The earlier compiled
+runtime inventory was not retained; no old-versus-new compiled JavaScript
+byte-parity claim is made.
+
+The maintained routes keep the original controller, waypoints and bounds:
+
+- `road-avenue-plaza-scaffold`: **164.411 s**, complete, **0 stuck / 0 out**; final feet `(0.001, 0.021, -61.975)`.
+
+All eight rows were read individually and are **green**, with the original G994
+omissions retained. Road entry, road 40 m, neighbour 100 m, top down, plaza
+landmark, landmark up, side avenue and far corner retain their structure. No
+golden baseline changes.
+
+The capture is complete, all eight original camera/residency guards hold at phone
+DPR 2, and errors are empty. Raw walk and per-view rows:
+`tmp/sp-x1-open-plots/audio4-untimed/showcase-template/walk.json` and
+`tmp/sp-x1-open-plots/audio4-untimed/showcase-template-goldens/`.
+
+[Labelled eight-view board](../../art/golden-runs/open-plots/showcase-template/2026-11-04-b752d49037-board.jpg).
+
+The last capture overlapped the newly announced O4 timed window. Conservative
+command bounds, from log creation to final write after browser closure, are
+**17:05:56.623–17:07:01.816 UTC**. Those bounds were sent to O4 for its sample
+accounting. These are untimed settled images; they earn no clean-quiet or timing
+credit.
+
+All own browsers closed and the normal :4404 preview lease was released. Memory
+and official Simulator remain open, so this section does not increase the
+full-cohort count.
