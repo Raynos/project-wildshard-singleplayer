@@ -17,7 +17,9 @@ export function entryReadSet(source: Shardfile, tier: 'phone' | 'desktop', index
   // `late` only schedules a library member after control (controlFileHashes leaves it out); the level still loads it
   // in play, so it and its dependencies are entry IO too.
   const late = new Set((source.late ?? []).map(row => row.hash)), byHash = new Map(source.files.map(file => [file.hash, file]));
-  const tierOf = new Map(index.files.map(file => [file.hash, file.tier])), pending = source.library.filter(hash => late.has(hash)), seen = new Set<string>();
+  // Tile streaming loads every tile of the tier (every LOD) as the player moves; control requires none of them.
+  const tileFiles = source.tiles.flatMap(tile => tile.files.map(ref => ref.replace(/^commons:/u, '')));
+  const tierOf = new Map(index.files.map(file => [file.hash, file.tier])), pending = [...source.library.filter(hash => late.has(hash)), ...tileFiles], seen = new Set<string>();
   while (pending.length > 0) {
     const hash = pending.pop(); if (hash === undefined || seen.has(hash)) continue;
     seen.add(hash); pending.push(...byHash.get(hash)?.dependencies ?? []);
