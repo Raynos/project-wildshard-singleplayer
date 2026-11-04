@@ -26,7 +26,8 @@ test('browser admission overlaps cache requests and retains its frame boundary, 
 });
 
 test('cheap admission checks share a slice but spent work always paints before continuing', async () => {
-  let now = performance.now() + 1000;
+  // Keep the exact 7 + 1 ms boundary representable when the clock crosses a power of two.
+  let now = Math.ceil(performance.now()) + 1000;
   vi.spyOn(performance, 'now').mockImplementation(() => now);
   vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
   const frames: FrameRequestCallback[] = [];
