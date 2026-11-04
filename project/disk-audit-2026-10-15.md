@@ -318,6 +318,23 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   day). The cause is the dotfiles' global `NODE_COMPILE_CACHE` (section 2). `.git/commit-vitest-cache` (87a1387349) is
   back to 1.4 GB after Jake cleared it.
 
+## 13. 2026-11-03 20:47 check: `tmp/vitest` refilled to 3.6 GB / 115k files in one day; a node OOM wrote a second core (OPEN)
+
+- **`tmp/vitest`:** 0 at 11-02 22:16, then **3.6 GB / 115k files** by 11-03 20:47, which is this check's whole
+  +114k-file jump. The cause is the same as section 11: eight `tmp/vitest/<pid>` dirs, each from a run that was
+  killed, so `scripts/vitest-tmp.ts` never got its `exit` cleanup. They were made 01:04, 08:19, 08:41, 08:47, 09:17,
+  13:27, 17:55 and 19:06, each 7.6k–19.7k files and 265–690 MB, and none of the pids is alive. Section 11's fix is
+  still not wired: `sweep_vitest` exists in `scripts/boot-temp-warn.sh:20`, but nothing in `.githooks/` calls it.
+- **`tmp/serve`** swings between 4 and 21 GB as previews come and go. That is one build (about 2.1 GB) per port on
+  4400–4410, all with a live listener at 08:47, so it is bounded. **`tmp/build-mirror/ruler`** (3.2 GB, last written
+  10-24) is a leftover: `scripts/build-mirror.mjs:203` now pools `check`..`check5` only.
+- **Lane scratch over 2 GB:** `sp-ci-deploy-qa-refresh` 2.7 GB (born 10-29, still written; the biggest files are
+  `*-watch.log` and `nine-p1-*`) and `sp-x8-z6` 2.1 GB (born 11-03 10:55; goldens; the lane pushed at 15:17).
+- **`/cores`:** `core.39665` (11 GB, 11-03 00:51) joins `core.45892` (19 GB, 10-31). Both are node V8
+  `FatalProcessOutOfMemory` SIGABRTs started from an iTerm2 shell (`~/Library/Logs/DiagnosticReports/node-2026-11-03-005157.ips`).
+  `ulimit -c unlimited` in Jake's `~/.bashrc` turns every node OOM into a heap-sized core; that is Jake's call.
+- `~/Library/Caches/node-compile-cache` was 3.6 GB at 11-02 22:16 and **29 GB** at 11-03 20:47 (about 1.3 GB an hour).
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
