@@ -44,7 +44,12 @@ def observe(phase):
                     row['parts'] = parts
         except (OSError, ValueError) as error:
             row['unavailable'] = type(error).__name__
-        print('::notice title=' + title + '::' + json.dumps(row, separators=(',', ':')), flush=True)
+        # Both prepare phases share one Actions step's annotation allowance.
+        # Retain every row in its log, and the four requested rows per phase
+        # in check annotations even if a disk-full runner loses that log.
+        annotated = phase == 'fixture-before-snapshots' or name in ('workspace', 'dist', 'gen', 'spawn-parts-br')
+        prefix = '::notice title=' + title + '::' if annotated else 'CI disk detail::'
+        print(prefix + json.dumps(row, separators=(',', ':')), flush=True)
 
 
 if __name__ == '__main__':
