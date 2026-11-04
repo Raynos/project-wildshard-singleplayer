@@ -33,6 +33,7 @@ import { parseArgs } from 'node:util';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
+import { snapshot, lapPops } from './complete-at-control-snapshot.mjs';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
 
@@ -105,63 +106,6 @@ const isLevelContent = (url) => {
   return slug === null || levelSlugs.has(slug);
 };
 
-/** In-page residency snapshot: everything that could still change what is drawn near the player. Self-contained: it also
- *  runs from the init script in the control frame. */
-function snapshot() {
-  const api = window.__wildshard, grid = api?.shard?.grid, file = api?.shard?.shardfile, reachM = Number(window.__dl17Reach) || 220;
-  const marks = performance.getEntriesByType('mark').filter(m => m.name.startsWith('wildshard.spawn-view')).map(m => ({ name: m.name, detail: m.detail }));
-  let scene = null;
-  try {
-    const world = api.requireWorld(), p = world.player.position, v = world.player.velocity;
-    let meshes = 0, visible = 0; const list = [], lods = [], texturesPending = [];
-    // an instanced mesh's own transform says nothing of where its instances stand: it counts as within reach
-    const near = o => { const e = o.matrixWorld.elements; return o.isInstancedMesh === true || Math.hypot(e[12] - p.x, e[14] - p.z) <= reachM; };
-    const shown = o => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
-    world.game.scene.traverse(o => {
-      // the player's own viewmodel (held weapons, arms, the board) hangs under the camera: not level content
-      for (let q = o.parent; q; q = q.parent) if (q.isCamera) return;
-      if (o.isLOD && shown(o) && near(o) && o.getCurrentLevel() > 0) lods.push(`${o.name === '' ? o.uuid : o.name}@${o.getCurrentLevel()}`);
-      if (!(o.isMesh || o.isInstancedMesh)) return;
-      const mats = Array.isArray(o.material) ? o.material : [o.material];
-      // additive blending (THREE.AdditiveBlending) is an effect: sparks, dust, glows
-      if (mats.some(m => m?.blending === 2)) return;
-      meshes++;
-      const on = shown(o), close = on && near(o);
-      if (on) visible++;
-      const chain = []; for (let q = o; q && chain.length < 4; q = q.parent) chain.push(q.name === '' ? q.type : q.name);
-      const g = o.geometry;
-      const sig = [g?.uuid, g?.attributes?.position?.count ?? 0, g?.index?.count ?? 0,
-        ...mats.map(m => `${m?.uuid}:${m?.map?.uuid ?? ''}:${m?.map?.image?.width ?? ''}`)].join('|');
-      list.push([o.uuid, chain.join('<'), sig, on, close, o.isSkinnedMesh === true]);
-      if (close) for (const m of mats) for (const key of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap', 'alphaMap']) {
-        const t = m?.[key];
-        if (t?.isTexture !== true || t.isRenderTargetTexture === true) continue;
-        const img = t.image;
-        const empty = img === null || img === undefined || (t.isCompressedTexture ? !(t.mipmaps?.length > 0) : img.width === 0 || img.complete === false);
-        if (empty && texturesPending.length < 50) texturesPending.push(`${chain.join('<')}.${key}`);
-      }
-    });
-    scene = { meshes, visible, list, lods, texturesPending, player: [p.x, p.y, p.z], speed: Math.hypot(v.x, v.z), hover: world.player.hover, boost: world.player.hoverBoost,
-      limit: typeof world.player.hoverSpeedLimit === 'function' ? world.player.hoverSpeedLimit() : null };
-  } catch (error) { scene = { error: String(error) }; }
-  let gridState = null;
-  if (grid !== undefined) {
-    try {
-      const s = grid.state();
-      gridState = { pitch: s.pitch, feet: s.feet, home: s.home, rings: s.rings, ringsReady: s.ringsReady, near: s.near,
-        cells: (s.cells ?? []).map(c => ({ id: c.instance, slug: c.slug, cell: c.cell, shows: c.shows, drawn: c.drawn })) };
-    } catch (error) { gridState = { error: String(error) }; }
-  }
-  let fine = null, residency = null;
-  try { fine = file?.fine ? [...file.fine].map(String).sort((a, b) => a.localeCompare(b)) : null; } catch { fine = null; }
-  try {
-    const raw = api?.shard?.shardfileResidency;
-    residency = raw ? JSON.parse(JSON.stringify(typeof raw === 'function' ? raw() : raw, (_key, value) => (typeof value === 'function' ? undefined : value))) : null;
-  } catch (error) { residency = { error: String(error) }; }
-  let textures = null;
-  try { const t = api?.textures?.(); textures = t === undefined ? null : { mode: t.mode, why: t.why }; } catch (error) { textures = { error: String(error) }; }
-  return { at: performance.now(), when: Date.now(), marks, scene, grid: gridState, fine, residency, textures };
-}
 
 const requests = [], reads = [];
 // --link=phone: DL0's one shared downlink (scripts/phone-loading/link.ts) at the phone preset's rate, page and service worker
@@ -251,7 +195,10 @@ try {
     if (control.at === null) throw new Error('No ws:control-ready within 30 s of entry');
     const at = await page.evaluate(() => Reflect.get(window, '__dl17AtControl') ?? null);
     if (at === null) throw new Error('No snapshot from the control frame');
-    return { start, control: control.at, ms: control.at - start, workerFetchesOpenAtNavigation, at };
+    // control is the control frame's own clock (the snapshot's Date.now()), not the binding's later arrival in Node: a request
+    // that starts between the two is after control
+    const controlFrame = typeof at.when === 'number' ? Math.min(at.when, control.at) : control.at;
+    return { start, control: controlFrame, ms: controlFrame - start, workerFetchesOpenAtNavigation, at };
   };
   /** The grid's reach cells (each cell whose square meets the lap's box round spawn; a cell's centre is its index times the
    *  pitch); the home cell joins the level's dependency set. */
@@ -315,30 +262,13 @@ try {
     // is not cached yet downloads that set after control and the next visit draws other textures (sp-x6's DL9 red)
     if (at.textures?.mode === 'img' && /KTX2 set is not cached/u.test(at.textures.why ?? '')) flag(`textures drawn as images at control while the level's KTX2 set downloads after it, so the next visit swaps them (${at.textures.why})`);
     if ((at.scene?.lods ?? []).length > 0) flag(`${at.scene.lods.length} LODs within reach below full detail at control (first: ${at.scene.lods.slice(0, 3).join(', ')})`);
-    // pops during the lap: anything shown within reach of the player that control did not show as it is now; a mesh under
-    // another cell's region is the neighbour's
-    const atMeshes = new Map((at.scene?.list ?? []).map(([id, , sig, on]) => [id, { sig, on }])), pops = new Map(), nPops = new Map(), dynamic = new Map();
-    const fineAt = new Set(at.fine), addedFine = new Set(), lapLods = new Set(), lapTextures = new Set();
-    const homeRegion = flow === 'grid' ? (g?.cells ?? []).find(cell => cell.id === g?.home)?.id : undefined;
-    const neighbourChain = chain => homeRegion !== undefined && /region:[\w-]+/u.test(chain) && !chain.includes(`region:${homeRegion}`);
-    for (const s of lap) {
-      for (const key of s.fine ?? []) if (!fineAt.has(key)) addedFine.add(key);
-      for (const lod of s.scene?.lods ?? []) lapLods.add(lod);
-      for (const texture of s.scene?.texturesPending ?? []) lapTextures.add(texture);
-      for (const [id, chain, sig, , close, skinned] of s.scene?.list ?? []) {
-        if (!close || pops.has(id) || nPops.has(id) || dynamic.has(id)) continue;
-        // a skinned mesh (an animal, a person) is a moving actor the level culls by distance: listed, never a pop
-        if (skinned) { if (atMeshes.get(id)?.on !== true) dynamic.set(id, chain); continue; }
-        const was = atMeshes.get(id), why = was === undefined ? 'added' : !was.on ? 'shown' : was.sig === sig ? null : 'swapped';
-        if (why !== null) (neighbourChain(chain) ? nPops : pops).set(id, `${why} ${chain}`);
-      }
-    }
     if (lap.length > 0) {
-      if (addedFine.size > 0) flag(`${addedFine.size} fine tiles became resident during the boost lap`);
-      if (pops.size > 0) flag(`${pops.size} meshes popped within reach during the boost lap: ${[...pops.values()].slice(0, 6).join('; ')}`);
-      if (nPops.size > 0) note(`${nPops.size} neighbour meshes popped within reach during the boost lap: ${[...nPops.values()].slice(0, 4).join('; ')}`);
-      if (lapLods.size > 0) flag(`${lapLods.size} LODs within reach below full detail during the boost lap (first: ${[...lapLods].slice(0, 3).join(', ')})`);
-      if (lapTextures.size > 0) flag(`${lapTextures.size} textures within reach not decoded during the boost lap (first: ${[...lapTextures].slice(0, 3).join(', ')})`);
+      const found = lapPops(at, lap, flow === 'grid' ? (g?.cells ?? []).find(cell => cell.id === g?.home)?.id : undefined);
+      if (found.fine.length > 0) flag(`${found.fine.length} fine tiles became resident during the boost lap`);
+      if (found.pops.length > 0) flag(`${found.pops.length} meshes popped within reach during the boost lap: ${found.pops.slice(0, 6).join('; ')}`);
+      if (found.neighbourPops.length > 0) note(`${found.neighbourPops.length} neighbour meshes popped within reach during the boost lap: ${found.neighbourPops.slice(0, 4).join('; ')}`);
+      if (found.lods.length > 0) flag(`${found.lods.length} LODs within reach below full detail during the boost lap (first: ${found.lods.slice(0, 3).join(', ')})`);
+      if (found.textures.length > 0) flag(`${found.textures.length} textures within reach not decoded during the boost lap (first: ${found.textures.slice(0, 3).join(', ')})`);
       // grid tiles join batched meshes, so a ring pop shows as a reach cell's drawn layers changing, not as a new mesh
       const lapReach = new Set(reachCells.map(cell => cell.id)), drawnAt = new Map((g?.cells ?? []).map(cell => [cell.id, cell.drawn])), cellPops = new Map();
       for (const s of lap) for (const cell of s.grid?.cells ?? []) {
@@ -351,7 +281,7 @@ try {
       const homePops = [...cellPops].filter(([id]) => id === g?.home).map(([, text]) => text), nCellPops = [...cellPops].filter(([id]) => id !== g?.home).map(([, text]) => text);
       if (homePops.length > 0) flag(`the home cell changed what it draws during the boost lap: ${homePops.join('; ')}`);
       if (nCellPops.length > 0) note(`neighbour cells changed what they draw during the boost lap: ${nCellPops.join('; ')}`);
-      report.lapAdds = { fineTiles: [...addedFine], meshesAtControl: at.scene?.meshes ?? null, pops: [...pops.values()], neighbourPops: [...nPops.values()], actorsShown: [...dynamic.values()], lods: [...lapLods], textures: [...lapTextures], cellPops: [...cellPops.values()] };
+      report.lapAdds = { fineTiles: found.fine, meshesAtControl: at.scene?.meshes ?? null, pops: found.pops, neighbourPops: found.neighbourPops, actorsShown: found.actors, lods: found.lods, textures: found.textures, cellPops: [...cellPops.values()] };
     }
     if (neighbourList.length > 0) (report.neighbour ??= []).push(...neighbourList);
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
