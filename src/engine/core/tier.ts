@@ -7,7 +7,7 @@ import { saveStorage } from '../saves/slots';
  * overrides for testing, else main menu ▸ Settings ▸ Quality (E55, `setting('tier')`). Every knob below is measured in
  * project/archive/2026-09-22-play-perf.md.
  */
-import { mobileDevice } from '../render/tierSelect';
+import { arrivalTier, mobileDevice } from '../boot/titleArrival';
 
 const savedStorage = saveStorage('global');
 
@@ -70,6 +70,7 @@ function resetTierConfig(): void {
 }
 function configureTier(tier: Tier): void {
   TIER = tier;
+  arrivalTier.current = tier;
   resetTierConfig();
   if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
   if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';

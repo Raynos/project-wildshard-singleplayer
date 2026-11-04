@@ -969,10 +969,11 @@ startup sheets load. It names the pending URL, preserves load/error
 semantics and removes listeners on completion or retirement.
 
 `freshPageArrival(at, now?, startedAt?)` in `@wildshard/engine/boot/titleArrival`
-checks one-shot entry intent against the receiving document's start before cold modules
-or admission can consume its 60-second navigation window. Title, grid and travel
-handoffs still reset on their first read, reject future timestamps and refuse a new
-navigation starting after expiry. Explicit clocks support deterministic tests.
+validates one-shot intent against document start, preserving its 60-second
+window through cold admission. Title, grid and travel consume the intent once;
+future times and late starts refuse. Explicit clocks make tests deterministic.
+
+`arrivalTier.current` mirrors the renderer's selected tier for cold navigation.
 
 `plannedGridReload(record)` in `@wildshard/game/grid/recovery` continues a
 planned update at its admitted pose without an extra Resume gesture. Its saved

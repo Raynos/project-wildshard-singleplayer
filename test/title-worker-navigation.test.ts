@@ -6,7 +6,7 @@ import { stripTypeScriptTypes } from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Navigation is observed without booting a renderer or a real document.
 import { runInNewContext } from 'node:vm';
 
-function fixture(active: boolean) {
+function fixture(active: boolean, tier: 'phone' | 'desktop' = 'phone') {
   const source = readFileSync('src/game/travel/travel.ts', 'utf8');
   const start = source.indexOf('function navigate('), end = source.indexOf('\nexport function travel(', start);
   if (start === -1 || end < start) throw new Error('Missing navigation boundary');
@@ -14,7 +14,7 @@ function fixture(active: boolean) {
   let fail = (_error: Error): void => { throw new Error('Missing readiness promise'); };
   const ready = new Promise<void>((resolve, reject) => { finish = resolve; fail = reject; });
   const destinations: string[] = [], arrivals: unknown[] = [], unloads: unknown[] = [];
-  const ports = { running: active ? {} : null, window: { __ws_sw: { ready } }, URL,
+  const ports = { running: active ? {} : null, window: { __ws_sw: { ready } }, URL, arrivalTier: { current: tier },
     location: { href: 'https://example.test/?v=old', replace: (url: string) => { destinations.push(url); } },
     setTitleArrival: (arrival: unknown) => { arrivals.push(arrival); }, findTitleManifest: () => ({ name: 'Fixture' }),
     markUnload: (reason: unknown) => { unloads.push(reason); },
@@ -34,8 +34,9 @@ test('the fresh title waits for first activation before its next controlled docu
   expect(f.arrivals).toHaveLength(1); expect(f.unloads).toHaveLength(1);
 });
 
-test('a running world leaves immediately without probing or waiting for the worker', () => {
-  const f = fixture(true); f.go(); expect(f.destinations).toHaveLength(1);
+test.each(['phone', 'desktop'] as const)('a running %s world leaves immediately with its tier without waiting for the worker', tier => {
+  const f = fixture(true, tier); f.go(); expect(f.destinations).toHaveLength(1);
+  expect(f.arrivals).toEqual([{ slug: 'fixture', mode: 'enter', name: 'Fixture', tier }]);
 });
 
 test('an unavailable registration still permits navigation while a superseded title cannot leave a running world', async () => {

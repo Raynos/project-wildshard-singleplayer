@@ -3,9 +3,6 @@ import { gpuClass, DESKTOP_TFLOPS } from './gpuClasses';
 export type SelectedTier = 'phone' | 'desktop';
 export interface TierPick { v: 1; renderer: string; tier: SelectedTier; via: 'table' | 'bench'; score: number; at: number }
 export interface TierChoice { tier: SelectedTier; via: 'harness' | 'setting' | 'mobile' | 'table' | 'bench' | 'unavailable'; detail: string; pick?: TierPick }
-export function mobileDevice(userAgent: string, platform: string, maxTouchPoints: number): boolean {
-  return /iPhone|iPad|iPod|Android/i.test(userAgent) || platform === 'MacIntel' && maxTouchPoints > 1;
-}
 export function parseTierPick(value: unknown): TierPick | null {
   if (typeof value !== 'object' || value === null) return null;
   const v: unknown = Reflect.get(value, 'v'), renderer: unknown = Reflect.get(value, 'renderer'), tier: unknown = Reflect.get(value, 'tier'), via: unknown = Reflect.get(value, 'via'), score: unknown = Reflect.get(value, 'score'), at: unknown = Reflect.get(value, 'at');

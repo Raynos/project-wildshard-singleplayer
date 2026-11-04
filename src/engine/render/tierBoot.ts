@@ -1,4 +1,5 @@
-import { selectTier, mobileDevice, parseTierPick, type TierChoice } from './tierSelect';
+import { selectTier, parseTierPick, type TierChoice } from './tierSelect';
+import { mobileDevice } from '../boot/titleArrival';
 import { benchmarkTierGpu, gpuRenderer } from './tierBenchmark';
 import { desktopFloor, DESKTOP_REFERENCE } from './desktopReference';
 import { saveStorage, jsonSlot } from '../saves/slots';

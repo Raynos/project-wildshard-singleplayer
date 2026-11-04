@@ -3,6 +3,17 @@ import { saveStorage } from '../saves/slots';
 export type TitleArrivalMode = 'enter' | 'explore' | 'arena';
 export interface TitleArrival { slug: string; mode: TitleArrivalMode }
 
+/** Device classification shared by cold arrival metadata and renderer tier selection. */
+export function mobileDevice(userAgent: string, platform: string, maxTouchPoints: number): boolean {
+  return /iPhone|iPad|iPod|Android/i.test(userAgent) || platform === 'MacIntel' && maxTouchPoints > 1;
+}
+
+/** Display-only tier fact for a fresh document. initializeTier updates it when
+ * the actual tier is selected; cold navigation never imports rendering tables. */
+export const arrivalTier: { current: 'phone' | 'desktop' } = {
+  current: typeof navigator !== 'undefined' && mobileDevice(navigator.userAgent, navigator.platform, navigator.maxTouchPoints) ? 'phone' : 'desktop',
+};
+
 const KEY = 'titleArrival';
 const BACKUP_KEY = 'titleArrival.once';
 const MAX_AGE_MS = 60_000;
