@@ -85,6 +85,11 @@ export async function startSharedLink(bytesPerSecond: number): Promise<SharedLin
     });
     upstream.once('error', error => {failed(`tunnel ${host}`)(error); client.destroy();});
     client.once('error', error => {failed(`tunnel upload ${host}`)(error); upstream.destroy();});
+    // A tunnel lives and dies with both ends, and close() ends it: an idle browser tunnel (e.g. Chrome's background
+    // push connection) must never keep the run's process alive (sp-x6).
+    // (The origin closing ends the client only through the shaped flow, after its tail is delivered.)
+    sockets.add(upstream); upstream.once('close', () => {sockets.delete(upstream);});
+    client.once('close', () => {upstream.destroy();});
   });
   await new Promise<void>((resolve, reject) => {server.once('error', reject); server.listen(0, '127.0.0.1', () => {resolve();});});
   const bound = server.address();
