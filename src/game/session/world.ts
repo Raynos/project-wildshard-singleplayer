@@ -100,6 +100,9 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
       // for them (finish.ts), shown whole at control instead of fading in after it
       horizonReady = matte.load(undefined, true);
     }
+    // the painted land horizon (Pine Hollow, PH-L5) likewise: its phone pack was read 0.2 s after control (DL17)
+    const painted = horizon.painted;
+    if (painted !== null) horizonReady = Promise.all([horizonReady, painted.load(true)]).then(() => undefined);
     return { boundary, water, streams, horizon, horizonReady };
   });
   const { boundary, water, horizon } = edgeDressing;

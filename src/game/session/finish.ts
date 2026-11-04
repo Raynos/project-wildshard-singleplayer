@@ -178,8 +178,12 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // under the card too, before the reveal; the minimap's baked map decodes beside it
   await loadingStage('readyFrame', async () => {
     // the hidden frame runs inside the open fence, so the tile driver attaches the spawn ring's fine tiles and they refine now
-    // DL17: the horizon paintings (world.ts started them at world build) are drawn at control too
-    await Promise.all([prepareSpawnView(undefined, () => settleTileDrivers(() => { game.hiddenFrame(); })), waitEntryWork(game.levelScope, () => ctx.minimap.prepare()), edgeDressing.horizonReady]);
+    // DL17: the horizon paintings (world.ts started them at world build) are drawn at control too; a standalone whole-cell
+    // level (`ring: 'cell'`) attaches every tile before control, so its fence takes every job, not only those within 221 m
+    // (Pine's 7 jobs at 230 m and beyond waited for control). The grid keeps its reach: its fence also holds the cells
+    // round the home, whose queues run in play (an unbounded grid fence never closed)
+    const wholeLevel = ctx.grid === null && ctx.product.shardfile.ring === 'cell';
+    await Promise.all([prepareSpawnView(wholeLevel ? Infinity : undefined, () => settleTileDrivers(() => { game.hiddenFrame(); })), waitEntryWork(game.levelScope, () => ctx.minimap.prepare()), edgeDressing.horizonReady]);
   });
   // P0: the phone's spawn programs settle while loading still covers the reveal.
   // Undrawn world programs remain in the sliced after-control warm-up below.

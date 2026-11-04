@@ -81,8 +81,9 @@ export class HeldTool {
   private readonly playback: HeldPlayback;
   private readonly observations: Record<string, number>;
 
-  /** `row` its look and motion, `beat` the clock `update` reads; the row owns its delayed file fetch in game time. */
-  constructor(ctx: ShardContext, row: HeldToolRow, beat: HeldToolBeat) {
+  /** `row` its look and motion, `beat` the clock `update` reads. `file`, prepared with the level (DL17), draws at once;
+   *  without it the row owns its delayed file fetch in game time. */
+  constructor(ctx: ShardContext, row: HeldToolRow, beat: HeldToolBeat, file?: HeldToolFile) {
     const world = ctx.game.runtime?.world;
     if (world === undefined || world === null) throw new Error('Held tool needs its world stage');
     const { game, sky } = world;
@@ -96,8 +97,9 @@ export class HeldTool {
     this.group.visible = false;
     game.camera.add(this.group);
     this.use(paintedPrimitives(row.parts), null);
+    if (file !== undefined) this.use(file.geo, file.tex);
     // the stand-in holds until the file lands
-    let left = -1;
+    let left = file === undefined ? -1 : 0;
     ctx.on('level.loaded', ({ id }) => { if (id === row.loadedLevel && left === -1) left = Math.max(row.loadDelayMs / 1000, 1e-6); });
     ctx.system({ id: row.loadSystemId, phase: 'update', run: dt => { if (left <= 0) return; left = Math.max(0, left - dt); if (left === 0) void this.load(); } });
     ctx.scope.onDispose(() => { this.group.removeFromParent(); if (this.ownsGeometry) this.mesh?.geometry.dispose(); this.mat.dispose(); });

@@ -309,8 +309,9 @@ export class PaintedHorizon {
     return this;
   }
 
-  /** fetch + decode both paintings off the critical path (after boot); the band fades in once both are decoded */
-  async load(): Promise<void> {
+  /** fetch + decode both paintings; the band fades in once both are decoded. `instant`: loaded under the loading card
+   *  (DL17), the band is whole at control with no fade-in after it, and a failed painting refuses the load */
+  async load(instant = false): Promise<void> {
     if (!this.mesh || this.loaded) return;
     this.loaded = true;
     const st = this.strips, src = TIER === 'phone' && st.phone ? st.phone : st;
@@ -319,7 +320,9 @@ export class PaintedHorizon {
       this.u.tDay.value = day; this.u.tNight.value = night;
       await Promise.all([floorOf(day, this.u.uFloorDay.value), floorOf(night, this.u.uFloorNight.value)]);
       this.ready = true;
+      if (instant) { this.fade = 1; this.u.uFade.value = 1; }
     } catch (e) {
+      if (instant) throw new Error(`Painted horizon did not load: ${e instanceof Error ? e.message : String(e)}`, { cause: e });
       console.warn('[painted-horizon] paintings not loaded; the haze band stays', e);
     }
   }

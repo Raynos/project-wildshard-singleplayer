@@ -1,4 +1,3 @@
-import { resourceScope } from '../app/resources';
 import * as THREE from 'three';
 import { CHUNK_DEPTH } from '../core/config';
 import { Noise2D } from '../core/noise';
@@ -29,7 +28,6 @@ export const horizonLight: { uHazeCol: { value: THREE.Color; }; uSeaSky: { value
  * crossed its outer cells); an open-water world's sea runs to the horizon (its painted band is `HorizonMatte`).
  */
 export class Horizon {
-  private readonly scope = resourceScope().child('Horizon');
   group: THREE.Group = new THREE.Group();
   /** Pine Hollow's painted horizon (PH-L5), in place of the rings and the cloud sea */
   painted: PaintedHorizon | null = null;
@@ -58,7 +56,7 @@ export class Horizon {
       if (painted.mesh) this.group.add(painted.mesh);
       this.painted = painted;
       fogUniforms.fogEdge.value.x = 0.4; // aerial perspective on the slab's last metres and cliffs, not a white-out
-      this.scope.listen(document, 'ws:ready', () => { this.scope.timeout(250, () => { void painted.load(); }); }, { once: true });
+      // its paintings are level content: the composition root loads them with the level (DL17), never after boot
     }
     return this;
   }

@@ -30,7 +30,7 @@ import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
 import type { ShardContext } from '../plugin/context';
-import { followResidentTiles, noteTileBytes, productTileRing, residentTiles, tileRing } from './tileDriver';
+import { followResidentTiles, noteTileBytes, productTileRing, residentTiles } from './tileDriver';
 import { StreamingCamera } from './streamingView';
 import { bucketByTile, followTile, ring, tileKey } from './tileContent';
 import { tileOf, type CellTile } from './tileOrder';
@@ -218,8 +218,9 @@ export async function placeForestPageModels(ctx: ShardContext, id: string): Prom
   const page = forestPage(ctx.scope, id), due = slicer(page.rows.sliceMs).due, h = forestFieldModels(ctx, id), { forest, registry } = h, under = page.under;
   const models = sharedModelContext(h.sky, h), trees = treeSetModel(productTreePool(ctx.product, ctx.product.section('world/trees')));
   const variants = trees.model.variants; if (variants === undefined) throw new Error('Forest model requires its variants');
-  // tile streaming P3/P4: the trees and the floor cover keep to the tiles around the viewer (the trees' follower moves the ring)
-  const radius = tileRing(), residency = { resident: (_x: number, _z: number): boolean => true };
+  // tile streaming P3/P4: the trees and the floor cover keep to the tiles around the viewer (the trees' follower moves the ring);
+  // a whole-cell level (`ring: 'cell'`, DL17) keeps every tile, so nothing streams in play (sp-o1, as Nalati's ground)
+  const radius = productTileRing(ctx.product.shardfile)(), residency = { resident: (_x: number, _z: number): boolean => true };
   if (forest !== null && forest.trees.length > 0) {
     if (forest.drawer !== 'model' || forest.factory.variants.length !== variants.length) {
       const own = forest.drawer === 'model'; forest.drawItself();

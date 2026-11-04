@@ -16,7 +16,7 @@ import type { ShardProduct } from '../shardfile/shardProduct';
 import { createModelLibrary, type ModelLibrary } from './geometry';
 import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRow } from './heldFirearm';
 import { HeldLauncher, bindHeldBow, type HeldLauncherRows, type HeldLauncherProfile } from '../weapons/heldLauncher';
-import { HeldTool, heldToolRows, type HeldToolBeat } from './heldTool';
+import { HeldTool, heldToolRows, loadHeldToolFile, type HeldToolBeat, type HeldToolFile } from './heldTool';
 import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from './headless';
 import { ItemCatalogue } from '../loadout/itemCatalogue';
 import { Bow } from '../weapons/Bow';
@@ -63,6 +63,8 @@ export class HeldEquipment {
   private readonly textures = new ResourceMemo<string, THREE.Texture>();
   private firearmLoad: Promise<FirearmModel> | null = null;
   private firearmReady: FirearmModel | null = null;
+  private toolLoad: Promise<HeldToolFile> | null = null;
+  private toolReady: HeldToolFile | null = null;
 
   constructor(private readonly product: ShardProduct) {
     this.rows = v.parse(HeldEquipmentSchema, product.section('held/equipment'));
@@ -80,7 +82,14 @@ export class HeldEquipment {
   static async prepare(product: ShardProduct): Promise<HeldEquipment> {
     let host = catalogues.get(product.slug);
     if (host === undefined) { host = new HeldEquipment(product); catalogues.set(product.slug, host); }
-    await host.library.preload(); await host.preloadFirearm(); return host;
+    await host.library.preload(); await host.preloadFirearm(); await host.preloadTool(); return host;
+  }
+  /** DL17 (G1000): the held tool's file is level content, read with the level rather than after control (Pine's knife
+   *  was read 0.5 s after it); a failed read stays retryable through the tool's own delayed load. */
+  async preloadTool(): Promise<HeldToolFile | null> {
+    this.toolLoad ??= loadHeldToolFile(heldToolRows(this.rows.tool));
+    try { this.toolReady = await this.toolLoad; return this.toolReady; }
+    catch (error: unknown) { this.toolLoad = null; console.warn('[held tool] preload failed; the tool loads in play', error); return null; }
   }
   /** Refuse an unprepared catalogue, rather than inventing a default weapon. */
   static current(slug: string): HeldEquipment { const host = catalogues.get(slug); if (host === undefined) throw new Error(`Held equipment not admitted: ${slug}`); return host; }
@@ -187,6 +196,6 @@ export class HeldEquipment {
   bow(): ReturnType<typeof bindHeldBow> { return bindHeldBow(this.rows.hands.heldBow, this.library); }
   /** Construct the row's timed tool, including its delayed admitted model load. */
   tool(context: ShardContext, beat: HeldToolBeat): HeldTool {
-    return new HeldTool(context, heldToolRows(this.rows.tool), beat);
+    return new HeldTool(context, heldToolRows(this.rows.tool), beat, this.toolReady ?? undefined);
   }
 }
