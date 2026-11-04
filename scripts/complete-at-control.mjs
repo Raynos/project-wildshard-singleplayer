@@ -5,6 +5,8 @@
 //
 // scripts/browser-lane.sh node scripts/complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid
 //   [--engine=chromium|webkit] [--sw=on|off] [--lap=<seconds, default 20>] [--out=<new json under ./tmp>]
+//   --warm=on: timing only (no lap): the cold visit's tap-to-control, an exit and re-entry 1 s after control while the
+//   service worker's post-control precache still runs (039d's trap), and a re-entry once the worker has gone quiet
 //
 // One cold visit of a served build (`scripts/serve-build.sh --rev`), phone tier, 2x, muted iPhone 16 Pro, Developer on,
 // the service worker ON by default (a fresh context, so it installs during the visit, as a player's first visit does).
@@ -28,7 +30,7 @@ import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--lap=20] [--reach=220] [--out=tmp/<file>.json]');
@@ -145,108 +147,132 @@ try {
   const query = flow === 'grid' ? { mute: '1', nolock: '1' } : { chunk: flow, tier: 'phone', skipintro: '1', nolock: '1', mute: '1' };
   for (const [key, value] of Object.entries({ ...query, ...(sw === 'off' ? { sw: '0' } : {}) })) url.searchParams.set(key, value);
   report.sw = sw; report.url = url.href;
-  const t0 = Date.now();
-  await page.goto(url.href, { waitUntil: 'load' });
-  if (flow === 'grid') {
-    // the grid is entered the way a player does: the title's INFINITE WILDSHARD tap, then the HUD's own entry (the goldens' route)
-    await page.locator('.ws-main-grid').click();
-    await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live.live.gameplayReady === true, undefined, { timeout: 240000 });
-    await page.evaluate(FLOOR_GRID_ENTER);
-  }
-  await page.waitForFunction(() => window.__wildshard?.world?.hud?.entered === true, undefined, { timeout: 240000 });
-  const deadline = Date.now() + 30000;
-  while (control.at === null && Date.now() < deadline) await page.waitForTimeout(100);
-  if (control.at === null) throw new Error('No ws:control-ready within 30 s of entry');
-  controlAt = control.at;
-  report.tapToControlMs = controlAt - t0;
-  report.atControl = await page.evaluate(snapshot);
-  const gridAt = report.atControl.grid;
-  if (flow === 'grid' && gridAt && !gridAt.error) {
-    // the cells whose square meets the lap's box round spawn (a cell's centre is its index times the pitch)
-    const half = gridAt.pitch / 2, fx = gridAt.feet.x, fz = gridAt.feet.z;
-    const inReach = (gridAt.cells ?? []).filter(c => Math.abs(c.cell[0] * gridAt.pitch - fx) < half + reach && Math.abs(c.cell[1] * gridAt.pitch - fz) < half + reach);
-    for (const c of inReach) levelSlugs.add(c.slug);
-    report.reachCells = inReach.map(c => ({ id: c.id, slug: c.slug, shows: c.shows }));
-  }
-
-  // the boost lap: hoverboard, Developer boost, a square of `reach` metres round spawn
-  const lap = [];
-  const [sx, , sz] = report.atControl.scene?.player ?? [0, 0, 0];
-  const corners = [[sx + reach, sz], [sx + reach, sz + reach], [sx - reach, sz + reach], [sx - reach, sz - reach], [sx + reach, sz - reach], [sx, sz]];
-  await page.evaluate(() => { const w = window.__wildshard.requireWorld(); w.player.hoverBoost = true; });
-  const walk = page.evaluate(leg => window.__wildshard.walkLeg({ name: 'dl17-boost-lap', start: { x: leg.x, z: leg.z, yaw: 0, hover: true }, waypoints: leg.points.map(([x, z]) => ({ x, z })), timeout: leg.seconds, stuckSeconds: leg.seconds }), { x: sx, z: sz, points: corners, seconds: lapSeconds });
-  const lapEnd = Date.now() + lapSeconds * 1000 + 2000, finished = { done: false };
-  const settledWalk = (async () => {
-    try { return await walk; } catch (error) { report.errors.push(`lap: ${String(error)}`); return null; } finally { finished.done = true; }
-  })();
-  await page.waitForTimeout(300);
-  await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
-  while (!finished.done && Date.now() < lapEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
-  report.lapResult = await settledWalk;
-  report.lapSamples = lap.length;
-  report.afterLap = await page.evaluate(snapshot);
-
-  // verdict
-  const path = r => new URL(r.url).pathname;
-  // Who asked decides a shared file: the page (or its workers) fetching it means the running level needs it; the service
-  // worker fetching it alone is its precache (DL1), which no draw waits on. A file named after this level counts either way.
-  const precache = r => r.by === 'service-worker' && slugOf(path(r)) === null;
-  const level = requests.filter(r => isLevelContent(r.url) && !precache(r));
-  const fetchedBefore = new Set(level.filter(r => r.start < controlAt && r.end !== null && r.end <= controlAt && r.failed === null).map(path));
-  const pending = level.filter(r => r.start < controlAt && (r.end === null || r.end > controlAt));
-  const lateAll = level.filter(r => r.start >= controlAt), refetch = lateAll.filter(r => fetchedBefore.has(path(r))), after = lateAll.filter(r => !fetchedBefore.has(path(r)));
-  const shared = requests.filter(r => isLevelContent(r.url) && precache(r));
-  const row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - controlAt });
-  report.requests = { total: requests.length, byServiceWorker: requests.filter(r => r.by === 'service-worker').length, level: level.length,
-    pendingAtControl: pending.map(r => ({ url: r.url, by: r.by })), afterControl: after.map(row), refetchAfterControl: refetch.map(row),
-    precacheOpenAtControl: shared.filter(r => r.start < controlAt && (r.end === null || r.end > controlAt)).map(r => r.url),
-    precacheAfterControl: shared.filter(r => r.start >= controlAt).length,
-    otherAfterControl: requests.filter(r => r.start >= controlAt && !isLevelContent(r.url)).map(r => ({ url: r.url, by: r.by })) };
-  if (report.requests.precacheOpenAtControl.length > 0) report.warnings = [`${report.requests.precacheOpenAtControl.length} service-worker precache fetches still open at control (they compete with the level's download: DL1's target, not a pop)`];
-  if (pending.length > 0) report.violations.push(`${pending.length} level-content requests still open at control`);
-  if (after.length > 0) report.violations.push(`${after.length} level-content requests started after control (first: ${after.slice(0, 3).map(r => path(r)).join(', ')})`);
-  const g = report.atControl.grid;
-  if (g && !g.error) {
-    const rings = g.rings ?? {};
-    if ((rings.inFlight ?? 0) > 0 || (rings.queued ?? 0) > 0) report.violations.push(`grid rings at control: ${rings.inFlight ?? 0} in flight, ${rings.queued ?? 0} queued`);
-    const reachIds = new Set((report.reachCells ?? []).map(c => c.id));
-    const standIns = (g.cells ?? []).filter(c => reachIds.has(c.id) && ['far proxy', 'tiles', 'loading', 'near', 'frozen'].includes(c.shows));
-    if (standIns.length > 0) report.violations.push(`cells standing in at control: ${standIns.map(c => `${c.id}=${c.shows}`).join(', ')}`);
-  }
-  const settled = report.atControl.marks.findLast(m => m.name === 'wildshard.spawn-view.settled')?.detail;
-  const waiting = (detail) => Array.isArray(detail) ? detail.reduce((n, q) => n + (Number(q?.waiting) || 0), 0) : Number(detail?.waiting) || 0;
-  if (settled !== undefined && waiting(settled) > 0) report.violations.push(`spawn-view refinement still waiting at control: ${waiting(settled)} jobs`);
-  // pops during the lap: anything added after control
-  const fineAt = new Set(report.atControl.fine), addedFine = new Set();
-  let meshesMax = report.atControl.scene?.meshes ?? 0;
-  for (const s of [...lap, report.afterLap]) {
-    for (const key of s.fine ?? []) if (!fineAt.has(key)) addedFine.add(key);
-    meshesMax = Math.max(meshesMax, s.scene?.meshes ?? 0);
-  }
-  const idsAt = new Set(report.atControl.scene?.ids), addedMeshes = new Map();
-  let speedMax = 0;
-  for (const sample of [...lap, report.afterLap]) {
-    for (const id of sample.scene?.ids ?? []) if (!idsAt.has(id)) addedMeshes.set(id.split('|')[0], id.split('|').slice(1).join('|'));
-    speedMax = Math.max(speedMax, sample.scene?.speed ?? 0);
-  }
-  report.lapAdds = { fineTiles: [...addedFine], meshesAtControl: report.atControl.scene?.meshes ?? null, meshesMax, addedMeshes: [...addedMeshes.values()], speedMax };
-  for (const sample of [report.atControl, ...lap, report.afterLap]) if (sample.scene) delete sample.scene.ids;
-  if (speedMax < 45) report.errors.push(`the lap never reached boost speed (max ${speedMax.toFixed(1)} m/s < 45): no boost reading`);
-  if (addedFine.size > 0) report.violations.push(`${addedFine.size} fine tiles became resident during the boost lap`);
-  // grid tiles join batched meshes, so a ring pop shows as a reach cell's drawn layers changing, not as a new mesh
-  const lapReach = new Set((report.reachCells ?? []).map(c => c.id)), drawnAt = new Map((report.atControl.grid?.cells ?? []).map(c => [c.id, c.drawn]));
-  const cellPops = new Map();
-  for (const sample of [...lap, report.afterLap]) for (const c of sample.grid?.cells ?? []) {
-    const before = drawnAt.get(c.id);
-    if (!lapReach.has(c.id) || before === undefined || c.drawn === undefined) continue;
-    if (c.drawn.l0 > before.l0 || c.drawn.l1 > before.l1 || c.drawn.far !== before.far || c.drawn.near !== before.near) {
-      cellPops.set(c.id, `${c.id}: l0 ${before.l0}->${c.drawn.l0}, l1 ${before.l1}->${c.drawn.l1}, far ${before.far}->${c.drawn.far}, near ${before.near}->${c.drawn.near}`);
+  /** One visit from navigation to control (the grid by its title tap and the HUD's own entry, the goldens' route); ms. */
+  const enter = async () => {
+    control.at = null;
+    const start = Date.now();
+    await page.goto(url.href, { waitUntil: 'load' });
+    if (flow === 'grid') {
+      await page.locator('.ws-main-grid').click();
+      await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live.live.gameplayReady === true, undefined, { timeout: 240000 });
+      await page.evaluate(FLOOR_GRID_ENTER);
     }
+    await page.waitForFunction(() => window.__wildshard?.world?.hud?.entered === true, undefined, { timeout: 240000 });
+    const deadline = Date.now() + 30000;
+    while (control.at === null && Date.now() < deadline) await page.waitForTimeout(100);
+    if (control.at === null) throw new Error('No ws:control-ready within 30 s of entry');
+    return { start, control: control.at, ms: control.at - start };
+  };
+  const cold = await enter();
+  controlAt = cold.control;
+  report.tapToControlMs = cold.ms;
+  if (values.warm === 'on') {
+    // 039d-style warm check (sp-x6's risk): exit and re-enter while the post-control precache still runs, then again once
+    // the worker has gone quiet; 'warm no slower' must hold on both, not only on a settled warm visit
+    const workerOpen = () => requests.filter(r => r.by === 'service-worker' && r.end === null).length;
+    await page.waitForTimeout(1000);
+    const busy = { workerFetchesOpen: workerOpen(), workerFetchesSoFar: requests.filter(r => r.by === 'service-worker').length };
+    const during = await enter();
+    const quietBy = Date.now() + 180000;
+    for (;;) {
+      const lastStart = Math.max(0, ...requests.filter(r => r.by === 'service-worker').map(r => r.start));
+      if ((workerOpen() === 0 && Date.now() - lastStart > 5000) || Date.now() > quietBy) break;
+      await page.waitForTimeout(500);
+    }
+    const settledOpen = workerOpen(), settled = await enter();
+    report.warm = { coldMs: cold.ms, duringPrecacheMs: during.ms, atReentry: busy, settledMs: settled.ms, settledWorkerFetchesOpen: settledOpen,
+      workerBytesRequests: requests.filter(r => r.by === 'service-worker').length };
+    report.pass = true;
+  } else {
+    report.atControl = await page.evaluate(snapshot);
+    const gridAt = report.atControl.grid;
+    if (flow === 'grid' && gridAt && !gridAt.error) {
+      // the cells whose square meets the lap's box round spawn (a cell's centre is its index times the pitch)
+      const half = gridAt.pitch / 2, fx = gridAt.feet.x, fz = gridAt.feet.z;
+      const inReach = (gridAt.cells ?? []).filter(c => Math.abs(c.cell[0] * gridAt.pitch - fx) < half + reach && Math.abs(c.cell[1] * gridAt.pitch - fz) < half + reach);
+      for (const c of inReach) levelSlugs.add(c.slug);
+      report.reachCells = inReach.map(c => ({ id: c.id, slug: c.slug, shows: c.shows }));
+    }
+
+    // the boost lap: hoverboard, Developer boost, a square of `reach` metres round spawn
+    const lap = [];
+    const [sx, , sz] = report.atControl.scene?.player ?? [0, 0, 0];
+    const corners = [[sx + reach, sz], [sx + reach, sz + reach], [sx - reach, sz + reach], [sx - reach, sz - reach], [sx + reach, sz - reach], [sx, sz]];
+    await page.evaluate(() => { const w = window.__wildshard.requireWorld(); w.player.hoverBoost = true; });
+    const walk = page.evaluate(leg => window.__wildshard.walkLeg({ name: 'dl17-boost-lap', start: { x: leg.x, z: leg.z, yaw: 0, hover: true }, waypoints: leg.points.map(([x, z]) => ({ x, z })), timeout: leg.seconds, stuckSeconds: leg.seconds }), { x: sx, z: sz, points: corners, seconds: lapSeconds });
+    const lapEnd = Date.now() + lapSeconds * 1000 + 2000, finished = { done: false };
+    const settledWalk = (async () => {
+      try { return await walk; } catch (error) { report.errors.push(`lap: ${String(error)}`); return null; } finally { finished.done = true; }
+    })();
+    await page.waitForTimeout(300);
+    await page.evaluate(() => { window.__wildshard.requireWorld().player.hoverBoost = true; }); // walkLeg's start pose may reset the board
+    while (!finished.done && Date.now() < lapEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
+    report.lapResult = await settledWalk;
+    report.lapSamples = lap.length;
+    report.afterLap = await page.evaluate(snapshot);
+
+    // verdict
+    const path = r => new URL(r.url).pathname;
+    // Who asked decides a shared file: the page (or its workers) fetching it means the running level needs it; the service
+    // worker fetching it alone is its precache (DL1), which no draw waits on. A file named after this level counts either way.
+    const precache = r => r.by === 'service-worker' && slugOf(path(r)) === null;
+    const level = requests.filter(r => isLevelContent(r.url) && !precache(r));
+    const fetchedBefore = new Set(level.filter(r => r.start < controlAt && r.end !== null && r.end <= controlAt && r.failed === null).map(path));
+    const pending = level.filter(r => r.start < controlAt && (r.end === null || r.end > controlAt));
+    const lateAll = level.filter(r => r.start >= controlAt), refetch = lateAll.filter(r => fetchedBefore.has(path(r))), after = lateAll.filter(r => !fetchedBefore.has(path(r)));
+    const shared = requests.filter(r => isLevelContent(r.url) && precache(r));
+    const row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - controlAt });
+    report.requests = { total: requests.length, byServiceWorker: requests.filter(r => r.by === 'service-worker').length, level: level.length,
+      pendingAtControl: pending.map(r => ({ url: r.url, by: r.by })), afterControl: after.map(row), refetchAfterControl: refetch.map(row),
+      precacheOpenAtControl: shared.filter(r => r.start < controlAt && (r.end === null || r.end > controlAt)).map(r => r.url),
+      precacheAfterControl: shared.filter(r => r.start >= controlAt).length,
+      otherAfterControl: requests.filter(r => r.start >= controlAt && !isLevelContent(r.url)).map(r => ({ url: r.url, by: r.by })) };
+    if (report.requests.precacheOpenAtControl.length > 0) report.warnings = [`${report.requests.precacheOpenAtControl.length} service-worker precache fetches still open at control (they compete with the level's download: DL1's target, not a pop)`];
+    if (pending.length > 0) report.violations.push(`${pending.length} level-content requests still open at control`);
+    if (after.length > 0) report.violations.push(`${after.length} level-content requests started after control (first: ${after.slice(0, 3).map(r => path(r)).join(', ')})`);
+    const g = report.atControl.grid;
+    if (g && !g.error) {
+      const rings = g.rings ?? {};
+      if ((rings.inFlight ?? 0) > 0 || (rings.queued ?? 0) > 0) report.violations.push(`grid rings at control: ${rings.inFlight ?? 0} in flight, ${rings.queued ?? 0} queued`);
+      const reachIds = new Set((report.reachCells ?? []).map(c => c.id));
+      const standIns = (g.cells ?? []).filter(c => reachIds.has(c.id) && ['far proxy', 'tiles', 'loading', 'near', 'frozen'].includes(c.shows));
+      if (standIns.length > 0) report.violations.push(`cells standing in at control: ${standIns.map(c => `${c.id}=${c.shows}`).join(', ')}`);
+    }
+    const settled = report.atControl.marks.findLast(m => m.name === 'wildshard.spawn-view.settled')?.detail;
+    const waiting = (detail) => Array.isArray(detail) ? detail.reduce((n, q) => n + (Number(q?.waiting) || 0), 0) : Number(detail?.waiting) || 0;
+    if (settled !== undefined && waiting(settled) > 0) report.violations.push(`spawn-view refinement still waiting at control: ${waiting(settled)} jobs`);
+    // pops during the lap: anything added after control
+    const fineAt = new Set(report.atControl.fine), addedFine = new Set();
+    let meshesMax = report.atControl.scene?.meshes ?? 0;
+    for (const s of [...lap, report.afterLap]) {
+      for (const key of s.fine ?? []) if (!fineAt.has(key)) addedFine.add(key);
+      meshesMax = Math.max(meshesMax, s.scene?.meshes ?? 0);
+    }
+    const idsAt = new Set(report.atControl.scene?.ids), addedMeshes = new Map();
+    let speedMax = 0;
+    for (const sample of [...lap, report.afterLap]) {
+      for (const id of sample.scene?.ids ?? []) if (!idsAt.has(id)) addedMeshes.set(id.split('|')[0], id.split('|').slice(1).join('|'));
+      speedMax = Math.max(speedMax, sample.scene?.speed ?? 0);
+    }
+    report.lapAdds = { fineTiles: [...addedFine], meshesAtControl: report.atControl.scene?.meshes ?? null, meshesMax, addedMeshes: [...addedMeshes.values()], speedMax };
+    for (const sample of [report.atControl, ...lap, report.afterLap]) if (sample.scene) delete sample.scene.ids;
+    if (speedMax < 45) report.errors.push(`the lap never reached boost speed (max ${speedMax.toFixed(1)} m/s < 45): no boost reading`);
+    if (addedFine.size > 0) report.violations.push(`${addedFine.size} fine tiles became resident during the boost lap`);
+    // grid tiles join batched meshes, so a ring pop shows as a reach cell's drawn layers changing, not as a new mesh
+    const lapReach = new Set((report.reachCells ?? []).map(c => c.id)), drawnAt = new Map((report.atControl.grid?.cells ?? []).map(c => [c.id, c.drawn]));
+    const cellPops = new Map();
+    for (const sample of [...lap, report.afterLap]) for (const c of sample.grid?.cells ?? []) {
+      const before = drawnAt.get(c.id);
+      if (!lapReach.has(c.id) || before === undefined || c.drawn === undefined) continue;
+      if (c.drawn.l0 > before.l0 || c.drawn.l1 > before.l1 || c.drawn.far !== before.far || c.drawn.near !== before.near) {
+        cellPops.set(c.id, `${c.id}: l0 ${before.l0}->${c.drawn.l0}, l1 ${before.l1}->${c.drawn.l1}, far ${before.far}->${c.drawn.far}, near ${before.near}->${c.drawn.near}`);
+      }
+    }
+    report.lapAdds.cellPops = [...cellPops.values()];
+    if (cellPops.size > 0) report.violations.push(`${cellPops.size} reach cells changed what they draw during the boost lap: ${[...cellPops.values()].join('; ')}`);
+    if (addedMeshes.size > 0) report.violations.push(`${addedMeshes.size} meshes added during the boost lap: ${[...addedMeshes.values()].slice(0, 6).join('; ')}`);
+    report.pass = report.errors.length > 0 ? null : report.violations.length === 0;
   }
-  report.lapAdds.cellPops = [...cellPops.values()];
-  if (cellPops.size > 0) report.violations.push(`${cellPops.size} reach cells changed what they draw during the boost lap: ${[...cellPops.values()].join('; ')}`);
-  if (addedMeshes.size > 0) report.violations.push(`${addedMeshes.size} meshes added during the boost lap: ${[...addedMeshes.values()].slice(0, 6).join('; ')}`);
-  report.pass = report.errors.length > 0 ? null : report.violations.length === 0;
 } catch (error) {
   report.errors.push(String(error)); report.pass = null;
 } finally {
@@ -254,5 +280,6 @@ try {
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, JSON.stringify(report, null, 2));
 }
-console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : report.pass ? 'COMPLETE AT CONTROL' : 'FAIL'}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
+const verdict = report.warm === undefined ? (report.pass ? 'COMPLETE AT CONTROL' : 'FAIL') : `WARM cold ${report.warm.coldMs} ms, re-entry during precache ${report.warm.duringPrecacheMs} ms (${report.warm.atReentry.workerFetchesOpen} worker fetches open), settled ${report.warm.settledMs} ms`;
+console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
 process.exit(report.pass === null ? 2 : report.pass ? 0 : 1);
