@@ -11,6 +11,7 @@ import { compactRoadTileSteps, type RoadTileGeometry } from './roadTileGeometry'
 import { persistRoadTile, ROAD_TILE_ARCHIVE_BYTES, ROAD_TILE_HEADER_BYTES, type RoadTileReference, type RoadTileStore } from './roadTileArchive';
 import { RoadTilePool } from './roadTilePool';
 import { roadCellKey, roadTileStream, type PreparedRoadTile, type RoadTileSource } from './roadTileStream';
+import { RoadTileCaptureWorker } from './roadTileCaptureWorker';
 import type { RoadLayout } from './roadLayout';
 
 interface Source {
@@ -69,8 +70,14 @@ export class RoadTileBacking {
   private initialPins: TileRequirement[] = [];
   private initialFine: { instance: string; key: number; x: number; z: number }[] = [];
   private initialCoarse: { instance: string; x: number; z: number }[] = [];
-  constructor(private readonly scope: Scope, private readonly store: RoadTileStore, private readonly culler: RoadCuller) {
+  // DL11: sources captured in the worker, not yet answered; their references land before `start`
+  private readonly workerJobs = new Set<Promise<void>>();
+  private workerFailure: Error | null = null;
+  private readonly captureWorker: RoadTileCaptureWorker | null;
+  /** `origin` (the archive's URL origin) moves each source's capture to a worker; without it the page captures. */
+  constructor(private readonly scope: Scope, private readonly store: RoadTileStore, private readonly culler: RoadCuller, private readonly origin?: string) {
     if (scope.disposed || scope.disposing) throw new Error('Road backing owner retired');
+    this.captureWorker = origin === undefined ? null : new RoadTileCaptureWorker(scope.child('capture-worker'));
     scope.onDispose(() => {
       for (const pin of this.initialPins) pin.release(); this.initialPins = [];
       this.initialFine = []; this.initialCoarse = []; this.sources.clear(); this.stream = null;
@@ -85,6 +92,7 @@ export class RoadTileBacking {
     const source: Source = { mesh, scope: this.scope.child(`source:${String(this.sources.size)}`), references: [], coarseReferences: [], retire: null, pool: null };
     this.sources.set(mesh, source); this.capturing = true; let completed = false;
     try {
+      if (this.captureInWorker(source, mesh, plan)) { completed = true; return; }
       const parents = new Map<string, { x: number; z: number }>();
       for (const bin of plan.bins) {
         const tile = bin.tile; if (tile === undefined) throw new Error('Road backing requires the tile lattice');
@@ -108,6 +116,36 @@ export class RoadTileBacking {
       if (this.pending.length > 0 || this.flushing !== null) throw new Error('Road construction must await its backing writes');
       completed = true;
     } finally { this.capturing = false; if (!completed) { this.sources.delete(mesh); source.scope.dispose(); } }
+  }
+  /** The worker takes the source's whole capture from a copy of its arrays; the page publishes the mesh at once. */
+  private captureInWorker(source: Source, mesh: Mesh, plan: CullPlan): boolean {
+    const origin = this.origin, worker = this.captureWorker;
+    if (origin === undefined || worker === null || !worker.usable() || this.workerFailure !== null) return false;
+    const parents = new Map<string, { x: number; z: number }>();
+    for (const bin of plan.bins) {
+      const tile = bin.tile; if (tile === undefined) throw new Error('Road backing requires the tile lattice');
+      const x = Math.floor(tile.x / 2), z = Math.floor(tile.z / 2); parents.set([x, z].join(','), { x, z });
+    }
+    const run = worker.run(origin, mesh, plan, [...parents.values()]); if (run === null) return false;
+    const land = async (): Promise<void> => {
+      try {
+        const result = await run;
+        if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
+        source.references.push(...result.fine); source.coarseReferences.push(...result.coarse);
+      } catch (error: unknown) {
+        this.workerFailure ??= error instanceof Error ? error : new Error('Road tile capture failed', { cause: error });
+      }
+    };
+    const job = land();
+    this.workerJobs.add(job);
+    void job.finally(() => { this.workerJobs.delete(job); });
+    return true;
+  }
+  /** Null when no worker capture is outstanding; else settles once every one has answered (and rejects on a failure). */
+  drained(): Promise<void> | null {
+    if (this.workerJobs.size === 0) return this.workerFailure === null ? null : Promise.reject(this.workerFailure);
+    const all = async (): Promise<void> => { await Promise.all(this.workerJobs); if (this.workerFailure !== null) throw this.workerFailure; };
+    return all();
   }
   private *room(source: Source, budget: number): Generator<void, void> {
     if (this.pending.length > 0 && (this.failureSeen || this.pendingBytes + budget > ROAD_TILE_ARCHIVE_BYTES)) {
@@ -174,7 +212,7 @@ export class RoadTileBacking {
     const pending = (async (): Promise<void> => {
       if (this.flushing !== null) await this.flushing.catch(() => undefined);
       const jobs = this.pending.splice(0); this.pendingBytes = 0; this.flushRequested = false;
-      await Promise.all(jobs.map(job => job.ready)); this.failureSeen = false;
+      await Promise.all([...jobs.map(job => job.ready), ...this.workerJobs]); this.failureSeen = false;
     })();
     this.settling = pending;
     return pending.finally(() => { if (this.settling === pending) this.settling = null; });
@@ -190,7 +228,8 @@ export class RoadTileBacking {
    * material roots stay hidden until publication covers the initial road ring. */
   start(origin: { readonly x: number; readonly z: number }, layout: Pick<RoadLayout, 'junctions'>, budget: TileStreamBudget, id: string): void {
     if (this.stream !== null || this.capturing || this.pending.length > 0 || this.flushing !== null || this.settling !== null
-      || this.scope.disposed || this.scope.disposing) throw new Error('Road backing is not ready to seal');
+      || this.workerJobs.size > 0 || this.scope.disposed || this.scope.disposing) throw new Error('Road backing is not ready to seal');
+    if (this.workerFailure !== null) throw this.workerFailure;
     const sources: RoadTileSource[] = [];
     for (const source of this.sources.values()) {
       if (source.retire === null || Array.isArray(source.mesh.material)) throw new Error('Road backing lacks an admitted material');

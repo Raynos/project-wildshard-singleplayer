@@ -478,7 +478,7 @@ export class GridSession {
     const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
     const tileScope = roadScope.child('road-tiles');
     const tileBacking = new (await import('./roadTileBacking')).RoadTileBacking(
-      tileScope, roadTileWriter(tileScope, caches, location.origin), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera });
+      tileScope, roadTileWriter(tileScope, caches, location.origin), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera }, location.origin);
     // Use the same source set for both halves if initial certification selected
     // the existing flat fallback. Outer failures never substitute different edges.
     const outerStrips = async (owner: Scope): Promise<readonly GeneratedStrip[]> => {
@@ -620,8 +620,19 @@ export class GridSession {
       if (horizon !== undefined) road.horizon(horizon);
       if (weight !== undefined) road.overlayLight(weight);
       this.roadTiles = platformRoad.tileBacking ?? null;
-      if (this.roadTiles !== null && !this.roadTiles.started() && (final || preparedRoad?.outer === undefined)) {
-        this.roadTiles.start(home.origin, layout, this.allocator, home.instance);
+      const tiles = this.roadTiles;
+      if (tiles !== null && !tiles.started() && (final || preparedRoad?.outer === undefined)) {
+        const seal = (): void => { if (!tiles.started() && !host.scope.disposed && !host.scope.disposing) tiles.start(home.origin, layout, this.allocator, home.instance); };
+        // DL11: sources the worker captured seal once their references are back (after control); else at once, as before
+        const drained = tiles.drained();
+        const sealDrained = async (wait: Promise<void>): Promise<void> => {
+          try { await wait; seal(); }
+          catch (error: unknown) {
+            this.issues.set('road.tiles', error instanceof Error ? error.message : String(error));
+            console.warn('[grid] the road tiles did not archive:', error);
+          }
+        };
+        if (drained === null) seal(); else void sealDrained(drained);
       }
     };
     // A1: the outer ring's road, started by `step` once play has begun and the inner ring has landed
