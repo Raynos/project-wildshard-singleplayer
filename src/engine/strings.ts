@@ -7,6 +7,7 @@ export const ENGINE_STRINGS = {
   "s_loading_retry": "Retry",
   "s_perf_worst_frame": "max ⟦0⟧ ms⟦1⟧",
   "s_loading_modules": "Application modules",
+  "s_loading_code": "Downloading game code",
   "s_loading_gap_setup": "gap before setup",
   "s_loading_gap_before": "gap before ⟦0⟧",
   "s_loading_gap_after": "gap after ⟦0⟧",

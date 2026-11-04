@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { markUnload } from '@wildshard/engine/boot/lastEnd';
 import { freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
+import { TIER } from '@wildshard/engine/core/tier';
 import type { SaveKeyDef, SaveSlot } from '@wildshard/engine/saves/store';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
 import { resolveTravelEntry } from './entry';
@@ -72,7 +73,7 @@ function navigate(request: TravelRequest): void {
   navigateNow(request);
 }
 function navigateNow(request: TravelRequest): void {
-  setTitleArrival({ slug: request.to, mode: request.mode, name: findTitleManifest(request.to)?.name ?? request.to });
+  setTitleArrival({ slug: request.to, mode: request.mode, name: findTitleManifest(request.to)?.name ?? request.to, tier: TIER });
   const url = new URL(location.href);
   url.searchParams.set('chunk', request.to);
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) url.searchParams.delete(name);

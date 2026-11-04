@@ -23,7 +23,7 @@ import {prepareBootImports} from './bootDownloads';
  * document only adds 0.8 + 2.5 s before the same failure); a failed import rejects `entered`, and guardBoot reloads once.
  */
 import { guardBoot } from '@wildshard/engine/boot/stuck';
-import { waitForLoadingStyles } from '@wildshard/engine/boot/shell';
+import { startShellClock, waitForLoadingStyles } from '@wildshard/engine/boot/shell';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from '@wildshard/engine/boot/bootTrace';
 import { Scope } from '@wildshard/engine/app/scope';
 import { bootRoute } from './bootRoute';
@@ -80,6 +80,8 @@ async function enterPage(): Promise<unknown> {
 
   /** resolves once the title or the selected shard's entry has been evaluated */
   return (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
+    // DL21 (E526): the static card runs its clock from the tap and names the code wait until Loading adopts it.
+    const chunk = search.get('chunk'); if (chunk !== null) startShellClock(entryScope, chunk);
     const tables = prepareBootImports(import('./assetTables').then(module => module.prepareAssetTables()));
     try {
       const [tier, menu, spawn] = await Promise.all([import('@wildshard/engine/core/tier'),

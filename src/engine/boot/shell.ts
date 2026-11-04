@@ -11,6 +11,9 @@ import type { Scope } from '../app/scope';
 import { HudSlots } from '../ui/hudSlots';
 import { appIdentity } from '../app/identity';
 import { beginLoadingWait, finishLoadingWait } from './download';
+import { arrivalCard } from './titleArrival';
+import { diagnosticNow } from '../core/clock';
+import { engineString } from '../strings';
 
 const shellHtml = (tagline: string): string => `<div class="ws-load-head">
 <div class="ws-wordmark">${appIdentity().wordmark}</div>
@@ -63,6 +66,30 @@ export async function waitForLoadingStyles(owner: Scope): Promise<void> {
     scope.dispose();
   }
 }
+
+/** DL21 (E526): until `Loading` adopts the static card (`stopShellClock`), it runs on its own: a clock from the title tap
+ * (the fresh title arrival's time, else the document's start), handed to `Loading` as `clockStartedAt`; the shard's name
+ * and tier from that arrival; and the code wait named. The first painted card is never a frozen zero. */
+let shellClock: Scope | undefined;
+const clockText = (ms: number): string => {
+  const seconds = Math.max(0, ms) / 1000;
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${(seconds % 60).toFixed(1).padStart(4, '0')}`;
+};
+export function startShellClock(owner: Scope, slug: string): void {
+  const root = document.querySelector<HTMLElement>('.ws-load[data-shell]');
+  if (root === null || shellClock !== undefined) return;
+  const arrival = arrivalCard(slug), started = arrival === null ? 0 : Math.min(0, Math.max(-60_000, arrival.at - performance.timeOrigin));
+  root.dataset['clockStartedAt'] = String(started);
+  const field = (name: string): HTMLElement | null => root.querySelector<HTMLElement>(`[data-el="${name}"]`);
+  const slugField = field('slug'), tierField = field('tier'), clock = field('clock'), fact = field('dlFact');
+  if (slugField !== null && slugField.textContent === '') slugField.textContent = arrival?.name ?? slug.replaceAll('-', ' ');
+  if (tierField !== null && tierField.textContent === '' && arrival?.tier !== undefined) tierField.textContent = arrival.tier;
+  if (fact !== null && fact.textContent === '—') fact.textContent = engineString('s_loading_code');
+  const tick = (): void => { if (clock !== null) clock.textContent = clockText(diagnosticNow() - started); };
+  tick(); shellClock = owner.child('shell.clock'); shellClock.interval(100, tick);
+}
+/** `Loading` owns the card from here. */
+export function stopShellClock(): void { shellClock?.dispose(); shellClock = undefined; }
 
 /** Paint an owned loading panel before a fresh-page handoff. The compiled caller
  * supplies navigation; no renderer or save service is imported by this shell. */

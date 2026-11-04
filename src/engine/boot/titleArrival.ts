@@ -7,7 +7,7 @@ const KEY = 'titleArrival';
 const BACKUP_KEY = 'titleArrival.once';
 const MAX_AGE_MS = 60_000;
 
-interface StoredArrival extends TitleArrival { at: number; name?: string }
+interface StoredArrival extends TitleArrival { at: number; name?: string; tier?: string }
 
 /** A one-shot handoff must be fresh when this document arrives, before cold
  * modules or world admission run. Later reloads still use their own start.
@@ -30,7 +30,7 @@ function valid(raw: string | null, slug: string): TitleArrival | null {
 }
 
 /** Optional display metadata lets the first HTML paint name the destination before application modules arrive. */
-export function setTitleArrival(arrival: TitleArrival & { name?: string }): void {
+export function setTitleArrival(arrival: TitleArrival & { name?: string; tier?: string }): void {
   const raw = JSON.stringify({ ...arrival, at: Date.now() } satisfies StoredArrival);
   try { saveStorage('session').setItem(KEY, raw); } catch { /* the local one-shot below can carry the intent */ }
   // iOS home-screen navigation can replace WebContent between the static title and the game document.
@@ -51,4 +51,18 @@ export function pendingTitleArrival(slug: string): TitleArrival | null {
   try { session = saveStorage('session').getItem(KEY); } catch { /* the backup may survive */ }
   try { backup = saveStorage('device').getItem(BACKUP_KEY); } catch { /* the session may survive */ }
   return valid(session, slug) ?? valid(backup, slug);
+}
+
+/** DL21: the fresh arrival's display facts and tap time for the receiving document's first card, without consuming it. */
+export function arrivalCard(slug: string): { name: string | undefined; tier: string | undefined; at: number } | null {
+  for (const read of [() => saveStorage('session').getItem(KEY), () => saveStorage('device').getItem(BACKUP_KEY)]) {
+    let raw: string | null = null;
+    try { raw = read(); } catch { continue; }
+    if (raw === null || valid(raw, slug) === null) continue;
+    const value: unknown = JSON.parse(raw);
+    if (typeof value !== 'object' || value === null) continue;
+    const at: unknown = Reflect.get(value, 'at'), name: unknown = Reflect.get(value, 'name'), tier: unknown = Reflect.get(value, 'tier');
+    if (typeof at === 'number') return { name: typeof name === 'string' ? name : undefined, tier: typeof tier === 'string' ? tier : undefined, at };
+  }
+  return null;
 }

@@ -270,12 +270,17 @@ function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | '
  * so the default page carries nothing for an off row. */
 declare const __BUILD_ID__: string;
 let packsBook: {readonly url: string; readonly book: Promise<unknown>} | undefined;
+const PACKS_BOOK_MS = 20_000;
 function readPacksBook(): Promise<unknown> {
   const url = new URL(`/${packsBookPath(__BUILD_ID__)}`, document.baseURI).href;
   if (packsBook?.url === url) return packsBook.book;
   const book = (async () => {
     try {
-      const response = await fetch(url);
+      // DL21 (E526): a stalled book is a named refusal with the loading card's retry, never an endless wait.
+      const signal = AbortSignal.timeout(PACKS_BOOK_MS);
+      const response = await fetch(url, {signal}).catch((error: unknown) => {
+        throw signal.aborted ? new Error(`Packs book did not arrive in ${PACKS_BOOK_MS / 1000} s`) : error;
+      });
       if (!response.ok) throw new Error(`Packs book unavailable (${response.status})`);
       const value: unknown = await response.json();
       // Bound to its purpose and this build: a valid default book or another build's book is refused (sp-x9).

@@ -5,7 +5,7 @@ import { saveStorage } from '../saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { bootWaits, loadingStepWaits } from '../boot/waits';
 import { TIER } from '../core/tier';
-import { loadShellTemplate } from '../boot/shell';
+import { loadShellTemplate, stopShellClock } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
 import { beginLoadingWait, adoptLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState } from '../boot/download';
@@ -108,7 +108,7 @@ export class Loading {
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     // index.html paints this panel from its first bytes (src/engine/boot/shell.ts): adopt it; a page without it gets a fresh one
     const shell = this.scoped ? null : document.querySelector<HTMLElement>('.ws-load[data-shell]');
-    if (shell) { this.root = shell; delete shell.dataset['shell']; mountUi(shell, this.scope, document.body); }
+    if (shell) { stopShellClock(); this.root = shell; delete shell.dataset['shell']; mountUi(shell, this.scope, document.body); }
     else {
       this.root = document.createElement('div');
       this.root.className = 'ws-load';

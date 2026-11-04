@@ -12,7 +12,7 @@ const addressOf = (url: string, text: string): Address => ({url, bytes: text.len
 
 /** One Runtime packs download of `slug` against a served packs book; returns the download and every URL read. The
  * build id is the slug's own: the reader keeps one good book per build URL. */
-function run(slug: string, book: (whole: Address, fallback: Address) => Response, wholeParts = true) {
+function run(slug: string, book: (whole: Address, fallback: Address, init?: RequestInit) => Response | Promise<Response>, wholeParts = true) {
   const fallbackText = manifestOf(slug, false), wholeText = manifestOf(slug, wholeParts);
   const fallback = addressOf(`/assets/spawn/${slug}-client-phone-0123456789abcdef.json`, fallbackText);
   const whole = addressOf(`/assets/spawn/${slug}-client-phone-fedcba9876543210.json`, wholeText);
@@ -20,10 +20,10 @@ function run(slug: string, book: (whole: Address, fallback: Address) => Response
     cacheName: 'ws-assets-v1', client: {[slug]: {phone: fallback}}}})})});
   vi.stubGlobal('caches', undefined); vi.stubGlobal('__BUILD_ID__', `build-${slug}`);
   const reads: string[] = [];
-  vi.stubGlobal('fetch', (input: RequestInfo | URL): Promise<Response> => {
+  vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = input instanceof Request ? input.url : String(input); reads.push(url);
     const path = new URL(url).pathname;
-    return Promise.resolve(BOOK.test(path) ? book(whole, fallback) : path === whole.url ? new Response(wholeText)
+    return Promise.resolve(BOOK.test(path) ? book(whole, fallback, init) : path === whole.url ? new Response(wholeText)
       : path === fallback.url ? new Response(fallbackText) : path === file.url ? new Response(body) : new Response(null, {status: 404}));
   });
   setSpawnPacks(true);
@@ -65,4 +65,13 @@ test('this build\'s packs book runs the whole-level manifest to completion', asy
   await download.ready;
   expect(download.snapshot()).toMatchObject({complete: true, error: null, filesDone: 1});
   expect(reads.map(url => new URL(url).pathname)).toEqual([expect.stringMatching(BOOK), '/assets/spawn/book-good-client-phone-fedcba9876543210.json', file.url]);
+});
+
+test('a packs book that stalls is refused by name instead of an endless wait (DL21)', async () => {
+  // The 20 s limit has passed: the signal the reader made is already aborted, and the stalled fetch rejects with it.
+  vi.spyOn(AbortSignal, 'timeout').mockReturnValue(AbortSignal.abort(new DOMException('The operation timed out.', 'TimeoutError')));
+  const {download} = run('book-stalled', (_whole, _fallback, init) =>
+    init?.signal?.aborted === true ? Promise.reject(new Error('aborted')) : new Promise<Response>(() => { /* never answers */ }));
+  await expect(download.ready).rejects.toThrow('Packs book did not arrive in 20 s');
+  expect(download.snapshot()).toMatchObject({complete: false, error: 'Packs book did not arrive in 20 s'});
 });
