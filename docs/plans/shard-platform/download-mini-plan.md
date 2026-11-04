@@ -26,6 +26,37 @@ to be invalidated … minimal messages over HTTP, HTTP2, or WebSockets. Use the 
 it's available. Use WebSockets if necessary. Again, dialing only the 5 megabytes you need and streaming the rest is
 really fucking dangerous."* (DL18, DL19)
 
+## Status, row by row (11-04 ~14:00 Cancun, sp-o1 for wildshard-new)
+
+The rows below keep their full history; this is their state at a glance. **Done** = landed and measured; **closed** =
+measured and not built (or folded); **open** = what is left, in one line.
+
+| Row | State | Evidence | Left |
+| --- | --- | --- | --- |
+| DL0 | done | `0222e26249` (one shared phone link) | — |
+| DL1 | open | worker precache after control `4cc448d258`; immutable step dropped (G872) | the cold −15 s reading was never taken: one phone-loading pair |
+| DL2 | open | — | title-screen download for first visits: not started |
+| DL3 | closed | kept, a real reader (Driftwood's compiled strip page) | — |
+| DL4 | done | inventory table `884738902f` | — |
+| DL5 | open | parts + reader `40bc516d5c`, `921c9776fb`, `a69dda496d`, `f944a93c73`; whole level in the set `7683b302b5` | 'never seen' drop candidates for each shard's owner; neighbours' loading is Jake's (G828) |
+| DL6 | open | census and byte verdicts `fb97fc9057`, `48dc48420e` | GPU-ready buffers must beat the I3 floor (Driftwood −0.70, Pine −1.28 MB q3): not built |
+| DL7 | partly done | P1 landed `364328bd4d` (Nine −1.89 MB q3, Pine −0.13); P2 measured, not built `45e0f0e19e`; P3 parked `061ee291d8` | scenes / assembly tables still read at load (the 11.4 s target) |
+| DL8 | closed | measured `192db91620` | — |
+| DL9 | done | Pine phone ASTC `f6ef48d259`, Basis twin without ASTC `91d8d7767f` | 9 textures shared with desktop (Driftwood's look sampler, Pine's 8 splat layers) stay Basis until a phone copy is split out |
+| DL10 | closed | measured `193990e8ad`; cold value in Jake's iPhone check | — |
+| DL11 | open | road archive writes `2d75542282` (−13 %), tile capture `74c3d3b1c9` + `51795e079f` + `1c11f0c1b3` (−2.4 s to control); setup overlap `e189c45834` (acceptance not met, `4db5a458a6`) | the overlap waits on a boot-tables fetch held to the end of the download; parse / physics build still on the page |
+| DL12 | closed | parked, spans are not module init `f8847d7858` | — |
+| DL13 | done | first slice folded into DL5; read-once `c0a75ade84`, `f1d6a43bcf` | one Cache Storage put per part / delta updates (BP4) not built |
+| DL14 | closed | measured `e0fb9c3fef` → byte-exact banks `3b52c5b2ca` | — |
+| DL15 | open | q11 parts `36550ecc1b`, served `672a24180b` | the DL17 reading with Runtime packs on |
+| DL16 | open | packs-book Debug row (default off) | bars on the phone preset, a Simulator reading, goldens on every shard; then the row on and deleted (E451) |
+| DL17 | done (gate) | gate + initiators `703cb64eda`, `f608b9dab0`, `48c50d7a99`, GPU textures `b06cc69092`, containment legs `c41ae8c051`; homes: grid `72d3185e75`, Driftwood `e679420268`, Nalati `fc2547134f`, Nine (traced on `5591d76`), Sunscar and Pine `a7344b3d1c` | each home's green reading on the newest build (Nine's verdict with the lap fix), the Simulator boost lap |
+| DL18 | open | key-order placement `add4a7fbb5`, `f9cc6297be`; generator bar met (11 parts) | bar 1: a one-model deploy changes one part, proven through the normal build |
+| DL19 | done | D199, D208–D210 closed `c92196e6af`, `fae7afd2e1`; PL1 / PL3 / PL13 superseded `061ee291d8` | — |
+| DL20 | open | — | a week of live boots without a loose fallback fetch, then drop the loose copies |
+| DL21 | open | card from the tap `ecbf2b2cac`, review `ebe0481fa6` | a stuck boot shows an error with Retry; no Setup step unchanged > 3 s without its wait named; step 27's long frame |
+| DL22 | open | fence reads built `cf80c88836`, `c3b1a62914`, `1bef331141`, `5591d76604` | 12 Pine files with no stable identity; Nalati's and Nine's lists matched with no extra bytes |
+
 ## The hard rule: the level is complete when you get control
 
 **No row in this plan lets the player move before the level is fully downloaded and loaded at full fidelity.** No
