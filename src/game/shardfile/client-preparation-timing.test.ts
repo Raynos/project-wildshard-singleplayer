@@ -137,6 +137,16 @@ test('DL21: a running span names itself on its loading step and gives the step i
     // a later report during the span is kept, not overwritten by the restore
     await timeClientPreparation('fixture', 'world.world.assembly', () => { timeline.report('region', 'Home models 3 / 9'); });
     expect(detail()).toBe('Home models 3 / 9');
+    // overlapping spans (sp-x1: A starts, B starts, A ends, B ends): B shows while it runs, then the step's own detail
+    let releaseA = (): void => undefined, releaseB = (): void => undefined;
+    const heldA = new Promise<void>(resolve => { releaseA = resolve; }), heldB = new Promise<void>(resolve => { releaseB = resolve; });
+    const a = timeClientPreparation('fixture', 'native.presentation-inputs', () => heldA);
+    const b = timeClientPreparation('fixture', 'native.inputs', () => heldB);
+    releaseA(); await a;
+    const atAEnd = detail();
+    releaseB(); await b;
+    expect(atAEnd).toBe('native inputs');
+    expect(detail()).toBe('Home models 3 / 9');
     region.end();
   } finally { uninstall(); }
   // outside a loading step the span changes nothing

@@ -10,13 +10,25 @@ export function preparationCardLabel(step: string): string {
  *  step's detail names it ('Region world · world dressing'), and gets back the step's own detail when it ends (unless a
  *  later report replaced it). Nalati's Region world step read 'Home scenes 0 / 0' for 2.9 s in the DL23 recording while
  *  world dressing (3.1 s) and world assembly (1.3 s) ran. Outside a loading step it does nothing. */
+// The spans running on each step, newest last, the step's own detail before the first, and what they last wrote: spans
+// overlap (regionalWorld's presentation inputs run beside its inputs), so an ending span shows the newest one still running,
+// or the step's own detail after the last (sp-x1's review: a label compare restored a finished span's name)
+interface StepSpans { readonly base: string; readonly running: { readonly label: string }[]; wrote: string }
+const spansByTimeline = new WeakMap<object, Map<string, StepSpans>>();
 function nameOnCard(step: string): () => void {
   const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current ?? null;
   if (timeline === undefined || key === null) return () => undefined;
   const detail = (): string | undefined => timeline.snapshot().rows.find(row => row.key === key)?.detail;
-  const before = detail() ?? '', label = preparationCardLabel(step);
-  timeline.report(key, label);
-  return () => { if (detail() === label) timeline.report(key, before); };
+  const steps = spansByTimeline.get(timeline) ?? new Map<string, StepSpans>(); spansByTimeline.set(timeline, steps);
+  const spans: StepSpans = steps.get(key) ?? { base: detail() ?? '', running: [], wrote: '' }; steps.set(key, spans);
+  const span = { label: preparationCardLabel(step) };
+  spans.running.push(span); spans.wrote = span.label; timeline.report(key, span.label);
+  return () => {
+    spans.running.splice(spans.running.indexOf(span), 1);
+    // a report the spans did not write (a step's own count) stands
+    if (detail() === spans.wrote) { spans.wrote = spans.running.at(-1)?.label ?? spans.base; timeline.report(key, spans.wrote); }
+    if (spans.running.length === 0) steps.delete(key);
+  };
 }
 
 /** Developer-only spans retain one result per product/step, including failed preparation; every page names the running
