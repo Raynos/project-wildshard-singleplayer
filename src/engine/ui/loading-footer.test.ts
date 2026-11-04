@@ -4,7 +4,7 @@ import {Loading, type LoadingDownloadSource} from './Loading';
 import type { ProgressView } from '../boot/plan';
 import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/download';
 import { currentLoadingTimeline } from '../boot/timeline';
-import { waitFor } from '../boot/waits';
+import { STAGE_READS, waitFor } from '../boot/waits';
 import { loadShellTemplate } from '../boot/shell';
 import { readContent } from '../boot/contentRead';
 import { saveStorage } from '../saves/slots';
@@ -370,6 +370,29 @@ it('keeps the current saved-file detail instead of an outer zero-file admission 
     expect(foot()).toContain('Now waiting for: Read /product/blob.bin');
     expect(foot()).toContain('1 files in flight');
   } finally { finish(); await Promise.all(waits); loading.scope.dispose(); }
+});
+
+it('DL21: a file wait carries its step\'s reads tally, so the line moves with every read that lands', async () => {
+  const loading = new Loading({id: 'reads-tally', name: 'Reads tally'});
+  let finish = (): void => { throw new Error('Uninitialized read'); };
+  const pending = new Promise<void>(resolve => { finish = resolve; });
+  const foot = (): string => loading.root.querySelector('[data-el="foot"]')?.textContent ?? '';
+  let read: Promise<void> | undefined, tally: number | undefined;
+  try {
+    loading.setPath({id: 'shardfile', steps: [{key: 'modules', label: 'Modules', weight: 1}, {key: 'steppe', label: 'Steppe', weight: 1}]});
+    loading.endAdmission();
+    const timeline = currentLoadingTimeline();
+    if (timeline === undefined) throw new Error('Missing loading timeline');
+    const steppe = timeline.begin('steppe');
+    tally = beginLoadingWait('Reading 36 files · 4.0 MB', {kind: 'work', step: 'steppe', owner: timeline.waitOwner, resource: STAGE_READS});
+    read = waitFor('Read Model data', pending, 'file');
+    now = 400; vi.advanceTimersByTime(100);
+    expect(foot()).toContain('Now waiting for: Read Model data · 36 files · 4.0 MB read so far');
+    reportLoadingWait(tally, {label: 'Reading 37 files · 4.1 MB'});
+    now = 700; vi.advanceTimersByTime(100);
+    expect(foot()).toContain('Read Model data · 37 files · 4.1 MB read so far');
+    steppe.end();
+  } finally { finish(); await read; if (tally !== undefined) finishLoadingWait(tally); loading.scope.dispose(); }
 });
 
 it('names uncounted admission work without inventing an empty file batch', () => {

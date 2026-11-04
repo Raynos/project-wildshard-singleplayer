@@ -74,6 +74,8 @@ export function observeReads(match: (name: string) => boolean = () => true): { r
   observer.observe({ type: 'resource' });
   return { files: () => files, bytes: () => bytes, stop: () => { observer.disconnect(); } };
 }
+/** The `resource` of a stage's reads tally ('Reading 12 files · 4.1 MB'): the card adds it to a file wait's line. */
+export const STAGE_READS = 'stage-reads';
 /** A wait of the stage's own step that counts its reads once it has one; the returned stop removes it. */
 function stageReads(step: string, owner: symbol): () => void {
   const reads = observeReads(), scope = pageScope.child('loading.reads');
@@ -81,7 +83,7 @@ function stageReads(step: string, owner: symbol): () => void {
   const tick = (): void => {
     const files = reads.files(), bytes = reads.bytes(); if (files === 0) return;
     const label = `Reading ${files} files · ${(bytes / 1e6).toFixed(1)} MB`;
-    if (id === null) id = beginLoadingWait(label, { kind: 'work', step, owner, loadedBytes: bytes });
+    if (id === null) id = beginLoadingWait(label, { kind: 'work', step, owner, loadedBytes: bytes, resource: STAGE_READS });
     else reportLoadingWait(id, { label, loadedBytes: bytes });
   };
   scope.interval(250, tick);

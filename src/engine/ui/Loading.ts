@@ -3,7 +3,7 @@ import {app} from '../app/runtime';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
-import { bootWaits, loadingStepWaits } from '../boot/waits';
+import { bootWaits, loadingStepWaits, STAGE_READS } from '../boot/waits';
 import { TIER } from '../core/tier';
 import { loadShellTemplate, stopShellClock } from '../boot/shell';
 import { appIdentity } from '../app/identity';
@@ -457,7 +457,11 @@ export class Loading {
     setData(this.root, 'stalled', String(stalled));
     setData(this.root, 'waiting', wait?.label ?? '');
     setData(this.root, 'filesInFlight', String(files.length));
-    const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label} · ${(wait.ageMs / 1000).toFixed(1)} s${files.length > 0 ? ` · ${files.length} files in flight` : ''}${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
+    // DL21: a step's file waits come and go one at a time ('Read Model data · 0.1 s' held Nalati's step 8 unchanged for 6.3 s
+    // in the DL23 recording while its reads kept landing): the step's reads tally rides along, so the line moves per read
+    const tally = wait?.kind === 'file' && wait !== spawnHold ? pending.find(row => row.resource === STAGE_READS) : undefined;
+    const readsSoFar = tally === undefined ? '' : ` · ${tally.label.replace(/^Reading /u, '')} read so far`;
+    const detail = wait === undefined ? `Now working on: ${label}` : `Now waiting for: ${label}${readsSoFar} · ${(wait.ageMs / 1000).toFixed(1)} s${files.length > 0 ? ` · ${files.length} files in flight` : ''}${pending.length > 1 ? ` · ${pending.length} waits` : ''}`;
     // A quiet phase still reports its actual age, without advancing a byte,
     // file or setup credit. Only an explicit failed-read retry capability offers
     // an action; a long pending operation remains pending.
