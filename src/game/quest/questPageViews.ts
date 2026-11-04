@@ -126,7 +126,7 @@ type BoundedQuestPageViews = {
     ranged: string;
     quest: string;
     spawns: string;
-    content: string;
+    content: v.InferOutput<typeof QuestRuntimeFileSchema>;
     wheel: {
         flag: string;
         speed: number;
