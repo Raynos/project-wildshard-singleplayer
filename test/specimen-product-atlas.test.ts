@@ -1,3 +1,5 @@
+import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { afterAll, afterEach, beforeAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
@@ -148,14 +150,14 @@ test('an owner retired during the atlas read cannot admit late bytes', async () 
 });
 
 test('Explorer, direct dressing and generated encounter adapters prepare the same admitted atlas', async () => {
-  initializeTier('desktop'); const f = fixture(), book = 'models/book.json';
+  initializeTier('desktop'); const f = fixture(), book = 'models/cover-phone.json';
   const declared = emitNamedBlobs([...f.files].map(([name, bytes]) => nameBlob(name, name.endsWith('.ktx2') ? 'ktx2' : 'glb', bytes))
-    .concat(nameBlob(book, 'json', new TextEncoder().encode(JSON.stringify({ rows: f.rows, materials: {} })))));
+    .concat(nameBlob(book, 'json', new TextEncoder().encode(JSON.stringify({ rows: f.rows, materials: {} })), {jsonSchema:registeredJsonSchema(book)})));
   const product = createShardProduct({ slug: 'atlas-fixture', revision: 1,
     shardfile: emptyShardfile({ slug: 'atlas-fixture', name: 'Atlas fixture', author: 'Fixture', revision: 1, seed: 1 }),
     sections: new Map([['explore/catalogue', parseExplorerCatalogue({ version: 1, entries: [{ kind: 'specimen', id: 'atlas-crate', books: { phone: book, desktop: book }, model: 'crate' }] })]]),
-    files: new Map(declared.files.flatMap(row => row.name === undefined ? [] : [[row.name, { hash: row.hash, url: row.hash }]])),
-    read: hash => { const bytes = declared.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted atlas fixture'); return Promise.resolve(bytes); }, check: true });
+    files: new Map(declared.files.flatMap(row => row.name === undefined ? [] : [[row.name, fixtureProductFile(row.name, { hash: row.hash, url: row.hash })]])),
+    jsonCheck:fixtureJsonCheck, read: hash => { const bytes = declared.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted atlas fixture'); return Promise.resolve(bytes); }, check: true });
   const sky = skyFixture(), registry = new WorldRegistry(), scope = new Scope('atlas-adapters'), root = new THREE.Group(), restore = bindFlatTerrain({ heightAt: () => 0 });
   try {
     const roster = await explorerRoster(product), card = roster[0]; if (card === undefined) throw new Error('Missing atlas Explorer card');

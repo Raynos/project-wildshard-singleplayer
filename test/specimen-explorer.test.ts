@@ -5,7 +5,7 @@ import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {explorerRoster} from '../src/game/models/explorerCatalogue';
 import {emptyShardfile} from '../src/sdk/author';
 import {nameBlob,emitNamedBlobs} from '../src/sdk/blobs';
-import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {SpecimenBookSchema} from '../src/format/specimenCatalogue';
 import {parseExplorerCatalogue} from '../src/format/explorerCatalogue';
 import {initializeTier,TIER} from '../src/engine/core/tier';
@@ -16,8 +16,8 @@ import {SkyRig} from '../src/engine/world/skyRig';
 function fixture(offset=false){
   const vertices=Float32Array.from([0,0,0,1,0,0,0,1,0]);
   const book={rows:[{key:'leaf',model:{id:'orchard/leaf',name:'Pear leaf',file:'orchard.json',category:'nature',pipeline:'code',defaults:{}},source:{kind:'file',file:'models/leaf.bin',geometry:{attrs:[['position','f32',3,false]],count:3,index:null,indexCount:0,box:false,expand:false},material:{id:'orchard-leaf',family:'painterly',side:'double'}}}],materials:{}};
-  const declared=emitNamedBlobs([nameBlob('models/leaves.json','json',new TextEncoder().encode(JSON.stringify(book)),{jsonSchema:namedJsonSchema(SpecimenBookSchema)}),nameBlob('models/leaf.bin','bin',new Uint8Array(vertices.buffer))]);
-  const catalogue=parseExplorerCatalogue({version:1,entries:[{kind:'specimen',books:{phone:'models/leaves.json',desktop:'models/leaves.json'},model:'leaf',tierCopies:{phone:7,desktop:18},drawnAs:'instanced'}]});
+  const declared=emitNamedBlobs([nameBlob('models/cover-phone.json','json',new TextEncoder().encode(JSON.stringify(book)),{jsonSchema:registeredJsonSchema('models/cover-phone.json')}),nameBlob('models/leaf.bin','bin',new Uint8Array(vertices.buffer))]);
+  const catalogue=parseExplorerCatalogue({version:1,entries:[{kind:'specimen',books:{phone:'models/cover-phone.json',desktop:'models/cover-phone.json'},model:'leaf',tierCopies:{phone:7,desktop:18},drawnAs:'instanced'}]});
   return createShardProduct({slug:'orchard',revision:1,shardfile:emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:7}),sections:new Map([['explore/catalogue',catalogue]]),files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,{hash:row.hash,url:row.hash,...(row.jsonSchema===undefined?{}:{jsonSchema:row.jsonSchema})}]])),read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing leaf book');if(offset){const backing=new Uint8Array(bytes.byteLength+4);backing.set(bytes,4);return Promise.resolve(backing.subarray(4));}return Promise.resolve(bytes);},check:true});
 }
 

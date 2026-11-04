@@ -33,8 +33,9 @@ test('the native reader refuses a malformed cold pool before publishing any mode
   const value = { rows: { ...model.rows, geometryPools: [{ url: 'cold.glb', parts: ['rest'], native: { requireIndex: 'bad' } }] } };
   let reads = 0;
   const product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity),
-    sections: new Map([['world/scenes', parseWorldScenes({ version: 1, libraries: [{ id: 'models', kind: 'models', file: 'models.json' }], materials: [], steps: [] })]]),
-    files: new Map([['models.json', { hash: 'source', url: '/models' }]]),
+    sections: new Map([['world/scenes', parseWorldScenes({ version: 1, libraries: [{ id: 'models', kind: 'models', file: 'world/sources/models.json' }], materials: [], steps: [] })]]),
+    // Simulate build admission so this negative reaches the original native pool parser.
+    builtJson: true, files: new Map([['world/sources/models.json', { hash: 'source', url: '/models', jsonSchema: registeredJsonSchema('world/sources/models.json') }]]),
     read: () => { reads++; return Promise.resolve(encode(value)); } });
   await expect(prepareSceneSources(product)).rejects.toThrow();
   expect(reads).toBe(1);

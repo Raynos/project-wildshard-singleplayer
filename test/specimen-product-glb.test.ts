@@ -1,3 +1,5 @@
+import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import {afterEach,expect,test,vi} from 'vitest';
 import * as THREE from 'three';
 import {parse} from 'valibot';
@@ -101,14 +103,14 @@ test('retired owners and replaced readers cannot admit an in-flight GLB',async()
 });
 
 test('Explorer and live dressing geometry, material and encounter adapters use verified GLBs',async()=>{
-  initializeTier('desktop');const book='models/book.json',siteAsset={url:{file:'models/statue.glb',bytes:phone.length},material};
+  initializeTier('desktop');const book='models/cover-phone.json',siteAsset={url:{file:'models/statue.glb',bytes:phone.length},material};
   const declared=emitNamedBlobs([nameBlob(asset.url.file,'glb',desktop),nameBlob(siteAsset.url.file,'glb',phone),
-    nameBlob(book,'json',new TextEncoder().encode(JSON.stringify({rows,materials:{}})))]);
+    nameBlob(book,'json',new TextEncoder().encode(JSON.stringify({rows,materials:{}})),{jsonSchema:registeredJsonSchema(book)})]);
   const product=createShardProduct({slug:'product-glb-fixture',revision:1,
     shardfile:emptyShardfile({slug:'product-glb-fixture',name:'GLB fixture',author:'Fixture',revision:1,seed:1}),
     sections:new Map([['explore/catalogue',parseExplorerCatalogue({version:1,entries:[{kind:'specimen',id:'product-crate',books:{phone:book,desktop:book},model:'crate'}]})]]),
-    files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,{hash:row.hash,url:row.hash}]])),
-    read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing product GLB');return Promise.resolve(bytes);},check:true});
+    files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,fixtureProductFile(row.name,{hash:row.hash,url:row.hash})]])),
+    jsonCheck:fixtureJsonCheck, read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing product GLB');return Promise.resolve(bytes);},check:true});
   const fetch=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('No URL fallback')),sky=skyFixture(),registry=new WorldRegistry(),scope=new Scope('product-glb-adapters'),root=new THREE.Group(),restore=bindFlatTerrain({heightAt:()=>0});
   try{
     const roster=await explorerRoster(product),card=roster[0];if(card===undefined)throw new Error('Missing Explorer card');

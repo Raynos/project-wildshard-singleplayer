@@ -15,6 +15,12 @@ test('scene declarations read in bounded batches and publish models before depen
     sections: new Map([['world/scenes', section]]),
     files: new Map([...models, ...baked].map(row => [row.file, { hash: row.file, url: row.file }])),
     read: name => { started.push(name); return new Promise(resolve => { pending.set(name, resolve); }); } });
+  // These private libraries isolate the bounded host scheduler. Keep its
+  // original byte reader and native source parsing, without a product owner.
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(name)));
+    return value;
+  });
   const finish = (names: readonly string[], value: unknown): void => {
     for (const name of names) {
       const resolve = pending.get(name); if (resolve === undefined) throw new Error('Missing source read');

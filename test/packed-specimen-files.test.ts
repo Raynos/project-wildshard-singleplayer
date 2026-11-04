@@ -1,3 +1,5 @@
+import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import {zlibSync} from 'fflate';
 import * as THREE from 'three';
 import {afterEach,expect,test,vi} from 'vitest';
@@ -194,13 +196,13 @@ test('the original URL form keeps its native decoder and strict asset-path admis
 });
 
 test('the existing Explorer and dressing adapters prepare admitted banks without URL fallback',async()=>{
-  const book='models/book.json',declared=emitNamedBlobs([nameBlob(forge.file,'bin',forge.wire,{decoded:forge.raw.length}),
-    nameBlob(book,'json',new TextEncoder().encode(JSON.stringify({rows:forge.rows,packed:forge.packed,materials})))]);
+  const book='models/cover-phone.json',declared=emitNamedBlobs([nameBlob(forge.file,'bin',forge.wire,{decoded:forge.raw.length}),
+    nameBlob(book,'json',new TextEncoder().encode(JSON.stringify({rows:forge.rows,packed:forge.packed,materials})),{jsonSchema:registeredJsonSchema(book)})]);
   const product=createShardProduct({slug:'packed-file-fixture',revision:1,
     shardfile:emptyShardfile({slug:'packed-file-fixture',name:'Packed fixture',author:'Fixture',revision:1,seed:1}),
     sections:new Map([['explore/catalogue',parseExplorerCatalogue({version:1,entries:[{kind:'specimen',id:'packed-card',books:{phone:book,desktop:book},model:'anvil'}]})]]),
-    files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,{hash:row.hash,url:row.hash}]])),
-    read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing product bytes');return Promise.resolve(bytes);},check:true});
+    files:new Map(declared.files.flatMap(row=>row.name===undefined?[]:[[row.name,fixtureProductFile(row.name,{hash:row.hash,url:row.hash})]])),
+    jsonCheck:fixtureJsonCheck, read:hash=>{const bytes=declared.assets.get(hash);if(bytes===undefined)throw new Error('Missing product bytes');return Promise.resolve(bytes);},check:true});
   const fetch=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('No specimen URL fallback'));
   const sky=skyFixture(),registry=new WorldRegistry(),scope=new Scope('packed-adapters'),root=new THREE.Group();
   try{

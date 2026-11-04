@@ -28,15 +28,15 @@ test.each([false, true])('buffer admission overlaps bounded reads and drains a r
   const started: string[] = [];
   const product = createShardProduct({ slug: 'buffer-reads', revision: 1,
     shardfile: emptyShardfile({ slug: 'buffer-reads', name: 'Reads', author: 'Fixture', revision: 1, seed: 1 }), sections: new Map(),
-    files: new Map(['scene.json', ...names].map(name => [name, { hash: name, url: name }])),
-    read: name => {
-      if (name === 'scene.json') return Promise.resolve(new TextEncoder().encode(JSON.stringify(source)));
+    files: new Map(['world/fields/batch.json', ...names].map(name => [name, fixtureProductFile(name, { hash: name, url: name })])),
+    jsonCheck: fixtureJsonCheck, read: name => {
+      if (name === 'world/fields/batch.json') return Promise.resolve(new TextEncoder().encode(JSON.stringify(source)));
       started.push(name);
       return new Promise<Uint8Array>((resolve, reject) => { pending.set(name, { resolve, reject }); });
     } });
   let settled = false;
   const admission = (async (): Promise<unknown> => {
-    try { await prepareSceneDrawRows(product, [{ kind: 'buffered', file: 'scene.json', material: 'paint' }]); return null; }
+    try { await prepareSceneDrawRows(product, [{ kind: 'buffered', file: 'world/fields/batch.json', material: 'paint' }]); return null; }
     catch (error) { return error; }
     finally { settled = true; }
   })();
