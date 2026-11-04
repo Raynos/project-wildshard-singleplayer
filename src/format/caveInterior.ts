@@ -4,6 +4,19 @@ import { PackedGeometryRowsSchema } from './geometryPack';
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const pair = v.tuple([n, n]), triple = v.tuple([n, n, n]);
 const rows = <T extends v.GenericSchema>(schema: T) => v.pipe(v.array(schema), v.maxLength(256));
+interface CaveShellRows {
+  kind: 'trimesh'; x: number; y: number; z: number; surface: 'rock';
+  yaw?: number; rot?: { x: number; y: number; z: number; w: number };
+  vertices: number[]; indices: number[];
+}
+/** The existing native shell policy accepts only a rock trimesh. Numeric
+ * lanes retain the engine's six-million-value and Uint32 limits. */
+const caveShell: v.GenericSchema<CaveShellRows, CaveShellRows> = v.strictObject({
+  kind: v.literal('trimesh'), x: n, y: n, z: n, surface: v.literal('rock'), yaw: v.exactOptional(n),
+  rot: v.exactOptional(v.strictObject({ x: n, y: n, z: n, w: n })),
+  vertices: v.pipe(v.array(n), v.maxLength(6_000_000)),
+  indices: v.pipe(v.array(v.pipe(n, v.integer(), v.minValue(0), v.maxValue(0xffff_ffff))), v.maxLength(6_000_000)),
+});
 /** A baked cave interior's facts in its own frame (lx across, lz in, y world height) and its shell's collider rows. */
 export const CaveFileSchema: v.GenericSchema<CaveFileInput, CaveFile> = v.strictObject({ meta: v.strictObject({ version: v.literal(1),
   holes: rows(v.strictObject({ lx: n, lz: n, hw: n, hd: n, y0: n, y1: n })),
@@ -12,7 +25,7 @@ export const CaveFileSchema: v.GenericSchema<CaveFileInput, CaveFile> = v.strict
   shaft: v.strictObject({ top: triple, foot: triple, r0: n, r1: n }),
   drips: rows(v.tuple([n, n, n, n])), floor: rows(pair),
   tris: v.strictObject({ cave: n, far: n, col: n }),
-}), shell: v.unknown() });
+}), shell: caveShell });
 /** A validated cave file. */
 
 
@@ -95,7 +108,7 @@ interface CaveFileFields {
             col: number;
         };
     };
-    shell: unknown;
+    shell: CaveShellRows;
 }
 export type CaveFile = { [Key in keyof CaveFileFields]: CaveFileFields[Key] };
 interface CaveInteriorRowsInputFields {

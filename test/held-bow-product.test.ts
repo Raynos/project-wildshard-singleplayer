@@ -12,14 +12,15 @@ import { build } from '../scripts/shardfile-vite.mjs';
 import recurve from '../public/assets/nalati/baked/recurve-pool.json' with { type:'json' };
 import { HeldBowFileSchema, HeldBowDefinitionSchema } from '../src/format/weaponProfiles';
 import { bindHeldBow } from '../src/game/weapons/heldLauncher';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { fixtureJsonCheck } from './fixtures/productFile';
 import { nameBlob } from '../src/sdk/blobs';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 
 const encode=(input:unknown):Uint8Array=>new TextEncoder().encode(`${JSON.stringify(input)}\n`);
-const schema=namedJsonSchema(HeldBowFileSchema);
+const schema=registeredJsonSchema('weapons/bow-page.json');
 
 test('the named bow retains the original bytes, pool channels and borrowed arrays',async()=>{
   const bytes=encode(recurve),named=nameBlob('weapons/bow-page.json','json',bytes,{jsonSchema:schema});
@@ -27,7 +28,7 @@ test('the named bow retains the original bytes, pool channels and borrowed array
   expect(named.bytes).toEqual(bytes);
   if(named.file.jsonSchema===undefined)throw new Error('Missing named bow admission');
   const source=emptyShardfile({slug:'bow-fixture',name:'Bow fixture',author:'Fixture',revision:1,seed:1});
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),jsonCheck:fixtureJsonCheck,
     files:new Map([['weapons/bow-page.json',{hash:named.file.hash,url:'/bow.json',jsonSchema:named.file.jsonSchema}]]),read:()=>Promise.resolve(named.bytes)});
   const admitted=v.parse(HeldBowFileSchema,await product.json('weapons/bow-page.json'));
   expect(admitted.pool).toEqual(recurve.pool);
@@ -60,7 +61,7 @@ test('actual named admission rejects malformed bow and pool bytes',async()=>{
   for(const input of invalid){
     const bytes=encode(input);expect(()=>nameBlob('weapons/bow-page.json','json',bytes,{jsonSchema:schema})).toThrow();
     expect(()=>validateNamedJsonSchema(schema,bytes)).toThrow();
-    const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
+    const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),jsonCheck:fixtureJsonCheck,
       files:new Map([['weapons/bow-page.json',{hash:'a'.repeat(64),url:'/bad.json',jsonSchema:schema}]]),read:()=>Promise.resolve(bytes)});
     await expect(product.json('weapons/bow-page.json')).rejects.toThrow();
   }

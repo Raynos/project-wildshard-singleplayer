@@ -13,6 +13,7 @@ import {onFault,type Fault} from '../src/engine/core/faults';
 import {ProjectedTrail} from '../src/engine/combat/view/projectedTrail';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 import {emptyShardfile} from '../src/sdk/author';
 import {parseItems} from '../src/format/items';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
@@ -51,7 +52,7 @@ function slotRows(power:unknown=rows){return {version:1,id:'bow-kit',slots:[{id:
 async function kit(scope:Scope,targets:ReturnType<typeof owner>['targets'],input:unknown=slotRows()){
   const source={...emptyShardfile({slug:'orchard',name:'Orchard',author:'Fixture',revision:1,seed:1}),items:parseItems(items)};
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=legacyDouble<NonNullable<ShardRuntime['world']>>({game:legacyDouble<NonNullable<ShardRuntime['world']>['game']>({scene,camera})});
-  const runtime=legacyDouble<ShardRuntime>({world}),product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),files:new Map([['weapons/bow-page.json',{hash:'b'.repeat(64),url:'/bow.json'}]]),read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(bowPage)))});
+  const runtime=legacyDouble<ShardRuntime>({world}),product=createShardProduct({slug:'orchard',revision:1,shardfile:source,sections:new Map(),jsonCheck:fixtureJsonCheck,files:new Map([['weapons/bow-page.json',fixtureProductFile('weapons/bow-page.json',{hash:'b'.repeat(64),url:'/bow.json'})]]),read:()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(bowPage)))});
   const ctx=legacyDouble<ShardContext>({scope,product,app:legacyDouble<ShardContext['app']>({equipment:null}),game:legacyDouble<ShardContext['game']>({runtime}),rows:legacyDouble<ShardContext['rows']>({weapon:()=>undefined})});
   const held=HeldClaims.fromSlots(input);held.installPage(ctx);
   const builder=runtime.buildEquipment;if(builder===undefined)throw new Error('Missing bow slot factory');

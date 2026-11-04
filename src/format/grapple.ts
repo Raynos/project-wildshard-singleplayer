@@ -58,6 +58,8 @@ const pair = v.strictObject({ v2: v.tuple([finite, finite]) });
 const triple = v.strictObject({ v3: v.tuple([finite, finite, finite]) });
 const filamentSchema: v.GenericSchema<GrappleFilamentUniformsInput, GrappleFilamentUniforms> = v.strictObject({ uRes: pair, uProjection: pair, uCorePx: finite, uHaloPx: finite, uI: finite,
   uPulse: finite, uLen: finite, uTime: finite, uCore: triple, uHalo: triple });
+/** Exact native ribbon uniform grammar for whole held-view admission. */
+export const GrappleFilamentSchema: v.GenericSchema<GrappleFilamentUniformsInput, GrappleFilamentUniforms> = filamentSchema;
 /** Admitted ribbon parameters have only the declared numeric/vector keys. */
 
 /** The same authored look parameters serve the native ribbon and its fixture. */

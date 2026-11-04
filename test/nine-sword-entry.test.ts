@@ -4,6 +4,8 @@ import { Scope } from '../src/engine/app/scope';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext, type ShardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
+import { nineHeldPresentationBytes } from './fixtures/nine-held-presentation';
 import source from './fixtures/nine-product-inputs';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
@@ -15,9 +17,9 @@ import heldPrimary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' 
 test('Nine manifest native load installs its original Jian once', async () => {
   const app = new App(), scope = new Scope('nine-sword-entry');
   const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
-  const read = vi.fn(() => Promise.resolve(new TextEncoder().encode('{"portraitFov":78}')));
-  const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source,
-    sections: new Map<string, unknown>([['held/arms', heldPrimary], ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'held.primary' }, { kind: 'held.claims.install', claims: 'held.primary' }] }]]), files: new Map([['weapons/jian-row.json', { hash: '0'.repeat(64), url: '/jian-row.json' }]]), read });
+  const read = vi.fn(() => Promise.resolve(nineHeldPresentationBytes()));
+  const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source, jsonCheck: fixtureJsonCheck,
+    sections: new Map<string, unknown>([['held/arms', heldPrimary], ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'held.primary' }, { kind: 'held.claims.install', claims: 'held.primary' }] }]]), files: new Map([['weapons/jian-row.json', fixtureProductFile('weapons/jian-row.json', { hash: '0'.repeat(64), url: '/jian-row.json' })]]), read });
   const ctx = shardContext(level.context, manifest, { shard: manifest, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
   const shell: { world: object; buildEquipment?: NonNullable<ShardContext['game']['runtime']>['buildEquipment'] } = { world: { game: { level: { camera: { portraitFov: 78 } } } } };
   Object.defineProperty(ctx.game, 'runtime', { value: shell });

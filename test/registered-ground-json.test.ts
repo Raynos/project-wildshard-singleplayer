@@ -12,7 +12,7 @@ import {CAVE_LOOK} from '../src/shards/pine-hollow/generators/cragLook';
 const point={x:0,y:0,z:0,nx:0,ny:1,nz:0,rot:0,scale:1,r:.2,g:.3,b:.4};
 const floor={counts:[1],layout:{orchard:[point]}};
 const meta={version:1,holes:[],cuts:[],spots:[],inside:[],shaft:{top:[0,4,0],foot:[0,0,0],r0:1,r1:1},drips:[],floor:[],tris:{cave:0,far:0,col:0}};
-const cave={meta,shell:[]};
+const cave={meta,shell:{kind:'trimesh',x:0,y:0,z:0,surface:'rock',vertices:[0,0,0,1,0,0,0,1,0],indices:[0,1,2]}};
 const interior={product:'quarry',file:'world/adit.json',frame:{x:40,z:-12,yaw:1.1},
   roof:{url:'/assets/quarry/parts.bin',part:0,rows:{bytes:48,geometries:[{attrs:[['position',3]],count:3,unique:3,own:'u16',indexCount:3}]}},
   rock:{look:'quarry-rock',fill:'aditFill',pbr:'slate',grit:'gravel'},look:CAVE_LOOK};

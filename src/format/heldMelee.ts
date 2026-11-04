@@ -3,6 +3,10 @@ import * as schema from 'valibot';
 /** Native held models, view tables and ABI-v1 decision references. */
 const finite = schema.pipe(schema.number(), schema.finite()), triple = schema.tuple([finite, finite, finite]);
 const cue = schema.custom<`cue.${string}`>(value => typeof value === 'string' && /^cue\.[a-z][a-zA-Z0-9.-]*$/u.test(value));
+/** Exact defining primitive for the native cue-name wire bridge. */
+export const HeldCueSchema: schema.GenericSchema<`cue.${string}`, `cue.${string}`> = cue;
+/** Exact defining primitive for the native arc-item wire bridge. */
+export const ArcWeaponItemSchema: schema.GenericSchema<`weapon.${string}`, `weapon.${string}`> = schema.custom<`weapon.${string}`>(value => typeof value === 'string' && /^weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(value));
 const pose = schema.strictObject({ pos: triple, q: schema.tuple([finite, finite, finite, finite]) });
 export const PolearmPresentationSchema: schema.GenericSchema<PolearmPresentationInput, PolearmPresentation>=schema.strictObject({parts:schema.strictObject({leftArm:schema.string(),rightArm:schema.string(),body:schema.string(),metal:schema.string(),fist:schema.string(),projectile:schema.string(),projectileMetal:schema.string(),world:schema.string()}),materials:schema.strictObject({rim:finite,bands:finite,metalness:finite,roughness:finite,environment:finite,worldRim:finite}),arc:schema.strictObject({color:finite,size:finite})});
 export const PolearmRowsSchema: schema.GenericSchema<PolearmRowsInput, PolearmRows> = schema.strictObject({ pool: schema.strictObject({ url: schema.string(), parts: schema.array(schema.string()) }),
@@ -30,7 +34,7 @@ export const BladeRowsSchema: schema.GenericSchema<BladeRowsInput, BladeRows> = 
   blade: schema.strictObject({ length: finite, curve: finite }), rig: schema.strictObject({ tipY: finite, baseY: finite, tipX: finite }),
   moves: schema.strictObject({ rest: bladePose, charge: bladePose, sprint: bladePose, combo: schema.array(bladeMove), heavy: bladeMove, passes: schema.strictObject({ left: bladeMove, right: bladeMove }) }) });
 
-export const ArcWeaponRowsSchema: schema.GenericSchema<ArcWeaponRowsInput, ArcWeaponRows>=schema.strictObject({program:schema.unknown(),item:schema.custom<`weapon.${string}`>(value=>typeof value==='string'&&/^weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(value)),name:schema.string(),blue:triple,glow:triple,powers:schema.strictObject({crescentRange:finite,crescentDamage:finite,crescentTime:finite,arcRadius:finite,gallopMin:finite,callRange:finite,callDamage:finite,callRadius:finite,callTime:finite,stormMultiplier:finite,stormArcs:finite,clearArcs:finite,crescentWidth:finite})});
+export const ArcWeaponRowsSchema: schema.GenericSchema<ArcWeaponRowsInput, ArcWeaponRows>=schema.strictObject({program:schema.unknown(),item:ArcWeaponItemSchema,name:schema.string(),blue:triple,glow:triple,powers:schema.strictObject({crescentRange:finite,crescentDamage:finite,crescentTime:finite,arcRadius:finite,gallopMin:finite,callRange:finite,callDamage:finite,callRadius:finite,callTime:finite,stormMultiplier:finite,stormArcs:finite,clearArcs:finite,crescentWidth:finite})});
 
 
 

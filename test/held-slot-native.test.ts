@@ -16,6 +16,8 @@ import type { EquipmentService } from '../src/engine/combat/EquipmentService';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
+import firearmPage from './fixtures/nalati-rifle-original.json' with { type:'json' };
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '../src/format/items';
 import { parseHeldSlots } from '../src/format/heldArms';
@@ -104,10 +106,10 @@ function fixture(mode:'original'|'slots',preparation?:'spare'|'initial'|'primary
   const bowRead=vi.fn(()=>{events.push('bow:read');return Promise.resolve(bowBytes);});
   vi.spyOn(plan,'macrotask').mockImplementation(()=>{events.push('pause');return Promise.resolve();});
   const bind=vi.spyOn(native,'bindRuntimeEquipment').mockReturnValue(legacyDouble<ReturnType<typeof native.bindRuntimeEquipment>>({}));
-  const bytes=new TextEncoder().encode(JSON.stringify({feel:{},view:{},rows:{}}));
+  const bytes=new TextEncoder().encode(JSON.stringify(firearmPage));
   const read=vi.fn(()=>{events.push('firearm:read');return Promise.resolve(bytes);});
-  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),
-    files:new Map([[loadout.page.firearm.file,{hash:'a'.repeat(64),url:'/firearm.json'}],['weapons/bow-page.json',{hash:'b'.repeat(64),url:'/bow.json'}]]),read:hash=>hash==='b'.repeat(64)?bowRead():read()});
+  const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),jsonCheck:fixtureJsonCheck,
+    files:new Map([[loadout.page.firearm.file,fixtureProductFile(loadout.page.firearm.file,{hash:'a'.repeat(64),url:'/firearm.json'})],['weapons/bow-page.json',fixtureProductFile('weapons/bow-page.json',{hash:'b'.repeat(64),url:'/bow.json'})]]),read:hash=>hash==='b'.repeat(64)?bowRead():read()});
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=legacyDouble<NonNullable<ShardRuntime['world']>>({game:legacyDouble<NonNullable<ShardRuntime['world']>['game']>({scene,camera})}),runtime=legacyDouble<ShardRuntime>({world});
   const ctx=legacyDouble<ShardContext>({scope,product,app:legacyDouble<ShardContext['app']>({equipment:null}),
     game:legacyDouble<ShardContext['game']>({runtime}),rows:legacyDouble<ShardContext['rows']>({weapon:rows=>{

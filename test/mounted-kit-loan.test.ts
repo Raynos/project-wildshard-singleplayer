@@ -10,6 +10,7 @@ import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import type { HeldFirearmRows } from '../src/game/plugin/heldFirearm';
 import { emptyShardfile } from '../src/sdk/author';
@@ -40,8 +41,8 @@ function fixture() {
     presentation:parseHeldFirearmRows(rifle.rows).presentation };
   const bytes = new TextEncoder().encode(JSON.stringify({...rifle,rows:firearmRows}));
   const read=vi.fn(()=>Promise.resolve(bytes));
-  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
-    files: new Map([[loadout.page.firearm.file, { hash: 'a'.repeat(64), url: '/fixture/rifle.json' }]]), read });
+  const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(), jsonCheck: fixtureJsonCheck,
+    files: new Map([[loadout.page.firearm.file, fixtureProductFile(loadout.page.firearm.file, { hash: 'a'.repeat(64), url: '/fixture/rifle.json' })]]), read });
   const game = new FakeGame().asGame();
   const world = legacyDouble<NonNullable<ShardRuntime['world']>>({game,sky:legacyDouble<NonNullable<ShardRuntime['world']>['sky']>({}),
     player:legacyDouble<NonNullable<ShardRuntime['world']>['player']>({yaw:0,pitch:0})});

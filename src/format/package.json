@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./heldJianDocument": "./heldJianDocument.ts",
+    "./heldWeaponDocuments": "./heldWeaponDocuments.ts",
+    "./waterWorld": "./waterWorld.ts",
+    "./forestNativeInputs": "./forestNativeInputs.ts",
     "./returnProgramDocument": "./returnProgramDocument.ts",
     "./sceneSources": "./sceneSources.ts",
     "./registeredJson": "./registeredJson.ts",

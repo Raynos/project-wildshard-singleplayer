@@ -30,4 +30,4 @@ for(const root of roots){
   await expect(product.json(root.name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
  });
 }
-test('private Pine owner transport remains outside this two-root registration',()=>expect(registeredJsonContract('data/physics.generated.json')).toBeUndefined());
+test('unapproved private Pine owner aliases remain outside registration',()=>expect(registeredJsonContract('data/physics.private.json')).toBeUndefined());

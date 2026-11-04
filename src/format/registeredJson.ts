@@ -1,3 +1,8 @@
+import { HeldJianDocumentSchema } from './heldJianDocument';
+import { BladeDocumentSchema, PolearmDocumentSchema, HeldSlotsDocumentSchema } from './heldWeaponDocuments';
+import { HeldBowFileSchema, HeldFirearmPageSchema } from './weaponProfiles';
+import { WaterWorldSchema } from './waterWorld';
+import { ForestNativeInputsSchema } from './forestNativeInputs';
 import { FindsCatalogueSchema } from './findsCatalogue';
 import { WildlifePopulationSchema } from './wildlifePopulation';
 import { ClientRidingSessionSchema } from './riding';
@@ -9,7 +14,7 @@ import { RoamingCombatSchema } from './roamingCombat';
 import { FixedPracticeFileSchema } from './practiceCourseRows';
 import { FixedGeometryGroupsSchema } from './islandLibrary';
 import { CoverAppearanceSchema } from './coverAppearance';
-import { HeldGraphCardsSchema } from './heldArms';
+import { HeldGraphCardsSchema, parseHeldSlots } from './heldArms';
 import { SpecimenBookSchema } from './specimenCatalogue';
 import { WeatherDocumentSchema, parseWeatherDocument } from './weatherBundle';
 import { WeatherEffectsSchema, parseWeatherEffects } from './weatherEffects';
@@ -60,6 +65,14 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'data/physics.generated.json':{readonly schema:typeof ForestNativeInputsSchema;readonly source:'@wildshard/format/forestNativeInputs#ForestNativeInputsSchema'};
+  readonly 'world/water.json':{readonly schema:typeof WaterWorldSchema;readonly source:'@wildshard/format/waterWorld#WaterWorldSchema'};
+  readonly 'weapons/bow-page.json':{readonly schema:typeof HeldBowFileSchema;readonly source:'@wildshard/format/weaponProfiles#HeldBowFileSchema'};
+  readonly 'weapons/rifle-page.json':{readonly schema:typeof HeldFirearmPageSchema;readonly source:'@wildshard/format/weaponProfiles#HeldFirearmPageSchema'};
+  readonly 'weapons/sabre.json':{readonly schema:typeof BladeDocumentSchema;readonly source:'@wildshard/format/heldWeaponDocuments#BladeDocumentSchema'};
+  readonly 'weapons/spear.json':{readonly schema:typeof PolearmDocumentSchema;readonly source:'@wildshard/format/heldWeaponDocuments#PolearmDocumentSchema'};
+  readonly 'held/slots.json':{readonly schema:typeof HeldSlotsDocumentSchema;readonly source:'@wildshard/format/heldWeaponDocuments#HeldSlotsDocumentSchema'};
+  readonly 'weapons/jian-row.json':{readonly schema:typeof HeldJianDocumentSchema;readonly source:'@wildshard/format/heldJianDocument#HeldJianDocumentSchema'};
   readonly 'world/dressing-pages/0.json':{readonly schema:typeof SceneScatterPageSchema;readonly source:'@wildshard/format/sceneDressing#SceneScatterPageSchema'};
   readonly 'world/dressing-pages/1.json':{readonly schema:typeof SceneScatterPageSchema;readonly source:'@wildshard/format/sceneDressing#SceneScatterPageSchema'};
   readonly 'sim/population-metadata.json':{readonly schema:typeof PopulationHabitatSchema;readonly source:'@wildshard/format/populationEnvironment#PopulationHabitatSchema'};
@@ -167,6 +180,14 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'data/physics.generated.json':{schema:ForestNativeInputsSchema,source:'@wildshard/format/forestNativeInputs#ForestNativeInputsSchema'},
+  'world/water.json':{schema:WaterWorldSchema,source:'@wildshard/format/waterWorld#WaterWorldSchema'},
+  'weapons/bow-page.json':{schema:HeldBowFileSchema,source:'@wildshard/format/weaponProfiles#HeldBowFileSchema'},
+  'weapons/rifle-page.json':{schema:HeldFirearmPageSchema,source:'@wildshard/format/weaponProfiles#HeldFirearmPageSchema'},
+  'weapons/sabre.json':{schema:BladeDocumentSchema,source:'@wildshard/format/heldWeaponDocuments#BladeDocumentSchema'},
+  'weapons/spear.json':{schema:PolearmDocumentSchema,source:'@wildshard/format/heldWeaponDocuments#PolearmDocumentSchema'},
+  'held/slots.json':{schema:HeldSlotsDocumentSchema,source:'@wildshard/format/heldWeaponDocuments#HeldSlotsDocumentSchema'},
+  'weapons/jian-row.json':{schema:HeldJianDocumentSchema,source:'@wildshard/format/heldJianDocument#HeldJianDocumentSchema'},
   'world/dressing-pages/0.json':{schema:SceneScatterPageSchema,source:'@wildshard/format/sceneDressing#SceneScatterPageSchema'},
   'world/dressing-pages/1.json':{schema:SceneScatterPageSchema,source:'@wildshard/format/sceneDressing#SceneScatterPageSchema'},
   'sim/population-metadata.json':{schema:PopulationHabitatSchema,source:'@wildshard/format/populationEnvironment#PopulationHabitatSchema'},
@@ -353,6 +374,14 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'data/physics.generated.json':v.parse(ForestNativeInputsSchema,value);break;
+    case 'world/water.json':v.parse(WaterWorldSchema,value);break;
+    case 'weapons/bow-page.json':v.parse(HeldBowFileSchema,value);break;
+    case 'weapons/rifle-page.json':v.parse(HeldFirearmPageSchema,value);break;
+    case 'weapons/sabre.json':v.parse(BladeDocumentSchema,value);break;
+    case 'weapons/spear.json':v.parse(PolearmDocumentSchema,value);break;
+    case 'held/slots.json':v.parse(HeldSlotsDocumentSchema,value);parseHeldSlots(value);break;
+    case 'weapons/jian-row.json':parsePostGraphDocument(v.parse(HeldJianDocumentSchema,value).look.post);break;
     case 'world/dressing-pages/0.json':v.parse(SceneScatterPageSchema,value);break;
     case 'world/dressing-pages/1.json':v.parse(SceneScatterPageSchema,value);break;
     case 'sim/population-metadata.json':v.parse(PopulationHabitatSchema,value);break;

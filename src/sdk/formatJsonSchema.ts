@@ -1,3 +1,9 @@
+import { uniformIdentityTransforms } from '@wildshard/format/uniformRows';
+import { HeldCueSchema, ArcWeaponItemSchema } from '@wildshard/format/heldMelee';
+import { HeldJianDocumentSchema } from '@wildshard/format/heldJianDocument';
+import { BladeDocumentSchema, PolearmDocumentSchema, HeldSlotsDocumentSchema } from '@wildshard/format/heldWeaponDocuments';
+import { WaterWorldSchema } from '@wildshard/format/waterWorld';
+import { ForestNativeInputsSchema } from '@wildshard/format/forestNativeInputs';
 import { FindsCatalogueSchema } from '@wildshard/format/findsCatalogue';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ArenaRoomDocumentSchema, ArenaRoomDocumentRowsSchema, ArenaKingRowsSchema } from '@wildshard/format/arenaRoomDocument';
@@ -76,7 +82,7 @@ import { PracticeSceneSchema,RidingPracticeSchema,PracticeControllerSchema, Fixe
 import { RoamingEncounterSchema, WakeEncounterSchema, BossEncounterPresentationSchema, NativeBossBindingSchema } from '@wildshard/format/bossEncounter';
 import { BossProfileSchema, ArenaBossProfileSchema, RoamingBossProfileSchema, SpawnedBossProfileSchema, HeldBossProfileSchema, ScriptBossProfileSchema } from '@wildshard/format/bossProfiles';
 import { NpcRowSchema, NpcMotionSchema, NpcDialogueRowSchema, QuestNpcBindingSchema, QuestNpcBindingsSchema, QuestPageTalksSchema } from '@wildshard/format/npcs';
-import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
+import { WeaponProfileSchema, MeleeWeaponProfileSchema, BowWeaponProfileSchema, FirearmWeaponProfileSchema, ThrownWeaponProfileSchema, LashWeaponProfileSchema, ConeWeaponProfileSchema, HeldBowBaseSchema, HeldBowRowsSchema, HeldBowDefinitionSchema, HeldBowFileSchema, HeldFirearmPageSchema } from '@wildshard/format/weaponProfiles';
 import { toJsonSchema, type JsonSchema } from '@valibot/to-json-schema';
 import { finite, strictObject, object, looseObject, tuple, tupleWithRest, optional, array, literal as literalSchema, parse, safeParse as sourceSafeParse, pipe, check as sourceCheck, number, string, boolean, unknown, null as nullSchema, integer, minValue, maxValue, minLength, maxLength, startsWith, length, picklist, record, nullable, exactOptional, safeInteger, regex as sourceRegex, maxEntries, union, variant, assert, is as sourceIs, type VariantOptions, type SafeParseResult, type GenericSchema, type InferInput, type InferOutput } from 'valibot';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
@@ -178,7 +184,9 @@ const customSchemas = new Map<object, FormatJsonSchema>([
 // post documents additionally run complete scaled-post and graph admission.
 customSchemas.set(ScaledPostInputSchema, { type: 'object', required: ['programs', 'draws', 'targets', 'outputs'],
   'x-wildshard-checks': ['@wildshard/format/scaledPostContract#parseScaledPostRow'] } satisfies FormatJsonSchema);
-const postIdentityTransforms = new Set(postGraphIdentityTransforms);
+customSchemas.set(HeldCueSchema, { type: 'string', pattern: '^cue\\.[a-z][a-zA-Z0-9.-]*$' });
+customSchemas.set(ArcWeaponItemSchema, { type: 'string', pattern: '^weapon\\.[a-z][a-zA-Z0-9.-]*$' });
+const postIdentityTransforms = new Set([...postGraphIdentityTransforms, ...uniformIdentityTransforms]);
 customSchemas.set(HeldMeleeActionSchema, { type: 'string', pattern: '^[a-z][a-zA-Z0-9-]*\\.[a-zA-Z0-9.-]+$' });
 const bowVariant = BowVariantSchema.pipe[2].entries;
 customSchemas.set(bowVariant.id, { type: 'string', pattern: '^weapon\\.[a-z0-9.-]+$' });
@@ -480,6 +488,15 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'arenaRoomDocument.ArenaRoomDocument': ArenaRoomDocumentSchema,
   'riding.ClientRidingSession': ClientRidingSessionSchema,
   'rangedPage.RangedPage': RangedPageSchema,
+
+  'forestNativeInputs.ForestNativeInputs': ForestNativeInputsSchema,
+  'waterWorld.WaterWorld': WaterWorldSchema,
+  'weaponProfiles.HeldBowFile': HeldBowFileSchema,
+  'weaponProfiles.HeldFirearmPage': HeldFirearmPageSchema,
+  'heldWeaponDocuments.BladeDocument': BladeDocumentSchema,
+  'heldWeaponDocuments.PolearmDocument': PolearmDocumentSchema,
+  'heldWeaponDocuments.HeldSlotsDocument': HeldSlotsDocumentSchema,
+  'heldJianDocument.HeldJianDocument': HeldJianDocumentSchema,
 };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();
@@ -549,6 +566,21 @@ function encounterDefinitions(schema: GenericSchema): Record<string, GenericSche
   return undefined;
 }
 
+/** Complete repeated grammars factored only within the approved native documents. */
+function heldDocumentDefinitions(schema: GenericSchema): Record<string, GenericSchema> | undefined {
+  if (schema === HeldJianDocumentSchema) return {
+    graphArms: GraphArmsSchema, postGraph: PostGraphLookSchema, channels: ClientChannelsSchema,
+  };
+  if (schema === BladeDocumentSchema || schema === PolearmDocumentSchema || schema === HeldSlotsDocumentSchema) return {
+    completeReturn: ReturnProgramDocumentSchema, projection: ReturnProjectionV2Schema,
+  };
+  if (schema === WaterWorldSchema) return {
+    sceneNode: WorldSceneWeldNodeSchema, completeReturn: ReturnProgramDocumentSchema, projection: ReturnProjectionV2Schema,
+  };
+  if (schema === HeldFirearmPageSchema) return { channels: ClientChannelsSchema };
+  return undefined;
+}
+
 /**
  * Convert an author schema with the official converter, refusing every unrecognised custom check or transform.
  * The extracted format checks have explicit bridges. Plumbing's cross-field checks remain named mandatory
@@ -557,6 +589,7 @@ function encounterDefinitions(schema: GenericSchema): Record<string, GenericSche
  * This structural document never replaces the defining format parser's admission verdict.
  */
 export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'draft-2020-12' = 'draft-2020-12'): FormatJsonSchema {
+  const heldDefinitions = heldDocumentDefinitions(schema);
   const definitions = encounterDefinitions(schema);
   return toJsonSchema(schema, {
     target, errorMode: 'throw', typeMode: 'output',
@@ -565,6 +598,7 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     ...(schema === WorldScenePageSchema ? { definitions: { sceneNode: WorldSceneWeldNodeSchema } } : {}),
     // Both existing weather wires contain the same complete phase program.
     ...(schema === WeatherDocumentSchema ? { definitions: { weatherProgram: WeatherProgramSchema } } : {}),
+    ...(heldDefinitions === undefined ? {} : { definitions: heldDefinitions }),
     ...(definitions === undefined ? {} : { definitions }),
     // The population's six identical return descriptors share their complete
     // native grammars; the defining parser and every wire constraint remain.

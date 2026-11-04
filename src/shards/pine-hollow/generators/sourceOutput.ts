@@ -59,7 +59,7 @@ import { PINE_LANTERN_PAGE } from './questPageInteractions';
 import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
 import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS,CabinSeedsSchema,parseFloorRows,PoolGroundSchema,PinePhysicsOwnersSchema} from './sections';
+import {SECTIONS,CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sections';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlob, type NamedBlobKind } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
 import type { PineSources } from './pineSources';
@@ -67,7 +67,7 @@ import { readPineSources } from './programSources';
 import { heroMaterialFiles, materialTier, materialVariantOf } from './heroMaterialFiles.mjs';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { formatJsonSchema, namedJsonSchema,registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { formatJsonSchema,registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { PINE_FEAT_COUNTERS } from './questInventory';
 import { cabinScene, lendCabinPacking } from './cabinSceneContribution';
@@ -149,7 +149,7 @@ async function outputRows(sources: PineSources, readImagePixels: ProjectGenerati
   v.parse(PoolGroundSchema, timbers.poolGround);
   const { FOREST_STORY_BLOB } = forestStory(sources), { PINE_QUEST_PAGE_BLOB } = questPage(sources), { RANGED_PAGE_BLOBS } = await rangedPage(sources), { FOREST_PAGE_BLOB } = await forestPage(sources);
   const { WORLD_SCENES, SCENE_BLOBS, SCENE_PACKED_MODELS } = await worldScenes(sources);
-  const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather)), { jsonSchema: registeredJsonSchema('world/forest-weather.json') }), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsOwnersBytes(), { jsonSchema: namedJsonSchema(PinePhysicsOwnersSchema) }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: registeredJsonSchema('quests/native-story.json') }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: registeredJsonSchema('quests/native-spots.json') }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB,
+  const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather)), { jsonSchema: registeredJsonSchema('world/forest-weather.json') }), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsOwnersBytes(), { jsonSchema: registeredJsonSchema('data/physics.generated.json') }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: registeredJsonSchema('quests/native-story.json') }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: registeredJsonSchema('quests/native-spots.json') }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB,
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures}))),{jsonSchema:registeredJsonSchema('look/cover-appearance.json')}),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence)),{jsonSchema:registeredJsonSchema('quests/persistence.json')}),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR)), { jsonSchema: registeredJsonSchema('quests/chapter-director.json') }),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorData.module, bytes: '', file: 'behaviour/director.wasm' }, stages: directorStages, bindings: null, seed: 357 })), { jsonSchema: registeredJsonSchema('directors/main.json') }),

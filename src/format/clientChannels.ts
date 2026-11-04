@@ -70,6 +70,8 @@ const inputPathKey = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_-]*$/u), v.
 const numericInputs: v.GenericSchema<ClientChannelInputsInput, ClientChannelInputs> = v.pipe(v.array(v.strictObject({ input: name, owner: v.pipe(name, v.maxLength(96)),
   path: v.pipe(v.array(v.union([inputPathKey, v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1024))])), v.minLength(1), v.maxLength(16)),
 })), v.maxLength(128), v.check(rows => new Set(rows.map(row => row.input)).size === rows.length, 'unique numeric input bindings'));
+/** The same complete native binding grammar for whole held-page admission. */
+export const ClientChannelInputsSchema: v.GenericSchema<ClientChannelInputsInput, ClientChannelInputs> = numericInputs;
 /** Explicit private visual fields, shared by numeric DAG groups and their restore phase. */
 const numericPort=v.strictObject({property:ClientChannelPropertySchema,target:name,
  path:v.pipe(v.array(inputPathKey),v.minLength(1),v.maxLength(2)),restore:v.exactOptional(v.boolean()),nullable:v.exactOptional(v.boolean())});

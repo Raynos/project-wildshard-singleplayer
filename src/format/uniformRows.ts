@@ -7,6 +7,11 @@ const rgb = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff))
 const tuple2 = v.pipe(v.tuple([finite, finite]), v.transform((t): readonly [number, number] => t));
 const tuple3 = v.pipe(v.tuple([finite, finite, finite]), v.transform((t): readonly [number, number, number] => t));
 const tuple4 = v.pipe(v.tuple([finite, finite, finite, finite]), v.transform((t): readonly [number, number, number, number] => t));
+const vector4s = v.pipe(v.array(tuple4), v.maxLength(64), v.transform((rows): readonly (readonly [number, number, number, number])[] => rows));
+const colours = v.pipe(v.array(rgb), v.maxLength(64), v.transform((rows): readonly number[] => rows));
+/** These exact transforms only expose readonly types; they preserve every
+ * scalar and array identity for defining JSON projection. */
+export const uniformIdentityTransforms: readonly object[] = [tuple2.pipe[1], tuple3.pipe[1], tuple4.pipe[1], vector4s.pipe[2], colours.pipe[2]];
 
 type UniformInput = number | { rgb: number } | { v2: [number, number] }
   | { v3: [number, number, number]; normalize?: boolean } | { v4: [number, number, number, number] }
@@ -21,7 +26,6 @@ export type UniformRowsInput = Record<string, UniformInput>;
  *  bounded array of vec4s or colours. */
 export const UniformRowSchema: v.GenericSchema<UniformInput, UniformOutput> = v.union([finite, v.strictObject({ rgb }),
   v.strictObject({ v2: tuple2 }), v.strictObject({ v3: tuple3, normalize: v.exactOptional(v.boolean()) }), v.strictObject({ v4: tuple4 }),
-  v.strictObject({ v4s: v.pipe(v.array(tuple4), v.maxLength(64), v.transform((rows): readonly (readonly [number, number, number, number])[] => rows)) }),
-  v.strictObject({ rgbs: v.pipe(v.array(rgb), v.maxLength(64), v.transform((rows): readonly number[] => rows)) })]);
+  v.strictObject({ v4s: vector4s }), v.strictObject({ rgbs: colours })]);
 /** A named set of uniform rows (at most 256). */
 export const UniformRowsSchema: v.GenericSchema<UniformRowsInput, Record<string, UniformOutput>> = v.pipe(v.record(name, UniformRowSchema), v.check(rows => Object.keys(rows).length <= 256, 'At most 256 uniforms'));

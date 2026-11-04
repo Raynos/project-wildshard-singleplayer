@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
+import { ClientChannelsSchema, ClientChannelInputsSchema, ClientChannelPropertySchema } from './clientChannels';
 
 const scalar = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(10000));
 const positive = v.pipe(scalar, v.minValue(0.000001));
@@ -231,11 +232,31 @@ export const HeldFirearmViewSchema: v.GenericSchema<HeldFirearmViewRowsInput, He
   flash: v.strictObject({ frames: real, lightTime: real, light: real, size: v.exactOptional(real) }),
   brass: v.strictObject({ count: real, life: real }), tracer: v.strictObject({ count: real, time: real }),
 });
-/** Complete baked firearm page; product admission validates it before native allocation. */
-export const HeldFirearmPageSchema: v.GenericSchema<HeldFirearmPageRowsInput, HeldFirearmPageRows> = v.object({
-  feel: v.looseObject({ ads: v.looseObject({ blend: real }) }),
-  view: HeldFirearmViewSchema, rows: HeldFirearmRowsSchema,
+const firearmPageRows: v.GenericSchema<HeldFirearmRowsInput, HeldFirearmRows> = v.strictObject({ ...HeldModelRowsSchema.entries,
+  mount: v.picklist(['ownPass', 'shared']), gate: v.exactOptional(rowId), round: v.exactOptional(rowId),
+  brass: v.strictObject({ geometry: rowId, material: rowId }), rotationReads: v.exactOptional(v.record(rowId, rowId)),
+  playback: v.strictObject({ groups: v.pipe(v.record(rowId, ClientChannelsSchema), v.maxEntries(32)),
+    inputs: v.pipe(v.array(v.strictObject({ group: rowId, rows: ClientChannelInputsSchema })), v.maxLength(32)),
+    outputs: v.pipe(v.array(v.strictObject({ group: rowId,
+      rows: v.pipe(v.array(v.strictObject({ property: ClientChannelPropertySchema, target: rowId,
+        path: v.pipe(v.array(rowId), v.minLength(1), v.maxLength(16)) })), v.maxLength(128)),
+      target: v.picklist(['frame', 'sight', 'values', 'grip']) })), v.maxLength(32)),
+    schedule: v.strictObject({ frame: rowId, sight: rowId, pose: rowId,
+      action: v.pipe(v.array(rowId), v.maxLength(32)), grip: v.pipe(v.array(rowId), v.maxLength(32)) }) }),
+  presentation: HeldPresentationSchema,
 });
+/** The full emitted firearm page, including every feel/view field and the
+ * original typed numeric programs. Native controller parsers stay unchanged. */
+export const HeldFirearmPageSchema: v.GenericSchema<unknown, HeldFirearmPageRows> = v.pipe(v.unknown(), v.check(isJsonData), v.strictObject({
+  feel: v.strictObject({ ads: v.strictObject({ blend: real, frontZ: real, motion: real, muzzleZ: real, nearMargin: real, rearZ: real, sightY: real }),
+    brass: v.strictObject({ count: real, life: real }), kick: real, tracer: v.strictObject({ count: real, life: real, width: real }) }),
+  view: v.strictObject({ kick: real, port: vec3, sight: v.strictObject({ muzzleZ: real }),
+    timing: v.strictObject({ autoReloadDelay: real, autoReloadClose: v.exactOptional(real) }),
+    hip: v.strictObject({ px: real, py: real, pz: real, rx: real, ry: real, rz: real, scale: real }),
+    flash: v.strictObject({ frames: real, lightTime: real, light: real, size: v.exactOptional(real) }),
+    brass: v.strictObject({ count: real, life: real }), tracer: v.strictObject({ count: real, time: real }) }),
+  rows: firearmPageRows,
+}));
 
 /** Admit complete playback without changing the existing firearm controller. */
 export function parseHeldFirearmRows(input: unknown): v.InferOutput<typeof HeldFirearmRowsSchema> { return v.parse(HeldFirearmRowsSchema, input); }

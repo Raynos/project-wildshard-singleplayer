@@ -1,5 +1,12 @@
+import { HeldJianDocumentSchema } from './heldJianDocument';
+import { BladeDocumentSchema, PolearmDocumentSchema, HeldSlotsDocumentSchema } from './heldWeaponDocuments';
+import { HeldBowFileSchema, HeldFirearmPageSchema } from './weaponProfiles';
+import { WaterWorldSchema } from './waterWorld';
+import { ForestNativeInputsSchema } from './forestNativeInputs';
+import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
+import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
 import { SceneScatterPageSchema, SceneDressingSchema } from './sceneDressing';
-import { PopulationHabitatSchema } from './populationEnvironment';
+import { PopulationHabitatSchema, PopulationFieldSchema } from './populationEnvironment';
 import { FindsCatalogueSchema } from './findsCatalogue';
 import { ContractCatalogueSchema } from './contracts';
 import { NativeQuestServiceSpotsSchema } from './nativeQuestComposition';
@@ -214,6 +221,35 @@ export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
     source: '@wildshard/format/sceneDressing#SceneDressingSchema', reader: 'src/game/shardfile/sceneDressing.ts' },
   { pattern: /^world\/dressing-desktop\.json$/u, schema: SceneDressingSchema,
     source: '@wildshard/format/sceneDressing#SceneDressingSchema', reader: 'src/game/shardfile/sceneDressing.ts' },
+  // G1004: exact approved one-user documents; native owners and bytes stay original.
+  { pattern: /^world\/floor\.json$/u, schema: ForestGroundLayoutSchema,
+    source: '@wildshard/format/forestPage#ForestGroundLayoutSchema', reader: 'src/game/looks/forestGroundInputs.ts' },
+  { pattern: /^world\/crag-cave\.json$/u, schema: CaveFileSchema,
+    source: '@wildshard/format/caveInterior#CaveFileSchema', reader: 'src/game/shardfile/caveInterior.ts' },
+  { pattern: /^world\/cave-interior\.json$/u, schema: CaveInteriorSchema,
+    source: '@wildshard/format/caveInterior#CaveInteriorSchema', reader: 'src/game/shardfile/caveInterior.ts' },
+  { pattern: /^world\/forest-page\.json$/u, schema: ForestPageSchema,
+    source: '@wildshard/format/forestPage#ForestPageSchema', reader: 'src/game/shardfile/clientForestPage.ts' },
+  { pattern: /^world\/building-sites\.json$/u, schema: LivingPageSitesSchema,
+    source: '@wildshard/format/forestPage#LivingPageSitesSchema', reader: 'src/game/shardfile/clientForestPage.ts' },
+  { pattern: /^data\/physics\.generated\.json$/u, schema: ForestNativeInputsSchema,
+    source: '@wildshard/format/forestNativeInputs#ForestNativeInputsSchema', reader: 'test/fixtures/pine-headless.ts' },
+  { pattern: /^world\/meadow\.json$/u, schema: PopulationFieldSchema,
+    source: '@wildshard/format/populationEnvironment#PopulationFieldSchema', reader: 'src/game/shardfile/clientMeadow.ts' },
+  { pattern: /^world\/water\.json$/u, schema: WaterWorldSchema,
+    source: '@wildshard/format/waterWorld#WaterWorldSchema', reader: 'src/game/practice/registration.ts' },
+  { pattern: /^weapons\/bow-page\.json$/u, schema: HeldBowFileSchema,
+    source: '@wildshard/format/weaponProfiles#HeldBowFileSchema', reader: 'src/game/loadout/claims.ts' },
+  { pattern: /^weapons\/rifle-page\.json$/u, schema: HeldFirearmPageSchema,
+    source: '@wildshard/format/weaponProfiles#HeldFirearmPageSchema', reader: 'src/game/loadout/claims.ts' },
+  { pattern: /^weapons\/sabre\.json$/u, schema: BladeDocumentSchema,
+    source: '@wildshard/format/heldWeaponDocuments#BladeDocumentSchema', reader: 'src/game/weapons/mountedBlade.ts' },
+  { pattern: /^weapons\/spear\.json$/u, schema: PolearmDocumentSchema,
+    source: '@wildshard/format/heldWeaponDocuments#PolearmDocumentSchema', reader: 'src/game/weapons/heldPolearm.ts' },
+  { pattern: /^held\/slots\.json$/u, schema: HeldSlotsDocumentSchema,
+    source: '@wildshard/format/heldWeaponDocuments#HeldSlotsDocumentSchema', reader: 'src/game/loadout/claims.ts' },
+  { pattern: /^weapons\/jian-row\.json$/u, schema: HeldJianDocumentSchema,
+    source: '@wildshard/format/heldJianDocument#HeldJianDocumentSchema', reader: 'src/game/loadout/claims.ts' },
 ];
 
 /** Match both logical name and defining schema identity. An unregistered or

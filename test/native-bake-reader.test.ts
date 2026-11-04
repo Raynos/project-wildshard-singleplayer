@@ -5,7 +5,6 @@ import * as v from 'valibot';
 import { createNativeBakeReader, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
 import { trustedLevel } from '../src/game/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
-import { readJson } from './fixtures/headless-plan';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/sim';
@@ -14,9 +13,10 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { readFileSync } from 'node:fs';
 import terrain from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { pinePhysics, pinePhysicsBytes } from '../src/shards/pine-hollow/generators/physics';
+import { pinePhysics, pinePhysicsBytes, pinePhysicsOwners, pinePhysicsOwnersBytes, pineWorldPhysics } from '../src/shards/pine-hollow/generators/physics';
 import { nameBlob } from '../src/sdk/blobs';
 
 const baked=(()=>{
@@ -48,18 +48,19 @@ test('the Pine assembly retains memoized buffers and privately owned native meta
   const captured: { value: Bake; reader: NativeBakeReader<object> }[] = [];
   const capture = (value: Bake, reader: NativeBakeReader<object>): void => { captured.push({ value, reader }); };
   const bytes = new Map([
-    ['data/physics.generated.json', new TextEncoder().encode(JSON.stringify(baked))],
+    ['data/physics.generated.json', pinePhysicsOwnersBytes()],
     ['data/physics-ground.bin', new Uint8Array(readFileSync('src/shards/pine-hollow/data/physics-ground.bin'))],
     ['data/physics-colliders.bin', new Uint8Array(readFileSync('src/shards/pine-hollow/data/physics-colliders.bin'))]]);
   const shard = emptyShardfile({ slug: 'bake-fixture', name: 'Bake fixture', author: 'Test', revision: 1, seed: 1337 });
-  const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard, sections: new Map(),
-    files: new Map([...bytes.keys()].map(path => [path, { hash: path, url: path }])),
+  const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard, sections: new Map([['world/physics', pineWorldPhysics()]]), jsonCheck: fixtureJsonCheck,
+    files: new Map([...bytes.keys()].map(path => [path, fixtureProductFile(path, { hash: path, url: path })])),
     read: path => { const value = bytes.get(path); if (value === undefined) throw new Error('Missing native fixture'); return Promise.resolve(value); } });
   const rapier = await loadRapier(readFileSync(new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm',import.meta.url)));
   const prepare=async():Promise<HeadlessRuntimePlan>=>{
-    const physics=await readJson<typeof baked>(product,'data/physics.generated.json');
+    const physics=await product.json('data/physics.generated.json');
+    const physicsRows=product.section('world/physics');
     const ground=await product.file('data/physics-ground.bin'),colliders=await product.file('data/physics-colliders.bin');
-    const reader=createNativeBakeReader(physics,{label:'Pine',resolution:terrain.res,size:terrain.size,parked:true,rig:'segments',shapes:[1,2,6,9],provenance:'piece'},
+    const reader=createNativeBakeReader(physicsRows,{label:'Pine',resolution:terrain.res,size:terrain.size,parked:true,rig:'segments',shapes:[1,2,6,9],provenance:'piece'},
       {file:'data/physics-ground.bin',bytes:ground},[{file:'data/physics-colliders.bin',bytes:colliders}]);
     const value={kingHit:physics.kingHit,shelterTrees:physics.shelterTrees,...reader.read()};
     return {level:trustedLevel(shard,{at:{x:shard.spawn.x,y:Math.max(shard.spawn.y,.1),z:shard.spawn.z},yaw:shard.spawn.yaw,speed:5},{size:500,height:0}),
@@ -132,16 +133,20 @@ test('generation refuses missing native rosters and malformed private King and s
 
 
 test('named physics admission keeps the original bytes and every body field', () => {
-  const schema = namedJsonSchema(PinePhysicsSchema);
-  // GR8: the product names the producer's bytes in memory (no generated file)
-  const published = nameBlob('data/physics.generated.json', 'json', pinePhysicsBytes(), { jsonSchema: schema });
-  expect(published.bytes).toEqual(pinePhysicsBytes());
+  const schema = registeredJsonSchema('data/physics.generated.json');
+  const owners = pinePhysicsOwners();
+  // The current product separates world/physics from its retained named owners.
+  const published = nameBlob('data/physics.generated.json', 'json', pinePhysicsOwnersBytes(), { jsonSchema: schema });
+  expect(published.bytes).toEqual(pinePhysicsOwnersBytes());
   expect(published.file.jsonSchema).toEqual(schema);
-  expect(validateNamedJsonSchema(schema, published.bytes)).toEqual(baked);
-  const invalid = new TextEncoder().encode(JSON.stringify({ ...baked, kingHit: { ...baked.kingHit, radius: 0 } }));
+  expect(validateNamedJsonSchema(schema, published.bytes)).toEqual(owners);
+  const invalid = new TextEncoder().encode(JSON.stringify({ ...owners, kingHit: { ...owners.kingHit, radius: 0 } }));
   expect(() => validateNamedJsonSchema(schema, invalid)).toThrow();
+  // Keep the complete original native payload and ground-path refusal controls.
+  const nativeSchema = namedJsonSchema(PinePhysicsSchema);
+  expect(validateNamedJsonSchema(nativeSchema, pinePhysicsBytes())).toEqual(baked);
   for(const heights of [{file:'../floor.bin'},{file:'floor.json'},{file:'floor.bin',extra:1}]) {
     const bad = new TextEncoder().encode(JSON.stringify({...baked,ground:{...baked.ground,heights}}));
-    expect(()=>validateNamedJsonSchema(schema,bad)).toThrow();
+    expect(()=>validateNamedJsonSchema(nativeSchema,bad)).toThrow();
   }
 });

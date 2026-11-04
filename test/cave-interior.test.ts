@@ -13,12 +13,21 @@ const adit = {
 };
 const meta = { version: 1, holes: [], cuts: [{ lx: 0, lz: 0, hw: 2, hd: 3, below: -10 }], spots: [{ lx: 0, lz: 0, r: 2 }],
   inside: [[-2, -3], [2, -3], [2, 3], [-2, 3]], shaft: { top: [0, 4, 0], foot: [0, 0, 0], r0: 1, r1: 1 }, drips: [], floor: [[0, 1], [10, 2]], tris: { cave: 10, far: 2, col: 4 } };
+const shell = { kind: 'trimesh', x: 0, y: 0, z: 0, surface: 'rock', vertices: [0, 0, 0, 1, 0, 0, 0, 1, 0], indices: [0, 1, 2] };
 
 test('cave rows admit an unrelated quarry adit and Pine Hollow\'s look', () => {
   expect(v.parse(CaveInteriorSchema, adit).look.near).toBe(30);
   expect(caveInteriorRows(adit)).toEqual(v.parse(CaveInteriorSchema, adit));
-  expect(v.parse(CaveFileSchema, { meta, shell: [] }).meta.cuts).toHaveLength(1);
+  expect(v.parse(CaveFileSchema, { meta, shell }).meta.cuts).toHaveLength(1);
   expect(v.safeParse(CaveInteriorSchema, { ...adit, rock: { ...adit.rock, look: CRAG_LOOK } }).success).toBe(true);
+});
+
+test('the complete cave envelope refuses malformed native shell lanes and surfaces', () => {
+  for (const invalid of [[], { ...shell, kind: 'box' }, { ...shell, surface: 'wood' },
+    { ...shell, vertices: [Infinity] }, { ...shell, indices: [-1] }, { ...shell, indices: [.5] },
+    { ...shell, indices: [0x1_0000_0000] }, { ...shell, callback: () => 1 }]) {
+    expect(v.safeParse(CaveFileSchema, { meta, shell: invalid }).success).toBe(false);
+  }
 });
 
 test('cave rows refuse a callback, an unbounded shaft and a foreign surface', () => {

@@ -13,8 +13,8 @@ import type { HeldMeleeOwner } from '../../src/game/loadout/claims';
 import type { ShardRuntime } from '../../src/game/shard/runtime';
 import source from './nine-product-inputs';
 import manifest from '../../src/shards/nine-dragon-stack/discovery.generated';
-import aim from '../../src/shards/nine-dragon-stack/data/grapple.json' with { type: 'json' };
-import bursts from '../../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
+import { nineHeldPresentationBytes } from './nine-held-presentation';
+import { fixtureProductFile, fixtureJsonCheck } from './productFile';
 import { headlessConstants } from '../../src/shards/nine-dragon-stack/generators/headless';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
@@ -27,11 +27,11 @@ export async function heldEntry(prepare = true) {
   const level = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
   const bytes = new TextEncoder().encode(JSON.stringify(headlessConstants));
   let pending: Promise<Uint8Array> | null = null;
-  const presentation = new TextEncoder().encode(JSON.stringify({ portraitFov: 78, aim, bursts }));
-  const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source,
+  const presentation = nineHeldPresentationBytes();
+  const product = createShardProduct({ slug: manifest.slug, revision: source.identity.revision, shardfile: source, jsonCheck: fixtureJsonCheck,
     sections: new Map<string, unknown>([['held/arms', { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: enteredRows.grapple.presentation }, tools: ['tool.fei-zhua'] }],
       ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'held.primary' }, { kind: 'held.claims.install', claims: 'held.primary' }, { kind: 'held.claims.enter', claims: 'held.primary', ...enteredRows }] }]]),
-    files: new Map([[enteredRows.grapple.presentation, { hash: '0'.repeat(64), url: '/jian-row.json' }], [slottedEnteredRows.grapple.source, { hash: '1'.repeat(64), url: '/constants.json' }]]),
+    files: new Map([[enteredRows.grapple.presentation, fixtureProductFile(enteredRows.grapple.presentation, { hash: '0'.repeat(64), url: '/jian-row.json' })], [slottedEnteredRows.grapple.source, { hash: '1'.repeat(64), url: '/constants.json' }]]),
     read: hash => pending ?? Promise.resolve(hash === '1'.repeat(64) ? bytes : presentation) });
   const native=heldSwordWorld();scope.onDispose(native.dispose);
   const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>(native.world), step: null, play: null,
