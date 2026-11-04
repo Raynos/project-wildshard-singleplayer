@@ -1,73 +1,10 @@
-import { afterAll, expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { Scope } from '../../app/scope';
-import { compileGraph } from './compile';
-import { EngineNodesHandler } from '../nodes/engineNodesHandler';
-import { materialNodeFogOf, type NodeFogPatch } from '../fogPatches';
-import { noLookChunks, scopeLookChunks } from '../regionLook';
+import { compileClassicGraph } from './glslMaterial';
 import { attachFogUniforms, ColourRampFog, installAtmosphere } from '../../world/Atmosphere';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
-vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
-afterAll(() => { vi.unstubAllGlobals(); });
-function program(graph: GraphIr, fog: THREE.Fog, region?: NodeFogPatch): THREE.WebGLProgramParametersWithUniforms {
-  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
-  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
-  const fields: Record<string, unknown> = {
-    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
-    toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
-    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
-    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
-  };
-  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const sampled = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-  const handler = new EngineNodesHandler(), material = compileGraph(graph, { textures: () => sampled }).material;
-  handler.setRenderer(renderer);
-  const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
-  geometry.setAttribute('aDirection', new THREE.Float32BufferAttribute([1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0], 3));
-  const object = new THREE.Mesh(geometry, material);
-  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
-  scene.fog = fog; scene.add(object);
-  const scope = new Scope('fog-region');
-  if (region !== undefined) {
-    const root = new THREE.Group(); root.position.set(40, 0, 60); root.add(object); scene.add(root);
-    const scoped = scopeLookChunks(root, noLookChunks('fog-region'), scope, {}, { fog: { order: 300, install: () => { throw new Error('Sweep must not repeat the classic install'); }, node: region } });
-    expect(scoped.sweep()).toBe(1);
-    expect(materialNodeFogOf(material)?.node).toBe(region);
-  } handler.renderStart(scene, camera); handler.updateLights([]);
-  const parameters: object = {};
-  const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
-  if (!isParameters(parameters)) throw new Error('Missing parameters');
-  try { handler.build(material, object, parameters); return parameters; }
-  finally { scope.dispose(); expect(materialNodeFogOf(material)).toBeUndefined(); geometry.dispose(); material.dispose(); sampled.dispose(); }
-}
-
-
-test('colour ramp fog borrows live level tunables without changing classic chunks', () => {
-  const chunks = { ...THREE.ShaderChunk };
-  try {
-    installAtmosphere();
-    const classic = THREE.ShaderChunk.fog_fragment;
-    const ramp = { start: { value: 20 }, end: { value: 120 }, near: { value: new THREE.Color(0.3, 0.1, 0.2) }, zenith: { value: new THREE.Color(0.1, 0.2, 0.8) } };
-    const patch: NodeFogPatch = { colourRamp: ramp };
-    const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } };
-    const shader = program(graph, new THREE.Fog(0x123456, 1, 100), patch);
-    for (const colour of [ramp.near.value, ramp.zenith.value]) expect(Object.values(shader.uniforms).some(u => u.value === colour)).toBe(true);
-    ramp.near.value.setRGB(0.01, 0.02, 0.03);
-    expect(Object.values(shader.uniforms).some(u => u.value === ramp.near.value)).toBe(true);
-    expect(shader.fragmentShader).toContain('smoothstep(');
-    expect(shader.fragmentShader).toContain('pow(');
-    expect(shader.fragmentShader).toContain('exp(');
-    expect(THREE.ShaderChunk.fog_fragment).toBe(classic);
-    ramp.start.value = 1e6; ramp.end.value = 2e6;
-    const mapShader = program(graph, new THREE.Fog(0x123456, 1, 100), patch);
-    expect(mapShader.fragmentShader).toBe(shader.fragmentShader);
-    expect(Object.values(mapShader.uniforms).some(u => u.value === 1e6)).toBe(true);
-    expect(Object.values(mapShader.uniforms).some(u => u.value === 2e6)).toBe(true);
-  } finally { Object.assign(THREE.ShaderChunk, chunks); }
-});
-
-test('a ColourRampFog lends one set of uniforms to the classic chunk, the node and the map shot', () => {
+test('a ColourRampFog lends one set of uniforms to the classic chunk and the map shot', () => {
   const chunks = { ...THREE.ShaderChunk };
   try {
     installAtmosphere();
@@ -75,7 +12,6 @@ test('a ColourRampFog lends one set of uniforms to the classic chunk, the node a
     const fog = new ColourRampFog({ start: 180, end: 1700, near: [0.5, 0.6, 0.98], zenith: [0.055, 0.2, 0.78] });
     const model = fog.model(200);
     expect(model.order).toBe(200);
-    expect(model.node).toEqual({ colourRamp: fog });
     model.install();
     expect(THREE.ShaderChunk.fog_fragment).not.toBe(engine);
     for (const name of ['fogRampStart', 'fogRampEnd', 'fogRampNear', 'fogRampZenith']) {
@@ -93,7 +29,7 @@ test('a ColourRampFog lends one set of uniforms to the classic chunk, the node a
   } finally { Object.assign(THREE.ShaderChunk, chunks); }
 });
 
-test('a panorama ColourRampFog (an unrelated painted dusk desert) colours both paths from its live LUT and tint', () => {
+test('a panorama ColourRampFog (an unrelated painted dusk desert) colours the classic chunk from its live LUT and tint', () => {
   const chunks = { ...THREE.ShaderChunk };
   const lut = new THREE.DataTexture(new Uint8Array([200, 120, 80, 255, 90, 60, 140, 255]), 2, 1);
   try {
@@ -104,7 +40,6 @@ test('a panorama ColourRampFog (an unrelated painted dusk desert) colours both p
     const panorama = { lut: { value: lut }, aerial: { value: new THREE.Vector4(0.004, 40, 0, 0.001) }, edge: { value: new THREE.Vector4(0.8, 500, 560, 30) }, tint };
     const fog = new ColourRampFog({ start: 0, end: 1, near: [0.4, 0.3, 0.3], zenith: [0.2, 0.25, 0.5], panorama });
     const model = fog.model(300);
-    expect(model.node).toEqual({ colourRamp: fog });
     model.install();
     expect(THREE.ShaderChunk.fog_fragment).not.toBe(engine);
     expect(THREE.ShaderChunk.fog_fragment).not.toContain('fogRampStart');
@@ -118,10 +53,15 @@ test('a panorama ColourRampFog (an unrelated painted dusk desert) colours both p
     expect(shader.uniforms['fogPanoKey']).toBe(tint.key);
     tint.veil.value = 0.9;
     expect(shader.uniforms['fogPanoVeil']?.value).toBe(0.9);
+    // a classic graph program draws the installed chunk and takes its uniforms like any fogged program
     const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 1, 1] } } };
-    const node = program(graph, new THREE.Fog(0x806040, 1, 100), { colourRamp: fog });
-    expect(Object.values(node.uniforms).some(u => u.value === tint.key.value)).toBe(true);
-    expect(Object.values(node.uniforms).some(u => u.value === panorama.edge.value)).toBe(true);
-    expect(node.fragmentShader).toContain('atan(');
+    const material = compileClassicGraph(graph).material;
+    try {
+      expect(material.fragmentShader).toContain('#include <fog_fragment>');
+      const drawn = { uniforms: material.uniforms };
+      attachFogUniforms(drawn);
+      expect(drawn.uniforms['fogPanoKey']).toBe(tint.key);
+      expect(drawn.uniforms['fogPanoEdge']).toBe(panorama.edge);
+    } finally { material.dispose(); }
   } finally { Object.assign(THREE.ShaderChunk, chunks); lut.dispose(); }
 });

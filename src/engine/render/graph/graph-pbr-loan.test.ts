@@ -1,39 +1,9 @@
-import { afterAll, expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { Scope } from '../../app/scope';
-import { compileGraph } from './compile';
+import { compileClassicGraph, GraphShaderMaterial } from './glslMaterial';
 import { bindGraphMeshMap, graphMeshMapBase } from '../graphBackend';
-import { EngineNodesHandler } from '../nodes/engineNodesHandler';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
-
-vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
-afterAll(() => { vi.unstubAllGlobals(); });
-function program(graph: GraphIr, source: THREE.Material): THREE.WebGLProgramParametersWithUniforms {
-  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
-  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
-  const fields: Record<string, unknown> = {
-    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
-    toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
-    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
-    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
-  };
-  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const sampled = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-  const handler = new EngineNodesHandler(), compiled = compileGraph(graph, { textures: () => sampled }), scope = new Scope('pbr-loan');
-  const material = bindGraphMeshMap(compiled.material, source, scope);
-  handler.setRenderer(renderer);
-  const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('color', new THREE.Float32BufferAttribute([0.01, 0.02, 0.04, 0.01, 0.02, 0.04, 0.01, 0.02, 0.04, 0.01, 0.02, 0.04], 3)); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
-  geometry.setAttribute('aDirection', new THREE.Float32BufferAttribute([1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0], 3));
-  const object = new THREE.Mesh(geometry, material);
-  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
-  scene.add(object); handler.renderStart(scene, camera); handler.updateLights([]);
-  const parameters: object = {};
-  const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
-  if (!isParameters(parameters)) throw new Error('Missing parameters');
-  try { handler.build(material, object, parameters); return parameters; }
-  finally { geometry.dispose(); scope.dispose(); compiled.material.dispose(); sampled.dispose(); }
-}
-
 
 test('mapped lit graphs retain native PBR slots and shared uniforms', () => {
   const normal = new THREE.DataTexture(), roughness = new THREE.DataTexture(), ao = new THREE.DataTexture();
@@ -41,7 +11,7 @@ test('mapped lit graphs retain native PBR slots and shared uniforms', () => {
   const other = new THREE.MeshStandardMaterial({ normalMap: ao });
   const graph: GraphIr = { version: 1, kind: 'material', model: 'standard', nodes: {},
     stages: { surface: { colour: [0.2, 0.3, 0.4], roughness: 0.4, occlusion: 0.8 } } };
-  const compiled = compileGraph(graph), scope = new Scope('map-owner');
+  const compiled = compileClassicGraph(graph), scope = new Scope('map-owner');
   try {
     const mapped = bindGraphMeshMap(compiled.material, source, scope);
     expect(bindGraphMeshMap(compiled.material, source, scope)).toBe(mapped);
@@ -54,8 +24,10 @@ test('mapped lit graphs retain native PBR slots and shared uniforms', () => {
     expect(scale).not.toBe(source.normalScale);
     if (!(scale instanceof THREE.Vector2)) throw new Error('Missing normal scale');
     expect(scale.toArray()).toEqual([0.5, 0.7]);
-    const shader = program(graph, source);
-    for (const texture of [normal, roughness, ao]) expect(Object.values(shader.uniforms).some(uniform => uniform.value === texture)).toBe(true);
+    // the loaned maps are the variant's own sampler uniforms, never the base's
+    if (!(mapped instanceof GraphShaderMaterial)) throw new Error('Missing classic variant');
+    for (const texture of [normal, roughness, ao]) expect(Object.values(mapped.uniforms).some(uniform => uniform.value === texture)).toBe(true);
+    expect(Object.values(compiled.material.uniforms).some(uniform => uniform.value === normal)).toBe(false);
     expect(source.normalMap).toBe(normal);
   } finally { scope.dispose(); compiled.material.dispose(); source.dispose(); other.dispose(); normal.dispose(); roughness.dispose(); ao.dispose(); }
 });
@@ -67,22 +39,26 @@ test('colour-or-vertex map loans preserve source sRGB and use the baked linear m
   expect(validateGraph(graph).ok).toBe(true);
   const texture = new THREE.DataTexture(new Uint8Array([18, 24, 43, 255]), 1, 1);
   texture.colorSpace = THREE.SRGBColorSpace;
-  const image = new THREE.MeshBasicMaterial({ map: texture }), mean = new THREE.MeshBasicMaterial({ vertexColors: true });
-  const scope = new Scope('poster-map'), compiled = compileGraph(graph);
+  const scope = new Scope('poster-map'), compiled = compileClassicGraph(graph);
   try {
+    expect(compiled.material.userData['graphMeshMap']).toBe(true);
     const mapped = bindGraphMeshMap(compiled.material, texture, scope);
+    expect(bindGraphMeshMap(compiled.material, texture, scope)).toBe(mapped);
+    expect(graphMeshMapBase(mapped)).toBe(compiled.material);
     expect(Reflect.get(mapped, 'map')).toBe(texture);
     expect(texture.colorSpace).toBe(THREE.SRGBColorSpace);
     expect(Reflect.get(mapped, 'fog')).toBe(false);
     expect(mapped.userData['graphRawOutput']).not.toBe(true);
-    expect(mapped.toneMapped).toBe(false);
-    const full = program(graph, image), coarse = program(graph, mean);
-    expect(Object.values(full.uniforms).some(uniform => uniform.value === texture)).toBe(true);
-    expect(full.vertexShader).not.toMatch(/in vec3 color;/u);
-    expect(coarse.vertexShader).toMatch(/in vec3 color;/u);
-    expect(coarse.fragmentShader).toMatch(/sRGBTransferOETF/u);
-    expect(full.fragmentShader).toMatch(/sRGBTransferOETF/u);
-    expect(full.fragmentShader).not.toMatch(/ACESFilmicToneMapping/u);
-    expect(full.fragmentShader).toMatch(/-1\.0/u);
-  } finally { scope.dispose(); compiled.material.dispose(); image.dispose(); mean.dispose(); texture.dispose(); }
+    if (!(mapped instanceof GraphShaderMaterial)) throw new Error('Missing classic variant');
+    // with a map the program samples it (WS_MESH_MAP); without one it reads the vertex colour (the baked mean)
+    expect(mapped.defines['WS_MESH_MAP']).toBe('');
+    expect(compiled.material.defines['WS_MESH_MAP']).toBeUndefined();
+    expect(Object.values(mapped.uniforms).some(uniform => uniform.value === texture)).toBe(true);
+    const fragment = mapped.fragmentShader, main = fragment.slice(fragment.indexOf('void main()'));
+    expect(fragment).toMatch(/#ifdef WS_MESH_MAP/u);
+    expect(mapped.vertexShader).toContain('wsVertexColour()');
+    // the explicit colour output encodes the display without tone mapping
+    expect(main).toContain('#include <colorspace_fragment>');
+    expect(main).not.toContain('#include <tonemapping_fragment>');
+  } finally { scope.dispose(); compiled.material.dispose(); texture.dispose(); }
 });
