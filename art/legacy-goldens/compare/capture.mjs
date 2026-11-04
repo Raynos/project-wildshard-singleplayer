@@ -38,6 +38,8 @@ const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
 // --textures=ktx2|img pins the page's texture mode (the harness pin, src/engine/boot/gpuFiles.ts) to judge a texture-policy
 // change on a clean build; omitted, the shipped Auto policy picks
 const TEXTURES=arg('textures','');if(!['','ktx2','img'].includes(TEXTURES))throw Error(`--textures=${TEXTURES}`);
+// --level-download=packs|shardfile (DL16): Debug ▸ Loading & memory ▸ Level download for every capture (default: the build's)
+const LEVEL_DOWNLOAD=arg('level-download','');if(!['','packs','shardfile'].includes(LEVEL_DOWNLOAD))throw Error(`--level-download=${LEVEL_DOWNLOAD}`);
 mkdirSync(root,{recursive:true});
 
 // --engine=webkit: Playwright's WebKit (muted by the game's volume 0; its Escape is a plain key press)
@@ -67,12 +69,13 @@ async function settle(page,inflight){
 
 try{for(const slug of slugs){
  const dir=`${root}/${slug}`;mkdirSync(dir,{recursive:true});
- const row={slug,head,engine,device:'iPhone 16 Pro',tier:'phone',dpr:2,seed:357,errors:[],warnings:{},poses:[]};
+ const row={slug,head,engine,device:'iPhone 16 Pro',tier:'phone',dpr:2,seed:357,levelDownload:LEVEL_DOWNLOAD===''?'default':LEVEL_DOWNLOAD,errors:[],warnings:{},poses:[]};
  const context=await browser.newContext({...devices['iPhone 16 Pro']});let page;
  try{
   await developerSettings(context,{tier:'phone',volume:0,time:'midday',weather:'clear'});
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
+  if (LEVEL_DOWNLOAD!=='') await saveFixture(context,{scope:'device',key:'debug.levelDownload',data:LEVEL_DOWNLOAD});
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(textures=>{window.__wildshardHarness={seed:357,capture:null,...(textures===''?{}:{textures})};},TEXTURES);
   if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`window.__installGoldenResidency=()=>window.__goldenResidencyPromise??=(async()=>{
