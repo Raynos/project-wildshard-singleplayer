@@ -64,6 +64,9 @@ const engine = values.engine ?? 'chromium', reach = Number(values.reach ?? '220'
 // --lap overrides each boost-lap leg's time bound (default: the leg's length at 20 m/s plus 15 s)
 const lapSeconds = Number(values.lap ?? '60');
 const frameSeconds = Number(values.frames ?? '0');
+// --frames is a whole number of seconds, 1 to 600: the window must end and fill whole per-second buckets (sp-x9's C12
+// review: Infinity never ended, 0.5 gave no fps bucket)
+if (values.frames !== undefined && !(/^[1-9][0-9]{0,2}$/u.test(values.frames) && frameSeconds <= 600)) { console.error('bad --frames: a whole number of seconds, 1 to 600'); process.exit(2); }
 if (![undefined, 'shardfile', 'packs'].includes(values['level-download'])) { console.error('bad --level-download'); process.exit(2); }
 // --profile and --heap read the --frames window in Chromium only: refuse a combination that would collect nothing (sp-x9)
 for (const flag of ['profile', 'heap']) {
