@@ -201,7 +201,8 @@ const READ = `JSON.stringify((() => {
     line: g('line'), foot: g('foot'), rows: l ? l.querySelectorAll('[data-key]').length : 0,
     lastRow: l ? [...l.querySelectorAll('[data-key]')].map(e => e.textContent.trim().slice(0,80)).at(-1) ?? null : null,
     err: document.querySelector('#wsstuck')?.textContent ?? document.querySelector('#wserr .msg')?.textContent ?? null,
-    retry: !!retryEl && !retryEl.hidden && retryEl.getClientRects().length > 0,
+    // a way out of a stuck load: the card's Retry, or the error modal's Reload here (src/engine/ui/ErrorModal.ts)
+    retry: [retryEl, document.querySelector('#wserr button.here')].some(b => !!b && !b.hidden && b.getClientRects().length > 0),
     player: (() => { try { const p = w?.player; if (!p) return null; const r = v => Math.round(v * 10) / 10;
       return { x: r(p.position.x), y: r(p.position.y), z: r(p.position.z), v: r(Math.hypot(p.velocity.x, p.velocity.z)), hover: p.hover, boost: p.hoverBoost }; } catch { return null; } })(),
     play: window.__lfPlay?.phase ?? null,

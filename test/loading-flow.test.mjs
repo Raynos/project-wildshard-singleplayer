@@ -101,3 +101,11 @@ test('a recorded run (Nine, live 86f2590, warm, Simulator Safari): the analyser 
   expect(r.play.motion).toEqual({ walkM: 30, boostM: 198, boostTopMps: 55.3, boostEngaged: true });
   expect(r.bar).toMatchObject({ playNoFrameOver250ms: true, playSteadyFromSecondOne: true, playWalkedAndBoosted: true });
 });
+
+test('the stage\'s reads tally is not a named wait: a step held 3.5 s behind it fails, as Nine\'s cold step 27 did', () => {
+  const rows = [{ ev: 'tapEnter', t: TAP }];
+  for (let s = 0; s <= 3.6; s += 0.2) rows.push(card(s, { su: 'step 27 / 30 · First drawn frames and minimap', suPct: '90', dl: `Spawn view · ${s.toFixed(1)} MB`,
+    foot: `Now waiting for: Reading 8 files · 0.0 MB · ${s.toFixed(1)} s` }));
+  rows.push(card(3.8, { shown: false, control: true }), frames(0, 40, 16.7));
+  expect(analyse(rows).setupStalls_ge3s[0]).toMatchObject({ named: false, waits: [] });
+});
