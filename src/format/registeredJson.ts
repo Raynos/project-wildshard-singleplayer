@@ -1,3 +1,4 @@
+import { WildlifePopulationSchema } from './wildlifePopulation';
 import { ClientRidingSessionSchema } from './riding';
 import { MountedSpecimenSeatSchema } from './mountedSpecimenRows';
 import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from './arenaScriptRows';
@@ -58,6 +59,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'actors/wildlife.json':{readonly schema:typeof WildlifePopulationSchema;readonly source:'@wildshard/format/wildlifePopulation#WildlifePopulationSchema'};
   readonly 'combat/roaming.json':{readonly schema:typeof RoamingCombatSchema;readonly source:'@wildshard/format/roamingCombat#RoamingCombatSchema'};
   readonly 'client/ranged-page.json':{readonly schema:typeof RangedPageSchema;readonly source:'@wildshard/format/rangedPage#RangedPageSchema'};
   readonly 'combat/room-entry.json':{readonly schema:typeof ArenaRoomDocumentSchema;readonly source:'@wildshard/format/arenaRoomDocument#ArenaRoomDocumentSchema'};
@@ -158,6 +160,7 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'actors/wildlife.json':{schema:WildlifePopulationSchema,source:'@wildshard/format/wildlifePopulation#WildlifePopulationSchema'},
   'combat/roaming.json':{schema:RoamingCombatSchema,source:'@wildshard/format/roamingCombat#RoamingCombatSchema'},
   'client/ranged-page.json':{schema:RangedPageSchema,source:'@wildshard/format/rangedPage#RangedPageSchema'},
   'combat/room-entry.json':{schema:ArenaRoomDocumentSchema,source:'@wildshard/format/arenaRoomDocument#ArenaRoomDocumentSchema'},
@@ -337,6 +340,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'actors/wildlife.json':v.parse(WildlifePopulationSchema,value);break;
     case 'combat/roaming.json':v.parse(RoamingCombatSchema,value);break;
     case 'client/ranged-page.json':v.parse(RangedPageSchema,value);break;
     case 'combat/room-entry.json':v.parse(ArenaRoomDocumentSchema,value);break;

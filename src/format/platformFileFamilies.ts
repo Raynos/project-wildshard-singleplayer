@@ -1,3 +1,7 @@
+import { WildlifePopulationSchema } from './wildlifePopulation';
+import { PopulationShelterSchema } from './herdShelter';
+import { EliteFeatureSchema } from './eliteFeature';
+import { NativePopulationRowsSchema } from './populationRoster';
 import { ClientRidingSessionSchema } from './riding';
 import { MountedSpecimenSeatSchema } from './mountedSpecimenRows';
 import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from './arenaScriptRows';
@@ -28,8 +32,8 @@ import { WorldSceneModelsSchema } from './worldSceneModels';
 import { AchievementCounterDataSchema } from './achievementCounters';
 import { FigureCatalogueSchema } from './figures';
 import { QuestPageCompositionSchema } from './questPageComposition';
-import { AdventurePersistenceSchema, PosedLibrarySchema, QuestTraderSchema } from './namedJsonContracts';
-import { PackedCreatureLooksSchema } from './speciesLooks';
+import { AdventurePersistenceSchema, PosedLibrarySchema, QuestTraderSchema, PageReturnRowsSchema } from './namedJsonContracts';
+import { PackedCreatureLooksSchema, CreatureInstallSchema } from './speciesLooks';
 import { QuestStorySchema, ChapterStoryPresentationSchema } from './questStory';
 import { PageLifeSchema } from './pageLife';
 import { ChapterDirectorSchema } from './chapterDirector';
@@ -59,6 +63,18 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^actors\/creature-install\.json$/u, schema: CreatureInstallSchema,
+    source: '@wildshard/format/speciesLooks#CreatureInstallSchema', reader: 'src/game/population/productCreatures.ts' },
+  { pattern: /^sim\/returns\.json$/u, schema: PageReturnRowsSchema,
+    source: '@wildshard/format/namedJsonContracts#PageReturnRowsSchema', reader: 'src/game/population/pageReturns.ts' },
+  { pattern: /^actors\/roster\.json$/u, schema: NativePopulationRowsSchema,
+    source: '@wildshard/format/populationRoster#NativePopulationRowsSchema', reader: 'src/game/population/roster.ts' },
+  { pattern: /^actors\/elites\.json$/u, schema: EliteFeatureSchema,
+    source: '@wildshard/format/eliteFeature#EliteFeatureSchema', reader: 'src/game/quest/eliteFeature.ts' },
+  { pattern: /^actors\/shelter\.json$/u, schema: PopulationShelterSchema,
+    source: '@wildshard/format/herdShelter#PopulationShelterSchema', reader: 'src/game/population/shelter.ts' },
+  { pattern: /^actors\/wildlife\.json$/u, schema: WildlifePopulationSchema,
+    source: '@wildshard/format/wildlifePopulation#WildlifePopulationSchema', reader: 'src/game/population/wildlife.ts' },
   // G1004: complete encounter/riding roots; original native owners stay authoritative.
   { pattern: /^combat\/roaming\.json$/u, schema: RoamingCombatSchema,
     source: '@wildshard/format/roamingCombat#RoamingCombatSchema', reader: 'src/game/combat/roamingSession.ts' },

@@ -1,3 +1,4 @@
+import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ArenaRoomDocumentSchema } from '@wildshard/format/arenaRoomDocument';
 import { ReturnProgramDocumentSchema } from '@wildshard/format/returnProgramDocument';
 import { WeatherBundleSchema, WeatherDocumentSchema } from '@wildshard/format/weatherBundle';
@@ -466,6 +467,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+  'wildlifePopulation.WildlifePopulation': WildlifePopulationSchema,
   'practiceCourseRows.FixedPracticeFile': FixedPracticeFileSchema,
   'islandLibrary.FixedGeometryGroups': FixedGeometryGroupsSchema,
   'specimenCatalogue.SpecimenBook': SpecimenBookSchema,
