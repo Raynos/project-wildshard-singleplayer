@@ -9,7 +9,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**01:00:** CI: 3 prepare disk-fulls; raw parts dropped 82449159d6, prepare census green. Candidate 3fe1c72dcb (QD12 + DL21 + tile fence) in CI; its fence/stuck P1s (sp-x8) being fixed by o2. Golden drift on HEAD (DW 6 cams, Nine 22): x6 bisects, ruling after.
+**02:00:** LIVE f6ef48d; candidate 3e25945e3d in CI (QD12 + DL21 card + tile fence). DL21: step reads on card; Pine cold 129 s = setup steps fetching on demand -> DL22 recorded fence lists (o3). DL11 slice 2 fixed (51795e079f). P3 parked, D209 closed.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
