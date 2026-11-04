@@ -35,8 +35,11 @@ export function snapshot() {
         if (t?.isTexture !== true || t.isRenderTargetTexture === true) continue;
         const img = t.image;
         // a texture the renderer already holds on the GPU is decoded, even with its CPU copy released after upload (the
-        // gpuOnly policy drops a compressed texture's mipmaps then: sp-o1's Nalati probe, 512 x 512 on the GPU)
-        const onGpu = world.game.renderer?.properties?.get(t)?.__webglTexture !== undefined;
+        // gpuOnly policy drops a compressed texture's mipmaps then: sp-o1's Nalati probe, 512 x 512 on the GPU). The witness
+        // is a finished upload (sp-x8): three allocates __webglTexture before uploading and sets __version to the
+        // texture's version only once the upload succeeds, so an allocated texture whose upload failed still reads empty
+        const held = world.game.renderer?.properties?.get(t);
+        const onGpu = held?.__webglTexture !== undefined && held.__webglTexture !== null && t.version > 0 && held.__version === t.version;
         const empty = !onGpu && (img === null || img === undefined || (t.isCompressedTexture ? !(t.mipmaps?.length > 0) : img.width === 0 || img.complete === false));
         if (empty && texturesPending.length < 50) texturesPending.push(`${chain.join('<')}.${key}`);
       }

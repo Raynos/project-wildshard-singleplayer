@@ -49,7 +49,7 @@ export class LiveJsonParser {
     else request.reject(replyError(Reflect.get(data, 'error')));
     if (this.pending.size === 0 && this.thread !== null && !this.held) {
       this.idle?.dispose(); this.idle = this.thread.child('idle');
-      this.idle.timeout(30_000, () => { if (this.pending.size === 0) this.stop(new Error('Live JSON idle')); });
+      this.idle.timeout(30_000, () => { if (this.pending.size === 0 && !this.held) this.stop(new Error('Live JSON idle')); });
     }
   }
   private start(): Worker {
@@ -102,7 +102,7 @@ export class LiveJsonParser {
   }
   /** Start the worker now and keep it to the owner's end (DL17, G872): a page that parses in play fetches no worker script
    * after control; an idle worker no longer retires. */
-  hold(): void { this.held = true; if (typeof Worker !== 'undefined') this.start(); }
+  hold(): void { this.held = true; this.idle?.dispose(); this.idle = null; if (typeof Worker !== 'undefined') this.start(); }
   /** Native worker parsing with bounded transferable pages and paced reconstruction.
    * Avoids a whole descriptor structured clone on the live page thread. */
   async parsePaced(bytes: Uint8Array, pause: () => Promise<void>): Promise<unknown> {
