@@ -93,7 +93,8 @@ if (mode !== 'native') {
   if (readdirSync('src/shards').some(slug => existsSync(`src/shards/${slug}/home-seed-keys.json`))) {
     const seeds = spawnSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
       "await (await import('./scripts/app-build/homeSeed.ts')).bakeHomeSeeds(process.cwd(), process.argv[1]);", outDir], { stdio: 'inherit' });
-    if (seeds.status !== 0) console.warn('[home seed] bake failed — this build ships no home seeds');
+    // a bake writes each home as it goes: a failure removes the partial set, so the message holds (sp-x1's review)
+    if (seeds.status !== 0) { rmSync(resolve(outDir, 'assets/home-seed'), { recursive: true, force: true }); console.warn('[home seed] bake failed — this build ships no home seeds'); }
   }
   try { writeChunkReport(outDir, process.cwd()); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }

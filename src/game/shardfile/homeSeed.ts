@@ -5,10 +5,27 @@ import * as v from 'valibot';
 import type { TypedArray } from 'three';
 import { HomeGeometrySnapshotSchema, type HomeGeometrySnapshot } from './homeGeometrySnapshot';
 
-/** The seed's URL path beside the app's other emitted assets; listed only in the grid packs manifests of its home. */
-export function homeSeedPath(slug: string, tier: 'phone' | 'desktop'): string {
-  if (!/^[a-z0-9_-]+$/u.test(slug)) throw new Error('Invalid home seed shard');
-  return `/assets/home-seed/${slug}-${tier}.bin`;
+/** A spawn part holds at most 12 MB per file (scripts/app-build/entryTotals.ts PART_BYTES): a seed ships as byte chunks
+ *  of at most this size, listed in order and joined before decoding. */
+export const HOME_SEED_CHUNK_BYTES = 11_000_000;
+/** A seed chunk's URL path beside the app's other emitted assets; listed only in its entry shard's packs manifests. */
+export function homeSeedPath(slug: string, tier: 'phone' | 'desktop', chunk: number): string {
+  if (!/^[a-z0-9_-]+$/u.test(slug) || !Number.isSafeInteger(chunk) || chunk < 0) throw new Error('Invalid home seed chunk');
+  return `/assets/home-seed/${slug}-${tier}.${String(chunk)}.bin`;
+}
+/** Split an encoded seed into its shipped chunks. */
+export function splitHomeSeed(bytes: Uint8Array, size: number = HOME_SEED_CHUNK_BYTES): Uint8Array[] {
+  if (!Number.isSafeInteger(size) || size < 1) throw new Error('Invalid home seed chunk size');
+  const chunks: Uint8Array[] = [];
+  for (let at = 0; at < bytes.length; at += size) chunks.push(bytes.subarray(at, Math.min(bytes.length, at + size)));
+  return chunks;
+}
+/** Join chunks back into one encoded seed. */
+export function joinHomeSeed(chunks: readonly Uint8Array[]): Uint8Array {
+  const out = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+  let at = 0;
+  for (const chunk of chunks) { out.set(chunk, at); at += chunk.length; }
+  return out;
 }
 
 /** A runtime cache key without its page origin, the seed's one key form (any home build cache key; extend it here for

@@ -24,7 +24,7 @@ import { readWholeGeometry } from '../../src/game/plugin/geometry';
 import { provideRuntimeProduct } from '../../src/game/shardfile/runtimeProduct';
 import { readWorldSceneGeometry, worldSceneTemplateKey } from '../../src/game/shardfile/worldSceneGeometry';
 import { snapshotHomeGeometry, type HomeGeometrySnapshot } from '../../src/game/shardfile/homeGeometrySnapshot';
-import { encodeHomeSeed, homeSeedKey, homeSeedPath, readHomeSeedKeys } from '../../src/game/shardfile/homeSeed';
+import { encodeHomeSeed, homeSeedKey, homeSeedPath, readHomeSeedKeys, splitHomeSeed } from '../../src/game/shardfile/homeSeed';
 
 /** An owned model's decode inputs, as the scene reader passes them (its file already picked for the tier). */
 export interface OwnedSeedRow { readonly file: string; readonly segments?: readonly string[]; readonly attributes?: Readonly<Record<string, string>> }
@@ -135,8 +135,13 @@ export async function bakeHomeSeeds(root: string, outDir: string, report: (line:
         }
         for (const line of skipped) report(`[home seed] ${slug} ${tier}: skipped ${line}`);
         if (entries.size === 0) continue;
-        const bytes = encodeHomeSeed(entries), file = join(outDir, homeSeedPath(slug, tier).slice(1));
-        mkdirSync(target, { recursive: true }); writeFileSync(file, bytes); written.push(file);
+        const bytes = encodeHomeSeed(entries);
+        mkdirSync(target, { recursive: true });
+        // a spawn part holds at most 12 MB per file: the seed ships as ordered chunks
+        splitHomeSeed(bytes).forEach((chunk, chunkIndex) => {
+          const file = join(outDir, homeSeedPath(slug, tier, chunkIndex).slice(1));
+          writeFileSync(file, chunk); written.push(file);
+        });
         report(`[home seed] ${slug} ${tier}: ${String(entries.size)} of ${String(keys.length)} keys, ${(bytes.length / 1e6).toFixed(1)} MB`);
       }
     }

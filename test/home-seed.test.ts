@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, Matrix4, Sphere, Vector3 } from 'three';
 import { restoreHomeGeometry, snapshotHomeGeometry, type HomeGeometrySnapshot } from '../src/game/shardfile/homeGeometrySnapshot';
-import { decodeHomeSeed, encodeHomeSeed, homeSeedKey, homeSeedPath, openHomeSeed, readHomeSeedKeys } from '../src/game/shardfile/homeSeed';
+import { decodeHomeSeed, encodeHomeSeed, HOME_SEED_CHUNK_BYTES, homeSeedKey, homeSeedPath, joinHomeSeed, openHomeSeed, readHomeSeedKeys, splitHomeSeed } from '../src/game/shardfile/homeSeed';
 
 function sample(): { geometry: BufferGeometry; matrix: Matrix4; snapshot: HomeGeometrySnapshot } {
   const geometry = new BufferGeometry();
@@ -93,7 +93,11 @@ test('owned keys lose their origin; whole keys and unknown keys stay', () => {
   const whole = 'whole:[["121e"],"phone"]';
   expect(homeSeedKey(whole)).toBe(whole);
   expect(homeSeedKey('owned:["http://127.0.0.1:4401/shardfiles/x/blobs/glb/aa.glb",[],"phone",[["_sway","aS')).toContain('127.0.0.1');
-  expect(homeSeedPath('nine-dragon-stack', 'phone')).toBe('/assets/home-seed/nine-dragon-stack-phone.bin');
+  expect(homeSeedPath('nine-dragon-stack', 'phone', 1)).toBe('/assets/home-seed/nine-dragon-stack-phone.1.bin');
+  expect(HOME_SEED_CHUNK_BYTES).toBeLessThan(12_000_000); // a spawn part's per-file cap
+  const big = Uint8Array.from({ length: 21 }, (_, i) => i), parts = splitHomeSeed(big, 8);
+  expect(parts.map(part => part.length)).toEqual([8, 8, 5]);
+  expect(joinHomeSeed(parts)).toEqual(big);
   expect(readHomeSeedKeys({ version: 1, tiers: { phone: [homeSeedKey(owned), whole].sort() } }).tiers.phone).toHaveLength(2);
   expect(() => readHomeSeedKeys({ version: 1, tiers: { phone: [owned] } })).toThrow('normalised');
   expect(() => readHomeSeedKeys({ version: 1, tiers: { phone: [whole, whole] } })).toThrow();

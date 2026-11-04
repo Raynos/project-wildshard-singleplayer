@@ -215,8 +215,12 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       for (const row of addresses) add(asset(row.url, row.bytes));
       // DL7 P3 + DL6: the entry shard's cold geometry seed (scripts/app-build/homeSeed.ts; homeSeedPath), packs book only:
       // the grid home's and a selected shard's own page (both bind the home build cache).
-      const seed = `/assets/home-seed/${directory}-${tier}.bin`;
-      if (whole && existsSync(join(output, seed.slice(1)))) add(asset(seed));
+      // its ordered chunks (homeSeedPath), each under a part's file cap
+      if (whole) for (let chunk = 0; ; chunk++) {
+        const seed = `/assets/home-seed/${directory}-${tier}.${String(chunk)}.bin`;
+        if (!existsSync(join(output, seed.slice(1)))) break;
+        add(asset(seed));
+      }
       const extra = bank.extras[prefix];
       if (extra !== undefined) {
         const inventory = bytesFor(extra[0]);
