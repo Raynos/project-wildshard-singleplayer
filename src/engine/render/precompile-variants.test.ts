@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Bone, BoxGeometry, InstancedMesh, Mesh, MeshBasicMaterial, MeshDepthMaterial, MeshStandardMaterial, PerspectiveCamera, Scene, Skeleton, SkinnedMesh, WebGLRenderer, type Material } from 'three';
-import { runPrecompile, sceneJobs, shadowJobs } from './precompile';
+import { LINK_WAIT_MS, runPrecompile, sceneJobs, shadowJobs } from './precompile';
 import type { ProgramLike } from '../boot/perflog';
 import { noteFrameDrawn, setBuildHeld } from '../core/framePacing';
 import { SHADOW_LAYER } from '../core/shadowLayer';
@@ -193,6 +193,36 @@ test.each([[false, true], [true, true], [true, false]] as const)(
       expect(diagnostics.checkShaderErrors).toBe(true);
     } finally { geometry.dispose(); material.dispose(); }
   });
+
+test.each([false, true])('ordinary boot resolves an unreported parallel completion without skipping native refusal (failure %s)', async failure => {
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Missing renderer');
+  const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), scene = new Scene();
+  scene.add(new Mesh(geometry, material));
+  const acquired: ProgramLike[] = [], programs = new Map<string, ProgramLike>();
+  let now = 1000, current = true, resolved = 0;
+  const nativeFailure = new Error('Original native link refusal');
+  const program: ProgramLike = { name: 'unreported-link', type: 'basic', cacheKey: 'unreported-link', id: 1, usedTimes: 1, program: {},
+    isReady: () => false, getUniforms: () => { resolved++; if (failure) throw nativeFailure; return {}; } };
+  const diagnostics = { checkShaderErrors: true };
+  const fields: Record<string, unknown> = {
+    info: { programs: acquired, render: { frame: 0 } }, extensions: { has: () => true }, debug: diagnostics,
+    properties: { get: () => ({ programs }), has: () => true }, getContext: linkedGl, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    compile: () => { acquired.push(program); programs.set('unreported-link', program); },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+  try {
+    const warm = runPrecompile(renderer, new PerspectiveCamera(), sceneJobs(scene, null).jobs, 1, undefined, [], () => current, false,
+      () => { now += 1000; if (now > 4 * LINK_WAIT_MS) current = false; return Promise.resolve(); });
+    await (failure ? expect(warm).rejects.toBe(nativeFailure) : warm);
+    expect(current).toBe(true);
+    expect(resolved).toBe(1);
+    expect(diagnostics.checkShaderErrors).toBe(true);
+    expect(acquired).toEqual([program]);
+    expect(scene.children).toHaveLength(1);
+  } finally { clock.mockRestore(); geometry.dispose(); material.dispose(); }
+});
 
 test.each([
   { cap: 30, draw: 28, compile: 2, resolve: 3, isolate: true, pauses: 2, expected: [0, 0, 1, 1] },

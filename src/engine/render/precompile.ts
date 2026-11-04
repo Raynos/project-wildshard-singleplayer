@@ -1343,7 +1343,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const units = parallel ? 2 * n : n;
   if (parallel && !isolateImageUploads) {
     const linked = new Set<ProgramLike>();
-    await waitFor(`Link ${n} shader programs`, (async () => { for (;;) {
+    // Boot can observe the same unreported WebKit completion as live and
+    // offscreen preparation. Keep their existing bounded wait, then resolve
+    // every remaining program through the mandatory native first use below.
+    await waitFor(`Link ${n} shader programs`, boundedLinkWait(async () => {
       checkCurrent();
       let ready = 0, askedAt = performance.now();
       for (const p of pending) {
@@ -1352,9 +1355,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
         if (spent(askedAt)) { await pause(); checkCurrent(); askedAt = performance.now(); }
       }
       onProgress?.(jobs.length + ready, jobs.length + units + textures.length, `${ready} / ${n} programs linked · parallel`);
-      if (ready >= n) break;
-      await pause();
-    } })(), 'shader');
+      return ready >= n;
+    }, async () => { await pause(); checkCurrent(); }), 'shader');
   }
   // Phase B: resolve each link. COMPLETION_STATUS only says the front end is done — ANGLE Metal
   // builds the Metal library on the first LINK_STATUS / uniform query (~20 ms a program with a cold
