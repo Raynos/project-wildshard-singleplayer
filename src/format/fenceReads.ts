@@ -192,7 +192,10 @@ export function assetIdentities(urls: readonly string[], packs: ReadonlyMap<stri
       const named = part.members.map(member => {
         const memberStem = assetStem(member, digests), key = `${part.bank}:${part.pack}:${memberStem}`;
         if (stableStem(memberStem) && memberStems.get(key) === 1) return [`asset-pack-member:${key}`];
-        return refs.get(member.split('?')[0] ?? member) ?? null;
+        // a member named by a reference is named inside its pack: its loose copy carries the same reference, and one name
+        // for two files is ambiguous (Pine's rock_ground part was refused that way, DL11)
+        const memberRefs = refs.get(member.split('?')[0] ?? member);
+        return memberRefs === undefined ? null : memberRefs.map(id => `asset-pack-ref:${part.bank}:${part.pack}:${id}`);
       });
       if (named.length > 0 && named.every(ids => ids !== null && ids.length > 0)) identities.set(url, named.flatMap(ids => ids ?? []));
       continue;
@@ -208,6 +211,6 @@ export function readFenceReads(input: unknown): FenceReads {
   const files: unknown = object(input) ? input['files'] : undefined;
   if (!object(input) || input['version'] !== 1 || !Array.isArray(files) || files.length > 20_000
     || !files.every((row: unknown): row is string => typeof row === 'string'
-      && /^(?:name:.+|ref:[^:]+:.+|props-tile:\d+\/\d+\/\d+:(?:file|\d+)|asset:\/assets\/[^?]+|asset-pack-member:[^:]+:[^:]+:\/assets\/[^?]+|asset-source:[^?:]+)$/u.test(row))) throw new Error('Invalid fence reads');
+      && /^(?:name:.+|ref:[^:]+:.+|props-tile:\d+\/\d+\/\d+:(?:file|\d+)|asset:\/assets\/[^?]+|asset-pack-member:[^:]+:[^:]+:\/assets\/[^?]+|asset-source:[^?:]+|asset-pack-ref:[^:]+:[^:]+:ref:.+)$/u.test(row))) throw new Error('Invalid fence reads');
   return {version: 1, files: [...new Set(files)].sort()};
 }

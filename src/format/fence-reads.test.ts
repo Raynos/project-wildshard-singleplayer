@@ -96,7 +96,7 @@ test('sp-x8\'s third round: colliding member stems and hash-only members refuse 
   const hashed = `/assets/m/${h('8')}.glb`, pack = packMembers({ p: { phone: { parts: [part('/assets/packs/q-33333333.bin', [hashed, '/assets/m/rock-0cd11be5.glb'])] } } });
   expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack, new Map(), {digests: real}).has('/assets/packs/q-33333333.bin')).toBe(false);
   expect(assetIdentities(['/assets/packs/q-33333333.bin'], pack, new Map([[hashed, ['ref:world/props:/rocks/0']]]), {digests: real}).get('/assets/packs/q-33333333.bin'))
-    .toEqual(['ref:world/props:/rocks/0', 'asset-pack-member:p:phone:/assets/m/rock.glb']);
+    .toEqual(['asset-pack-ref:p:phone:ref:world/props:/rocks/0', 'asset-pack-member:p:phone:/assets/m/rock.glb']);
   // A hash-only /assets file two sections name keeps both references; when one is split off, the other still resolves to
   // the old file and the split one is a different file, so a recording made before the split no longer covers it.
   const shared = `/assets/x/${h('9')}.bin`;
@@ -193,7 +193,12 @@ test('DL11: two packed variants of one texture set are told apart by the source 
     {url: '/assets/packs/pine-hollow.phone-cd012952.bin', files: [[layer, 0, 1, 'x']]},
     {url: '/assets/packs/pine-hollow.phone-7949990b.bin', files: [[plain, 0, 1, 'x']]}]}}});
   const ids = assetIdentities(['/assets/packs/pine-hollow.phone-cd012952.bin', '/assets/packs/pine-hollow.phone-7949990b.bin'], pack, refs, {digests: real});
-  expect(ids.get('/assets/packs/pine-hollow.phone-cd012952.bin')).toEqual(['ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp#layer']);
-  expect(ids.get('/assets/packs/pine-hollow.phone-7949990b.bin')?.[0]).toBe('ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp');
-  expect(readFenceReads({version: 1, files: ['ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp#layer']}).files).toHaveLength(1);
+  expect(ids.get('/assets/packs/pine-hollow.phone-cd012952.bin')).toEqual(['asset-pack-ref:pine-hollow:phone:ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp#layer']);
+  expect(ids.get('/assets/packs/pine-hollow.phone-7949990b.bin')?.[0]).toBe('asset-pack-ref:pine-hollow:phone:ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp');
+  expect(readFenceReads({version: 1, files: ['asset-pack-ref:pine-hollow:phone:ref:gpu-phone:/~1assets~1tex~1pine_bark~1diffuse_1k.phone.webp#layer']}).files).toHaveLength(1);
+  // the loose copy of a packed member carries the same stand-in reference: the part's name stays its own, one file each
+  const loose = assetIdentities(['/assets/packs/pine-hollow.phone-cd012952.bin', layer], pack, refs, {digests: real});
+  const owners = identityFiles(loose);
+  expect([...owners.values()].every(files => files.length === 1)).toBe(true);
+  expect(loose.get(layer)).toEqual(['asset:/assets/gpu/tex/pine_bark/diffuse.ktx2']);
 });
