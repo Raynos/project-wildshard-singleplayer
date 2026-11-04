@@ -23,6 +23,9 @@ Codex rows are read-only reviews (G1001) unless marked; claim one by writing `<l
 | C10 | Review sp-o3's Pine early-read list (sky textures) + DL11 member-scoped refs | 1e709cf297, 63020f7c1b | sp-x2 12:27; source-reviewed `1e709cf297` + `63020f7c1b`: two sky reads added, scoped member refs; shared resolver, ambiguity/staleness refusals and original bytes retained; no findings |
 | C11 | Review sp-o1's seed chunks (<= 11 MB, ordered join, packs manifest binding) | 526406cf30 | sp-x8 12:27; source-reviewed `526406cf30`: <=11 MB chunks, ordered join, manifest binding and native fallback retained; no findings |
 | C12 | Review sp-o2's D226 route data + DL17 boost-false legs and heap tool | e452f315d9, 2477dc4e09 |sp-x9 12:31 |
+| C13 | Pre-review sp-o4's DL21 fence-count handoff (landed by sp-o2) | tmp/sp-o4/dl21-fence-handoff.patch | sp-x1 (done) |
+| C14 | Pre-review sp-o2's DL16 key versioning (debug.levelDownload.harness) | in tree, lands after sp-o3 | sp-x1 (done) |
+| C15 | Pre-review sp-o5's LD10 slice 1 (orphan deletions, SDK audio wrappers) | tmp/qd7-ld10/ld10-land.patch | sp-x2 |
 
 ## G768 (Jake, 2026-10-27): no gate project
 

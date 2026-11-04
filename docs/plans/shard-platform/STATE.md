@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 86f2590-mw26uru3** (09:34, 30 verified; CI red since (Nalati index > 2 MB): fix 8c64526e31 PREPARE GREEN, db73663420 next; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 86f2590-mw26uru3** (09:34, 30 verified; CI red since; cap + physics isolation proven, every routed red fixed, 43cf177cb1 in CI; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**13:00:** DL16 packs-on goldens 6x24 GREEN, flip lands after o4 timed block. Plots: Thin, Clockwork, Pastel full; Desert/Showcase read green; Race neighbour skyline bisect (x6). Missing-product = pre-793ceb58 pins only.
+**14:00:** 2 Opus (G1007, 90 %): o5 QD7, o2 download. NF18 landed 13253e2609 (0 red, -153 KiB gz); DL16 packs default ON d0683e4e38. QD7 left: LD9b, LD10 + tail row, CO7/CO8. Plots: Thin, Pastel full; Clockwork partial (officials).
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
