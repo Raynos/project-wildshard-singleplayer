@@ -17,13 +17,8 @@ export const EnemyPlacementsSchema: NamedRows<{ seed: number; practice: { x: num
         page: ({ kind: "object", mode: "strict", entries: { phone: placement, desktop: placement } } as const), native: placement } } as const)).schema;
 export type EnemyPlacements = NamedRowValue<typeof EnemyPlacementsSchema>;
 /** Named geometry bootstrap data; no private section or executable mirror is added. */
-export const FixedGeometryGroupsSchema: NamedRows<{ cargo: { barrel: string; lying: string; crate: string; broken: string; coil: string; }; driftLogs: { long: string; short: string; pale: string; }; npc: { trader: { body: string; head: string; upper: string; fore: string; }; castaway: { body: string; head: string; camp: string; arm: string; flames: string; }; }; entryDecks: { world: string; deep: string; shallow: string; }; cover: Record<string, string>; piers: Record<string, { deck: string; cloth: string | null; }>; }>['schema'] = defineNamedRows(({ kind: "object", mode: "strict", entries: {
-        cargo: ({ kind: "object", mode: "strict", entries: { barrel: text, lying: text, crate: text, broken: text, coil: text } } as const),
-        driftLogs: ({ kind: "object", mode: "strict", entries: { long: text, short: text, pale: text } } as const),
-        npc: ({ kind: "object", mode: "strict", entries: { trader: ({ kind: "object", mode: "strict", entries: { body: text, head: text, upper: text, fore: text } } as const), castaway: ({ kind: "object", mode: "strict", entries: { body: text, camp: text, head: text, arm: text, flames: text } } as const) } } as const),
-        entryDecks: ({ kind: "object", mode: "strict", entries: { world: text, deep: text, shallow: text } } as const),
-        cover: ({ kind: "record", key: text, value: text } as const), piers: ({ kind: "record", key: text, value: ({ kind: "object", mode: "strict", entries: { deck: text, cloth: ({ kind: "nullable", item: text } as const) } } as const) } as const),
-    } } as const)).schema;
+const FixedGeometryGroupsRows=defineNamedRows(authorFormatSchema('islandLibrary.FixedGeometryGroupsSchema'));
+export const FixedGeometryGroupsSchema:typeof FixedGeometryGroupsRows.schema=FixedGeometryGroupsRows.schema;
 export const SECTIONS: Readonly<Record<never, never>> = {};
 const bridgeSpan = ({ kind: "object", mode: "strict", entries: { a: ({ kind: "tuple", items: [number, number] } as const), b: ({ kind: "tuple", items: [number, number] } as const), sag: number } } as const);
 export const FILE_SCHEMAS: { 'data/bridgeRows.json': NamedRows<{ world: { a: [number, number]; b: [number, number]; sag: number }; specimen: { a: [number, number]; b: [number, number]; sag: number } }>['schema'] } = { 'data/bridgeRows.json': defineNamedRows(({ kind: "object", mode: "strict", entries: { world: bridgeSpan, specimen: bridgeSpan } } as const)).schema };

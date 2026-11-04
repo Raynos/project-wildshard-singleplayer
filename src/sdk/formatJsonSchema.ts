@@ -21,7 +21,7 @@ import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { AdventurePersistenceSchema, HEADLESS_ASSEMBLY_JSON_SCHEMA, ReturnProgramSchema, PageReturnRowsSchema, QuestTraderSchema, PosedLibrarySchema } from '@wildshard/format/namedJsonContracts';
 import {NativeQuestCompositionSchema,NativeQuestServiceSpotsSchema} from '@wildshard/format/nativeQuestComposition';
 import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
-import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
+import { ResolvedIslandLibrarySchema, FixedGeometryGroupsSchema } from '@wildshard/format/islandLibrary';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { BinarySourceSchema } from '@wildshard/format/binarySource';
@@ -465,6 +465,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+  'islandLibrary.FixedGeometryGroups': FixedGeometryGroupsSchema,
   'specimenCatalogue.SpecimenBook': SpecimenBookSchema,
   'heldArms.HeldGraphCards': HeldGraphCardsSchema,
 };
@@ -904,6 +905,7 @@ interface AuthorFormatObjects {
   readonly 'catalogueEconomy.CatalogueEconomySchema': typeof CatalogueEconomySchema;
   readonly 'minimap.ManifestMetadataSchema': typeof ManifestMetadataSchema;
   readonly 'islandLibrary.ResolvedIslandLibrarySchema': typeof ResolvedIslandLibrarySchema;
+  readonly 'islandLibrary.FixedGeometryGroupsSchema': typeof FixedGeometryGroupsSchema;
   readonly 'mixedPopulation.MixedPopulationSchema': typeof MixedPopulationSchema;
   readonly 'nativeQuestComposition.NativeQuestCompositionSchema': typeof NativeQuestCompositionSchema;
   readonly 'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA': typeof HEADLESS_ASSEMBLY_JSON_SCHEMA;
@@ -957,6 +959,7 @@ const authorFormats: AuthorFormatObjects = {
   'catalogueEconomy.CatalogueEconomySchema': CatalogueEconomySchema,
   'minimap.ManifestMetadataSchema': ManifestMetadataSchema,
   'islandLibrary.ResolvedIslandLibrarySchema': ResolvedIslandLibrarySchema,
+  'islandLibrary.FixedGeometryGroupsSchema': FixedGeometryGroupsSchema,
   'mixedPopulation.MixedPopulationSchema': MixedPopulationSchema,
   'nativeQuestComposition.NativeQuestCompositionSchema': NativeQuestCompositionSchema,
   'namedJsonContracts.HEADLESS_ASSEMBLY_JSON_SCHEMA': HEADLESS_ASSEMBLY_JSON_SCHEMA,

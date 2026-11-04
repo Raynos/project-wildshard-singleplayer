@@ -1,3 +1,4 @@
+import { FixedGeometryGroupsSchema } from './islandLibrary';
 import { CoverAppearanceSchema } from './coverAppearance';
 import { HeldGraphCardsSchema } from './heldArms';
 import { SpecimenBookSchema } from './specimenCatalogue';
@@ -50,6 +51,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'models/fixed-geometry.json':{readonly schema:typeof FixedGeometryGroupsSchema;readonly source:'@wildshard/format/islandLibrary#FixedGeometryGroupsSchema'};
   readonly 'models/cover-phone.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
   readonly 'models/cover-desktop.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
   readonly 'models/gear-book.json':{readonly schema:typeof SpecimenBookSchema;readonly source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'};
@@ -138,6 +140,7 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'models/fixed-geometry.json':{schema:FixedGeometryGroupsSchema,source:'@wildshard/format/islandLibrary#FixedGeometryGroupsSchema'},
   'models/cover-phone.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
   'models/cover-desktop.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
   'models/gear-book.json':{schema:SpecimenBookSchema,source:'@wildshard/format/specimenCatalogue#SpecimenBookSchema'},
@@ -305,6 +308,7 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'models/fixed-geometry.json':v.parse(FixedGeometryGroupsSchema,value);break;
     case 'models/cover-phone.json':v.parse(SpecimenBookSchema,value);break;
     case 'models/cover-desktop.json':v.parse(SpecimenBookSchema,value);break;
     case 'models/gear-book.json':v.parse(SpecimenBookSchema,value);break;

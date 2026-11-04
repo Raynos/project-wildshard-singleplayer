@@ -1,3 +1,4 @@
+import { FixedGeometryGroupsSchema } from './islandLibrary';
 import { CoverAppearanceSchema } from './coverAppearance';
 import { HeldGraphCardsSchema } from './heldArms';
 import { SpecimenBookSchema } from './specimenCatalogue';
@@ -51,6 +52,8 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^models\/fixed-geometry\.json$/u, schema: FixedGeometryGroupsSchema,
+    source: '@wildshard/format/islandLibrary#FixedGeometryGroupsSchema', reader: 'src/game/models/islandLibrary.ts' },
   { pattern: /^models\/cover-phone\.json$/u, schema: SpecimenBookSchema,
     source: '@wildshard/format/specimenCatalogue#SpecimenBookSchema', reader: 'src/game/models/explorerCatalogue.ts' },
   { pattern: /^models\/cover-desktop\.json$/u, schema: SpecimenBookSchema,

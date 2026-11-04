@@ -1,4 +1,4 @@
-// Section schema tables: scripts/bake-section-schemas.mjs; generators/sections.ts sha256:8329afb73664bba38c1f262556f460a8e6179bb98133b26af714a0a5edb16178
+// Section schema tables: scripts/bake-section-schemas.mjs; generators/sections.ts sha256:f42d4afa50821ab9c04e3c1b09fc26347b47a272059edcfe4b6d07b2368cbe50
 import type {DefinedSection} from '@wildshard/sdk/sections';
 
 export const WIRE_SCHEMAS: Readonly<Record<string,DefinedSection['jsonSchema']>> = {};
