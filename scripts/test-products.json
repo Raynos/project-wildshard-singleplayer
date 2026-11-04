@@ -288,7 +288,6 @@
     "far-reach",
     "sunscar-dunes"
   ],
-  "test/legacy-seal.test.ts": [],
   "test/sampled-ambience.test.ts": [],
   "test/quest-story.test.ts": ["driftwood-isle", "pine-hollow"],
   "test/chapter-story.test.ts": ["nalati-grasslands", "driftwood-isle", "pine-hollow"],
