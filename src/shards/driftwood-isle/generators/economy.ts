@@ -40,9 +40,6 @@ export const GOODS: readonly GoodRow[] = [
   { id: 'cape', name: 'Sailcloth cape', does: 'A look · worn from GEAR', icon: 'cape', price: 8 },
 ];
 
-/** Bounty from the original full island clear. */
-export const FULL_CLEAR = 92;
-
 /** Owned and worn keys select grants; the shared effect service remains the only gameplay owner. */
 export const DRIFTWOOD_PLAYER_GRANTS = [
   { id: 'effect.sturdy-heart', key: 'heart-2', stacks: 2 },

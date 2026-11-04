@@ -8,11 +8,3 @@ export const P = { body: 0, wingL: 1, wingR: 2, head: 3, legs: 4, tail: 5, hBody
 export type V3 = readonly [number, number, number];
 /** The hare's neck: its ears turn with the head about this point. */
 export const HARE_NECK: V3 = [0, 0.235, 0.15];
-/** Model order in the legacy word blocks and the authored GLB. */
-export const WILD_BAKE_KINDS: readonly WildKind[] = [KIND.raven, KIND.owl, KIND.woodpecker, KIND.hare];
-/** The retained legacy transport's counts and content identity. */
-export interface WildRows {
-  bin: string;
-  bytes: number;
-  kinds: { kind: WildKind; vertices: number; indices: number }[];
-}

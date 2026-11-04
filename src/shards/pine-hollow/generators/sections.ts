@@ -78,11 +78,6 @@ export function parseTradeCatalogue(input: unknown): TradeCatalogue {
 export type PineTradeSkin = 'hollow-ash' | 'scarback-furnace';
 
 export const TradeItemSchema: typeof item = item;
-
-export const ThrallLookSchema: v.StrictObjectSchema<{ readonly pose: v.UnknownSchema; readonly traits: v.RecordSchema<v.StringSchema<undefined>, typeof number, undefined>; readonly tint: v.RecordSchema<v.StringSchema<undefined>, typeof triple, undefined>; }, undefined> = v.strictObject({ pose: v.unknown(),
-  traits: v.record(v.string(), v.number()),
-  tint: v.record(v.string(), v.tuple([v.number(), v.number(), v.number()])),
-});
 const cabinNumber: typeof finite = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE)), cabinXyz: v.TupleSchema<[typeof cabinNumber, typeof cabinNumber, typeof cabinNumber], undefined> = v.tuple([cabinNumber, cabinNumber, cabinNumber]);
 const CabinLight: v.StrictObjectSchema<{ readonly color: typeof cabinNumber; readonly intensity: typeof cabinNumber; readonly distance: typeof cabinNumber; readonly decay: typeof cabinNumber; readonly at: typeof cabinXyz; readonly seed: typeof cabinNumber; readonly kind: v.PicklistSchema<["fire", "lamp"], undefined>; readonly rank: typeof cabinNumber; }, undefined> = v.strictObject({ color: cabinNumber, intensity: cabinNumber, distance: cabinNumber, decay: cabinNumber, at: cabinXyz, seed: cabinNumber, kind: v.picklist(['fire', 'lamp']), rank: cabinNumber });
 /** a static box solid as the builder emitted it (world space, turned by `yaw`) */
@@ -168,12 +163,6 @@ export function parseFloorRows(input: unknown): v.InferOutput<typeof FloorRowsSc
  if (!(  row.counts.reduce((total, n) => total + n, 0) <= 40_000 && floorKinds.every((kind, i) => row.layout[kind].length === row.counts[i]))) throw new Error('Invalid Pine floor counts');
  return row;
 }
-
-
-
-
-export const TradeGoodSchema: v.StrictObjectSchema<{ readonly id: typeof tradeText; readonly name: typeof tradeText; readonly does: typeof tradeText; readonly icon: v.PicklistSchema<["bolt", "rifle", "longbow", "crossbow"], undefined>; readonly price: v.LiteralSchema<0, undefined>; readonly tile: typeof tradeText; readonly trade: typeof TradeSchema; readonly cost: v.SchemaWithPipe<readonly [v.ArraySchema<v.StrictObjectSchema<{ readonly item: typeof TradeItemSchema; readonly n: typeof amount; readonly text: typeof tradeText; }, undefined>, undefined>, v.MinLengthAction<{ item: "venison" | "deer-hide" | "boar-hide" | "boar-tusk" | "bear-pelt" | "amber-resin" | "lodge-ribbon"; n: number; text: string; }[], 1, undefined>, v.MaxLengthAction<{ item: "venison" | "deer-hide" | "boar-hide" | "boar-tusk" | "bear-pelt" | "amber-resin" | "lodge-ribbon"; n: number; text: string; }[], 3, undefined>]>; }, undefined> = TradeCatalogueSchema.entries.goods.pipe[0].item;
-export const PineTradeSkinSchema: v.PicklistSchema<["hollow-ash", "scarback-furnace"], undefined> = v.picklist(['hollow-ash', 'scarback-furnace']);
 
 const physicsSpec: v.ObjectSchema<{ readonly label: v.StringSchema<undefined>; readonly rarity: v.PicklistSchema<["common", "uncommon", "rare", "legendary"], undefined>; }, undefined> = v.object({ label: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']) });
 const physicsBody: { id: v.StringSchema<undefined>; kind: v.StringSchema<undefined>; variant: v.StringSchema<undefined>; spec: typeof physicsSpec; seed: typeof floorNumber; scale: typeof floorNumber; } = { id: v.string(), kind: v.string(), variant: v.string(), spec: physicsSpec, seed: finite, scale: finite };

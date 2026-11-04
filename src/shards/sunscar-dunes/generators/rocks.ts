@@ -2,7 +2,7 @@ import { Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMateria
 import { Rng } from '@wildshard/sdk/random';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from "./layout";
 import { signalDunesField } from './tiles';
-import { bakePiece, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
+import { signalPiece, boxDesc, type ColliderDesc } from './kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**
@@ -90,4 +90,3 @@ export function signalRocksPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), built = buildRocks(field.heightAt, field.trailDistance);
   return signalPiece('rocks', [['ridges', built.ridges], ['boulders', built.boulders]], built.colliders);
 }
-export const bakeSignalRocks = (): SignalPieceBake => bakePiece(signalRocksPiece());

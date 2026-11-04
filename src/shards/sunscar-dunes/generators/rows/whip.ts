@@ -79,7 +79,7 @@ export interface LashView {
  */
 
 /** The handle's braid: two strands; the popper is pale cord. */
-export const STRAND_A = [0.46, 0.25, 0.12] as const, STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
+export const STRAND_B = [0.27, 0.14, 0.065] as const, POPPER = [0.78, 0.68, 0.52] as const;
 /** The thrown lash is the handle's dark braid (loop 3: its first metre read as a pale cone against the dusk sun). */
 export const LASH_A = [0.24, 0.12, 0.055] as const, LASH_B = [0.13, 0.065, 0.03] as const;
 /** The code coil's plait (loop 4: a shade lighter than the glove; mockup D: a dark plait with warm highlights), linear. */

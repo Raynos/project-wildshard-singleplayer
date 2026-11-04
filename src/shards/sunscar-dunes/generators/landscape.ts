@@ -46,15 +46,3 @@ export function signalHeightAt(seed: number = SEED): (x: number, z: number) => n
     return height;
   };
 }
-
-/** Original analytic placement queries for authoring, independent of client
- * ground readiness. Native actor and prompt recipes retain their f64 poses. */
-export function signalAuthorGround(): { heightAt: (x: number, z: number) => number; normalAt: (x: number, z: number, eps?: number) => [number, number, number]; splatAt: () => [number, number, number, number] } {
-  const heightAt = signalHeightAt();
-  return { heightAt, normalAt: (x, z, eps = 0.6) => {
-    const nx = heightAt(x - eps, z) - heightAt(x + eps, z);
-    const nz = heightAt(x, z - eps) - heightAt(x, z + eps), ny = 2 * eps;
-    const length = Math.hypot(nx, ny, nz);
-    return [nx / length, ny / length, nz / length];
-  }, splatAt: () => [1, 0, 0, 0] };
-}

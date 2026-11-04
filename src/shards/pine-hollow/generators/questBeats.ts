@@ -31,8 +31,6 @@ export const BEATS: Record<Beat, BeatDef> = {
   hamlet: { adds: [], at: 'lodge', x: 0, z: 0, look: { x: 0, z: 0 }, day: true },
 };
 
-export function isBeat(s: string): s is Beat { return s in BEATS; }
-
 /** every flag raised before `beat` starts (the beats in order; `hamlet` raises none) */
 export function beatFlags(beat: Beat): string[] {
   if (beat === 'hamlet') return [];

@@ -3,7 +3,7 @@ import { BRAZIERS, CARAVAN, WELL } from "./layout";
 import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from './rows/places';
 import { DUNE_FIELD } from "./duneRows";
 import { signalDunesField } from './tiles';
-import { bakePiece, foldKinds, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
+import { foldKinds, signalPiece, boxDesc, type ColliderDesc } from './kinds';
 import { colliderRows } from '@wildshard/sdk/bake/kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';
 
@@ -140,7 +140,6 @@ export function signalCaravanPiece(): BakedPiece<ColliderDesc> {
   const matrix = pane.matrixWorld.clone(); lamp.remove(pane); frame.root.remove(lamp); pane.matrix.copy(matrix); pane.matrix.decompose(pane.position, pane.quaternion, pane.scale); pane.matrixAutoUpdate = false;
   const piece = signalPiece('caravan', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors }); pane.name = 'glass'; piece.add(pane); return piece;
 }
-export const bakeSignalCaravan = (): SignalPieceBake => bakePiece(signalCaravanPiece());
 /** The well baked on the manifest's own dune field. */
 export function signalWellPiece(shell: BufferGeometry): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), frame = buildWellFrame(field.heightAt);
@@ -151,7 +150,6 @@ export function signalWellPiece(shell: BufferGeometry): BakedPiece<ColliderDesc>
   disc.position.set(WELL.x, frame.anchors.y + 0.62, WELL.z); disc.name = 'shaft';
   const piece = signalPiece('well', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors }); piece.add(wall, disc); return piece;
 }
-export const bakeSignalWell = (shell: BufferGeometry): SignalPieceBake => bakePiece(signalWellPiece(shell));
 /**
  * Waymark `i`'s charred log crown in its bowl (E399, mockup C: the hero brazier's log fire; round 1: the unlit bowls read
  * empty and black), in the brazier's own frame: seven ends splayed out over the rim and four logs laid low across the bowl
@@ -177,4 +175,3 @@ export function signalBraziersPiece(): BakedPiece<ColliderDesc> {
   return signalPiece('braziers', crowns, [],
     { braziers: BRAZIERS.map((b) => { const w = waymarkFrame(b.x, b.z, field.heightAt); return { y: w.y, colliders: colliderRows(w.colliders) }; }) });
 }
-export const bakeSignalBraziers = (): SignalPieceBake => bakePiece(signalBraziersPiece());

@@ -86,7 +86,7 @@ obsolete ground JSON job and its unused native sample grid are retired;
 neither a retained grid nor runtime code seeds these queries. A missing
 collider, a product of another seed or no loader refuses entry. Native
 actor/prompt authoring retains its original analytic f64 placement queries
-through `signalAuthorGround`; the client reads the baked collider.
+through `signalHeightAt`; the client reads the baked collider.
 
 The documented `shard.config.ts` entry runs the source program in
 `generators/generate.ts`. Its fire-book uses the injected bounded image decoder

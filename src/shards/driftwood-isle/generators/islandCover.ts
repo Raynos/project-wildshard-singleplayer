@@ -1,4 +1,3 @@
-import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };
 /** Build-time cover splat; the page only admits and installs its declared file. */
 import * as THREE from 'three';
 import { modelCoverMetadata } from '@wildshard/sdk/bake/sourceMetadata';
@@ -14,7 +13,6 @@ import { coveFamilyOf, type CoveFamily } from './coveModels';
 import { WORLD_DROP } from './sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
-import type { IslandTier as Tier } from './tiers';
 import type { AuthorBakedPlacementPlan } from '@wildshard/sdk/worldScenes';
 
 const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2, TERRAIN_RES = geometryPolicy.resolution;
@@ -130,9 +128,6 @@ function* instancedCoverTriangles(tris: Iterable<CoverTriangle>): Generator<Cove
     yield o;
   }
 }
-
-/** The declared tier-specific cover output. */
-export const islandCoverUrl = (tier: Tier): string => ISLAND_COVER_FILES[tier].url;
 
 /** the area's splatted block (`splatBlock`) from the cover sets' triangles */
 export function islandCoverBlock(tris: Iterable<CoverTriangle>): Float32Array {

@@ -6,7 +6,7 @@
  * stale gate. Each shape's stream is the level seed's (1337, the page's engine SEED while the floor builds) + 606 / 607 / 608.
  */
 import * as THREE from 'three';
-import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { BakedPiece } from '@wildshard/sdk/bake';
 import { PineSeedStream as Rng } from './seedStream';
 
 /** Original Float32-exact shape channels, retained beside the standard GLB for the native field. */
@@ -148,19 +148,4 @@ export function pineUndergrowthScene(): THREE.Scene {
       vertices: Array.from({ length: vertexCount }, (_, i) => i), triangles: Array.from({ length: indexCount / 3 }, (_, i) => i) } };
   } }));
   return scene;
-}
-
-/** Central scene bake of the field's shape library, with no invented static plant instances. */
-export function pineUndergrowthBake(project?: string): BakedScene {
-  const scene = pineUndergrowthScene();
-  try {
-    return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project });
-  } finally {
-    for (const piece of scene.children) for (const mesh of piece.children) {
-      if (!(mesh instanceof THREE.InstancedMesh)) continue;
-      const geometry: unknown = mesh.geometry, material: unknown = mesh.material;
-      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
-      if (material instanceof THREE.Material) material.dispose();
-    }
-  }
 }

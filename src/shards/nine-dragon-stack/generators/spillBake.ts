@@ -106,13 +106,6 @@ export function spillInputs(caps: boolean, tier: 'phone' | 'desktop', input: Nin
   return withPortableMath(() => spillInputsPrepared(caps, tier, input, prepareSpillGeometry()));
 }
 
-/** The old grid acceleration retains exactly the original per-vertex light order. */
-export function bakedSpill(caps: boolean, tier: 'phone' | 'desktop', atlasRows: NineSpillAtlas): ReturnType<typeof spillInputs> {
-  const input = spillInputs(caps, tier, atlasRows);
-  bakeSpill([...input.geometry.values()], input.emitters);
-  return input;
-}
-
 /** Each draw's spill, baked into its geometry: every tier and deck ending lights a shared draw identically (refused
  *  otherwise), and each ending's own entry decks are their own draw. */
 export function drawSpill(atlasRows: NineSpillAtlas): ReadonlyMap<string, BufferAttribute> {

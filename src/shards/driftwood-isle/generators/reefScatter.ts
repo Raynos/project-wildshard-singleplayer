@@ -161,8 +161,3 @@ function scatterReefBed(row: ReefScatterRow, ground: ReefGround, seed: number, c
 export function scatterLagoon(seed: number, count: number, avoid: readonly { x: number; z: number; r: number }[], field: LagoonField): ReefLayout {
   return scatterReefBed(LAGOON_REEF, lagoonGround(field), seed, count, avoid);
 }
-
-/** The layout as the committed JSON (one copy per line). */
-export function reefLayoutJson(layout: ReefLayout): string {
-  return `{"items":[\n${layout.items.map((p) => JSON.stringify(p)).join(',\n')}\n],"school":${JSON.stringify(layout.school ?? null)}}\n`;
-}

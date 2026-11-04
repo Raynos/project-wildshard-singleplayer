@@ -1,6 +1,6 @@
 /** The real crag-face skin shapes, in their native world coordinates and view profiles, through one author Scene. */
 import * as THREE from 'three';
-import { BakedPiece, WholeShape } from '@wildshard/sdk/bake';
+import { BakedPiece } from '@wildshard/sdk/bake';
 import type { SkinBake } from './crags';
 import type { CragTier } from './cragRows';
 import { skinGeometry } from './cragCodec';
@@ -25,20 +25,6 @@ export function pineCragScene(skin: Record<CragTier, SkinBake>): THREE.Scene {
       scene.add(new BakedPiece(`pine-crag-${tier}-${i}`, meshes, [], { nativeAttributes: true, compactIndex: true }));
     }
     if (offset !== data.bin.byteLength) throw new Error('Pine crag Scene must consume every source byte');
-  }
-  return scene;
-}
-
-/** All original world-space skin draws, on centroid-owned tiles; native tier and LOD owners select them at runtime. */
-export function pineCragWorldScene(skin: Record<CragTier, SkinBake>): THREE.Scene {
-  const source = pineCragScene(skin), scene = new THREE.Scene(); scene.name = 'pine-hollow.crag-world';
-  const isGeometry = (value: unknown): value is THREE.BufferGeometry => value instanceof THREE.BufferGeometry;
-  const isMaterial = (value: unknown): value is THREE.Material => value instanceof THREE.Material;
-  for (const piece of source.children) for (const node of piece.children) {
-    if (!(node instanceof THREE.Mesh)) throw new Error('Crag author source must be a mesh');
-    const geometry: unknown = node.geometry, material: unknown = node.material;
-    if (!isGeometry(geometry) || !isMaterial(material)) throw new Error('Crag author source must retain its native geometry');
-    scene.add(new WholeShape(node.name, new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true, compact: true }));
   }
   return scene;
 }

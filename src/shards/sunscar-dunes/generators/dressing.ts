@@ -4,7 +4,7 @@ import { rock } from './rocks';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from "./layout";
 import { DUNE_FIELD } from "./duneRows";
 import { signalDunesField } from './tiles';
-import { bakePiece, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
+import { signalPiece, boxDesc, type ColliderDesc } from './kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**
@@ -356,4 +356,3 @@ export function signalDressingPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), built = buildDressing(field.heightAt, field.trailDistance);
   return signalPiece('dressing', DRESSING_KINDS.map((kind) => [kind, built.meshes[kind]] as const), built.colliders);
 }
-export const bakeSignalDressing = (): SignalPieceBake => bakePiece(signalDressingPiece());

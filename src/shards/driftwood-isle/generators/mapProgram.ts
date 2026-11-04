@@ -29,11 +29,6 @@ async function paintDriftwoodMap(inputs: ReadonlyMap<string, Uint8Array>, fixed?
   return (await rasterSceneMap(settings, { input: read, bytes: read, json })).pixels;
 }
 
-/** Standalone callers still construct the complete fixed bank from their inputs. */
-export function driftwoodMapPixels(inputs: ReadonlyMap<string, Uint8Array>): Promise<Uint8Array> {
-  return paintDriftwoodMap(inputs);
-}
-
 /** GR7: the map lattice through the build cache (the source-owned map, published by the SDK as the product map). */
 export async function driftwoodMap(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<Uint8Array> {
   const files = await ctx.cached({ id: 'world-map', inputs: DRIFTWOOD_MAP_INPUTS }, async inputs =>

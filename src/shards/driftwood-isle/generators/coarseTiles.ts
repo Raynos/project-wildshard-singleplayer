@@ -1,5 +1,4 @@
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { bakeProps, type BakedProps } from '@wildshard/sdk/bake/props';
 import { coarseCopy } from '@wildshard/sdk/bake/coarseCopy';
 import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
@@ -66,13 +65,4 @@ export function driftwoodCoarseTiles(aoBytes: Uint8Array): Pick<BakedProps, 'til
     }), files: [...remapped.values()], assets,
       models: baked.props.tiles.filter(model => model.lod === 1 && keep.has(model.file)).map(model => Object.assign(model, { file: remap(model.file).hash })) };
   } finally { coarse.dispose(); islandGeometry.dispose(); for (const geometry of pierGeometries) geometry.dispose(); material.dispose(); marker.dispose(); for (const geometry of fixed.geometries.values()) geometry.dispose(); }
-}
-
-/** The coarse tiles' bytes for the product, through the build's owned-byte cache (never a generated file under src). */
-export function driftwoodCoarseOutput(ctx: Pick<ProjectGenerationContext, 'cached'>): Promise<ReadonlyMap<string, Uint8Array>> {
-  return ctx.cached({ id: 'driftwood-coarse-tiles', native: true, inputs: [DRIFTWOOD_AO] }, inputs => {
-    const ao = inputs.get(DRIFTWOOD_AO);
-    if (ao === undefined || ao.byteLength === 0) throw new Error('Missing Driftwood voxel AO');
-    return driftwoodCoarseTiles(ao).assets;
-  });
 }
