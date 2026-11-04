@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE f1d6a43-mw1twggd** (03:26; last fully qualified c0a75ad 03:17; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 1bef331** (04:11; last fully qualified 523b896 04:27; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**04:00:** Driftwood DL17 GREEN (first home pass; +3.2 s for horizon + full piano). Grid home: ring cell (e679) shipped before goldens, o2 qualifying. Golden drift: G913 folds + NF4 Nine 22 promoted; DW23 hands = GLSL shadow.offset bug (o1). D199/D208/D210 closed measured. 3 Opus per G990 + G960.
+**05:00:** DW23 hands fixed 50a4262867 + goldens promoted; P1 landed (Nine -1.89 MB, memory down). Grid home 264->19->6 post-control (ce0ac0fa3c); Pine overlap (DL11) fixing review P1s. Opus stays 3: G990 (11-03, 3 lanes) and G960 supersede G853.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
