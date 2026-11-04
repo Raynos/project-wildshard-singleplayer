@@ -10,6 +10,7 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
 **22:00:** hold lifted, a01188c7ad in CI. DL1 done; DL8/DL10/DL12/DL14 closed measured; DL15 q11 -3..-6 MB on packs; DL17 trusted, no PASS (home reds owned); o1 DL11, o2 tile fence, o3 DL15 parts.
+**22:40:** LIVE bbceabe-mw1ih56l. Owners: DL21 (Jake's dead loading card) = sp-o3, top of its queue; spawn-parts CI red fixed 7d5b22b588 (sp-ci-deploy, pushed, next run); DL7 P2 + DL9 land = o1, P1/P3 = o2.
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
