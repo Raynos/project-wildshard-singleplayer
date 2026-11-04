@@ -10,6 +10,7 @@ import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {parseItems} from '../src/format/items';
 import {parseHeldSlots} from '../src/format/heldArms';
+import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import * as geometry from '../src/game/plugin/geometry';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import items from '../src/shards/nalati-grasslands/data/items.json' with {type:'json'};
@@ -26,8 +27,9 @@ function fixture(slotInput?:unknown,input:unknown=declaration){
   const parent=new Scope('metadata-parent'),scope=parent.child('metadata-entry'),events:string[]=[];
   const source={...emptyShardfile({slug:'metadata-fixture',name:'Metadata fixture',author:'Fixture',revision:1,seed:1}),items:parseItems(items)};
   const read=vi.fn((hash:string)=>{events.push(hash==='slots'?'slots':'book');return Promise.resolve(new TextEncoder().encode(JSON.stringify(hash==='slots'?slotInput:book)));});
-  const files=new Map([file,'weapons/blade.json','weapons/polearm.json'].map(name=>[name,{hash:'a'.repeat(64),url:`/fixture/${name}`} ]));
-  if(slotInput!==undefined)files.set('held/slots.json',{hash:'slots',url:'/fixture/slots'});
+  // 186e52971c registered the gear book: it carries its defining schema, as the product build writes it
+  const files=new Map([file,'weapons/blade.json','weapons/polearm.json'].map(name=>[name,{hash:'a'.repeat(64),url:`/fixture/${name}`,...name===file?{jsonSchema:registeredJsonSchema(file)}:{}} ]));
+  if(slotInput!==undefined)files.set('held/slots.json',{hash:'slots',url:'/fixture/slots',jsonSchema:registeredJsonSchema('held/slots.json')});
   const product=createShardProduct({slug:source.identity.slug,revision:1,shardfile:source,sections:new Map(),files,read});
   const held=HeldClaims.fromProductSlots(product,input,file),blade=held.blade('blade'),polearm=held.polearm('polearm');
   const bladePrepare=vi.spyOn(blade,'prepare').mockImplementation(()=>{events.push('blade');return Promise.resolve();});
