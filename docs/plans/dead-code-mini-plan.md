@@ -257,14 +257,15 @@ Under G416, a pin of a finished port is a fragile test. **Check:** types, `vites
 
 ### DC10: frozen "before" copies kept for equivalence tests (5 files, 519 lines) · Codex · S · medium
 
-**open (2026-11-04, sp-x2 next after DC6; G1015).** X8 made no source
-edits. Its fresh module-path search found only the dedicated equivalence
-tests, uniform-vector-buffer's two frozen-copy cases, and timing rows.
-Keep that suite's first four actual-Three native upload/skip/array controls;
-retire only the two cases importing `installBefore`, then remove its
-unused fixture injection parameter. Re-run the importer search before
-deleting the three before modules and two dedicated tests; retire their
-duration/module/product rows and check types, related tests and ratchet.
+**DC10 source committed (2026-11-04, sp-x2): `4e248bde78`.** Fresh
+full-tree importer/data/ref searches found only dedicated equivalence
+readers. Delete three frozen modules and two exclusive suites; retire
+four timing/module rows. Remove only the uniform suite's two old-copy
+comparisons and unused fixture capture/injection plumbing. Its first
+four actual-Three test bodies remain byte-identical, all four pass
+focused and related. Root/engine/game types, typed lint, scoped scratch
+ratchet and exact deletion guard pass. No product/chargeback row names
+the cut, and no production rendering or HUD source changes.
 
 - `src/engine/test/{hud-markers-before,uniform-caches-before,weapon-strip-before}.ts`
 - `test/hud-marker-values.test.ts`, `test/weapon-strip-values.test.ts`
