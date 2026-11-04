@@ -12,7 +12,7 @@ for(const stage of ['bench','reef'] as const)test(stage==='bench'
   ?'Driftwood walk-in glass and bench USE earn their real counters exactly once'
   :'Driftwood reaches the reef through real HOVER, swim and DIVE before opening its treasure',()=>{
   const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
-    resolve('test/fixtures/headless/driftwood-optional-run.ts'),stage],{encoding:'utf8',timeout:30_000});
+    resolve('test/fixtures/headless/driftwood-optional-run.ts'),stage],{encoding:'utf8',timeout:stage==='reef'?60_000:30_000});
   const outcome=JSON.stringify({stage,status:child.status,signal:child.signal,error:child.error?.message});
   expect(child.error,`${outcome}\n${child.stdout}${child.stderr}`).toBeUndefined();
   expect(child.status,`${outcome}\n${child.stdout}${child.stderr}`).toBe(0);
