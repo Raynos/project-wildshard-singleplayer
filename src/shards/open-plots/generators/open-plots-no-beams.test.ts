@@ -56,3 +56,12 @@ test('all baked plot worlds omit corner beacons and near/far beam geometry', asy
     if (!('layout' in row)) expect(cornerVerticesAboveFloor, slug).toBe(0);
   }
 }, 300_000);
+
+
+test('a plot without a tiled layout refuses before reading retired art', async () => {
+  let reads = 0;
+  const read = (): Uint8Array => { reads++; return new Uint8Array(); };
+  await expect(ideaWorld({ slug: 'open-plot-test', idea: 'test', name: 'Test', accent: 'periwinkle' }, read,
+    { readImagePixels, writeImagePixels, normalizeWorldGlb })).rejects.toThrow('a plot needs its tiled layout');
+  expect(reads).toBe(0);
+});

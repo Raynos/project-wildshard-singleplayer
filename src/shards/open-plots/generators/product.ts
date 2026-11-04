@@ -59,13 +59,6 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
     accent: string;
     spawn: (typeof source)["spawn"];
     look: typeof look;
-    // G608: the `far_` stand-ins draw only in the far proxy
-    world: { glb: string; colliders: string; far: string; materials: { Floor: string; Kerb: string; Plinth: string; Rim: string; Frame: string; Billboard: string; Sign: string; Hologram: string; Glow: string; Paving?: never; Kit?: never; Water?: never; Pool?: never; Landmark?: never; Poster?: never; }; farMode?: never; near?: never; };
-}) | (Omit<ReturnType<typeof emptyShardfile>, "identity" | "accent" | "spawn" | "look" | "world"> & {
-    identity: { slug: string; name: string; author: string; revision: number; seed: number; };
-    accent: string;
-    spawn: (typeof source)["spawn"];
-    look: typeof look;
     world: { glb: string; colliders: string; far: string; materials: { Floor: string; Kerb: string } };
 }) {
   const identity = { slug: row.slug, name: `Open Plot · ${row.name}`, author: source.author, revision: source.revision, seed: source.seed };
@@ -106,11 +99,7 @@ function project(row: { readonly slug: string; readonly idea: string; readonly n
           // (no texture: meshMap colourOrVertex), so the road entry sees it lit as the near model is, not dark in the kit
           ...(row.coarseLandmark === 'lit' ? { LandmarkCoarse: 'landmark' } : {}) }) },
   };
-  return { ...emptyShardfile(identity), identity, accent: row.accent, spawn: source.spawn, look: { ...look, keys },
-    // G608: the `far_` stand-ins draw only in the far proxy
-    world: { glb: `assets/${row.idea}/world.glb`, colliders: 'nodes:collide_', far: 'far_',
-      materials: { Floor: 'floor', Kerb: 'kerb', Plinth: 'plinth', Rim: 'rim', Frame: 'frame', Billboard: 'billboard', Sign: 'sign', Hologram: 'hologram', Glow: 'rim' } },
-  };
+  throw new Error('open-plots: a plot needs its tiled layout');
 }
 
 const [first] = declared.outputs;
@@ -145,11 +134,11 @@ const decoded = (bytes: Uint8Array | undefined): unknown => {
   if (bytes === undefined) throw new Error('open-plots: missing layout input');
   const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); return value;
 };
-/** Every file one idea's plot bake reads (repo-relative): a showroom's hologram, billboard and sign; a tiled plot's layout,
+/** Every file one idea's tiled bake reads (repo-relative): its layout,
  *  its kit families, its landmark near / far models and its poster picture. */
 async function bakeInputs(ctx: Pick<ProjectGenerationContext, 'cached'>, row: PlotIdea): Promise<string[]> {
   if (row.placeholder === true) return ['src/shards/open-plots/data/plot.json'];
-  if (row.layout === undefined) return ['hologram.glb', 'billboard.webp', 'sign.webp'].map(file => `public/assets/open-plots/${row.idea}/${file}`);
+  if (row.layout === undefined) throw new Error('open-plots: a plot needs its tiled layout');
   const file = `src/shards/open-plots/data/layouts/${row.layout}.json`;
   const read = await ctx.cached({ id: `layout-${row.idea}`, inputs: [inputName(file)] }, inputs => inputs);
   const layout = decoded(read.get(inputName(file)));
