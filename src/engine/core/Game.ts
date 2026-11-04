@@ -462,6 +462,8 @@ export class Game {
   post: { grade: GradeEffect; saturation: HueSaturationEffect; contrast: BrightnessContrastEffect; bloom: BloomEffect; vignette: VignetteEffect; rays: GodRaysEffect | null; /** the AO pass (null: the tier or level draws none) */ ao: N8AOPostPass | null; tone: ToneMappingEffect } | null = null;
   /** the post chain — set by buildComposer(); resize() and the loop hold the nullable field directly */
   get composer(): EffectComposer { if (this._composer === null) throw new Error('Game.composer read before buildComposer()'); return this._composer; }
+  /** whether buildComposer() has run (an early scene-only shader pass runs before it, DL10) */
+  get composerBuilt(): boolean { return this._composer !== null; }
   /** the sky — set by buildSky() */
   get sky(): Sky { if (this._sky === null) throw new Error('Game.sky read before buildSky()'); return this._sky; }
 

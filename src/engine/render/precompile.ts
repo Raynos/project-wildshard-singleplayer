@@ -1555,7 +1555,9 @@ export function arrivalPrograms(root: THREE.Object3D, at: THREE.Vector3, radius:
 }
 
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
-export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
+let earlyStandIn: THREE.WebGLRenderTarget | null = null;
+const earlyTarget = (): THREE.WebGLRenderTarget => { earlyStandIn ??= new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }); return earlyStandIn; };
+export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'composerBuilt' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
   options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
     /** A parked content subtree whose lights become visible on entry; no live light/visibility change. */ futureLighting?: THREE.Object3D;
     /** Content that leaves with the entered frame's owner (its staged camera models): no exterior variant (O14). */ leaving?: readonly THREE.Object3D[];
@@ -1608,7 +1610,9 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     // changes game.scene only for installation; the renderer always draws rootScene. Keep caster
     // chunking above scoped to the content frame so warm-up cannot restructure other residents.
     const scene = game.rootScene;
-    const rt = game.composer.inputBuffer;
+    // DL10: an early scene-only pass runs before buildComposer(); three keys a program on whether it draws to a (non-XR)
+    // target, not on which, so a 1 x 1 stand-in gives the composer input buffer's programs (linear output, no tone mapping)
+    const rt = game.composerBuilt ? game.composer.inputBuffer : earlyTarget();
     // A live warm-up builds its jobs in work slices too (its compile slices start only in runPrecompile): the setup below
     // was one 190-220 ms task when a crossing prepared a resident (Driftwood and Pine drives on the phone at 4x)
     // its owner taken now, and its setup's yields on the page's scope: after an await the ambient owner can be any
