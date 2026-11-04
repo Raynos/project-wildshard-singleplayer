@@ -134,6 +134,22 @@ test('a suffix is stripped only when the file\'s bytes confirm it: `forest-2` is
 
 test('a bundler file is named by its source module from the build manifest, never by guessing its hash', () => {
   const emitted = '/assets/pine-hollow-C8hPt5PZ.jpg', source = 'src/shards/pine-hollow/thumbs/pine-hollow.jpg';
-  expect(assetIdentities([emitted], new Map(), new Map(), {sources: new Map([[emitted, source]])}).get(emitted)).toEqual([`asset-source:${source}`]);
+  expect(assetIdentities([emitted], new Map(), new Map(), {sources: new Map([[emitted, [source]]])}).get(emitted)).toEqual([`asset-source:${source}`]);
   expect(readFenceReads({version: 1, files: [`asset-source:${source}`]}).files).toEqual([`asset-source:${source}`]);
+});
+
+test('a bundler output two sources share keeps both aliases; once they split, each names only its own file (sp-x2)', () => {
+  // The 816bfefffc build: assets/nine-gate-live-BGIZ18T-.jpg is legacy/explore/nine-gate-live.jpg AND current/... (same bytes).
+  const shared = '/assets/nine-gate-live-BGIZ18T-.jpg', legacy = 'legacy/explore/nine-gate-live.jpg', current = 'current/explore/nine-gate-live.jpg';
+  const before = assetIdentities([shared], new Map(), new Map(), {sources: new Map([[shared, [legacy, current]]])});
+  expect(before.get(shared)).toEqual([`asset-source:${legacy}`, `asset-source:${current}`]);
+  // legacy changes alone: two outputs now; the recorded legacy alias resolves to the new file, never the unchanged peer
+  const split = '/assets/nine-gate-live-Xq81ZZ2a.jpg';
+  const after = assetIdentities([shared, split], new Map(), new Map(), {sources: new Map([[shared, [current]], [split, [legacy]]])});
+  expect(after.get(split)).toEqual([`asset-source:${legacy}`]);
+  expect(after.get(shared)).toEqual([`asset-source:${current}`]);
+});
+
+test('audio table refs take every format the engine reads (.webm too, sp-x2)', () => {
+  expect(audioTableRefs({sfx: {best: {beds: {rain: {file: 'bed-rain-1.webm'}}}}}).get('/assets/sfx/best/bed-rain-1.webm')).toEqual(['ref:boot-sfx:/best/beds/rain/file']);
 });

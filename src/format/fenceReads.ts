@@ -96,7 +96,7 @@ export function audioTableRefs(tables: {readonly sfx?: unknown; readonly music?:
     for (const [set, definition] of Object.entries(table)) {
       const walk = (value: unknown, at: string): void => {
         if (typeof value === 'string') {
-          if (!/^[^/?]+\.(?:m4a|mp3|ogg|opus|wav|aac|flac)$/u.test(value)) return;
+          if (!/^[^/?]+\.(?:m4a|mp3|ogg|opus|wav|webm|aac|flac)$/u.test(value)) return;
           const path = `/assets/${kind}/${set}/${value}`; refs.set(path, [...refs.get(path) ?? [], `ref:boot-${kind}:/${segment(set)}${at}`]); return;
         }
         if (Array.isArray(value)) { value.forEach((item: unknown, row) => { walk(item, `${at}/${row}`); }); return; }
@@ -138,8 +138,8 @@ export function packMembers(packs: unknown): ReadonlyMap<string, PackPart> {
  *  revisions of one slot, in different parts). Any other file is `asset:<stem>` when its stem is hash-free and unique,
  *  else every place a section names it (`refs`). */
 export function assetIdentities(urls: readonly string[], packs: ReadonlyMap<string, PackPart>, refs: ReadonlyMap<string, readonly string[]> = new Map(),
-  files: {readonly digests?: AssetDigests; readonly sources?: ReadonlyMap<string, string>} = {}): ReadonlyMap<string, readonly string[]> {
-  const digests = files.digests ?? ((): readonly string[] => []), sources = files.sources ?? new Map<string, string>();
+  files: {readonly digests?: AssetDigests; readonly sources?: ReadonlyMap<string, readonly string[]>} = {}): ReadonlyMap<string, readonly string[]> {
+  const digests = files.digests ?? ((): readonly string[] => []), sources = files.sources ?? new Map<string, readonly string[]>();
   const stems = new Map<string, number>(), memberStems = new Map<string, number>();
   for (const url of urls) if (!packs.has(url.split('?')[0] ?? url)) { const stem = assetStem(url, digests); stems.set(stem, (stems.get(stem) ?? 0) + 1); }
   for (const part of packs.values()) for (const member of part.members) {
@@ -148,8 +148,9 @@ export function assetIdentities(urls: readonly string[], packs: ReadonlyMap<stri
   const identities = new Map<string, readonly string[]>();
   for (const url of urls) {
     const path = url.split('?')[0] ?? url, part = packs.get(path), stem = assetStem(url, digests), source = sources.get(path);
-    // the bundler's own files (`pine-hollow-C8hPt5PZ.jpg`): named by their source module, from the build's manifest
-    if (source !== undefined) { identities.set(url, [`asset-source:${source}`]); continue; }
+    // the bundler's own files (`pine-hollow-C8hPt5PZ.jpg`): named by every source module the build's manifest maps to them,
+    // so when a shared output splits, the source that changed no longer resolves to the unchanged peer (sp-x2's review)
+    if (source !== undefined && source.length > 0) { identities.set(url, source.map(key => `asset-source:${key}`)); continue; }
     if (part !== undefined) {
       const named = part.members.map(member => {
         const memberStem = assetStem(member, digests), key = `${part.bank}:${part.pack}:${memberStem}`;

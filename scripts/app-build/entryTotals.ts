@@ -92,12 +92,12 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     digestsSeen.set(path, found); return found;
   };
   // The bundler's own /assets files by their source module (its manifest: source -> emitted file).
-  let sourcesSeen: ReadonlyMap<string, string> | undefined;
-  const bundlerSources = (): ReadonlyMap<string, string> => {
+  let sourcesSeen: ReadonlyMap<string, readonly string[]> | undefined;
+  const bundlerSources = (): ReadonlyMap<string, readonly string[]> => {
     if (sourcesSeen !== undefined) return sourcesSeen;
-    const manifest = join(output, '.vite/manifest.json'), found = new Map<string, string>();
+    const manifest = join(output, '.vite/manifest.json'), found = new Map<string, string[]>();
     if (existsSync(manifest)) for (const [key, row] of Object.entries(JSON.parse(readFileSync(manifest, 'utf8')) as Record<string, {file?: unknown}>)) {
-      if (typeof row.file === 'string' && !row.file.endsWith('.js') && !row.file.endsWith('.css')) found.set(`/${row.file}`, key);
+      if (typeof row.file === 'string' && !row.file.endsWith('.js') && !row.file.endsWith('.css')) found.set(`/${row.file}`, [...found.get(`/${row.file}`) ?? [], key]);
     }
     sourcesSeen = found; return found;
   };

@@ -70,7 +70,7 @@ const memberPaths = [...parts.values()].flatMap(row => row.members.map(member =>
 const digests = path => { try { const bytes = readFileSync(join(dist, path.slice(1))); return ['sha1', 'sha256'].map(kind => createHash(kind).update(bytes).digest('hex')); } catch { return []; } };
 const manifestPath = join(dist, '.vite/manifest.json'), sources = new Map();
 if (existsSync(manifestPath)) for (const [key, row] of Object.entries(JSON.parse(readFileSync(manifestPath, 'utf8')))) {
-  if (typeof row.file === 'string' && !/\.(?:js|css)$/u.test(row.file)) sources.set(`/${row.file}`, key);
+  if (typeof row.file === 'string' && !/\.(?:js|css)$/u.test(row.file)) sources.set(`/${row.file}`, [...sources.get(`/${row.file}`) ?? [], key]);
 }
 const assetIds = assetIdentities(assetUrls, parts, joinRefs(sectionRefs(sections, new Set([...assetUrls, ...memberPaths])), ...audioRefs), { digests, sources });
 for (const path of assetsOutside) { const ids = assetIds.get(path); if (ids === undefined) unknown.push(path); else recorded.push(...ids); }
