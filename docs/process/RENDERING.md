@@ -15,10 +15,10 @@ Linked from [AGENTS.md](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-
   1 GB. New rendering optimizations require physical-device memory/stability evidence as well as local tests.
 - `pnpm test:gpu-boot` includes `scripts/test-facade-instancing.mjs`: it requires the actual facade to stay instanced
   with multi-draw available on desktop, phone tier, and an iPhone using desktop quality. Keep this regression check;
-  do not weaken it to make an optimization pass. Memory targets remain 1.8 GB loading / 1.0 GB Explorer (decimal).
+  do not weaken it to make an optimization pass. Memory targets are 1.8 GB loading / 1.2 GB Explorer per shard (decimal; G534, G556, kept by G1010).
 - **The one memory switch is `src/format/memoryGates.json`** (G433): its `explorerMB` / `loadingMB` are the runtime
   caps (`CONTENT_CAPS.playing` / `.loading`), and `mode: "report-only"` makes every memory check print and never fail.
-  Until SHARD-PLATFORM closes it reads report-only, 1,200 MB; restoring is the one edit `"enforce"`, `1000`.
+  It reads report-only, 1,200 MB per shard; Jake kept 1.2 GB when SHARD-PLATFORM closed (G1010, 11-04).
 - **A risky rendering or memory change** (batching, multi-draw, texture or memory policy) ships **default-off behind a
   Debug row** until a physical-device reading backs it (E423 decision 6). It is the one exception to "no phone checks".
 

@@ -142,8 +142,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   milestone and before a deploy that changes the grid; the physics walk only after collider changes; slices land on quick
   checks of what they touched. The gpu-gate parity CI runs nightly and at milestones, not on every push.
 - **At most 3 agents per session** (Jake, 2026-10-10: *"What we write down and commit in AGENTS.md is 3 agents"*).
-- **Codex lanes and openusage routing are for large multi-week plans only** (Jake, 2026-10-10; today SHARD-PLATFORM and
-  GAME-NORMALIZATION), up to **3 Opus + 3 Codex** lanes; SHARD-PLATFORM alone may run up to 5 + 5 (Jake's exception): graphical work is Opus-only, Codex does non-graphical
+- **Codex lanes and openusage routing are for large multi-week plans only** (Jake, 2026-10-10; today SHARD-PLATFORM's
+  successors, G1009: DOWNLOAD, HOST-AUDIT's custom sections, OPEN-PLOTS, TOOLING-PERF), up to **3 Opus + 3 Codex** lanes; these may run up to 5 + 5 (Jake's exception, G1007): graphical work is Opus-only, Codex does non-graphical
   engineering, both paced with `openusage` so Codex reaches 0 % as Claude reaches its 10 % reserve. Any other session
   starts no Codex panes. `codex exec` for mockups and a council's Codex seat are not lanes.
 - **Never pause lanes, ever** (Jake, 2026-10-16: *"FFS don't pause lanes ever bro"*, after a night of idle lanes held for
