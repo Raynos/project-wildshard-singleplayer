@@ -128,7 +128,7 @@ function execute(executable, args, complete) {
 }
 const command = promisify(execute);
 
-/** sp-x7 is exempt from idle/commit nags, but actively checks releases every 15 min.
+/** sp-ci-deploy is exempt from idle/commit nags, but actively checks releases every 15 min.
  * @param {number} now @param {number} last */
 export function releaseCheckDue(now, last) { return now - last >= 15 * 60_000; }
 
@@ -166,11 +166,11 @@ async function poll() {
       if (parsed.success) panes.set(parsed.output.sha, parsed.output.pane);
     } catch { /* Partial concurrent ledger append supplies no attribution. */ }
   }
-  const EXEMPT = new Set(['sp-x7', 'sp-o1', 'sp-o2', 'sp-x10']);
+  const EXEMPT = new Set(['sp-x7', 'sp-x10']);
   const now = Date.now(), live = new Set();
-  if (releaseCheckDue(now, releaseCheckedAt) && agents.some(agent => agent.name === 'sp-x7')) {
+  if (releaseCheckDue(now, releaseCheckedAt) && agents.some(agent => agent.name === 'sp-ci-deploy')) {
     try {
-      await command('bash', ['scripts/herdr-prompt.sh', 'sp-x7',
+      await command('bash', ['scripts/herdr-prompt.sh', 'sp-ci-deploy',
         '[watchdog release check] Check CI, smoke and live now; fix or route reds and report the verdict.']);
       releaseCheckedAt = now;
     } catch { /* The question guard refused; retry on the next observation. */ }
@@ -178,8 +178,8 @@ async function poll() {
 
   for (const agent of agents) {
     const name = agent.name;
-    // sp-x7 is the release watcher (G485) and idles between events by design; sp-o1 and sp-o3 stopped
-    // when Opus dropped to three lanes (G574). None of them takes rows.
+    // sp-ci-deploy (was sp-x7, G802) is the release watcher (G485) and idles between events by design; its
+    // name never matches the lane pattern. sp-x7 and sp-x10 are retired names. Every Opus lane takes rows.
     if (name === undefined || !/^sp-[xo]\d+$/u.test(name) || EXEMPT.has(name)) continue;
     live.add(name);
     const identity = `${agent.pane_id}:${agent.agent_session?.value ?? ''}`;
