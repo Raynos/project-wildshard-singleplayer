@@ -5,12 +5,13 @@
 
 **Spine:** Runtime packs ON by default for everyone (DL16 `d0683e4e38`). Goal: tap → control and a smooth first 30 s
 (G1000, G1008), every second something moves (G1006, DL23 recordings).
-**Open:** DL1, DL2 readings · DL5 n=3 + Pine pair (Codex, commands in row) · DL10 program count (sp-o1) · DL11 (row) · DL15 · DL18 · DL20 a week of boots · DL21 card freezes (sp-o4) · DL23 · DL24 phone. Done today: DL16, DL17 grid (ce0b0191c8), DL22; DL6/DL7 seeds closed as measured.
+**Open:** DL1, DL2 readings · DL5 n=3 + Pine pair (Codex, commands in row) · DL10 program count (sp-o1) · DL11 (row) · DL15 · DL18 · DL20 a week of boots · DL21 card freezes (sp-o4) · DL23 · DL24 phone. Done today: DL16, DL17 grid, DL22; DL6/DL7 seeds closed.
 **Lanes:** Opus builds and lands every row (G1001); Codex lanes review, test and measure. Opus count by Claude weekly
 (G1007: 5 until 90 %, then 2).
 **Lanes (G1007, G1015):** Opus sp-o1 DL10, sp-o4 DL21 + DL11 Far/Sunscar lists; Codex sp-x6 (Z15 CI reds), sp-x2 DC12, sp-x1 plot officials (Safari storage loss on the grid hop); sp-ci-deploy ships (G1013).
 
 **Autonomous decisions (for Jake's review, carried from SHARD-PLATFORM STATE):**
+- 11-04 G872: DL10 early compile ON by default (9f9139bf14; throttled Sim: Driftwood 36.0 -> 27.0 s, Nine 47.3 -> 40.7 s). **Jake phone check: DL10 early compile, default on.**
 - 11-04 G872: WebKit boot links use the existing 10 s link wait (1f3b409670); DC7 / Z15 map.tilesHash-only deltas qualify (images exact).
 - 11-04 G872: OP25 no holograms for the four new plots (card art instead); Sunscar 21/22 goldens promoted; CI reef child budget 30 -> 60 s (12.5 s local); CI disk cleanup step (0c4092e395).
 - 11-04 G872: DL6 pool seed and DL7 home seed deleted (no tap->control win, +3-28 MB wire). LD10 tail (d) de62f8f027: Interactables instance the lent graph look again (E271/E272), 48/48 motion only, board art/golden-runs/driftwood-isle/2026-11-04-c290a78c54-ld10d-ab-board.jpg.
@@ -21,4 +22,4 @@
 
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
 
-**17:15:** live 86f2590; every run red on one or two already-fixed causes, Z15 left a wave (sp-x6 fixing). Z15 DONE (3645e08d62, all-28 0 custom). DC1-DC10 + DC13-15 done, DC12 last. OP24 slice landed. Nine Sim cold 21.3 -> 18.9 s, card freezes 5 -> 3; DL10 under 10 Mb/s: Nine -7.2 s, Driftwood fix 4a7a88be4d in A/B. Phone link packs: Nine -13.5 s, Pine -28 s (bar 121 s missed by 7 s).
+**18:15:** live 86f2590; Z15 fixture reds fixed through 463ab110da (in CI); one local full run clears the rest. Dead code DONE. DL5 Driftwood packs +33.6 s: mostly http preview decoding .br (c24ea060e7); sections-part order fix ready. Plots: Safari ITP purge on 127.0.0.1 (harness only).
