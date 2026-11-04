@@ -9,7 +9,7 @@ import {assembleOutputShardfile, parseOutputIndex} from '../../src/format/output
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../../src/format/spawnManifest';
-import {encodeSpawnParts, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
+import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
 import {BrotliSizeCache} from '../brotli-size-cache.mjs';
@@ -163,18 +163,16 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   }
   // DL5: every manifest is known, so pack their files into shared parts, then write each manifest with its own table.
   const packed = pending.flatMap((row, index) => row.packed ? [index] : []);
-  const packedTables = writeSpawnParts(output, packed.map(index => ({rows: pending[index]?.manifest.files ?? [], public: pending[index]?.public === true})), url => {
+  const encoder = createPartEncoder();
+  const packedTables = await writeSpawnParts(output, packed.map(index => ({rows: pending[index]?.manifest.files ?? [], public: pending[index]?.public === true})), url => {
     const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read();
-  }, url => stableKeys.get(url));
+  }, url => stableKeys.get(url), encoder);
   // DL15: each part's q11 body is written before the manifests, so every part row carries its exact wire size.
-  const encoding = await encodeSpawnParts(output);
-  report?.(encoding);
-  const wireOf = (url: string): number => { const bytes = encoding.wire.get(url); if (bytes === undefined) throw new Error(`Spawn part not encoded: ${url}`); return bytes; };
+  report?.(encoder.stats());
   const written: SpawnManifestAddress[] = [];
   for (const [index, {manifest: base}] of pending.entries()) {
-    const at = packed.indexOf(index), table = packedTables[at] ?? [];
-    for (const part of table) Object.assign(part, {wireBytes: wireOf(part.url)});
-    const manifest = readSpawnManifest(at === -1 ? base : {...base, parts: table});
+    const at = packed.indexOf(index);
+    const manifest = readSpawnManifest(at === -1 ? base : {...base, parts: packedTables[at] ?? []});
     const text = JSON.stringify(manifest), hash = createHash('sha256').update(text).digest('hex'), name = `assets/spawn/${base.shard}-${base.flow}-${base.tier}-${hash.slice(0, 16)}.json`;
     writeFileSync(join(output, name), text);
     written.push({url: `/${name}`, bytes: Buffer.byteLength(text), totalBytes: base.totalBytes, files: base.files.length, ...(base.wireBytes === undefined ? {} : {wireBytes: base.wireBytes})});

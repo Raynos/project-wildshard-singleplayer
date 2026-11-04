@@ -6,10 +6,9 @@
  * still needs more than PART_TARGET parts, its two smallest groups merge, but only when no public entry's over-fetch
  * passes OVER_FETCH of its own bytes. Each group is cut into parts of at most PART_BYTES raw, never inside a file.
  * A part is the raw member bodies on 16-byte boundaries, named by its sha256; the offsets live in each manifest.
- * DL15: a part ships as q11 Brotli (`<name>.pack.br`): the packer writes each raw body at `<name>.pack` and
- * `encodeSpawnParts` replaces it with its encoding. */
+ * DL15: a part ships only as its q11 Brotli body (`<name>.pack.br`), encoded as it is built. */
 import {createHash, randomBytes} from 'node:crypto';
-import {existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, renameSync, rmSync, writeFileSync} from 'node:fs';
 import {once} from 'node:events';
 import {availableParallelism, homedir} from 'node:os';
 import {join, resolve} from 'node:path';
@@ -97,10 +96,12 @@ export function placeByContent(urls: readonly string[], size: (url: string) => n
   for (const url of urls) buckets[Number.parseInt(hash(url).slice(depth * 8, depth * 8 + 8), 16) % count]?.push(url);
   return buckets.flatMap(bucket => placeByContent(bucket, size, hash, depth + 1));
 }
-/** Write every part under `outDir/assets/spawn/parts/` and return each manifest's part table (same order as input). */
-export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInput[], read: (url: string) => Uint8Array,
-  stableKey: (url: string) => string | undefined = () => undefined): SpawnPart[][] {
-  const placed = new Map<string, {url: string; bytes: number; hash: string; offset: number}>(), written: {url: string; bytes: number; hash: string}[] = [];
+/** Write every part under `outDir/assets/spawn/parts/` and return each manifest's part table (same order as input).
+ * DL15 / CI disk: a part is encoded while it is built and only its q11 body is written (`<name>.pack.br`); no raw part
+ * ever lands on disk, and at most one body per encoder lane is held in memory. */
+export async function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInput[], read: (url: string) => Uint8Array,
+  stableKey: (url: string) => string | undefined = () => undefined, encoder: PartEncoder = createPartEncoder()): Promise<SpawnPart[][]> {
+  const placed = new Map<string, {url: string; bytes: number; hash: string; offset: number}>(), wire = new Map<string, number>();
   mkdirSync(join(outDir, 'assets/spawn/parts'), {recursive: true});
   const sizes = new Map(manifests.flatMap(manifest => manifest.rows.map(row => [row.url, row.bytes] as const)));
   // A file's placement follows its stable name (a model's or section's name; else its URL), so an edit that
@@ -111,7 +112,8 @@ export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInp
     if (key === undefined) { key = createHash('sha256').update(stableKey(url) ?? url).digest('hex'); keys.set(url, key); }
     return key;
   };
-  const write = (batch: readonly string[]): void => {
+  const inflight = new Set<Promise<void>>();
+  const write = async (batch: readonly string[]): Promise<void> => {
     const length = batch.reduce((at, url) => align(at) + (sizes.get(url) ?? 0), 0);
     const body = new Uint8Array(length), offsets = new Map<string, number>(); let cursor = 0;
     for (const url of batch) {
@@ -120,23 +122,30 @@ export function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInp
       body.set(bytes, cursor); offsets.set(url, cursor); cursor += bytes.length;
     }
     const hash = createHash('sha256').update(body).digest('hex'), url = `/assets/spawn/parts/${hash.slice(0, 16)}.pack.br`;
-    writeFileSync(join(outDir, `assets/spawn/parts/${hash.slice(0, 16)}.pack`), body); // encodeSpawnParts publishes `url`
     for (const [member, offset] of offsets) placed.set(member, {url, bytes: body.length, hash, offset});
-    written.push({url, bytes: body.length, hash});
+    if (wire.has(url)) return;
+    wire.set(url, 0);
+    while (inflight.size >= encoder.lanes) await Promise.race(inflight);
+    const job = (async () => { const encoded = await encoder.encode(body, hash); writeFileSync(join(outDir, url.slice(1)), encoded); wire.set(url, encoded.length); })();
+    inflight.add(job); void job.finally(() => { inflight.delete(job); }).catch(() => undefined);
   };
-  for (const group of spawnPartGroups(manifests)) {
-    for (const url of group.urls) {
-      const bytes = sizes.get(url) ?? 0;
-      if (bytes > PART_BYTES) throw new Error(`Spawn file larger than a part (${bytes} > ${PART_BYTES}): ${url}`);
+  try {
+    for (const group of spawnPartGroups(manifests)) {
+      for (const url of group.urls) {
+        const bytes = sizes.get(url) ?? 0;
+        if (bytes > PART_BYTES) throw new Error(`Spawn file larger than a part (${bytes} > ${PART_BYTES}): ${url}`);
+      }
+      for (const batch of placeByContent(group.urls, url => sizes.get(url) ?? 0, placementKey)) await write(batch);
     }
-    for (const batch of placeByContent(group.urls, url => sizes.get(url) ?? 0, placementKey)) write(batch);
-  }
+    await Promise.all(inflight);
+  } finally { await encoder.close(); }
   return manifests.map(manifest => {
-    const parts = new Map<string, {url: string; bytes: number; hash: string; members: [number, number][]}>();
+    const parts = new Map<string, {url: string; bytes: number; hash: string; members: [number, number][]; wireBytes: number}>();
     manifest.rows.forEach((row, index) => {
       if (!packable(row.url)) return;
       const at = placed.get(row.url); if (at === undefined) throw new Error(`Spawn file outside every part: ${row.url}`);
-      let part = parts.get(at.url); if (part === undefined) { part = {url: at.url, bytes: at.bytes, hash: at.hash, members: []}; parts.set(at.url, part); }
+      let part = parts.get(at.url);
+      if (part === undefined) { part = {url: at.url, bytes: at.bytes, hash: at.hash, members: [], wireBytes: wire.get(at.url) ?? 0}; parts.set(at.url, part); }
       part.members.push([index, at.offset]);
     });
     for (const part of parts.values()) part.members.sort((a, b) => a[1] - b[1]);
@@ -150,50 +159,48 @@ const ENCODER = `const {parentPort} = process.getBuiltinModule('node:worker_thre
 parentPort.on('message', body => parentPort.postMessage(zlib.brotliCompressSync(body, {params: {[zlib.constants.BROTLI_PARAM_QUALITY]: 11,
   [zlib.constants.BROTLI_PARAM_LGWIN]: 24, [zlib.constants.BROTLI_PARAM_SIZE_HINT]: body.length}})));`;
 const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
-/** DL15 (BP6 / DS5): replace every raw `<name>.pack` the packer wrote with its q11 Brotli `<name>.pack.br`, which
- * vercel.json and the preview server serve as-is with `Content-Encoding: br`. On 40bc516d5c that is 1.0 to 6.2 MB less
- * on the wire per Runtime packs entry than Vercel's on-the-fly q3 (sp-x2), at about 1 MB/s of encoder time cold; parts
- * keep their names across builds (DL18), so each encoding is kept by its body's sha256 in `cacheDir`, and a kept one is
- * used only after it decodes to that body. */
-export interface SpawnPartEncoding {
-  readonly parts: number; readonly rawBytes: number; readonly wireBytes: number; readonly encoded: number;
-  /** Each part's served URL (`/assets/spawn/parts/<name>.pack.br`) → its q11 body's length. */
-  readonly wire: ReadonlyMap<string, number>;
+/** What the build's part encoding did (its report line). */
+export interface SpawnPartEncoding {readonly parts: number; readonly rawBytes: number; readonly wireBytes: number; readonly encoded: number}
+/** DL15 (BP6 / DS5): each part's q11 Brotli body, which vercel.json and the preview server serve as-is with
+ * `Content-Encoding: br`. On 40bc516d5c that is 1.0 to 6.2 MB less on the wire per Runtime packs entry than Vercel's
+ * on-the-fly q3 (sp-x2), at about 1 MB/s of encoder time cold; parts keep their names across builds (DL18), so each
+ * encoding is kept by its body's sha256 in `cacheDir`, and a kept one is used only after it decodes to that body
+ * (bounded by the body's own length). */
+export interface PartEncoder {
+  readonly lanes: number;
+  readonly encode: (body: Uint8Array, hash: string) => Promise<Uint8Array>;
+  readonly stats: () => SpawnPartEncoding;
+  readonly close: () => Promise<void>;
 }
-export async function encodeSpawnParts(outDir: string, cacheDir = process.env['WILDSHARD_SPAWN_PART_CACHE']
-  ?? resolve(homedir(), '.cache/wildshard/gen/spawn-parts-br/1')): Promise<SpawnPartEncoding> {
-  const directory = join(outDir, 'assets/spawn/parts');
-  const names = existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.pack')).sort() : [];
-  const workers: Worker[] = [], sizes = new Map<string, number>();
-  let cursor = 0, rawBytes = 0, wireBytes = 0, encoded = 0;
-  const encode = async (worker: Worker, body: Uint8Array): Promise<Uint8Array> => {
-    const reply = once(worker, 'message'); // rejects on the worker's 'error'
-    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- a worker_threads port has no origin.
-    worker.postMessage(body);
-    const [wire]: unknown[] = await reply;
-    if (!(wire instanceof Uint8Array)) throw new Error('Spawn part encoder returned no bytes');
-    return wire;
+export function createPartEncoder(cacheDir = process.env['WILDSHARD_SPAWN_PART_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/spawn-parts-br/1'),
+  lanes = Math.max(1, availableParallelism() - 2)): PartEncoder {
+  const idle: Worker[] = [], all: Worker[] = [];
+  let parts = 0, rawBytes = 0, wireBytes = 0, encoded = 0;
+  const compress = async (body: Uint8Array): Promise<Uint8Array> => {
+    const worker = idle.pop() ?? (() => { const fresh = new Worker(ENCODER, {eval: true}); all.push(fresh); return fresh; })();
+    try {
+      const reply = once(worker, 'message'); // rejects on the worker's 'error'
+      // oxlint-disable-next-line unicorn/require-post-message-target-origin -- a worker_threads port has no origin.
+      worker.postMessage(body);
+      const [wire]: unknown[] = await reply;
+      if (!(wire instanceof Uint8Array)) throw new Error('Spawn part encoder returned no bytes');
+      return wire;
+    } finally { idle.push(worker); }
   };
-  const lane = async (): Promise<void> => {
-    let worker: Worker | undefined;
-    for (let at = cursor++; at < names.length; at = cursor++) {
-      const name = names[at] ?? '', path = join(directory, name), body = readFileSync(path), hash = sha256(body);
+  return {lanes,
+    encode: async (body, hash) => {
       const kept = join(cacheDir, `${hash}.br`);
       let wire: Uint8Array | undefined;
-      // Decoding is bounded by the body's own length: a kept file that would decode larger is refused, not inflated.
       try { const saved = readFileSync(kept); if (sha256(brotliDecompressSync(saved, {maxOutputLength: body.length})) === hash) wire = saved; } catch { /* not kept yet */ }
       if (wire === undefined) {
-        if (worker === undefined) { worker = new Worker(ENCODER, {eval: true}); workers.push(worker); }
-        wire = await encode(worker, body); encoded++;
+        wire = await compress(body); encoded++;
         const temporary = `${kept}.${process.pid}.${randomBytes(8).toString('hex')}.tmp`;
         try { mkdirSync(cacheDir, {recursive: true}); writeFileSync(temporary, wire, {flag: 'wx'}); renameSync(temporary, kept); }
         catch { rmSync(temporary, {force: true}); /* an unwritable cache only costs the next build its encode */ }
       }
-      writeFileSync(`${path}.br`, wire); rmSync(path);
-      rawBytes += body.length; wireBytes += wire.length; sizes.set(`/assets/spawn/parts/${name}.br`, wire.length);
-    }
-  };
-  try { await Promise.all(Array.from({length: Math.min(names.length, Math.max(1, availableParallelism() - 2))}, lane)); }
-  finally { await Promise.all(workers.map(worker => worker.terminate())); }
-  return {parts: names.length, rawBytes, wireBytes, encoded, wire: sizes};
+      parts++; rawBytes += body.length; wireBytes += wire.length;
+      return wire;
+    },
+    stats: () => ({parts, rawBytes, wireBytes, encoded}),
+    close: async () => { await Promise.all(all.map(worker => worker.terminate())); all.length = 0; idle.length = 0; }};
 }

@@ -7,7 +7,7 @@ import { brotliDecompressSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Part hashes.
 import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
-import { PART_BYTES, encodeSpawnParts, packable, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
+import { PART_BYTES, createPartEncoder, packable, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
 import { readSpawnManifest, type SpawnFile } from '../src/format/spawnManifest';
 
 mkdirSync('tmp', { recursive: true });
@@ -16,11 +16,14 @@ afterAll(() => rmSync(out, { recursive: true, force: true }));
 const body = (url: string, bytes: number): Uint8Array => Uint8Array.from({ length: bytes }, (_, at) => (url.length * 31 + at) % 251);
 const file = (url: string, bytes: number): SpawnFile => ({ url, bytes, hash: 'a'.repeat(64) });
 const manifest = (rows: SpawnFile[], open = true): SpawnPartInput => ({ rows, public: open });
+// Each test build encodes with its own kept-encoding folder and two lanes (never the user's cache).
+const encoder = (cache = join(out, 'part-cache')) => createPartEncoder(cache, 2);
+const decoded = (dir: string, url: string): Uint8Array => brotliDecompressSync(readFileSync(join(dir, url.slice(1))));
 
-test('every manifest file is one aligned member of a shared part, with its exact bytes', () => {
+test('every manifest file is one aligned member of a shared part, with its exact bytes', async () => {
   const shared = file('/assets/code-aaaaaaaa.js', 1001), a = file('/shardfiles/a/blobs/glb/1.glb', 333), b = file('/shardfiles/b/blobs/glb/2.glb', 77);
   const inputs = [manifest([shared, a]), manifest([shared, b]), manifest([a, b], false)];
-  const tables = writeSpawnParts(out, inputs, url => body(url, [shared, a, b].find(row => row.url === url)?.bytes ?? 0));
+  const tables = await writeSpawnParts(out, inputs, url => body(url, [shared, a, b].find(row => row.url === url)?.bytes ?? 0), undefined, encoder());
   const packedAt = new Map<string, string>();
   tables.forEach((parts, index) => {
     const rows = inputs[index]?.rows ?? [];
@@ -30,7 +33,7 @@ test('every manifest file is one aligned member of a shared part, with its exact
     expect(parts.flatMap(part => part.members.map(([member]) => member)).sort((left, right) => left - right))
       .toEqual(rows.flatMap((row, at) => row.url.endsWith('.js') ? [] : [at]));
     for (const part of parts) {
-      const bytes = readFileSync(join(out, part.url.slice(1).replace(/\.br$/u, ''))); // the raw body, before encodeSpawnParts
+      const bytes = decoded(out, part.url); // only the q11 body is written
       expect(bytes.length).toBe(part.bytes);
       for (const [member, offset] of part.members) {
         const row = rows[member]; if (row === undefined) throw new Error('Missing member row');
@@ -43,7 +46,7 @@ test('every manifest file is one aligned member of a shared part, with its exact
   });
 });
 
-test('public entries steer the merge within the over-fetch cap; the grammar refuses broken tables', () => {
+test('public entries steer the merge within the over-fetch cap; the grammar refuses broken tables', async () => {
   // Entry 0 needs a shared core and twelve small files; entry i needs the core and small file i. That is 13 groups
   // for entry 0, so small groups merge while each entry's added bytes stay within 10 % of its own.
   const rows = Array.from({ length: 12 }, (_, at) => file(`/shardfiles/s/blobs/bin/${at}.bin`, 1000));
@@ -56,7 +59,7 @@ test('public entries steer the merge within the over-fetch cap; the grammar refu
   expect(parts(spawnPartGroups(setOf(file('/shardfiles/s/blobs/bin/core.bin', 5000))))).toBe(13);
   // A file larger than a part is refused: every part stays within 12 MB.
   const big = file('/shardfiles/s/blobs/bin/big.bin', PART_BYTES + 1);
-  expect(() => writeSpawnParts(out, [manifest([big])], () => new Uint8Array(PART_BYTES + 1))).toThrow('Spawn file larger than a part');
+  await expect(writeSpawnParts(out, [manifest([big])], () => new Uint8Array(PART_BYTES + 1), undefined, encoder())).rejects.toThrow('Spawn file larger than a part');
   // Shard images are fetched, so they pack; the shell's /assets/ images and code stay loose.
   expect(packable('/shardfiles/s/blobs/png/a.png')).toBe(true);
   expect(packable('/assets/title/hero-0123abcd.webp')).toBe(false); expect(packable('/assets/code-0123abcd.js')).toBe(false);
@@ -68,7 +71,7 @@ test('public entries steer the merge within the over-fetch cap; the grammar refu
   expect(readSpawnManifest({ ...base, parts: [part([[0, 0], [1, 1008]])] }).parts?.[0]?.members).toEqual([[0, 0], [1, 1008]]);
 });
 
-test('a resized named file changes only its own part', () => {
+test('a resized named file changes only its own part', async () => {
   // Twelve 1 MB models in one group: more than one part. Model 3 is re-exported larger under a new content name.
   const named = (at: number, bytes: number, edit = ''): SpawnFile => file(`/shardfiles/s/blobs/glb/${at}${edit}.glb`, bytes);
   const before = Array.from({ length: 12 }, (_, at) => named(at, 1_000_000));
@@ -80,11 +83,11 @@ test('a resized named file changes only its own part', () => {
     const value = seed(url);
     return Uint8Array.from({ length: rows.find(row => row.url === url)?.bytes ?? 0 }, (_, at) => (value + at) % 251);
   };
-  const pack = (rows: SpawnFile[]): Map<string, string> => {
-    const [parts] = writeSpawnParts(out, [manifest(rows)], read(rows), keyOf);
+  const pack = async (rows: SpawnFile[]): Promise<Map<string, string>> => {
+    const [parts] = await writeSpawnParts(out, [manifest(rows)], read(rows), keyOf, encoder());
     return new Map((parts ?? []).flatMap(part => part.members.map(([member]) => [rows[member]?.url ?? '', part.url] as const)));
   };
-  const first = pack(before), second = pack(after);
+  const first = await pack(before), second = await pack(after);
   expect(new Set(first.values()).size).toBeGreaterThan(1);
   const changed = new Set<string>();
   for (const [url, part] of second) if (first.get(url) !== part) changed.add(part);
@@ -92,39 +95,40 @@ test('a resized named file changes only its own part', () => {
   expect([...changed]).toEqual([second.get(named(3, 0, '-edited').url)]);
 });
 
-test('two builds that differ only in shard.json stamps keep every part name', () => {
+test('two builds that differ only in shard.json stamps keep every part name', async () => {
   // DL18: the product header (shard.json) carries the build's validator stamp; it stays loose, so parts depend only on
   // their content-named members.
   const members = Array.from({ length: 6 }, (_, at) => file(`/shardfiles/s/blobs/glb/${at}.glb`, 2_000_000));
   const header = (stamp: string): SpawnFile => file(`/shardfiles/s/shard.json?v=${stamp}`, 400);
-  const parts = (stamp: string): string[] => {
+  const parts = async (stamp: string): Promise<string[]> => {
     const rows = [header(stamp), ...members];
-    const [table] = writeSpawnParts(out, [manifest(rows)], url => url.includes('shard.json') ? body(`${url}${stamp}`, 400) : body(url, 2_000_000));
+    const [table] = await writeSpawnParts(out, [manifest(rows)], url => url.includes('shard.json') ? body(`${url}${stamp}`, 400) : body(url, 2_000_000), undefined, encoder());
     expect((table ?? []).some(part => part.members.some(([member]) => member === 0))).toBe(false);
     return (table ?? []).map(part => part.url).sort();
   };
   expect(packable('/shardfiles/s/shard.json?v=aaaaaaaa')).toBe(false);
-  expect(parts('aaaaaaaa')).toEqual(parts('bbbbbbbb'));
+  expect(await parts('aaaaaaaa')).toEqual(await parts('bbbbbbbb'));
 });
 
 test('parts ship as q11 Brotli bodies, kept by content between builds', async () => {
-  // DL15: encodeSpawnParts replaces each raw part with its .pack.br; a second build reuses the kept encodings, and a
-  // kept encoding that no longer decodes to its body is made again.
+  // DL15: only each part's q11 body is written (no raw part on disk, CI disk); a second build reuses the kept
+  // encodings, and a kept encoding that no longer decodes to its body is made again.
   const root = mkdtempSync(resolve('tmp/spawn-parts-br-')), cache = join(root, 'cache');
   try {
     const rows = Array.from({length: 4}, (_, at) => file(`/shardfiles/s/blobs/bin/${at}.bin`, 5_000_000));
     const build = async (name: string) => {
-      const dir = join(root, name), [table] = writeSpawnParts(dir, [manifest(rows)], url => body(`${url}x`, 5_000_000));
-      return {dir, table: table ?? [], result: await encodeSpawnParts(dir, cache)};
+      const dir = join(root, name), parts = encoder(cache), [table] = await writeSpawnParts(dir, [manifest(rows)], url => body(`${url}x`, 5_000_000), undefined, parts);
+      return {dir, table: table ?? [], result: parts.stats()};
     };
     const first = await build('one');
     expect(first.table.length).toBeGreaterThan(1);
     expect(first.result).toMatchObject({parts: first.table.length, encoded: first.table.length, rawBytes: first.table.reduce((sum, part) => sum + part.bytes, 0)});
     expect(first.result.wireBytes).toBeLessThan(first.result.rawBytes);
     expect(readdirSync(join(first.dir, 'assets/spawn/parts')).every(name => name.endsWith('.pack.br'))).toBe(true);
+    for (const part of first.table) expect(part.wireBytes).toBe(readFileSync(join(first.dir, part.url.slice(1))).length);
     for (const part of first.table) {
-      const decoded = brotliDecompressSync(readFileSync(join(first.dir, part.url.slice(1))));
-      expect(decoded.length).toBe(part.bytes); expect(createHash('sha256').update(decoded).digest('hex')).toBe(part.hash);
+      const raw = decoded(first.dir, part.url);
+      expect(raw.length).toBe(part.bytes); expect(createHash('sha256').update(raw).digest('hex')).toBe(part.hash);
     }
     expect((await build('two')).result.encoded).toBe(0);
     const [kept] = readdirSync(cache); if (kept === undefined) throw new Error('Missing kept encoding');
