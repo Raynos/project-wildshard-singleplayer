@@ -9,6 +9,9 @@
 //   --trace=on (Chromium): who asked for level content after control (each request's initiator stack, CDP) and every
 //   `wildshard.prepare:*` measure against control on the page clock, as report.trace; not part of the verdict;
 //   --dist=<the served build's dist> maps every frame through its hidden source maps
+//   --frames=<s> (G1008): every rAF interval for <s> seconds from control (fps per second, worst frame, frames over 250
+//   and 100 ms) as report.frames, before the lap; --profile=on (Chromium) adds the page's CPU profile over the same window
+//   (self time per function and inclusive time per file, through --dist's maps)
 //   --warm=on: no lap: the cold visit, an exit and re-entry 1 s after control while the service worker's post-control
 //   precache still runs (039d's trap), and a re-entry once the worker has gone quiet, each visit judged by checks 1 and 2
 //
@@ -43,14 +46,14 @@ import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop } from './complete-at-control-snapshot.mjs';
 import { execFileSync } from 'node:child_process';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist', 'frames', 'profile'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
@@ -59,6 +62,7 @@ if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9
 const engine = values.engine ?? 'chromium', reach = Number(values.reach ?? '220'), sw = values.sw ?? 'on', linkName = values.link ?? 'none';
 // --lap overrides each boost-lap leg's time bound (default: the leg's length at 20 m/s plus 15 s)
 const lapSeconds = Number(values.lap ?? '60');
+const frameSeconds = Number(values.frames ?? '0');
 if (![undefined, 'shardfile', 'packs'].includes(values['level-download'])) { console.error('bad --level-download'); process.exit(2); }
 // --textures=ktx2|img pins the page's texture mode (the harness pin): a texture-policy change measured on a clean build
 if (![undefined, 'ktx2', 'img'].includes(values.textures)) { console.error('bad --textures'); process.exit(2); }
@@ -150,19 +154,18 @@ const distBinding = () => {
   }
   return null;
 };
-const mapped = (rows) => {
-  if (values.dist === undefined) return rows;
+/** A served frame's source (`path:line name`) through --dist's hidden maps (1-based line and column), else null. */
+const sourceOf = (frame) => {
+  if (values.dist === undefined) return null;
   const require = createRequire(resolve('package.json')), { TraceMap, originalPositionFor } = require('@jridgewell/trace-mapping');
-  const where = (frame) => {
-    const file = /\/assets\/([^?#]+\.js)/u.exec(frame.url)?.[1];
-    if (file === undefined) return null;
-    const path = resolve(values.dist, 'assets', file);
-    if (!sourceMaps.has(path)) sourceMaps.set(path, existsSync(`${path}.map`) ? new TraceMap(readFileSync(`${path}.map`, 'utf8')) : null);
-    const map = sourceMaps.get(path), at = map === null ? null : originalPositionFor(map, { line: frame.line, column: Math.max(0, frame.col - 1) });
-    return at?.source ? `${at.source.replace(/^(?:\.\.\/)+/u, '')}:${at.line}${at.name ? ` ${at.name}` : ''}` : null;
-  };
-  return rows.map(row => ({ ...row, frames: row.frames.map(frame => ({ ...frame, src: where(frame) })) }));
+  const file = /\/assets\/([^?#]+\.js)/u.exec(frame.url)?.[1];
+  if (file === undefined) return null;
+  const path = resolve(values.dist, 'assets', file);
+  if (!sourceMaps.has(path)) sourceMaps.set(path, existsSync(`${path}.map`) ? new TraceMap(readFileSync(`${path}.map`, 'utf8')) : null);
+  const map = sourceMaps.get(path), at = map === null ? null : originalPositionFor(map, { line: frame.line, column: Math.max(0, frame.col - 1) });
+  return at?.source ? `${at.source.replace(/^(?:\.\.\/)+/u, '').replace(/^build-mirror\/check\/tree\//u, '')}:${at.line}${at.name ? ` ${at.name}` : ''}` : null;
 };
+const mapped = (rows) => (values.dist === undefined ? rows : rows.map(row => ({ ...row, frames: row.frames.map(frame => ({ ...frame, src: sourceOf(frame) })) })));
 // --link=phone: DL0's one shared downlink (scripts/phone-loading/link.ts) at the phone preset's rate, page and service worker
 // on the same proxy, loopback included (latency and CPU stay unshaped here)
 const link = linkName === 'phone' ? await startSharedLink(profiles.phone.down) : null;
@@ -181,9 +184,21 @@ try {
   await context.addInitScript(hideDeveloperOverlays);
   await harnessPins(context, { seed: 357, browser: `${engine} / iPhone 16 Pro`, lane: 'dl17', sha: rev, ...(values.textures === undefined ? {} : { textures: values.textures }) });
   const control = { at: null };
-  await context.exposeBinding('__dl17Control', () => { control.at ??= Date.now(); });
+  // --profile: the page's CPU from the control frame on (CDP Profiler, Chromium), for the first seconds of play (G1008)
+  let profiler = null;
+  await context.exposeBinding('__dl17Control', () => { control.at ??= Date.now(); void profiler?.send('Profiler.start').catch(() => undefined); });
   // the baseline is the control frame itself: the snapshot runs in it, before the binding returns to Node
   await context.addInitScript({ content: `window.__dl17Reach = ${JSON.stringify(reach)}; window.__dl17Snapshot = ${snapshot.toString()};` });
+  // --frames=<s> (G1008, Jake: 'how quickly can you play and how smoothly in the first 30 seconds after the loading screen'):
+  // every rAF interval from the control event on, for that long
+  if (frameSeconds > 0) await context.addInitScript({ content: `(() => {
+    const frames = []; Object.defineProperty(window, '__dl17Frames', { value: frames });
+    document.addEventListener('ws:control-ready', () => {
+      const start = performance.now(); let last = start;
+      const tick = now => { frames.push([Math.round(last - start), Math.round((now - last) * 10) / 10]); last = now; if (now - start < ${frameSeconds * 1000}) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }, { once: true });
+  })();` });
   await context.addInitScript(() => {
     document.addEventListener('ws:control-ready', () => {
       requestAnimationFrame(() => {
@@ -226,6 +241,10 @@ try {
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
   const page = await context.newPage();
   page.setDefaultTimeout(240000);
+  if (values.profile === 'on' && engine === 'chromium') {
+    profiler = await context.newCDPSession(page);
+    await profiler.send('Profiler.enable'); await profiler.send('Profiler.setSamplingInterval', { interval: 500 });
+  }
   const initiators = [], workers = [];
   if (values.trace === 'on' && engine === 'chromium') {
     const cdp = await context.newCDPSession(page);
@@ -393,6 +412,14 @@ try {
 
   const cold = await enter();
   report.tapToControlMs = cold.ms;
+  if (frameSeconds > 0) {
+    // the first seconds of play, before the lap moves the player (G1008): fps per second, the worst frames
+    const until = (control.at ?? Date.now()) + frameSeconds * 1000 + 500;
+    while (Date.now() < until) await page.waitForTimeout(250);
+    const frames = await page.evaluate(() => Reflect.get(window, '__dl17Frames') ?? []);
+    report.frames = firstSeconds(frames, frameSeconds);
+    if (profiler !== null) report.frames.profile = profileTop((await profiler.send('Profiler.stop')).profile, sourceOf);
+  }
   const reachCells = reachOf(cold.at);
   report.reachCells = reachCells;
   if (values.warm === 'on') {

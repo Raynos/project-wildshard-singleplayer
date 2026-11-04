@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The span anchors are checked against today's grid session source.
 import { readFileSync } from 'node:fs';
-import { lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from '../scripts/complete-at-control-snapshot.mjs';
+import { lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop } from '../scripts/complete-at-control-snapshot.mjs';
 
 // a snapshot's mesh row: [uuid, chain, signature `geometry|positions|indices|material:map:width`, shown, within reach, skinned]
 const row = (id, chain, geometry, map, shown = true, close = true, skinned = false) => [id, chain, `${geometry}|36|0|mat:${map}:256`, shown, close, skinned];
@@ -142,4 +142,27 @@ test('the boost lap drives route legs and names the containment legs it skips', 
   expect(skipped).toEqual(['escape-wall']);
   // out of reach is neither driven nor named
   expect(skipped).not.toContain('far');
+});
+
+test('the first seconds after control: fps per second, the worst frame and the long ones (G1008)', () => {
+  const frames = [[0, 16], [16, 16], [32, 4432], [4464, 16], [4480, 120], [4600, 16]];
+  const read = firstSeconds(frames, 5);
+  expect(read.fps).toEqual([3, 0, 0, 0, 3]);
+  expect(read.worstMs).toBe(4432); expect(read.over250).toBe(1); expect(read.over100).toBe(2);
+  expect(read.long).toEqual([{ at: 32, ms: 4432 }, { at: 4480, ms: 120 }]);
+});
+
+test('a CPU profile reads as self time by mapped function and inclusive time by file', () => {
+  const frame = (functionName, url, lineNumber) => ({ functionName, url, lineNumber, columnNumber: 0 });
+  const profile = { nodes: [
+    { id: 1, callFrame: frame('(root)', '', 0), children: [2, 4] },
+    { id: 2, callFrame: frame('a', 'https://x/assets/main.js', 9), children: [3] },
+    { id: 3, callFrame: frame('b', 'https://x/assets/main.js', 19), children: [] },
+    { id: 4, callFrame: frame('(garbage collector)', '', 0), children: [] },
+  ], samples: [3, 3, 2, 4], timeDeltas: [1000, 1000, 2000, 500] };
+  const sourceOf = f => (f.line === 10 ? 'src/a.ts:10 a' : f.line === 20 ? 'src/b.ts:20 b' : null);
+  const top = profileTop(profile, sourceOf);
+  expect(top.totalMs).toBe(5); // 4.5 ms rounds up
+  expect(top.self).toEqual([['src/b.ts:20 b', 2], ['src/a.ts:10 a', 2], ['(garbage collector)', 1]]); // ties keep sampling order
+  expect(top.files).toEqual([['src/a.ts', 4], ['src/b.ts', 2]]);
 });

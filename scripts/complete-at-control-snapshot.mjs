@@ -214,3 +214,35 @@ export function lapLegs(all, offset, player, reach) {
   }
   return { legs, skipped };
 }
+
+/** G1008: the first seconds after control from rAF intervals `[msFromControl, frameMs]`: frames per second, the worst frame,
+ *  how many ran over 250 ms (the bar) and over 100 ms, and the longest frames with when they began. */
+export function firstSeconds(frames, seconds) {
+  const fps = Array.from({ length: seconds }, (_, i) => frames.filter(([at]) => at >= i * 1000 && at < (i + 1) * 1000).length);
+  const worst = frames.reduce((max, [, ms]) => Math.max(max, ms), 0);
+  const long = [...frames].filter(([, ms]) => ms > 100).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([at, ms]) => ({ at, ms }));
+  return { seconds, frames: frames.length, fps, worstMs: worst, over250: frames.filter(([, ms]) => ms > 250).length,
+    over100: frames.filter(([, ms]) => ms > 100).length, long };
+}
+/** A CDP CPU profile's self time by function (source-mapped where `sourceOf` maps it) and inclusive time by source file,
+ *  in ms, the top 25 of each: what the page's main thread spent its first seconds of play on. */
+export function profileTop(profile, sourceOf) {
+  const nodes = new Map(profile.nodes.map(node => [node.id, node])), parent = new Map();
+  for (const node of profile.nodes) for (const child of node.children ?? []) parent.set(child, node.id);
+  const keyOf = new Map(), fileOf = new Map();
+  for (const node of profile.nodes) {
+    const f = node.callFrame, src = f.url === '' ? null : sourceOf({ url: f.url, line: f.lineNumber + 1, col: f.columnNumber + 1 });
+    const name = f.functionName === '' ? '(anonymous)' : f.functionName;
+    keyOf.set(node.id, src ?? (f.url === '' ? name : `${name} ${f.url.split('/').pop()}:${f.lineNumber + 1}`));
+    fileOf.set(node.id, src === null ? null : src.split(':')[0]);
+  }
+  const self = new Map(), files = new Map(); let total = 0;
+  profile.samples.forEach((id, i) => {
+    const ms = (profile.timeDeltas[i] ?? 0) / 1000; total += ms;
+    const key = keyOf.get(id) ?? '?'; self.set(key, (self.get(key) ?? 0) + ms);
+    const seen = new Set();
+    for (let at = id; at !== undefined; at = parent.get(at)) { const file = fileOf.get(at); if (file !== null && file !== undefined && !seen.has(file)) { seen.add(file); files.set(file, (files.get(file) ?? 0) + ms); } if (!nodes.has(at)) break; }
+  });
+  const top = map => [...map].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([key, ms]) => [key, Math.round(ms)]);
+  return { totalMs: Math.round(total), self: top(self), files: top(files) };
+}
