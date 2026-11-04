@@ -578,3 +578,42 @@ in `tmp/wave-a-audio/clockwork-canyon-readings/publication-prep.json`;
 no partial catalogue or active binding is published. Both-engine SFX,
 full score qualification, bounded AAC/credits publication, body/wire
 proof and full native playback remain open.
+
+
+### Four-set handover and Clockwork Medium progress
+
+The coordinator transferred Clockwork, Desert, Floating Island Race and
+Showcase audio to sp-x1 while sp-x6 measures DL9. The four prepared job
+sets (`06dffdf848`) each retain two MiniMax score takes, one bed and six
+anchored spot families, with both MOSS v2 and Stable Audio 3 Medium
+required for every SFX. No fallback or omission is approved for these sets.
+The four final-audio C/control reports remain open.
+
+The one authorized Clockwork resume check runs the original
+`~/ml/music/mem-ok2.sh` unchanged at **19:48:39** and returns **1**:
+pressure 1, 86% free, swap 3,068.69 MB, peer Codex PID 9728 reported
+**18G** in the guard's own `top` MEM column, above its unchanged 15 GB
+bound. The earlier approximately 14.5 GB RSS observation is a different
+field and does not override this refusal. No model is loaded by this
+check; no peer is excluded, no guard or bound changes, and no unchanged
+MOSS retry follows. Raw output is
+`tmp/sp-x1-audio/clockwork-resume-guard.log`. MOSS remains parked until
+the original condition changes and its guard admits.
+
+At sp-x6's literal model-free gap, the original maintained
+`ob7_run.sh medium clockwork-canyon` completes in **22.358 s**, exit 0,
+under the normal shared model lock, outer memory admission and 30-minute
+cap. All seven original seed-701 takes exist: a 30 s bed and six 12 s
+spots, stereo 44,100 Hz PCM. Each sidecar's family, prompt, ranking
+description and seed matches the prepared job; wave/metadata SHA-256
+and positive frame counts are independently checked in
+`tmp/sp-x1-audio/clockwork-medium-inventory.json`. The maintained raw log
+is `tmp/ob7-audio/clockwork-canyon-medium.log`. The process exits, owned
+cleanup finishes and the shared lock is released before sp-x6 resumes
+its corrected DL9 cohort.
+
+These are raw integrity checks, **not measured fit or publication**.
+Clockwork vocal/theme qualification, the MOSS pair, CLAP ranking, bounded
+AAC/credits publication, body/wire proof, complete native bar 10 and final
+C/control remain open. No by-ear verdict, activation, new fallback or
+audio/documentation push is claimed.
