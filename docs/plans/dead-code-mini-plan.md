@@ -305,7 +305,7 @@ the cut, and no production rendering or HUD source changes.
 
 ### DC12: lint, budget and allow-list entries that name deleted files (~355 entries, 7 files) · Codex · S
 
-**source committed (2026-11-04, sp-x2): `793c258d2e`.** Fresh HEAD
+**done (2026-11-04, sp-x2): `793c258d2e`, plan `f641d311d5`, both verified on origin/main.** Fresh HEAD
 census and policy-reader searches retired **2,413 missing-file entries in
 six policies**, after DC7 qualification: 1,488 performance sites, 906
 coupling sites, 13 obsolete SDK dist chunks, two private product JSON
