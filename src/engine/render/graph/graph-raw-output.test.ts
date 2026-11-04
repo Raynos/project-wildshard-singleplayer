@@ -1,54 +1,27 @@
-import { afterAll, expect, test, vi } from 'vitest';
-import * as THREE from 'three';
-import { compileGraph } from './compile';
-import { EngineNodesHandler } from '../nodes/engineNodesHandler';
+import { expect, test } from 'vitest';
+import { compileClassicGraph } from './glslMaterial';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
-vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
-afterAll(() => { vi.unstubAllGlobals(); });
-
-/** the fragment shader a graph builds drawn to the screen (an sRGB canvas), and its program key */
-function onScreen(graph: GraphIr): { fragment: string; key: string } {
-  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
-  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
-  const fields: Record<string, unknown> = {
-    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
-    toneMapping: THREE.NoToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
-    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
-    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
-  };
-  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const handler = new EngineNodesHandler(), material = compileGraph(graph).material;
-  handler.setRenderer(renderer);
-  const geometry = new THREE.PlaneGeometry(1, 1), object = new THREE.Mesh(geometry, material);
-  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
-  scene.add(object); handler.renderStart(scene, camera); handler.updateLights([]);
-  const parameters: object = {};
-  const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
-  if (!isParameters(parameters)) throw new Error('Missing parameters');
-  try {
-    handler.setObject(object, material);
-    const key = material.customProgramCacheKey();
-    handler.build(material, object, parameters);
-    return { fragment: parameters.fragmentShader, key };
-  } finally { handler.renderEnd(); geometry.dispose(); material.dispose(); }
+/** the classic program's fragment main: the output steps three runs for the draw are its chunks */
+function onScreen(graph: GraphIr): { fragment: string; toneMapped: boolean } {
+  const material = compileClassicGraph(graph).material, fragment = material.fragmentShader;
+  try { return { fragment: fragment.slice(fragment.indexOf('void main()')), toneMapped: material.toneMapped }; } finally { material.dispose(); }
 }
-
 const colour = (model: 'unlit' | 'standard'): GraphIr => ({ version: 1, kind: 'material', model, nodes: {}, stages: { surface: { colour: [0.6, 0.05, 0.04] } }, effectState: { fog: false } });
+const ENCODE = /#include <colorspace_fragment>/u, TONE = /#include <tonemapping_fragment>/u;
 
 // G477 OE: an unlit graph stands for a raw GLSL program (a ShaderMaterial without colorspace_fragment). Drawn to the
 // screen (a plain capture, the map bake) it wrote sRGB-encoded colour, paler than the program it replaced: Nine's lantern
-// rim went from cinnabar to orange, Nalati's river paled on the baked map. Inside a target both stay linear.
 test('an unlit graph has no output transform on screen; a lit graph keeps the classic sRGB encode', () => {
   const unlit = onScreen(colour('unlit')), lit = onScreen(colour('standard'));
-  expect(unlit.fragment).not.toMatch(/sRGBTransferOETF/u);
-  expect(lit.fragment).toMatch(/sRGBTransferOETF/u);
-  expect(unlit.key).toContain('|out:raw');
-  expect(lit.key).not.toContain('|out:raw');
+  expect(unlit.fragment).not.toMatch(ENCODE);
+  expect(unlit.fragment).not.toMatch(TONE);
+  expect(unlit.toneMapped).toBe(false);
+  expect(lit.fragment).toMatch(ENCODE);
 });
 
 test('a clone of an unlit graph keeps its raw output', () => {
-  const material = compileGraph(colour('unlit')).material;
+  const material = compileClassicGraph(colour('unlit')).material;
   try { expect(material.clone().userData['graphRawOutput']).toBe(true); } finally { material.dispose(); }
 });
 
@@ -57,10 +30,10 @@ test('explicit linear colour output encodes the display without tone mapping', (
   const checked = validateGraph(graph); expect(checked.ok).toBe(true);
   if (!checked.ok) throw new Error('Invalid colour output');
   expect(checked.graph.effectState?.output).toBe('colour');
-  const shader = onScreen(checked.graph), material = compileGraph(checked.graph).material;
+  const shader = onScreen(checked.graph), material = compileClassicGraph(checked.graph).material;
   try {
-    expect(shader.fragment).toMatch(/sRGBTransferOETF/u); expect(shader.key).not.toContain('|out:raw');
-    expect(material.toneMapped).toBe(false);
+    expect(shader.fragment).toMatch(ENCODE); expect(shader.fragment).not.toMatch(TONE);
+    expect(material.userData['graphRawOutput']).toBeUndefined();
   } finally { material.dispose(); }
   expect(validateGraph({ ...graph, model: 'standard' }).ok).toBe(false);
   expect(validateGraph({ ...graph, effectState: { output: 'unknown' } }).ok).toBe(false);

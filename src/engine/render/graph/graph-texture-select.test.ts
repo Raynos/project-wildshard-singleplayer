@@ -1,37 +1,14 @@
-import { afterAll, expect, it, vi } from 'vitest';
+import { expect, it } from 'vitest';
 import * as THREE from 'three';
 import type { GraphIr } from '@wildshard/format/materialGraph';
-import { compileGraph } from './compile';
-import { EngineNodesHandler } from '../nodes/engineNodesHandler';
+import { compileClassicGraph } from './glslMaterial';
 
-vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
-afterAll(() => { vi.unstubAllGlobals(); });
-/** Compile the actual classic-renderer GLSL without a GPU/context. */
-function program(graph: GraphIr): THREE.WebGLProgramParametersWithUniforms {
-  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
-  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
-  const fields: Record<string, unknown> = {
-    extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
-    toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
-    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
-    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
-  };
-  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const sampled = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-  const handler = new EngineNodesHandler(), material = compileGraph(graph, { textures: () => sampled }).material;
-  handler.setRenderer(renderer);
-  const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
-  geometry.setAttribute('aDirection', new THREE.Float32BufferAttribute([1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0], 3));
-  const object = new THREE.Mesh(geometry, material);
-  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
-  scene.add(object); handler.renderStart(scene, camera); handler.updateLights([]);
-  const parameters: object = {};
-  const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
-  if (!isParameters(parameters)) throw new Error('Missing parameters');
-  try { handler.build(material, object, parameters); return parameters; }
-  finally { geometry.dispose(); material.dispose(); sampled.dispose(); }
+const sampled = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+/** the classic program's fragment main */
+function fragment(graph: GraphIr): string {
+  const material = compileClassicGraph(graph, { textures: () => sampled }).material, shader = material.fragmentShader;
+  try { return shader.slice(shader.indexOf('void main()')); } finally { material.dispose(); }
 }
-
 
 it('keeps costly texture arms outside divergent shader branches', () => {
   const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit',
@@ -43,25 +20,25 @@ it('keeps costly texture arms outside divergent shader branches', () => {
       colour: { op: 'select', in: ['condition', 'costlyA', 'costlyB'] } },
     stages: { surface: { colour: 'colour' } },
   };
-  const sampled = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-  const compiled = compileGraph(graph, { textures: () => sampled });
+  const compiled = compileClassicGraph(graph, { textures: () => sampled });
   try {
     expect(compiled.selects.branch).toBe(0);
     expect(compiled.selects.light).toBeGreaterThan(0);
-    const shader = program(graph).fragmentShader;
+    const shader = fragment(graph);
     expect(shader).toContain('mix(');
     expect(shader).toContain('texture(');
-    expect(shader).toMatch(/mix\([^;]*pow/u);
+    expect(shader).not.toMatch(/\bif \(/u);
+    // both sampled arms are built before the select mixes them
+    expect(shader.lastIndexOf('pow(')).toBeLessThan(shader.indexOf('mix('));
     const booleanArms: GraphIr = { ...graph, nodes: { ...graph.nodes,
       scalarA: { op: 'swizzle', in: ['costlyA'], mask: 'x' }, scalarB: { op: 'swizzle', in: ['costlyB'], mask: 'x' },
       testA: { op: 'lt', in: ['scalarA', 0.5] }, testB: { op: 'lt', in: ['scalarB', 0.5] },
       chosen: { op: 'select', in: ['condition', 'testA', 'testB'] },
       colour: { op: 'select', in: ['chosen', [0.2, 0.5, 0.2], [0.5, 0.2, 0.2]] } } };
-    const booleanCompiled = compileGraph(booleanArms, { textures: () => sampled });
-    try { expect(booleanCompiled.selects.branch).toBe(0); expect(program(booleanArms).fragmentShader).toContain('bool('); }
+    const booleanCompiled = compileClassicGraph(booleanArms, { textures: () => sampled });
+    try { expect(booleanCompiled.selects.branch).toBe(0); expect(fragment(booleanArms)).not.toMatch(/\bif \(/u); }
     finally { booleanCompiled.material.dispose(); }
-
-  } finally { compiled.material.dispose(); sampled.dispose(); }
+  } finally { compiled.material.dispose(); }
 });
 
 it('branches around rejected arithmetic inside a bounded loop', () => {
@@ -75,7 +52,7 @@ it('branches around rejected arithmetic inside a bounded loop', () => {
         contribution: { op: 'add', in: ['acc', 'colour'] },
         chosen: { op: 'select', in: ['condition', 'contribution', 'acc'] },
       }, out: 'chosen' } } }, stages: { surface: { colour: 'fog' } } };
-  const shader = program(graph).fragmentShader;
+  const shader = fragment(graph);
   expect(shader).toMatch(/for\s*\([^]*if\s*\(/u);
   expect(shader).toMatch(/if\s*\([^]*noise_float/u);
 });
@@ -93,6 +70,11 @@ it('computes a reused branch result before its separate consumers', () => {
       first: { op: 'select', in: ['ca', 'va', 0] }, second: { op: 'select', in: ['cb', 'vb', 0] },
       sum: { op: 'add', in: ['first', 'second'] }, colour: { op: 'mul', in: ['sum', [1, 1, 1]] },
     }, stages: { surface: { colour: 'colour' } } };
-  const shader = program(graph).fragmentShader.split('void main()')[1] ?? '';
-  expect(shader.match(/mx_perlin_noise_float_\d+\(/gu)).toHaveLength(3);
+  const shader = fragment(graph);
+  expect(shader.match(/mx_perlin_noise_float\(/gu)).toHaveLength(3);
+  // the shared result is built once, before both consumers' branches
+  const shared = shader.search(/t\d+_shared = t\d+_seed;/u);
+  expect(shared).toBeGreaterThan(-1);
+  expect(shader.indexOf('_na = ')).toBeGreaterThan(shared);
+  expect(shader.indexOf('_nb = ')).toBeGreaterThan(shared);
 });
