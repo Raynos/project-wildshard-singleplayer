@@ -20,7 +20,6 @@ import type { LevelSpec } from '../level/spec';
 import { jsonSlot } from '../saves/slots';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { EARLY_PROGRAMS_SLOT } from '../boot/earlyPrograms';
-import { FULL_RELEASE_SLOT } from '../render/fullRelease';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { markReload } from '../boot/lastEnd';
 import { settingsReloadUrl } from './Settings';
@@ -142,16 +141,6 @@ const earlyProgramsRow: DebugRow = { id: 'earlyPrograms', group: 'loading', labe
   on: () => undefined,
   note: 'DL10: compile the spawn view\'s shader programs during loading, as soon as the world is built; default off until a Simulator / iPhone reading.',
   ask: 'E526', reviewBy: '2026-12-30' };
-/** D227(b): the Memory saver also releases static positions (once bounded) and the index after upload; read when the
- *  renderer starts, so a pick reloads. Default off until a Simulator / iPhone reading (E451). */
-const fullReleaseSlot = jsonSlot(FULL_RELEASE_SLOT, 'device');
-const fullReleaseRow: DebugRow = { id: 'memoryFullRelease', group: 'loading', label: engineString('s_debug_full_release'), reload: true, when: always,
-  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'on', text: engineString('s_130011756125') }],
-  get: () => fullReleaseSlot.read() === 'on' ? 'on' : 'off',
-  set: (next) => { if (next === 'off' || next === 'on') fullReleaseSlot.write(next); },
-  on: () => undefined,
-  note: 'D227(b): the Memory saver also gives up static geometry positions (once their bounds are set) and indices after upload, read back from the GPU if anything asks; default off until a Simulator / iPhone reading.',
-  ask: 'E435', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);
   const r = await clearDownloads();
@@ -181,7 +170,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Loading & memory ──
   earlyProgramsRow,
-  fullReleaseRow,
   clearDownloadsRow,
 
   // ── Developer tools ──

@@ -25,7 +25,6 @@ import type { Renderer } from './renderer';
 import { drawHooks, propertyHooks } from './drawHooks';
 import { onceTextureUploaded } from './textureUploadEvents';
 import { renderCount } from './frameCounter';
-import { fullReleaseOn } from './fullRelease';
 
 const LABEL = 'engine/memorySaver';
 const isTarget = (value: unknown): value is THREE.WebGLRenderTarget => value instanceof THREE.WebGLRenderTarget;
@@ -102,9 +101,6 @@ function watchTexture(t: THREE.Texture): void {
 
 /** kept on the CPU: picking and raycasts read positions and the index; skinned bounds read the skin weights */
 const KEEP = new Set(['position', 'skinIndex', 'skinWeight']);
-/** D227(b), Debug ▸ Release positions and index (fullRelease.ts): `position` goes too, once the geometry's bounds are
- *  set (culling never asks for it), and so does the index. Off by default: the KEEP set above holds. */
-let fullRelease = false;
 /** render calls a geometry must draw unchanged before its arrays go (a geometry still being filled keeps them) */
 const SETTLE_RENDERS = 240;
 
@@ -144,8 +140,8 @@ function restore(a: object, buffer: WebGLBuffer, Ctor: ArrayCtor, length: number
 }
 
 /** may `a` give up its array: a static, plain (not instanced, not interleaved) attribute three uploaded, untouched since */
-function releasableAttribute(name: string, a: unknown, bounded: boolean): a is THREE.BufferAttribute {
-  return (!KEEP.has(name) || fullRelease && bounded && name === 'position') && a instanceof THREE.BufferAttribute && !(a instanceof THREE.InstancedBufferAttribute) && !arrayReleased(a) && !touched.has(a) &&
+function releasableAttribute(name: string, a: unknown): a is THREE.BufferAttribute {
+  return !KEEP.has(name) && a instanceof THREE.BufferAttribute && !(a instanceof THREE.InstancedBufferAttribute) && !arrayReleased(a) && !touched.has(a) &&
     a.usage === THREE.StaticDrawUsage && a.updateRanges.length === 0 && a.array.length > 0 && uploadedTo.has(a.array);
 }
 
@@ -156,12 +152,8 @@ function releasableAttribute(name: string, a: unknown, bounded: boolean): a is T
  */
 function releaseGeometry(g: THREE.BufferGeometry, label: string): void {
   let bytes = 0;
-  // full release: without bounds, the first cull would read `position` straight back from the GPU
-  const bounded = g.boundingBox !== null && g.boundingSphere !== null;
-  const channels: [string, unknown][] = Object.entries(g.attributes);
-  if (fullRelease) channels.push(['index', g.index]);
-  for (const [name, a] of channels) {
-    if (!releasableAttribute(name, a, bounded)) continue;
+  for (const [name, a] of Object.entries(g.attributes)) {
+    if (!releasableAttribute(name, a)) continue;
     const array = a.array, buffer = uploadedTo.get(array);
     if (buffer === undefined) continue;
     const Ctor = array.constructor as ArrayCtor, length = array.length, where = `${label}.${name}`;
@@ -189,11 +181,8 @@ function watchUploads(context: WebGL2RenderingContext): void {
   const watchedBufferData = function watchedBufferData(this: WebGL2RenderingContext, ...args: unknown[]): unknown {
     const result: unknown = Reflect.apply(bufferData, this, args);
     const [target, data] = args;
-    // an index upload is watched only with the full release on: the default path makes no extra GL query
-    const binding = target === context.ARRAY_BUFFER ? context.ARRAY_BUFFER_BINDING
-      : fullRelease && target === context.ELEMENT_ARRAY_BUFFER ? context.ELEMENT_ARRAY_BUFFER_BINDING : null;
-    if (binding !== null && ArrayBuffer.isView(data)) {
-      const bound: unknown = context.getParameter(binding);
+    if (target === context.ARRAY_BUFFER && ArrayBuffer.isView(data)) {
+      const bound: unknown = context.getParameter(context.ARRAY_BUFFER_BINDING);
       if (bound instanceof WebGLBuffer) uploadedTo.set(data, bound);
     }
     return result;
@@ -205,8 +194,7 @@ function watchUploads(context: WebGL2RenderingContext): void {
  * The renderer's hooks: every texture is looked at when three first asks for its properties (before its upload), every
  * geometry when it first draws.
  */
-export function installMemorySaver(renderer: Renderer, options: { readonly fullRelease?: boolean } = {}): void {
-  fullRelease = options.fullRelease ?? fullReleaseOn();
+export function installMemorySaver(renderer: Renderer): void {
   const context = renderer.getContext();
   if (context instanceof WebGL2RenderingContext) watchUploads(context);
   const seenTextures = new WeakSet<THREE.Texture>();
