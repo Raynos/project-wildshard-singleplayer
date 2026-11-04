@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The span anchors are checked against today's grid session source.
 import { readFileSync } from 'node:fs';
-import { lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from '../scripts/complete-at-control-snapshot.mjs';
+import { lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from '../scripts/complete-at-control-snapshot.mjs';
 
 // a snapshot's mesh row: [uuid, chain, signature `geometry|positions|indices|material:map:width`, shown, within reach, skinned]
 const row = (id, chain, geometry, map, shown = true, close = true, skinned = false) => [id, chain, `${geometry}|36|0|mat:${map}:256`, shown, close, skinned];
@@ -131,4 +131,15 @@ test('the neighbour spans refuse a missing or doubled anchor, and today\'s sessi
   expect(() => neighbourSpans(() => 'private tileAdmission(\nprivate tileAdmission(\nprivate refuse(', [NEIGHBOUR_WORK[4]])).toThrow(/single/u);
   const spans = neighbourSpans(file => readFileSync(file, 'utf8'));
   expect(spans.map(span => span.what)).toEqual(NEIGHBOUR_WORK.map(span => span.what));
+});
+
+test('the boost lap drives route legs and names the containment legs it skips', () => {
+  const leg = (name, x, z, inside) => ({ name, start: { x, z, y: 0 }, waypoints: [{ x: x + 1, z }], ...(inside ? { inside: { x0: 0, x1: 1, z0: 0, z1: 1, floor: 0 } } : {}) });
+  const all = [leg('route', 0, 0), leg('escape-wall', 1, 1, true), leg('far', 500, 0)];
+  const { legs, skipped } = lapLegs(all, [10, 20], [10, 20], 220);
+  expect(legs.map(l => l.name)).toEqual(['route']);
+  expect(legs[0]).toEqual({ name: 'route', start: { x: 10, z: 20, y: 0 }, points: [[11, 20]] });
+  expect(skipped).toEqual(['escape-wall']);
+  // out of reach is neither driven nor named
+  expect(skipped).not.toContain('far');
 });

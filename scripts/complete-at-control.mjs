@@ -43,7 +43,7 @@ import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK } from './complete-at-control-snapshot.mjs';
 import { execFileSync } from 'node:child_process';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
@@ -430,10 +430,9 @@ try {
     const [ox, oz] = homeCell === undefined ? [0, 0] : [homeCell.cell[0] * gridAt.pitch, homeCell.cell[1] * gridAt.pitch];
     const [px, , pz] = cold.at.scene?.player ?? [ox, 0, oz];
     const allLegs = JSON.parse(readFileSync(resolve('scripts/physics-route.json'), 'utf8'))[homeSlug ?? ''] ?? [];
-    const legs = allLegs.map(leg => ({ name: leg.name, start: { ...leg.start, x: leg.start.x + ox, z: leg.start.z + oz }, points: leg.waypoints.map(w => [w.x + ox, w.z + oz]) }))
-      .filter(leg => Math.hypot(leg.start.x - px, leg.start.z - pz) <= reach);
+    const { legs, skipped } = lapLegs(allLegs, [ox, oz], [px, pz], reach);
     if (legs.length === 0) throw new Error(`No walk leg of ${homeSlug} starts within ${reach} m of spawn: the boost lap needs scripts/physics-route.json`);
-    report.lapRoute = { slug: homeSlug, legs: [] };
+    report.lapRoute = { slug: homeSlug, legs: [], skipped };
     report.lapResults = [];
     for (const leg of legs) {
       let metres = 0;
@@ -508,5 +507,5 @@ try {
 }
 const timing = report.warm === undefined ? '' : ` (warm: cold ${report.warm.coldMs} ms, re-entry during precache ${report.warm.duringPrecacheMs} ms with ${report.warm.workerFetchesOpenAtReentry} worker fetches open, settled ${report.warm.settledMs} ms)`;
 const verdict = `${report.pass ? 'COMPLETE AT CONTROL' : 'FAIL'}${timing}`;
-console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${(report.ringReattached ?? []).length > 0 ? `\n  ring re-attachments (Shardfile, a DL5 target, not in the verdict): ${report.ringReattached.length} (${report.ringReattached.slice(0, 3).join('; ')})` : ''}${(report.distanceLod ?? []).length > 0 ? `\n  distance LOD (resident models, the shard's design, not in the verdict): ${report.distanceLod.length} (first: ${report.distanceLod.slice(0, 4).join('; ')})` : ''}${(report.neighbour ?? []).length > 0 ? `\n  neighbours (G828, not in the verdict):\n  ~ ${report.neighbour.join('\n  ~ ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
+console.log(`DL17 ${flow} ${engine} ${report.build ?? rev}: ${report.pass === null ? 'NO READING' : verdict}${report.violations.length > 0 ? `\n  - ${report.violations.join('\n  - ')}` : ''}${(report.ringReattached ?? []).length > 0 ? `\n  ring re-attachments (Shardfile, a DL5 target, not in the verdict): ${report.ringReattached.length} (${report.ringReattached.slice(0, 3).join('; ')})` : ''}${(report.distanceLod ?? []).length > 0 ? `\n  distance LOD (resident models, the shard's design, not in the verdict): ${report.distanceLod.length} (first: ${report.distanceLod.slice(0, 4).join('; ')})` : ''}${(report.lapRoute?.skipped ?? []).length > 0 ? `\n  containment legs (the physics walk's, not driven in the lap): ${report.lapRoute.skipped.length} (${report.lapRoute.skipped.join(', ')})` : ''}${(report.neighbour ?? []).length > 0 ? `\n  neighbours (G828, not in the verdict):\n  ~ ${report.neighbour.join('\n  ~ ')}` : ''}${report.errors.length > 0 ? `\n  errors: ${report.errors.slice(0, 3).join(' | ')}` : ''}\n  report ${out}`);
 process.exit(report.pass === null ? 2 : report.pass ? 0 : 1);

@@ -198,3 +198,19 @@ export function splitByInitiator(after, trace, spans, namesLevel) {
   for (const row of after) { const what = of(row.url); if (what === null) level.push(row); else neighbour.push({ ...row, work: what }); }
   return { level, neighbour };
 }
+
+/** The boost lap's legs: a home's walk legs (scripts/physics-route.json) moved by the cell's offset, those starting within
+ *  `reach` of the player. A leg that declares `inside` is a containment test (the walls must stop the player; the physics
+ *  walk judges it), never a route the board can finish: it is skipped and named, so nothing is dropped silently.
+ *  @param {readonly {name: string, start: {x: number, z: number}, waypoints: readonly {x: number, z: number}[], inside?: unknown}[]} all
+ *  @param {readonly [number, number]} offset @param {readonly [number, number]} player @param {number} reach */
+export function lapLegs(all, offset, player, reach) {
+  const [ox, oz] = offset, [px, pz] = player, legs = [], skipped = [];
+  for (const leg of all) {
+    const start = { ...leg.start, x: leg.start.x + ox, z: leg.start.z + oz };
+    if (Math.hypot(start.x - px, start.z - pz) > reach) continue;
+    if (leg.inside !== undefined) { skipped.push(leg.name); continue; }
+    legs.push({ name: leg.name, start, points: leg.waypoints.map(w => [w.x + ox, w.z + oz]) });
+  }
+  return { legs, skipped };
+}
