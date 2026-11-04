@@ -50,6 +50,10 @@ const downloadFetch = (): typeof fetch => beneath ?? fetch;
  *  listing until it fails, is cancelled or control releases it: a cancelled job's waits never answer for the next job
  *  (wildshard-new, after sp-x2's re-review). The download's own requests (by their abort signal) pass straight through. */
 let jobWaits: ReadonlyMap<string, Promise<boolean>> | null = null;
+/** DL11: the running job's demand: a page read waiting on a listed file the job has not started moves it to the front of
+ *  the job's queue, so a loader never waits behind the rest of the set (Pine's boot tables were 649th of 651: setup waited
+ *  86 s for them on the phone link). Set and cleared with `jobWaits`. */
+let jobDemand: ((url: string) => void) | null = null;
 const ownSignals = new WeakSet<AbortSignal>();
 /** While the entry's download runs, a level read it does not list (a loader reading a file its set lacks) waits for the
  *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
@@ -76,6 +80,7 @@ function installMemberLayer(): boolean {
       const address = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href), url = address.href;
       // the file's download first: a packed member's bytes are keyed only once its part starts (sp-x2's review)
       const pending = jobWaits?.get(url);
+      if (pending !== undefined) jobDemand?.(url);
       if (pending !== undefined) await pending;
       else if (unlistedWait !== null && address.origin === new URL(document.baseURI).origin && levelRead(address.pathname)) await unlistedWait;
       const bytes = await members.get(url);
@@ -102,7 +107,7 @@ async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Control: the level is complete and its reads are done, so the member bytes go. */
-export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); jobWaits = null; storeRead = null; }
+export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); jobWaits = null; jobDemand = null; storeRead = null; }
 /** Debug 'Loading: runtime packs / shardfile' (DL16, default shardfile): set by the composition root before a spawn
  * download starts; this leaf reads no engine setting itself. */
 let packsOn = false;
@@ -152,13 +157,16 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   // at once when the download fails or is cancelled (a cancel never waits for a storage call to return, sp-x2's review).
   const settles = new Map<string, (stored: boolean) => void>(), memberSettles = new Set<(bytes: null) => void>();
   const waits = new Map<string, Promise<boolean>>();
+  // DL11: files page reads are waiting on, in the order asked; the loose lanes take them before the manifest order.
+  const demanded: string[] = [], taken = new Set<string>();
+  const demand = (url: string): void => { if (!taken.has(url) && !demanded.includes(url)) demanded.push(url); };
   const settleFile = (url: string, stored: boolean): void => { settles.get(url)?.(stored); settles.delete(url); };
   // A failed or cancelled job: its waits fall through to the network and its map leaves the page whole.
   const releaseWaits = (): void => {
     for (const resolve of settles.values()) resolve(false);
     for (const resolve of memberSettles) resolve(null);
     settles.clear(); memberSettles.clear();
-    if (jobWaits === waits) jobWaits = null;
+    if (jobWaits === waits) { jobWaits = null; jobDemand = null; }
   };
   let markListed = (): void => undefined, markStopped = (_reason: unknown): void => undefined;
   const listedOnly = new Promise<void>(resolve => { markListed = resolve; });
@@ -182,7 +190,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       controller.signal.throwIfAborted();
       if (installMemberLayer()) {
         for (const file of files) waits.set(file.url, new Promise<boolean>(resolve => { settles.set(file.url, resolve); }));
-        jobWaits = waits;
+        jobWaits = waits; jobDemand = demand;
       }
       markListed();
       // DL18: on a warm visit the held-parts index and the cache's keys answer every packed member at once; the few
@@ -239,7 +247,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         storedUrls.set(file.url, {bytes: file.bytes, hash: file.hash});
       };
       for (const file of files) if (!missing.includes(file)) serve(file);
-      if (missing.length === 0) { complete = true; if (jobWaits === waits) jobWaits = null; publish(); return; }
+      if (missing.length === 0) { complete = true; if (jobWaits === waits) { jobWaits = null; jobDemand = null; } publish(); return; }
       publish(); let cursor = 0;
       // DL5: every part holding a missing member at once; members are cut out as their bytes land. A part that fails
       // hands its unfinished members to the loose loop below (its files stay deployed).
@@ -298,9 +306,17 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         }
         loose = missing.filter(file => !parts.some(part => part.members.some(([index]) => files[index] === file)) || left.has(files.indexOf(file)));
       }
+      const looseByUrl = new Map(loose.map(file => [file.url, file]));
+      const nextLoose = (): (typeof loose)[number] | undefined => {
+        for (let url = demanded.shift(); url !== undefined; url = demanded.shift()) {
+          const file = looseByUrl.get(url);
+          if (file !== undefined && !taken.has(url)) { taken.add(url); return file; }
+        }
+        while (cursor < loose.length) { const file = loose[cursor++]; if (file !== undefined && !taken.has(file.url)) { taken.add(file.url); return file; } }
+        return undefined;
+      };
       await Promise.all(Array.from({length: Math.min(8, loose.length)}, async () => {
-        for (let index = cursor++; index < loose.length; index = cursor++) {
-          const file = loose[index]; if (file === undefined) throw new Error('Missing spawn demand');
+        for (let file = nextLoose(); file !== undefined; file = nextLoose()) {
           let received = 0, credited = 0;
           const {bytes: body, copy: cachedCopy} = await readSpawnFile(file.url, file.bytes, {
             ...ports, fetch: (url, signal, init) => {received = 0; return ports.fetch(url, signal, init);},
@@ -315,7 +331,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         }
       }));
       // Settled: every wait answered, so the map leaves the page (the stored copies and part members stay until control).
-      controller.signal.throwIfAborted(); complete = true; memberSettles.clear(); if (jobWaits === waits) jobWaits = null; publish();
+      controller.signal.throwIfAborted(); complete = true; memberSettles.clear(); if (jobWaits === waits) { jobWaits = null; jobDemand = null; } publish();
     } catch (failure) {
       // A read waiting on a file this download will not store falls through to the network.
       releaseWaits();

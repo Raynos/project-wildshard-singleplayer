@@ -331,3 +331,22 @@ test('DL13: a download cancelled during a file\'s store never serves it after co
   expect(await (await window.fetch(binURL)).text()).toBe('network');
   vi.unstubAllGlobals();
 });
+
+test('DL11: a page read waiting on a listed file moves it to the front of the download (Pine\'s boot tables were 649th of 651)', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const rows = Array.from({length: 10}, (_, at) => ({url: `/shardfiles/example/blobs/bin/${at.toString(16).repeat(64)}.bin`, bytes: 4, hash: 'f'.repeat(64)}));
+  const plain = JSON.stringify({version: 1, shard: 'example', tier: 'phone', flow: 'client', files: rows, totalBytes: 40});
+  const at = {url: '/assets/spawn/example-demand-1234567890abcdef.json', bytes: plain.length, totalBytes: 40, files: 10};
+  const order: string[] = [];
+  const download = downloadSpawnManifest(at, {
+    cached: () => Promise.resolve(undefined), store: () => Promise.resolve(),
+    fetch: url => { const path = new URL(url).pathname; if (path !== at.url) order.push(path); return Promise.resolve(new Response(path === at.url ? plain : new Uint8Array(4))); },
+  }, base);
+  await download.listed;
+  const last = rows[9]; if (last === undefined) throw new Error('Missing row');
+  const reading = window.fetch(new URL(last.url, base).href);
+  await download.ready; await reading;
+  expect(order[0]).toBe(last.url);
+  expect(new Set(order).size).toBe(10);
+  vi.unstubAllGlobals();
+});
