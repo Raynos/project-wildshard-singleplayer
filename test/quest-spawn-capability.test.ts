@@ -1,3 +1,4 @@
+import runtimeFixture from './fixtures/quest-runtime.json' with { type: 'json' };
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -45,8 +46,9 @@ function fixture(omit?: 'quest' | 'animals' | 'sounds') {
     complete: [{ flag: 'done:watch', effects: [{ kind: 'flag', flag: 'done:watch' }, { kind: 'toast', text: 'complete' }] }],
     cues: [{ kind: 'puff', id: 1 }, { kind: 'sound', id: 2, name: 'marsh.call' }],
     puffs: { color: [1, 1, 1], count: 2, height: .5, burst: [1, 2, .4, .6] } };
-  const section = vi.fn(); section.mockReturnValue({ spawns: rows });
-  const product = legacyDouble<ShardProduct>({ section }), ctx = legacyDouble<ShardContext>({ scope, product });
+  const runtime = { ...runtimeFixture, spawns: rows };
+  const json = vi.fn(); json.mockResolvedValue(runtime);
+  const product = legacyDouble<ShardProduct>({ json }), ctx = legacyDouble<ShardContext>({ scope, product });
   Object.defineProperty(ctx, 'game', { value: { runtime: { world: { sky: { dayNight: { night: 1 } } }, play: {
     hud: { toast: (text: string) => { events.push(text); } }, inventory: { add: () => undefined, take: () => false }, music: { sting: () => undefined },
   } } } });
@@ -55,9 +57,9 @@ function fixture(omit?: 'quest' | 'animals' | 'sounds') {
   if (omit !== 'quest') publishEntryOwner(scope, 'quest', 'marsh.quest', legacyDouble<QuestPageComposition>({ flags }));
   if (omit !== 'animals') publishEntryOwner(scope, 'animals', 'marsh.animals', animals);
   if (omit !== 'sounds') publishEntryOwner(scope, 'sounds', 'marsh.sounds', bank);
-  const capability: QuestSpawnCapability = { id: 'marsh.spawns', source: 'custom/marsh', quest: 'marsh.quest', animals: 'marsh.animals', sounds: 'marsh.sounds' };
+  const capability: QuestSpawnCapability = { id: 'marsh.spawns', source: 'quests/runtime.json', quest: 'marsh.quest', animals: 'marsh.animals', sounds: 'marsh.sounds' };
   const read = vi.spyOn(spawn, 'readSpawnScript').mockResolvedValue(source);
-  return { ctx, scope, quest, flags, events, capability, read, source };
+  return { ctx, scope, quest, flags, events, capability, read, source, json, runtime };
 }
 for (const kind of ['quest', 'animals', 'sounds'] as const) test(`declared spawn capability refuses a missing ${kind} loan before guest admission`, async () => {
   const f = fixture(kind);
@@ -88,6 +90,29 @@ test('leaving during admitted byte read constructs no guest or publication', asy
   f.read.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   const page = vi.spyOn(spawn.SpawnScript, 'page'), pending = installDeclaredQuestSpawns(f.ctx, f.capability);
   const refusal = expect(pending).rejects.toThrow('Quest left during spawn director admission');
+  await vi.waitFor(() => expect(f.read).toHaveBeenCalled());
   f.scope.dispose(); if (finish === undefined) throw new Error('Missing pending admission'); finish(f.source);
   await refusal; expect(page).not.toHaveBeenCalled(); expect(f.events).toEqual([]);
+});
+
+test('leaving during complete runtime admission constructs no spawn guest', async () => {
+  const f = fixture(); let finish: ((value: unknown) => void) | undefined;
+  f.json.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const pending = installDeclaredQuestSpawns(f.ctx, f.capability);
+  const refusal = expect(pending).rejects.toThrow('Quest left during runtime admission');
+  f.scope.dispose();
+  if (finish === undefined) throw new Error('Missing pending runtime admission');
+  finish(f.runtime); await refusal;
+  expect(f.read).not.toHaveBeenCalled(); expect(f.events).toEqual([]);
+});
+
+test('a changed product during runtime admission publishes no spawn owner', async () => {
+  const f = fixture(); let finish: ((value: unknown) => void) | undefined;
+  f.json.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  const pending = installDeclaredQuestSpawns(f.ctx, f.capability);
+  const refusal = expect(pending).rejects.toThrow('Quest left during runtime admission');
+  Object.defineProperty(f.ctx, 'product', { value: legacyDouble<ShardProduct>({}), configurable: true });
+  if (finish === undefined) throw new Error('Missing pending runtime admission');
+  finish(f.runtime); await refusal;
+  expect(f.read).not.toHaveBeenCalled(); expect(f.events).toEqual([]);
 });

@@ -60,10 +60,8 @@ test('Pine life, shelter and both quest copies publish descriptors with only adm
   }
   const chapter = v.parse(v.object({ chapter: programPage }), namedJson('quests/page-composition.json')).chapter;
   expect(chapter.program).toEqual({ script: life.script, bytes: '' });
-  const section = output.custom.sections.find(row => row.name === 'custom/questRuntime');
-  const bytes = section === undefined ? undefined : output.custom.files.get(section.path);
-  if (bytes === undefined) throw new Error('Missing original Pine quest runtime');
-  const runtime = v.parse(v.object({ lead: programPage }), JSON.parse(new TextDecoder().decode(bytes)));
+  expect(output.custom.sections).toEqual([]);
+  const runtime = v.parse(v.object({ lead: programPage }), namedJson('quests/runtime.json'));
   expect(runtime.lead.program).toEqual(chapter.program);
 });
 

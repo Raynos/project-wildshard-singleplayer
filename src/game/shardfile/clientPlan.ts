@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { QuestRuntimeFileSchema } from '@wildshard/format/questRuntime';
 import { checkClientPlanModules } from './clientModules';
 import { entryOwner as declaredOwner } from './entryOwners';
 import { prepareClientReturnModules } from './clientReturnModules';
@@ -193,8 +195,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if (row.kind !== 'quest.spawns') throw new Error('Invalid quest spawns feature');
     const { installDeclaredQuestSpawns } = await import('../quest/chapterDirector');
     const { publishEntryOwner } = await import('./entryOwners');
-    const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');
-    if (!custom(row.source)) throw new Error('Invalid quest spawn source');
+    v.parse(QuestRuntimeFileSchema,row.source);
     publishEntryOwner(ctx.scope, 'quest-spawns', row.id, await installDeclaredQuestSpawns(ctx, { ...row, source: row.source }));
   } },
   'held.claims.prepare': { phase: 'kit', phaseFor: row => row.kind === 'held.claims.prepare' && row.source !== undefined ? 'world-bindings' : 'kit', rank: -30, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
@@ -467,10 +468,8 @@ export function admitClientPlan(input: unknown, product: ShardProduct): Admitted
       }
       if (row.kind === 'quest.reference' && !plan.features.some(feature => feature.kind === 'quest.composition' && feature.reference === row.id)) throw new Error('Quest reference requires its declared composition');
       if (row.kind === 'quest.spawns') {
-        const custom = (name: string): name is `custom/${string}` => name.startsWith('custom/');
-        if (!custom(row.source)) throw new Error('Invalid quest spawn source');
-        if (!product.has(row.source)) throw new Error('Quest spawns require their admitted source section');
-        product.section(row.source);
+        v.parse(QuestRuntimeFileSchema,row.source);
+        if (!product.hasFile(row.source)) throw new Error('Quest spawns require their admitted runtime file');
         if (!plan.features.some(owner => owner.kind === 'quest.composition' && owner.id === row.quest && owner.equipment?.animals === row.animals && owner.equipment.sounds === row.sounds)) throw new Error('Quest spawns require their declared composition owners');
       }
       const required = row.kind === 'world.updates' && !row.rows.some(update => update.kind === 'toon-look') ? [] : row.kind === 'held.claims.prepare' && row.source !== undefined ? [] : row.kind === 'species.program' && row.catalogue !== undefined ? ['look/hull-book'] as const : row.kind === 'content.catalogue' && !(row.finishes || row.effects.includes('finishes')) ? [] : CLIENT_FEATURES[row.kind].sections;

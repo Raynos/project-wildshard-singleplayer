@@ -1,3 +1,4 @@
+import nativeStoryFixture from './fixtures/pine-native-story.json' with { type: 'json' };
 // @vitest-environment happy-dom
 import { PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
@@ -49,7 +50,8 @@ beforeAll(async () => {
 
 test('Pine native product uses the shared request rows and retires executable binding data', async () => {
   const product = products.get('pine-hollow'); if (product === undefined) throw new Error('Missing real Pine product');
-  const native: unknown = JSON.parse(new TextDecoder().decode(await product.file('quests/native-story.json')));
+  expect(product.hasFile('quests/native-story.json')).toBe(false);
+  const native: unknown = structuredClone(nativeStoryFixture);
   const clock = v.parse(v.object({ chapter: ChapterDirectorSchema }), native).chapter;
   expect(clock.requests).toEqual(pineRows.requests);
   const director: unknown = JSON.parse(new TextDecoder().decode(await product.file('directors/main.json')));

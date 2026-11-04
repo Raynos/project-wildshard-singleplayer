@@ -289,13 +289,13 @@ test('catalogues require only the optional sections their rows select', () => {
 test.each(['native', 'regional', 'data'] as const)('finite preparation precedes the %s play consumer', async surface => {
   const f = context(), order: string[] = [];
   f.sections.set('client/plan', { version: 1, features: [
-    { kind: 'quest.spawns', id: 'orchard.spawns', source: 'custom/questRuntime', quest: 'orchard.quest', animals: 'orchard.animals', sounds: 'orchard.sounds' },
+    { kind: 'quest.spawns', id: 'orchard.spawns', source: 'quests/runtime.json', quest: 'orchard.quest', animals: 'orchard.animals', sounds: 'orchard.sounds' },
     { kind: 'quest.composition', id: 'orchard.quest', file: 'quest.json', equipment: { ranged: 'orchard.ranged', animals: 'orchard.animals', sounds: 'orchard.sounds' } },
     { kind: 'held.ranged-page', file: 'ranged.json' },
     { kind: 'quest.world', file: 'world.json' },
   ] });
-  f.sections.set('held/finishes', {}); f.sections.set('custom/questRuntime', {});
-  for (const name of ['ranged.json', 'world.json', 'quest.json']) { f.files.set(name, { hash: name, url: `https://example.invalid/${name}` }); f.bytes.set(name, new TextEncoder().encode('{}')); }
+  f.sections.set('held/finishes', {});
+  for (const name of ['ranged.json', 'world.json', 'quest.json', 'quests/runtime.json']) { f.files.set(name, { hash: name, url: `https://example.invalid/${name}` }); f.bytes.set(name, new TextEncoder().encode('{}')); }
   const prepare = vi.spyOn(rangedPreparation, 'prepareRangedPage').mockResolvedValue(undefined);
   const ranged = vi.spyOn(questPreparation, 'installEntryRangedPage').mockImplementation(() => { order.push('ranged'); return Promise.resolve(); });
   const worldAdmission = vi.spyOn(questWorldPreparation, 'prepareQuestWorldEntry').mockImplementation(() => { order.push('world'); return Promise.resolve(); });

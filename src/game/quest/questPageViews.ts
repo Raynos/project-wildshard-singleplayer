@@ -1,3 +1,4 @@
+import { QuestRuntimeDocumentSchema, QuestRuntimeFileSchema } from '@wildshard/format/questRuntime';
 /**
  * A quest page's per-frame views (G571, client-only presentation) over the owners the entered quest lends: the chapter
  * lead and the quest spawns stepped with their declared puff domes (a dome swells where each cue fired), a living
@@ -29,7 +30,7 @@ import { lentLook, setLentParam } from '../shardfile/lentLooks';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite());
 export const QuestPageViewsSchema: v.GenericSchema<BoundedQuestPageViewsInput, BoundedQuestPageViews> = v.looseObject({
-  page: id, ranged: id, quest: id, spawns: id, content: v.custom<`custom/${string}`>((value): value is `custom/${string}` => typeof value === 'string' && /^custom\/[a-zA-Z0-9_./-]{1,249}$/u.test(value)),
+  page: id, ranged: id, quest: id, spawns: id, content: QuestRuntimeFileSchema,
   wheel: v.looseObject({ flag: id, speed: n }),
   secret: v.looseObject({ scene: id, projection: id, floorY: n, mid: v.tuple([n, n, n]) }),
   journal: v.strictObject({ event: id }),
@@ -55,15 +56,22 @@ export class QuestPageViews {
   get flags(): Flags { return this.o.flags; }
 
   static async install(ctx: ShardContext, input: unknown): Promise<QuestPageViews> {
-    const rows = v.parse(QuestPageViewsSchema, input), { flags, facets, spine } = entryOwner(ctx.scope, 'quest', rows.quest);
+    const rows = v.parse(QuestPageViewsSchema, input), quest = entryOwner(ctx.scope, 'quest', rows.quest), { flags, facets, spine } = quest;
     const shell = ctx.game.runtime, world = shell?.world;
     if (shell === undefined || world === undefined || world === null || spine === null) throw new Error('Missing quest view world');
     const floor = forestPage(ctx.scope, rows.page), equipment = rangedPage(ctx.scope, rows.ranged);
-    const spawns = entryOwner(ctx.scope, 'quest-spawns', rows.spawns), lead = installChapterLead(ctx, ctx.product.section<unknown>(rows.content));
+    const spawns = entryOwner(ctx.scope, 'quest-spawns', rows.spawns), product = ctx.product;
+    const left = (): boolean => ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product
+      || ctx.game.runtime !== shell || shell.world !== world;
+    const content = v.parse(QuestRuntimeDocumentSchema, await product.json<unknown>(rows.content));
+    if (left()) throw new Error('Quest page views left during runtime admission');
+    if (entryOwner(ctx.scope, 'quest', rows.quest) !== quest || entryOwner(ctx.scope, 'quest-spawns', rows.spawns) !== spawns
+      || forestPage(ctx.scope, rows.page) !== floor || rangedPage(ctx.scope, rows.ranged) !== equipment)
+      throw new Error('Quest page view loans changed during runtime admission');
+    const lead = installChapterLead(ctx, content);
     const leadPuffs = ctx.scope.own(new DomePuffs(world.game.scene, new THREE.Color(...lead.puffs.color), lead.puffs.count));
     const spawnPuffs = ctx.scope.own(new DomePuffs(world.game.scene, new THREE.Color(...spawns.puffs.color), spawns.puffs.count));
     const hollow: Owners['hollow'] = { at: null };
-    const left = (): boolean => ctx.scope.disposed || ctx.scope.disposing;
     // the secret's scene settles later: a page that left meanwhile keeps no projection point
     void floor.cabins.resources.place(rows.secret.scene).then(() => { if (!left()) hollow.at = new THREE.Vector3().fromArray(rows.secret.mid); return hollow; });
     // the lowering pool and its companion: the world scenes' published meshes, drawn in their lent looks
@@ -118,7 +126,7 @@ type BoundedQuestPageViews = {
     ranged: string;
     quest: string;
     spawns: string;
-    content: `custom/${string}`;
+    content: string;
     wheel: {
         flag: string;
         speed: number;

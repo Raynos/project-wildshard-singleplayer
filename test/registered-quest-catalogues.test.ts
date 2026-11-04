@@ -1,9 +1,10 @@
+import nativeStoryFixture from './fixtures/pine-native-story.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Check actual admitted immutable product bodies in this Node test.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only members of the admitted product folder.
 import {join} from 'node:path';
 import {readBuiltShardfile} from '../scripts/build-shardfiles.mjs';
-import {hashImmutableBytes} from '../src/sdk/immutable';
+import {hashImmutableBytes,encodeCanonicalJson} from '../src/sdk/immutable';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {REGISTERED_JSON,validateRegisteredJson} from '../src/format/registeredJson';
@@ -24,6 +25,11 @@ const roots=[
 ]as const;
 type Name=typeof roots[number]['name'];
 function body(name:Name):{bytes:Uint8Array;input:unknown;schema:Record<string,unknown>}{
+ if(name==='quests/native-story.json'){
+  const bytes=new TextEncoder().encode(encodeCanonicalJson(nativeStoryFixture));
+  expect(hashImmutableBytes(bytes)).toBe('6ec75c8f3b81778eda9ab75356978ad7cb3f3793053780374ed00bd3ce982f14');
+  return {bytes,input:structuredClone(nativeStoryFixture),schema:namedJsonSchema(NativeQuestCompositionSchema)};
+ }
  const slug=name==='quests/carried.json'?'nalati-grasslands':'pine-hollow',folder=readBuiltShardfile(process.cwd(),slug);
  const index=v.parse(v.object({files:v.array(v.object({name:v.exactOptional(v.string()),path:v.string(),hash:v.string(),jsonSchema:v.exactOptional(v.unknown())}))}),JSON.parse(readFileSync(join(folder,'shard.json'),'utf8')));
  const file=index.files.find(row=>row.name===name);if(file===undefined)throw new Error('Missing admitted native quest file');

@@ -1,4 +1,7 @@
-import type { InferOutput } from 'valibot';
+import nativeStoryFixture from './pine-native-story.json' with { type: 'json' };
+import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
+import { parse, type InferOutput } from 'valibot';
+import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import { fencedNativeOracle } from './native-oracle';
 import { pineNativeOracleInputs } from './pine-native-oracle-inputs';
 import { pineNativeOracleSpec } from './pine-native-oracle-spec';
@@ -56,7 +59,7 @@ async function preparePineRuntime(preparation: HeadlessRuntimePreparation, sourc
 const { product, assets, rapier } = preparation, shard = product.shardfile;
 const lendReturns = await prepareReturns(preparation);
 const constants = sources ?? await readPineNativeOracle();
-const storyPolicy = await readJson<NativeQuestCompositionInput["rows"]>(product,"quests/native-story.json");
+const storyPolicy = parseNativeQuestComposition(structuredClone(nativeStoryFixture));
 const storySpots = await readJson<NativeQuestCompositionInput["spots"]>(product,"quests/native-spots.json");
 const bossView = await product.json<{projection:{encounter:{profile:unknown}}}>("combat/roaming.json");
 const bowRow = await (weaponRow(shard,"weapon.longbow"));
@@ -70,7 +73,7 @@ const counters = await (parseAchievementCounterData(countersJson));
 const barter = await (parseBarterEconomy(need(product.shardfile.rows.loot[0],"Missing barter row").economy));
 const trades = await (barter.exchange);
 const contracts = await product.json<NonNullable<NativeQuestCompositionInput["contracts"]>>("quests/contracts.json");
-const content = await product.section<Required<Pick<NativeQuestCompositionInput,"table"|"steps"|"deaths"|"readings"|"lead">>>("custom/questRuntime");
+const content = parse(QuestRuntimeDocumentSchema, await readJson(product,"quests/runtime.json"));
 const director = await (readDirectorProduct(product));
 const nightRows = await (readSpawnScript(product,"pine.night"));
 const shelterRows = await readJson(product,"actors/shelter.json");

@@ -3,7 +3,7 @@
   "ranged": "pine.ranged",
   "quest": "pine.quest-page",
   "spawns": "pine.quest-spawns",
-  "content": "custom/questRuntime",
+  "content": "quests/runtime.json",
   "panels": {
     "board": "board",
     "count": "count"

@@ -1,3 +1,4 @@
+import nativeStoryFixture from './fixtures/pine-native-story.json' with { type: 'json' };
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import nativeStory from '../src/shards/pine-hollow/data/nativeStory.json' with { type: 'json' };
 import boss from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
@@ -36,14 +37,15 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   // the King's saved decision contract.
   expect(gameplay.flags).toEqual(quests.flags);
   expect(hash(gameplay)).toBe(hash(quests));
-  if (!product.has('custom/questRuntime')) throw new Error('The product must publish its fixed quest rows');
-  const rows = parsePineQuestRows(await product.section<unknown>('custom/questRuntime'));
+  expect(product.has('custom/questRuntime')).toBe(false);
+  if (!product.hasFile('quests/runtime.json')) throw new Error('The product must publish its complete quest runtime');
+  const rows = parsePineQuestRows(await product.json<unknown>('quests/runtime.json'));
   expect(rows).not.toHaveProperty('graph'); expect(rows).not.toHaveProperty('interactions');
   expect(shard.questHost?.graph).toEqual(PINE_QUEST_RUNTIME.graph);
   expect(shard.questHost?.interactions).toEqual(PINE_QUEST_RUNTIME.interactions);
   expect(rows.table.rows).toHaveLength(44);
-  if (!product.hasFile('quests/native-story.json')) throw new Error('Missing admitted native story');
-  const nativePolicy = parseNativeQuestComposition(await product.json<unknown>('quests/native-story.json'));
+  expect(product.hasFile('quests/native-story.json')).toBe(false);
+  const nativePolicy = parseNativeQuestComposition(structuredClone(nativeStoryFixture));
   expect(nativePolicy).toMatchObject({ transitions: { ids: [...Array.from({ length: 30 }, (_unused, i) => `resin-${i + 1}`), 'dam-sluice'],
     rowLimit: 31, flagLimit: 16, touch: 'direct', pickup: 'walk-in' } });
   // QB declares the existing trader and ammunition owners as typed facets.
@@ -61,7 +63,7 @@ test('the retained producer preserves the entire quest and NPC declarations in t
   expect(nativeStory.actions.filter(row => row.kind === 'lantern').map(row => row.row)).toEqual(Object.values(PINE_QUEST_RUNTIME.policy.lanternIds));
   expect(rows.table.rows.filter(row => row.id.startsWith('resin-'))).toHaveLength(30);
   expect(rows.table.rows.filter(row => row.id.startsWith('token-'))).toHaveLength(8);
-  // Custom-section JSON canonicalizes record keys; continuation order is data.
+  // Named runtime JSON keeps canonical record keys; continuation order is data.
   expect(Object.keys(rows.readings.speakers).sort()).toEqual(['miller', 'ranger', 'trader']);
   expect(rows.readings.continuation).toEqual({ bare: 'ranger', wrapped: ['miller', 'trader'] });
   expect(rows).not.toHaveProperty('beats');

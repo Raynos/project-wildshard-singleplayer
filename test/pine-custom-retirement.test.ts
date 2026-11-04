@@ -36,6 +36,8 @@ test('five retired Pine copies reconstruct complete canonical bodies from native
   expect(rows.get('custom/trophyMounts')).toEqual(PINE_OUTPUT.custom['custom/trophyMounts']);
 });
 
-test('retirement leaves both live Pine native witness envelopes in the ordinary custom path', () => {
-  expect(output.custom.sections.map(row => row.name).sort()).toEqual(['custom/questRuntime']);
+test('the complete quest runtime leaves no Pine document in the custom path', () => {
+  expect(output.custom.sections).toEqual([]);
+  expect(output.namedFiles.some(row => row.name === 'quests/runtime.json')).toBe(true);
+  expect(output.namedFiles.some(row => row.name === 'quests/native-story.json')).toBe(false);
 });

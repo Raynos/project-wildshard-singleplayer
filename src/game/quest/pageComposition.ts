@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 /** Client-only entered quest presentation over existing native owners. */
 import * as THREE from 'three';
 import type { QuestPageRows, ChapterViewRows } from '@wildshard/format/questPageComposition';
@@ -47,7 +49,6 @@ import { installPageDoor } from './pageDoors';
 import { installQuestFigures } from './figures';
 import { startQuestPageReads } from './pageReads';
 
-const isCustom = (id: string): id is `custom/${string}` => id.startsWith('custom/');
 /** The page borrows the actual native boss and its baked reward pose. */
 interface PageFinale { readonly actor: Animal | null; readonly rewardAt: THREE.Vector3; readonly rewardPose: { yaw: number; pitch: number; phase: number } }
 interface PageCable { group: THREE.Object3D; placed: Placed; a: THREE.Vector3; b: THREE.Vector3; prompt: Interactable; cables: ReturnType<typeof cableModes>; mode: string }
@@ -89,7 +90,10 @@ async function preparePage(ctx: ShardContext, rows: QuestPageRows, lent: Readonl
   const { story, flags, services, floorAt, place, setAnchor, anchors } = entry;
 
   const assembly = await files.assembly();
-  const section = rows.kit?.section, table = section === undefined || !isCustom(section) ? assembly?.interact : ctx.product.section<{ table: InteractTable }>(section).table;
+  const runtime = rows.kit?.file === undefined ? null : v.parse(QuestRuntimeDocumentSchema, await product.json<unknown>(rows.kit.file));
+  if (scope.disposed || scope.disposing || ctx.product !== product || ctx.game.runtime !== shell || shell.world !== world)
+    throw new Error('Quest page left during runtime admission');
+  const table: InteractTable | undefined = runtime === null ? assembly?.interact : runtime.table;
   if (table === undefined) throw new Error('Quest page requires its interaction table');
   const kit = await entry.interact({ table, ...(assembly === null ? {} : { placements: assembly.interactSpots }),
     ...(rows.kit?.platforms === undefined ? {} : { platforms: rows.kit.platforms }), ...(rows.kit?.registryReach === undefined ? {} : { registryReach: rows.kit.registryReach }) },

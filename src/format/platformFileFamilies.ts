@@ -1,3 +1,5 @@
+import { QuestRuntimeDocumentSchema } from './questRuntime';
+import { QuestStoryBindingsSchema } from './questStoryBindings';
 import { PerchBodyFileSchema } from './mixedPopulation';
 import { QuestInteractionSourceSchema } from './questInteractionSource';
 import { EnemyPlacementsSchema, PopulationProjectionSchema } from './populationProjection';
@@ -46,7 +48,7 @@ import { SceneBuffersSchema } from './sceneBuffers';
 import { WorldSceneModelsSchema } from './worldSceneModels';
 import { AchievementCounterDataSchema } from './achievementCounters';
 import { FigureCatalogueSchema } from './figures';
-import { QuestPageCompositionSchema } from './questPageComposition';
+import { QuestPageCompositionSchema, ChapterViewSchema } from './questPageComposition';
 import { AdventurePersistenceSchema, PosedLibrarySchema, QuestTraderSchema, PageReturnRowsSchema } from './namedJsonContracts';
 import { PackedCreatureLooksSchema, CreatureInstallSchema } from './speciesLooks';
 import { QuestStorySchema, ChapterStoryPresentationSchema, AdventureContentSchema } from './questStory';
@@ -78,6 +80,13 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^quests\/runtime\.json$/u, schema: QuestRuntimeDocumentSchema,
+    source: '@wildshard/format/questRuntime#QuestRuntimeDocumentSchema', reader: 'src/game/quest/chapterDirector.ts' },
+  { pattern: /^quests\/forest-story\.json$/u, schema: QuestStoryBindingsSchema,
+    source: '@wildshard/format/questStoryBindings#QuestStoryBindingsSchema', reader: 'src/game/quest/questPageViews.ts' },
+  { pattern: /^quests\/content\.json$/u, schema: ChapterViewSchema,
+    source: '@wildshard/format/questPageComposition#ChapterViewSchema', reader: 'src/game/quest/pageComposition.ts' },
+
   { pattern: /^actors\/projection\.json$/u, schema: PopulationProjectionSchema,
     source: '@wildshard/format/populationProjection#PopulationProjectionSchema', reader: 'src/game/population/projection.ts' },
   { pattern: /^poses\/monkey\.json$/u, schema: PerchBodyFileSchema,

@@ -59,7 +59,7 @@
     {
       "kind": "quest.spawns",
       "id": "pine.quest-spawns",
-      "source": "custom/questRuntime",
+      "source": "quests/runtime.json",
       "quest": "pine.quest-page",
       "animals": "pine.animals",
       "sounds": "pine.quest-sounds"

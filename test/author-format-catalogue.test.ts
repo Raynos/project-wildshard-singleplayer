@@ -1,8 +1,9 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { authorCatalogueRows, composeNamedJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { authorCatalogueRows, composeNamedJsonSchema, namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { ClaimedPickupSchema } from '../src/format/lootEconomy';
 import { ContractBoardPageSchema } from '../src/format/contracts';
+import { QuestStoryBindingsSchema } from '../src/format/questStoryBindings';
 import { QuestPageTalksSchema } from '../src/format/npcs';
 import { pinePickups } from '../src/shards/pine-hollow/generators/pickups';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
@@ -49,9 +50,14 @@ test('literal composition preserves native finite constants and the complete ori
     expect(composeNamedJsonSchema({ kind: 'literal', value })).toEqual(namedJsonSchema(v.literal(value)));
   for (const value of [Infinity, -Infinity, Number.NaN])
     expect(() => composeNamedJsonSchema({ kind: 'literal', value })).toThrow('finite');
-  const original = namedJsonSchema(v.object({ quest: v.literal(policy.quest), spawns: v.literal(policy.spawns),
-    board: v.omit(ContractBoardPageSchema, ['contracts', 'panel', 'store']), store: ContractBoardPageSchema.entries.store, talks: QuestPageTalksSchema }));
+  const original = registeredJsonSchema('quests/forest-story.json');
+  const originalBoard = v.omit(ContractBoardPageSchema, ['contracts', 'panel', 'store']);
   const { FOREST_STORY, FOREST_STORY_BLOB } = forestStory(PINE_SOURCES);
+  const admitted = v.parse(QuestStoryBindingsSchema, FOREST_STORY);
+  expect(admitted).toEqual(FOREST_STORY);
+  expect(admitted.quest).toBe(policy.quest); expect(admitted.spawns).toBe(policy.spawns);
+  expect(admitted.board).toEqual(v.parse(originalBoard, FOREST_STORY.board));
+  expect(admitted.store).toEqual(v.parse(ContractBoardPageSchema.entries.store, FOREST_STORY.store));
   expect(FOREST_STORY_BLOB.file.jsonSchema).toEqual(original);
   expect(JSON.stringify(FOREST_STORY_BLOB.file.jsonSchema)).toBe(JSON.stringify(original));
   expect(new TextDecoder().decode(FOREST_STORY_BLOB.bytes)).toBe(JSON.stringify(FOREST_STORY));

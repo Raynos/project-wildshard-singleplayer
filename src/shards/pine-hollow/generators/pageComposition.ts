@@ -28,7 +28,7 @@ export const questPage: (sources: PineSources) => QuestPage = perSources((source
   const PINE_QUEST_PAGE: QuestPageRowsType = questPageCompositionRows({
     id: 'pine.quest-page', debug: story.debug.id, placement: { registryReach: 20 },
     files: { services: story.files.services, stall: story.files.stall, contracts: story.files.contracts, director: story.files.director },
-    kit: { section: story.content, registryReach: 20 },
+    kit: { file: story.content, registryReach: 20 },
     events: PINE_QUEST_RUNTIME.events, services: [],
     deaths: PINE_QUEST_RUNTIME.pageDeaths, deathOrder: 0, deathMoves: [],
     talks: { ...story.talks, steps: PINE_QUEST_RUNTIME.steps }, peopleLod: true,

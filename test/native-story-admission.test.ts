@@ -1,3 +1,4 @@
+import nativeStoryFixture from './fixtures/pine-native-story.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativeQuestComposition, parseNativeQuestServiceSpots } from '../src/format/nativeQuestComposition';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
@@ -11,6 +12,7 @@ const bytes = (rows: unknown) => new TextEncoder().encode(encodeCanonicalJson(ro
 
 test('build admission keeps the frame wire and every existing cable endpoint', () => {
   const input = PINE_NATIVE_QUEST, at = placements();
+  expect(bytes(input)).toEqual(bytes(nativeStoryFixture));
   expect(bytes(parseNativeQuestComposition(input))).toEqual(bytes(input));
   expect(bytes(parseNativeQuestServiceSpots(at))).toEqual(bytes(at));
   expect(parseNativeQuestServiceSpots(at).cable).toEqual(spots.zip);

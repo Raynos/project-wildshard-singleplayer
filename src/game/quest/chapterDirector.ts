@@ -1,3 +1,4 @@
+import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
@@ -12,7 +13,7 @@ import { enteredCompletion } from '../complete/declared';
 import { boundQuestChapter } from './chapter';
 import { commitQuestEffects } from './effects';
 import { QuestRewardController } from '../plugin/quests';
-import { parseQuestSpawnPage, parseQuestLeadPage, QuestSpawnPageSchema, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
+import { parseQuestSpawnPage, parseQuestLeadPage, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
 import * as v from 'valibot';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
 import { boundQuestState } from './boundState';
@@ -125,7 +126,7 @@ export async function readChapterDirector(ctx: ShardContext, file: string): Prom
 
 /** Finite declared entry capability; ids name concrete owners in this entry. */
 export interface QuestSpawnCapability {
-  readonly id: string; readonly source: `custom/${string}`;
+  readonly id: string; readonly source: string;
   readonly quest: string; readonly animals: string; readonly sounds: string;
 }
 /** Client-only publications over the original AS spawn owner. Views borrow
@@ -137,14 +138,19 @@ export interface QuestSpawnResult {
 }
 
 /** Construct only after the entry has published its quest, animal and sound
- * loans. The fixed source section contributes .spawns; there is no selector. */
+ * loans. The complete named runtime contributes .spawns; there is no selector. */
 export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: QuestSpawnCapability): Promise<QuestSpawnResult> {
   const quest = entryOwner(ctx.scope, 'quest', capability.quest), animals = entryOwner(ctx.scope, 'animals', capability.animals);
   const bank = entryOwner(ctx.scope, 'sounds', capability.sounds);
-  const rows = parseQuestSpawnPage(v.parse(v.object({ spawns: QuestSpawnPageSchema }), ctx.product.section<unknown>(capability.source)).spawns);
+  const product = ctx.product;
+  const runtime = v.parse(QuestRuntimeDocumentSchema, await product.json<unknown>(capability.source));
+  if (ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product) throw new Error('Quest left during runtime admission');
+  if (entryOwner(ctx.scope, 'quest', capability.quest) !== quest || entryOwner(ctx.scope, 'animals', capability.animals) !== animals
+    || entryOwner(ctx.scope, 'sounds', capability.sounds) !== bank) throw new Error('Quest spawn loan changed during runtime admission');
+  const rows = parseQuestSpawnPage(runtime.spawns);
   if (boundQuestState(ctx.scope, rows.quest).flags !== quest.flags) throw new Error('Quest spawn loan differs from its bound quest');
   const source = await readSpawnScript(ctx.product, rows.script);
-  if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Quest left during spawn director admission');
+  if (ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product) throw new Error('Quest left during spawn director admission');
   if (entryOwner(ctx.scope, 'quest', capability.quest) !== quest || entryOwner(ctx.scope, 'animals', capability.animals) !== animals
     || entryOwner(ctx.scope, 'sounds', capability.sounds) !== bank) throw new Error('Quest spawn loan changed during admission');
   if (rows.channel > source.channels.length || rows.cues.some(cue => cue.id > source.cues.length)

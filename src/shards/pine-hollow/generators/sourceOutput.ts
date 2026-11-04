@@ -1,5 +1,4 @@
 import { pinePhysicsOwnersBytes, pinePhysicsSources, pineWorldPhysics } from './physics';
-import { PINE_NATIVE_QUEST } from './nativeQuest';
 import { TREE_REST_FILE, TREE_SET } from './treeSet';
 import { parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
 import forestWeather from '../data/forestWeather.json' with { type: 'json' };
@@ -47,7 +46,6 @@ import weatherProgram from '../data/weather.json' with { type: 'json' };
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { KING_DECISION, KING_MOVES } from './kingDecision';
 import { KNIFE_LOOK } from './knifeLook';
-import toolPlayback from '../data/heldToolPlayback.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
 import { CONTRACT_PROGRAM_SCRIPT, contractProgramRegistries } from './contractProgram';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
@@ -58,8 +56,7 @@ import { parseQuestPageInteractions } from '@wildshard/format/questInteractions'
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
 import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {emitDefinedSections} from '@wildshard/sdk/sections';
-import {isJsonData} from '@wildshard/format/json';
-import {SECTIONS,CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sections';
+import {CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sections';
 import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlob, type NamedBlobKind } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
 import type { PineSources } from './pineSources';
@@ -67,7 +64,7 @@ import { readPineSources } from './programSources';
 import { heroMaterialFiles, materialTier, materialVariantOf } from './heroMaterialFiles.mjs';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { formatJsonSchema,registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { PINE_FEAT_COUNTERS } from './questInventory';
 import { cabinScene, lendCabinPacking } from './cabinSceneContribution';
@@ -108,25 +105,6 @@ const coverTextureIds=new Set([...coverAppearance.kinds.map(row=>row.texture),'e
 const coverTextures=Object.fromEntries(Object.entries(paintedRows.textures).filter(([key])=>coverTextureIds.has(key)));
 const forestDensity = pineDensityBlob(manifest);
 
-const schemas:Readonly<Record<string,v.GenericSchema>>=SECTIONS;
-/** A draft-07 schema with the format's named-check annotations dropped (scripts/bake-section-schemas.mjs `structural`). */
-function structural(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(structural);
-  if (typeof value !== 'object' || value === null) return value;
-  return Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'x-wildshard-checks' && key !== 'x-wildshard-string-length').map(([key, child]) => [key, structural(child)]));
-}
-/** Each custom section's wire schema, as the section-schema bake publishes it (GR8: computed in the program). */
-const WIRE_SCHEMAS: Readonly<Record<string, Readonly<Record<string, unknown>>>> = Object.fromEntries(Object.entries(schemas).map(([name, schema]) => {
-  const wire = structural(formatJsonSchema(schema, 'draft-07'));
-  if (typeof wire !== 'object' || wire === null || Array.isArray(wire)) throw new Error(`Invalid Pine wire schema ${name}`);
-  return [name, Object.fromEntries(Object.entries(wire))];
-}));
-/** The custom sections; `prepareOutput` passes the rows that name compiled modules (the quest runtime's lead). */
-function emitCustom(overrides: ReadonlyMap<string, unknown> = new Map()): ReturnType<typeof emitDefinedSections> { return emitDefinedSections(Object.entries(schemas).map(([name,schema])=>{
- const value=overrides.has(name)?overrides.get(name):name==='custom/questRuntime'?PINE_QUEST_PAYLOAD:name==='custom/heldToolPlayback'?{...toolPlayback,look:KNIFE_LOOK}:(PINE_OUTPUT.custom as Readonly<Record<string,unknown>>)[name],jsonSchema=WIRE_SCHEMAS[name];
- if(!isJsonData(value)||jsonSchema===undefined)throw new Error(`Missing generated Pine section: ${name}`);
- return {name,jsonSchema,value:v.parse(schema,value)};
-})); }
 const held = PINE_OUTPUT.custom;
 const coatRow = (key:string) => { const row=held['custom/paintedTextures'].textures[key]; if(row===undefined)throw new Error(`Missing coat texture ${key}`);return row; };
 const heldEquipment = { ...heldTuning,
@@ -149,7 +127,7 @@ async function outputRows(sources: PineSources, readImagePixels: ProjectGenerati
   v.parse(PoolGroundSchema, timbers.poolGround);
   const { FOREST_STORY_BLOB } = forestStory(sources), { PINE_QUEST_PAGE_BLOB } = questPage(sources), { RANGED_PAGE_BLOBS } = await rangedPage(sources), { FOREST_PAGE_BLOB } = await forestPage(sources);
   const { WORLD_SCENES, SCENE_BLOBS, SCENE_PACKED_MODELS } = await worldScenes(sources);
-  const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather)), { jsonSchema: registeredJsonSchema('world/forest-weather.json') }), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsOwnersBytes(), { jsonSchema: registeredJsonSchema('data/physics.generated.json') }), nameBlob('quests/native-story.json', 'json', new TextEncoder().encode(encodeCanonicalJson(PINE_NATIVE_QUEST)), { jsonSchema: registeredJsonSchema('quests/native-story.json') }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: registeredJsonSchema('quests/native-spots.json') }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB,
+  const clientJson: ReturnType<typeof emitNamedBlobs>=emitNamedBlobs([nameBlob(forestDensity.name, 'bin', forestDensity.bytes, { critical: true, decoded: forestDensity.decoded }), nameBlob('world/forest-weather.json', 'json', new TextEncoder().encode(encodeCanonicalJson(forestWeather)), { jsonSchema: registeredJsonSchema('world/forest-weather.json') }), FOREST_STORY_BLOB, PINE_QUEST_PAGE_BLOB, CROSSBOW_BLOB, ...SCENE_PACKED_MODELS, ...skyKeys.map(([name, bytes]) => nameBlob(name, 'bin', bytes)), nameBlob('data/physics.generated.json', 'json', pinePhysicsOwnersBytes(), { jsonSchema: registeredJsonSchema('data/physics.generated.json') }), nameBlob('quests/native-spots.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseNativeQuestServiceSpots({ rows: spots.rows, people: spots.people, board: spots.board, pickup: spots.rifle, cable: spots.zip, signals: spots.lanterns }))), { jsonSchema: registeredJsonSchema('quests/native-spots.json') }), ...RANGED_PAGE_BLOBS, FOREST_PAGE_BLOB,
 nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCanonicalJson(parseCoverAppearance({...coverAppearance,textures:coverTextures}))),{jsonSchema:registeredJsonSchema('look/cover-appearance.json')}),...SCENE_BLOBS,nameBlob('quests/persistence.json','json',new TextEncoder().encode(encodeCanonicalJson(persistence)),{jsonSchema:registeredJsonSchema('quests/persistence.json')}),
   nameBlob('quests/chapter-director.json', 'json', new TextEncoder().encode(encodeCanonicalJson(CHAPTER_DIRECTOR)), { jsonSchema: registeredJsonSchema('quests/chapter-director.json') }),
   nameBlob('directors/main.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ declaration: directorData, module: { module: directorData.module, bytes: '', file: 'behaviour/director.wasm' }, stages: directorStages, bindings: null, seed: 357 })), { jsonSchema: registeredJsonSchema('directors/main.json') }),
@@ -163,7 +141,7 @@ nameBlob('look/cover-appearance.json','json',new TextEncoder().encode(encodeCano
   nameBlob('quests/mill-door.json', 'json', new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_MILL_DOOR))), { jsonSchema: registeredJsonSchema('quests/mill-door.json') }),
 nameBlob('quests/lanterns.json','json',new TextEncoder().encode(encodeCanonicalJson(parseQuestPageInteractions(PINE_LANTERN_PAGE))),{jsonSchema:registeredJsonSchema('quests/lanterns.json')}),nameBlob('world/floor.json','json',new TextEncoder().encode(JSON.stringify(parseFloorRows(pineFloorLayout(sources)), (key: string, value: unknown) => key === 'matrix' ? undefined : typeof value === 'number' ? Math.round(value * 1e5) / 1e5 : value)), { jsonSchema: registeredJsonSchema('world/floor.json') })]);
   const PLATFORM_ROWS = new Map<PlatformDataSectionName, unknown>([['explore/catalogue', EXPLORER_CATALOGUE],['world/physics', pineWorldPhysics()],['world/trees', TREE_SET],['look/rigged-hulls', PINE_HULL_BOOK], ['look/hull-book', SPECIES_LOOKS], ['look/keyed-sky', keyedSky], ['client/plan', { ...clientPlan, features: [...clientPlan.features, { kind: 'audio.cues', id: 'roaming', stage: 'world', clock: 'owner', rows: NATIVE_VIEW.KING_CUES }, { kind: 'world.sets', rows: PLACE_SETS.map(({ id, place, name, x, z, r }) => ({ id, place, name, x, z, r, file: 'declared forest page', pois: [] })) }] }], ['ui/strings', strings], ['world/scenes', WORLD_SCENES], ['held/finishes', HELD_FINISHES], ['held/gear', HELD_GEAR], ['held/loadout', heldLoadout], ['held/equipment', heldEquipment], ['actors/species-programs', PINE_SPECIES_PROGRAMS], ['sim/scripts', KING_DECISION], ['actors/moves', KING_MOVES]]);
-  return { platformRows: PLATFORM_ROWS, output: { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom: emitCustom(), namedFiles: clientJson.files, assets: clientJson.assets, blobs: pinePhysicsSources().map(meshoptSource).map(sourceBlob) } };
+  return { platformRows: PLATFORM_ROWS, output: { ...PINE_OUTPUT, platform: emitPlatformSections(PLATFORM_ROWS), custom: emitDefinedSections([]), namedFiles: clientJson.files, assets: clientJson.assets, blobs: pinePhysicsSources().map(meshoptSource).map(sourceBlob) } };
 }
 
 /** CLI-only: runtime config imports cannot reach section emission or Node services. */
@@ -315,7 +293,8 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   // D97: the quest page's chapter runs the compiled lead as the quest runtime does (the static page names its unset module)
   const page = emitNamedBlobs([questPageBlob(questPage(sources).PINE_QUEST_PAGE, lifeProgram)]), stale = output.namedFiles.find(file => file.name === 'quests/page-composition.json');
   if (stale === undefined) throw new Error('Pine quest page is missing from the static output');
-  const programs = emitNamedBlobs([nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...pageLife(await pineAmbientPerches(ctx)), program: lifeProgram })), { jsonSchema: registeredJsonSchema('actors/page-life.json') }),
+  const programs = emitNamedBlobs([nameBlob('quests/runtime.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...PINE_QUEST_PAYLOAD, lead: { ...PINE_QUEST_PAYLOAD.lead, program: lifeProgram } })), { jsonSchema: registeredJsonSchema('quests/runtime.json') }),
+    nameBlob('actors/page-life.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ ...pageLife(await pineAmbientPerches(ctx)), program: lifeProgram })), { jsonSchema: registeredJsonSchema('actors/page-life.json') }),
     nameBlob('actors/shelter.json', 'json', new TextEncoder().encode(encodeCanonicalJson({ step: 'pine.rain-shelter', environment: 'pine.habitat', roster: 'pine.roster', weather: 'pine.air', herdLimit: 512, look: shelterLook, program: { script: shelter.script, bytes: '' } })), { jsonSchema: registeredJsonSchema('actors/shelter.json') })]);
   const namedFiles = [...output.namedFiles.filter(file => file !== stale), ...page.files, ...trees.files, ...heroMaterials.files, ...timberMaterials.files, life.file, ...birds.files, ...client.files, ...creatures.files, ...rigs.files, ...programs.files, ...contracts.files.files, ...elites.files.files, ...journal.files, ...kingFiles.files, ...flock.files.files, ...drawFile.files, ...people.files.files, ...peopleFile.files, ...coats.files, night.blob.file, clock.file].sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   const assets = new Map([...output.assets, ...trees.assets, ...heroMaterials.assets, ...timberMaterials.assets, ...birds.assets, ...client.assets, ...creatures.assets, ...rigs.assets, ...programs.assets, ...contracts.files.assets, ...elites.files.assets, ...journal.assets, ...kingFiles.assets, ...flock.files.assets, ...drawFile.assets, ...people.files.assets, ...peopleFile.assets, ...coats.assets, [night.blob.file.hash, night.blob.bytes], [clock.file.hash, clock.bytes]]);
@@ -323,10 +302,9 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   assets.delete(stale.hash); for (const [hash, bytes] of page.assets) assets.set(hash, bytes);
   const sortedAssets = [...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
   const platform = emitPlatformSections(new Map<PlatformDataSectionName, unknown>([...platformRows, ['actors/return-scripts', [life.script, shelter.script, contracts.script]], ['actors/spawn-scripts', [night.row, ...elites.programs]]]));
-  const customRows = emitCustom(new Map<string, unknown>([['custom/questRuntime', { ...PINE_QUEST_PAYLOAD, lead: { ...PINE_QUEST_PAYLOAD.lead, program: lifeProgram } }]]));
   // I2: the cabin weld builds after control (cabinSceneContribution.ts), so its node shapes leave the library fetched before it;
   // the keyed sky decodes only the keys around the clock's phase (game looks/keyedSky.ts), read on demand, so no key is prefetched
   const skyKeys = output.namedFiles.filter(file => file.name?.startsWith('look/sky/') === true && file.kind === 'bin').map(file => ({ hash: file.hash }));
   const late = [...(await cabinScene(sources)).CABIN_LATE, ...skyKeys];
-  return { ...output, platform, custom: customRows, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]), late };
+  return { ...output, platform, custom: emitDefinedSections([]), namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]), late };
 }

@@ -1,3 +1,5 @@
+import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
+import { QuestStoryBindingsSchema } from '@wildshard/format/questStoryBindings';
 import { QuestInteractionSourceSchema } from '@wildshard/format/questInteractionSource';
 import { uniformIdentityTransforms } from '@wildshard/format/uniformRows';
 import { HeldCueSchema, ArcWeaponItemSchema } from '@wildshard/format/heldMelee';
@@ -133,7 +135,7 @@ import { TargetsSchema } from '@wildshard/format/targets';
 import { QuestDataSchema } from '@wildshard/format/quests';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema, QuestPageInteractionsSchema } from '@wildshard/format/questInteractions';
-import { QuestPageSchema, QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
+import { QuestPageSchema, QuestPageCompositionSchema, ChapterViewSchema } from '@wildshard/format/questPageComposition';
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
 import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { QuestFiguresSchema, KitFigureCardsSchema } from '@wildshard/format/questFigures';
@@ -501,6 +503,9 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'heldWeaponDocuments.HeldSlotsDocument': HeldSlotsDocumentSchema,
   'heldJianDocument.HeldJianDocument': HeldJianDocumentSchema,
   'questInteractionSource.QuestInteractionSource': QuestInteractionSourceSchema,
+  'questRuntime.QuestRuntimeDocument': QuestRuntimeDocumentSchema,
+  'questStoryBindings.QuestStoryBindings': QuestStoryBindingsSchema,
+  'questPageComposition.ChapterView': ChapterViewSchema,
 };
 const wireChecks = new Map<object, string>();
 const wireFinite = new Set<object>();

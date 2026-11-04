@@ -10,7 +10,7 @@ const { PINE_QUEST_PAGE, PINE_QUEST_PAGE_BLOB } = questPage(PINE_SOURCES), { FOR
 // G565: Pine's forest story as rows of the shared quest page, its second real user after Driftwood
 it("admits Pine's forest story as quest page rows with every facet", () => {
   const page = v.parse(QuestPageSchema, structuredClone(PINE_QUEST_PAGE));
-  expect(page.kit?.section).toBe(FOREST_STORY.content);
+  expect(page.kit?.file).toBe(FOREST_STORY.content);
   expect([page.board?.panel, page.collections?.panel]).toEqual([FOREST_STORY.panels.board, FOREST_STORY.panels.count]);
   expect(page.mover?.id).toBe(FOREST_STORY.mover.id);
   expect(page.map?.zones).toEqual(FOREST_STORY.map.zones);

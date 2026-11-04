@@ -1,3 +1,5 @@
+import { QuestRuntimeDocumentSchema } from './questRuntime';
+import { QuestStoryBindingsSchema } from './questStoryBindings';
 import { PerchBodyFileSchema } from './mixedPopulation';
 import { QuestInteractionSourceSchema } from './questInteractionSource';
 import { HeldJianDocumentSchema } from './heldJianDocument';
@@ -51,7 +53,7 @@ import {WorldSceneSchema,parseWorldScene} from './clientChannels';
 import {ForestWeatherSchema} from './forestWeather';
 import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
-import { QuestPageCompositionSchema } from './questPageComposition';
+import { QuestPageCompositionSchema, ChapterViewSchema } from './questPageComposition';
 import {QuestServiceActionsSchema,parseQuestServiceActions,QuestStepRowsSchema,parseQuestStepRows,QuestHintRowsSchema,parseQuestHintRows,CarriedQuestSchema,parseCarriedQuest} from './questSteps';
 import { QuestStorySchema,parseQuestStory,ChapterStoryPresentationSchema,parseChapterStoryPresentation, AdventureContentSchema } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector,ChapterWakeSchema,parseChapterWake } from './chapterDirector';
@@ -102,6 +104,9 @@ export interface RegisteredJsonContracts {
   readonly 'models/held-cards.json':{readonly schema:typeof HeldGraphCardsSchema;readonly source:'@wildshard/format/heldArms#HeldGraphCardsSchema'};
   readonly 'look/cover-appearance.json':{readonly schema:typeof CoverAppearanceSchema;readonly source:'@wildshard/format/coverAppearance#CoverAppearanceSchema'};
   readonly 'quests/interaction-source.json':{readonly schema:typeof QuestInteractionSourceSchema;readonly source:'@wildshard/format/questInteractionSource#QuestInteractionSourceSchema'};
+  readonly 'quests/runtime.json':{readonly schema:typeof QuestRuntimeDocumentSchema;readonly source:'@wildshard/format/questRuntime#QuestRuntimeDocumentSchema'};
+  readonly 'quests/forest-story.json':{readonly schema:typeof QuestStoryBindingsSchema;readonly source:'@wildshard/format/questStoryBindings#QuestStoryBindingsSchema'};
+  readonly 'quests/content.json':{readonly schema:typeof ChapterViewSchema;readonly source:'@wildshard/format/questPageComposition#ChapterViewSchema'};
   readonly 'quests/chapters.json':{readonly schema:typeof ChapterStoryPresentationSchema;readonly source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'};
   readonly 'quests/native-story.json':{readonly schema:typeof NativeQuestCompositionSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'};
   readonly 'quests/native-spots.json':{readonly schema:typeof NativeQuestServiceSpotsSchema;readonly source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'};
@@ -220,6 +225,9 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'models/held-cards.json':{schema:HeldGraphCardsSchema,source:'@wildshard/format/heldArms#HeldGraphCardsSchema'},
   'look/cover-appearance.json':{schema:CoverAppearanceSchema,source:'@wildshard/format/coverAppearance#CoverAppearanceSchema'},
   'quests/interaction-source.json':{schema:QuestInteractionSourceSchema,source:'@wildshard/format/questInteractionSource#QuestInteractionSourceSchema'},
+  'quests/runtime.json':{schema:QuestRuntimeDocumentSchema,source:'@wildshard/format/questRuntime#QuestRuntimeDocumentSchema'},
+  'quests/forest-story.json':{schema:QuestStoryBindingsSchema,source:'@wildshard/format/questStoryBindings#QuestStoryBindingsSchema'},
+  'quests/content.json':{schema:ChapterViewSchema,source:'@wildshard/format/questPageComposition#ChapterViewSchema'},
   'quests/chapters.json':{schema:ChapterStoryPresentationSchema,source:'@wildshard/format/questStory#ChapterStoryPresentationSchema'},
   'quests/native-story.json':{schema:NativeQuestCompositionSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestCompositionSchema'},
   'quests/native-spots.json':{schema:NativeQuestServiceSpotsSchema,source:'@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema'},
@@ -490,6 +498,9 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'quests/chapter-director.json':parseChapterDirector(value);break;
     case 'quests/story.json':parseQuestStory(value);break;
     case 'quests/interaction-source.json':v.parse(QuestInteractionSourceSchema,value);break;
+    case 'quests/runtime.json':v.parse(QuestRuntimeDocumentSchema,value);break;
+    case 'quests/forest-story.json':v.parse(QuestStoryBindingsSchema,value);break;
+    case 'quests/content.json':v.parse(ChapterViewSchema,value);break;
     case 'quests/chapters.json':parseChapterStoryPresentation(value);break;
     case 'quests/stall.json':v.parse(QuestTraderSchema,value);break;
     case 'quests/achievements.json':parseAchievementCounterData(value);break;
