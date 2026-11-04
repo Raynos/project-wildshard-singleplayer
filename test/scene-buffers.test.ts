@@ -175,11 +175,19 @@ test('cold Explorer preparation admits buffered effects and refuses missing file
   const scenes = parseWorldScenes({ version: 1, libraries: [], materials: [], steps: [{ id: 'fire', scene: 'scene.json' }] });
   const product = (include: boolean) => {
     const data = emitNamedBlobs([nameBlob('scene.json', 'json', new TextEncoder().encode(JSON.stringify(recipe))), ...(include ? SIGNAL_EMBER_BLOBS.filter(row => row === blob || blob.file.dependencies.includes(row.file.hash)) : [])]);
-    return createShardProduct({ slug: 'fixture-cold-effects', revision: 1,
+    const admitted=createShardProduct({ slug: 'fixture-cold-effects', revision: 1,
       shardfile: emptyShardfile({ slug: 'fixture-cold-effects', name: 'Cold effects', author: 'Fixture', revision: 1, seed: 1 }),
       sections: new Map([['world/scenes', scenes]]),
       files: new Map(data.files.flatMap(row => row.name === undefined ? [] : [[row.name, { ...row, url: row.hash }]])), jsonCheck: fixtureJsonCheck,
       read: hash => { const bytes = data.assets.get(hash); if (bytes === undefined) throw new Error('Missing fixture bytes'); return Promise.resolve(bytes); } });
+    // This synthetic recipe isolates the Explorer host. Its buffered effects
+    // keep real registered ingestion; the recipe keeps its native consumer parse.
+    const named=admitted.json.bind(admitted);
+    vi.spyOn(admitted,'json').mockImplementation(async name=>{
+      if(name!=='scene.json')return named(name);
+      const value:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await admitted.file(name)));return value;
+    });
+    return admitted;
   };
   const draws = [{ kind: 'buffered' as const, file, material: 'paint', scale: 1, y: 0 }];
   const row = { part: 'fire.root', step: 'fire', definition: { model: { id: 'fixture/fire', name: 'Fire', file: 'scene.json', category: 'props' as const, pipeline: 'code' as const }, builder: 'fire' }, effects: [{ part: 'root', draws }] };

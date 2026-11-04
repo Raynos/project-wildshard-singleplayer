@@ -33,6 +33,11 @@ function fixture(retireOnRead = false) {
   const product = createShardProduct({slug: 'quarry', revision: 1, shardfile: emptyShardfile({slug: 'quarry', name: 'Quarry', author: 'Fixture', revision: 1, seed: 1}),
     sections: new Map(), files: new Map([...bytes].map(([name, value]) => [name, {hash: sha256(value), url: `/${name}`}])) ,
     read: hash => { if (retireOnRead) scope.dispose(); const found = byHash.get(hash); if (found === undefined) throw new Error('Missing fixture bytes'); return Promise.resolve(found); }});
+  // Explicit byte oracle for this owner-lifecycle fixture. The real named-file
+  // admission remains covered by the production documents and grammar tests.
+  vi.spyOn(product,'json').mockImplementation(async name=>{
+    const value:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(await product.file(name)));return value;
+  });
   const game = legacyDouble<Game>({levelScope: scope, scene}), world = legacyDouble<ShardWorld>({game});
   const runtime = legacyDouble<ShardRuntime>({world}), ctx = legacyDouble<ShardContext>({scope, product, game: legacyDouble<ShardContext['game']>({runtime})});
   publishEntryOwner(scope, 'drawn-models', row.models, models); lendNalatiAdmission(scope);
