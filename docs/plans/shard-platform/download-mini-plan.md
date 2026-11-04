@@ -196,7 +196,15 @@ exception):**
   boot JSON, the KTX2 set), grid 343–551; 2 Driftwood piano audio pack parts still open at control (DL5).
 - **Grid streaming at control (DL11, PL10/PL16):** 8 rings in flight, Far Reach `loading`, ~3,050 Cache Storage reads of
   `grid-road` bins after control, Driftwood switching to its far proxy and Far Reach to `near` during the lap.
-- **Pops within reach on the lap:** Driftwood's `ground-cover-*-far` instances shown on approach (10–22 meshes).
+- **Pops on the lap (corrected 11-03; root's ruling G872 (A): content not resident at control is red, a shard's own
+  distance show / hide / LOD of resident models is listed as distance LOD):** Driftwood's ground-cover far tier, trader,
+  castaway, trade counter, cove plants and `props120` are distance LOD. The red was the tile driver attaching piers after
+  control: the loader's 1 s settle-idle exit released control with tiles unattached. Runtime packs now attach the whole
+  cell before control and never retire a tile (0 pops on Driftwood and Nine); the default Shardfile fence takes every
+  in-radius tile in all directions.
+- **Shardfile's in-play ring re-adds (DL5 target):** the default 5 x 5 ring retires a tile beyond it and re-adds it on
+  return (Driftwood's pier after the bridge leg, ~230 m out). The whole-cell home ring becomes the default only when
+  Runtime packs do (DL5); until then these re-adds stay listed here.
 
 **Order:** DL17 and DL0 first (the gate and the measurement), then DL1–DL3 (small, independent). DL4 next, then DL5
 (the format everything else writes into) with DL18 (the handshake that serves it). DL6–DL13 and DL19 run in parallel
