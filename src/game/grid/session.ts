@@ -1,6 +1,6 @@
 import { prelinkGridViews } from './prelinkViews';
 import type { RoadTileBacking } from './roadTileBacking';
-import { roadTileCache } from './roadTileArchive';
+import { roadTileWriter } from './roadTileWriter';
 import { bootWaits, waitFor, type BootWait } from '@wildshard/engine/boot/waits';
 /**
  * The grid session (SHARD-PLATFORM SF17b / SF18a / SF18b / SF21a, the grid client): what turns EXPERIMENTAL Wildshard's
@@ -476,8 +476,9 @@ export class GridSession {
     const roadScope = host.scope.child('grid-road-construction');
     progress?.set(2, 3, `Road geometry · ${strips.length} initial seams`);
     const admission = new PlatformRenderResidency(allocator, roadScope), plans = new Map<Mesh, CullPlan>();
+    const tileScope = roadScope.child('road-tiles');
     const tileBacking = new (await import('./roadTileBacking')).RoadTileBacking(
-      roadScope.child('road-tiles'), roadTileCache(caches, location.origin), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera });
+      tileScope, roadTileWriter(tileScope, caches, location.origin), { pitch: assembly.pitch, plans, camera: () => host.frame?.camera });
     // Use the same source set for both halves if initial certification selected
     // the existing flat fallback. Outer failures never substitute different edges.
     const outerStrips = async (owner: Scope): Promise<readonly GeneratedStrip[]> => {

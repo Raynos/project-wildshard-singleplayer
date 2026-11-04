@@ -32,6 +32,7 @@ const headerSchema: v.GenericSchema<unknown, Header> = v.strictObject({ version:
 /** Disk-backed immutable bytes are outside the resident tile budget; decoded arrays are admitted by the caller. */
 export interface RoadTileStore {
   get: (hash: string, bytes: number) => Promise<Uint8Array | null>;
+  /** May take ownership of (transfer) a whole-buffer body; callers read nothing from it afterwards. */
   put: (hash: string, bytes: Uint8Array) => Promise<boolean>;
   pin?: (hashes: Iterable<string>) => () => void;
 }
@@ -50,11 +51,12 @@ function hashTurn(store: RoadTileStore, hash: string): { readonly before: Promis
   } };
 }
 /** Runtime-authored road bytes share the worker's store; no page LRU exists. */
+export function roadTileUrl(origin: string, hash: string): string {
+  if (!/^[a-f0-9]{64}$/u.test(hash)) throw new Error('Invalid road tile hash');
+  return new URL(`/assets/grid-road/${hash}.bin`, origin).href;
+}
 export function roadTileCache(storage: Pick<CacheStorage, 'open'>, origin: string): RoadTileStore {
-  const url = (hash: string): string => {
-    if (!/^[a-f0-9]{64}$/u.test(hash)) throw new Error('Invalid road tile hash');
-    return new URL(`/assets/grid-road/${hash}.bin`, origin).href;
-  };
+  const url = (hash: string): string => roadTileUrl(origin, hash);
   return { get: (hash, bytes) => cachedAsset(storage, url(hash), bytes), put: (hash, bytes) => cacheAsset(storage, url(hash), bytes) };
 }
 export interface RoadTileReference {
@@ -203,7 +205,7 @@ export function persistRoadTile(scope: Scope, store: RoadTileStore, tile: RoadTi
 }
 async function persistEncodedRoadTile(scope: Scope, store: RoadTileStore, bytes: Uint8Array,
   reference: Omit<RoadTileReference, 'hash' | 'wireBytes'>): Promise<RoadTileReference> {
-  const hash = await contentHash(bytes); live(scope);
+  const hash = await contentHash(bytes), wireBytes = bytes.length; live(scope);
   const unpin = store.pin?.([hash]) ?? (() => undefined); let pinned = true;
   const release = (): void => { if (pinned) { pinned = false; unpin(); } };
   const cancel = scope.capture('disposers', release);
@@ -212,10 +214,10 @@ async function persistEncodedRoadTile(scope: Scope, store: RoadTileStore, bytes:
     const turn = hashTurn(store, hash); finishHash = turn.release;
     if (turn.before !== undefined) await turn.before;
     live(scope);
-    const stored = await storedRoadTile(store, hash, bytes.length); live(scope);
+    const stored = await storedRoadTile(store, hash, wireBytes); live(scope);
     if (!stored && !await store.put(hash, bytes)) throw new Error('Road tile archive storage refused');
     live(scope);
-    return { hash, wireBytes: bytes.length, ...reference };
+    return { hash, wireBytes, ...reference };
   } catch (error) { cancel(); release(); throw error; }
   finally { finishHash(); }
 }
