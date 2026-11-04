@@ -34,7 +34,10 @@ export function snapshot() {
         const t = m?.[key];
         if (t?.isTexture !== true || t.isRenderTargetTexture === true) continue;
         const img = t.image;
-        const empty = img === null || img === undefined || (t.isCompressedTexture ? !(t.mipmaps?.length > 0) : img.width === 0 || img.complete === false);
+        // a texture the renderer already holds on the GPU is decoded, even with its CPU copy released after upload (the
+        // gpuOnly policy drops a compressed texture's mipmaps then: sp-o1's Nalati probe, 512 x 512 on the GPU)
+        const onGpu = world.game.renderer?.properties?.get(t)?.__webglTexture !== undefined;
+        const empty = !onGpu && (img === null || img === undefined || (t.isCompressedTexture ? !(t.mipmaps?.length > 0) : img.width === 0 || img.complete === false));
         if (empty && texturesPending.length < 50) texturesPending.push(`${chain.join('<')}.${key}`);
       }
     });
