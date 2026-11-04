@@ -40,7 +40,7 @@ for (const path of dumps) {
 }
 if (slugs.size !== 1) throw new Error(`The dumps name ${slugs.size === 0 ? 'no shard (pass --slug)' : `several shards (${[...slugs].join(', ')})`}`);
 const [slug] = slugs;
-if (slug === undefined || !existsSync(join('src/shards', slug))) throw new Error(`No shard folder src/shards/${String(slug)}`);
+if (slug === undefined || !existsSync(join('src/shards', slug))) throw new Error(`No shard folder src/shards/${slug}`);
 const file = join('src/shards', slug, 'home-seed-keys.json');
 const prior = existsSync(file) ? readHomeSeedKeys(JSON.parse(readFileSync(file, 'utf8'))) : { version: 1, tiers: {} };
 /** @type {{phone?: string[], desktop?: string[]}} */

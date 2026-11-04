@@ -19,7 +19,7 @@ import { filamentGeometry } from './filamentGeometry';
 import { grappleCourseScene } from './courseScene';
 import type { NinePracticeProgram } from './practiceProgram';
 import course from '../data/grappleCourse.json' with { type: 'json' };
-import { namedJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { type namedJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import type { GrappleRows } from '../data/grappleTypes';
 import aim from '../data/grapple.json' with { type: 'json' };
 import { nameBlob, emitNamedBlobs, type BlobOptions, type NamedBlob } from '@wildshard/sdk/blobs';
