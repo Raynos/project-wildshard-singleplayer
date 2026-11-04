@@ -114,6 +114,13 @@ test('the stage\'s reads tally is not a named wait: a step held 3.5 s behind it 
     foot: `Now waiting for: Reading 8 files · 0.0 MB · ${s.toFixed(1)} s` }));
   rows.push(card(3.8, { shown: false, control: true }), frames(0, 40, 16.7));
   expect(analyse(rows).setupStalls_ge3s[0]).toMatchObject({ named: false, waits: [] });
+  // the footer's real suffixes (a second pending wait, a quiet prefix) leave it the same tally (sp-x1)
+  const footed = (foot) => rows.map(row => (row.ev === 'poll' && row.shown ? Object.assign(structuredClone(row), { foot: foot(row.foot) }) : row));
+  const suffixed = footed(foot => `No reported progress for 1.0 s · ${foot} · 2 waits`);
+  expect(analyse(suffixed).setupStalls_ge3s[0]).toMatchObject({ named: false, waits: [] });
+  // a real file wait or a sub-step stays named
+  const named = footed(() => 'Now waiting for: Read Model data · 37 files · 4.1 MB read so far · 0.4 s · 1 files in flight · 2 waits');
+  expect(analyse(named).setupStalls_ge3s[0]).toMatchObject({ named: true });
 });
 
 test('loading frames are measured per Setup step: a 900 ms unpresented frame lands on the step the card showed', () => {

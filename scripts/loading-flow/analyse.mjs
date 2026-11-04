@@ -22,7 +22,8 @@ const named = (foot, step) => {
   if (typeof foot !== 'string') return false;
   // 'Reading 8 files · 0.0 MB' is the stage's tally of reads already done (src/engine/boot/waits.ts stageReads), not
   // what it waits on: Nine's step 27 sat 3.5 s behind it with no read in flight
-  if (/waiting for: Reading \d+ files · [\d.]+ MB(?: · [\d.]+ s)?$/u.test(foot)) return false;
+  // (with the footer's own suffixes: its age, files in flight and wait count, sp-x1's review)
+  if (/waiting for: Reading \d+ files · [\d.]+ MB(?: · [\d.]+ s)?(?: · \d+ files in flight)?(?: · \d+ waits)?$/u.test(foot)) return false;
   if (/waiting for:/iu.test(foot)) return true;
   const work = /working on: (.+)$/iu.exec(foot)?.[1]?.trim();
   const title = (step ?? '').replace(/^step \d+ \/ \d+ · /u, '').trim();
