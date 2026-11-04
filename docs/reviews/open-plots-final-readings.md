@@ -31,7 +31,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
-| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; clean standalone Sim 3 windows pass; grid configuration refusal retained; full official scope open |
+| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; clean standalone Sim 3 windows pass; grid configuration refusal retained (Safari purge; native-tap check queued); full official scope open |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Chromium memory complete; official Sim open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Chromium memory complete; official Sim open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
@@ -1843,3 +1843,44 @@ listeners restored before sampling. Its focused controls passed in 12.4 s
 with typed lint green. It supplies attribution, not a configuration reset
 or a cause cure. The queued grid boot remains untimed. Full qualification
 stays **6/10**; the clean standalone result does not close Clockwork's grid.
+
+
+## Safari storage purge — harness attribution (sp-x1, November 4)
+
+The native DOMStorage trace on fresh **1bc5e17-mw2nuhbt** (:4460)
+retained the fixtures through preparation, standalone and title. Grid then
+lost them without a JavaScript delete/clear or a native remove event. The
+saved Simulator unified log supplies the missing operation:
+`NetworkProcess::deleteAndRestrictWebsiteDataForRegistrableDomains` ran
+at **22:01:41.807695–22:01:42.441623 UTC**, with two candidate domains for
+script-written storage deletion. The origin's LocalStorage SQLite file
+was created at **22:01:42.442073 UTC**; the next device-document write was
+an `ItemAdded` with no old value at **22:01:42.451 UTC**. This is Safari's
+website-data purge, not an identified game save writer.
+
+Every observed URL remained on **http://127.0.0.1:4460**, including the
+preparation, standalone, title and grid documents. No host, port or origin
+change explains it. Read-only ITP metadata contains three domains:
+`127.0.0.1` and `vercel-storage.com` have no recorded user interaction;
+`wildshard-singleplayer.vercel.app` has one and zero data removals.
+Loopback has 16 removal records. The two no-interaction rows match the
+candidate count, but the log does not name the candidates and the database
+is not a retained pre-purge snapshot: the second domain remains inferred.
+The exact candidate-selection timing is not yet proved.
+
+WebKit's [home-screen application guidance](https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/)
+exempts first-party home-screen applications from this Safari inactivity
+purge; its [current selection code](https://github.com/WebKit/WebKit/blob/main/Source/WebKit/NetworkProcess/Classifier/ResourceLoadStatisticsStore.cpp)
+also explicitly exempts home-screen applications. Wildshard-new rules no
+product risk from this observed harness purge for Jake's installed PWA;
+this is not a new physical-device storage result. The approved reader-only
+check is a real native tap on the preparation origin, verification that
+ITP records user interaction, then the original fixture and grid flow.
+Tracking prevention stays enabled; no game save policy changes or late
+fixture reseeding are authorized.
+
+Raw presence-only traces and offline log summaries are retained under
+`tmp/sp-x1-open-plots/native-storage-*`. The diagnostic ended at
+22:02:03 UTC and all resources were released before the next lane's slot.
+It earns no floor/memory credit; the four full officials stay open and
+**6/10 fully qualified** remains unchanged.
