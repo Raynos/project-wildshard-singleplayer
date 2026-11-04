@@ -1,6 +1,6 @@
 import { DRIFTWOOD_LAYOUTS, DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
 // @vitest-environment happy-dom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Group } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -40,6 +40,11 @@ function context(scope: Scope, read: () => Promise<unknown>): ShardContext {
   const source = emptyShardfile({ slug: 'quest-world-fixture', name: 'World fixture', author: 'Fixture', revision: 1, seed: 1 });
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source, sections: new Map(),
     files: new Map([['world.json', { hash: 'world', url: 'world' }]]), read: async () => new TextEncoder().encode(JSON.stringify(await read())) });
+  // This native host fixture is deliberately not a shipped document.
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   return legacyDouble<ShardContext>({ scope, product });
 }
 

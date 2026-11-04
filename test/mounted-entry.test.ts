@@ -1,3 +1,4 @@
+import {fixtureProductFile} from './fixtures/productFile';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
@@ -29,9 +30,11 @@ async function fixture() {
   const book={rows:[],packed:{bin:'/assets/fixture/gear.bin',bytes:0,rows:[]},materials:{}};
   const read=vi.fn(()=>Promise.resolve(new TextEncoder().encode(JSON.stringify(book))));
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source,
-    sections: new Map([['client/plan', { version: 1, features: [paths, mounted] }]]), files: new Map(['models/gear.json','weapons/bow-page.json',loadout.blade.file,loadout.polearm.file,loadout.page.firearm.file].map(name=>[name,{hash:'a'.repeat(64),url:`/fixture/${name}`} ])), read });
+    // Equipment builders are separately stubbed below; this fixture lends the
+    // already-admitted framing/book values to test mounted owner ordering.
+    builtJson: true, sections: new Map([['client/plan', { version: 1, features: [paths, mounted] }]]), files: new Map(['models/gear-book.json','weapons/bow-page.json',loadout.blade.file,loadout.polearm.file,loadout.page.firearm.file].map(name=>[name,fixtureProductFile(name,{hash:'a'.repeat(64),url:`/fixture/${name}`}) ])), read });
   const slots=heldSlotRows({ ...loadout, variants: { bow: { id: 'weapon.golden-bow', name: 'Golden Bow' }, blade: { id: 'weapon.naizagai', name: 'Naizagai' } } },power);
-  const arsenal=HeldClaims.fromProductSlots(product,{...slots,id:mounted.claims},'models/gear.json');
+  const arsenal=HeldClaims.fromProductSlots(product,{...slots,id:mounted.claims},'models/gear-book.json');
   vi.spyOn(arsenal.blade('blade'),'prepare').mockResolvedValue();vi.spyOn(arsenal.polearm('polearm'),'prepare').mockResolvedValue();
   vi.spyOn(arsenal.blade('blade'),'profile').mockReturnValue(legacyDouble<ReturnType<ReturnType<typeof arsenal.blade>['profile']>>({}));
   vi.spyOn(arsenal.polearm('polearm'),'profile').mockReturnValue(legacyDouble<ReturnType<ReturnType<typeof arsenal.polearm>['profile']>>({}));

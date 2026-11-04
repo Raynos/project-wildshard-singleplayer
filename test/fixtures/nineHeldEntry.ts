@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { Vector3 } from 'three';
 import { App } from '../../src/engine/app/app';
 import { Scope } from '../../src/engine/app/scope';
@@ -33,6 +34,14 @@ export async function heldEntry(prepare = true) {
       ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'held.primary' }, { kind: 'held.claims.install', claims: 'held.primary' }, { kind: 'held.claims.enter', claims: 'held.primary', ...enteredRows }] }]]),
     files: new Map([[enteredRows.grapple.presentation, fixtureProductFile(enteredRows.grapple.presentation, { hash: '0'.repeat(64), url: '/jian-row.json' })], [slottedEnteredRows.grapple.source, { hash: '1'.repeat(64), url: '/constants.json' }]]),
     read: hash => pending ?? Promise.resolve(hash === '1'.repeat(64) ? bytes : presentation) });
+  // Only this synthetic grapple projection lacks a shipping file owner.
+  // Preserve its original immutable bytes and the entered native parser.
+  const named = product.json.bind(product);
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    if (name !== slottedEnteredRows.grapple.source) return named(name);
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   const native=heldSwordWorld();scope.onDispose(native.dispose);
   const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>(native.world), step: null, play: null,
     interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };

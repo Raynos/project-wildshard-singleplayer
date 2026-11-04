@@ -1,3 +1,4 @@
+import {fixtureProductFile} from './fixtures/productFile';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -9,7 +10,7 @@ import { parseItems } from '../src/format/items';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-const rows = { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: 'weapons/presentation.json' }, tools: ['tool.fei-zhua'] };
+const rows = { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: 'weapons/jian-row.json' }, tools: ['tool.fei-zhua'] };
 const presentation = new TextEncoder().encode(JSON.stringify({ portraitFov: 78, aim: {}, view: {} }));
 function fixture(pending?: Promise<Uint8Array>) {
   const parent = new Scope('held-owner-parent'), scope = parent.child('held-owner');
@@ -17,7 +18,9 @@ function fixture(pending?: Promise<Uint8Array>) {
   const source = { ...emptyShardfile({ slug, name: 'Held owner fixture', author: 'Fixture', revision: 1, seed: 7 }), items: parseItems(items) };
   const read = vi.fn(() => pending ?? Promise.resolve(presentation));
   const product = createShardProduct({ slug, revision: 1, shardfile: source, sections: new Map([['held/arms', rows]]),
-    files: new Map([[rows.primary.file, { hash: 'a'.repeat(64), url: '/fixture/presentation.json' }]]), read });
+    // This host framing fixture simulates an admitted document; native framing
+    // and every pending-owner/retirement refusal remain the assertions below.
+    builtJson: true, files: new Map([[rows.primary.file, fixtureProductFile(rows.primary.file, { hash: 'a'.repeat(64), url: '/fixture/presentation.json' })]]), read });
   const runtime = legacyDouble<ShardRuntime>({ world: legacyDouble<NonNullable<ShardRuntime['world']>>({}) });
   const weapon = vi.fn<ShardContext['rows']['weapon']>();
   const ctx = legacyDouble<ShardContext>({ scope, product, game: legacyDouble<ShardContext['game']>({ runtime }),

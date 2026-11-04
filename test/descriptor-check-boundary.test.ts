@@ -1,3 +1,4 @@
+import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import { expect, test, vi } from 'vitest';
 import { build } from 'vite';
 import { emptyShardfile } from '../src/sdk/author';
@@ -104,16 +105,16 @@ test('browser products need a build proof and bundle no checked host intake', as
   expect(()=>loaded.admitProduct(index, { ...options, firstParty: false })).toThrow('build-owned reader');
   expect(fetch).not.toHaveBeenCalled();
   await expect(loaded.readCheckedOutputIndex(index)).rejects.toThrow('server validation');
-  const jsonBytes = encode({ value: 7 }), jsonHash = hashImmutableBytes(jsonBytes);
+  const value = {rows:{},urls:{}}, jsonBytes = encode(value), jsonHash = hashImmutableBytes(jsonBytes);
   const jsonInput = { slug: source.identity.slug, revision: 1, shardfile: source, sections: values,
-    files: new Map([['value.json', { hash: jsonHash, url: '/value.json', jsonSchema: { type: 'object', properties: { value: { type: 'number' } } } }]]),
+    files: new Map([['world/sources/bakes.json', { hash: jsonHash, url: '/value.json', jsonSchema: registeredJsonSchema('world/sources/bakes.json') }]]),
     read: vi.fn(() => Promise.resolve(jsonBytes)) };
-  expect(await loaded.createShardProduct({ ...jsonInput, builtJson: true }).json<{ value: number }>('value.json')).toEqual({ value: 7 });
+  expect(await loaded.createShardProduct({ ...jsonInput, builtJson: true }).json('world/sources/bakes.json')).toEqual(value);
   jsonInput.read.mockClear();
-  await expect(loaded.createShardProduct(jsonInput).json('value.json')).rejects.toThrow('server validation');
+  await expect(loaded.createShardProduct(jsonInput).json('world/sources/bakes.json')).rejects.toThrow('server validation');
   expect(jsonInput.read).not.toHaveBeenCalled();
-  await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new TextEncoder().encode('{broken')) }).json('value.json')).rejects.toThrow();
-  await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new Uint8Array([255])) }).json('value.json')).rejects.toThrow();
+  await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new TextEncoder().encode('{broken')) }).json('world/sources/bakes.json')).rejects.toThrow();
+  await expect(loaded.createShardProduct({ ...jsonInput, builtJson: true, read: () => Promise.resolve(new Uint8Array([255])) }).json('world/sources/bakes.json')).rejects.toThrow();
   const first = index.sections[0]; if (first === undefined) throw new Error('Missing section');
   wires.set(first.path, new Uint8Array(first.bytes));
   await expect(loaded.resolveOutputDescriptor(index, reader)).rejects.toMatchObject({name:'SyntaxError'});

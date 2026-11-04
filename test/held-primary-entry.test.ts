@@ -1,3 +1,4 @@
+import {fixtureProductFile} from './fixtures/productFile';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
@@ -22,14 +23,16 @@ import { MeleeWeaponProfileSchema } from '../src/format/weaponProfiles';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-const rows = { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: 'weapons/presentation.json' }, tools: ['tool.fei-zhua'] };
+const rows = { kind: 'declared-primary', primary: { item: 'weapon.jian', blade: 'wood', file: 'weapons/jian-row.json' }, tools: ['tool.fei-zhua'] };
 const defaultPresentation = { portraitFov: 78, aim: {}, view: {} };
 function fixture(presentation: unknown = defaultPresentation, pending?: Promise<Uint8Array>, input: unknown = rows) {
   const parent = new Scope('primary-parent'), scope = parent.child('primary-entry'), slug = 'primary-fixture';
   const source = { ...emptyShardfile({ slug, name: 'Primary fixture', author: 'Fixture', revision: 1, seed: 7 }), items: parseItems(items) };
   const read = vi.fn(() => pending ?? Promise.resolve(new TextEncoder().encode(JSON.stringify(presentation))));
   const product = createShardProduct({ slug, revision: 1, shardfile: source, sections: new Map<string, unknown>([['held/arms', input], ['client/plan', { version: 1, features: [{ kind: 'held.claims.prepare', id: 'primary.claims' }, { kind: 'held.claims.install', claims: 'primary.claims' }] }]]),
-    files: new Map([[rows.primary.file, { hash: 'a'.repeat(64), url: '/fixture/presentation.json' }]]), read });
+    // This host framing fixture simulates an admitted document; native framing
+    // and every pending-owner/retirement refusal remain the assertions below.
+    builtJson: true, files: new Map([[rows.primary.file, fixtureProductFile(rows.primary.file, { hash: 'a'.repeat(64), url: '/fixture/presentation.json' })]]), read });
   const native=heldSwordWorld();scope.onDispose(native.dispose);
   const runtime: ShardRuntime = { world: legacyDouble<NonNullable<ShardRuntime['world']>>(native.world), step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
   const tool = vi.fn<ShardContext['rows']['tool']>(), weapon = vi.fn<ShardContext['rows']['weapon']>();

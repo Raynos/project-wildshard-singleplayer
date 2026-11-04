@@ -36,7 +36,13 @@ function fixture() {
       if (name === files.stall) return stall.promise;
       throw new Error(`Unexpected read ${name}`);
     } });
-  const json = vi.spyOn(product, 'json'), file = vi.spyOn(product, 'file');
+  // This pure read scheduler owns no shipping documents. Preserve its exact
+  // byte ports and JSON decoding without declaring private product families.
+  const readBytes = product.file.bind(product);
+  const json = vi.spyOn(product, 'json').mockImplementation(async name => {
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await readBytes(name)));
+    return value;
+  }), file = vi.spyOn(product, 'file');
   return { product, json, file, order, discovery, assembly, stall };
 }
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));

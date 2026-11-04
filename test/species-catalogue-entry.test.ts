@@ -29,6 +29,12 @@ function fixture() {
       trace.push(hash); onRead(hash);
       return Promise.resolve(new TextEncoder().encode(JSON.stringify(hash === 'actors' ? {species: source.presentation} : source.looks)));
     }});
+  // This two-file host ownership projection is not emitted content. Keep
+  // the byte/owner schedule and the original native catalogue parsers.
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   const species = vi.fn<ShardContext['rows']['species']>(() => undefined), speciesLook = vi.fn<ShardContext['rows']['speciesLook']>(() => undefined);
   const runtime = legacyDouble<ShardRuntime>({world});
   const ctx = legacyDouble<ShardContext>({scope, product, game: legacyDouble<ShardContext['game']>({runtime}),

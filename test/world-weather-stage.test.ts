@@ -158,6 +158,14 @@ function clockedFixture(hold?: 'sky' | 'program', parent?: Scope, nativeOwner?: 
       trace.push(`read ${url}`); if (url === heldFile) { reached(); await gate; }
       return new TextEncoder().encode(JSON.stringify(values.get(url)));
     } });
+  // Only the private clock/geometry projections are native test ports;
+  // the forest document retains registered ingestion and all owner fences.
+  const named = product.json.bind(product);
+  vi.spyOn(product, 'json').mockImplementation(async name => {
+    if (name !== skyRows.file && name !== policy.files.program) return named(name);
+    const value: unknown = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(await product.file(name)));
+    return value;
+  });
   const scene = new Scene(), material = new MeshBasicMaterial(), disc = new Mesh(shape, material);
   const sky = legacyDouble<NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>['sky']>({ sunDisc: disc });
   const game = legacyDouble<NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>['game']>({ scene, levelScope: nativeOwner ?? scope });
