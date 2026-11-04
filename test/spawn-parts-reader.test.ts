@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import {afterEach, expect, test, vi} from 'vitest';
-import {downloadSpawnManifest, releaseSpawnMembers} from '../src/game/boot/spawnDownload';
+import {downloadSpawnManifest, releaseSpawnMembers, type HeldParts} from '../src/game/boot/spawnDownload';
 
 const hash = 'c'.repeat(64), base = 'https://example.test/';
 // Real sha256 of each body: the reader checks every member against its manifest row.
@@ -75,4 +75,36 @@ test('a part whose bytes differ from the manifest is never kept: its members loa
   expect(kept).toEqual([bin.url]); // bin verified before the corrupt glb; glb never kept
   expect(reads).toContain(glb.url);
   expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3});
+});
+
+test('DL18: a warm visit answers every packed member from the held-parts index, with no part request or bulk read', async () => {
+  // One in-memory asset cache shared by a cold visit and the warm visit after it.
+  const disk = new Map<string, Response>(), reads: string[] = [], lookups: string[] = [];
+  let index: HeldParts = {}, bulk = 0;
+  const ports = () => ({packs: true, whole: true,
+    cached: (url: string) => { lookups.push(new URL(url).pathname); return Promise.resolve(disk.get(url)?.clone()); },
+    present: (urls: readonly string[]) => { bulk++; return Promise.resolve(new Set(urls.filter(url => disk.has(url)))); },
+    keep: (url: string, response: Response) => { disk.set(url, response); return Promise.resolve(); },
+    store: (url: string, response: Response) => { disk.set(url, response); return Promise.resolve(); },
+    held: {read: () => Promise.resolve(index), write: (next: HeldParts) => { index = next; return Promise.resolve(); },
+      keys: () => Promise.resolve(new Set(disk.keys()))},
+    fetch: (url: string) => {
+      const path = new URL(url).pathname; reads.push(path);
+      return Promise.resolve(new Response(path === address.url ? text : path === part.url ? partBytes : body(path)));
+    }});
+  await downloadSpawnManifest(address, ports(), base).ready;
+  expect(reads).toEqual([address.url, part.url, code.url]);
+  expect(index).toEqual({[hash]: [new URL(bin.url, base).href, new URL(glb.url, base).href]});
+  reads.length = 0; lookups.length = 0; bulk = 0;
+  const warm = downloadSpawnManifest(address, ports(), base);
+  await warm.ready;
+  // The manifest and the loose module come from the cache by their own lookups; the packed members need none.
+  expect(reads).toEqual([]); expect(bulk).toBe(0);
+  expect(lookups.sort()).toEqual([address.url, code.url].sort());
+  expect(warm.snapshot()).toMatchObject({complete: true, cachedBytes: 12, filesDone: 3});
+  // The worker pruned a member: the index no longer holds its part, so the part is fetched again and re-listed.
+  disk.delete(new URL(glb.url, base).href); reads.length = 0;
+  await downloadSpawnManifest(address, ports(), base).ready;
+  expect(reads).toEqual([part.url]);
+  expect(index[hash]).toEqual([new URL(bin.url, base).href, new URL(glb.url, base).href]);
 });

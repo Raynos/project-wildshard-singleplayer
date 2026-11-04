@@ -23,7 +23,11 @@ export interface SpawnDownloadPorts {
   readonly keep?: (url: string, response: Response) => Promise<void>;
   /** Runtime packs: the manifest must be a whole-level one, which always carries its part table (sp-x9). */
   readonly whole?: boolean;
+  /** DL18: the held-parts index beside Cache Storage (part hash → the member URLs `keep` stored from it) and the
+   * cache's keys. A part whose members are all listed and still keyed is held: its members credit without a lookup. */
+  readonly held?: {readonly read: () => Promise<HeldParts>; readonly write: (index: HeldParts) => Promise<void>; readonly keys: () => Promise<ReadonlySet<string>>};
 }
+export type HeldParts = Readonly<Record<string, readonly string[]>>;
 
 /** DL5: part members by their exact URL until control, so this page's own reads of them (product reads, engine
  * fetches) are answered from the part instead of the network. A member that failed is null and reads fall through. */
@@ -108,15 +112,27 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const files = manifest.files.map(file => {
         const url = new URL(file.url, base); aliases.set(url.pathname, url.href); return {bytes: file.bytes, hash: file.hash, wireBytes: file.wireBytes ?? 0, url: url.href};
       });
-      const present = await ports.present?.(files.map(file => file.url));
+      // DL18: on a warm visit the held-parts index and the cache's keys answer every packed member at once; the few
+      // loose files left are looked up one by one, so no bulk read of the cache runs.
+      const parts = ports.packs === true ? manifest.parts : undefined, heldFiles = new Set<string>();
+      let heldIndex: HeldParts = {}, keys: ReadonlySet<string> = new Set();
+      if (parts !== undefined && ports.held !== undefined) {
+        [heldIndex, keys] = await Promise.all([ports.held.read().catch(() => ({})), ports.held.keys()]);
+        for (const part of parts) {
+          const stored = new Set(heldIndex[part.hash]), urls = part.members.map(([at]) => files[at]?.url ?? '');
+          if (urls.every(url => stored.has(url) && keys.has(url))) for (const url of urls) heldFiles.add(url);
+        }
+      }
+      const rest = files.filter(file => !heldFiles.has(file.url));
+      const present = heldFiles.size > 0 && rest.length <= 64 ? undefined : await ports.present?.(rest.map(file => file.url));
       // Bulk native metadata avoids hundreds of cache IPC calls. Unmapped
       // responses (older synthetic URLs/redirects) retain the exact hit check.
-      const cached = await Promise.all(files.map(file => present?.has(file.url) === true ? Promise.resolve(undefined) : ports.cached(file.url)));
+      const cached = await Promise.all(files.map(file => heldFiles.has(file.url) || present?.has(file.url) === true ? Promise.resolve(undefined) : ports.cached(file.url)));
       controller.signal.throwIfAborted();
       const missing: typeof files = [];
       for (let index = 0; index < files.length; index++) {
         const file = files[index]; if (file === undefined) throw new Error('Missing spawn file');
-        if (present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; }
+        if (heldFiles.has(file.url) || present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; }
         else missing.push(file);
       }
       progressKnown = true;
@@ -125,10 +141,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       // DL5: every part holding a missing member at once; members are cut out as their bytes land. A part that fails
       // hands its unfinished members to the loose loop below (its files stay deployed).
       let loose = missing;
-      const parts = ports.packs === true ? manifest.parts : undefined;
       if (parts !== undefined && parts.length > 0) {
         installMemberLayer();
-        const wanted = new Set(missing), left = new Set<number>();
+        const wanted = new Set(missing), left = new Set<number>(), stored = new Map<string, readonly string[]>();
         await Promise.all(parts.map(async part => {
           const order = part.members.filter(([index]) => {const file = files[index]; return file !== undefined && wanted.has(file);});
           if (order.length === 0) return;
@@ -157,6 +172,10 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               }
             }
             if (at !== part.bytes) throw new Error(`Spawn part size differs: ${part.url}`);
+            // Every member of the part is now stored (kept here, or already credited): the index may name it.
+            // A part shared by another entry keeps that entry's members too, while they are still keyed.
+            if (ports.keep !== undefined) stored.set(part.hash, [...new Set([...(heldIndex[part.hash] ?? []).filter(url => keys.has(url)),
+              ...part.members.map(([member]) => files[member]?.url ?? '')])]);
           } catch {
             // Settle first: a page read already waiting on a member must fall through, even when this download aborts.
             for (const [index] of order) if (!done.has(index)) {left.add(index); settle.get(index)?.(null);}
@@ -164,6 +183,12 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           }
         }));
         controller.signal.throwIfAborted();
+        // One index write per download: this download's stored parts, plus earlier entries whose members are all
+        // still keyed (the worker prunes old builds' files, so an entry never outlives its members).
+        if (stored.size > 0 && ports.held !== undefined) {
+          const kept = Object.entries(heldIndex).filter(([hash, urls]) => !stored.has(hash) && urls.every(url => keys.has(url)));
+          await ports.held.write(Object.fromEntries([...kept, ...stored])).catch(() => undefined);
+        }
         loose = missing.filter(file => !parts.some(part => part.members.some(([index]) => files[index] === file)) || left.has(files.indexOf(file)));
       }
       await Promise.all(Array.from({length: Math.min(8, loose.length)}, async () => {
@@ -251,6 +276,14 @@ export function adoptCompletedSpawnDownload(slug: string, flow: 'client' | 'grid
   held.foreground = true;
   return held.download;
 }
+/** DL18: the held-parts index's own key in the asset cache; no page or worker route serves it. */
+const HELD_PARTS = new URL('/__wildshard/spawn-held-parts', typeof location === 'undefined' ? 'http://localhost/' : location.href).href;
+async function readHeldParts(response: Response | undefined): Promise<HeldParts> {
+  const value: unknown = response === undefined ? {} : await response.json();
+  if (typeof value !== 'object' || value === null) return {};
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string[]] =>
+    /^[a-f0-9]{64}$/u.test(entry[0]) && Array.isArray(entry[1]) && entry[1].every(url => typeof url === 'string')));
+}
 function downloadPorts(cacheName: unknown, packs: boolean): SpawnDownloadPorts {
   const store = typeof caches === 'undefined' ? null : typeof cacheName === 'string' ? caches.open(cacheName) : null;
   const controller = navigator.serviceWorker?.controller;
@@ -265,6 +298,11 @@ function downloadPorts(cacheName: unknown, packs: boolean): SpawnDownloadPorts {
     ...(store === null || controller !== undefined && controller !== null ? {} : {store: async (url: string, response: Response) => {await (await store).put(url, response);}}),
     ...(store === null || !packs ? {} : {packs: true, keep: async (url: string, response: Response) => {await (await store).put(url, response);}}),
     ...(packs ? {whole: true} : {}),
+    ...(store === null || !packs ? {} : {held: {
+      read: async () => readHeldParts(await (await store).match(HELD_PARTS)),
+      write: async (index: HeldParts) => {await (await store).put(HELD_PARTS, Response.json(index));},
+      keys: async () => new Set((await (await store).keys()).map(request => request.url)),
+    }}),
   };
 }
 /** A download whose manifest is known only after the packs book arrives; until then its progress is unknown. */
