@@ -7,6 +7,9 @@ import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json
 import bursts from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
 import pools from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
 import { LightPoolProfilesSchema } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
+import {parseDecisionScripts} from '../src/format/decisionScripts';
+import {isJsonData} from '../src/format/json';
+import approvedGeometry from './fixtures/approved-model-geometry-roots.json' with {type:'json'};
 
 function field(value: unknown, key: string): unknown {
   if (value === null || typeof value !== 'object') throw new Error(`Missing native schema ${key}`);
@@ -63,6 +66,24 @@ function witness(schema: unknown): unknown {
 function result(schema: v.GenericSchema, input: unknown): unknown {
   const parsed = v.safeParse(schema, input);
   return parsed.success ? { output: parsed.output } : { issues: JSON.stringify(parsed.issues) };
+}
+
+/** G1004 closes the old opaque script slot. Keep every historical mutation,
+ * but judge that slot with the original native decision admission rather than
+ * accepting the old author's arbitrary unknown value. No issue text is pinned
+ * across this deliberate contract change; every old refusal must still refuse. */
+function sameAdmission(name:string,original:v.GenericSchema,current:v.GenericSchema,input:unknown,label?:string):void {
+  if(name!=='practice'){expect(result(current,input),label).toEqual(result(original,input));return;}
+  const previous=v.safeParse(original,input),admitted=v.safeParse(current,input);
+  let native=false;
+  if(previous.success&&isJsonData(input)){
+    const program=field(field(previous.output,'practice'),'program'),bytes=field(program,'bytes');
+    if(isJsonData(program)&&typeof bytes==='string'&&bytes.length<=2_000_000){
+      try{parseDecisionScripts([field(program,'script')]);native=true;}catch{/* An old opaque value is not a native decision document. */}
+    }
+  }
+  expect(admitted.success,`${label??name}: ${JSON.stringify(admitted.issues?.map(issue=>({message:issue.message,path:issue.path?.map(row=>row.key)})))}`).toBe(previous.success&&native);
+  if(previous.success&&admitted.success)expect(admitted.output,label).toEqual(previous.output);
 }
 
 /** Every nested original declaration is exercised, including absent optional
@@ -130,25 +151,37 @@ const schemas = [
 
 for (const [name, original, current] of schemas) test(`${name} retains complete native grammar and field refusals`, () => {
   const input = witness(original);
+  if(name==='practice'){
+    const actual=v.parse(original,JSON.parse(approvedGeometry['geometry/fixed-kits.json'].body));
+    const target=field(input,'practice');
+    if(typeof target!=='object'||target===null)throw new Error('Missing practice witness');
+    Reflect.set(target,'program',field(field(actual,'practice'),'program'));
+  }
   const admitted = v.safeParse(original, input);
   expect(admitted.success, JSON.stringify(admitted.issues?.map(issue => ({ message: issue.message, path: issue.path?.map(row => row.key) })))).toBe(true);
-  expect(result(current, input)).toEqual(result(original, input));
+  sameAdmission(name,original,current,input);
   for (const invalid of [null, [], 'bad', 0, false, { extra: true }])
-    expect(result(current, invalid)).toEqual(result(original, invalid));
+    sameAdmission(name,original,current,invalid);
   for (const [key] of entries(input)) {
     for (const bad of [undefined, null, 'bad', Infinity, -1, [], {}, true]) {
       const changed = Object.fromEntries(entries(input)); changed[key] = bad;
-      expect(result(current, changed), `${name}.${key} mutated`).toEqual(result(original, changed));
+      sameAdmission(name,original,current,changed,`${name}.${key} mutated`);
     }
     const missing = Object.fromEntries(entries(input)); delete missing[key];
-    expect(result(current, missing), `${name}.${key} missing`).toEqual(result(original, missing));
+    sameAdmission(name,original,current,missing,`${name}.${key} missing`);
   }
   let checked = 0;
   for (const changed of mutations(original, input)) {
-    expect(result(current, changed), `${name} nested witness ${String(checked)}`).toEqual(result(original, changed));
+    sameAdmission(name,original,current,changed,`${name} nested witness ${String(checked)}`);
     checked++;
   }
   expect(checked).toBeGreaterThan(20);
+});
+
+test('complete practice refuses the old author-only null script before native installation',()=>{
+  const input=witness(before.FixedPracticeFileSchema);
+  expect(v.safeParse(before.FixedPracticeFileSchema,input).success).toBe(true);
+  expect(v.safeParse(after.FixedPracticeFileSchema,input).success).toBe(false);
 });
 
 test('original checked profile inputs retain identity, order and complete native values', () => {
