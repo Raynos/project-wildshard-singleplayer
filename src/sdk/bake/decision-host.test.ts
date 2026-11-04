@@ -5,7 +5,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { compileScript } from '@wildshard/sdk/compileScript';
 import { scriptV1Layout } from '@wildshard/format/scriptAbiV1';
-import { createScriptScenario } from '@wildshard/sdk/scriptScenario';
+import { createScriptScenario } from '../test/scriptScenario';
 
 const layout = scriptV1Layout(1, 0), slot = 16384 + layout.state * 8, out = 16384 + layout.outbox * 8;
 const valid = `scratch++; let next=load<f64>(${slot})+f64(scratch); store<f64>(${slot},next);

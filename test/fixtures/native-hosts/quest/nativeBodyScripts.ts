@@ -1,10 +1,10 @@
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { SimHost } from '@wildshard/engine/sim';
-import { DeclaredBodyOps } from './bodyOps';
-import { lendQuestBodyScripts } from './nativeProps';
-import { ShardDecisions, type DecisionRuntime } from '../shardfile/decisions';
-import { outputDescriptor } from '../shardfile/outputDescriptor';
+import { DeclaredBodyOps } from '../../../../src/game/quest/bodyOps';
+import { lendQuestBodyScripts } from '../../../../src/game/quest/nativeProps';
+import { ShardDecisions, type DecisionRuntime } from '../../../../src/game/shardfile/decisions';
+import { outputDescriptor } from '../../../../src/game/shardfile/outputDescriptor';
 
 /** G566: a native world's shard-bound body scripts (sim/scripts rows over sim/bodies, Driftwood's tide barrel watch) on
  *  its own fixed step. They add no snapshot adapter, so old saves keep their exact adapter set: the quest props envelope

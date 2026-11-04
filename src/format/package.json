@@ -21,7 +21,6 @@
     "./entryReads": "./entryReads.ts",
     "./admissionControl": "./admissionControl.ts",
     "./admissionLate": "./admissionLate.ts",
-    "./typedDataBank": "./typedDataBank.ts",
     "./glbBuffers": "./glbBuffers.ts",
     "./glbCost": "./glbCost.ts",
     "./stateLineage": "./stateLineage.ts",

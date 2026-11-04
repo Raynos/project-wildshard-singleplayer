@@ -5,7 +5,7 @@ import { captureDecisionSources, compileDecisionScripts, decisionLineCeiling } f
 import { inspectDecisionSource } from '@wildshard/sdk/decisionSource';
 import { generateDecisionBindings } from '@wildshard/sdk/decisionScriptBindings';
 import { DecisionHost, type DecisionScript } from '@wildshard/engine/script/decision';
-import { createScriptScenario } from '@wildshard/sdk/scriptScenario';
+import { createScriptScenario } from '../test/scriptScenario';
 
 const raw = { id: 'test.compiler', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`,
   source: 'behaviour/main.as', binding: { encounter: 'test.encounter' }, on: ['start', 'timer'],

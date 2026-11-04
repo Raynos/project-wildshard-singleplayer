@@ -12,7 +12,7 @@ import { createNativeProofResident } from '../../fixtures/headless-native';
 import {nalatiTamingPilot} from './tamingPilot';
 import source from '../../fixtures/nalati-product-source';
 import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
-import { createNativeBakeReader } from '../../../src/game/population/nativeBake';
+import { createNativeBakeReader } from '../../fixtures/native-hosts/population/nativeBake';
 import { nativeTamingOf } from '@wildshard/game/riding/nativeTaming';
 import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { canonicalSimDigest } from '../../fake/simState';

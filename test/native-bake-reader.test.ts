@@ -2,7 +2,7 @@ import {nativeBakeBytes} from './fixtures/native-bake-inline';
 import { nativeColliderRecordSchema } from '../src/format/nativePhysics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createNativeBakeReader, type NativePhysicsBake, type NativeBakeReader } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, type NativePhysicsBake, type NativeBakeReader } from './fixtures/native-hosts/population/nativeBake';
 import { trustedLevel } from '../src/game/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';

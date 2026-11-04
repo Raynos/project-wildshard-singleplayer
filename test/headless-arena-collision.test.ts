@@ -2,7 +2,7 @@
 import {readFileSync} from 'node:fs';
 import {expect,test} from 'vitest';
 import {arenaSealCollider} from '../src/game/boss/arenaCollision';
-import {installNativeCollision,type NativeCollisionSolid} from '../src/game/population/nativeBake';
+import {installNativeCollision,type NativeCollisionSolid} from './fixtures/native-hosts/population/nativeBake';
 import {loadRapier} from '../src/engine/physics/rapier';
 import {createShardfileSim} from '../src/game/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';

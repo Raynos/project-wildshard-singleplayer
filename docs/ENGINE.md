@@ -6836,8 +6836,8 @@ copies admitted state without pickups, flags, facts or writes.
 profile: socket-to-deck run, height, per-edge half-widths, stride and look
 ahead. It walks the real capsule through all four admitted water sockets,
 following the flare and checking grounded support, lane, floor and stalls.
-The default remains the ground-height walk. `population/nativeBake`
-`installNativeCollision` takes `omit`, a list of surface materials whose
+The default remains the ground-height walk. The test fixture
+`test/fixtures/native-hosts/population/nativeBake.installNativeCollision` takes `omit`, a list of surface materials whose
 baked solids it leaves out (`edge` drops the standalone rim slabs a grid
 admission does not want); the standalone install keeps them.
 `NativeCollisionSolid.enabled` retains initial owner activity; omitted means
@@ -7644,8 +7644,8 @@ Encoding preserves each original wire name and ordering. Decoding refuses
 noncanonical alias keys and duplicate decoded roles before restore; original
 quest envelopes, cable endpoints and quiet restoration remain unchanged.
 
-`game/quest/nativeBodyScripts.installNativeBodyScripts(host, shard, assets,
-restoring)` installs admitted shard-bound body decisions before the native
+`test/fixtures/native-hosts/quest/nativeBodyScripts.installNativeBodyScripts(host, shard,
+assets, restoring)` installs admitted shard-bound body decisions before the native
 quest composition. Its fixed-step phase runs body post, decision commit,
 then body pre; observation callbacks follow physics. It adds no independent
 save adapter. The quest props lend requested walk intent and carry the native
@@ -7680,8 +7680,8 @@ scene assembler passes them to MeshStandardMaterial before its named world
 decorator. Absence keeps the constructor defaults and existing scenes.
 
 
-**Native bake intake (W2 C9).** `@wildshard/sdk/headlessRuntime` defines
-`nativeGroundSchema(resolution)` for strict native lattice metadata,
+**Native bake intake (W2 C9).** The test fixture
+`test/fixtures/native-hosts/population/nativeBake` defines
 `nativeBakeGround(row, resolution, size, label)` for owned Float32 heights
 and scale admission, and `nativeBakeActors(rows, label)` for ordered actor
 rows whose specs match their declared kind and variant. Pine and
@@ -8182,7 +8182,7 @@ with the existing module image and never becomes durable continuation.
 source-budget admission and supplies only the selected authored closure; it
 does not compile an alternate entry as a replacement ABI1 witness.
 
-`game/population/nativeBake.createNativeBakeReader(input, rows)` composes
+`test/fixtures/native-hosts/population/nativeBake.createNativeBakeReader(input, rows)` composes
 stock native lattice, collider and body admission from finite data rows:
 label, resolution, size, parked, rig, provenance and shapes. Its memo holds
 only a fully admitted world; ordered actor ids are unique and herd member
@@ -11538,7 +11538,7 @@ world-matrix writes keep their original view phase.
 - `game/population/perchBody`: Perch body rows bind existing decision guests, numeric poses and root motion to actual actors.
 - `test/fixtures/native-hosts/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.
 
-- `game/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
+- `test/fixtures/native-hosts/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
 - `game/boss/arenaRoom`: One row-selected open/closed encounter lifecycle binds native boss, reward, input and saved owners. Open-arena decisions remain in the selected AS projection; capture, native effects and inline views retain their original slots.
 
 ### Developer hover boost (G540)
@@ -11733,7 +11733,7 @@ bindings. Existing quest, collection, inventory and save owners remain live.
 ### Native body-script ground admission (G571)
 
 Direct typed native proof installation calls
-`game/quest/nativeBodyScripts.installNativeBodyScripts` after real static-ground
+`test/fixtures/native-hosts/quest/nativeBodyScripts.installNativeBodyScripts` after real static-ground
 admission and before quest props. It retains the admitted `sim/scripts`,
 `sim/bodies`, move, strike, target and native-plan sections. The existing body
 post/decision/pre order, adapters and quest-envelope continuation are unchanged;

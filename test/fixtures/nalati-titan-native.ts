@@ -13,7 +13,7 @@ import type {HuntBody} from '../../src/engine/ai/hunt';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {parseClientPlan} from '../../src/format/clientPlan';
 import {OpenArenaFight,readArenaScriptData,type ArenaSupportRider} from '../../src/game/boss/openArenaFight';
-import {bindArenaPoseView} from '../../src/game/boss/arenaPoseView';
+import {bindArenaPoseView} from './native-hosts/boss/arenaPoseView';
 import {arenaTie,arenaBoundary} from '../../src/game/boss/arenaAnswers';
 import {mountedPlayerOf} from '../../src/game/riding/native';
 import {respawnNativeMounted} from '../../src/game/riding/nativeTaming';

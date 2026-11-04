@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { ScenarioWorld, scenarioCommand } from '@wildshard/sdk/scriptScenario';
+import { ScenarioWorld, scenarioCommand } from '../test/scriptScenario';
 import { SCRIPT_V1_COMMANDS as commands, SCRIPT_V1_LISTS as lists, SCRIPT_V1_READS as reads } from '@wildshard/format/scriptAbiV1';
 import type { DecisionContext, DecisionScript } from '@wildshard/engine/script/decision';
 

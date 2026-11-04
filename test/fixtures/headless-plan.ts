@@ -6,7 +6,7 @@ import { parse } from 'valibot';
 import { createSimHost, type SimHost } from '../../src/engine/sim';
 import type { Rapier } from '../../src/engine/physics/rapier';
 import { combatSpeedFactor } from '../../src/engine/player/combatMotion';
-import { installNativeBodyScripts } from '../../src/game/quest/nativeBodyScripts';
+import { installNativeBodyScripts } from './native-hosts/quest/nativeBodyScripts';
 import { hasStaticGround } from '../../src/engine/physics/query';
 import { onSimHostRestored } from '../../src/engine/sim/snapshot';
 

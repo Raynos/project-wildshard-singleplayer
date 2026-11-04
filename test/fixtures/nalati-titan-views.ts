@@ -2,7 +2,7 @@ import {InstancedMesh,Vector3} from 'three';
 import type {ArenaScriptData} from '../../src/format/arenaScriptRows';
 import type {SimHost} from '../../src/engine/sim';
 import {parsePrivateScene} from '../../src/format/clientChannels';
-import {HeadlessCloudBody} from '../../src/game/boss/cloudRig';
+import {HeadlessCloudBody} from './native-hosts/boss/cloudRig';
 import {ArenaWhirls} from '../../src/game/boss/arenaWhirls';
 import type {ArenaTell,OpenArenaViews} from '../../src/game/boss/openArenaFight';
 

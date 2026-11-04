@@ -11,7 +11,7 @@ import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { admitScriptContract, decisionScriptsFromSections } from '@wildshard/format/scriptContract';
 import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
 import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
-import { loadHeadlessProduct } from './headlessProduct';
+import { loadHeadlessProduct } from '../headlessProduct';
 import { createScriptScenario, type ScenarioActor, type DiskScenarioOptions, type DiskScriptScenario } from './scriptScenario';
 
 /** Disk admission and the game use the same defining catalogue; the fixture never allocates actor ids. */

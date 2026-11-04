@@ -5,7 +5,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { NativeArraySliceSchema, nativeColliderRecordSchema } from '../src/format/nativePhysics';
 import { WorldPhysicsSchema } from '../src/format/worldPhysics';
-import { createNativeBakeReader } from '../src/game/population/nativeBake';
+import { createNativeBakeReader } from './fixtures/native-hosts/population/nativeBake';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { schemaInventory } from '../scripts/docs/schema-reference.mjs';
 import { nalatiPhysicsSources } from '../src/shards/nalati-grasslands/generators/physics';

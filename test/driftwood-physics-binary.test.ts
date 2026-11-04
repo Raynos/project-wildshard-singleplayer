@@ -1,7 +1,7 @@
 import {nativeBakeFloats,originalNativeGround} from './fixtures/native-bake-inline';
 import { expect, test } from 'vitest';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import { createNativeBakeReader, nativeBakeGround, installNativeCollision } from '../src/game/population/nativeBake';
+import { createNativeBakeReader, nativeBakeGround, installNativeCollision } from './fixtures/native-hosts/population/nativeBake';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsGroundBytes, driftwoodPhysicsSources } from '../src/shards/driftwood-isle/generators/physics';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';

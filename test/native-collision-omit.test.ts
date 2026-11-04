@@ -5,7 +5,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { Physics } from '@wildshard/engine/physics/Physics';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { tagOf } from '@wildshard/engine/physics/surface';
-import { installNativeCollision, type NativeCollisionSolid } from './nativeBake';
+import { installNativeCollision, type NativeCollisionSolid } from './fixtures/native-hosts/population/nativeBake';
 
 // A grid admission names the baked materials it leaves out (Pine's entry proof drops the standalone rim slabs, `edge`);
 // the standalone install of the same bake keeps every solid.

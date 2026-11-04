@@ -245,7 +245,7 @@ export class OpenArenaFight implements BossScript {
     this.adoptView(scope, view);
   }
   /** What the view module samples from `source` (format/arenaView `sources`: the life and clock state, the pose, the spear
-   *  on the ground), one finite field at a time; the page lends these, a native host's lane reads the same (arenaPoseView.ts). */
+   *  on the ground), one finite field at a time; the page lends these, a native proof's lane reads the same (test/fixtures/native-hosts/boss/arenaPoseView.ts). */
   viewSource(source: string): (field: string) => number {
     const { sources } = ARENA_VIEW, pose = this.pose;
     if (source === sources.life) return field => this.life.value(field);
@@ -260,7 +260,7 @@ export class OpenArenaFight implements BossScript {
     return { bend: { value: pose.bend }, raise: { value: pose.raise }, castL: { value: pose.castL }, struck: { value: 0 }, alpha: { value: 0 } };
   }
   /** The fight's frame slot runs `view` (its module writing `cells`) for `scope`'s life: the page's lent slot, or a native
-   *  host's own lane over the same sources (arenaPoseView.ts). */
+   *  host's own lane over the same sources (test/fixtures/native-hosts/boss/arenaPoseView.ts). */
   adoptView(scope: Scope, view: { readonly frame: (dt: number, time: number) => void; readonly cells: ArenaPoseCells }): void {
     if (this.view !== null) throw new Error('Arena view is already bound');
     this.view = view; scope.onDispose(() => { if (this.view === view) this.view = null; });

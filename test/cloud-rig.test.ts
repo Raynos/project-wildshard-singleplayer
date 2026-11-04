@@ -6,7 +6,7 @@ import { installWorldFixture } from './fixtures/worldSetup';
 import { lendNalatiPasture } from './fixtures/nalati-return-modules';
 import { titanPrograms as programs } from './fixtures/titanInlineWitness';
 import { CloudBody } from '../src/game/boss/encounterView';
-import { HeadlessCloudBody } from '../src/game/boss/cloudRig';
+import { HeadlessCloudBody } from './fixtures/native-hosts/boss/cloudRig';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';

@@ -10,7 +10,7 @@ const savedBody: v.GenericSchema<BoundedNativePropSaveInput, BoundedNativePropSa
   watch: v.strictObject({ lost: finite, wedge: finite, from: point }), decision: v.exactOptional(v.string()) }));
 /** The envelope keeps its shape; the watch clocks live in the body script's own continuation (G566), so they are written at rest. */
 const RESTING = { lost: 0, wedge: 0, from: { x: 0, y: 0, z: 0 } };
-/** A native world's body scripts (nativeBodyScripts.ts): the declared bodies and the decisions that steer them. */
+/** A native world's body scripts (test/fixtures/native-hosts/quest/nativeBodyScripts.ts): the declared bodies and the decisions that steer them. */
 export interface QuestBodyScripts { readonly bodies: DeclaredBodyOps; readonly decisions: Pick<ShardDecisions, 'snapshot' | 'restore' | 'continueAt'> }
 const lent = new WeakMap<SimHost, QuestBodyScripts>();
 /** G566: the native body scripts lend themselves to the host's quest props, which carry their bodies' handles and continuation. */

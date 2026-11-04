@@ -515,12 +515,6 @@ test('retired elite keeper selectors carry no chargeback after declared engine e
     expect(platformChargeback('src/game/quest/elitePage.ts', name)).toBeNull();
 });
 
-test('retired population metadata has no platform selector or inline branch',()=>{
- const path='src/game/population/nativeBake.ts',reports:string[]=[];
- expect(platformChargeback(path,'populationMetadata')).toBeNull();expect(platformChargeback(path,'readPopulationBake')).toBeNull();
- expect(inlinePlatformSpans(path,readFileSync(path,'utf8'),message=>{reports.push(message);})).toEqual([]);expect(reports).toEqual([]);
-});
-
 test('G667 case three credits only its exact original binding selectors',()=>{
   const rows = [
     ['src/game/looks/speciesBook.ts',['productSpeciesCatalogue', 'SpeciesCatalogue', 'speciesBehaviour']],
@@ -591,8 +585,6 @@ test('G667 case two credits only the listed native driver roster and field',()=>
  expect(approvedG571Host(approvals,'src/game/population/nativeManager.ts','NativeManager')).toBe(false);
  expect(approvedG571Host(approvals,'src/game/shardfile/homeKeeper.ts','createNativeCreatureRoster')).toBe(false);
  expect(approvedG571Host(approvals,'src/game/population/environment.ts','installPopulationEnvironment')).toBe(false);
- expect(approvedG571Host(approvals,'src/game/population/nativeBake.ts','populationMetadata')).toBe(false);
- expect(approvedG571Host(approvals,'src/game/population/nativeBake.ts','createNativeBakeReader')).toBe(true);
 });
 
 test('G677 credits only the exact entered adapters and preserves their original authorities',()=>{

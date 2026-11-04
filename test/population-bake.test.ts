@@ -8,7 +8,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the original native assembly over real physics.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
-import { createNativeBakeReader } from '../src/game/population/nativeBake';
+import { createNativeBakeReader } from './fixtures/native-hosts/population/nativeBake';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import {nalatiPopulationMetadataBlob} from '../src/shards/nalati-grasslands/generators/populationMetadata';
 

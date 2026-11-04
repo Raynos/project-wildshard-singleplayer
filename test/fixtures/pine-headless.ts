@@ -24,8 +24,8 @@ import { parseAchievementCounterData } from '@wildshard/format/achievementCounte
 import { parseBarterEconomy } from '@wildshard/format/lootEconomy';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { bindHeadlessCommands } from '@wildshard/sdk/headlessRuntime';
-import { installNativeCollision } from '@wildshard/game/population/nativeBake';
-import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
+import { installNativeCollision } from './native-hosts/population/nativeBake';
+import { createNativeBakeReader } from './native-hosts/population/nativeBake';
 import { nativeDecisionAuthority } from '@wildshard/game/shardfile/borrowedDecisions';
 import { installPopulationRoster } from '@wildshard/game/population/roster';
 import { installPopulationEnvironment } from '@wildshard/game/population/environment';

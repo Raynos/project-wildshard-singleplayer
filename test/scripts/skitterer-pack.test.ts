@@ -11,7 +11,7 @@ import { readCreatureStrikes } from '../../src/format/creatures';
 import { buildDecisionRegistries, decisionBindingMap, DECISION_PLAYER_HANDLE } from '../../src/format/decisionBindings';
 import { DecisionHost, type DecisionScript, type DecisionTrace } from '../../src/engine/script/decision';
 import { DecisionModule } from '../../src/engine/script/decisionModule';
-import { ScenarioWorld, scenario } from '../../src/sdk/scriptScenario';
+import { ScenarioWorld, scenario } from '../../src/sdk/test/scriptScenario';
 import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1ReadName, type ScriptV1ListName } from '../../src/format/scriptAbiV1';
 import { outputDescriptor } from '../../src/game/shardfile/outputDescriptor';
 import { loadRapier } from '../../src/engine/physics/rapier';

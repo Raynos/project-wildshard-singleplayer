@@ -1,6 +1,6 @@
 import { builtProduct } from '../fixtures/builtProduct';
 import { beforeAll, expect, test } from 'vitest';
-import { scenario } from '@wildshard/sdk/scriptScenario';
+import { scenario } from '../../src/sdk/test/scriptScenario';
 
 let directory: string;
 beforeAll(() => { directory = builtProduct('sunscar-dunes'); });

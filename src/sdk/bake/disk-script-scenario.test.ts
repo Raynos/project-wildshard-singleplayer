@@ -10,7 +10,7 @@ import { readCreatureStrikes } from '@wildshard/format/creatures';
 import { emitPlatformSections } from '@wildshard/sdk/platformSections';
 import { mergeProjectBlobs } from '@wildshard/sdk/projectOutput';
 import { writeOutputProduct } from '@wildshard/sdk/outputProduct';
-import { scenario } from '@wildshard/sdk/scriptScenario';
+import { scenario } from '../test/scriptScenario';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 
 let root = '', modulePath = '', moduleBytes: Uint8Array = new Uint8Array();

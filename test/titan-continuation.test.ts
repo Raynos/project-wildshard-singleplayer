@@ -7,7 +7,7 @@ import { lendNalatiPasture } from './fixtures/nalati-return-modules';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';
 import { titanPrograms as programs } from './fixtures/titanInlineWitness';
 import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
-import { bindArenaPoseView } from '../src/game/boss/arenaPoseView';
+import { bindArenaPoseView } from './fixtures/native-hosts/boss/arenaPoseView';
 import type { OpenArenaFight, OpenArenaFightSnapshot } from '../src/game/boss/openArenaFight';
 import { app } from '../src/engine/app/runtime';
 import { App } from '../src/engine/app/app';

@@ -1,5 +1,5 @@
 import {expect,test,vi} from 'vitest';
-import {createNativeBakeReader,nativeBakeGround} from '../src/game/population/nativeBake';
+import {createNativeBakeReader,nativeBakeGround} from './fixtures/native-hosts/population/nativeBake';
 
 const options={label:'Binary native',resolution:2,size:4,parked:false,rig:'segments',provenance:'piece',shapes:[1,2,6,9]};
 const ground={rows:1,cols:1,heights:{file:'data/floor.bin'},scale:{x:4,y:1,z:4},at:{x:0,y:0,z:0},friction:.9,groups:1};
