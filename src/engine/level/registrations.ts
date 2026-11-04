@@ -1,10 +1,9 @@
 import type { Scope } from '../app/scope';
-import type { ContentRow, ContentRowMap, CreatureMaterialFactory, StringTable, TierKnobSchema } from './context';
+import type { ContentRow, ContentRowMap, StringTable, TierKnobSchema } from './context';
 
 /** Scoped row catalogs are consumed by their services between kit and play. */
 export class LevelRegistrations {
   private readonly rows = new Map<keyof ContentRowMap, Map<string, ContentRow>>();
-  private readonly looks = new Map<string, CreatureMaterialFactory>();
   private readonly tables: { table: StringTable; scope: Scope }[] = [];
   private readonly schemas = new Map<string, TierKnobSchema>();
   private readonly kitScopes = new Set<Scope>();
@@ -35,11 +34,6 @@ export class LevelRegistrations {
   list<K extends keyof ContentRowMap>(kind: K): readonly ContentRowMap[K][] {
     return [...(this.rows.get(kind)?.values() ?? [])] as ContentRowMap[K][];
   }
-  creatureLook(name: string, factory: CreatureMaterialFactory, scope: Scope): void {
-    if (this.looks.has(name)) throw new Error(`Duplicate creature look: ${name}`);
-    this.looks.set(name, factory); scope.onDispose(() => { this.looks.delete(name); });
-  }
-  look(name: string): CreatureMaterialFactory | undefined { return this.looks.get(name); }
   strings(table: StringTable, scope: Scope): void {
     const entry = { table, scope };
     this.tables.push(entry);

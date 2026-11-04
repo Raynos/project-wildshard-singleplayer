@@ -18,13 +18,10 @@ export interface ContentRow { id: string }
 /** Subsystems refine their registration contracts here as their row implementations land. */
 export interface ContentRowMap {
   weapon: ContentRow; tool: ContentRow; ammo: ContentRow; species: SpeciesRow; speciesLook: SpeciesLook;
-  effect: EffectDef; damageRule: ContentRow; encounter: EncounterDefinition; spawnTable: SpawnTableRow;
+  effect: EffectDef; encounter: EncounterDefinition; spawnTable: SpawnTableRow;
 }
 export type RowVerb<T> = (row: T | readonly T[]) => void;
-export type EngineRows = { [K in keyof ContentRowMap]: RowVerb<ContentRowMap[K]> } & {
-  creatureLook: (kitLook: string, factory: CreatureMaterialFactory) => void;
-};
-export type CreatureMaterialFactory = (look: string) => object;
+export type EngineRows = { [K in keyof ContentRowMap]: RowVerb<ContentRowMap[K]> };
 export interface InputContextDef {
   id: string; priority?: number; enabled?: () => boolean;
   actions: readonly Action[] | Readonly<Record<string, (pressed: boolean) => void>>;

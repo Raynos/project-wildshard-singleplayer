@@ -584,7 +584,7 @@ The engine never reads a manifest. `@wildshard/game`'s `toLevelSpec(manifest)` t
 | `ctx.app`, `ctx.scope`, `ctx.root`, `ctx.progress` | any | the app, your scope, your root `Group`, the loading-bar step (`progress.set(f)`, `progress.detail(text)`) |
 | `ctx.system(spec)` | any | a system (§1) |
 | `ctx.on(name, fn, opts?)`, `ctx.answer(name, fn, opts?)` | any | events and asks (§3) |
-| `ctx.rows.weapon / tool / ammo / species / speciesLook / effect / damageRule / encounter / spawnTable (row \| rows)` | **kit only** | content rows (§18, §19). `ctx.rows.creatureLook(kitLook, factory)` registers a creature material factory |
+| `ctx.rows.weapon / tool / ammo / species / speciesLook / effect / encounter / spawnTable (row \| rows)` | **kit only** | content rows (§18, §19) |
 | `ctx.inputContext(def)` | any | an input context (§10) |
 | `ctx.hud.widget / disc / relabel / verb / pin` | any | HUD verbs (§11) |
 | `ctx.piece(piece)` | world | a built piece in the world registry: drawn, collides, on the map (§14) |
@@ -774,7 +774,7 @@ export default TemplatePlugin;
 |---|---|
 | `ShardPlugin` | the base class; each hook may be async |
 | `ShardContext` | `LevelContext` + `manifest`, `game`, `bag`, and `rows` = `EngineRows & GameRows` |
-| `GameRows`, `GameRowMap` | `ctx.rows.item / lootTable / skin / feat / shop / compendium / places` (kit stage) |
+| `GameRows`, `GameRowMap` | `ctx.rows.item / lootTable / skin / feat / shop / compendium` (kit stage) |
 | `BagVerbs` | `ctx.bag.tab(spec)`, `ctx.bag.fragment(tab, fragment)` (§11) |
 | `GameServices` | `ctx.game`: `shard` (the manifest), `rows`, `bag`, and `runtime` |
 | `ShardRuntime` | `ctx.game.runtime`: the game shell's handoff, below |

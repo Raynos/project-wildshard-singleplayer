@@ -57,15 +57,11 @@ export function createLevelInstallation(app: App, scope: Scope, adapters: LevelA
           for (const row of rows) app.species.registerLook(row, scope);
         },
         effect: (values) => register('effect', values),
-        damageRule: (values) => register('damageRule', values), encounter: (values) => register('encounter', values),
+        encounter: (values) => register('encounter', values),
         spawnTable: (values) => {
           register('spawnTable', values);
           const rows: readonly ContentRowMap['spawnTable'][] = Array.isArray(values) ? values : [values as ContentRowMap['spawnTable']];
           for (const row of rows) app.encounters.registerSpawn(row, scope);
-        },
-        creatureLook: (name, factory) => {
-          live(); if (!kitOpen) throw new Error('Creature looks may only register during level.kit');
-          app.levelRegistrations.creatureLook(name, factory, scope);
         },
       },
       inputContext: (def, owner = scope) => {
