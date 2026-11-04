@@ -5,11 +5,11 @@ below for Jake's review with wildshard-v (an overturn becomes a new row). No idl
 
 **Legacy:** legacy-final 91a9eef081. **G908: Pine + Nine untouched** until Jake's word after his fps QA.
 
-**LIVE 69fa647-mw264yum** (09:10, fully qualified, 29 verified; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
+**LIVE 86f2590-mw26uru3** (09:34, 30 verified; CI red since, next carrier f7ac4c186f; QD12 wall fix live since 3e25945 01:36, DL21 card + tile fence + KTX2 first visit). **Jake: QD6 re-test Nine; QD7 on his word.** Picks G1002 done.
 
 **E518:** every fps plan row closed except NF18 (QA); spike = finish-fps-2026-10-30-mini-spike.md.
 **Standing:** look-loop tile rows may rise <= 100 KB/round without asking if the plot's wire budget holds.
-**10:00:** G1005 Nine PASSES: QD7 running (o1 LD5 d3143de1cf + LD6/7 1d4f2e2fe3 landed, LD8 next; o5 LD9/NF18/LD10). G1007 five Opus: o4 DL21+DL23 (G1006 every-second bar), o2 post-control hitch (G1008: Nine 10.6 s frame). G1004 custom-sections batch: Codex on Z rows. Plots: audio live, C 10/10.
+**11:00:** QD7: LD5, LD6/7, LD8, manifest A (o1), LD9a (o5) landed; NF18 then LD9b next. Packs faster cold in Sim (Nine 29.4 vs 31.9 s, Pine 58.3 vs 66.3): DL16 default flip gates (o2). Post-control "10 s frame" was the HUD meter (281fb0d2ed). CI reds: physics setup 10 s (x8 RCA).
 **GPU (Nine):** gap to legacy +0.05..+0.54 ms (f33d642372); G4 closed measured. Pine ok.
 **Closed:** every fps row (E518); open NF18 (QA).
 
