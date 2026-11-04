@@ -126,6 +126,7 @@
     "./boot/gpuFiles": "./boot/gpuFiles.ts",
     "./boot/idle": "./boot/idle.ts",
     "./boot/lastEnd": "./boot/lastEnd.ts",
+    "./boot/loadingPacks": "./boot/loadingPacks.ts",
     "./boot/pack": "./boot/pack.ts",
     "./boot/plan": "./boot/plan.ts",
     "./boot/prefetch": "./boot/prefetch.ts",

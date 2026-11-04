@@ -28,7 +28,8 @@ import { readPrefetchIndex } from './prefetchIndex';
 import type { GridAssembly } from './assembly';
 import {TIER, MOBILE_DEVICE, type Tier} from '@wildshard/engine/core/tier';
 import { prefetchRing } from './titleOrder';
-import {prefetchSpawnDownload, adoptCompletedSpawnDownload, paintSpawnDownload} from '../boot/spawnDownload';
+import {prefetchSpawnDownload, adoptCompletedSpawnDownload, paintSpawnDownload, setSpawnPacks} from '../boot/spawnDownload';
+import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import {installEntryDownloadTap} from '../shardfile/entryTransport';
 import {setting, savedSetting, settingFromUrl} from '@wildshard/engine/ui/Settings';
 import {gridMode, DEVSERVER} from './menu';
@@ -262,6 +263,7 @@ export function startTitlePrefetch(slugs: readonly string[], flow: 'client' | 'g
   const target = slugs.at(-1); if (target === undefined || typeof caches === 'undefined') return null;
   const futureTier = (): 'auto' | Tier => settingFromUrl('tier') ? setting('tier') : savedSetting('tier');
   const preferred = futureTier(), tier = preferred === 'auto' ? TIER : preferred;
+  setSpawnPacks(runtimePacksOn()); // DL16: the title's read-ahead follows Debug ▸ Loading & memory ▸ Level download
   const held = prefetchSpawnDownload(target, tier, flow, gridKey); if (held === null) return null;
   const stopTap = installEntryDownloadTap((slug, selectedFlow) => {
     const picked = futureTier(), selectedTier = picked === 'auto' ? TIER : picked;

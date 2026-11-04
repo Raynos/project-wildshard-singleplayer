@@ -19,6 +19,7 @@ import { engineString } from '../strings';
 import type { LevelSpec } from '../level/spec';
 import { jsonSlot } from '../saves/slots';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
+import { LEVEL_DOWNLOAD_SLOT } from '../boot/loadingPacks';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { markReload } from '../boot/lastEnd';
 import { settingsReloadUrl } from './Settings';
@@ -130,6 +131,16 @@ export const TITLE_SKIPPERS: string[] = ['skipintro', 'tour', 'explore', 'cam', 
 /** E172 (the user: "I need a button to nuke the cache so i can test it"): every downloaded file gone, the saves kept
  *  (src/engine/boot/clearDownloads.ts), then a reload to the title like a fresh launch — the running shard's ?chunk= stays */
 const CLEAR_IDLE = engineString('s_e94f3b418bf5');
+/** DL16 (E525): the level's download as runtime packs (DL5) or loose shardfile files; read once at boot
+ *  (src/engine/boot/loadingPacks.ts), so a pick reloads. Default Shardfile until a phone reading flips it (E451). */
+const levelDownloadSlot = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device');
+const levelDownloadRow: DebugRow = { id: 'levelDownload', group: 'loading', label: engineString('s_2373f2b9d51c'), reload: true, when: always,
+  choices: () => [{ v: 'shardfile', text: engineString('s_1b1d70827dbb') }, { v: 'packs', text: engineString('s_f8ef34e9ccbf') }],
+  get: () => levelDownloadSlot.read() === 'packs' ? 'packs' : 'shardfile',
+  set: (next) => { if (next === 'shardfile' || next === 'packs') levelDownloadSlot.write(next); },
+  on: () => undefined,
+  note: 'DL16: the level download reads its runtime packs (a few content-named parts) or its loose shardfile files; default Shardfile until a phone reading.',
+  ask: 'E525', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);
   const r = await clearDownloads();
@@ -158,6 +169,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Performance ──
 
   // ── Loading & memory ──
+  levelDownloadRow,
   clearDownloadsRow,
 
   // ── Developer tools ──

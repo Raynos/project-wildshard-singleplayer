@@ -6,6 +6,7 @@ import { installOfflineDownload } from '@wildshard/engine/ui/offlineDownload';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
 import { waitFor } from '@wildshard/engine/boot/waits';
+import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import { preloadModuleFiles, readModuleFiles } from '@wildshard/engine/boot/download';
 import {prepareBootImports} from './bootDownloads';
 /**
@@ -87,6 +88,7 @@ async function enterPage(): Promise<unknown> {
       const slug = search.get('chunk');
       if (typeof slug === 'string') {
         const mode = menu.gridMode(menu.DEVSERVER), flow = pageGridRecovery() !== null || pendingGridEntry(slug) ? 'grid' : 'client';
+        spawn.setSpawnPacks(runtimePacksOn());
         const job = spawn.startSpawnDownload(slug, flow, tier.TIER, `${Number(mode.developer)}${Number(mode.devserver)}${Number(mode.nineDragon)}`);
         const card = document.querySelector<HTMLElement>('.ws-load');
         if (job !== null && card !== null) {
@@ -164,7 +166,8 @@ async function startSelected(): Promise<void> {
   // MF4: one spawn manifest per shard / tier / flow (grid: per menu mode) is the whole download; the bar reads only it and
   // admission waits for it (a tap on the title started the same job, so its files may already be in the worker cache)
   // a world entry's own import: the spawn manifest's reader stays out of the title's chunk (check-chunks)
-  const { startSpawnDownload } = await import('@wildshard/game/boot/spawnDownload');
+  const { startSpawnDownload, setSpawnPacks } = await import('@wildshard/game/boot/spawnDownload');
+  setSpawnPacks(runtimePacksOn()); // DL16: Debug ▸ Loading & memory ▸ Level download
   const spawnMode = gridMode(DEVSERVER), spawnJob = startSpawnDownload(game.shard.slug, earlyPath === 'grid' ? 'grid' : 'client', TIER,
     `${Number(spawnMode.developer)}${Number(spawnMode.devserver)}${Number(spawnMode.nineDragon)}`);
   if (spawnJob !== null) void loading.setDownloadSource(spawnJob);
