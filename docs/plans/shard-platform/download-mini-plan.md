@@ -35,7 +35,7 @@ measured and not built (or folded); **open** = what is left, in one line.
 | --- | --- | --- | --- |
 | DL0 | done | `0222e26249` (one shared phone link) | — |
 | DL1 | open | worker precache after control `4cc448d258`; immutable step dropped (G872) | the cold −15 s reading was never taken: one phone-loading pair |
-| DL2 | open | — | title-screen download for first visits: not started |
+| DL2 | open | first-visit read-ahead landed `0fc2f95cbe` (11-03: the title reads the first card's home, the grid entry) | its reading: cold, title dwell 3 s vs 0 s, −3 s expected |
 | DL3 | closed | kept, a real reader (Driftwood's compiled strip page) | — |
 | DL4 | done | inventory table `884738902f` | — |
 | DL5 | open | parts + reader `40bc516d5c`, `921c9776fb`, `a69dda496d`, `f944a93c73`; whole level in the set `7683b302b5` | 'never seen' drop candidates for each shard's owner; neighbours' loading is Jake's (G828) |
