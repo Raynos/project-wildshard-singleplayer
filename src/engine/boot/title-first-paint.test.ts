@@ -148,3 +148,26 @@ test('the standalone launch image matches the declared phone pixel dimensions', 
   expect(png.subarray(1, 4).toString()).toBe('PNG');
   expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1206, 2622]);
 });
+
+const startedOf = (window: Window): string | undefined => { const card = window.document.querySelector('.ws-load'); return card instanceof window.HTMLElement ? card.dataset['clockStartedAt'] : undefined; };
+test('DL21: a world page\'s first-paint card runs its clock from the title tap before any module, until Loading adopts it', async () => {
+  // The title tapped 1.5 s before this document started (the fixture's stored arrival); no module script runs here.
+  const frames: Frames = { now: 0, callbacks: [] }, window = firstDocument('?chunk=driftwood-isle', frames, false, 1500);
+  const card = window.document.querySelector('.ws-load[data-shell]'), clock = (): string => card?.querySelector('[data-el="clock"]')?.textContent ?? '';
+  expect(startedOf(window)).toBe('-1500');
+  expect(card?.querySelector('[data-el="slug"]')?.textContent).toBe('Home');
+  await new Promise(resolve => { setTimeout(resolve, 250); });
+  expect(clock()).toBe('00:01.5');
+  frames.now = 2000; await new Promise(resolve => { setTimeout(resolve, 250); });
+  expect(clock()).toBe('00:03.5');
+  // Loading adopts the card (data-shell goes): the inline clock stops; Loading keeps the same start.
+  if (card instanceof window.HTMLElement) delete card.dataset['shell'];
+  frames.now = 9000; await new Promise(resolve => { setTimeout(resolve, 250); });
+  expect(clock()).toBe('00:03.5');
+});
+
+test('DL21: the title page and an arrival for another shard leave the card\'s clock alone', () => {
+  expect(startedOf(firstDocument('', undefined, false, 1500))).toBeUndefined();
+  const other = firstDocument('?chunk=pine-hollow', { now: 0, callbacks: [] }, false, 1500);
+  expect(startedOf(other)).toBe('0'); expect(other.document.querySelector('[data-el="slug"]')?.textContent).toBe('');
+});

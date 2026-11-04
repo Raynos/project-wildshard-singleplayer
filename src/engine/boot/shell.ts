@@ -78,13 +78,16 @@ const clockText = (ms: number): string => {
 export function startShellClock(owner: Scope, slug: string): void {
   const root = document.querySelector<HTMLElement>('.ws-load[data-shell]');
   if (root === null || shellClock !== undefined) return;
+  // index.html's data-loading-clock script may already run this clock from the first paint: then it keeps it.
+  const inline = root.dataset['clockStartedAt'] !== undefined;
   const arrival = arrivalCard(slug), started = arrival === null ? 0 : Math.min(0, Math.max(-60_000, arrival.at - performance.timeOrigin));
-  root.dataset['clockStartedAt'] = String(started);
+  if (!inline) root.dataset['clockStartedAt'] = String(started);
   const field = (name: string): HTMLElement | null => root.querySelector<HTMLElement>(`[data-el="${name}"]`);
   const slugField = field('slug'), tierField = field('tier'), clock = field('clock'), fact = field('dlFact');
   if (slugField !== null && slugField.textContent === '') slugField.textContent = arrival?.name ?? slug.replaceAll('-', ' ');
   if (tierField !== null && tierField.textContent === '' && arrival?.tier !== undefined) tierField.textContent = arrival.tier;
   if (fact !== null && fact.textContent === '—') fact.textContent = engineString('s_loading_code');
+  if (inline) return;
   const tick = (): void => { if (clock !== null) clock.textContent = clockText(diagnosticNow() - started); };
   tick(); shellClock = owner.child('shell.clock'); shellClock.interval(100, tick);
 }

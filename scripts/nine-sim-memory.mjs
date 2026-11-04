@@ -7,7 +7,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 // ~0.75). Compare builds with it; take the caps' verdict from a physical reading (scripts/iphone-mem-reading.sh).
 //
 //   node scripts/nine-sim-memory.mjs [--rev=HEAD] [--rev=f9ca6490 …] [--runs=2] [--play=60] [--fly=60]
-//        [--setting=key=value …] [--out=<dir>] [--max=<min>]
+//        [--setting=key=value …] [--out=<dir>] [--max=<min>] [--clear-website-data]
 //   node scripts/nine-sim-memory.mjs --url=http://127.0.0.1:4401/=mine …     (an already served build, labelled)
 //   node scripts/nine-sim-memory.mjs --table=<out dir>                         (reprint a finished run's table)
 //
@@ -28,7 +28,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 // Writes <out>/<label>-r<n>.{native,inspector}.jsonl, .end.jpg and table.md (default out: a fresh dir under
 // /private/tmp/nine-sim-memory/). --setting saves pause ▸ Settings values (v2 global/settings) before every load.
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync, readFileSync, existsSync, createWriteStream, readdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, existsSync, createWriteStream, readdirSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
@@ -161,6 +161,12 @@ async function oneRun(udid, run, opts) {
   writeFileSync(phaseFile, 'idle');
   spawnSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari']);
   await sleep(3000);
+  // --clear-website-data (DL21): Safari's Clear History and Website Data, without erasing the device: its service workers,
+  // storage, Cache Storage and HTTP cache go, so the run is a true first visit.
+  if (opts.clearWebsiteData) {
+    const data = execFileSync('xcrun', ['simctl', 'get_app_container', udid, 'com.apple.mobilesafari', 'data'], { encoding: 'utf8' }).trim();
+    for (const path of ['Library/WebKit/com.apple.mobilesafari/WebsiteData', 'Library/Caches/com.apple.mobilesafari/WebKit']) rmSync(join(data, path), { recursive: true, force: true });
+  }
   execFileSync('xcrun', ['simctl', 'openurl', udid, `${run.base}version.json`]);
   await sleep(6000);
   const sock = execFileSync('xcrun', ['simctl', 'getenv', udid, 'RWI_LISTEN_SOCKET'], { encoding: 'utf8' }).trim();
@@ -302,7 +308,7 @@ async function main() {
   mkdirSync(out, { recursive: true });
   if (readdirSync(out).length > 0) throw new Error(`${out} is not empty`);
   const runs = Number(flag('runs', '2'));
-  const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting') };
+  const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting'), clearWebsiteData: argv.includes('--clear-website-data') };
   const targets = [];
   const served = [];
   try {

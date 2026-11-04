@@ -170,6 +170,19 @@
         location.reload();
       }, 12000);
     </script>
+    <script data-loading-clock>
+      // DL21 (E526): before any module arrives, a world page's card runs its clock from the title tap (the fresh arrival the
+      // tap stored) and names the shard and tier; Loading adopts the card (data-shell goes) and keeps the same clock.
+      (() => { try {
+        const card = document.querySelector('.ws-load[data-shell]'), slug = new URLSearchParams(location.search).get('chunk');
+        const field = name => card.querySelector('[data-el="' + name + '"]'), entry = (store, scope, key) => { const item = JSON.parse(store.getItem('wildshard.save.v2.' + scope) || '{}').keys?.[key]?.data; return typeof item === 'string' ? JSON.parse(item) : item; };
+        if (!card || !slug) return;
+        const found = [entry(sessionStorage, 'session', 'titleArrival'), entry(localStorage, 'device', 'titleArrival.once')].find(a => a?.slug === slug && Date.now() - a.at < 60000);
+        const start = found ? Math.min(0, found.at - performance.timeOrigin) : 0, clock = field('clock');
+        card.dataset.clockStartedAt = String(start); if (found?.name) field('slug').textContent = found.name; if (found?.tier) field('tier').textContent = found.tier;
+        const tick = setInterval(() => { if (!card.hasAttribute('data-shell')) return clearInterval(tick); const s = (performance.now() - start) / 1000; clock.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + (s % 60).toFixed(1).padStart(4, '0'); }, 100);
+      } catch { /* the module's clock (shell.ts startShellClock) still runs */ } })();
+    </script>
     <!-- rotate gate (E38): portrait only on phones — a touch device held landscape sees only this (rotate.css, src/engine/ui/RotateGate.ts) -->
     <div class="ws-rotate" role="alertdialog" aria-modal="true" aria-label="Rotate to portrait"><div class="ws-rotate-panel">
 <div class="ws-rotate-glyph"><svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">
