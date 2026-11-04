@@ -1,3 +1,4 @@
+import { FindsCatalogueSchema } from '@wildshard/format/findsCatalogue';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ArenaRoomDocumentSchema } from '@wildshard/format/arenaRoomDocument';
 import { ReturnProgramDocumentSchema } from '@wildshard/format/returnProgramDocument';
@@ -57,7 +58,7 @@ import { PopulationShelterSchema } from '@wildshard/format/herdShelter';
 import { PanelDefinitionSchema,QuestPanelCatalogueSchema } from '@wildshard/format/panelTemplate';
 import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
 import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figures';
-import { QuestStorySchema, ChapterStoryPresentationSchema } from '@wildshard/format/questStory';
+import { QuestStorySchema, ChapterStoryPresentationSchema, AdventureContentSchema } from '@wildshard/format/questStory';
 import { WeatherProgramSchema, WeatherHitTagSchema } from '@wildshard/format/weatherProgram';
 import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
 import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
@@ -467,6 +468,8 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+  'questStory.AdventureContent': AdventureContentSchema,
+  'findsCatalogue.FindsCatalogue': FindsCatalogueSchema,
   'wildlifePopulation.WildlifePopulation': WildlifePopulationSchema,
   'practiceCourseRows.FixedPracticeFile': FixedPracticeFileSchema,
   'islandLibrary.FixedGeometryGroups': FixedGeometryGroupsSchema,

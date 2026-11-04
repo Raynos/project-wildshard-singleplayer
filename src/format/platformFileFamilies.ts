@@ -1,3 +1,6 @@
+import { FindsCatalogueSchema } from './findsCatalogue';
+import { ContractCatalogueSchema } from './contracts';
+import { NativeQuestServiceSpotsSchema } from './nativeQuestComposition';
 import { WildlifePopulationSchema } from './wildlifePopulation';
 import { PopulationShelterSchema } from './herdShelter';
 import { EliteFeatureSchema } from './eliteFeature';
@@ -34,11 +37,11 @@ import { FigureCatalogueSchema } from './figures';
 import { QuestPageCompositionSchema } from './questPageComposition';
 import { AdventurePersistenceSchema, PosedLibrarySchema, QuestTraderSchema, PageReturnRowsSchema } from './namedJsonContracts';
 import { PackedCreatureLooksSchema, CreatureInstallSchema } from './speciesLooks';
-import { QuestStorySchema, ChapterStoryPresentationSchema } from './questStory';
+import { QuestStorySchema, ChapterStoryPresentationSchema, AdventureContentSchema } from './questStory';
 import { PageLifeSchema } from './pageLife';
-import { ChapterDirectorSchema } from './chapterDirector';
+import { ChapterDirectorSchema, ChapterWakeSchema } from './chapterDirector';
 import { QuestPageInteractionsSchema } from './questInteractions';
-import { QuestServiceActionsSchema } from './questSteps';
+import { QuestServiceActionsSchema, QuestHintRowsSchema, CarriedQuestSchema } from './questSteps';
 import { DirectorProductSchema } from './directorProduct';
 import { QuestPanelCatalogueSchema } from './panelTemplate';
 import { ForestWeatherSchema } from './forestWeather';
@@ -63,6 +66,20 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^quests\/native-spots\.json$/u, schema: NativeQuestServiceSpotsSchema,
+    source: '@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema', reader: 'test/fixtures/pine-headless.ts' },
+  { pattern: /^quests\/contracts\.json$/u, schema: ContractCatalogueSchema,
+    source: '@wildshard/format/contracts#ContractCatalogueSchema', reader: 'src/game/quest/contracts.ts' },
+  { pattern: /^quests\/discovery\.json$/u, schema: AdventureContentSchema,
+    source: '@wildshard/format/questStory#AdventureContentSchema', reader: 'src/game/quest/pageReads.ts' },
+  { pattern: /^quests\/hints\.json$/u, schema: QuestHintRowsSchema,
+    source: '@wildshard/format/questSteps#QuestHintRowsSchema', reader: 'src/game/quest/hints.ts' },
+  { pattern: /^quests\/wake-boss\.json$/u, schema: ChapterWakeSchema,
+    source: '@wildshard/format/chapterDirector#ChapterWakeSchema', reader: 'src/game/quest/chapterDirector.ts' },
+  { pattern: /^quests\/carried\.json$/u, schema: CarriedQuestSchema,
+    source: '@wildshard/format/questSteps#CarriedQuestSchema', reader: 'src/game/quest/carriedProp.ts' },
+  { pattern: /^quests\/finds\.json$/u, schema: FindsCatalogueSchema,
+    source: '@wildshard/format/findsCatalogue#FindsCatalogueSchema', reader: 'src/game/shardfile/clientFinds.ts' },
   { pattern: /^actors\/creature-install\.json$/u, schema: CreatureInstallSchema,
     source: '@wildshard/format/speciesLooks#CreatureInstallSchema', reader: 'src/game/population/productCreatures.ts' },
   { pattern: /^sim\/returns\.json$/u, schema: PageReturnRowsSchema,

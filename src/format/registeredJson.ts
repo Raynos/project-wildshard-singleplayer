@@ -1,3 +1,4 @@
+import { FindsCatalogueSchema } from './findsCatalogue';
 import { WildlifePopulationSchema } from './wildlifePopulation';
 import { ClientRidingSessionSchema } from './riding';
 import { MountedSpecimenSeatSchema } from './mountedSpecimenRows';
@@ -45,7 +46,7 @@ import {WorldSceneModelsSchema,parseWorldSceneModels} from './worldSceneModels';
 import { AchievementCounterDataSchema,parseAchievementCounterData } from './achievementCounters';
 import { QuestPageCompositionSchema } from './questPageComposition';
 import {QuestServiceActionsSchema,parseQuestServiceActions,QuestStepRowsSchema,parseQuestStepRows,QuestHintRowsSchema,parseQuestHintRows,CarriedQuestSchema,parseCarriedQuest} from './questSteps';
-import { QuestStorySchema,parseQuestStory,ChapterStoryPresentationSchema,parseChapterStoryPresentation } from './questStory';
+import { QuestStorySchema,parseQuestStory,ChapterStoryPresentationSchema,parseChapterStoryPresentation, AdventureContentSchema } from './questStory';
 import { ChapterDirectorSchema,parseChapterDirector,ChapterWakeSchema,parseChapterWake } from './chapterDirector';
 import { FigureCatalogueSchema } from './figures';
 import { AdventurePersistenceSchema,PageReturnRowsSchema,PosedLibrarySchema,QuestTraderSchema } from './namedJsonContracts';
@@ -59,6 +60,8 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'quests/discovery.json':{readonly schema:typeof AdventureContentSchema;readonly source:'@wildshard/format/questStory#AdventureContentSchema'};
+  readonly 'quests/finds.json':{readonly schema:typeof FindsCatalogueSchema;readonly source:'@wildshard/format/findsCatalogue#FindsCatalogueSchema'};
   readonly 'actors/wildlife.json':{readonly schema:typeof WildlifePopulationSchema;readonly source:'@wildshard/format/wildlifePopulation#WildlifePopulationSchema'};
   readonly 'combat/roaming.json':{readonly schema:typeof RoamingCombatSchema;readonly source:'@wildshard/format/roamingCombat#RoamingCombatSchema'};
   readonly 'client/ranged-page.json':{readonly schema:typeof RangedPageSchema;readonly source:'@wildshard/format/rangedPage#RangedPageSchema'};
@@ -160,6 +163,8 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'quests/discovery.json':{schema:AdventureContentSchema,source:'@wildshard/format/questStory#AdventureContentSchema'},
+  'quests/finds.json':{schema:FindsCatalogueSchema,source:'@wildshard/format/findsCatalogue#FindsCatalogueSchema'},
   'actors/wildlife.json':{schema:WildlifePopulationSchema,source:'@wildshard/format/wildlifePopulation#WildlifePopulationSchema'},
   'combat/roaming.json':{schema:RoamingCombatSchema,source:'@wildshard/format/roamingCombat#RoamingCombatSchema'},
   'client/ranged-page.json':{schema:RangedPageSchema,source:'@wildshard/format/rangedPage#RangedPageSchema'},
@@ -340,6 +345,8 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'quests/discovery.json':v.parse(AdventureContentSchema,value);break;
+    case 'quests/finds.json':v.parse(FindsCatalogueSchema,value);break;
     case 'actors/wildlife.json':v.parse(WildlifePopulationSchema,value);break;
     case 'combat/roaming.json':v.parse(RoamingCombatSchema,value);break;
     case 'client/ranged-page.json':v.parse(RangedPageSchema,value);break;
