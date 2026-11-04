@@ -148,6 +148,11 @@ test('spawn parts: br as-is, gzip for gzip-only clients, decoded for identity, 4
     expect(gzipped.bytes.length).toBeLessThan(raw.length); expect(gunzipSync(gzipped.bytes).equals(raw)).toBe(true);
     expect(gzipped.headers['content-length']).toBe(String(gzipped.bytes.length));
     expect((await wire(new URL(broken, base), { ...all, 'accept-encoding': 'gzip' })).status).toBe(500);
+    // sp-x2's review: a HEAD of a broken part is a 500 too (its encode's rejection handled), and the server stays up
+    expect((await wire(new URL(broken, base), { ...all, 'accept-encoding': 'gzip' }, 'HEAD')).status).toBe(500);
+    const headOk = await wire(new URL(good, base), { ...all, 'accept-encoding': 'gzip' }, 'HEAD');
+    expect([headOk.status, headOk.headers['content-encoding'], headOk.bytes.length]).toEqual([200, 'gzip', 0]);
+    expect((await wire(new URL(good, base), { ...all, 'accept-encoding': 'gzip' })).status).toBe(200);
     const missing = await wire(new URL(`assets/spawn/parts/${'c'.repeat(16)}.pack.br`, base), all);
     expect([missing.status, missing.headers['content-encoding'], missing.bytes.length]).toEqual([404, undefined, 0]);
     expect((await wire(new URL(broken, base), { ...all, 'accept-encoding': 'identity' })).status).toBe(500);

@@ -88,12 +88,13 @@ async function streamEncoded(file, encoder, res) {
   catch (error) { res.destroy(error instanceof Error ? error : new Error(String(error))); }
 }
 
-/** A gzipped part's whole body with its length; a part that will not decode is a 500, as the identity path's is. */
-async function sendGzippedPart(gzipped, res) {
+/** A gzipped part's whole body with its length (a HEAD: its headers alone); a part that will not decode is a 500, as the
+ *  identity path's is, for a HEAD too (sp-x2's review: a HEAD left the encode's rejection unhandled). */
+async function sendGzippedPart(gzipped, res, head) {
   let body;
   try { body = await gzipped; } catch { res.removeHeader('Content-Encoding'); res.statusCode = 500; res.end(); return; }
   if (res.destroyed) return;
-  res.setHeader('Content-Length', String(body.length)); res.end(body);
+  res.setHeader('Content-Length', String(body.length)); res.end(head ? undefined : body);
 }
 async function sendEncoded(encoded, res) {
   try {
@@ -158,8 +159,7 @@ const server = createServer((req, res) => {
       const gzipped = gzippedParts.get(file, etag, stat.size, 'gzip');
       if (gzipped !== undefined) {
         res.setHeader('Content-Encoding', 'gzip');
-        if (req.method === 'HEAD') { res.end(); return; }
-        void sendGzippedPart(gzipped, res);
+        void sendGzippedPart(gzipped, res, req.method === 'HEAD');
         return;
       }
     }
