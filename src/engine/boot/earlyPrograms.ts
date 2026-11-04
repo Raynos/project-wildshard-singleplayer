@@ -22,8 +22,10 @@ export function startEarlyPrograms(game: Game, at: THREE.Vector3, radius: number
   const owner = game.levelScope;
   pending = (async () => {
     try {
-      const { precompileLevel, arrivalPrograms } = await import('../render/precompile');
-      await precompileLevel(game, undefined, { sceneOnly: true, chunkCasters: false, sliceMs: 12,
+      const { precompileLevel, arrivalPrograms, liveWarmPacing } = await import('../render/precompile');
+      // on WebKit the live pacing too (a few programs a presented frame), as the boot Shaders step takes it: no burst of
+      // GPU-process links holds a loading frame (sp-x8's review)
+      await precompileLevel(game, undefined, { sceneOnly: true, chunkCasters: false, sliceMs: 12, ...liveWarmPacing(),
         arrival: arrivalPrograms(game.scene, at, radius), current: () => !owner.disposed && !owner.disposing });
     } catch (error) {
       // the Shaders step compiles whatever this pass did not reach
