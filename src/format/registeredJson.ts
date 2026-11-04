@@ -1,3 +1,4 @@
+import { SpeciesActorsFileSchema } from './speciesActorsFile';
 import { QuestRuntimeDocumentSchema } from './questRuntime';
 import { QuestStoryBindingsSchema } from './questStoryBindings';
 import { PerchBodyFileSchema } from './mixedPopulation';
@@ -69,6 +70,7 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'actors/sheep.json':{readonly schema:typeof SpeciesActorsFileSchema;readonly source:'@wildshard/format/speciesActorsFile#SpeciesActorsFileSchema'};
   readonly 'poses/monkey.json':{readonly schema:typeof PerchBodyFileSchema;readonly source:'@wildshard/format/mixedPopulation#PerchBodyFileSchema'};
   readonly 'sim/enemy-placement.json':{readonly schema:typeof EnemyPlacementsSchema;readonly source:'@wildshard/format/populationProjection#EnemyPlacementsSchema'};
   readonly 'data/physics.generated.json':{readonly schema:typeof ForestNativeInputsSchema;readonly source:'@wildshard/format/forestNativeInputs#ForestNativeInputsSchema'};
@@ -206,6 +208,7 @@ export const REGISTERED_JSON:RegisteredJsonContracts = {
   'sim/taming-poses.json':{schema:TamingPoseFileSchema,source:'@wildshard/format/populationRoster#TamingPoseFileSchema'},
   'quests/discovery.json':{schema:AdventureContentSchema,source:'@wildshard/format/questStory#AdventureContentSchema'},
   'quests/finds.json':{schema:FindsCatalogueSchema,source:'@wildshard/format/findsCatalogue#FindsCatalogueSchema'},
+  'actors/sheep.json':{schema:SpeciesActorsFileSchema,source:'@wildshard/format/speciesActorsFile#SpeciesActorsFileSchema'},
   'actors/wildlife.json':{schema:WildlifePopulationSchema,source:'@wildshard/format/wildlifePopulation#WildlifePopulationSchema'},
   'combat/roaming.json':{schema:RoamingCombatSchema,source:'@wildshard/format/roamingCombat#RoamingCombatSchema'},
   'client/ranged-page.json':{schema:RangedPageSchema,source:'@wildshard/format/rangedPage#RangedPageSchema'},
@@ -406,6 +409,7 @@ export function validateRegisteredJson(name:string,value:unknown):void {
     case 'sim/taming-poses.json':v.parse(TamingPoseFileSchema,value);break;
     case 'quests/discovery.json':v.parse(AdventureContentSchema,value);break;
     case 'quests/finds.json':v.parse(FindsCatalogueSchema,value);break;
+    case 'actors/sheep.json':v.parse(SpeciesActorsFileSchema,value);break;
     case 'actors/wildlife.json':v.parse(WildlifePopulationSchema,value);break;
     case 'combat/roaming.json':v.parse(RoamingCombatSchema,value);break;
     case 'client/ranged-page.json':v.parse(RangedPageSchema,value);break;

@@ -1,3 +1,4 @@
+import { SpeciesActorsFileSchema as SpeciesActorsDocumentSchema } from '@wildshard/format/speciesActorsFile';
 import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import { QuestStoryBindingsSchema } from '@wildshard/format/questStoryBindings';
 import { QuestInteractionSourceSchema } from '@wildshard/format/questInteractionSource';
@@ -493,6 +494,7 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'arenaRoomDocument.ArenaRoomDocument': ArenaRoomDocumentSchema,
   'riding.ClientRidingSession': ClientRidingSessionSchema,
   'rangedPage.RangedPage': RangedPageSchema,
+  'speciesActorsFile.SpeciesActorsFile': SpeciesActorsDocumentSchema,
 
   'forestNativeInputs.ForestNativeInputs': ForestNativeInputsSchema,
   'waterWorld.WaterWorld': WaterWorldSchema,
@@ -608,6 +610,9 @@ export function formatJsonSchema(schema: GenericSchema, target: 'draft-07' | 'dr
     // Both existing weather wires contain the same complete phase program.
     ...(schema === WeatherDocumentSchema ? { definitions: { weatherProgram: WeatherProgramSchema } } : {}),
     ...(heldDefinitions === undefined ? {} : { definitions: heldDefinitions }),
+    // The complete sheep document keeps both original return envelopes and
+    // exact-input script/projection constraints, shared without repetition.
+    ...(schema === SpeciesActorsDocumentSchema ? { definitions: { legacyReturn: ReturnProgramSchema, wireReturn: ReturnProgramWireDocumentSchema, projection: ReturnProjectionV2Schema } } : {}),
     ...(definitions === undefined ? {} : { definitions }),
     // The population's six identical return descriptors share their complete
     // native grammars; the defining parser and every wire constraint remain.

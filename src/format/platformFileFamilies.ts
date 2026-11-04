@@ -1,3 +1,4 @@
+import { SpeciesActorsFileSchema } from './speciesActorsFile';
 import { QuestRuntimeDocumentSchema } from './questRuntime';
 import { QuestStoryBindingsSchema } from './questStoryBindings';
 import { PerchBodyFileSchema } from './mixedPopulation';
@@ -123,6 +124,8 @@ export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
     source: '@wildshard/format/eliteFeature#EliteFeatureSchema', reader: 'src/game/quest/eliteFeature.ts' },
   { pattern: /^actors\/shelter\.json$/u, schema: PopulationShelterSchema,
     source: '@wildshard/format/herdShelter#PopulationShelterSchema', reader: 'src/game/population/shelter.ts' },
+  { pattern: /^actors\/sheep\.json$/u, schema: SpeciesActorsFileSchema,
+    source: '@wildshard/format/speciesActorsFile#SpeciesActorsFileSchema', reader: 'src/game/population/wildlife.ts' },
   { pattern: /^actors\/wildlife\.json$/u, schema: WildlifePopulationSchema,
     source: '@wildshard/format/wildlifePopulation#WildlifePopulationSchema', reader: 'src/game/population/wildlife.ts' },
   // G1004: complete encounter/riding roots; original native owners stay authoritative.

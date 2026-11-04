@@ -1,28 +1,30 @@
 import { originalSpeciesJson } from '../fixtures/nalati-original-species';
-import { object, parse } from 'valibot';
-import { SpeciesActorsFileSchema, SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
-import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { object, parse, unknown } from 'valibot';
+import { SpeciesActorsFileSchema } from '@wildshard/format/speciesActorsFile';
+import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { createShardProduct, type ShardProduct } from '../../src/game/shardfile/shardProduct';
 import { fixedDraws } from '../../src/game/models/fixedDraws';
 import type { CrowdBody } from '../../src/game/ambient/crowdDraw';
-import type { SpeciesActorsFileRows } from '../../src/format/speciesBookRows';
+import type { SpeciesActorsFileRows } from '../../src/format/speciesActorsFile';
+import crowdView from '../../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
+import { fixtureJsonCheck } from '../fixtures/productFile';
 import { bakeSheepBody } from '../../src/shards/nalati-grasslands/generators/sheepBody';
 
-const species=parse(object({presentation:SpeciesPresentationSchema}),
+const species=parse(object({presentation:unknown()}),
   originalSpeciesJson('species.json'));
 
 type SheepMetadata = SpeciesActorsFileRows;
 /** The real baked sheep channels, admitted through the same named-file grammar as play. */
 export function admittedSheepProduct(body: { readonly parts?: readonly string[]; readonly radius?: number } = {}): ReturnType<typeof createShardProduct> & { readonly bytes: Uint8Array; readonly metadata: SheepMetadata } {
   const { bytes, row, ...baked } = bakeSheepBody();
-  const metadata = parse(SpeciesActorsFileSchema,{ species: species.presentation, page: { world: null, specimen: null }, draws:[{slot:'actors/sheep.bin',file:'actors/sheep.bin',channels:[],baked:{...row,expand:false}}], ...baked, ...body });
+  const metadata = parse(SpeciesActorsFileSchema,{ species: species.presentation, page: { world: { slug: 'nalati-grasslands', hull: 'sheep', bounds: [-250,250,-250,250], rows: [], view: crowdView, material: {rim:.8,bands:.85} }, specimen: { slug: 'nalati-grasslands', hull: 'sheep', bounds: [-250,250,-250,250], rows: [], view: crowdView, material: {rim:.8,bands:.85} } }, draws:[{slot:'actors/sheep.bin',file:'actors/sheep.bin',channels:[],baked:{...row,expand:false}}], ...baked, ...body });
   const encoded = new TextEncoder().encode(JSON.stringify(metadata));
-  const json = nameBlob('actors/sheep.json', 'json', encoded, { jsonSchema: namedJsonSchema(SpeciesActorsFileSchema) });
+  const json = nameBlob('actors/sheep.json', 'json', encoded, { jsonSchema: registeredJsonSchema('actors/sheep.json') });
   const binary = nameBlob('actors/sheep.bin', 'bin', bytes);
   const identity = { slug: 'sheep-admission', name: 'Sheep admission', author: 'Wildshard', revision: 1, seed: 1 };
-  const product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity), sections: new Map(),
+  const product = createShardProduct({ slug: identity.slug, revision: 1, jsonCheck: fixtureJsonCheck, shardfile: emptyShardfile(identity), sections: new Map(),
     files: new Map([['actors/sheep.json', { ...json.file, url: 'https://example.test/sheep.json' }], ['actors/sheep.bin', { ...binary.file, url: 'https://example.test/sheep.bin' }]]),
     read: (hash: string) => {
       if (hash === json.file.hash) return Promise.resolve(encoded);

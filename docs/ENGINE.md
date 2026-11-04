@@ -13680,6 +13680,16 @@ the same `fixedDraws` intake as Driftwood's shipped island library. The
 population view retains the original joints and padded animated sphere;
 that radius override stays at the caller, outside static draw admission.
 
+`actors/sheep.json` uses the complete
+`@wildshard/format/speciesActorsFile#SpeciesActorsFileSchema`: both crowd
+pages and view motions, pose states, skeleton dimensions, complete return
+guests, packed body declarations, draws, pivots, parts and radius. Its
+registered metadata shares the whole return/projection grammars through
+local definitions. Validation retains the original decoded fields and raw
+wire; native allocation, module resources and animated bounds stay with
+the existing owners. `speciesBookRows.SpeciesActorsFileSchema` remains the
+internal partial reader after whole-file admission.
+
 An `arena-room.entry` may declare `equipment: 'held-finishes'` for an open
 arena: its existing claims and installed cosmetic locker are lent together,
 before binding or publishing anything. Room rows retain their three-argument

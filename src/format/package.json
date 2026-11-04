@@ -12,6 +12,7 @@
     "./questRuntime": "./questRuntime.ts",
     "./questStoryBindings": "./questStoryBindings.ts",
     "./returnProgramDocument": "./returnProgramDocument.ts",
+    "./speciesActorsFile": "./speciesActorsFile.ts",
     "./sceneSources": "./sceneSources.ts",
     "./registeredJson": "./registeredJson.ts",
     "./sourceResidency": "./sourceResidency.ts",
