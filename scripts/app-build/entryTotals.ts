@@ -213,6 +213,9 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
         if (addresses.length === 0 && seams.plans !== undefined) add(asset(seams.plans.url, seams.plans.bytes));
       }
       for (const row of addresses) add(asset(row.url, row.bytes));
+      // DL7 P3 + DL6: the home's cold geometry seed (scripts/app-build/homeSeed.ts; homeSeedPath), packs book only.
+      const seed = `/assets/home-seed/${directory}-${tier}.bin`;
+      if (flow === 'grid' && whole && existsSync(join(output, seed.slice(1)))) add(asset(seed));
       const extra = bank.extras[prefix];
       if (extra !== undefined) {
         const inventory = bytesFor(extra[0]);

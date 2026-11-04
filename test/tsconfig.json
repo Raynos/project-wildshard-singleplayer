@@ -89,6 +89,7 @@
     "../scripts/app-build/encodedBytes.ts",
     "../scripts/app-build/entryDownloads.ts",
     "../scripts/app-build/entryTotals.ts",
+    "../scripts/app-build/homeSeed.ts",
     "../scripts/app-build/entryReadSet.ts",
     "../scripts/docs/authoring/creatures.ts",
     "../scripts/docs/authoring/spear.ts",
