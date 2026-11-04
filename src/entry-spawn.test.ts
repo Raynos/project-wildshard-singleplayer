@@ -44,6 +44,7 @@ test.each([{grid: false, packs: false}, {grid: true, packs: false}, {grid: false
         setSpawnPacks: (enabled: boolean) => {transport.push(enabled);},
         startSpawnDownload: (...args: unknown[]) => {transport.push('start'); calls.push(args); started.finish(); return job;},
         paintSpawnDownload: () => {calls.push('paint'); return () => {calls.push('stop');};},
+        observeSpawnHolds: () => undefined,
       });
       throw new Error(`Unexpected early import: ${name}`);
     },
@@ -65,7 +66,7 @@ test('an early transport refusal rejects its gate wait without hiding the origin
       if (name.endsWith('/core/tier')) return Promise.resolve({TIER: 'phone', initializeTier: () => Promise.resolve()});
       if (name.endsWith('/grid/menu')) return Promise.resolve({DEVSERVER: false, gridMode: () => ({})});
       if (name.endsWith('/boot/spawnDownload')) return Promise.resolve({setSpawnPacks: () => {throw reason;},
-        startSpawnDownload: () => {started.finish(); return null;}});
+        startSpawnDownload: () => {started.finish(); return null;}, observeSpawnHolds: () => undefined});
       throw new Error(`Unexpected early import: ${name}`);
     }, pageGridRecovery: () => null, pendingGridEntry: () => false});
   await expect(beforeCompletion(started.ready, run)).rejects.toBe(reason);
@@ -114,7 +115,7 @@ function selectedEntry(admissionFailure?: Error, packs = false) {
     '@wildshard/game/grid/pageEntry': grid,
     '@wildshard/game/grid/menu': {DEVSERVER: false, gridMode: () => ({})},
     '@wildshard/game/boot/spawnDownload': {setSpawnPacks: (enabled: boolean) => {transport.push(enabled);},
-      startSpawnDownload: () => {transport.push('start'); return null;}},
+      startSpawnDownload: () => {transport.push('start'); return null;}, observeSpawnHolds: () => undefined},
     '@wildshard/game/shardfile/clientSource': {configuredShardfile: () => Promise.resolve(null), preparePageResidency: () => page,
       installManifestShardfile: async () => {
         events.push('admission:start'); admissionStarted.finish(); await admission.ready;
