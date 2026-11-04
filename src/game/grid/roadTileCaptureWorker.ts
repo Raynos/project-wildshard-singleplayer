@@ -16,6 +16,10 @@ export interface CaptureJob {
 }
 export interface CaptureResult { readonly fine: readonly RoadTileReference[]; readonly coarse: readonly RoadTileReference[] }
 
+/** The bytes a job copies to the worker (its arrays): the backpressure the page capture's scratch had. */
+export function captureJobBytes(job: CaptureJob): number {
+  return job.attributes.reduce((sum, row) => sum + row.array.byteLength, 0) + job.source.byteLength;
+}
 /** The job for one source, or null when its attributes are not plain (the page path keeps those). */
 export function captureJob(id: number, origin: string, geometry: BufferGeometry, plan: CullPlan, parents: readonly { x: number; z: number }[]): CaptureJob | null {
   const attributes: CaptureJob['attributes'][number][] = [];
@@ -32,7 +36,8 @@ export class RoadTileCaptureWorker {
   private worker: Worker | undefined;
   private ready = false;
   private next = 0;
-  private readonly waiting = new Map<number, { resolve: (result: CaptureResult) => void; reject: (error: Error) => void }>();
+  private readonly waiting = new Map<number, { job: CaptureJob; resolve: (result: CaptureResult) => void; reject: (error: Error) => void;
+    refused: (job: CaptureJob) => Promise<CaptureResult> }>();
   private readonly listeners: (() => void)[] = [];
   constructor(private readonly scope: Scope) {
     scope.onDispose(() => { this.stop(new Error('Road tile capture owner retired')); });
@@ -47,12 +52,16 @@ export class RoadTileCaptureWorker {
   }
   /** The worker runs and can take a job now. */
   usable(): boolean { return this.ready && this.worker !== undefined && !this.scope.disposed && !this.scope.disposing; }
-  /** Structured clone copies the arrays: the page's own stay with its mesh for upload. */
-  run(origin: string, mesh: Mesh, plan: CullPlan, parents: readonly { x: number; z: number }[]): Promise<CaptureResult> | null {
+  /** A source's job (null: not plain, the page captures it). */
+  job(origin: string, mesh: Mesh, plan: CullPlan, parents: readonly { x: number; z: number }[]): CaptureJob | null {
+    return this.usable() ? captureJob(this.next++, origin, mesh.geometry, plan, parents) : null;
+  }
+  /** Structured clone copies the arrays: the page's own stay with its mesh for upload, and the job keeps referencing
+   *  them until it is answered, so a job the worker refuses (ok: false) runs again on the page (`refused`). */
+  run(job: CaptureJob, refused: (job: CaptureJob) => Promise<CaptureResult>): Promise<CaptureResult> | null {
     const worker = this.worker; if (!this.usable() || worker === undefined) return null;
-    const job = captureJob(this.next++, origin, mesh.geometry, plan, parents); if (job === null) return null;
     return new Promise<CaptureResult>((resolve, reject) => {
-      this.waiting.set(job.id, { resolve, reject });
+      this.waiting.set(job.id, { job, resolve, reject, refused });
       worker.postMessage(job, { transfer: [] });
     });
   }
@@ -65,7 +74,13 @@ export class RoadTileCaptureWorker {
     const fine: unknown = Reflect.get(reply, 'fine'), coarse: unknown = Reflect.get(reply, 'coarse');
     if (Reflect.get(reply, 'ok') === true && Array.isArray(fine) && Array.isArray(coarse) && [...fine, ...coarse].every(reference))
       row.resolve({ fine, coarse });
-    else row.reject(new Error(`Road tile capture failed: ${String(Reflect.get(reply, 'error'))}`));
+    // the worker refused this source (its cache put or a capture step threw): the page captures it as before
+    else if (Reflect.get(reply, 'ok') === false) void this.retry(row);
+    else row.reject(new Error('Invalid road tile capture result'));
+  }
+  private async retry(row: { job: CaptureJob; resolve: (result: CaptureResult) => void; reject: (error: Error) => void; refused: (job: CaptureJob) => Promise<CaptureResult> }): Promise<void> {
+    try { row.resolve(await row.refused(row.job)); }
+    catch (error: unknown) { row.reject(error instanceof Error ? error : new Error('Road tile capture failed', { cause: error })); }
   }
   private stop(error: Error): void {
     for (const forget of this.listeners.splice(0)) forget();

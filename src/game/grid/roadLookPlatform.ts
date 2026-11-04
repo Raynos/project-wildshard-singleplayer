@@ -92,6 +92,8 @@ export async function installPlatformRoadSliced(input: PlatformRoadInput, pause:
       const flush = input.tileBacking?.flush(); if (flush !== undefined && flush !== null) await flush;
       if (next.done === true) {
         if (next.value === undefined) throw new Error('Road construction cancelled');
+        // DL11: the road lands (and control waits for it) only once its worker-captured tiles are archived
+        await input.tileBacking?.joinCapture();
         completed = true; return next.value;
       }
       if (now() - start >= budget) { await pause(); start = now(); }

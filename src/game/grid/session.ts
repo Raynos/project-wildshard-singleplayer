@@ -620,19 +620,8 @@ export class GridSession {
       if (horizon !== undefined) road.horizon(horizon);
       if (weight !== undefined) road.overlayLight(weight);
       this.roadTiles = platformRoad.tileBacking ?? null;
-      const tiles = this.roadTiles;
-      if (tiles !== null && !tiles.started() && (final || preparedRoad?.outer === undefined)) {
-        const seal = (): void => { if (!tiles.started() && !host.scope.disposed && !host.scope.disposing) tiles.start(home.origin, layout, this.allocator, home.instance); };
-        // DL11: sources the worker captured seal once their references are back (after control); else at once, as before
-        const drained = tiles.drained();
-        const sealDrained = async (wait: Promise<void>): Promise<void> => {
-          try { await wait; seal(); }
-          catch (error: unknown) {
-            this.issues.set('road.tiles', error instanceof Error ? error.message : String(error));
-            console.warn('[grid] the road tiles did not archive:', error);
-          }
-        };
-        if (drained === null) seal(); else void sealDrained(drained);
+      if (this.roadTiles !== null && !this.roadTiles.started() && (final || preparedRoad?.outer === undefined)) {
+        this.roadTiles.start(home.origin, layout, this.allocator, home.instance);
       }
     };
     // A1: the outer ring's road, started by `step` once play has begun and the inner ring has landed

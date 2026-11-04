@@ -11,7 +11,8 @@ import { compactRoadTileSteps, type RoadTileGeometry } from './roadTileGeometry'
 import { persistRoadTile, ROAD_TILE_ARCHIVE_BYTES, ROAD_TILE_HEADER_BYTES, type RoadTileReference, type RoadTileStore } from './roadTileArchive';
 import { RoadTilePool } from './roadTilePool';
 import { roadCellKey, roadTileStream, type PreparedRoadTile, type RoadTileSource } from './roadTileStream';
-import { RoadTileCaptureWorker } from './roadTileCaptureWorker';
+import { captureJobBytes, RoadTileCaptureWorker } from './roadTileCaptureWorker';
+import { captureJobTiles } from './roadTileCaptureJob';
 import type { RoadLayout } from './roadLayout';
 
 interface Source {
@@ -72,6 +73,9 @@ export class RoadTileBacking {
   private initialCoarse: { instance: string; x: number; z: number }[] = [];
   // DL11: sources captured in the worker, not yet answered; their references land before `start`
   private readonly workerJobs = new Set<Promise<void>>();
+  private workerBytes = 0;
+  // a capture is waiting for a worker job to answer (backpressure): flush hands the driver that wait
+  private workerWait = false;
   private workerFailure: Error | null = null;
   private readonly captureWorker: RoadTileCaptureWorker | null;
   /** `origin` (the archive's URL origin) moves each source's capture to a worker; without it the page captures. */
@@ -92,7 +96,7 @@ export class RoadTileBacking {
     const source: Source = { mesh, scope: this.scope.child(`source:${String(this.sources.size)}`), references: [], coarseReferences: [], retire: null, pool: null };
     this.sources.set(mesh, source); this.capturing = true; let completed = false;
     try {
-      if (this.captureInWorker(source, mesh, plan)) { completed = true; return; }
+      if (yield* this.captureInWorker(source, mesh, plan)) { completed = true; return; }
       const parents = new Map<string, { x: number; z: number }>();
       for (const bin of plan.bins) {
         const tile = bin.tile; if (tile === undefined) throw new Error('Road backing requires the tile lattice');
@@ -117,8 +121,11 @@ export class RoadTileBacking {
       completed = true;
     } finally { this.capturing = false; if (!completed) { this.sources.delete(mesh); source.scope.dispose(); } }
   }
-  /** The worker takes the source's whole capture from a copy of its arrays; the page publishes the mesh at once. */
-  private captureInWorker(source: Source, mesh: Mesh, plan: CullPlan): boolean {
+  /** The worker takes the source's whole capture from a copy of its arrays; the page publishes the mesh at once. The copies
+   *  keep the page path's backpressure: at most ARCHIVE_WINDOW jobs and ROAD_TILE_ARCHIVE_BYTES of copied arrays
+   *  outstanding (a larger source goes alone, as the page path's serial fallback does). A job the worker refuses runs
+   *  again on the page with the same persistence (`captureJobTiles`). */
+  private *captureInWorker(source: Source, mesh: Mesh, plan: CullPlan): Generator<void, boolean> {
     const origin = this.origin, worker = this.captureWorker;
     if (origin === undefined || worker === null || !worker.usable() || this.workerFailure !== null) return false;
     const parents = new Map<string, { x: number; z: number }>();
@@ -126,7 +133,14 @@ export class RoadTileBacking {
       const tile = bin.tile; if (tile === undefined) throw new Error('Road backing requires the tile lattice');
       const x = Math.floor(tile.x / 2), z = Math.floor(tile.z / 2); parents.set([x, z].join(','), { x, z });
     }
-    const run = worker.run(origin, mesh, plan, [...parents.values()]); if (run === null) return false;
+    const job = worker.job(origin, mesh, plan, [...parents.values()]); if (job === null) return false;
+    const bytes = captureJobBytes(job);
+    while (this.workerJobs.size > 0 && (this.workerJobs.size >= ARCHIVE_WINDOW || this.workerBytes + bytes > ROAD_TILE_ARCHIVE_BYTES)) {
+      this.workerWait = true; yield;
+      if (source.scope.disposed || source.scope.disposing) throw new Error('Road backing owner retired');
+    }
+    const run = worker.run(job, refused => captureJobTiles(refused, this.store)); if (run === null) return false;
+    this.workerBytes += bytes;
     const land = async (): Promise<void> => {
       try {
         const result = await run;
@@ -134,13 +148,16 @@ export class RoadTileBacking {
         source.references.push(...result.fine); source.coarseReferences.push(...result.coarse);
       } catch (error: unknown) {
         this.workerFailure ??= error instanceof Error ? error : new Error('Road tile capture failed', { cause: error });
-      }
+      } finally { this.workerBytes -= bytes; }
     };
-    const job = land();
-    this.workerJobs.add(job);
-    void job.finally(() => { this.workerJobs.delete(job); });
+    const landed = land();
+    this.workerJobs.add(landed);
+    void landed.finally(() => { this.workerJobs.delete(landed); });
     return true;
   }
+  /** DL11: the road's construction joins its worker captures before it lands (the control fence waits for the archive,
+   *  as it did while the page captured); rejects with the first failure. */
+  async joinCapture(): Promise<void> { await this.drained(); }
   /** Null when no worker capture is outstanding; else settles once every one has answered (and rejects on a failure). */
   drained(): Promise<void> | null {
     if (this.workerJobs.size === 0) return this.workerFailure === null ? null : Promise.reject(this.workerFailure);
@@ -174,6 +191,10 @@ export class RoadTileBacking {
    * Even completed out-of-order entries retain their full scratch charge until
    * committed. Byte boundaries, failures and publication drain the full set. */
   flush(): Promise<void> | null {
+    if (this.workerWait) {
+      this.workerWait = false;
+      if (this.workerJobs.size > 0) { const next = async (): Promise<void> => { await Promise.race(this.workerJobs); }; return next(); }
+    }
     if (this.flushing !== null) return this.flushing;
     if (this.pending.length === 0) { this.flushRequested = false; this.failureSeen = false; return null; }
     if (!this.flushRequested && !this.failureSeen && this.activeArchives < archiveWindow() && this.pendingBytes < ROAD_TILE_ARCHIVE_BYTES) return null;
