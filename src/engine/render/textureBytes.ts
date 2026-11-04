@@ -54,14 +54,25 @@ function blockBytesPerTexel(format: number): number {
 export interface ResourceAllocation { readonly identity: object; readonly bytes: number; readonly kind: 'cpu' | 'gpu' }
 const textureAllocations = new WeakMap<object, Map<string, object>>();
 const gpuSizes = new WeakMap<object, number>();
+/** D227: each charged object's stand-in identity. The residency books (assetResidency.ts) hold an allocation's identity
+ *  for as long as it is charged; holding the ArrayBuffer, attribute or image itself kept bytes alive that their owners had
+ *  let go (Pine: ~50 MB of array stores retained only by the books' leases and eviction closures). One token per object
+ *  while it lives, so deduplication is unchanged; the token keeps nothing alive. */
+const tokens = new WeakMap<object, object>();
+function token(owner: object): object {
+  let found = tokens.get(owner);
+  if (found === undefined) { found = {}; tokens.set(owner, found); }
+  return found;
+}
 
 /** Retained cache storage, without reading released attributes back from the GPU. Capture before the first upload;
  * repeated reads preserve known GPU sizes after CPU mip/attribute release. Materials/program overhead uses the model's
  * calibrated resident factor; explicit pixel and buffer storage is charged once by allocation identity. */
 export function cachedResourceAllocations(resource: object): readonly ResourceAllocation[] {
   const rows = new Map<object, ResourceAllocation>();
-  const add = (identity: object, bytes: number, kind: ResourceAllocation['kind']): void => {
-    if (bytes > 0) rows.set(identity, { identity, bytes: Math.ceil(bytes), kind });
+  const add = (owner: object, bytes: number, kind: ResourceAllocation['kind']): void => {
+    if (bytes <= 0) return;
+    const identity = token(owner); rows.set(identity, { identity, bytes: Math.ceil(bytes), kind });
   };
   if (resource instanceof THREE.BufferGeometry) {
     const sourceAttributes: unknown = resource.attributes;
