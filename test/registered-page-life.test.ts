@@ -58,7 +58,7 @@ test('missing or foreign metadata refuses before any page-life bytes are read', 
       files: new Map([[name, { hash: 'a'.repeat(64), url: 'https://example.test/life', ...(schema === undefined ? {} : { jsonSchema: schema }) }]]),
       read: () => { reads++; return Promise.resolve(encode(coast)); }, builtJson: true,
     });
-    await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+    await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
     expect(reads).toBe(0);
   }
   const permissive = { $schema: 'http://json-schema.org/draft-07/schema#', $comment: source, type: 'object' };

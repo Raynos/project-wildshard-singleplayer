@@ -48,6 +48,6 @@ test('missing or foreign panel defining metadata refuses before any payload read
  for(const jsonSchema of[undefined,{},{$comment:'foreign'}]){
   let reads=0;const product=createShardProduct({...identity,shardfile:emptyShardfile(identity),sections:new Map(),jsonCheck:fixtureJsonCheck,
    files:new Map([[name,{hash:'a'.repeat(64),url:'/panels',...(jsonSchema===undefined?{}:{jsonSchema})}]]),read:()=>{reads++;return Promise.resolve(encode({one:panel}));}});
-  await expect(product.json(name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
+  await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');expect(reads).toBe(0);
  }
 });

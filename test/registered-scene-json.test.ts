@@ -40,6 +40,6 @@ test('scene admission refuses absent or foreign defining metadata before resourc
     const product=createShardProduct({...identity,shardfile:emptyShardfile(identity),sections:new Map(),jsonCheck:fixtureJsonCheck,
       files:new Map([[name,{hash:'a'.repeat(64),url:'/same',...(metadata===undefined?{}:{jsonSchema:metadata})}]]),
       read:()=>{reads++;return Promise.resolve(bytes);}});
-    await expect(product.json(name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
+    await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');expect(reads).toBe(0);
   }
 });

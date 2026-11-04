@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp',prefix='ratchet-head-test-') as 
  (root/'src').mkdir(); (root/'lint').mkdir()
  (root/'src/old.ts').write_text('18')
  (root/'src/listed.ts').write_text('1')
- baseline={'wildshard/generator-imports':{'src/listed.ts':1}}
+ baseline={'budgets':{'custom-sections/total':0},'wildshard/generator-imports':{'src/listed.ts':1}}
  (root/'lint/ratchet.json').write_text(json.dumps(baseline))
  (root/'.oxlintrc.json').write_text('{}'); (root/'.oxlintrc.ratchet.json').write_text('{"rules":{}}')
  git('add','.');git('commit','-qm','baseline')
@@ -45,7 +45,7 @@ console.log(JSON.stringify({diagnostics}));process.exitCode=diagnostics.length ?
  (staged/'src/old.ts').write_text('17');check(['src/old.ts'])
  (staged/'src/old.ts').write_text('19');check(['src/old.ts'],'was 18, now 19')
  (staged/'src/new.ts').write_text('1');check(['src/new.ts'],'was 0, now 1')
- policy={'wildshard/generator-imports':{'src/listed.ts':1,'src/new.ts':1}}
+ policy={'budgets':{'custom-sections/total':0},'wildshard/generator-imports':{'src/listed.ts':1,'src/new.ts':1}}
  (staged/'lint/ratchet.json').write_text(json.dumps(policy))
  check(['src/new.ts'],'Missing ratchet approval')
  env['WS_COMMIT_MESSAGE']='fix(test): fixture\n\nRatchet-Approved: wildshard-new wildshard/generator-imports src/new.ts +1'

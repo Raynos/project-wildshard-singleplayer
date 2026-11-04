@@ -53,7 +53,7 @@ test('a registered read refuses missing or foreign metadata before reading any b
     const base = input(good);
     const product = createShardProduct({ ...base, files: new Map([[name, { hash: 'a'.repeat(64), url: 'x', ...(schema === undefined ? {} : { jsonSchema: schema }) }]]),
       read: () => { reads++; return Promise.resolve(encode(good)); }, builtJson: true });
-    await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+    await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
     expect(reads).toBe(0);
   }
 });
@@ -81,10 +81,10 @@ test('trusted built reads keep canonical parsing and do not invoke the external 
     read: () => Promise.resolve(new TextEncoder().encode('{"version":-0}')) }).json(name)).rejects.toThrow('canonical numbers');
 });
 
-test('unported private documents retain their original checked bridge and missing-file refusal', async () => {
+test('retired private documents refuse their old checked bridge and keep missing-file refusal', async () => {
   const privateName = 'private/data.json', base = input(good);
   const product = createShardProduct({ ...base, files: new Map([[privateName, { hash: 'a'.repeat(64), url: 'x', jsonSchema: namedJsonSchema(QuestServiceActionsSchema) }]]) });
-  expect(await product.json(privateName)).toEqual(good);
+  await expect(product.json(privateName)).rejects.toThrow('unregistered named JSON is retired');
   await expect(product.json('absent.json')).rejects.toThrow('names no file');
   const keys: readonly RegisteredJsonName[] = ['quests/achievements.json', 'quests/page-composition.json', name];
   expect(keys).toHaveLength(3);
