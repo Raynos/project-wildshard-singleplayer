@@ -4,7 +4,7 @@
 // on foot, on the hoverboard or at boost.
 //
 // scripts/browser-lane.sh node scripts/complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid
-//   [--engine=chromium|webkit] [--sw=on|off] [--lap=<seconds, default 20>] [--out=<new json under ./tmp>]
+//   [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--lap=<seconds>] [--reach=<m, 220>] [--out=<json under ./tmp>]
 //   --warm=on: timing only (no lap): the cold visit's tap-to-control, an exit and re-entry 1 s after control while the
 //   service worker's post-control precache still runs (039d's trap), and a re-entry once the worker has gone quiet
 //
@@ -27,17 +27,23 @@ import { parseArgs } from 'node:util';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
+import { startSharedLink } from './phone-loading/link.ts';
+import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
-  console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--lap=20] [--reach=220] [--out=tmp/<file>.json]');
+  console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
   process.exit(2);
 }
-const engine = values.engine ?? 'chromium', lapSeconds = Number(values.lap ?? '20'), reach = Number(values.reach ?? '220'), sw = values.sw ?? 'on';
-if (!['chromium', 'webkit'].includes(engine) || !['on', 'off'].includes(sw) || !(lapSeconds > 0) || !(reach > 0)) { console.error('bad --engine / --sw / --lap / --reach'); process.exit(2); }
+const engine = values.engine ?? 'chromium', reach = Number(values.reach ?? '220'), sw = values.sw ?? 'on', linkName = values.link ?? 'none';
+// the lap: spawn -> (x+r, z) -> (x+r, z+r) -> (x-r, z+r) -> (x-r, z-r) -> (x+r, z-r) -> spawn is 9r of hoverboard (~2 km at
+// the default 220 m); its time bound is that at 45 m/s plus 15 s to reach boost, so only a stuck board runs out of time
+const lapSeconds = Number(values.lap ?? String(Math.ceil(reach * 9 / 45 + 15)));
+if (!['chromium', 'webkit'].includes(engine) || !['on', 'off'].includes(sw) || !['none', 'phone'].includes(linkName) || !(lapSeconds > 0) || !(reach > 0)) { console.error('bad --engine / --sw / --link / --lap / --reach'); process.exit(2); }
+if (values.warm === 'on' && (linkName !== 'phone' || engine !== 'chromium' || sw !== 'on')) { console.error('--warm=on needs --link=phone, Chromium and the worker on: a localhost link finishes the precache before any re-entry'); process.exit(2); }
 const out = resolve(values.out ?? `tmp/complete-at-control/${flow}-${rev.slice(0, 10)}-${engine}.json`);
 if (!out.startsWith(`${resolve('tmp')}/`)) { console.error('--out must be under ./tmp'); process.exit(2); }
 if (existsSync(resolve('.git/quiet'))) { console.error('Official Simulator quiet is active'); process.exit(2); }
@@ -114,8 +120,13 @@ function snapshot() {
 
 const requests = [];
 let controlAt = null;
-const browser = await (engine === 'webkit' ? webkit : chromium).launch({ headless: true, args: engine === 'chromium' ? ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] : [] });
-const report = { schema: 1, gate: 'DL17 complete-at-control', rev, base, flow, engine, reach, lapSeconds, when: new Date().toISOString(), violations: [], errors: [] };
+// --link=phone: DL0's one shared downlink (scripts/phone-loading/link.ts) at the phone preset's rate, page and service worker
+// on the same proxy, loopback included (latency and CPU stay unshaped here)
+const link = linkName === 'phone' ? await startSharedLink(profiles.phone.down) : null;
+const browser = await (engine === 'webkit' ? webkit : chromium).launch({ headless: true, args: engine === 'chromium'
+  ? ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', ...(link === null ? [] : [`--proxy-server=${link.proxy}`, '--proxy-bypass-list=<-loopback>'])] : [] });
+const report = { schema: 1, gate: 'DL17 complete-at-control', rev, base, flow, engine, reach, lapSeconds, link: link === null ? null : { preset: 'phone', bytesPerSecond: link.bytesPerSecond },
+  when: new Date().toISOString(), violations: [], errors: [] };
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], viewport: { width: 402, height: 874 } });
   await developerSettings(context, { tier: 'phone', volume: 0 });
@@ -172,6 +183,8 @@ try {
     const workerOpen = () => requests.filter(r => r.by === 'service-worker' && r.end === null).length;
     await page.waitForTimeout(1000);
     const busy = { workerFetchesOpen: workerOpen(), workerFetchesSoFar: requests.filter(r => r.by === 'service-worker').length };
+    // the case counts only if the precache is really running when the player comes back
+    if (busy.workerFetchesOpen === 0) report.errors.push('no service-worker fetch was open at the re-entry: the mid-precache return was not exercised');
     const during = await enter();
     const quietBy = Date.now() + 180000;
     for (;;) {
@@ -182,7 +195,7 @@ try {
     const settledOpen = workerOpen(), settled = await enter();
     report.warm = { coldMs: cold.ms, duringPrecacheMs: during.ms, atReentry: busy, settledMs: settled.ms, settledWorkerFetchesOpen: settledOpen,
       workerBytesRequests: requests.filter(r => r.by === 'service-worker').length };
-    report.pass = true;
+    report.pass = report.errors.length > 0 ? null : true;
   } else {
     report.atControl = await page.evaluate(snapshot);
     const gridAt = report.atControl.grid;
@@ -199,7 +212,7 @@ try {
     const [sx, , sz] = report.atControl.scene?.player ?? [0, 0, 0];
     const corners = [[sx + reach, sz], [sx + reach, sz + reach], [sx - reach, sz + reach], [sx - reach, sz - reach], [sx + reach, sz - reach], [sx, sz]];
     await page.evaluate(() => { const w = window.__wildshard.requireWorld(); w.player.hoverBoost = true; });
-    const walk = page.evaluate(leg => window.__wildshard.walkLeg({ name: 'dl17-boost-lap', start: { x: leg.x, z: leg.z, yaw: 0, hover: true }, waypoints: leg.points.map(([x, z]) => ({ x, z })), timeout: leg.seconds, stuckSeconds: leg.seconds }), { x: sx, z: sz, points: corners, seconds: lapSeconds });
+    const walk = page.evaluate(leg => window.__wildshard.walkLeg({ name: 'dl17-boost-lap', start: { x: leg.x, z: leg.z, yaw: 0, hover: true }, waypoints: leg.points.map(([x, z]) => ({ x, z })), timeout: leg.seconds, stuckSeconds: 5 }), { x: sx, z: sz, points: corners, seconds: lapSeconds });
     const lapEnd = Date.now() + lapSeconds * 1000 + 2000, finished = { done: false };
     const settledWalk = (async () => {
       try { return await walk; } catch (error) { report.errors.push(`lap: ${String(error)}`); return null; } finally { finished.done = true; }
@@ -209,6 +222,10 @@ try {
     while (!finished.done && Date.now() < lapEnd) { lap.push(await page.evaluate(snapshot)); await page.waitForTimeout(250); }
     report.lapResult = await settledWalk;
     report.lapSamples = lap.length;
+    // a lap counts only when it is driven: back within 15 m of spawn, never stuck (sp-x1's review: a timed-out drive is no lap)
+    const end = report.lapResult?.end, home = end === undefined ? Infinity : Math.hypot(end.x - sx, end.z - sz);
+    report.lapComplete = report.lapResult !== null && home <= 15 && (report.lapResult.stuck ?? []).length === 0;
+    if (!report.lapComplete) report.errors.push(`the boost lap did not complete: ended ${Number.isFinite(home) ? `${home.toFixed(0)} m from spawn` : 'with no result'}, ${(report.lapResult?.stuck ?? []).length} stuck, ${report.lapResult?.seconds?.toFixed(1) ?? '?'} of ${lapSeconds} s`);
     report.afterLap = await page.evaluate(snapshot);
 
     // verdict
@@ -277,6 +294,7 @@ try {
   report.errors.push(String(error)); report.pass = null;
 } finally {
   await browser.close();
+  if (link !== null) { report.link.errors = link.errors.slice(0, 10); await link.close(); }
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, JSON.stringify(report, null, 2));
 }
