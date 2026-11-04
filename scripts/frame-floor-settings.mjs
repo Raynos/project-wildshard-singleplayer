@@ -58,23 +58,31 @@ export function frameFloorGameNavigationCode(url) {
  * documents, never player payloads; restore native methods before sampling. */
 export function traceFrameFloorFixtureWrites() {
   const proto = Storage.prototype;
+  const get = Object.getOwnPropertyDescriptor(proto, 'getItem');
   const set = Object.getOwnPropertyDescriptor(proto, 'setItem');
   const remove = Object.getOwnPropertyDescriptor(proto, 'removeItem');
   const clear = Object.getOwnPropertyDescriptor(proto, 'clear');
-  if (!set || !remove || !clear) throw new Error('Native Storage methods are unavailable');
+  if (!get || !set || !remove || !clear) throw new Error('Native Storage methods are unavailable');
   const rows = [];
+  let lastState = '';
   const snapshot = () => {
     try {
-      const global = JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}');
-      const device = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}');
+      const global = JSON.parse(Reflect.apply(get.value, localStorage, ['wildshard.save.v2.global']) ?? '{}');
+      const device = JSON.parse(Reflect.apply(get.value, localStorage, ['wildshard.save.v2.device']) ?? '{}');
       return { settings: global.keys?.settings !== undefined, gfx: global.keys?.gfx !== undefined,
         developer: device.keys?.devMode !== undefined };
     } catch { return { unavailable: true }; }
   };
-  const record = (operation, key) => {
-    if (rows.length < 64) rows.push({ operation, key, at: performance.now(), state: snapshot(), stack: new Error('Fixture storage write').stack?.slice(0, 1600) ?? '' });
+  const record = (operation, key, sourcePath = '') => {
+    const state = snapshot(); lastState = JSON.stringify(state);
+    if (rows.length < 64) rows.push({ operation, key, sourcePath, at: performance.now(), state, stack: new Error('Fixture storage transition').stack?.slice(0, 1600) ?? '' });
   };
   const named = key => key === 'wildshard.save.v2.global' || key === 'wildshard.save.v2.device';
+  const getWrapper = function getWrapper(...args) {
+    const result = Reflect.apply(get.value, this, args);
+    if (this === localStorage && named(args[0]) && JSON.stringify(snapshot()) !== lastState) record('getItem-transition', args[0]);
+    return result;
+  };
   const setWrapper = function setWrapper(...args) {
     Reflect.apply(set.value, this, args);
     if (this === localStorage && named(args[0])) record('setItem', args[0]);
@@ -87,14 +95,23 @@ export function traceFrameFloorFixtureWrites() {
     Reflect.apply(clear.value, this, args);
     if (this === localStorage) record('clear', '*');
   };
-  proto.setItem = setWrapper; proto.removeItem = removeWrapper; proto.clear = clearWrapper;
+  const storageEvent = event => {
+    if (event.storageArea !== localStorage || event.key !== null && !named(event.key)) return;
+    let sourcePath = '';
+    try { sourcePath = new URL(event.url).pathname; } catch { /* missing event origin stays unknown */ }
+    record('storage-event', event.key, sourcePath);
+  };
+  proto.getItem = getWrapper; proto.setItem = setWrapper; proto.removeItem = removeWrapper; proto.clear = clearWrapper;
+  window.addEventListener?.('storage', storageEvent);
   record('before-fixture', '');
   Reflect.set(window, '__frameFloorFixtureWrites', {
     finish: () => {
+      window.removeEventListener?.('storage', storageEvent);
+      if (Object.getOwnPropertyDescriptor(proto, 'getItem')?.value === getWrapper) Object.defineProperty(proto, 'getItem', get);
       if (Object.getOwnPropertyDescriptor(proto, 'setItem')?.value === setWrapper) Object.defineProperty(proto, 'setItem', set);
       if (Object.getOwnPropertyDescriptor(proto, 'removeItem')?.value === removeWrapper) Object.defineProperty(proto, 'removeItem', remove);
       if (Object.getOwnPropertyDescriptor(proto, 'clear')?.value === clearWrapper) Object.defineProperty(proto, 'clear', clear);
-      return { rows, final: snapshot(), restored: Object.getOwnPropertyDescriptor(proto, 'setItem')?.value === set.value
+      return { rows, final: snapshot(), restored: Object.getOwnPropertyDescriptor(proto, 'getItem')?.value === get.value && Object.getOwnPropertyDescriptor(proto, 'setItem')?.value === set.value
         && Object.getOwnPropertyDescriptor(proto, 'removeItem')?.value === remove.value && Object.getOwnPropertyDescriptor(proto, 'clear')?.value === clear.value };
     },
   });

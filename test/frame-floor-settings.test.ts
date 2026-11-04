@@ -116,17 +116,27 @@ test('fixture provenance identifies deletion, bounds records and restores native
     getItem(key: string): string | null { return this.data.get(key) ?? null; }
     setItem(key: string, value: string): void { this.data.set(key, value); }
     removeItem(key: string): void { this.data.delete(key); }
+    externalRemove(key: string): void { this.data.delete(key); }
     clear(): void { this.data.clear(); }
   }
   const localStorage = new MemoryStorage(), nativeSet = Object.getOwnPropertyDescriptor(MemoryStorage.prototype, 'setItem')?.value;
-  const window = {}, context = { Storage: MemoryStorage, localStorage, window, performance: { now: () => 7 } };
+  const window = new EventTarget(), context = { Storage: MemoryStorage, localStorage, window, URL, performance: { now: () => 7 } };
   runInNewContext(`(${traceFrameFloorFixtureWrites.toString()})()`, context);
   localStorage.setItem('wildshard.save.v2.global', JSON.stringify({ keys: { settings: { v: 1, data: { tier: 'phone' } } } }));
   localStorage.setItem('player.secret', 'never retained');
   localStorage.removeItem('wildshard.save.v2.global');
+  localStorage.setItem('wildshard.save.v2.global', '{"keys":{"settings":{"v":1,"data":{}}}}');
+  localStorage.externalRemove('wildshard.save.v2.global');
+  expect(localStorage.getItem('wildshard.save.v2.global')).toBeNull();
+  window.dispatchEvent(Object.assign(new Event('storage'), { storageArea: localStorage,
+    key: 'wildshard.save.v2.global', url: 'http://localhost/other.html?private=never-retained' }));
   for (let i = 0; i < 80; i++) localStorage.setItem('wildshard.save.v2.device', '{"keys":{}}');
   const result: unknown = runInNewContext('window.__frameFloorFixtureWrites.finish()', context);
   expect(result).toMatchObject({ final: { settings: false }, restored: true });
+  expect(runInNewContext('window.__frameFloorFixtureWrites.finish().rows', context)).toEqual(expect.arrayContaining([
+    expect.objectContaining({ operation: 'getItem-transition', state: expect.objectContaining({ settings: false }) }),
+    expect.objectContaining({ operation: 'storage-event', sourcePath: '/other.html' }),
+  ]));
   expect(runInNewContext('window.__frameFloorFixtureWrites.finish().rows.slice(0,3)', context)).toMatchObject([
     { operation: 'before-fixture', state: { settings: false } },
     { operation: 'setItem', state: { settings: true } },
@@ -134,6 +144,7 @@ test('fixture provenance identifies deletion, bounds records and restores native
   ]);
   expect(JSON.stringify(result)).not.toContain('player.secret');
   expect(JSON.stringify(result)).not.toContain('never retained');
+  expect(JSON.stringify(result)).not.toContain('never-retained');
   expect(runInNewContext('window.__frameFloorFixtureWrites.finish().rows.length', context)).toBe(64);
   expect(Object.getOwnPropertyDescriptor(MemoryStorage.prototype, 'setItem')?.value).toBe(nativeSet);
   expect(localStorage.getItem('player.secret')).toBe('never retained');
