@@ -12,7 +12,7 @@ import { WorldScenePageSchema } from '@wildshard/format/worldScenePages';
 
 
 import { SceneModelSourceSchema, SceneBakeSourceSchema } from '@wildshard/format/sceneSources';
-import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
+import { PopulationFieldSchema, PopulationHabitatSchema } from '@wildshard/format/populationEnvironment';
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { AudioSceneSchema } from '@wildshard/format/audioScene';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from '@wildshard/format/forestPage';
@@ -61,7 +61,7 @@ import { FigureCatalogueSchema, FigureGroupSchema } from '@wildshard/format/figu
 import { QuestStorySchema, ChapterStoryPresentationSchema, AdventureContentSchema } from '@wildshard/format/questStory';
 import { WeatherProgramSchema, WeatherHitTagSchema } from '@wildshard/format/weatherProgram';
 import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
-import { NativePopulationRowsSchema } from '@wildshard/format/populationRoster';
+import { NativePopulationRowsSchema, TamingPoseFileSchema } from '@wildshard/format/populationRoster';
 import { ChapterDirectorSchema, ChapterWakeSchema } from '@wildshard/format/chapterDirector';
 import { EliteFeatureSchema } from '@wildshard/format/eliteFeature';
 import { CoverAppearanceSchema } from '@wildshard/format/coverAppearance';
@@ -468,6 +468,8 @@ const wireRoots: Readonly<Record<string, GenericSchema>> = {
   'questStory.ChapterStoryPresentation': ChapterStoryPresentationSchema,
  
   'returnProgramDocument.ReturnProgramDocument': ReturnProgramDocumentSchema,
+  'populationEnvironment.PopulationHabitat': PopulationHabitatSchema,
+  'populationRoster.TamingPoseFile': TamingPoseFileSchema,
   'questStory.AdventureContent': AdventureContentSchema,
   'findsCatalogue.FindsCatalogue': FindsCatalogueSchema,
   'wildlifePopulation.WildlifePopulation': WildlifePopulationSchema,

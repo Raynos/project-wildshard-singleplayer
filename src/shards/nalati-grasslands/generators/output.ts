@@ -163,7 +163,7 @@ const emitSpeciesOutput = (speciesRows: SpeciesEmissionRows, { held: heldWeapons
 export function nalatiRidingBlobs(riding: { programs: NalatiRidingPrograms; wasm: Uint8Array; witness: Uint8Array }): NamedBlob[] {
   return [nameBlob(NALATI_RIDING_WITNESS, 'bin', riding.witness, { critical: true }), nameBlob(NALATI_RIDING_MODULE, 'wasm', riding.wasm, ridingModuleOptions(riding.programs, SCRIPT_V2_REVISIONS))];
 }
-const tamingOf = (): ReturnType<typeof emitNamedBlobs> => emitNamedBlobs([nameBlob('sim/taming-poses.json', 'json', new TextEncoder().encode(encodeCanonicalJson(nalatiTamingPoseRows())))]);
+const tamingOf = (): ReturnType<typeof emitNamedBlobs> => emitNamedBlobs([nameBlob('sim/taming-poses.json', 'json', new TextEncoder().encode(encodeCanonicalJson(nalatiTamingPoseRows())),{jsonSchema:registeredJsonSchema('sim/taming-poses.json')})]);
 // ABI1 witnesses are raw data dependencies, not additional executable modules (GR6: the build program's blobs).
 export function nalatiTitanBlobs(titan: NalatiTitan): NamedBlob[] {
   return [nameBlob('behaviour/titan-witness.bin', 'bin', titan.titan.witness, { critical: true }), nameBlob('behaviour/pasture-witness.bin', 'bin', titan.pasture.witness, { critical: true }),

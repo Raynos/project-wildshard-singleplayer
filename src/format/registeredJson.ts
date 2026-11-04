@@ -28,13 +28,13 @@ import { WorldSceneWeldSchema, parseWorldSceneWeld } from './worldSceneWeld';
 import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue} from './panelTemplate';
 import {PopulationKeeperRowsSchema} from './populationKeeper';
 import { CoverCompositionSchema } from './streamedCover';
-import { PopulationFieldSchema } from './populationEnvironment';
+import { PopulationFieldSchema, PopulationHabitatSchema } from './populationEnvironment';
 import { SceneDressingSchema } from './sceneDressing';
 import { FixedDrawRowsSchema } from './fixedDraws';
 import { ForestGroundLayoutSchema, ForestPageSchema, LivingPageSitesSchema } from './forestPage';
 import { CaveFileSchema, CaveInteriorSchema } from './caveInterior';
 import * as v from 'valibot';
-import { NativePopulationRowsSchema, parseNativePopulationRows } from './populationRoster';
+import { NativePopulationRowsSchema, parseNativePopulationRows, TamingPoseFileSchema } from './populationRoster';
 import { EliteFeatureSchema, parseEliteFeature } from './eliteFeature';
 import { DirectorProductSchema } from './directorProduct';
 import { AudioSceneSchema } from './audioScene';
@@ -60,6 +60,8 @@ import { CreatureInstallSchema,PackedCreatureLooksSchema } from './speciesLooks'
 /** Shared logical documents keep their existing names and defining parsers.
  * The private named-JSON bridge is separate until its remaining exit rows land. */
 export interface RegisteredJsonContracts {
+  readonly 'sim/population-metadata.json':{readonly schema:typeof PopulationHabitatSchema;readonly source:'@wildshard/format/populationEnvironment#PopulationHabitatSchema'};
+  readonly 'sim/taming-poses.json':{readonly schema:typeof TamingPoseFileSchema;readonly source:'@wildshard/format/populationRoster#TamingPoseFileSchema'};
   readonly 'quests/discovery.json':{readonly schema:typeof AdventureContentSchema;readonly source:'@wildshard/format/questStory#AdventureContentSchema'};
   readonly 'quests/finds.json':{readonly schema:typeof FindsCatalogueSchema;readonly source:'@wildshard/format/findsCatalogue#FindsCatalogueSchema'};
   readonly 'actors/wildlife.json':{readonly schema:typeof WildlifePopulationSchema;readonly source:'@wildshard/format/wildlifePopulation#WildlifePopulationSchema'};
@@ -163,6 +165,8 @@ export interface RegisteredJsonContracts {
   readonly 'world/sources/sky.json': { readonly schema: typeof SceneModelSourceSchema; readonly source: '@wildshard/format/sceneSources#SceneModelSourceSchema' };
 }
 export const REGISTERED_JSON:RegisteredJsonContracts = {
+  'sim/population-metadata.json':{schema:PopulationHabitatSchema,source:'@wildshard/format/populationEnvironment#PopulationHabitatSchema'},
+  'sim/taming-poses.json':{schema:TamingPoseFileSchema,source:'@wildshard/format/populationRoster#TamingPoseFileSchema'},
   'quests/discovery.json':{schema:AdventureContentSchema,source:'@wildshard/format/questStory#AdventureContentSchema'},
   'quests/finds.json':{schema:FindsCatalogueSchema,source:'@wildshard/format/findsCatalogue#FindsCatalogueSchema'},
   'actors/wildlife.json':{schema:WildlifePopulationSchema,source:'@wildshard/format/wildlifePopulation#WildlifePopulationSchema'},
@@ -345,6 +349,8 @@ export function isRegisteredJsonName(name:string):name is RegisteredJsonName {re
  * caller's decoded document. Existing semantic checks remain authoritative. */
 export function validateRegisteredJson(name:string,value:unknown):void {
   switch(name){
+    case 'sim/population-metadata.json':v.parse(PopulationHabitatSchema,value);break;
+    case 'sim/taming-poses.json':v.parse(TamingPoseFileSchema,value);break;
     case 'quests/discovery.json':v.parse(AdventureContentSchema,value);break;
     case 'quests/finds.json':v.parse(FindsCatalogueSchema,value);break;
     case 'actors/wildlife.json':v.parse(WildlifePopulationSchema,value);break;

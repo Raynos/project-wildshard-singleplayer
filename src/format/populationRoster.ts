@@ -6,6 +6,23 @@ const finite = v.pipe(v.number(), v.finite());
 const count = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(1024));
 const point = v.strictObject({ x: finite, z: finite });
 const identity = v.strictObject({ kind: key, variant: key });
+const poseTriple=v.tuple([finite,finite,finite]);
+/** Native pose recipes retain the complete ordered local joint hierarchy. */
+export const TamingPoseFileSchema:v.GenericSchema<TamingPoseFileRows,TamingPoseFileRows>=v.strictObject({
+  poses:v.pipe(v.array(v.strictObject({kind:key,variant:key,pose:v.strictObject({
+    custom:v.boolean(),deathSplay:v.exactOptional(v.boolean()),
+    gait:v.exactOptional(v.strictObject({trot:finite,gallop:finite})),
+    pose:v.exactOptional(v.strictObject({grazeNeck:finite,gallopTail:finite})),
+    joints:v.pipe(v.array(v.strictObject({name:key,parent:v.pipe(finite,v.integer(),v.minValue(-1)),position:poseTriple,
+      order:v.picklist(['XYZ','YXZ','ZXY','ZYX','YZX','XZY']),scale:poseTriple})),v.minLength(1),v.maxLength(32),
+      v.check(rows=>rows.every((row,index)=>row.parent<index),'native joints follow parent order')),
+  })})),v.maxLength(4096)),
+});
+export interface TamingPoseFileRows {
+  poses:{kind:string;variant:string;pose:{custom:boolean;deathSplay?:boolean;gait?:{trot:number;gallop:number};
+    pose?:{grazeNeck:number;gallopTail:number};joints:{name:string;parent:number;position:[number,number,number];
+      order:'XYZ'|'YXZ'|'ZXY'|'ZYX'|'YZX'|'XZY';scale:[number,number,number]}[]}}[];
+}
 /** Ordered native population boot program: herds, reserved-identity replacements, dormant recipes, then scripted homes.
  * All rows are data. Fight decisions and pose implementation remain owned by their existing services. */
 export const NativePopulationRowsSchema: v.GenericSchema<NativePopulationRowsInput, NativePopulationRows> = v.strictObject({

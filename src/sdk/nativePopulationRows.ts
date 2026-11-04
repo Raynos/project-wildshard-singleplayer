@@ -6,7 +6,7 @@ import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { parseNativePopulationRows } from '@wildshard/format/populationRoster';
 import { nameBlob, type NamedBlob } from './blobs';
 import { encodeCanonicalJson } from './immutable';
-import { namedJsonSchema } from './formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from './formatJsonSchema';
 
 /** Admit complete native fauna/encounter/pose roster data with its original identity and resource checks. */
 export function parseNativePopulationRoster(input: unknown): ReturnType<typeof parseNativePopulationRows> { return parseNativePopulationRows(input); }
@@ -41,6 +41,6 @@ export function namePopulationHabitat(name: string, input: unknown, treeCount: n
     ledges: v.pipe(v.array(v.strictObject({ x: number, y: number, z: number, r: v.pipe(number, v.minValue(0)) })), v.maxLength(maxLedges)),
     marmots: ForagerContinuation,
   });
-  const rows = v.parse(schema, input);
-  return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(rows)), { jsonSchema: namedJsonSchema(schema) });
+  const rows = v.parse(schema, input), defining = registeredJsonSchema(name);
+  return nameBlob(name, 'json', new TextEncoder().encode(encodeCanonicalJson(rows)), { jsonSchema: defining ?? namedJsonSchema(schema) });
 }

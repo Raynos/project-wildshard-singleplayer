@@ -1,10 +1,24 @@
 import * as v from 'valibot';
 import { NativeRidingSchema } from './nativeRiding';
 import { StreamWaterSchema } from './water';
+import { ForagerContinuation } from './ambientLife';
 
 const finite = v.pipe(v.number(), v.finite());
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const point = v.strictObject({ x: finite, z: finite });
+/** G1004/G872: this approved single-user native input has exactly 155 authored
+ * canopy entries and at most six ledges. A changed source count refuses until
+ * this contract is reviewed; the original author/native count checks remain. */
+export const PopulationHabitatSchema:v.GenericSchema<PopulationHabitatRows,PopulationHabitatRows>=v.strictObject({
+  trees:v.pipe(v.array(v.tuple([finite,finite,v.pipe(finite,v.minValue(0))])),v.length(155)),
+  tops:v.pipe(v.array(finite),v.length(155)),
+  ledges:v.pipe(v.array(v.strictObject({x:finite,y:finite,z:finite,r:v.pipe(finite,v.minValue(0))})),v.maxLength(6)),
+  marmots:ForagerContinuation,
+});
+export interface PopulationHabitatRows {
+  trees:[number,number,number][];tops:number[];ledges:{x:number;y:number;z:number;r:number}[];
+  marmots:v.InferOutput<typeof ForagerContinuation>;
+}
 /** Native habitat observations are immutable data; the host owns every query. */
 export const PopulationEnvironmentSchema: v.GenericSchema<PopulationEnvironmentRowsInput, PopulationEnvironmentRows> = v.strictObject({
   id: key, seed: finite, chunkHalf: v.pipe(finite, v.minValue(1)), normalEpsilon: v.pipe(finite, v.minValue(.001), v.maxValue(4)),

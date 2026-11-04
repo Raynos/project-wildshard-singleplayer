@@ -1,10 +1,11 @@
+import { PopulationHabitatSchema } from './populationEnvironment';
 import { FindsCatalogueSchema } from './findsCatalogue';
 import { ContractCatalogueSchema } from './contracts';
 import { NativeQuestServiceSpotsSchema } from './nativeQuestComposition';
 import { WildlifePopulationSchema } from './wildlifePopulation';
 import { PopulationShelterSchema } from './herdShelter';
 import { EliteFeatureSchema } from './eliteFeature';
-import { NativePopulationRowsSchema } from './populationRoster';
+import { NativePopulationRowsSchema, TamingPoseFileSchema } from './populationRoster';
 import { ClientRidingSessionSchema } from './riding';
 import { MountedSpecimenSeatSchema } from './mountedSpecimenRows';
 import { ArenaScriptFightFileSchema, ArenaScriptGeometrySchema } from './arenaScriptRows';
@@ -66,6 +67,10 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  { pattern: /^sim\/population-metadata\.json$/u, schema: PopulationHabitatSchema,
+    source: '@wildshard/format/populationEnvironment#PopulationHabitatSchema', reader: 'test/fixtures/nalati-headless.ts' },
+  { pattern: /^sim\/taming-poses\.json$/u, schema: TamingPoseFileSchema,
+    source: '@wildshard/format/populationRoster#TamingPoseFileSchema', reader: 'test/fixtures/nalati-headless.ts' },
   { pattern: /^quests\/native-spots\.json$/u, schema: NativeQuestServiceSpotsSchema,
     source: '@wildshard/format/nativeQuestComposition#NativeQuestServiceSpotsSchema', reader: 'test/fixtures/pine-headless.ts' },
   { pattern: /^quests\/contracts\.json$/u, schema: ContractCatalogueSchema,

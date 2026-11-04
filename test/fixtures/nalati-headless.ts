@@ -1,6 +1,7 @@
 import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
-import {PopulationFieldSchema} from '@wildshard/format/populationEnvironment';
+import {PopulationFieldSchema,PopulationHabitatSchema} from '@wildshard/format/populationEnvironment';
+import {TamingPoseFileSchema} from '@wildshard/format/populationRoster';
 import {ForestWeatherSchema} from '@wildshard/format/forestWeather';
 import {parsePackedCreatureLooks} from '@wildshard/format/speciesLooks';
 import {parsePopulationKnockdownSource} from '@wildshard/sdk/nativePopulationRows';
@@ -81,6 +82,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
     const tamingPoses = await (readJson<{
         poses: NativeTamingRows["poses"];
     }>(product, "sim/taming-poses.json"));
+    v.parse(TamingPoseFileSchema,tamingPoses);
     const horsePose = need(parsePackedCreatureLooks(await product.json('actors/species-looks.json')).poses['horse'], 'Nalati requires its admitted horse pose program');
     const wx = await (readJson(product, "world/weather.json", false));
     const airRows = await ((nativeWeatherBundle)(wx, constants["nativeShelters"]));
@@ -98,6 +100,7 @@ export const prepareHeadlessRuntime = async (preparation: Parameters<PrepareHead
         ledges: NativeEliteKernelLoans["ledges"];
         marmots: unknown;
     }>("sim/population-metadata.json"));
+    v.parse(PopulationHabitatSchema,bakeMetadata);
     const nativeBake=bakeReader.read();
     const {room}=await product.json<{room:ArenaSealDimensions & {sealId:string;origin:{x:number;y:number;z:number}}}>('combat/room-entry.json');
     const bake = {...bakeMetadata,...nativeBake,solids:nativeArenaSealSolids(physicsRows,nativeBake.solids,room)};
