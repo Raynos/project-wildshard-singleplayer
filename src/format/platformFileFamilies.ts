@@ -1,3 +1,6 @@
+import { CoverCompositionSchema } from './streamedCover';
+import { KitFigureCardsSchema } from './questFigures';
+import { BuildingLifeDocumentSchema } from './buildings';
 import { WeatherDocumentSchema } from './weatherBundle';
 import { AudioSceneSchema } from './audioScene';
 import { PostGraphLookSchema } from './postGraphLook';
@@ -43,6 +46,13 @@ export interface PlatformFileFamily {
  * Names stay streamed and payloads stay verbatim. Private placement, cabin,
  * ground and encounter grammars remain outside this registry. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  // G1004: exact single-user documents approved with their existing native owners.
+  { pattern: /^people\/cards\.json$/u, schema: KitFigureCardsSchema,
+    source: '@wildshard/format/questFigures#KitFigureCardsSchema', reader: 'src/game/models/kitFigureCard.ts' },
+  { pattern: /^world\/building-life\.json$/u, schema: BuildingLifeDocumentSchema,
+    source: '@wildshard/format/buildings#BuildingLifeDocumentSchema', reader: 'src/game/shardfile/worldAssembly.ts' },
+  { pattern: /^world\/cover-composition\.json$/u, schema: CoverCompositionSchema,
+    source: '@wildshard/format/streamedCover#CoverCompositionSchema', reader: 'src/game/shardfile/worldAssembly.ts' },
   { pattern: /^models\/shape-book\.json$/u, schema: FixedDrawRowsSchema,
     source: '@wildshard/format/fixedDraws#FixedDrawRowsSchema', reader: 'src/game/models/fixedDraws.ts' },
   { pattern: /^quests\/chapters\.json$/u, schema: ChapterStoryPresentationSchema,
