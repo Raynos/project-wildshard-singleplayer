@@ -45,7 +45,7 @@ test('complete root admission preserves native refusals and checks before file I
     const product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity), sections: new Map(),
       files: new Map([[name, { hash: 'a'.repeat(64), url: '/life', ...(schema === undefined ? {} : { jsonSchema: schema }) }]]),
       builtJson: true, read: () => { reads++; return Promise.resolve(encode(rows)); } });
-    await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+    await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
     expect(reads).toBe(0);
   }
 });

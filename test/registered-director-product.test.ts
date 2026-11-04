@@ -84,7 +84,7 @@ test('missing or foreign director provenance refuses before any document read', 
       files: new Map([['directors/main.json', { hash: 'a'.repeat(64), url: 'main', ...(jsonSchema === undefined ? {} : { jsonSchema }) }]]),
       read: () => { reads++; return Promise.reject(new Error('Unexpected document read')); },
     });
-    await expect(product.json('directors/main.json')).rejects.toThrow('exact defining format contract');
+    await expect(product.json('directors/main.json')).rejects.toThrow('unregistered named JSON is retired');
     expect(reads).toBe(0);
   }
 });

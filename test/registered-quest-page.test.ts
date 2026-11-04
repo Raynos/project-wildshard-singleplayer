@@ -55,7 +55,7 @@ test('missing or foreign metadata refuses before any registered payload read', a
         files: new Map([[name, { hash: 'a'.repeat(64), url: 'https://example.test/page', ...(schema === undefined ? {} : { jsonSchema: schema }) }]]),
         read: () => { reads++; return Promise.resolve(encode(good)); }, builtJson: true,
       });
-      await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+      await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
       expect(reads).toBe(0);
     }
   }

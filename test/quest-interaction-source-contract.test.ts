@@ -103,7 +103,7 @@ test('missing or foreign provenance refuses before product reads and forged sche
     const product = createShardProduct({slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity), sections: new Map(),
       files: new Map([[name, {hash, url: 'https://example.test/interaction', ...(schema === undefined ? {} : {jsonSchema: schema})}]]),
       read: () => {reads++; return Promise.resolve(encode(raw));}, builtJson: true});
-    await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+    await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
     expect(reads).toBe(0);
   }
   expect(() => nameBlob(name, 'json', encode(raw))).toThrow('requires its defining schema');

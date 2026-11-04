@@ -27,7 +27,7 @@ for(const root of roots){
   const product=createShardProduct({...identity,shardfile:emptyShardfile(identity),sections:new Map(),jsonCheck:fixtureJsonCheck,
    files:new Map([[root.name,{hash:'a'.repeat(64),url:'/original',...(kind==='missing'?{}:{jsonSchema:{...schema,$comment:'foreign'}})}]]),
    read:()=>{reads++;return Promise.resolve(new TextEncoder().encode(JSON.stringify(root.value)));}});
-  await expect(product.json(root.name)).rejects.toThrow('exact defining format contract');expect(reads).toBe(0);
+  await expect(product.json(root.name)).rejects.toThrow('unregistered named JSON is retired');expect(reads).toBe(0);
  });
 }
 test('unapproved private Pine owner aliases remain outside registration',()=>expect(registeredJsonContract('data/physics.private.json')).toBeUndefined());

@@ -46,14 +46,15 @@ test('the original cross-field and reference-shape checks survive structural sch
 });
 
 test('checked and trusted reads retain original decoded placement values', async () => {
-  for (const name of names) for (const builtJson of [false, true]) {
-    const bytes = encode(row), product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity),
+  for (const builtJson of [false, true]) {
+    const name = 'world/placement-pages/arch.json', page = { version: 1, rows: [row] };
+    const bytes = encode(page), product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity),
       sections: new Map(), files: new Map([[name, { hash: 'a'.repeat(64), url: 'x', jsonSchema: registeredJsonSchema(name) }]]),
       read: () => Promise.resolve(bytes), builtJson, check: true });
     const value = await product.json(name);
-    expect(value).toEqual(row);
+    expect(value).toEqual(page);
     expect(Object.isFrozen(value)).toBe(true);
-    expect(bytes).toEqual(encode(row));
+    expect(bytes).toEqual(encode(page));
   }
 });
 
@@ -62,6 +63,6 @@ test('a family read refuses missing provenance before its asset reader runs', as
   const name = 'world/placements/arch.json', product = createShardProduct({ slug: identity.slug, revision: 1, shardfile: emptyShardfile(identity),
     sections: new Map(), files: new Map([[name, { hash: 'a'.repeat(64), url: 'x', jsonSchema: namedJsonSchema(WorldScenePlacementSchema) }]]),
     read: () => { reads++; return Promise.resolve(encode(row)); }, builtJson: true });
-  await expect(product.json(name)).rejects.toThrow('exact defining format contract');
+  await expect(product.json(name)).rejects.toThrow('unregistered named JSON is retired');
   expect(reads).toBe(0);
 });
