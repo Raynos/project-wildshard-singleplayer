@@ -18,7 +18,7 @@ export const EnemyPlacementsSchema: NamedRows<{ seed: number; practice: { x: num
 export type EnemyPlacements = NamedRowValue<typeof EnemyPlacementsSchema>;
 /** Named geometry bootstrap data; no private section or executable mirror is added. */
 const FixedGeometryGroupsRows=defineNamedRows(authorFormatSchema('islandLibrary.FixedGeometryGroupsSchema'));
-export const FixedGeometryGroupsSchema:typeof FixedGeometryGroupsRows.schema=FixedGeometryGroupsRows.schema;
+export const FixedGeometryGroupsSchema:ReturnType<typeof authorFormatSchema<'islandLibrary.FixedGeometryGroupsSchema'>>=FixedGeometryGroupsRows.schema;
 export const SECTIONS: Readonly<Record<never, never>> = {};
 const bridgeSpan = ({ kind: "object", mode: "strict", entries: { a: ({ kind: "tuple", items: [number, number] } as const), b: ({ kind: "tuple", items: [number, number] } as const), sag: number } } as const);
 export const FILE_SCHEMAS: { 'data/bridgeRows.json': NamedRows<{ world: { a: [number, number]; b: [number, number]; sag: number }; specimen: { a: [number, number]; b: [number, number]; sag: number } }>['schema'] } = { 'data/bridgeRows.json': defineNamedRows(({ kind: "object", mode: "strict", entries: { world: bridgeSpan, specimen: bridgeSpan } } as const)).schema };
