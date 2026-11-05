@@ -3,7 +3,7 @@ import { parse as parseData } from 'valibot';
 import { ClientQuestPageSchema } from '@wildshard/format/clientNative';
 import type { ShardContext } from '../plugin/context';
 import { installPersistedQuest, bindPageQuestStages } from '../plugin/ui';
-import type { DirectorActionBinding } from '../../server/plugin/director';
+import type { DirectorActionBinding } from '../../shared/plugin/director';
 import { bindRuntimeCoins } from '../../shared/plugin/runtimeRows';
 import { installRuntimeAudio } from '../plugin/audio';
 import { installRuntimeLoot } from '../../server/loot/runtime';

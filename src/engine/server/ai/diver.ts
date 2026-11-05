@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from './strikes';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../shared/ai/strikes';
 import { readStrikeState } from './strikeState';
 import { emitFault } from '../../shared/core/faults';
 

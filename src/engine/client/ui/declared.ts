@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import type { Scope } from '../../shared/app/scope';
 import type { SystemSpec } from '../app/systems';
-import type { BossDefinition, BossPresentation } from '../../server/ai/BossBrain';
+import type { BossDefinition, BossPresentation } from '../../shared/ai/BossBrain';
 import type { HudVerbs } from '../../server/level/context';
 import { BossBar } from './BossBar';
 import type { DiscSpot } from './hudSlots';

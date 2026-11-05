@@ -5,7 +5,7 @@ import { Scope } from '../../src/engine/shared/app/scope';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import type { SimHost } from '../../src/engine/server/sim';
 import { RngService } from '../../src/engine/shared/core/rng';
-import { StrikeRunner } from '../../src/engine/server/ai/strikes';
+import { StrikeRunner } from '../../src/engine/shared/ai/strikes';
 import type { NativeEliteKernelLoans, NativeEliteKernelRow } from '../../src/engine/server/ai/eliteKernels';
 import type { AnimalSim } from '../../src/engine/server/entities/AnimalSim';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

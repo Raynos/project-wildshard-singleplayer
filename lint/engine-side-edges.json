@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 135,
+  "client → server": 128,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 130,
@@ -26,9 +26,6 @@
   },
   "src/engine/client/entities/AnimalView.ts": {
    "client → server": 1
-  },
-  "src/engine/client/script/client.ts": {
-   "client → server": 2
   },
   "src/engine/shared/boot/loadingWaits.ts": {
    "shared → dom": 1
@@ -55,10 +52,10 @@
    "client → server": 2
   },
   "src/game/client/boss/roamingProjection.ts": {
-   "client → server": 6
+   "client → server": 5
   },
   "src/game/client/grid/liveSession.ts": {
-   "client → server": 7
+   "client → server": 6
   },
   "src/game/client/grid/pageEntry.ts": {
    "client → server": 1
@@ -103,7 +100,7 @@
    "client → server": 2
   },
   "src/game/client/plugin/ui.ts": {
-   "client → server": 8
+   "client → server": 6
   },
   "src/game/client/plugin/weaponFamily.ts": {
    "client → server": 1
@@ -196,9 +193,6 @@
    "client → server": 1
   },
   "src/game/client/shardfile/runtimeProduct.ts": {
-   "client → server": 1
-  },
-  "src/game/client/shardfile/walkInPortalRide.ts": {
    "client → server": 1
   },
   "src/game/client/shardfile/worldAssembly.ts": {

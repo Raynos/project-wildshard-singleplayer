@@ -5,10 +5,10 @@ import { RewardCaption } from '@wildshard/engine/quest/view/ui';
 import { parseChapterDirector, parseChapterWake, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
-import { WakeBossEncounter } from '../boss/wake';
+import { WakeBossEncounter } from '../../shared/boss/wake';
 import { presentWakeBoss } from '../../client/boss/presentation';
 import type { ShardContext } from '../../client/plugin/context';
-import { readDirectorProduct } from '../plugin/director';
+import { readDirectorProduct } from '../../shared/plugin/director';
 import { enteredCompletion } from '../../client/complete/declared';
 import { boundQuestChapter } from './chapter';
 import { commitQuestEffects } from '../../shared/quest/effects';
@@ -20,7 +20,7 @@ import { boundQuestState } from '../../shared/quest/boundState';
 import { TIER } from '@wildshard/engine/core/tier';
 import { entryOwner } from '../../client/shardfile/entryOwners';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { ChapterClock } from './chapterClock';
+import { ChapterClock } from '../../shared/quest/chapterClock';
 import { prepareScriptMemoryLease } from '@wildshard/engine/script/host';
 
 /** Client-only chapter/boss binding over the existing AS director and native

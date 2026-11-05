@@ -1,7 +1,7 @@
 import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
 import {PerspectiveCamera,Vector3} from 'three';
-import {BossBrain,easeViewToward,type BossPresentation} from '../../src/engine/server/ai/BossBrain';
+import {BossBrain,easeViewToward,type BossPresentation} from '../../src/engine/shared/ai/BossBrain';
 import {pickPrompt} from '../../src/engine/shared/world/interact/prompts';
 import {itemPickupFloor,ITEM_PICKUP_HOVER} from '../../src/engine/shared/world/interact/pickup';
 import type {SimHost} from '../../src/engine/server/sim';

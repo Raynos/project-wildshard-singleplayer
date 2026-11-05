@@ -48,7 +48,7 @@ A host is shared code in engine / game / sdk / format that shards drive. It coun
 silly (back to the shard at once). Single-shot code is never a host: it is a row, a number or AS. Every report shows
 shard lines cut **and** platform lines added (G455); a move is not a cut until the host passes. Known fails a slice
 inherits: `held/equipment` + loadout `held.ts` score 2/6 (G496; W3b), the exchange's `{owner, path}` grants (test 6;
-W2b), `BossBrain`'s `intro: (t, short) => Vector3` callback (`src/engine/server/ai/BossBrain.ts:46`, test 6; E-titan).
+W2b), `BossBrain`'s `intro: (t, short) => Vector3` callback (`src/engine/shared/ai/BossBrain.ts:46`, test 6; E-titan).
 
 ## 3. How a new host or a host change is born
 
@@ -198,7 +198,7 @@ can move; one in-game look otherwise; an old-save fixture when saved ids or stat
 - **The cap is nine modules per side, plus memory.** `src/format/scriptLimits.ts:5` `SCRIPT_LIMITS = { instances: 9,
   memoryBytes: 24 000 000, … }`, enforced in `format/decisionScripts.ts:94` (distinct decision modules),
   `format/assetAdmission.ts:195` (sim scripts + sim decision modules ≤ 9, script memory ≤ 24 MB) and `:209` (client +
-  view modules ≤ 9), `engine/server/script/host.ts:82` and `game/client/grid/liveSession.ts:715`. `test/decision-module-cap.test.ts`
+  view modules ≤ 9), `engine/shared/script/host.ts:82` and `game/client/grid/liveSession.ts:715`. `test/decision-module-cap.test.ts`
   pins it (G20a / G769 raised 8 → 9 for Pine's contract guest; BURN-DAMAGE-LIST D59).
 - **Today's counts** (distinct `blobs/wasm/*.wasm` referenced by built sections, both sides together; approximate):
   PH **9** (at the sim cap), NG 15 (sim + view), DW 4, ND 2, SD 2, SR 1, T 1. Any slice that adds a Pine module (a
@@ -266,9 +266,9 @@ E-quests (quest tiers), E-complete (shard-complete card), E-audio, E-balance, E-
 | Weather, day / night | `format/forestWeather`, `game/client/weather/forest.ts` (imports `engine/combat/ammo`, `engine/world/steppeWind`, `population/wildlife`, `audio/voicePatches`, `looks/keyedSky`); **`engine/shared/world/steppeWind.ts` also read by `game/looks/paintedLook` (SR, SD), `grassPresentation`, `population/wildlife`, `shardfile/worldUpdates`**; `world/days`, `world/weather` are 21 / 24 B shells in every shipped product | PH, NG `weather.forest`; SD `weather.fields`; `dayCycle` in DW, PH, NG, T, IC, PP manifests | W11a | yes |
 | Audio states, stings | `format/audioProfiles.ts:67`: four fixed stings `pickup, death, chunk, dawn`; `engine/client/audio/score/score.ts`; `game/audio/sceneDirector`, `voicePatches` | `audio/audio` everywhere: DW 68 KB, PH 19.7 KB (boss layers), NG 44.7 KB + `audio.scene`, ND 9 KB, SR, SD, T < 1 KB; `audio.cues` kind PH, NG, SR | W11b (stings, one genre), E-audio (band / boss / elite fields, metal, combat cues) | yes |
 | Elites | `format/eliteFeature.ts`, `engine/ai/EliteBrain`, `eliteRoster`, `game/server/eliteSystem.ts` (`ws.elites.v1`) | PH (`night.as`, `ghost.as`, `imperial.as`, `ironhide.as`, `blackpaw.as`, elite rows); NG (`elite.entry`, `elite.construct`, `eliteViews.as`) | E-elites | yes |
-| Boss path | **five paths**: wake (`game/server/boss/wake.ts` + `bossEncounter`); phased (`sdk/phasedBoss` → `game/server/plugin/bossPhase.ts`, 1,007); held (`boss.held`, `game/server/shardfile/bossRow.ts` `HeldBossBrain`); spawned (`boss.spawned`, `DirectorBossBrain` from `plugin/director`); sim script (T `boss.as`) | DW Captain (wake, `captain.as`); PH Antler King (phased, `king.as`, `generators/kingFight.ts`); NG Storm Titan (phased through `arenaRoom`, 13+ `titan*.as`) and Golden King; SR Roc (held + `boss.telegraph`, `roc.as`); SD Matriarch (spawned + `boss.telegraph`, `matriarch.as`); T `boss.as` | E-titan | yes |
+| Boss path | **five paths**: wake (`game/shared/boss/wake.ts` + `bossEncounter`); phased (`sdk/phasedBoss` → `game/server/plugin/bossPhase.ts`, 1,007); held (`boss.held`, `game/server/shardfile/bossRow.ts` `HeldBossBrain`); spawned (`boss.spawned`, `DirectorBossBrain` from `plugin/director`); sim script (T `boss.as`) | DW Captain (wake, `captain.as`); PH Antler King (phased, `king.as`, `generators/kingFight.ts`); NG Storm Titan (phased through `arenaRoom`, 13+ `titan*.as`) and Golden King; SR Roc (held + `boss.telegraph`, `roc.as`); SD Matriarch (spawned + `boss.telegraph`, `matriarch.as`); T `boss.as` | E-titan | yes |
 | Boss intros, cutscene timeline | `BossBrain.ts:46` `intro` callback; `src/engine/cinematic/` does not exist | five intros (DW, PH, NG ×2, SR, SD per IN-GAME-CUTSCENES IC0; per-shard list **unverified** here) | E-titan | partly |
-| Wave director | `format/directorStages`, **`game/server/plugin/director.ts` (435), imported by `quest/chapterDirector`, `quest/chapterClock`, `shardfile/walkInPortalRide`, `shardfile/clientQuestPage`, `shardfile/bossRow`** | DW `director.as`, `directorV2.as` (via `generators/guestPrograms.ts`); PH the same pair (`generators/sourceOutput.ts`); `quests/directors` in T, SR, SD, ND | E-gauntlet | yes |
+| Wave director | `format/directorStages`, **`game/shared/plugin/director.ts` (435), imported by `quest/chapterDirector`, `quest/chapterClock`, `shardfile/walkInPortalRide`, `shardfile/clientQuestPage`, `shardfile/bossRow`** | DW `director.as`, `directorV2.as` (via `generators/guestPrograms.ts`); PH the same pair (`generators/sourceOutput.ts`); `quests/directors` in T, SR, SD, ND | E-gauntlet | yes |
 | Stealth | `game/stealth/controller`, `stealthLaw`; `player/stealth` | NG only | E-stealth | yes |
 | Shrine host | none (pieces: arena room, plates, director) | nobody (DG5 proposes DW's sea cave) | E-vault | yes |
 | Completion card | `format/completion.ts`, `ui/completion` | DW (`generators/completion.ts`) and T; nobody else | E-complete (backfill all, then the rule) | yes |

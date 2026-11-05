@@ -2,7 +2,7 @@ import { isJsonData } from '@wildshard/format/json';
 import { parseNativeQuestComposition, type NativeQuestCompositionRows } from '@wildshard/format/nativeQuestComposition';
 import { nativeQuestChannels } from './nativeInputs';
 import { prepareNativeQuestEntry } from './nativeEntry';
-import { nativeStageLane, type readDirectorProduct } from '../plugin/director';
+import { nativeStageLane, type readDirectorProduct } from '../../shared/plugin/director';
 import { mixedPopulation } from '../population/mixedRoster';
 import * as v from 'valibot';
 import { Vector3 } from 'three';

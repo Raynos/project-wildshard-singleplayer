@@ -2,7 +2,7 @@
  * boss bar and event bus. No shard renderer callback or port is accepted. */
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Events } from '@wildshard/engine/events/events';
-import type { WakeBossEncounter } from '../../server/boss/wake';
+import type { WakeBossEncounter } from '../../shared/boss/wake';
 
 /** Apply the value machine's ordered effects once, on the caller's UI clock. */
 export function presentWakeBoss(encounter: WakeBossEncounter, bar: BossBar, events: Events): void {

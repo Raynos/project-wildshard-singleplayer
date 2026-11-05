@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { StrikeRunner, type StrikeSpec } from './strikes';
+import { StrikeRunner, type StrikeSpec } from '../../shared/ai/strikes';
 
 const finite = v.pipe(v.number(), v.finite());
 const nonnegative = v.pipe(finite, v.minValue(0));

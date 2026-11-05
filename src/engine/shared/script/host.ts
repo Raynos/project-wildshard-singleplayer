@@ -3,11 +3,11 @@ import { SCRIPT_ABI, SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi'
 import { admitScript, type ScriptAdmission } from '@wildshard/format/scriptAdmission';
 import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
-import { observeWasmMemory } from '../../shared/core/memoryResources';
-import { freshScriptMemory } from '../../shared/script/fixedMemory';
-import { constructionOwner, currentOwner, ownerOr } from '../../shared/app/ownership';
-import type { Scope } from '../../shared/app/scope';
-import { nextDrawnFrame, presenting } from '../../shared/core/framePacing';
+import { observeWasmMemory } from '../core/memoryResources';
+import { freshScriptMemory } from './fixedMemory';
+import { constructionOwner, currentOwner, ownerOr } from '../app/ownership';
+import type { Scope } from '../app/scope';
+import { nextDrawnFrame, presenting } from '../core/framePacing';
 import { checkpointByteText } from './checkpointBytes';
 
 /** Existing host limit type is defined by pure format admission. */

@@ -4,7 +4,7 @@ import { expect } from 'vitest';
 import * as v from 'valibot';
 import { parseDirector,type DirectorEvent } from '@wildshard/format/director';
 import { scriptV1Identifier } from '@wildshard/format/decisionScripts';
-import { prepareEmbeddedDirector,embeddedDirectorBytes } from '../../src/game/server/plugin/director';
+import { prepareEmbeddedDirector,embeddedDirectorBytes } from '../../src/game/shared/plugin/director';
 import { compileScript } from '../../src/sdk/bake/compileScript';
 import { generateDirectorAbi } from '../../src/sdk/directorAbi';
 import { simulationPair } from './script-v2-projection';

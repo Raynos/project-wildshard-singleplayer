@@ -1,4 +1,4 @@
-import { ScriptWorld, type EffectRules, type EffectTransaction, type ScriptEffect, type ScriptEntity } from './effects';
+import { ScriptWorld, type EffectRules, type EffectTransaction, type ScriptEffect, type ScriptEntity } from '../../shared/script/effects';
 
 /** Server-script state effects. Player writes always use the invoking entity's host-bound actor id. */
 export const SCRIPT_STATE_OP: Readonly<{ shared: 5; player: 6; }> = Object.freeze({ shared: 5, player: 6 });

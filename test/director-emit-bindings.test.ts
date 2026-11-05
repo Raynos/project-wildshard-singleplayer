@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/server/plugin/director';
+import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/shared/plugin/director';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import {driftwoodDirector as module} from './fixtures/director-modules';
 import rows from '../src/shards/driftwood-isle/data/finaleStages.json';

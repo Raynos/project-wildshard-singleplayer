@@ -8,7 +8,7 @@ import { GameClock } from '../shared/core/clock';
 import { RngService } from '../shared/core/rng';
 import { FIXED_STEP } from '../shared/core/fixedStep';
 import { AnimalSim, type AnimalSimSpec } from './entities/AnimalSim';
-import { StrikeRunner, type StrikeSpec } from './ai/strikes';
+import { StrikeRunner, type StrikeSpec } from '../shared/ai/strikes';
 import { canReach } from './ai/reach';
 import { CombatPipeline } from './combat/pipeline';
 import { DamageBook } from './combat/damageBook';

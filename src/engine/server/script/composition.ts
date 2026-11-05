@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { MoverMechanic, type NativeMoverMotion } from '../../shared/sim/moverMotion';
-import { ScriptWorld, SCRIPT_OP, type ScriptEntity, type ScriptEffect, type EffectTransaction } from './effects';
-import { ScriptHost, type ScriptHostOptions, type ScriptCall } from './host';
+import { ScriptWorld, SCRIPT_OP, type ScriptEntity, type ScriptEffect, type EffectTransaction } from '../../shared/script/effects';
+import { ScriptHost, type ScriptHostOptions, type ScriptCall } from '../../shared/script/host';
 import type { ScriptModule } from './lane';
 
 /** A trusted role owns its entity handles, effect validation, query provenance and complete world continuation. */

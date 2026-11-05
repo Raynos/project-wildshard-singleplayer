@@ -1,8 +1,8 @@
 import { beforeAll, expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { FixedMemory, fixedMemoryCensus, freshScriptMemory, prewarmFixedMemories } from '../src/engine/shared/script/fixedMemory';
-import { prepareScriptMemoryLease, ScriptHost } from '../src/engine/server/script/host';
-import { ScriptWorld } from '../src/engine/server/script/effects';
+import { prepareScriptMemoryLease, ScriptHost } from '../src/engine/shared/script/host';
+import { ScriptWorld } from '../src/engine/shared/script/effects';
 import { compileScript } from '@wildshard/sdk/compileScript';
 
 let bytes: Uint8Array = new Uint8Array();

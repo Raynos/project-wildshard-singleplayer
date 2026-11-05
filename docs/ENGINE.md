@@ -8552,7 +8552,7 @@ reader returns only the admitted factory, bytes and stage contract; it no
 longer publishes unused binding metadata. Product documents retain their
 existing compatibility key, so their names and section count do not change.
 
-`src/game/server/plugin/director.ts#DirectorScriptStageLane` also accepts
+`src/game/shared/plugin/director.ts#DirectorScriptStageLane` also accepts
 `DirectorScriptStagePorts` with `emits: {source, actions}` instead of
 `publish`. The copied action map has at most 64 named callbacks. Every
 row action must be an emit with literal value zero and a bound name,

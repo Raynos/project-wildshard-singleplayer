@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { StrikeContext, StrikeSpec } from '../src/engine/server/ai/strikes';
+import type { StrikeContext, StrikeSpec } from '../src/engine/shared/ai/strikes';
 import { PINE_LANES as lanes, PINE_STRIKES as contacts } from '../src/shards/pine-hollow/generators/strikes';
 import { strikeFromData } from '../src/engine/shared/ai/strikeRows';
 import { strike } from '../src/sdk/species';

@@ -1,4 +1,4 @@
-import type { StrikeContext, StrikeSpec } from '../../server/ai/strikes';
+import type { StrikeContext, StrikeSpec } from './strikes';
 
 /** Deterministic score data. Horizontal distance uses the shipping Math.hypot subtraction and strict > boundary. */
 export type StrikeWeight =

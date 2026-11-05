@@ -18,7 +18,7 @@ import {nativeHerdCollection} from '../../src/game/server/shardfile/groupRuntime
 import {PatrolLaw} from '../../src/game/server/boss/patrolLaw';
 import {NativeCreaturePose} from '../../src/game/shared/plugin/animation';
 import {ProjectileLaw} from '../../src/engine/shared/combat/projectileLaw';
-import {StrikeRunner} from '../../src/engine/server/ai/strikes';
+import {StrikeRunner} from '../../src/engine/shared/ai/strikes';
 import {strikeFromData} from '../../src/engine/shared/ai/strikeRows';
 import {canReach} from '../../src/engine/server/ai/reach';
 import {floorBelow,worldHit} from '../../src/engine/shared/physics/query';

@@ -16,7 +16,7 @@
   "src/engine/server/ai/elite-script.test.ts": 0.149610202,
   "src/engine/shared/ai/flock-frame-input.test.ts": 0.126178511,
   "src/engine/server/ai/native-ground-owner.test.ts": 0.150140349,
-  "src/engine/server/ai/strikes.test.ts": 0.037112673,
+  "src/engine/shared/ai/strikes.test.ts": 0.037112673,
   "src/engine/client/anim/rig-atlas.test.ts": 0.29047012,
   "src/engine/client/anim/rig-parser-live-pacing.test.ts": 0.270151976,
   "src/engine/client/anim/rig-parser-preparation.test.ts": 0.501396119,

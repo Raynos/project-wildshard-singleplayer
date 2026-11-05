@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {ScriptWorld} from '../src/engine/server/script/effects';
+import {ScriptWorld} from '../src/engine/shared/script/effects';
 import {DeclaredScriptWorld,type ScriptStateDeclaration} from '../src/engine/server/script/state';
 
 const entity={id:1,name:'actor',position:[0,0,0] as const,fields:{},frozen:false,interactive:true};

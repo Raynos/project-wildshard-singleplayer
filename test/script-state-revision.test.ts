@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
-import { ScriptHost } from '../src/engine/server/script/host';
-import { ScriptWorld } from '../src/engine/server/script/effects';
+import { ScriptHost } from '../src/engine/shared/script/host';
+import { ScriptWorld } from '../src/engine/shared/script/effects';
 import { compileScript } from '@wildshard/sdk/compileScript';
 
 // The same ABI regions as the Template's scene hooks; `witness` keeps door.as's tick counter outside them.

@@ -3,7 +3,7 @@ import {Vector3} from 'three';
 import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
 import {GuardianPolicy, type GuardianProfile, type GuardianObservation} from '../src/engine/server/ai/guardianPolicy';
 import {DiverBrain, type DiverProfile, type DiverObservation} from '../src/engine/server/ai/diver';
-import type {StrikeSpec} from '../src/engine/server/ai/strikes';
+import type {StrikeSpec} from '../src/engine/shared/ai/strikes';
 import {Rng} from '../src/engine/shared/core/rng';
 import {onFault, type Fault} from '../src/engine/shared/core/faults';
 

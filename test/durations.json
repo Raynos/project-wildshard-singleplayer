@@ -9,7 +9,7 @@
  "src/engine/server/ai/actor-relocate.test.ts": 0,
  "src/engine/server/ai/baked-hunt-ground.test.ts": 0,
  "src/engine/server/ai/native-ground-owner.test.ts": 0,
- "src/engine/server/ai/strikes.test.ts": 0,
+ "src/engine/shared/ai/strikes.test.ts": 0,
  "src/engine/client/anim/rig-atlas.test.ts": 0,
  "src/engine/client/anim/rig-parser-live-pacing.test.ts": 0.1,
  "src/engine/client/anim/rig-parser-preparation.test.ts": 0,

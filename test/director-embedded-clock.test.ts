@@ -1,6 +1,6 @@
 import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 import { expect, test, vi } from 'vitest';
-import { DirectorScriptStageLane, embeddedDirectorBytes, prepareEmbeddedDirector, prepareDirectorModule } from '../src/game/server/plugin/director';
+import { DirectorScriptStageLane, embeddedDirectorBytes, prepareEmbeddedDirector, prepareDirectorModule } from '../src/game/shared/plugin/director';
 import { Scope } from '../src/engine/shared/app/scope';
 import declaration from '../src/shards/pine-hollow/data/director.json';
 import {pineDirector as module} from './fixtures/director-modules';

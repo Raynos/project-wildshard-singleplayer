@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { Scope } from '../../shared/app/scope';
-import { StrikeRunner } from '../ai/strikes';
+import { StrikeRunner } from '../../shared/ai/strikes';
 import { PlayerHealth } from '../combat/health';
 import { FIXED_STEP } from '../../shared/core/fixedStep';
 import type { CharacterMotor, MotorOptions } from '../../shared/physics/CharacterMotor';

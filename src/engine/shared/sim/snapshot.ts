@@ -9,7 +9,7 @@ import { SHOVE_TIME } from '../player/shove';
 import type { DrivenMode } from '../player/modes';
 import type { MotionFooting } from '../player/motion';
 import type { AnimalSim } from '../../server/entities/AnimalSim';
-import type { StrikeRunner } from '../../server/ai/strikes';
+import type { StrikeRunner } from '../ai/strikes';
 import type { PlayerHealth } from '../../server/combat/health';
 import type { GameClockState } from '../core/clock';
 import { fnv1a32, type RngStreamsState } from '../core/rng';

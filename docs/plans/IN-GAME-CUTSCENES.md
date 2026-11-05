@@ -29,7 +29,7 @@ future hook for a third-person shot).
 
 | Piece | File | What it does |
 |---|---|---|
-| Boss intro state | `src/engine/server/ai/BossBrain.ts` (`intro` state, `SKIP_HOLD = 0.6`) | locks input, asks the script's `intro(t, short)` for a focus point each frame, HOLD TO SKIP, a short intro on every retry |
+| Boss intro state | `src/engine/shared/ai/BossBrain.ts` (`intro` state, `SKIP_HOLD = 0.6`) | locks input, asks the script's `intro(t, short)` for a focus point each frame, HOLD TO SKIP, a short intro on every retry |
 | Boss camera ease | `src/game/server/Boss.ts` `faceToward` | eases player yaw / pitch toward the focus (k = 1 − e^(−3.2 dt)); stays first person |
 | Letterbox + name card | `src/engine/client/ui/BossBar.ts` (`showNameCard`, `setSkip`, `fade`) | letterbox bands, the engraved name card, the skip ring, a black fade |
 | Platform bosses | `src/sdk/phasedBoss.ts`, `src/sdk/markedBoss.ts` → `src/game/server/plugin/bossPhase.ts`, `src/game/shardfile/markedBoss.ts` | boss rows as data; `intro` / `introShort` seconds are data |

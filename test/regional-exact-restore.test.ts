@@ -7,7 +7,7 @@ import {hashImmutableBytes} from '../src/sdk/immutable';
 import {createShardfileSim,bindShardfileSim,prepareShardfileSimRestore} from '../src/game/server/plugin/simulation';
 import {prepareSimHostRestore,restoreSimHost,snapshotSimHost,onSimHostRestored,isSimHostRestoring,serializeSimSnapshot} from '../src/engine/shared/sim/snapshot';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
-import {ScriptHost} from '../src/engine/server/script/host';
+import {ScriptHost} from '../src/engine/shared/script/host';
 import {TransferWalls} from '../src/engine/shared/physics/transferWalls';
 import {installEntrySockets} from '../src/engine/shared/physics/entrySockets';
 import {installGridBorders} from '../src/engine/shared/physics/gridBorders';

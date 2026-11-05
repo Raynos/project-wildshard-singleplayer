@@ -59,7 +59,7 @@ const hosts = {
   'state/modes': ['engine/shared/player/modes#playerModes'],
   'sim/runtime-plan': ['game/server/shardfile/nativePlan#prepareProductRuntimePlan'],
   'world/scenes': ['game/client/shardfile/worldScenes#installWorldScenes'],
-  'world/targets': ['game/server/shardfile/worldTargets#WorldTargetHost'],
+  'world/targets': ['game/shared/shardfile/worldTargets#WorldTargetHost'],
   'sim/scripts': ['engine/server/script/decision#DecisionHost', 'format/decisionScripts#parseDecisionScripts'],
   'sim/bodies': ['game/server/quest/bodyOps#DeclaredBodyOps', 'format/bodySlots#DeclaredBodyOpsSchema'],
   'sim/sim': ['game/server/shardfile/scripts#createShardfileScriptLane'],

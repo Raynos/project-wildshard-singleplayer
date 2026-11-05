@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { parseBossOwnerRow } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from '../plugin/bossPhase';
 import type { KeptBossBody } from './homeKeeper';
-import { DirectorBossBrain } from '../plugin/director';
+import { DirectorBossBrain } from '../../shared/plugin/director';
 import { BossBrain, type BossContinuation, type BossDefinition, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';

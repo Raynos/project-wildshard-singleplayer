@@ -1,6 +1,6 @@
 import {expect,test,vi} from 'vitest';
 import {Scope} from '../src/engine/shared/app/scope';
-import {readDirectorProduct,prepareEmbeddedDirector,embeddedDirectorBytes} from '../src/game/server/plugin/director';
+import {readDirectorProduct,prepareEmbeddedDirector,embeddedDirectorBytes} from '../src/game/shared/plugin/director';
 import {parseDirector} from '@wildshard/format/director';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';

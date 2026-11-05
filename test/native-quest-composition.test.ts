@@ -14,7 +14,7 @@ import { installMixedPopulation } from '@wildshard/game/population/mixedRoster';
 import { installNativeQuestComposition, readNativeQuestSpots } from '@wildshard/game/quest/nativeComposition';
 import { installNativeQuestChannels, registerNativeQuestInputs } from '../src/game/server/quest/nativeInputs';
 import { installNativeItems, createNativeCombatFrame } from '../src/game/server/plugin/nativeItems';
-import { prepareEmbeddedDirector } from '../src/game/server/plugin/director';
+import { prepareEmbeddedDirector } from '../src/game/shared/plugin/director';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { orchardPopulation } from './fixtures/mixed-population';

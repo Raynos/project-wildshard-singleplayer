@@ -9,7 +9,7 @@ import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor'
 import { createShardfileSim, bindShardfileSim, prepareShardfileSimRestore } from '../src/game/server/plugin/simulation';
 import { createTrustedHeadlessResident, type PrepareHeadlessRuntime } from '../src/sdk/headlessRuntime';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { ScriptHost } from '../src/engine/server/script/host';
+import { ScriptHost } from '../src/engine/shared/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
 import { prepareHeadlessRuntime as ninePlan } from './fixtures/nine-headless';

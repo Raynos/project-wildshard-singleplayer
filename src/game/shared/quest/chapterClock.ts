@@ -2,7 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { chapterObservationReader, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import { DirectorScriptStageLane, type readDirectorProduct } from '../plugin/director';
-import { questPhaseSpan, questPhaseAt } from '../../shared/quest/storyLaw';
+import { questPhaseSpan, questPhaseAt } from './storyLaw';
 
 type ChapterEffect = ChapterDirectorRows['actions'][string][number];
 interface Day { phase: number; readonly night: number; set: (phase: number) => Promise<void> }

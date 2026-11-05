@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
-import { ScriptHost, type ScriptHostState } from '../src/engine/server/script/host';
-import { ScriptWorld } from '../src/engine/server/script/effects';
+import { ScriptHost, type ScriptHostState } from '../src/engine/shared/script/host';
+import { ScriptWorld } from '../src/engine/shared/script/effects';
 import { compileScript } from '@wildshard/sdk/compileScript';
 
 let bytes: Uint8Array = new Uint8Array();

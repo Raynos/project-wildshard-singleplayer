@@ -4,7 +4,7 @@ import { strike as admitStrike } from '../../../src/sdk/species';
 import { strikeFromData } from '../../../src/engine/shared/ai/strikeRows';
 import { MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA, MATRIARCH } from '../../../src/shards/sunscar-dunes/generators/rows/species/matriarch';
 import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/shared/ai/strikes';
 import type { Animal } from '../../../src/engine/client/entities/AnimalView';
 import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
 import { readStrikeState } from '../../../src/engine/server/ai/strikeState';

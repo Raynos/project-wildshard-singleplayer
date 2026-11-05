@@ -16,7 +16,7 @@ import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { withOwner } from '../src/engine/shared/app/ownership';
 import { app } from '../src/engine/client/app/runtime';
-import { StrikeRunner } from '../src/engine/server/ai/strikes';
+import { StrikeRunner } from '../src/engine/shared/ai/strikes';
 import type { StrikeData } from '../src/engine/shared/ai/strikeRows';
 import type { Game } from '../src/engine/client/core/Game';
 import type { Animal } from '../src/engine/client/entities/AnimalView';

@@ -13,7 +13,7 @@ None on its own: the gauntlet's run director (E11b/E11c) is the first new user, 
 
 Research:
 
-- `src/game/server/plugin/director.ts` (435 lines) is plugin scaffolding holding four things: the v1 typed-event director
+- `src/game/shared/plugin/director.ts` (435 lines) is plugin scaffolding holding four things: the v1 typed-event director
   (`DirectorLane`, `prepareDirectorModule`, `readDirectorProduct`, `:44-161`; Driftwood's `director.as` /
   `directorV2.as` / `returns.as`, Pine's `director.as` / `directorV2.as` / `director.json`), the v2 stage lane
   (`DirectorStageLane`, `:162`, over `format/directorStages.ts`), the action binder (`bindDirectorActions`, `:253`) and
@@ -41,7 +41,7 @@ exports in `src/game/package.json`). Tests: every director test above, unchanged
 
 ## 4. Done when, hours, blockers
 
-**Done when:** `src/game/server/plugin/director.ts` is gone; every product's director replay matches tick for tick; mid-run
+**Done when:** `src/game/shared/plugin/director.ts` is gone; every product's director replay matches tick for tick; mid-run
 save fixtures restore.
 
 | Engine | Migration | Shard | Total |

@@ -9,7 +9,7 @@ import type { TerrainField } from '../../shared/level/data';
 import type { V2EnvironmentColumns } from '../../shared/script/observationColumnsV2';
 import { StalkerBrain, readPouncerSpec, readHowlerSpec, type PouncerContext, type PouncerLedge } from './stalker';
 import type { PackBrain } from './pack';
-import { StrikeRunner, type StrikeSpec } from './strikes';
+import { StrikeRunner, type StrikeSpec } from '../../shared/ai/strikes';
 import { canReach } from './reach';
 import { nearestOnGround } from '../../shared/sim/nearPlayer';
 

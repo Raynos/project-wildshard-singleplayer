@@ -1,4 +1,4 @@
-import type { CombatTag } from '../combat/pipeline';
+import type { CombatTag } from '../../server/combat/pipeline';
 import { Hfsm } from './hfsm';
 
 export interface BrainPoint { x: number; y: number; z: number }

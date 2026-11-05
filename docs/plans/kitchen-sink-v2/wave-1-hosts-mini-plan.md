@@ -20,7 +20,7 @@ G595) · SO = shard-only rows or AS · M = missing.
   logic is in Driftwood's `barrels.as`, and no platform section admits interactables (Driftwood ships named JSON).
 - Zipline is shared (Driftwood and Pine, `engine/sim/cableTraversal`).
 - The arena room has a real user (Nalati's storm titan).
-- A wave director exists (`format/directorStages` v2) but runs in `game/server/plugin/director.ts`, which N5 deletes.
+- A wave director exists (`format/directorStages` v2) but runs in `game/shared/plugin/director.ts`, which N5 deletes.
 - Night-only enemies exist (`format/eliteFeature.ts` night/dusk/storm rule).
 - Spinners and sliders exist as mover tracks; lifts use the winch ride driver.
 - Parry is only an animation clip; no mechanic. The held-equipment schema is Pine-shaped.
@@ -41,7 +41,7 @@ G595) · SO = shard-only rows or AS · M = missing.
 | W9 | Conveyor, jump pad | M | A surface-velocity box row and a launch trigger row in the character motor, through the host bar | `engine/shared/physics/CharacterMotor.ts`, `format/movers.ts` | 16 |
 | W10 | Grapple, stealth | 1U | Approvals (showcase as second user) | `game/grapple/*`, `game/stealth/*` | 6 |
 | W11 | Elites, waves, boss | elites G; boss in four paths | One boss row set: phases, telegraphs, `arenaFire` hazards, `arenaRoom`; fold H110; CS8 | `game/boss/*`, `format/bossProfiles.ts`, `bossEncounter.ts` | 36 |
-| W12 | Cutscene intro | M | IN-GAME-CUTSCENES IC1–IC4: `engine/cinematic` timeline, `sdk/cutscenes`, a boss `intro` row; port `BossBrain`'s intro | `src/engine/cinematic/` (new), `engine/server/ai/BossBrain.ts` | 40 |
+| W12 | Cutscene intro | M | IN-GAME-CUTSCENES IC1–IC4: `engine/cinematic` timeline, `sdk/cutscenes`, a boss `intro` row; port `BossBrain`'s intro | `src/engine/cinematic/` (new), `engine/shared/ai/BossBrain.ts` | 40 |
 | W13 | Weather, day/night | G, forest-named | Rename the `weather.forest` / `world.forest-page` kinds; unify Pine's and Nalati's weather envelopes (CS7); a storm-hour quest trigger | `format/forestWeather.ts`, `game/client/weather/forest.ts` | 14 |
 | W14 | Physics props, hoverboard, tricks, see-saw | props SO; board misplaced; tricks M; see-saw M | Dynamic-prop rows; move the board to game (HA4d); trick events → score rows + commons AS; a hinged-body row | `engine/shared/physics/bodies.ts`, `engine/shared/player/board.ts` | 32 |
 | W15 | Portal, interiors, caves | portal 1U; cave SO | A generic `world/interior` (cave is one kind) split from the forest page (H073). **The shard cube** (Jake 11-03, ruling 19ad): every interior and every portal destination must lie inside the shard's own 500 × 500 × 500 m cell (`core/config` `CELL_BELOW` / `CELL_ABOVE`, ±250 m); a shardfile validator rule refuses an interior outside the cube, two volumes that overlap, or a portal to anywhere but its own cube; documented in SHARDS.md | `game/client/shardfile/walkInPortalRide.ts`, `caveInterior.ts`, `clientForestPage.ts`, `format/shardSchema.ts` | 24 |

@@ -1,6 +1,6 @@
 import type { AnimalSim as Animal } from '../entities/AnimalSim';
 import type { ThinkCtx } from '../../shared/entities/species/registry';
-import { Hfsm } from './hfsm';
+import { Hfsm } from '../../shared/ai/hfsm';
 import { inspectBrain } from './inspect';
 
 /** Authored creature goals share an inspectable HFSM; movement and strike clocks remain separate.

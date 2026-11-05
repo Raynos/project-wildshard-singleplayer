@@ -19,7 +19,7 @@ Research (IN-GAME-CUTSCENES §1, re-checked):
   (`src/game/server/Boss.ts` `faceToward`, k = 1 − e^(−3.2 dt)); there is no player body (first person). No
   `src/engine/cinematic/` exists.
 - Pieces to lift: the letterbox, name card, skip ring and fade in `src/engine/client/ui/BossBar.ts` (`showNameCard`, `setSkip`,
-  `fade`); `BossBrain`'s intro state with `SKIP_HOLD = 0.6` (`src/engine/server/ai/BossBrain.ts`); `QuestRewardBeat`'s
+  `fade`); `BossBrain`'s intro state with `SKIP_HOLD = 0.6` (`src/engine/shared/ai/BossBrain.ts`); `QuestRewardBeat`'s
   carried camera (`src/game/server/quest/reward.ts`); dialogue lines (`src/engine/client/quest/view/ui.ts` `DialogueBox`).
 - `src/engine/client/render/regionCinematic.ts` is a post-effect chain (shafts, fringe, grain) for cinematic regions, not a
   camera timeline.

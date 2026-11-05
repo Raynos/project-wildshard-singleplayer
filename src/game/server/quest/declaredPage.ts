@@ -5,7 +5,7 @@ import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
 import type { ShardContext } from '../../client/plugin/context';
 import type { MoverRuntime } from '../plugin/mover';
 import type { SceneHandles } from '../../client/shardfile/sceneHandles';
-import { WorldTargetHost, type WorldTargetLanding } from '../shardfile/worldTargets';
+import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { InteractionRules } from '../../shared/quest/interactionRows';
 import { commitQuestEffects } from '../../shared/quest/effects';
 import type { QuestEffect } from '@wildshard/format/questSteps';

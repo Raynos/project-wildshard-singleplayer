@@ -12,7 +12,7 @@ import { GOLDEN_KING, bindGoldenKing } from './goldenKingControl';
 import { BALBAL as KURGAN_BALBAL } from '../originalBalbal';
 import type { BossArenaRoom } from '../../../src/game/client/boss/arenaRoomView';
 import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/generators/kurganLayout';
-import type { BossScript } from '../../../src/engine/server/ai/BossBrain';
+import type { BossScript } from '../../../src/engine/shared/ai/BossBrain';
 import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../../../src/shards/nalati-grasslands/generators/goldenKingFight';
 
 type Mode = 'coffin' | 'rising' | 'fight' | 'toCoffin' | 'shield' | 'stun' | 'kneel' | 'dead';

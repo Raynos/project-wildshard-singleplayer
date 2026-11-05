@@ -1,6 +1,6 @@
 // Shipping flight policy captured for SF27; implementation body unchanged.
 import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/shared/ai/strikes';
 import type { Animal } from '../../../src/engine/client/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/shared/entities/species/registry';
 import { Vector3 } from 'three';

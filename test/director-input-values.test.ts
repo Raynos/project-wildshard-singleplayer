@@ -5,7 +5,7 @@ import { deepStrictEqual } from 'node:assert';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardfileSim, type ShardfileSimulation } from '../src/game/server/plugin/simulation';
-import { DirectorStageLane } from '../src/game/server/plugin/director';
+import { DirectorStageLane } from '../src/game/shared/plugin/director';
 import { directorDayRange, type DirectorStagesData } from '@wildshard/format/directorStages';
 import { inNormalizedDayRange } from '../src/engine/shared/world/dayCycle';
 import { loadRapier } from '../src/engine/shared/physics/rapier';

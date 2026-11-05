@@ -21,7 +21,7 @@ Research:
   (`src/format/eliteFeature.ts:13`) and observations `dusk`, `night` (`:25`). Directors: an input binding `day:a..b`
   (`src/format/directorStages.ts:6`, `directorDayRange`).
 - Pine runs its night shift through AS: `src/shards/pine-hollow/behaviour/night.as` and `director.as` /
-  `directorV2.as` with `director.json` (the night thralls), on the plugin director (`src/game/server/plugin/director.ts`).
+  `directorV2.as` with `director.json` (the night thralls), on the plugin director (`src/game/shared/plugin/director.ts`).
   Nalati has night rows in its spawn page (`spawnPackDemand`, migration map §1).
 - Nothing swaps a variant by time; storms are not read by spawns.
 

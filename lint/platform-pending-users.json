@@ -853,7 +853,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/plugin/director.ts",
+      "module": "src/game/shared/plugin/director.ts",
       "export": "DirectorScriptStageLane",
       "shard": "nalati-grasslands",
       "plan": {
@@ -864,7 +864,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/plugin/director.ts",
+      "module": "src/game/shared/plugin/director.ts",
       "export": "DirectorScriptStagePorts",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1310,7 +1310,7 @@
       }
     },
     {
-      "module": "src/game/server/boss/wake.ts",
+      "module": "src/game/shared/boss/wake.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",

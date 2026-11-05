@@ -2,7 +2,7 @@ import { castRay } from '../../shared/physics/query';
 import { overlapBox } from '../../shared/physics/overlap';
 import type { Physics } from '../../shared/physics/Physics';
 import type { Navmesh } from '../../shared/physics/navmesh';
-import type { ScriptQuery } from './host';
+import type { ScriptQuery } from '../../shared/script/host';
 
 /** Query opcodes: ray, axis-aligned overlap, nearest walkable point, bounded path. */
 export const SCRIPT_QUERY: Readonly<{ raycast: 1; overlap: 2; nearest: 3; path: 4; }> = Object.freeze({ raycast: 1, overlap: 2, nearest: 3, path: 4 });

@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {Vector3} from 'three';
-import {BossBrain,type BossPorts,type BossPresentation,type BossSaved,type BossContinuation} from '../../src/engine/server/ai/BossBrain';
+import {BossBrain,type BossPorts,type BossPresentation,type BossSaved,type BossContinuation} from '../../src/engine/shared/ai/BossBrain';
 import type {Scope} from '../../src/engine/shared/app/scope';
 import {bossFight,type PhasedBossBody,type PhasedBossPorts,type PhasedBossContinuation} from '../../src/game/server/plugin/bossPhase';
 import {ArenaPortalLaw,type ArenaPortalSnapshot} from '../../src/game/shared/boss/arenaPortal';

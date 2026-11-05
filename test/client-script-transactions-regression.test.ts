@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
 import { ClientScriptLane, type ClientScriptObservation } from '../src/engine/client/script/client';
-import { ScriptWorld } from '../src/engine/server/script/effects';
+import { ScriptWorld } from '../src/engine/shared/script/effects';
 import { compileScript } from '@wildshard/sdk/compileScript';
 
 let bytes: Uint8Array = new Uint8Array();

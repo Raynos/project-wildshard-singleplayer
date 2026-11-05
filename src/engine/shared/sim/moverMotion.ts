@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { Euler, Quaternion } from 'three';
 import { lowerMoverMotion, MoverMotionSchema, MoverCarrySchema, type MoverMotion, type MoverCarry as CarryRows } from '@wildshard/format/moverMotion';
-import type { ScriptEntity, ScriptEffect } from '../../server/script/effects';
+import type { ScriptEntity, ScriptEffect } from '../script/effects';
 
 /** Admitted stop/driver data; native execution never accepts a function or an executable URL. */
 export type NativeMoverMotion = MoverMotion & { at: { x: number; y: number; z: number }; euler: { x: number; y: number; z: number }; carry?: CarryRows };

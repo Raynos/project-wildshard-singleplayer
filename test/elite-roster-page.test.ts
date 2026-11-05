@@ -4,7 +4,7 @@ import { Group, Scene, PerspectiveCamera, Vector3, SkinnedMesh, MeshLambertMater
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
 import { BorrowedElite, DeclaredEliteEntry } from '../src/engine/client/ai/view/eliteEntry';
-import { StrikeRunner } from '../src/engine/server/ai/strikes';
+import { StrikeRunner } from '../src/engine/shared/ai/strikes';
 import type { Game } from '../src/engine/client/core/Game';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';

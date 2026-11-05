@@ -1,5 +1,5 @@
 // Shipping declaration oracle captured from 539d18a9262151dbe28aa0656068065e9b3d0193:src/shards/sunscar-dunes/runtime/species/duneRay.ts; no hand-written policy.
-import type { StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import type { StrikeSpec } from '../../../src/engine/shared/ai/strikes';
 import type { SpeciesRow } from '../../../src/engine/server/ai/species';
 import STRINGS from '../../../src/shards/sunscar-dunes/data/strings.json' with { type: 'json' };
 

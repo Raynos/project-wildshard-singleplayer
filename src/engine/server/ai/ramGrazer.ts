@@ -1,6 +1,6 @@
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../sim';
-import type { StrikeSpec } from './strikes';
+import type { StrikeSpec } from '../../shared/ai/strikes';
 import { GrazerBrain, type WanderGrazerSpec, type WanderGrazerPorts } from './grazer';
 
 /** Legacy tuning name for the shared grazer's wander-ram preset. */

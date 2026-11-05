@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { ScriptHost, type ScriptHostState, type ScriptCall } from '../../server/script/host';
+import { ScriptHost, type ScriptHostState, type ScriptCall } from '../../shared/script/host';
 import { SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
-import { ScriptWorld, type ScriptEffect, type ScriptEvent, type EffectTransaction } from '../../server/script/effects';
+import { ScriptWorld, type ScriptEffect, type ScriptEvent, type EffectTransaction } from '../../shared/script/effects';
 import type { ScriptModule } from '../../server/script/lane';
 
 /** Presentation-only operations. Authoritative field, position, spawn, event and shared/player writes are refused. */

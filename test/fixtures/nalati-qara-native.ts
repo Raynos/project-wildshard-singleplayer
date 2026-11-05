@@ -13,7 +13,7 @@ import {nativeEliteCore} from '../../src/game/server/shardfile/nativeAssemblyHos
 import {NALATI_ELITE_CONDITIONS} from '../../src/shards/nalati-grasslands/generators/nativeServer';
 import {withNalatiWeapons} from './nalati-weapons-native';
 import {prepareNalatiPatrol,nalatiPatrolOf} from './nalati-patrol-native';
-import {StrikeRunner} from '../../src/engine/server/ai/strikes';
+import {StrikeRunner} from '../../src/engine/shared/ai/strikes';
 import {strikeFromData} from '../../src/engine/shared/ai/strikeRows';
 import {canReach} from '../../src/engine/server/ai/reach';
 import {nativeGroupCollection} from '../../src/game/server/shardfile/groupRuntime';

@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { Vector3 } from 'three';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { ContactFamily, type ContactMoveRow, type WeaponContactMove } from '../src/engine/server/combat/contactWeapon';
-import { WorldTargetHost } from '../src/game/server/shardfile/worldTargets';
+import { WorldTargetHost } from '../src/game/shared/shardfile/worldTargets';
 import { parseWorldTargets, worldTargetSpots, worldTargetRules } from '@wildshard/format/worldTargets';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { emptyShardfile } from '../src/sdk/author';

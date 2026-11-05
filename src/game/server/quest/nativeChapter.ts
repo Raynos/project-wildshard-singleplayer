@@ -5,11 +5,11 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { isJsonData } from '@wildshard/format/json';
 import { ChapterDirectorSchema, parseChapterDirector } from '@wildshard/format/chapterDirector';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
-import type { DirectorScriptStageLane, readDirectorProduct } from '../plugin/director';
+import type { DirectorScriptStageLane, readDirectorProduct } from '../../shared/plugin/director';
 import { mixedPopulation } from '../population/mixedRoster';
 import { installWakeBoss } from '../boss/nativeWake';
 import { installNativeQuestChannels } from './nativeInputs';
-import { ChapterClock } from './chapterClock';
+import { ChapterClock } from '../../shared/quest/chapterClock';
 import { questBooks, type QuestBook } from '@wildshard/engine/quest/players';
 
 const finite = v.pipe(v.number(), v.finite());

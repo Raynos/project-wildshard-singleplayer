@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { beforeAll, expect, test } from 'vitest';
 import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';
-import { BossBrain } from '../src/engine/server/ai/BossBrain';
+import { BossBrain } from '../src/engine/shared/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/server/ai/phases';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost, type SimCommand, type SimHost } from '../src/engine/server/sim';

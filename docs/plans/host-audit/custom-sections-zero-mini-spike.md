@@ -72,7 +72,7 @@ E = emitting generator (`src/shards/<slug>/generators/`); R = route or reader.
 | R0 | `world/fields/*`, `world/cards/*`, portal sparks: Far 1, Sun 4, Nine 4 (9, 150 KB) | meadowScene / emberBuffers / worldScenes | `world/scenes[buffered]` | shared |
 | R0 | `models/world-scenes` DW, Pine, Nine (3, 385 KB) | worldScenes.ts | `world/scenes`, `client/plan[world.assembly]` | shared |
 | R0 | Quests DW+Pine: story, achievements, chapter-director, page-composition, services, stall, trader/lanterns/mill-door; Pine+Nalati panels, persistence (19, 49 KB) | output.ts / sourceOutput.ts | `client/plan[quest.*]`, `game/quest/*` | shared |
-| R0 | Actors: page-life ×2, directors ×2, creature looks DW+Nalati, posed draws ×3 (9, 440 KB) | creatureLook, pageLife, output | `client/plan[page.life|species.program]`, `game/server/plugin/director.ts` | shared |
+| R0 | Actors: page-life ×2, directors ×2, creature looks DW+Nalati, posed draws ×3 (9, 440 KB) | creatureLook, pageLife, output | `client/plan[page.life|species.program]`, `game/shared/plugin/director.ts` | shared |
 | R0 | `people/catalogue` DW+Pine, `world/forest-weather` Pine+Nalati (4, 38 KB) | figureCatalogue, output | `client/plan[weather.forest]`, quest roots | shared |
 | H1 | Nine `world/placements/*` (70, 6.33 MB) | worldScenes.ts | `world/scenes` steps | 1-shard |
 | H1 | Pine `scenes/cabins/specimens/*` (56, 702 KB), `living/*` (8, 691 KB), `cabins-{phone,desktop}-shadow-*` (4, 339 KB) | bake-cabin-scenes.mjs, bake-cabin-living.mjs | weld refs, `game/client/shardfile/forestPage.ts` | raw |

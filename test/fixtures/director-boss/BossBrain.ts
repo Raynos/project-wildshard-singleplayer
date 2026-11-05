@@ -1,7 +1,7 @@
 import { engineString } from '@wildshard/engine/strings';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Vector3 } from 'three';
-import { Hfsm } from '../../../src/engine/server/ai/hfsm';
+import { Hfsm } from '../../../src/engine/shared/ai/hfsm';
 
 /** a boss fight's state: dormant, armed, the intro, the fight, a beat between phases, victory */
 export type BossState = 'dormant' | 'armed' | 'intro' | 'fight' | 'beat' | 'victory';

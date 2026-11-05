@@ -5,7 +5,7 @@ import { Vector3 } from 'three';
 import { BossContenders } from '@wildshard/engine/ai/bossContenders';
 import { nearestOnGround } from '@wildshard/engine/sim/nearPlayer';
 import type { SimHost } from '@wildshard/engine/sim';
-import { WakeBossEncounter, type WakeBossObservation } from './wake';
+import { WakeBossEncounter, type WakeBossObservation } from '../../shared/boss/wake';
 import { parseWakeEncounter } from '@wildshard/format/bossEncounter';
 
 const finite = v.pipe(v.number(), v.finite());

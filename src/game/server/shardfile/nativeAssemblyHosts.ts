@@ -20,7 +20,7 @@ import { EliteCore, memoryElitePersistence, type EliteCoreRule, type EliteCoreSc
 import { installNativeHeldAmmunition } from '../loadout/nativeAmmunition';
 import { dayClock } from '../../shared/looks/dayClock';
 import { keyedSkyDaySpec } from '../../shared/looks/keyedSkyClock';
-import { readDirectorProduct } from '../plugin/director';
+import { readDirectorProduct } from '../../shared/plugin/director';
 import { installNativeItems, otherCombatFrame } from '../plugin/nativeItems';
 import { bindNativeLoadout, weaponRow } from '../plugin/simulation';
 import { installPopulationEnvironment } from '../population/environment';

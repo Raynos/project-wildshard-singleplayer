@@ -5,7 +5,7 @@ import {expect,test,vi} from 'vitest';
 import {MeshBasicMaterial,Vector3,Group} from 'three';
 import {app} from '../src/engine/client/app/runtime';
 import {Scope} from '../src/engine/shared/app/scope';
-import type {BossScript} from '../src/engine/server/ai/BossBrain';
+import type {BossScript} from '../src/engine/shared/ai/BossBrain';
 import {ArenaRoomEncounter} from '../src/game/server/boss/arenaRoom';
 import {ARENA_ROOM_PAGE} from '../src/game/client/boss/arenaRoomView';
 import {OriginalOpenArenaEncounter} from './fake/originalOpenArena';

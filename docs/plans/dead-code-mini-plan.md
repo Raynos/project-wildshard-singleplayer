@@ -472,7 +472,7 @@ deleting it.
 - `src/game/shared/grid/compiledStrips.ts`: decodeCompiledGridStrips* (7)
 - `src/game/client/grid/refusal.ts`: FarViewStatus (3)
 - `src/game/shared/inventoryLaw.ts`: grantNativeInventory* (6)
-- `src/game/server/plugin/director.ts`: nativeStageLane* (3)
+- `src/game/shared/plugin/director.ts`: nativeStageLane* (3)
 - `src/game/server/plugin/headless.ts`: bindRuntimeItemContexts, spawnRuntimeHome*, bindRuntimeActor (24)
 - `src/game/server/plugin/nativeItems.ts`: nativeMeleeItem* (3)
 - `src/game/shared/plugin/quests.ts`: installNativeQuestProps*, bindQuestTableSpots* (33)

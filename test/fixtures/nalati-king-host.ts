@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import {Vector3} from 'three';
-import {easeViewToward,type BossPresentation} from '../../src/engine/server/ai/BossBrain';
-import {StrikeRunner} from '../../src/engine/server/ai/strikes';
+import {easeViewToward,type BossPresentation} from '../../src/engine/shared/ai/BossBrain';
+import {StrikeRunner} from '../../src/engine/shared/ai/strikes';
 import {strikeFromData} from '../../src/engine/shared/ai/strikeRows';
 import {canReach} from '../../src/engine/server/ai/reach';
 import type {NativeEliteBindings} from '../../src/engine/server/ai/eliteRoster';

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/server/plugin/director';
+import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/shared/plugin/director';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import {driftwoodDirector as module} from './fixtures/director-modules';
 import stages from '../src/shards/driftwood-isle/data/finaleStages.json';

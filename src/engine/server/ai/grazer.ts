@@ -12,7 +12,7 @@ import type { Rng } from '../../shared/core/rng';
 import { emitFault } from '../../shared/core/faults';
 import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
-import { StrikeRunner, type StrikeSpec, type StrikeContext } from './strikes';
+import { StrikeRunner, type StrikeSpec, type StrikeContext } from '../../shared/ai/strikes';
 import { readStrikeState } from './strikeState';
 
 /** One native call owns this scratch; nested calls receive independent rows. */

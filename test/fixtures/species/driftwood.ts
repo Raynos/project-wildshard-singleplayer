@@ -1,5 +1,5 @@
 // Shipping declaration oracle captured from 135097d3ab517713492a64950e083968248f47bb:src/shards/driftwood-isle/combat/strikes.ts; no hand-written policy.
-import type { StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import type { StrikeSpec } from '../../../src/engine/shared/ai/strikes';
 
 const point = (id: string, radius: number, damage: number, windup: number, recover: number, cooldown: number): StrikeSpec => ({
   id, shape: { kind: 'point', radius }, range: radius, damage, windup, active: 0, recover, cooldown,

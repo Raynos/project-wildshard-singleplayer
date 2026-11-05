@@ -1,7 +1,7 @@
 // Shipping policy oracle captured from b478f70cf:src/shards/far-reach/species/stormRoc.ts.
 // Presentation is excluded; the exact original decision/act bodies are kept for SF72 replay checks.
 import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/shared/ai/strikes';
 import type { Animal } from '../../../src/engine/client/entities/AnimalView';
 import type { ThinkCtx } from '../../../src/engine/shared/entities/species/registry';
 import { Vector3 } from 'three';

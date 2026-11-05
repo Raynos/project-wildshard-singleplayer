@@ -27,7 +27,7 @@ import { expect, test,vi } from 'vitest';
 import { parse } from 'valibot';
 import { PatrolViewSchema } from '@wildshard/format/encounterRows';
 import { BoxGeometry, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
-import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/server/ai/BossBrain';
+import { BossBrain, type BossScript, type BossDefinition } from '../src/engine/shared/ai/BossBrain';
 import { silentBossPresentation } from '../src/engine/server/ai/phases';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { Scope } from '../src/engine/shared/app/scope';

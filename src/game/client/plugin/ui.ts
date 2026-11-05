@@ -8,7 +8,7 @@ import { createClientChannels, type ClientChannelObservation, type ClientChannel
 import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server/plugin/mover';
 import { installDeclaredMovers } from '../../server/plugin/moverInstall';
 import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from '../../server/plugin/simulation';
-import { WorldTargetHost, type WorldTargetLanding } from '../../server/shardfile/worldTargets';
+import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { parseWorldTargets, type WorldTargets } from '@wildshard/format/worldTargets';
 import "../quest/presentation.css";
@@ -41,7 +41,7 @@ import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../../server/loot/CoinBurst';
-import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from '../../server/plugin/director';
+import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from '../../shared/plugin/director';
 import type { RuntimeQuestPorts } from '../../server/plugin/headless';
 import { bindRuntimeCoins, type RuntimeBoss, type RuntimeCoins } from '../../shared/plugin/runtimeRows';
 import type { SpeciesPageCatalogue } from '../../server/plugin/brain';

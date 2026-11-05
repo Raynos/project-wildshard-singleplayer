@@ -13,13 +13,13 @@ None yet: the Crate Titan is the path's showcase user (E12g). This slice must le
 
 ## 2. Engine / game / host work, just in time
 
-Research: **five boss classes over one engine brain.** `src/engine/server/ai/BossBrain.ts` (283 lines; states `dormant |
+Research: **five boss classes over one engine brain.** `src/engine/shared/ai/BossBrain.ts` (283 lines; states `dormant |
 armed | intro | fight | beat | victory`, `intro` / `introShort` seconds, `SKIP_HOLD`, a music hook) is the shared core.
 Over it:
 
 | Path | Where | Users |
 |---|---|---|
-| 1 encounter rows | `src/game/server/Boss.ts` (`class Boss extends BossBrain`, `:191`; `installBossEncounter(rows, makeScript, ports)`, `:289`) over `src/format/bossEncounter.ts` (354) | Driftwood's Captain (`generators/wakeEncounter.ts`, `src/game/server/boss/wake.ts`), Pine's King (`kingFight.ts`), the template (`combat/encounters`, kind `boss`) |
+| 1 encounter rows | `src/game/server/Boss.ts` (`class Boss extends BossBrain`, `:191`; `installBossEncounter(rows, makeScript, ports)`, `:289`) over `src/format/bossEncounter.ts` (354) | Driftwood's Captain (`generators/wakeEncounter.ts`, `src/game/shared/boss/wake.ts`), Pine's King (`kingFight.ts`), the template (`combat/encounters`, kind `boss`) |
 | 2 phased boss | `src/game/server/plugin/bossPhase.ts` (1,007) via `src/sdk/phasedBoss.ts` | Pine's Antler King, Nalati's Golden King (E12b) |
 | 3 boss row | `src/game/server/shardfile/bossRow.ts` (211; the shield `damage.modify` answer, `:89`) | Pine (`kingFight.ts`, `nativeView.ts`) via `plugin/ui.ts`, `plugin/simulation.ts` |
 | 4 arena room | `src/game/server/boss/arenaRoom.ts` (1,641) + `openArenaFight.ts` | Nalati's Storm Titan (E12c) |

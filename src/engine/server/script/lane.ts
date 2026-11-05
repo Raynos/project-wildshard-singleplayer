@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import type { SimHost } from '../sim';
 import type { DeclaredScriptWorld } from './state';
-import { ScriptHost, type ScriptCall, type ScriptHostOptions } from './host';
-import type { ScriptEvent } from './effects';
+import { ScriptHost, type ScriptCall, type ScriptHostOptions } from '../../shared/script/host';
+import type { ScriptEvent } from '../../shared/script/effects';
 import type { ScriptRole, ScriptSchedule } from './composition';
 
 /** A content binding; the actor id is supplied by the trusted host, never an effect or script input. */

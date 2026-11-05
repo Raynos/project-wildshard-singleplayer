@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { Vector3 } from 'three';
-import type { BossPresentation } from '../../src/engine/server/ai/BossBrain';
+import type { BossPresentation } from '../../src/engine/shared/ai/BossBrain';
 import { Scope } from '../../src/engine/shared/app/scope';
 import { Events } from '../../src/engine/shared/events/events';
 import { WakeBossEncounter } from '@wildshard/game/boss/wake';

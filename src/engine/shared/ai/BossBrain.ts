@@ -1,5 +1,5 @@
-import { engineString } from '../../shared/strings';
-import type { Events } from '../../shared/events/events';
+import { engineString } from '../strings';
+import type { Events } from '../events/events';
 import type { Vector3 } from 'three';
 import { Hfsm } from './hfsm';
 

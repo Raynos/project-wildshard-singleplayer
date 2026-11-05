@@ -3,7 +3,7 @@ import {Vector3} from 'three';
 import {Scope} from '../src/engine/shared/app/scope';
 import {Rng} from '../src/engine/shared/core/rng';
 import {PhysicsRouteCursor} from '../src/sdk/headlessJourney';
-import type {BossPresentation} from '../src/engine/server/ai/BossBrain';
+import type {BossPresentation} from '../src/engine/shared/ai/BossBrain';
 import {parseBossProfile} from '@wildshard/format/bossProfiles';
 import {ArenaRoomGround} from '../src/game/shared/boss/arenaGround';
 import type {PhasedBossBody,PhasedBossBrain} from '../src/game/server/plugin/bossPhase';

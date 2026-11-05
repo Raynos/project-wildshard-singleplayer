@@ -23,7 +23,7 @@ import type { ReturnProgram } from '../src/game/shared/population/returnProgram'
 
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { parseExternalElite } from '@wildshard/format/eliteFeature';
-import { StrikeRunner } from '../src/engine/server/ai/strikes';
+import { StrikeRunner } from '../src/engine/shared/ai/strikes';
 import type { DayCycleClock } from '../src/engine/shared/world/dayCycle';
 import type { PageWildEnvironment } from '../src/game/server/population/pageGroups';
 import type { HUD } from '../src/engine/client/ui/HUD';

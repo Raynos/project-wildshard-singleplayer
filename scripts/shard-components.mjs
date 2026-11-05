@@ -126,9 +126,9 @@ const reviewedW2Owners = new Map([
   // Loading, continuation parsing, lifecycle plumbing, instrumentation and localization.
   ['src/engine/client/core/assets.ts#gltfLoader', 'C9'],
   ['src/engine/client/core/assets.ts#loadGLTF', 'C9'],
-  ['src/engine/server/script/host.ts#preparationWait', 'C9'],
-  ['src/engine/server/script/host.ts#preparingOwners', 'C9'],
-  ['src/engine/server/script/host.ts#requirePreparationOwner', 'C9'],
+  ['src/engine/shared/script/host.ts#preparationWait', 'C9'],
+  ['src/engine/shared/script/host.ts#preparingOwners', 'C9'],
+  ['src/engine/shared/script/host.ts#requirePreparationOwner', 'C9'],
   ['src/sdk/headlessRuntime.ts#HeadlessCommandPorts', 'C9'],
   ['src/sdk/headlessRuntime.ts#bindHeadlessCommands', 'C9'],
   ['src/game/client/plugin/context.ts#buildProgress', 'C9'],

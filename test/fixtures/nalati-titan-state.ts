@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {OpenArenaFightSnapshot} from '../../src/game/server/boss/openArenaFight';
-import type {BossContinuation} from '../../src/engine/server/ai/BossBrain';
+import type {BossContinuation} from '../../src/engine/shared/ai/BossBrain';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
 const numbers=v.record(v.string(),finite),projection=v.strictObject({state:numbers,elapsed:finite});
