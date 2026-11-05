@@ -7,7 +7,7 @@ import { PlayerHealth } from '@wildshard/engine/combat/health';
 import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { PageCombatSession } from '../src/game/server/Boss';
+import { PageCombatSession } from '../src/game/client/Boss';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { manager } from '@wildshard/engine/test/manager';
 import { registerSpecies } from '@wildshard/engine/entities/species/registry';

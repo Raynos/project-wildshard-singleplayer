@@ -2,7 +2,7 @@ import { clientWaterSurfaces } from './clientWaterSurfaces';
 import { SceneDressing } from './sceneDressing';
 import { bindClientPlaceSets } from './clientPlaceSets';
 import { installFixedDrawsStage, installPaintedReseedStage, installPaintedWorldStage } from './paintedWorldStages';
-import {ArenaRoomEncounter} from '../../server/boss/arenaRoom';
+import {ArenaRoomEncounter} from '../boss/arenaRoom';
 import {buildArenaRoomEncounter} from '../boss/arenaRoomView';
 import type { ShardContext } from '../plugin/context';
 import { TIER } from '@wildshard/engine/core/tier';

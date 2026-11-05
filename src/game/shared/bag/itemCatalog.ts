@@ -1,4 +1,4 @@
-import type { ItemId } from '../../server/Inventory';
+import type { ItemId } from '../../client/Inventory';
 import type { ItemRow } from './items';
 import type { IconId } from '@wildshard/engine/ui/icons';
 

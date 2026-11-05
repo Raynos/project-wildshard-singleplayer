@@ -12,7 +12,7 @@ import { resolve as resolvePath } from 'node:path';
 import { Scope } from '../src/engine/shared/app/scope';
 import { withOwner } from '../src/engine/shared/app/ownership';
 import { WorldRegistry } from '../src/engine/client/world/registry';
-import { ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';
+import { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import { buildArenaRoomEncounter } from '../src/game/client/boss/arenaRoomView';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

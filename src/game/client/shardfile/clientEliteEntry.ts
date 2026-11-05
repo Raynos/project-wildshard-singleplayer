@@ -1,7 +1,7 @@
 /** Declared entry into the existing engine elite feature over original loans. */
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
-import { Elites } from '../../server/Elite';
+import { Elites } from '../Elite';
 import type { ShardContext } from '../plugin/context';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
 import { entryOwner } from '../../shared/shardfile/entryOwners';

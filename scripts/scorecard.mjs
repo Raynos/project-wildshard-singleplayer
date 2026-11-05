@@ -512,7 +512,7 @@ async function measureShard(shard, vp, run, shots) {
     if (warm.status === 'ok') {
       // creatures keep walking, grazing and animating, but stop reacting to the player: an elite charging the pose (Pine
       // Hollow's Imperial Bull at the pond, Old Ironhide at the cabin) shakes the camera and kills the player mid-sample
-      // Pine Hollow's named elites run their own AI (src/game/server/Elite.ts): with no aware / engage radius they stay at their lairs
+      // Pine Hollow's named elites run their own AI (src/game/client/Elite.ts): with no aware / engage radius they stay at their lairs
       await page.evaluate(() => {
         const a = window.__wildshard?.world?.animals; if (a) a.calm = true;
         for (const e of window.__pineElites?.elites?.entries ?? []) { e.script.def.awareR = 0; e.script.def.engageR = 0; }

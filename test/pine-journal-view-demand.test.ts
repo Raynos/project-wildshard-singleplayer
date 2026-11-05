@@ -14,7 +14,7 @@ import { CompendiumState } from '../src/game/shared/compendium/state';
 import { installCompendium, type CompendiumHost } from '../src/game/client/compendium/install';
 import { registerCompendium } from '../src/game/shared/compendium/registry';
 import { BagMenu } from '../src/game/client/bag/tabs';
-import { Inventory } from '../src/game/server/Inventory';
+import { Inventory } from '../src/game/client/Inventory';
 import { Progress } from '../src/game/client/Progress';
 import { declaredCompendium } from '../src/game/shared/shard/declaredRows';
 import { emptyShardfile } from '../src/sdk/author';

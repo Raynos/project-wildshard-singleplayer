@@ -1,5 +1,5 @@
 /**
- * The named elite system's rules, renderer-free (SF72): the generic half of `Elites` (src/game/server/Elite.ts) with no bar, banner,
+ * The named elite system's rules, renderer-free (SF72): the generic half of `Elites` (src/game/client/Elite.ts) with no bar, banner,
  * drop orb, minimap skull or sting, so a renderer-free host runs the very rules the page does. `Elites` is this plus its view:
  * it answers the hooks (the bar's show / caption / pin, the banner, the drop orb, the stings) and draws the focus the update
  * returns. One implementation, two hosts.

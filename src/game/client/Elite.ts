@@ -6,9 +6,9 @@ import type { ReturnProgram } from '../shared/population/returnProgram';
 import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
-import type { PatrolEncounterView } from '../client/boss/encounterView';
-import type { PageWildlife } from './population/wildlife';
-import type { PageWildEnvironment } from './population/pageGroups';
+import type { PatrolEncounterView } from './boss/encounterView';
+import type { PageWildlife } from '../server/population/wildlife';
+import type { PageWildEnvironment } from '../server/population/pageGroups';
 import type { AdventurePersistence } from '../shared/quest/persistence';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -19,8 +19,8 @@ import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows
 import { app } from '@wildshard/engine/app/runtime';
 import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
-import { SpawnScript } from './population/spawnScript';
-import { lendViewTell, lendViewValues } from '../client/shardfile/clientViewProgram';
+import { SpawnScript } from '../server/population/spawnScript';
+import { lendViewTell, lendViewValues } from './shardfile/clientViewProgram';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { HUD } from '@wildshard/engine/ui/HUD';
@@ -31,8 +31,8 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { EliteCore, type EliteCoreEntry, type EliteCoreRule, type EliteCoreScript } from './eliteSystem';
-import { EliteView, GroundTell, type EliteEnteredOwners, type EliteViewEntered } from '../client/eliteView';
+import { EliteCore, type EliteCoreEntry, type EliteCoreRule, type EliteCoreScript } from '../server/eliteSystem';
+import { EliteView, GroundTell, type EliteEnteredOwners, type EliteViewEntered } from './eliteView';
 
 /**
  * Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites

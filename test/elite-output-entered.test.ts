@@ -27,7 +27,7 @@ import { EliteBar } from '../src/engine/client/ui/EliteBar';
 import { installEngineStrings } from '../src/engine/shared/strings';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/client/engineStrings';
-import { Elites, type EliteOutputController, type ElitePageOutputLoans } from '../src/game/server/Elite';
+import { Elites, type EliteOutputController, type ElitePageOutputLoans } from '../src/game/client/Elite';
 import type { EliteEnteredOwners } from '../src/game/client/eliteView';
 import { BorrowedElite, type BorrowedEliteFight } from '../src/engine/client/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';

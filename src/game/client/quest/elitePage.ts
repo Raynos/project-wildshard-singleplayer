@@ -10,8 +10,8 @@ import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { GroundTell } from '@wildshard/engine/fx/groundTell';
 import type { Elites, EliteScript } from '../Elite';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import { SpawnScript } from '../population/spawnScript';
-import { EliteDecisions } from './eliteDecisions';
+import { SpawnScript } from '../../server/population/spawnScript';
+import { EliteDecisions } from '../../server/quest/eliteDecisions';
 import { parseEliteFeature } from '@wildshard/format/eliteFeature';
 
 

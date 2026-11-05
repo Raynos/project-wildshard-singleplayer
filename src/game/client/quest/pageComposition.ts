@@ -4,7 +4,7 @@ import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import * as THREE from 'three';
 import type { QuestPageRows, ChapterViewRows } from '@wildshard/format/questPageComposition';
 import type { PageTamingOwner } from '../riding/client';
-import type { ArenaRoomEncounter } from '../../server/boss/arenaRoom';
+import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {prepareSpecimenCatalogue} from '../models/specimenCatalogue';
 import { CarriedQuestProp } from './carriedProp';
@@ -24,7 +24,7 @@ import type { Interactable, InteractTable, QuestPlace, QuestPlaceAnchor } from '
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { ITEMS, isItemId } from '../../shared/bag/itemCatalog';
-import type { ItemId } from '../../server/Inventory';
+import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../plugin/context';
 import { QuestViews, bindQuestPageInteractions, enterPageMovers, type QuestPageInteractions } from '../plugin/ui';
 import type { MoverRuntime } from '../../server/plugin/mover';

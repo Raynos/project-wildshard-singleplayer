@@ -2,7 +2,7 @@ import { engineString } from '@wildshard/engine/strings';
 import { icon, type IconId } from '@wildshard/engine/ui/icons';
 import type { GameMenu, KitEntry, SkinRow } from '@wildshard/engine/ui/Menu';
 import type { TabSpec, TabFragment } from '@wildshard/engine/ui/tabs';
-import type { Inventory, ItemId } from '../../server/Inventory';
+import type { Inventory, ItemId } from '../Inventory';
 import type { Progress } from '../Progress';
 import { completeEntry } from '../complete/ShardComplete';
 import { renderGear, renderFinds, type GearTool, type FindsView, type GearLoot } from './bag';

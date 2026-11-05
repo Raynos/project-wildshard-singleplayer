@@ -1,6 +1,6 @@
 import { titanFightOwners } from './fixtures/titanFightOwners';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import { ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';
+import { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import { ARENA_ROOM_PAGE } from '../src/game/client/boss/arenaRoomView';
 import { readArenaScriptData } from '../src/game/server/boss/openArenaFight';
 // @vitest-environment happy-dom

@@ -382,7 +382,7 @@ test('the approved riding specimen module contains its factory boundary and reta
 
 test('G615 credits only timed encounters and its selected slot and patrol views', () => {
   const approvals = g571HostApprovals('.'), path = 'src/game/client/boss/encounterView.ts';
-  expect(approvedG571Host(approvals, 'src/game/server/boss/timedEncounters.ts')).toBe(true);
+  expect(approvedG571Host(approvals, 'src/game/client/boss/timedEncounters.ts')).toBe(true);
   for (const name of ['SlotEncounterView', 'PatrolEncounterView']) expect(approvedG571Host(approvals, path, name)).toBe(true);
   expect(approvedG571Host(approvals, path)).toBe(false);
   for (const name of ['CloudBody', 'ArenaSceneView', 'EncounterSites']) expect(approvedG571Host(approvals, path, name)).toBe(false);
@@ -468,7 +468,7 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
 
 test('G665 credits only the complete listed open-arena host',()=>{
   const rows = [
-    ['src/game/server/boss/arenaRoom.ts',['OpenArenaWorld','_openW']],
+    ['src/game/client/boss/arenaRoom.ts',['OpenArenaWorld','_openW']],
     ['src/game/client/boss/arenaRoomView.ts',['buildOpenArenaEncounter','arenaScriptCloud']],
     ['src/game/server/boss/openArenaFight.ts',['OpenArenaFight','SupportActor','Chain','_openV','_openRAY','_openSPH','_openHITP','readArenaScriptData','OpenArenaViews','OpenArenaFightWorld','OpenArenaFightHost','ArenaBodyPort','ArenaScenePort','ArenaFirePort','ArenaWhirlsPort']],
     ['src/game/client/riding/client.ts',['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked']],
@@ -487,7 +487,7 @@ test('G665 credits only the complete listed open-arena host',()=>{
     }
     expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
   }
-  expect(approvedG571Host(approvals,'src/game/server/boss/arenaRoom.ts','ArenaRoomEncounter')).toBe(false);
+  expect(approvedG571Host(approvals,'src/game/client/boss/arenaRoom.ts','ArenaRoomEncounter')).toBe(false);
   expect(approvedG571Host(approvals,'src/game/client/riding/client.ts','installClientRiding')).toBe(false);
   expect(platformChargeback('src/game/client/shardfile/worldAssembly.ts','installAssemblyArenaScript')).toBe('C9');
   expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
@@ -514,7 +514,7 @@ test('pending native continuation receipts name the actual defining schema and t
 
 test('retired elite keeper selectors carry no chargeback after declared engine entry', () => {
   for (const name of ['keeperBrains','keeperActs','keeperDamage','setEliteBrain','setEliteAct','setEliteDamage','eliteThink','eliteAct','eliteDamageMul','KeeperEliteRow','KeeperEliteEffect','KeeperEliteServices','KeeperElitePage'])
-    expect(platformChargeback('src/game/server/quest/elitePage.ts', name)).toBeNull();
+    expect(platformChargeback('src/game/client/quest/elitePage.ts', name)).toBeNull();
 });
 
 test('G667 case three credits only its exact original binding selectors',()=>{

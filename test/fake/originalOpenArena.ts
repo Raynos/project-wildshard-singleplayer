@@ -27,7 +27,7 @@ import type { ShardContext } from '../../src/game/client/plugin/context';
 import { installChannelPrograms } from '../../src/game/shared/plugin/channelPrograms';
 import type { WeatherReactions } from '../../src/game/server/weather/reactions';
 import type { ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
-import { installBossEncounter, type Boss } from '../../src/game/server/Boss';
+import { installBossEncounter, type Boss } from '../../src/game/client/Boss';
 import { ProjectedState, ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { wildEnv } from '../../src/game/server/population/pageGroups';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';

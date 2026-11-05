@@ -16,7 +16,7 @@ import type { AnimalManager } from '../src/engine/server/entities/AnimalManager'
 import type { Player } from '../src/engine/client/player/Player';
 import type { EliteBar } from '../src/engine/client/ui/EliteBar';
 import { EncounterRegistry } from '../src/engine/shared/ai/encounters';
-import { Elites, type EliteDeclaredEntryOwners } from '../src/game/server/Elite';
+import { Elites, type EliteDeclaredEntryOwners } from '../src/game/client/Elite';
 import { app } from '../src/engine/client/app/runtime';
 import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import type { ReturnProgram } from '../src/game/shared/population/returnProgram';

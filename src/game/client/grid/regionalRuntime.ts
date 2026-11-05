@@ -34,7 +34,7 @@ import { runtimeAccountedBytes, type RuntimeCost } from '@wildshard/format/runti
 import { createRegionalView, type RegionalView } from './regionalView';
 import { installEnteredRuntimeService } from "../shard/retainedHooks";
 import { Progress } from '../Progress';
-import { Inventory } from '../../server/Inventory';
+import { Inventory } from '../Inventory';
 import { Owned } from '../../shared/loot/Owned';
 import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';

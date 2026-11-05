@@ -3,7 +3,7 @@ import { installArenaShapes } from './fixtures/arenaShapes';
 import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {carriedPropFiles,carriedPropBytes} from './fixtures/carriedPropFiles';
 import {lendNalatiPasture,lendNalatiKokpar} from './fixtures/nalati-return-modules';
-import { type OpenArenaWorld, ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';
+import { type OpenArenaWorld, ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import { ARENA_ROOM_PAGE } from '../src/game/client/boss/arenaRoomView';
 // @vitest-environment happy-dom
 import { expect, test, vi, afterEach } from 'vitest';

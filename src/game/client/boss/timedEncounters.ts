@@ -1,4 +1,4 @@
-import type { ShardContext } from '../../client/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { TimedEncountersRows } from '@wildshard/format/encounterRows';
 import { Vector3, type BufferGeometry } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
@@ -12,10 +12,10 @@ import type { Player } from '@wildshard/engine/player/Player';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { CueDirector } from '../../client/audio/cueDirector';
+import { CueDirector } from '../audio/cueDirector';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import { wildEnv } from '../population/pageGroups';
-import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from '../../client/boss/encounterView';
+import { wildEnv } from '../../server/population/pageGroups';
+import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
 
 interface TimedEncounterContext {
   readonly game: Game; readonly sky: SkyRig; readonly player: Player; readonly forest: Forest;

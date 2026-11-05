@@ -1,7 +1,7 @@
 /** Original day-clock encounter construction over finite admitted owners. */
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
-import { TimedEncounters } from '../../server/boss/timedEncounters';
+import { TimedEncounters } from '../boss/timedEncounters';
 import { SceneDressing } from './sceneDressing';
 import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import { buildYield } from '@wildshard/engine/core/workSlice';

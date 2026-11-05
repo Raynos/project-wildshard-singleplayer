@@ -834,17 +834,14 @@
   "src/game/client/boot/packs.generated.ts": "client",
   "src/game/client/boot/spawnDownload.ts": "client",
   "src/game/client/boot/versions.generated.ts": "client",
-  "src/game/server/Boss.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/client/Boss.ts": "client",
   "src/game/server/boss/arenaAnswers.ts": "server",
   "src/game/shared/boss/arenaCollision.ts": "shared",
   "src/game/client/boss/arenaFire.ts": "client",
   "src/game/shared/boss/arenaGround.ts": "shared",
   "src/game/shared/boss/arenaPortal.ts": "shared",
   "src/game/server/boss/arenaRoomEntry.ts": "server",
-  "src/game/server/boss/arenaRoom.ts": "server",
+  "src/game/client/boss/arenaRoom.ts": "client",
   "src/game/server/boss/arenaRoomFight.ts": "server",
   "src/game/server/boss/arenaRoomNative.ts": "server",
   "src/game/shared/boss/arenaRoomRows.ts": "shared",
@@ -868,12 +865,9 @@
   "src/game/client/boss/roamingProjection.ts": "client",
   "src/game/shared/boss/slotLaw.ts": "shared",
   "src/game/client/boss/socketRig.ts": "client",
-  "src/game/server/boss/timedEncounters.ts": "server",
+  "src/game/client/boss/timedEncounters.ts": "client",
   "src/game/shared/boss/wake.ts": "shared",
-  "src/game/server/combat/roamingSession.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/client/combat/roamingSession.ts": "client",
   "src/game/shared/compendium/finds.ts": "shared",
   "src/game/client/compendium/install.ts": "client",
   "src/game/client/compendium/Journal.ts": "client",
@@ -891,10 +885,7 @@
   "src/game/client/cosmetics/cosmetics.ts": "client",
   "src/game/client/cosmetics/locker.ts": "client",
   "src/game/client/draftTitles.ts": "client",
-  "src/game/server/Elite.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/client/Elite.ts": "client",
   "src/game/server/eliteSystem.ts": "server",
   "src/game/client/eliteView.ts": "client",
   "src/game/client/engineStrings.ts": "client",
@@ -1043,7 +1034,7 @@
   "src/game/client/identity.ts": "client",
   "src/game/client/inputContexts.ts": "client",
   "src/game/shared/instanceSaves.ts": "shared",
-  "src/game/server/Inventory.ts": "server",
+  "src/game/client/Inventory.ts": "client",
   "src/game/shared/inventoryLaw.ts": "shared",
   "src/game/client/keyBindings.ts": "client",
   "src/game/shared/ledger.ts": "shared",
@@ -1230,10 +1221,7 @@
   "src/game/shared/quest/effects.ts": "shared",
   "src/game/server/quest/eliteDecisions.ts": "server",
   "src/game/server/quest/eliteFeature.ts": "server",
-  "src/game/server/quest/elitePage.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/client/quest/elitePage.ts": "client",
   "src/game/shared/quest/eliteStreams.ts": "shared",
   "src/game/shared/quest/featCounters.ts": "shared",
   "src/game/client/quest/figureOrbit.ts": "client",

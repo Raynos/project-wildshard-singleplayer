@@ -12,7 +12,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import type { Game } from '../src/engine/client/core/Game';
 import type { Player } from '../src/engine/client/player/Player';
 import type { DayCycleClock } from '../src/engine/shared/world/dayCycle';
-import { TimedEncounters } from '../src/game/server/boss/timedEncounters';
+import { TimedEncounters } from '../src/game/client/boss/timedEncounters';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/shared/world/terrainHeight';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';

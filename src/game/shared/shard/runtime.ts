@@ -21,7 +21,7 @@ import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Group, Vector2, Vector3 } from 'three';
-import type { Inventory } from '../../server/Inventory';
+import type { Inventory } from '../../client/Inventory';
 import type { Progress } from '../../client/Progress';
 import type { Owned } from '../loot/Owned';
 import type { ShardSword } from '../../server/shard/manifest';

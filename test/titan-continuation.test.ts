@@ -7,7 +7,7 @@ import { installWorldFixture } from './fixtures/worldSetup';
 import { lendNalatiPasture } from './fixtures/nalati-return-modules';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';
 import { titanPrograms as programs } from './fixtures/titanInlineWitness';
-import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/server/boss/arenaRoom';
+import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/client/boss/arenaRoom';
 import { ARENA_ROOM_PAGE } from '../src/game/client/boss/arenaRoomView';
 import { bindArenaPoseView } from './fixtures/native-hosts/boss/arenaPoseView';
 import type { OpenArenaFight, OpenArenaFightSnapshot } from '../src/game/server/boss/openArenaFight';

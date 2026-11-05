@@ -1,5 +1,5 @@
 /**
- * The view half of the named elites (src/game/server/Elite.ts): the bar over its head or pinned top-centre, the banner, the stings,
+ * The view half of the named elites (src/game/client/Elite.ts): the bar over its head or pinned top-centre, the banner, the stings,
  * the skulls, the first-kill orb and the ground tells. It answers `EliteCore`'s moments and draws the focus each update
  * returns, and decides nothing. Nothing here imports the rules' side.
  */
@@ -14,7 +14,7 @@ import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { EliteEnteredPresentation } from '@wildshard/format/eliteFeature';
-import type { EliteHost, EliteScript } from '../server/Elite';
+import type { EliteHost, EliteScript } from './Elite';
 import type { EliteCoreEntry, EliteCoreHooks, EliteCoreRecord } from '../server/eliteSystem';
 
 /** Concrete entered owners; no author callbacks or service-name resolution. */

@@ -5,7 +5,7 @@ import './styles/elite.css';
 import { toastArea } from './ToastStack';
 
 /**
- * EliteBar — the named-elite screen pieces (src/game/server/Elite.ts drives them), styled by `src/engine/client/ui/styles/elite.css` (prefix
+ * EliteBar — the named-elite screen pieces (src/game/client/Elite.ts drives them), styled by `src/engine/client/ui/styles/elite.css` (prefix
  * `ws-elite-`; the boss bar's antique gold, lighter — elites live in the world, bosses own the screen). Mockups:
  * art/nalati-grasslands/round-2/4-named-elites/*.png.
  *

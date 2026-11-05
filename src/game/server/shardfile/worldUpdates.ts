@@ -6,7 +6,7 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { clientWildlife } from '../population/wildlife';
 import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
-import type { ArenaRoomEncounter } from '../boss/arenaRoom';
+import type { ArenaRoomEncounter } from '../../client/boss/arenaRoom';
 import type { ShardContext } from '../../client/plugin/context';
 import { followToonLook } from '../../client/looks/toonLook';
 import { toonLightingOf } from '../../client/looks/toonLighting';

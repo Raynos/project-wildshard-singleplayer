@@ -3,7 +3,7 @@ import { engineString } from '../../shared/strings';
 import './styles/boss.css';
 
 /**
- * BossBar — the boss system's screen pieces (src/game/server/Boss.ts drives them), styled by `src/engine/client/ui/styles/boss.css`
+ * BossBar — the boss system's screen pieces (src/game/client/Boss.ts drives them), styled by `src/engine/client/ui/styles/boss.css`
  * (prefix `ws-boss-`). The look is the round-2 boss mockups' (art/nalati-grasslands/round-2/5-bosses/boss-1…4): antique
  * gold on dark, engraved serif capitals — deliberately NOT the cyan Wildshard glass, because a boss owns the screen.
  *

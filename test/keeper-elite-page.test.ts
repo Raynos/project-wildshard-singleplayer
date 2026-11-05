@@ -9,7 +9,7 @@ import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { Player } from '../src/engine/client/player/Player';
 import type { EliteBar } from '../src/engine/client/ui/EliteBar';
-import type { EliteDef, Elites } from '../src/game/server/Elite';
+import type { EliteDef, Elites } from '../src/game/client/Elite';
 import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';
 import { BorrowedElite } from '../src/engine/client/ai/view/eliteEntry';
 import type { StallionState } from '../src/engine/server/ai/herd';

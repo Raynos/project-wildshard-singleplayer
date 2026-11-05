@@ -11,7 +11,7 @@ import type { ModelDef } from '../src/engine/client/models/model';
 import { currentOwner } from '../src/engine/shared/app/ownership';
 import finishes from '../src/shards/nalati-grasslands/data/skinFinishes.json' with {type:'json'};
 import {lendNalatiPasture} from './fixtures/nalati-titan-loan';
-import { ArenaRoomEncounter, pageArenaRoomFight, type OpenArenaWorld } from '../src/game/server/boss/arenaRoom';
+import { ArenaRoomEncounter, pageArenaRoomFight, type OpenArenaWorld } from '../src/game/client/boss/arenaRoom';
 import { ARENA_ROOM_PAGE, arenaRoomViews } from '../src/game/client/boss/arenaRoomView';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/shared/entities/eliteBrain';

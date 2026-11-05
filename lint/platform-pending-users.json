@@ -101,7 +101,7 @@
       }
     },
     {
-      "module": "src/game/server/combat/roamingSession.ts",
+      "module": "src/game/client/combat/roamingSession.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "boss fight host",
@@ -457,7 +457,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/Boss.ts",
+      "module": "src/game/client/Boss.ts",
       "export": "BossScoreAction",
       "shard": "nalati-grasslands",
       "plan": {
@@ -468,7 +468,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/Boss.ts",
+      "module": "src/game/client/Boss.ts",
       "export": "BossEncounterRows",
       "shard": "nalati-grasslands",
       "plan": {
@@ -479,7 +479,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/Boss.ts",
+      "module": "src/game/client/Boss.ts",
       "export": "BossEncounterScore",
       "shard": "nalati-grasslands",
       "plan": {
@@ -490,7 +490,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/Boss.ts",
+      "module": "src/game/client/Boss.ts",
       "export": "BossEncounterPorts",
       "shard": "nalati-grasslands",
       "plan": {
@@ -501,7 +501,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/Boss.ts",
+      "module": "src/game/client/Boss.ts",
       "export": "BossEncounter",
       "shard": "nalati-grasslands",
       "plan": {
@@ -512,7 +512,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/Boss.ts",
+      "module": "src/game/client/Boss.ts",
       "export": "installBossEncounter",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1766,7 +1766,7 @@
       }
     },
     {
-      "module": "src/game/server/quest/elitePage.ts",
+      "module": "src/game/client/quest/elitePage.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -2059,7 +2059,7 @@
       }
     },
     {
-      "module": "src/game/server/boss/arenaRoom.ts",
+      "module": "src/game/client/boss/arenaRoom.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "boss fight host",

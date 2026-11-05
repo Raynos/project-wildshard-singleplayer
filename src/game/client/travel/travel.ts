@@ -6,7 +6,7 @@ import type { SaveKeyDef, SaveSlot } from '@wildshard/engine/saves/store';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
 import type { ShardSlug } from '../../server/shard/slugs.generated';
 import type { SpawnPose } from '../../server/shard/manifest';
-import type { Inventory, ItemId } from '../../server/Inventory';
+import type { Inventory, ItemId } from '../Inventory';
 import { isItemId, ITEMS } from '../../shared/bag/itemCatalog';
 import type { ItemRow } from '../../shared/bag/items';
 

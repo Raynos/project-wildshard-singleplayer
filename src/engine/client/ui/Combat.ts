@@ -192,7 +192,7 @@ export class Combat {
     _o.setFromMatrixPosition(this.camera.matrixWorld);
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
-      // a boss / a named elite has its own wide bar (src/game/server/Boss.ts, src/game/server/Elite.ts); the horse you ride has none
+      // a boss / a named elite has its own wide bar (src/game/client/Boss.ts, src/game/client/Elite.ts); the horse you ride has none
       if (a === undefined || a.hidden || app.encounters.get(a.kind)?.showHeadBar === false || a.mem['noHeadBar'] === 1 || a === app.equipmentHost?.player.mountedOn) continue;
       const show = now - a.lastHitT < BAR_HOLD || a === this.aimed || (lockOn.state === 'locked' && a === lockOn.target); // the locked enemy keeps its tag (E50, N)
       if (!show) continue;

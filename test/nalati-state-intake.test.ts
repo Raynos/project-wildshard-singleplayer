@@ -27,7 +27,7 @@ import { nodeNamedJsonCheck } from '../src/game/shared/shardfile/outputChecksNod
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import {ReturnModulesSchema} from '@wildshard/format/scriptContract';
 import * as room from '../src/game/client/boss/arenaRoomView';
-import type { ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';
+import type { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import { readNalatiProject } from './fixtures/nalati-project';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

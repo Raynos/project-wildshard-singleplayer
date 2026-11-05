@@ -13,14 +13,14 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { bossesSave, saveSlug } from '../shared/saves';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import type { ShardContext } from '../client/plugin/context';
+import type { ShardContext } from './plugin/context';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { ItemId } from './Inventory';
 import type { SkinId } from '@wildshard/engine/player/Skins';
-import { HeldFinishes } from '../client/loadout/finishes';
+import { HeldFinishes } from './loadout/finishes';
 import { BossCombatSessionSchema } from '@wildshard/format/bossEncounter';
 
 const combatSessions = new WeakMap<Scope, Map<string, PageCombatSession>>();

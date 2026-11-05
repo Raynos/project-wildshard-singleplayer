@@ -43,8 +43,8 @@ const FILES = [
   { file: join(ROOT, 'src/engine/client/ui/styles/combat.css'), prefix: 'ws-combat-', strict: true }, // hunting feedback (src/engine/client/ui/Combat.ts), imported by the module
   { file: join(ROOT, 'src/engine/client/ui/styles/feedback.css'), prefix: 'ws-fb-', strict: true }, // the review inbox: ✎ disc + the lazy composer (src/engine/client/ui/review.ts, Feedback.ts)
   { file: join(ROOT, 'src/game/client/stealth/stealth.css'), prefix: 'ws-stealth-', strict: true }, // Shared grass stealth: the eye pip, GRASS meter, vignette (src/game/client/stealth/controller.ts)
-  { file: join(ROOT, 'src/engine/client/ui/styles/boss.css'), prefix: 'ws-boss-', strict: true }, // the boss system (src/engine/client/ui/BossBar.ts, src/game/server/Boss.ts): the wide top bar, name / retry / reward cards
-  { file: join(ROOT, 'src/engine/client/ui/styles/elite.css'), prefix: 'ws-elite-', strict: true }, // named elites (src/engine/client/ui/EliteBar.ts, src/game/server/Elite.ts): the named bar, the NEARBY banner, the edge chevron, the minimap skulls
+  { file: join(ROOT, 'src/engine/client/ui/styles/boss.css'), prefix: 'ws-boss-', strict: true }, // the boss system (src/engine/client/ui/BossBar.ts, src/game/client/Boss.ts): the wide top bar, name / retry / reward cards
+  { file: join(ROOT, 'src/engine/client/ui/styles/elite.css'), prefix: 'ws-elite-', strict: true }, // named elites (src/engine/client/ui/EliteBar.ts, src/game/client/Elite.ts): the named bar, the NEARBY banner, the edge chevron, the minimap skulls
   { file: join(ROOT, 'src/engine/client/ui/styles/explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/engine/client/explore/Explore.ts), imported by the lazy chunk
   { file: join(ROOT, 'src/engine/client/ui/styles/rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/engine/client/ui/RotateGate.ts)
   { file: join(ROOT, 'src/engine/client/ui/styles/quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/*/quest/*)

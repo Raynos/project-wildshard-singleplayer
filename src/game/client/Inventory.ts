@@ -1,8 +1,8 @@
 import { ITEMS } from '../shared/bag/itemCatalog';
 import { WeightedTable, type WeightedRow } from '@wildshard/engine/ai/weighted';
 import type { IconId } from '@wildshard/engine/ui/icons';
-import { findTitleManifest } from '../client/shard/titleList';
-import { findShard } from '../client/shard/registry';
+import { findTitleManifest } from './shard/titleList';
+import { findShard } from './shard/registry';
 import { inventorySave, saveSlug } from '../shared/saves';
 import type { ItemRow } from '../shared/bag/items';
 import { DEFAULT_PACK_SLOTS, addInventory, takeInventory } from '../shared/inventoryLaw';

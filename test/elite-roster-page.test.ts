@@ -16,7 +16,7 @@ import type { EliteBar } from '../src/engine/client/ui/EliteBar';
 import type { DayCycleClock } from '../src/engine/shared/world/dayCycle';
 import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import type { PageWildlife } from '../src/game/server/population/wildlife';
-import { Elites } from '../src/game/server/Elite';
+import { Elites } from '../src/game/client/Elite';
 
 import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
 import { ELITE_CONDITION_COLUMNS } from '@wildshard/format/eliteEntryRows';

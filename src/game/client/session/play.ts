@@ -57,7 +57,7 @@ import { bindTravelInventory, applyTravelCarry } from '../travel/travel';
 import * as THREE from 'three';
 import { BagButton } from '../bag/BagButton';
 import { Progress } from '../Progress';
-import { Inventory } from '../../server/Inventory';
+import { Inventory } from '../Inventory';
 import { legacyHomeCheckpoint } from '../grid/homeCheckpoint';
 import { initialGridReload, plannedGridReload } from '../../shared/grid/recovery';
 import { ITEMS } from '../../shared/bag/itemCatalog';

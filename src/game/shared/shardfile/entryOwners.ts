@@ -2,13 +2,13 @@
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D, Vector3 } from 'three';
 import type { StealthController } from '../../client/stealth/controller';
-import type { TimedEncounters } from '../../server/boss/timedEncounters';
+import type { TimedEncounters } from '../../client/boss/timedEncounters';
 import type { SpeciesCatalogue } from '../../client/looks/speciesBook';
 import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
-import type { EliteDeclaredEntryOwners } from '../../server/Elite';
+import type { EliteDeclaredEntryOwners } from '../../client/Elite';
 import type { clientWildlifeState } from '../../server/population/wildlife';
-import type { ArenaRoomEncounter } from '../../server/boss/arenaRoom';
+import type { ArenaRoomEncounter } from '../../client/boss/arenaRoom';
 import type { PageTamingOwner, PageRidingView } from '../../client/riding/client';
 import type { AdventurePersistence } from '../quest/persistence';
 import type { ModelSiteLayout, Placed } from '@wildshard/engine/models/place';

@@ -7,7 +7,7 @@ import { wind } from '../src/engine/shared/world/steppeWind';
 import type { SystemSpec } from '../src/engine/client/app/systems';
 import type { DeclaredEliteEntry } from '../src/engine/client/ai/view/eliteEntry';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import type { ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';
+import type { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import type { ForestWeatherRig } from '../src/game/client/weather/forest';
 import type { PaintedSky } from '../src/game/client/looks/keyedSky';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';

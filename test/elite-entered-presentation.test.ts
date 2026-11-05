@@ -8,7 +8,7 @@ import { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { Elites, type EliteScript } from '../src/game/server/Elite';
+import { Elites, type EliteScript } from '../src/game/client/Elite';
 import type { EliteEnteredOwners } from '../src/game/client/eliteView';
 import { EliteEnteredPresentationSchema } from '@wildshard/format/eliteFeature';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

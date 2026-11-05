@@ -1,7 +1,7 @@
 import { answerV2QueryBatch } from '@wildshard/engine/script/queriesV2';
 import { resolvePhysicsQueriesV2,type V2QueryWorld } from '@wildshard/engine/physics/queryBatchV2';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { Elites } from '../Elite';
+import type { Elites } from '../../client/Elite';
 import { readEliteOutputV2,ELITE_OUTPUT_OPERATION,type EliteOutput } from '@wildshard/format/eliteFeature';
 import { readV2WorldAction,V2_ACTION_OPS,type V2ActionBinding,type V2WorldAction } from '@wildshard/format/scriptActionsV2';
 import { prepareV2WorldActions,type V2WorldActionLoan } from '../shardfile/worldActionsV2';

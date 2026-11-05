@@ -19,7 +19,7 @@ import { HeldFirearm } from '../plugin/heldFirearm';
 import { Bow } from '../weapons/Bow';
 import { eliteStream } from '../../shared/quest/eliteStreams';
 import { readEliteFeature } from '../../server/quest/eliteFeature';
-import { installRoamingCombat, type RoamingCombat } from '../../server/combat/roamingSession';
+import { installRoamingCombat, type RoamingCombat } from '../combat/roamingSession';
 import { installCollectionCompendium } from '../models/collectionWall';
 import { installItemEffects } from './effects';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';

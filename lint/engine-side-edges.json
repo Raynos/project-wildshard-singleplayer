@@ -1,11 +1,11 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 66,
+  "client → server": 74,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 58,
-  "server → render": 2,
+  "server → client": 28,
+  "server → render": 1,
   "shared → client": 3,
   "shared → dom": 1,
   "shared → server": 1
@@ -44,8 +44,23 @@
   "src/game/client/animation/limbPopulation.ts": {
    "client → server": 1
   },
+  "src/game/client/Boss.ts": {
+   "client → server": 1
+  },
+  "src/game/client/boss/arenaRoom.ts": {
+   "client → server": 5
+  },
   "src/game/client/boss/roamingProjection.ts": {
-   "client → server": 4
+   "client → server": 3
+  },
+  "src/game/client/boss/timedEncounters.ts": {
+   "client → server": 2
+  },
+  "src/game/client/combat/roamingSession.ts": {
+   "client → server": 2
+  },
+  "src/game/client/Elite.ts": {
+   "client → server": 3
   },
   "src/game/client/grid/liveSession.ts": {
    "client → server": 2
@@ -62,17 +77,17 @@
   "src/game/client/grid/products.ts": {
    "client → server": 1
   },
-  "src/game/client/grid/regionalRuntime.ts": {
-   "client → server": 1
-  },
   "src/game/client/grid/regionalWorld.ts": {
    "client → server": 4
   },
   "src/game/client/loadout/rangedPage.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/plugin/weaponFamily.ts": {
    "client → server": 1
+  },
+  "src/game/client/quest/elitePage.ts": {
+   "client → server": 2
   },
   "src/game/client/riding/client.ts": {
    "client → server": 5
@@ -81,7 +96,7 @@
    "client → server": 1
   },
   "src/game/client/session/play.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/session/session.ts": {
    "client → server": 1
@@ -103,9 +118,6 @@
   },
   "src/game/client/shardfile/clientEliteConstruction.ts": {
    "client → server": 3
-  },
-  "src/game/client/shardfile/clientEliteEntry.ts": {
-   "client → server": 1
   },
   "src/game/client/shardfile/clientHeldMelee.ts": {
    "client → server": 1
@@ -134,13 +146,7 @@
   "src/game/client/shardfile/clientTargets.ts": {
    "client → server": 1
   },
-  "src/game/client/shardfile/clientTimedEncounters.ts": {
-   "client → server": 1
-  },
   "src/game/client/shardfile/runtimeProduct.ts": {
-   "client → server": 1
-  },
-  "src/game/client/shardfile/worldAssembly.ts": {
    "client → server": 1
   },
   "src/game/client/weapons/heldPolearm.ts": {
@@ -156,27 +162,11 @@
   "src/game/server/ambient/crowdPage.ts": {
    "server → client": 4
   },
-  "src/game/server/Boss.ts": {
-   "server → client": 6
-  },
-  "src/game/server/boss/timedEncounters.ts": {
-   "server → client": 3
-  },
-  "src/game/server/combat/roamingSession.ts": {
-   "server → client": 10,
-   "server → render": 1
-  },
-  "src/game/server/Elite.ts": {
-   "server → client": 5
-  },
   "src/game/server/grid/durability.ts": {
    "server → client": 1
   },
   "src/game/server/grid/intent.ts": {
    "server → client": 1
-  },
-  "src/game/server/Inventory.ts": {
-   "server → client": 2
   },
   "src/game/server/plugin/placeholderGeometry.ts": {
    "server → render": 1
@@ -188,9 +178,6 @@
    "server → client": 1
   },
   "src/game/server/population/wildlife.ts": {
-   "server → client": 4
-  },
-  "src/game/server/quest/elitePage.ts": {
    "server → client": 4
   },
   "src/game/server/riding/pagePasture.ts": {

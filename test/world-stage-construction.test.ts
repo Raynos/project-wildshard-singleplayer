@@ -16,7 +16,7 @@ import { createShardProduct, type ShardProduct } from '../src/game/shared/shardf
 import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
 import * as arena from '../src/game/client/boss/arenaRoomView';
-import type { ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';
+import type { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import { emptyShardfile } from '../src/sdk/author';
 import { WorldAssembly, type WorldConstructionPorts } from '../src/game/client/shardfile/worldAssembly';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

@@ -38,7 +38,7 @@ import type { Renderer } from '../render/renderer';
  */
 
 type PickupTier = 'common' | 'rare' | 'legendary';
-/** legendary = the GOLD orb of a boss reward (src/game/server/Boss.ts) */
+/** legendary = the GOLD orb of a boss reward (src/game/client/Boss.ts) */
 const TIER_COLOUR: Record<PickupTier, number> = { common: 0x8fe3ff, rare: 0xc38fff, legendary: 0xffcf5a };
 /** the orb's own colour: the tier colour pushed toward saturation — the post chain's AgX tone map washes a bright
  *  #8fe3ff to white, a deeper cyan / violet at the same energy stays cyan / violet */
