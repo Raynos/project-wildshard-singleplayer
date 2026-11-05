@@ -8,8 +8,9 @@ import { runtimePerformanceSites } from '../lint/runtime-performance.mjs';
 import { compareRuntimeFiles, RUNTIME_FILES_LIST } from '../lint/runtime-files.mjs';
 import { zeroPolicyFailures } from './check-custom-sections-zero.mjs';
 import { compareClosedComponents } from './check-closed-components.mjs';
+import { SIDE_EDGES_LIST, compareSideEdges } from '../lint/engine-sides.mjs';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', RUNTIME_FILES_LIST];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/ratchet.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', RUNTIME_FILES_LIST, SIDE_EDGES_LIST];
 
 const RUNTIME_REKEY_ABOUT = 'SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.';
 
@@ -153,6 +154,11 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees, so
     const fromSource=reader=>{const text=reader('lint/ratchet.json');return text===undefined?undefined:JSON.parse(text);};
     const before=sources===undefined?read(baselineFile):fromSource(sources.before),after=sources===undefined?read(candidateFile):fromSource(sources.after);
     return zeroPolicyFailures(after?.budgets??{}).concat(compareClosedComponents(before?.closedComponents,after?.closedComponents));
+  }
+  if (list === SIDE_EDGES_LIST) {
+    // P1-E2: the engine-side edge counts only fall; the first commit seeds them.
+    const read = file => existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
+    return compareSideEdges(read(baselineFile), read(candidateFile));
   }
   if (list === CLASS_MOVE_LIST) {
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).moves : {};

@@ -206,6 +206,9 @@
         "wildshard/no-global-listener-patch": "error",
         "wildshard/no-raw-shader-patch": "error",
         "wildshard/sim-no-render": "error",
+        // P1-E2: every engine / game file has a side (lint/engine-sides.json); client ↛ server, server ↛ client,
+        // shared ↛ either, cook ↛ client, no DOM or renderer in shared / server / cook; counts only fall
+        "wildshard/engine-sides": "error",
         // SHARD-PLATFORM SP5: generators never ship; only the bake and other generators import them
         "wildshard/no-runtime-generator": "error",
         "wildshard/runtime-performance": "error",
