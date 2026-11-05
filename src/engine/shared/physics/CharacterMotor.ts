@@ -147,7 +147,10 @@ export class CharacterMotor {
       this.result.grounded = result.grounded; this.result.groundNormalY = result.groundNormalY;
       this.result.downhillX = result.downhillX; this.result.downhillZ = result.downhillZ; this.result.horizontalFreedom = result.horizontalFreedom;
       this.result.groundCollider = result.groundColliderHandle === null ? null : world.getCollider(result.groundColliderHandle);
-      this.kcc.setMaxSlopeClimbAngle(state.climbAngle); this.kcc.setMinSlopeSlideAngle(state.slideAngle);
+      // J127: a save holds the capsule's Rapier bytes. An older one holds the host's old capsule: rebuild it on this law's,
+      // whose climb limit is the constructor's. A capsule the save agrees with keeps the limit it was saved at (a gait's).
+      if (Math.abs(this.collider.radius() - opts.radius) < 1e-5) { this.kcc.setMaxSlopeClimbAngle(state.climbAngle); this.kcc.setMinSlopeSlideAngle(state.slideAngle); }
+      else this.collider.setShape(new R.Capsule(half, opts.radius));
     }
   }
   /** Collider handles reconnect against the restored Rapier world, never the disposed world's wrappers. */

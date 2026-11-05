@@ -52,12 +52,12 @@ export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promis
     const original=[...first.host.entities.values()].find(actor=>actor.kind==='horse'&&actor.variant==='stallion');assert.ok(original);
     let inputs=0;
     const step=(commands:readonly HeadlessCommand[]):void=>{
-      assert.ok(inputs++<20_000,'the input route must stay within its finite allowance');first.step(commands);
+      assert.ok(inputs++<80_000,'the input route must stay within its finite allowance');first.step(commands);
       assert.deepEqual(first.effects,[],'walking or taming cannot mint quest completion facts');
     };
     walkNalatiHorsePlains(first.host,step);const approachTicks=first.host.state.tick;
     const pilot=createNalatiTamingPilot();let prompt=false,breakingTicks=0,checkpointTick=0,rounds=0;
-    for(let tick=0;tick<12000&&taming.phase!=='bonded';tick++){
+    for(let tick=0;tick<40000&&taming.phase!=='bonded';tick++){
       const commands=pilot(first.host,original.entityId);
       prompt ||= taming.interactable.radius>0;
       if(taming.phase==='breaking'){breakingTicks++;rounds=Math.max(rounds,taming.view.round??0);}

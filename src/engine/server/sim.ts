@@ -15,7 +15,7 @@ import { DamageBook } from './combat/damageBook';
 import { RespawnBook } from './sim/respawn';
 import type { PlayerHealth } from './combat/health';
 import { Physics } from '../shared/physics/Physics';
-import { CharacterMotor, PLAYER_BODY, type MotorOptions } from '../shared/physics/CharacterMotor';
+import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE, type MotorOptions } from '../shared/physics/CharacterMotor';
 import { PlayerSim, simCommandOf } from './sim/playerSim';
 import { BodyBandClocks, creatureBodyDistance, creatureBodyShape, keepsCreatureBody, tickDistance, type BandsState } from '../shared/sim/bands';
 import type { TickRate } from '../shared/app/scheduler';
@@ -262,7 +262,7 @@ export class SimHost {
     this.combat = ports.combat ?? new CombatPipeline(this.events, this.scope, () => this.physics);
     if (ports.player !== undefined && ports.playerBody === false) throw new Error('A borrowed player owns its motor');
     this.lead = new PlayerSim(this, { borrowed: ports.player, bodiless: ports.playerBody === false, id: ports.player?.id ?? 'actor.player', at: level.player.at, yaw: level.player.yaw,
-      motor: health => this.motor('PLAYER', 0.35, 1.8, health.id) }, this.scope);
+      motor: health => this.playerMotor(health.id) }, this.scope);
     this.players.set(this.lead.id, this.lead);
     this.focused = this.lead; this.playerFocus = liveVector(() => this.focused.position);
     this.flags = new Flags(level.id, false);
@@ -292,7 +292,7 @@ export class SimHost {
     entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
     // under the physics body LOD a body spawns bodiless, as on the page: the next tick's sync gives it one when near
     if (this.bands?.physics !== true) {
-      const body = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
+      const body = new CharacterMotor(this.physics, this.creatureOptions(spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id));
       // The capsule starts at the spawn: a creature that never walks (an idle boss) never moves it, and Rapier would
       // otherwise leave it at the world origin, an invisible wall at the cell centre (G222 playtest #7).
       body.resetAt(entity.position);
@@ -309,7 +309,7 @@ export class SimHost {
   addPlayer(id: string, at: { readonly x: number; readonly y: number; readonly z: number } = this.level.player.at, yaw: number = this.level.player.yaw): PlayerSim {
     if (this.disposed || this.embedded || this.players.has(id) || this.entities.has(id) || !/^[a-zA-Z0-9._:-]{1,128}$/u.test(id) || ![at.x, at.y, at.z, yaw].every(Number.isFinite)) throw new Error('Invalid simulation player');
     const scope = this.scope.child(`player:${id}`);
-    const player = new PlayerSim(this, { id, at, yaw, motor: health => this.motor('PLAYER', 0.35, 1.8, health.id) }, scope);
+    const player = new PlayerSim(this, { id, at, yaw, motor: health => this.playerMotor(health.id) }, scope);
     this.players.set(id, player); this.playerScopes.set(id, scope);
     this.strikes.set(id, player.strike); this.weapons.set(id, { ...this.level.weapon, weight: () => 1 });
     return player;
@@ -393,16 +393,15 @@ export class SimHost {
   }
   /** The player's capsule on the page's body law (PLAYER_BODY: ITEM bodies stop it and its 80 kg pushes them), a creature's
    * on the page's creature filter. */
-  private motorOptions(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): MotorOptions {
-    const law = group === 'PLAYER' ? PLAYER_BODY : { group, blockedBy: ['WORLD', 'PLAYER', 'CREATURE'] as const };
-    return { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, ...law, owner };
+  private creatureOptions(radius: number, height: number, owner: string): MotorOptions {
+    return { radius, height, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner };
   }
-  private motor(group: 'PLAYER' | 'CREATURE', radius: number, height: number, owner: string): CharacterMotor {
-    return new CharacterMotor(this.physics, this.motorOptions(group, radius, height, owner));
-  }
-  /** The original capsule law also reconstructs a saved motor for a bodyless restore target. */
+  /** The page's capsule, on every host. */
+  private playerOptions(owner: string): MotorOptions { return { ...PLAYER_CAPSULE, ...PLAYER_BODY, owner }; }
+  private playerMotor(owner: string): CharacterMotor { return new CharacterMotor(this.physics, this.playerOptions(owner)); }
+  /** The same capsule law also reconstructs a saved motor for a bodyless restore target. */
   playerMotorOptions(player: PlayerSim): MotorOptions {
-    return player.motorOptions(() => this.motorOptions('PLAYER', 0.35, 1.8, player.id));
+    return player.motorOptions(() => this.playerOptions(player.id));
   }
   /** Opt into the page's distance bands for every body (SimBodyBands), once, before the first step; the installer runs
    * it again on a restoring host, before restore. The physics body LOD drops the bodies' host motors at once. */

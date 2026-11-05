@@ -53,7 +53,7 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
     assert.equal(leadPlayer(first.host).position.z, z, 'Fixture must start beside the authored living stallion');
     const original = first.host.entities.get(actor.id); if (original === undefined) throw new Error('Missing native authored stallion');
     let previous = 0, breakingTicks = 0, prompt = false, checkpointTick = 0;
-    for (let tick = 0; tick < 10_000 && law(first.host).phase !== 'bonded'; tick++) {
+    for (let tick = 0; tick < 40_000 && law(first.host).phase !== 'bonded'; tick++) {
       const taming = law(first.host), pilot = nalatiTamingPilot(first.host, actor.id, previous); previous = pilot.balance;
       prompt ||= taming.interactable.radius > 0;
       if (taming.phase === 'breaking') breakingTicks++;

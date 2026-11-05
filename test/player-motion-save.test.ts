@@ -4,7 +4,7 @@ import { beforeAll, expect, test } from 'vitest';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost, type SimCommand, type SimHost } from '../src/engine/server/sim';
 import { leadCommands, leadPlayer } from '../src/engine/shared/sim/leadPlayer';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { decodeSimSnapshot, leadSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
 import { simWireV1 } from './fake/simState';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
@@ -43,4 +43,21 @@ test('an older save rebuilds the feet from its pose', () => {
     expect(leadPlayer(restored).wading).toBe(true);
     expect(leadPlayer(restored).footing.depth).toBe(leadPlayer(host).footing.depth);
   } finally { restored.dispose(); host.dispose(); }
+});
+
+test('an older save stands on the page\'s capsule (J127)', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier }), saved = snapshotSimHost(host), { motor } = leadSnapshot(saved);
+  host.dispose();
+  const old = createSimHost(SIM_LEVEL, { rapier }), { collider } = leadPlayer(old).motor;
+  collider.setShape(new rapier.Capsule(.55, .35));
+  const wire = simWireV1(serializeSimSnapshot(snapshotSimHost(old)));
+  old.dispose();
+  const restored = restoreSimHost(SIM_LEVEL, { rapier }, decodeSimSnapshot(wire));
+  try {
+    expect(motor.climbAngle).toBeCloseTo(40 * Math.PI / 180, 5);
+    const player = leadPlayer(restored);
+    expect(player.motor.collider.radius()).toBeCloseTo(.38, 6);
+    for (let tick = 0; tick < 30; tick++) restored.step(leadCommands(restored, walkEast));
+    expect(player.fall.grounded).toBe(true); expect(player.position.x).toBeGreaterThan(.5);
+  } finally { restored.dispose(); }
 });
