@@ -87,6 +87,10 @@ export class CharacterMotor {
   private readonly kcc: KinematicCharacterController;
   private readonly lift: number;
   private filter: number;
+  /** J106: colliders this body walks through because they are gone in its own player's world (a quest gate it opened). */
+  readonly phased: Set<number> = new Set<number>();
+  private readonly notPhased = (collider: { readonly handle: number }): boolean => !this.phased.has(collider.handle);
+  private readonly notGroundOrPhased = (collider: Parameters<CharacterMotor['notGround']>[0]): boolean => this.notGround(collider) && this.notPhased(collider);
   private ghost = '';
   private enabled = true;
   /** a move that ignores the terrain heightfield (the hoverboard, swimming: they ride their own springs over it) */
@@ -295,7 +299,7 @@ export class CharacterMotor {
       translation.x = feet.x; translation.y = feet.y + this.lift + lifted; translation.z = feet.z;
       this.collider.setTranslation(translation);
     }
-    const pred = ignoreGround ? this.notGround : undefined;
+    const pred = this.phased.size > 0 ? ignoreGround ? this.notGroundOrPhased : this.notPhased : ignoreGround ? this.notGround : undefined;
     this.kcc.computeColliderMovement(this.collider, want, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
     let m = this.kcc.computedMovement(this.movement);
     // E285: now and then Rapier stops the whole move on the floor the capsule already rests on (one contact, normal

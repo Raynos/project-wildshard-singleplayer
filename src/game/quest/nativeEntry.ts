@@ -63,7 +63,7 @@ export function prepareNativeQuestEntry<Spot extends { readonly id: string; read
   if (host.scope.disposed) throw new Error('Native quest entry left before preparation');
   const input = nativeQuestInputs(host), inventory = new ItemCatalogue(source.items).inventory;
   const rules = bindQuestTableSpots(table, spots, host.flags, bounds), pack = new NativeInventory(inventory, host);
-  books.claim([...rules.values()].flatMap(rowFlags));
+  books.claim([...rules.values()].flatMap(rowFlags)); books.show([...rules.values()].flatMap(rowFlags));
   let installed = false, graph: ReturnType<typeof installDeclaredQuestHost> | null = null;
   const transitionsOver = (data: unknown, owned: typeof rules, flags: Flags, own: NativeInventory<string>, player: string): InteractionTransitions<NativeQuestRule<Spot>> => {
     if (host.scope.disposed || !isJsonData(data)) throw new Error('Native transitions require live JSON rows');

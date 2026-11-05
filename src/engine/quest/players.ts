@@ -60,12 +60,17 @@ export class QuestBook {
   dispose(): void { this.unwatch(); for (const quest of this.quests) quest.dispose(); }
 }
 
+/** What a player's client reads: its quests, and which of the flags that shape its own world are up. */
+export interface QuestProgressRead { readonly version: number; readonly rows: readonly QuestProgress[]; readonly flags: readonly string[] }
 /** Every player's book on one host, made as a player is first read. */
 export class QuestBooks {
   /** The first player's book is the host's flags and quests. */
   readonly lead: QuestBook;
   private readonly host: Pick<SimHost, 'flags' | 'quests' | 'players' | 'level'>;
   private readonly claimed = new Set<string>();
+  private readonly shown = new Set<string>();
+  /** A book made now is being read back from a save. */
+  restoring = false;
   private readonly books = new Map<string, QuestBook>();
   private readonly owners: ((book: QuestBook) => void)[] = [];
   private readonly list: QuestBook[] = [];
@@ -76,6 +81,8 @@ export class QuestBooks {
     this.books.set(this.lead.player, this.lead);
     this.claim(host.level.quests.flatMap(questFlags));
   }
+  /** Name flags a client must read to draw its own world (J106): an open gate, a taken key. */
+  show(flags: Iterable<string>): void { for (const flag of flags) this.shown.add(flag); }
   /** Name flags that quest rows write: each player keeps its own copy of them. */
   claim(flags: Iterable<string>): void { for (const flag of flags) this.claimed.add(flag); }
   /** Run for every other player's book, now and as they join: an owner's state for that player. */
@@ -100,17 +107,20 @@ export class QuestBooks {
     return this.list;
   }
   /** What one player's client is told, when its book moved past `since`. */
-  progressOf(id: string, since: number): { readonly version: number; readonly rows: readonly QuestProgress[] } | null {
+  progressOf(id: string, since: number): QuestProgressRead | null {
     if (!this.host.players.has(id)) return null;
-    const book = this.of(id);
-    return book.version === since ? null : { version: book.version, rows: book.quests.map(quest => quest.progress()) };
+    const book = this.of(id), { flags } = book;
+    return book.version === since ? null : { version: book.version, rows: book.quests.map(quest => quest.progress()), flags: [...this.shown].filter(flag => flags.has(flag)) };
   }
   /** Every other player's book, or undefined: a one-player save never holds this. */
   save(): QuestBookSaved[] | undefined {
     const books = this.each().filter(book => book !== this.lead);
     return books.length === 0 ? undefined : books.map(book => book.save());
   }
-  restore(saved: readonly QuestBookSaved[] | undefined): void { for (const row of saved ?? []) this.of(row.player).restore(row); }
+  restore(saved: readonly QuestBookSaved[] | undefined): void {
+    this.restoring = true;
+    try { for (const row of saved ?? []) this.of(row.player).restore(row); } finally { this.restoring = false; }
+  }
 }
 
 /** The host's books; the host saves them from here on. */

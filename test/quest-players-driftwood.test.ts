@@ -86,3 +86,20 @@ test('a client reads the same quest the server holds, and only its own', async (
   expect(other.isStarted('sealed-ring'), 'another player\'s client hears nothing of it').toBe(false);
   live.dispose();
 }, 60_000);
+
+test('each client sees its own world: a flag that shapes it reaches only its owner', async () => {
+  const live = await resident(), { host } = live, spawn = leadPlayer(host).position;
+  const world = new SimNetWorld(host), room = new NetRoom({ world, step: () => undefined });
+  host.addPlayer('bot:1', { x: spawn.x, y: spawn.y, z: spawn.z }); host.addPlayer('bot:2', { x: spawn.x, y: spawn.y, z: spawn.z });
+  const join = (id: string): { client: NetClient; link: DirectLoopback } => {
+    const link = directLoopback(), client = new NetClient(link.client);
+    room.join(link.server, world.playerOf(id)); client.hello(); link.pump(); return { client, link };
+  };
+  const one = join('bot:1'), two = join('bot:2');
+  room.open(); one.link.pump(); two.link.pump();
+  stand(live, -22, -71.5); live.step([use(0)]); stand(live, -22, -62.9); live.step([use(100)]);
+  room.tick(); one.link.pump(); two.link.pump(); room.tick(); one.link.pump(); two.link.pump();
+  expect(one.client.phased.has('open:castaway-chest')).toBe(true);
+  expect(two.client.phased.has('open:castaway-chest')).toBe(false);
+  live.dispose();
+}, 60_000);

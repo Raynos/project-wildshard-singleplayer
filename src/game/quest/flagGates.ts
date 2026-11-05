@@ -5,6 +5,7 @@ import { staticBoxCollider } from '@wildshard/engine/physics/query';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { ShardContext } from '../plugin/context';
+import { questBooks } from '@wildshard/engine/quest/players';
 import { boundQuestState } from './boundState';
 
 type Collider = ReturnType<SimHost['physics']['world']['getCollider']>;
@@ -16,6 +17,8 @@ export class QuestFlagGates {
   private readonly flags: Flags;
   private readonly native: SimHost | null;
   private colliders: Collider[] = [];
+  /** Whether a room has ever split these gates: a room of one never touches a motor. */
+  private phased = false;
   constructor(owner: SimHost | ShardContext, input: unknown, restoring = false) {
     this.rows = v.parse(QuestFlagGatesSchema, input);
     if (owner.scope.disposed) throw new Error('Quest gates require a live owner');
@@ -23,6 +26,7 @@ export class QuestFlagGates {
     if ('physics' in owner) {
       if (this.rows.gates.some(row => row.target.kind !== 'box')) throw new Error('Native quest gates require baked boxes');
       this.flags = owner.flags;
+      questBooks(owner).show(this.rows.gates.flatMap(row => [...row.opensWhen.all ?? [], ...row.opensWhen.any ?? [], ...row.opensWhen.none ?? []]));
       if (!restoring) this.physicsRestored();
     } else {
       const world = owner.game.runtime?.world, quest = this.rows.quest;
@@ -54,13 +58,35 @@ export class QuestFlagGates {
       if (collider === null) throw new Error('Native quest gate has no baked collider');
       return collider;
     });
+    if (host.players.size > 1) this.phase(host);
   }
   /** Native latches release after transitions in the same tick, as before. */
   sync(): void {
-    if (this.native === null) return;
+    const host = this.native;
+    if (host === null) return;
+    if (host.players.size > 1 || this.phased) { this.phase(host); return; }
     this.rows.gates.forEach((row, i) => {
       const collider = this.colliders[i];
       if (test(this.flags, row.opensWhen) && collider?.isEnabled() === true) collider.setEnabled(false);
+    });
+  }
+  /**
+   * J106, personal phasing: a gate is each player's own. It stands while anyone's book still has it shut, and a player who
+   * opened it walks through what the others still meet. Open for all, it goes, as a room of one's does.
+   */
+  private phase(host: SimHost): void {
+    this.phased = true;
+    const books = questBooks(host).each();
+    this.rows.gates.forEach((row, i) => {
+      const collider = this.colliders[i];
+      if (collider === undefined) return;
+      let shut = false;
+      for (const book of books) {
+        const open = test(book.flags, row.opensWhen), body = host.players.get(book.player);
+        if (!open) shut = true;
+        if (body?.hasMotor === true) { if (open) body.motor.phased.add(collider.handle); else body.motor.phased.delete(collider.handle); }
+      }
+      if (collider.isEnabled() !== shut) collider.setEnabled(shut);
     });
   }
 }

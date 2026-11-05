@@ -292,7 +292,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     ['props', dt => { const asked = input.walk(host.level.player.speed); walked.x = rider?.carried === true ? 0 : asked.x; walked.z = rider?.carried === true ? 0 : asked.z; props?.step(dt, walked); }],
     ['transitions', () => { for (const book of books.each()) seatOf(book.player).transitions.step(); props?.syncGates(); }], ['cable', dt => { cables.updateNative(cableId, dt, host); }],
     ['director', dt => { finale?.update(dt); }], ['reward', dt => { if (rows.reward !== undefined) reward?.update(dt, flags.has(rows.reward.seen)); }],
-    ['chapter', dt => { chapterClock?.update(dt, chapter?.current?.id); }],
+    ['chapter', dt => { chapterClock?.update(dt, chapter?.current?.id, chapter?.def.id); }],
     ['lead', dt => { if (lead?.step(dt, chapter?.current?.id) === true && rows.lead !== undefined)
       commitQuestEffects(host, need(rows.effects, 'effects').pack, need(steps ?? undefined, 'steps').signal({ kind: 'follow', target: rows.lead.target }, { flags: flags.all })); }],
   ]);

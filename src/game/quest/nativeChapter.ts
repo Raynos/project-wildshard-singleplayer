@@ -1,6 +1,7 @@
 /** Renderer-free chapter clock binding shared by the actual native quest entries. */
 import * as v from 'valibot';
 import type { SimHost } from '@wildshard/engine/sim';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { isJsonData } from '@wildshard/format/json';
 import { ChapterDirectorSchema, parseChapterDirector } from '@wildshard/format/chapterDirector';
 import { WakeEncounterSchema } from '@wildshard/format/bossEncounter';
@@ -9,7 +10,7 @@ import { mixedPopulation } from '../population/mixedRoster';
 import { installWakeBoss } from '../boss/nativeWake';
 import { installNativeQuestChannels } from './nativeInputs';
 import { ChapterClock } from './chapterClock';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { questBooks, type QuestBook } from '@wildshard/engine/quest/players';
 
 const finite = v.pipe(v.number(), v.finite());
 const chapterName = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
@@ -22,9 +23,10 @@ const nativeChapter = v.strictObject({ id: chapterName, rows: ChapterDirectorSch
  * and reward owners; the caller retains its existing step and save envelope. */
 export function installNativeChapterDirector(host: SimHost, director: Awaited<ReturnType<typeof readDirectorProduct>>, input: unknown, restoring = false): {
   readonly clock: DirectorScriptStageLane; readonly fast: ChapterClock['fast'];
-  readonly update: (dt: number, step?: string) => void;
+  /** One tick: `step` is the lead's chapter step, and `quest` names the chapter, so each other player's clock reads its own. */
+  readonly update: (dt: number, step?: string, quest?: string) => void;
 } {
-  const lead = leadPlayer(host);
+  const books = questBooks(host);
   if (host.scope.disposed || !isJsonData(input)) throw new Error('Native chapter requires live JSON rows');
   const policy = v.parse(nativeChapter, input), rows = parseChapterDirector(policy.rows);
   const cues = new Map(policy.wake?.cues.map(cue => [cue.id, cue]));
@@ -37,8 +39,9 @@ export function installNativeChapterDirector(host: SimHost, director: Awaited<Re
   const population = policy.wake === undefined ? null : mixedPopulation(host, policy.wake.population);
   const encounter = policy.wake === undefined ? null : installWakeBoss(host, policy.wake.encounter, policy.wake.placement);
   const reward = policy.reward === undefined ? null : installNativeQuestChannels(host, policy.reward, { started: false, completed: false });
+  const leadBody = host.players.get(books.lead.player); if (leadBody === undefined) throw new Error('Native chapter requires its player');
   const timeline = new ChapterClock(host.scope, director, rows, host.flags,
-    { get day() { return host.dayClock ?? null; }, player: lead.position, reward: rows.reward ?? null, finish: 'assign' }, effect => {
+    { get day() { return host.dayClock ?? null; }, player: leadBody.position, reward: rows.reward ?? null, finish: 'assign' }, effect => {
       if (effect.kind === 'reward' && reward !== null) reward[effect.state] = true;
       else if (effect.kind === 'cue' && population !== null && encounter !== null && policy.wake !== undefined) {
         const cue = cues.get(effect.id); if (cue === undefined) throw new Error('Unknown native chapter cue');
@@ -49,5 +52,28 @@ export function installNativeChapterDirector(host: SimHost, director: Awaited<Re
       }
     }, restoring);
   timeline.lane.registerNative(host, policy.id);
-  return { clock: timeline.lane, fast: timeline.fast, update: (dt, step) => { timeline.update(dt, step); } };
+  books.claim(Object.values(rows.actions).flatMap(effects => effects.flatMap(effect => effect.kind === 'flag' ? [effect.flag] : [])));
+  /** J106: a chapter is each player's own: its clock over that player's book. The day and the reward stay the world's and the lead's. */
+  const seats = new Map<string, { readonly clock: ChapterClock; readonly book: QuestBook; readonly scope: Scope }>();
+  const seen: { phase: number; readonly night: number; set: () => Promise<void> } = { get phase() { return host.dayClock?.phase ?? 0; }, set phase(_ignored: number) { /* a player's chapter does not turn the room's day */ },
+    get night() { return host.dayClock?.night ?? 0; }, set: () => Promise.resolve() };
+  books.install(book => {
+    const body = host.players.get(book.player); if (body === undefined) throw new Error('Native chapter requires its player');
+    const scope = host.scope.child(`chapter:${book.player}`);
+    const clock = new ChapterClock(scope, director, rows, book.flags, { get day() { return host.dayClock === undefined ? null : seen; }, player: body.position, reward: rows.reward ?? null, finish: 'assign' }, effect => {
+      if (effect.kind !== 'cue' || population === null || encounter === null || policy.wake === undefined) return;
+      const cue = cues.get(effect.id); if (cue === undefined) throw new Error('Unknown native chapter cue');
+      // the boss is the room's: a player's chapter can wake one, and never resets a fight already running
+      if (cue.operation === 'wake' && population.captain() === null) { population.spawnCaptain(); encounter.publish(policy.wake.encounter.events.wake); }
+    }, books.restoring);
+    seats.set(book.player, { clock, book, scope });
+    book.part(`chapter:${policy.id}`, { read: () => clock.lane.snapshot(), write: saved => { clock.lane.restore(saved); } });
+  });
+  return { clock: timeline.lane, fast: timeline.fast, update: (dt, step, quest) => {
+    timeline.update(dt, step);
+    for (const [player, seat] of seats) {
+      if (!host.players.has(player)) { seat.scope.dispose(); seats.delete(player); continue; }
+      seat.clock.update(dt, seat.book.quests.find(entry => entry.def.id === quest)?.current?.id);
+    }
+  } };
 }
