@@ -2,7 +2,8 @@
 // builds a world frame every second tick (30 Hz, J40) and encodes each client's delta from it. It holds no socket and
 // no save: a Transport carries its bytes, and accounts, rooms and persistence stay in the MMO plan.
 import * as v from 'valibot';
-import { NetActSchema, type NetAct, type NetCommand } from '@wildshard/format/netCommand';
+import type { NetCommand } from '@wildshard/format/netCommand';
+import { NetRoomActSchema, type NetTickAct } from './acts';
 import { BitWriter } from './bits';
 import { cleanName } from './chatFilter';
 import type { CombatEvent } from './combatWire';
@@ -21,6 +22,8 @@ import type { NetChannel, Transport } from './transport';
 /** Sim steps per world frame: 60 Hz sim, 30 Hz frames (J40). */
 export const TICKS_PER_FRAME = 2;
 const SIM_HZ = 60, FRAME_HZ = 30;
+/** Acts one client gets a tick, and the most it may have waiting. */
+const ACTS_PER_TICK = 2, MAX_QUEUED_ACTS = 16;
 
 /** The player a client owns. */
 export interface NetPlayer { readonly id: string; readonly cls: NetClass<never>; sample: (out: Uint32Array, refs: NetRefs) => void }
@@ -41,7 +44,7 @@ export interface NetWorld {
   readonly player: NetPlayer;
 }
 /** One client's input for one tick. */
-export interface NetTickInput { readonly client: number; readonly player: string; readonly command: NetCommand | null; readonly acts: readonly NetAct[] }
+export interface NetTickInput { readonly client: number; readonly player: string; readonly command: NetCommand | null; readonly acts: readonly NetTickAct[] }
 /** Bytes this room has put on the wire, for the bandwidth number (§7). */
 export interface RoomStats { frames: number; frameBytes: number; eventBytes: number; refused: number; /** Rows a far tier left out (§3.3). */ tierSkips: number }
 /** How a room is built. */
@@ -63,7 +66,7 @@ interface RoomClient {
   identity: NetIdentity;
   /** waiting: said hello before the room opened. live: welcomed. */
   state: 'new' | 'waiting' | 'live';
-  ack: number; readonly acts: NetAct[]; readonly known: Set<number>;
+  ack: number; readonly acts: NetTickAct[]; readonly known: Set<number>;
   /** The quest rows this client holds, and the book version they came from. */
   questVersion: number; readonly quests: Map<string, string>; readonly phased: Set<string>;
   /** What this client could see at each recent frame: a baseline is the frame and this set. */
@@ -143,7 +146,7 @@ export class NetRoom {
     this.inputs.length = 0;
     for (const client of this.clients) {
       if (client.state !== 'live') continue;
-      this.inputs.push({ client: client.id, player: client.player.id, command: client.queue.next(), acts: client.acts.splice(0) });
+      this.inputs.push({ client: client.id, player: client.player.id, command: client.queue.next(), acts: client.acts.splice(0, ACTS_PER_TICK) });
     }
     this.step(this.inputs);
     this.settled();
@@ -194,9 +197,13 @@ export class NetRoom {
     client.queue.admit(bundle.commands);
   }
   private act(client: RoomClient, view: Uint8Array): void {
-    const decoded = decodeAct(view), parsed = v.safeParse(NetActSchema, decoded);
+    const decoded = decodeAct(view), parsed = v.safeParse(NetRoomActSchema, decoded);
     if (!parsed.success || client.state !== 'live') { this.stats.refused++; return; }
-    client.acts.push(parsed.output);
+    const act = parsed.output;
+    if (act.kind === 'chat' || act.kind === 'report') return;
+    // Untrusted input stays bounded (R3): a flood of acts waits its turn or is refused, and can never exceed a tick's allowance.
+    if (client.acts.length >= MAX_QUEUED_ACTS) { this.stats.refused++; return; }
+    client.acts.push(act);
   }
   private welcome(client: RoomClient): void {
     client.state = 'live';

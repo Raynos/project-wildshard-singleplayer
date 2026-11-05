@@ -45,6 +45,7 @@ import { declaredWaterBody } from "@wildshard/engine/world/water/declared";
 import { WaterBodies } from "@wildshard/engine/world/water/body";
 import { floorBelow } from "@wildshard/engine/physics/query";
 import { playerSeats } from './playerSeats';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { installShardfileColliders, shardfileColliderIds } from "../shardfile/collisionBindings";
 import { validateMeshCollisionAssets } from "@wildshard/format/meshCollisionAssets";
@@ -1151,6 +1152,9 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
   const graph = installQuestGraph(host, { quests, graph: row.graph, interactions: row.interactions, npcs: row.npcs }, {
     ...ports, drive: row.drive, summon: target => { requests.get(target)?.advance(); },
   });
+  // A net client names what it uses; the route it takes is the tick command a tape would send.
+  const named = actRoutes(host).interactions;
+  for (const route of routes) if (route.value !== null && (route.action.kind === 'row' || route.action.kind === 'owner') && !named.has(route.action.id)) named.set(route.action.id, { actorId: route.actor ?? row.graph.actor, value: route.value });
   const accept: NativeQuestHost['accept'] = command => {
     const player = command.playerId ?? books.lead.player;
     // a player the host no longer holds has no command to run
@@ -1284,7 +1288,7 @@ export function bindNativeLoadout<Slot extends number>(host: SimHost, row: Nativ
   const seats = playerSeats(host, (player, first) => {
     const loadout = createNativeLoadout(row, first ? ports : { ...ports, locked: () => others?.locked(player) ?? true }), own = first ? frame : others?.frame(player);
     return { loadout,
-      step: (dt: number): void => { if (step === undefined || (!first && others === undefined)) return; const picked = step.pick(player, first); loadout.step(dt, row.slots.find(slot => slot === picked) ?? null); },
+      step: (dt: number): void => { if (step === undefined || (!first && others === undefined)) return; const picked = step.pick(player, first); loadout.step(dt, row.slots.find(slot => slot === picked) ?? null); player.held = loadout.held(); },
       snapshot: (): SimValue => loadout.snapshot(), restore: loadout.restore,
       publish: (): void => {
         if (publication === undefined || own === undefined) return;
@@ -1295,6 +1299,7 @@ export function bindNativeLoadout<Slot extends number>(host: SimHost, row: Nativ
       } };
   }), { loadout } = seats.lead;
   if (step !== undefined) host.onStep(step.id, seats.step, seats.adapter, step.phase);
+  if (row.input !== undefined) actRoutes(host).equip = row.input.command;
   if (publication !== undefined && frame !== undefined) {
     host.onStep(publication.step, () => { for (const player of host.players.values()) seats.of(player).publish(); }, undefined, publication.phase);
   }

@@ -12,8 +12,10 @@ import { prepareRuntimePlan, ledgerPorts, pickCommands } from '@wildshard/game/p
 import type { NativeSweptMeleeInput } from '@wildshard/game/plugin/nativeSwept';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel, type SimTickCommand } from '@wildshard/engine/sim';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
-import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
-import { netTickCommands } from './standalone/netInput';
+import type { NetCommand } from '@wildshard/format/netCommand';
+import type { NetTickAct } from '@wildshard/engine/net/acts';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
+import { netInteractCommands, netTickCommands } from './standalone/netInput';
 import { installPersonalLoot, personalCoinTable } from '@wildshard/game/loot/personal';
 import { checkSimSnapshotWire, decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
@@ -121,7 +123,7 @@ export interface TrustedHeadlessResident {
   lend: (commands: readonly HeadlessCommand[]) => void;
   readonly effects: readonly HeadlessEffect[];
   /** One tick: `commands` for the lead player and the systems bound to it, `others` for the room's other players. */
-  step: (commands: readonly HeadlessCommand[], others?: ReadonlyMap<string, NetCommand>, acts?: ReadonlyMap<string, readonly NetAct[]>) => void;
+  step: (commands: readonly HeadlessCommand[], others?: ReadonlyMap<string, NetCommand>, acts?: ReadonlyMap<string, readonly NetTickAct[]>) => void;
   proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
   dispose: () => void;
 }
@@ -210,13 +212,13 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     validateHeadlessCommandOwners(host,input);
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
   /** Every other player's weapons read their own frame: a player who sent nothing this tick has let go of everything. */
-  const lendOthers = (others: ReadonlyMap<string, NetCommand> | undefined, acts: ReadonlyMap<string, readonly NetAct[]> | undefined): void => {
+  const lendOthers = (others: ReadonlyMap<string, NetCommand> | undefined, acts: ReadonlyMap<string, readonly NetTickAct[]> | undefined): void => {
     otherCommands.clear();
     if (host.players.size === 1) { combat.others.clear(); return; }
     for (const id of combat.others.keys()) if (!host.players.has(id)) combat.others.delete(id);
     for (const id of host.players.keys()) {
       if (id === lead.id) continue;
-      const input = netTickCommands(others?.get(id) ?? null, acts?.get(id) ?? []);
+      const input = netTickCommands(others?.get(id) ?? null, acts?.get(id) ?? [], actRoutes(host));
       otherCommands.set(id, input); fillNativeCombatFrame(otherCombatFrame(combat, id), input);
     }
   };
@@ -224,7 +226,8 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     host, lend,
     get effects() { return effects; },
     step: (input, others, acts) => {
-      lend(input); lendOthers(others, acts);
+      const interacts = acts === undefined ? [] : [...acts].flatMap(([id, list]) => netInteractCommands(actRoutes(host), list, id));
+      lend(interacts.length === 0 ? input : [...input, ...interacts]); lendOthers(others, acts);
       const tick = new Map<string, SimTickCommand>(others);
       for (const command of input) if (command.kind === 'player') tick.set(lead.id, simPlayerCommand(command));
       host.step(tick);

@@ -1,4 +1,6 @@
-import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
+import type { NetCommand } from '@wildshard/format/netCommand';
+import type { NetTickAct } from '@wildshard/engine/net/acts';
+import type { ActRoutes } from '@wildshard/engine/sim/actRoutes';
 import { NET_BUTTONS } from '@wildshard/engine/input/netButtons';
 import { netSimCommand } from '@wildshard/engine/sim/netMotion';
 import type { HeadlessCommand } from '../tickProtocol';
@@ -20,15 +22,29 @@ export function netPlayerCommand(command: NetCommand): Extract<HeadlessCommand, 
     ...((attack !== undefined && attack.targetId === undefined) || (heavy && heavyTarget === undefined) ? { swing: true as const } : {}) };
 }
 
-/** Every tick command one player's input becomes: the player command, then its launcher and acts. */
-export function netTickCommands(command: NetCommand | null, acts: readonly NetAct[]): HeadlessCommand[] {
+/**
+ * A player's `interact` acts as the script commands the interaction rows read, naming who acted. They go in the tick's first
+ * list, the one the rows watch, whoever sent them. The rows judge reach and state, so a retried act changes nothing; an id
+ * no row answers to is dropped, since an input may not end the server.
+ */
+export function netInteractCommands(routes: ActRoutes, acts: readonly NetTickAct[], player: string): HeadlessCommand[] {
+  return acts.flatMap(act => {
+    const route = act.kind === 'interact' ? routes.interactions.get(act.id) : undefined;
+    return route === undefined ? [] : [{ kind: 'script' as const, ...route, playerId: player }];
+  });
+}
+
+/** Every tick command one player's input becomes: the player command, then its launcher and acts. `interact` is netInteractCommands'. */
+export function netTickCommands(command: NetCommand | null, acts: readonly NetTickAct[], routes?: ActRoutes): HeadlessCommand[] {
   const out: HeadlessCommand[] = [];
   if (command !== null) {
     out.push(netPlayerCommand(command));
     const { launcher } = command;
     if (launcher !== undefined) out.push({ kind: 'launcher', slot: launcher.slot, ads: launcher.ads, pitch: lookPitch(command), ...(launcher.fire === undefined ? {} : { fire: launcher.fire }) });
   }
-  // `interact` waits for its data-only owner: today's trusted resident refuses it, and an input may not end the server.
-  for (const act of acts) if (act.kind === 'reload') out.push({ kind: 'launcher', slot: act.slot, ads: 0, pitch: command === null ? 0 : lookPitch(command), reload: true });
+  for (const act of acts) {
+    if (act.kind === 'reload') out.push({ kind: 'launcher', slot: act.slot, ads: 0, pitch: command === null ? 0 : lookPitch(command), reload: true });
+    else if (act.kind === 'equip' && routes?.equip !== null && routes?.equip !== undefined) out.push({ kind: 'script', actorId: routes.equip, value: act.slot });
+  }
   return out;
 }

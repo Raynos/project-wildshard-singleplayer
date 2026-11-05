@@ -43,6 +43,8 @@ export class PlayerSim implements PlayerMotionState {
   readonly position: Vector3;
   /** This player's strike clock; the host also lists it by id, so a strike is resolved like any other actor's. */
   readonly strike: StrikeRunner = new StrikeRunner();
+  /** The loadout slot this player holds, for the wire. The loadout writes it each tick and keeps the saved truth. */
+  held = 0;
   /** Transient world velocity (m/s), the client Player's impulse law (player/impulse.ts). */
   readonly impulse: Vector3 = new Vector3();
   /** Vertical speed (m/s, negative = falling) and whether the motor last stood it on ground, the client Player's on-foot

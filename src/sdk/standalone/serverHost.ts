@@ -11,6 +11,7 @@ import { installSaveEnvironment } from '@wildshard/engine/saves/environment';
 import { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveKeyDef } from '@wildshard/engine/saves/store';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { serializeSimSnapshot, snapshotSimHostBytes } from '@wildshard/engine/sim/snapshot';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput, type TrustedHeadlessResident } from '../headlessRuntime';
@@ -62,7 +63,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     const live = resident;
     const step: ConstructorParameters<typeof NetRoom>[0]['step'] = inputs => {
       const started = diagnosticNow(), own = inputs[0];
-      live.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? []) }], COMMANDS_PER_TICK));
+      live.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(live.host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
       tickMs = diagnosticNow() - started;
       if (probing !== null && live.host.state.tick % 2 === 0) { post({ kind: 'probed', id: probing, tick: live.host.state.tick, tickMs, rows: probeRows(live) }); probing = null; }
     };

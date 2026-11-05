@@ -1,5 +1,5 @@
 // P1-E5.2 (E5-REPLICATION §4.2–4.3): the small messages around `frame` and `cmds`. Every message starts with its id byte.
-import type { NetAct } from '@wildshard/format/netCommand';
+import type { NetRoomAct } from './acts';
 import { BitReader, bitsToFloat, floatToBits, NetDecodeError, type BitWriter } from './bits';
 import type { NetIdentity } from './identity';
 import type { QuestProgress } from '../quest/progress';
@@ -140,20 +140,26 @@ export function decodeEvents(bytes: Uint8Array, bits: InitialBits): { readonly t
   });
 }
 
-const ACT_INTERACT = 1, ACT_RELOAD = 2;
+const ACT_INTERACT = 1, ACT_RELOAD = 2, ACT_EQUIP = 3, ACT_CHAT = 4, ACT_REPORT = 5;
 /** Encode an `act` message. */
-export function encodeAct(writer: BitWriter, act: NetAct): ArrayBuffer {
+export function encodeAct(writer: BitWriter, act: NetRoomAct): ArrayBuffer {
   writer.write(MSG_ACT, 8); writer.write(act.seq, 16);
   if (act.kind === 'interact') { writer.write(ACT_INTERACT, 8); writer.writeText(act.id); }
-  else { writer.write(ACT_RELOAD, 8); writer.write(act.slot, 8); }
+  else if (act.kind === 'reload') { writer.write(ACT_RELOAD, 8); writer.write(act.slot, 8); }
+  else if (act.kind === 'equip') { writer.write(ACT_EQUIP, 8); writer.write(act.slot, 8); }
+  else if (act.kind === 'chat') { writer.write(ACT_CHAT, 8); writer.writeBool(act.channel === 'proximity'); writer.writeText(act.text); }
+  else { writer.write(ACT_REPORT, 8); writer.write(act.line, 32); }
   return writer.finish();
 }
 /** Decode an `act` message. */
-export function decodeAct(bytes: Uint8Array): NetAct | null {
-  return guarded(bytes, MSG_ACT, (reader): NetAct => {
+export function decodeAct(bytes: Uint8Array): NetRoomAct | null {
+  return guarded(bytes, MSG_ACT, (reader): NetRoomAct => {
     const seq = reader.read(16), kind = reader.read(8);
     if (kind === ACT_INTERACT) return { kind: 'interact', seq, id: reader.readText() };
     if (kind === ACT_RELOAD) return { kind: 'reload', seq, slot: reader.read(8) };
+    if (kind === ACT_EQUIP) return { kind: 'equip', seq, slot: reader.read(8) };
+    if (kind === ACT_CHAT) return { kind: 'chat', seq, channel: reader.readBool() ? 'proximity' : 'room', text: reader.readText() };
+    if (kind === ACT_REPORT) return { kind: 'report', seq, line: reader.read(32) };
     throw new NetDecodeError('Unknown act');
   });
 }

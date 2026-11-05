@@ -2,7 +2,8 @@
 // sends commands in bundles with redundant copies. Prediction and interpolation build on this in E5.3; the view halves
 // read its rows in E4.3. It knows nothing of how bytes travel, and imports nothing from the server.
 import type { QuestProgress } from '../quest/progress';
-import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
+import type { NetCommand } from '@wildshard/format/netCommand';
+import type { NetRoomAct } from './acts';
 import { BitWriter } from './bits';
 import { encodeCommands, seqAfter } from './command';
 import { GUEST, type NetIdentity } from './identity';
@@ -105,7 +106,7 @@ export class NetClient {
     this.transport.send('unreliable', encodeCommands(this.writer, { ackFrame, commands }, id => this.ids.get(id) ?? 0));
   }
   /** Send a non-movement action on the reliable channel. */
-  act(act: NetAct): void { this.transport.send('reliable', encodeAct(this.writer, act)); }
+  act(act: NetRoomAct): void { this.transport.send('reliable', encodeAct(this.writer, act)); }
   /** Stop listening; the transport stays with its owner. */
   dispose(): void { for (const off of this.off) off(); this.listeners.clear(); this.fights.clear(); this.travels.clear(); }
 

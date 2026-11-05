@@ -3,6 +3,7 @@ import * as interactionContracts from '@wildshard/format/questInteractions';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { pickPrompt, setPromptSight, type PromptTarget } from '@wildshard/engine/world/interact/prompts';
 import { questBooks } from '@wildshard/engine/quest/players';
 
@@ -147,6 +148,7 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
     if (entry.crack !== undefined && ports.crack === undefined) throw new Error(`Interaction row ${entry.id} needs a cracking item`);
     return [entry.act, { entry, spot }] as const;
   }));
+  for (const { entry } of byAct.values()) if (entry.crack === undefined) actRoutes(host).interactions.set(entry.id, { actorId: ports.actorId, value: entry.act });
   const picker = createHeadlessPromptPicker(host), books = questBooks(host), rulesOf = playerInteractionRules(host, rules);
   const act = (value: number, lashed: boolean, player: string): void => {
     const feet = host.players.get(player)?.position;

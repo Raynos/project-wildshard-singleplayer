@@ -17,6 +17,7 @@ export const PLAYER_NET: NetSchema<PlayerSim> = netSchema<PlayerSim>({
     board: { kind: 'bool', read: player => player.board.on },
     swim: { kind: 'bool', read: player => player.swim.on },
     hp: { kind: 'u16', read: player => Math.ceil(player.health.attributes.health) },
+    held: { kind: 'u8', read: player => player.held },
     px: { kind: 'f32', predicted: true, read: player => player.position.x },
     py: { kind: 'f32', predicted: true, read: player => player.position.y },
     pz: { kind: 'f32', predicted: true, read: player => player.position.z },
