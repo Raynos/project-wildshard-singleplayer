@@ -311,6 +311,7 @@ readFileSync('../public/assets/native/untracked.bin');
             exact[name] = ((TOOL_ROOT / name).read_text() if name == 'lint-fast.mjs' else
                            subprocess.check_output(['git', 'show', 'HEAD:scripts/' + name], cwd=ROOT, text=True))
             self.put('scripts/' + name, exact[name])
+        self.put('lint/layer-exports.mjs', subprocess.check_output(['git', 'show', 'HEAD:lint/layer-exports.mjs'], cwd=ROOT, text=True))
         self.put('scripts/runtime_input_copies.py', (TOOL_ROOT / 'runtime_input_copies.py').read_text())
         self.put('scripts/copied-runtime-inputs.json', '{"version":1,"copies":[]}')
         self.put('package.json', '{}')
