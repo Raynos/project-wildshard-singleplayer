@@ -380,6 +380,7 @@
   "src/engine/client/net/client.ts": "client",
   "src/engine/client/net/interpolator.ts": "client",
   "src/engine/client/net/netClock.ts": "client",
+  "src/engine/client/net/netPlayer.ts": "client",
   "src/engine/client/net/onRep.ts": "client",
   "src/engine/client/net/predictionWorld.ts": "client",
   "src/engine/client/net/predictor.ts": "client",
