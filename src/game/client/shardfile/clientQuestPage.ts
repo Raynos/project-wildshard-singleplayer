@@ -4,7 +4,7 @@ import { ClientQuestPageSchema } from '@wildshard/format/clientNative';
 import type { ShardContext } from '../plugin/context';
 import { installPersistedQuest, bindPageQuestStages } from '../plugin/ui';
 import type { DirectorActionBinding } from '../../server/plugin/director';
-import { bindRuntimeCoins } from '../../server/plugin/headless';
+import { bindRuntimeCoins } from '../../shared/plugin/runtimeRows';
 import { installRuntimeAudio } from '../plugin/audio';
 import { installRuntimeLoot } from '../../server/loot/runtime';
 import { installBoundQuestFlags, publishQuestFacts } from '../../shared/quest/boundState';

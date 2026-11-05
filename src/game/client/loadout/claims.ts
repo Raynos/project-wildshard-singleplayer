@@ -14,7 +14,8 @@ import { HeldArmsSchema, parseHeldSlots, type HeldSlotsRows, type HeldArmsRows }
 import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { createClientScene } from '../plugin/scene';
-import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile } from '../../server/plugin/headless';
+import { bindRuntimeEquipment, bindRuntimeItems } from '../../server/plugin/headless';
+import { sameRuntimeProfile } from '../../shared/plugin/runtimeRows';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { heldArmsGear } from '../models/heldGear';
 import { HeldView } from '../systems/viewmodel/heldView';

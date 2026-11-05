@@ -1,6 +1,6 @@
 import { MaterialsSchema } from '@wildshard/format/materials';
 import { parse } from 'valibot';
-import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/server/plugin/headless';
+import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/shared/plugin/runtimeRows';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { parseRows } from '@wildshard/format/rows';
 import { expect, test } from 'vitest';

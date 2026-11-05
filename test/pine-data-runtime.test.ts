@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Audit only this shard's authored runtime directory.
 import {existsSync,readdirSync} from 'node:fs';
 import {expect,test} from 'vitest';
-import {runtimeBinds} from '../src/game/server/plugin/headless';
+import { runtimeBinds } from '../src/game/shared/plugin/runtimeRows';
 import {regionalRuntimeAccountedBytes} from '../src/game/client/grid/regionalRuntime';
 import {useOwnedGridHome} from '../src/game/client/grid/pageShell';
 import {MANIFEST} from '../src/shards/pine-hollow/discovery.generated';

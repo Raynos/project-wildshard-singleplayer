@@ -8,7 +8,7 @@ import type { RoamingEncounterRow } from '@wildshard/format/bossEncounter';
 import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import { pageDecisionAuthority } from '../../server/shardfile/borrowedDecisions';
 import { pageCombatSession, type PageCombatSession } from '../../server/Boss';
-import { bindRuntimeBoss } from '../../server/plugin/headless';
+import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { prepareBossSocketRig, bindBossSocketRig, bossSocketResources, type BossSocketRig } from './socketRig';
 import { keyedSkyOf } from '../looks/keyedSky';

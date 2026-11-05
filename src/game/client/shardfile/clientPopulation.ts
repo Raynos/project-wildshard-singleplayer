@@ -3,7 +3,7 @@ import { buildYield } from '@wildshard/engine/core/workSlice';
 import { ClientPopulationSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import type { ShardContext } from '../plugin/context';
-import type { RuntimeHomePorts } from '../../server/plugin/headless';
+import type { RuntimeHomePorts } from '../../shared/plugin/runtimeRows';
 import { bindPageHomes } from '../../shared/population/pageHomes';
 import { pagePopulationRows } from '../../shared/population/pageRows';
 import { productPainterLight } from '../looks/paintedLook';

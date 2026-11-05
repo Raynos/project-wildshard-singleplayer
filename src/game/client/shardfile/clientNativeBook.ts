@@ -3,7 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import type { createDeclaredHeldMelee } from '../plugin/weaponFamily';
 import type { SpeciesBrains, SpeciesPageCatalogue, SpeciesDecisionAuthority } from '../../server/plugin/brain';
-import type { RuntimeHomes, RuntimeCoins } from '../../server/plugin/headless';
+import type { RuntimeHomes, RuntimeCoins } from '../../shared/plugin/runtimeRows';
 import type { PersistedQuest, bindDeclaredFight, PageQuestStages } from '../plugin/ui';
 import type { DeclaredPage } from '../../server/quest/declaredPage';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';

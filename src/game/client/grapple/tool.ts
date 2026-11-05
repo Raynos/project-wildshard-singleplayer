@@ -1,7 +1,7 @@
 import { type GrapplePorts, type GrappleCourse, type GrappleTarget, type GrappleView, type Side, GrappleSim, DEFAULT_GRAPPLE_MODE, NONE, hookVisible, landingFor, targetFor } from '../../shared/grapple/sim';
 import { Tool } from '@wildshard/engine/combat/Tool';
 import type { EquipmentRow, EquipContext } from '@wildshard/engine/combat/Equipment';
-import { bindRuntimeLedger, projectRuntimeFacts } from '../../server/plugin/headless';
+import { bindRuntimeLedger, projectRuntimeFacts } from '../../shared/plugin/runtimeRows';
 import { grappleCourse } from '../../shared/grapple/course';
 import type { GrappleRows, GrappleProfile, GrappleCourseRow } from '@wildshard/format/grapple';
 import * as v from 'valibot';

@@ -16,7 +16,7 @@ import type { Progress } from '../src/game/client/Progress';
 import type { LedgerReceipt } from '../src/game/shared/ledger';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installDeclaredPortalRide, installPortalRide, type PortalPlayer } from '../src/game/client/shardfile/portalRideBinding';
-import * as headless from '../src/game/server/plugin/headless';
+import * as headless from '../src/game/shared/plugin/runtimeRows';
 import * as ownership from '../src/engine/client/ui/ownership';
 import source from './fixtures/nine-product-inputs';
 import portalRows from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };

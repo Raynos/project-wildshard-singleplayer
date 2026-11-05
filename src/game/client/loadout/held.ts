@@ -11,7 +11,7 @@ import { fixIBL, VIEWMODEL_GROUP, worldHit } from '@wildshard/engine/combat/view
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
-import { bindRuntimeState } from '../../server/plugin/headless';
+import { bindRuntimeState } from '../../shared/plugin/runtimeRows';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { runtimeAudio, sharedWeaponVoices } from '../plugin/audio';
 import { PLAIN_BOLT, HeldLauncher, type HeldBolt } from '../weapons/heldLauncher';

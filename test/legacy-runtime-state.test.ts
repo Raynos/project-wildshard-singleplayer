@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, test } from 'vitest';
 import { SaveStore } from '../src/engine/shared/saves/store';
 import { Scope } from '../src/engine/shared/app/scope';
 import { installRuntimeState } from '../src/game/shared/shardfile/runtimeState';
-import { bindRuntimeState } from '../src/game/server/plugin/headless';
+import { bindRuntimeState } from '../src/game/shared/plugin/runtimeRows';
 import { installShards, shards } from '../src/game/client/shard/list';
 import { sourceManifest, type ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

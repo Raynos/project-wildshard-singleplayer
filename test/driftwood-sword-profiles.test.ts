@@ -1,4 +1,4 @@
-import { sameRuntimeProfile } from '../src/game/server/plugin/headless';
+import { sameRuntimeProfile } from '../src/game/shared/plugin/runtimeRows';
 import { parseItems } from '@wildshard/format/items';
 import { expect, test } from 'vitest';
 import { encodeCanonicalJson } from '../src/sdk/immutable';

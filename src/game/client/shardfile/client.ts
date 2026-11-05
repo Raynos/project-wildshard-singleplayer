@@ -72,7 +72,7 @@ import { portalTransitioning } from '../../shared/shardfile/portalTraversal';
 import { syncTargetColliders } from '../../shared/shardfile/targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from '../../server/shardfile/items';
-import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../server/plugin/headless";
+import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../shared/plugin/runtimeRows";
 import { createShardfileSim, declaredItemScriptBindings, type ShardfileSimulation, type ShardfileSimPorts } from '../../server/plugin/simulation';
 import { scriptDisabledNotice } from '../../shared/shardfile/scriptNotice';
 import type { DeclaredGroupPorts } from '../../server/shardfile/groupRuntime';

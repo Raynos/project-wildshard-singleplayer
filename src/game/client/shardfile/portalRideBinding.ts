@@ -127,7 +127,7 @@ export async function installDeclaredPortalRide(ctx: ShardContext, input: Declar
 
 async function installPageRide(ctx: Pick<ShardContext, 'game' | 'system' | 'scope'>, source: PortalSource, rows: PortalRideRows, facts: PortalFacts | ShardContext): Promise<PortalRide> {
   const declared = typeof facts === 'function' ? null : facts, original = portalOwner(ctx, declared), world = original.world;
-  const [{ declarePanel }, { mountUi, uiScope }, { bindRuntimeLedger, projectRuntimeFacts }] = await Promise.all([import('@wildshard/engine/ui/panel'), import('@wildshard/engine/ui/ownership'), import('../../server/plugin/headless')]);
+  const [{ declarePanel }, { mountUi, uiScope }, { bindRuntimeLedger, projectRuntimeFacts }] = await Promise.all([import('@wildshard/engine/ui/panel'), import('@wildshard/engine/ui/ownership'), import('../../shared/plugin/runtimeRows')]);
   original.check();
   // Validate the director, traversal and detached panel before a ledger, mounted veil or system can be allocated.
   const lane = createPortalRide(portalRings(source, rows)), rider = portalRider(world.player, () => world.physics, source);

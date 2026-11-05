@@ -29,7 +29,7 @@ import { wildEnv } from '../population/pageGroups';
 import { arenaBoundary, arenaTie } from './arenaAnswers';
 import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from './openArenaFight';
 import { ArenaFightPageSchema, arenaRoomFight, bindArenaBrain, type BoundedArenaFight } from './arenaRoomFight';
-import { bindRuntimeBoss } from '../plugin/headless';
+import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ArenaRoomPortalSchema } from '../../shared/boss/arenaRoomRows';

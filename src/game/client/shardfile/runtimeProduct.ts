@@ -21,7 +21,7 @@ import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { readProductDescriptor, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { runtimeBoundWorldFiles } from '../../server/plugin/headless';
+import { runtimeBoundWorldFiles } from '../../shared/plugin/runtimeRows';
 import { clientMaterials } from './clientMaterials';
 import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import type { ShardContext } from '../plugin/context';

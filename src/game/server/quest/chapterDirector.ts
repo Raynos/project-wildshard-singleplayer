@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
 import { parseChapterDirector, parseChapterWake, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
-import { bindRuntimeBoss } from '../plugin/headless';
+import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { WakeBossEncounter } from '../boss/wake';
 import { presentWakeBoss } from '../../client/boss/presentation';

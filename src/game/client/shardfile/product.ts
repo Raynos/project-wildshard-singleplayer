@@ -23,7 +23,7 @@ import { preflightProduct } from './productPreflight';
 
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from '../../shared/shardfile/identity';
-import { runtimeBoundWorldFiles } from '../../server/plugin/headless';
+import { runtimeBoundWorldFiles } from '../../shared/plugin/runtimeRows';
 import { neighbourProductFilesPaced, runtimeOnlyProductFilesPaced, tierLibrarySourcePaced, tierProductFilesPaced, urlImageLibrarySourcePaced, scopedSpecimenLibrarySourcePaced, playLibrarySourcePaced, deviceLibraryCostPaced } from './productCost';
 import { carryOutputDescriptor, IncompleteOutputCacheError, isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { checkedProductCosts, parseCheckedProduct, prepareCheckedProduct, validateCheckedProductAssets } from './productChecks';

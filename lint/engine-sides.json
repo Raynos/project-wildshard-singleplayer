@@ -1140,6 +1140,7 @@
   "src/game/server/plugin/director.ts": "server",
   "src/game/client/plugin/geometry.ts": "client",
   "src/game/server/plugin/headless.ts": "server",
+  "src/game/shared/plugin/runtimeRows.ts": "shared",
   "src/game/client/plugin/heldEquipment.ts": "client",
   "src/game/client/plugin/heldFirearm.ts": "client",
   "src/game/client/plugin/heldRecipe.ts": "client",
