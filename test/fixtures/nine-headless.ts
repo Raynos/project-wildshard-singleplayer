@@ -3,7 +3,7 @@ import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { trustedLevel, addBakedPieces } from '../../src/game/plugin/simulation';
 import { tagOf } from '../../src/engine/physics/surface';
 import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
-import { installGrapple } from './native-hosts/grapple/headless';
+import { installGrapple } from '@wildshard/game/grapple/native';
 import { parseGrappleProfile } from '@wildshard/format/grapple';
 import { installHostPortalRide } from '../../src/game/shardfile/portalRideBinding';
 import { installNativeItems } from '../../src/game/plugin/nativeItems';

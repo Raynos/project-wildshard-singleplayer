@@ -296,6 +296,7 @@
     "./grapple/tool": "./grapple/tool.ts",
     "./grapple/course": "./grapple/course.ts",
     "./grapple/sim": "./grapple/sim.ts",
+    "./grapple/native": "./grapple/native.ts",
     "./shardfile/sceneBuffers": "./shardfile/sceneBuffers.ts",
     "./stealth/controller": "./stealth/controller.ts",
     "./stealth/stealthLaw": "./stealth/stealthLaw.ts",
