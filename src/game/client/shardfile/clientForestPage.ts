@@ -35,7 +35,7 @@ import { rangedPage, type RangedPage } from '../loadout/rangedPage';
 import { forestWeatherOwner, installForestWeather, type ForestWeatherRig } from '../weather/forest';
 import { installPageLife, type PageLife } from '../population/pageLife';
 import { CaveInterior } from './caveInterior';
-import { entryOwner, presentEntryOwner, publishEntryOwner, type EntryOwnerKind, type EntryOwnerTypes } from './entryOwners';
+import { entryOwner, presentEntryOwner, publishEntryOwner, type EntryOwnerKind, type EntryOwnerTypes } from '../../shared/shardfile/entryOwners';
 import { placeForestPageModels, prepareForestPage, prepareForestPageLooks, type ForestPage } from './forestPage';
 import { lendLooks, type LentLooks } from './lentLooks';
 import { punchPageTerrain } from './pagePreparation';

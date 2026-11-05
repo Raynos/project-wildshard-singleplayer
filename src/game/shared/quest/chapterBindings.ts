@@ -4,7 +4,7 @@ import type { ShardContext } from '../../client/plugin/context';
 import type { QuestChapter } from '../../server/quest/chapter';
 import { boundQuestState } from './boundState';
 import { questObservation } from './questObservation';
-import type { AdventurePersistence } from '../../server/quest/persistence';
+import type { AdventurePersistence } from './persistence';
 
 const persistenceOwners = new WeakMap<Scope, AdventurePersistence>();
 /** Saved owners publish directly, so numeric readers never import client persistence code. */

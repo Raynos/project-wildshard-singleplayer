@@ -12,7 +12,7 @@ import type { ShardWorld } from '../../server/shard/world';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { WorldAssembly } from '../shardfile/worldAssembly';
-import { entryOwner } from '../shardfile/entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { productFixedDraws } from '../models/fixedDraws';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

@@ -14,7 +14,7 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { speciesViewSlots } from '../population/speciesViewSlots';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { setLentParam } from './lentLooks';
 
 const lentSlots = new WeakMap<Scope, Map<string, ViewSlots>>(), lentValues = new WeakMap<Scope, Map<string, (field: string) => number>>();

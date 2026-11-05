@@ -3,7 +3,7 @@
 import type { ShardContext } from '../plugin/context';
 import { HeldClaims } from '../loadout/claims';
 import { parseHeldSlots } from '@wildshard/format/heldArms';
-import { entryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 
 const ended = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.disposing;
 

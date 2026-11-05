@@ -3,7 +3,7 @@ import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { TimedEncounters } from '../../server/boss/timedEncounters';
 import { SceneDressing } from './sceneDressing';
-import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 
 /** Keep two original figure copies, their shared storm alias, the existing

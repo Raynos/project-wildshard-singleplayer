@@ -7,7 +7,7 @@ import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shardfile/worldAssembly';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { createAmbientFlock } from '../src/game/client/ambient/ambientFlock';

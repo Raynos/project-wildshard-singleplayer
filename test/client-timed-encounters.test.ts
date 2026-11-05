@@ -23,7 +23,7 @@ import { CueDirector } from '../src/game/client/audio/cueDirector';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { clientNativeBook } from '../src/game/client/shardfile/clientNativeBook';
-import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { installClientTimedEncounters } from '../src/game/client/shardfile/clientTimedEncounters';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { sha256 } from '../src/game/shared/plugin/moduleHash';

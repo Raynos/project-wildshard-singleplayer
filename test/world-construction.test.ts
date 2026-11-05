@@ -20,7 +20,7 @@ import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shard
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
-import { entryOwner, publishEntryOwner, type EntryOwnerTypes } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner, type EntryOwnerTypes } from '../src/game/shared/shardfile/entryOwners';
 import type { FixedDraws } from '../src/game/client/models/fixedDraws';
 import type { BakedTiles } from '../src/game/client/shardfile/bakedTiles';
 import * as assets from './fixtures/driftwoodLegacyAssets';

@@ -11,7 +11,7 @@ import * as lookCompiler from '../src/game/client/shardfile/runtimeProduct';
 import { hasLentLook, lentLook } from '../src/game/client/shardfile/lentLooks';
 import { clientCosmeticFinishes } from '../src/game/client/shardfile/clientCosmeticFinishes';
 import { publishBoundPersistence } from '../src/game/shared/quest/chapterBindings';
-import type { AdventurePersistence } from '../src/game/server/quest/persistence';
+import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import type { CosmeticState } from '../src/game/client/cosmetics/locker';
 import { clientSceneHandles } from '../src/game/client/shardfile/clientSceneHandles';
 import { expect, test, vi } from 'vitest';
@@ -28,7 +28,7 @@ import * as questWorldPreparation from '../src/game/server/shardfile/questWorld'
 import * as rangedPreparation from '../src/game/client/loadout/rangedPage';
 import * as spawnPreparation from '../src/game/server/quest/chapterDirector';
 import type { QuestSpawnResult } from '../src/game/server/quest/chapterDirector';
-import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import * as runtimeHookBindings from '../src/game/client/shardfile/clientRuntimeHooks';
 import * as viewPrograms from '../src/game/client/shardfile/clientViewProgram';
 import * as clientPhases from '../src/game/client/shardfile/clientPlan';

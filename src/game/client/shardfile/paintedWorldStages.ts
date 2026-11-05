@@ -18,7 +18,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { FixedDraws } from '../models/fixedDraws';
 import { paintedWorldOf } from '../looks/postGraphLook';
-import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 
 /** one load a page per library, as a level's own loader kept (a re-entered world reuses it; a failed load stays failed) */
 const loads = new WeakMap<FixedDraws, Promise<void>>();

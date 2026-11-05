@@ -2,7 +2,7 @@ import { object, parse, pick } from 'valibot';
 import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { productSpeciesCatalogueSliced } from '../looks/speciesBook';
 import { buildYield } from '@wildshard/engine/core/workSlice';
-import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { floorBelow } from '@wildshard/engine/physics/query';

@@ -10,7 +10,7 @@ import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import type { ShardContext } from '../../client/plugin/context';
 import { followToonLook } from '../../client/looks/toonLook';
 import { toonLightingOf } from '../../client/looks/toonLighting';
-import { entryOwner, lateEntryOwner, presentEntryOwner } from '../../client/shardfile/entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner } from '../../shared/shardfile/entryOwners';
 import { lentToon } from '../../client/shardfile/lentLooks';
 import { boundResidentWorldScope } from '../../client/shardfile/hybridPresentation';
 import { paintedWorldUpdate } from '../../client/shardfile/paintedWorldStages';

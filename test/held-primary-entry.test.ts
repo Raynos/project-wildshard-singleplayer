@@ -10,7 +10,7 @@ import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';
 import { Vector3 } from 'three';
 import { heldSwordWorld } from './fixtures/heldNativeSword';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../src/game/client/shardfile/heldClaimsEntry';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';

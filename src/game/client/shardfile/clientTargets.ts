@@ -8,7 +8,7 @@ import type { CrowdWeaponTarget, ForagerTargets } from '../../shared/shardfile/c
 import type { ShardContext } from '../plugin/context';
 import {clientWildlifeState,type PageWildlife} from '../../server/population/wildlife';
 import type { CrowdDraw } from '../ambient/crowdDraw';
-import {entryOwner} from './entryOwners';
+import {entryOwner} from '../../shared/shardfile/entryOwners';
 import { installEnteredLevelService } from '../shard/retainedHooks';
 import { filterCombatAimTargets } from '../../shared/shardfile/aimTargetFilter';
 

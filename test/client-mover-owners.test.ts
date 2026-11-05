@@ -16,7 +16,7 @@ import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generate
 import * as movers from '../src/game/server/plugin/mover';
 import * as moverInstall from '../src/game/server/plugin/moverInstall';
 import { installClientMoverOwners } from '../src/game/client/shardfile/clientMoverOwners';
-import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';

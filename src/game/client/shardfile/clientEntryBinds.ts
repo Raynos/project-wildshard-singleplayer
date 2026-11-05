@@ -2,7 +2,7 @@
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { clientCosmeticFinishes } from './clientCosmeticFinishes';
-import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 
 /** Keep the original room/open encounter, kit and reward model. The finite
  * equipment option lends the installed finish locker and the same claims. */

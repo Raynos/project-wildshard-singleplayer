@@ -5,7 +5,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../../client/plugin/context';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import { installClientRuntimeHooks, runtimeLevelBounds } from '../../client/shardfile/clientRuntimeHooks';
-import { lendEntryOwner,publishEntryOwner } from '../../client/shardfile/entryOwners';
+import { lendEntryOwner,publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function runtime():ShardRuntime{return {world:null,play:null,step:null,interactables:[],overhead:[],hooks:{},objects:{},viewer:()=>new Vector3(),horizonVeil:null};}

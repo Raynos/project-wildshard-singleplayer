@@ -5,12 +5,12 @@ import * as v from 'valibot';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import type { ShardContext } from '../../client/plugin/context';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { bindRuntimeJsonRecord, bindRuntimeLedger, bindRuntimeState, projectRuntimeFacts, type RuntimeFacts } from '../../shared/plugin/runtimeRows';
-import { bossesSave, elitesSave, progressSave } from '../../shared/saves';
+import { bindRuntimeJsonRecord, bindRuntimeLedger, bindRuntimeState, projectRuntimeFacts, type RuntimeFacts } from '../plugin/runtimeRows';
+import { bossesSave, elitesSave, progressSave } from '../saves';
 import type { Progress } from '../../client/Progress';
-import { publishBoundPersistence } from '../../shared/quest/chapterBindings';
+import { publishBoundPersistence } from './chapterBindings';
 import { featOutcome, witnessSavedFeats, type FeatCounterPorts } from './featCounters';
-import { publishEntryOwner } from '../../client/shardfile/entryOwners';
+import { publishEntryOwner } from '../shardfile/entryOwners';
 
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.minValue(0));

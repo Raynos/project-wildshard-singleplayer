@@ -18,7 +18,7 @@ import * as v from 'valibot';
 import type { PageSimFeed } from '../plugin/pageSimFeed';
 import { boundQuestState } from '../../shared/quest/boundState';
 import { TIER } from '@wildshard/engine/core/tier';
-import { entryOwner } from '../../client/shardfile/entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ChapterClock } from '../../shared/quest/chapterClock';
 import { prepareScriptMemoryLease } from '@wildshard/engine/script/host';

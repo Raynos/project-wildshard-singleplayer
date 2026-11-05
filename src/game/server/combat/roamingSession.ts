@@ -24,7 +24,7 @@ import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { installEliteFeaturePage } from '../quest/elitePage';
 import { readEliteFeature } from '../quest/eliteFeature';
-import { bindAdventurePersistence } from '../quest/persistence';
+import { bindAdventurePersistence } from '../../shared/quest/persistence';
 import type { ShardContext } from '../../client/plugin/context';
 import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../../client/shard/retainedHooks';
 

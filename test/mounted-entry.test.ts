@@ -13,7 +13,7 @@ import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/client/shardfile/clientPlan';
-import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { parseItems } from '@wildshard/format/items';
 import { emptyShardfile } from '../src/sdk/author';

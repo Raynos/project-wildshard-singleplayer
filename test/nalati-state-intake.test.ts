@@ -21,7 +21,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import type { FixedDraws } from '../src/game/client/models/fixedDraws';
 import { WorldAssembly } from '../src/game/client/shardfile/worldAssembly';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
-import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { nodeNamedJsonCheck } from '../src/game/shared/shardfile/outputChecksNode';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';

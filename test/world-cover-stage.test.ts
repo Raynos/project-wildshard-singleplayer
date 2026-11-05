@@ -12,7 +12,7 @@ import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shardfile/worldAssembly';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import type { FixedDraws } from '../src/game/client/models/fixedDraws';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';

@@ -35,7 +35,7 @@ import { sharedModelContext, type ModelContext } from '@wildshard/engine/models/
 import type { ModelSite } from '@wildshard/engine/models/place';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { WorldAssemblySchema, type WorldAssemblyStage, type WorldConstructionRows, type WorldAssemblyRows } from '@wildshard/format/worldAssembly';
-import { publishEntryOwner, entryOwner, lendEntryOwner, presentEntryOwner } from './entryOwners';
+import { publishEntryOwner, entryOwner, lendEntryOwner, presentEntryOwner } from '../../shared/shardfile/entryOwners';
 import { WorldEntry, type WorldEntryPorts } from './worldEntry';
 import { timeClientPreparation } from './preparationTiming';
 import type { SceneHandles } from './sceneHandles';

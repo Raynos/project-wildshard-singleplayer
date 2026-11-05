@@ -9,7 +9,7 @@ import { QuestPageReference } from '../src/game/client/quest/pageReference';
 import { ProductFigureCatalogue } from '../src/game/client/models/figureCatalogue';
 import { fixedDraws } from '../src/game/client/models/fixedDraws';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
-import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installEntryQuestComposition, installEntryQuestReference } from '../src/game/client/shardfile/clientQuestComposition';

@@ -17,7 +17,7 @@ import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import type { ShardContext } from '../plugin/context';
 import type { QuestPageComposition } from '../../server/quest/pageComposition';
-import { entryOwner } from '../shardfile/entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { installChapterLead, type QuestSpawnResult } from '../../server/quest/chapterDirector';
 import { forestPage, type ForestPage } from '../shardfile/forestPage';
 import { rangedPage } from '../loadout/rangedPage';

@@ -1,7 +1,7 @@
 import { parseQuestWorldDocument } from '@wildshard/format/questWorld';
 import type { ShardContext } from '../../client/plugin/context';
 import { registerQuestPageWorld } from '../../shared/quest/pageResources';
-import { entryOwner } from '../../client/shardfile/entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 
 const ended = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.disposing;
 /** Publish admitted static POI anchors and borrow the original ambient owner

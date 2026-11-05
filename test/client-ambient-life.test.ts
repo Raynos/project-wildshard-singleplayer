@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { AmbientFlockDraw } from '../src/game/client/ambient/ambientFlock';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { installClientAmbientLife } from '../src/game/client/shardfile/clientAmbientLife';
-import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { parsePageLife } from '@wildshard/format/pageLife';
 import { emptyShardfile } from '../src/sdk/author';

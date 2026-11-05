@@ -8,7 +8,7 @@ import { INPUT_CONTEXTS } from '../../src/game/client/inputContexts';
 import { shardContext } from '../../src/game/client/plugin/context';
 import { createShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../../src/game/client/shardfile/heldClaimsEntry';
-import { entryOwner } from '../../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../../src/game/shared/shardfile/entryOwners';
 import { heldSwordWorld } from './heldNativeSword';
 import type { HeldMeleeOwner } from '../../src/game/client/loadout/claims';
 import type { ShardRuntime } from '../../src/game/shared/shard/runtime';

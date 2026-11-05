@@ -1,7 +1,7 @@
 import type { ShardContext } from '../plugin/context';
 import { installEnteredLevelService } from '../shard/retainedHooks';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import { publishEntryOwner, presentEntryOwner, type WorldFrameOwner } from '../shardfile/entryOwners';
+import { publishEntryOwner, presentEntryOwner, type WorldFrameOwner } from '../../shared/shardfile/entryOwners';
 import { DataPanel } from '../ui/dataPanels';
 import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
 import type { HeldClaims } from '../loadout/claims';

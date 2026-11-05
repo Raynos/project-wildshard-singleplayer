@@ -1,4 +1,4 @@
-import { entryOwner } from '../shardfile/entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { boundResidentWorldScope } from '../shardfile/hybridPresentation';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { runtimeAudio, installRuntimeAudioEntry, installRuntimeGameplayAudio, type RuntimeGameplayAudioEnvironment } from '../plugin/audio';

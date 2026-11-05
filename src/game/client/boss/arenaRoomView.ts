@@ -41,7 +41,7 @@ import { ArenaRoomGround } from '../../shared/boss/arenaGround';
 import { ArenaRoomPortalSchema, ArenaRoomSchema, type ArenaRoomRows } from '../../shared/boss/arenaRoomRows';
 import type { ArenaPageFight, ArenaRoomEncounter, ArenaRoomPage } from '../../server/boss/arenaRoom';
 import { ArenaSceneView, CloudBody } from './encounterView';
-import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
+import {entryOwner, lateEntryOwner, presentEntryOwner} from '../../shared/shardfile/entryOwners';
 import { prepareLentLooks } from '../shardfile/lentLooks';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { pageRidingMount, respawnPageMounted, installArenaBoundary } from '../riding/client';

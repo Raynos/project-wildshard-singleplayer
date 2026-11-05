@@ -4,7 +4,7 @@ import { installAssetTables } from '@wildshard/engine/boot/tables';
 import type { ShardContext } from './context';
 import type { ForestPage } from '../shardfile/forestPage';
 import type { CaveInterior } from '../shardfile/caveInterior';
-import { publishEntryOwner } from '../shardfile/entryOwners';
+import { publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import { FOREST_PAGE_PORTS, enterClientForestPage, installClientForestPage, installClientForestWeather, installClientPageLife, type ForestPagePorts } from '../shardfile/clientForestPage';
 
 beforeAll(() => {

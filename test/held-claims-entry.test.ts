@@ -8,7 +8,7 @@ import { ToonLook } from '../src/engine/client/render/families/toon';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HeldClaims } from '../src/game/client/loadout/claims';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../src/game/client/shardfile/heldClaimsEntry';
 import * as compiler from '../src/game/client/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

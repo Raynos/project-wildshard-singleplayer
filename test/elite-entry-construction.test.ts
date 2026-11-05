@@ -1,7 +1,7 @@
 import {admissionPage} from './fixtures/nalati-admission-loan';
 import { Window } from 'happy-dom';
 import { installClientEliteEntry } from '../src/game/client/shardfile/clientEliteEntry';
-import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
@@ -18,7 +18,7 @@ import type { EliteBar } from '../src/engine/client/ui/EliteBar';
 import { EncounterRegistry } from '../src/engine/shared/ai/encounters';
 import { Elites, type EliteDeclaredEntryOwners } from '../src/game/server/Elite';
 import { app } from '../src/engine/client/app/runtime';
-import type { AdventurePersistence } from '../src/game/server/quest/persistence';
+import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import type { ReturnProgram } from '../src/game/shared/population/returnProgram';
 
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';

@@ -13,7 +13,7 @@ import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {installClientWorldAssembly} from '../src/game/client/shardfile/clientWorldAssembly';
 import {preflightIslandBook} from '../src/game/client/shardfile/islandBook';
 import {WorldAssembly} from '../src/game/client/shardfile/worldAssembly';
-import {entryOwner} from '../src/game/client/shardfile/entryOwners';
+import {entryOwner} from '../src/game/shared/shardfile/entryOwners';
 import type {FixedDraws} from '../src/game/client/models/fixedDraws';
 import {emptyShardfile} from '../src/sdk/author';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';

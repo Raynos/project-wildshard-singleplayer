@@ -13,7 +13,7 @@ import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
 import { CollectionCatalogue } from '../src/game/client/models/collectionDisplay';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { publishEntryOwner, entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner, entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { installClientPlaceSets, bindClientPlaceSets } from '../src/game/client/shardfile/clientPlaceSets';
 import { installQuestContinuation, installQuestContinuationFile } from '../src/game/client/quest/continuation';
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';

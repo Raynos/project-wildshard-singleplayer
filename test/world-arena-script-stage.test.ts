@@ -19,7 +19,7 @@ import type { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { installWeatherReactions, nativeWeatherBundle } from '../src/game/server/weather/reactions';
 import { installWeatherContinuation } from '../src/game/server/weather/continuation';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shardfile/worldAssembly';
-import { publishEntryOwner, entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner, entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { nodeNamedJsonCheck } from '../src/game/shared/shardfile/outputChecksNode';

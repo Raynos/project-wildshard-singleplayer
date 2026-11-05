@@ -13,7 +13,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { createShardProduct, type ShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
 import * as arena from '../src/game/client/boss/arenaRoomView';
 import type { ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';

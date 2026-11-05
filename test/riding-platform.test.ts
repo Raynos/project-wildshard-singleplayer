@@ -1,7 +1,7 @@
 import {lendNalatiRiding} from './fixtures/nalati-riding-loan';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { installTamingEntry } from '../src/game/client/shardfile/clientEntryBinds';
-import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 // @vitest-environment happy-dom

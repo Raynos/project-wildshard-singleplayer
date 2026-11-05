@@ -12,7 +12,7 @@ import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { BuildingCloudSchema, BuildingCloudPoseSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shardfile/worldAssembly';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { LivingBuildings } from '../src/game/client/shardfile/livingBuildings';
 import { createBuildingCloud } from '../src/game/client/shardfile/buildingCloud';

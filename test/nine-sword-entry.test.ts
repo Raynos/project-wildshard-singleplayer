@@ -8,7 +8,7 @@ import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { nineHeldPresentationBytes } from './fixtures/nine-held-presentation';
 import source from './fixtures/nine-product-inputs';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { toLevelSpec } from '../src/game/server/shard/spec';
 import { declaredClientPlanEntry } from '../src/game/client/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';

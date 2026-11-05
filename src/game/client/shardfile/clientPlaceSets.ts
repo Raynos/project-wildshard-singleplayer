@@ -6,7 +6,7 @@ import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 
 const ended=(scope:Scope):boolean=>scope.disposed||scope.disposing;
 

@@ -45,7 +45,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { installEntryChapterView } from '../src/game/client/shardfile/clientQuestComposition';
-import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { peopleRows } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import { NALATI_KOKPAR as guest } from './fixtures/nalati-kokpar';

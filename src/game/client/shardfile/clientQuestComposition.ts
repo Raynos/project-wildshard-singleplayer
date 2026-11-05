@@ -11,7 +11,7 @@ import { parseQuestFiguresDocument } from '@wildshard/format/questFigures';
 import { ProductFigureCatalogue } from '../models/figureCatalogue';
 import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { ShardContext } from '../plugin/context';
-import { entryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import { residentWorldScope } from './hybridPresentation';
 import { installWorldScenes } from './worldScenes';
 

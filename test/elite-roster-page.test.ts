@@ -14,7 +14,7 @@ import type { Audio } from '../src/engine/client/audio/Audio';
 import type { Music } from '../src/engine/client/audio/Music';
 import type { EliteBar } from '../src/engine/client/ui/EliteBar';
 import type { DayCycleClock } from '../src/engine/shared/world/dayCycle';
-import type { AdventurePersistence } from '../src/game/server/quest/persistence';
+import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import type { PageWildlife } from '../src/game/server/population/wildlife';
 import { Elites } from '../src/game/server/Elite';
 

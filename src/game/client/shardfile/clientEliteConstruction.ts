@@ -10,7 +10,7 @@ import { readSpawnScript } from '../../server/population/spawnScript';
 import { clientWildlifeState } from '../../server/population/wildlife';
 import { wildEnv } from '../../server/population/pageGroups';
 import { SceneDressing } from './sceneDressing';
-import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner, type EliteEntryConstruction } from './entryOwners';
+import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner, type EliteEntryConstruction } from '../../shared/shardfile/entryOwners';
 
 /** Parsing/freezing the entry allocates no body, UI, programme instance or RNG
  * stream. Its original bind feature consumes these exact owners at play. */

@@ -8,7 +8,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { installClientSpeciesProgram, prepareClientSpeciesCatalogue } from '../src/game/client/shardfile/clientSpeciesProgram';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';

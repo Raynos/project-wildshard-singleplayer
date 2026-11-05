@@ -20,7 +20,7 @@ Research:
 - Nalati ships 13 `titan*.as` scripts (migration map §1) and the fire's `burnSeconds` / `fireDps`
   (`src/format/bossProfiles.ts:292`).
 - Consumers of `arenaRoom`: Nalati `generators/output.ts`, `game/server/quest/pageComposition.ts`,
-  `game/client/shardfile/entryOwners.ts`, `clientTargets.ts`, `worldAssembly.ts`, `worldUpdates.ts`, `game/client/looks/speciesBook.ts`.
+  `game/shared/shardfile/entryOwners.ts`, `clientTargets.ts`, `worldAssembly.ts`, `worldUpdates.ts`, `game/client/looks/speciesBook.ts`.
 
 Work: the Storm Titan becomes a boss row whose `arena` is an interior (E10a); its phases, the bolts, the fire and the
 whirls become strikes, E4's hazard rows (burn via E0g's `effect.burn`) and arena rows; the deformable floor stays as an

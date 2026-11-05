@@ -24,7 +24,7 @@ import { Group, Mesh, type Object3D } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { ModelSite, Placed } from '../src/engine/client/models/place';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shardfile/worldAssembly';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import type { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { modelContext, type ModelContext } from '../src/engine/client/models/model';

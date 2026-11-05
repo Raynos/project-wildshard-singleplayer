@@ -14,7 +14,7 @@ import { runtimeLookMaterials } from './runtimeProduct';
 import { lendLooks } from './lentLooks';
 import { installWorldScenes } from './worldScenes';
 import { bakedTileContents, residentBakedTiles, type BakedTiles } from './bakedTiles';
-import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from './entryOwners';
+import { publishEntryOwner, lendEntryOwner, entryOwner, presentEntryOwner } from '../../shared/shardfile/entryOwners';
 import { timeClientPreparation } from './preparationTiming';
 import { cameraCone, followResidentTiles, noteTileBytes, productTileRing, residentTiles } from './tileDriver';
 import { StreamingCamera } from './streamingView';

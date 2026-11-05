@@ -6,7 +6,7 @@ import { clientWildlifeState } from '../../server/population/wildlife';
 import { wildEnv } from '../../server/population/pageGroups';
 import { enterClientRiding, type PageRidingView } from '../riding/client';
 import { StealthController } from '../stealth/controller';
-import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
+import { entryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import { StealthRowsSchema } from '@wildshard/format/stealth';
 import { parse } from 'valibot';
 import { ReturnProgram } from '../../shared/population/returnProgram';

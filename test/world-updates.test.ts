@@ -15,7 +15,7 @@ import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { WorldUpdatesSchema, type WorldUpdatesRows } from '@wildshard/format/worldUpdates';
 import { bindResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
-import { publishEntryOwner, lendEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner, lendEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { toonLighting } from '../src/game/client/looks/toonLighting';
 import { followToonLook } from '../src/game/client/looks/toonLook';

@@ -1,10 +1,10 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 123,
+  "client → server": 122,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 130,
+  "server → client": 126,
   "server → dom": 2,
   "server → render": 4,
   "shared → client": 3,
@@ -163,7 +163,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/clientPlan.ts": {
-   "client → server": 6
+   "client → server": 5
   },
   "src/game/client/shardfile/clientPlayerEnter.ts": {
    "client → server": 1
@@ -291,7 +291,7 @@
    "server → client": 1
   },
   "src/game/server/quest/chapterDirector.ts": {
-   "server → client": 6
+   "server → client": 5
   },
   "src/game/server/quest/declaredPage.ts": {
    "server → client": 2
@@ -307,9 +307,6 @@
   },
   "src/game/server/quest/pageFacets.ts": {
    "server → client": 2
-  },
-  "src/game/server/quest/persistence.ts": {
-   "server → client": 1
   },
   "src/game/server/quest/reward.ts": {
    "server → client": 1
@@ -338,11 +335,8 @@
   "src/game/server/shardfile/pageItems.ts": {
    "server → client": 1
   },
-  "src/game/server/shardfile/questWorld.ts": {
-   "server → client": 1
-  },
   "src/game/server/shardfile/worldUpdates.ts": {
-   "server → client": 9
+   "server → client": 8
   },
   "src/game/server/weapons/Bow.ts": {
    "server → client": 1

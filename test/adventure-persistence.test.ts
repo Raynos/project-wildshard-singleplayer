@@ -1,6 +1,6 @@
 import originalPersistence from './fixtures/nalati-persistence-original.json' with { type: 'json' };
 import { expect, test,vi } from 'vitest';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { enteredAdventurePersistence } from '../src/game/shared/quest/chapterBindings';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/client/plugin/context';
@@ -9,8 +9,8 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
 import { bossesSave, elitesSave, progressSave } from '../src/game/shared/saves';
-import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/server/quest/legacyRecords';
-import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/server/quest/persistence';
+import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/shared/quest/legacyRecords';
+import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/shared/quest/persistence';
 import source from './fixtures/nalati-product-source';
 import { nalatiPersistenceRows } from '../src/shards/nalati-grasslands/generators/persistence';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';

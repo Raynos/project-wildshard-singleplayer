@@ -2,7 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { CosmeticFinishLocker, CosmeticFinishPainter, paintBoundFinishes } from '../loadout/cosmeticFinishes';
 import { pageRidingMount } from '../riding/client';
 import { isBowStyle } from '../../server/weapons/starterBowProfile';
-import { entryOwner, presentEntryOwner } from './entryOwners';
+import { entryOwner, presentEntryOwner } from '../../shared/shardfile/entryOwners';
 import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
 import type { ShardContext } from '../plugin/context';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';

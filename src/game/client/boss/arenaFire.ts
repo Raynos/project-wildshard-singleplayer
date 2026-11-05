@@ -5,7 +5,7 @@ import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import type { ReturnProgram } from '../../shared/population/returnProgram';
 import { ArenaWhirls, type ArenaWhirlsSnapshot, type WhirlFrame } from '../../server/boss/arenaWhirls';
 import type {Scope} from '@wildshard/engine/app/scope';
-import {presentEntryOwner,publishEntryOwner} from '../shardfile/entryOwners';
+import {presentEntryOwner,publishEntryOwner} from '../../shared/shardfile/entryOwners';
 import {preflightViewLends,lendViewArray,lendViewCell,lendViewValues,lendViewDraw,lendViewFrame,lendViewTell} from '../shardfile/clientViewProgram';
 import type { ArenaWhirlsRows,ArenaFireRows } from '@wildshard/format/encounterRows';
 import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';

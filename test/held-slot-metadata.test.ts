@@ -1,7 +1,7 @@
 import {afterEach,expect,test,vi} from 'vitest';
 import {HeldClaims} from '../src/game/client/loadout/claims';
 import {prepareHeldClaimsEntry,installHeldClaimsEntry} from '../src/game/client/shardfile/heldClaimsEntry';
-import {entryOwner} from '../src/game/client/shardfile/entryOwners';
+import {entryOwner} from '../src/game/shared/shardfile/entryOwners';
 import {CLIENT_FEATURES} from '../src/game/client/shardfile/clientPlan';
 import {Scope} from '../src/engine/shared/app/scope';
 import type {ShardContext} from '../src/game/client/plugin/context';

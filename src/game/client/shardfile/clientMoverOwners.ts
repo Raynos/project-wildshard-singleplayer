@@ -3,7 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import type { MoverRuntime, MoverView } from '../../server/plugin/mover';
 import { pageSimFeed, type PageSimFeed } from '../../server/plugin/pageSimFeed';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { boundResidentWorldScope } from './hybridPresentation';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { hasLentLook, lentLooksOf, setLentParam, type LentLooks } from './lentLooks';

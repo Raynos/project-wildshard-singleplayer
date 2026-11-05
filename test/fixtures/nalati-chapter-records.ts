@@ -5,7 +5,7 @@ import {AdventurePersistenceSchema} from '@wildshard/format/namedJsonContracts';
 import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 import {installRuntimeState} from '../../src/game/shared/shardfile/runtimeState';
 import type {ObservedRecords} from '../../src/game/shared/quest/questObservation';
-import {featOutcome,witnessSavedFeats} from '../../src/game/server/quest/featCounters';
+import {featOutcome,witnessSavedFeats} from '../../src/game/shared/quest/featCounters';
 import {nativeQuestInputs,type NativeQuestInputs} from '../../src/game/server/quest/nativeInputs';
 
 interface BossRecord { defeated:boolean;rewardTaken:boolean;kills:number }

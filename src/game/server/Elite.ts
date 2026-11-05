@@ -9,7 +9,7 @@ import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
 import type { PatrolEncounterView } from '../client/boss/encounterView';
 import type { PageWildlife } from './population/wildlife';
 import type { PageWildEnvironment } from './population/pageGroups';
-import type { AdventurePersistence } from './quest/persistence';
+import type { AdventurePersistence } from '../shared/quest/persistence';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';

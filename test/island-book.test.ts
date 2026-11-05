@@ -9,7 +9,7 @@ import type { FixedDraws } from '../src/game/client/models/fixedDraws';
 import { WorldAssembly } from '../src/game/client/shardfile/worldAssembly';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { bindResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
-import { entryOwner,publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner,publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import * as runtimeProduct from '../src/game/client/shardfile/runtimeProduct';
 import * as sceneHost from '../src/game/client/shardfile/worldScenes';
 import * as bakedHost from '../src/game/client/shardfile/bakedTiles';

@@ -14,7 +14,7 @@ import {ArenaWhirlsSchema,type ArenaWhirlsRows} from '@wildshard/format/encounte
 import {ArenaWhirlsView} from '../src/game/client/boss/arenaFire';
 import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {installViewProgram,preflightViewLends,lendViewValues,lendViewDraw,lendViewFrame} from '../src/game/client/shardfile/clientViewProgram';
-import {presentEntryOwner,publishEntryOwner} from '../src/game/client/shardfile/entryOwners';
+import {presentEntryOwner,publishEntryOwner} from '../src/game/shared/shardfile/entryOwners';
 import {titanWhirlGate} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {whirlsViewRows} from '../src/shards/nalati-grasslands/generators/titanWhirlsView';
 import {bindFlatTerrain} from '@wildshard/engine/test/terrain';

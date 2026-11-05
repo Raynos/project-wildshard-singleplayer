@@ -22,7 +22,7 @@ import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as PINE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
 
 import { buildQuestChapter } from '../src/game/server/quest/chapter';
-import { bindAdventurePersistence } from '../src/game/server/quest/persistence';
+import { bindAdventurePersistence } from '../src/game/shared/quest/persistence';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { nalatiPersistenceRows } from '../src/shards/nalati-grasslands/generators/persistence';

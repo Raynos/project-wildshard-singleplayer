@@ -28,7 +28,7 @@ Every candidate that must stay, with its actual reader (file:line). Readers are 
 | 23 `src/sdk/**` modules read only by `src/shards/*/generators/**` (e.g. `bake/compactGlb` 16 generators, `bake/groundMap` 15, `speciesBrains` 9, `bootInventory` 9) | shard generators (author roots) | author/bake API |
 | `src/sdk/outputRuntime.ts`, `src/sdk/executeBundle.ts`, `src/sdk/runtimePerformance.ts` | `src/sdk/project.ts`, `src/sdk/cli.ts` (type), `scripts/bake-template-shardfile.mjs`, `src/sdk/synth.ts` | **LD9b** decides (copied-runtime arm), not LD10 |
 | `src/game/client/shardfile/hybrid.ts` (`prepareHybridShard`) | `src/game/client/shard/declaredEntry.ts:2,15`, `src/game/client/grid/liveSession.ts`, `src/game/client/grid/regionalRuntime.ts`, `src/game/client/shardfile/clientWorldAssembly.ts` | live entry composite; its runtime-TS arm is LD9b |
-| `src/game/server/quest/legacyRecords.ts`, `test/fixtures/quest-step-legacy-saves.*`, `test/fake/legacy{Actor,Hurt,Source}.ts`, `test/fixtures/legacy-oracles/**` | modern save migration and native oracles (plan text) | historical fixtures, not loading paths |
+| `src/game/shared/quest/legacyRecords.ts`, `test/fixtures/quest-step-legacy-saves.*`, `test/fake/legacy{Actor,Hurt,Source}.ts`, `test/fixtures/legacy-oracles/**` | modern save migration and native oracles (plan text) | historical fixtures, not loading paths |
 | `scripts/g571-hosts.mjs`, `scripts/listed-view-code.mjs` | `scripts/shard-platform.mjs:13,17` (G294 attribution and listed-view register), `scripts/platform-chargebacks.mjs`, `scripts/precommit-jobs.mjs:72` | not copied-runtime paths (orphans.md §7) |
 
 `lint/ratchet.json` `wildshard/sdk-no-facade` rows that stay after the audio wrappers go (each still has a real

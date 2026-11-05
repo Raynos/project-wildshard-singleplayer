@@ -14,7 +14,7 @@ import type { PageRidingView } from '../src/game/client/riding/client';
 import type { clientWildlifeState } from '../src/game/server/population/wildlife';
 import { wildEnv } from '../src/game/server/population/pageGroups';
 import { bindStealthWeapons, installClientStealthEntry } from '../src/game/client/shardfile/clientStealthEntry';
-import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';

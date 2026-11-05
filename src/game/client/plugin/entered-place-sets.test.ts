@@ -6,7 +6,7 @@ import { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { ShardContext } from './context';
 import type { QuestPageComposition } from '../../server/quest/pageComposition';
 import { bindEnteredClientPlaceSets,installClientPlaceSets,requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
-import { lendEntryOwner,publishEntryOwner } from '../shardfile/entryOwners';
+import { lendEntryOwner,publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import * as workSlice from '@wildshard/engine/core/workSlice';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

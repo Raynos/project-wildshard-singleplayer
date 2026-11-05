@@ -6,7 +6,7 @@ import { ClientRidingSessionSchema, cleanMountName } from '@wildshard/format/rid
 import { nalatiRidingSession } from '../src/shards/nalati-grasslands/generators/clientRiding';
 import { HeldClaims } from '../src/game/client/loadout/claims';
 import { installClientRiding } from '../src/game/client/riding/client';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

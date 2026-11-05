@@ -5,7 +5,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import type { OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { WorldAssembly } from './worldAssembly';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import type { FixedDraws } from '../models/fixedDraws';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

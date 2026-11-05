@@ -32,7 +32,7 @@ import type { EliteEnteredOwners } from '../src/game/client/eliteView';
 import { BorrowedElite, type BorrowedEliteFight } from '../src/engine/client/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';
 import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
-import type { AdventurePersistence } from '../src/game/server/quest/persistence';
+import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import { parseEliteOutputActions, parseEliteOutputBank, type EliteOutputAction } from '@wildshard/format/eliteFeature';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

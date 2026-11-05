@@ -13,7 +13,7 @@ import {clientNativeBook} from '../src/game/client/shardfile/clientNativeBook';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installClientEliteConstruction } from '../src/game/client/shardfile/clientEliteConstruction';
-import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import * as spawn from '../src/game/server/population/spawnScript';

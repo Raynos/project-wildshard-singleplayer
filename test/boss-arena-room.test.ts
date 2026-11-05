@@ -1,6 +1,6 @@
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { installArenaRoomEntry } from '../src/game/client/shardfile/clientEntryBinds';
-import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { HeldClaims, type HeldSlotKit } from '../src/game/client/loadout/claims';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ModelDef } from '../src/engine/client/models/model';

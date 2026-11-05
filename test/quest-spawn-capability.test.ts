@@ -9,7 +9,7 @@ import type { DeclaredSoundBank } from '../src/engine/client/audio/declaredBank'
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
-import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/server/quest/chapterDirector';
 import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';

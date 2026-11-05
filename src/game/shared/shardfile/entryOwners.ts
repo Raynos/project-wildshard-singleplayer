@@ -1,36 +1,36 @@
 /** Client-only concrete loans between compiled entry capabilities. No shard
  * callbacks, reflected paths, clocks or continuation state live in this book. */
 import type { Object3D, Vector3 } from 'three';
-import type { StealthController } from '../stealth/controller';
+import type { StealthController } from '../../client/stealth/controller';
 import type { TimedEncounters } from '../../server/boss/timedEncounters';
-import type { SpeciesCatalogue } from '../looks/speciesBook';
+import type { SpeciesCatalogue } from '../../client/looks/speciesBook';
 import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import type { EliteDeclaredEntryOwners } from '../../server/Elite';
 import type { clientWildlifeState } from '../../server/population/wildlife';
 import type { ArenaRoomEncounter } from '../../server/boss/arenaRoom';
-import type { PageTamingOwner, PageRidingView } from '../riding/client';
-import type { AdventurePersistence } from '../../server/quest/persistence';
+import type { PageTamingOwner, PageRidingView } from '../../client/riding/client';
+import type { AdventurePersistence } from '../quest/persistence';
 import type { ModelSiteLayout, Placed } from '@wildshard/engine/models/place';
-import type { ForestWeatherRig } from '../weather/forest';
-import type { FixedDraws } from '../models/fixedDraws';
-import type { RopeDeckSite } from '../models/ropeDeckSite';
+import type { ForestWeatherRig } from '../../client/weather/forest';
+import type { FixedDraws } from '../../client/models/fixedDraws';
+import type { RopeDeckSite } from '../../client/models/ropeDeckSite';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { QuestSpawnResult } from '../../server/quest/chapterDirector';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { RopeChain } from '@wildshard/engine/physics/ropeChain';
-import type { AmbientGroup } from '../../shared/ambient/flock';
-import type { AmbientFlockDraw } from '../ambient/ambientFlock';
-import type { CollectionCatalogue } from '../models/collectionDisplay';
-import type { HeldClaims } from '../loadout/claims';
+import type { AmbientGroup } from '../ambient/flock';
+import type { AmbientFlockDraw } from '../../client/ambient/ambientFlock';
+import type { CollectionCatalogue } from '../../client/models/collectionDisplay';
+import type { HeldClaims } from '../../client/loadout/claims';
 import type { QuestPageComposition } from '../../server/quest/pageComposition';
-import type { QuestPageReference } from '../quest/pageReference';
-import type { CaveInterior } from './caveInterior';
-import type { ForestPage } from './forestPage';
-import type { SceneHandles } from './sceneHandles';
-import type { LivingBuildings } from './livingBuildings';
-import type { PainterlyWorld } from '../looks/postGraphLook';
+import type { QuestPageReference } from '../../client/quest/pageReference';
+import type { CaveInterior } from '../../client/shardfile/caveInterior';
+import type { ForestPage } from '../../client/shardfile/forestPage';
+import type { SceneHandles } from '../../client/shardfile/sceneHandles';
+import type { LivingBuildings } from '../../client/shardfile/livingBuildings';
+import type { PainterlyWorld } from '../../client/looks/postGraphLook';
 
 /** Existing entered owners expose their two native frame slots without another clock or saved state. */
 export interface WorldFrameOwner { readonly update: (dt: number, time: number) => void; readonly late: (dt: number, time: number) => void }

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { QuestRuntimeFileSchema } from '@wildshard/format/questRuntime';
 import { checkClientPlanModules } from './clientModules';
-import { entryOwner as declaredOwner } from './entryOwners';
+import { entryOwner as declaredOwner } from '../../shared/shardfile/entryOwners';
 import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
 import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
@@ -55,7 +55,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'content.catalogue': { phase: 'kit', rank: 15, lifetime: 'entered',
     // Item/quest/journal envelopes are root data; finishes are streamed separately.
     sections: ['held/finishes'], install: loadFeature(async () => (await import('./clientCatalogue')).installClientCatalogue) },
-  'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', needsWorldLooks: false, sections: [], install: loadFeature(async () => (await import('../../server/quest/persistence')).installClientAdventurePersistence),
+  'state.adventure': { phase: 'world', rank: 5, lifetime: 'entered', needsWorldLooks: false, sections: [], install: loadFeature(async () => (await import('../../shared/quest/persistence')).installClientAdventurePersistence),
     preparePlay: { rank: -100, when: row => row.kind === 'state.adventure' && row.progress === true, install: (ctx, row) => {
       if (row.kind !== 'state.adventure' || row.progress !== true) throw new Error('Invalid adventure progress feature');
       const play = ctx.game.runtime?.play;
@@ -194,7 +194,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   'quest.spawns': { phase: 'prepare-play', rank: 30, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.spawns') throw new Error('Invalid quest spawns feature');
     const { installDeclaredQuestSpawns } = await import('../../server/quest/chapterDirector');
-    const { publishEntryOwner } = await import('./entryOwners');
+    const { publishEntryOwner } = await import('../../shared/shardfile/entryOwners');
     const { pageSim } = await import('./clientMoverOwners');
     v.parse(QuestRuntimeFileSchema,row.source);
     publishEntryOwner(ctx.scope, 'quest-spawns', row.id, await installDeclaredQuestSpawns(ctx, { ...row, source: row.source }, pageSim.spawnScript));
@@ -222,7 +222,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   } },
   'held.claims.enter': { phase: 'play', rank: -50, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
     if (row.kind !== 'held.claims.enter') throw new Error('Invalid held claims entry feature');
-    const { entryOwner } = await import('./entryOwners');
+    const { entryOwner } = await import('../../shared/shardfile/entryOwners');
     await entryOwner(ctx.scope, 'claims', row.claims).enter(ctx, { grapple: row.grapple });
   } },
   'portal.ride': { phase: 'play', rank: -40, lifetime: 'entered', sections: [], install: async (ctx, row) => {

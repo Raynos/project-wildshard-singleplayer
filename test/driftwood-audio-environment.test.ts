@@ -9,7 +9,7 @@ import {Music} from '../src/engine/client/audio/Music';
 import {parseAudioData} from '@wildshard/format/audio';
 import {SceneHandles} from '../src/game/client/shardfile/sceneHandles';
 import {LivingBuildings} from '../src/game/client/shardfile/livingBuildings';
-import {publishEntryOwner,lendEntryOwner} from '../src/game/client/shardfile/entryOwners';
+import {publishEntryOwner,lendEntryOwner} from '../src/game/shared/shardfile/entryOwners';
 import {bindResidentWorldScope} from '../src/game/client/shardfile/hybridPresentation';
 import {enterClientAudioScene} from '../src/game/client/audio/sceneDirector';
 import * as gameplay from '../src/game/client/plugin/audio';

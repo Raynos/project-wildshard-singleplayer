@@ -14,7 +14,7 @@ import {admitClientPlan} from '../src/game/client/shardfile/clientPlan';
 import {createShardProduct,type ShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {installWorldUpdates} from '../src/game/server/shardfile/worldUpdates';
-import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/client/shardfile/entryOwners';
+import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/shared/shardfile/entryOwners';
 import * as population from '../src/game/server/population/wildlife';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 

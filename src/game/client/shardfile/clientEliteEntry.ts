@@ -4,7 +4,7 @@ import { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import { Elites } from '../../server/Elite';
 import type { ShardContext } from '../plugin/context';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 
 /** Resolve all concrete owners before allocating UI. The existing engine binder
  * admits the whole programme/controller bank and rolls back a failed suffix. */

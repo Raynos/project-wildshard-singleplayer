@@ -3,7 +3,7 @@ import {expect,test,vi} from 'vitest';
 import {Scope} from '@wildshard/engine/app/scope';
 import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {CLIENT_FEATURES,installClientPhase} from './clientPlan';
-import {publishEntryOwner} from './entryOwners';
+import {publishEntryOwner} from '../../shared/shardfile/entryOwners';
 import type {ShardContext} from '../plugin/context';
 import type {ForestWeatherRig} from '../weather/forest';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';

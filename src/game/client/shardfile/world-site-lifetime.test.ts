@@ -13,7 +13,7 @@ import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../models/worldSceneCatalogue';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { WorldAssembly } from './worldAssembly';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import type { SceneHandles } from './sceneHandles';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';

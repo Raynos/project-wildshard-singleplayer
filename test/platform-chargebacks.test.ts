@@ -608,8 +608,8 @@ test('G677 credits only the exact entered adapters and preserves their original 
     expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
   }
   // The original G571 module grant already covers these loan types; G677 must not duplicate it.
-  expect(approvedG571Host(approvals,'src/game/client/shardfile/entryOwners.ts','WorldFrameOwner')).toBe(true);
-  expect(approvedG571Host(approvals,'src/game/client/shardfile/entryOwners.ts','EliteEntryConstruction')).toBe(true);
+  expect(approvedG571Host(approvals,'src/game/shared/shardfile/entryOwners.ts','WorldFrameOwner')).toBe(true);
+  expect(approvedG571Host(approvals,'src/game/shared/shardfile/entryOwners.ts','EliteEntryConstruction')).toBe(true);
   expect(approvedG571Host(approvals,'src/game/client/riding/client.ts','enterClientRiding')).toBe(false);
   const hostBar=readFileSync('docs/HOST-BAR.md','utf8').split('\n').filter(line=>line.startsWith('- G677 ')).join('\n');
   expect(hostBar).not.toContain('game/client/stealth/controller');expect(hostBar).not.toContain('game/server/population/pageGroups');

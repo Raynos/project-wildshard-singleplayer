@@ -11,7 +11,7 @@ import { installClientForestWeather } from '../src/game/client/shardfile/clientF
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
-import { publishEntryOwner, entryOwner, lendEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { publishEntryOwner, entryOwner, lendEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { ClientChannels } from '../src/sdk/clientChannels';

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { featOutcome, witnessSavedFeats, type FeatCounterRows } from './featCounters';
+import { featOutcome, witnessSavedFeats, type FeatCounterRows } from '../../shared/quest/featCounters';
 
 /** persistence.ts's feat counters as they were inline before the extraction (witness, the load loop and outcome, verbatim) */
 function inline(counterRows: FeatCounterRows, store: { counts: Record<string, number> }, facts: (fact: string, key: string) => void, log: string[]) {

@@ -5,7 +5,7 @@ import { fixedDraws } from './fixedDraws';
 import { Scope } from '@wildshard/engine/app/scope';
 import { CollectionCatalogue } from './collectionDisplay';
 import { SceneHandles } from '../shardfile/sceneHandles';
-import { entryOwner, lateEntryOwner, lendEntryOwner, publishEntryOwner } from '../shardfile/entryOwners';
+import { entryOwner, lateEntryOwner, lendEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
 
 test('entry ids resolve only their concrete kind and exact construction owner', () => {
   const owner = new Scope('construction'), other = new Scope('another cell');

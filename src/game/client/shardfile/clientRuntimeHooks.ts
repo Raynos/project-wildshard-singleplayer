@@ -4,7 +4,7 @@ import type { Bounds } from '@wildshard/engine/level/spec';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 
 /** An admitted play-area policy over the current entered world's player. */
 export interface RuntimeBoundsRows {

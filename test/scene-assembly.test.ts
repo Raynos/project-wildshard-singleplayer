@@ -10,7 +10,7 @@ import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import { CLIENT_FEATURES, admitClientPlan } from '../src/game/client/shardfile/clientPlan';
 import { clientSceneHandles } from '../src/game/client/shardfile/clientSceneHandles';
-import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { bindResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
 import { preflightIslandBook } from '../src/game/client/shardfile/islandBook';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';

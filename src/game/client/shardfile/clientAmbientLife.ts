@@ -2,7 +2,7 @@
 import { parsePageLife } from '@wildshard/format/pageLife';
 import type { ShardContext } from '../plugin/context';
 import { installPageLife, type PageLife } from '../population/pageLife';
-import { entryOwner } from './entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 
 export interface AmbientLifeRows {
   readonly file: string;

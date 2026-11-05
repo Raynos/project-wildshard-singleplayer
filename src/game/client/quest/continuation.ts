@@ -5,7 +5,7 @@ import { QuestContinuationSchema, parseQuestContinuationDocument } from '@wildsh
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import type { ShardContext } from '../plugin/context';
 import { requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
-import { entryOwner } from '../shardfile/entryOwners';
+import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { installDeclaredCollectionKeepsakes } from '../../server/compendium/keepsakes';
 import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
