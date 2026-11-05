@@ -5,6 +5,7 @@ import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import { roomRefillRate } from '@wildshard/engine/entities/creatureRefill';
 import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
 import type { SimBodyBands, SimHost, SimSpawn, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
@@ -104,7 +105,7 @@ const Saved = v.strictObject({ version: v.literal(1), rng: Stream, tokens: v.arr
   boss: v.nullable(v.strictObject({ id: v.string(), live: v.boolean(), policy: v.nullable(v.string()) })) });
 
 interface Body { readonly id: string; readonly kind: string; readonly recipe: SimSpawn; readonly range: readonly [number, number]; actor: AnimalSim | null; brain: KeptPolicy | null }
-interface Home extends Body { readonly respawn: number; readonly late: boolean; wait: number }
+interface Home extends Body { readonly respawn: number; readonly late: boolean; readonly x: number; readonly z: number; wait: number }
 
 /**
  * Declared creature homes in a renderer-free host (SHARD-PLATFORM SF72): the platform's spawn, death and respawn rules
@@ -131,7 +132,7 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
     return { range, recipe: { id, spec: native, seed: 0, scale: 1, at: { x: at[0], y, z: at[1] }, yaw } };
   };
   const homes: Home[] = spec.homes.map(row => { const made = recipe(row.id, row.kind, row.at, row.yaw);
-    return { id: row.id, kind: row.kind, respawn: row.respawn, late: row.late === true, wait: 0, actor: null, brain: null, recipe: made.recipe, range: made.range }; });
+    return { id: row.id, kind: row.kind, respawn: row.respawn, late: row.late === true, x: row.at[0], z: row.at[1], wait: 0, actor: null, brain: null, recipe: made.recipe, range: made.range }; });
   const row = spec.boss, made = row === undefined ? null : recipe(row.id, row.kind, row.at, row.yaw);
   const boss: Body | null = row === undefined || made === null ? null : { id: row.id, kind: row.kind, actor: null, brain: null, recipe: made.recipe, range: made.range };
   const bodies: readonly Body[] = boss === null ? homes : [...homes, boss];
@@ -169,7 +170,7 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
     for (let i = 0; i < homeCount; i++) {
       const home = homes[i];
       if (home === undefined || home.wait <= 0) continue;
-      home.wait -= dt;
+      home.wait -= dt * roomRefillRate(host.players, home.x, home.z); // J109: faster with players near; one player's clock is plain dt
       if (home.wait > 0) continue;
       freeBody(home);
       respawn(home);

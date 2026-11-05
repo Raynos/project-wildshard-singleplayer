@@ -16,6 +16,8 @@ export const ReturnGate = {
     return state.fade >= row.fade ? 'replace' : 'none';
   },
 };
+/** The player a return must stay out of sight of: in a room, the one nearest the entry. */
+type Watcher = (x: number, z: number) => { readonly x: number; readonly z: number };
 /** Delayed population returns. Scheduling uses one supplied draw, even for a fixed delay; taking never draws.
  * Native traversal is reverse death order, bounded to 256 and reuses its result; rows select page traversal. */
 export class RespawnQueue {
@@ -46,9 +48,10 @@ export class RespawnQueue {
   }
 
   /** Remove one eligible entry without copying it; traversal and result ownership stay with each caller. */
-  private takeAt(i: number, now: number, px: number, pz: number, night: number, out: RespawnEntry[]): void {
+  private takeAt(i: number, now: number, first: Watcher, night: number, out: RespawnEntry[]): void {
     const e = this.pending[i];
     if (e === undefined) return;
+    const { x: px, z: pz } = first(e.x, e.z);
     if (this.program === undefined) {
       if (now < e.due || (e.night && night < 0.5) || (e.x - px) ** 2 + (e.z - pz) ** 2 < this.outOfSight * this.outOfSight) return;
     } else if (this.program.project('eligible', { now, due: e.due, nocturnal: Number(e.night), night, x: e.x, z: e.z, playerX: px, playerZ: pz, away: this.outOfSight })['eligible'] !== 1) return;
@@ -56,16 +59,17 @@ export class RespawnQueue {
   }
 
   /** Rows choose traversal and result ownership without changing pending-entry identity. */
-  take(now: number, px: number, pz: number, night: number): RespawnEntry[] {
+  take(now: number, px: number, pz: number, night: number, nearest?: Watcher): RespawnEntry[] {
+    const watcher: Watcher = nearest ?? (() => ({ x: px, z: pz }));
     const out = this.traversal.result === 'reuse' ? this.due : []; out.length = 0;
     const length = this.pending.length;
     if (this.traversal.limit !== null && length > this.traversal.limit) throw new Error('Population return queue exceeds its native bound');
     if (this.traversal.order === 'reverse') {
-      for (let i = length - 1; i >= 0; i--) this.takeAt(i, now, px, pz, night, out);
+      for (let i = length - 1; i >= 0; i--) this.takeAt(i, now, watcher, night, out);
     } else {
       for (let i = 0; i < this.pending.length;) {
         const before = this.pending.length;
-        this.takeAt(i, now, px, pz, night, out);
+        this.takeAt(i, now, watcher, night, out);
         if (before === this.pending.length) i++;
       }
     }

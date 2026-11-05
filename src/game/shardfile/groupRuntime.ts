@@ -79,6 +79,7 @@ function prepareRegistration(host: SimHost, group: ShardPackGroup | ShardHerdGro
       functionsPresent([...commonFunctions.map(key => recipe.ports[key]), recipe.ports.passThrough, recipe.ports.chargeContact,
         recipe.ports.scarePack, recipe.ports.resolveActor, recipe.observe]);
       const policyForGroup = new HerdBrain(members, group, recipe.ports);
+      policyForGroup.onTamed = (body, x, z) => { host.events.emit('creature.tamed', { kind: body.kind, variant: body.variant, herd: body.herd, x, z, id: body.entityId }); };
       return { id, members, policy: policyForGroup, random: recipe.ports.sharedRng, run: dt => {
         if (host.state.tick % group.thinkDivisor === 0) for (const actor of members) if (actor.alive) {
           const context = { ...recipe.observe(actor, group.thinkDivisor / 60), dt: group.thinkDivisor / 60, t: host.clock.now };
@@ -292,6 +293,7 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         chargeContact: (body,context,radius) => { contact(body,context,radius,true); },
         scarePack: (body,radius) => { const pack = packOf.get(body); if (pack === undefined) return false; pack.scare(body.position.x,body.position.z,radius); return true; },
         onKnockdown: (x,z,strength) => { environment.onKnockdown(x,z,strength); } });
+      herd.onTamed = (body,x,z) => { host.events.emit('creature.tamed',{ kind:body.kind,variant:body.variant,herd:body.herd,x,z,id:body.entityId }); };
       initializeDeclaredGroup(herd,step.guest,{scope:host.scope,group:row.id,handle:herds.length+1,
         player:lead.position,actors:host.entities},host);
       herd.findThreat = (x,z,radius) => nearestPopulationActor(wolves,x,z,radius);

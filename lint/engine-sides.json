@@ -281,6 +281,7 @@
   "src/engine/entities/AnimalView.ts": "client",
   "src/engine/entities/bodyClear.ts": "server",
   "src/engine/entities/creatureFloor.ts": "server",
+  "src/engine/entities/creatureRefill.ts": "server",
   "src/engine/entities/eliteBrain.ts": "server",
   "src/engine/entities/farHerd.ts": "client",
   "src/engine/entities/fightRules.ts": "server",

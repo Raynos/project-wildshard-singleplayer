@@ -5,7 +5,7 @@ import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { RespawnQueue } from './respawn';
 import { ReturnProgram } from './returnProgram';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { nearestPosition, roomRefillRate } from '@wildshard/engine/entities/creatureRefill';
 
 const finite = v.pipe(v.number(), v.finite());
 const savedEntry: v.GenericSchema<BoundedNativeReturnSaveInput, BoundedNativeReturnSave> = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite,
@@ -44,9 +44,12 @@ export class NativeReturns {
   take(dt: number): readonly RespawnEntry[] {
     this.now += dt;
     if (this.now - this.check < this.rows.interval) return this.idle;
+    const elapsed = this.now - this.check, { players } = this.host;
     this.check = this.now;
-    const player = leadPlayer(this.host).position;
-    return this.queue.take(this.now, player.x, player.z, this.host.dayClock?.night ?? 0);
+    // J109: more players near an entry bring its deadline forward by the time they saved; one player moves nothing
+    if (players.size > 1) for (const entry of this.queue.pending) entry.due -= (roomRefillRate(players, entry.x, entry.z) - 1) * elapsed;
+    const first = this.host.nearestPlayer({ x: 0, y: 0, z: 0 }).position;
+    return this.queue.take(this.now, first.x, first.z, this.host.dayClock?.night ?? 0, (x, z) => nearestPosition(players.values(), x, z, first));
   }
   /** Resolve one due entry at the caller's spawn boundary, preserving random
    * draw interleaving between placement and each body's materialization. */

@@ -751,7 +751,16 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
    *  registration his brain (thinkHorse → forThink) found no herd and built a fresh one every tick — he was never BEATEN
    *  and the mares were re-homed into throwaway herds (GrazerBrain<A>.all grew at 10 Hz) */
   adoptStallion(a: A): void { this.requireHerd(); if (this.runHerdGuest('adopt',undefined,a)) return; if (!this.members.includes(a)) this.members.push(a); this.stallion = a; this.setStallion('watch'); }
-  releaseStallion(): void { this.requireHerd(); if (this.runHerdGuest('release')) return; if (this.stallion !== null) { this.stallion.mem['ridden'] = 1; this.stallion = null; } this.alertOwned = false; }
+  releaseStallion(): void {
+    this.requireHerd();
+    const tamed = this.stallion;
+    if (tamed !== null) this.onTamed?.(tamed, this.cx, this.cz); // J108: its herd will have a new one, later
+    if (this.runHerdGuest('release')) return;
+    if (this.stallion !== null) { this.stallion.mem['ridden'] = 1; this.stallion = null; }
+    this.alertOwned = false;
+  }
+  /** A stallion left this herd for good (J108); the group's owner tells the population. */
+  onTamed: ((a: A, x: number, z: number) => void) | null = null;
 
   private centre(): void {
     let x = 0, z = 0, n = 0;

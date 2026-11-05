@@ -9,6 +9,7 @@ import { brainPinned } from '../ai/pinning';
 import { TickScheduler, type InterruptReason, type TickRate } from '../app/scheduler';
 import { dodgeFx } from '../player/dodge';
 import { CreatureBodies } from '../physics/creatures';
+import type { EventMap } from '../events/maps';
 import type { CharacterMotor } from '../physics/CharacterMotor';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { spawnRolls, fallbackSound, ATTACK_TURN, HURT_ARC, type HuntGround, type HuntHerd } from '../ai/hunt';
@@ -21,6 +22,7 @@ import type { AnimalFactory, AnimalKind } from './AnimalFactory';
 import type { Animal } from './AnimalView';
 import { damageFor } from './AnimalSim';
 import { creatureFloor } from './creatureFloor';
+import { CreatureRefill } from './creatureRefill';
 import { killBelowWorld } from './killHeight';
 import { activeLevel } from '../level/selection';
 import type { App } from '../app/app';
@@ -204,6 +206,12 @@ export class AnimalManager {
   set debug(on: boolean) { this.draw.debug = on; }
   /** dev: animals ignore the player (no alert / flee) */
   calm = false;
+  /** Everyone in the room, when the herd serves more than the page's own player (J109). Null: that one player. */
+  roomPlayers: (() => readonly { readonly position: Vector3 }[]) | null = null;
+  /** J109, J108: herds that lost a body fill again, in a room of two or more; one player's herds stay as they fell */
+  private readonly refill: CreatureRefill;
+  /** the shard's creature budget: what its own herds placed at build (no author writes one) */
+  private budget = 0;
   /** the player is not among them: `calm`, or a practice room is up (the arena, a playground — 1–3 km over the shard at the
    *  same x / z: no pack hunts, no horse bolts, no boar charges from under it; E321) */
   private get unaware(): boolean { return this.calm || practiceRoomState.open; }
@@ -253,6 +261,13 @@ export class AnimalManager {
     this.forest = forest;
     this.physics = physics;
     this.scheduler = new TickScheduler(host.scheduler);
+    const onePlayer = [{ position: this.playerPos }];
+    this.refill = new CreatureRefill({ players: () => this.roomPlayers?.() ?? onePlayer, room: () => this.budget - this.alive,
+      random: () => host.rng.stream('spawn').next(), spawn: ({ kind, variant, herd, x, z }, yaw) => {
+        const a = this.spawn(kind, x, z, yaw, variant);
+        a.herd = herd;
+        this.herds[herd]?.members.push(a);
+      } });
     // the hunting brain's world: the live Heightfield (its exports are live bindings: read at call time), the forest, the app
     const ground: HuntGround = {
       heightAt: (x, z) => heightAt(x, z), normalY: (x, z) => normalAt(x, z)[1], trailDistance: (x, z) => trailDistance(x, z),
@@ -276,6 +291,7 @@ export class AnimalManager {
         host.combat.targetPort(animal.combatActor(), animal, (velocity) => { animal.impulse(velocity); },
           () => !scope.disposed && host.levelScope === scope && !animal.hidden && animal !== host.equipmentHost?.player.mountedOn)));
       host.events.on('weapon.fired', () => { if (host.levelScope === scope) this.interruptTargets('target.attack'); }, scope);
+      host.events.on('creature.tamed', tamed => { if (host.levelScope === scope) this.tamed(tamed); }, scope);
       scope.onDispose(() => { this.scheduler.reset(); });
     }
   }
@@ -323,6 +339,7 @@ export class AnimalManager {
 
   private finish(): this {
     this.draw.finish();
+    this.budget = this.animals.length;
     return this;
   }
 
@@ -412,6 +429,9 @@ export class AnimalManager {
     return a;
   }
 
+  /** J108: a wild creature became a player's mount; a new wild one comes to its spot later. */
+  tamed({ id, ...spot }: EventMap['creature.tamed']): void { this.refill.left({ ...spot, from: id }); }
+
   /** a herd for an external spawner (Enemies.ts): returns its index for `animal.herd`; push the animals into `members` */
   addHerd(kind: AnimalKind, cx: number, cz: number): number { return this.hunt.addHerd(kind, cx, cz); }
 
@@ -454,6 +474,7 @@ export class AnimalManager {
     this.playerSprinting = playerSprinting;
     this.scheduler.beginFrame(dt, playerPos);
     this.hunt.beginTick(dt);
+    this.refill.step(dt);
     this.draw.trample(this.animals, playerPos);
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
     this.bodiesFor()?.sync(this.animals, playerPos, this.asleepNow);
@@ -679,7 +700,12 @@ export class AnimalManager {
     a.headWorld(_p);
     const headshot = _p.distanceToSquared(hitPoint) < (a.dims.headRadius * a.scale + 0.06) ** 2;
     this.onDamage?.(a, amount, hitPoint, headshot, died);
-    if (died) { this.onKill?.(a); this.hunt.died(a); return; }
+    if (died) {
+      this.onKill?.(a); this.hunt.died(a);
+      const herd = this.herds[a.herd];
+      if (herd !== undefined) this.refill.left({ kind: a.kind, variant: a.variant, herd: a.herd, x: herd.cx, z: herd.cz, from: a.entityId });
+      return;
+    }
     if (sp.think !== undefined) return;   // a self-thinking species reads animal.lastHitT / hp in its own tick
     this.hunt.hurt(a);   // the hunting brain's hit reaction (hunt.ts): bolt, turn on you, or come for you
     this.interrupt(a, 'hit');
