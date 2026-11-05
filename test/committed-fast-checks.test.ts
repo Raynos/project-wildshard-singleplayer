@@ -30,6 +30,7 @@ export default {
   put('lint/marker.json','GOOD');put('lint/ratchet.json','{}');
   put('.oxlintrc.ratchet.json',JSON.stringify({jsPlugins:['./lint/plugin.mjs'],rules:{'wildshard/marker':'error'}}));
   put('scripts/push-checks.mjs',readFileSync(resolve('scripts/push-checks.mjs'),'utf8'));
+  put('lint/layer-exports.mjs',readFileSync(resolve('lint/layer-exports.mjs'),'utf8'));
   put('scripts/gate-related-tests.mjs','export function pushGuards(){return [];}');
   put('.oxlintrc.json',JSON.stringify({options:{typeAware:false},plugins:['import'],jsPlugins:['./lint/plugin.mjs'],categories:{correctness:'off'},rules:{'no-eval':'error','import/no-cycle':'error','wildshard/marker':'error'}}));
   put('src/main.ts','export const value=1;\n');
