@@ -2,7 +2,7 @@ import { parse } from 'valibot';
 import { ClientBossFightSchema } from '@wildshard/format/clientNative';
 import type { ShardContext } from '../plugin/context';
 import { bindDeclaredFight } from '../plugin/ui';
-import { bindPageBoss } from '../../server/population/pageHomes';
+import { bindPageBoss } from '../../shared/population/pageHomes';
 import { pagePopulationRows } from '../../shared/population/pageRows';
 import { productPainterLight } from '../looks/paintedLook';
 import { clientNativeBook } from './clientNativeBook';

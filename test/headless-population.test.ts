@@ -14,7 +14,7 @@ import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { ClientPopulationSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { pagePopulationRows } from '../src/game/shared/population/pageRows';
-import { bindPageHomes } from '../src/game/server/population/pageHomes';
+import { bindPageHomes } from '../src/game/shared/population/pageHomes';
 import { censusOf, populationCensus, type PopulationCensus } from '../src/game/shared/population/census';
 import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';

@@ -1,4 +1,4 @@
-import { bindPageHomes, bindPageBoss, spawnPageHome } from '../population/pageHomes';
+import { bindPageHomes, bindPageBoss, spawnPageHome } from '../../shared/population/pageHomes';
 import { installPageItems, installPageItemContexts } from '../shardfile/pageItems';
 import { bindPageQuest } from '../quest/pageState';
 import { createQuestLedger } from '../../shared/quest/ledger';

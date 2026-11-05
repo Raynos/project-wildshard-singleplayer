@@ -1175,7 +1175,7 @@
   "src/game/server/population/nativeManager.ts": "server",
   "src/game/server/population/nativeReturns.ts": "server",
   "src/game/server/population/pageGroups.ts": "server",
-  "src/game/server/population/pageHomes.ts": "server",
+  "src/game/shared/population/pageHomes.ts": "shared",
   "src/game/client/population/pageLife.ts": "client",
   "src/game/server/population/pageReturns.ts": "server",
   "src/game/shared/population/pageRows.ts": "shared",

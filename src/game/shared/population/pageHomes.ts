@@ -1,7 +1,7 @@
 import type { RuntimeSpawns, RuntimeHomeRow } from '@wildshard/format/runtimeSpawns';
 import type { ShardContext } from '../../client/plugin/context';
-import type { RuntimeHome, RuntimeHomes, RuntimeHomePorts, RuntimeBoss, RuntimeBossOptions, RuntimeActor } from '../plugin/headless';
-import { enteredServices } from '../../shared/shard/enteredServices';
+import type { RuntimeHome, RuntimeHomes, RuntimeHomePorts, RuntimeBoss, RuntimeBossOptions, RuntimeActor } from '../../server/plugin/headless';
+import { enteredServices } from '../shard/enteredServices';
 
 type Animals = NonNullable<NonNullable<ShardContext['game']['runtime']>['play']>['animals'];
 type Animal = ReturnType<Animals['spawn']>;

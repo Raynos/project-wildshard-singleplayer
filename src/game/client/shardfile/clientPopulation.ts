@@ -4,7 +4,7 @@ import { ClientPopulationSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import type { ShardContext } from '../plugin/context';
 import type { RuntimeHomePorts } from '../../server/plugin/headless';
-import { bindPageHomes } from '../../server/population/pageHomes';
+import { bindPageHomes } from '../../shared/population/pageHomes';
 import { pagePopulationRows } from '../../shared/population/pageRows';
 import { productPainterLight } from '../looks/paintedLook';
 import { clientNativeBook } from './clientNativeBook';
