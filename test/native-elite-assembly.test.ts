@@ -1,4 +1,4 @@
-import { nalatiEliteRows } from './fixtures/nalati-headless';
+import { nalatiEliteRows } from '../src/shards/nalati-grasslands/generators/nativeServer';
 import { need } from './fixtures/headless-plan';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';

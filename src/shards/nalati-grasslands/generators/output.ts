@@ -108,7 +108,8 @@ import { WATER_SURFACE } from './waterStrips';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
 import { nalatiWeatherPage } from './weatherPage';
-import { nameBlob, emitNamedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, emitNamedBlobs, type NamedBlob, type ServerBlob } from '@wildshard/sdk/blobs';
+import { nalatiServerFiles } from './nativeServer';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { nalatiViewModules, nalatiViewSection } from './viewPrograms';
 import { nalatiCreatureViews } from './creatureViews';
@@ -196,6 +197,7 @@ export interface NalatiOutputRows {
   namedFiles: ReturnType<typeof emitNamedBlobs>['files'][number][];
   assets: Map<string, Uint8Array>;
   late?: NonNullable<ProjectOutput['late']>;
+  server?: readonly ServerBlob[];
 }
 function outputRowsFrom(speciesRows: SpeciesEmissionRows, emitted: ReturnType<typeof emitSpeciesOutput>, heldRows: NalatiHeldRows, views: readonly NamedBlob[], kokpar: NalatiKokpar, ridingPrograms: NalatiRidingPrograms, titanProgram: NalatiTitanPrograms, weather: NalatiWeather, admissionInput: NalatiAdmission, charge: NalatiCharge): NalatiOutputRows {
   const { cues: nightCues } = nalatiNightRows({ script: weather.rows.script, bytes: weather.rows.bytes });
@@ -462,7 +464,7 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Nala
   const late=[...new Set([...lateNames].map(name=>{
     const file=fileByName.get(name);if(file===undefined)throw new Error('Missing late model source');return file.hash;
   }))].map(hash=>({hash}));
-  return { ...template, platform, late, blobs: [], namedFiles: publishedFiles, assets };
+  return { ...template, platform, late, blobs: [], namedFiles: publishedFiles, assets, server: nalatiServerFiles(titan.programs.wind, admissionBank.program, riding.programs, nativeShelters) };
 }
 
 /** GR6: Nalati's boot declaration as discovery (bootProgram.ts; the retired nalati-boot-metadata job's rows). */

@@ -53,6 +53,7 @@ import { prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './nalati-encounter-loans';
 import { nalatiGroupInputs } from './nalati-group-inputs';
 import { nalatiNativeBoot } from './nalati-native-boot';
+import { nalatiEliteRows } from '../../src/shards/nalati-grasslands/generators/nativeServer';
 
 const physicsRows = originalNalatiPhysics();
 /** Optional encounter intake comes from the same admitted species/body book;
@@ -193,31 +194,6 @@ export function nalatiEliteCore(host: Pick<SimHost, 'player' | 'level'>, clock: 
         } }, {}, host.level.id, memoryElitePersistence());
     return eliteCore;
 }
-/** Fixed native roster input retained after the trusted declaration interpreter retires. */
-export function nalatiEliteRows(constants: {
-    eliteDefs: Readonly<Record<string, unknown>>;
-    pageElites: {
-        profiles: readonly {
-            value: {
-                def: {
-                    id: string;
-                    lair: {
-                        x: number;
-                        z: number;
-                    };
-                    awareR: number;
-                };
-                spec: unknown;
-            };
-        }[];
-    };
-    nativeKnockdown: unknown;
-}, nativeEliteStrikes: Readonly<Record<'swipe' | 'pounce' | 'bite', {
-    readonly id: string;
-}>>): unknown {
-    return { "step": "nalati.elites", "version": 1, "wire": { "detached": "argDetached" }, "rows": [{ "def": constants["eliteDefs"]["aqbars"], "snapshot": "aqbars", "member": { "kind": "leopard", "variant": "aqbars", "source": "boot", "yaw": 0, "memory": { "low": 0.3 } } }, { "def": constants["eliteDefs"]["kokbori"], "snapshot": "kokbori", "member": { "kind": "kokbori", "variant": "kokbori", "source": "spawn", "yaw": 3.141592653589793 }, "pack": { "offset": [-6, 4], "variants": ["grey", "tawny", "grey", "dark", "scout"], "kind": "wolf", "idPrefix": "creature:" } }, { "def": constants["eliteDefs"]["argymaq"], "snapshot": "argymaq", "member": { "kind": "argymaq", "variant": "stallion", "source": "herd", "yaw": 0 }, "continuation": { "borrowed": { "group": 1, "role": "guard" }, "detachable": true } }], "roles": ["native", "native", "borrowed"], "kernels": [{ "id": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["id"], "profile": { "pattern": "pouncer", "spec": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["spec"] }, "lair": { "x": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["lair"]["x"], "z": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["lair"]["z"] }, "awareRadius": need(constants.pageElites.profiles[0], "Missing elite profiles")["value"]["def"]["awareR"], "contacts": [{ "amount": 14, "strike": nativeEliteStrikes["swipe"]["id"] }], "fallbackStrike": nativeEliteStrikes["pounce"]["id"], "knockdown": constants["nativeKnockdown"] }, { "id": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["id"], "profile": { "pattern": "howler", "spec": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["spec"] }, "lair": { "x": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["lair"]["x"], "z": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["lair"]["z"] }, "awareRadius": need(constants.pageElites.profiles[1], "Missing elite profiles")["value"]["def"]["awareR"], "contacts": [], "fallbackStrike": nativeEliteStrikes["bite"]["id"], "knockdown": constants["nativeKnockdown"] }], "projections": { "argymaq": { "signal": "argymaqTick", "states": { "display": 1, "charge": 2, "beaten": 3 }, "bondedState": "bonded", "brokenState": "beaten", "adoption": { "variant": "tulpar", "scale": 1.3 } } } };
-}
-
 /** The original late bindings precede the first restoring read and initialization. */
 export function initializeNalatiElites(elites: Pick<NativeEliteRoster,'bindPopulation'|'bindBond'|'initialize'>,
     creatures: Parameters<NativeEliteRoster['bindPopulation']>[0],taming: Parameters<NativeEliteRoster['bindBond']>[0],

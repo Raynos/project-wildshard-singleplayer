@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { nalatiEliteRows } from './fixtures/nalati-headless';
+import { nalatiEliteRows } from '../src/shards/nalati-grasslands/generators/nativeServer';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import { readPouncerSpec, readHowlerSpec } from '../src/engine/ai/stalker';
 import { buildEliteEntryRows, buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
