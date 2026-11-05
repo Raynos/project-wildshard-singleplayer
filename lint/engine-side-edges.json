@@ -4,7 +4,7 @@
   "client → server": 454,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 179,
+  "server → client": 169,
   "server → dom": 2,
   "server → render": 7,
   "shared → client": 3,
@@ -255,9 +255,6 @@
   "src/game/grid/cellLoading.ts": {
    "server → client": 1
   },
-  "src/game/grid/compiledStrips.ts": {
-   "server → client": 1
-  },
   "src/game/grid/copyIdentity.ts": {
    "client → server": 1
   },
@@ -289,7 +286,7 @@
    "server → client": 1
   },
   "src/game/grid/live.ts": {
-   "server → client": 3
+   "server → client": 2
   },
   "src/game/grid/liveSession.ts": {
    "client → server": 15
@@ -315,9 +312,6 @@
   "src/game/grid/products.ts": {
    "client → server": 3
   },
-  "src/game/grid/recovery.ts": {
-   "server → client": 1
-  },
   "src/game/grid/regionalRuntime.ts": {
    "client → server": 5
   },
@@ -336,17 +330,11 @@
   "src/game/grid/runtimeCheckpoint.ts": {
    "client → server": 1
   },
-  "src/game/grid/seamData.ts": {
-   "server → client": 1
-  },
   "src/game/grid/session.ts": {
    "client → server": 15
   },
   "src/game/grid/titleOrder.ts": {
    "client → server": 1
-  },
-  "src/game/grid/wallet.ts": {
-   "server → client": 1
   },
   "src/game/Inventory.ts": {
    "server → client": 2
@@ -420,7 +408,7 @@
    "client → server": 1
   },
   "src/game/plugin/context.ts": {
-   "server → client": 6
+   "server → client": 4
   },
   "src/game/plugin/creatureFrame.ts": {
    "client → server": 2
@@ -552,9 +540,6 @@
   "src/game/riding/seatedFigure.ts": {
    "client → server": 1
   },
-  "src/game/saves.ts": {
-   "server → client": 1
-  },
   "src/game/savesSettings.ts": {
    "client → server": 1
   },
@@ -586,7 +571,7 @@
    "client → server": 1
   },
   "src/game/shard/manifest.ts": {
-   "server → client": 4
+   "server → client": 2
   },
   "src/game/shard/registry.ts": {
    "client → server": 1
