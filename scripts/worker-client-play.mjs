@@ -42,17 +42,6 @@ async function walk(page, x, z, near, seconds) {
   await page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 0; player.touchSprint = false; });
   return false;
 }
-/** Walk there along the navmesh, as far as the page's own map knows a way; the last leg is a straight line. */
-async function route(page, x, z, near, seconds) {
-  const until = Date.now() + seconds * 1000;
-  const points = await page.evaluate(([tx, tz]) => {
-    const { world } = window.__wildshard, { position } = world.player;
-    return world.game.app.navmesh?.findPath({ x: position.x, y: position.y, z: position.z }, { x: tx, y: position.y, z: tz }, 0.4)?.map(point => [point.x, point.z]) ?? null;
-  }, [x, z]);
-  console.log(`route to ${x},${z}: ${points === null ? 'no path' : `${points.length} points`}`);
-  for (const [px, pz] of points ?? []) if (!await walk(page, px, pz, 2.5, Math.max(4, (until - Date.now()) / 1000))) break;
-  return walk(page, x, z, near, Math.max(4, (until - Date.now()) / 1000));
-}
 /** The nearest living row body, by kind if named. */
 const nearestBody = (page, kinds) => page.evaluate(wanted => {
   const { world } = window.__wildshard, { player } = world, list = world.animals?.animals ?? [];
@@ -79,7 +68,10 @@ export async function play(browser, phone, base, only = '') {
   if (runs('driftwood')) { const drift = await open(browser, phone, base, '/?chunk=driftwood-isle&mute=1');
   await step('driftwood boots on the row', async () => { await entered(drift.page); return started(drift.page); });
   await step('the page draws the server creatures', async () => { const r = await report(drift.page); return { ok: r.rows > 0, rows: r.rows, closed: r.closed }; });
-  await step('walk to Wendell', () => route(drift.page, -22, -71.5, 2.5, 120));
+  await step('walk to Wendell', async () => {
+    for (const [x, z] of [[-8, -172], [-30, -142], [-30, -104], [-24, -80]]) await walk(drift.page, x, z, 3, 25); // the sand path up from the pier
+    return walk(drift.page, -22, -71.5, 2.5, 25);
+  });
   await step('talk to Wendell: the server starts the quest', async () => {
     for (let i = 0; i < 14; i++) { await drift.page.keyboard.press('KeyE'); await drift.page.waitForTimeout(700); const r = await report(drift.page); if (r.quests['sealed-ring'] !== undefined && r.quests['sealed-ring'] !== 'unstarted') return { ok: true, quests: r.quests }; }
     const r = await report(drift.page); return { ok: false, quests: r.quests, flags: r.flags.slice(0, 12), x: r.x, z: r.z };
@@ -172,7 +164,8 @@ export async function play(browser, phone, base, only = '') {
     const claw = () => nine.page.evaluate(() => { const tool = window.__wildshard.world.game.app.equipment?.tools.find(item => 'guardOpen' in item); return tool === undefined ? null : { sim: tool.sim?.constructor?.name, phase: tool.sim?.phase, hooks: tool.sim?.course?.hooks?.length }; });
     for (let i = 0; i < 40 && (await claw())?.sim !== 'Object'; i++) await nine.page.waitForTimeout(250); // a claw on the wire is a plain object
     const held = await claw();
-    return { ok: held !== null && held.sim === 'Object', held };
+    const r = await report(nine.page);
+    return { ok: held !== null && held.sim === 'Object', held, clawed: r.clawed, own: r.own };
   });
   await nine.context.close(); }
 

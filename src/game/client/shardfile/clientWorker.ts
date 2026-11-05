@@ -247,7 +247,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     const { latest } = client;
     if (latest !== null) { const { px, pz, hp } = client.owner(latest); report.cell = latest.cell; report.serverX = Number(px); report.serverZ = Number(pz); report.hp = Number(hp); attributes.health = Math.max(1, report.hp); }
     if (now - sampledAt < 1000) return;
-    report.clawed = clawed !== null; report.own = client.entities.get(client.welcome?.handle ?? 0)?.id ?? null;
+    report.clawed = clawed !== null; report.own = client.welcome?.player ?? null;
     report.quests = Object.fromEntries([...client.quests].map(([id, quest]) => [id, quest.started ? quest.step : 'unstarted'])); report.flags = [...client.phased, ...client.flags()]; report.fights = wirePage.encounters().map(fight => `${fight.id}:${fight.state}:${fight.hp}`);
     report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;
     report.mainMsP95 = [...costs].sort((a, b) => a - b)[Math.floor(Math.min(report.frames, costs.length) * 0.95) + Math.max(0, costs.length - report.frames)] ?? 0;
