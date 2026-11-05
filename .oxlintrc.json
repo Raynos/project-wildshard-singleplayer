@@ -231,8 +231,8 @@
         "wildshard/no-shard-host-callback": "error",
         "wildshard/shard-services": "error",
         "wildshard/no-client-plan-reflection": "error",
-        "wildshard/no-build-time-import": ["error", { "closedShards": ["_template"] }],
-        "wildshard/no-runtime-in-build": ["error", { "closedShards": ["_template"] }],
+        "wildshard/no-build-time-import": ["error", { "closedShards": ["_template", "blender-template", "ink-cel-valley", "pastel-plain"] }],
+        "wildshard/no-runtime-in-build": ["error", { "closedShards": ["_template", "blender-template", "ink-cel-valley", "pastel-plain"] }],
         // E405 AG28: imports point down; the engine knows no game, kit, shard or app module
         "wildshard/layer": "error",
         // LT1: composition roots use defining workspace exports; zero stays zero.
