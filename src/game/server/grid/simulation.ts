@@ -62,7 +62,7 @@ export class GridSimulation {
     this.assembly = assembly; this.ports = ports;
     this.limit = ports.maxResidents ?? 4;
     const owner = leadPlayer(ports.highway.host);
-    if (!Number.isInteger(this.limit) || this.limit < 2 || this.limit > 9 || ports.highway.host.embedded || !owner.hasMotor) throw new RangeError('Invalid grid simulation owner');
+    if (!Number.isInteger(this.limit) || this.limit < 1 || this.limit > 9 || ports.highway.host.embedded || !owner.hasMotor) throw new RangeError('Invalid grid simulation owner');
     this.owner = owner.id; this.sites.set(owner.id, null);
     if (ports.reserve !== undefined && ports.residentBytes === undefined) throw new Error('Sim reservation needs admitted resident bytes');
     if (ports.allocator !== undefined && (ports.residentBytes === undefined || ports.reserve !== undefined)) throw new Error('Use one sim reservation owner with admitted bytes');
@@ -261,6 +261,20 @@ export class GridSimulation {
       },
       cancel,
     };
+  }
+  /**
+   * Start a session in a cell rather than on the highway: before any tick, the owner takes the seat that cell holds for them,
+   * at the pose, heading and health it holds, which is the cell's own spawn or the save it restored. Nothing has run yet, so
+   * this is no crossing and hears no `travel`. Build the room after it: a crossing starts from where its player stands.
+   */
+  async enter(instance: string): Promise<void> {
+    if (this.current() !== null) throw new Error('Grid owner has already entered');
+    await this.ensure(instance);
+    const road = this.ports.highway.host, cell = this.hostAt(instance), traveller = this.seat(road, this.owner), held = this.seat(cell, this.owner), health = held.health.snapshot();
+    const { x, y, z } = this.assembly.world(held.position, this.assembly.cell(instance));
+    traveller.health.restore({ ...health, lastHurt: health.lastHurt + (road.clock.now - cell.clock.now) * 1000 });
+    traveller.position.set(x, y, z); traveller.yaw = held.yaw; traveller.motor.resetAt(traveller.position);
+    (await this.prepare(null, instance)).commit();
   }
   /** The empty seat a player takes on arrival. The lead's is always there; anyone else's is made for them. */
   private arrivalSeat(host: SimHost, player: string, traveller: PlayerSim): PlayerSim {

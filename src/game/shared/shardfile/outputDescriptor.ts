@@ -9,6 +9,13 @@ import { parseOutputLineageIndex } from '@wildshard/format/stateLineage';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Trusted checked-ingestion capability, supplied explicitly by Node author readers. */
+/**
+ * Whether a server reads this file: its terrain collider, and the bin, json and wasm that hold collision, navigation and
+ * scripts. Models, textures, sound and the view's terrain tiles stay on the page. C2's server packs replace this.
+ */
+export function serverReadsFile(file: Pick<OutputIndex['files'][number], 'kind' | 'hash'>, terrain: string | undefined): boolean {
+  return file.kind === 'bin' || file.kind === 'json' || file.kind === 'wasm' || (file.kind === 'tile' && terrain?.endsWith(file.hash) === true);
+}
 export interface OutputDescriptorChecks {
   readonly parseIndex: (input: unknown) => OutputIndex | null;
   readonly assemble: (index: OutputIndex, sections: ReadonlyMap<string, unknown>) => Shardfile;

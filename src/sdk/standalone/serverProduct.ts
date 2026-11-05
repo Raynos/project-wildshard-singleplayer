@@ -3,7 +3,7 @@ import { isOutputIndex } from '@wildshard/format/outputAddress';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { contentHash } from '@wildshard/game/shardfile/contentHash';
 import { nodeNamedJsonCheck, nodeOutputDescriptorChecks } from '@wildshard/game/shardfile/outputChecksNode';
-import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
+import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor, serverReadsFile } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
 import type { HeadlessRuntimeInput } from '../headlessRuntime';
 
@@ -37,6 +37,7 @@ export async function fetchServerProduct(base: string, rapier: Rapier): Promise<
   };
   const product = shardProductData(shard, root, verified, true, false, nodeNamedJsonCheck, { files: true });
   const assets = new Map<string, Uint8Array>();
-  await Promise.all(descriptor.index.files.map(async file => { const ref = file.commons === true ? `commons:${file.hash}` : file.hash; assets.set(ref, await verified(ref)); }));
+  // E5.2b: only what a server reads. Everything else is the page's, and every byte here would be a phone's.
+  await Promise.all(descriptor.index.files.filter(file => serverReadsFile(file, shard.terrain?.collider)).map(async file => { const ref = file.commons === true ? `commons:${file.hash}` : file.hash; assets.set(ref, await verified(ref)); }));
   return { shard, assets, rapier, product };
 }

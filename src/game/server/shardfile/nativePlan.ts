@@ -1,7 +1,7 @@
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { prepareRuntimePlan, type NativeRuntimeRecipe } from '../plugin/simulation';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
+import { outputDescriptor, serverReadsFile } from '../../shared/shardfile/outputDescriptor';
 import { hasNativeAssembly, prepareNativeAssembly, type NativeAssemblyRuntime } from './nativeAssembly';
 import type { NativeAssemblyContext, NativeAssemblyPorts } from './nativeAssemblyInput';
 
@@ -20,7 +20,7 @@ export async function prepareProductRuntimePlan<C extends NativeAssemblyContext>
   const admitted = new Map(assets);
   for (const file of descriptor.index.files) {
     const ref = file.commons === true ? `commons:${file.hash}` : file.hash;
-    if (admitted.has(ref)) continue;
+    if (admitted.has(ref) || !serverReadsFile(file, product.shardfile.terrain?.collider)) continue;
     if (file.name === undefined) throw new Error('Missing unnamed native plan asset');
     admitted.set(ref, await product.file(file.name));
   }
