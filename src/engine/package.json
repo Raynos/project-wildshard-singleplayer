@@ -456,7 +456,7 @@
     "./sim/respawn": "./server/sim/respawn.ts",
     "./sim/shardRows": "./shared/sim/shardRows.ts",
     "./sim/snapshot": "./shared/sim/snapshot.ts",
-    "./script/state": "./server/script/state.ts",
+    "./script/state": "./shared/script/state.ts",
     "./script/lane": "./server/script/lane.ts",
     "./ai/platform": "./server/ai/platform.ts",
     "./world/terrainTileView": "./client/world/terrainTileView.ts",

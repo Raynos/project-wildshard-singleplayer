@@ -3,7 +3,7 @@ import { progressSave, saveSlug } from '../shared/saves';
 import { updateSummary } from './summary';
 import { findTitleManifest } from './shard/titleList';
 import { findShard } from './shard/registry';
-import type { ShardSlug } from '../server/shard/slugs.generated';
+import type { ShardSlug } from '../shared/shard/slugs.generated';
 /**
  * Progress — per-shard achievement progress, earned titles and the title you wear. Persisted in
  * localStorage ('ws.progress.v1', keyed by chunk id); the in-memory copy is the truth for the session

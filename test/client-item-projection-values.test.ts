@@ -5,7 +5,7 @@ import { deepStrictEqual } from 'node:assert';
 import { expect, test } from 'vitest';
 import { projectItemFields } from '../src/game/client/shardfile/clientItems';
 import { ItemRuntime } from '../src/engine/shared/combat/items';
-import { DeclaredScriptWorld, SCRIPT_STATE_OP, type ScriptStateDeclaration } from '../src/engine/server/script/state';
+import { DeclaredScriptWorld, SCRIPT_STATE_OP, type ScriptStateDeclaration } from '../src/engine/shared/script/state';
 import { emptyShardfile } from '../src/sharddev/author';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost } from '../src/engine/server/sim';

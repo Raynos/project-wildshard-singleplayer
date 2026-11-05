@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { compileScript } from '@wildshard/sharddev/compileScript';
 import { ScriptLane, installScriptLane, type ScriptLanePort } from '../src/engine/server/script/lane';
-import { DeclaredScriptWorld } from '../src/engine/server/script/state';
+import { DeclaredScriptWorld } from '../src/engine/shared/script/state';
 import type { SimHost, SimStateAdapter } from '../src/engine/server/sim';
 
 let bytes: Uint8Array = new Uint8Array();

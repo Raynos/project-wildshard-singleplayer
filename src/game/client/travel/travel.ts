@@ -4,7 +4,7 @@ import { markUnload } from '@wildshard/engine/boot/lastEnd';
 import { arrivalTier, freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveKeyDef, SaveSlot } from '@wildshard/engine/saves/store';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
-import type { ShardSlug } from '../../server/shard/slugs.generated';
+import type { ShardSlug } from '../../shared/shard/slugs.generated';
 import type { SpawnPose } from '../../server/shard/manifest';
 import type { Inventory, ItemId } from '../Inventory';
 import { isItemId, ITEMS } from '../../shared/bag/itemCatalog';

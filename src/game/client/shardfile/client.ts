@@ -68,7 +68,7 @@ import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, clientStateMark, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint, clientCheckpointCadence } from './clientState';
+import { captureClientState, clientStateMark, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint, clientCheckpointCadence } from '../../shared/shardfile/clientState';
 import { portalTransitioning } from '../../shared/shardfile/portalTraversal';
 import { syncTargetColliders } from '../../shared/shardfile/targets';
 import type { ClientAssets } from './clientAssets';

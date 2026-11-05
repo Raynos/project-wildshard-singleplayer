@@ -1,5 +1,5 @@
 import { ScriptLane } from '../../../src/engine/server/script/lane';
-import { DeclaredScriptWorld } from '../../../src/engine/server/script/state';
+import { DeclaredScriptWorld } from '../../../src/engine/shared/script/state';
 
 /** Recorded query replies deliberately decouple script identity from physics-engine floating-point drift. */
 export interface QueryRecord { kind: number; input: readonly number[]; entity: number; reply: readonly number[] }

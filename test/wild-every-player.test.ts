@@ -9,7 +9,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost } from '../src/engine/server/sim';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
-import { dataCreaturePorts } from '../src/game/server/shardfile/dataCreaturePorts';
+import { dataCreaturePorts } from '../src/game/shared/shardfile/dataCreaturePorts';
 import marmots from '../src/shards/nalati-grasslands/data/marmotForager.json' with { type: 'json' };
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

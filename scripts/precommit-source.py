@@ -272,7 +272,7 @@ def check_staged_imports(blobs, files, staged_paths, imports):
             generated = {output for outputs in sources['producers'].values() for output in outputs}
             copies = json.loads(blobs.get('scripts/copied-runtime-inputs.json', b'{"copies":[]}'))
             generated.update(row['target'] for row in copies['copies'])
-            generated.update(['src/shards.generated.ts', 'src/game/server/shard/slugs.generated.ts',
+            generated.update(['src/shards.generated.ts', 'src/game/shared/shard/slugs.generated.ts',
                 'src/game/server/shard/slugs.generated.json', 'src/game/server/shard/manifest-closure.generated.json',
                 'lint/shard-words.generated.json', 'src/game/client/boot/bytes.generated.ts',
                 'src/game/client/boot/versions.generated.ts', 'src/game/client/boot/audio.generated.ts',

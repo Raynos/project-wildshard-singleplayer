@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { CHECKPOINT_TICKS, clientCheckpointCadence } from './clientState';
+import { CHECKPOINT_TICKS, clientCheckpointCadence } from '../../shared/shardfile/clientState';
 
 /** a client's checkpoint ports over a fake clock: the player's input count and position, coins, progress and a portal */
 function rig() {

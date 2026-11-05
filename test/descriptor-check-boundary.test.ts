@@ -7,7 +7,7 @@ import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import type { resolveOutputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import type { admitProduct, ProductOptions } from '../src/game/client/shardfile/product';
 import type { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import type { readCheckedOutputIndex } from '../src/game/server/shardfile/outputIndexChecks';
+import type { readCheckedOutputIndex } from '../src/game/shared/shardfile/outputIndexChecks';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute and remove one real browser build as an owned temporary module.
 import { mkdir, mkdtemp, writeFile, rm } from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the temporary browser module under the repository scratch root.
@@ -36,7 +36,7 @@ test('browser products need a build proof and bundle no checked host intake', as
     }), schemas: [], files: [], runtime: null };
   const entry = new URL('../descriptor-check-boundary', import.meta.url).pathname;
   const productEntry = new URL('../src/game/client/shardfile/product.ts', import.meta.url).pathname;
-  const metadataEntry = new URL('../src/game/server/shardfile/outputIndexChecks.ts', import.meta.url).pathname;
+  const metadataEntry = new URL('../src/game/shared/shardfile/outputIndexChecks.ts', import.meta.url).pathname;
   const result = await build({ configFile: false, publicDir: false, logLevel: 'silent',
     define: { __SHARDFILE_VALIDATOR__: JSON.stringify('browser-boundary'), __SHARDFILE_VERDICTS__: JSON.stringify([{ revision: 'browser-boundary',
       sourceHash: index.build.sourceHash, indexHash: hashImmutableBytes(encode(index)), worst: { playing: 0, loading: 0, accounted: 0, location: [0, 0] } }]) },

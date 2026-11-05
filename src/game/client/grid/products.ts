@@ -26,7 +26,7 @@ import * as v from 'valibot';
 
 import { GridAdmissionPriority } from './admissionPriority';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
-import { readCheckedOutputIndex } from '../../server/shardfile/outputIndexChecks';
+import { readCheckedOutputIndex } from '../../shared/shardfile/outputIndexChecks';
 import { packReads, type PackReads } from '../../shared/shardfile/packReads';
 
 const edgeRows = v.strictObject({ edge: EdgeProfilesSchema, entryways: EntrywaysSchema });

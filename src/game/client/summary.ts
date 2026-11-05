@@ -3,7 +3,7 @@ import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import { progressSave } from '../shared/saves';
 import { titleManifests } from './shard/titleList';
-import type { ShardSlug } from '../server/shard/slugs.generated';
+import type { ShardSlug } from '../shared/shard/slugs.generated';
 
 const count = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0));

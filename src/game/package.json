@@ -242,7 +242,7 @@
     "./plugin/ui": "./client/plugin/ui.ts",
     "./plugin/audio": "./client/plugin/audio.ts",
     "./plugin/shaderFamily": "./client/plugin/shaderFamily.ts",
-    "./shardfile/dataCreaturePorts": "./server/shardfile/dataCreaturePorts.ts",
+    "./shardfile/dataCreaturePorts": "./shared/shardfile/dataCreaturePorts.ts",
     "./bag/findsCatalogue": "./shared/bag/findsCatalogue.ts",
     "./plugin/channels": "./shared/plugin/channels.ts",
     "./population/shelter": "./server/population/shelter.ts",

@@ -9,7 +9,7 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { admitSpeciesProgram } from '../../server/plugin/brain';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
-import { bindPlayerImpulse } from '../../server/shardfile/dataCreaturePorts';
+import { bindPlayerImpulse } from '../../shared/shardfile/dataCreaturePorts';
 import { borrowedDecisionAuthority } from '../../server/shardfile/borrowedDecisions';
 import { clientNativeBook } from './clientNativeBook';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';

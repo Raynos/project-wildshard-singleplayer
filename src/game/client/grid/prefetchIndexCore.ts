@@ -3,7 +3,7 @@ import {readOutputDownloadIndex,type OutputDownloadIndex} from '@wildshard/forma
 import {readContentResponse} from '@wildshard/engine/boot/readContentResponse';
 import {contentHash} from '../../shared/shardfile/contentHash';
 import {yieldTask} from '@wildshard/engine/core/workSlice';
-import {readCheckedOutputIndex} from '../../server/shardfile/outputIndexChecks';
+import {readCheckedOutputIndex} from '../../shared/shardfile/outputIndexChecks';
 
 export interface PrefetchIndexRequest {readonly url:string;readonly indexHashes:readonly string[]|null;readonly phone:boolean}
 /** Strict Node author controls may inject their byte fixture; browsers do not. */

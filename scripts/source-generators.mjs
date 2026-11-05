@@ -34,7 +34,7 @@ export const SOURCE_GENERATORS = [
   starter('starter-effects', 'scripts/gen-starter-effects.mjs', 'src/game/server/systems/effects/starterRows.json', 'src/game/client/systems/effects/starter.generated.ts', 'starterEffectsTableSource'),
   {
     id: 'shard-slugs',
-    outputs: ['src/game/server/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json'],
+    outputs: ['src/game/shared/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json'],
     inputs: ['src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'scripts/shard-outputs.mjs', 'scripts/gen-shards.mjs'],
     committed: true,
     generate: async root => (await import(pathToFileURL(`${root}/scripts/gen-shards.mjs`).href)).slugTables(root),

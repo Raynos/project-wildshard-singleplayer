@@ -8,7 +8,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost } from '../src/engine/server/sim';
 import { publishShardState } from '../src/engine/shared/sim/shardRows';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import { DeclaredScriptWorld } from '../src/engine/server/script/state';
+import { DeclaredScriptWorld } from '../src/engine/shared/script/state';
 import { MoverScriptDriver } from '../src/game/server/plugin/mover';
 import { emptyShardfile } from '../src/sharddev/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';

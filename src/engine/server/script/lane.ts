@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { SimHost } from '../sim';
-import type { DeclaredScriptWorld } from './state';
+import type { DeclaredScriptWorld } from '../../shared/script/state';
 import { ScriptHost, type ScriptCall, type ScriptHostOptions } from '../../shared/script/host';
 import type { ScriptEntity, ScriptEvent } from '../../shared/script/effects';
 import type { ScriptRole, ScriptSchedule } from './composition';

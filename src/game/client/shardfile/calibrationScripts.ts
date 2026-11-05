@@ -5,7 +5,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { CalibrationScript } from '@wildshard/engine/calibrate/wasm';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import { BUILTIN_SHARD_SLUGS } from '../../server/shard/slugs.generated';
+import { BUILTIN_SHARD_SLUGS } from '../../shared/shard/slugs.generated';
 import { loadFirstPartyProduct } from './runtimeProduct';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 

@@ -9,8 +9,8 @@ import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { UpdraftModeSchema, type UpdraftMode, type TraverseMode } from '@wildshard/format/modes';
 import type { ShardCreatures } from '@wildshard/format/creatures';
 import type { ShardRows } from '@wildshard/format/rows';
-import type { DeclaredBrainPorts } from './brainRuntime';
-import type { DeclaredGroupPorts, DeclaredPackRecipe } from './groupRuntime';
+import type { DeclaredBrainPorts } from '../../server/shardfile/brainRuntime';
+import type { DeclaredGroupPorts, DeclaredPackRecipe } from '../../server/shardfile/groupRuntime';
 
 const finite = v.pipe(v.number(), v.finite());
 const paceSchema = { x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) };

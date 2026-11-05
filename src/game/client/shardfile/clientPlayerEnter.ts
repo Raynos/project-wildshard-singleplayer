@@ -1,7 +1,7 @@
 import { parse } from 'valibot';
 import { ClientPlayerEnterSchema } from '@wildshard/format/clientNative';
 import type { ShardContext } from '../plugin/context';
-import { bindPlayerImpulse } from '../../server/shardfile/dataCreaturePorts';
+import { bindPlayerImpulse } from '../../shared/shardfile/dataCreaturePorts';
 
 /** World-time bounds retain the original staged fall-recovery selection. */
 export function installClientPlayerEnter(ctx: ShardContext, input: unknown): void {

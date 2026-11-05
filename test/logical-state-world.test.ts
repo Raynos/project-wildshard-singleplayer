@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { DeclaredScriptWorld, type ScriptStateDeclaration } from '../src/engine/server/script/state';
+import { DeclaredScriptWorld, type ScriptStateDeclaration } from '../src/engine/shared/script/state';
 import { logicalStateFromLane, logicalStateFromWorld } from '../src/game/shared/shardfile/logicalState';
 
 const entities = [1, 2].map(id => ({ id, name: `actor ${String(id)}`, position: [0, 0, 0] as const, fields: {}, frozen: false, interactive: true }));

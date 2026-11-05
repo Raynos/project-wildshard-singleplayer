@@ -5,7 +5,7 @@ import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import { StalkerBrain } from "@wildshard/engine/ai/stalker";
 import { HURT_ARC, type HuntBody, type HuntGround, type HuntNav, type HuntConfig, type HuntSpecies } from "@wildshard/engine/ai/hunt";
-import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
+import { bindPlayerImpulse } from '../../shared/shardfile/dataCreaturePorts';
 import type { AnimalSimSpec, AnimalSim } from "@wildshard/engine/entities/AnimalSim";
 import type { SimStrike, SimValue, SimHost } from "@wildshard/engine/sim";
 import { type StrikeSpec, StrikeRunner, type StrikeContext } from "@wildshard/engine/ai/strikes";

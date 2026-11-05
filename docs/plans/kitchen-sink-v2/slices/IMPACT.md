@@ -125,7 +125,7 @@ them, `pnpm gen:source --check` (in `pnpm lint`) and the pre-commit hook select 
 | Touch | Regenerate | Outputs |
 |---|---|---|
 | a schema / section | `scripts/bake-section-schemas.mjs` (via `gen:source`) | section types and wire schemas |
-| a manifest, a new shard, a new id | `scripts/gen-shards.mjs`, `gen-shard-words.mjs` | `src/shards.generated.ts`, `src/game/server/shard/slugs.generated.{ts,json}`, `manifest-closure.generated.json`, `lint/shard-words.generated.json` |
+| a manifest, a new shard, a new id | `scripts/gen-shards.mjs`, `gen-shard-words.mjs` | `src/shards.generated.ts`, `src/game/shared/shard/slugs.generated.{ts,json}`, `manifest-closure.generated.json`, `lint/shard-words.generated.json` |
 | product bytes, boot packs, audio | `pnpm gen` (`gen-boot-cache.mjs`, `bake-packs.mjs`, `boot-publication.mjs`) | `src/game/client/boot/{bytes,packs,versions,audio}.generated.ts`, `scripts/boot-publication.generated.json` |
 | starter weapons, bag, effects, arm clips | `gen-starter-*.mjs` | `src/game/server/weapons/starter.generated.ts`, `bag/starter.generated.ts`, `systems/effects/starter.generated.ts`, `systems/viewmodel/clips.generated.ts` |
 | KTX2 art | `bake-ktx2.mjs` | `src/shards/<slug>/ktx2.generated.ts` |

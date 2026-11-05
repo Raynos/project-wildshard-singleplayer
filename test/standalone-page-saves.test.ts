@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { installSaveEnvironment } from '../src/engine/shared/saves/environment';
 import { saves } from '../src/engine/shared/saves/runtime';
 import type { SaveStorage } from '../src/engine/shared/saves/store';
-import { captureClientState, clientStateSave } from '../src/game/client/shardfile/clientState';
+import { captureClientState, clientStateSave } from '../src/game/shared/shardfile/clientState';
 import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { gridRecovery } from '../src/game/shared/grid/recovery';
 import { regionalRuntimeCheckpoint } from '../src/game/shared/grid/runtimeCheckpoint';

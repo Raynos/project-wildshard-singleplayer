@@ -61,7 +61,7 @@ import { speciesResolver, simStrikes } from "./brain";
 import { createShardfileScriptLane, verifiedScriptModules, type ScriptModuleAssets, type ShardScriptPorts } from "../shardfile/scripts";
 import { installDeclaredBrains, type DeclaredBrainPorts } from "../shardfile/brainRuntime";
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
-import { bindPlayerColumns, dataCreaturePorts } from "../shardfile/dataCreaturePorts";
+import { bindPlayerColumns, dataCreaturePorts } from "../../shared/shardfile/dataCreaturePorts";
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../../shared/shardfile/crowdRuntime";
 import { installLadders, type LadderClientPorts } from '../../shared/shardfile/ladder';

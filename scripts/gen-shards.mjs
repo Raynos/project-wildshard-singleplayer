@@ -261,7 +261,7 @@ function retireDiscoveryBank(root) {
 
 /** The committed slug tables (TS and JSON; GS3) by output path, from the shard folders' manifests alone. */
 export function slugTables(root) {
-  return { 'src/game/server/shard/slugs.generated.ts': slugSource(root), 'src/game/server/shard/slugs.generated.json': `${JSON.stringify(Object.fromEntries(shardSlugs(root).map(slug=>[slug,true])),null,2)}\n` };
+  return { 'src/game/shared/shard/slugs.generated.ts': slugSource(root), 'src/game/server/shard/slugs.generated.json': `${JSON.stringify(Object.fromEntries(shardSlugs(root).map(slug=>[slug,true])),null,2)}\n` };
 }
 /** The build-written shard tables (the shard list, the manifest closure), which import and walk every product's
  *  discovery module, by output path. genShards writes them and the slug tables; gen:source registers both. */

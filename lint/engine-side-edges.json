@@ -1,10 +1,10 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 35,
+  "client → server": 29,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 26,
+  "server → client": 25,
   "server → render": 1,
   "shared → client": 3,
   "shared → dom": 1,
@@ -47,12 +47,6 @@
   "src/game/client/grid/pageShell.ts": {
    "client → server": 1
   },
-  "src/game/client/grid/prefetchIndexCore.ts": {
-   "client → server": 1
-  },
-  "src/game/client/grid/products.ts": {
-   "client → server": 1
-  },
   "src/game/client/grid/regionalWorld.ts": {
    "client → server": 4
   },
@@ -71,13 +65,7 @@
   "src/game/client/shard/registry.ts": {
    "client → server": 1
   },
-  "src/game/client/shardfile/calibrationScripts.ts": {
-   "client → server": 1
-  },
   "src/game/client/shardfile/client.ts": {
-   "client → server": 1
-  },
-  "src/game/client/shardfile/clientItems.ts": {
    "client → server": 1
   },
   "src/game/client/shardfile/clientMoverOwners.ts": {
@@ -86,14 +74,11 @@
   "src/game/client/shardfile/clientPlan.ts": {
    "client → server": 3
   },
-  "src/game/client/shardfile/clientPlayerEnter.ts": {
-   "client → server": 1
-  },
   "src/game/client/shardfile/clientSource.ts": {
    "client → server": 1
   },
   "src/game/client/shardfile/clientSpeciesProgram.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/client/shardfile/clientStealthEntry.ts": {
    "client → server": 2
@@ -110,9 +95,6 @@
   },
   "src/game/server/ambient/crowdPage.ts": {
    "server → client": 4
-  },
-  "src/game/server/grid/durability.ts": {
-   "server → client": 1
   },
   "src/game/server/grid/intent.ts": {
    "server → client": 1

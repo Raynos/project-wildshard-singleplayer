@@ -8,7 +8,7 @@ import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmit
 import type { QuestDataPorts } from '../../shared/quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { GridWallet } from '../../shared/grid/wallet';
-import { clientStateFromRegion, clientStateSave, restoreClientState } from '../../client/shardfile/clientState';
+import { clientStateFromRegion, clientStateSave, restoreClientState } from '../../shared/shardfile/clientState';
 import { ClientCheckpointSchema, type ClientCheckpoint } from '@wildshard/format/clientState';
 import type { ShardfileSimulation } from '../plugin/simulation';
 
