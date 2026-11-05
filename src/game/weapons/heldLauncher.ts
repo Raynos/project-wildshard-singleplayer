@@ -9,7 +9,8 @@ import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildsha
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
 import { ProjectilePresentation, type ProjectileKind } from '@wildshard/engine/combat/view/projectile';
-import { FOV_ADS, FOV_HIP, impactSurfaceOf, isMesh, mergeHeldParts, prepareWeaponView, Puffs, viewmodelRowMaterial, weaponDisplay, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { impactSurfaceOf } from '@wildshard/engine/combat/impact';
+import { FOV_ADS, FOV_HIP, isMesh, mergeHeldParts, prepareWeaponView, Puffs, viewmodelRowMaterial, weaponDisplay, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';

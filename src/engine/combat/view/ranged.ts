@@ -10,7 +10,6 @@ import type { EquipmentRow } from '../Equipment';
 import type { ImpactSurface } from '../Weapon';
 import { worldHit as queryWorldHit, type Hit } from '../../physics/query';
 import { attachFogUniforms } from '../../world/Atmosphere';
-import type { Material } from '../../physics/surface';
 import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, viewmodelBakeUrl, type Pixels, type SetName, type Ctx2D } from '../../player/viewmodelTextures';
 import { ktx2Texture, prepareCompressedTexture } from '../../core/ktx2';
 import { activeLevel } from '../../level/selection';
@@ -22,10 +21,6 @@ export interface RangedWorld { game: Game; sky: Sky; player: Player; forest: For
 export interface RangedOptions { row: EquipmentRow; allowUnlocked?: boolean }
 export const TRACER_ORDER = 1200;
 export const TRACER_RED: THREE.Color = new THREE.Color(1.0, 0.0, 0.0);
-/** The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. */
-export function impactSurfaceOf(m: Material): ImpactSurface {
-  return m === 'flesh' ? 'flesh' : m === 'wood' || m === 'planks' ? 'wood' : 'ground';
-}
 interface Vec3 { x: number; y: number; z: number }
 /**
  * The first world surface a bolt's step (`radius` > 0: a ball swept a → b) or a shot (`radius` 0: the ray a → b) meets,

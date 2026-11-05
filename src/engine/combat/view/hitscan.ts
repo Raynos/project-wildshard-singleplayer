@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { gameplayRandom } from '../../app/runtime';
-import { worldHit, impactSurfaceOf } from './ranged';
+import { worldHit } from './ranged';
+import { impactSurfaceOf } from '../impact';
 import { sstep } from '../../player/viewmodelTextures';
 import type { Targets, TargetHit } from '../types';
 import type { ImpactSurface } from '../Weapon';

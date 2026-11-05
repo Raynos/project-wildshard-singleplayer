@@ -1,16 +1,15 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 468,
+  "client → server": 464,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 208,
   "server → dom": 3,
   "server → render": 10,
-  "shared → client": 13,
+  "shared → client": 10,
   "shared → dom": 1,
-  "shared → render": 1,
-  "shared → server": 4
+  "shared → server": 2
  },
  "files": {
   "src/engine/ai/view/eliteController.ts": {
@@ -64,13 +63,8 @@
   "src/engine/combat/view/Bow.ts": {
    "client → server": 1
   },
-  "src/engine/combat/view/projectile.ts": {
-   "shared → client": 3,
-   "shared → render": 1,
-   "shared → server": 2
-  },
   "src/engine/combat/view/SweptMelee.ts": {
-   "client → server": 6
+   "client → server": 3
   },
   "src/engine/core/devMode.ts": {
    "client → server": 1
@@ -807,7 +801,7 @@
    "client → server": 1
   },
   "src/game/weapons/heldLauncher.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/game/weapons/heldPolearm.ts": {
    "client → server": 8

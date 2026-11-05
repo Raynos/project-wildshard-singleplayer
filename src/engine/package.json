@@ -153,6 +153,7 @@
     "./combat/effects/EffectService": "./combat/effects/EffectService.ts",
     "./combat/effects/types": "./combat/effects/types.ts",
     "./combat/health": "./combat/health.ts",
+    "./combat/impact": "./combat/impact.ts",
     "./combat/pipeline": "./combat/pipeline.ts",
     "./combat/sweptMeleeCore": "./combat/sweptMeleeCore.ts",
     "./combat/sweptBasePose": "./combat/sweptBasePose.ts",
