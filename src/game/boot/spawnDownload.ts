@@ -488,17 +488,22 @@ const outcomeOf = (row: unknown): SpawnOutcome | null => {
   if (typeof row !== 'object' || row === null) return null;
   const read = (key: string): unknown => Reflect.get(row, key), id = read('id'), level = read('level'), outcome = read('outcome'), packs = read('packs');
   const counts = ['parts', 'failed', 'fallbackFiles', 'fetched'].map(read);
-  if (typeof id !== 'string' || typeof level !== 'string' || (outcome !== 'complete' && outcome !== 'failed' && outcome !== 'cancelled')
+  if ((typeof id !== 'string' && id !== undefined) || typeof level !== 'string' || (outcome !== 'complete' && outcome !== 'failed' && outcome !== 'cancelled')
     || typeof packs !== 'boolean' || !counts.every(count => typeof count === 'number' && Number.isInteger(count) && count >= 0)) return null;
   const [parts = 0, failed = 0, fallbackFiles = 0, fetched = 0] = counts.map(Number);
-  return {id, level, outcome, packs, parts, failed, fallbackFiles, fetched};
+  // sp-x1's review of be2df44ec8: a row b28a44a5e6 saved has no id; it gets one here (storedOutcomes writes it back)
+  return {id: id ?? crypto.randomUUID(), level, outcome, packs, parts, failed, fallbackFiles, fetched};
 };
-function storedOutcomes(): SpawnOutcome[] {
-  const rows: unknown = outcomesSlot.read();
-  return Array.isArray(rows) ? rows.flatMap(row => outcomeOf(row) ?? []) : [];
-}
 const outcomeRow = (kept: SpawnOutcome): Record<string, string | number | boolean> => ({id: kept.id, level: kept.level, outcome: kept.outcome,
   packs: kept.packs, parts: kept.parts, failed: kept.failed, fallbackFiles: kept.fallbackFiles, fetched: kept.fetched});
+function storedOutcomes(): SpawnOutcome[] {
+  const rows: unknown = outcomesSlot.read();
+  if (!Array.isArray(rows)) return [];
+  const kept = rows.flatMap(row => outcomeOf(row) ?? []);
+  // the earlier format's rows (no id) take theirs now, one each, before any is delivered or replaced
+  if (rows.some(row => typeof row === 'object' && row !== null && Reflect.get(row, 'id') === undefined)) outcomesSlot.write(kept.map(outcomeRow));
+  return kept;
+}
 /** outcomes the save refused, this page's fallback */
 const pageOutcomes: SpawnOutcome[] = [];
 function keepOutcome(outcome: SpawnOutcome): void {

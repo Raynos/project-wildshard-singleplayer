@@ -159,3 +159,20 @@ test('each foreground download reports one outcome: complete, or cancelled, queu
   releaseSpawnMembers(); holds.delete(o2.url);
   vi.unstubAllGlobals();
 });
+
+// sp-x1's review of be2df44ec8: rows b28a44a5e6 saved carry no id; each keeps its place (two identical rows stay two),
+// takes a persisted id before replay, and leaves only on confirm
+test('outcomes saved without an id survive the upgrade, each with its own id, and clear on confirm', () => {
+  const kept = jsonSlot('download.outcomes', 'device', () => []);
+  const legacy = {level: 'dl20legacy', outcome: 'failed', packs: true, parts: 2, failed: 1, fallbackFiles: 3, fetched: 3};
+  kept.write([legacy, legacy]);
+  const seen: SpawnOutcome[] = [];
+  const confirm = reportSpawnOutcomes(outcome => { seen.push(outcome); });
+  const mine = seen.filter(row => row.level === 'dl20legacy');
+  expect(mine).toHaveLength(2);
+  expect(new Set(mine.map(row => row.id)).size).toBe(2);
+  const stored = kept.read();
+  expect(Array.isArray(stored) && stored.every(row => typeof row === 'object' && row !== null && typeof Reflect.get(row, 'id') === 'string')).toBe(true);
+  confirm();
+  expect(kept.read()).toEqual([]);
+});
