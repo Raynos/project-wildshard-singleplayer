@@ -38,14 +38,17 @@ export interface NativeCombatFrame {
   scripts: Map<string, number>; moveX: number; moveZ: number; yaw: number;
   /** The look pitch a free shot leaves along (P1-E3.2). */
   pitch: number;
-  live: Set<number>; aim: number; adsBlend: number; aimed: number; speedFactor: number | null;
+  live: Set<number>;
+  /** The slots a trigger pull lands on: what is in hand, a swap or no swap (J112: the page's fire disc doesn't wait for one). */
+  armed: Set<number>;
+  aim: number; adsBlend: number; aimed: number; speedFactor: number | null;
   extraSpread: number; mountSpread: number; ammo: string; rain: number;
   wind: { clock: Readonly<{ time: number; gust: number }>; field: WindFieldSpec; base: number; scale: number } | null;
 }
 /** A fresh released input frame; a resident fills its same arrays at lend(), never retains a previous tick. */
 export function createNativeCombatFrame(): NativeCombatFrame {
   return { launchers: [], attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null, swing: false, pitch: null, sprint: false, seq: 0, viewTick: 0 }, seq: 0, viewTick: 0, others: new Map(), scripts: new Map(),
-    moveX: 0, moveZ: 0, yaw: 0, pitch: 0, live: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
+    moveX: 0, moveZ: 0, yaw: 0, pitch: 0, live: new Set(), armed: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
     speedFactor: 0, extraSpread: 0, mountSpread: 0, ammo: '', rain: 0, wind: null };
 }
 /** Another player's frame, made on first use. The weather is the world's, read off the lead's. */
@@ -191,14 +194,14 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
     if (!Number.isFinite(amount) || amount < 0) throw new RangeError('Invalid native bolt grant');
     state.quiver = Math.min(p.quiver, state.quiver + amount);
   } }, step: (dt: number): void => {
-    const shots = own.live.has(row.slot) ? own.attacks : [];
+    const shots = own.armed.has(row.slot) ? own.attacks : [];
     for (let i = 0; i < 1024; i++) {
       const id = shots[i];
       if (id === undefined) break;
       const target = host.entities.get(id);
       if (target !== undefined && action.trigger()) fire(target);
     }
-    if(own.live.has(row.slot))for(const control of own.launchers){
+    if(own.armed.has(row.slot))for(const control of own.launchers){
       if(control.slot!==row.slot)continue;
       if(control.reload===true)action.reload();
       if(control.fire===true&&action.trigger())fire(null,control);
@@ -256,14 +259,14 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
     hitscan(target);
   };
   return { item: { act, store }, step: (dt: number): void => {
-    const live = own.live.has(row.slot), shots = live ? own.attacks : [];
+    const armed = own.armed.has(row.slot), shots = armed ? own.attacks : [];
     for (let i = 0; i < 1024; i++) {
       const id = shots[i];
       if (id === undefined) break;
       const target = host.entities.get(id);
       if (target !== undefined) pull(target);
     }
-    if (live && own.melee.swing && !own.melee.heavy) pull(null);
+    if (armed && own.melee.swing && !own.melee.heavy) pull(null);
     sinceEmpty += dt;
     for (const _event of act.events(dt, act.wantsAutoReload && sinceEmpty > profile.autoReload && sinceEmpty < (lever.autoReloadClose ?? 0) && own.live.has(row.slot))) { /* Native effects have no presentation. */ }
   },

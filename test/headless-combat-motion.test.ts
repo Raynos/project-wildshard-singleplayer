@@ -77,7 +77,7 @@ test('missing combat refuses before registering; delegated motion without a samp
     if (weapon?.kind !== 'weapon' || weapon.ranged === undefined || weapon.profile === undefined) throw new Error('Missing fixture lever');
     installNativeItems(host, frame, { kind: 'cycle', policy: weapon.ranged, profile: weapon.profile });
     const hp = host.entities.get('boar:1')?.hp;
-    frame.live.add(weapon.ranged.slot); frame.attacks.push('boar:1');
+    frame.live.add(weapon.ranged.slot); frame.armed.add(weapon.ranged.slot); frame.attacks.push('boar:1');
     expect(() => host.step()).toThrow('authoritative player sample');
     expect(host.entities.get('boar:1')?.hp).toBe(hp);
   } finally { host.dispose(); }

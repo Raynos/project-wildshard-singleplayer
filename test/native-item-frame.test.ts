@@ -81,7 +81,7 @@ test('native item rows preserve all three old continuations, contacts, RNG, stow
       frame.aim = tick % 11 === 0 ? 0.8 : 0.5; frame.adsBlend = (tick % 61) / 60; frame.aimed = (tick % 41) / 40;
       frame.speedFactor = (tick % 37) / 36; frame.extraSpread = 0.1; frame.mountSpread = 0.2;
       frame.ammo = tick % 3 === 0 ? 'pitch' : tick % 3 === 1 ? 'broadhead' : 'iron';
-      frame.live.clear(); frame.live.add(Math.floor(tick / 180) % 3);
+      frame.live.clear(); frame.live.add(Math.floor(tick / 180) % 3); frame.armed.clear(); frame.armed.add(Math.floor(tick / 180) % 3);
       frame.attacks.length = 0; if (tick % 7 === 0) frame.attacks.push('absent', 'boar:1', 'boar:1');
       frame.heavy = tick % 110 < 70 ? { targetId: 'boar:1' } : null;
       old.step(); current.step();

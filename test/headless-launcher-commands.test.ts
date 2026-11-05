@@ -38,7 +38,7 @@ test('real launcher obeys stow, free aim, consumption, manual reload and actual 
   try {
     const original=launcher.state.quiver;
     step([command]);expect(launcher.state.quiver).toBe(original); // stowed trigger is not authority
-    frame.live.add(policy.slot);step([command]);
+    frame.live.add(policy.slot);frame.armed.add(policy.slot);step([command]);
     expect(launcher.state.quiver).toBe(original-1);expect(launcher.state.loaded).toBe(false);
     const flying=v.parse(savedBolt,host.adapters.get(policy.step)?.snapshot()).bolts.find(row=>row.active);
     if(flying===undefined)throw new Error('The actual projectile was not launched');
@@ -51,7 +51,7 @@ test('real launcher obeys stow, free aim, consumption, manual reload and actual 
     expect(launcher.state.quiver).toBe(original-1); // reload never invents a bolt
     const expected=snapshotSimHost(host),restoredFrame=createNativeCombatFrame();
     const restored=restoreSimHost(level,{rapier},checkpoint,fresh=>{
-      installNativeItems(fresh,restoredFrame,{kind:'bolt',policy,profile});restoredFrame.live.add(policy.slot);
+      installNativeItems(fresh,restoredFrame,{kind:'bolt',policy,profile});restoredFrame.live.add(policy.slot);restoredFrame.armed.add(policy.slot);
     });
     try {for(let tick=0;tick<180;tick++)restored.step();expect(snapshotSimHost(restored)).toEqual(expected);}
     finally{restored.dispose();}

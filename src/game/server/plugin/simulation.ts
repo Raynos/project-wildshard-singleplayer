@@ -1296,12 +1296,12 @@ export interface NativeLoadoutSnapshot<Slot extends number> extends Readonly<Rec
 /** One selection owner, borrowed by an existing simulation adapter. */
 export interface NativeLoadout<Slot extends number> {
   readonly held: () => Slot; readonly swapping: () => boolean;
-  readonly owned: (slot: Slot) => boolean; readonly live: (slot: Slot) => boolean;
+  readonly owned: (slot: Slot) => boolean; readonly live: (slot: Slot) => boolean; readonly armed: (slot: Slot) => boolean;
   readonly select: (slot: Slot) => void; readonly step: (dt: number, pick: Slot | null) => void;
   readonly snapshot: () => NativeLoadoutSnapshot<Slot>; readonly restore: (value: unknown) => void;
 }
 /** The frame a kit publishes what is in hand to. */
-export interface NativeLoadoutFrame { readonly scripts: ReadonlyMap<string, number>; readonly live: Set<number>; aim: number }
+export interface NativeLoadoutFrame { readonly scripts: ReadonlyMap<string, number>; readonly live: Set<number>; readonly armed: Set<number>; aim: number }
 /** Bind one or several native item slots without taking over weapon/ammunition
  * continuations. Optional stepping keeps the existing id, phase and save shape;
  * the body list and aim reader remain live while ranged items are stowed.
@@ -1327,8 +1327,8 @@ export function bindNativeLoadout<Slot extends number>(host: SimHost, row: Nativ
         if (publication === undefined || own === undefined) return;
         const aim = publication.aim, value = own.scripts.get(aim.command) ?? aim.initial;
         own.aim = value === aim.sentinel ? value : Number.isFinite(value) ? Math.min(aim.max, Math.max(aim.min, value)) : aim.initial;
-        own.live.clear();
-        for (let index = 0; index < 32; index++) { const slot = row.slots[index]; if (slot === undefined) break; if (loadout.live(slot)) own.live.add(slot); }
+        own.live.clear(); own.armed.clear();
+        for (let index = 0; index < 32; index++) { const slot = row.slots[index]; if (slot === undefined) break; if (loadout.live(slot)) own.live.add(slot); if (loadout.armed(slot)) own.armed.add(slot); }
       } };
   }), { loadout } = seats.lead;
   if (step !== undefined) host.onStep(step.id, seats.step, seats.adapter, step.phase);
@@ -1376,6 +1376,7 @@ export function createNativeLoadout<Slot extends number>(row: NativeLoadoutRow<S
   };
   return { held: (): Slot => held, swapping: (): boolean => swap.on, owned, select, step,
     live: (value: Slot): boolean => held === value && !swap.on && !ports.locked(),
+    armed: (value: Slot): boolean => held === value && !ports.locked(),
     snapshot: (): NativeLoadoutSnapshot<Slot> => ({ held, swap: swap.on ? { to: swap.to, t: swap.t, switched: swap.switched } : null }),
     restore: (value: unknown): void => {
       const saved = v.parse(Saved, value);

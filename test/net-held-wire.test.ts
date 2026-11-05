@@ -146,3 +146,17 @@ test('a pickup the page places tells the server its name, and Driftwood\'s sword
     expect(wire).toEqual(['iron-sword']);
   } finally { scope.dispose(); live.dispose(); }
 }, 120_000);
+
+test('the page\'s fire disc shoots what it holds: a pull on the raise of a swap lands, and a pull on the lower is the old weapon\'s', async () => {
+  const held = await rig();
+  try {
+    held.run(10); held.live.host.flags.set('owned:lever-rifle');
+    const { item, kind } = readNativeRangedItem(held.live.host, 1);
+    if (kind !== 'cycle') throw new Error('Not the rifle');
+    held.net.wire.equip('weapon.lever'); held.run(18);
+    expect(held.held()).toBe(1);
+    held.net.wire.press(true); held.run(1); held.net.wire.press(false); held.run(6);
+    expect(item.act.chambered).toBe(false);
+    expect(held.refusals).toEqual([]);
+  } finally { held.done(); }
+}, 120_000);
