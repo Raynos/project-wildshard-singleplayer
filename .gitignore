@@ -71,6 +71,8 @@ __pycache__/
 *.tsbuildinfo
 /*.log
 /.merge_file_*
+# committed-fast-checks.mjs: oxlint config, removed in `finally`; a killed gate leaves it.
+/.push-config-*.json
 /boot-smoke-results/
 /scratchpad/
 
