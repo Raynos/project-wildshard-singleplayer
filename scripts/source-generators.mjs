@@ -29,7 +29,7 @@ export const SOURCE_GENERATORS = [
     generate: async root => (await import(pathToFileURL(`${root}/scripts/title-assets.mjs`).href)).titleAssetTables(root),
   },
   starter('starter-arm-clips', 'scripts/gen-starter-arm-clips.mjs', 'src/game/client/systems/viewmodel/armAliases.json', 'src/game/client/systems/viewmodel/clips.generated.ts', 'starterArmClipsTableSource'),
-  starter('starter-weapons', 'scripts/gen-starter-weapons.mjs', 'src/game/server/weapons/starterBow.json', 'src/game/server/weapons/starter.generated.ts', 'starterWeaponsTableSource'),
+  starter('starter-weapons', 'scripts/gen-starter-weapons.mjs', 'src/game/shared/weapons/starterBow.json', 'src/game/shared/weapons/starter.generated.ts', 'starterWeaponsTableSource'),
   starter('starter-bag', 'scripts/gen-starter-bag.mjs', 'src/game/server/bag/starterItems.json', 'src/game/server/bag/starter.generated.ts', 'starterBagTableSource'),
   starter('starter-effects', 'scripts/gen-starter-effects.mjs', 'src/game/server/systems/effects/starterRows.json', 'src/game/client/systems/effects/starter.generated.ts', 'starterEffectsTableSource'),
   {

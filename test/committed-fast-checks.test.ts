@@ -220,7 +220,7 @@ test('committed good policy ignores a loose poison and still checks the source',
 test('native generated inputs match canonical committed producer bytes',()=>{
   const f=fixture();try {
     f.put('scripts/gen-starter-weapons.mjs',readFileSync(resolve('scripts/gen-starter-weapons.mjs'),'utf8'));
-    f.put('src/game/server/weapons/starterBow.json','{"damage":1}');
+    f.put('src/game/shared/weapons/starterBow.json','{"damage":1}');
     f.put('src/main.ts',"import {STARTER_BOW} from './game/server/weapons/starter.generated';export const value=STARTER_BOW;");
     f.put('.gitignore','.gitignore\ntmp/\nnode_modules/\n*.generated.ts\n');
     const tip=f.commit();
@@ -230,11 +230,11 @@ test('native generated inputs match canonical committed producer bytes',()=>{
     expect(passed.status,passed.stdout+passed.stderr).toBe(0);
     expect(passed.stdout).toContain('Fast lint passed on 1 exact changed files');
     expect(passed.stdout).not.toContain('DEFERRED TO CI');
-    f.put('src/game/server/weapons/starter.generated.ts','export const STARTER_BOW={damage:999};');
+    f.put('src/game/shared/weapons/starter.generated.ts','export const STARTER_BOW={damage:999};');
     const poisoned=f.run('fast-lint',tip);
-    expect(poisoned.stdout).toContain('unverified inputs src/game/server/weapons/starter.generated.ts');
+    expect(poisoned.stdout).toContain('unverified inputs src/game/shared/weapons/starter.generated.ts');
     expect(poisoned.stdout).not.toContain('Fast lint passed');
-    f.put('src/game/server/weapons/starterBow.json','{"damage":2}');
+    f.put('src/game/shared/weapons/starterBow.json','{"damage":2}');
     const changed=f.commit();generate();
     const changedResult=f.run('fast-lint',changed);
     expect(changedResult.status,changedResult.stdout+changedResult.stderr).toBe(0);

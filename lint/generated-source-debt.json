@@ -15,7 +15,7 @@
     "src/game/server/shard/slugs.generated.ts",
     "src/game/client/systems/effects/starter.generated.ts",
     "src/game/client/systems/viewmodel/clips.generated.ts",
-    "src/game/server/weapons/starter.generated.ts",
+    "src/game/shared/weapons/starter.generated.ts",
     "src/sdk/dist/assets.js",
     "src/sdk/dist/audio.js",
     "src/sdk/dist/author.js",

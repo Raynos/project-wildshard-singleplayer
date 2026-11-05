@@ -165,7 +165,7 @@ export async function deriveGitVocabulary(view) {
  * @param {ReturnType<typeof gitSourceView>} view */
 export async function deriveGitStarterTables(view) {
   const tables = [
-    ['gen-starter-weapons.mjs','starterWeaponsTableSource','src/game/server/weapons/starter.generated.ts'],
+    ['gen-starter-weapons.mjs','starterWeaponsTableSource','src/game/shared/weapons/starter.generated.ts'],
     ['gen-starter-bag.mjs','starterBagTableSource','src/game/server/bag/starter.generated.ts'],
     ['gen-starter-effects.mjs','starterEffectsTableSource','src/game/client/systems/effects/starter.generated.ts'],
     ['gen-starter-arm-clips.mjs','starterArmClipsTableSource','src/game/client/systems/viewmodel/clips.generated.ts'],

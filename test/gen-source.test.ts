@@ -17,7 +17,7 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('scripts/gen-source.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('scripts/committed-source-tables.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('scripts/git-source-view.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
-  expect(ids('src/game/server/weapons/starterBow.json')).toEqual(['starter-weapons']);
+  expect(ids('src/game/shared/weapons/starterBow.json')).toEqual(['starter-weapons']);
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio']);
   expect(ids('public/assets/title/main-crossroads-square.jpg')).toEqual(['title-asset-urls']);
@@ -40,7 +40,7 @@ test('every registry output is listed once and committed rows own tracked inputs
     'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/packs.generated.ts',
     'src/game/client/boot/versions.generated.ts', 'src/game/client/shard/art.generated.ts', 'src/game/server/shard/manifest-closure.generated.json',
     'src/game/server/shard/portShares.generated.ts', 'src/game/server/shard/slugs.generated.json', 'src/game/server/shard/slugs.generated.ts',
-    'src/game/client/systems/effects/starter.generated.ts', 'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/server/weapons/starter.generated.ts',
+    'src/game/client/systems/effects/starter.generated.ts', 'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/shared/weapons/starter.generated.ts',
     'src/shards.generated.ts',
   ].sort());
   for (const row of SOURCE_GENERATORS) expect(Number(row.generate !== undefined) + Number(row.run !== undefined), row.id).toBe(1);
@@ -109,8 +109,8 @@ test('audio source uses its declared root and refuses malformed catalogues', () 
 
 test('--stage regenerates only the committed tables a commit feeds, and they are current', async () => {
   const root = resolve(import.meta.dirname, '..');
-  await expect(genSource(root, { check: true, committed: true, changed: ['src/game/server/weapons/starterBow.json', 'src/shards/pine-hollow/manifest.json'] }))
-    .resolves.toEqual({ touched: [], owned: ['src/game/server/weapons/starter.generated.ts', 'src/game/server/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json', 'src/shards.generated.ts', 'src/game/server/shard/manifest-closure.generated.json', 'src/game/client/shard/art.generated.ts'] });
+  await expect(genSource(root, { check: true, committed: true, changed: ['src/game/shared/weapons/starterBow.json', 'src/shards/pine-hollow/manifest.json'] }))
+    .resolves.toEqual({ touched: [], owned: ['src/game/shared/weapons/starter.generated.ts', 'src/game/server/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json', 'src/shards.generated.ts', 'src/game/server/shard/manifest-closure.generated.json', 'src/game/client/shard/art.generated.ts'] });
 });
 
 
@@ -242,10 +242,10 @@ test('the stage CLI returns the selected tracked output and never runs build-wri
     mkdirSync(resolve(root, 'scripts')); mkdirSync(resolve(root, 'src/game/server/weapons'), { recursive: true });
     for (const file of ['gen-source.mjs', 'source-generators.mjs', 'gen-starter-weapons.mjs'])
       copyFileSync(resolve('scripts', file), resolve(root, 'scripts', file));
-    writeFileSync(resolve(root, 'src/game/server/weapons/starterBow.json'), '{"damage":17}');
-    const output = 'src/game/server/weapons/starter.generated.ts';
+    writeFileSync(resolve(root, 'src/game/shared/weapons/starterBow.json'), '{"damage":17}');
+    const output = 'src/game/shared/weapons/starter.generated.ts';
     const run = (...args: string[]) => spawnSync(process.execPath, [resolve(root, 'scripts/gen-source.mjs'), ...args], { encoding: 'utf8', timeout: 10_000 });
-    const staged = run('--stage', '--changed=src/game/server/weapons/starterBow.json');
+    const staged = run('--stage', '--changed=src/game/shared/weapons/starterBow.json');
     expect(staged.status, staged.stderr).toBe(0);
     expect(staged.stdout.trim()).toBe(`gen:source stage ${JSON.stringify([output])}`);
     expect(readFileSync(resolve(root, output), 'utf8')).toContain('STARTER_BOW = {"damage":17}');
@@ -256,7 +256,7 @@ test('the stage CLI returns the selected tracked output and never runs build-wri
     // publish only committed rows. A direct selection proves the filter without
     // any product, discovery or native binary in this isolated fixture.
     expect(run('--stage', '--changed=public/assets/unrelated.bin').stdout.trim()).toBe('gen:source stage []');
-    const refused = run('--stage', '--check', '--changed=src/game/server/weapons/starterBow.json');
+    const refused = run('--stage', '--check', '--changed=src/game/shared/weapons/starterBow.json');
     expect(refused.status).toBe(1); expect(refused.stderr).toContain('--stage takes');
     expect(readFileSync(resolve(root, output), 'utf8')).toBe(before);
   } finally { rmSync(root, { recursive: true, force: true }); }

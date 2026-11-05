@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { recurveBase, recurvePool } from '../src/shards/nalati-grasslands/generators/recurvePool';
-import { BOW } from '../src/game/server/weapons/starterBowProfile';
+import { BOW } from '../src/game/shared/weapons/starterBowProfile';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseBowProfile } from '../src/sdk/weapons/bowProfile';
 import { HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';

@@ -29,7 +29,7 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
         source = json.loads(subprocess.check_output(['git', 'show', revision + ':scripts/source-generation-outputs.json'], cwd=repo))
         declared.update(name for rows in source['producers'].values() for name in rows)
     pre_tables = {'src/game/server/bag/starter.generated.ts', 'src/game/client/systems/effects/starter.generated.ts',
-                  'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/server/weapons/starter.generated.ts'}
+                  'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/shared/weapons/starter.generated.ts'}
     for folder, inventory in saved['trees'].items():
         actual = {name for name in tracked if name.startswith(folder + '/')}
         omitted = actual - set(inventory)
@@ -53,7 +53,7 @@ def phase_outputs(repo, revision, generated, records, deadline=None):
         if name in tracked and name not in saved['outputs']:
             continue
         post_table = name in {'src/game/server/bag/starter.generated.ts', 'src/game/client/systems/effects/starter.generated.ts',
-                              'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/server/weapons/starter.generated.ts'} or (
+                              'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/shared/weapons/starter.generated.ts'} or (
             name.startswith('src/shards/') and (name.endswith('/.wildshard/build-policy.json') or name.endswith('/discovery.generated.ts')))
         # Intrinsic producer assets are named by their complete content hash,
         # rather than a fixed catalogue path. Admit only that exact address;
