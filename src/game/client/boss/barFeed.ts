@@ -1,0 +1,120 @@
+import { Vector3, type PerspectiveCamera } from 'three';
+import type { BossPresentation } from '@wildshard/engine/ai/BossBrain';
+import type { NetClient } from '@wildshard/engine/net/client';
+import { ENCOUNTER_CLASS } from '@wildshard/engine/net/netSchemas';
+import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
+
+/** One fight or lair this frame, as a client sees it. `body` is the row's handle, 0 while no body is out. */
+export interface EncounterRow { readonly id: string; readonly kind: string; readonly state: string; readonly hp: number; readonly phase: number; readonly shield: boolean; readonly body: number }
+/**
+ * E6 COMBAT: the one thing a bar asks of the world. A page's brains still present by themselves, and the flip takes them away
+ * with `installLoot`'s law; after it the `encounter` rows are this feed, and these views are what draws a bar. A page has one
+ * driver for a bar: the brain or the feed, never both.
+ */
+export interface EncounterFeed { readonly rows: () => readonly EncounterRow[] }
+const PREFIX = 'encounter:';
+
+/** The server's encounters in the newest frame. Rows the frame doesn't carry aren't in this cell's view. */
+export function netEncounterFeed(client: Pick<NetClient, 'entities' | 'fields' | 'latest'>): EncounterFeed {
+  const out: EncounterRow[] = [];
+  return { rows: () => {
+    out.length = 0;
+    const { latest } = client;
+    if (latest === null) return out;
+    for (const [handle, info] of client.entities) {
+      if (info.cls.cls !== ENCOUNTER_CLASS.cls) continue; // the shell's bundle has its own copy of the class
+      const row = client.fields(latest, handle);
+      if (row !== null) out.push({ id: info.id.slice(PREFIX.length), kind: String(info.initial['kind']), state: String(row['state']), hp: Number(row['hp']), phase: Number(row['phase']), shield: row['shield'] === true || row['shield'] === 1, body: Number(row['body']) });
+    }
+    return out;
+  } };
+}
+
+/** What a boss's bar says that a row doesn't: the pack's words. */
+export interface BossBarCard {
+  readonly id: string; readonly name: string; readonly title: string; readonly retryTitle: string;
+  readonly phases: readonly { readonly at: number; readonly caption: string }[];
+}
+const HOLD_AFTER_WIN = 1.4;
+const fighting = (state: string): boolean => state === 'fight' || state === 'beat';
+/**
+ * A boss's bar and cards off its row, in the order `BossBrain` shows them on a page. Who has died and how often is the room's, so
+ * the attempt on the retry card is this client's own count of them. The hold-to-skip ring and the reward card aren't a row's.
+ */
+export class BossRowBar {
+  private state = 'dormant'; private phase = 0; private attempts = 1; private won = false; private held = 0;
+  private readonly bar: BossPresentation;
+  private readonly card: BossBarCard;
+  constructor(bar: BossPresentation, card: BossBarCard) { this.bar = bar; this.card = card; }
+  draw(rows: readonly EncounterRow[], dt: number): void {
+    const { bar, card } = this, row = rows.find(entry => entry.id === card.id), state = row?.state ?? 'dormant', was = this.state;
+    bar.update(dt);
+    if (state !== was) { this.state = state; this.enter(state, was, row); }
+    if (row === undefined) return;
+    if (fighting(state)) {
+      bar.setHp(row.hp); bar.setShield(row.shield);
+      if (row.phase !== this.phase) { this.phase = row.phase; const phase = card.phases[row.phase]; if (phase !== undefined) bar.setPhase(row.phase, phase.caption); }
+    } else if (state === 'victory' && (this.held += dt) > HOLD_AFTER_WIN && bar.barShown) bar.hideBar();
+  }
+  private enter(state: string, was: string, row: EncounterRow | undefined): void {
+    const { bar, card } = this, phases = card.phases.slice(1).map(phase => phase.at);
+    if (state === 'intro') { bar.showNameCard(card.name, card.title, this.attempts > 1 || this.won); return; }
+    if (fighting(state) && !fighting(was)) {
+      bar.hideNameCard(); bar.showBar(card.name, phases);
+      this.phase = row?.phase ?? 0;
+      const phase = card.phases[this.phase]; if (this.phase > 0 && phase !== undefined) bar.setPhase(this.phase, phase.caption);
+    } else if (state === 'victory') { this.won = true; this.held = 0; bar.setHp(0); bar.setShield(false); }
+    else if (state === 'armed' && (was === 'intro' || fighting(was))) { bar.hideBar(); bar.hideNameCard(); bar.showRetry(card.retryTitle, ++this.attempts); }
+    else if (state === 'dormant') { bar.hideBar(); bar.hideNameCard(); this.attempts = 1; }
+  }
+}
+
+/** What an elite's bar says that a row doesn't. */
+export interface EliteBarCard { readonly id: string; readonly name: string; readonly epithet: string; readonly phase2: string }
+/** The rows an elite's view needs of the page: where it stands, and how the bar sees it. */
+export interface EliteRowPorts {
+  readonly player: { readonly position: Vector3 }; readonly camera: PerspectiveCamera;
+  /** The head over a row's body, into `to`; false while the page draws no such body. */
+  readonly head: (body: number, to: Vector3) => boolean;
+}
+const FADE_AFTER_FALL = 1.6;
+type BarOf = Pick<EliteBar, 'show' | 'hide' | 'set' | 'caption' | 'update'>;
+/** The one elite bar off the rows: the nearest aware or engaged lair, as `EliteView` chooses. A signature's name, the banner and a skull are moments no row says. */
+export class EliteRowBar {
+  private focus: string | null = null; private phase = 0; private fading = 0;
+  private readonly at = new Vector3();
+  private readonly bar: BarOf;
+  private readonly cards: ReadonlyMap<string, EliteBarCard>;
+  private readonly ports: EliteRowPorts;
+  constructor(bar: BarOf, cards: readonly EliteBarCard[], ports: EliteRowPorts) {
+    this.bar = bar; this.cards = new Map(cards.map(card => [card.id, card])); this.ports = ports;
+  }
+  draw(rows: readonly EncounterRow[], dt: number): void {
+    const { at, bar, ports } = this, held = rows.find(row => row.id === this.focus);
+    let best = rows.find(row => row.kind === 'elite' && row.state === 'broken') ?? null, nearest = Infinity;
+    if (best === null) for (const row of rows) {
+      if (row.kind !== 'elite' || (row.state !== 'aware' && row.state !== 'engaged') || !ports.head(row.body, at)) continue;
+      const away = at.distanceTo(ports.player.position);
+      if (away < nearest) { best = row; nearest = away; }
+    }
+    if (best === null && held?.state === 'dead') { bar.set(0, 'pinned', null, ports.camera, false); this.fading = FADE_AFTER_FALL; this.focus = null; }
+    if (this.fading > 0 && (this.fading -= dt) <= 0 && this.focus === null) bar.hide();
+    if ((best?.id ?? null) !== this.focus) this.focusOn(best);
+    if (best !== null && this.focus !== null) {
+      if (best.state === 'broken') { if (ports.head(best.body, at)) bar.set(0, 'pinned', at, ports.camera, false, true); }
+      else {
+        if (best.phase > this.phase) { const card = this.cards.get(best.id); if (card !== undefined) bar.caption(card.phase2); }
+        if (ports.head(best.body, at)) bar.set(best.hp, best.state === 'engaged' ? 'pinned' : 'head', at, ports.camera, best.shield, false, false);
+      }
+      this.phase = best.phase;
+    }
+    bar.update(dt);
+  }
+  private focusOn(row: EncounterRow | null): void {
+    const card = row === null ? undefined : this.cards.get(row.id), { bar } = this;
+    this.focus = row === null || card === undefined ? null : row.id; this.phase = row?.phase ?? 0;
+    if (card === undefined) { if (this.fading <= 0) bar.hide(); return; }
+    bar.show(card.name, card.epithet);
+    if (row?.state === 'broken') bar.caption('BROKEN');
+  }
+}
