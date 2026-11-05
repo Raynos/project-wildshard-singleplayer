@@ -86,7 +86,7 @@ try {
   if (RECORD) {
     const listFile = resolvePath(ROOT, 'scripts/bake-ktx2.list.json');
     const list = JSON.parse(readFileSync(listFile, 'utf8'));
-    const keep = (u) => /\.(glb|gltf|png|jpe?g|webp)$/.test(u) && !/^\/assets\/[^/]+-[\w-]{8}\.\w+$/.test(u) && !u.includes('/hdri/') && !u.startsWith('/assets/gpu/');
+    const keep = (u) => /\.(glb|gltf|png|jpe?g|webp)$/.test(u) && !/^\/(?:assets|b\/[\w.-]+)\/[^/]+-[\w-]{8}\.\w+$/.test(u) && !u.includes('/hdri/') && !u.startsWith('/assets/gpu/');
     const before = list[TIER].length;
     list[TIER] = [...new Set([...list[TIER], ...r.fetched.filter(keep)])].sort((a, b) => a.localeCompare(b));
     writeFileSync(listFile, `${JSON.stringify(list, null, 1)}\n`);

@@ -39,7 +39,7 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   const document = bundle['index.html'];
   if (document?.type !== 'asset' || document.source === undefined) throw new Error('Missing worker document');
   const html = new TextDecoder().decode(document.source);
-  const hashed = Object.keys(bundle).filter(name => /^assets\/[^/]+-[\w-]{8}\.\w+$/u.test(name)).map(name => `/${name}`).sort();
+  const hashed = Object.keys(bundle).filter(name => /^(?:assets|b\/[\w.-]+)\/[^/]+-[\w-]{8}\.\w+$/u.test(name)).map(name => `/${name}`).sort();
   const sources = new Map(Object.entries(titleAssetURLs(root)).map(([source, url]) => [url, source]));
   const shell = shellFiles(html, root, sources), digest = createHash('sha256');
   const owner = readFileSync(join(root, 'src/engine/client/app/workerScope.js'), 'utf8').replaceAll(/^export /gmu, '');

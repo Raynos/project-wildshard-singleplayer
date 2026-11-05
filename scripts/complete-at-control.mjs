@@ -138,7 +138,7 @@ const requests = [], reads = [];
 /** The neighbour split needs the mapped trace and the served build's own session source (`git show <rev>:<file>`). */
 const byWork = (rows, trace) => (trace?.mapped !== true ? { level: rows, neighbour: [] }
   : splitByInitiator(rows, trace, neighbourSpans(file => execFileSync('git', ['show', `${rev}:${file}`], { encoding: 'utf8' })), url => slugOf(contentPath(url) ?? '') !== null));
-// --dist: the build's hidden source maps (dist/assets/*.js.map) name each trace frame's source, as loading-benchmark does
+// --dist: the build's hidden source maps (dist/b/<build>/*.js.map) name each trace frame's source, as loading-benchmark does
 const sourceMaps = new Map();
 /** sp-x1: the maps must be the served build's own: --dist's version.json names the revision, and every map that carries a
  *  span file carries exactly that revision's source of it. Null when bound, else why not (then no frame is trusted). */
@@ -146,7 +146,7 @@ const distBinding = () => {
   if (values.dist === undefined) return 'no --dist';
   const stamp = resolve(values.dist, 'version.json'), version = existsSync(stamp) ? JSON.parse(readFileSync(stamp, 'utf8')) : null;
   if (typeof version?.build !== 'string' || !version.build.startsWith(rev.slice(0, 7))) return `--dist serves ${version?.build ?? 'no version.json'}, not ${rev}`;
-  const assets = resolve(values.dist, 'assets');
+  const code = resolve(values.dist, 'b', version.build), assets = existsSync(code) ? code : resolve(values.dist, 'assets');
   for (const file of new Set(NEIGHBOUR_WORK.map(span => span.file))) {
     const want = execFileSync('git', ['show', `${rev}:${file}`], { encoding: 'utf8' });
     let carried = 0;
@@ -168,9 +168,9 @@ const distBinding = () => {
 const sourceOf = (frame) => {
   if (values.dist === undefined) return null;
   const require = createRequire(resolve('package.json')), { TraceMap, originalPositionFor } = require('@jridgewell/trace-mapping');
-  const file = /\/assets\/([^?#]+\.js)/u.exec(frame.url)?.[1];
+  const file = /\/((?:assets|b\/[\w.-]+)\/[^?#]+\.js)/u.exec(frame.url)?.[1];
   if (file === undefined) return null;
-  const path = resolve(values.dist, 'assets', file);
+  const path = resolve(values.dist, file);
   if (!sourceMaps.has(path)) sourceMaps.set(path, existsSync(`${path}.map`) ? new TraceMap(readFileSync(`${path}.map`, 'utf8')) : null);
   const map = sourceMaps.get(path), at = map === null ? null : originalPositionFor(map, { line: frame.line, column: Math.max(0, frame.col - 1) });
   return at?.source ? `${at.source.replace(/^(?:\.\.\/)+/u, '').replace(/^build-mirror\/check\/tree\//u, '')}:${at.line}${at.name ? ` ${at.name}` : ''}` : null;

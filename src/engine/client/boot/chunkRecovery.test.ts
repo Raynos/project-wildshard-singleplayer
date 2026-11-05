@@ -1,9 +1,10 @@
 import {expect, test, vi} from 'vitest';
-import {createChunkRecovery, staleChunkFailure} from './chunkRecovery';
+import {createChunkRecovery, reloadIntoNewerBuild, staleChunkFailure} from './chunkRecovery';
 
 const base = 'https://game.test/';
 const missingJs = new TypeError('Failed to fetch dynamically imported module: https://game.test/assets/pageEntry-1234abcd.js');
 const missingCss = new Error('Stylesheet failed: https://game.test/assets/main-abcd1234.css');
+const missingBuild = new TypeError('Failed to fetch dynamically imported module: https://game.test/b/a3e7ef2-mw3ukc3m/pageEntry-1234abcd.js');
 function fixture() {
   let taken = false;
   const version = vi.fn(() => Promise.resolve('new-build'));
@@ -14,11 +15,11 @@ function fixture() {
   return {ports, version, prepare, claim, reload};
 }
 test('only same-origin deployment code and sheets classify as stale chunk failures', () => {
-  for (const error of [missingJs, missingCss, new TypeError('Importing a module script failed.')]) expect(staleChunkFailure(error, base)).toBe(true);
+  for (const error of [missingJs, missingCss, missingBuild, new TypeError('Importing a module script failed.')]) expect(staleChunkFailure(error, base)).toBe(true);
   for (const error of [new Error('application invariant'), new TypeError('Failed to fetch'), new Error('Stylesheet failed: https://other.test/assets/main-abcd1234.css'),
     new Error('Stylesheet failed: https://game.test/unversioned.css')]) expect(staleChunkFailure(error, base)).toBe(false);
 });
-test.each([missingJs, missingCss])('a missing chunk prepares the actual new worker and reloads once (%s)', async failure => {
+test.each([missingJs, missingCss, missingBuild])('a missing chunk prepares the actual new worker and reloads once (%s)', async failure => {
   const f = fixture(), recover = createChunkRecovery(f.ports);
   expect(await Promise.all([recover(failure), recover(failure)])).toEqual([true, true]);
   expect(f.version).toHaveBeenCalledOnce(); expect(f.prepare).toHaveBeenCalledExactlyOnceWith('new-build');
@@ -60,4 +61,14 @@ test('a world entered during worker preparation cannot spend the reload claim', 
   f.prepare.mockImplementation(() => {title = false; return Promise.resolve(true);});
   expect(await createChunkRecovery({...f.ports, allowed: () => title})(missingCss)).toBe(false);
   expect(f.claim).not.toHaveBeenCalled(); expect(f.reload).not.toHaveBeenCalled();
+});
+test('a refused build moves only to a newer one, once', async () => {
+  const f = fixture();
+  expect(await reloadIntoNewerBuild(f.ports)).toBe(true);
+  expect(f.prepare).toHaveBeenCalledExactlyOnceWith('new-build'); expect(f.reload).toHaveBeenCalledOnce();
+  expect(await reloadIntoNewerBuild(f.ports)).toBe(false);
+  expect(f.reload).toHaveBeenCalledOnce();
+  const same = fixture(); same.version.mockResolvedValue('old-build');
+  expect(await reloadIntoNewerBuild(same.ports)).toBe(false);
+  expect(same.claim).not.toHaveBeenCalled();
 });

@@ -20,7 +20,7 @@ export function readDownloadFiles(input: unknown): readonly (readonly [string, n
   for (const row of input) {
     if (!Array.isArray(row) || row.length !== 2) throw new Error('Invalid download file row');
     const url: unknown = row[0], bytes: unknown = row[1];
-    if (typeof url !== 'string' || !/^\/assets\/(?:[a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/u.test(url)
+    if (typeof url !== 'string' || !/^\/(?:assets|b)\/(?:[a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/u.test(url)
       || url.split('/').some(part => part === '.' || part === '..')
       || typeof bytes !== 'number' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid download file row');
     rows.push([url, bytes]);
@@ -34,7 +34,7 @@ export function readModuleFiles(input: unknown): readonly (readonly [string, num
   for (const row of input) {
     if (!Array.isArray(row) || row.length !== 2) throw new Error('Invalid boot module file');
     const url: unknown = row[0], bytes: unknown = row[1];
-    if (typeof url !== 'string' || !/^\/assets\/[a-zA-Z0-9_.-]+\.(?:js|css)$/u.test(url)
+    if (typeof url !== 'string' || !/^\/(?:assets|b\/[a-zA-Z0-9_.-]+)\/[a-zA-Z0-9_.-]+\.(?:js|css)$/u.test(url)
       || typeof bytes !== 'number' || !Number.isSafeInteger(bytes) || bytes < 0) throw new Error('Invalid boot module file');
     files.push([url, bytes]);
   }

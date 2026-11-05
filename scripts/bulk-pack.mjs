@@ -8,7 +8,7 @@
 // The boot list is the build's own spawn manifest (dist/assets/spawn/<shard>-<flow>-<tier>-<hash>.json, written by
 // scripts/app-build/entryTotals.ts): the files the title downloads before control, today one request each. They are
 // grouped by how they change and how they compress:
-//   code    /assets/*.js|css                      (changes with every app build)
+//   code    /b/<build>/*.js|css                   (changes with every app build)
 //   engine  every other /assets/* and /basis/*    (shared by every shard)
 //   shard   /shardfiles/<shard>/*, cut into parts of at most --part-mb raw MB, never inside a file
 //   tex     images and KTX2 (already compressed: the server must not spend brotli on them)
@@ -40,7 +40,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 
 const kindOf = path => {
   if (/\.(webp|png|jpe?g|ktx2|avif)$/u.test(path)) return 'tex';
-  if (/^\/assets\/[^/]+\.(js|css)$/u.test(path)) return 'code';
+  if (/^\/(?:assets|b\/[\w.-]+)\/[^/]+\.(js|css)$/u.test(path)) return 'code';
   if (path.startsWith(`/shardfiles/${shard}/`)) return 'shard';
   return 'engine';
 };

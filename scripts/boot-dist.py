@@ -139,15 +139,20 @@ def pack(dist, output, plan, sha, run):
     # URLs in this exact emitted JS/JSON bank can be requested by its generated
     # tables. Boot tables are external JSON, so JS-only scanning loses live packs.
     packs = set()
-    for suffix in ('*.js', '*.json'):
-        for module in (dist / 'assets').glob(suffix):
-            packs.update(re.findall(r'/assets/packs/([a-zA-Z0-9_.-]+\.bin)', module.read_text()))
+    build = json.loads((dist / 'version.json').read_text())['build']
+    for folder in (dist / 'assets', dist / 'b' / build):
+        for suffix in ('*.js', '*.json'):
+            for module in folder.glob(suffix):
+                packs.update(re.findall(r'/assets/packs/([a-zA-Z0-9_.-]+\.bin)', module.read_text()))
     for path in sorted(dist.rglob('*')):
         if path.is_symlink():
             raise ValueError('Dist symlink refused')
         if path.is_file():
             name = safe(path.relative_to(dist).as_posix())
             if name.startswith('assets/packs/') and path.name not in packs:
+                continue
+            # Older builds' carried code serves stale tabs; no browser leg can name it.
+            if name.startswith('b/') and not name.startswith('b/' + build + '/'):
                 continue
             files.append({'path': name, 'bytes': path.stat().st_size, 'hash': digest(path)})
     if not {'index.html', 'version.json'}.issubset({row['path'] for row in files}):

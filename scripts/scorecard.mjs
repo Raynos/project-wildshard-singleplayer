@@ -780,7 +780,7 @@ async function retouchRow() {
             reg.waiting.postMessage({ type: 'SKIP_WAITING' });
             await new Promise((resolve) => { setTimeout(resolve, 1500); });
           }
-          return [...document.scripts].map((x) => x.src).find((x) => x.includes('/assets/index-')) ?? '';
+          return [...document.scripts].map((x) => x.src).find((x) => /\/(?:assets|b\/[\w.-]+)\/index-/u.test(x)) ?? '';
         }).catch(() => '');
         await within(p.page.close(), 10_000);
       }
