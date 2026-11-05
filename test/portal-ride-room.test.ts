@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { installHostPortalRide, type RidePlayer } from '../src/game/client/shardfile/portalRideBinding';
+import { installHostPortalRide, type RidePlayer } from '../src/game/shared/shardfile/portalRide';
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import portals from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
 import portalStages from '../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };

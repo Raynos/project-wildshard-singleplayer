@@ -3,9 +3,9 @@
  * The existing traversal owner validates physics; a presenter draws the veil.
  * No authored callback or shard identifier enters this host. */
 import * as v from 'valibot';
-import { DirectorStageLane } from '../../shared/plugin/director';
+import { DirectorStageLane } from '../plugin/director';
 import { parseDirectorStages } from '@wildshard/format/directorStages';
-import type { PortalTransfer } from '../../shared/shardfile/portalTraversal';
+import type { PortalTransfer } from './portalTraversal';
 import type { PortalLinkEntry } from '@wildshard/format/portalLinkAssets';
 
 export type PortalRideCommand = { readonly kind: 'hold'; readonly on: boolean } | { readonly kind: 'transfer'; readonly from: string };

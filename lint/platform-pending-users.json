@@ -2224,7 +2224,7 @@
       }
     },
     {
-      "module": "src/game/client/shardfile/walkInPortalRide.ts",
+      "module": "src/game/shared/shardfile/walkInPortalRide.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "walk-in-portal-ride",

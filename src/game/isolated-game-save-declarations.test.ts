@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["shared/ledger","client/animation/limbQueryPose","shared/compendium/tracker","shared/grid/wallet","server/population/nativeReturns","server/population/shelter","shared/quest/contractBoard","shared/shardfile/ladder","client/shardfile/walkInPortalRide"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["shared/ledger","client/animation/limbQueryPose","shared/compendium/tracker","shared/grid/wallet","server/population/nativeReturns","server/population/shelter","shared/quest/contractBoard","shared/shardfile/ladder","shared/shardfile/walkInPortalRide"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["shared/ledger","client/animation/limbQueryPose","shared/comp
 
 test('game save contracts retain literal revisions, tuple poses and board fields',()=>{
  const consumer=resolve('src/game/t4-isolated-game-save-declarations-consumer.ts');
- let source="import * as v from 'valibot';\nimport type {CompendiumTrackerSnapshot} from './shared/compendium/tracker';\nimport type {LimbQueryPoseSaved} from './client/animation/limbQueryPose';\nimport {PortalRideStateSchema} from './client/shardfile/walkInPortalRide';\nimport type {ContractBoard} from './shared/quest/contractBoard';\ndeclare const tracked:CompendiumTrackerSnapshot;\ndeclare const pose:LimbQueryPoseSaved;\nexport const revision:1=tracked.version;\nexport const names:string[]=tracked.heard;\nexport const ride:v.InferOutput<typeof PortalRideStateSchema>={version:2,director:\"route\",entered:null,armed:false,t:-1,from:\"\",moved:false,rides:[],refused:[]};\ndeclare const board:ReturnType<ContractBoard[\"snapshot\"]>;\nexport const boardVersion:1=board.version;\nexport const next:number=board.board.next;\n";
+ let source="import * as v from 'valibot';\nimport type {CompendiumTrackerSnapshot} from './shared/compendium/tracker';\nimport type {LimbQueryPoseSaved} from './client/animation/limbQueryPose';\nimport {PortalRideStateSchema} from './shared/shardfile/walkInPortalRide';\nimport type {ContractBoard} from './shared/quest/contractBoard';\ndeclare const tracked:CompendiumTrackerSnapshot;\ndeclare const pose:LimbQueryPoseSaved;\nexport const revision:1=tracked.version;\nexport const names:string[]=tracked.heard;\nexport const ride:v.InferOutput<typeof PortalRideStateSchema>={version:2,director:\"route\",entered:null,armed:false,t:-1,from:\"\",moved:false,rides:[],refused:[]};\ndeclare const board:ReturnType<ContractBoard[\"snapshot\"]>;\nexport const boardVersion:1=board.version;\nexport const next:number=board.board.next;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};
