@@ -63,7 +63,7 @@ test('a bot crosses into a cell on its own feet while the lead stays on the road
     expect(cell.state.tick).toBe(cellTick + 30); expect(s.grid.host().state.tick).toBe(roadTick + 30);
     expect(s.grid.worldFeet(BOT).x).toBeLessThan(feet.x - 0.5);
     // The parked seat is out of the world: no input of its own and no capsule in the bot's way.
-    expect(cell.players.get(lead)?.motor.enabled).toBe(false);
+    expect(cell.players.get(lead)?.motor.snapshot().enabled).toBe(false);
   } finally { s.room.dispose(); s.grid.dispose(); }
 });
 

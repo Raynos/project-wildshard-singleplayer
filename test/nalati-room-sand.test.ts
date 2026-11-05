@@ -38,7 +38,7 @@ test('room sand preserves original heightfields and a quiet complete native cont
   const original=new ArenaRoomGround(room),patch=new HeightPatch(page.physics,{x:0,y:5,z:0,size:10,res:5,material:'sand',owner:'native.room.sand'});
   const sand=new NativeArenaSand(native,room,'native.room.sand');let restored:SimHost|undefined,copy:NativeArenaSand|undefined;
   page.onStep('page.room.sand',dt=>{if(original.pace(dt))patch.set(originalGrid(original));});
-  native.onStep('native.room.sand',dt=>{sand.advance(dt);},{snapshot:()=>sand.snapshot(),restore:value=>{sand.restore(value);},physicsRestored:()=>{sand.physicsRestored();}});
+  native.onStep('native.room.sand',dt=>{sand.advance(dt);},{snapshot:()=>({...sand.snapshot()}),restore:value=>{sand.restore(value);},physicsRestored:()=>{sand.physicsRestored();}});
   try{
     for(let tick=0;tick<180;tick++){
       apply(original,tick);apply(sand.ground,tick);if(copy!==undefined)apply(copy.ground,tick);
@@ -50,7 +50,7 @@ test('room sand preserves original heightfields and a quiet complete native cont
         const saved=snapshotSimHostBytes(native);
         restored=restoreSimHost(level,{rapier},saved,host=>{
           const next=new NativeArenaSand(host,room,'native.room.sand');copy=next;
-          host.onStep('native.room.sand',dt=>{next.advance(dt);},{snapshot:()=>next.snapshot(),restore:value=>{next.restore(value);},physicsRestored:()=>{next.physicsRestored();}});
+          host.onStep('native.room.sand',dt=>{next.advance(dt);},{snapshot:()=>({...next.snapshot()}),restore:value=>{next.restore(value);},physicsRestored:()=>{next.physicsRestored();}});
         });
         expect(snapshotSimHostBytes(restored)).toStrictEqual(saved);
       }

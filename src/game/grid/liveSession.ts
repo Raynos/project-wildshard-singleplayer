@@ -84,7 +84,6 @@ import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeT
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 import { regionalDataCellBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../shard/runtime';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The cached metadata claim and its later constructor enter the same immutable
  * texture policy. Fresh inputs remain borrowed only by actual construction. */
@@ -666,7 +665,7 @@ export class LiveGridSession {
         const prior = saved ?? savedRegion.read(true);
         savedRegion.bind(sim.host, sim.colliders);
         if (prior !== undefined) {
-          leadPlayer(prepared.restore(prior)).detachMotor(); // the saved world carries its strip duplicates already
+          for (const player of prepared.restore(prior).players.values()) player.detachMotor(); // the saved world carries its strip duplicates already
         } else {
           prepared.keep();
           if (!savedRegion.restoreLogical(sim)) throw new Error('Regional logical migration was refused');

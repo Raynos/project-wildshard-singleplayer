@@ -227,7 +227,6 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
   const spots = metadata?.spots ?? row.quest.spots;
   if (spots === 'metadata') throw new Error('Missing admitted native quest spots');
   const plan: NativeRuntimePlan = { level: world.level, ports: world.ports, install: (host, context) => {
-  const lead = leadPlayer(host);
     const environment = world.install(host, context), { ledger, keeper, encounter } = environment;
     const reactions = ownsTargets || row.weapon.worldReactionAction === undefined ? undefined : (() => {
       const page = quest.page;
@@ -236,7 +235,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
       return bindQuestWorldReactions(declarations, { flags: host.flags });
     })();
     const loadout = bindNativeLoadout(host, { slots: [0], initial: 0, lower: 0, raise: 0 }, {
-      owned: () => true, locked: () => encounter.locked() || (row.weapon.stowOnBoard === true && lead.board.on),
+      owned: () => true, lockedFor: player => encounter.locked() || (row.weapon.stowOnBoard === true && player.board.on),
     });
     const playerCommands = context.playerCommands;
     const melee = installNativeMelee(host, weapon, weapon.native, { inputCommands: context.commands,
@@ -692,7 +691,7 @@ export async function proveAuthoredGrid(source: Shardfile, assets: ReadonlyMap<s
     if (resident === undefined) throw new Error('Missing author residency');
     const healthy = (value: ShardfileSimulation): void => {
       insist(!value.lane?.host.checkpoint().modules.some(module => module.failures > 0 || module.disabled), 'script failed');
-      insist([leadPlayer(value.host).position, ...[...value.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite)), 'nonfinite native pose');
+      insist([...value.host.players.values(), ...value.host.entities.values()].map(body => body.position).every(point => [point.x, point.y, point.z].every(Number.isFinite)), 'nonfinite native pose');
     };
     for (let tick = 0; tick < plan.checkpointTick; tick++) { grid.step(inputAt(tick, resident)); healthy(resident); }
     insist(!grid.checkpoint(instance), 'failed durable save admitted'); durable = true;
@@ -1292,7 +1291,9 @@ export interface NativeLoadoutFrame { readonly scripts: ReadonlyMap<string, numb
  * the body list and aim reader remain live while ranged items are stowed.
  */
 export function bindNativeLoadout<Slot extends number>(host: SimHost, row: NativeLoadoutRow<Slot>,
-  ports: NativeLoadoutPorts<Slot> & { readonly aim?: () => number;
+  ports: Omit<NativeLoadoutPorts<Slot>, 'locked'> & { readonly locked?: () => boolean; readonly aim?: () => number;
+    /** The lock read of the player whose seat it is, in place of `locked`. */
+    readonly lockedFor?: (player: PlayerSim) => boolean;
     readonly frame?: NativeLoadoutFrame;
     /** P1-E3.5: another player's frame and lock. Absent, only the first player holds this kit. */
     readonly others?: { readonly frame: (player: PlayerSim) => NativeLoadoutFrame; readonly locked: (player: PlayerSim) => boolean };
@@ -1301,7 +1302,8 @@ export function bindNativeLoadout<Slot extends number>(host: SimHost, row: Nativ
   const publication = row.input?.publication, frame = ports.frame, step = ports.step, others = ports.others;
   if (publication !== undefined && frame === undefined) throw new Error('Native input publication requires its combat frame');
   const seats = playerSeats(host, (player, first) => {
-    const loadout = createNativeLoadout(row, first ? ports : { ...ports, locked: () => others?.locked(player) ?? true }), own = first ? frame : others?.frame(player);
+    const lockedFor = ports.lockedFor, locked = first ? ports.locked ?? (() => lockedFor?.(player) ?? false) : () => (others?.locked ?? lockedFor)?.(player) ?? true;
+    const loadout = createNativeLoadout(row, { ...ports, locked }), own = first ? frame : others?.frame(player);
     return { loadout,
       step: (dt: number): void => { if (step === undefined || (!first && others === undefined)) return; const picked = step.pick(player, first); loadout.step(dt, row.slots.find(slot => slot === picked) ?? null); player.held = loadout.held(); },
       snapshot: (): SimValue => loadout.snapshot(), restore: loadout.restore,
