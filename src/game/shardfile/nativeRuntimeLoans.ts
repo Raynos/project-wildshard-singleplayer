@@ -8,7 +8,7 @@ import type { NativeCombatFrame } from '../plugin/nativeItems';
 import { ReturnProgram } from '../population/returnProgram';
 import { installNativeBodyScripts } from '../quest/nativeBodyScripts';
 import type { ShardProduct } from './shardProduct';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 
 interface ProductInput { readonly product: ShardProduct; readonly assets: ReadonlyMap<string, Uint8Array> }
 /** Retain full program admission before prepare and the original per-host module loan on install. */
@@ -19,12 +19,22 @@ export async function prepareReturns(preparation: ProductInput): Promise<(host: 
 }
 /** The original native frame observer. */
 export function installCombatMotion(host: SimHost, context: { readonly combat?: NativeCombatFrame }, speed: number): void {
-  const lead = leadPlayer(host);
   if (host.scope.disposed || host.scope.disposing) throw new Error('Native capability owner has ended');
   const frame = context.combat;
   if (frame === undefined) throw new Error('Native combat motion requires its combat frame');
-  lead.observeMotion(sample => { frame.speedFactor = sample === null ? null : combatSpeedFactor(
-    Math.sqrt(sample.velocityX * sample.velocityX + sample.velocityZ * sample.velocityZ), sample.grounded, sample.swimming, sample.hover, speed); });
+  const observe = (player: PlayerSim, own: NativeCombatFrame): void => {
+    player.observeMotion(sample => { own.speedFactor = sample === null ? null : combatSpeedFactor(
+      Math.sqrt(sample.velocityX * sample.velocityX + sample.velocityZ * sample.velocityZ), sample.grounded, sample.swimming, sample.hover, speed); });
+  };
+  const [first] = host.players.values(); if (first === undefined) throw new Error('Simulation host has no player');
+  observe(first, frame);
+  // a later player's frame is made on first read; the same id back in a room is a new body to observe
+  const fed = new Map<string, PlayerSim>();
+  frame.seated = (id, own) => {
+    const player = host.players.get(id);
+    if (player === undefined || player === first || fed.get(id) === player) return;
+    fed.set(id, player); observe(player, own);
+  };
 }
 /** The original direct body-script admission and deferred restored-ground fence. */
 export function installBodyScripts(host: SimHost, context: { readonly restoring: boolean }, preparation: ProductInput): void {

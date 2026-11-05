@@ -6,7 +6,7 @@ import { migrateLogicalState } from '@wildshard/format/migrations';
 import { logicalStateFromLane, logicalStateFromWorld, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
 import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
-import { captureLiftRider, restoreLiftRider } from './liftRider';
+import { captureLiftRider, firstLiftRider, parseLiftRiders, restoreLiftRider } from './liftRider';
 import { portalTransitioning } from './portalTraversal';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
@@ -124,7 +124,7 @@ export function clientStateFromRegion(source: Shardfile, snapshot: Omit<SimSnaps
   const state = logicalStateFromLane(stateVersion, lane);
   // The exact region snapshot already owns executable memory. Its migration companion must not duplicate or depend on it.
   return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state, revision, tick: snapshot.state.tick, lane: null, items,
-    liftRider: snapshot.adapters.find(adapter => adapter.id === 'lift.rider')?.state ?? null,
+    liftRider: firstLiftRider(parseLiftRiders(snapshot.adapters.find(adapter => adapter.id === 'lift.rider')?.state ?? null)),
     health: Object.fromEntries(snapshot.entities.map((entity) => [entity.id, { hp: entity.state.motion.hp, maxHp: entity.state.motion.maxHp, alive: entity.state.flags.alive }])), props,
     flags: snapshot.flags, quests: snapshot.quests, dialogue: snapshot.adapters.find((adapter) => adapter.id === 'quest.declared')?.state ?? {} });
 }

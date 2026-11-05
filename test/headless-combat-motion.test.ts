@@ -5,7 +5,7 @@ import { installCombatMotion } from '@wildshard/game/shardfile/nativeRuntimeLoan
 import { createSimHost, type SimPlayerMotionSample } from '../src/engine/sim';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
+import { createNativeCombatFrame, installNativeItems, otherCombatFrame } from '../src/game/plugin/nativeItems';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/format/namedJsonContracts';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { parseItems } from '@wildshard/format/items';
@@ -80,5 +80,18 @@ test('missing combat refuses before registering; delegated motion without a samp
     frame.live.add(weapon.ranged.slot); frame.attacks.push('boar:1');
     expect(() => host.step()).toThrow('authoritative player sample');
     expect(host.entities.get('boar:1')?.hp).toBe(hp);
+  } finally { host.dispose(); }
+});
+
+test('a bot moves its own combat frame, not the lead\'s', () => {
+  const prepared = plan(), host = createSimHost(prepared.level, { rapier }), frame = createNativeCombatFrame();
+  try {
+    prepared.install(host, { combat: frame });
+    const bot = host.addPlayer('bot:1', { x: 4, y: 0, z: 0 }), own = otherCombatFrame(frame, bot.id);
+    const sample = { velocityX: 3, velocityZ: 4, grounded: true, swimming: false, hover: false };
+    bot.useDriver({ input: () => true, step: () => undefined, motionSample: () => sample });
+    host.step();
+    expect(own.speedFactor).toBeCloseTo(5 / 7.2, 5);
+    expect(frame.speedFactor).toBe(0);
   } finally { host.dispose(); }
 });

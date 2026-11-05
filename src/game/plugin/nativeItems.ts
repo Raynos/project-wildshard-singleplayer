@@ -30,6 +30,8 @@ export interface NativeCombatFrame {
   seq: number;
   /** P1-E3.5: every other player's frame, by id. The lead's holds them; each is filled for its player alone. */
   readonly others: Map<string, NativeCombatFrame>;
+  /** Told of each other player's frame as it is read, so that player's motion feeds it (installCombatMotion). */
+  seated?: (id: string, own: NativeCombatFrame) => void;
   scripts: Map<string, number>; moveX: number; moveZ: number; yaw: number;
   /** The look pitch a free shot leaves along (P1-E3.2). */
   pitch: number;
@@ -47,7 +49,7 @@ export function createNativeCombatFrame(): NativeCombatFrame {
 export function otherCombatFrame(frame: NativeCombatFrame, id: string): NativeCombatFrame {
   let own = frame.others.get(id);
   if (own === undefined) { own = createNativeCombatFrame(); frame.others.set(id, own); }
-  own.rain = frame.rain; own.wind = frame.wind;
+  own.rain = frame.rain; own.wind = frame.wind; frame.seated?.(id, own);
   return own;
 }
 function motion(frame: NativeCombatFrame): number {

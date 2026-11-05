@@ -70,8 +70,7 @@ import { socketLiftEntries } from "@wildshard/format/socketLiftAssets";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
 import { portalTransitioning } from "../shardfile/portalTraversal";
-import { captureLiftRider, restoreLiftRider } from "../shardfile/liftRider";
-import { LiftRiderSchema, type LiftRider } from "@wildshard/format/liftRider";
+import { captureLiftRiders, parseLiftRiders, restoreLiftRider, type LiftRiders } from "../shardfile/liftRider";
 import * as v from "valibot";
 import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
 import { addPiece, type AddedPiece } from "@wildshard/engine/physics/pieces";
@@ -546,9 +545,9 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       host.onStep('targets.declared', sync); if (!ports.restoring) sync();
     }
     if (liftEntries.length > 0) {
-      let rider: LiftRider = null;
-      host.onStep('lift.rider', () => undefined, { snapshot: () => captureLiftRider(shard, { host, movers }),
-        restore: value => { rider = v.parse(LiftRiderSchema, value); },
+      let rider: LiftRiders = null;
+      host.onStep('lift.rider', () => undefined, { snapshot: () => captureLiftRiders(shard, { host, movers }),
+        restore: value => { rider = parseLiftRiders(value); },
         physicsRestored: () => { restoreLiftRider(shard, { host, movers, water }, rider); },
       });
     }
