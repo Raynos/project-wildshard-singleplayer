@@ -109,7 +109,7 @@ import { gridCells, gridHomeSim, pageMode } from '../../server/plugin/context';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { installMemoryWarning, residentOverLimit } from '../grid/memoryWarning';
 import { ACCENTS } from '@wildshard/format/accent';
-import { installShardHoverSpeed } from '../../server/grid/rules';
+import { installShardHoverSpeed } from '../../shared/grid/rules';
 import { findShard } from '../shard/registry';
 import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
 import { firstPartyInstance } from '../../shared/grid/instances';

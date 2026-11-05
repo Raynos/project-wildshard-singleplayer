@@ -1,8 +1,6 @@
 import { CHUNK_HALF, CONTENT_CAPS, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { Events } from '@wildshard/engine/events/events';
-import type { Actor } from '@wildshard/engine/combat/pipeline';
-import type { GridPoint } from '../../shared/grid/assembly';
+import type { GridPoint } from './assembly';
 
 const STRIP = (CONTENT_CAPS.pitch - CHUNK_HALF * 2 - ROAD_WIDTH) / 2;
 function finite(point: Readonly<GridPoint>): void { if (![point.x, point.y, point.z].every(Number.isFinite)) throw new RangeError('Invalid grid point'); }
@@ -20,35 +18,6 @@ export function gridHoverSpeed(local: Readonly<GridPoint>, shardCap = 14, speedC
   const t = Math.max(0, Math.min(1, (Math.max(Math.abs(local.x), Math.abs(local.z)) - CHUNK_HALF) / STRIP));
   return shardCap + (30 - shardCap) * t * t * (3 - 2 * t);
 }
-/**
- * Hit-delivery permission for one authoritative world. The traveller's geometric cell owns combat, independently
- * of the motor's 6/10 m frame hysteresis. Legacy env weapon requests carry actor.player; ordinary environmental
- * damage to the traveller uses the same gate. Terminal CombatPipeline.fall deliberately has its separate G129 path.
- * Regional actor objects (not repeated ids) provide local provenance; neighbours cannot damage another world's actors.
- */
-export function installGridTravellerCombat(events: Events, scope: Scope, traveller: Actor, instance: string | (() => string | null),
-  cellAtTraveller: () => string | null, actors?: ReadonlyMap<Actor, Readonly<GridPoint>> | (() => ReadonlyMap<Actor, Readonly<GridPoint>> | undefined)): void {
-  if (scope.disposed) return;
-  events.answer('damage.admit', request => {
-    if (request === null) return null;
-    const source = request.source === traveller || (request.source === 'env' && request.sourceTags.includes('actor.player'));
-    const target = request.target === traveller;
-    const local = typeof actors === 'function' ? actors() : actors;
-    if (!source && !target && local === undefined) return request; // Preserve the page's independent local combat.
-    const expected = typeof instance === 'function' ? instance() : instance;
-    if (expected === null || cellAtTraveller() !== expected) return null;
-    if (local !== undefined) {
-      const localTarget = target ? undefined : local.get(request.target);
-      if (!target && (localTarget === undefined || gridZone(localTarget) !== 'shard')) return null;
-      if (!source && request.source !== 'env') {
-        const localSource = local.get(request.source);
-        if (localSource === undefined || gridZone(localSource) !== 'shard') return null;
-      }
-    }
-    return request;
-  }, scope);
-}
-
 /** Minimal board port for standalone and residency policy; no Player or browser dependency enters here. */
 export interface GridHoverPort { hoverSpeedLimit: (() => number) | null }
 /** A directly opened padding shard uses its same authored road class; ordinary shards retain their existing port. */

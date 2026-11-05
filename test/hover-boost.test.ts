@@ -5,7 +5,7 @@ import { Events } from '../src/engine/shared/events/events';
 import { isDev, setDev } from '../src/engine/client/core/devMode';
 import { hoverSpeed } from '../src/engine/shared/player/hoverSpeed';
 import { mountHoverBoost } from '../src/engine/client/ui/hoverBoost';
-import { gridHoverSpeed, installGridHoverSpeed, installShardHoverSpeed, type GridHoverPort } from '../src/game/server/grid/rules';
+import { gridHoverSpeed, installGridHoverSpeed, installShardHoverSpeed, type GridHoverPort } from '../src/game/shared/grid/rules';
 import CARD from '../src/shards/_template/data/card.json' with { type: 'json' };
 import { MANIFEST as padding } from '../src/shards/_template/discovery.generated';
 import { MANIFEST as main } from '../src/shards/driftwood-isle/discovery.generated';

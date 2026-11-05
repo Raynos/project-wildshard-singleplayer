@@ -54,7 +54,8 @@ import { installGridCrossing, type GridCheckpointResult, type GridCrossingSessio
 import { GridWallet, stowGridMount } from '../../shared/grid/wallet';
 import { GridRegionDurability } from '../../server/grid/durability';
 import type { LedgerCatalogueItem } from '../../server/ledger';
-import { installGridHoverSpeed, installGridTravellerCombat } from '../../server/grid/rules';
+import { installGridHoverSpeed } from '../../shared/grid/rules';
+import { installGridTravellerCombat } from '../../server/grid/travellerCombat';
 import { gridHomeSim, gridCells, type GridHomeSimulation } from '../../server/plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct, type GridProductMetadata } from './products';
