@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { pinePickups } from '../src/shards/pine-hollow/generators/pickups';
 import rows from '../src/shards/pine-hollow/data/skinPickups.json' with { type: 'json' };
 

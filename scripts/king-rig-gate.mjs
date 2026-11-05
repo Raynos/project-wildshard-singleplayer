@@ -39,7 +39,7 @@ import { createHash } from 'node:crypto';
 import * as THREE from 'three';
 import { limbRest, applyLimbPose, newLimbPose as newPose } from '../src/game/animation/limbRig.ts';
 import { LimbAnimator } from '../src/game/animation/limbBlend.ts';
-import { parseLimbBlend } from '../src/format/limbRig.ts';
+import { parseLimbBlend } from '@wildshard/format/limbRig';
 import { KING_RIG, KING_GAITS, KING_BONES } from '../src/shards/pine-hollow/generators/kingRig.ts';
 import blend from '../src/shards/pine-hollow/data/kingBlend.json' with { type: 'json' };
 import { pineKingClips } from '../src/shards/pine-hollow/generators/kingClips.ts';

@@ -7,7 +7,7 @@ import * as runtime from '../src/game/shardfile/runtimeProduct';
 import { clientWaterSurfaces, installClientWaterSurfaces } from '../src/game/shardfile/clientWaterSurfaces';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardProduct } from '../src/game/shardfile/shardProduct';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { emptyShardfile } from '../src/sdk/author';
 
 function deferred<T>() {

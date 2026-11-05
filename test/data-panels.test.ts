@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
-import { parsePanelDefinition } from '../src/format/panelTemplate';
+import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
 import { DataPanel, readDataPanels } from '../src/game/ui/dataPanels';
 import { expandPanelTemplates } from '../src/game/ui/panelTemplates';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';

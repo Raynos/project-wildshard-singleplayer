@@ -10,7 +10,7 @@ import process from 'node:process';
 import { captureProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import recurve from '../public/assets/nalati/baked/recurve-pool.json' with { type:'json' };
-import { HeldBowFileSchema, HeldBowDefinitionSchema } from '../src/format/weaponProfiles';
+import { HeldBowFileSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { bindHeldBow } from '../src/game/weapons/heldLauncher';
 import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { fixtureJsonCheck } from './fixtures/productFile';

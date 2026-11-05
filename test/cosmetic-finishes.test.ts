@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Color, Group, Mesh, MeshLambertMaterial, MeshStandardMaterial } from 'three';
 import { CosmeticFinishLocker, CosmeticFinishPainter, paintBoundFinishes } from '../src/game/loadout/cosmeticFinishes';
-import type { CosmeticFinishBind } from '../src/format/heldFinishes';
-import { parsePlatformDataSection } from '../src/format/platformDataSections';
+import type { CosmeticFinishBind } from '@wildshard/format/heldFinishes';
+import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import rows from '../src/shards/nalati-grasslands/data/skinFinishes.json';
 import { patchShader, PATCH_ORDER } from '../src/engine/render/shaderPatches';
 

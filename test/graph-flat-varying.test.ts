@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { attribute, varying } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { graph as authorGraph } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 /** a graph's classic program sources (a clone's, as a drawn variant's) */
 function program(graph: GraphIr): { vertexShader: string; fragmentShader: string } {

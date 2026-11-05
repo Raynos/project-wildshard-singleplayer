@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/app/scope';
 import { FixedMemory } from '../src/engine/script/fixedMemory';
 import { ScriptModuleV2, prepareScriptMemory, scriptMemoryCensus } from '../src/engine/script/moduleV2';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { Rng } from '../src/engine/core/rng';
 import { admission, lendNalatiTitan } from './fixtures/nalati-return-modules';
 import { titanRawPrograms, titanPrograms, titanModuleBytes } from './fixtures/titanInlineWitness';

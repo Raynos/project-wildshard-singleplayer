@@ -6,7 +6,7 @@ import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/script/observationColumnsV2';
-import { parseObservationColumnsV2,ObservationColumnsV2Schema } from '../src/format/scriptObservationColumnsV2';
+import { parseObservationColumnsV2,ObservationColumnsV2Schema } from '@wildshard/format/scriptObservationColumnsV2';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 
 async function fixture() {

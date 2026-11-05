@@ -1,10 +1,10 @@
-import { sceneLivingBytes } from '../src/format/worldScenePages';
+import { sceneLivingBytes } from '@wildshard/format/worldScenePages';
 // @vitest-environment node
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {openProductSession} from './fixtures/headless/productSession';
 import type {HeadlessTapeObservation} from '../src/sdk/headlessTape';
-import {ForestPageSchema} from '../src/format/forestPage';
+import {ForestPageSchema} from '@wildshard/format/forestPage';
 import VERBS from '../docs/plans/foundations/verbs/pine-hollow.json' with {type:'json'};
 
 const doorsSchema=v.array(v.object({id:v.string(),open:v.boolean(),t:v.number(),enabled:v.boolean(),handle:v.number()}));

@@ -3,7 +3,7 @@ import { BufferAttribute, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Vec
 import { SlashTrail } from '../src/engine/combat/view/slashTrail';
 import { RangedTrace } from '../src/engine/render/viewmodelFeel';
 import { parse } from 'valibot';
-import { FollowTrailSamplingSchema } from '../src/format/trail';
+import { FollowTrailSamplingSchema } from '@wildshard/format/trail';
 
 // Frozen wakeRibbon.ts algorithm before G502. In particular, a slow frame
 // shifts once, not floor(dt / every), and despawn preserves clock remainder.

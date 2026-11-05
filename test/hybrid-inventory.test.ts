@@ -1,8 +1,8 @@
-import { MaterialsSchema } from '../src/format/materials';
+import { MaterialsSchema } from '@wildshard/format/materials';
 import { parse } from 'valibot';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/plugin/headless';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
-import { parseRows } from '../src/format/rows';
+import { parseRows } from '@wildshard/format/rows';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { ShardfileClient } from '../src/game/shardfile/client';
@@ -106,7 +106,7 @@ test('explicit runtime loot ownership leaves inventory alone and does not instal
 test.each([false, true])('quality-only rows register once without a data simulation (runtime stages %s)', async runtimeStagesOnly => {
   const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { createShardProduct }, { MANIFEST }, { parsePlumbing }] = await Promise.all([
     import('../src/engine/app/app'), import('../src/engine/app/scope'), import('../src/engine/level/installation'),
-    import('../src/game/plugin/context'), import('../src/game/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('../src/format/plumbing'),
+    import('../src/game/plugin/context'), import('../src/game/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('@wildshard/format/plumbing'),
   ]);
   const source = emptyShardfile({ slug: 'harbour', name: 'Harbour', author: 'Test', revision: 1, seed: 1 });
   source.plumbing = parsePlumbing({ namespace: 'harbour', input: [], debug: [], knobs: [{ id: 'harbour.spray', phone: 0.5, desktop: 0.5 }, { id: 'harbour.shadows', phone: false, desktop: false }] });

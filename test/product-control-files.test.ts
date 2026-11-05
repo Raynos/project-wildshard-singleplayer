@@ -1,6 +1,6 @@
-import { PropMaterialsSchema } from '../src/format/propMaterials';
+import { PropMaterialsSchema } from '@wildshard/format/propMaterials';
 import * as v from 'valibot';
-import { AdmissionLateSchema } from '../src/format/admissionLate';
+import { AdmissionLateSchema } from '@wildshard/format/admissionLate';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { controlFiles, deferredFiles, lateFiles } from '../src/game/shardfile/controlFiles';

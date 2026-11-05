@@ -4,7 +4,7 @@ import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { HOST_PROBE } from '../src/game/plugin/simulation';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
@@ -13,7 +13,7 @@ import { NativeHeldAmmunition, installNativeHeldAmmunition, nativeHeldAmmunition
 import { loadoutLegacySlot } from '../src/game/loadout/persistence';
 import { restoreHeldOwnership } from '../src/game/loadout/held';
 import { SaveStore } from '../src/engine/saves/store';
-import { LoadoutSchema } from '../src/format/loadout';
+import { LoadoutSchema } from '@wildshard/format/loadout';
 import pineRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 
 // GR8: called, not read from a scheduler job's output

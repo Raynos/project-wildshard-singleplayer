@@ -6,9 +6,9 @@ import { createSimHost, type SimPlayerMotionSample } from '../src/engine/sim';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/format/namedJsonContracts';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

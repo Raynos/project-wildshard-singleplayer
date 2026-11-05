@@ -3,7 +3,7 @@ import { installWorldRegistry } from '../src/engine/world/registry';
 import {readFileSync} from 'node:fs';
 import { place } from '../src/engine/models/place';
 import { parse } from 'valibot';
-import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
+import { SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';

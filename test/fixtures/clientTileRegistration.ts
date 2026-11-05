@@ -7,7 +7,7 @@ import { ResidencyAllocator } from '../../src/game/grid/allocator';
 import { TileDecoder } from '../../src/game/grid/tileDecoder';
 import { ClientAssets } from '../../src/game/shardfile/clientAssets';
 import { clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../../src/game/shardfile/tileContent';
-import type { Shardfile } from '../../src/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 function isGroup(object: Object3D): object is Group { return object instanceof Group; }
 

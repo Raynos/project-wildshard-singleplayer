@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { nativeBodySchema } from '../../src/format/nativePhysics';
+import { nativeBodySchema } from '@wildshard/format/nativePhysics';
 import { nalatiNativeBootRows } from '../../src/shards/nalati-grasslands/generators/nativeServer';
 import { NALATI_ADMISSION } from './nalati-admission';
 import { NALATI_PASTURE } from './nalati-titan';

@@ -1,10 +1,10 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { authorFormatRows } from '../src/sdk/formatJsonSchema';
-import { SpecimenMaterialSchema } from '../src/format/specimenCatalogue';
-import { SceneDressingSchema } from '../src/format/sceneDressing';
-import type { CatalogueEconomySchema } from '../src/format/catalogueEconomy';
-import { QuestFiguresSchema, type KitFigureCardsSchema } from '../src/format/questFigures';
+import { SpecimenMaterialSchema } from '@wildshard/format/specimenCatalogue';
+import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
+import type { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';
+import { QuestFiguresSchema, type KitFigureCardsSchema } from '@wildshard/format/questFigures';
 import { driftwoodFigureCommerceObservation } from './fixtures/driftwood-figure-commerce-observation';
 import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 import { hashImmutableBytes } from '../src/sdk/immutable';

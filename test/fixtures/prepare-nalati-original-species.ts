@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, existsSync, w
 // oxlint-disable-next-line import/no-nodejs-modules -- The caller supplies its repository-local immutable test cache.
 import { resolve, dirname } from 'node:path';
 import * as v from 'valibot';
-import { CreatureGuestSchema } from '../../src/format/speciesBookRows';
+import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { compileReturnProjectionV2 } from '../../src/sdk/returnProjectionV2';
 import { compileDecisionScripts } from '../../src/sdk/buildDecisionScripts';
 import { hashImmutableBytes } from '../../src/sdk/immutable';

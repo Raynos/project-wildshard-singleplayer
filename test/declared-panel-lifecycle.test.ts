@@ -5,10 +5,10 @@ import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { DataPanel } from '../src/game/ui/dataPanels';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
-import { parsePanelDefinition } from '../src/format/panelTemplate';
+import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };
 import { claim, newBoard, reroll } from '../src/game/quest/contracts';
-import { cleanMountName } from '../src/format/riding';
+import { cleanMountName } from '@wildshard/format/riding';
 
 test('the persistent lodge board retains its frame, payouts, keys and scoped row listeners', () => {
   const scope = new Scope('board-lifecycle'), board = newBoard(CONTRACTS), events: string[] = [];

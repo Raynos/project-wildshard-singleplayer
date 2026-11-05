@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { bakeSpecies } from '../src/sdk/bake/species';
 import { species } from '../src/sdk/species';
-import { readSpeciesPrograms, readSpeciesProgram } from '../src/format/speciesPrograms';
+import { readSpeciesPrograms, readSpeciesProgram } from '@wildshard/format/speciesPrograms';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from '../src/shards/driftwood-isle/generators/speciesPrograms';
 import { speciesWithLook } from '../src/engine/entities/species/look';

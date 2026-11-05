@@ -2,11 +2,11 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin complete original quest document bytes.
 import {createHash} from 'node:crypto';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
-import {NativeQuestServiceSpotsSchema} from '../src/format/nativeQuestComposition';
-import {ContractCatalogueSchema} from '../src/format/contracts';
+import {NativeQuestServiceSpotsSchema} from '@wildshard/format/nativeQuestComposition';
+import {ContractCatalogueSchema} from '@wildshard/format/contracts';
 import roots from './fixtures/approved-quest-families.json' with {type:'json'};
 
 test('seven approved quest families retain complete wire bodies and their original native admissions',()=>{

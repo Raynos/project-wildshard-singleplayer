@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseManifestMetadata } from '../src/format/minimap';
+import { parseManifestMetadata } from '@wildshard/format/minimap';
 import pine from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 
 // D58: a spawns binding may name a generator export, which scripts/manifest-spawns.mjs runs at discovery time.

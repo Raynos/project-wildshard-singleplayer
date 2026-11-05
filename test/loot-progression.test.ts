@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { parseRows } from '../src/format/rows';
-import { parseLootEconomy } from '../src/format/lootEconomy';
-import { curveAt } from '../src/format/materials';
+import { parseRows } from '@wildshard/format/rows';
+import { parseLootEconomy } from '@wildshard/format/lootEconomy';
+import { curveAt } from '@wildshard/format/materials';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 import { Owned } from '../src/game/loot/Owned';
 import { Purse } from '../src/game/loot/Purse';

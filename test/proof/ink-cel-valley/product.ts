@@ -9,8 +9,8 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness must bind to the exact prepared shard identity.
 import assert from 'node:assert/strict';
 import { readBuiltShardfile } from '../../../scripts/built-product.mjs';
-import { assembleOutputShardfile, parseOutputIndex } from '../../../src/format/outputIndex';
-import type { Shardfile } from '../../../src/format/shardSchema';
+import { assembleOutputShardfile, parseOutputIndex } from '@wildshard/format/outputIndex';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** Read only an exact-SHA/current-input prepared product. Never invokes its
  * renderer-bearing producer, builds bytes, or falls back to loose assets. */

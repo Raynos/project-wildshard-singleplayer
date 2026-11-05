@@ -1,5 +1,5 @@
 import { object, parse } from 'valibot';
-import { WorldSceneModelsSchema } from '../../src/format/worldSceneModels';
+import { WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { defineWorldSceneCatalogue } from '@wildshard/game/models/worldSceneCatalogue';
 import { driftwoodModelCatalogue } from './driftwoodModelCatalogue';
 

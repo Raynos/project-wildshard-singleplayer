@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { PopulationFieldSchema } from '../../src/format/populationEnvironment';
+import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 
 /** Independent pre-retirement river recipe, evaluated on the producer's host.
  * Frozen field and assembly pins still check the original Darwin publication;

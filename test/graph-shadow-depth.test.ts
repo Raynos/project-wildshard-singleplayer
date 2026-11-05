@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { vec3 } from 'three/tsl';
 import { classicShadowDepth, compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { graph as authorGraph } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 test('opted-in casters share live displacement and alpha, cache by material and release with it', () => {
   const graph: GraphIr = { version: 1, kind: 'material', model: 'unlit',

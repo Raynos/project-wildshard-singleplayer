@@ -2,9 +2,9 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { parseGlbData, prepareGlbCost } from '../src/format/glbCost';
-import { glbBuffers } from '../src/format/glbBuffers';
-import { glbImageCost } from '../src/format/glbImages';
+import { parseGlbData, prepareGlbCost } from '@wildshard/format/glbCost';
+import { glbBuffers } from '@wildshard/format/glbBuffers';
+import { glbImageCost } from '@wildshard/format/glbImages';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob } from '../src/sdk/blobs';
 

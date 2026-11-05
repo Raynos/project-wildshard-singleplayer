@@ -2,7 +2,7 @@
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { parseFamilyMaterial } from '../src/format/materialFamilies';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import * as materialCompiler from '../src/game/shardfile/clientMaterials';
 import * as textureCapabilities from '../src/engine/core/ktx2';
 import type { ResidencyAllocator } from '../src/game/grid/allocator';
@@ -38,7 +38,7 @@ import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { declaredClientPlanEntry, prepareClientPlanShard, type ClientPlanEntryPolicy } from '../src/game/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { ShardPlugin, type ShardContext } from '../src/game/plugin/context';
-import { parseClientPlan, RuntimeBoundsSchema } from '../src/format/clientPlan';
+import { parseClientPlan, RuntimeBoundsSchema } from '@wildshard/format/clientPlan';
 import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';

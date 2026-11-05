@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { parseGlbData, prepareGlbCost } from '../src/format/glbCost';
+import { parseGlbData, prepareGlbCost } from '@wildshard/format/glbCost';
 import { nameBlob } from '../src/sdk/blobs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 

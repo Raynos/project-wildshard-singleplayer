@@ -1,6 +1,6 @@
 // Frozen raw-loader oracle from 8811fdc97f. Production never imports this fixture.
 import * as v from 'valibot';
-import { HeldBowBaseSchema, HeldBowRowsSchema } from '../../src/format/weaponProfiles';
+import { HeldBowBaseSchema, HeldBowRowsSchema } from '@wildshard/format/weaponProfiles';
 import { createModelLibrary } from '../../src/game/plugin/geometry';
 import { bindHeldBow } from '../../src/game/weapons/heldLauncher';
 

@@ -2,8 +2,8 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the original complete file's wire bytes.
 import {createHash} from 'node:crypto';
-import {EnemyPlacementsSchema} from '../src/format/populationProjection';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {EnemyPlacementsSchema} from '@wildshard/format/populationProjection';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
 import {encodeCanonicalJson} from '../src/sdk/immutable';

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {placesWithDiscovery} from '../../src/engine/quest/discovery';
-import {ChapterViewSchema} from '../../src/format/questPageComposition';
+import {ChapterViewSchema} from '@wildshard/format/questPageComposition';
 import {mountedPlayerOf} from '../../src/game/riding/native';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';

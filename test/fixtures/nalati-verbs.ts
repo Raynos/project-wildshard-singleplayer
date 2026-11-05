@@ -1,13 +1,13 @@
 import * as v from 'valibot';
 import type {SimHost} from '../../src/engine/sim';
 import type {HeadlessRuntimeInstallation,PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import type {QuestData} from '../../src/format/quests';
+import type {QuestData} from '@wildshard/format/quests';
 import {DeclaredQuests} from '../../src/game/quest/declared';
 import {NpcReading} from '../../src/engine/quest/dialogueClock';
 import {pickPrompt} from '../../src/engine/world/interact/prompts';
-import {ChapterViewSchema,type ChapterViewRows} from '../../src/format/questPageComposition';
-import {FigureRowSchema} from '../../src/format/figures';
-import {parseChapterStoryPresentation} from '../../src/format/questStory';
+import {ChapterViewSchema,type ChapterViewRows} from '@wildshard/format/questPageComposition';
+import {FigureRowSchema} from '@wildshard/format/figures';
+import {parseChapterStoryPresentation} from '@wildshard/format/questStory';
 import {createReadingRoster} from '../../src/game/plugin/quests';
 import {eyeReaches} from '../../src/game/quest/interactionRows';
 import {stepFigureOrbit} from '../../src/game/quest/figureOrbit';

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only that defining fixture.
 import { resolve } from 'node:path';
-import { parseManifestMetadata } from '../src/format/minimap';
+import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 
 const root = resolve(import.meta.dirname, '..');

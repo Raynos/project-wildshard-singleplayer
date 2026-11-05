@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { SpecimenAssetSchema } from '../src/format/specimenCatalogue';
+import { SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiPaintedAtlasFile, nalatiPaintedGeometryFile, nalatiPaintedBindings, nalatiPaintedModelNames, nalatiLatePaintedNames, nalatiLateCatalogueNames, nalatiLateSupportNames, nalatiLateDressingNames, nalatiDeferredCatalogueScene } from '../src/shards/nalati-grasslands/generators/modelBindings';
 

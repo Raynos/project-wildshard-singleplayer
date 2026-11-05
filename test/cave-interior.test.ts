@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { caveInteriorRows } from '../src/sdk/worldScenes';
-import { CaveFileSchema, CaveInteriorSchema } from '../src/format/caveInterior';
+import { CaveFileSchema, CaveInteriorSchema } from '@wildshard/format/caveInterior';
 import { CAVE_LOOK, CRAG_LOOK } from '../src/shards/pine-hollow/generators/cragLook';
 
 /** An unrelated quarry's adit: its own baked file, frame, rock look and roof pack part, a dimmer shaft and no drips. */

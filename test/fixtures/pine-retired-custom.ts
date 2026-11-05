@@ -1,12 +1,12 @@
 import * as v from 'valibot';
 import type { ProjectOutput } from '../../src/sdk/projectOutput';
 import { outputPlatformPayloads } from '../../src/sdk/outputProduct';
-import { parsePlatformDataSection } from '../../src/format/platformDataSections';
-import { ForestPageSchema } from '../../src/format/forestPage';
-import { parseWorldScenes } from '../../src/format/worldScenes';
-import { HeldEquipmentSchema } from '../../src/format/heldEquipment';
-import { RangedPageSchema } from '../../src/format/rangedPage';
-import { RoamingCombatSchema } from '../../src/format/roamingCombat';
+import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
+import { ForestPageSchema } from '@wildshard/format/forestPage';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
+import { RangedPageSchema } from '@wildshard/format/rangedPage';
+import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 
 type Product = Pick<ProjectOutput, 'platform' | 'namedFiles' | 'assets'>;
 

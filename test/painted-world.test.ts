@@ -3,12 +3,12 @@ import * as THREE from 'three';
 import { afterEach, expect, test } from 'vitest';
 import * as v from 'valibot';
 import { paintedWorld, paintedWorldOf, postGraphLook } from '../src/game/looks/postGraphLook';
-import { PaintedWorldSchema } from '../src/format/postGraphLook';
+import { PaintedWorldSchema } from '@wildshard/format/postGraphLook';
 import { NALATI_PAINTED as paintedTextures } from '../src/shards/nalati-grasslands/generators/paintedRows';
 import { nalatiSpecimens as specimenData } from './fixtures/nalati-specimens';
-import { GrassPresentationSchema, grassPresentationFiles } from '../src/format/fieldPresentation';
+import { GrassPresentationSchema, grassPresentationFiles } from '@wildshard/format/fieldPresentation';
 import { TIER } from '../src/engine/core/tier';
-import type { ScaledPostRow } from '../src/format/scaledPost';
+import type { ScaledPostRow } from '@wildshard/format/scaledPost';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 

@@ -8,7 +8,7 @@ import { prepareNativeQuestEntry } from '@wildshard/game/quest/nativeEntry';
 import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import { nativeInventorySchema } from '../src/game/inventoryLaw';
 import * as v from 'valibot';
-import { parseQuestHost, questHostBindingRules } from '../src/format/questHost';
+import { parseQuestHost, questHostBindingRules } from '@wildshard/format/questHost';
 import { PINE as pine } from './fixtures/pine-program';
 import driftwood from './fixtures/driftwood-product-source';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';

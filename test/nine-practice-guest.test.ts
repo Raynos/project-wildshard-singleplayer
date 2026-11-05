@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
-import type { HookPracticeRow } from '../src/format/practiceCourseRows';
-import { isJsonData } from '../src/format/json';
+import type { HookPracticeRow } from '@wildshard/format/practiceCourseRows';
+import { isJsonData } from '@wildshard/format/json';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };

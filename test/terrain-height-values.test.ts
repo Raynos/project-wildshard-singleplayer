@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { terrainTileHeight, type TerrainTileData } from '../src/format/terrainTileBytes';
+import { terrainTileHeight, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 
 // Frozen before the D180 closure cut; preserve the original coordinate,
 // fallback and floating-point operation order independently of the new reader.

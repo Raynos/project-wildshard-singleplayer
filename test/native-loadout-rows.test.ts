@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The native slot oracle uses the shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { parseNativeLoadoutRow } from '../src/format/nativeItems';
-import { parseItems, parseNativeSweptMeleeBinding } from '../src/format/items';
+import { parseNativeLoadoutRow } from '@wildshard/format/nativeItems';
+import { parseItems, parseNativeSweptMeleeBinding } from '@wildshard/format/items';
 import { bindNativeLoadout, createNativeLoadout } from '../src/game/plugin/simulation';
 import { createNativeCombatFrame } from '../src/game/plugin/nativeItems';
 import { createSimHost } from '../src/engine/sim';

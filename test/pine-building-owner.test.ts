@@ -10,7 +10,7 @@ import { installPortableMath } from '../src/commons/bake/portableMath';
 import { hydrateWorldSceneWeld } from '../src/game/shardfile/worldSceneWeld';
 import { Scope } from '../src/engine/app/scope';
 import plumbing from '../src/shards/pine-hollow/data/plumbing.json' with { type: 'json' };
-import { parsePlumbing } from '../src/format/plumbing';
+import { parsePlumbing } from '@wildshard/format/plumbing';
 
 function mesh3(node: Object3D): node is Object3D & { readonly geometry: BufferGeometry; readonly material: Material | Material[] } { return node instanceof Mesh; }
 

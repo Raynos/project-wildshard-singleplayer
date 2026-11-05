@@ -9,7 +9,7 @@ import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/gr
 import { beachGullPerches } from '../src/shards/driftwood-isle/generators/islandDressing';
 import { CHUNK_HALF } from '../src/engine/core/config';
 import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
-import { WorldAssemblySchema } from '../src/format/worldAssembly';
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import * as v from 'valibot';
 // The original Gulls.beachPerches(seed, 10, the beach circle) on this same native ground.
 import frozen from './fixtures/legacy-oracles/driftwood-gull-perches.json';

@@ -15,7 +15,7 @@ import type { ForestWeatherRig } from '../src/game/weather/forest';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_PAINTED as paintedTextures } from '../src/shards/nalati-grasslands/generators/paintedRows';
 import { nalatiSpecimens as specimenData } from './fixtures/nalati-specimens';
-import { GrassPresentationSchema } from '../src/format/fieldPresentation';
+import { GrassPresentationSchema } from '@wildshard/format/fieldPresentation';
 import capture from '../src/shards/nalati-grasslands/data/staticCapture.json' with { type: 'json' };
 import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 

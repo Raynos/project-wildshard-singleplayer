@@ -2,7 +2,7 @@
 import { expect, test, vi } from 'vitest';
 import { Group, MeshBasicMaterial, Points, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { parseSceneBuffers } from '../src/format/sceneBuffers';
+import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { emptyShardfile } from '../src/sdk/author';

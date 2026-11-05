@@ -9,7 +9,7 @@ import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { validateDefinedJson } from '../src/sdk/sections';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { SceneDressingSchema } from '../src/format/sceneDressing';
+import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { dressingScene } from './fixtures/nalati-dressing-scene';
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(value));

@@ -1,6 +1,6 @@
 import {admissionPage,admission,admissionLegacy} from './fixtures/nalati-return-modules';
 import {parse} from 'valibot';
-import {ActorProjectionStepV2Schema} from '../src/format/actorProjectionV2';
+import {ActorProjectionStepV2Schema} from '@wildshard/format/actorProjectionV2';
 import {bindOriginalPageGuard,originalPageGuard,type OriginalGuardBinding} from './fixtures/originalPageGuard';
 import {Scope} from '../src/engine/app/scope';
 import {AnimalSim} from '../src/engine/entities/AnimalSim';

@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { CellWindow, instanceTier } from '../src/engine/render/streamedInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { ToonLook } from '../src/engine/render/families/toon';
-import { parseStreamedCover } from '../src/format/streamedCover';
+import { parseStreamedCover } from '@wildshard/format/streamedCover';
 import { createStreamedCover } from '../src/game/looks/streamedCover';
 import { toonLighting } from '../src/game/looks/toonLighting';
 import { lendLooks } from '../src/game/shardfile/lentLooks';

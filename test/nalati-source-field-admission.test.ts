@@ -2,7 +2,7 @@ import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { manifestFieldRows } from '../src/sdk/rows';
 import { specimenShapeSources } from '../src/sdk/bake/specimenCatalogue';
-import { ManifestMetadataSchema } from '../src/format/minimap';
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import manifest from '../src/shards/nalati-grasslands/data/manifestRows.json' with { type: 'json' };
 
 test('selected manifest fields retain native types, order, defaults and exact issue paths', () => {

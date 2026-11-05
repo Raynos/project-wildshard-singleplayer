@@ -16,7 +16,7 @@ import {AnimalSim} from '../src/engine/entities/AnimalSim';
 import {NativeCreaturePose} from '../src/game/plugin/animation';
 import {Vector3} from 'three';
 import * as v from 'valibot';
-import {TimedEncountersSchema} from '../src/format/encounterRows';
+import {TimedEncountersSchema} from '@wildshard/format/encounterRows';
 
 test('admitting conditional patrol recipes preserves the complete page-joined initial population and every RNG draw',async()=>{
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;

@@ -3,10 +3,10 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { claim, contractKill, loadBoard, ownContractCatalogue, recordKill, saveBoard } from '../src/game/quest/contracts';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { Scope } from '../src/engine/app/scope';
 import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
-import { parseContractCatalogue, type ContractCatalogue } from '../src/format/contracts';
+import { parseContractCatalogue, type ContractCatalogue } from '@wildshard/format/contracts';
 
 // Captured from the original play-read authoring and actual page board save API.
 const oldPageSave = "{\"next\":17,\"slots\":[{\"serial\":16,\"kind\":\"rarity\",\"target\":\"uncommon\",\"have\":0},{\"serial\":14,\"kind\":\"elite\",\"target\":\"imperial-bull\",\"have\":0},{\"serial\":15,\"kind\":\"species\",\"target\":\"boar\",\"have\":0}],\"claimed\":9,\"streak\":0,\"best\":2}";

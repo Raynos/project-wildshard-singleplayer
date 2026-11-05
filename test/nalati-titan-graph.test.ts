@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import lookGraphs from '../src/shards/nalati-grasslands/data/lookGraphs.json' with { type: 'json' };
 
 const GRAPHS: Readonly<Record<string, unknown>> = lookGraphs;

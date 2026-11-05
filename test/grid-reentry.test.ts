@@ -8,7 +8,7 @@ import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { createShardfileSim, bindShardfileSim, prepareShardfileSimRestore } from '../src/game/plugin/simulation';
 import { createTrustedHeadlessResident, type PrepareHeadlessRuntime } from '../src/sdk/headlessRuntime';
-import { hasDeclaredClientPage } from '../src/format/runtimeBinds';
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { ScriptHost } from '../src/engine/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';

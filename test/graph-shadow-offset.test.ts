@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { vec3 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { graph as authorGraph } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 test('receiver offsets reach the shadow lookups and live uniforms without moving the caster', () => {
   const ir: GraphIr = { version: 1, kind: 'material', model: 'standard', params: { shift: { type: 'vec3', value: [0.12, 0.07, -0.03] } },

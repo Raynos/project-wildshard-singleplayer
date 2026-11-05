@@ -5,14 +5,14 @@ import { NALATI_RIDING_PROGRAMS, NALATI_RIDING_WASM, NALATI_RIDING_WITNESS_BYTES
 import { NALATI_KOKPAR, NALATI_KOKPAR_WASM } from './nalati-kokpar';
 import { originalSpeciesFile } from './nalati-original-species';
 import {afterEach} from 'vitest';
-import {parseDecisionScripts} from '../../src/format/decisionScripts';
+import {parseDecisionScripts} from '@wildshard/format/decisionScripts';
 import type {SimHost} from '../../src/engine/sim';
 import * as v from 'valibot';
-import {ReturnModulesSchema} from '../../src/format/scriptContract';
+import {ReturnModulesSchema} from '@wildshard/format/scriptContract';
 import {Scope} from '../../src/engine/app/scope';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
-import {ReturnProgramSchema} from '../../src/format/namedJsonContracts';
-import {ReturnProjectionV2Schema} from '../../src/format/returnProjectionV2';
+import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
+import {ReturnProjectionV2Schema} from '@wildshard/format/returnProjectionV2';
 import {titanWitnessBytes,pastureWitnessBytes} from './titanInlineWitness';
 
 const kokparInput=v.parse(v.object({program:ReturnProgramSchema}),JSON.parse(JSON.stringify(NALATI_KOKPAR)));

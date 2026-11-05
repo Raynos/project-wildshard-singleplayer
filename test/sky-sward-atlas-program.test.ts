@@ -8,7 +8,7 @@ import { Buffer } from 'node:buffer';
 import { zstdDecompressSync } from 'node:zlib';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { parseKtx2 } from '../src/format/ktx2Cost';
+import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';

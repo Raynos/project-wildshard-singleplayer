@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { KitFigureSchema } from '../src/format/kitFigure';
+import { KitFigureSchema } from '@wildshard/format/kitFigure';
 import { FIGURE_CATALOGUE } from '../src/shards/driftwood-isle/generators/figureCatalogue';
 import { kitFocusProgram } from '../src/shards/driftwood-isle/generators/npcFocusPrograms';
 

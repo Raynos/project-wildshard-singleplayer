@@ -6,8 +6,8 @@ import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
 import { declaredGroundColour as declaredGroundColourInput,declaredSurface as declaredSurfaceInput } from '../src/game/shard/manifest';
 import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
-import { ScalarTripletSchema } from '../src/format/scalarChannel';
-import { bakedSamplers } from '../src/format/bakedTerrainSampling';
+import { ScalarTripletSchema } from '@wildshard/format/scalarChannel';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { groundColor,surfaceAt,GROUND } from './fixtures/nalati-terrain';
 

@@ -1,8 +1,8 @@
-import { HeldEquipmentSchema } from '../src/format/heldEquipment';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 import tuning from '../src/shards/pine-hollow/data/heldTuning.json' with {type:'json'};
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { heldFirearmSettings, heldLauncherProfile } from '../src/game/plugin/heldEquipment';
 import { LEVER_PROFILE } from './fixtures/weapon-oracle/leverBridge';
 import { CROSSBOW_PROFILE } from './fixtures/weapon-oracle/crossbowProfile';

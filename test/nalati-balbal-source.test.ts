@@ -6,8 +6,8 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
-import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
-import { SceneBakedGeometrySchema } from '../src/format/sceneDressing';
+import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
+import { SceneBakedGeometrySchema } from '@wildshard/format/sceneDressing';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiBalbalSpecimen } from '../src/shards/nalati-grasslands/generators/balbalSpecimen';
 

@@ -3,10 +3,10 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Every test path stays under its owned fixture root.
 import { resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
-import { CONTENT_CAPS } from '../src/format/contentBounds';
+import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { emptyShardfile } from '../src/sdk/author';
 import { writeOutputProduct } from '../src/sdk/outputProduct';
-import type { Shardfile } from '../src/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { checkTileBake, readTileBakeCensus, tileBakeCensus } from '../scripts/tile-bakes.mjs';
 import { parseTileBakePolicy, tileBakeApprovalFailures } from '../scripts/tile-bake-policy.mjs';
 

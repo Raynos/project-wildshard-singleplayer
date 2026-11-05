@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import {SpeciesActorsFileSchema} from '../../src/format/speciesBookRows';
-import {TimedEncountersSchema} from '../../src/format/encounterRows';
-import {nativeBodySchema} from '../../src/format/nativePhysics';
+import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
+import {TimedEncountersSchema} from '@wildshard/format/encounterRows';
+import {nativeBodySchema} from '@wildshard/format/nativePhysics';
 import {variantMods} from '../../src/engine/entities/species/registry';
 import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
 import type {NalatiEncounterIntake} from './nalati-world';

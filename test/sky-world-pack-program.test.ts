@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { prepareAssetDecoders } from '../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { encodeBuildBytes } from '../src/sdk/bake/byteCodec';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { skyWorldPackSource, WORLD_PACK_FILES, WORLD_PACK_INPUTS } from '../src/shards/far-reach/generators/worldPackBytes';

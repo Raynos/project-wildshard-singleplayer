@@ -1,5 +1,5 @@
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../../src/game/shardfile/worldActionsV2';
-import type { V2WorldAction } from '../../src/format/scriptActionsV2';
+import type { V2WorldAction } from '@wildshard/format/scriptActionsV2';
 
 // Historical contract oracle; production consumers use the data-driven owners.
 /** Existing direct application remains a whole-bank prepare/validate/apply.

@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, Mesh, MeshBasicMaterial } from 'three';
-import { parseSceneBuffers } from '../src/format/sceneBuffers';
+import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { NINE_SCENE_BLOBS } from './fixtures/nine-product-inputs';

@@ -3,7 +3,7 @@ import * as reach from '../src/engine/ai/reach';
 import type { PageWildlife } from '../src/game/population/wildlife';
 import type { PatrolEncounterView } from '../src/game/boss/encounterView';
 import type { ReturnProgram } from '../src/game/population/returnProgram';
-import { parseSpawnScript,type SpawnScriptRows } from '../src/format/spawnScripts';
+import { parseSpawnScript,type SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { beforeAll,afterAll,beforeEach, expect, test, vi } from 'vitest';
 import { Window } from 'happy-dom';
 import { Group, PerspectiveCamera, Scene, Vector3, SkinnedMesh, MeshLambertMaterial } from 'three';
@@ -32,7 +32,7 @@ import { BorrowedElite, type BorrowedEliteFight } from '../src/engine/ai/view/el
 import { NativeEliteController } from '../src/engine/ai/view/eliteController';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import type { AdventurePersistence } from '../src/game/quest/persistence';
-import { parseEliteOutputActions, parseEliteOutputBank, type EliteOutputAction } from '../src/format/eliteFeature';
+import { parseEliteOutputActions, parseEliteOutputBank, type EliteOutputAction } from '@wildshard/format/eliteFeature';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
@@ -40,8 +40,8 @@ import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import { SpawnScript } from '../src/game/population/spawnScript';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import { compileSimV2 } from '../src/sdk/test/compileSimV2';
-import { layoutV2 } from '../src/format/scriptWireV2';
-import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
+import { layoutV2 } from '@wildshard/format/scriptWireV2';
+import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { sha256 } from '../src/game/plugin/moduleHash';
 
 // Keep Node's Response/fetch for AssemblyScript's real Wasm compiler. Only

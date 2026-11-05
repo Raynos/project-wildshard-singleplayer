@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { DRIFTWOOD_ITEMS as DRIFTWOOD_SWORDS } from './fixtures/driftwood-items';
 import NINE_ITEMS from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };

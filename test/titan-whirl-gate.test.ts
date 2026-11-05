@@ -1,6 +1,6 @@
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {parse} from 'valibot';
-import {ArenaWhirlsSchema} from '../src/format/encounterRows';
+import {ArenaWhirlsSchema} from '@wildshard/format/encounterRows';
 import {expect,test,vi} from 'vitest';
 import {BoxGeometry,Group,InstancedMesh,MeshBasicMaterial} from 'three';
 import {Scope} from '../src/engine/app/scope';

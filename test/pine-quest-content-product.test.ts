@@ -13,7 +13,7 @@ import { parseQuestData } from '../src/sdk/quests';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';
-import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
+import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
 import { NATIVE_CHAPTER_DIRECTOR } from '../src/shards/pine-hollow/generators/chapterDirector';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 

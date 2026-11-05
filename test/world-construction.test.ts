@@ -15,7 +15,7 @@ import * as plugin from '../src/game/shardfile/worldBuildYield';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import * as gpu from '../src/engine/core/gpuOnly';
-import { WorldConstructionSchema, WorldAssemblySchema } from '../src/format/worldAssembly';
+import { WorldConstructionSchema, WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
 import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';

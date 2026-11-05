@@ -8,8 +8,8 @@ import { installBodyScripts } from '@wildshard/game/shardfile/nativeRuntimeLoans
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
-import { declaredBodyRegistries, DeclaredBodyOpsSchema } from '../src/format/bodySlots';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
+import { declaredBodyRegistries, DeclaredBodyOpsSchema } from '@wildshard/format/bodySlots';
 import { NativeQuestProps } from '../src/game/quest/nativeProps';
 import { installNativeBodyScripts } from '@wildshard/game/quest/nativeBodyScripts';
 import { createSimHost, type SimHost } from '../src/engine/sim';

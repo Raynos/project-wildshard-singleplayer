@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { afterEach, expect, test } from 'vitest';
 import * as v from 'valibot';
-import type { Shardfile } from '../src/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import { writeOutputProduct } from '../src/sdk/outputProduct';
 import { readNightMarketKitBudget } from '../scripts/night-market-kit-budget.mjs';

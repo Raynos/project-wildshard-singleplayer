@@ -12,7 +12,7 @@ import { installQuestFigures } from '../src/game/quest/figures';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { ClientChannelsSchema } from '../src/format/clientChannels';
+import { ClientChannelsSchema } from '@wildshard/format/clientChannels';
 import * as skins from '../src/game/systems/npc/figureSkins';
 import { peoplePrograms } from '../src/shards/nalati-grasslands/generators/peopleMotion';
 import { peopleRows as population } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';

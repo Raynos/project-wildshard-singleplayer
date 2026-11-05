@@ -2,8 +2,8 @@
  * explicit-continuation AS body compiled and admitted under v1 and v2. */
 import { expect } from 'vitest';
 import * as v from 'valibot';
-import { parseDirector,type DirectorEvent } from '../../src/format/director';
-import { scriptV1Identifier } from '../../src/format/decisionScripts';
+import { parseDirector,type DirectorEvent } from '@wildshard/format/director';
+import { scriptV1Identifier } from '@wildshard/format/decisionScripts';
 import { prepareEmbeddedDirector,embeddedDirectorBytes } from '../../src/game/plugin/director';
 import { compileScript } from '../../src/sdk/bake/compileScript';
 import { generateDirectorAbi } from '../../src/sdk/directorAbi';

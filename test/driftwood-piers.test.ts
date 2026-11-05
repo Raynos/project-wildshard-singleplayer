@@ -2,7 +2,7 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 import type { ColliderDesc } from '../src/engine/world/registry';
 import { expect, it } from 'vitest';
 import { floorAtRects } from '../src/engine/physics/box';
-import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
+import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { readColliderRows, placeCollider, poseOf } from '../src/engine/models/colliders';
 import { pierDeckAt, pierHalfWidthAt } from '../src/shards/driftwood-isle/generators/pierLayout';
 import { pierColliders } from '../src/shards/driftwood-isle/generators/pierColliders';

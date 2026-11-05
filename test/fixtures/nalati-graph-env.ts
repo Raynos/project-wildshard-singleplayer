@@ -1,5 +1,5 @@
-import type { Shardfile } from '../../src/format/shardSchema';
-import type { GraphNode } from '../../src/format/materialGraph';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import type { GraphNode } from '@wildshard/format/materialGraph';
 
 type Material = Shardfile['look']['materials'][string];
 

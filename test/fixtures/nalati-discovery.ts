@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { createProjectGeneration } from '../../src/sdk/projectGeneration';
 import { nalatiBootProgram } from '../../src/shards/nalati-grasslands/generators/bootProgram';
-import { parseDiscoveryValues, type DiscoveryValues } from '../../src/format/discoveryValues';
+import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 const project = resolve('src/shards/nalati-grasslands');
 const context = createProjectGeneration(project, 'f'.repeat(64), new Map(), resolve('tmp/nalati-boot-discovery'), [

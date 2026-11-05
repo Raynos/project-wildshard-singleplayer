@@ -6,7 +6,7 @@ import * as v from 'valibot';
 import {beginProductSession} from './productSession';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-world-verbs';
-import {ChapterViewSchema} from '../../../src/format/questPageComposition';
+import {ChapterViewSchema} from '@wildshard/format/questPageComposition';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';

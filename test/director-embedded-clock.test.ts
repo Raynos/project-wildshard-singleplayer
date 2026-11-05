@@ -7,7 +7,7 @@ import {pineDirector as module} from './fixtures/director-modules';
 import rows from '../src/shards/pine-hollow/data/watchStages.json';
 import bindings from './fixtures/pine-director-bindings.json' with { type: 'json' };
 import { Flags } from '../src/engine/world/interact/flags';
-import {parseDirector} from '../src/format/director';
+import {parseDirector} from '@wildshard/format/director';
 import { pineDirectorClock } from './fixtures/director-pine/stageClock';
 
 const encode=(bytes:Uint8Array):string=>btoa(Array.from(bytes,byte=>String.fromCodePoint(byte)).join(''));

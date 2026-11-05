@@ -6,7 +6,7 @@ import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
 import { fillNativeCombatFrame } from '../src/sdk/headlessRuntime';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { GustContinuation } from '../src/engine/world/weatherContinuation';
 import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };

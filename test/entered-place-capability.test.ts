@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { installClientPhase, admitClientPlan } from '../src/game/shardfile/clientPlan';

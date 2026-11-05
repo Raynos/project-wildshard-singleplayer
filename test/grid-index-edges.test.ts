@@ -28,7 +28,7 @@ test('a build-owned grid index skips grammar but keeps identity and section hash
   const f = fixture('built-edge-fixture'), wire = f.wires.get(f.url);
   if (wire === undefined) throw new Error('Missing index fixture');
   const stale = vi.fn(() => Promise.resolve()), options = { ...f.options, firstParty: true, built: { indexes: new Set([hashImmutableBytes(wire)]), stale } };
-  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputIndex');
+  const grammar = vi.spyOn(await import('@wildshard/format/outputIndex'), 'parseOutputIndex');
   try {
     expect(await readGridProductEdges(f.url, f.source.identity.slug, options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
     expect(grammar).not.toHaveBeenCalled(); expect(stale).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ test.each(['third-party', 'unbundled'] as const)('%s grid metadata still loads c
   const options = mode === 'third-party'
     ? { ...f.options, built: { indexes: new Set([hashImmutableBytes(wire)]), stale: () => Promise.resolve() } }
     : { ...f.options, firstParty: true };
-  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputIndex');
+  const grammar = vi.spyOn(await import('@wildshard/format/outputIndex'), 'parseOutputIndex');
   try {
     expect(await readGridProductEdges(f.url, f.source.identity.slug, options)).toEqual({ edge: f.source.edge, entryways: f.source.entryways });
     expect(grammar).toHaveBeenCalledOnce();

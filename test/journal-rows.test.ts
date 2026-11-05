@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { JournalRowSchema, journalImageRefs, journalRowRules } from '../src/format/compendiumRows';
-import { parseRows } from '../src/format/rows';
-import { preflightAssetGraph } from '../src/format/product';
+import { JournalRowSchema, journalImageRefs, journalRowRules } from '@wildshard/format/compendiumRows';
+import { parseRows } from '@wildshard/format/rows';
+import { preflightAssetGraph } from '@wildshard/format/product';
 import { emptyShardfile } from '../src/sdk/author';
 import { declaredCompendium } from '../src/game/shard/declaredRows';
 import templateRows from '../src/shards/_template/data/rows.json' with { type: 'json' };

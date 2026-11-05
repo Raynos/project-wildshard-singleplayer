@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import type * as v from 'valibot';
 import type { SpecimenBindings } from '../src/shards/nalati-grasslands/data/specimenBindings';
-import type { SpecimenMaterialSchema, PackedSpecimenSchema, SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
+import type { SpecimenMaterialSchema, PackedSpecimenSchema, SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { driftwoodPageAdmissionObservation } from './fixtures/driftwood-page-admission-observation';
 import original from './fixtures/driftwood-page-admission-original.json' with { type: 'json' };
 

@@ -2,7 +2,7 @@
  * the supplied actor snapshot, while pending reset columns update immediately. */
 import captain from '../../../src/shards/driftwood-isle/behaviour/captain.as?raw';
 import { CAPTAIN_FIELDS } from '../../../src/shards/driftwood-isle/generators/captainFields';
-import { SCRIPT_V1_COMMANDS } from '../../../src/format/scriptAbiV1';
+import { SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
 import { expect } from 'vitest';
 import { simulationPair } from '../script-v2-projection';
 import type { DualPortFixture } from '../script-v2-port';

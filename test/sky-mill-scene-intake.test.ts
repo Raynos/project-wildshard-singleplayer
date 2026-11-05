@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Derive the original mill hierarchy from its two tracked native models.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { parseWorldScene } from '../src/format/clientChannels';
+import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { millSceneSource } from '../src/shards/far-reach/generators/millScene';
 import { readMillSceneValues, skyWorldSceneValues } from '../src/shards/far-reach/generators/worldScenes';
 import { originalSkySceneInputs, originalSkyScenes } from './fixtures/sky-scene-source';

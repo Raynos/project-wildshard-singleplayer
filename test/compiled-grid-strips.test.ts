@@ -2,7 +2,7 @@
 /// <reference types="node" />
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
-import { CONTENT_CAPS } from '../src/format/contentBounds';
+import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripProfile } from '../src/engine/sim/strips';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { decodeCompiledGridLook, decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress, type GridStripPhase } from '../src/game/grid/compiledStrips';

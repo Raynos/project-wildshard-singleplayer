@@ -7,7 +7,7 @@ import { sharedModelContext, specimenReady } from '../src/engine/models/model';
 import { SkyRig } from '../src/engine/world/skyRig';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { Rng } from '../src/engine/core/rng';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';

@@ -1,4 +1,4 @@
-import type { ScriptContract } from '../src/format/scriptContract';
+import type { ScriptContract } from '@wildshard/format/scriptContract';
 import type { NamedBlobKind } from '../src/sdk/blobs';
 
 /** Register exact bytes as cached author-project inputs; directory is assets or a bounded subdirectory. */

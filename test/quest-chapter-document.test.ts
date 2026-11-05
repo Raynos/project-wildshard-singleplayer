@@ -1,8 +1,8 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
-import {ChapterStoryPresentationSchema,parseChapterStoryPresentation} from '../src/format/questStory';
-import {REGISTERED_JSON,validateRegisteredJson} from '../src/format/registeredJson';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {ChapterStoryPresentationSchema,parseChapterStoryPresentation} from '@wildshard/format/questStory';
+import {REGISTERED_JSON,validateRegisteredJson} from '@wildshard/format/registeredJson';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {registeredJsonSchema,namedFormatJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {encodeCanonicalJson} from '../src/sdk/immutable';
 import {nameBlob} from '../src/sdk/blobs';

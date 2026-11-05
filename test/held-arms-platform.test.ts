@@ -9,9 +9,9 @@ import { BufferGeometry, InterleavedBufferAttribute, Color, Mesh, MeshBasicMater
 import { Scope } from '../src/engine/app/scope';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { SkyRig } from '../src/engine/world/skyRig';
-import { parseToonArmsLook } from '../src/format/heldArms';
+import { parseToonArmsLook } from '@wildshard/format/heldArms';
 import { HeldView } from '../src/game/systems/viewmodel/heldView';
-import { parseHeldView } from '../src/format/heldView';
+import { parseHeldView } from '@wildshard/format/heldView';
 import { toonLighting } from '../src/game/looks/toonLighting';
 import { heldArmsGear } from '../src/game/models/heldGear';
 import { RigArms } from '../src/game/systems/viewmodel/rigArms';

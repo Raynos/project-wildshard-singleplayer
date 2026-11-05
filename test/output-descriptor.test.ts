@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Device-cost source fixture uses one tracked bounded KTX2 file.
 import { readFileSync } from 'node:fs';
-import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '../src/format/ktx2Cost';
+import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '@wildshard/format/ktx2Cost';
 import { runtimeOnlyProductFiles, deviceLibraryCostPaced, productResidentBytes, productResidentBytesSteps, productPostCost } from '../src/game/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { parseOutputIndex, type OutputIndex } from '../src/format/outputIndex';
-import { OUTPUT_SECTIONS, outputSectionPayloads } from '../src/format/outputFields';
-import { parseShardfile, type Shardfile } from '../src/format/shardSchema';
-import { parseStateLineage } from '../src/format/stateLineage';
+import { parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
+import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { parseStateLineage } from '@wildshard/format/stateLineage';
 import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
 import { provideHybridDeclaration, runtimeProduct, loadShardProduct, completeManifestCache } from '../src/game/shardfile/runtimeProduct';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
@@ -23,7 +23,7 @@ import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
 import { entryReadPlan } from '../src/game/grid/entryReadPrefetch';
-import { parseEntryReadSet } from '../src/format/entryReads';
+import { parseEntryReadSet } from '@wildshard/format/entryReads';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 
 await installCatalogueFixture();
@@ -222,7 +222,7 @@ test('an unchanged entry-read hash cannot prefetch a newly tagged other-device p
 
 test('build receipt skips descriptor grammar and owns the index across pauses', async () => {
   const f = fixture(), restore = installIndexReceipt(f.index);
-  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  const grammar = vi.spyOn(await import('@wildshard/format/outputIndex'), 'parseOutputDescriptorIndex');
   let paused = false;
   try {
     const source = await resolveOutputDescriptor(f.index, { read: sectionReader(f.wires), hash, offline: false, firstParty: true,
@@ -236,7 +236,7 @@ test('build receipt skips descriptor grammar and owns the index across pauses', 
 
 test('build index proof still refuses changed section bytes', async () => {
   const f = fixture(), restore = installIndexReceipt(f.index);
-  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  const grammar = vi.spyOn(await import('@wildshard/format/outputIndex'), 'parseOutputDescriptorIndex');
   const entry = f.index.sections[0]; if (entry === undefined) throw new Error('Missing fixture section');
   const wire = f.wires.get(entry.path); if (wire === undefined) throw new Error('Missing fixture wire');
   const changed = new Uint8Array(wire), first = changed[0]; if (first === undefined) throw new Error('Empty fixture wire');
@@ -250,7 +250,7 @@ test('build index proof still refuses changed section bytes', async () => {
 
 test('a changed index cannot borrow its original build receipt', async () => {
   const f = fixture(), restore = installIndexReceipt(f.index);
-  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  const grammar = vi.spyOn(await import('@wildshard/format/outputIndex'), 'parseOutputDescriptorIndex');
   f.index.identity.name = 'Changed before intake';
   try {
     const source = await resolveOutputDescriptor(f.index, { read: sectionReader(f.wires), hash, offline: false, firstParty: true });
@@ -398,7 +398,7 @@ test('the complete blob bank is declared before the first section read, except f
 
 test('historical transport never loads current host grammar or grants a model proof', async () => {
   const { index, wires, source } = fixture();
-  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  const grammar = vi.spyOn(await import('@wildshard/format/outputIndex'), 'parseOutputDescriptorIndex');
   // An old visit may name host, asset and cost declarations this build removed.
   const historical = { ...index, admission: { obsolete: true }, runtime: { obsolete: true }, files: [{ obsolete: true }] };
   const read = vi.fn(sectionReader(wires));

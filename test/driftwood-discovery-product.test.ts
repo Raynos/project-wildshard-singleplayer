@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
 import { emitNamedBlobs } from '../src/sdk/blobs';
-import { parseAdventureContent, type AdventureContent } from '../src/format/questStory';
+import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
 import { createQuestPlacements } from '../src/engine/world/interact/types';
 import { Flags } from '../src/engine/world/interact/flags';
 import { placesWithDiscovery } from '../src/engine/quest/discovery';

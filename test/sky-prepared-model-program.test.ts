@@ -6,7 +6,7 @@ import { dirname, resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { prepareAssetDecoders } from '../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { PREPARED_MODEL_INPUTS, preparedModelProgram, preparedModelSource } from '../src/shards/far-reach/generators/preparedModelProgram';

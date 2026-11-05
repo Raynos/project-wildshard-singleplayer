@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseStillImage } from '../src/format/stillImage';
+import { parseStillImage } from '@wildshard/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { leaseMapImage } from '../src/game/shardfile/mapImage';

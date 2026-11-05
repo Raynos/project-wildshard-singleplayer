@@ -3,7 +3,7 @@ import {MountCompanions,companionToName} from '../../src/game/riding/companions'
 import {mountedPlayerOf} from '../../src/game/riding/native';
 import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
-import {ClientRidingSessionSchema,cleanMountName} from '../../src/format/riding';
+import {ClientRidingSessionSchema,cleanMountName} from '@wildshard/format/riding';
 import {pickPrompt} from '../../src/engine/world/interact/prompts';
 import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';

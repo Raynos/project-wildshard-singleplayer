@@ -19,7 +19,7 @@ import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { ownQuestTree } from '@wildshard/game/quest/chapter';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseFamilyMaterial } from '../src/format/materialFamilies';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { driftwoodProduct, driftwoodRows } from './fixtures/driftwoodLegacyRows';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
 import { FIGURES, fixedDrawLibrary, loadFixedGeometry } from './fixtures/driftwoodLegacyAssets';

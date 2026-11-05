@@ -8,7 +8,7 @@ import { brotliDecompressSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
 import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
-import { readSpawnManifest, type SpawnFile, type SpawnPart } from '../src/format/spawnManifest';
+import { readSpawnManifest, type SpawnFile, type SpawnPart } from '@wildshard/format/spawnManifest';
 
 mkdirSync('tmp', { recursive: true });
 const out = mkdtempSync(resolve('tmp/spawn-parts-'));

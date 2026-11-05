@@ -7,7 +7,7 @@ import {ReturnProgram} from '../src/game/population/returnProgram';
 import {CONTRACT_PROGRAM_SCRIPT,contractProgramRegistries} from '../src/shards/pine-hollow/generators/contractProgram';
 import {contractFor,loadBoard,saveBoard,contractKill,newBoard,claim,draw} from '../src/game/quest/contracts';
 import {ContractBoard} from '../src/game/quest/contractBoard';
-import {parseContractCatalogue} from '../src/format/contracts';
+import {parseContractCatalogue} from '@wildshard/format/contracts';
 import wideDraws from './fixtures/legacy-contract-wide-draws.json' with {type:'json'};
 import {CONTRACTS} from './fixtures/pine-contracts';
 import baseline from './fixtures/legacy-contract-boundaries.json' with {type:'json'};

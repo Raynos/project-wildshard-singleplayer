@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import {weatherRaw,weatherWitness,weatherModuleBytes,nightParameters} from './fixtures/weatherInlineWitness';
-import {parseReturnProjectionV2} from '../src/format/returnProjectionV2';
+import {parseReturnProjectionV2} from '@wildshard/format/returnProjectionV2';
 import {expect,test,vi} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';

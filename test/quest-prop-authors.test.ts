@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { questPropRows, questAutomaticFlag } from '../src/sdk/quests';
-import { NativeQuestPropsSchema } from '../src/format/questInteractions';
+import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import { autoFlag, type InteractDef, type Cond } from '../src/engine/world/interact/types';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 import { NATIVE_QUEST_PROPS, NATIVE_FLOORS, NATIVE_BARRELS, NATIVE_PLATES, NATIVE_WATER } from '../src/shards/driftwood-isle/generators/nativeQuestProps';

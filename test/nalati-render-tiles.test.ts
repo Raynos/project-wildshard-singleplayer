@@ -18,7 +18,7 @@ import { RIVER, TERRAIN } from '../src/shards/nalati-grasslands/generators/terra
 import { buildPainterlyGeometry, buildPainterlySlab } from '../src/shards/nalati-grasslands/generators/terrainPainter';
 import { TERRAIN_PAINT_SOURCE } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseWorldScene } from '../src/format/clientChannels';
+import { parseWorldScene } from '@wildshard/format/clientChannels';
 import terrainScene from '../src/shards/nalati-grasslands/data/terrainScene.json' with { type: 'json' };
 
 const Geometry = v.object({ meshes: v.array(v.object({ primitives: v.array(v.object({ attributes: v.record(v.string(), v.number()) })) })) });

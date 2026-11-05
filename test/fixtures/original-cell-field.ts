@@ -1,7 +1,7 @@
 /** Frozen pre-L3 field implementation; keep its channel/state law independent. */
 import { ProjectedState,type ReturnProgram } from '../../src/game/population/returnProgram';
 import type { Rng } from '../../src/engine/core/rng';
-import type { CellFieldRows } from '../../src/format/cellField';
+import type { CellFieldRows } from '@wildshard/format/cellField';
 type ArenaFieldRows = Omit<CellFieldRows,'states' | 'channels' | 'signals'> & { readonly signals: { readonly ignite: string;readonly step: string;readonly clock: string } };
 
 /** Plain rows and an already admitted module; no shard callbacks or rendering. */

@@ -2,7 +2,7 @@
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { FigureRowSchema, type FigureRow, type FigureCatalogueRow } from '../src/format/figures';
+import { FigureRowSchema, type FigureRow, type FigureCatalogueRow } from '@wildshard/format/figures';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';

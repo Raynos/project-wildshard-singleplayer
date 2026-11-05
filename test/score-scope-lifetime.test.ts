@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { Audio } from '../src/engine/audio/Audio';
 import { Music } from '../src/engine/audio/Music';
 import { CatalogueScore } from '../src/engine/audio/SetScore';
-import { parseAudioData } from '../src/format/audio';
+import { parseAudioData } from '@wildshard/format/audio';
 import pine from '../src/shards/pine-hollow/data/audioSource.json';
 import { realGc } from '@wildshard/engine/test/realGc';
 

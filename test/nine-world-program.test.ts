@@ -6,7 +6,7 @@ import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { prepareAssetDecoders } from '../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nineLayoutWord } from '../src/shards/nine-dragon-stack/generators/worldProduct';
 import { nineWorldProgram } from '../src/shards/nine-dragon-stack/generators/worldProgram';

@@ -12,7 +12,7 @@ import { HeadlessSimulation } from '../src/sdk/headless';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { decodeSimSnapshot, serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/sim/snapshot';
 import { populationCensus, type PopulationCensus } from '../src/game/population/census';
-import { NATIVE_ASSEMBLY_FILE } from '../src/format/nativeAssembly';
+import { NATIVE_ASSEMBLY_FILE } from '@wildshard/format/nativeAssembly';
 import { canonicalSimDigest } from './fake/simState';
 import { builtProduct } from './fixtures/builtProduct';
 

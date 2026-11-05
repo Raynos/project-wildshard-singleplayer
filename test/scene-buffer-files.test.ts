@@ -2,7 +2,7 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, MeshBasicMaterial, Points, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { parseSceneBuffers } from '../src/format/sceneBuffers';
+import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { admitSceneBuffers, createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
 import { drawSceneRows, prepareSceneDrawRows } from '../src/game/shardfile/sceneDraws';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';

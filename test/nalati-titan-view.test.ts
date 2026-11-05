@@ -8,7 +8,7 @@ import type { ViewTell } from '../src/engine/script/viewProgram';
 import { shardContext } from '../src/game/plugin/context';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { installViewProgram, lendViewCell, lendViewFrame, lendViewTell, lendViewValues } from '../src/game/shardfile/clientViewProgram';
-import { ARENA_VIEW, arenaChainTell } from '../src/format/arenaView';
+import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';

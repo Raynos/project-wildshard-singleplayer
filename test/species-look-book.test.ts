@@ -5,7 +5,7 @@ import { expect,test,vi } from 'vitest';
 import { HullLookBook, speciesBehaviour } from '../src/game/looks/speciesBook';
 import { Rng } from '../src/engine/core/rng';
 import rows from '../src/shards/nalati-grasslands/data/speciesLooks.json' with {type:'json'};
-import { HullLookBookSchema, PackedCreatureLooksSchema } from '../src/format/speciesLooks';
+import { HullLookBookSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 
 const source=parse(object({hullBook:HullLookBookSchema,looks:PackedCreatureLooksSchema,
   packedBodies:object({file:string()}),presentation:SpeciesPresentationSchema}),

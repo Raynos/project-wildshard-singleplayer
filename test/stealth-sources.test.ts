@@ -11,7 +11,7 @@ import type { Player } from '../src/engine/player/Player';
 import type { LevelContext } from '../src/engine/level/context';
 import type { HeldSlotKit } from '../src/game/loadout/claims';
 import type { PageRidingView } from '../src/game/riding/client';
-import { StealthSourcesSchema } from '../src/format/stealth';
+import { StealthSourcesSchema } from '@wildshard/format/stealth';
 import { StealthController, type StealthSourcesOwners } from '../src/game/stealth/controller';
 import { sampleStealthSources, type StealthThreat } from '../src/game/stealth/stealthLaw';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

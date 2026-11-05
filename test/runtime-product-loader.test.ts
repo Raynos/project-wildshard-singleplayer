@@ -4,23 +4,23 @@ import { sourceManifest } from '../src/game/plugin/context';
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
-import * as schema from '../src/format/shardSchema';
+import * as schema from '@wildshard/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { parseOutputIndex } from '../src/format/outputIndex';
-import { outputSectionPayloads } from '../src/format/outputFields';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { loadManifestProduct,provideManifestAdmission,provideRuntimeProduct,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
 import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache, type ProductProgress } from '../src/game/shardfile/product';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { MemoryAdmission } from '../src/format/memoryAdmission';
-import { acceptValidatedCost } from '../src/format/deviceMemoryCost';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
+import { acceptValidatedCost } from '@wildshard/format/deviceMemoryCost';
 import { ProductLeases } from '../src/game/grid/productLeases';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import metadata from '../src/shards/far-reach/manifest.json';
-import { parseManifestMetadata } from '../src/format/minimap';
-import { parseImageAsset } from '../src/format/stillImage';
+import { parseManifestMetadata } from '@wildshard/format/minimap';
+import { parseImageAsset } from '@wildshard/format/stillImage';
 import { Scope } from '../src/engine/app/scope';
 import { bootWaits } from '../src/engine/boot/waits';
 import * as customValidators from '../src/game/shardfile/customSchema';
@@ -136,7 +136,7 @@ test('a pending visited-cache wait names the real descriptor and drains normally
 
 test('private exact admission avoids offline decoder and graph validation', async () => {
   const f = fixture(); trust(f.receipt);
-  const offline = await import('../src/format/product');
+  const offline = await import('@wildshard/format/product');
   const decoder = vi.spyOn(offline, 'prepareAssetDecoders'), graph = vi.spyOn(offline, 'preflightAssetGraph');
   try {
     const admitted = await admitProduct(f.index, f.options);
@@ -148,7 +148,7 @@ test('private exact admission avoids offline decoder and graph validation', asyn
 });
 
 test('unproved admission retains offline decoder and graph validation', async () => {
-  const f = fixture(), offline = await import('../src/format/product');
+  const f = fixture(), offline = await import('@wildshard/format/product');
   const decoder = vi.spyOn(offline, 'prepareAssetDecoders'), graph = vi.spyOn(offline, 'preflightAssetGraph');
   try {
     const admitted = await admitProduct(f.index, f.options);
@@ -160,9 +160,9 @@ test('unproved admission retains offline decoder and graph validation', async ()
 
 test('an exposed exact product retains graph validation on re-admission', async () => {
   const f = fixture(); trust(f.receipt);
-  const source = await readProductDescriptor(f.options), offline = await import('../src/format/product');
+  const source = await readProductDescriptor(f.options), offline = await import('@wildshard/format/product');
   const graph = vi.spyOn(offline, 'preflightAssetGraph');
-  const grammar = vi.spyOn(await import('../src/format/outputIndex'), 'parseOutputDescriptorIndex');
+  const grammar = vi.spyOn(await import('@wildshard/format/outputIndex'), 'parseOutputDescriptorIndex');
   try {
     expect((await admitProduct(source, f.options)).source).toEqual(f.source);
     expect(graph).toHaveBeenCalled();

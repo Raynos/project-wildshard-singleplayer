@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { namedFormatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { WorldSceneSchema } from '../src/format/clientChannels';
-import { FigureCatalogueSchema } from '../src/format/figures';
-import { QuestStepRowsSchema } from '../src/format/questSteps';
-import { QuestPageCompositionSchema } from '../src/format/questPageComposition';
+import { WorldSceneSchema } from '@wildshard/format/clientChannels';
+import { FigureCatalogueSchema } from '@wildshard/format/figures';
+import { QuestStepRowsSchema } from '@wildshard/format/questSteps';
+import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { driftwoodJsonBlob } from '../src/shards/driftwood-isle/generators/namedSchemas';
 import page from '../src/shards/driftwood-isle/data/questPageComposition.json';
 import director from '../src/shards/driftwood-isle/data/director.json';

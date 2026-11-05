@@ -1,4 +1,4 @@
-import type { Shardfile } from '../src/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 export interface TileCost { resident: number; compressed: number; triangles: number; draws: number }
 export interface TileBakeCensus {

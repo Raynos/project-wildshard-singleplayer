@@ -1,10 +1,10 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { authorCatalogueRows, composeNamedJsonSchema, namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
-import { ClaimedPickupSchema } from '../src/format/lootEconomy';
-import { ContractBoardPageSchema } from '../src/format/contracts';
-import { QuestStoryBindingsSchema } from '../src/format/questStoryBindings';
-import { QuestPageTalksSchema } from '../src/format/npcs';
+import { ClaimedPickupSchema } from '@wildshard/format/lootEconomy';
+import { ContractBoardPageSchema } from '@wildshard/format/contracts';
+import { QuestStoryBindingsSchema } from '@wildshard/format/questStoryBindings';
+import { QuestPageTalksSchema } from '@wildshard/format/npcs';
 import { pinePickups } from '../src/shards/pine-hollow/generators/pickups';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { WEAPON_FINISHES } from '../src/shards/pine-hollow/generators/weaponFinishes';

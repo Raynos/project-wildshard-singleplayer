@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reconstruct only the old transport for unchanged independent whole-product goldens.
 import { Buffer } from 'node:buffer';
-import { parseSceneBuffers } from '../../src/format/sceneBuffers';
-import type { OutputFile } from '../../src/format/outputIndex';
+import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
+import type { OutputFile } from '@wildshard/format/outputIndex';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import { nameBlob } from '../../src/sdk/blobs';
 

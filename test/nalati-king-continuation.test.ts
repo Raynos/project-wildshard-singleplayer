@@ -4,7 +4,7 @@ import {Scope} from '../src/engine/app/scope';
 import {Rng} from '../src/engine/core/rng';
 import {PhysicsRouteCursor} from '../src/sdk/headlessJourney';
 import type {BossPresentation} from '../src/engine/ai/BossBrain';
-import {parseBossProfile} from '../src/format/bossProfiles';
+import {parseBossProfile} from '@wildshard/format/bossProfiles';
 import {ArenaRoomGround} from '../src/game/boss/arenaGround';
 import type {PhasedBossBody,PhasedBossBrain} from '../src/game/plugin/bossPhase';
 import {ReturnProgram} from '../src/game/population/returnProgram';

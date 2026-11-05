@@ -1,4 +1,4 @@
-import { validateGraph, type GraphIr } from '../../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 /** Authored SF59 graph JSON (a shard's data/lookGraphs.json section) read as typed graphs; throws on the first refusal. */
 export function authoredGraphs(json: Readonly<Record<string, unknown>>): Readonly<Record<string, GraphIr>> {

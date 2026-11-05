@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import manifest from '../src/shards/driftwood-isle/manifest.json';
 import { DRIFTWOOD_FAUNA_PLANS } from '../src/shards/driftwood-isle/generators/fauna';
-import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { discovery } from './fixtures/driftwood-boot-discovery';
 
 test('admits source fauna plans in their declared placement order', () => {

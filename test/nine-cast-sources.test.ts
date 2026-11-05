@@ -7,11 +7,11 @@ import { CAST_SOURCES } from '../src/shards/nine-dragon-stack/generators/castSou
 import {nineCastBlobs, rawCast} from './fixtures/nine-cast-blobs';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 import { readSourceModel } from '../src/sdk/bake/skinned';
-import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES } from './fixtures/nine-product-inputs';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { BufferGeometry, Color, Matrix4, Mesh, MeshStandardMaterial, Texture, Vector3, type Object3D } from 'three';
 import { weldSceneMaterial } from '../src/game/shardfile/worldSceneWeld';
 import hookRows from '../src/shards/nine-dragon-stack/data/hookSpecimen.json' with { type: 'json' };

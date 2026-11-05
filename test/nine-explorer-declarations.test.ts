@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { output, source } from './fixtures/nine-source-program';
-import { parseClientPlan } from '../src/format/clientPlan';
-import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
-import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
+import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { explorerRoster } from '../src/game/models/explorerCatalogue';
 import { heldArmsGear } from '../src/game/models/heldGear';

@@ -7,11 +7,11 @@ import { driftwoodLootBag, driftwoodQuestContinuation } from '../src/shards/drif
 import { driftwoodQuestRows } from '../src/shards/driftwood-isle/generators/questRows';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import original from './fixtures/driftwood-data-authors-original.json' with { type: 'json' };
-import { LootBagSchema } from '../src/format/lootBag';
-import { QuestContinuationSchema } from '../src/format/questContinuation';
-import { QuestNpcBindingsSchema } from '../src/format/npcs';
-import { QuestHostSchema, type QuestHostRow } from '../src/format/questHost';
-import type { WorldScenesSection } from '../src/format/worldScenes';
+import { LootBagSchema } from '@wildshard/format/lootBag';
+import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
+import { QuestNpcBindingsSchema } from '@wildshard/format/npcs';
+import { QuestHostSchema, type QuestHostRow } from '@wildshard/format/questHost';
+import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 
 function observe(value: unknown): { bytes: number; hash: string } {
   const bytes = new TextEncoder().encode(JSON.stringify(value));

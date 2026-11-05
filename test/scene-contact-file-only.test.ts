@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import type {ShardContext} from '../src/game/plugin/context';
 import {SceneDressing} from '../src/game/shardfile/sceneDressing';
-import {SceneDressingSchema} from '../src/format/sceneDressing';
+import {SceneDressingSchema} from '@wildshard/format/sceneDressing';
 
 test.each(['layer','static']as const)('a later inline %s contact refuses before reading any entered owner',async kind=>{
   const contacts={kind:'packed-hulls',data:'eJxj+M/SAAADiQGE',origins:[[0,0,0,12]],surface:'rock'};

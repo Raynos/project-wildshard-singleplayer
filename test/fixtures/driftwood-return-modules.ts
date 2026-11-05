@@ -1,7 +1,7 @@
 import {driftwoodGuestFile} from './driftwood-guest-programs';
 import {Scope} from '../../src/engine/app/scope';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
-import {parseDecisionScripts} from '../../src/format/decisionScripts';
+import {parseDecisionScripts} from '@wildshard/format/decisionScripts';
 import {hashImmutableBytes} from '../../src/sdk/immutable';
 import {RETURN_PROGRAM} from './driftwood-guest-programs';
 

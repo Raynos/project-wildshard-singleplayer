@@ -3,7 +3,7 @@ import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { Scope } from '../src/engine/app/scope';
 import {onFault, type Fault} from '../src/engine/core/faults';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
-import { parseWeatherProgram, parseWeatherReactions } from '../src/format/weatherProgram';
+import { parseWeatherProgram, parseWeatherReactions } from '@wildshard/format/weatherProgram';
 import { App } from '../src/engine/app/app';
 import { PlayerHealth } from '../src/engine/combat/health';
 import { fakeWorld } from '@wildshard/engine/test/world';

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Mesh, MeshBasicMaterial, InstancedBufferGeometry, InstancedBufferAttribute } from 'three';
 import * as dataLook from '../src/engine/render/dataLook';
-import { parsePaintedLook, type PaintedLookRow } from '../src/format/paintedLook';
+import { parsePaintedLook, type PaintedLookRow } from '@wildshard/format/paintedLook';
 import { productPaintedLook } from '../src/game/looks/paintedLook';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
@@ -11,7 +11,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { skyPaintedPresentation, SKY_PAINTED_GRAPHS, SKY_PAINTED_ATTRIBUTE_SOURCES } from '../src/shards/far-reach/generators/paintedLook';
 import dressing from '../src/shards/far-reach/data/skyDressing.json';
-import { MaterialsSchema, type MaterialEntry } from '../src/format/materials';
+import { MaterialsSchema, type MaterialEntry } from '@wildshard/format/materials';
 import * as v from 'valibot';
 
 const card=dressing.cumulus.cards.cards[0];if(card===undefined)throw new Error('Missing original card');

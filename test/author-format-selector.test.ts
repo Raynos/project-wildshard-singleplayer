@@ -1,14 +1,14 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { authorFormatSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { ContractBoardPageSchema } from '../src/format/contracts';
-import { QuestPageTalksSchema } from '../src/format/npcs';
-import { BodySlotsSchema } from '../src/format/bodySlots';
-import { SceneFloorSchema } from '../src/format/sceneDressing';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
-import { PracticeSceneSchema, PracticeControllerSchema } from '../src/format/practiceCourseRows';
-import { nativeBodySchema, nativeColliderRecordSchema } from '../src/format/nativePhysics';
-import { ClaimedPickupSchema } from '../src/format/lootEconomy';
+import { ContractBoardPageSchema } from '@wildshard/format/contracts';
+import { QuestPageTalksSchema } from '@wildshard/format/npcs';
+import { BodySlotsSchema } from '@wildshard/format/bodySlots';
+import { SceneFloorSchema } from '@wildshard/format/sceneDressing';
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/format/namedJsonContracts';
+import { PracticeSceneSchema, PracticeControllerSchema } from '@wildshard/format/practiceCourseRows';
+import { nativeBodySchema, nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
+import { ClaimedPickupSchema } from '@wildshard/format/lootEconomy';
 
 test('claimed pickup composition keeps the complete native validator and JSON grammar', () => {
   const pickup = authorFormatSchema('lootEconomy.ClaimedPickupSchema');

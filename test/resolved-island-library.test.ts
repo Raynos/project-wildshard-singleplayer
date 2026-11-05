@@ -1,6 +1,6 @@
 import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with {type:'json'};
 import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
-import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
+import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Matrix4 } from 'three';

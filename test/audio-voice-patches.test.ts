@@ -1,16 +1,16 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Original inline oracle from the same raw rasters.
 import {readFileSync} from 'node:fs';
-import {preflightShardfile} from '../src/format/preflight';
+import {preflightShardfile} from '@wildshard/format/preflight';
 import {emptyShardfile} from '../src/sdk/author';
-import {AudioSceneSchema} from '../src/format/audioScene';
+import {AudioSceneSchema} from '@wildshard/format/audioScene';
 import { afterEach, expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import type { Audio } from '../src/engine/audio/Audio';
 import { AudioVoicePatches } from '../src/game/audio/voicePatches';
-import { parseAudioData } from '../src/format/audio';
+import { parseAudioData } from '@wildshard/format/audio';
 import rows from '../src/shards/nalati-grasslands/data/voicePatches.json' with { type:'json' };
 import audio from './fixtures/nalati-audio-original.json' with { type:'json' };
-import { VoicePatchesSchema } from '../src/format/voicePatches';
+import { VoicePatchesSchema } from '@wildshard/format/voicePatches';
 import { parse } from 'valibot';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { AudioSceneDirector, audioPathProbe } from '../src/game/audio/sceneDirector';

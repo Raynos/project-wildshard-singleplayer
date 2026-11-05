@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { tagCollider } from '../src/engine/physics/surface';
 import { installQuestHost } from '../src/game/plugin/simulation';
 import { bindHeadlessPrompts, type HeadlessPrompt } from '../src/game/quest/interactionRows';
-import { parseQuestHost } from '../src/format/questHost';
+import { parseQuestHost } from '@wildshard/format/questHost';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const quests = { flags: [], quests: [], triggers: [], dialogue: [] };

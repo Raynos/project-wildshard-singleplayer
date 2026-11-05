@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseHeldSlots } from '../src/format/heldArms';
+import { parseHeldSlots } from '@wildshard/format/heldArms';
 import slots from '../src/shards/nalati-grasslands/boot/mountedLoadout.json' with { type: 'json' };
 import { nalatiLateHeldNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
 

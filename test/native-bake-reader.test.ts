@@ -1,5 +1,5 @@
 import {nativeBakeBytes} from './fixtures/native-bake-inline';
-import { nativeColliderRecordSchema } from '../src/format/nativePhysics';
+import { nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { createNativeBakeReader, type NativePhysicsBake, type NativeBakeReader } from '@wildshard/game/population/nativeBake';

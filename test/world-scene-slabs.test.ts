@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { provideRuntimeProduct, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { ControlRefinement } from '../src/game/shardfile/controlRefinement';

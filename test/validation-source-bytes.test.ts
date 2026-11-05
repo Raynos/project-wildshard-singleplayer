@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { validationSourceBytes } from '../src/format/validationReceipt';
+import { validationSourceBytes } from '@wildshard/format/validationReceipt';
 import kit from '../src/shards/open-plots/data/kit.graph.json';
 import source from '../src/shards/open-plots/data/source.json';
 import layout from '../src/shards/open-plots/data/layouts/night-market.json';

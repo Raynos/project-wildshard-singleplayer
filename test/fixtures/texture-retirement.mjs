@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Scope } from '../../src/engine/app/scope';
 import { emptyShardfile } from '../../src/sdk/author';
-import { parseFamilyMaterial } from '../../src/format/materialFamilies';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
 import { splatArray } from '../../src/game/shardfile/clientSplatTerrain';
 import { finalizeCompressedMipmaps } from '../../src/engine/render/compressedMipmaps';

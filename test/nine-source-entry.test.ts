@@ -5,8 +5,8 @@ import { build } from 'vite';
 import { generated } from './fixtures/nine-source-program';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
-import { admitScriptContract } from '../src/format/scriptContract';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
+import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { parseFixedPractice } from '../src/shards/nine-dragon-stack/generators/sections';
 
 test('the source entry shares one admitted practice contract across raw output and scene/controller rows', () => {

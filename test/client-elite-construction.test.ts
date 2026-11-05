@@ -7,7 +7,7 @@ import type { ShardWorld } from '../src/game/shard/world';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { TimedEncounters } from '../src/game/boss/timedEncounters';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import {charge,chargeModule} from './fixtures/nalati-charge';
 import {clientNativeBook} from '../src/game/shardfile/clientNativeBook';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';

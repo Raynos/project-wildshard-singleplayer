@@ -1,5 +1,5 @@
 import { sameRuntimeProfile } from '../src/game/plugin/headless';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { expect, test } from 'vitest';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';

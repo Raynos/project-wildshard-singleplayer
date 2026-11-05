@@ -5,7 +5,7 @@ import { dayLookPresets } from '../src/game/looks/dayLookPresets';
 import { nalatiDayChannels } from '../src/shards/nalati-grasslands/generators/dayChannels';
 import { skyRows, skyChannels } from '../src/shards/nalati-grasslands/generators/skyPresentation';
 import skyDome from '../src/shards/nalati-grasslands/data/skyDome.json' with { type: 'json' };
-import { validateGraph } from '../src/format/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 
 function rig() {
   const rows = skyRows(), day = rows.day, key = structuredClone(day), clock = { elevation: 14 };

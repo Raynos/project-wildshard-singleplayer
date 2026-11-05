@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { BoxGeometry, MeshLambertMaterial, Matrix4, Vector3, Quaternion, Euler } from 'three';
 import { ForagerPopulation } from '../src/engine/ai/ambientForager';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { ForagerPopulationSchema } from '../src/format/ambientLife';
+import { ForagerPopulationSchema } from '@wildshard/format/ambientLife';
 import { ForagerDraw } from '../src/game/ambient/foragerDraw';
 import policy from '../src/shards/nalati-grasslands/data/marmotForager.json' with {type:'json'};
 

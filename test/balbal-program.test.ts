@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
 import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { object, parse } from 'valibot';
-import { CreatureGuestSchema } from '../src/format/speciesBookRows';
+import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { program } from './fixtures/projectedCreature';
 import * as strikes from '../src/engine/ai/strikeRows';
 import { ReturnProgram } from '../src/game/population/returnProgram';

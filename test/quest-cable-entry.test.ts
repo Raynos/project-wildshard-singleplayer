@@ -12,7 +12,7 @@ import { parseShardSlug } from '../src/game/shard/slug';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { DRIFTWOOD as drift } from './fixtures/driftwood-program';

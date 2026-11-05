@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {placesWithDiscovery} from '../../src/engine/quest/discovery';
-import {parsePersistedQuestPage} from '../../src/format/questStory';
+import {parsePersistedQuestPage} from '@wildshard/format/questStory';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareHeadlessRuntime as prepareSky} from '../proof/far-reach/worker';
 

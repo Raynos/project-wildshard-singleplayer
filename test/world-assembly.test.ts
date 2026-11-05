@@ -12,7 +12,7 @@ import { addPiece } from '../src/engine/physics/pieces';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { type Piece, WorldRegistry } from '../src/engine/world/registry';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import type { RopeDeckSpan } from '../src/format/ropeDeckSite';
+import type { RopeDeckSpan } from '@wildshard/format/ropeDeckSite';
 import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
 import type { FixedDraws } from '../src/game/models/fixedDraws';
 import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/ropeDeckSite';

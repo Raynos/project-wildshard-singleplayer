@@ -2,13 +2,13 @@ import { cragScene } from '../src/shards/pine-hollow/generators/cragSceneContrib
 import logKit from '../src/shards/pine-hollow/data/logKit.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the diagnostic metadata with the shipping terrain bytes.
 import { readFileSync } from 'node:fs';
-import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
-import { bakedSamplers } from '../src/format/bakedTerrainSampling';
+import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ManifestMetadataSchema } from '../src/format/minimap';
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { NATIVE_VIEW } from '../src/shards/pine-hollow/generators/nativeView';
 import { NativeViewSchema, CaveRowsSchema, PoolGroundSchema } from '../src/shards/pine-hollow/generators/sections';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';

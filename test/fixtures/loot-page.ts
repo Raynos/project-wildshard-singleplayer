@@ -1,5 +1,5 @@
 import {enteredLootPresentation} from '../../src/game/loot/runtime';
-import {parseRows} from '../../src/format/rows';
+import {parseRows} from '@wildshard/format/rows';
 import type {declaredLootEconomy} from '../../src/game/shard/declaredRows';
 import type {Scope} from '../../src/engine/app/scope';
 import {QuestState} from '../../src/engine/quest/core';

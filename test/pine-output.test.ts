@@ -1,15 +1,15 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify named guest content identities.
 import {createHash} from 'node:crypto';
-import {parseSpawnScript, SpawnScriptsSchema} from '../src/format/spawnScripts';
-import {parseEliteFeature} from '../src/format/eliteFeature';
+import {parseSpawnScript, SpawnScriptsSchema} from '@wildshard/format/spawnScripts';
+import {parseEliteFeature} from '@wildshard/format/eliteFeature';
 import { PINE_ELITES as elites } from './fixtures/pine-elites';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
-import {HeldEquipmentSchema} from '../src/format/heldEquipment';
+import {HeldEquipmentSchema} from '@wildshard/format/heldEquipment';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import director from '../src/shards/pine-hollow/data/director.json' with {type:'json'};
 import {readPineProject} from './fixtures/pine-project';
-import {ClaimedPickupSchema} from '../src/format/lootEconomy';
+import {ClaimedPickupSchema} from '@wildshard/format/lootEconomy';
 
 const pine=await readPineProject();
 

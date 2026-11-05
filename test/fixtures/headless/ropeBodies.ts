@@ -4,7 +4,7 @@ import {isSimHostRestoring} from '../../../src/engine/sim/snapshot';
 import {RopeChain} from '../../../src/engine/physics/ropeChain';
 import type {SimHost} from '../../../src/engine/sim';
 import type {ShardProduct} from '../../../src/game/shardfile/shardProduct';
-import type {WorldAssemblyStage} from '../../../src/format/worldAssembly';
+import type {WorldAssemblyStage} from '@wildshard/format/worldAssembly';
 
 const restoredWalkBodies=new WeakSet<SimHost>();
 /** The native restore transaction already owns its saved rope bodies/joints.

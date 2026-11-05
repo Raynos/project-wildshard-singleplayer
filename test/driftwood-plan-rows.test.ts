@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { BakedPlanSchema } from '../src/format/bakedTiles';
+import { BakedPlanSchema } from '@wildshard/format/bakedTiles';
 import { bakeIslandPlan, islandPlacements } from '../src/shards/driftwood-isle/generators/islandCover';
 import files from '../src/shards/driftwood-isle/data/islandPlanFiles.json' with { type: 'json' };
 import original from './fixtures/driftwood-plan-rows.json' with { type: 'json' };

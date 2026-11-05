@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { parseAchievementCounterData } from '../src/format/achievementCounters';
+import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { output as driftwoodOutput } from '../src/shards/driftwood-isle/generators/output';
 import { createAchievementCounters } from '../src/game/achievements';

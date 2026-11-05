@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { parsePaintedLook } from '../src/format/paintedLook';
+import { parsePaintedLook } from '@wildshard/format/paintedLook';
 import { signalPaintedPresentation } from '../src/shards/sunscar-dunes/generators/paintedLook';
 import { LAST_LIGHT_SUN } from '../src/shards/sunscar-dunes/generators/rows/lightLook';
 import { SAND_FILES } from '../src/shards/sunscar-dunes/generators/rows/sand';

@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import type { ModelContext } from '../src/engine/models/model';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { WorldAssemblySchema } from '../src/format/worldAssembly';
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/shardfile/worldAssembly';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';

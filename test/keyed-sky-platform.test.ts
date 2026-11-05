@@ -4,7 +4,7 @@ import { encodeGainKey, packGainKey } from '../src/sdk/bake/keyedSky';
 import { encodeGainKey as nativeEncodeGainKey, packGainKey as nativePackGainKey } from '../scripts/bake/keyed-sky.mjs';
 import { describe, expect, it } from 'vitest';
 import { DayCycle } from '../src/engine/world/dayCycle';
-import { parseKeyedSky, SKY_PRESET } from '../src/format/keyedSky';
+import { parseKeyedSky, SKY_PRESET } from '@wildshard/format/keyedSky';
 import { dayClock } from '../src/game/looks/dayClock';
 import { keyedSkyDay } from '../src/game/looks/keyedSkyClock';
 import { overcastOver } from '../src/game/looks/overcast';

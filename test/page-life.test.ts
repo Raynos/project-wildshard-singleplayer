@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, InstancedMesh, InterleavedBufferAttribute, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { parsePageLife } from '../src/format/pageLife';
+import { parsePageLife } from '@wildshard/format/pageLife';
 import { PINE_LIFE_ORIGINAL as program } from './fixtures/pine-life';
 import { PAGE_LIFE } from '../src/shards/pine-hollow/generators/pageLife';
 import { PAGE_LIFE as coastLife } from '../src/shards/driftwood-isle/generators/pageLife';

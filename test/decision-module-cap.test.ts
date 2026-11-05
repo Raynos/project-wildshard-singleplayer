@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { CONTRACT_PROGRAM_SCRIPT } from '../src/shards/pine-hollow/generators/contractProgram';
 
 /** `count` rows of the same declared guest, each its own id and module. */

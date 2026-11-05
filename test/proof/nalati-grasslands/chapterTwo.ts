@@ -5,7 +5,7 @@ import type {SimHost} from '../../../src/engine/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
-import type {parseHeldSlots} from '../../../src/format/heldArms';
+import type {parseHeldSlots} from '@wildshard/format/heldArms';
 import type {heldBowBase} from '../../../src/game/weapons/heldBowBase';
 import {bowLaunchSpeed} from '../../../src/engine/combat/bowLaw';
 import {DRAW_TIME,RENOCK_TIME} from '../../../src/engine/combat/bowDraw';

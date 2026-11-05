@@ -1,9 +1,9 @@
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { expect, test, vi } from 'vitest';
 import { object, parse } from 'valibot';
-import { ClientSpeciesProgramSchema } from '../src/format/clientNative';
-import { HullLookBookSchema, PackedCreatureLooksSchema } from '../src/format/speciesLooks';
-import { SpeciesPresentationSchema } from '../src/format/speciesBookRows';
+import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
+import { HullLookBookSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
+import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';

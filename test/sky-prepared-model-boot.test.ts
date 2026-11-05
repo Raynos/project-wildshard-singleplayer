@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/boot/filePolicy';
-import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 import { BAKED_PIECES, BAKED_URLS, FAN_URL, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS } from '../src/shards/far-reach/generators/fileInventory';
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';

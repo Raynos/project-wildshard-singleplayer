@@ -7,8 +7,8 @@ import { addQuadrantVisibility, slabAnchorFrames, slabVisibilityCensus, type Sla
 import { inputs } from './fixtures/nine-product-inputs';
 import { addSlabTriangles, newSlabTriangleProof, compareSlabTriangles, type SlabTriangleProof } from './fixtures/slabJoinProof';
 import { readSourceModel } from '../src/sdk/bake/skinned';
-import { WorldScenesSchema } from '../src/format/worldScenes';
-import { parseWorldSceneWeld } from '../src/format/worldSceneWeld';
+import { WorldScenesSchema } from '@wildshard/format/worldScenes';
+import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { nativeWholeGeometry } from '../src/engine/models/nativeGeometry';
 import { wholeGeometryPieces } from '../src/game/shardfile/wholeGeometryPieces';
 import { joinWholePieces } from '../src/sdk/bake/wholePieceJoin';

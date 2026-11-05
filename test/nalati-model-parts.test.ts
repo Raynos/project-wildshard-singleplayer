@@ -11,7 +11,7 @@ import { nalatiModelParts } from '../src/shards/nalati-grasslands/generators/mod
 import { nalatiModelSourceParts } from '../src/shards/nalati-grasslands/generators/modelSourceParts';
 import pins from './fixtures/nalati-model-paint.json' with { type: 'json' };
 import partPins from './fixtures/nalati-model-parts.json' with { type: 'json' };
-import { textureMipBytes } from '../src/format/contentBounds';
+import { textureMipBytes } from '@wildshard/format/contentBounds';
 import { originalPaintedModel } from './fixtures/nalati-painted-models';
 
 function isGeometry(value: unknown): value is BufferGeometry { return value instanceof BufferGeometry; }

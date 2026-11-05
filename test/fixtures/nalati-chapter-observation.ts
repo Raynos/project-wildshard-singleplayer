@@ -1,6 +1,6 @@
 import {QuestLine} from '../../src/engine/quest/core';
 import type {SimHost} from '../../src/engine/sim';
-import type {parseChapterStoryPresentation} from '../../src/format/questStory';
+import type {parseChapterStoryPresentation} from '@wildshard/format/questStory';
 import {chapterFlow} from '../../src/game/quest/chapterFlow';
 
 /** Observe the page's actual chapter readouts over the existing native quest

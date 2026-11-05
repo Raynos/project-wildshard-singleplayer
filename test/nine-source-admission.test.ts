@@ -7,8 +7,8 @@ import profiles from '../src/shards/nine-dragon-stack/data/specimenProfiles.json
 import bursts from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
 import pools from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
 import { LightPoolProfilesSchema } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
-import {parseDecisionScripts} from '../src/format/decisionScripts';
-import {isJsonData} from '../src/format/json';
+import {parseDecisionScripts} from '@wildshard/format/decisionScripts';
+import {isJsonData} from '@wildshard/format/json';
 import approvedGeometry from './fixtures/approved-model-geometry-roots.json' with {type:'json'};
 
 function field(value: unknown, key: string): unknown {

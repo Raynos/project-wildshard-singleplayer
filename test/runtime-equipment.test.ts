@@ -22,7 +22,7 @@ import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { typ
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 
 class NativeWeapon extends Weapon {
   readonly model = new Group();

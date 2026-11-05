@@ -1,10 +1,10 @@
 import {sha256} from '../src/game/plugin/moduleHash';
-import { parseOutputIndex } from '../src/format/outputIndex';
-import { OUTPUT_SECTIONS, outputSectionPayloads } from '../src/format/outputFields';
-import {parseShardfile} from '../src/format/shardSchema';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
+import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
+import {parseShardfile} from '@wildshard/format/shardSchema';
 import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
+import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
 import {titanPrograms as returnPrograms} from './fixtures/titanInlineWitness';
 // oxlint-disable-next-line import/no-nodejs-modules -- The unit host uses the same native physics module as the resident.
 import { readFileSync } from 'node:fs';
@@ -19,7 +19,7 @@ import { snapshotSimHost, restoreSimHost, onSimHostRestored } from '../src/engin
 import { hasStaticGround } from '../src/engine/physics/query';
 import { tagCollider } from '../src/engine/physics/surface';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '../src/format/namedJsonContracts';
+import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/format/namedJsonContracts';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import driftwoodAssembly from '../src/shards/driftwood-isle/data/headlessAssembly.json' with { type: 'json' };
 

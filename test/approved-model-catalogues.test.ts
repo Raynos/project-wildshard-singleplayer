@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the original complete document bytes.
 import {createHash} from 'node:crypto';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameSpecimenBook} from '../src/sdk/bake/specimenCatalogue';
 import roots from './fixtures/approved-model-catalogue-roots.json' with {type:'json'};

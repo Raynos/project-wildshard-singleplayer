@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { skyViewData, skyViewValues, skyViewDiscovery } from '../src/shards/far-reach/generators/viewData';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 
 const names = ['budgets', 'runtimeCost', 'devPoses', 'meadow', 'wind', 'rayWake'] as const;
 

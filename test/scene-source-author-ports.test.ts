@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import { parse, type InferOutput } from 'valibot';
 import { modelSceneSourceFile, bakedSceneSourceFile, sceneDrawRows } from '../src/sdk/worldScenes';
-import { SceneDrawsSchema } from '../src/format/sceneDraws';
+import { SceneDrawsSchema } from '@wildshard/format/sceneDraws';
 
 test('model source publication retains the native 256-mesh and 256-hero bounds', () => {
   const input: Parameters<typeof modelSceneSourceFile>[1] = { rows: {

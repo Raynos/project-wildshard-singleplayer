@@ -2,14 +2,14 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
-import { parseStillImage } from '../src/format/stillImage';
+import { parseStillImage } from '@wildshard/format/stillImage';
 import { shardfileSource } from '../src/game/shardfile/clientSource';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';
 import type { ProductOptions } from '../src/game/shardfile/product';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { OUTPUT_SECTIONS, outputSectionPayloads } from '../src/format/outputFields';
-import { parseOutputIndex } from '../src/format/outputIndex';
+import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { bakedMapUrl } from '../src/game/shard/manifest';
 

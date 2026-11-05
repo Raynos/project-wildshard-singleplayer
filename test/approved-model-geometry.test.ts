@@ -2,9 +2,9 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the complete original document bytes.
 import {createHash} from 'node:crypto';
-import {FixedGeometryGroupsSchema as GeometryRoot} from '../src/format/islandLibrary';
-import {FixedPracticeFileSchema as PracticeRoot} from '../src/format/practiceCourseRows';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {FixedGeometryGroupsSchema as GeometryRoot} from '@wildshard/format/islandLibrary';
+import {FixedPracticeFileSchema as PracticeRoot} from '@wildshard/format/practiceCourseRows';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {parseFixedPractice} from '../src/shards/nine-dragon-stack/generators/sections';
 import {parseSectionValue} from '../src/sdk/sections';

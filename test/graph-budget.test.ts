@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { expect, it } from 'vitest';
-import { MAX_GRAPH_BUDGET, validateGraph, type GraphIr, type GraphNode } from '../src/format/materialGraph';
-import { MaterialsSchema } from '../src/format/materials';
+import { MAX_GRAPH_BUDGET, validateGraph, type GraphIr, type GraphNode } from '@wildshard/format/materialGraph';
+import { MaterialsSchema } from '@wildshard/format/materials';
 import * as v from 'valibot';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { classicLookCompiler } from './fixtures/classicLookCompiler';

@@ -8,7 +8,7 @@ import { unzlibSync } from 'fflate';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
-import { SceneBakedGeometrySchema } from '../src/format/sceneDressing';
+import { SceneBakedGeometrySchema } from '@wildshard/format/sceneDressing';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { nalatiNativePlaceParts, nalatiPlaceParts } from '../src/shards/nalati-grasslands/generators/placeParts';

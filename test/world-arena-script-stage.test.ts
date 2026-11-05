@@ -22,7 +22,7 @@ import { publishEntryOwner, entryOwner } from '../src/game/shardfile/entryOwners
 import { lendLooks } from '../src/game/shardfile/lentLooks';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { nodeNamedJsonCheck } from '../src/game/shardfile/outputChecksNode';
-import { WorldAssemblySchema } from '../src/format/worldAssembly';
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { emptyShardfile } from '../src/sdk/author';
 import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';

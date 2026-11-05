@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import type {SpeciesData,SpeciesVariantData} from '../src/format/speciesPrograms';
+import type {SpeciesData,SpeciesVariantData} from '@wildshard/format/speciesPrograms';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import type {NalatiEncounterIntake} from './fixtures/nalati-world';
 import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './fixtures/nalati-encounter-loans';

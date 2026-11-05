@@ -5,12 +5,12 @@ import {mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync} from 'node:
 import {resolve} from 'node:path';
 import {readPacksSet, writeSpawnManifests} from '../scripts/app-build/entryTotals';
 import {emptyShardfile} from '@wildshard/sdk/author';
-import {outputSectionPayloads} from '../src/format/outputFields';
+import {outputSectionPayloads} from '@wildshard/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin this compiler fixture's original bytes.
 import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the deployed precompressed native representation exactly.
 import {brotliCompressSync, constants} from 'node:zlib';
-import {readSpawnManifest} from '../src/format/spawnManifest';
+import {readSpawnManifest} from '@wildshard/format/spawnManifest';
 import {downloadSpawnManifest} from '../src/game/boot/spawnDownload';
 
 test('spawn manifests prioritize code stably without changing bytes or the complete download barrier', async () => {

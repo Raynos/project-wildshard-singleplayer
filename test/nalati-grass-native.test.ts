@@ -1,6 +1,6 @@
 import {unzlibSync} from 'fflate';
 import {expect,test,vi} from 'vitest';
-import {parseSceneBuffers} from '../src/format/sceneBuffers';
+import {parseSceneBuffers} from '@wildshard/format/sceneBuffers';
 import {grassRows} from '../src/shards/nalati-grasslands/generators/grassRows';
 import {hashImmutableBytes,encodeCanonicalJson} from '../src/sdk/immutable';
 import {GRASS_FILES,originalGrassRows} from './fixtures/nalatiGrass';

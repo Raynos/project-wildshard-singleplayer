@@ -7,7 +7,7 @@ import { pineGeneration } from './fixtures/pine-generation';
 import { pineBirds } from '../src/shards/pine-hollow/generators/birdInputs';
 import { phoneBirdsAtlasOutput } from '../src/shards/pine-hollow/generators/birdAtlas';
 import { wildlifeDraw } from '../src/shards/pine-hollow/generators/wildlifeDraw';
-import { tierLibrarySteps } from '../src/format/tierSelection';
+import { tierLibrarySteps } from '@wildshard/format/tierSelection';
 
 const context = pineGeneration('pine-bird-device-selection', resolve(homedir(), '.cache/wildshard/gen'));
 const birds = await pineBirds(context), atlas = await phoneBirdsAtlasOutput(context);

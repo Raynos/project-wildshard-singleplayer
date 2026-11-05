@@ -7,7 +7,7 @@ import { Rng } from '../src/engine/core/rng';
 import { SkyRig } from '../src/engine/world/skyRig';
 import * as lowPolyKit from '../src/engine/world/lowpolyKit';
 import { atlasFigureCard, kitFigureCard } from '../src/game/models/kitFigureCard';
-import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
+import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';
 

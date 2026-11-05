@@ -2,10 +2,10 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin each complete original named document.
 import {createHash} from 'node:crypto';
-import {PopulationProjectionSchema} from '../src/format/populationProjection';
-import {PerchBodyFileSchema} from '../src/format/mixedPopulation';
+import {PopulationProjectionSchema} from '@wildshard/format/populationProjection';
+import {PerchBodyFileSchema} from '@wildshard/format/mixedPopulation';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {nameBlob} from '../src/sdk/blobs';
 import {encodeCanonicalJson} from '../src/sdk/immutable';
 import fixture from './fixtures/approved-population-returns.json' with {type:'json'};

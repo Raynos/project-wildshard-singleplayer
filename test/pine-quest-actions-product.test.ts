@@ -15,7 +15,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { PINE_QUEST_TRANSACTIONS } from './fixtures/pine-quest-transactions';
 import { PINE_QUEST_CONSEQUENCES } from './fixtures/pine-quest-consequences';
-import { parseQuestPageInteractions, type QuestPageInteractionsData } from '../src/format/questInteractions';
+import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { Flags } from '../src/engine/world/interact/flags';
 import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/quest/contracts';

@@ -8,7 +8,7 @@ import baseline from './fixtures/nine-glyphs.json' with { type: 'json' };
 import { FONT_CHARS, WORDS } from '../src/shards/nine-dragon-stack/generators/words';
 import { GLYPH_LAYOUT } from '../src/shards/nine-dragon-stack/generators/signs';
 import { NINE_WORLD_SCENES } from './fixtures/nine-product-inputs';
-import { worldScenesForTier } from '../src/format/worldScenes';
+import { worldScenesForTier } from '@wildshard/format/worldScenes';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 
 const glyphs = nativeGlyphs.glyphs;

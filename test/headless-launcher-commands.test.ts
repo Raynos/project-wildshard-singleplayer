@@ -9,7 +9,7 @@ import {loadRapier,type Rapier} from '../src/engine/physics/rapier';
 import {createNativeCombatFrame,installNativeItems} from '../src/game/plugin/nativeItems';
 import {fillNativeCombatFrame,validateHeadlessCommandOwners} from '../src/sdk/headlessRuntime';
 import {TickCommandSchema,tickCommands,type HeadlessCommand} from '../src/sdk/tickProtocol';
-import {parseItems} from '../src/format/items';
+import {parseItems} from '@wildshard/format/items';
 import {pineItems} from '../src/shards/pine-hollow/generators/channelSections';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 

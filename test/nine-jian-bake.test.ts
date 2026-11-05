@@ -3,7 +3,7 @@ import { BufferAttribute, type BufferGeometry } from 'three';
 import { output } from './fixtures/nine-source-program';
 import baseline from './fixtures/nine-jian-buffers.json' with { type: 'json' };
 import pendantsBaseline from './fixtures/nine-jian-pendants.json' with { type: 'json' };
-import { parseGraphArms } from '../src/format/graphArmsRows';
+import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { worldScenePool } from '../src/game/shardfile/scenePools';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';

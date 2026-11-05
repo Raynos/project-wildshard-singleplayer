@@ -1,4 +1,4 @@
-import { CHUNK_HALF } from '../src/format/contentBounds.ts';
+import { CHUNK_HALF } from '@wildshard/format/contentBounds';
 
 /** G872 (wildshard-new, 2026-11-04): list optional radial metadata outside
  * its cell, with an already drawn near view, separately. World/required/unknown

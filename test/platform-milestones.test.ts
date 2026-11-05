@@ -8,8 +8,8 @@ import {tmpdir} from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the receipt to the actual fixture index.
 import {createHash} from 'node:crypto';
 import {emptyShardfile} from '../src/sdk/author';
-import { outputSectionPayloads } from '../src/format/outputFields';
-import {structuralGridEvidence} from '../src/format/gridReadiness';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
+import {structuralGridEvidence} from '@wildshard/format/gridReadiness';
 import {MILESTONE_SHARDS,m3Progress,planProgress,gridReady,readinessVerdict} from '../scripts/shard-milestones.mjs';
 import {sourceProgressLines} from '../scripts/shard-platform.mjs';
 import {outputReport} from '../scripts/shard-output-report.mjs';

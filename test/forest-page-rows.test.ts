@@ -1,8 +1,8 @@
-import { sceneLivingBytes } from '../src/format/worldScenePages';
+import { sceneLivingBytes } from '@wildshard/format/worldScenePages';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ForestPageSchema, ForestGroundLayoutSchema, forestGroundLayoutSteps } from '../src/format/forestPage';
-import { RangedPageSchema, ForestWeatherObservationSchema } from '../src/format/rangedPage';
+import { ForestPageSchema, ForestGroundLayoutSchema, forestGroundLayoutSteps } from '@wildshard/format/forestPage';
+import { RangedPageSchema, ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
 import { ForestRoofMask } from '../src/game/looks/forestRoofMask';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { cabinLiving } from '../src/shards/pine-hollow/generators/cabinLivingContribution';

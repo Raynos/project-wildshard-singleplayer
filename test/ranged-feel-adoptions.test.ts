@@ -5,7 +5,7 @@ import * as feel from '../src/engine/combat/view/rangedFeel';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import { installHeldRangedFeel } from '../src/game/plugin/heldEquipment';
 import type { ShardContext } from '../src/game/plugin/context';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';

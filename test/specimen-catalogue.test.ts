@@ -21,15 +21,15 @@ import type { CatalogueParams as TrailParams } from '../src/shards/driftwood-isl
 import { nalatiSpecimens as campData } from './fixtures/nalati-specimens';
 import trailRows from '../src/shards/driftwood-isle/data/trailCatalogue.json' with { type: 'json' };
 
-import { SceneFloorSchema } from '../src/format/sceneDressing';
+import { SceneFloorSchema } from '@wildshard/format/sceneDressing';
 import sourcePlaces from './fixtures/nalati-places-original.json' with { type: 'json' };
 import * as layout from '../src/shards/nalati-grasslands/generators/layout';
 import { readSceneFloors } from '../src/game/shardfile/sceneDressing';
 import { deckFloor, torFloor, type PlaceRow } from '../src/shards/nalati-grasslands/generators/placeRows';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor } from '../src/shards/nalati-grasslands/generators/placement';
 import { pathRampDescs } from '../src/engine/physics/paths';
-import { bakedSamplers } from '../src/format/bakedTerrainSampling';
-import { parseBakedTerrain } from '../src/format/bakedTerrainBytes';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 
 const memberSchema=v.object({solid:v.array(v.unknown()),descs:v.array(v.unknown()),floors:v.array(SceneFloorSchema)});
 const preparedPlaces=v.parse(v.object({places:v.object({rows:v.array(v.object({name:v.string(),colliders:v.array(v.unknown()),

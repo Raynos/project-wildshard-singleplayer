@@ -7,7 +7,7 @@ import { Owned } from '../src/game/loot/Owned';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { installClientFinds } from '../src/game/shardfile/clientFinds';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';

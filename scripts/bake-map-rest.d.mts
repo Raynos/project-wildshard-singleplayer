@@ -1,4 +1,4 @@
-import type { ClientChannelProgram } from '../src/format/clientChannels';
+import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
 import type { MoverPose } from '../src/engine/physics/mover';
 
 export function mapRest(scene: { nodes: readonly { id: string; instances?: number }[] }, programs: readonly ClientChannelProgram[], poses: readonly (MoverPose & { id: string })[]): {

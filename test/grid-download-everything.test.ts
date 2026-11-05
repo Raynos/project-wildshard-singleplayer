@@ -1,7 +1,7 @@
 import {afterEach, expect, test, vi} from 'vitest';
 import {emptyShardfile} from '../src/sdk/author';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {parseOutputIndex} from '../src/format/outputIndex';
+import {parseOutputIndex} from '@wildshard/format/outputIndex';
 import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
 import {Scope} from '../src/engine/app/scope';
 import {saves} from '../src/engine/saves/runtime';

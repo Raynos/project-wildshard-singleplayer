@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import { parseWorldScenes, worldScenesForTier } from '../src/format/worldScenes';
-import { controlFileHashes } from '../src/format/admissionControl';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
+import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
+import { controlFileHashes } from '@wildshard/format/admissionControl';
 import { emptyShardfile } from '../src/sdk/author';
 import { defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
 import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES, world, inputs, layout as sourceLayout } from './fixtures/nine-product-inputs';

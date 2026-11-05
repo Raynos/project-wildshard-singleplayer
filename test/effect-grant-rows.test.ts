@@ -1,4 +1,4 @@
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';

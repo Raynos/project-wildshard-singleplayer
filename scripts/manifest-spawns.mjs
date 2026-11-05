@@ -5,7 +5,7 @@ import { registerHooks } from 'node:module';
 import { basename, dirname, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as v from 'valibot';
-import { ManifestMetadataSchema } from '../src/format/minimap.ts';
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 
 const file = process.argv.at(2), name = process.argv.at(3);
 if (process.argv.length !== 4 || file === undefined || name === undefined || !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u.test(name)) throw new Error('Expected a declared spawn generator and export');

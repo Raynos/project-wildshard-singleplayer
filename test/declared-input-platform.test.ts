@@ -1,12 +1,12 @@
-import { parseItems } from '../src/format/items';
-import { migrateEquipmentSlots, parseMigrations } from '../src/format/migrations';
+import { parseItems } from '@wildshard/format/items';
+import { migrateEquipmentSlots, parseMigrations } from '@wildshard/format/migrations';
 import { CosmeticsLocker, type CosmeticState } from '../src/game/cosmetics/locker';
 import { declaredItemContext } from '../src/game/shardfile/items';
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { InputService } from '../src/engine/input/InputService';
-import { parsePlumbing } from '../src/format/plumbing';
-import { InputExtraSchema, inputWhenMatches } from '../src/format/inputDeclarations';
+import { parsePlumbing } from '@wildshard/format/plumbing';
+import { InputExtraSchema, inputWhenMatches } from '@wildshard/format/inputDeclarations';
 import { installDeclaredPlumbing, plumbingKnob } from '../src/game/shard/declaredPlumbing';
 import * as v from 'valibot';
 

@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
-import { decisionScriptContract, parseDecisionScripts } from '../src/format/decisionScripts';
-import { decisionBindingMap } from '../src/format/decisionBindings';
+import { decisionScriptContract, parseDecisionScripts } from '@wildshard/format/decisionScripts';
+import { decisionBindingMap } from '@wildshard/format/decisionBindings';
 import { DecisionHost, type DecisionScript } from '../src/engine/script/decision';
-import { SCRIPT_V1_READS, type ScriptV1ReadName, type ScriptV1Command } from '../src/format/scriptAbiV1';
+import { SCRIPT_V1_READS, type ScriptV1ReadName, type ScriptV1Command } from '@wildshard/format/scriptAbiV1';
 
 const row = { id: 'test.bodies', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`,
   source: 'behaviour/bodies.as', binding: { shard: true }, onFail: 'hold', on: ['start'],

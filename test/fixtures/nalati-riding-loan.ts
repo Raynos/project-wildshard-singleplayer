@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import type { Scope } from '../../src/engine/app/scope';
-import { parseDecisionScripts } from '../../src/format/decisionScripts';
-import { ReturnProgramSchema } from '../../src/format/namedJsonContracts';
-import { ReturnProjectionV2Schema } from '../../src/format/returnProjectionV2';
-import { ReturnModulesSchema } from '../../src/format/scriptContract';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
+import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
+import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { ReturnProgram } from '../../src/game/population/returnProgram';
 import { NALATI_RIDING_PROGRAMS, NALATI_RIDING_WASM, NALATI_RIDING_WITNESS_BYTES } from './nalati-riding';
 

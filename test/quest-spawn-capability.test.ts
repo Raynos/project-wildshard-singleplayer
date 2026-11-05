@@ -14,7 +14,7 @@ import { publishBoundQuest } from '../src/game/quest/boundState';
 import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/quest/chapterDirector';
 import * as spawn from '../src/game/population/spawnScript';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
-import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows } from '../src/format/spawnScripts';
+import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 let program: SpawnScriptRows | undefined;

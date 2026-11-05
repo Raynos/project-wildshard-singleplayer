@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { authorFormatSchema } from '../src/sdk/formatJsonSchema';
-import { ManifestMetadataSchema } from '../src/format/minimap';
-import type { ClientChannelProgram } from '../src/format/clientChannels';
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
+import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
 import { skyRows, skyChannels } from '../src/shards/nalati-grasslands/generators/skyPresentation';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import original from './fixtures/nalati-sky-ports-original.json' with { type: 'json' };

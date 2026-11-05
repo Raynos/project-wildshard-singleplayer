@@ -1,7 +1,7 @@
 import {expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
 import {ActorProjectionV2,type ActorProjectionContext} from '../src/game/population/actorProjectionV2';
-import {ActorProjectionV2Schema,parseActorProjectionV2} from '../src/format/actorProjectionV2';
+import {ActorProjectionV2Schema,parseActorProjectionV2} from '@wildshard/format/actorProjectionV2';
 import {createSimHost} from '../src/engine/sim';
 import {loadRapier} from '../src/engine/physics/rapier';
 import type {AnimalSim} from '../src/engine/entities/AnimalSim';

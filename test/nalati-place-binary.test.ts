@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
-import {SceneFloorSchema} from '../src/format/sceneDressing';
+import {SceneFloorSchema} from '@wildshard/format/sceneDressing';
 import {readSceneFloors} from '../src/game/shardfile/sceneDressing';
 import {prepareBinarySources} from '../src/game/models/binarySource';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';

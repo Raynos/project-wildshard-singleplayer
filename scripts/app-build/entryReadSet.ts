@@ -1,9 +1,9 @@
-import {controlFileHashes} from '../../src/format/admissionControl';
-import {entryFileSteps, tierLibrarySteps} from '../../src/format/tierSelection';
-import type {Shardfile} from '../../src/format/shardSchema';
-import type {OutputIndex} from '../../src/format/outputIndex';
+import {controlFileHashes} from '@wildshard/format/admissionControl';
+import {entryFileSteps, tierLibrarySteps} from '@wildshard/format/tierSelection';
+import type {Shardfile} from '@wildshard/format/shardSchema';
+import type {OutputIndex} from '@wildshard/format/outputIndex';
 import {wholeGeometryInputs} from '../../src/game/shardfile/wholeInputs';
-import {spawnViewSceneFiles} from '../../src/format/spawnView';
+import {spawnViewSceneFiles} from '@wildshard/format/spawnView';
 
 /** The same required, active entry selection for totals and read-ahead. Default (the Shardfile path every player gets):
  * today's entry set; streamed/late-only bodies and the other device's variants are not entry IO. `whole` (DL5, G872:

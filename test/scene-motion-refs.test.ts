@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Group } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { parseSceneMotion } from '../src/format/sceneMotion';
+import { parseSceneMotion } from '@wildshard/format/sceneMotion';
 import { ClientChannels } from '../src/sdk/clientChannels';
 import { createClientChannels } from '../src/game/plugin/channels';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';

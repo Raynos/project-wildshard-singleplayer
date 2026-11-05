@@ -9,8 +9,8 @@ import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { Rng } from '../src/engine/core/rng';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_NIGHT as rawNight, PINE_NIGHT_MODULE } from './fixtures/pine-night';
-import { readSpeciesPrograms } from '../src/format/speciesPrograms';
-import { parseSpawnScript } from '../src/format/spawnScripts';
+import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
+import { parseSpawnScript } from '@wildshard/format/spawnScripts';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { installPopulationRoster } from '../src/game/population/roster';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
@@ -137,7 +137,7 @@ test('legacy mid-night identities and placement stream migrate without spawn or 
 
 test('an unrelated salt-marsh script spawns and retires its own species and site rows', async () => {
   const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
-  const { spawnScriptRegistries } = await import('../src/format/spawnScripts');
+  const { spawnScriptRegistries } = await import('@wildshard/format/spawnScripts');
   const { legacy: _legacy, ...template } = parseSpawnScript(night);
   const script = { ...template.script, id: 'marsh.watch', source: 'behaviour/watch.as', on: ['start', 'tick'],
     reads: [], commands: ['spawn', 'despawn'], actors: { bird: 'watcher' }, spawns: { heron: 'egret.at.reeds' },
@@ -224,8 +224,8 @@ test('bad spawn recipes and forged saves refuse atomically without draws or gues
 test('published spawn catalogue admits v1 bytes without installing a second generic decision owner', async () => {
   const { loadHeadlessProduct } = await import('../src/sdk/headlessProduct');
   const { readSpawnScript } = await import('../src/game/population/spawnScript');
-  const { scriptAdmissionRows, decisionScriptsFromSections } = await import('../src/format/scriptContract');
-  const { SpawnScriptsSchema } = await import('../src/format/spawnScripts');
+  const { scriptAdmissionRows, decisionScriptsFromSections } = await import('@wildshard/format/scriptContract');
+  const { SpawnScriptsSchema } = await import('@wildshard/format/spawnScripts');
   const { sectionHostImports } = await import('../scripts/shard-platform-hosts.mjs');
   expect(sectionHostImports([{ name: 'actors/spawn-scripts' }])).toContain('game/population/spawnScript');
   const product = await loadHeadlessProduct('out/pine-hollow');

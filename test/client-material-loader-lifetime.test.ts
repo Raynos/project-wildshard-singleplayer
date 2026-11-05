@@ -11,7 +11,7 @@ import * as ktx2 from '../src/engine/core/ktx2';
 import { Scope } from '../src/engine/app/scope';
 import type { Renderer } from '../src/engine/render/renderer';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseFamilyMaterial } from '../src/format/materialFamilies';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

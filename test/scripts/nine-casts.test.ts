@@ -27,8 +27,8 @@ import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../../src
 import { place } from '../../src/engine/models/place';
 import { withOwner } from '../../src/engine/app/ownership';
 import crowdRows from '../../src/shards/nine-dragon-stack/data/crowdModels.json' with {type:'json'};
-import { parseWorldSceneModels } from '../../src/format/worldSceneModels';
-import { parseWorldScenePlacement } from '../../src/format/worldScenePlacement';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
+import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { floorAtRects } from '../../src/engine/physics/box';
 import { deckFloorRows } from '../../src/shards/nine-dragon-stack/generators/floorRows';
 

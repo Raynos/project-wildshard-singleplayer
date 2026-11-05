@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
-import { readOutputDownloadIndex } from '../../src/format/outputDownload';
-import { parseAudioData } from '../../src/format/audio';
+import { readOutputDownloadIndex } from '@wildshard/format/outputDownload';
+import { parseAudioData } from '@wildshard/format/audio';
 import { createCatalogueAudio } from '../../src/engine/audio/levelAudio';
 import { MUSIC_STYLES } from '../../src/engine/ui/Settings';
 

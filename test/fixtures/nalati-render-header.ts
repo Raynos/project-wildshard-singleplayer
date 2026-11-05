@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { parseShardfileField } from '../../src/sdk/shardfile';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
-import type { Shardfile } from '../../src/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import original from './nalati-render-rows.json' with { type: 'json' };
 import pins from './nalati-render-source-files.json' with { type: 'json' };
 import { EXACT_RENDER_METADATA, i3Predecessor } from './nalati-render-i3';

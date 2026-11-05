@@ -10,7 +10,7 @@ import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { registerQuestPageWorld, questPageWorld } from '../src/game/quest/pageResources';
 import { installQuestTrader } from '../src/game/quest/trader';
-import { QuestPageCompositionSchema } from '../src/format/questPageComposition';
+import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { builtProduct } from './fixtures/builtProduct';

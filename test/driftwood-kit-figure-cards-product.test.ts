@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { QuestFigureSchema } from '../src/format/questFigures';
+import { QuestFigureSchema } from '@wildshard/format/questFigures';
 import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
 import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };

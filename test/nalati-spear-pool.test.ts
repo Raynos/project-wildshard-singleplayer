@@ -9,7 +9,7 @@ import { gloveFist, riderArm } from '../src/engine/player/firstPersonArms';
 import { installPortableMath } from './fake/portableMath';
 import { merge } from '../src/shards/nalati-grasslands/generators/meleeGeo';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import { nalatiSpearPool, SPEAR_POOL_NAME } from '../src/shards/nalati-grasslands/generators/spearPool';
 

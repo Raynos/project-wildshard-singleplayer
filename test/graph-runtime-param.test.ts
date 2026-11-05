@@ -4,7 +4,7 @@ import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { classicLookCompiler } from './fixtures/classicLookCompiler';
 import { clientGraphs } from '../src/game/shardfile/clientGraphs';
 import { emptyShardfile } from '../src/sdk/author';
-import { validateGraph } from '../src/format/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 
 test('runtime graph uniforms move in place and refuse invalid writes atomically', () => {
   const source = emptyShardfile({ slug: 'param-fixture', name: 'Param', author: 'Test', seed: 1, revision: 1 });

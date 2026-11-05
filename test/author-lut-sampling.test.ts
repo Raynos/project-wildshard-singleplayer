@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { COLOUR_LUT_EDGE, COLOUR_LUT_CHANNELS } from '../src/format/colourLut';
+import { COLOUR_LUT_EDGE, COLOUR_LUT_CHANNELS } from '@wildshard/format/colourLut';
 import { LUT_SIZE } from '../src/engine/render/lut';
 import { colourLutSampleTransform } from '../src/sdk/bake/materialGraph';
 

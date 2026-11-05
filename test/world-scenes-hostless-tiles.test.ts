@@ -4,7 +4,7 @@ import { BufferGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, 
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseClientPlan, type ClientFeatureRow } from '../src/format/clientPlan';
+import { parseClientPlan, type ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 import { clientSceneHandles } from '../src/game/shardfile/clientSceneHandles';

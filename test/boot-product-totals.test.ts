@@ -6,8 +6,8 @@ import { resolve } from 'node:path';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { bootProductTotals, productDownloadTotal, homeClientModuleGroups } from '../scripts/app-build/bootProducts';
 import {bootTierProductTotals} from '../scripts/app-build/bootProductTiers';
-import {readOutputDownloadIndex} from '../src/format/outputDownload';
-import { outputSectionPayloads } from '../src/format/outputFields';
+import {readOutputDownloadIndex} from '@wildshard/format/outputDownload';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Record exact section hashes in the real output fixture.
 import { createHash } from 'node:crypto';
 

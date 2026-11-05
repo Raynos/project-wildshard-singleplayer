@@ -6,7 +6,7 @@ import * as v from 'valibot';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
-import {StealthRowsSchema} from '../../../src/format/stealth';
+import {StealthRowsSchema} from '@wildshard/format/stealth';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-stealth-native';

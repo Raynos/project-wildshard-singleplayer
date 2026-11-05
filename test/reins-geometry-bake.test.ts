@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { bakeReinsGeometry, reinPresentationRows } from '../src/sdk/bake/riderArms';
 import { buildReinsRibbon, fillRein } from '../src/game/riding/reins';
 import { parse } from 'valibot';
-import { ReinPresentationSchema } from '../src/format/riding';
+import { ReinPresentationSchema } from '@wildshard/format/riding';
 import input from '../src/shards/nalati-grasslands/data/reins.json' with { type: 'json' };
 
 const paths = () => [1, -1].map(side => [

@@ -1,4 +1,4 @@
-import { parseWorldScenePlacementPage } from '../src/format/worldScenePlacement';
+import { parseWorldScenePlacementPage } from '@wildshard/format/worldScenePlacement';
 import { expect, test } from 'vitest';
 import { driftwoodCatalogueFiles, driftwoodOutputRows, output } from '../src/shards/driftwood-isle/generators/output';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';

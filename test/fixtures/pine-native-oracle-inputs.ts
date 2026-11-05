@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { PopulationEnvironmentSchema, type PopulationEnvironmentRows } from '../../src/format/populationEnvironment';
+import { PopulationEnvironmentSchema, type PopulationEnvironmentRows } from '@wildshard/format/populationEnvironment';
 import * as layout from '../../src/shards/pine-hollow/generators/layout';
 import { pineGeographyRows } from '../../src/shards/pine-hollow/generators/geographyRows';
 import { pinePhysics } from '../../src/shards/pine-hollow/generators/physics';

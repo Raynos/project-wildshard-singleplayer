@@ -1,11 +1,11 @@
 import {expect,test,vi} from 'vitest';
 import * as v from 'valibot';
-import {WorldAssemblySchema} from '../src/format/worldAssembly';
+import {WorldAssemblySchema} from '@wildshard/format/worldAssembly';
 import {Scene,Group} from 'three';
 import {Scope} from '../src/engine/app/scope';
 import type {Game} from '../src/engine/core/Game';
 import type {StepRunner} from '../src/engine/boot/plan';
-import {parseClientPlan} from '../src/format/clientPlan';
+import {parseClientPlan} from '@wildshard/format/clientPlan';
 import type {ShardContext} from '../src/game/plugin/context';
 import type {ShardWorld} from '../src/game/shard/world';
 import type {ShardRuntime} from '../src/game/shard/runtime';

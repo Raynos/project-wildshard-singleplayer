@@ -1,10 +1,10 @@
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { QuestPageSchema } from '../src/format/questPageComposition';
-import { parseQuestWorldDocument } from '../src/format/questWorld';
-import { parseQuestFiguresDocument } from '../src/format/questFigures';
-import { parseQuestContinuationDocument } from '../src/format/questContinuation';
+import { QuestPageSchema } from '@wildshard/format/questPageComposition';
+import { parseQuestWorldDocument } from '@wildshard/format/questWorld';
+import { parseQuestFiguresDocument } from '@wildshard/format/questFigures';
+import { parseQuestContinuationDocument } from '@wildshard/format/questContinuation';
 import { driftwoodJsonBlob } from '../src/shards/driftwood-isle/generators/namedSchemas';
 import { driftwoodQuestWorld } from '../src/shards/driftwood-isle/generators/questWorld';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';

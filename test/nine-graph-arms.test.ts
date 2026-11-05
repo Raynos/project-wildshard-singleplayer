@@ -2,7 +2,7 @@ import { nineHeldPresentationBytes } from './fixtures/nine-held-presentation';
 import * as v from 'valibot';
 import { inputs } from './fixtures/nine-product-inputs';
 import { expect, test } from 'vitest';
-import { GraphArmsSchema, parseGraphArms } from '../src/format/graphArmsRows';
+import { GraphArmsSchema, parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { heldView, heldViewSchema } from '../src/shards/nine-dragon-stack/generators/heldView';
 import arms from '../src/shards/nine-dragon-stack/data/arms.json' with { type: 'json' };
 

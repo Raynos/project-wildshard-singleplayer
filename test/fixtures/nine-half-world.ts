@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
 import { nineWorldProduct, nineLayoutWord } from '../../src/shards/nine-dragon-stack/generators/worldProduct';
-import { prepareAssetDecoders } from '../../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import { halfFloatBeforeControl } from './half-float-before-control';

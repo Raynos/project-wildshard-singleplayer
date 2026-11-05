@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import { carriedQuestRows } from '../src/sdk/rows';
-import { parseCarriedQuest } from '../src/format/questSteps';
+import { parseCarriedQuest } from '@wildshard/format/questSteps';
 import { paintedTerrainAttributes } from '../src/sdk/bake/terrain';
-import { PAINTED_TERRAIN_ATTRIBUTES } from '../src/format/materialFamilies';
+import { PAINTED_TERRAIN_ATTRIBUTES } from '@wildshard/format/materialFamilies';
 import { carriedQuestRows as original } from './fixtures/nalati-carried-quest';
 
 test('carried quest admission retains full native output and continuation refusals', () => {

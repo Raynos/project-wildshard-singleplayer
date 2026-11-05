@@ -11,7 +11,7 @@ import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { loadFixedGeometry, fixedGeometryReady, fixedDraw, fixedGeometryGroups, COLLECTIONS } from './fixtures/driftwoodLegacyAssets';
 import { siteRows, sites, captainHat, sailclothCape, tradeCounter, trader as traderCard } from './fixtures/driftwoodLegacyCatalogue';
 import { bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { Scope } from '../src/engine/app/scope';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';

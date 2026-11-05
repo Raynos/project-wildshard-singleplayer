@@ -7,7 +7,7 @@ import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { admitScriptContract } from '../src/format/scriptContract';
+import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { ninePracticeProgram } from '../src/shards/nine-dragon-stack/generators/practiceProgram';
 import { buildCourseProgram } from '../src/commons/practiceCourse';
 import { ninePracticeBytes, ninePracticeRows } from './fixtures/nine-practice-product';

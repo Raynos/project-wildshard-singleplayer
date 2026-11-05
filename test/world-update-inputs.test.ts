@@ -10,7 +10,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import type { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import type { ForestWeatherRig } from '../src/game/weather/forest';
 import type { PaintedSky } from '../src/game/looks/keyedSky';
-import { WorldUpdatesSchema } from '../src/format/worldUpdates';
+import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
 import { installWorldUpdates } from '../src/game/shardfile/worldUpdates';
 import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { clientCosmeticFinishes, installClientCosmeticFinishes } from '../src/game/shardfile/clientCosmeticFinishes';

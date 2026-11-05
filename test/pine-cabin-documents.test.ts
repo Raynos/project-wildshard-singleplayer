@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { cabinScene } from '../src/shards/pine-hollow/generators/cabinSceneContribution';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseWorldSceneModels, worldSceneModelGraphs } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels, worldSceneModelGraphs } from '@wildshard/format/worldSceneModels';
 
 test('cabin documents stay deferred while building sites remain eager', async () => {
   const rows = await cabinScene(PINE_SOURCES);

@@ -3,7 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import * as v from 'valibot';
-import { readOutputDownloadIndex } from '../../src/format/outputDownload';
+import { readOutputDownloadIndex } from '@wildshard/format/outputDownload';
 
 const TILE = 256;
 /** The baked atlas as the app build writes it (gitignored, beside the title tables): the image, and the define the

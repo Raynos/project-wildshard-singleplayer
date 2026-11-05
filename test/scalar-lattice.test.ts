@@ -2,9 +2,9 @@ import { expect,test } from 'vitest';
 import * as v from 'valibot';
 import { zlibSync } from 'fflate';
 import { readScalarLattice } from '../src/engine/world/scalarChannel';
-import { ScalarLatticeSchema } from '../src/format/scalarChannel';
-import { bakedSamplers } from '../src/format/bakedTerrainSampling';
-import { GroundRowsSchema } from '../src/format/terrain';
+import { ScalarLatticeSchema } from '@wildshard/format/scalarChannel';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import { GroundRowsSchema } from '@wildshard/format/terrain';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 
 const files=new Map<string,Uint8Array>();

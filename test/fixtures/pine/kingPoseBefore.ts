@@ -4,7 +4,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import { advanceKingPose, newPose, type KingPose, type KingPoseRest } from './kingRigBefore';
-import { readLimbCollisionBake as readKingCollisionBake } from '../../../src/format/limbCollision';
+import { readLimbCollisionBake as readKingCollisionBake } from '@wildshard/format/limbCollision';
 import { bindNativeRangedVolumes } from '@wildshard/game/plugin/nativeItems';
 import { pineKingCollision } from '../../../src/shards/pine-hollow/generators/kingCollision';
 

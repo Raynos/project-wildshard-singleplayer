@@ -3,7 +3,7 @@ import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/pl
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import {driftwoodDirector as module} from './fixtures/director-modules';
 import rows from '../src/shards/driftwood-isle/data/finaleStages.json';
-import type { DirectorAction } from '../src/format/directorStages';
+import type { DirectorAction } from '@wildshard/format/directorStages';
 
 const observe = (): Record<string, number> => ({ altar: 0, dead: 0, seen: 0, 'player-x': 30, 'player-z': 30, 'reward-x': 0, 'reward-z': 0 });
 const keys = ['captain.restore', 'captain.wake', 'captain.dead', 'reward.start', 'reward.finish'];

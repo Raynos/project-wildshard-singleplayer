@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, BufferGeometry, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { loadItemModels } from '../src/game/shardfile/itemModels';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { compressGlb } from '../src/sdk/bake/glbCompression';

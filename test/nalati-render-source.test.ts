@@ -6,9 +6,9 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nalatiRenderTileSources } from '../src/shards/nalati-grasslands/generators/renderTileSources';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { visitGlbTriangles } from '../src/format/product';
-import { FilesSchema, TilesSchema } from '../src/format/shardSections';
-import { WIRE_CELL, WIRE_TILE_SIZES } from '../src/format/wireLimits';
+import { visitGlbTriangles } from '@wildshard/format/product';
+import { FilesSchema, TilesSchema } from '@wildshard/format/shardSections';
+import { WIRE_CELL, WIRE_TILE_SIZES } from '@wildshard/format/wireLimits';
 import { i3Predecessor } from './fixtures/nalati-render-i3';
 
 const native = new Uint8Array(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'));

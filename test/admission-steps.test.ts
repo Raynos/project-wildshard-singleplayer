@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { isJsonData, isJsonDataSteps, jsonDataHeapBytes } from '../src/format/json';
-import { assertCellBounds, assertCellBoundsSteps } from '../src/format/cellBounds';
-import { preflightShardfile, preflightShardfileSteps } from '../src/format/preflight';
+import { isJsonData, isJsonDataSteps, jsonDataHeapBytes } from '@wildshard/format/json';
+import { assertCellBounds, assertCellBoundsSteps } from '@wildshard/format/cellBounds';
+import { preflightShardfile, preflightShardfileSteps } from '@wildshard/format/preflight';
 import { productResidentBytes, productResidentBytesSteps } from '../src/game/shardfile/productCost';
 import { emptyShardfile } from '../src/sdk/author';
 

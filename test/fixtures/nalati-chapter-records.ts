@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import {SaveStore,type SaveStorage} from '../../src/engine/saves/store';
 import type {SimHost} from '../../src/engine/sim';
-import {AdventurePersistenceSchema} from '../../src/format/namedJsonContracts';
+import {AdventurePersistenceSchema} from '@wildshard/format/namedJsonContracts';
 import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
 import {installRuntimeState} from '../../src/game/shardfile/runtimeState';
 import type {ObservedRecords} from '../../src/game/quest/questObservation';

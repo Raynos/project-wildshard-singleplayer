@@ -2,8 +2,8 @@ import * as v from 'valibot';
 import type {Scope} from '../../src/engine/app/scope';
 import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
 import {ViewLane} from '../../src/engine/script/viewLane';
-import {admitScriptV2} from '../../src/format/scriptAdmissionV2';
-import {ViewProgramSchema} from '../../src/format/viewProgram';
+import {admitScriptV2} from '@wildshard/format/scriptAdmissionV2';
+import {ViewProgramSchema} from '@wildshard/format/viewProgram';
 import {hashImmutableBytes} from '../../src/sdk/immutable';
 
 const natural=v.pipe(v.number(),v.integer(),v.minValue(0));

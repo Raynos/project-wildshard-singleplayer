@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {parseContractBoardPage,ContractBoardPageSchema} from '../src/format/contracts';
+import {parseContractBoardPage,ContractBoardPageSchema} from '@wildshard/format/contracts';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {CONTRACTS} from './fixtures/pine-contracts';
 

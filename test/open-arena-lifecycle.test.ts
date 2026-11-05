@@ -15,7 +15,7 @@ import type {HeldClaims,HeldSlotKit} from '../src/game/loadout/claims';
 import type {CosmeticFinishLocker} from '../src/game/loadout/cosmeticFinishes';
 import {lendLooks} from '../src/game/shardfile/lentLooks';
 import {Mount} from '../src/game/riding/mount';
-import {parseArenaScriptData} from '../src/format/arenaScriptRows';
+import {parseArenaScriptData} from '@wildshard/format/arenaScriptRows';
 import type {ModelDef} from '../src/engine/models/model';
 import type {BossBar} from '../src/engine/ui/BossBar';
 import {manager} from '@wildshard/engine/test/manager';

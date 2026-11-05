@@ -26,7 +26,7 @@ const sum = rows => rows.reduce((total, row) => {
 /** Inspect every lattice coordinate and every full interior 5x5 window. Costs are
  * declarations, not a live-memory claim. Shared file dependencies are counted once
  * in each window's separate closure census; row caps retain their existing law.
- * @param {import('../src/format/shardSchema').Shardfile['tiles']} input
+ * @param {import('@wildshard/format/shardSchema').Shardfile['tiles']} input
  * @param {readonly {hash:string,commons?:true,dependencies:readonly string[],decoded:number,gpu:number,compressed:number,triangles:number,draws:number}[]} files */
 export function tileBakeCensus(input, files) {
   const tiles = v.parse(TilesSchema, input), addresses = new Set(), windows = [];

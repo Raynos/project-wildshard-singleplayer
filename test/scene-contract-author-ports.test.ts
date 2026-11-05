@@ -4,14 +4,14 @@ import { worldSceneMotion, type AuthorPrivateScene, type AuthorWorldSceneRecipe,
   type AuthorWorldConstruction, type AuthorWorldEntry, type AuthorWorldEntryStep, type AuthorRopeDeckSite,
   type AuthorWorldUpdates, type AuthorSceneMotion } from '../src/sdk/worldScenes';
 import type { AuthorQuestWorld } from '../src/sdk/quests';
-import type { PrivateScene, WorldSceneRecipe } from '../src/format/clientChannels';
-import type { WorldScenePlacementRow } from '../src/format/worldScenePlacement';
-import type { WorldConstructionRows } from '../src/format/worldAssembly';
-import type { WorldEntryRows, WorldEntryStep } from '../src/format/worldEntry';
-import type { RopeDeckSiteRows } from '../src/format/ropeDeckSite';
-import type { WorldUpdatesRows } from '../src/format/worldUpdates';
-import type { QuestWorldRows } from '../src/format/questWorld';
-import { parseSceneMotion, type SceneMotion } from '../src/format/sceneMotion';
+import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
+import type { WorldConstructionRows } from '@wildshard/format/worldAssembly';
+import type { WorldEntryRows, WorldEntryStep } from '@wildshard/format/worldEntry';
+import type { RopeDeckSiteRows } from '@wildshard/format/ropeDeckSite';
+import type { WorldUpdatesRows } from '@wildshard/format/worldUpdates';
+import type { QuestWorldRows } from '@wildshard/format/questWorld';
+import { parseSceneMotion, type SceneMotion } from '@wildshard/format/sceneMotion';
 import { SIGNAL_SCENE_MOTION } from '../src/shards/sunscar-dunes/generators/clientMotion';
 
 function outcome(run: () => unknown): unknown {

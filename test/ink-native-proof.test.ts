@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { readBuiltShardfile } from '../scripts/built-product.mjs';
-import { parseOutputIndex } from '../src/format/outputIndex';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { readInkProofProduct } from './proof/ink-cel-valley/product';
 import { nativeProof } from './proof/ink-cel-valley/native';
 

@@ -7,7 +7,7 @@ import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { Scope } from '../src/engine/app/scope';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { reefCatalogue, REEF_SCENE_LIBRARY } from '../src/shards/driftwood-isle/generators/reefCatalogue';
 import { reefGeometry } from '../src/shards/driftwood-isle/generators/reef';
 import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibiscusTransport';

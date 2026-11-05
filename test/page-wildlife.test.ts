@@ -16,7 +16,7 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import type { GroupGuestProjectionV2 } from '../src/engine/ai/GroupBrain';
 import { CrowdTargets } from '../src/game/shardfile/crowdRuntime';
 import { FlockBrain } from '../src/engine/ai/flock';
-import { parseFlock } from '../src/format/crowds';
+import { parseFlock } from '@wildshard/format/crowds';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { Player } from '../src/engine/player/Player';
 import { knockdownVelocity } from '../src/game/population/relations';

@@ -3,7 +3,7 @@ import { QuestStepRunner } from '../src/game/quest/steps';
 import { QuestHintFeed } from '../src/game/quest/hints';
 import type { Actor } from '../src/engine/combat/pipeline';
 import type { HintTrigger, HintControl } from '../src/engine/ui/FirstHints';
-import { parseQuestStepRows, parseQuestKillRows, parseQuestServiceActions } from '../src/format/questSteps';
+import { parseQuestStepRows, parseQuestKillRows, parseQuestServiceActions } from '@wildshard/format/questSteps';
 import pine from '../src/shards/pine-hollow/data/questSteps.json' with { type: 'json' };
 import driftwood from '../src/shards/driftwood-isle/data/questSteps.json' with { type: 'json' };
 

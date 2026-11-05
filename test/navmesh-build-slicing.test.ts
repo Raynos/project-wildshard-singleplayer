@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { addTile, buildTile, createNavMesh } from 'navcat';
 import { buildNavmesh, parseNavmesh } from '../src/engine/physics/navmesh';
-import { decodeNavigation, type NavigationLayerData } from '../src/format/navigationBytes';
+import { decodeNavigation, type NavigationLayerData } from '@wildshard/format/navigationBytes';
 import type { WorkSlice } from '../src/engine/core/workSlice';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the complete tracked original navigation payload.
 import { readFileSync } from 'node:fs';

@@ -1,13 +1,12 @@
 import { originalSpeciesJson } from '../fixtures/nalati-original-species';
 import { object, parse, unknown } from 'valibot';
-import { SpeciesActorsFileSchema } from '@wildshard/format/speciesActorsFile';
+import { SpeciesActorsFileSchema, type SpeciesActorsFileRows } from '@wildshard/format/speciesActorsFile';
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { createShardProduct, type ShardProduct } from '../../src/game/shardfile/shardProduct';
 import { fixedDraws } from '../../src/game/models/fixedDraws';
 import type { CrowdBody } from '../../src/game/ambient/crowdDraw';
-import type { SpeciesActorsFileRows } from '../../src/format/speciesActorsFile';
 import crowdView from '../../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
 import { fixtureJsonCheck } from '../fixtures/productFile';
 import { bakeSheepBody } from '../../src/shards/nalati-grasslands/generators/sheepBody';

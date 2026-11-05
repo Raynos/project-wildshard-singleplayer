@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The native GC child consumes its parent's exact compiled fixture loan.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
-import { ReturnProgramSchema } from '../../src/format/namedJsonContracts';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 
 async function roomProgram(): Promise<v.InferOutput<typeof ReturnProgramSchema>> {

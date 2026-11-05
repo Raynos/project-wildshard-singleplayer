@@ -10,7 +10,7 @@ import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {nalatiCampIntroTape} from './verbTape';
 import {nalatiHorsePlainsInputs} from './horsePlainsWalk';
 import {createNalatiTamingPilot} from './tamingPilot';
-import type {CarriedQuestRows} from '../../../src/format/questSteps';
+import type {CarriedQuestRows} from '@wildshard/format/questSteps';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
 
 /** Yield the existing trusted route's exact commands, allowing a checked

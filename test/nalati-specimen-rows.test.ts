@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
 import { nalatiSpecimenRows } from '../src/shards/nalati-grasslands/generators/specimenRows';
-import { SpecimenCatalogueSchema, SpecimenMaterialSchema } from '../src/format/specimenCatalogue';
+import { SpecimenCatalogueSchema, SpecimenMaterialSchema } from '@wildshard/format/specimenCatalogue';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { NALATI_MAP_INPUTS, nalatiMapPixels } from '../src/shards/nalati-grasslands/generators/mapProgram';
 

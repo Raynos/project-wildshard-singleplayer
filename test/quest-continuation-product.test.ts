@@ -5,8 +5,8 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { builtProduct } from './fixtures/builtProduct';
 import { driftwoodJsonBlob } from '../src/shards/driftwood-isle/generators/namedSchemas';
-import { QuestContinuationSchema, parseQuestContinuationDocument } from '../src/format/questContinuation';
-import { QuestPageSchema } from '../src/format/questPageComposition';
+import { QuestContinuationSchema, parseQuestContinuationDocument } from '@wildshard/format/questContinuation';
+import { QuestPageSchema } from '@wildshard/format/questPageComposition';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 
 const rows = driftwoodQuestContinuation();

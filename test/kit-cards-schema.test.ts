@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { KitFigureCardsSchema } from '../src/format/questFigures';
+import { KitFigureCardsSchema } from '@wildshard/format/questFigures';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';

@@ -9,7 +9,7 @@ import * as v from 'valibot';
 import { Bone, Group } from 'three';
 import { applyKingPose, clipPose, kingRest, newPose, type KingRest } from './kingRigBefore';
 import KING_ATTACK_TIMING from '../../../src/shards/pine-hollow/data/kingTiming.json' with { type: 'json' };
-import { readLimbCollisionBake as readKingCollisionBake } from '../../../src/format/limbCollision';
+import { readLimbCollisionBake as readKingCollisionBake } from '@wildshard/format/limbCollision';
 import physics from '../../../src/shards/pine-hollow/data/physicsRows.json' with { type: 'json' };
 import { withPortableMath } from '../../fake/portableMath';
 

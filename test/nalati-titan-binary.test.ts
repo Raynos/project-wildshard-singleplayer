@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { expect, test } from 'vitest';
 import { parse } from 'valibot';
-import { ReturnModulesSchema } from '../src/format/scriptContract';
+import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { titanRawPrograms as programs, titanWitnessBytes } from './fixtures/titanInlineWitness';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareProjectOutput } from '../src/sdk/projectOutput';

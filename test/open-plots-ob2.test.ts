@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import sharp from 'sharp';
 import {beforeAll,afterAll,expect,test} from 'vitest';
 import {plotAudioRows,lifeCheck,lifeSummary,captureLifeClip,makeComparisonBoard,plotTilingReport,type PlotCamera} from '../scripts/open-plots/ob2.mjs';
-import {parseAudioData} from '../src/format/audio';
+import {parseAudioData} from '@wildshard/format/audio';
 import {plotAudioRequest} from '../scripts/open-plots/audio-template.mjs';
 
 let folder='';

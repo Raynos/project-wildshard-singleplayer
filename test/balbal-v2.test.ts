@@ -14,11 +14,11 @@ import { ReturnProgram } from '../src/game/population/returnProgram';
 import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import { BALBAL_SPECIES as ORIGINAL } from './fixtures/originalBalbal';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { CreatureGuestSchema } from '../src/format/speciesBookRows';
-import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
+import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
-import { scriptAdmissionRows, decisionModuleContracts } from '../src/format/scriptContract';
-import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '../src/format/returnProjectionV2';
+import { scriptAdmissionRows, decisionModuleContracts } from '@wildshard/format/scriptContract';
+import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
 import { nameBlob } from '../src/sdk/blobs';
 import { NALATI_SCRIPT_SECTIONS } from './fixtures/nalati-script-inventory';
 

@@ -12,9 +12,9 @@ import type { DamageRequest } from '../src/engine/combat/pipeline';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import {titanPrograms as titan} from './fixtures/titanInlineWitness';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
-import { CreatureGuestSchema } from '../src/format/speciesBookRows';
-import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
+import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import rows from '../src/shards/nalati-grasslands/data/speciesRows.json' with { type:'json' };
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema,lookBook:object({program:ReturnProgramSchema})})}),

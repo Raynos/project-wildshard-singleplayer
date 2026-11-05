@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from 'vitest';
 import * as v from 'valibot';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { ForagerPopulation } from '../src/engine/ai/ambientForager';
-import { ForagerPopulationSchema, parseAmbientLife } from '../src/format/ambientLife';
+import { ForagerPopulationSchema, parseAmbientLife } from '@wildshard/format/ambientLife';
 import { PINE_LIFE } from '../src/shards/pine-hollow/generators/ambientLife';
 import marmots from '../src/shards/nalati-grasslands/data/marmotForager.json' with { type: 'json' };
 

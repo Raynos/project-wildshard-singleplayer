@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { clipEntryPolygon, entryFootprints, obstructsEntry, type EntryVertex } from '../src/format/entryGeometry';
+import { clipEntryPolygon, entryFootprints, obstructsEntry, type EntryVertex } from '@wildshard/format/entryGeometry';
 import { Rng } from '../src/engine/core/rng';
 
 // obstructsEntry's early exit (a triangle wholly past one footprint side) beside the full clip it skips: the same verdict

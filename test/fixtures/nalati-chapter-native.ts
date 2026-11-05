@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 import type {SimHost} from '../../src/engine/sim';
 import type {PrepareHeadlessRuntime,HeadlessRuntimeInstallation} from '../../src/sdk/headlessRuntime';
-import {ChapterViewSchema,type ChapterViewRows} from '../../src/format/questPageComposition';
-import {parseChapterStoryPresentation} from '../../src/format/questStory';
-import {parseCarriedQuest} from '../../src/format/questSteps';
+import {ChapterViewSchema,type ChapterViewRows} from '@wildshard/format/questPageComposition';
+import {parseChapterStoryPresentation} from '@wildshard/format/questStory';
+import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
 import {chapterDecide} from '../../src/game/quest/chapterDecision';
 import {questObservation} from '../../src/game/quest/questObservation';

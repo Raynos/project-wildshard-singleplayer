@@ -7,7 +7,7 @@ import { Bodies, Drop, RowBodySlots } from '../src/engine/physics/bodies';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
 import coconutSlots from '../src/shards/driftwood-isle/data/coconutSlots.json' with { type: 'json' };
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 
 function launchRow(): NonNullable<ReturnType<typeof parseItems>['launches']>[string] {

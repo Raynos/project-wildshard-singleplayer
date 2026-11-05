@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import {parse} from 'valibot';
-import {GrassPresentationSchema,grassPresentationFiles} from '../src/format/fieldPresentation';
+import {GrassPresentationSchema,grassPresentationFiles} from '@wildshard/format/fieldPresentation';
 import {nalatiGrassJson} from './fixtures/nalati-grass-bake';
 import {nalatiLateGrassNames} from '../src/shards/nalati-grasslands/generators/modelBindings';
 

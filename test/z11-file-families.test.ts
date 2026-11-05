@@ -1,11 +1,11 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { registeredJsonContract, validateRegisteredJson } from '../src/format/registeredJson';
-import { platformFileFamily, validatePlatformFile } from '../src/format/platformFileFamilies';
+import { registeredJsonContract, validateRegisteredJson } from '@wildshard/format/registeredJson';
+import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import { registeredJsonSchema, formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { nameBlob } from '../src/sdk/blobs';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { postGraphIdentityTransforms } from '../src/format/postGraphLook';
+import { postGraphIdentityTransforms } from '@wildshard/format/postGraphLook';
 import { postChainRows } from '../src/shards/nalati-grasslands/generators/postChain';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import steppe from '../src/shards/nalati-grasslands/data/weather.json' with { type: 'json' };

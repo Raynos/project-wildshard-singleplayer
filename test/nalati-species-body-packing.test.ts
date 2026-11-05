@@ -11,7 +11,7 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { unshuffleLanes } from '../src/engine/core/deflate';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { CompactSpeciesBodiesSchema } from '../src/format/speciesLooks';
+import { CompactSpeciesBodiesSchema } from '@wildshard/format/speciesLooks';
 import { packNalatiSpeciesBodies, type SpeciesBodySource } from '../src/shards/nalati-grasslands/generators/speciesBodyPacking';
 import originals from './fixtures/nalati-species-files.json' with { type: 'json' };
 

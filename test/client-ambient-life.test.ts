@@ -6,7 +6,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { installClientAmbientLife } from '../src/game/shardfile/clientAmbientLife';
 import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { parsePageLife } from '../src/format/pageLife';
+import { parsePageLife } from '@wildshard/format/pageLife';
 import { emptyShardfile } from '../src/sdk/author';
 import { FISH_DRAW } from '../src/shards/driftwood-isle/generators/fishDraw';
 import { PAGE_LIFE } from '../src/shards/driftwood-isle/generators/pageLife';

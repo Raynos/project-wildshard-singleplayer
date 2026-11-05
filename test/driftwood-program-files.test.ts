@@ -4,8 +4,8 @@ import {expect,test} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {admitScriptContract} from '../src/format/scriptContract';
-import {SCRIPT_V2_REVISIONS} from '../src/format/scriptAdmissionV2';
+import {admitScriptContract} from '@wildshard/format/scriptContract';
+import {SCRIPT_V2_REVISIONS} from '@wildshard/format/scriptAdmissionV2';
 import {driftwoodReturnBytes,lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 
 const compiled=v.strictObject({source:v.string(),bytes:v.pipe(v.number(),v.safeInteger(),v.minValue(1)),hash:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))});

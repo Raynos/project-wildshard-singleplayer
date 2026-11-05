@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { floorAtRects } from '../src/engine/physics/box';
-import { parseItems } from '../src/format/items';
-import { parseQuestData } from '../src/format/quests';
+import { parseItems } from '@wildshard/format/items';
+import { parseQuestData } from '@wildshard/format/quests';
 import { installQuestCatalogue } from '../src/game/shardfile/clientCatalogue';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { PINE as pine } from './fixtures/pine-program';

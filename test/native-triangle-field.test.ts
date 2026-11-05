@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 import { readNativeTriangleField } from '../src/sdk/bake/terrain';
-import { terrainTileHeight } from '../src/format/terrainTileBytes';
+import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 
 const input = { resolution: 3, x: -5, z: -7, size: 12, heights: new Float32Array([-0, 1.17, 2.91, 3.13, 4.73, 5.29, 6.31, 7.79, 8.41]) };
 

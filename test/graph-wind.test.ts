@@ -3,7 +3,7 @@ import { vec2 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { windGustAt, windUniforms } from '../src/engine/world/wind';
 import { graph, windGustAt as windOp } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { evalGlsl } from './fixtures/glslEval';
 
 test('graph wind samples the CPU gust front and reads the existing live clock', () => {

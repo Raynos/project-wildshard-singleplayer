@@ -1,7 +1,7 @@
 import {InstancedMesh,Vector3} from 'three';
-import type {ArenaScriptData} from '../../src/format/arenaScriptRows';
+import type {ArenaScriptData} from '@wildshard/format/arenaScriptRows';
 import type {SimHost} from '../../src/engine/sim';
-import {parsePrivateScene} from '../../src/format/clientChannels';
+import {parsePrivateScene} from '@wildshard/format/clientChannels';
 import {HeadlessCloudBody} from './native-hosts/boss/cloudRig';
 import {ArenaWhirls} from '../../src/game/boss/arenaWhirls';
 import type {ArenaTell,OpenArenaViews} from '../../src/game/boss/openArenaFight';

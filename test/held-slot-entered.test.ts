@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Group } from 'three';
 import { parse } from 'valibot';
-import { HeldArmsSchema } from '../src/format/heldArms';
+import { HeldArmsSchema } from '@wildshard/format/heldArms';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { Sword } from '../src/game/weapons/Sword';
 import { GrappleTool } from '../src/game/grapple/tool';

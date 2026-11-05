@@ -3,7 +3,7 @@ import pose from './fixtures/nalati-goldenKingPose-original.json' with { type: '
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ArenaFightPageSchema } from '../src/game/boss/arenaRoom';
-import { ArenaBossProfileSchema } from '../src/format/bossProfiles';
+import { ArenaBossProfileSchema } from '@wildshard/format/bossProfiles';
 import layout from './fixtures/nalati-kurganLayout-original.json' with { type: 'json' };
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };

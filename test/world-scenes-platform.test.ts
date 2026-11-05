@@ -11,10 +11,10 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { AssetService } from '../src/engine/app/assets';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
-import { emptyBuildingLifeRows } from '../src/format/buildings';
+import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
 import { installWorldScenes } from '../src/game/shardfile/worldScenes';
 import { constructionCheckpoint } from '../src/game/shardfile/constructionCheckpoint';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import type { ShardContext } from '../src/game/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
@@ -277,7 +277,7 @@ test('scene catalogue keeps fixed draws, authored floors and model collision own
     colliders: [{ kind: 'box', x: 0, y: 1, z: 0, hx: 1, hy: 1, hz: 1, surface: 'stone' }],
     site: { origin: { x: 3, y: 4, z: 5 }, colliders: [], floors: [{ x: 0, z: 0, hw: 2, hd: 2, y: 1 }], anchors: { door: { x: 0, y: 1, z: 1, yaw: 0 } } },
   }] }] };
-  const { parseWorldSceneModels } = await import('../src/format/worldSceneModels');
+  const { parseWorldSceneModels } = await import('@wildshard/format/worldSceneModels');
   bindWorldSceneModelSources(ctx, 'fixture-port', { catalogue: parseWorldSceneModels(catalogueRows), geometries: new Map([[JSON.stringify(['bakes', 'wall']), geometry]]), materials: new Map([['glyph', material]]) }, owner);
   const catalogue = defineWorldSceneCatalogue(catalogueRows), model = catalogue.model('tower'), built = model.build(ctx, {}, new Rng(1));
   if (!(built instanceof Group)) throw new Error('Missing scene model group');
@@ -299,7 +299,7 @@ test('scene catalogue keeps fixed draws, authored floors and model collision own
 
 test.each([false, true])('cold demand-loaded Explorer cards await geometry and borrow resident surfaces: %s', async borrowed => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, runtime, assets, { parseWorldSceneModels }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'), import('../src/game/shardfile/runtimeProduct'), import('../src/engine/core/assets'), import('../src/format/worldSceneModels'),
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'), import('../src/game/shardfile/runtimeProduct'), import('../src/engine/core/assets'), import('@wildshard/format/worldSceneModels'),
   ]);
   const context = fixture(), owner = new Scope('cold-catalogue'), ctx = modelContext(null), rows = section();
   const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'cold', id: 'fixture-harbour/cold', load: 'demand', name: 'Cold model', category: 'props', pipeline: 'code', file: 'models/cold.ts', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'stone', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
@@ -345,7 +345,7 @@ test.each([false, true])('cold demand-loaded Explorer cards await geometry and b
 });
 
 test.each(['unplaced', 'placed', 'direct', 'shared'] as const)('demand catalogue intake retains actual %s requirements', async mode => {
-  const { parseWorldSceneModels } = await import('../src/format/worldSceneModels');
+  const { parseWorldSceneModels } = await import('@wildshard/format/worldSceneModels');
   const context = fixture(), rows = section();
   const optional = { key: 'optional', id: 'fixture-harbour/optional', load: 'demand', name: 'Optional', category: 'props', pipeline: 'code', file: 'optional.ts', defaults: {},
     choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'spare', library: 'optional', model: 'spare', material: 'paint' }] }] };
@@ -404,7 +404,7 @@ test('resident catalogue loans reach later world placements through the shared s
 
 test.each(['individual', 'page'] as const)('authored raw LODs and deferred %s placements retain their native model contract', async mode => {
   const [{ defineWorldSceneCatalogue }, { sharedModelContext }, { Rng }, { SkyRig }, { parseWorldSceneModels }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/world/skyRig'), import('../src/format/worldSceneModels'),
+    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/world/skyRig'), import('@wildshard/format/worldSceneModels'),
   ]);
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
@@ -462,7 +462,7 @@ test.each(['individual', 'page'] as const)('authored raw LODs and deferred %s pl
     expect(context.app.registry.pieces.filter(piece => piece.id === 'marker-copy')).toHaveLength(1);
     expect(() => parseWorldSceneModels({ ...data, models: [{ ...data.models[0], choices: [{ ...data.models[0]?.choices[0], lods: [{ from: 20, draws: [] }, { from: 10, draws: [] }] }] }] })).toThrow();
     expect(() => parseWorldScenes({ ...rows, placements: [{ id: 'bad', model: 'marker', draw: 'single', poses: [{ x: 0, y: 0, z: 0, matrix: [1] }] }] })).toThrow();
-    const { parseWorldScenePlacement } = await import('../src/format/worldScenePlacement');
+    const { parseWorldScenePlacement } = await import('@wildshard/format/worldScenePlacement');
     expect(() => parseWorldScenePlacement({ ...placement, poses: [{ ...placement.poses[0], params: { callback: () => 1 } }] })).toThrow('plain JSON');
     expect(() => parseWorldScenePlacement({ ...placement, colliders: [{ callback: () => 1 }] })).toThrow('plain JSON');
   } finally { vi.restoreAllMocks(); context.scope.dispose(); }
@@ -638,7 +638,7 @@ test.each(['harbour.at', 'markers.east.enabled', 'absent'])('collision scalar %s
 test('a cold card reads a pool part from its declared file only, exactly as the resident pool decodes it', async () => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { worldScenePool }, { CAST_SOURCES }] = await Promise.all([
     import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
-    import('../src/format/worldSceneModels'), import('../src/game/shardfile/scenePools'), import('../src/shards/nine-dragon-stack/generators/castSources'),
+    import('@wildshard/format/worldSceneModels'), import('../src/game/shardfile/scenePools'), import('../src/shards/nine-dragon-stack/generators/castSources'),
   ]);
   const context = fixture(), owner = new Scope('pool-card'), ctx = modelContext(null), base = section();
   // Nine's real cast pool holding the lion: its files, parts and channel rules, served from its shipped blobs
@@ -686,7 +686,7 @@ test('a cold card reads a pool part from its declared file only, exactly as the 
 test('a cold pool card under a retiring cell reads nothing more and publishes no geometry once its preload returns', async () => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { CAST_SOURCES }] = await Promise.all([
     import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
-    import('../src/format/worldSceneModels'), import('../src/shards/nine-dragon-stack/generators/castSources'),
+    import('@wildshard/format/worldSceneModels'), import('../src/shards/nine-dragon-stack/generators/castSources'),
   ]);
   const context = fixture(), cell = new Scope('cell'), owner = cell.child('pool-card'), ctx = modelContext(null), base = section();
   const pool = CAST_SOURCES.find(row => row.files.some(entry => entry.parts.includes('lion')));
@@ -827,7 +827,7 @@ test('independent pool publications retain native geometry and retire on the sup
       { file: 'inactive.glb', tier: TIER === 'phone' ? 'desktop' : 'phone', parts: ['unused'] }, { file: 'tile.glb', tier: TIER, parts: ['tile'] },
     ] },
   ] });
-  const { worldScenesForTier } = await import('../src/format/worldScenes');
+  const { worldScenesForTier } = await import('@wildshard/format/worldScenes');
   const handles = await installWorldScenes(context, worldScenesForTier(rows, TIER));
   const geometry = handles.geometry('terrain.tile'), disposed = vi.spyOn(geometry, 'dispose');
   expect(reads).toEqual(['tile.glb']); expect(geometry.getAttribute('position').count).toBe(3);

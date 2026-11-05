@@ -1,5 +1,5 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { HORIZON_RADIUS } from '../src/format/contentBounds';
+import { HORIZON_RADIUS } from '@wildshard/format/contentBounds';
 import { SHORE_REVETMENT_INNER_FACE } from '../src/engine/sim/shore';
 import type { ColliderDesc } from '../src/engine/world/registry';
 import { OCEAN_LIMITS } from '../src/shards/driftwood-isle/generators/oceanLook';

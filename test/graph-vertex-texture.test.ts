@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { frontFacing } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { graph as authorGraph } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import paintedGraphs from '../src/shards/nalati-grasslands/data/painterlyGraphs.json' with { type: 'json' };
 import scrollGraphs from '../src/shards/nine-dragon-stack/data/scrollGraph.json' with { type: 'json' };
 

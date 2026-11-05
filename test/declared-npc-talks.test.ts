@@ -2,7 +2,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { Group, Vector3 } from 'three';
-import { QuestNpcBindingsSchema, questNpcBindingRules } from '../src/format/npcs';
+import { QuestNpcBindingsSchema, questNpcBindingRules } from '@wildshard/format/npcs';
 import { installDeclaredNpcTalks, type QuestNpcTalkPorts } from '../src/game/plugin/ui';
 import { Scope } from '../src/engine/app/scope';
 import { DialogueBox } from '../src/engine/quest/view/ui';

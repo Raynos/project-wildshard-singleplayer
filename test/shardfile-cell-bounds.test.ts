@@ -1,13 +1,13 @@
 import { expect, test } from 'vitest';
-import { assertCellBounds } from '../src/format/cellBounds';
-import { preflightShardfile } from '../src/format/preflight';
-import { validateOutputSection } from '../src/format/outputIndex';
-import { CellBoundsSchema } from '../src/format/shardSections';
+import { assertCellBounds } from '@wildshard/format/cellBounds';
+import { preflightShardfile } from '@wildshard/format/preflight';
+import { validateOutputSection } from '@wildshard/format/outputIndex';
+import { CellBoundsSchema } from '@wildshard/format/shardSections';
 import * as v from 'valibot';
 import { BoxGeometry, MeshBasicMaterial } from 'three';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
-import { validatePropDrawBounds } from '../src/format/product';
+import { validatePropDrawBounds } from '@wildshard/format/product';
 
 const box = { min: [-250, -250, -250], max: [250, 250, 250] };
 test('every section refuses a nested spatial extent outside the exact inclusive cell envelope', () => {

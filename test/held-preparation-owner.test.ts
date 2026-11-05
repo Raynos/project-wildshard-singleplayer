@@ -6,7 +6,7 @@ import type { ShardRuntime } from '../src/game/shard/runtime';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

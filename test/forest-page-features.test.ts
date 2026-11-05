@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
 import plan from '../src/shards/pine-hollow/data/clientPlan.json' with { type: 'json' };
 

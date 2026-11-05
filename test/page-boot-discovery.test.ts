@@ -3,8 +3,8 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate the fixture's own source root.
 import { resolve } from 'node:path';
-import { parseManifestMetadata } from '../src/format/minimap';
-import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { parseManifestMetadata } from '@wildshard/format/minimap';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 
 const root = resolve(import.meta.dirname, '..');

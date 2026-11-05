@@ -8,7 +8,7 @@ import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { prepareAssetDecoders } from '../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { nineSourceOutput } from '../src/shards/nine-dragon-stack/generators/sourceOutput';
 import { parseBurstFields } from '../src/shards/nine-dragon-stack/generators/sections';
 import type { NineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';

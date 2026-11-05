@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
 import { createQuestPlacements } from '../src/engine/world/interact/types';
-import { parseCompletion } from '../src/format/completion';
+import { parseCompletion } from '@wildshard/format/completion';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { completionProjection, fmtPlayTime, installCompletion, type CompletionContext } from '../src/game/complete/declared';

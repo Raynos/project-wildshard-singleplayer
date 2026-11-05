@@ -3,7 +3,7 @@
 // same program inputs, and the same effects committed in the program's channel order.
 import { expect, test } from 'vitest';
 import { chapterDecide } from '../src/game/quest/chapterDecision';
-import { parseChapterStoryPresentation } from '../src/format/questStory';
+import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
 
 const rows = parseChapterStoryPresentation({ chapters: ['ch1'], talks: [], rewards: {}, flagEvents: [], introTitle: 'A', chapterTitle: 'B', completedObjective: 'C', completedHint: 'D',
   rewardKicker: 'E', rewardSubtitle: 'F', started: 'G', objective: 'H', rewardMs: 1000,

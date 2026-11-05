@@ -1,13 +1,13 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import type { AuthorFigureAtlas, AuthorExternalElite, AuthorDayLook } from '../src/sdk/rows';
-import type { FigureAtlasRow } from '../src/format/figures';
-import type { ExternalEliteData } from '../src/format/eliteFeature';
-import type { DayLookRow } from '../src/format/dayLook';
+import type { FigureAtlasRow } from '@wildshard/format/figures';
+import type { ExternalEliteData } from '@wildshard/format/eliteFeature';
+import type { DayLookRow } from '@wildshard/format/dayLook';
 import type { SkySchema } from '../src/shards/nalati-grasslands/data/skyTypes';
 import { scriptV1ReferenceKinds } from '../src/sdk/decisionScripts';
-import { SCRIPT_V1_REFERENCE_KINDS } from '../src/format/decisionScripts';
+import { SCRIPT_V1_REFERENCE_KINDS } from '@wildshard/format/decisionScripts';
 import { ridingPracticeRows, type AuthorRidingPracticeLayout } from '../src/sdk/bake/practiceCourse';
-import { parseRidingPractice, type RidingPracticeLayout } from '../src/format/practiceCourseRows';
+import { parseRidingPractice, type RidingPracticeLayout } from '@wildshard/format/practiceCourseRows';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 

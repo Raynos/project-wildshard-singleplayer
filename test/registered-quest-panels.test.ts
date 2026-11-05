@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import {expect,test} from 'vitest';
-import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue,parsePanelDefinition} from '../src/format/panelTemplate';
-import {registeredJsonContract,validateRegisteredJson} from '../src/format/registeredJson';
+import {QuestPanelCatalogueSchema,parseQuestPanelCatalogue,parsePanelDefinition} from '@wildshard/format/panelTemplate';
+import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/registeredJson';
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
 import {emptyShardfile} from '../src/sdk/author';

@@ -1,4 +1,4 @@
-import { PageTamingBindingSchema } from '../../src/format/riding';
+import { PageTamingBindingSchema } from '@wildshard/format/riding';
 import * as v from 'valibot';
 import { nalatiNativeAssemblyRows } from '../../src/shards/nalati-grasslands/generators/nativeServer';
 import { nalatiNativeGroupWire } from '../../src/shards/nalati-grasslands/generators/nativeGroupWire';

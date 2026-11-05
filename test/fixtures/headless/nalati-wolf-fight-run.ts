@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {Vector3} from 'three';
-import {HeldBowFileSchema} from '../../../src/format/weaponProfiles';
+import {HeldBowFileSchema} from '@wildshard/format/weaponProfiles';
 import {heldBowBase} from '../../../src/game/weapons/heldBowBase';
 import {bowLaunchSpeed} from '../../../src/engine/combat/bowLaw';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';

@@ -1,9 +1,9 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {ReturnProgramSchema} from '../src/format/namedJsonContracts';
-import {ReturnProjectionV2Schema} from '../src/format/returnProjectionV2';
-import {WildlifePopulationSchema} from '../src/format/wildlifePopulation';
+import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
+import {ReturnProjectionV2Schema} from '@wildshard/format/returnProjectionV2';
+import {WildlifePopulationSchema} from '@wildshard/format/wildlifePopulation';
 import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
 import roots from './fixtures/approved-population-families.json' with {type:'json'};
 

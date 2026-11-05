@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vitest';
 import * as gpu from '../src/engine/core/gpuOnly';
 import { Scope } from '../src/engine/app/scope';
 import { type Piece, WorldRegistry } from '../src/engine/world/registry';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';

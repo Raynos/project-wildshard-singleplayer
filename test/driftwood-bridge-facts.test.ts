@@ -3,7 +3,7 @@ import { BufferAttribute, Mesh, SkinnedMesh, type Object3D } from 'three';
 import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
 import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/ropeDeckSite';
 
-import type { RopeDeckSpan as RopeBridgeSpec } from '../src/format/ropeDeckSite';
+import type { RopeDeckSpan as RopeBridgeSpec } from '@wildshard/format/ropeDeckSite';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { fixedDraw, ISLAND } from './fixtures/driftwoodLegacyAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';

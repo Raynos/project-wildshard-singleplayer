@@ -1,7 +1,7 @@
 import {expect,test,vi} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
-import {layoutV2} from '../src/format/scriptWireV2';
-import {readV2WorldActions,V2_ACTION_OPS,type V2ActionBinding} from '../src/format/scriptActionsV2';
+import {layoutV2} from '@wildshard/format/scriptWireV2';
+import {readV2WorldActions,V2_ACTION_OPS,type V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import {prepareV2WorldActions,type V2WorldActionLoan} from '../src/game/shardfile/worldActionsV2';
 import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
 import {tamingRig} from './fixtures/tamingServices';

@@ -1,4 +1,4 @@
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { HeldClaims, type HeldSlotKit } from '../src/game/loadout/claims';
@@ -12,9 +12,9 @@ import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, 
 import { ArenaFightPageSchema, ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
 import { arenaFireView } from './fake/arenaViews';
-import { ArenaFireSchema } from '../src/format/encounterRows';
+import { ArenaFireSchema } from '@wildshard/format/encounterRows';
 import { AnimalGroup } from '../src/engine/entities/animalMatrices';
-import { BossEncounterDefinitionSchema } from '../src/format/bossEncounter';
+import { BossEncounterDefinitionSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { lendLooks } from '../src/game/shardfile/lentLooks';

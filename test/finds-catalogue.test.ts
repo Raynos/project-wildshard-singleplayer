@@ -1,5 +1,5 @@
 import originalFinds from './fixtures/nalati-finds-original.json' with {type:'json'};
-import { parseFindsCatalogue } from '../src/format/findsCatalogue';
+import { parseFindsCatalogue } from '@wildshard/format/findsCatalogue';
 import { nalatiFindsCatalogue } from '../src/shards/nalati-grasslands/generators/finds';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { expect, test } from 'vitest';

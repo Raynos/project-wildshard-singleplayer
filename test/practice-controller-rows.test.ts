@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
-import {parsePracticeController} from '../src/format/practiceCourseRows';
+import {parsePracticeController} from '@wildshard/format/practiceCourseRows';
 import {horseCourseRows} from '../src/shards/nalati-grasslands/generators/courseScene';
 import {grappleCourseScene} from '../src/shards/nine-dragon-stack/generators/courseScene';
 import { ninePracticeRows } from './fixtures/nine-practice-product';

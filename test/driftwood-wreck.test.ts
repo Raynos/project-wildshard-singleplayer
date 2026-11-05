@@ -4,7 +4,7 @@ import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { beforeAll, expect, it } from 'vitest';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { ShipwreckBuilder } from '../src/shards/driftwood-isle/generators/shipwreck';
-import { parseWorldSceneModels, WorldSceneModelsSchema } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels, WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
 import { floorAtRects } from '../src/engine/physics/box';
 import WRECK_SITES from '../src/shards/driftwood-isle/data/wreckSites.json' with { type: 'json' };
 import { driftwoodModelCatalogue } from './fixtures/driftwoodModelCatalogue';

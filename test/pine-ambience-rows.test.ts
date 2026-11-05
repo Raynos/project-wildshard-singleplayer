@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { cabinAmbienceRows } from '../src/shards/pine-hollow/generators/ambience';
 import * as v from 'valibot';
 import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sections';
-import { ForestPageSchema } from '../src/format/forestPage';
+import { ForestPageSchema } from '@wildshard/format/forestPage';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { pineCabins } from '../src/shards/pine-hollow/generators/bake-pine-cabins.mjs';

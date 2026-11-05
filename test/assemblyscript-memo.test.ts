@@ -11,7 +11,7 @@ import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import type { AssemblyScriptMemo } from '../src/sdk/bake/assemblyscriptMemoPort';
 import * as finite from '../src/sdk/bake/v2Finite';
 import * as fuel from '../src/sdk/bake/v2Fuel';
-import * as admission from '../src/format/scriptAdmissionV2';
+import * as admission from '@wildshard/format/scriptAdmissionV2';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 
 async function isolated(run: (root: string) => Promise<void>): Promise<void> {

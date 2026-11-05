@@ -5,7 +5,7 @@ import type { SpeciesDecisionAuthority } from '../src/game/plugin/brain';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import * as claims from '../src/game/shardfile/heldClaimsEntry';
 import * as creatures from '../src/game/population/productCreatures';
 import * as decisions from '../src/game/shardfile/borrowedDecisions';

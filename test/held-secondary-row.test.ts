@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real native owner with shipped physics bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { itemRules, parseItems } from '../src/format/items';
+import { itemRules, parseItems } from '@wildshard/format/items';
 import { createSimHost } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { installNativeMelee, type NativeMeleeCommand } from '../src/game/plugin/simulation';

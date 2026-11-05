@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {GrassPresentationSchema,type GrassPayload,type GrassPresentationRows} from '../../src/format/fieldPresentation';
+import {GrassPresentationSchema,type GrassPayload,type GrassPresentationRows} from '@wildshard/format/fieldPresentation';
 import {zlibSync} from 'fflate';
 import {grassRows,grassChannelBytes} from '../../src/shards/nalati-grasslands/generators/grassRows';
 import {nalatiGrass,nalatiGrassJson} from './nalati-grass-bake';

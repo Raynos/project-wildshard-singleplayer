@@ -2,7 +2,7 @@ import {readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {gridEntryDownloads} from './gridEntryDownloads';
 import {writeSpawnManifests} from './entryTotals';
-import {packsBookPath} from '../../src/format/spawnManifest';
+import {packsBookPath} from '@wildshard/format/spawnManifest';
 
 /** Publish the one immutable spawn list after the complete module bank.
  * No receipt observer or transport script runs ahead of the composition root. */

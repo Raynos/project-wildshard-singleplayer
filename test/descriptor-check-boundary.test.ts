@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { build } from 'vite';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { outputSectionPayloads } from '../src/format/outputFields';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import type { resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import type { admitProduct, ProductOptions } from '../src/game/shardfile/product';
 import type { createShardProduct } from '../src/game/shardfile/shardProduct';

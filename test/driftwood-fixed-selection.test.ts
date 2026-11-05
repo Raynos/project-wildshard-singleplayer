@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { Material, Mesh, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { tierLibrarySteps } from '../src/format/tierSelection';
+import { tierLibrarySteps } from '@wildshard/format/tierSelection';
 import { fixedDraws } from '../src/game/models/fixedDraws';
 import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
 import { driftwoodFixedModelOutput } from '../src/shards/driftwood-isle/generators/fixedModels';

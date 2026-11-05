@@ -1,7 +1,7 @@
 import {onFault,type Fault} from '../src/engine/core/faults';
 import {GrazerBrain as OriginalGrazerBrain} from './fixtures/grazer-herd-original';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import {scriptAdmissionRows} from '../src/format/scriptContract';
+import {scriptAdmissionRows} from '@wildshard/format/scriptContract';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {expect,test,vi} from 'vitest';
 import {GroupStepV2,prepareGroupNativeV2,type GroupStepOperationV2,type GroupStepReferenceV2,type GroupStepNativeResultV2} from '../src/engine/script/groupStepV2';
@@ -14,7 +14,7 @@ import {HerdBrain,type HerdSpec,type HerdPorts,type HerdContext} from '../src/en
 import {Scope} from '../src/engine/app/scope';
 import {Rng} from '../src/engine/core/rng';
 import {GroupBankV2} from '../src/engine/script/groupBankV2';
-import type {GroupBankValueV2} from '../src/format/scriptGroupBankV2';
+import type {GroupBankValueV2} from '@wildshard/format/scriptGroupBankV2';
 import type {GroupGuestFrameV2} from '../src/engine/ai/GroupBrain';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};

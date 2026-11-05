@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
-import { parseRidingPractice } from '../src/format/practiceCourseRows';
+import { parseRidingPractice } from '@wildshard/format/practiceCourseRows';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 
 const original = horseCourseRows(NALATI_KOKPAR.course);
 const originalScript = parseDecisionScripts([original.program.script])[0];

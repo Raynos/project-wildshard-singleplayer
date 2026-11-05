@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { syncGraphEnvironment } from '../src/engine/render/graph/glslProgram';
 import { ToonLook } from '../src/engine/render/families/toon';
-import type { GraphIr } from '../src/format/materialGraph';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 /** a classic PMREM environment of one atlas height */
 function pmrem(height: number): THREE.Texture {

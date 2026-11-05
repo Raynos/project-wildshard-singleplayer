@@ -7,7 +7,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { buildProject } from '@wildshard/sdk/project';
 import { proveRuntimeData } from '@wildshard/sdk/outputRuntime';
 import { validateOutputProduct } from '@wildshard/sdk/outputProduct';
-import { parseOutputIndex } from '../src/format/outputIndex';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
 
 const owned: string[] = [];
 afterEach(() => { for (const directory of owned.splice(0)) rmSync(directory, { recursive: true, force: true }); });

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { SceneScatterPageSchema, parseSceneScatterPage, readSceneScatterPose } from '../src/format/sceneDressing';
+import { SceneScatterPageSchema, parseSceneScatterPage, readSceneScatterPose } from '@wildshard/format/sceneDressing';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { nalatiDressingPlacementBlobs, DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';

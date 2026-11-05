@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseChapterStoryPresentation } from '../src/format/questStory';
+import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/quest/core';
 import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';

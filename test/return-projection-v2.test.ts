@@ -5,11 +5,11 @@ import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
 import { ReturnProjectionV2 } from '../src/game/population/returnProjectionV2';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
-import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '../src/format/returnProjectionV2';
+import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
+import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { TITAN_SCRIPT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 

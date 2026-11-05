@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { HeldSlotsSchema, parseHeldSlots } from '../src/format/heldArms';
+import { HeldSlotsSchema, parseHeldSlots } from '@wildshard/format/heldArms';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import arms from '../src/shards/driftwood-isle/data/heldArms.json' with { type: 'json' };
 import primary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };

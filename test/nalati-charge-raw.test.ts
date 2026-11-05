@@ -13,9 +13,9 @@ import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {sha256} from '../src/game/plugin/moduleHash';
 import {emptyShardfile} from '../src/sdk/author';
-import { parseOutputIndex } from '../src/format/outputIndex';
-import { outputSectionPayloads } from '../src/format/outputFields';
-import {parseShardfile} from '../src/format/shardSchema';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
+import { outputSectionPayloads } from '@wildshard/format/outputFields';
+import {parseShardfile} from '@wildshard/format/shardSchema';
 import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import {shardProductData} from '../src/game/shardfile/productData';
 

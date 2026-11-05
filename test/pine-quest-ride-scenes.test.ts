@@ -12,7 +12,7 @@ import { MeshStandardMaterial, type BufferGeometry } from 'three';
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
 import { createWorldScene } from '../src/game/plugin/scene';
-import { parseWorldScene } from '../src/format/clientChannels';
+import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { QUEST_RIDE_BLOBS, QUEST_RIDE_LIBRARY, QUEST_RIDE_MATERIAL, QUEST_RIDE_STEP, questRideModels } from '../src/shards/pine-hollow/generators/questRideScenes';
 import packed from '../src/shards/pine-hollow/data/codeParts.json';
 import { FIGURE_CATALOGUE } from '../src/shards/pine-hollow/generators/figureCatalogue';

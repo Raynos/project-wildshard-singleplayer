@@ -1,4 +1,4 @@
-import { sceneLivingBytes } from '../../../src/format/worldScenePages';
+import { sceneLivingBytes } from '@wildshard/format/worldScenePages';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only declared paths in the admitted native product.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Assertions concern actual execution in the bounded Node runner.
@@ -15,7 +15,7 @@ import {installWalkRopeBodies} from './ropeBodies';
 import {installNativeWalkBounds} from './nativeBounds';
 import {installAppIdentity} from '../../../src/engine/app/identity';
 import {WILDSHARD_IDENTITY} from '../../../src/game/identity';
-import {ForestPageSchema} from '../../../src/format/forestPage';
+import {ForestPageSchema} from '@wildshard/format/forestPage';
 import {prepareHeadlessRuntime} from '../pine-verbs';
 
 const started=performance.now();let phaseStart=started;

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import {SpeciesActorsFileSchema} from '../../src/format/speciesBookRows';
-import {parsePackedCreatureLooks} from '../../src/format/speciesLooks';
+import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
+import {parsePackedCreatureLooks} from '@wildshard/format/speciesLooks';
 import {numericCreaturePoseFromBook} from '../../src/game/plugin/channelPrograms';
 import {creatureFrame} from '../../src/game/plugin/creatureFrame';
 import type {NativeCreaturePoseRecipe} from '../../src/game/plugin/animation';

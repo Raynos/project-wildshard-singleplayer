@@ -11,7 +11,7 @@ import { NetRoom, type NetVisitor, type NetWorld } from '../src/engine/net/room'
 import { SimNetWorld } from '../src/engine/net/simWorld';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { ConditionedTransport, directLoopback } from '../src/engine/test/netLoopback';
-import type { NetCommand } from '../src/format/netCommand';
+import type { NetCommand } from '@wildshard/format/netCommand';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';

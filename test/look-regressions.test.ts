@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { validateGraph, type GraphIr, type GraphRef } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr, type GraphRef } from '@wildshard/format/materialGraph';
 import sky from '../src/shards/far-reach/data/lookGraphs.json';
 import nalati from '../src/shards/nalati-grasslands/data/lookGraphs.json';
 

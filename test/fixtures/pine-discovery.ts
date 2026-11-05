@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { pineGeneration } from './pine-generation';
 import { pineBootProgram } from '../../src/shards/pine-hollow/generators/bootProgram';
 import { pineGeographyRows } from '../../src/shards/pine-hollow/generators/geographyRows';
-import { parseDiscoveryValues, type DiscoveryValues } from '../../src/format/discoveryValues';
+import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 
 const geography = pineGeographyRows();
 /** The same metadata operations generate(ctx) supplies, without its world, map or output rebuild. */

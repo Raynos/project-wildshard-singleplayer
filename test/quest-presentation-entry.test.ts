@@ -10,7 +10,7 @@ import { installQuestHints } from '../src/game/quest/hints';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import hintsRows from '../src/shards/driftwood-isle/data/questHints.json' with { type: 'json' };
 import compositionRows from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
-import { QuestPageCompositionSchema } from '../src/format/questPageComposition';
+import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import * as v from 'valibot';

@@ -6,7 +6,7 @@ import { QuestState } from '../src/engine/quest/core';
 import { Flags } from '../src/engine/world/interact/flags';
 import { createQuestPlacements, type Place, type PoiId } from '../src/engine/world/interact/types';
 import { presentQuest } from '../src/game/plugin/ui';
-import { parseQuestStory, parseAdventureContent } from '../src/format/questStory';
+import { parseQuestStory, parseAdventureContent } from '@wildshard/format/questStory';
 import { PAGE_STORY as story } from '../src/shards/pine-hollow/generators/pageStory';
 
 test('live story and discovery admit authored frames and resolve their actual owner', () => {

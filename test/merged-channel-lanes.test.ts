@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseClientChannels, type ClientChannelProgram } from '../src/format/clientChannels';
+import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import { admittedClientChannels, planMergedChannels, publishMergedChannels } from '../src/game/plugin/channels';
 import { NumericInputError } from '../src/engine/core/faults';
 import { CRAB_CLIPS } from '../src/shards/driftwood-isle/generators/crabClips';

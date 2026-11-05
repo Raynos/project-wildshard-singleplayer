@@ -3,7 +3,7 @@ import { app } from '../../src/engine/app/runtime';
 import { ActorProjectionV2 } from '../../src/game/population/actorProjectionV2';
 import { actorProjection } from '../../src/shards/nalati-grasslands/generators/actorProjection';
 import { object, parse } from 'valibot';
-import { CreatureGuestSchema } from '../../src/format/speciesBookRows';
+import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema})}),originalSpeciesJson('species.json'));
 export const projection=new ActorProjectionV2('balbal',actorProjection(parse(CreatureGuestSchema,generated.presentation.guest)),app);

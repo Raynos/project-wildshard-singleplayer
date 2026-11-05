@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/app/scope';
 import { App } from '../src/engine/app/app';
 import type { TargetHit } from '../src/engine/combat/types';
 import type { Player } from '../src/engine/player/Player';
-import { parseClientPlan, type ClientFeatureRow } from '../src/format/clientPlan';
+import { parseClientPlan, type ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { HeldClaims, HeldSlotKit } from '../src/game/loadout/claims';

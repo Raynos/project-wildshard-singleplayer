@@ -18,7 +18,7 @@ import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/s
 import { cabinAmbienceRows } from '../src/shards/pine-hollow/generators/ambience';
 import { CabinAmbienceSchema } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_SOURCES } from './fixtures/pine-sources';
-import { ForestPageSchema } from '../src/format/forestPage';
+import { ForestPageSchema } from '@wildshard/format/forestPage';
 
 type LookOutput = Pick<ProjectOutput, 'platform' | 'namedFiles' | 'assets'>;
 const outputs = new Map<string, LookOutput>([['driftwood-isle', driftwoodOutput], ['pine-hollow', pineOutput]]);

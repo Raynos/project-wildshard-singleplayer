@@ -13,7 +13,7 @@ import * as deflate from '../src/engine/core/deflate';
 import {modelContext} from '../src/engine/models/model';
 import {SkyRig} from '../src/engine/world/skyRig';
 import {WorldRegistry} from '../src/engine/world/registry';
-import {parseExplorerCatalogue} from '../src/format/explorerCatalogue';
+import {parseExplorerCatalogue} from '@wildshard/format/explorerCatalogue';
 import {emptyShardfile} from '../src/sdk/author';
 import {emitNamedBlobs,nameBlob} from '../src/sdk/blobs';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';

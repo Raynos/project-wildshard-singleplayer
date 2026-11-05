@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { driftwoodEmittedProduct } from './fixtures/driftwood-emitted-product';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { driftwoodMoverOwners } from '../src/shards/driftwood-isle/generators/moverOwners';
 import { STATIC_BOAT } from '../src/shards/driftwood-isle/generators/staticWorld';
 import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';

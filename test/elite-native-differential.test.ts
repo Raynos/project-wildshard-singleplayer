@@ -2,7 +2,7 @@ import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { PackBrain, type PackPorts } from '../src/engine/ai/pack';
-import { nativeGroupBrain } from '../src/format/groupBrains';
+import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import * as reach from '../src/engine/ai/reach';
 import { NALATI_STRIKES } from './fixtures/nalati-strikes';

@@ -2,7 +2,7 @@ import {lendNalatiRiding} from './fixtures/nalati-riding-loan';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { installTamingEntry } from '../src/game/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';

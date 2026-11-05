@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { prepareSceneSources, sceneModelDefinition, sceneBakeSource } from '../src/game/shardfile/sceneSources';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 
 test('scene declarations read in bounded batches and publish models before dependent bakes', async () => {
   const models = Array.from({ length: 6 }, (_, i) => ({ id: `m${i}`, kind: 'models', file: `m${i}.json` }));

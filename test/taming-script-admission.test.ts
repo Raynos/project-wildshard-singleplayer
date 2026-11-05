@@ -2,16 +2,16 @@ import {lendNalatiRiding,ridingModuleBytes,ridingWitnessBytes} from './fixtures/
 import {expect,test} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
-import {scriptAdmissionRows,decisionModuleContracts} from '../src/format/scriptContract';
+import {scriptAdmissionRows,decisionModuleContracts} from '@wildshard/format/scriptContract';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import { NALATI_RIDING_PROGRAMS as programs, NALATI_RIDING_WASM, NALATI_RIDING_WITNESS_BYTES } from './fixtures/nalati-riding';
 import * as v from 'valibot';
 import {nameBlob} from '../src/sdk/blobs';
-import {SCRIPT_V2_REVISIONS} from '../src/format/scriptAdmissionV2';
+import {SCRIPT_V2_REVISIONS} from '@wildshard/format/scriptAdmissionV2';
 import {ridingModuleOptions,NALATI_RIDING_MODULE,NALATI_RIDING_WITNESS} from '../src/shards/nalati-grasslands/generators/ridingProgram';
 import {nalatiRidingSession} from '../src/shards/nalati-grasslands/generators/clientRiding';
-import {ClientRidingSessionSchema} from '../src/format/riding';
+import {ClientRidingSessionSchema} from '@wildshard/format/riding';
 import {nalatiNativeBoot} from './fixtures/nalati-native-boot';
 
 test('mounted ABI2 replaces one executable in the complete return/spawn inventory and names its ABI1 witness',async()=>{

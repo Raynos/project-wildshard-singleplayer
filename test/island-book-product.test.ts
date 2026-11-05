@@ -1,13 +1,13 @@
 import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
-import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
+import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { EXPLORER_CATALOGUE as driftwoodExplorer } from '../src/shards/driftwood-isle/generators/explorerCatalogue';
 import { EXPLORER_CATALOGUE as pineExplorer } from '../src/shards/pine-hollow/generators/explorerCatalogue';
 import { expect,test } from 'vitest';
 import * as v from 'valibot';
-import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
-import { WorldAssemblySchema } from '../src/format/worldAssembly';
-import { parseChapterWake } from '../src/format/chapterDirector';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
+import { parseChapterWake } from '@wildshard/format/chapterDirector';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../src/shards/driftwood-isle/generators/clientSections';
 import { DRIFTWOOD_CLIENT_SECTIONS as original } from './fixtures/driftwoodLegacyLayouts';

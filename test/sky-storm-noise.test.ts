@@ -11,7 +11,7 @@ import { skyStormNoiseInput, STORM_NOISE_INPUT } from '../src/shards/far-reach/g
 // oxlint-disable-next-line import/no-nodejs-modules -- The native texture is a tracked public input with an unchanged complete byte oracle.
 import { readFileSync } from 'node:fs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseKtx2 } from '../src/format/ktx2Cost';
+import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 
 const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());
 

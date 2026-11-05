@@ -1,14 +1,14 @@
 import { NALATI_ADMISSION, NALATI_ADMISSION_PROGRAM } from './fixtures/nalati-admission';
 import { nalatiAdmissionBlobs } from '../src/shards/nalati-grasslands/generators/admissionProgram';
 import * as v from 'valibot';
-import {ReturnProgramSchema} from '../src/format/namedJsonContracts';
+import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
 import {Scope} from '../src/engine/app/scope';
 import {expect,test} from 'vitest';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {emitPlatformSections} from '../src/sdk/platformSections';
 import {outputScriptAdmissionRows} from '../src/sdk/outputProduct';
 import {ReturnProgram} from '../src/game/population/returnProgram';
-import {admitScriptV2} from '../src/format/scriptAdmissionV2';
+import {admitScriptV2} from '@wildshard/format/scriptAdmissionV2';
 import {contentHash} from '../src/sdk/project';
 import {Rng} from '../src/engine/core/rng';
 import {admission,admissionLegacy,admissionWitnessBytes,admissionModuleBytes,lendNalatiAdmission} from './fixtures/nalati-return-modules';

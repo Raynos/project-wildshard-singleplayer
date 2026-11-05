@@ -8,7 +8,7 @@ import { FakeGame, legacyDouble } from '../src/engine/test/FakeGame';
 import { defineModel } from '../src/engine/models/model';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { SkyRig } from '../src/engine/world/skyRig';
-import { WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
+import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
 import type { ShardContext } from '../src/game/plugin/context';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { WorldEntry } from '../src/game/shardfile/worldEntry';

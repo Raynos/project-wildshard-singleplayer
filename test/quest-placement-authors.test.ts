@@ -5,8 +5,8 @@ import { createQuestPlacements, type QuestPlace, type QuestPlaceAnchor, type Que
 import { createAuthorQuestPlacements, type AuthorQuestPlace, type AuthorQuestAnchor, type AuthorQuestPlacementPorts } from '../src/sdk/bake/questPlacement';
 import { completionCardRows } from '../src/sdk/quests';
 import { clientPlanSection } from '../src/sdk/platformSections';
-import { parseCompletion } from '../src/format/completion';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseCompletion } from '@wildshard/format/completion';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { completionRows, placeSetRows, COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import original from './fixtures/quest-placement-author-original.json' with { type: 'json' };

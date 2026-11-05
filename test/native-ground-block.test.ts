@@ -4,7 +4,7 @@ import {originalNativeGround} from './fixtures/native-bake-inline';
 import { readFileSync } from 'node:fs';
 import { expect,test } from 'vitest';
 import * as v from 'valibot';
-import { nativeGroundRecordSchema } from '../src/format/nativePhysics';
+import { nativeGroundRecordSchema } from '@wildshard/format/nativePhysics';
 import { nativeBakeGround,createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 
 const file='data/physics-ground.bin';

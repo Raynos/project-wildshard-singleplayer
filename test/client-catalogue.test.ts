@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
-import { parseClientPlan } from '../src/format/clientPlan';
-import { CatalogueEconomySchema, type CatalogueEconomy } from '../src/format/catalogueEconomy';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
+import { CatalogueEconomySchema, type CatalogueEconomy } from '@wildshard/format/catalogueEconomy';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
@@ -16,7 +16,7 @@ import { STARTER_EFFECTS } from '../src/game/loadout/effects';
 import starterRows from '../src/game/systems/effects/starterRows.json' with { type: 'json' };
 import { DRIFTWOOD_LOOT as loot } from '../src/shards/driftwood-isle/generators/loot';
 import { driftwoodCatalogueEconomy } from '../src/shards/driftwood-isle/generators/catalogueEconomy';
-import { parseRows } from '../src/format/rows';
+import { parseRows } from '@wildshard/format/rows';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

@@ -2,10 +2,10 @@
  * supply actual parameter values, state types and generated binding identities. */
 import common from '../../src/shards/pine-hollow/behaviour/elites/common.as?raw';
 import { ELITE_FEATURE_ROWS } from '../../src/shards/pine-hollow/generators/eliteFeatureRows';
-import { parseSpawnScript,spawnScriptRegistries } from '../../src/format/spawnScripts';
-import { decisionBindingMap } from '../../src/format/decisionBindings';
-import { scriptV1Identifier } from '../../src/format/decisionScripts';
-import { SCRIPT_V1_COMMANDS } from '../../src/format/scriptAbiV1';
+import { parseSpawnScript,spawnScriptRegistries } from '@wildshard/format/spawnScripts';
+import { decisionBindingMap } from '@wildshard/format/decisionBindings';
+import { scriptV1Identifier } from '@wildshard/format/decisionScripts';
+import { SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
 import { simulationPair } from './script-v2-projection';
 import type { DualPortFixture } from './script-v2-port';
 

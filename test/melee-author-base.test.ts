@@ -6,7 +6,7 @@ import { sharedMeleeAuthorBase } from '../src/sdk/weapons/meleeProfile';
 import { parseThrownWeaponProfile } from '../src/sdk/weapons/thrownProfile';
 import { SWORD_WOOD } from '../src/game/weapons/starterMeleeProfile';
 import { parse } from 'valibot';
-import { ThrownWeaponProfileSchema } from '../src/format/weaponProfiles';
+import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 

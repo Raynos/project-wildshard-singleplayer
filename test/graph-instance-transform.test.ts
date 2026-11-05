@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { vec4 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { graph as authorGraph, instanceTransform } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 test('full instance placement reads the existing matrix and ordinary meshes use identity', () => {
   const ir: GraphIr = { version: 1, kind: 'material', model: 'unlit', nodes: {

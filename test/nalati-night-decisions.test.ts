@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { ReturnModulesSchema } from '../src/format/scriptContract';
+import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { expect, test } from 'vitest';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';

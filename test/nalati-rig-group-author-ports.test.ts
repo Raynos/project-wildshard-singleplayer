@@ -1,9 +1,9 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import type { AuthorGroupStepProfile } from '../src/sdk/decisionScripts';
 import type { AuthorRiggedHullBook, AuthorRiggedHullUrls } from '../src/sdk/bake/skinned';
-import type { GroupStepProfileV2 } from '../src/format/scriptGroupStepV2';
-import type { ObservationColumnV2 } from '../src/format/scriptObservationColumnsV2';
-import type { RiggedHullBook, RiggedHullUrls } from '../src/format/riggedHulls';
+import type { GroupStepProfileV2 } from '@wildshard/format/scriptGroupStepV2';
+import type { ObservationColumnV2 } from '@wildshard/format/scriptObservationColumnsV2';
+import type { RiggedHullBook, RiggedHullUrls } from '@wildshard/format/riggedHulls';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { NALATI_HULL_BOOK } from '../src/shards/nalati-grasslands/generators/riggedHulls';
 import { nalatiRigFile, rigFileFrom } from '../src/shards/nalati-grasslands/generators/rigSources';

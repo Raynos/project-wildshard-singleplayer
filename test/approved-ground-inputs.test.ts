@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ForestNativeInputsSchema } from '../src/format/forestNativeInputs';
-import { platformFileFamily, validatePlatformFile } from '../src/format/platformFileFamilies';
-import { registeredJsonContract, validateRegisteredJson } from '../src/format/registeredJson';
+import { ForestNativeInputsSchema } from '@wildshard/format/forestNativeInputs';
+import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
+import { registeredJsonContract, validateRegisteredJson } from '@wildshard/format/registeredJson';
 import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 

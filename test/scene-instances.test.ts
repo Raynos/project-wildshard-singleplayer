@@ -5,7 +5,7 @@ import { nalatiDecorative } from './fixtures/nalati-decorative';
 import { expect,test } from 'vitest';
 import * as v from 'valibot';
 import { BoxGeometry,BufferAttribute,Group,InstancedMesh,Matrix4,MeshBasicMaterial,Vector3 } from 'three';
-import { SceneInstancesSchema } from '../src/format/sceneInstances';
+import { SceneInstancesSchema } from '@wildshard/format/sceneInstances';
 import { SceneInstanceFields } from '../src/game/shardfile/sceneInstances';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { dressingScene } from './fixtures/nalati-dressing-scene';

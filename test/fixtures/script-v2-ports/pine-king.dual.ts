@@ -2,7 +2,7 @@
  * commands. Arena, collision, summons, lanes and saves keep their native owners. */
 import king from '../../../src/shards/pine-hollow/behaviour/king.as?raw';
 import { KING_FIELDS, KING_DECISION } from '../../../src/shards/pine-hollow/generators/kingDecision';
-import { SCRIPT_V1_COMMANDS } from '../../../src/format/scriptAbiV1';
+import { SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
 import { expect } from 'vitest';
 import { simulationPair } from '../script-v2-projection';
 import type { DualPortFixture } from '../script-v2-port';

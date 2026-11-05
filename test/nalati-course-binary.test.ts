@@ -8,7 +8,7 @@ import { NALATI_TITAN_PROGRAMS } from './fixtures/nalati-titan';
 import { NALATI_RIDING_PROGRAMS } from './fixtures/nalati-riding';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { nalatiScriptSections } from '../src/shards/nalati-grasslands/generators/scriptInventory';
-import { scriptAdmissionRows } from '../src/format/scriptContract';
+import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { NALATI_COURSE_MODULE } from '../src/shards/nalati-grasslands/generators/kokparRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob } from '../src/sdk/blobs';

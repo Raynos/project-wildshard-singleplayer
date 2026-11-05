@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { parseHeldSlots } from '../src/format/heldArms';
+import { parseHeldSlots } from '@wildshard/format/heldArms';
 import { Scope } from '../src/engine/app/scope';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { heldSlotRows } from '../src/shards/nalati-grasslands/generators/heldSlots';

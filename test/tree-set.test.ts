@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { TreeSetSchema } from '../src/format/treeSetRows';
+import { TreeSetSchema } from '@wildshard/format/treeSetRows';
 import { TREE_SET } from '../src/shards/pine-hollow/generators/treeSet';
 import { TREE_SET as SPRUCE } from '../src/shards/nalati-grasslands/generators/treeSet';
 

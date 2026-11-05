@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { WeatherGeometrySchema, WeatherGeometryPayloadSchema } from '../src/format/weatherEffects';
-import { ArenaScriptGeometrySchema } from '../src/format/arenaScriptRows';
-import { ArenaRoomDocumentSchema } from '../src/format/arenaRoomDocument';
-import { DecisionScriptsSchema, type DecisionScriptRowInput } from '../src/format/decisionScripts';
+import { WeatherGeometrySchema, WeatherGeometryPayloadSchema } from '@wildshard/format/weatherEffects';
+import { ArenaScriptGeometrySchema } from '@wildshard/format/arenaScriptRows';
+import { ArenaRoomDocumentSchema } from '@wildshard/format/arenaRoomDocument';
+import { DecisionScriptsSchema, type DecisionScriptRowInput } from '@wildshard/format/decisionScripts';
 import { titanFightOwners } from './fixtures/titanFightOwners';
-import { CloudSpecimenSchema } from '../src/format/encounterRows';
+import { CloudSpecimenSchema } from '@wildshard/format/encounterRows';
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 
 const data = { attributes: { position: { itemSize: 3, type: 'Float32Array', array: [0, 0, 0], normalized: false } } };

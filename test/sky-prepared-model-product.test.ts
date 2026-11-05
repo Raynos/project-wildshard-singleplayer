@@ -7,7 +7,7 @@ import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { readBuiltShardfile } from '../scripts/built-product.mjs';
 import { readProgramDiscovery } from '../scripts/program-discovery.mjs';
-import { parseOutputIndex } from '../src/format/outputIndex';
+import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
 import { projectAssets } from '../src/sdk/project';

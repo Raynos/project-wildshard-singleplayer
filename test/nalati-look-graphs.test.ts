@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { AdditiveBlending } from 'three';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { validateGraph } from '../src/format/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 import lookGraphs from '../src/shards/nalati-grasslands/data/lookGraphs.json' with { type: 'json' };
 
 const GRAPHS: Readonly<Record<string, unknown>> = lookGraphs;

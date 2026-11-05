@@ -2,7 +2,7 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {openProductSession} from './fixtures/headless/productSession';
-import {parseNativeFirearmProfile} from '../src/format/weaponProfiles';
+import {parseNativeFirearmProfile} from '@wildshard/format/weaponProfiles';
 import type {HeadlessTapeObservation} from '../src/sdk/headlessTape';
 import VERBS from '../docs/plans/foundations/verbs/pine-hollow.json' with {type:'json'};
 

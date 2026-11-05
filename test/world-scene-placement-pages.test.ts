@@ -4,7 +4,7 @@ import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldSce
 import { registeredJsonContract } from '@wildshard/format/registeredJson';
 import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { worldScenePlacementPages } from '@wildshard/sdk/worldScenes';
-import { parseSampledAudioPlacement } from '../src/format/audioScene';
+import { parseSampledAudioPlacement } from '@wildshard/format/audioScene';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { emptyShardfile } from '@wildshard/sdk/author';

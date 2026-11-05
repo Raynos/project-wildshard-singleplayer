@@ -1,6 +1,6 @@
 import nativeStoryFixture from './fixtures/pine-native-story.json' with { type: 'json' };
 import { expect, test } from 'vitest';
-import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativeQuestComposition, parseNativeQuestServiceSpots } from '../src/format/nativeQuestComposition';
+import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativeQuestComposition, parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';

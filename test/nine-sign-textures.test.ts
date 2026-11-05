@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { DataTexture, LinearFilter, LinearMipmapLinearFilter } from 'three';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { applyTextureSampler } from '../src/game/shardfile/clientMaterials';
 import textures from '../src/shards/nine-dragon-stack/data/signTextureSources.json' with { type: 'json' };
 

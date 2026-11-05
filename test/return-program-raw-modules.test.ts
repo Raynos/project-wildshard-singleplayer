@@ -1,11 +1,11 @@
 import {weatherRaw,weatherWitness,weatherModuleBytes,nightParameters} from './fixtures/weatherInlineWitness';
 import {Rng} from '../src/engine/core/rng';
-import {parseReturnProjectionV2} from '../src/format/returnProjectionV2';
+import {parseReturnProjectionV2} from '@wildshard/format/returnProjectionV2';
 import {expect,test,vi} from 'vitest';
 import {Scope} from '../src/engine/app/scope';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
-import type {ReturnModuleRow} from '../src/format/scriptContract';
+import type {ReturnModuleRow} from '@wildshard/format/scriptContract';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 function fixture(){

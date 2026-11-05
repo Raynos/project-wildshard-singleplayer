@@ -13,12 +13,12 @@ import {installEntrySockets} from '../src/engine/physics/entrySockets';
 import {installGridBorders} from '../src/engine/physics/gridBorders';
 import {installStripCollider} from '../src/engine/physics/stripColliders';
 import {addBakedTerrainCollider} from '../src/engine/physics/terrainTiles';
-import {encodeTerrainTile} from '../src/format/terrainTileBytes';
+import {encodeTerrainTile} from '@wildshard/format/terrainTileBytes';
 import {GridRegionDurability} from '../src/game/grid/durability';
 import {SaveStore} from '../src/engine/saves/store';
 import {fnv1a32} from '../src/engine/core/rng';
 import * as v from 'valibot';
-import {encodeMeshCollision} from '../src/format/meshCollisionBytes';
+import {encodeMeshCollision} from '@wildshard/format/meshCollisionBytes';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 
 const rapier=loadRapier(readFileSync('public/assets/physics/rapier.wasm'));

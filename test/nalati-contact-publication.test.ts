@@ -6,7 +6,7 @@ import {nalatiSpecimens} from './fixtures/nalati-specimens';
 import {nalatiBalbal} from './fixtures/nalati-balbal';
 import {nalatiRuntime} from './fixtures/nalati-runtime';
 import {nalatiDecorative} from './fixtures/nalati-decorative';
-import {SceneDressingSchema} from '../src/format/sceneDressing';
+import {SceneDressingSchema} from '@wildshard/format/sceneDressing';
 import * as v from 'valibot';
 
 test('both shipping dressing tiers lend every packed hull through exact named compressed bytes',()=>{

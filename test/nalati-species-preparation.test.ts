@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { unzlibSync } from 'fflate';
-import { CreatureGuestSchema } from '../src/format/speciesBookRows';
+import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { unshuffleLanes } from '../src/engine/core/deflate';
 import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
 import { readDecisionSources } from '../src/sdk/buildDecisionScripts';

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { validateGraph } from '../src/format/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 import { PINE_GRAPHS } from '../src/shards/pine-hollow/generators/lookMaterials';
 import { KING_FX_LOOKS } from '../src/shards/pine-hollow/generators/kingFxLook';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };

@@ -1,7 +1,7 @@
 import { array, finite, number, object, parse, pipe, string } from 'valibot';
 import { expect, test } from 'vitest';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { pineProps } from '../src/shards/pine-hollow/generators/bake-pine-props.mjs';
 import { pinePropScenes } from '../src/shards/pine-hollow/generators/bake-prop-scenes.mjs';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';

@@ -1,9 +1,9 @@
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { afterEach, expect, test } from 'vitest';
 import { parse } from 'valibot';
-import { ArenaWhirlsSchema,ArenaFireSchema,ArenaSceneSchema } from '../src/format/encounterRows';
+import { ArenaWhirlsSchema,ArenaFireSchema,ArenaSceneSchema } from '@wildshard/format/encounterRows';
 import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshLambertMaterial, Scene, Vector3 } from 'three';
-import { parsePrivateScene } from '../src/format/clientChannels';
+import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import { ArenaSceneView } from '../src/game/boss/encounterView';
 import { Scope } from '../src/engine/app/scope';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';

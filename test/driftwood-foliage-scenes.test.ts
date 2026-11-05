@@ -1,6 +1,6 @@
 import { FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import * as v from 'valibot';
-import { WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
+import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
 import { expect, test } from 'vitest';
 import { BufferAttribute, type BufferGeometry } from 'three';
 import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';

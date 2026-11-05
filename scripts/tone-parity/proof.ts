@@ -11,7 +11,7 @@ import { BackSide, BoxGeometry, BufferAttribute, Color, DirectionalLight, MeshBa
 import { Scope } from '../../src/engine/app/scope';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../../src/sdk/author';
-import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '../../src/format/materialFamilies';
+import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 
 interface ToneCase { readonly name: string; readonly entry: Readonly<Record<string, unknown>>; readonly looks: Readonly<Record<string, unknown>>; readonly hemi?: number; readonly env?: boolean }
 interface ToneRow { readonly at: string; readonly ndl: number; readonly family: number[]; readonly graph: number[]; readonly ratio: number[] }

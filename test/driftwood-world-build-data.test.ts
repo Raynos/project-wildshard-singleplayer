@@ -3,7 +3,7 @@ import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
 import { expect, test } from 'vitest';
 import { floorAtRects } from '@wildshard/engine/physics/box';
 import * as v from 'valibot';
-import { parseWorldScenePlacement,parseWorldScenePlacementPage,WorldScenePlacementSchema } from '../src/format/worldScenePlacement';
+import { parseWorldScenePlacement,parseWorldScenePlacementPage,WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
 import { driftwoodOutputRows } from '../src/shards/driftwood-isle/generators/output';
 import { driftwoodFoliageScenes } from '../src/shards/driftwood-isle/generators/foliageScenesBank';
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';

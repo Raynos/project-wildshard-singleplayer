@@ -1,7 +1,7 @@
 import { beforeEach, expect, test } from 'vitest';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 import { AmbientFlock } from '../src/engine/ai/ambientFlock';
-import { parseAmbientFlock, parseAmbientLife } from '../src/format/ambientLife';
+import { parseAmbientFlock, parseAmbientLife } from '@wildshard/format/ambientLife';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';
 import { PINE_LIFE } from '../src/shards/pine-hollow/generators/ambientLife';
 import { AmbientGroup } from '../src/game/ambient/flock';

@@ -4,7 +4,7 @@ import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { Rng } from '../src/engine/core/rng';
 import { Scope } from '../src/engine/app/scope';
 import { ObservationColumnsV2, type V2ColumnOwners, type V2SenseColumns } from '../src/engine/script/observationColumnsV2';
-import { ObservationColumnsV2Schema, parseObservationColumnsV2 } from '../src/format/scriptObservationColumnsV2';
+import { ObservationColumnsV2Schema, parseObservationColumnsV2 } from '@wildshard/format/scriptObservationColumnsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 

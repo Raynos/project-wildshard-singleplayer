@@ -4,7 +4,7 @@ import { StalkerBrain } from '../src/engine/ai/stalker';
 import { Scope } from '../src/engine/app/scope';
 import { NativeEliteKernels } from '../src/engine/ai/eliteKernels';
 import { PackBrain, type PackPorts } from '../src/engine/ai/pack';
-import { nativeGroupBrain } from '../src/format/groupBrains';
+import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';

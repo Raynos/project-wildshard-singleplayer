@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import type { BufferGeometry } from 'three';
-import type { RopeDeckRest, RopeDeckSpan } from '../src/format/ropeDeckSite';
+import type { RopeDeckRest, RopeDeckSpan } from '@wildshard/format/ropeDeckSite';
 import type { bridgeFacts } from '../src/shards/driftwood-isle/generators/ropeBridge';
 import { originalBridgeFacts, originalBridgeDecks, originalBridgePosts } from '../src/shards/driftwood-isle/generators/driftwoodBridge.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';

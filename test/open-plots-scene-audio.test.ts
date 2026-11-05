@@ -11,7 +11,7 @@ import type { LevelAudioBank } from '../src/engine/audio/levelAudio';
 import type { Player } from '../src/engine/player/Player';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { AudioSceneDirector } from '../src/game/audio/sceneDirector';
-import { parseAudioData } from '../src/format/audio';
+import { parseAudioData } from '@wildshard/format/audio';
 import { plotAudioData } from '../src/shards/open-plots/generators/audio';
 import { nalatiAudioRows } from '../src/shards/nalati-grasslands/generators/audioRows';
 import anchors from '../src/shards/open-plots/data/audioAnchors.json' with { type: 'json' };

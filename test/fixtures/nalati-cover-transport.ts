@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { nameBlob, type NamedBlob } from '../../src/sdk/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
-import { SceneDressingSchema, type SceneDressingRows } from '../../src/format/sceneDressing';
+import { SceneDressingSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import pins from './nalati-cover-files.json' with { type: 'json' };
 
 /** Admit both complete original cover banks before restoring only their source

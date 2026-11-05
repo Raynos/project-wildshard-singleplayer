@@ -1,4 +1,4 @@
-import type {ScalarChannelRows} from '../../src/format/scalarChannel';
+import type {ScalarChannelRows} from '@wildshard/format/scalarChannel';
 import {originalGeographyFiles} from './nalati-geography-original';
 import reference from './nalati-geography-blocks.json' with {type:'json'};
 

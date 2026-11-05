@@ -6,11 +6,11 @@ import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { afterEach, expect, test } from 'vitest';
 import { buildValidationReceipts } from '../scripts/app-build/validationReceipts.mjs';
-import { readValidationReceipt } from '../src/format/validationReceipt';
+import { readValidationReceipt } from '@wildshard/format/validationReceipt';
 import {emptyShardfile} from '../src/sdk/author';
 import {writeOutputProduct} from '../src/sdk/outputProduct';
 import {productResidentBytes} from '../src/game/shardfile/productCost';
-import {postStackCost} from '../src/format/postStack';
+import {postStackCost} from '@wildshard/format/postStack';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true }); });

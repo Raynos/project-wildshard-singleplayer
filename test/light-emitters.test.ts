@@ -4,8 +4,8 @@ import { Color, DataTexture, Group, Matrix4, MeshStandardMaterial, PointLight, V
 import { LightEmitters } from '../src/engine/fx/lightEmitters';
 import { Scope } from '../src/engine/app/scope';
 import { applyGround, updateGround } from '../src/engine/render/families/ground';
-import { parseGroundLayer } from '../src/format/materialFamilies';
-import { parseLightEmitters } from '../src/format/lightEmitters';
+import { parseGroundLayer } from '@wildshard/format/materialFamilies';
+import { parseLightEmitters } from '@wildshard/format/lightEmitters';
 import { lightPoolRows } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { loadPostGraphLut, neutralLut } from '../src/game/looks/postGraphLook';
@@ -15,11 +15,11 @@ import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
 import { sceneVectors } from '../src/game/shardfile/sceneInputs';
 import { SIGNAL_EMITTERS } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import POOL from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { lendWorldSceneTextures } from '../src/game/shardfile/worldSceneTextures';
 import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack/generators/silkWeave';
 import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
-import { validateGraph, type GraphRef } from '../src/format/materialGraph';
+import { validateGraph, type GraphRef } from '@wildshard/format/materialGraph';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import type { ShardContext } from '../src/game/plugin/context';
 

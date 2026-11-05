@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { nativeCompilers } from './nativeCompilers';
 import { contractCatalogue } from '../../src/shards/pine-hollow/generators/contractRows';
 import { CONTRACT_PROGRAM_SCRIPT, contractProgramRegistries } from '../../src/shards/pine-hollow/generators/contractProgram';
-import { parseContractCatalogue } from '../../src/format/contracts';
+import { parseContractCatalogue } from '@wildshard/format/contracts';
 
 // GR8 (B5): the product compiles the guest (output.ts contractModule) and ships its Wasm as a named return module, so
 // the authored rows carry no programme; unit fixtures compile the same sources the same way. Read from the checkout

@@ -2,12 +2,12 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the complete approved original named document.
 import { createHash } from 'node:crypto';
-import { SpeciesActorsFileSchema } from '../src/format/speciesActorsFile';
-import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
-import { ReturnProgramWireDocumentSchema } from '../src/format/returnProgramDocument';
-import { ReturnProjectionV2Schema } from '../src/format/returnProjectionV2';
+import { SpeciesActorsFileSchema } from '@wildshard/format/speciesActorsFile';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
+import { ReturnProgramWireDocumentSchema } from '@wildshard/format/returnProgramDocument';
+import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
 import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
-import { platformFileFamily, validatePlatformFile } from '../src/format/platformFileFamilies';
+import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import { nameBlob } from '../src/sdk/blobs';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import fixture from './fixtures/approved-sheep-root.json' with { type: 'json' };

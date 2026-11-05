@@ -4,7 +4,7 @@ import {mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync
 import {join, resolve} from 'node:path';
 import {expect, test} from 'vitest';
 import {previewServer} from './fixtures/preview-server';
-import {crossroadsConfig} from '../src/format/contentBounds';
+import {crossroadsConfig} from '@wildshard/format/contentBounds';
 import {record} from '../scripts/phone-loading/model';
 
 test('the real preview accepts and records exact production-valid telemetry; real refusals remain', async () => {

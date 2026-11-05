@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { PropsSchema } from '../src/format/props';
+import { PropsSchema } from '@wildshard/format/props';
 import { tiledBootstrapGround } from '../src/game/shardfile/clientGround';
 import type { ShardManifest } from '../src/game/shard/manifest';
 

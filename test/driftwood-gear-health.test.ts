@@ -1,6 +1,6 @@
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
-import { parseRows } from '../src/format/rows';
+import { parseRows } from '@wildshard/format/rows';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';

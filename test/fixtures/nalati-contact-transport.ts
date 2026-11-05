@@ -1,7 +1,7 @@
 import {base64Bytes,unshuffleLanes} from '../../src/engine/core/deflate';
 import {nameBlob,type NamedBlob} from '../../src/sdk/blobs';
 import {encodeCanonicalJson} from '../../src/sdk/immutable';
-import {SceneDressingSchema,type SceneDressingRows} from '../../src/format/sceneDressing';
+import {SceneDressingSchema,type SceneDressingRows} from '@wildshard/format/sceneDressing';
 import * as v from 'valibot';
 import {unzlibSync} from 'fflate';
 

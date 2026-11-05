@@ -11,7 +11,7 @@ import { HELD_GEAR } from '../src/shards/pine-hollow/generators/heldGear';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { HeldFinishesSchema } from '../src/format/heldFinishes';
+import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
 import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare actual shipped geometry bytes, not a regenerated substitute.
 import { readFileSync } from 'node:fs';

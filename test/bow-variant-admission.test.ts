@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import {parse} from 'valibot';
-import {BowVariantSchema,BowSourceMultipliersSchema} from '../src/format/bowVariantRows';
+import {BowVariantSchema,BowSourceMultipliersSchema} from '@wildshard/format/bowVariantRows';
 import {sourceMultiplier} from '../src/engine/combat/effects/types';
 import effects from '../src/shards/nalati-grasslands/data/weaponEffects.json' with {type:'json'};
 import rows from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {type:'json'};

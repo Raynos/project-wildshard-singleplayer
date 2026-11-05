@@ -4,7 +4,7 @@ import { runInNewContext } from 'node:vm';
 import process from 'node:process';
 import { expect, test } from 'vitest';
 import * as ts from '@typescript/typescript6';
-import { parseManifestMetadata } from '../src/format/minimap';
+import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { discovery } from './fixtures/pine-discovery';
 import metadata from '../src/shards/pine-hollow/manifest.json' with {type:'json'};

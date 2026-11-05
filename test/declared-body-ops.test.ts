@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scene } from 'three';
-import { DeclaredBodyOpsSchema } from '../src/format/bodySlots';
+import { DeclaredBodyOpsSchema } from '@wildshard/format/bodySlots';
 import { DeclaredBodyOps } from '../src/game/quest/bodyOps';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
@@ -115,7 +115,7 @@ test('page actors are real native rigs, excluded from target lists and retired e
 
 test.each([true, false])('compiled AS body queries require granted floor capability: %s', async allowedFloor => {
   const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
-  const { decisionBindingMap } = await import('../src/format/decisionBindings');
+  const { decisionBindingMap } = await import('@wildshard/format/decisionBindings');
   const { DecisionHost } = await import('../src/engine/script/decision');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });

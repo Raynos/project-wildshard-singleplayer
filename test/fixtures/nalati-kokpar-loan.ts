@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import type { Scope } from '../../src/engine/app/scope';
-import { parseDecisionScripts } from '../../src/format/decisionScripts';
-import { ReturnProgramSchema } from '../../src/format/namedJsonContracts';
-import { ReturnModulesSchema } from '../../src/format/scriptContract';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
+import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { ReturnProgram } from '../../src/game/population/returnProgram';
 import { NALATI_KOKPAR, NALATI_KOKPAR_WASM } from './nalati-kokpar';
 

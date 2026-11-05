@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/quest/core';
-import { parseQuestStory } from '../src/format/questStory';
+import { parseQuestStory } from '@wildshard/format/questStory';
 import { output } from '../src/shards/driftwood-isle/generators/output';
 import { DRIFTWOOD_QUESTS, DRIFTWOOD_MARKERS } from '../src/shards/driftwood-isle/generators/quests';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';

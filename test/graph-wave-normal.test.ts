@@ -4,7 +4,7 @@ import { vec2 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { waveDisplace } from '../src/engine/world/waves';
 import { graph, gerstnerNormal } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { evalGlsl } from './fixtures/glslEval';
 
 test('the analytic graph normal follows the shared CPU wave surface at rest points', () => {

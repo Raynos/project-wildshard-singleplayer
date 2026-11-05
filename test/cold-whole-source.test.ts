@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { playLibrarySteps } from '../src/format/admissionControl';
+import { playLibrarySteps } from '@wildshard/format/admissionControl';
 import { emptyShardfile } from '../src/sdk/author';
-import type { OutputIndex } from '../src/format/outputIndex';
+import type { OutputIndex } from '@wildshard/format/outputIndex';
 
 const cold = '1'.repeat(64), tile = '2'.repeat(64), shared = '3'.repeat(64), dependent = '4'.repeat(64);
 function fixture() {

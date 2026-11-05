@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { captureScatterSource } from '../src/engine/render/scatterInstances';
 import { SceneDressing, readSceneNumericTable, readSceneScatterTable } from '../src/game/shardfile/sceneDressing';
-import { readSceneScatterPose } from '../src/format/sceneDressing';
+import { readSceneScatterPose } from '@wildshard/format/sceneDressing';
 import type { ShardContext } from '../src/game/plugin/context';
 import { join, writeGeometry } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 

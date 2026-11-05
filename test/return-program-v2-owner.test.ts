@@ -2,16 +2,16 @@ import { expect,test,vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { Rng } from '../src/engine/core/rng';
 import { ReturnProgram,ProjectedState } from '../src/game/population/returnProgram';
-import { ReturnProgramSchema } from '../src/format/namedJsonContracts';
-import { ArenaScriptFightFileSchema } from '../src/format/arenaScriptRows';
+import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
+import { ArenaScriptFightFileSchema } from '@wildshard/format/arenaScriptRows';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { nameBlob } from '../src/sdk/blobs';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import * as v from 'valibot';
 import {titanPrograms as programs,titanWitnessBytes} from './fixtures/titanInlineWitness';
-import {admitScript} from '../src/format/scriptAdmission';
-import {checkReturnProjectionV2Rows,parseReturnProjectionV2} from '../src/format/returnProjectionV2';
+import {admitScript} from '@wildshard/format/scriptAdmission';
+import {checkReturnProjectionV2Rows,parseReturnProjectionV2} from '@wildshard/format/returnProjectionV2';
 
 const spear={phase:0,mode:3,dt:2,t:0,cd:0,x:0,z:0,px:1,pz:1,chain:0,aim:1,lock:.2,stuck:.5};
 

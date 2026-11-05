@@ -3,7 +3,7 @@ import { dressingScene as scene, dressingSceneBlobs as blobs } from '../../src/s
 import paint from './nalati-poi-paint-original.json' with { type: 'json' };
 import { nalatiPredecessorCoverRows } from './nalati-cover';
 import { nalatiCragRows } from './nalati-crags';
-import { SceneDressingSchema, type SceneDressingRows } from '../../src/format/sceneDressing';
+import { SceneDressingSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import { parse } from 'valibot';
 import { nameBlob } from '../../src/sdk/blobs';
 import { encodeCanonicalJson } from '../../src/sdk/immutable';

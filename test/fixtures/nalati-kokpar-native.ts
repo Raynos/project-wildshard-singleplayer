@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type {SimHost} from '../../src/engine/sim';
 import type {HeadlessRuntimeInstallation,PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {parseCarriedQuest,type CarriedQuestRows} from '../../src/format/questSteps';
+import {parseCarriedQuest,type CarriedQuestRows} from '@wildshard/format/questSteps';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
 import {commitQuestEffects} from '../../src/game/quest/effects';
 import {mountedPlayerOf} from '../../src/game/riding/native';

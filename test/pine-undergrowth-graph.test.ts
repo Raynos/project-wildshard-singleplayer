@@ -3,7 +3,7 @@ import { DataTexture, DoubleSide, ShaderMaterial } from 'three';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { bindGraphMeshMap } from '../src/engine/render/graphBackend';
 import { Scope } from '../src/engine/app/scope';
-import { validateGraph } from '../src/format/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 import UNDER_LOOK from '../src/shards/pine-hollow/data/coverAppearance.json' with { type: 'json' };
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';

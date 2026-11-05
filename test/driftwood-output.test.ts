@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { builtProduct } from './fixtures/builtProduct';
-import { ResolvedIslandLibrarySchema } from '../src/format/islandLibrary';
+import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { BAKED_COVE } from './fixtures/driftwood-baked-cove';
 
 test('Driftwood fixed draws and island cover files name admitted product blobs (no legacy URL table)', async () => {

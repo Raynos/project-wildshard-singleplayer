@@ -3,7 +3,7 @@
 // their checkpoint.
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { PopulationEffectsSchema } from '../src/format/creatures';
+import { PopulationEffectsSchema } from '@wildshard/format/creatures';
 import { GroupNotices } from '../src/game/population/groupNotices';
 
 const effects = v.parse(PopulationEffectsSchema, { notices: [{ signal: 'howl', text: 'The wolves howl in the hills', every: 20 }, { signal: 'raid', text: 'Wolves at the flock!', every: 6 }],

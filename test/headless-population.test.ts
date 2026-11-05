@@ -10,9 +10,9 @@ import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../
 import { runHeadlessJourney } from '../src/sdk/headlessJourney';
 import { serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/sim/snapshot';
 import { FIXED_STEP } from '../src/engine/core/fixedStep';
-import { parseNativeRuntimePlan } from '../src/format/nativeRuntimePlan';
-import { ClientPopulationSchema } from '../src/format/clientNative';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
+import { ClientPopulationSchema } from '@wildshard/format/clientNative';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { pagePopulationRows } from '../src/game/population/pageRows';
 import { bindPageHomes } from '../src/game/population/pageHomes';
 import { censusOf, populationCensus, type PopulationCensus } from '../src/game/population/census';

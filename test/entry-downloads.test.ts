@@ -6,10 +6,10 @@ import {resolve} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin original metadata bytes exactly like the compiler.
 import {createHash} from 'node:crypto';
 import {emptyShardfile} from '@wildshard/sdk/author';
-import {outputSectionPayloads} from '../src/format/outputFields';
+import {outputSectionPayloads} from '@wildshard/format/outputFields';
 import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
 import {writeSpawnManifests} from '../scripts/app-build/entryTotals';
-import {readSpawnManifest} from '../src/format/spawnManifest';
+import {readSpawnManifest} from '@wildshard/format/spawnManifest';
 import {gridEntryDownloads} from '../scripts/app-build/gridEntryDownloads';
 import {startGridStripDownload, gridStripDownloadRows} from '../src/game/grid/entryDownloads';
 import {entryReadSet} from '../scripts/app-build/entryReadSet';

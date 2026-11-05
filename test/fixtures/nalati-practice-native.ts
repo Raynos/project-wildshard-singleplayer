@@ -6,7 +6,7 @@ import {enterPracticeLoan,exitPracticeLoan,practiceViewDistance} from '../../src
 import {ARENA_LINEUP} from '../../src/engine/practice/lineup';
 import {fovForAspect} from '../../src/engine/combat/blocks/melee';
 import {practiceRoomState} from '../../src/engine/core/practiceRoomState';
-import {parseHeldSlots} from '../../src/format/heldArms';
+import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {ItemCatalogue} from '../../src/game/loadout/itemCatalogue';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';

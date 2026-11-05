@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { Bone, Group, Matrix4, Vector3 } from 'three';
-import { LimbRigSchema, parseLimbBlend, readBakedClips } from '../src/format/limbRig';
-import { readLimbCollisionBake } from '../src/format/limbCollision';
+import { LimbRigSchema, parseLimbBlend, readBakedClips } from '@wildshard/format/limbRig';
+import { readLimbCollisionBake } from '@wildshard/format/limbCollision';
 import { LimbAnimator, type LimbPoseInput } from '../src/game/animation/limbBlend';
 import { limbRest, applyLimbPose, newLimbPose } from '../src/game/animation/limbRig';
 import { LimbQueryPose } from '../src/game/animation/limbQueryPose';

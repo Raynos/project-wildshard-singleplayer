@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { EasedFields, easeField } from '../src/engine/world/easedFields';
-import { parseEasedFields } from '../src/format/easedFields';
+import { parseEasedFields } from '@wildshard/format/easedFields';
 import { SIGNAL_WEATHER_FIELDS } from '../src/shards/sunscar-dunes/generators/weatherFields';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';

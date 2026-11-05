@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { SIGNAL_MODEL_SPECIMENS as signalModels } from '../src/shards/sunscar-dunes/generators/rows/rigLibrary';
 import { SIGNAL_PAGE_PROGRAM } from '../src/shards/sunscar-dunes/generators/rows/population';
 import { rigLibrary, originalOutput as signalOutput } from './fixtures/sunscar-source-program';
-import { readSpeciesProgram, readSpeciesPrograms } from '../src/format/speciesPrograms';
+import { readSpeciesProgram, readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
 
 // Explorer and page use the same generated body catalogue and exact clip rows.
 test('Signal creature models retain body order, framing and page rig contracts', () => {

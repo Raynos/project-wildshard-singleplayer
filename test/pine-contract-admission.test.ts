@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { PINE as pine, PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import type { ContractCatalogue } from '../src/format/contracts';
+import type { ContractCatalogue } from '@wildshard/format/contracts';
 
 test('the actual contract file validates before page or native board construction', async () => {
   const file = output.namedFiles.find(row => row.name === 'quests/contracts.json');

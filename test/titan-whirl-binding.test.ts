@@ -10,7 +10,7 @@ import {shardContext} from '../src/game/plugin/context';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {MANIFEST as TEMPLATE} from '../src/shards/_template/discovery.generated';
-import {ArenaWhirlsSchema,type ArenaWhirlsRows} from '../src/format/encounterRows';
+import {ArenaWhirlsSchema,type ArenaWhirlsRows} from '@wildshard/format/encounterRows';
 import {ArenaWhirlsView} from '../src/game/boss/arenaFire';
 import {ReturnProgram} from '../src/game/population/returnProgram';
 import {installViewProgram,preflightViewLends,lendViewValues,lendViewDraw,lendViewFrame} from '../src/game/shardfile/clientViewProgram';

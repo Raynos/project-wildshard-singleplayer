@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { facadeWindowPackets } from '../src/shards/nine-dragon-stack/generators/facadeWindowPackets';
 import { facadeWindowBlobs } from '../src/shards/nine-dragon-stack/generators/facadeWindows';
 import { addWindowNodes } from '../src/shards/nine-dragon-stack/generators/facadeWindowRecipe';
-import { parseWorldScene } from '../src/format/clientChannels';
+import { parseWorldScene } from '@wildshard/format/clientChannels';
 
 test('binary window rows cover each original packet exactly in its two draws', () => {
   const packets = facadeWindowBlobs(layout), rows = facadeWindowPackets(layout);

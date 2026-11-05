@@ -1,6 +1,6 @@
 import { terrainFieldFor } from '../src/engine/world/groundField';
 import { expect, test } from 'vitest';
-import { parseCapturePoses } from '../src/format/minimap';
+import { parseCapturePoses } from '@wildshard/format/minimap';
 import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';

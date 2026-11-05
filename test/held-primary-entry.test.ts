@@ -17,9 +17,9 @@ import { emptyShardfile } from '../src/sdk/author';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { parseItems } from '../src/format/items';
-import { HeldArmsSchema } from '../src/format/heldArms';
-import { MeleeWeaponProfileSchema } from '../src/format/weaponProfiles';
+import { parseItems } from '@wildshard/format/items';
+import { HeldArmsSchema } from '@wildshard/format/heldArms';
+import { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

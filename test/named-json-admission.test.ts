@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { isJsonData, isJsonDataWithFileSchemas } from '../src/format/json';
+import { isJsonData, isJsonDataWithFileSchemas } from '@wildshard/format/json';
 import { nameBlob } from '../src/sdk/blobs';
 import {validateDefinedJson} from '../src/sdk/sections';
 import {encodeCanonicalJson} from '../src/sdk/immutable';

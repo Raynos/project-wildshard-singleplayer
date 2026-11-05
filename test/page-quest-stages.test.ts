@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { parseQuestHost } from '../src/format/questHost';
+import { parseQuestHost } from '@wildshard/format/questHost';
 import { Flags } from '../src/engine/world/interact/flags';
 import { bindPageQuestStages } from '../src/game/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';

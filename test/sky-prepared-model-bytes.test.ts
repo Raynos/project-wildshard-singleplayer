@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 import { BoxGeometry, BufferGeometry, Float32BufferAttribute } from 'three';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { prepareAssetDecoders } from '../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { bakePreparedModels, prepareModelFrame } from '../src/shards/far-reach/generators/preparedModelBytes';
 import { bakePreparedModels as retainedPreparedModels } from '../src/shards/far-reach/generators/preparedModels';

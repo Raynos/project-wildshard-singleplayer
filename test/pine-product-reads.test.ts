@@ -1,11 +1,11 @@
-import { parsePageLife } from '../src/format/pageLife';
-import { parseCoverAppearance } from '../src/format/coverAppearance';
-import { HeldEquipmentSchema } from '../src/format/heldEquipment';
+import { parsePageLife } from '@wildshard/format/pageLife';
+import { parseCoverAppearance } from '@wildshard/format/coverAppearance';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readPineProject } from './fixtures/pine-project';
-import { RangedPageSchema } from '../src/format/rangedPage';
+import { RangedPageSchema } from '@wildshard/format/rangedPage';
 
 // The Pine client's product reads (sp-o270): every custom section and named blob runtime/ asks the built output for is
 // emitted, with the shapes the readers convert (skin pickups, wildlife voices, mount packs).

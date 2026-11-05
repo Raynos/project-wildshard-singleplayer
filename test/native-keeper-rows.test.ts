@@ -7,7 +7,7 @@ import { Rng } from '../src/engine/core/rng';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
 import { keeperRows } from '../src/shards/driftwood-isle/generators/keeperRows';
 import * as v from 'valibot';
-import { PopulationKeeperRowsSchema } from '../src/format/populationKeeper';
+import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 
 const finite=v.pipe(v.number(),v.finite());
 const physics=v.parse(v.object({actors:v.array(v.object({id:v.string(),kind:v.string(),variant:v.string(),seed:finite,scale:finite})),

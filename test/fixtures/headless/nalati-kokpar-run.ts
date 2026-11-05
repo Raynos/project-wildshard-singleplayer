@@ -11,7 +11,7 @@ import {snapshotSimHostBytes,serializeSimSnapshot} from '../../../src/engine/sim
 import {canonicalSimDigest} from '../../fake/simState';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {mountedPlayerOf} from '../../../src/game/riding/native';
-import {parseCarriedQuest} from '../../../src/format/questSteps';
+import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {createNativeProofResident} from '../headless-native';
 import {createNativeProofWorker} from '../headless-worker';
 import {prepareHeadlessRuntime} from '../nalati-kokpar-native';

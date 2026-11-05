@@ -11,7 +11,7 @@ import type { Animal } from '../src/engine/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/entities/AnimalManager';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { QuestChapter } from '../src/game/quest/chapter';
-import { parseQuestLeadPage } from '../src/format/questSteps';
+import { parseQuestLeadPage } from '@wildshard/format/questSteps';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { PINE_LIFE_ORIGINAL as program } from './fixtures/pine-life';
 import { parseQuestLeadRows } from '../src/shards/pine-hollow/generators/sections';

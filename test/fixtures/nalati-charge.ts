@@ -1,6 +1,6 @@
 import { nalatiNativeProgram } from './nalati-native-program';
 import * as v from 'valibot';
-import {parseSpawnScript,SpawnScriptRowSchema} from '../../src/format/spawnScripts';
+import {parseSpawnScript,SpawnScriptRowSchema} from '@wildshard/format/spawnScripts';
 import {nalatiChargeWire,type NalatiChargeProgram} from '../../src/shards/nalati-grasslands/generators/chargeProgram';
 
 /** GR6: the Qara Batyr charge rows and module as the product builds them (chargeRows.ts), compiled once in a plain Node

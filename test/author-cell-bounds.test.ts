@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { authorCellBounds, completeL0Tiles } from '../src/sdk/bake/tileGrid';
-import { CHUNK_HALF } from '../src/format/contentBounds';
+import { CHUNK_HALF } from '@wildshard/format/contentBounds';
 
 test('author cell footprint agrees with every complete native L0 tile', () => {
   const bounds = authorCellBounds(), tiles = completeL0Tiles([]);

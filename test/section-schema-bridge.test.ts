@@ -1,4 +1,4 @@
-import {HeldEquipmentSchema} from '../src/format/heldEquipment';
+import {HeldEquipmentSchema} from '@wildshard/format/heldEquipment';
 import * as v from 'valibot';
 import {expect,it} from 'vitest';
 import {sectionType} from '../scripts/section-types.mjs';

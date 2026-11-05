@@ -2,9 +2,9 @@
 import {createHash} from 'node:crypto';
 import {expect,test,vi} from 'vitest';
 import {zlibSync,unzlibSync} from 'fflate';
-import {bakedSamplers} from '../src/format/bakedTerrainSampling';
+import {bakedSamplers} from '@wildshard/format/bakedTerrainSampling';
 import {Scope} from '../src/engine/app/scope';
-import type {ScalarLatticeRows} from '../src/format/scalarChannel';
+import type {ScalarLatticeRows} from '@wildshard/format/scalarChannel';
 import {ScalarLatticeBindings,readScalarChannel} from '../src/engine/world/scalarChannel';
 import {defineShard,prepareManifestScalarBlocks,type ShardManifestRows} from '../src/game/shard/manifest';
 import {absentShardProduct,type ShardProduct} from '../src/game/shardfile/shardProduct';

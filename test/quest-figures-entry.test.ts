@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { Flags } from '../src/engine/world/interact/flags';
-import type { ClientFeatureRow } from '../src/format/clientPlan';
+import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { QuestPageComposition } from '../src/game/quest/pageComposition';

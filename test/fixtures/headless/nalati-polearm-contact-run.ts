@@ -2,8 +2,8 @@
 import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {Vector3} from 'three';
-import {ThrownWeaponProfileSchema} from '../../../src/format/weaponProfiles';
-import {parseHeldSlots} from '../../../src/format/heldArms';
+import {ThrownWeaponProfileSchema} from '@wildshard/format/weaponProfiles';
+import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {nativeGroupCollection} from '../../../src/game/shardfile/groupRuntime';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';

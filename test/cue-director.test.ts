@@ -8,7 +8,7 @@ import type { Game } from '../src/engine/core/Game';
 import { CombatCues } from '../src/engine/combat/cues';
 import { Impacts } from '../src/engine/fx/Impacts';
 import { CueDirector } from '../src/game/audio/cueDirector';
-import { CueDirectorSchema } from '../src/format/cueDirector';
+import { CueDirectorSchema } from '@wildshard/format/cueDirector';
 import * as sceneSources from '../src/game/shardfile/sceneSources';
 import { createModelLibrary } from '../src/game/plugin/geometry';
 import { lendLooks } from '../src/game/shardfile/lentLooks';

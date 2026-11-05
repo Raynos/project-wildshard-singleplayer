@@ -6,7 +6,7 @@ import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physic
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
 import { TOON_LOOK } from '../src/shards/driftwood-isle/generators/toonPresentation';
 import { output } from '../src/shards/driftwood-isle/generators/output';
-import { ToonLookSchema } from '../src/format/toonLook';
+import { ToonLookSchema } from '@wildshard/format/toonLook';
 
 test('the admitted physics reconstructs every original native catalogue byte in order', () => {
   const original = driftwoodNativeRows(driftwoodPhysics());

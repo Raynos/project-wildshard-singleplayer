@@ -4,7 +4,7 @@ import { BoxGeometry, BufferGeometry, Group } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import type { ShardContext } from '../src/game/plugin/context';
-import { SceneDressingSchema } from '../src/format/sceneDressing';
+import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';

@@ -1,7 +1,7 @@
 // CI12 Nalati chapter: the quest observation split out of readQuestObservation (questObservation, page-free) answers
 // exactly as the page's inline read did, calls the same owners in the same order, and refuses and recovers the same way.
 import { expect, test } from 'vitest';
-import type { ObservationRef } from '../src/format/sceneRefs';
+import type { ObservationRef } from '@wildshard/format/sceneRefs';
 import { questObservation, type ObservedQuest, type ObservedRecords } from '../src/game/quest/questObservation';
 
 interface World {

@@ -3,7 +3,7 @@ import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/q
 import { FIGURE_CATALOGUE } from '../src/shards/driftwood-isle/generators/figureCatalogue';
 import { siteCatalogue } from '../src/shards/driftwood-isle/generators/siteCatalogue';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' with { type: 'json' };
 import page from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 import stall from '../src/shards/driftwood-isle/data/traderStall.json' with { type: 'json' };

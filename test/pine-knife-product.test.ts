@@ -4,7 +4,7 @@ import { paintedPrimitives } from '@wildshard/game/plugin/geometry';
 import { readPineProject } from './fixtures/pine-project';
 import { KNIFE_LOOK } from '../src/shards/pine-hollow/generators/knifeLook';
 import playback from '../src/shards/pine-hollow/data/heldToolPlayback.json' with { type: 'json' };
-import { HeldEquipmentSchema } from '../src/format/heldEquipment';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { heldToolRows } from '../src/game/plugin/heldTool';
 

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { captureFogUniforms, ColourRampFog, fogUniforms } from '../src/engine/world/Atmosphere';
 import { graph as authorGraph, graphInputs } from '../src/sdk/materials';
-import type { GraphIr } from '../src/format/materialGraph';
+import type { GraphIr } from '@wildshard/format/materialGraph';
 
 test('atmosphere and ramp graph inputs borrow the live day owners and define a no-ramp default', () => {
   const ir: GraphIr = { version: 1, kind: 'material', model: 'unlit', nodes: {

@@ -1,15 +1,15 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import { questStoryRows, questHostRows, panelDefinitionRows, type AuthorPanelTemplate, type AuthorPanelValue } from '../src/sdk/quests';
 import { worldEntryRows } from '../src/sdk/worldScenes';
-import { parseQuestStory } from '../src/format/questStory';
-import { parseQuestHost } from '../src/format/questHost';
-import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '../src/format/panelTemplate';
-import { parseWorldEntry } from '../src/format/worldEntry';
+import { parseQuestStory } from '@wildshard/format/questStory';
+import { parseQuestHost } from '@wildshard/format/questHost';
+import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '@wildshard/format/panelTemplate';
+import { parseWorldEntry } from '@wildshard/format/worldEntry';
 import { PAGE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
 import { PINE_QUEST_HOST } from '../src/shards/pine-hollow/generators/questHost';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import type { nineMoversView } from '../src/shards/nine-dragon-stack/generators/moversView';
-import type { ViewProgramRows } from '../src/format/viewProgram';
+import type { ViewProgramRows } from '@wildshard/format/viewProgram';
 
 test('mover author rows derive the entire native view grammar from the admitted client feature', () => {
   expectTypeOf<ReturnType<typeof nineMoversView>>().toEqualTypeOf<ViewProgramRows>();

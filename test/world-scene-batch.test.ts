@@ -2,10 +2,10 @@
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, BatchedMesh, InstancedMesh, type Object3D } from 'three';
-import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
+import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { Scope } from '../src/engine/app/scope';
 import { AssetService } from '../src/engine/app/assets';
-import { WorldSceneBatchSchema } from '../src/format/worldSceneBatch';
+import { WorldSceneBatchSchema } from '@wildshard/format/worldSceneBatch';
 import { WorldSceneBatch } from '../src/game/shardfile/worldSceneBatch';
 import { installWorldRegistry, WorldRegistry } from '../src/engine/world/registry';
 import type { ShardContext } from '../src/game/plugin/context';
@@ -106,7 +106,7 @@ test('batch rows reject executable values, missing fixed geometry and unbounded 
 
 test('resident rows share one native batch across a named model and fixed tail', async () => {
   const [{ installWorldScenes }, { parseWorldScenes }, { emptyShardfile }, { staticGlb }, { SkyRig }] = await Promise.all([
-    import('../src/game/shardfile/worldScenes'), import('../src/format/worldScenes'), import('../src/sdk/author'),
+    import('../src/game/shardfile/worldScenes'), import('@wildshard/format/worldScenes'), import('../src/sdk/author'),
     import('../src/sdk/bake/glb'), import('../src/engine/world/skyRig'),
   ]);
   const owner = new Scope('harbour-resident'), registry = new WorldRegistry(), geometry = triangle(), material = new MeshBasicMaterial();

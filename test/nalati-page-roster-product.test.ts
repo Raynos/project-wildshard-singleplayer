@@ -3,17 +3,17 @@ import { expect,test } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Admit the live population book without a generated JSON type edge.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
-import { CombatTargetRowsSchema } from '../src/format/targets';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { CombatTargetRowsSchema } from '@wildshard/format/targets';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { nalatiNativeBoot } from './fixtures/nalati-native-boot';
 import combatTargets from '../src/shards/nalati-grasslands/data/combatTargets.json' with { type: 'json' };
 import { outputScriptAdmissionRows } from '../src/sdk/outputProduct';
-import { decisionModuleContracts } from '../src/format/scriptContract';
-import { validateShardfileAssets } from '../src/format/assetAdmission';
+import { decisionModuleContracts } from '@wildshard/format/scriptContract';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { contentHash } from '../src/sdk/project';
 import { readNalatiProject } from './fixtures/nalati-project';
 import { buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
-import { PopulationFieldSchema } from '../src/format/populationEnvironment';
+import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 
 const populationInput:unknown=JSON.parse(readFileSync('test/fixtures/nalati-population-field-original.json','utf8'));
 const populationField=v.parse(PopulationFieldSchema,populationInput);

@@ -1,6 +1,6 @@
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { DRIFTWOOD_NATIVE_QUEST } from '../src/shards/driftwood-isle/generators/nativeQuest';
-import { parseNativeQuestComposition } from '../src/format/nativeQuestComposition';
+import { parseNativeQuestComposition } from '@wildshard/format/nativeQuestComposition';
 import * as v from 'valibot';
 import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compose the native owners over real Rapier.
@@ -15,8 +15,8 @@ import { installNativeQuestComposition, readNativeQuestSpots } from '@wildshard/
 import { installNativeQuestChannels, registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import { installNativeItems, createNativeCombatFrame } from '../src/game/plugin/nativeItems';
 import { prepareEmbeddedDirector } from '../src/game/plugin/director';
-import { parseQuestHost } from '../src/format/questHost';
-import { parseAchievementCounterData } from '../src/format/achievementCounters';
+import { parseQuestHost } from '@wildshard/format/questHost';
+import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { orchardPopulation } from './fixtures/mixed-population';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import product from './fixtures/driftwood-product-source';

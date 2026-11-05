@@ -1,4 +1,4 @@
-import { parseManifestMetadata } from '../src/format/minimap';
+import { parseManifestMetadata } from '@wildshard/format/minimap';
 import metadata from '../src/shards/nalati-grasslands/manifest.json' with { type: 'json' };
 import { expect,test } from 'vitest';
 

@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Decode the original Places fixture, never a runtime fallback.
 import { inflateSync } from 'node:zlib';
-import { prepareAssetDecoders } from '../../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { unshuffleLanes } from '../../src/engine/core/deflate';
 import { originalPlaceBinary } from './nalati-original-place-binary';
 

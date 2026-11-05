@@ -4,7 +4,7 @@ import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { StealthCrouch, StealthDetection, type StealthObservation, type StealthPose } from '../src/game/stealth/stealthLaw';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { parse } from 'valibot';
-import { StealthRowsSchema } from '../src/format/stealth';
+import { StealthRowsSchema } from '@wildshard/format/stealth';
 
 // CI12: the renderer-free crouch kernel equals the page controller's original crouch, toggle, shot and hint logic
 // (copied below from controller.ts as it stood before the kernel), step for step, and a restored kernel continues it.

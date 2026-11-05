@@ -5,7 +5,7 @@ import { heldEntry, enteredRows } from './fixtures/nineHeldEntry';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
 import { bakedLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { emitPlatformSections } from '../src/sdk/platformSections';
-import type { PlatformDataSectionName } from '../src/format/platformDataSections';
+import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
 import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { App } from '../src/engine/app/app';

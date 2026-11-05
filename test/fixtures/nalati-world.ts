@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
-import type { BakedGrid } from '../../src/format/bakedTerrainBytes';
-import { nativeBodySchema } from '../../src/format/nativePhysics';
-import { SpeciesSchema, type SpeciesData } from '../../src/format/speciesPrograms';
+import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
+import { nativeBodySchema } from '@wildshard/format/nativePhysics';
+import { SpeciesSchema, type SpeciesData } from '@wildshard/format/speciesPrograms';
 import type { AnimalSimSpec } from '../../src/engine/entities/AnimalSim';
 import type { SimHost } from '../../src/engine/sim';
 import { NativePopulationField } from '@wildshard/game/population/environment';

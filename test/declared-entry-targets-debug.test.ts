@@ -4,7 +4,7 @@ import {Vector3} from 'three';
 import {Scope} from '../src/engine/app/scope';
 import {Events} from '../src/engine/events/events';
 import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
-import {parseClientPlan} from '../src/format/clientPlan';
+import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {installCombatTargets} from '../src/game/shardfile/clientTargets';
 import {publishEntryOwner} from '../src/game/shardfile/entryOwners';
 import type {ShardContext} from '../src/game/plugin/context';

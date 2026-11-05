@@ -1,6 +1,6 @@
 /** Actual browser product admission across a page reload, with durable CacheStorage. */
 import { admitProduct, browserProductCache } from '../../src/game/shardfile/product';
-import { parseShardfile } from '../../src/format/shardSchema';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 
 declare const __LIBRARY_BASE__: string;
 

@@ -333,7 +333,14 @@
     "./postGraphDocument": "./postGraphDocument.ts",
     "./scaledPostContract": "./scaledPostContract.ts",
     "./arenaRoomDocument": "./arenaRoomDocument.ts",
-    "./productValidation": "./productValidation.ts"
+    "./productValidation": "./productValidation.ts",
+    "./cellBounds": "./cellBounds.ts",
+    "./fenceReads": "./fenceReads.ts",
+    "./glbImages": "./glbImages.ts",
+    "./trail": "./trail.ts",
+    "./uiStrings": "./uiStrings.ts",
+    "./wireLimits": "./wireLimits.ts",
+    "./memoryGates.json": "./memoryGates.json"
   },
   "dependencies": {
     "meshoptimizer": "1.2.0",

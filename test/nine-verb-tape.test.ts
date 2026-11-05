@@ -3,7 +3,7 @@ import { nineNativeConstants } from './fixtures/nine-native-constants';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {openProductSession,type ProductSessionVariant} from './fixtures/headless/productSession';
-import {parseGrappleProfile} from '../src/format/grapple';
+import {parseGrappleProfile} from '@wildshard/format/grapple';
 import type {HeadlessTapeObservation,HeadlessTapePlan} from '../src/sdk/headlessTape';
 
 const xyz=v.object({x:v.number(),y:v.number(),z:v.number()});

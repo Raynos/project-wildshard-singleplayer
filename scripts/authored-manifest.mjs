@@ -30,7 +30,7 @@ export function productManifestPath(root, product) {
  * their isolated exports, imports nothing more.
  * metadataOnly emits the identical TypeScript table for a source type check;
  * asset presence remains the ordinary build's responsibility.
- * @param {string} root @param {string} slug @param {{ generation?: boolean, metadataOnly?: boolean, folder?: string, composed?: Record<string, unknown> | null, discovery?: import('../src/format/discoveryValues').DiscoveryValues }} [options] */
+ * @param {string} root @param {string} slug @param {{ generation?: boolean, metadataOnly?: boolean, folder?: string, composed?: Record<string, unknown> | null, discovery?: import('@wildshard/format/discoveryValues').DiscoveryValues }} [options] */
 export function authoredManifestSource(root, slug, { generation = false, metadataOnly = false, folder = slug, composed = null, discovery } = {}) {
   const file = composed === null ? `src/shards/${folder}/manifest.json` : `src/shards/${folder}/outputs.json#${slug}`;
   if (existsSync(resolve(root, `src/shards/${folder}/manifest.ts`))) throw new Error(`${file}: duplicate authored manifest authority`);

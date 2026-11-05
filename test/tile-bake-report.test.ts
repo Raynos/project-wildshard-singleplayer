@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import {afterEach,expect,test} from 'vitest';
 import {emptyShardfile} from '../src/sdk/author';
 import {writeOutputProduct} from '../src/sdk/outputProduct';
-import type {Shardfile} from '../src/format/shardSchema';
+import type {Shardfile} from '@wildshard/format/shardSchema';
 import {checkTileBake} from '../scripts/tile-bakes.mjs';
 import {checkNineTiling,readTilingReport,tileBoxVisible,tileTilingReport,tilingMarkdown,type BakeCamera,type NineTilingBaseline,type TilingInput} from '../scripts/tile-bake-report.mjs';
 

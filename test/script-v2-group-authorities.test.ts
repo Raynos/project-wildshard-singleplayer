@@ -10,7 +10,7 @@ import {GroupBrain} from '../src/engine/ai/GroupBrain';
 import {AggressionDirector} from '../src/engine/ai/director';
 import {GroupStepV2,prepareGroupNativeV2,type GroupStepNativeOwnersV2,type GroupStepReferenceV2} from '../src/engine/script/groupStepV2';
 import type {V2ColumnOwners} from '../src/engine/script/observationColumnsV2';
-import {parseGroupStepV2,groupStepLayoutV2,GroupStepV2Schema} from '../src/format/scriptGroupStepV2';
+import {parseGroupStepV2,groupStepLayoutV2,GroupStepV2Schema} from '@wildshard/format/scriptGroupStepV2';
 import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
 import {v2CoreSource} from '../src/sdk/as/wsV2';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';

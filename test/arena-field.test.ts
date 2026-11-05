@@ -2,7 +2,7 @@ import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { installArenaBoundary, arenaBoundaryBlocked } from '../src/game/riding/client';
 import { beforeEach,afterEach,expect,test } from 'vitest';
 import { parse } from 'valibot';
-import { CellFieldSchema } from '../src/format/cellField';
+import { CellFieldSchema } from '@wildshard/format/cellField';
 import { CellField } from '../src/game/systems/cellField';
 import { Scope } from '../src/engine/app/scope';
 import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';

@@ -1,6 +1,6 @@
 import { layout as originalLayout } from './fixtures/nine-product-inputs';
 import { expect, test } from 'vitest';
-import { prepareAssetDecoders } from '../src/format/product';
+import { prepareAssetDecoders } from '@wildshard/format/product';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineWorldLayout } from '../src/shards/nine-dragon-stack/generators/worldProduct';
 import { nineLayoutSource } from '../src/shards/nine-dragon-stack/generators/layout';
@@ -9,7 +9,7 @@ import { bakedLayout, bakedLayoutProjection } from '../src/shards/nine-dragon-st
 import { facadeWindowBlobs, type NineWindowLayout } from '../src/shards/nine-dragon-stack/generators/facadeWindows';
 import { facadeWindowPackets } from '../src/shards/nine-dragon-stack/generators/facadeWindowPackets';
 import { addWindowNodes, windowStep } from '../src/shards/nine-dragon-stack/generators/facadeWindowRecipe';
-import { parseWorldScene } from '../src/format/clientChannels';
+import { parseWorldScene } from '@wildshard/format/clientChannels';
 
 test('owned layout rows preserve every original projection and facade packet byte', async () => {
   await prepareAssetDecoders();

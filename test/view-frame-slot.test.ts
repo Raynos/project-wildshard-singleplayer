@@ -11,7 +11,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { installViewProgram, lendViewCell, lendViewFrame, lendViewValues } from '../src/game/shardfile/clientViewProgram';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { ViewProgramSchema } from '../src/format/viewProgram';
+import { ViewProgramSchema } from '@wildshard/format/viewProgram';
 import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/script/viewLane';
 import { scriptMemoryCensus } from '../src/engine/script/moduleV2';
 import { FixedMemory } from '../src/engine/script/fixedMemory';

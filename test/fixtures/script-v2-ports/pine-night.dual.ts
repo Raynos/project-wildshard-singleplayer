@@ -2,10 +2,10 @@
  * radial/ground replies under both ABI wrappers. Never enters a product. */
 import night from '../../../src/shards/pine-hollow/behaviour/night.as?raw';
 import { NIGHT_SPAWN } from '../../../src/shards/pine-hollow/generators/nightSpawn';
-import { decisionBindingMap } from '../../../src/format/decisionBindings';
-import { spawnScriptRegistries } from '../../../src/format/spawnScripts';
-import { scriptV1Identifier } from '../../../src/format/decisionScripts';
-import { SCRIPT_V1_COMMANDS } from '../../../src/format/scriptAbiV1';
+import { decisionBindingMap } from '@wildshard/format/decisionBindings';
+import { spawnScriptRegistries } from '@wildshard/format/spawnScripts';
+import { scriptV1Identifier } from '@wildshard/format/decisionScripts';
+import { SCRIPT_V1_COMMANDS } from '@wildshard/format/scriptAbiV1';
 import { expect } from 'vitest';
 import { simulationPair } from '../script-v2-projection';
 import type { DualPortFixture } from '../script-v2-port';

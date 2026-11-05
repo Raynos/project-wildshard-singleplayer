@@ -4,7 +4,7 @@ import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
 import { NumericCourse } from '../src/game/practice/numericCourse';
 import { Scope } from '../src/engine/app/scope';

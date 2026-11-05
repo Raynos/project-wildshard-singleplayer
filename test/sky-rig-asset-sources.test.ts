@@ -8,7 +8,7 @@ import type { ModelLibraryRows } from '../src/game/plugin/geometry';
 import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/boot/filePolicy';
 import { registerGpuFiles, standIn } from '../src/engine/boot/gpuFiles';
 import { TIER, initializeTier } from '../src/engine/core/tier';
-import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 import { SKY_RIG_LIBRARY, skyRigLibrary } from '../src/shards/far-reach/generators/rigLibrary';
 import { SKY_PAGE_PROGRAM } from '../src/shards/far-reach/generators/rows/population';

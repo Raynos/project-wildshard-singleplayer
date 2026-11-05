@@ -4,8 +4,8 @@ import * as sectionDefinitions from '../src/shards/pine-hollow/generators/sectio
 import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import { grazerRows } from '../src/shards/pine-hollow/generators/grazers';
-import { HullLookBookSchema, HullSpeciesSchema } from '../src/format/speciesLooks';
-import { SpeciesProgramsSchema } from '../src/format/speciesPrograms';
+import { HullLookBookSchema, HullSpeciesSchema } from '@wildshard/format/speciesLooks';
+import { SpeciesProgramsSchema } from '@wildshard/format/speciesPrograms';
 import { HullLookBook } from '../src/game/looks/speciesBook';
 
 test('grazers retain their complete platform definitions without a duplicate custom section', () => {

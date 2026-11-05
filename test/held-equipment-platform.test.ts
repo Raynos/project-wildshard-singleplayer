@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { emptyShardfile } from '../src/sdk/author';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { HeldEquipmentSchema } from '../src/format/heldEquipment';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { HeldEquipment, heldLauncherProfile, heldFirearmSettings } from '../src/game/plugin/heldEquipment';
 import { CROSSBOW_WEAPON_PROFILE } from '../src/shards/pine-hollow/generators/crossbowProfile';

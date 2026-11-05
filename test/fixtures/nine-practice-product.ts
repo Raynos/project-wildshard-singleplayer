@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Browser-facing fixtures read the pinned executable checked against the independent cold compiler.
 import { readFileSync } from 'node:fs';
 import { courseProgramInputs } from '../../src/commons/courseProgram';
-import { admitScriptContract } from '../../src/format/scriptContract';
+import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 
 const hash = '6ffc72748c1709f4239ac983fdda5841a524a026512287fe16f0fa498b276102';

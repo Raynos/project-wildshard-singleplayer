@@ -3,9 +3,9 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve native compiler Maps, bytes and signed zero without JSON coercion.
 import { deserialize, serialize } from 'node:v8';
 import * as v from 'valibot';
-import { DecisionScriptsSchema } from '../../src/format/decisionScripts';
-import { OutputIndexSchema } from '../../src/format/outputIndex';
-import { ScriptContractSchema } from '../../src/format/scriptContract';
+import { DecisionScriptsSchema } from '@wildshard/format/decisionScripts';
+import { OutputIndexSchema } from '@wildshard/format/outputIndex';
+import { ScriptContractSchema } from '@wildshard/format/scriptContract';
 import { hashImmutableBytes, encodeCanonicalJson } from '../../src/sdk/immutable';
 import type { ProjectGenerationContext } from '../../src/sdk/projectGeneration';
 

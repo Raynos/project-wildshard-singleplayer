@@ -3,8 +3,8 @@ import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
 import { declaredMapColour as declaredMapColourInput } from '../src/game/shard/manifest';
 import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
-import { bakedSamplers } from '../src/format/bakedTerrainSampling';
-import { mapPalette } from '../src/format/minimap';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import { mapPalette } from '@wildshard/format/minimap';
 import { readNalatiGeography } from './fixtures/nalati-geography';
 
 import { NALATI_MINIMAP } from './fixtures/nalati-terrain';

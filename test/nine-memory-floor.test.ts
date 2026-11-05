@@ -4,8 +4,8 @@ import { expect, test } from 'vitest';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { playLibrarySource, scopedSpecimenLibrarySource, tierLibrarySource, urlImageLibrarySource } from '../src/game/shardfile/productCost';
-import { textureLibrarySource } from '../src/format/deviceMemoryCost';
-import { nearbyContentCost } from '../src/format/budget';
+import { textureLibrarySource } from '@wildshard/format/deviceMemoryCost';
+import { nearbyContentCost } from '@wildshard/format/budget';
 import { builtProduct } from './fixtures/builtProduct';
 
 /** D122: Nine Dragon's spawn, phone tier, read on HEAD preview a423f4d305 (Chromium, 2026-10-27): labelled GPU 245.6 MB +

@@ -6,7 +6,7 @@ import {Group,PerspectiveCamera} from 'three';
 import {Scope} from '../src/engine/app/scope';
 import {Audio} from '../src/engine/audio/Audio';
 import {Music} from '../src/engine/audio/Music';
-import {parseAudioData} from '../src/format/audio';
+import {parseAudioData} from '@wildshard/format/audio';
 import {SceneHandles} from '../src/game/shardfile/sceneHandles';
 import {LivingBuildings} from '../src/game/shardfile/livingBuildings';
 import {publishEntryOwner,lendEntryOwner} from '../src/game/shardfile/entryOwners';

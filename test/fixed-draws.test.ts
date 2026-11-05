@@ -1,4 +1,4 @@
-import { FixedDrawRowsSchema } from '../src/format/fixedDraws';
+import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { driftwoodFixedModel } from './fixtures/driftwood-fixed-bank';

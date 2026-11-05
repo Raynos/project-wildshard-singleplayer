@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {StealthRowsSchema} from '../../src/format/stealth';
+import {StealthRowsSchema} from '@wildshard/format/stealth';
 import {StealthCrouch,sampleStealthSources} from '../../src/game/stealth/stealthLaw';
 import {nativeGroupCollection} from '../../src/game/shardfile/groupRuntime';
 import {mountedPlayerOf} from '../../src/game/riding/native';

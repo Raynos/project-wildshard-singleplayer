@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { attribute, vec3 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { graph } from '../src/sdk/materials';
-import { validateGraph } from '../src/format/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 
 test('optional attributes share one shader across present/missing channels and carry their constants to every variant', () => {
   const ir = graph({ model: 'unlit', attributeDefaults: { aSway: [0, 0] },

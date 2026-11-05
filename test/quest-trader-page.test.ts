@@ -8,7 +8,7 @@ import type { ShardContext } from '../src/game/plugin/context';
 import { SceneHandles } from '../src/game/shardfile/sceneHandles';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
 import { installQuestTrader } from '../src/game/quest/trader';
-import { parseQuestPageInteractions } from '../src/format/questInteractions';
+import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { TRADER_PAGE } from '../src/shards/driftwood-isle/generators/traderPage';
 
 // G1c: Driftwood's admitted trader page binds the placed prompt through the shared page binder,

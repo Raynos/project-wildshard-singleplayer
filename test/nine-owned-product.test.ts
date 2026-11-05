@@ -1,5 +1,5 @@
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { nineNativeConstants } from './fixtures/nine-native-constants';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile the actual authored guest source, without generated metadata.
 import { readFileSync } from 'node:fs';
@@ -8,7 +8,7 @@ import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import product, { nineProduct, inputs } from './fixtures/nine-product-inputs';
 import { output } from './fixtures/nine-source-program';
-import { SCRIPT_V2_REVISIONS } from '../src/format/scriptAdmissionV2';
+import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { nineOutput as emitNineOutput } from '../src/shards/nine-dragon-stack/generators/productOutput';
 
 test('the product uses the supplied view memory while retaining every other declaration field', () => {

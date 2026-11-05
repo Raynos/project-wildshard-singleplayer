@@ -2,9 +2,9 @@ import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { authorFormatSchema, authorFormatRows } from '../src/sdk/formatJsonSchema';
 import type { AuthorDayClock } from '../src/sdk/rows';
-import type { DayClockRow } from '../src/format/dayCycle';
-import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '../src/format/nativePhysics';
-import { ForagerContinuation } from '../src/format/ambientLife';
+import type { DayClockRow } from '@wildshard/format/dayCycle';
+import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '@wildshard/format/nativePhysics';
+import { ForagerContinuation } from '@wildshard/format/ambientLife';
 import type { DuskLookRow } from '../src/shards/sunscar-dunes/generators/rows/lastLight';
 
 test('native physics grammar factories and forager continuation retain exact identity and signatures', () => {

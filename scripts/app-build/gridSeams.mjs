@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
-import { jsonDataHeapBytes } from '../../src/format/json.ts';
+import { jsonDataHeapBytes } from '@wildshard/format/json';
 
 /** The certified grid seams as the app build bakes them (gitignored, beside the title tables): the bundle defines only
  *  their small addresses (`__GRID_SEAM_ASSET__`, vite.config.ts). Native fallback plans are a separate verified file. */

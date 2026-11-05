@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { NativeGroupRowsSchema } from '../../src/format/creatures';
-import { WildlifePopulationSchema } from '../../src/format/wildlifePopulation';
+import { NativeGroupRowsSchema } from '@wildshard/format/creatures';
+import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 
 /** Rejoin only the duplicate pasture declarations. The original complete
  * group parser still admits every ordered step, contact and guest binding. */

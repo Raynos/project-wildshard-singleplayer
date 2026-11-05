@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { readPineProject } from './fixtures/pine-project';
-import { parseQuestPageInteractions, parseInteractionRows } from '../src/format/questInteractions';
+import { parseQuestPageInteractions, parseInteractionRows } from '@wildshard/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { Flags } from '../src/engine/world/interact/flags';
 import { Scope } from '../src/engine/app/scope';

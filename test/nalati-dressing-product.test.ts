@@ -6,10 +6,10 @@ import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';
 import { readSceneNumericTable as readDressingTable } from '../src/game/shardfile/sceneDressing';
 import { nalatiDressingPageReference } from '../src/shards/nalati-grasslands/generators/dressingPages';
 import { DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';
-import { SceneScatterPoseSchema, parseSceneScatterPage } from '../src/format/sceneDressing';
+import { SceneScatterPoseSchema, parseSceneScatterPage } from '@wildshard/format/sceneDressing';
 import { nalatiCover } from './fixtures/nalati-cover';
 import { AmbientGroup } from '../src/game/ambient/flock';
-import { SpecimenCatalogueSchema } from '../src/format/specimenCatalogue';
+import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { setTerrainHeight } from '../src/engine/world/terrainHeight';
 
 const cover = nalatiCover.rows;

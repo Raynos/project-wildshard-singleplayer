@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { SampledAudioSceneSchema, parseSampledAudioPlacement } from '../src/format/audioScene';
-import { parseWorldScenePlacement } from '../src/format/worldScenePlacement';
+import { SampledAudioSceneSchema, parseSampledAudioPlacement } from '@wildshard/format/audioScene';
+import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { ND_AUDIO, nineAudioForScenes } from '../src/shards/nine-dragon-stack/generators/audio';
 import { LAYOUT_PLACEMENT_BLOBS, LAYOUT_PLACEMENTS, scenes } from './fixtures/nine-product-inputs';
 

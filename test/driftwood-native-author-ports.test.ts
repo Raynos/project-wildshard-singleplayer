@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import type * as v from 'valibot';
-import type { MeleeWeaponProfileSchema } from '../src/format/weaponProfiles';
+import type { MeleeWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import type { parseMeleeWeaponProfile } from '../src/sdk/weapons/meleeProfile';
 import type { Placement } from '../src/engine/models/model';
 import type { originalDuneLogs } from '../src/shards/driftwood-isle/generators/driftwoodDuneLogs.mjs';

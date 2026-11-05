@@ -9,7 +9,7 @@ import * as v from 'valibot';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiRenderTileProgram } from '../src/shards/nalati-grasslands/generators/renderTileProgram';
-import { FilesSchema, TilesSchema } from '../src/format/shardSections';
+import { FilesSchema, TilesSchema } from '@wildshard/format/shardSections';
 import { EXACT_RENDER_METADATA, i3Predecessor } from './fixtures/nalati-render-i3';
 
 const exact = v.parse(v.object({ files: FilesSchema, tiles: TilesSchema }), JSON.parse(new TextDecoder().decode(EXACT_RENDER_METADATA)));

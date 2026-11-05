@@ -3,7 +3,7 @@ import { bootDiscovery } from './fixtures/nine-boot-discovery';
 import { expect, test } from 'vitest';
 import { MANIFEST } from '../src/shards/nine-dragon-stack/discovery.generated';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
-import { parseDiscoveryValues } from '../src/format/discoveryValues';
+import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect the defining compiler output in this clean source tree.
 import { resolve } from 'node:path';
 

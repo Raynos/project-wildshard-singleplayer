@@ -13,7 +13,7 @@ import { shardContext } from '../src/game/plugin/context';
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
-import { parseClientPlan } from '../src/format/clientPlan';
+import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';
 import { rangedPage } from '../src/shards/pine-hollow/generators/rangedPage';

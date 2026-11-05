@@ -1,4 +1,4 @@
-import type { RuntimeCost } from '../../src/format/runtimeCost';
+import type { RuntimeCost } from '@wildshard/format/runtimeCost';
 
 /** A measured runtime bound for fixture client-plan declarations (`{ kind: 'client-plan', cost, binds }`): LD9 retired the
  * copied-runtime `entry` arm, so a fixture that binds sections declares the compiled client plan with this cost. */

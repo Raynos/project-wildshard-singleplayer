@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import { worldSceneGraphPages } from '../src/sdk/worldScenes';
-import { parseWorldSceneWeld, sceneFileKey } from '../src/format/worldSceneWeld';
-import { parseWorldScenePage, worldScenePageWeld, sceneWeldBytes, sceneLivingBytes } from '../src/format/worldScenePages';
-import { registeredJsonContract } from '../src/format/registeredJson';
+import { parseWorldSceneWeld, sceneFileKey } from '@wildshard/format/worldSceneWeld';
+import { parseWorldScenePage, worldScenePageWeld, sceneWeldBytes, sceneLivingBytes } from '@wildshard/format/worldScenePages';
+import { registeredJsonContract } from '@wildshard/format/registeredJson';
 import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
-import { platformFileFamily } from '../src/format/platformFileFamilies';
+import { platformFileFamily } from '@wildshard/format/platformFileFamilies';
 import { admitWorldSceneModelGraphs } from '../src/game/shardfile/worldSceneWeld';
-import { parseWorldSceneModels } from '../src/format/worldSceneModels';
+import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 

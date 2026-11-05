@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the source fixture within its own clean tree.
 import { resolve } from 'node:path';
-import { parseManifestMetadata } from '../src/format/minimap';
+import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { defineAuthoredShard, declaredForestQueries, declaredGround } from '../src/game/shard/manifest';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';

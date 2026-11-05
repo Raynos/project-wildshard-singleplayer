@@ -10,7 +10,7 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';
 import { clientRingCatalogue, clientRingPorts, clientTileRegistration, ring } from '../src/game/shardfile/tileContent';
 import type { ClientTileViews } from '../src/game/shardfile/clientViews';
-import type { Shardfile } from '../src/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { jsonSlot } from '../src/engine/saves/slots';
 import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/boot/loadingPacks';
 

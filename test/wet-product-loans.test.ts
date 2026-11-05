@@ -9,7 +9,7 @@ import type {ShardRuntime} from '../src/game/shard/runtime';
 import {createShardProduct} from '../src/game/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import {parseClientPlan} from '../src/format/clientPlan';
+import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {installClientWildlife} from '../src/game/population/wildlife';
 import * as groups from '../src/game/population/pageGroups';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
@@ -19,7 +19,7 @@ import {fixtureJsonCheck,fixtureProductFile} from './fixtures/productFile';
 import * as population from '../src/game/population/environment';
 import * as riding from '../src/game/riding/native';
 import type {SimHost} from '../src/engine/sim';
-import type {BakedGrid} from '../src/format/bakedTerrainBytes';
+import type {BakedGrid} from '@wildshard/format/bakedTerrainBytes';
 
 const wetFile='world/wet.bin',wetBytes=zlibSync(new Uint8Array(Float32Array.from([0,.5,.6,1]).buffer));
 const pond={type:'f32',count:4,data:{file:'data/geography-pond.bin'}};

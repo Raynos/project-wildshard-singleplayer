@@ -8,7 +8,7 @@ import { Scope } from '../src/engine/app/scope';
 import { prepareScriptMemoryLease } from '../src/engine/script/host';
 import { embeddedDirectorBytes, prepareEmbeddedDirector } from '../src/game/plugin/director';
 import { terrainOpeningHits } from '../src/game/shardfile/pagePreparation';
-import { PageTerrainCutSchema } from '../src/format/pagePreparation';
+import { PageTerrainCutSchema } from '@wildshard/format/pagePreparation';
 import * as v from 'valibot';
 import declaration from '../src/shards/driftwood-isle/data/director.json' with { type: 'json' };
 import {driftwoodDirector as module} from './fixtures/director-modules';

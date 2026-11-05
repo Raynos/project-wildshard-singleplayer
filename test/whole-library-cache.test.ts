@@ -6,14 +6,14 @@ import { CONTENT_CAPS } from '../src/engine/core/config';
 import { initializeTier, TIER } from '../src/engine/core/tier';
 import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { MemoryAdmission } from '../src/format/memoryAdmission';
+import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { provideRuntimeProduct, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { readWholeLibrary } from '../src/game/shardfile/wholeLibrary';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import * as geometryModule from '../src/game/plugin/geometry';
 
 const originalTier = TIER;

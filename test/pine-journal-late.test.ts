@@ -6,8 +6,8 @@ import { expect, test } from 'vitest';
 import { pineJournal } from '../src/shards/pine-hollow/generators/journal';
 import { pineGeneration } from './fixtures/pine-generation';
 import { emptyShardfile } from '../src/sdk/author';
-import { controlFileHashes } from '../src/format/admissionControl';
-import { journalImageRefs } from '../src/format/compendiumRows';
+import { controlFileHashes } from '@wildshard/format/admissionControl';
+import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const journal = await pineJournal(pineGeneration('pine-journal-late', resolve(homedir(), '.cache/wildshard/gen')));

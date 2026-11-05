@@ -4,7 +4,7 @@ import { vec3 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
 import { ToonLook } from '../src/engine/render/families/toon';
 import { graph as authorGraph } from '../src/sdk/materials';
-import { validateGraph, type GraphIr } from '../src/format/materialGraph';
+import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 /** a toon graph's classic program: its sources and the uniform objects it reads */
 function program(graph: GraphIr, toon: ToonLook): THREE.ShaderMaterial {

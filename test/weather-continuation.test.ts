@@ -3,7 +3,7 @@ import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { expect, test } from 'vitest';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
-import { parseWeatherProgram } from '../src/format/weatherProgram';
+import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { installWeatherReactions, nativeWeatherBundle } from '../src/game/weather/reactions';
 import { installWeatherContinuation } from '../src/game/weather/continuation';

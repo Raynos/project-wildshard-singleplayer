@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { WorldAssemblySchema } from '../src/format/worldAssembly';
+import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { formatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { worldAssemblyRows } from '../src/sdk/worldScenes';

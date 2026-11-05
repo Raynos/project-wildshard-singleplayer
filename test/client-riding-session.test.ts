@@ -2,7 +2,7 @@ import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 import { expect, test } from 'vitest';
 import { NALATI_RIDING_PROGRAMS } from './fixtures/nalati-riding';
 import { parse } from 'valibot';
-import { ClientRidingSessionSchema, cleanMountName } from '../src/format/riding';
+import { ClientRidingSessionSchema, cleanMountName } from '@wildshard/format/riding';
 import { nalatiRidingSession } from '../src/shards/nalati-grasslands/generators/clientRiding';
 import { HeldClaims } from '../src/game/loadout/claims';
 import { installClientRiding } from '../src/game/riding/client';

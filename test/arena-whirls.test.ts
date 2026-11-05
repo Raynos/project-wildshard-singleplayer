@@ -6,7 +6,7 @@ import { BoxGeometry, InstancedMesh, MeshBasicMaterial, Object3D } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { terrainHeight as heightAt } from '../src/engine/world/terrainHeight';
 import { parse } from 'valibot';
-import { ArenaWhirlsSchema, type ArenaWhirlsRows } from '../src/format/encounterRows';
+import { ArenaWhirlsSchema, type ArenaWhirlsRows } from '@wildshard/format/encounterRows';
 import { TITAN_WHIRLS } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanPrograms } from './fixtures/titanInlineWitness';
 import { lendNalatiPasture, lendNalatiTitan } from './fixtures/nalati-return-modules';

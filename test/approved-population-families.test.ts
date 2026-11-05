@@ -2,12 +2,12 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin complete original population documents.
 import {createHash} from 'node:crypto';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
-import {NativePopulationRowsSchema} from '../src/format/populationRoster';
-import {PopulationShelterSchema} from '../src/format/herdShelter';
-import {CreatureInstallSchema} from '../src/format/speciesLooks';
+import {NativePopulationRowsSchema} from '@wildshard/format/populationRoster';
+import {PopulationShelterSchema} from '@wildshard/format/herdShelter';
+import {CreatureInstallSchema} from '@wildshard/format/speciesLooks';
 import roots from './fixtures/approved-population-families.json' with {type:'json'};
 
 test('six approved population families retain complete wire bodies and native defining parsers',()=>{

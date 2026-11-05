@@ -6,7 +6,7 @@ import {expect,test,vi} from 'vitest';
 import * as v from 'valibot';
 import {Scope} from '../src/engine/app/scope';
 import {TIER} from '../src/engine/core/tier';
-import {GrassPresentationSchema,grassPresentationFiles} from '../src/format/fieldPresentation';
+import {GrassPresentationSchema,grassPresentationFiles} from '@wildshard/format/fieldPresentation';
 import {GrassPresentationProfile} from '../src/game/looks/grassPresentation';
 import {createSceneBuffers} from '../src/game/shardfile/sceneBuffers';
 import {grassRows} from '../src/shards/nalati-grasslands/generators/grassRows';

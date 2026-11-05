@@ -1,6 +1,6 @@
 import { Rng } from '../../src/engine/core/rng';
 import type { MixedPopulationInput } from '@wildshard/game/population/mixedRoster';
-import { readSpeciesPrograms } from '../../src/format/speciesPrograms';
+import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { SIM_LEVEL } from './sim-level/level';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from '../../src/shards/driftwood-isle/generators/speciesPrograms';
 import { RETURN_PROGRAM } from './driftwood-guest-programs';

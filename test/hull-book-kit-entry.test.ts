@@ -1,13 +1,13 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { HeldEquipmentSchema } from '../src/format/heldEquipment';
+import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { Scope } from '../src/engine/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
-import { SocketRigCreatureSchema } from '../src/format/socketRigCreature';
+import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
+import { SocketRigCreatureSchema } from '@wildshard/format/socketRigCreature';
 import { declaredSocketRigCreatures, prepareDeclaredHullBookKit } from '../src/game/models/socketRigCreature';
 import { SocketRigCard } from '../src/game/boss/socketRig';
 import { HeldEquipment } from '../src/game/plugin/heldEquipment';

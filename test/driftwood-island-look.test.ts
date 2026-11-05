@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateGraph } from '../src/format/materialGraph';
+import { validateGraph } from '@wildshard/format/materialGraph';
 import { ISLAND_LOOKS } from '../src/shards/driftwood-isle/generators/islandLook';
 import lookGraphs from '../src/shards/driftwood-isle/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';

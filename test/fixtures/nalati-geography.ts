@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Runtime fixture admission avoids a large generated JSON type.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
-import type { MapGroundPaint, MapPaletteRow } from '../../src/format/minimap';
-import { ScalarLatticeSchema } from '../../src/format/scalarChannel';
+import type { MapGroundPaint, MapPaletteRow } from '@wildshard/format/minimap';
+import { ScalarLatticeSchema } from '@wildshard/format/scalarChannel';
 
 const finite=v.pipe(v.number(),v.finite());
 const pair=v.tuple([finite,finite]),rgb=v.tuple([finite,finite,finite]);

@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest';
 import { projectPlaceholders } from '../src/sdk/bake/placeholders';
-import { validateShardfileAssets } from '../src/format/assetAdmission';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { prepareAssetDecoders } from '../src/format/product';
-import { scriptAdmissionRows } from '../src/format/scriptContract';
+import { prepareAssetDecoders } from '@wildshard/format/product';
+import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { productClosureFile } from '../src/game/shardfile/shardProduct';
 import { driftwoodEmittedProduct } from './fixtures/driftwood-emitted-product';

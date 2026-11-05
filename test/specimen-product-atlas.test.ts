@@ -18,7 +18,7 @@ import { staticGlb } from '../src/sdk/bake/glb';
 import { bakeRawColourPixels } from '../src/sdk/bake/rawTexture';
 import { emptyShardfile } from '../src/sdk/author';
 import { emitNamedBlobs, nameBlob } from '../src/sdk/blobs';
-import { parseExplorerCatalogue } from '../src/format/explorerCatalogue';
+import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
 import type { ShardContext } from '../src/game/plugin/context';

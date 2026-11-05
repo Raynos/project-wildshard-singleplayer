@@ -1,7 +1,7 @@
 import { PerspectiveCamera, Vector3, type InstancedMesh, type Object3D } from 'three';
 import type { Scope } from '../../src/engine/app/scope';
 import { viewProgram, type ViewProgram } from '../../src/engine/script/viewProgram';
-import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '../../src/format/arenaView';
+import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
 import { fireViewRows } from '../../src/shards/nalati-grasslands/generators/titanFireView';
 import { whirlsViewRows } from '../../src/shards/nalati-grasslands/generators/titanWhirlsView';
 import { nalatiViewBytes } from '../fixtures/nalati-view-modules';

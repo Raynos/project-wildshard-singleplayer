@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { preflightShardfile } from '../src/format/preflight';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/format/admissionLimits';
+import { preflightShardfile } from '@wildshard/format/preflight';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 
 const utf8 = (value: unknown): number => new TextEncoder().encode(JSON.stringify(value)).length;
 

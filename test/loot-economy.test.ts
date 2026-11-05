@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
 import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
-import { parseLootEconomy } from '../src/format/lootEconomy';
-import { parseRows } from '../src/format/rows';
+import { parseLootEconomy } from '@wildshard/format/lootEconomy';
+import { parseRows } from '@wildshard/format/rows';
 import { declaredLootEconomy } from '../src/game/shard/declaredRows';
 import { Exchange } from '../src/game/loot/exchange';
 import { fixtureLootPresentation } from './fixtures/loot-page';

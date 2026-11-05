@@ -8,7 +8,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import { app } from '../src/engine/app/runtime';
 import * as rig from '../src/engine/anim/rig';
 import { SkyRig } from '../src/engine/world/skyRig';
-import { parseWorldScenes } from '../src/format/worldScenes';
+import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { worldSceneSourceMaterial } from '../src/game/shardfile/worldSceneMaterials';
 import { UploadOwnership } from '../src/engine/render/uploadOwnership';
 import { patchShader } from '../src/engine/render/shaderPatches';

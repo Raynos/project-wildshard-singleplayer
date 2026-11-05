@@ -2,9 +2,9 @@ import {expect,test} from 'vitest';
 import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
 import {v2CoreSource} from '../src/sdk/as/wsV2';
 import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
-import {returnProjectionV2Layout} from '../src/format/returnProjectionV2';
+import {returnProjectionV2Layout} from '@wildshard/format/returnProjectionV2';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {SCRIPT_V2_REVISIONS} from '../src/format/scriptAdmissionV2';
+import {SCRIPT_V2_REVISIONS} from '@wildshard/format/scriptAdmissionV2';
 
 test('admitted project radial math is finite and close to native geometry',async()=>{
   const layout=returnProjectionV2Layout(2);

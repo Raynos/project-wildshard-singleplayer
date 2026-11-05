@@ -19,10 +19,10 @@ import type { PageWildlife } from '../src/game/population/wildlife';
 import { Elites } from '../src/game/Elite';
 
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
-import { ELITE_CONDITION_COLUMNS } from '../src/format/eliteEntryRows';
+import { ELITE_CONDITION_COLUMNS } from '@wildshard/format/eliteEntryRows';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
-import { parseExternalElite } from '../src/format/eliteFeature';
+import { parseExternalElite } from '@wildshard/format/eliteFeature';
 import { strike } from '../src/sdk/species';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 

@@ -6,7 +6,7 @@ import type { PainterField, SkyBackdropContext, WorldLookContext } from '../src/
 import type { Terrain } from '../src/engine/world/Terrain';
 import * as geometry from '../src/engine/models/ownedGeometry';
 import { ToonLook } from '../src/engine/render/families/toon';
-import { TOON_DAY_PRESET, ToonDaySchema, parseToonLook } from '../src/format/toonLook';
+import { TOON_DAY_PRESET, ToonDaySchema, parseToonLook } from '@wildshard/format/toonLook';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import * as materials from '../src/game/shardfile/runtimeProduct';

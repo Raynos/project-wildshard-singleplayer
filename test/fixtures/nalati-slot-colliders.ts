@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {SimHost} from '../../src/engine/sim';
-import {EncounterSitesSchema} from '../../src/format/encounterRows';
+import {EncounterSitesSchema} from '@wildshard/format/encounterRows';
 import {originalNalatiPhysics} from './nalati-physics-original';
 
 const finite=v.pipe(v.number(),v.finite()),triple=v.tuple([finite,finite,finite]);

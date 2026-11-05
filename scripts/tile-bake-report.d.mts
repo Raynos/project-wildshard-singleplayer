@@ -1,4 +1,4 @@
-import type { Shardfile } from '../src/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 export interface BakeCamera { name:string; eye:[number,number,number]; yaw:number; pitch:number; fov:number; origin:'spawn'|'entry'|'declared' }
 export interface BakePart { id:string; files:readonly string[] }

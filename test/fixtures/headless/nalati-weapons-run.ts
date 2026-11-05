@@ -9,7 +9,7 @@ import {prepareHeadlessRuntime} from '../nalati-weapons-native';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {runTrustedHeadlessTape,type HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
-import {BladeRowsSchema} from '../../../src/format/heldMelee';
+import {BladeRowsSchema} from '@wildshard/format/heldMelee';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 
 const input=(actorId:string):HeadlessCommand=>({kind:'script',actorId,value:1});

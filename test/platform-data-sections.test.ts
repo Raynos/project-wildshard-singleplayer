@@ -1,10 +1,10 @@
 import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 import { expect, test } from 'vitest';
-import { parseUiStrings } from '../src/format/uiStrings';
-import { parseWorldPhysics } from '../src/format/worldPhysics';
+import { parseUiStrings } from '@wildshard/format/uiStrings';
+import { parseWorldPhysics } from '@wildshard/format/worldPhysics';
 import { emitPlatformSections, worldPhysicsSection } from '../src/sdk/platformSections';
-import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '../src/format/nativePhysics';
+import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '@wildshard/format/nativePhysics';
 import * as v from 'valibot';
 import PINE_STRINGS from '../src/shards/pine-hollow/data/strings.json' with { type: 'json' };
 import DRIFTWOOD_STRINGS from '../src/shards/driftwood-isle/data/strings.json' with { type: 'json' };

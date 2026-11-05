@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import {SpeciesActorsFileSchema} from '../../src/format/speciesBookRows';
-import {parsePackedCreatureLooks} from '../../src/format/speciesLooks';
-import {TimedEncountersSchema} from '../../src/format/encounterRows';
+import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
+import {parsePackedCreatureLooks} from '@wildshard/format/speciesLooks';
+import {TimedEncountersSchema} from '@wildshard/format/encounterRows';
 import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
 import type {NativeCreaturePoseRecipe} from '../../src/game/plugin/animation';
 import type {AnimalRigContext} from '../../src/engine/entities/animalRig';

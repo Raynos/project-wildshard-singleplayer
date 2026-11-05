@@ -1,14 +1,14 @@
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { beforeAll, expect, test, beforeEach, afterEach } from 'vitest';
 import { parse } from 'valibot';
-import { CellFieldSchema,type CellFieldRows } from '../src/format/cellField';
+import { CellFieldSchema,type CellFieldRows } from '@wildshard/format/cellField';
 import { CellField } from '../src/game/systems/cellField';
 import { OriginalArenaField } from './fixtures/original-cell-field';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { Rng } from '../src/engine/core/rng';
 import { Scope } from '../src/engine/app/scope';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { applyV2WorldActions } from './fixtures/applyWorldActionsV2';
 import { TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';

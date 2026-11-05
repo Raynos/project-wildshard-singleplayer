@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {Vector3} from 'three';
 import {Rng} from '../src/engine/core/rng';
-import {parseBossProfile} from '../src/format/bossProfiles';
+import {parseBossProfile} from '@wildshard/format/bossProfiles';
 import {bossFight,type PhasedBossBody} from '../src/game/plugin/bossPhase';
 import king from './fixtures/nalati-goldenKing-original.json' with {type:'json'};
 

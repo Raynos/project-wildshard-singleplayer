@@ -5,7 +5,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { addPiece } from '../src/engine/physics/pieces';
 import { createSimHost } from '../src/engine/sim';
 import { NativeQuestProps } from '../src/game/quest/nativeProps';
-import { NativeQuestPropsSchema } from '../src/format/questInteractions';
+import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import { NATIVE_QUEST_PROPS } from '../src/shards/driftwood-isle/generators/nativeQuestProps';
 import * as v from 'valibot';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

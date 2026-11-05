@@ -3,7 +3,7 @@ import { GRID_SEAMS, gridSeamAsset, readGridSeams, writeGridSeams } from '../scr
 import { checkChunks } from '../scripts/check-chunks.mjs';
 import { writeChunkReport } from '../scripts/app-build/chunkReport.mjs';
 import { build, type InlineConfig } from 'vite';
-import { jsonDataHeapBytes } from '../src/format/json';
+import { jsonDataHeapBytes } from '@wildshard/format/json';
 // oxlint-disable-next-line import/no-nodejs-modules -- The build guard fixture owns and removes only its small tmp tree.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the isolated build fixture inside the ignored scratch root.

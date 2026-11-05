@@ -7,7 +7,7 @@ import { PagePopulationPlanner, PageGroups, PageWildEnvironment, wildEnv, render
 import { nearestPopulationActor } from '../src/game/shardfile/groupRuntime';
 import { Scope } from '../src/engine/app/scope';
 import { zlibSync } from 'fflate';
-import {bakedSamplers} from '../src/format/bakedTerrainSampling';
+import {bakedSamplers} from '@wildshard/format/bakedTerrainSampling';
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { realGc } from '@wildshard/engine/test/realGc';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { contractKill, draw, loadBoard, ownContractCatalogue, saveBoard } from '../src/game/quest/contracts';

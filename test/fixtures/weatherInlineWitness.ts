@@ -6,8 +6,8 @@ import { resolve } from 'node:path';
 import {readFileSync} from 'node:fs';
 import { NALATI_NIGHT } from './nalati-night';
 import * as v from 'valibot';
-import {WeatherReactionsSchema} from '../../src/format/weatherProgram';
-import {DecisionScriptsSchema} from '../../src/format/decisionScripts';
+import {WeatherReactionsSchema} from '@wildshard/format/weatherProgram';
+import {DecisionScriptsSchema} from '@wildshard/format/decisionScripts';
 import {sha256} from '../../src/game/plugin/moduleHash';
 
 const raw=v.parse(v.object({...WeatherReactionsSchema.entries,script:DecisionScriptsSchema.pipe[2].item}),

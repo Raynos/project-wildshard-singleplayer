@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {Vector3,PerspectiveCamera} from 'three';
 import {HeadlessCloudBody} from '../../fixtures/native-hosts/boss/cloudRig';
-import {HeldBowFileSchema} from '../../../src/format/weaponProfiles';
-import {WeatherWorldSchema,WindStateSchema} from '../../../src/format/weatherProgram';
+import {HeldBowFileSchema} from '@wildshard/format/weaponProfiles';
+import {WeatherWorldSchema,WindStateSchema} from '@wildshard/format/weatherProgram';
 import {heldBowBase} from '../../../src/game/weapons/heldBowBase';
 import {bowLaunchSpeed,bowMuzzle,bowMount} from '../../../src/engine/combat/bowLaw';
 import {projectileFlightStep} from '../../../src/engine/combat/projectileFlight';
@@ -16,7 +16,7 @@ import {readArenaScriptData} from '../../../src/game/boss/openArenaFight';
 import type {SimHost} from '../../../src/engine/sim';
 import type {ShardProduct} from '../../../src/game/shardfile/shardProduct';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
-import {parseHeldSlots} from '../../../src/format/heldArms';
+import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {nalatiPatrolOf} from '../../fixtures/nalati-patrol-native';
 
 function snapshotValue(owner:{readonly snapshot:()=>unknown}):unknown{

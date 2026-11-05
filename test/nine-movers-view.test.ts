@@ -5,7 +5,7 @@ import { Object3D, PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/app/scope';
 import { viewProgram } from '../src/engine/script/viewProgram';
-import { ViewProgramSchema } from '../src/format/viewProgram';
+import { ViewProgramSchema } from '@wildshard/format/viewProgram';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import plan from '../src/shards/nine-dragon-stack/data/layoutPlan.json' with { type: 'json' };
 import dressing from '../src/shards/nine-dragon-stack/data/worldDressing.json' with { type: 'json' };

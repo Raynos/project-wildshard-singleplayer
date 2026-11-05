@@ -13,7 +13,7 @@ import { prepareQuestWorldEntry } from '../src/game/shardfile/questWorld';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { questPageWorld } from '../src/game/quest/pageResources';
-import { QuestWorldSchema } from '../src/format/questWorld';
+import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { driftwoodQuestWorld } from '../src/shards/driftwood-isle/generators/questWorld';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

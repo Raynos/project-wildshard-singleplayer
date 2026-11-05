@@ -4,7 +4,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 import { app } from '../src/engine/app/runtime';
-import { BowWeaponProfileSchema, MeleeWeaponProfileSchema, parseNativeFirearmProfile } from '../src/format/weaponProfiles';
+import { BowWeaponProfileSchema, MeleeWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { NetClient } from '../src/engine/net/client';
 import { CombatWire, type CombatEvent } from '../src/engine/net/combatWire';
 import type { NetCombatEvent } from '../src/engine/net/messages';

@@ -1,7 +1,7 @@
 import { nalatiNativeAssembly } from './fixtures/nalati-native-assembly';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { ForestWeatherSchema } from '../src/format/forestWeather';
-import {parseHeldSlots} from '../src/format/heldArms';
+import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
+import {parseHeldSlots} from '@wildshard/format/heldArms';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare emitted slot metadata with its exact generated authoring input.
 import {readFileSync} from 'node:fs';
 import { nalatiWeatherPage } from '../src/shards/nalati-grasslands/generators/weatherPage';
@@ -9,8 +9,8 @@ import { nalatiWeatherPage } from '../src/shards/nalati-grasslands/generators/we
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/app/scope';
-import {WorldAssemblySchema} from '../src/format/worldAssembly';
-import {parseClientPlan} from '../src/format/clientPlan';
+import {WorldAssemblySchema} from '@wildshard/format/worldAssembly';
+import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {installClientWorldAssembly} from '../src/game/shardfile/clientWorldAssembly';
 import type {StepRunner} from '../src/engine/boot/plan';
 import {Vector3} from 'three';
@@ -25,7 +25,7 @@ import { publishEntryOwner } from '../src/game/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { nodeNamedJsonCheck } from '../src/game/shardfile/outputChecksNode';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import {ReturnModulesSchema} from '../src/format/scriptContract';
+import {ReturnModulesSchema} from '@wildshard/format/scriptContract';
 import * as room from '../src/game/boss/arenaRoom';
 import { readNalatiProject } from './fixtures/nalati-project';
 import { fakeWorld } from '@wildshard/engine/test/world';

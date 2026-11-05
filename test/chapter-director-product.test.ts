@@ -18,7 +18,7 @@ import type { ShardProduct } from '../src/game/shardfile/shardProduct';
 import { publishBoundQuest } from '../src/game/quest/boundState';
 import { buildQuestChapter } from '../src/game/quest/chapter';
 import { readChapterDirector } from '../src/game/quest/chapterDirector';
-import { ChapterDirectorSchema, parseChapterDirector, parseChapterWake, chapterObservations } from '../src/format/chapterDirector';
+import { ChapterDirectorSchema, parseChapterDirector, parseChapterWake, chapterObservations } from '@wildshard/format/chapterDirector';
 import type { ShardContext } from '../src/game/plugin/context';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';

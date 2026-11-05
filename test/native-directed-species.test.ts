@@ -10,7 +10,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
-import { SpeciesActorsFileSchema } from '../src/format/speciesBookRows';
+import { SpeciesActorsFileSchema } from '@wildshard/format/speciesBookRows';
 import { nativePopulationOf } from '../src/game/riding/nativePopulation';
 import { DirectedLaw } from '../src/game/population/directedLaw';
 import { ReturnProgram } from '../src/game/population/returnProgram';

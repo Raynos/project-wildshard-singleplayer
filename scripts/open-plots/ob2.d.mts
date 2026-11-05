@@ -1,4 +1,4 @@
-import type {AudioData} from '../../src/format/audio';
+import type {AudioData} from '@wildshard/format/audio';
 import type {TilingReport} from '../tile-bake-report.mjs';
 import type {Page} from 'playwright';
 

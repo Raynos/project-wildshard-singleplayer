@@ -3,7 +3,7 @@ import { Scope } from '../src/engine/app/scope';
 import { GrappleTool, grappleGuard } from '../src/game/grapple/tool';
 import type { GrappleSim } from '../src/game/grapple/sim';
 import type { ShardContext } from '../src/game/plugin/context';
-import { parseGrappleProfile, type GrappleRows } from '../src/format/grapple';
+import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import profile from '../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };

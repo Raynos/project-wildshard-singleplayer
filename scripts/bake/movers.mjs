@@ -4,8 +4,8 @@
 // `MOVER_BAKE`, schema `@wildshard/format/movers` `MoverBakeSchema`), never a table here.
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake/movers.mjs [--shards=<slug>,…]
 import { compileMoverDriver } from '../../src/sdk/compileMovers.ts';
-import { MOVER_DRIVER_MODULES } from '../../src/format/moverMotion.ts';
-import { moverBake } from '../../src/format/movers.ts';
+import { MOVER_DRIVER_MODULES } from '@wildshard/format/moverMotion';
+import { moverBake } from '@wildshard/format/movers';
 import { existsSync, mkdirSync, readdirSync, writeFileSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';

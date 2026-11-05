@@ -14,7 +14,7 @@ import { installNativeBootRoster } from '../src/game/riding/nativePopulation';
 import { nativeEliteBindings as eliteBindings } from '../src/engine/ai/eliteRoster';
 import { nativeWeatherBundle } from '../src/game/weather/reactions';
 import { installWeatherContinuation } from '../src/game/weather/continuation';
-import { parseWeatherProgram } from '../src/format/weatherProgram';
+import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

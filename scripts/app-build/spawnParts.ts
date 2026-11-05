@@ -14,7 +14,7 @@ import {availableParallelism, homedir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {Worker} from 'node:worker_threads';
 import {brotliDecompressSync} from 'node:zlib';
-import {SPAWN_PART_ALIGN, type SpawnFile, type SpawnPart} from '../../src/format/spawnManifest';
+import {SPAWN_PART_ALIGN, type SpawnFile, type SpawnPart} from '@wildshard/format/spawnManifest';
 
 export const PART_BYTES = 12_000_000, PART_TARGET = 10, OVER_FETCH = 0.1;
 export interface SpawnPartInput {readonly rows: readonly SpawnFile[]; readonly public: boolean}

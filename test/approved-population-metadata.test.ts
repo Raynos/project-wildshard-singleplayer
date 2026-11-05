@@ -2,9 +2,9 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin complete original native input bytes.
 import {createHash} from 'node:crypto';
-import {PopulationHabitatSchema} from '../src/format/populationEnvironment';
-import {TamingPoseFileSchema} from '../src/format/populationRoster';
-import {platformFileFamily,validatePlatformFile} from '../src/format/platformFileFamilies';
+import {PopulationHabitatSchema} from '@wildshard/format/populationEnvironment';
+import {TamingPoseFileSchema} from '@wildshard/format/populationRoster';
+import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {namePopulationHabitat} from '../src/sdk/nativePopulationRows';
 import roots from './fixtures/approved-population-metadata.json' with {type:'json'};

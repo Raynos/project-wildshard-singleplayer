@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parsePlatformDataSection } from '../src/format/platformDataSections';
+import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import { BARREL_BODIES } from '../src/shards/driftwood-isle/generators/barrelDecision';
 

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
-import { parseItems } from '../src/format/items';
+import { parseItems } from '@wildshard/format/items';
 import { wetFlight } from '../src/engine/combat/ammo';
 import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';

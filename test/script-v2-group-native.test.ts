@@ -7,7 +7,7 @@ import { AggressionDirector, AggressionService } from '../src/engine/ai/director
 import { Rng } from '../src/engine/core/rng';
 import { GroupStepV2, prepareGroupNativeV2, type GroupStepNativeOwnersV2, type GroupStepOperationV2 } from '../src/engine/script/groupStepV2';
 import type { V2ColumnOwners } from '../src/engine/script/observationColumnsV2';
-import { parseGroupStepV2, GroupStepV2Schema, groupStepLayoutV2 } from '../src/format/scriptGroupStepV2';
+import { parseGroupStepV2, GroupStepV2Schema, groupStepLayoutV2 } from '@wildshard/format/scriptGroupStepV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';

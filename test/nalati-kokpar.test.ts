@@ -1,11 +1,11 @@
 import {carriedPropFiles} from './fixtures/carriedPropFiles';
 import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
-import { parseDecisionScripts } from '../src/format/decisionScripts';
+import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { ReturnProgram } from '../src/game/population/returnProgram';
-import { parseCarriedQuest } from '../src/format/questSteps';
+import { parseCarriedQuest } from '@wildshard/format/questSteps';
 import { CarriedQuestProp } from '../src/game/quest/carriedProp';
 import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import * as ridingService from '../src/game/riding/client';

@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import {expect,test} from 'vitest';
 import { NALATI_VIEW_BLOBS } from './fixtures/nalati-view-modules';
-import {admitScriptV2} from '../src/format/scriptAdmissionV2';
+import {admitScriptV2} from '@wildshard/format/scriptAdmissionV2';
 import {output} from './fixtures/nalati-output-original';
 import {outputPlatformPayloads} from '../src/sdk/outputProduct';
 
