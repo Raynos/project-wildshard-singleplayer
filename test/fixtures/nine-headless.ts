@@ -1,47 +1,23 @@
-import { nineNativeConstants } from './nine-native-constants';
+import { NATIVE_ASSEMBLY_FILE, parseNativeAssembly } from '@wildshard/format/nativeAssembly';
+import type { ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
-import type { HeadlessCommand } from '../../src/sdk/tickProtocol';
-import { trustedLevel, addBakedPieces } from '../../src/game/server/plugin/simulation';
-import { tagOf } from '../../src/engine/shared/physics/surface';
-import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
-import { installGrapple } from '@wildshard/game/grapple/native';
-import { parseGrappleProfile } from '@wildshard/format/grapple';
-import { installHostPortalRide } from '../../src/game/client/shardfile/portalRideBinding';
-import { installNativeItems } from '../../src/game/server/plugin/nativeItems';
-import { prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
-import { nineNativeOracle } from './nine-native-oracle';
-import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with {type:'json'};
-import {registerNativeWalkBounds} from './headless/nativeBounds';
+import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with { type: 'json' };
+import { prepareProductPlan } from './headless-native';
+import { registerNativeWalkBounds } from './headless/nativeBounds';
 
-/** One tick command as a claw reads it. */
-const tapeRow = (command: HeadlessCommand): { kind: 'script'; actorId: string; value: number } | { kind: string; jump?: boolean } => command.kind === 'script' ? command : { kind: command.kind, ...(command.kind === 'player' && command.jump !== undefined ? { jump: command.jump } : {}) };
+/** Nine's own plan with the claw's rise turned off: the path a lifting crossing used to take. */
+async function flatProduct(product: ShardProduct): Promise<ShardProduct> {
+  const plan = parseNativeAssembly(await product.json(NATIVE_ASSEMBLY_FILE));
+  const bytes = new TextEncoder().encode(JSON.stringify({ ...plan, features: plan.features.map(row => row.host === 'grapple' ? { ...row, rise: false } : row) }));
+  return { ...product, file: name => name === NATIVE_ASSEMBLY_FILE ? Promise.resolve(bytes) : product.file(name) };
+}
 
-/** Direct typed native calls retain the Nine gameplay witness without a declaration interpreter. */
+/** The world Nine's product builds, with the walk proofs' bounds lent over it. `rise` false is a negative control. */
 export function nineHeadlessRuntime(rise: boolean): PrepareHeadlessRuntime {
-return async preparation => {
-  const { product } = preparation;
-  const shard = product.shardfile;
-  // The fenced oracle and constants each wait on their own compiler child (cold on CI); run them, and the return modules,
-  // together. Both source constructors are synchronous and still run in this order, so the values are unchanged.
-  const [lendReturns, { constants }, payload] = await Promise.all([prepareReturns(preparation), nineNativeOracle(), nineNativeConstants()]);
-  const grapple = shard.modes?.grapple?.find(row => row.id === 'grapple');
-  if (grapple === undefined) throw new Error('Nine Dragon declares its grapple mode');
-  if (portalLinkEntries(shard.entryways).length !== 4) throw new Error('Nine Dragon declares four portal-link entryways');
-  const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, payload.spawnY), z: shard.spawn.z },
-    yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
-  return { level, ports: { ground: false, heightAt: () => 0 }, proveEntries: () => payload.entryProof,
-    install: (host, context) => {
-      registerNativeWalkBounds(host,manifest.bounds);
-      lendReturns(host);
-      if (!context.restoring) addBakedPieces(host.physics, payload.pieces);
-      const guard = context.restoring ? [] : host.physics.world.colliders.getAll().filter(collider => tagOf(collider)?.owner === 'nds-grapple-guard').map(collider => collider.handle);
-      if (context.combat === undefined) throw new Error('Nine requires its native combat frame');
-      installNativeItems(host, context.combat, { kind: 'swept', items: shard.items.rows, policy: constants.jianPolicy });
-      const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
-      installHostPortalRide(host, constants.portalStep, shard, payload.portalRide, fact);
-      installGrapple(host, { emit: context.emit, commands: () => context.commands().map(tapeRow), commandsOf: id => context.playerCommands?.(id).map(tapeRow) ?? [] }, parseGrappleProfile(payload.grappleProfile), grapple, payload.hooks, guard, rise);
-    } };
-};
+  return async preparation => {
+    const product = rise ? preparation.product : await flatProduct(preparation.product), plan = await prepareProductPlan({ ...preparation, product });
+    return { ...plan, install: (host, context) => { registerNativeWalkBounds(host, manifest.bounds); plan.install(host, context); } };
+  };
 }
 
 /** Current browser winner; the flat factory remains a negative QB17 control. */

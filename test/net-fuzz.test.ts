@@ -65,7 +65,7 @@ async function roomOn(slug: string): Promise<{ live: TrustedHeadlessResident; ro
 }
 const spots = (live: TrustedHeadlessResident): readonly { readonly x: number; readonly z: number }[] => [...live.host.entities.values()].map(body => body.position).filter(at => Number.isFinite(at.x) && Number.isFinite(at.z));
 
-test.each(['pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'driftwood-isle'].flatMap(slug => SEEDS.map(seed => [slug, seed] as const)))('hostile clients on %s (seed %d) end nothing', { timeout: 120_000 }, async (slug, seed) => {
+test.each(['pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'driftwood-isle', 'nine-dragon-stack'].flatMap(slug => SEEDS.map(seed => [slug, seed] as const)))('hostile clients on %s (seed %d) end nothing', { timeout: 120_000 }, async (slug, seed) => {
   const rewinds = vi.spyOn(HitHistory.prototype, 'at');
   const { live, room, book, seat } = await roomOn(slug), { host } = live, fuzz = new Fuzz(seed), lead = leadPlayer(host), interactions = [...actRoutes(host).interactions.keys()];
   const first = seat(), second = seat('bot:rival', 'Rival'), clean = seat('bot:clean', 'Clean'), rival = host.players.get('bot:rival'), honest = host.players.get('bot:clean');

@@ -2,6 +2,7 @@ import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGenera
 import { nineOutput, type NineOutput, type NineOutputInputs } from './productOutput';
 import { NINE_MOVERS_CONTRACT, nineMoversProgram } from './moversProgram';
 import { nineEntryProof } from './entryProof';
+import { nineServerFiles } from './nativeServer';
 import { nineNativeDecals } from './nativeDecals';
 import { heldViewSchema } from './heldView';
 import { parseBurstFields } from './sections';
@@ -30,5 +31,5 @@ export async function nineSourceOutput(ctx: ProjectGenerationContext, supplied?:
   const card = (await ctx.cached({ id: 'practice-card-admission', inputs: [name] }, inputs => inputs)).get(name);
   if (card === undefined) throw new Error('Missing Nine practice card input');
   const hash = hashImmutableBytes(card);
-  return { ...output, late: [...output.late ?? [], ...output.late?.some(row => row.hash === hash) === true ? [] : [{ hash }]] };
+  return { ...output, late: [...output.late ?? [], ...output.late?.some(row => row.hash === hash) === true ? [] : [{ hash }]], server: nineServerFiles(entryProof) };
 }
