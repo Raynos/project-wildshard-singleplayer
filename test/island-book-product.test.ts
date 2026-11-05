@@ -21,7 +21,7 @@ import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import source from './fixtures/driftwood-product-source';
 import manifest from '../src/shards/driftwood-isle/manifest.json' with {type:'json'};
 import headless from '../src/shards/driftwood-isle/data/headlessAssembly.json' with {type:'json'};
-import { readDriftwoodNativeOracle } from './fixtures/driftwood-headless';
+import { driftwoodNativeInputs } from '../src/shards/driftwood-isle/generators/nativeServer';
 
 const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS, DRIFTWOOD_GUEST_ROWS);
 
@@ -49,8 +49,8 @@ test('the real plan owns one complete assembly before updates and uses compiled 
   expect(manifest.bindings.entry).toEqual({platform:'client-plan',retainHomeRuntime:false,stagesOwner:'declared'});
 });
 
-test('native chapter admission receives the exact original encounter without reading retired view rows',async()=>{
-  const wire={constants:await readDriftwoodNativeOracle()};
+test('native chapter admission receives the exact original encounter without reading retired view rows', () => {
+  const wire={constants:driftwoodNativeInputs()};
   expect(output.namedFiles.some(row=>row.name==='sim/headless-assembly.json')).toBe(false);
   const wakeFile=output.namedFiles.find(row=>row.name==='quests/wake-boss.json');if(wakeFile===undefined)throw new Error('Missing defining native encounter');
   const wakeBytes=output.assets.get(wakeFile.hash);if(wakeBytes===undefined)throw new Error('Missing defining native encounter bytes');

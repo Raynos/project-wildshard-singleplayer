@@ -27,7 +27,7 @@ import { CHAPTER_DIRECTOR as pineRows } from '../src/shards/pine-hollow/generato
 import { CHAPTER_DIRECTOR as driftRows } from '../src/shards/driftwood-isle/generators/chapterDirector';
 
 import { PINE_LIFE_ORIGINAL as pineLife } from './fixtures/pine-life';
-import { readDriftwoodNativeOracle } from './fixtures/driftwood-headless';
+import { driftwoodNativeInputs } from '../src/shards/driftwood-isle/generators/nativeServer';
 
 const releaseItems = [...PINE_BAG_ITEMS, ...DRIFTWOOD_ITEMS].map(registerItemRow);
 afterAll(() => { for (const release of releaseItems.reverse()) release(); });
@@ -60,7 +60,7 @@ test('Pine native product uses the shared request rows and retires executable bi
 
 test('Driftwood native product shares its page chapter and retires reflected bindings', async () => {
   const product = products.get('driftwood-isle'); if (product === undefined) throw new Error('Missing real Driftwood product');
-  const native = { constants: await readDriftwoodNativeOracle() };
+  const native = { constants: driftwoodNativeInputs() };
   expect(product.hasFile('sim/headless-assembly.json')).toBe(false);
   const cues = parseChapterWake(await product.json('quests/wake-boss.json')).cues.map(({ id, operation }) => ({ id, operation }));
   expect(native).not.toHaveProperty('constants.chapterDirector');

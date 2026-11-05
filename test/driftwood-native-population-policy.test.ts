@@ -14,19 +14,19 @@ import { driftwoodOutputRows } from '../src/shards/driftwood-isle/generators/out
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
-import { readDriftwoodNativeOracle } from './fixtures/driftwood-headless';
+import { driftwoodNativeInputs } from '../src/shards/driftwood-isle/generators/nativeServer';
 
-test('authored native population policy and fenced oracle retain the original native turn law', async () => {
+test('authored native population policy and fenced oracle retain the original native turn law', () => {
   expect(policy).toEqual({ attackTurnCap: ATTACK_TURN });
   expect(policy.attackTurnCap).toBe(1.5);
   const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS, DRIFTWOOD_GUEST_ROWS);
-  const value = v.parse(v.object({ constants: v.object({ mixedPopulation: v.object({ attackTurnCap: v.literal(ATTACK_TURN) }) }) }), { constants: await readDriftwoodNativeOracle() });
+  const value = v.parse(v.object({ constants: v.object({ mixedPopulation: v.object({ attackTurnCap: v.literal(ATTACK_TURN) }) }) }), { constants: driftwoodNativeInputs() });
   expect(output.namedFiles.some(row => row.name === 'sim/headless-assembly.json')).toBe(false);
   expect(value.constants.mixedPopulation.attackTurnCap).toBe(policy.attackTurnCap);
 });
 
 
-test('the quest page consumes only the exact native interaction projection', async () => {
+test('the quest page consumes only the exact native interaction projection', () => {
   const output = driftwoodOutputRows(DRIFTWOOD_LAYOUTS, DRIFTWOOD_ISLAND_FACTS, DRIFTWOOD_GUEST_ROWS);
   const read = (name: string): { readonly value: unknown; readonly bytes: Uint8Array } => {
     const file = output.namedFiles.find(row => row.name === name), bytes = file === undefined ? undefined : output.assets.get(file.hash);
@@ -34,7 +34,7 @@ test('the quest page consumes only the exact native interaction projection', asy
     validateDefinedJson(new TextEncoder().encode(encodeCanonicalJson(file.jsonSchema)), bytes);
     return { value: JSON.parse(new TextDecoder().decode(bytes)), bytes };
   };
-  const originalValue = { constants: await readDriftwoodNativeOracle() };
+  const originalValue = { constants: driftwoodNativeInputs() };
   const original = { value: originalValue, bytes: new TextEncoder().encode(encodeCanonicalJson(originalValue)) };
   const projection = read(page.files.assembly);
   const constants = { interact: DRIFTWOOD_INTERACT, interactSpots: spots.rows };

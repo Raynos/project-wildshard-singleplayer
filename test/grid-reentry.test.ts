@@ -12,12 +12,11 @@ import { hasDeclaredClientPage } from '../src/format/runtimeBinds';
 import { ScriptHost } from '../src/engine/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
-import { prepareHeadlessRuntime as driftwoodPlan } from './fixtures/driftwood-headless';
 import { prepareHeadlessRuntime as ninePlan } from './fixtures/nine-headless';
 
 const shards = ['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands',
   'nine-dragon-stack', 'sunscar-dunes', 'far-reach'] as const;
-const directPlans = new Map<string, PrepareHeadlessRuntime>([['driftwood-isle', driftwoodPlan], ['pine-hollow', prepareProductPlan], ['nine-dragon-stack', ninePlan]]);
+const directPlans = new Map<string, PrepareHeadlessRuntime>([['driftwood-isle', prepareProductPlan], ['pine-hollow', prepareProductPlan], ['nine-dragon-stack', ninePlan]]);
 
 // G498: eviction, then return through the actual native installer/restore path.
 // All ten live products are tested; sealed legacy products are never grid destinations.

@@ -5,7 +5,6 @@ import { ReturnProgram } from '../../src/game/population/returnProgram';
 import { readFileSync } from 'node:fs';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
 import { createNativeProofResident, prepareProductPlan } from './headless-native';
-import { prepareHeadlessRuntime as driftwoodPlan } from './driftwood-headless';
 import { outputDescriptor } from '../../src/game/shardfile/outputDescriptor';
 import { loadRapier } from '../../src/engine/physics/rapier';
 import legacy from './quest-step-legacy-saves.json' with { type: 'json' };
@@ -39,8 +38,7 @@ export function nativeQuestParity(slug: 'driftwood-isle' | 'pine-hollow', witnes
     const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
       Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
     const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
-    const resident = await createNativeProofResident({ product, shard: product.shardfile, assets, rapier },
-      slug === 'driftwood-isle' ? driftwoodPlan : prepareProductPlan);
+    const resident = await createNativeProofResident({ product, shard: product.shardfile, assets, rapier }, prepareProductPlan);
     try {
       const fixture = legacy[slug], owner = resident.host.adapters.get(fixture.adapter);
       if (owner === undefined) throw new Error('Missing existing quest save owner');

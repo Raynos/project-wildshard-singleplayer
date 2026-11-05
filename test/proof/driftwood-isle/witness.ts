@@ -21,8 +21,7 @@ import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/s
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
 import type { TrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
-import { createNativeProofResident } from '../../fixtures/headless-native';
-import { prepareHeadlessRuntime } from '../../fixtures/driftwood-headless';
+import { createNativeProofResident, prepareProductPlan } from '../../fixtures/headless-native';
 import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';
 import { createNativeProofWorker } from '../../fixtures/headless-worker';
 import { TickCommandSchema, TickEffectSchema, type HeadlessCommand, type HeadlessEffect } from '../../../src/sdk/tickProtocol';
@@ -96,7 +95,7 @@ function nativeAssets(): Map<string, Uint8Array> {
   return new Map([...checkedNativeAssets].map(([name, bytes]) => [name, bytes.slice()]));
 }
 function boot(rapier: Rapier, snapshot?: string): Promise<TrustedHeadlessResident> {
-  return createNativeProofResident({ shard: witnessProduct.shardfile, assets: nativeAssets(), rapier, product: witnessProduct }, prepareHeadlessRuntime, snapshot);
+  return createNativeProofResident({ shard: witnessProduct.shardfile, assets: nativeAssets(), rapier, product: witnessProduct }, prepareProductPlan, snapshot);
 }
 function manifest(): Recorded { return v.parse(Manifest, readWitnessManifest(MANIFEST)); }
 function tape(m: Recorded): HeadlessCommand[][] {

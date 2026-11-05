@@ -11,7 +11,6 @@ import { borrowedDecisionControl } from '@wildshard/game/shardfile/borrowedDecis
 import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '@wildshard/sdk/headlessProduct';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
-import { prepareHeadlessRuntime as driftwoodPlan } from './fixtures/driftwood-headless';
 
 const savedControl = v.object({ version:v.literal(1),actor:v.string(),phase:v.number(),fighting:v.boolean(),decision:v.string(),strike:v.unknown() });
 const logical = v.object({ decision: v.object({ bindings: v.array(v.object({ failures: v.number() })) }) });
@@ -25,7 +24,7 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
     const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
     const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
       Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-    const preparation={product,shard:product.shardfile,assets,rapier},entry=kind==='captain'?driftwoodPlan:prepareProductPlan,resident=await createNativeProofResident(preparation,entry);
+    const preparation={product,shard:product.shardfile,assets,rapier},resident=await createNativeProofResident(preparation,prepareProductPlan);
     let resumed:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
     try {
       const host=resident.host,spawn=product.shardfile.runtime?.spawns?.bosses.find(row=>row.kind===kind);
@@ -55,14 +54,14 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
       const damage=kind==='captain'?[16,24]:[9,20,24,32];
       expect(incoming.every(amount=>damage.includes(amount)),JSON.stringify(incoming)).toBe(true);
       body.startAttack(1.4);
-      const attacking = await createNativeProofResident(preparation, entry, snapshotSimHost(host));
+      const attacking = await createNativeProofResident(preparation, prepareProductPlan, snapshotSimHost(host));
       try {
         expect(attacking.host.entities.get(body.entityId)?.snapshot()).toEqual(body.snapshot());
       } finally { attacking.dispose(); }
       body.stagger(new Vector3(1, 0, 0), 1);
       expect(body.stunned).toBe(true);
       const saved=snapshotSimHost(host),before=control.snapshot();
-      resumed=await createNativeProofResident(preparation,entry,saved);
+      resumed=await createNativeProofResident(preparation,prepareProductPlan,saved);
       resumed.host.events.answer('damage.modify',request=>request?.target===resumed?.host.player.health?null:request,resumed.host.scope);
       const restored=resumed.host.entities.get(body.entityId);if(restored===undefined)throw new Error('Missing restored body');
       expect(borrowedDecisionControl(restored).snapshot()).toBe(before);
@@ -87,7 +86,7 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
         delete fight['decision'];wire['fight']=fight;king.state=JSON.stringify(wire);
         for(const name of Object.keys(entryState.state.mem))if(name.startsWith('king.'))delete entryState.state.mem[name];
       }
-      const upgraded=await createNativeProofResident(preparation,entry,legacy);
+      const upgraded=await createNativeProofResident(preparation,prepareProductPlan,legacy);
       try {for(let i=0;i<30;i++)upgraded.step([]);
         const actor=upgraded.host.entities.get(body.entityId);if(actor===undefined)throw new Error('Old continuation lost its body');
         const migrated=v.parse(savedControl,JSON.parse(v.parse(v.string(),borrowedDecisionControl(actor).snapshot())));

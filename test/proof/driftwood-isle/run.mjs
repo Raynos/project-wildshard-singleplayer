@@ -16,7 +16,6 @@ const { captureNumberPathProbe } = await import('../../../scripts/number-path-pr
 const { installPortableMath } = await import('../../fake/portableMath.ts'); installPortableMath();
 const { installAppIdentity } = await import('../../../src/engine/app/identity.ts');
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts'); installAppIdentity(WILDSHARD_IDENTITY);
-await import('../../fixtures/driftwood-headless.ts');
 await import('./worker.ts');
 const witness = await import('./witness.ts');
 function inputFiles() { return new Set([...loaded, ...witness.witnessProductInputFiles(), ...['src/shards/driftwood-isle/data/headlessAssembly.json', 'test/proof/driftwood-isle/run.mjs', 'test/fixtures/headless/worker.ts', 'scripts/sim-node-loader.mjs', 'pnpm-lock.yaml', 'public/assets/physics/rapier.wasm'].map(path => new URL(path, ROOT).href)]); }

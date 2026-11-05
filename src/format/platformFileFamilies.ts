@@ -99,7 +99,7 @@ export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
   { pattern: /^quests\/interaction-source\.json$/u, schema: QuestInteractionSourceSchema,
     source: '@wildshard/format/questInteractionSource#QuestInteractionSourceSchema', reader: 'src/game/quest/pageComposition.ts' },
   { pattern: /^sim\/enemy-placement\.json$/u, schema: EnemyPlacementsSchema,
-    source: '@wildshard/format/populationProjection#EnemyPlacementsSchema', reader: 'test/fixtures/driftwood-headless.ts' },
+    source: '@wildshard/format/populationProjection#EnemyPlacementsSchema', reader: 'src/game/shardfile/nativeAssembly.ts' },
   { pattern: /^sim\/population-metadata\.json$/u, schema: PopulationHabitatSchema,
     source: '@wildshard/format/populationEnvironment#PopulationHabitatSchema', reader: 'test/fixtures/nalati-headless.ts' },
   { pattern: /^sim\/taming-poses\.json$/u, schema: TamingPoseFileSchema,

@@ -1,6 +1,6 @@
 import {retainRestoredWalkBodies} from './headless/ropeBodies';
 import { prepareNativeCoinRecipe } from './native-coin-recipe';
-import { readDriftwoodNativeOracle } from './driftwood-headless';
+import { driftwoodNativeInputs } from '../../src/shards/driftwood-isle/generators/nativeServer';
 import * as v from 'valibot';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 
@@ -13,7 +13,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation 
   const { installCoinModel } = await import('../../src/game/loot/coinModel');
   const coinGeometry = await prepareNativeCoinRecipe();
   const payload = v.parse(v.object({ constants: v.object({ nativeQuest: v.object({ step: v.string(), acquisition: v.object({ population: v.string() }) }) }) }),
-    { constants: await readDriftwoodNativeOracle() });
+    { constants: driftwoodNativeInputs() });
   const trader = v.parse(v.object({ view: v.object({ closeDistance: v.pipe(v.number(), v.finite(), v.minValue(Number.MIN_VALUE)) }) }),
     await preparation.product.json('quests/stall.json'));
   return { ...plan, install: (host, context) => {

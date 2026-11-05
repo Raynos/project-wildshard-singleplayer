@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import scaffold from '../src/shards/driftwood-isle/data/headlessAssembly.json' with { type: 'json' };
-import { readDriftwoodNativeOracle } from './fixtures/driftwood-headless';
+import { driftwoodNativeInputs } from '../src/shards/driftwood-isle/generators/nativeServer';
 import { pineNativeOracleSpec } from './fixtures/pine-native-oracle-spec';
 import { pineNativeOracleInputs } from './fixtures/pine-native-oracle-inputs';
 import { fencedNativeOracle } from './fixtures/native-oracle';
@@ -12,9 +12,9 @@ test('the fenced Pine oracle retains every former shipping fact byte', async () 
   expect(hashImmutableBytes(bytes)).toBe('5e6a851d41c1b82dd61558c6ac4cd2b7701954f1cc3869d37991feabff5513b2');
 });
 
-test('the fenced Driftwood oracle retains every former shipping fact byte', async () => {
+test('the fenced Driftwood oracle retains every former shipping fact byte', () => {
   // The inert old scaffold is only a byte oracle, never an executable selector.
-  const bytes = new TextEncoder().encode(encodeCanonicalJson({ ...scaffold, constants: await readDriftwoodNativeOracle() }));
+  const bytes = new TextEncoder().encode(encodeCanonicalJson({ ...scaffold, constants: driftwoodNativeInputs() }));
   expect(bytes.byteLength).toBe(912_509);
   expect(hashImmutableBytes(bytes)).toBe('fea70e3051c7594cdd97c1a32f214a3ba57de1ba7a950dd16a808215b41af31e');
 });
