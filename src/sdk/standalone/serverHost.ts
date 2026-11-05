@@ -65,10 +65,10 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     const input = await options.load(message);
     let saved: SavedContinuation | undefined;
     for (const candidate of slots.candidates()) {
-      try { resident = await createTrustedHeadlessResident(input, candidate.saved.snapshot); saved = candidate.saved; slots.restored(candidate); break; }
+      try { resident = await createTrustedHeadlessResident(input, candidate.saved.snapshot, { room: true }); saved = candidate.saved; slots.restored(candidate); break; }
       catch (error) { slots.setAside(candidate); options.onSaveRefused?.(error); }
     }
-    resident ??= await createTrustedHeadlessResident(input);
+    resident ??= await createTrustedHeadlessResident(input, undefined, { room: true });
     const live = resident;
     live.host.respawn.served = true;
     const step: ConstructorParameters<typeof NetRoom>[0]['step'] = inputs => {

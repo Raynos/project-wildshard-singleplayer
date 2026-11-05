@@ -833,6 +833,7 @@
   "src/game/boss/arenaFire.ts": "client",
   "src/game/boss/arenaGround.ts": "shared",
   "src/game/boss/arenaPortal.ts": "shared",
+  "src/game/boss/arenaRoomEntry.ts": "server",
   "src/game/boss/arenaRoom.ts": "server",
   "src/game/boss/arenaRoomFight.ts": "server",
   "src/game/boss/arenaRoomNative.ts": "server",

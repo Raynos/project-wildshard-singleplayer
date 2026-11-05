@@ -1,3 +1,5 @@
+import speciesRows from '../data/speciesRows.json' with { type: 'json' };
+import { GREAT_KURGAN, GREAT_KURGAN_DOOR } from './poiLayout';
 import { nativeAssemblyFiles, type NativeAssemblyPlan, type ServerBlob } from '@wildshard/sdk/blobs';
 import { parsePopulationKnockdownSource } from '@wildshard/sdk/nativePopulationRows';
 import boot from '../data/headlessBoot.json' with { type: 'json' };
@@ -63,6 +65,10 @@ export function nalatiEliteRows(constants: {
 export const NALATI_ELITE_CONDITIONS = { rules: { always: { rule: 0, phase: false, storm: false }, storm: { rule: 1, phase: true, storm: true }, night: { rule: 2, phase: true, storm: false }, dusk: { rule: 3, phase: true, storm: false } },
   phases: { dawn: 0, day: 0, golden: 0, dusk: 1, night: 2 }, storm: { calm: 0, storm: 1 } };
 
+/** The room's bodies, as the page's rigs size them (goldenKingBody.ts, bodies.json). */
+const GOLDEN_KING_DIMS = { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headRadius: 0.16, legLen: 0.87, feet: [[0.12, 0.05], [-0.12, 0.05], [0.12, -0.05], [-0.12, -0.05]], halfWidth: 0.3, capsuleAxis: 'y' };
+const BALBAL_DIMS = { bodyY: 0.9, bodyHalfLen: 0.6, bodyRadius: 0.4, headRadius: 0.26, legLen: 0.82, feet: [[0.16, 0.05], [-0.16, 0.05], [0.16, -0.05], [-0.16, -0.05]], halfWidth: 0.38, capsuleAxis: 'y' };
+
 /** Nalati's native assembly (P1-E3.1b, J90): its hosts in install order, as data over its product files. */
 function nalatiNativeAssemblyPlan(nativeBake: NativeAssemblyPlan['bake']['reader'] & { readonly size: number; readonly resolution: number }): NativeAssemblyPlan {
   return { kind: 'native-assembly', level: { speed: 5, authorCap: true, ground: { size: nativeBake.size, height: 0 } }, terrain: { kind: 'shard-tile', resolution: 256, size: 500 }, navigation: 'shard',
@@ -75,6 +81,8 @@ function nalatiNativeAssemblyPlan(nativeBake: NativeAssemblyPlan['bake']['reader
       { host: 'weather.native', program: { file: 'world/weather.json' }, shelters: { file: 'server/shelters.json' }, rows: { file: 'server/weather.json' } }, { host: 'riding.groups', rows: { file: 'server/groups.json' } },
       { host: 'riding.elites', rows: { file: 'server/elites.json' }, strikes: { file: 'server/elite-strikes.json' }, projected: 2, conditions: NALATI_ELITE_CONDITIONS },
       { host: 'riding.hunt', config: { file: 'server/population.json' } }, { host: 'riding.mounted', profile: { file: 'server/ride.json' } },
+      { host: 'boss.arena', id: 'nalati.king', file: 'combat/room-entry.json', body: { kind: 'golden-king', variant: 'king' }, reward: 'goldenBow',
+        entrance: [GREAT_KURGAN.x - Math.sin(GREAT_KURGAN_DOOR) * (GREAT_KURGAN.r + 3), 0, GREAT_KURGAN.z - Math.cos(GREAT_KURGAN_DOOR) * (GREAT_KURGAN.r + 3), GREAT_KURGAN_DOOR] },
       { host: 'riding.taming', rows: { file: 'server/taming.json' }, poses: { file: 'sim/taming-poses.json', path: ['poses'] }, pose: { file: 'actors/species-looks.json', path: ['poses', 'horse'] } }, { host: 'riding.elites-ready' }] };
 }
 
@@ -87,5 +95,6 @@ export function nalatiServerFiles(pasture: NalatiTitanProgram, admission: Nalati
     { swipe: declared(swipe, 'swipe'), pounce: declared(pounce, 'pounce'), bite: declared(bite, 'bite') });
   return nativeAssemblyFiles(nalatiNativeAssemblyPlan(constants.nativeBake), new Map<string, unknown>([['server/physics.json', nalatiPhysics()], ['server/boot.json', bootFile],
     ['server/shelters.json', constants.nativeShelters], ['server/weather.json', constants.nativeWeather], ['server/groups.json', constants.groupRows], ['server/elites.json', elites],
-    ['server/elite-strikes.json', strikes], ['server/population.json', constants.nativePopulation], ['server/ride.json', constants.nativeRide], ['server/taming.json', constants.nativeTaming]]));
+    ['server/elite-strikes.json', strikes], ['server/population.json', constants.nativePopulation], ['server/ride.json', constants.nativeRide], ['server/taming.json', constants.nativeTaming],
+    ['server/arena-species.json', { species: [{ ...speciesRows.king, dims: GOLDEN_KING_DIMS }, { ...speciesRows.balbal, dims: BALBAL_DIMS }] }]]));
 }

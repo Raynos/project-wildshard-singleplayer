@@ -111,7 +111,7 @@ export function takeNativeBossReward(host: SimHost, id: string, eye: { x: number
 
 const finite = v.pipe(v.number(), v.finite());
 /** Install from rows without allocating a body or consuming a random draw. */
-export function installGroundBoss(host: SimHost, input: unknown, profile: unknown, program: SpeciesProgramData, bindingInput: unknown): { boss: BossBrain; fight: GroundBossFight<NativeGroundBossBody>; locked: () => boolean;
+export function installGroundBoss(host: SimHost, input: unknown, profile: unknown, program: SpeciesProgramData, bindingInput: unknown, grantItem?: (player: string, item: string, count: number) => void): { boss: BossBrain; fight: GroundBossFight<NativeGroundBossBody>; locked: () => boolean;
   rewardPoint: () => { x: number; y: number; z: number } | null; takeReward: (eye: { x: number; y: number; z: number }) => boolean } {
   const row = parseRoamingEncounter(input, profile), binding = v.parse(NativeBossBindingSchema, bindingInput), roster = () => populationRoster(host, binding.population);
   const { fight, own, waves } = nativeGroundFight(host, row, program, binding), brain: { boss: BossBrain | null } = { boss: null }, origin = row.profile.fight.origin;
@@ -155,7 +155,10 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
       // J105: in a room the orb is each earner's own, and it stands until the last of them has taken theirs.
       const { bounty } = owner;
       if (bounty.room) {
-        if (!bounty.take(host.nearestPlayer(eye).id)) return false;
+        const player = host.nearestPlayer(eye).id;
+        if (!bounty.take(player)) return false;
+        // J105: the trophy is this player's own, in the ledger, not the first player's pack
+        for (const { item, count } of binding.reward.grants) grantItem?.(player, item, count);
         if (bounty.owed.length > 0) return true;
       }
       reward = null; saved.rewardTaken = true; record.persist(saved); return true;

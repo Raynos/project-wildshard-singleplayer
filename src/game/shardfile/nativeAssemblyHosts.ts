@@ -41,6 +41,7 @@ import { installMountedPlayer } from '../riding/native';
 import { installNativeBootRoster, installNativePopulationHunt, type NativePopulationBootRows } from '../riding/nativePopulation';
 import { installNativeTaming, type NativeTamingRows } from '../riding/nativeTaming';
 import { installGrapple } from '../grapple/native';
+import { arenaSpecies, installArenaEntry } from '../boss/arenaRoomEntry';
 import { parseGrappleProfile } from '@wildshard/format/grapple';
 import { tagOf } from '@wildshard/engine/physics/surface';
 import { installTrampleTrail } from '../systems/looks/trampleField';
@@ -133,6 +134,10 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
       const profile = await readAssemblyInput<object>(product, row.profile), { world } = at;
       return run => { const boot = bootOf(at); installMountedPlayer(run.host, { ...profile, world, mountable: boot.mountable.concat(need(run.creatures, 'Riding needs its creatures').bondedHorseIds()), program: boot.riding.riding }, need(at.pond, 'Riding needs its pond'), at.wet); };
     }
+    case 'boss.arena': {
+      const input = await readAssemblyInput<unknown>(product, { file: row.file }), spec = arenaSpecies(await readAssemblyInput<unknown>(product, { file: 'server/arena-species.json' }));
+      return run => { if (run.context.room === true) installArenaEntry(run.host, input, row, { spec, grantItem: at.ports.grantItem(run.context), snapshot: run.context.snapshot }); };
+    }
     case 'grapple': {
       const profile = parseGrappleProfile(await readAssemblyInput<unknown>(product, row.profile)), hooks = await readAssemblyInput<readonly { readonly x: number; readonly y: number; readonly z: number }[]>(product, row.hooks);
       const mode = shard.modes?.grapple?.find(entry => entry.id === row.mode);
@@ -197,7 +202,7 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     }
     case 'boss.ground': {
       const encounter = await readAssemblyInput<{ profile: unknown }>(product, row.encounter), program = need(product.section('actors/species-programs').program, 'Native boss needs its decision programme');
-      return run => { run.boss = installGroundBoss(run.host, encounter, encounter.profile, program, row.binding); };
+      return run => { run.boss = installGroundBoss(run.host, encounter, encounter.profile, program, row.binding, at.ports.grantItem(run.context)); };
     }
     case 'population.environment': { const input = await readAssemblyInput(product, row.rows); return run => { installPopulationEnvironment(run.host, need(at.grid, 'Population environment needs its grid'), input); }; }
     case 'population.shelter': { const input = await readAssemblyInput(product, row.rows); return run => { installNativeHerdShelter(run.host, rows['shelterTrees'] as Parameters<typeof installNativeHerdShelter>[1], input); }; }

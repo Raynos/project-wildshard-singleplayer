@@ -38,6 +38,8 @@ export type HeadlessRuntimeInput = Omit<HeadlessRuntimePreparation, 'product'> &
 /** Current tick inputs and buffered effects; only a completed tick publishes them to the parent. */
 export interface HeadlessRuntimeInstallation {
   readonly combat?: NativeCombatFrame;
+  /** A net room's world, which also runs the fights a tape leaves out. */
+  readonly room?: boolean;
   restoring: boolean;
   /** Strictly decoded continuation; reinstall its dynamic actor roster before native restore. Never step here. */
   snapshot?: Readonly<SimSnapshot>;
@@ -150,7 +152,7 @@ function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRunti
 }
 /** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */
 export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<HeadlessRuntimeInstallation> {
-  return { rapier, bindCommands: bindHeadlessCommands, tamingCommands: context => () => context.commands().map(tamingCommand),
+  return { rapier, bindCommands: bindHeadlessCommands, grantItem: context => (player, item, count) => { context.emit({ kind: 'item', item, count, actorId: player }); }, tamingCommands: context => () => context.commands().map(tamingCommand),
     grappleTick: context => ({ emit: context.emit, commands: () => context.commands().map(grappleCommand), commandsOf: id => context.playerCommands?.(id).map(grappleCommand) ?? [] }) };
 }
 /** Resolve only the admitted native data plan. Missing declarations never
@@ -202,13 +204,13 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
 }
 /** Install the selected plan into one fresh or strictly restored native host.
  * A failed install disposes its world; installation may emit no gameplay effects. */
-export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>): Promise<TrustedHeadlessResident> {
+export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>, world?: { readonly room?: boolean }): Promise<TrustedHeadlessResident> {
   const plan = await prepareNativeRuntime(preparation);
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
   const combat = createNativeCombatFrame();
   const otherCommands = new Map<string, readonly HeadlessCommand[]>();
-  const context: HeadlessRuntimeInstallation = { combat, restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, playerCommands: id => otherCommands.get(id) ?? [], emit: effect => { effects.push(effect); } };
+  const context: HeadlessRuntimeInstallation = { combat, ...(world?.room === true ? { room: true } : {}), restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, playerCommands: id => otherCommands.get(id) ?? [], emit: effect => { effects.push(effect); } };
   const ports = { ...plan.ports, rapier: preparation.rapier };
   let installing: SimHost | undefined;
   let host: SimHost;

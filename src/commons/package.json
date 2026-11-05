@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@wildshard/sdk": "workspace:*",
-    "@wildshard/format": "github:project-wildshard/shardfile#v0.3.0",
+    "@wildshard/format": "github:project-wildshard/shardfile#v0.3.1",
     "three": "0.186.0"
   }
 }

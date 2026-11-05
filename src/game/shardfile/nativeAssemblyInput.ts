@@ -16,12 +16,16 @@ import type { NativeCollisionBake } from '../population/nativeBake';
 import type { ShardProduct } from './shardProduct';
 
 /** What a server host hands one install. The tick protocol belongs to the SDK: `ports` adapts it. */
-export interface NativeAssemblyContext { readonly combat?: NativeCombatFrame; readonly restoring: boolean; readonly snapshot?: Readonly<SimSnapshot> }
+export interface NativeAssemblyContext { readonly combat?: NativeCombatFrame; readonly restoring: boolean; readonly snapshot?: Readonly<SimSnapshot>;
+  /** A net room's world: it also runs the fights a page or a tape keeps to itself. */
+  readonly room?: boolean }
 /** The SDK's tick-protocol loans. No module URL or shard code crosses this boundary. */
 export interface NativeAssemblyPorts<C extends NativeAssemblyContext> {
   readonly rapier: Rapier;
   readonly bindCommands: (context: C, host: SimHost) => { readonly ledger: { readonly fact: (name: string, actorId: string) => void } };
   /** The tick's commands as the taming owner reads them. */
+  /** File an item for one player in the tick's ledger effects (J105). */
+  readonly grantItem: (context: C) => (player: string, item: string, count: number) => void;
   /** A grapple's view of the tick tape. */
   readonly grappleTick: (context: C) => GrappleTickContext;
   readonly tamingCommands: (context: C) => () => readonly ({ kind: 'player'; steer?: { keyX: number } } | { kind: 'script'; actorId: string; value: number } | { kind: 'action' })[];
