@@ -697,10 +697,11 @@ export function renameProof(root, plan, { env, commit }) {
 }
 
 /** One phase as scripts/push-loop.py runs it on a tip: its checker, its path list. A rename is a delete plus an add there.
+ * A candidate lives in a private object store, so `env` is what lets git find it.
  * @returns {string[]} */
-export function gatePhaseCommand(root, base, tip, phase) {
+export function gatePhaseCommand(root, base, tip, phase, env) {
   if (phase === 'binary-json') return ['scripts/no-binary-json.mjs', '--range', base, tip];
-  const paths = git(root, ['diff', '--name-only', ...(phase === 'deleted-paths' ? ['--diff-filter=D'] : []), '--no-renames', base, tip]).split('\n').filter(Boolean);
+  const paths = git(root, ['diff', '--name-only', ...(phase === 'deleted-paths' ? ['--diff-filter=D'] : []), '--no-renames', base, tip], { env }).split('\n').filter(Boolean);
   return ['scripts/committed-fast-checks.mjs', root, base, tip, phase, JSON.stringify(paths)];
 }
 
@@ -709,7 +710,7 @@ export function gatePhaseCommand(root, base, tip, phase) {
 export function gateProof(root, { env, commit }, phases) {
   const base = git(root, ['rev-parse', 'HEAD']).trim(), verdicts = {};
   for (const phase of phases) {
-    const started = Date.now(), result = spawnSync('node', gatePhaseCommand(root, base, commit, phase), { cwd: root, env, encoding: 'utf8', maxBuffer: 1 << 30, timeout: 280_000 });
+    const started = Date.now(), result = spawnSync('node', gatePhaseCommand(root, base, commit, phase, env), { cwd: root, env, encoding: 'utf8', maxBuffer: 1 << 30, timeout: 280_000 });
     const output = `${result.stdout ?? ''}${result.stderr ?? ''}`.trim().split('\n');
     const local = output.some(line => /Error: Missing committed input: /u.test(line)) && output.filter(line => /deleted path|rose|Refused|REFUSED/u.test(line)).length === 0;
     verdicts[phase] = `${result.status === 0 ? 'pass' : local ? 'pass but for gen-source, which resolves through the real node_modules and proves only after --apply' : `FAIL ${result.status ?? 'timeout'}`} in ${Math.round((Date.now() - started) / 1000)}s: ${output.slice(result.status === 0 ? -1 : 0, 40).join(' | ').slice(0, 4000)}`;

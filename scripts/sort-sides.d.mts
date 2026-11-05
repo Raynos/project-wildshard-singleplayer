@@ -28,5 +28,5 @@ export function planFailures(tree: Tree, plan: Plan, root?: string): string[];
 export function applyPlan(root: string, tree: Tree, plan: Plan): void;
 export function undoApply(root: string): void;
 export const GATE_PHASES: readonly string[];
-export function gatePhaseCommand(root: string, base: string, tip: string, phase: string): string[];
+export function gatePhaseCommand(root: string, base: string, tip: string, phase: string, env?: NodeJS.ProcessEnv): string[];
 export function main(argv: string[], root?: string): number;
