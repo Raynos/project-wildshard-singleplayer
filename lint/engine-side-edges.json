@@ -6,7 +6,7 @@
   "cook → render": 1,
   "server → client": 144,
   "server → dom": 2,
-  "server → render": 6,
+  "server → render": 4,
   "shared → client": 3,
   "shared → dom": 1,
   "shared → server": 1
@@ -265,9 +265,6 @@
   "src/game/plugin/audio.ts": {
    "client → server": 1
   },
-  "src/game/plugin/channels.ts": {
-   "server → render": 1
-  },
   "src/game/plugin/clientChannelView.ts": {
    "client → server": 1
   },
@@ -288,9 +285,6 @@
   },
   "src/game/plugin/heldFirearm.ts": {
    "client → server": 1
-  },
-  "src/game/plugin/moverInstall.ts": {
-   "server → render": 1
   },
   "src/game/plugin/placeholderGeometry.ts": {
    "server → render": 1

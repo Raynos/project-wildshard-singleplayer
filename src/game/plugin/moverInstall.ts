@@ -1,9 +1,9 @@
 /**
  * The client half of declared movers (P1-E1): binding a shard's rendered groups and native chains to a MoverRuntime and
- * installing it on a level. The runtime, its script host and the headless driver stay in `mover.ts`, which imports no
- * renderer class; this file owns the `Object3D` check a borrowed group passes.
+ * installing it on a level. The runtime, its script host and the headless driver stay in `mover.ts`. Neither file imports
+ * a renderer class: a borrowed group is known by three's own `isObject3D` marker.
  */
-import { Object3D } from 'three';
+import type { Object3D } from 'three';
 import * as v from "valibot";
 import type { World } from "@wildshard/engine/core/bootstrap";
 import type { LevelContext } from "@wildshard/engine/level/context";
@@ -27,6 +27,9 @@ export function enterMovers(ctx: LevelContext, world: World, data: MoverData,
 function hasPosePresentation(target: object): target is { refreshPose: () => void } {
   return 'refreshPose' in target && typeof target.refreshPose === 'function';
 }
+function isRenderedGroup(value: unknown): value is Object3D {
+  return typeof value === 'object' && value !== null && 'isObject3D' in value && value.isObject3D === true;
+}
 export async function installDeclaredMovers(ctx: LevelContext, world: World, options: MoverInstallation): Promise<MoverRuntime> {
   const views = new Map(options.views), borrowed = options.borrowed;
   if (borrowed !== undefined) {
@@ -45,7 +48,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
         views.set(row.id, { chain: target, pose: () => undefined });
       } else {
         if (target === null || typeof target !== 'object' || row.group === undefined || !('group' in target)
-          || !(target.group instanceof Object3D)) throw new Error('Borrowed mover requires its rendered group');
+          || !isRenderedGroup(target.group)) throw new Error('Borrowed mover requires its rendered group');
         const group = target.group;
         if (row.afterPose !== undefined && !hasPosePresentation(target)) throw new Error('Missing borrowed pose presentation');
         group.userData['declaredMotion'] = true;

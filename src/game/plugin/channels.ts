@@ -1,4 +1,3 @@
-import { Object3D } from 'three';
 import { NumericInputError } from '@wildshard/engine/core/faults';
 import { parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { checkBorrowedOwnerPath, resolveBorrowedValue } from './borrowed';
@@ -289,7 +288,7 @@ function createClientNumericPorts(rows: readonly ClientNumericPortRow[], targets
     if (/^(?:player|shared|state)(?:[.:]|$)/u.test(row.target) || row.path.length === 0 || row.path.length > 2
       || row.path.some(key => key.length === 0 || key.length > 128 || ['__proto__', 'prototype', 'constructor'].includes(key))) throw new Error('Invalid numeric visual loan');
     if (typeof root !== 'object') throw new Error('Missing numeric visual target');
-    const scene = root instanceof Object3D;
+    const scene = 'isObject3D' in root && root.isObject3D === true; // three's own marker: this module loads no scene class
     const prototype: unknown = Object.getPrototypeOf(root);
     if (!scene && prototype !== Object.prototype && prototype !== null) throw new Error('Numeric ports require plain visual fields');
     if (scene && (row.path.length !== 2 || !['position', 'rotation', 'scale'].includes(row.path[0] ?? '') || !['x', 'y', 'z'].includes(row.path[1] ?? ''))) throw new Error('Numeric scene port must be a transform');
