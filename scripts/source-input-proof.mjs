@@ -64,24 +64,43 @@ export function committedSourceFiles(root,env=process.env) {
 
 /** Freeze the committed source program inputs before any outputs are published.
  * Existing exact-run artifact transport retains the independently sealed receipt.
- * @param {string} root @param {readonly string[]} products @returns {()=>void} */
-export function beginProgramInputProof(root,products) {
+ * The shared checkout is not frozen: peers commit and save while a preview generates,
+ * so there a move withdraws this run's receipt and the build goes on. CI and the mirror
+ * hold still, so a move there is a real fault and stays fatal.
+ * @param {string} root @param {readonly string[]} products
+ * @param {Readonly<Record<string,string|undefined>>} [env] @returns {()=>void} */
+export function beginProgramInputProof(root,products,env=process.env) {
   const registry=JSON.parse(readFileSync(resolve(root,'scripts/source-generation-outputs.json'),'utf8'));
   /** @type {Set<string>} */
   const outputs=new Set([...Object.values(registry.producers).flat(),'budgets/ceiling-sources.json']);
   const source=file=>!outputs.has(file)&&!file.includes('.generated.')&&!file.includes('/.wildshard/')&&!file.includes('/node_modules/');
   const roots=new Set(['src','scripts','lint','vite','budgets','package.json','pnpm-lock.yaml','pnpm-workspace.yaml']);
-  const tracked=()=>committedSourceFiles(root).filter(file=>roots.has(file.split('/')[0]??'')&&source(file)).sort();
-  const inputs=tracked(),memo=new InputHashMemo(root);
+  const tracked=()=>committedSourceFiles(root,env).filter(file=>roots.has(file.split('/')[0]??'')&&source(file)).sort();
+  const inputs=tracked(),memo=new InputHashMemo(root),receipt=resolve(root,'.cache/generation-phase.json');
   memo.enableSnapshot(file=>outputs.has(file)||!source(file));
-  for(const file of inputs)memo.hash(file);
   const identity=sourceSnapshotIdentity({node:process.version,platform:process.platform,arch:process.arch,products,inputs});
-  return ()=>{
+  const hashInputs=()=>{for(const file of inputs)memo.hash(file);};
+  const seal=()=>{
     if(JSON.stringify(inputs)!==JSON.stringify(tracked()))throw new Error('Source-program input inventory changed');
     memo.verifySnapshot();
     /** @type {Record<string,string>} */
     const hashes={};
     for(const file of outputs)if(existsSync(resolve(root,file)))hashes[file]=memo.hash(file,true);
-    publishSourceSnapshot(resolve(root,'.cache/generation-phase.json'),identity,memo,hashes);
+    publishSourceSnapshot(receipt,identity,memo,hashes);
+  };
+  if(env.CI!==undefined||env.GITHUB_ACTIONS!==undefined||env.WS_GENERATION_TREE_FILES!==undefined){
+    hashInputs();
+    return seal;
+  }
+  /** @param {unknown} error */
+  const withdraw=error=>{
+    rmSync(receipt,{force:true});
+    console.warn(`gen: no input receipt for this run: ${error instanceof Error?error.message:String(error)}`);
+  };
+  try {hashInputs();}
+  catch(error) {return ()=>{withdraw(error);};}
+  return ()=>{
+    try {seal();}
+    catch(error) {withdraw(error);}
   };
 }

@@ -1,10 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve original owned source/output mutation fixtures.
-import {mkdirSync,mkdtempSync,readFileSync,realpathSync,rmSync,statSync,utimesSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdirSync,mkdtempSync,readFileSync,realpathSync,rmSync,statSync,utimesSync,writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- A shared checkout's HEAD moves through real Git in the owned fixture.
+import {execFileSync} from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only the owned fixture paths.
 import {resolve} from 'node:path';
 import {afterEach,expect,it} from 'vitest';
 import {InputHashMemo,bakeInputHashes} from '../scripts/bake-input-hashes.mjs';
-import {sourceSnapshotIdentity,publishSourceSnapshot,verifiedSourceSnapshot,committedSourceFiles} from '../scripts/source-input-proof.mjs';
+import {beginProgramInputProof,sourceSnapshotIdentity,publishSourceSnapshot,verifiedSourceSnapshot,committedSourceFiles} from '../scripts/source-input-proof.mjs';
 
 const owned:string[]=[];
 afterEach(()=>{for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -58,4 +60,32 @@ it('refuses to publish changed source bytes or an unverified local output',()=>{
   expect(()=>publishSourceSnapshot(receipt,identity,memo,{'source/output.txt':output})).toThrow('Generation input changed');
   const fresh=new InputHashMemo(root);fresh.enableSnapshot(()=>false);
   expect(()=>publishSourceSnapshot(receipt,identity,fresh,{'source/output.txt':'0'.repeat(64)})).toThrow('Generation input changed');
+});
+
+function checkout() {
+  mkdirSync('tmp',{recursive:true});const root=realpathSync(mkdtempSync(resolve('tmp/generation-checkout-')));owned.push(root);
+  mkdirSync(resolve(root,'scripts'));mkdirSync(resolve(root,'src'));mkdirSync(resolve(root,'.cache'));
+  writeFileSync(resolve(root,'scripts/source-generation-outputs.json'),'{"producers":{}}');writeFileSync(resolve(root,'src/a.ts'),'a');
+  const git=(...args:string[])=>execFileSync('git',['-c','user.name=fixture','-c','user.email=fixture@example.test','-c','commit.gpgsign=false',...args],{cwd:root,stdio:'ignore'});
+  const commit=(message:string)=>{git('add','src','scripts');git('commit','--no-verify','-m',message);};
+  git('init');commit('first');
+  return {root,commit,receipt:resolve(root,'.cache/generation-phase.json')};
+}
+
+it('withdraws the shared checkout receipt when a peer commits mid-generation, and seals an unmoved run',()=>{
+  const {root,commit,receipt}=checkout();
+  writeFileSync(receipt,'stale');
+  const moved=beginProgramInputProof(root,[],{});
+  writeFileSync(resolve(root,'src/peer.ts'),'peer');commit('peer');
+  expect(moved).not.toThrow();
+  expect(existsSync(receipt)).toBe(false);
+  beginProgramInputProof(root,[],{})();
+  expect(existsSync(receipt)).toBe(true);
+});
+
+it('stays fatal under CI when the inventory moves',()=>{
+  const {root,commit}=checkout();
+  const moved=beginProgramInputProof(root,[],{CI:'true'});
+  writeFileSync(resolve(root,'src/peer.ts'),'peer');commit('peer');
+  expect(moved).toThrow('Source-program input inventory changed');
 });
