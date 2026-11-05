@@ -6,10 +6,11 @@
  * from its channels (its ring, lane or wedge, or hides it), and puts each validated matrix on its
  * target: a lent object, a named bone under it, one copy of a lent instanced draw, or the actor bound to a pool slot.
  * Every target is claimed once for its owner's life (a slot's actor for as long as it holds the slot) and restored when
- * it ends; a rendered pose is a visual only and never an authority position. Client-only.
+ * it ends; a rendered pose is a visual only and never an authority position. It names no renderer class, so a host that
+ * draws nothing can run a view whose only writes are lent cells (CI12).
  */
-import { BufferAttribute, BufferGeometry, Color, InstancedMesh, InterleavedBufferAttribute, Material, Matrix4, Quaternion, ShaderMaterial, Vector3,
-  type Camera, type Object3D } from 'three';
+import { Color, Matrix4, Quaternion, Vector3, type BufferAttribute, type BufferGeometry, type Camera, type InstancedMesh, type InterleavedBufferAttribute,
+  type Material, type Object3D, type ShaderMaterial } from 'three';
 import { viewTellShape, type ViewProgramRows, type ViewTargetRef, type ViewTellShape } from '@wildshard/format/viewProgram';
 import type { Scope } from '../../shared/app/scope';
 import { ViewLane, type PreparedViewMemory } from './viewLane';
@@ -23,6 +24,8 @@ export interface ViewSlotActor {
   field: (name: string) => number;
   set: (name: string, value: number) => void;
 }
+/** What a program moves of its owner's camera: a server lends these two fields alone. */
+export type ViewCamera = Pick<Camera, 'position' | 'rotation'>;
 /** A ground tell its owner lends (engine/fx/groundTell): its draped ring, lane and wedge, or hidden. */
 export interface ViewTell {
   ring: (x: number, z: number, radius: number, alpha: number) => void;
@@ -43,7 +46,7 @@ export interface ViewProgramPorts {
    *  over its time target). A host that needs every frame (CI12's Node simulation, whose decisions read the cells) passes
    *  15: the guest then runs on every frame whatever it costs. */
   readonly displayHz?: number;
-  readonly camera: Camera;
+  readonly camera: ViewCamera;
   /** a lent numeric snapshot by id: each named field read once a frame; null for one the owner lacks */
   readonly values: (source: string) => ((field: string) => number) | null;
   readonly floor: (piece: string) => ((x: number, z: number) => number | undefined) | null;
@@ -78,10 +81,18 @@ function claim(scope: Scope, target: object, key: string, restore: () => void): 
   scope.onDispose(release);
   return release;
 }
+/** A renderer object by its own class flag: nothing here loads a renderer class. */
+const flagged = (value: unknown, flag: string): boolean => typeof value === 'object' && value !== null && Reflect.get(value, flag) === true;
+const isMaterial = (value: unknown): value is Material => flagged(value, 'isMaterial');
+const isShaderMaterial = (value: unknown): value is ShaderMaterial => flagged(value, 'isShaderMaterial');
+const isInstanced = (value: unknown): value is InstancedMesh => flagged(value, 'isInstancedMesh');
+const isGeometry = (value: unknown): value is BufferGeometry => flagged(value, 'isBufferGeometry');
+const isAttribute = (value: unknown): value is BufferAttribute => flagged(value, 'isBufferAttribute');
+const isInterleaved = (value: unknown): value is InterleavedBufferAttribute => flagged(value, 'isInterleavedBufferAttribute');
 const numberCell = (cell: unknown): cell is { value: number } => typeof cell === 'object' && cell !== null && 'value' in cell && typeof cell.value === 'number';
 const materials = (object: Object3D): Material[] => {
   const value: unknown = Reflect.get(object, 'material'), list: readonly unknown[] = Array.isArray(value) ? value : [value];
-  return list.filter((row): row is Material => row instanceof Material);
+  return list.filter(isMaterial);
 };
 /** One write site over a lent object: claim it (saving what it restores) and set a value; re-made when a slot rebinds. */
 type Site = (object: Object3D, release: (restore: () => void, key: string) => void) => (value: number | Matrix4) => void;
@@ -137,7 +148,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   const setters = rows.transforms.map((row): ((value: number | Matrix4) => void) => {
     if (row.kind !== 'instance') return target(row.object, transformSite(row.kind === 'bone' ? row.bone : null));
     const owner = ports.object(row.object);
-    if (!(owner instanceof InstancedMesh) || row.index >= owner.count) throw new Error(`View instance ${row.object}#${String(row.index)} is not a lent copy`);
+    if (!isInstanced(owner) || row.index >= owner.count) throw new Error(`View instance ${row.object}#${String(row.index)} is not a lent copy`);
     const saved = new Matrix4(), mesh = owner; mesh.getMatrixAt(row.index, saved);
     claim(scope, mesh, `instance:${String(row.index)}`, () => { mesh.setMatrixAt(row.index, saved); mesh.instanceMatrix.needsUpdate = true; });
     return value => { if (typeof value !== 'number') { mesh.setMatrixAt(row.index, value); mesh.instanceMatrix.needsUpdate = true; } };
@@ -195,17 +206,17 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
       return value => { if (typeof value === 'number') for (const material of list) material.opacity = value; };
     });
     if (row.kind === 'uniform') return target(row.object, (object, lend) => {
-      const cells = materials(object).flatMap(material => { const cell: unknown = material instanceof ShaderMaterial ? material.uniforms[row.uniform] : undefined; return numberCell(cell) ? [cell] : []; });
+      const cells = materials(object).flatMap(material => { const cell: unknown = isShaderMaterial(material) ? material.uniforms[row.uniform] : undefined; return numberCell(cell) ? [cell] : []; });
       if (cells.length === 0) throw new Error(`View uniform ${row.uniform} is not a number`);
       const saved = cells.map(cell => cell.value);
       lend(() => { for (const [i, cell] of cells.entries()) cell.value = saved[i] ?? cell.value; }, `uniform:${row.uniform}`);
       return value => { if (typeof value === 'number') for (const cell of cells) cell.value = value; };
     });
     const object = ports.object(row.object), geometry: unknown = Reflect.get(object, 'geometry');
-    const cell: unknown = geometry instanceof BufferGeometry && geometry.hasAttribute(row.attribute) ? geometry.getAttribute(row.attribute) : undefined;
-    if (!(cell instanceof BufferAttribute || cell instanceof InterleavedBufferAttribute) || row.index >= cell.count) throw new Error(`View attribute ${row.object}.${row.attribute} is missing`);
+    const cell: unknown = isGeometry(geometry) && geometry.hasAttribute(row.attribute) ? geometry.getAttribute(row.attribute) : undefined;
+    if (!(isAttribute(cell) || isInterleaved(cell)) || row.index >= cell.count) throw new Error(`View attribute ${row.object}.${row.attribute} is missing`);
     const saved = cell.getComponent(row.index, row.component);
-    const touch = (): void => { if (cell instanceof InterleavedBufferAttribute) cell.data.needsUpdate = true; else cell.needsUpdate = true; };
+    const touch = (): void => { if (isInterleaved(cell)) cell.data.needsUpdate = true; else cell.needsUpdate = true; };
     claim(scope, cell, `${String(row.index)}:${String(row.component)}`, () => { cell.setComponent(row.index, row.component, saved); touch(); });
     return value => { cell.setComponent(row.index, row.component, value); touch(); };
   });
@@ -224,7 +235,7 @@ export function viewProgram(bytes: Uint8Array, rows: ViewProgramRows, ports: Vie
   const batches = batchRows.map(row => {
     const mesh = ports.draw?.(row.draw); if (mesh === undefined) throw new Error(`View draw ${row.draw} is not lent`);
     const found: unknown = row.attribute === undefined ? null : mesh.geometry.getAttribute(row.attribute.name);
-    const attribute = found instanceof BufferAttribute ? found : null;
+    const attribute = isAttribute(found) ? found : null;
     if (row.attribute !== undefined && (attribute === null || attribute.itemSize < row.attribute.itemSize || attribute.count < mesh.instanceMatrix.count)) throw new Error(`View draw ${row.draw} lacks its attribute`);
     const saved = mesh.count; claim(scope, mesh, 'batch', () => { mesh.count = saved; });
     return { mesh, attribute, itemSize: row.attribute?.itemSize ?? 0 };
