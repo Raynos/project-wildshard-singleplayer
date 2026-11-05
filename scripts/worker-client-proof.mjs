@@ -18,15 +18,14 @@ const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
 async function proveHook(page, failures) {
   const claw = () => page.evaluate(() => {
     const { world } = window.__wildshard, tool = world.game.app.equipment?.tools.find(item => 'guardOpen' in item), { sim } = tool ?? {}, report = window.__workerClient();
-    return { kind: sim?.constructor?.name, phase: sim?.phase, target: sim?.target?.hook === undefined ? null : [sim.target.hook.x, sim.target.hook.y, sim.target.hook.z], at: [world.player.position.x, world.player.position.y, world.player.position.z], server: [report.serverX, report.serverZ], closed: report.closed, corrections: report.corrections };
+    return { wire: sim !== undefined && sim !== null && !('lockHook' in sim), phase: sim?.phase, target: sim?.target?.hook === undefined ? null : [sim.target.hook.x, sim.target.hook.y, sim.target.hook.z], at: [world.player.position.x, world.player.position.y, world.player.position.z], server: [report.serverX, report.serverZ], closed: report.closed, corrections: report.corrections };
   });
-  for (let tries = 0; tries < 40 && (await claw()).kind === 'GrappleSim'; tries++) await page.waitForTimeout(250);
-  const start = await claw();
-  if (start.kind === undefined || start.kind === 'GrappleSim') { failures.push(`the claw never went on the wire: ${String(start.kind)}`); return; }
+  for (let tries = 0; tries < 40 && !(await claw()).wire; tries++) await page.waitForTimeout(250);
+  if (!(await claw()).wire) { failures.push('the claw never went on the wire'); return; }
   // Aim the camera at the nearest reachable hook, and let the page's own scan find it.
   const hook = await page.evaluate(() => {
     const { world } = window.__wildshard, { player } = world, tool = world.game.app.equipment.tools.find(item => 'guardOpen' in item), { position: p } = player;
-    const near = tool.hooks.map(row => ({ row, away: Math.hypot(row.x - p.x, row.y - p.y, row.z - p.z) })).filter(({ away, row }) => away > 12 && away < 34 && row.y > p.y + 3).sort((a, b) => a.away - b.away)[0]?.row;
+    const near = tool.hooks.find(row => row.x > p.x + 15 && Math.abs(row.z - p.z) < 10 && row.y > p.y + 4 && Math.hypot(row.x - p.x, row.z - p.z, row.y - p.y) < 38);
     if (near === undefined) return null;
     const dx = near.x - p.x, dz = near.z - p.z;
     player.yaw = Math.atan2(-dx, -dz); player.pitch = Math.atan2(near.y - p.y - 1.68, Math.hypot(dx, dz));
