@@ -1,4 +1,5 @@
 import type { GrappleTickContext } from '../grapple/native';
+import type { HeldTick } from '../weapons/nativeHeld';
 import type { bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import type { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
@@ -28,6 +29,8 @@ export interface NativeAssemblyPorts<C extends NativeAssemblyContext> {
   readonly grantItem: (context: C) => (player: string, item: string, count: number) => void;
   /** A grapple's view of the tick tape. */
   readonly grappleTick: (context: C) => GrappleTickContext;
+  /** The held arms' view of the tick tape. */
+  readonly heldTick: (context: C) => HeldTick;
   readonly tamingCommands: (context: C) => () => readonly ({ kind: 'player'; steer?: { keyX: number } } | { kind: 'script'; actorId: string; value: number } | { kind: 'action' })[];
   /** A trusted wrapper's loans over the same world (proofs that drive a raid, the storm or an elite). The server sets none. */
   readonly pastureCues?: PastureCues;

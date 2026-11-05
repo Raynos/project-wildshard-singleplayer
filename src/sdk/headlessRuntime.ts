@@ -154,7 +154,8 @@ function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRunti
 /** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */
 export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<HeadlessRuntimeInstallation> {
   return { rapier, bindCommands: bindHeadlessCommands, grantItem: context => (player, item, count) => { context.emit({ kind: 'item', item, count, actorId: player }); }, tamingCommands: context => () => context.commands().map(tamingCommand),
-    grappleTick: context => ({ emit: context.emit, commands: () => context.commands().map(grappleCommand), commandsOf: id => context.playerCommands?.(id).map(grappleCommand) ?? [] }) };
+    grappleTick: context => ({ emit: context.emit, commands: () => context.commands().map(grappleCommand), commandsOf: id => context.playerCommands?.(id).map(grappleCommand) ?? [] }),
+    heldTick: context => ({ commands: context.commands, commandsOf: id => context.playerCommands?.(id) ?? [] }) };
 }
 /** Resolve only the admitted native data plan. Missing declarations never
  * fall back to a shard source path; product and level identities must agree. */
