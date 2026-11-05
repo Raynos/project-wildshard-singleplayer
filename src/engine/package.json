@@ -324,6 +324,7 @@
     "./net/client": "./net/client.ts",
     "./net/acts": "./net/acts.ts",
     "./net/combatWire": "./net/combatWire.ts",
+    "./net/ledgerBook": "./net/ledgerBook.ts",
     "./net/identity": "./net/identity.ts",
     "./net/room": "./net/room.ts",
     "./net/serverClock": "./net/serverClock.ts",

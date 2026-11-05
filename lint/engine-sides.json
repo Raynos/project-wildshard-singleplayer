@@ -382,6 +382,8 @@
   "src/engine/net/frame.ts": "shared",
   "src/engine/net/handles.ts": "server",
   "src/engine/net/identity.ts": "shared",
+  "src/engine/net/ledgerBook.ts": "server",
+  "src/engine/net/ledgerWire.ts": "shared",
   "src/engine/net/messages.ts": "shared",
   "src/engine/net/netSchemas.ts": "shared",
   "src/engine/net/playerNet.ts": "shared",

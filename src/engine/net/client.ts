@@ -7,6 +7,7 @@ import type { NetRoomAct } from './acts';
 import { BitWriter } from './bits';
 import { encodeCommands, seqAfter } from './command';
 import { GUEST, type NetIdentity } from './identity';
+import type { NetLedger } from './ledgerWire';
 import { decodeFrame, FRAME_RING, NO_BASELINE, type DecodedFrame, type FrameTable } from './frame';
 import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetTravel, type NetWelcome } from './messages';
 import { FLAG_CLASS, NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from './netSchemas';
@@ -47,6 +48,10 @@ export class NetClient {
   private readonly listeners = new Set<(frame: DecodedFrame) => void>();
   private readonly fights = new Set<(event: NetCombatEvent) => void>();
   private readonly travels = new Set<(event: NetTravel) => void>();
+  /** The last ledger serial this client has: pass it to `hello` when it comes back, and it hears only what it missed. */
+  ledgerSerial = 0;
+  private readonly receipts = new Set<(receipt: NetLedger) => void>();
+  private readonly granted = new Set<string>();
   /** This client's own player's quests, newest row each (P1-E3.3): what a QuestReplica reads. */
   readonly quests: Map<string, QuestProgress> = new Map<string, QuestProgress>();
   /** The flags up in this client's own world (J106): what its view of a gate or a key reads. */
@@ -63,13 +68,18 @@ export class NetClient {
     this.off = [transport.onMessage((_channel, bytes) => { this.receive(new Uint8Array(bytes)); }), transport.onClose(reason => { this.closed = reason; })];
   }
   /** Begin the handshake. `build` is this client's engine build id; `identity` is who it says it is (J111). */
-  hello(build = '', identity: NetIdentity = GUEST): void { this.transport.send('reliable', encodeHello(this.writer, { schemaHash: NET_SCHEMA_HASH, build, ...identity, ledger: 0 })); }
+  hello(build = '', identity: NetIdentity = GUEST, ledger = 0): void {
+    this.ledgerSerial = ledger;
+    this.transport.send('reliable', encodeHello(this.writer, { schemaHash: NET_SCHEMA_HASH, build, ...identity, ledger }));
+  }
   /** Call for every frame decoded; returns the unsubscribe. */
   onFrame(listener: (frame: DecodedFrame) => void): () => void { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; }
   /** Call for every settled hit and death (P1-E3.2); returns the unsubscribe. */
   onCombat(listener: (event: NetCombatEvent) => void): () => void { this.fights.add(listener); return () => { this.fights.delete(listener); }; }
   /** Call when this client's player crosses, before the new cell's `welcome`; returns the unsubscribe. */
   onTravel(listener: (event: NetTravel) => void): () => void { this.travels.add(listener); return () => { this.travels.delete(listener); }; }
+  /** Call once for every ledger receipt, however often the wire repeats it (M8); returns the unsubscribe. */
+  onLedger(listener: (receipt: NetLedger) => void): () => void { this.receipts.add(listener); return () => { this.receipts.delete(listener); }; }
   /** A held frame by tick. */
   frame(tick: number): DecodedFrame | null { return this.frames.get(tick) ?? null; }
   /** One entity's row in a frame, as field values. */
@@ -124,6 +134,7 @@ export class NetClient {
     for (const event of decoded.events) {
       if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
+      if (event.kind === 'ledger') { this.receipt(event); continue; }
       if (event.kind === 'travel') { this.left(); for (const listener of this.travels) listener(event); continue; }
       if (event.kind === 'phase') { if (event.on) this.phased.add(event.flag); else this.phased.delete(event.flag); continue; }
       if (event.kind === 'despawn') {
@@ -141,7 +152,12 @@ export class NetClient {
     }
   }
   /** Everything it holds named the cell it left. Commands stand: the player's own stream goes on. */
-  private left(): void { this.welcome = null; this.latest = null; this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); }
+  private left(): void { this.welcome = null; this.latest = null; this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); this.ledgerSerial = 0; }
+  private receipt(event: NetLedger): void {
+    if (event.serial <= this.ledgerSerial || this.granted.has(event.id)) return;
+    this.ledgerSerial = event.serial; this.granted.add(event.id);
+    for (const listener of this.receipts) listener(event);
+  }
   private decoded(frame: DecodedFrame | null): void {
     if (frame === null || (this.welcome !== null && frame.cell !== this.welcome.cell)) { this.dropped++; return; }
     this.frames.set(frame.tick, frame);

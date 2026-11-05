@@ -3,6 +3,7 @@ import type { SimHost } from '../sim';
 import { leadPlayer } from '../sim/leadPlayer';
 import type { AnimalNetView } from './animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
+import type { LedgerFiling } from './ledgerBook';
 import { questBooks, type QuestProgressRead } from '../quest/players';
 import { encounterRows } from '../sim/encounterRows';
 import { ANIMAL_CLASS, ENCOUNTER_CLASS, FLAG_CLASS, PLAYER_CLASS, SCRIPT_CLASS, STATE_CLASS } from './netSchemas';
@@ -20,9 +21,10 @@ export class SimNetWorld implements NetWorld {
   private readonly pose: AnimalPoseSample = emptyPose();
   private readonly wire: CombatWire;
   private readonly frame: number;
-  /** `frame` names the cell this host's positions are local to; 0 is the highway, and any world that is not on a grid. */
-  constructor(host: SimHost, frame = 0) {
-    this.host = host; this.frame = frame; this.wire = new CombatWire(host);
+  private readonly filings: (() => readonly LedgerFiling[]) | undefined;
+  /** `frame` names the cell this host's positions are local to; 0 is the highway, and any world that is not on a grid. `filings` reads the tick's grants, which the host's owner holds: the sim keeps none. */
+  constructor(host: SimHost, frame = 0, filings?: () => readonly LedgerFiling[]) {
+    this.host = host; this.frame = frame; this.filings = filings; this.wire = new CombatWire(host);
     this.player = this.playerOf(leadPlayer(host).id);
   }
   /** A player, as the client that owns it reads it. */
@@ -34,6 +36,7 @@ export class SimNetWorld implements NetWorld {
   tick(): number { return this.host.state.tick; }
   cell(): number { return this.frame; }
   combat(): readonly CombatEvent[] { return this.wire.drain(); }
+  ledger(): readonly LedgerFiling[] { return this.filings?.() ?? []; }
   quests(player: string, since: number): QuestProgressRead | null { return questBooks(this.host).progressOf(player, since); }
   visit(visitor: NetVisitor): void {
     const { host, pose } = this, targets = new Map(host.attackTargets());

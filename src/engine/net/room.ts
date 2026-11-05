@@ -16,6 +16,7 @@ import { GUEST, NetIdentitySchema, type NetIdentity } from './identity';
 import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetEvent, type NetHit, type NetReward } from './messages';
 import { NET_CLASSES, NET_SCHEMA_HASH } from './netSchemas';
 import type { NetClass, NetRefs } from './schema';
+import { LedgerBook, type LedgerFiling } from './ledgerBook';
 import { framesBetween, rowDue } from './tiers';
 import type { NetChannel, Transport } from './transport';
 
@@ -40,6 +41,8 @@ export interface NetWorld {
   combat?: () => readonly CombatEvent[];
   /** A player's quests, when they moved past `since`. A world with no quests leaves it out. */
   quests?: (player: string, since: number) => { readonly version: number; readonly rows: readonly QuestProgress[]; readonly flags: readonly string[] } | null;
+  /** What the tick granted (M8), each to its player. A world with no ledger leaves it out. */
+  ledger?: () => readonly LedgerFiling[];
   /** The player a client owns unless it joins as another. */
   readonly player: NetPlayer;
 }
@@ -54,6 +57,8 @@ export interface NetRoomOptions {
   readonly step: (inputs: readonly NetTickInput[]) => void;
   /** This engine build's id; empty where builds are not stamped (tests, dev servers), which skips its check. */
   readonly build?: string;
+  /** The players' receipts, where something outlives the room: a save, or rooms that share a player. */
+  readonly book?: LedgerBook;
 }
 
 /** What a client held at a frame. `due` are the rows this frame may send; `rows` is the world frame each held row came from. */
@@ -64,6 +69,8 @@ interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue; readonly player: NetPlayer;
   /** Who it said it is at `hello` (J111). A hand-off keeps it. */
   identity: NetIdentity;
+  /** The last receipt it has had. */
+  ledgerSeen: number;
   /** waiting: said hello before the room opened. live: welcomed. */
   state: 'new' | 'waiting' | 'live';
   ack: number; readonly acts: NetTickAct[]; readonly known: Set<number>;
@@ -94,10 +101,11 @@ export class NetRoom {
   private readonly build: string;
   private readonly inputs: NetTickInput[] = [];
   private readonly combat: RoomCombat[] = [];
+  private readonly book: LedgerBook;
   private opened = false;
   private serial = 0;
   private clientIds = 0;
-  constructor(options: NetRoomOptions) { this.world = options.world; this.step = options.step; this.build = options.build ?? ''; }
+  constructor(options: NetRoomOptions) { this.world = options.world; this.step = options.step; this.build = options.build ?? ''; this.book = options.book ?? new LedgerBook(); }
   /** Who a client said it is, its Name cleaned. */
   identityOf(client: number): NetIdentity | null { return this.clients.find(entry => entry.id === client)?.identity ?? null; }
   /** The last command `seq` applied for a client, or 0. */
@@ -109,7 +117,7 @@ export class NetRoom {
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue, identity: GUEST, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
+    const client: RoomClient = { id, transport, player, queue, identity: GUEST, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -150,6 +158,7 @@ export class NetRoom {
     }
     this.step(this.inputs);
     this.settled();
+    for (const filing of this.world.ledger?.() ?? []) this.book.file(filing);
     const tick = this.world.tick();
     if (tick % TICKS_PER_FRAME === 0) this.snapshot(tick);
   }
@@ -187,6 +196,7 @@ export class NetRoom {
     const said = v.safeParse(NetIdentitySchema, { player: hello.player, name: hello.name });
     if (!said.success) { this.stats.refused++; client.transport.close('refused'); return; }
     client.identity = { player: said.output.player, name: cleanName(said.output.name) };
+    client.ledgerSeen = hello.ledger;
     client.state = 'waiting';
     if (this.opened) this.welcome(client);
   }
@@ -282,6 +292,7 @@ export class NetRoom {
       for (const flag of client.phased) if (!quests.flags.includes(flag)) { client.phased.delete(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: false }); }
       for (const flag of quests.flags) if (!client.phased.has(flag)) { client.phased.add(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: true }); }
     }
+    for (const receipt of this.book.since(client.player.id, client.ledgerSeen)) { events.push({ ...receipt, tick: frame.tick }); client.ledgerSeen = receipt.serial; }
     for (const handle of retired) if (client.known.delete(handle)) events.push({ kind: 'despawn', handle });
     if (events.length > 0) {
       const bytes = encodeEvents(writer, frame.tick, events, initialBits);
