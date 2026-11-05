@@ -73,7 +73,8 @@ test('the actual merged job keeps red status publication outside the production 
   const steps = ship.split('\n      - ').slice(1);
   expect(steps[0]).toContain('name: Publish exact-SHA proof outcome');
   expect(steps[0]).toContain("if: always() && github.event_name == 'push'");
-  for (const step of steps.slice(1)) {
+  expect(steps[1]).toContain('continue-on-error: true');
+  for (const step of steps.slice(2)) {
     expect(step).toContain("env.RELEASE_ALLOWED == 'true'");
     const condition = /^ {8}if: \$\{\{ (.+) \}\}$/mu.exec(step)?.[1];
     if (condition === undefined) throw new Error('Missing actual step condition');
@@ -147,7 +148,15 @@ test('one push wave keeps all six browser guards and serialized exact-artifact s
   expect(journeys).not.toContain('run watch');expect(journeys).not.toContain('vercel build');
 });
 
-test('only pending preparation coalesces while running waves and releases keep their keys',()=>{
+test('a verdict names every commit since the last finished run',()=>{
+  const ship=deploy.split('\n  build-and-deploy:\n')[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0]??'';
+  expect(ship).toContain('- name: Name the commits this verdict covers');
+  expect(ship).toContain(String.raw`.conclusion != \"cancelled\" and .id != $GITHUB_RUN_ID`);
+  expect(ship).toContain('compare/$previous...$GITHUB_SHA');
+  expect(ship).toContain('::error title=Red run covers $range::');
+});
+
+test('pushes keep one run plus the newest pending while releases keep their key',()=>{
   const top=deploy.split('\njobs:\n')[0]??'';
   const section=(name:string)=>deploy.split(`\n  ${name}:\n`)[1]?.split(/\n {2}[a-z][\w-]*:\n/u)[0]??'';
   const group=(source:string,github:{event_name:string;run_id:string;sha:string;ref:string})=>{
@@ -161,13 +170,13 @@ test('only pending preparation coalesces while running waves and releases keep t
   };
   const old={event_name:'push',run_id:'1',sha:'a'.repeat(40),ref:'refs/heads/main'};
   const next={...old,run_id:'2',sha:'b'.repeat(40)};
-  expect(group(top,old)).not.toBe(group(top,next));
-  for(const name of ['prepare']) {
-    const job=section(name);
-    expect(group(job,old)).toBe(group(job,next));
-    expect(group(job,old)).not.toBe(group(job,{...next,ref:'refs/heads/other'}));
-    expect(job).toContain('cancel-in-progress: false');
-  }
+  expect(group(top,old)).toBe(group(top,next));
+  expect(group(top,old)).not.toBe(group(top,{...next,ref:'refs/heads/other'}));
+  expect(top).toContain(String.raw`cancel-in-progress: $\{{ github.event_name == 'pull_request' }}`.replace('\\',''));
+  const pull={...old,event_name:'pull_request'};
+  expect(group(top,pull)).not.toBe(group(top,{...pull,sha:next.sha}));
+  expect(group(top,pull)).not.toBe(group(top,old));
+  expect(section('prepare')).not.toContain('concurrency:');
   const manual={...old,event_name:'workflow_dispatch'};
   expect(group(top,manual)).toBe(group(top,{...manual,run_id:'2'}));
   expect(group(top,manual)).not.toBe(group(top,old));

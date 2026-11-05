@@ -99,6 +99,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
     (`it.each`), one string round trip per checkpoint, continuations compared with `expectSameSimSnapshot`
     (`test/fake/simSnapshot.ts`), never `toEqual` on whole snapshots nor serialising both sides to compare. A walk tape
     is at most 10k ticks per test, with a 60 s budget.
+- **One run plus the newest pending** (G609, whole workflow since J122's lanes): pushes share the workflow's concurrency
+  group, so a push run never overlaps another. A newer push replaces the pending one, and that SHA gets no verdict of
+  its own. The build-and-deploy job's first steps name every commit since the last finished run, and a red run says so
+  in an error annotation. Pull requests and releases keep their own keys.
 - **G920 retires the hourly GitHub schedule, local calendar backstop and shared hourly slot.** A green exact-SHA
   push wave ships its own exact prebuilt output immediately after all required checks succeed. Release concurrency and the production ancestry
   floor remain mandatory. The separately requested 2026-10-30 07:00 Cancun one-off remains installed.

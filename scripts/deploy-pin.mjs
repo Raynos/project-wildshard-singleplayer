@@ -280,11 +280,13 @@ function nativeFixtureSource(source) {
   // G872: exact native-routes physics allocation; publisher/admission blocks stay unchanged.
   // The third hash adds only the org token step before each install (P1-shardfile-switch).
   // The fourth adds only the fixture admission's reread of an unsettled prepare (fbf3c6b529).
+  // The fifth rewords that reread's comment: prepare lost its job-level group (G609).
   if (/^ {6}NATIVE_INPUT_PROOF: 'cache-v4'$/mu.test(native)
     && (all === 'ce4897403277862407dd752126c4aaecd4062d4a53da69d6fe8ea24f1548c5a0'
       || all === '75299cab0df223a7b41cb574e034c90b4b0f1b7679fda2fda23fede1e528b4ae'
       || all === '7bb051f9b2c0677b84b79bfb4cd92e8e5f019eb83d12cab31e794b8568d90d1d'
-      || all === '1d1072918c1a8486d8920d66f824db73ff963c7a033b0cde190b86da812ad25e')) return 'v4';
+      || all === '1d1072918c1a8486d8920d66f824db73ff963c7a033b0cde190b86da812ad25e'
+      || all === '7ad88f5f084b0bc7e1e5f6fb2a205f2315346ff238ed114ebf5767d01863896e')) return 'v4';
   throw new Error('Source native fixture publisher topology differs');
 }
 

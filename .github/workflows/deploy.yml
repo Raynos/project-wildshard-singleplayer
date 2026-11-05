@@ -52,10 +52,11 @@ on:
 # Releases (manual or green-smoke dispatches) queue apart from push / PR CI: GitHub keeps one PENDING run per group,
 # and with many agents pushing, every push's CI run replaced the pending release, so nothing shipped for hours (E339,
 # 2026-09-30: two dispatches in a row cancelled). Releases still queue behind each other.
-# A push's running wave finishes while the next prepare overlaps it. Only the
-# producer coalesces pending sources without cancelling running work. Holding a whole push here added 482 s before fe0 could start preparing.
+# Pushes share one group: one run plus the newest pending (G609), for the whole workflow. Keying this on run_id let
+# full runs overlap for 31-54 minutes while their prepares cancelled each other, so with five lanes pushing, no tip
+# was sure to finish. A skipped SHA gets no verdict; the next finished run names every commit it covers.
 concurrency:
-  group: deploy-${{ (github.event_name == 'workflow_dispatch') && 'release' || github.event_name == 'push' && format('ci-{0}', github.run_id) || format('ci-{0}', github.sha) }}-${{ github.ref }}
+  group: deploy-${{ (github.event_name == 'workflow_dispatch') && 'release' || github.event_name == 'push' && 'ci-push' || format('ci-{0}', github.sha) }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -179,6 +180,24 @@ jobs:
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_SHA" \
             -f context=boot-smoke -f state="$state" -f description="$description" \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+      # One run stands for every commit since the last finished run: a red names them all.
+      - name: Name the commits this verdict covers
+        if: always() && github.event_name == 'push'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          previous=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/deploy.yml/runs?branch=main&event=push&per_page=50" \
+            --jq "[.workflow_runs[]|select(.status == \"completed\" and .conclusion != \"cancelled\" and .id != $GITHUB_RUN_ID)][0].head_sha // empty")
+          test -n "$previous" || { echo 'No finished run to compare against'; exit 0; }
+          commits=$(gh api "repos/$GITHUB_REPOSITORY/compare/$previous...$GITHUB_SHA" --jq '.commits[]|"\(.sha[0:10]) \(.commit.message|split("\n")[0])"')
+          range="${previous:0:10}..${GITHUB_SHA:0:10}"
+          { echo "### Commits since the last finished run: $range"; echo '```'; echo "$commits"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          case " $RESULTS " in
+            *' failure '*) echo "::error title=Red run covers $range::$(printf '%s' "$commits" | wc -l | tr -d ' ') commits after the last finished run; see this job's summary" ;;
+          esac
 
       # Automatic releases restore the exact tested output; source bodies are
       # not rebuilt. Retain root configs plus the self-contained controllers.
@@ -547,9 +566,6 @@ jobs:
   # All wave jobs consume this exact SHA/run preparation; none rebuild it.
   prepare:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    concurrency:
-      group: deploy-prepare-${{ github.event_name }}-${{ github.ref }}
-      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 40
     # Repeated producer children share V8 parsing within this isolated job.
@@ -977,7 +993,7 @@ jobs:
               raise ValueError('Uncertain prepare verdict')
 
           def read_prepare(repo, run, attempt, sha):
-              # prepare has its own concurrency group and can start seconds after this
+              # prepare can start seconds after this
               # job, so an inventory that does not decide yet is read again. A failed
               # read stays final, and a refusal after the last read fails closed.
               for read in range(1, READS + 1):
