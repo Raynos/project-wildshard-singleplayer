@@ -45,19 +45,19 @@ export interface WorkerClientPorts {
 }
 interface Saves { readonly storage: SaveStorage; readonly write: (key: string, value: string | null) => Promise<boolean> }
 interface ShellModule { readonly openIndexedSaves: (name: string) => Promise<Saves>; readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string } & Saves) => Shell }
-interface Shell { readonly client: NetClient; readonly booted: Promise<unknown>; ready: () => void; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
+interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 /** The row's saves stand apart, so playing it never touches a real one. */
-const PROOF_SAVES = 'wildshard.worker.', PROOF_DATABASE = 'wildshard-worker-saves';
+const PROOF_SAVES = 'wildshard.worker.', PROOF_DATABASE = 'wildshard-worker-saves', SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
 const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive');
 
 /** What the page measures, as I6 lists it. */
 export interface WorkerClientReport {
   frames: number; framesPerSecond: number; ticksPerSecond: number; correctionsPerMinute: number; corrections: number; worstOffset: number; queue: number; replaysPerFrame: number;
-  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; held: number; dropped: number; closed: string | null; x: number; z: number; cell: number; serverX: number; serverZ: number;
+  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; held: number; dropped: number; closed: string | null; x: number; z: number; cell: number; serverX: number; serverZ: number; restored: boolean; savedTick: number; savedOk: boolean;
 }
-declare global { interface Window { __workerClient?: () => WorkerClientReport } }
+declare global { interface Window { __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
 /** A creature on screen, and the world's manager that holds it: a crossing leaves it behind. */
 interface RowBody { readonly body: Animal; readonly manager: Creatures }
@@ -121,11 +121,16 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     net.inCell = cell => siteOf(cell) === grid.frame();
   }
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
-  await shell.booted;
+  const { restored } = await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false };
   scope.onDispose(client.onCombat(event => { if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; } }));
-  let firstTick = -1, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started;
+  // The server keeps the session's saves, and only a page knows when to ask: on a timer and as a phone hides it.
+  const save = async (): Promise<void> => { const { tick, ok } = await shell.save(); report.savedTick = tick; report.savedOk = ok; };
+  scope.interval(SAVE_EVERY_MS, () => { void save(); });
+  scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') void save(); });
+  let firstTick = -1, ticksFrom = started, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started;
+  scope.onDispose(client.onTravel(() => { firstTick = -1; ticksFrom = diagnosticNow(); }));
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
   system({ id: 'proof.worker.present', phase: 'update', run: dt => {
     const at = diagnosticNow(), renderTick = client.present();
@@ -136,7 +141,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     costs[report.frames % costs.length] = cost + now - at;
     report.frames++;
     if (firstTick === -1 && tick > 0) firstTick = tick;
-    report.ticksPerSecond = firstTick === -1 ? 0 : (tick - firstTick) / seconds;
+    report.ticksPerSecond = firstTick === -1 ? 0 : (tick - firstTick) / ((now - ticksFrom) / 1000); // each world keeps its own clock
     report.corrections = predictor.corrections; report.correctionsPerMinute = predictor.corrections / seconds * 60; report.worstOffset = net.worstOffset; report.queue = predictor.pending;
     report.replaysPerFrame = predictor.replays / report.frames; report.delayMs = client.clock.delayMs; report.jitterMs = client.clock.jitterMs;
     report.refused = net.attacks.refused; report.attacks = net.attacks.pending; report.held = net.heldSlot;
@@ -150,6 +155,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}  held ${report.held}`);
   } });
   window.__workerClient = () => ({ ...report });
+  window.__workerClientSave = save;
 }
 
 async function guarded(ports: WorkerClientPorts): Promise<void> {
