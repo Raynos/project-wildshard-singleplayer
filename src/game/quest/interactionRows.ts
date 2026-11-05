@@ -97,7 +97,7 @@ export interface InteractionRowPorts {
   /** A player's own roster, when what it may reach depends on its book. */
   readonly rosterOf?: (player: string) => readonly HeadlessPrompt[];
   /** the item that cracks: its light / heavy reach, and the act its lash reached this tick (null: none); its step runs before this one */
-  readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
+  readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: (player: string) => number | null };
   /** a row ran (the shard's beat on it: a summons, a cue) */
   readonly done?: (row: string) => void;
 }
@@ -168,9 +168,11 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
       const command = list[i]; if (command === undefined) break;
       if (command.actorId === ports.actorId) act(command.value, false, command.playerId ?? books.lead.player);
     }
-    // the cracking item is the lead's: weapons are not per-player yet (P1-E3.5)
-    const reached = ports.crack?.cracked() ?? null;
-    if (reached !== null) act(reached, true, books.lead.player);
+    // each player's own lash reaches its own act
+    if (ports.crack !== undefined) for (const book of books.each()) {
+      const reached = ports.crack.cracked(book.player);
+      if (reached !== null) act(reached, true, book.player);
+    }
   }, { snapshot: () => rules.snapshot(), restore: value => { rules.restore(v.parse(v.string(), value)); } });
 }
 

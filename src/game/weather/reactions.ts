@@ -9,11 +9,12 @@ import * as v from 'valibot';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 
 const ReactionsSaved = v.strictObject({ version: v.literal(1), weather: v.unknown(), registers: v.record(v.string(), v.pipe(v.number(), v.finite())),
-  elapsed: v.pipe(v.number(), v.finite(), v.minValue(0)) });
+  elapsed: v.pipe(v.number(), v.finite(), v.minValue(0)), kept: v.exactOptional(v.record(v.string(), v.record(v.string(), v.pipe(v.number(), v.finite())))) });
 /** Fields of one reaction event, reused per event id (copy what you keep). */
 export type WeatherReactionEvent = Readonly<Record<string, number>>;
 /** One more player under the same sky: their numbers for the rows, and what they hear of their own. */
 export interface WeatherListener {
+  readonly id: string;
   /** write this player's `px py pz crouched mounted` (and any other `input.*` of theirs) over `inputs` */
   read: (inputs: Record<string, number>) => void;
   hear: (event: WeatherReactionEvent) => void;
@@ -37,12 +38,18 @@ export class WeatherReactions {
   private reported: Set<'clock' | 'event' | 'field'> | undefined;
   /** Who else this sky falls on (`serve`). */
   private audience: WeatherAudience | undefined;
+  /** What each player keeps for themselves: every register of the step behind the HUD's GET LOW (rows `hud.low`). */
+  private readonly own: readonly string[];
+  /** Every listener's own registers, by id; `weather.registers` holds those of the player `inputs` describes. */
+  private readonly kept = new Map<string, Record<string, number>>();
   private reject(kind: 'clock' | 'event' | 'field', message: string): void {
     const reported = this.reported ??= new Set();
     if (reported.has(kind)) return;
     reported.add(kind); emitFault({system: 'weather.reactions', error: new Error(message), verdict: 'retry'});
   }
   constructor(readonly weather: WeatherContinuation, readonly rows: WeatherReactionRows, private readonly program: ReturnProgram) {
+    const low = rows.hud?.low;
+    this.own = rows.steps.find(step => step.write.some(([, target]) => target.slice(9) === low))?.write.map(([, target]) => target.slice(9)) ?? [];
     rows.points.forEach(([x, z, top], index) => { this.grid.add({ x, z, r: 0, top, index }); });
     for (const emit of rows.steps.flatMap(step => step.emit)) {
       const event = this.events.get(emit.event) ?? { age: 1e6 }; this.events.set(emit.event, event);
@@ -137,27 +144,55 @@ export class WeatherReactions {
   }
   /** The same step again for each other listener, on their numbers. `inputs` ends as it began. */
   private reachOthers(row: WeatherReactionRows['steps'][number], dt: number): void {
-    const audience = this.audience;
-    if (audience === undefined || row.random || !row.emit.some(emit => emit.event === audience.event)) return;
-    const inputs = this.inputs, own = LISTENER_INPUTS.map(name => inputs[name] ?? 0);
+    const audience = this.audience, mine = this.own;
+    const keeps = row.write.some(([, target]) => mine.includes(target.slice(9)));
+    if (audience === undefined || row.random || !keeps && !row.emit.some(emit => emit.event === audience.event)) return;
+    const inputs = this.inputs, own = LISTENER_INPUTS.map(name => inputs[name] ?? 0), registers = this.weather.registers;
+    const stood = mine.map(name => registers[name] ?? 0), present = new Set<string>();
     for (const listener of audience.others()) {
-      listener.read(inputs); this.shelter();
+      listener.read(inputs); this.shelter(); present.add(listener.id);
+      const kept = this.kept.get(listener.id);
+      if (keeps) mine.forEach(name => { registers[name] = kept?.[name] ?? 0; });
       const output = this.project(row, dt, false);
+      if (keeps) {
+        const after: Record<string, number> = {};
+        for (const name of mine) {
+          const channel = row.write.find(([, target]) => target.slice(9) === name)?.[0];
+          after[name] = (channel === undefined ? undefined : output[channel]) ?? registers[name] ?? 0;
+        }
+        this.kept.set(listener.id, after);
+      }
       for (const emit of row.emit) {
         if (emit.event !== audience.event || output[emit.when] === undefined) continue;
         listener.hear(Object.fromEntries(emit.fields.map(([field, ref]) => [field, this.read(ref, dt, output)])));
       }
     }
     LISTENER_INPUTS.forEach((name, index) => { inputs[name] = own[index] ?? 0; });
+    if (keeps) {
+      mine.forEach((name, index) => { registers[name] = stood[index] ?? 0; });
+      for (const id of this.kept.keys()) if (!present.has(id)) this.kept.delete(id);
+    }
+  }
+  /** The sky turns from one player to another: `from`'s own registers go aside and `to`'s come up. */
+  pass(from: string, to: string): void {
+    const mine = this.own, registers = this.weather.registers, kept = this.kept.get(to), left: Record<string, number> = {};
+    for (const name of mine) { left[name] = registers[name] ?? 0; registers[name] = kept?.[name] ?? 0; }
+    this.kept.delete(to); this.kept.set(from, left);
+  }
+  /** A register a player keeps: `current` is whose stand in `weather.registers`. */
+  ownRegister(player: string, current: string, name: string): number {
+    return (player === current ? this.weather.registers[name] : this.kept.get(player)?.[name]) ?? 0;
   }
   /** The whole continuation as plain values. */
-  snapshot(): { version: 1; weather: ReturnType<WeatherContinuation['captureWeather']>; registers: Record<string, number>; elapsed: number } { return { version: 1, weather: this.weather.captureWeather(), registers: { ...this.weather.registers }, elapsed: this.elapsed }; }
+  snapshot(): { version: 1; weather: ReturnType<WeatherContinuation['captureWeather']>; registers: Record<string, number>; elapsed: number; kept?: Record<string, Record<string, number>> } { return { version: 1, weather: this.weather.captureWeather(), registers: { ...this.weather.registers }, elapsed: this.elapsed,
+    ...(this.kept.size === 0 ? {} : { kept: Object.fromEntries([...this.kept].map(([id, row]) => [id, { ...row }])) }) }; }
   /** Put a snapshot back silently; refuses a foreign one before changing anything. */
   restore(value: unknown): void {
     const saved = v.parse(ReactionsSaved, value), keys = Object.keys(this.weather.registers);
     if (keys.length !== Object.keys(saved.registers).length || !keys.every(key => Object.hasOwn(saved.registers, key))) throw new RangeError('Incompatible weather reactions');
     const weather = this.weather.prepareWeatherRestore(saved.weather);
     weather(); Object.assign(this.weather.registers, saved.registers); this.elapsed = saved.elapsed;
+    this.kept.clear(); for (const [id, row] of Object.entries(saved.kept ?? {})) this.kept.set(id, { ...row });
   }
 }
 /** Reactions on a page (its scope owns the program) or a renderer-free host (one admitted instance per host scope). */

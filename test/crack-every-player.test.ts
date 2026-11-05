@@ -1,0 +1,31 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
+import { readFileSync } from 'node:fs';
+import { expect, test } from 'vitest';
+import { parseInteractionRows } from '@wildshard/format/questInteractions';
+import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost } from '../src/engine/sim';
+import { leadPlayer } from '../src/engine/sim/leadPlayer';
+import { installNativeMelee, type NativeMeleeInput } from '../src/game/plugin/simulation';
+import { InteractionRules, installInteractionRows, playerInteractionRules } from '../src/game/quest/interactionRows';
+import { SIGNAL_MELEE_HOST } from '../src/shards/sunscar-dunes/generators/rows/nativeMelee';
+import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/generators/rows/whipContacts';
+import { SIM_LEVEL } from './fixtures/sim-level/level';
+
+// P1-E3: a whip's crack is whoever lashed it. The bot's own lash reaches the spot and raises the bot's own mark.
+test('a bot\'s lash cracks a quest spot for the bot, not the first player', async () => {
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier: await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))) });
+  try {
+    const lead = leadPlayer(host), at = { x: 40, y: lead.position.y, z: 40 }, bot = host.addPlayer('bot:1', at);
+    const spot = { id: 'crank', x: at.x, y: at.y + 1.68, z: at.z - 4, radius: .8 }, data = parseInteractionRows({ marks: [{ id: 'raised' }], rows: [{ id: 'crank', act: 1, at: 'crack.crank', crack: 'light', needs: [{ none: ['raised'] }], sets: ['raised'] }] });
+    const rules = new InteractionRules(host.flags, data);
+    let commands: readonly NativeMeleeInput[] = [];
+    const melee = installNativeMelee(host, { id: 'weapon.sunscar-dunes.whip', contacts: WHIP_CONTACT_MOVES }, SIGNAL_MELEE_HOST, { inputCommands: () => [], worldActor: 'quest',
+      questWorld: { row: { graph: { actor: 'quest' }, interactions: data }, spots: { crack: [spot], interact: [] } } as never,
+      others: { commands: player => player === bot ? commands : [], enabled: () => true } });
+    installInteractionRows(host, rules, { actorId: 'quest', stepId: 'quest.targets', commands: () => [], spots: { 'crack.crank': spot }, crack: { reach: { light: 7, heavy: 8 }, cracked: melee.cracked } });
+    commands = [{ kind: 'script', actorId: 'quest', value: 1 }]; host.step(); commands = [];
+    for (let tick = 0; tick < 24; tick++) host.step();
+    expect(playerInteractionRules(host, rules)(bot.id).has('raised'), 'the mark is the bot\'s').toBe(true);
+    expect(rules.has('raised'), 'and not the first player\'s').toBe(false);
+  } finally { host.dispose(); }
+});

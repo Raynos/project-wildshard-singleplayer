@@ -29,7 +29,7 @@ async function stormRoom() {
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   const field = new NativePopulationField(grid, fieldRows, [[3, 4, 1]], [12], pond.block, wet.block);
   const env = new NativeWildEnvironment(field.grass.field, field.grass.trample, { wind: { x: 1, z: 0, strength: .5 }, flatten: .5 }, admissionNative(host));
-  const { storm } = installWeatherContinuation(host, { program: nativeWeatherBundle({ weather: nalati, reactions: weatherWitness }, [[20, 20, 4]]),
+  const { storm, getLow } = installWeatherContinuation(host, { program: nativeWeatherBundle({ weather: nalati, reactions: weatherWitness }, [[20, 20, 4]]),
     clock: { sunElevation: 0 }, env, scare: () => undefined, bake: { trees: [[3, 4, 1]], tops: [12] }, rows: worldRows });
   const lead = host.players.values().next().value; if (lead === undefined) throw new Error('Missing lead');
   const bot = host.addPlayer('bot.1', { x: 20, y: lead.position.y, z: -20 });
@@ -38,7 +38,7 @@ async function stormRoom() {
     Object.assign(storm.weather.registers, { sx: at.x, sy: at.y, sz: at.z, skind: 3, armed: 1, pendingT: .001, land: 0, ready: 0 });
     for (let tick = 0; tick < 7; tick++) host.step();
   };
-  return { host, storm, lead, bot, bolt };
+  return { host, storm, lead, bot, bolt, getLow };
 }
 
 test('one bolt hurts each player it lands on, not the lead by name', async () => {
@@ -87,5 +87,24 @@ test('the storm turns to each player in join order and saves whose turn it is', 
     expect(adapter.snapshot()).toHaveProperty('focus', bot.id);
     host.removePlayer(bot.id); host.step(); px();
     expect(cells[3]).toBe(lead.position.x);
+  } finally { host.dispose(); }
+});
+
+test('GET LOW follows each player: the exposed one is told, the one by a tall tree is not, and it saves', async () => {
+  const { host, storm, lead, bot, getLow } = await stormRoom();
+  try {
+    const adapter = host.adapters.get('storm.weather'); if (adapter === undefined) throw new Error('Missing storm adapter');
+    lead.position.set(3.5, lead.position.y, 4.5); lead.motor.resetAt(lead.position);
+    for (let tick = 0; tick < 5000 && storm.weather.state !== 'storm'; tick++) { storm.weather.phaseT = storm.weather.phaseLen; host.step(); }
+    expect(storm.weather.state).toBe('storm');
+    for (let tick = 0; tick < 12; tick++) host.step();
+    expect(getLow(bot.id), 'nothing stands over the bot').toBe(true);
+    expect(getLow(lead.id), 'the tree stands over the first player').toBe(false);
+    const saved = adapter.snapshot();
+    expect(saved).toHaveProperty('storm.kept');
+    adapter.restore(saved);
+    expect(getLow(bot.id)).toBe(true);
+    host.removePlayer(bot.id); for (let tick = 0; tick < 12; tick++) host.step();
+    expect(adapter.snapshot()).not.toHaveProperty('storm.kept');
   } finally { host.dispose(); }
 });

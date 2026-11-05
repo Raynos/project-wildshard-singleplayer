@@ -835,7 +835,7 @@ export interface NativeMeleePorts {
   readonly landed?: (action: number, from: Vector3, dir: Vector3) => void;
 }
 /** The shared controller and the current tick's world outcome. */
-export interface NativeMeleeOwner { readonly family: ContactFamily<NativeMeleeTarget>; readonly cracked: () => number | null }
+export interface NativeMeleeOwner { readonly family: ContactFamily<NativeMeleeTarget>; readonly cracked: (player: string) => number | null }
 const NativeHoldState = v.strictObject({version:v.literal(1),held:v.pipe(v.number(),v.finite(),v.minValue(0)),wasHeld:v.boolean(),
   target:v.nullable(v.pipe(v.string(),v.minLength(1),v.maxLength(128)))});
 /** Install immediate and delayed item contacts on one renderer-free owner, retaining ordered commands and wire bindings. */
@@ -855,10 +855,10 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   if(row.input?.world!==undefined&&worldActor===undefined)throw new Error('Native world commands require their quest actor');
   const noTargets:readonly NativeMeleeWorld[]=[];
   const holdStepped=row.held?.continuation.kind==='step';
-  // P1-E3.5: a seat per player. Quest cracks, world reactions and item scripts stay the first player's.
+  // P1-E3.5: a seat per player. Any player's lash cracks a quest's spots; world reactions and item scripts stay the first player's.
   const seats=playerSeats(host,(player,first)=>{
   const ports:NativeMeleePorts=first?given:{inputCommands:()=>given.others?.commands(player)??[],enabled:()=>given.others?.enabled(player)??false};
-  const worldTargets=first?firstTargets:noTargets;
+  const worldTargets=first||given.world===undefined?firstTargets:noTargets;
   /** The seq this tick's player command carries, and the one the running move took (J47). */
   let tickSeq=0,attackSeq=0;
   let inputTick=-1, inputStream:readonly NativeMeleeInput[]=[];
@@ -1031,7 +1031,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   const {lead}=seats;
   if(row.held?.continuation.kind==='step')host.onStep(row.held.continuation.id,lead.sampleHeld,{snapshot:lead.holdSnapshot,restore:lead.restoreHold});
   host.onStep(row.step, seats.step, seats.adapter);
-  return { family: lead.family, cracked: lead.cracked };
+  return { family: lead.family, cracked: player => { const body = host.players.get(player); return body === undefined ? null : seats.of(body).cracked(); } };
 }
 
 /** A named cable service lends its existing driver, fixed step and continuation. Missing ids must refuse in state. */

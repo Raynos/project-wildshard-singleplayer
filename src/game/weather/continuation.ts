@@ -33,9 +33,9 @@ function playerAfter(host: SimHost, player: PlayerSim | null): PlayerSim {
 }
 /** Install DATA weather on a native cadence or a declared page system. Without a cadence declaration the caller's
  * existing composite (weather + native lightning) drives update and saves the historic combined envelope. */
-export function installWeatherContinuation(host: SimHost, rows: NativeWeatherWorld): { wind: Wind; storm: WeatherReactions };
+export function installWeatherContinuation(host: SimHost, rows: NativeWeatherWorld): { wind: Wind; storm: WeatherReactions; getLow: (player: string) => boolean };
 export function installWeatherContinuation(host: SimHost | WeatherInstallation, rows: WeatherProgram, day: Pick<DayCycleClock,'phase'>, mode: string | undefined, frame?: NativeCombatFrame): WeatherContinuation;
-export function installWeatherContinuation(host: SimHost | WeatherInstallation, rows: WeatherProgram | NativeWeatherWorld, day?: Pick<DayCycleClock,'phase'>, mode?: string, frame?: NativeCombatFrame): WeatherContinuation | { wind: Wind; storm: WeatherReactions } {
+export function installWeatherContinuation(host: SimHost | WeatherInstallation, rows: WeatherProgram | NativeWeatherWorld, day?: Pick<DayCycleClock,'phase'>, mode?: string, frame?: NativeCombatFrame): WeatherContinuation | { wind: Wind; storm: WeatherReactions; getLow: (player: string) => boolean } {
   if ('program' in rows) {
     if (!('level' in host)) throw new Error('Weather world requires its native host');
     const ports = rows;
@@ -56,23 +56,25 @@ export function installWeatherContinuation(host: SimHost | WeatherInstallation, 
     const hurt = (player: PlayerSim, event: Readonly<Record<string, number>>): void => { host.combat.hit({ source: 'env',sourceTags: worldRows.hit.tags,target: player.health,amount: host.events.ask(worldRows.hit.ask,event['damage'] ?? 0),
       point: player.position.clone(),dir: new Vector3(),cause: worldRows.hit.cause,toast: worldRows.hit.toast }); };
     storm.on('hurt',event => { hurt(focus,event); });
-    const posed = (player: PlayerSim): WeatherListener => ({ read: inputs => { const seat = mountedPlayerOf(host,player.id); Object.assign(inputs,{ px: player.position.x,py: player.position.y,pz: player.position.z,crouched: Number(seat?.rider.crouching === true),mounted: Number(seat?.mounted === true) }); },hear: event => { hurt(player,event); } });
+    const posed = (player: PlayerSim): WeatherListener => ({ id: player.id, read: inputs => { const seat = mountedPlayerOf(host,player.id); Object.assign(inputs,{ px: player.position.x,py: player.position.y,pz: player.position.z,crouched: Number(seat?.rider.crouching === true),mounted: Number(seat?.mounted === true) }); },hear: event => { hurt(player,event); } });
     storm.serve({ event: 'hurt',others: function* others() { for (const player of host.players.values()) if (player !== focus) yield posed(player); } });
+    const turn = (next: PlayerSim): void => { if (next !== focus) storm.pass(focus.id,next.id); focus = next; };
     const view = (): void => {
       env.light = weatherWorldLight(worldRows.light,clock.sunElevation,storm.stormActive); env.storm = storm.stormActive;
       env.wind.x = wind.dirX; env.wind.z = wind.dirZ; env.wind.strength = Math.min(1,wind.speed/worldRows.windReference);
     };
     const saved = v.strictObject({ wind: WindStateSchema,storm: v.unknown(),focus: v.optional(v.string()) });
     host.onStep(worldRows.step,dt => {
-      if (!host.players.has(focus.id)) focus = playerAfter(host,null);
+      if (!host.players.has(focus.id)) turn(playerAfter(host,null));
       wind.update(dt); const player = focus.position;
       Object.assign(storm.inputs,{ px: player.x,py: player.y,pz: player.z,crouched: Number(env.playerCrouched),mounted: Number(env.playerMounted) });
       if (focus !== playerAfter(host,null)) posed(focus).read(storm.inputs);
       storm.update(dt); view();
-      if (struck) { struck = false; focus = playerAfter(host,focus); }
+      if (struck) { struck = false; turn(playerAfter(host,focus)); }
     },{ snapshot: () => { const state = wind.snapshot(); return { wind: { ...state,target: { ...state.target } },storm: storm.snapshot(),...(focus === playerAfter(host,null) ? {} : { focus: focus.id }) }; },restore: value => { const state = v.parse(saved,value); wind.restore(state.wind); storm.restore(state.storm); view();
       const player = state.focus === undefined ? playerAfter(host,null) : host.players.get(state.focus); if (player === undefined) throw new Error('Unknown storm focus'); focus = player; } });
-    view(); return { wind,storm };
+    const low = storm.rows.hud?.low;
+    view(); return { wind,storm,getLow: player => low !== undefined && storm.ownRegister(player,focus.id,low) === 1 };
   }
   if (day === undefined) throw new Error('Weather requires its day clock');
   const air=new WeatherContinuation(rows,{seed:'level' in host?host.level.seed:host.seed,mode:mode??'live'});

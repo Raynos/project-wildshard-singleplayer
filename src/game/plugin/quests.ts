@@ -163,7 +163,7 @@ export interface QuestGraphRows {
 export interface QuestGraphPorts {
   readonly spots: { readonly interact: readonly QuestGraphSpot[]; readonly crack: readonly QuestGraphSpot[] };
   /** the item that cracks: its light / heavy reach and the act its lash reached this tick */
-  readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
+  readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: (player: string) => number | null };
   readonly commands: () => readonly { readonly actorId: string; readonly value: number; readonly playerId?: string | undefined }[];
   /** Optional actual page roster; commands can answer only its selected visible nearest prompt. */
   readonly promptRegistrations?: readonly PromptRegistration[];
