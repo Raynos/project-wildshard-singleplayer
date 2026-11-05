@@ -28,7 +28,7 @@ function fixture(): string {
   put('lint/ratchet.json', { allow: {}, budgets: {} });
   put('lint/tile-bake-debt.json', { version: 1, products: {} });
   cpSync(resolve('lint/nine-tiling-baseline.json'), resolve(root, 'lint/nine-tiling-baseline.json'));
-  put('src/format/memoryGates.json', { explorerMB: 1200, loadingMB: 1800 });
+  put('node_modules/@wildshard/format/src/format/memoryGates.json', { explorerMB: 1200, loadingMB: 1800 });
   put('lint/legacy-line-basis.json', { schema: 'legacy-line-basis/1', revision: 'a'.repeat(40), shards: Object.fromEntries(MILESTONE_SHARDS.map(slug => [slug, {
     source: 'a'.repeat(40), excluded: [], files: { 'plugin.ts': 100 },
   }])) });

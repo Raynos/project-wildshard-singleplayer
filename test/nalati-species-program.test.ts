@@ -16,7 +16,7 @@ test('cold, persistent and rebuilt species preserve all five original files and 
     import {readFileSync,mkdtempSync,rmSync} from 'node:fs';
     import {resolve} from 'node:path';
     import * as v from 'valibot';
-    import {CreatureGuestSchema} from './src/format/speciesBookRows.ts';
+    import {CreatureGuestSchema} from '@wildshard/format/speciesBookRows';
     import {readDecisionSources} from './src/sdk/buildDecisionScripts.ts';
     import {createProjectGeneration} from './src/sdk/projectGeneration.ts';
     import {hashImmutableBytes} from './src/sdk/immutable.ts';

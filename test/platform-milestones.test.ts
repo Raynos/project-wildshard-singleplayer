@@ -39,8 +39,8 @@ it('requires bound validation evidence while keeping unclosed output percentages
   expect(gridReady(root,'pine-hollow',products).verdict).toBe('unknown');
   const source=emptyShardfile({slug:'pine-hollow',name:'Fixture',author:'Test',revision:1,seed:1});
   platformOutput(root,'pine-hollow',{},Object.fromEntries([...outputSectionPayloads(source)].map(([name,value])=>[name,JSON.stringify(value)])));
-  mkdirSync(join(root,'src/format'),{recursive:true});
-  writeFileSync(join(root,'src/format/memoryGates.json'),JSON.stringify({explorerMB:1200,loadingMB:1800}));
+  mkdirSync(join(root,'node_modules/@wildshard/format/src/format'),{recursive:true});
+  writeFileSync(join(root,'node_modules/@wildshard/format/src/format/memoryGates.json'),JSON.stringify({explorerMB:1200,loadingMB:1800}));
   const bytes=readFileSync(join(products,'pine-hollow/shard.json'));
   const receipt={indexHash:createHash('sha256').update(bytes).digest('hex'),revision:'fixture',sourceHash:'0'.repeat(64),worst:{playing:100,loading:200},gridReady:structuralGridEvidence(source)};
   const path=join(products,'pine-hollow/validation.json');writeFileSync(path,JSON.stringify(receipt));

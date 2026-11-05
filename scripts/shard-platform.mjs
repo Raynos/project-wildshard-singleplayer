@@ -19,6 +19,7 @@ import { createOutputReader } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
+import { formatSource } from './format-package.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -568,8 +569,10 @@ export function pendingPlatformUsers(root) {
 function readPendingPlatformUsers(root,symbolsFor) {
   const file=resolve(root,'lint/platform-pending-users.json');
   if(!existsSync(file))return [];
+  // Format rows keep their logical path; the source is the installed package.
+  const modulePath=(/** @type {string} */ module)=>module.startsWith('src/format/')?formatSource(root,module.slice('src/format/'.length)):resolve(root,module);
   const entries=v.parse(PendingUsers,JSON.parse(readFileSync(file,'utf8'))).entries
-    .filter(entry => !retiredPlatformModule(entry.module) || existsSync(resolve(root,entry.module)));
+    .filter(entry => !retiredPlatformModule(entry.module) || existsSync(modulePath(entry.module)));
   const seen=new Set();
   const names={'driftwood-isle':'Driftwood','pine-hollow':'Pine','nalati-grasslands':'Nalati','nine-dragon-stack':'Nine'};
   for(const entry of entries){
@@ -581,7 +584,7 @@ function readPendingPlatformUsers(root,symbolsFor) {
       if(!readFileSync(resolve(root,decision.path),'utf8').split('\n').some(line=>line.split('|')[1]?.trim()===decision.row))
         throw new Error(`Missing platform feature decision: ${key}`);
     }
-    const source=readFileSync(resolve(root,entry.module),'utf8');
+    const source=readFileSync(modulePath(entry.module),'utf8');
     if(/src\/shards\/|@wildshard\/shards\/|sunscar-dunes|far-reach|driftwood-isle|pine-hollow|nalati-grasslands|nine-dragon-stack/u.test(source))
       throw new Error(`Pending feature names a shard: ${entry.module}`);
     const symbols=symbolsFor(entry.module,source);

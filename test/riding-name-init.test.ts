@@ -8,7 +8,7 @@ test('riding metadata imports without constructing the later rename grapheme seg
   const source = `
     const Native = Intl.Segmenter; let constructed = 0;
     Intl.Segmenter = new Proxy(Native, {construct(target, args) { constructed++; return Reflect.construct(target, args); }});
-    const {cleanMountName} = await import('./src/format/riding.ts');
+    const {cleanMountName} = await import('@wildshard/format/riding');
     const imported = constructed;
     let invalid = false;
     try { cleanMountName('Camp horse', 0); } catch (error) { invalid = error.message.includes('limit'); }

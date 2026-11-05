@@ -11,7 +11,7 @@ const roots = ['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu
 const caps = { 'js/title/raw': 150, 'js/title/gzip': 80 };
 function fixture(): Record<string, ChunkModuleReport> {
   const rows: [string, ChunkModuleReport][] = roots.map((source, i) => [`${i}.js`, { name: source, moduleIds: [source], imports: ['shared.js'], rawBytes: 10, gzBytes: 6 }]);
-  rows.push(['shared.js', { name: 'shared', moduleIds: ['src/format/outputDownload.ts'], imports: [], rawBytes: 100, gzBytes: 50 }]);
+  rows.push(['shared.js', { name: 'shared', moduleIds: ['node_modules/@wildshard/format/src/format/outputDownload.ts'], imports: [], rawBytes: 100, gzBytes: 50 }]);
   return Object.fromEntries(rows);
 }
 test('title closure counts shared imports once and refuses either exceeded measured ceiling', () => {
