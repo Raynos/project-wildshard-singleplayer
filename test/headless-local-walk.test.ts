@@ -45,17 +45,17 @@ test('versioned native walking consumes sprint, crouch and raw direction through
   try{
     const start=leadPlayer(host).position.x;
     host.step(leadCommands(host, {...forward,sprint:true}));
-    expect(leadPlayer(host).walk.x).toBe(walkVelocity(0,7.2,14,1/60));
+    expect(leadPlayer(host).velocity.x).toBe(walkVelocity(0,7.2,14,1/60));
     expect(leadPlayer(host).position.x).toBeGreaterThan(start);
-    const running=leadPlayer(host).walk.x;
+    const running=leadPlayer(host).velocity.x;
     host.step(leadCommands(host, {...forward,sprint:true,crouch:true}));
-    expect(leadPlayer(host).walk.x).toBe(walkVelocity(running,2.2,14,1/60));
-    const crouched=leadPlayer(host).walk.x;
+    expect(leadPlayer(host).velocity.x).toBe(walkVelocity(running,2.2,14,1/60));
+    const crouched=leadPlayer(host).velocity.x;
     host.step(leadCommands(host, {...forward,sprint:true,steer:{keyX:0,keyY:-1,stickX:0,stickY:0}}));
-    expect(leadPlayer(host).walk.x).toBe(walkVelocity(crouched,-4.3,14,1/60));
-    const back=leadPlayer(host).walk.x;
+    expect(leadPlayer(host).velocity.x).toBe(walkVelocity(crouched,-4.3,14,1/60));
+    const back=leadPlayer(host).velocity.x;
     host.step(leadCommands(host, {...forward,steer:{keyX:0,keyY:0,stickX:0,stickY:.25}}));
-    expect(leadPlayer(host).walk.x).toBe(walkVelocity(back,4.3*.25,14,1/60));
+    expect(leadPlayer(host).velocity.x).toBe(walkVelocity(back,4.3*.25,14,1/60));
   }finally{host.dispose();}
 });
 
@@ -65,13 +65,13 @@ test('release and a serialized mid-stride continuation keep the same native moti
     for(let tick=0;tick<30;tick++)host.step(leadCommands(host, {...forward,sprint:true}));
     const saved=decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(host)));
     restored=restoreSimHost(level,{rapier},saved);
-    const prior=leadPlayer(host).walk.x;host.step();restored.step();
-    expect(leadPlayer(host).walk.x).toBeLessThan(prior);expect(leadPlayer(host).walk.x).toBeGreaterThan(0);
+    const prior=leadPlayer(host).velocity.x;host.step();restored.step();
+    expect(leadPlayer(host).velocity.x).toBeLessThan(prior);expect(leadPlayer(host).velocity.x).toBeGreaterThan(0);
     for(let tick=0;tick<30;tick++){
       const command=tick<10?{...forward,crouch:true}:tick<20?{...forward,yaw:0}:undefined;
       host.step(leadCommands(host, command));restored.step(leadCommands(restored, command));
       expect(leadPlayer(restored).position.toArray()).toEqual(leadPlayer(host).position.toArray());
-      expect(leadPlayer(restored).walk).toEqual(leadPlayer(host).walk);
+      expect(leadPlayer(restored).velocity.toArray()).toEqual(leadPlayer(host).velocity.toArray());
       expect(leadPlayer(restored).fall).toEqual(leadPlayer(host).fall);
     }
   }finally{restored?.dispose();host.dispose();}
@@ -80,11 +80,11 @@ test('release and a serialized mid-stride continuation keep the same native moti
 test('legacy commands retain their ordinary law and omit versioned continuation',()=>{
   const host=flat();
   try{
-    expect(leadSnapshot(snapshotSimHost(host)).walk).toBeUndefined();
-    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walk).toBeUndefined();
-    host.step(leadCommands(host, forward));expect(leadSnapshot(snapshotSimHost(host)).walk).toBeDefined();
-    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walk).toBeUndefined();
-    expect(leadPlayer(host).walk).toEqual({active:false,x:0,z:0});
+    expect(leadSnapshot(snapshotSimHost(host)).walking).toBeUndefined();
+    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walking).toBeUndefined();
+    host.step(leadCommands(host, forward));expect(leadSnapshot(snapshotSimHost(host)).walking).toBeDefined();
+    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walking).toBeUndefined();
+    expect([leadPlayer(host).walkActive,leadPlayer(host).velocity.x,leadPlayer(host).velocity.z]).toEqual([false,0,0]);
   }finally{host.dispose();}
 });
 
@@ -93,11 +93,11 @@ test('native delegated motion keeps first authority and malformed input changes 
   try{
     let commands=0;
     leadPlayer(host).useDriver({input:command=>{expect(command?.steer).toEqual(forward.steer);commands++;return true;},step:()=>undefined});
-    host.step(leadCommands(host, forward));expect(commands).toBe(1);expect(leadPlayer(host).walk.active).toBe(false);
+    host.step(leadCommands(host, forward));expect(commands).toBe(1);expect(leadPlayer(host).walkActive).toBe(false);
     const before=snapshotSimHost(host);
     expect(()=>host.step(leadCommands(host, {...forward,steer:{keyX:0,keyY:Infinity,stickX:0,stickY:0}}))).toThrow('Invalid raw movement axes');
     expect(snapshotSimHost(host)).toEqual(before);
-    const invalid={...before,players:[{...leadSnapshot(before),walk:{x:Number.NaN,z:0}}]};
+    const invalid={...before,players:[{...leadSnapshot(before),velocity:[Number.NaN,0,0]}]};
     expect(()=>restoreSimHost(level,{rapier},invalid)).toThrow('Snapshot instance registrations');
   }finally{host.dispose();}
 });

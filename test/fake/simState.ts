@@ -82,15 +82,31 @@ export function physicsDifference(a: PhysicsState, b: PhysicsState): string | nu
   return null;
 }
 
+/** Version 1's field order for a player. */
+const V1_PLAYER_FIELDS = ['id', 'position', 'yaw', 'health', 'motor', 'walk', 'moveScale', 'impulse', 'fall', 'shove', 'board', 'swim', 'jump', 'dash', 'dodge', 'traversals'] as const;
+/** A player in the version 1 shape: one velocity back out into each mode's. Footing never was a version 1 field. */
+function versionOnePlayer(player: Readonly<Record<string, unknown>>): Record<string, unknown> {
+  const velocity = (player['velocity'] ?? [0, 0, 0]) as readonly [number, number, number], [x, y, z] = velocity;
+  const board = player['board'] as Record<string, unknown> | undefined, swim = player['swim'] as ({ on: boolean } & Record<string, unknown>) | undefined;
+  const riding = board !== undefined || swim?.on === true, airborne = player['airborne'] === true, vy = riding ? 0 : y;
+  const mapped: Record<string, unknown> = { ...player,
+    ...(player['walking'] === true ? { walk: riding ? { x: 0, z: 0 } : { x, z } } : {}),
+    ...(airborne || vy !== 0 ? { fall: { vy, grounded: !airborne } } : {}),
+    ...(board === undefined ? {} : { board: { velocity: [...velocity], ...board } }),
+    ...(swim === undefined ? {} : { swim: { on: swim.on, velocity: swim.on ? [...velocity] : [0, 0, 0], diving: swim['diving'], climbTo: swim['climbTo'], climbCooldown: swim['climbCooldown'], stroke: swim['stroke'], stood: swim['stood'] } }) };
+  const out: Record<string, unknown> = {};
+  for (const key of V1_PLAYER_FIELDS) if (mapped[key] !== undefined) out[key] = mapped[key];
+  return out;
+}
 /** A one-player snapshot's fields in the version 1 shape, in order: the form every recorded digest and checkpoint hash was
- *  taken in. Comparing there is what proves the version 2 engine reaches exactly the state version 1 did. A room keeps
+ *  taken in. Comparing there is what proves the version 3 engine reaches exactly the state version 1 did. A room keeps
  *  its `players`: no version 1 record of one exists. */
 function versionOneFields(fields: Readonly<Record<string, unknown>>): Record<string, unknown> {
   const players = fields['players'], out: Record<string, unknown> = {};
   if (!Array.isArray(players) || players.length !== 1) return { ...fields };
   for (const [key, value] of Object.entries(fields)) {
     if (key === 'version' || key === 'apiVersion') out[key] = 1;
-    else if (key === 'players') out['player'] = (players as readonly unknown[])[0];
+    else if (key === 'players') out['player'] = versionOnePlayer((players as readonly Record<string, unknown>[])[0] ?? {});
     else out[key] = value;
   }
   return out;

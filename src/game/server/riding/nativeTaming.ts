@@ -261,7 +261,7 @@ export function respawnNativeMounted(host: SimHost, position: Vector3, yaw: numb
   const { player } = mounted;
   if (mounted.mounted) mounted.dismount();
   player.position.copy(position); player.motor.resetAt(position); player.yaw = yaw;
-  mounted.rider.velocity.set(0, 0, 0); player.fall.vy = 0; player.walk.x = 0; player.walk.z = 0;
+  mounted.rider.velocity.set(0, 0, 0); player.velocity.set(0, 0, 0);
   const companion = controls.get(host)?.sessionOf(player.id)?.companion ?? null;
   for (const actor of [...(companion === null ? [] : [companion]), ...mounted.mountables]) {
     if (!mounted.canRide(actor.entityId)) continue;

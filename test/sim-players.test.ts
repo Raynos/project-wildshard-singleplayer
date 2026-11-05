@@ -139,9 +139,9 @@ test('board-only colliders stand for whoever rides', () => {
 test('a traversal answers only for the player that declared it', () => {
   const host = hostWithPlayers(2), bot = player(host, 'bot:1'); let asked = 0;
   leadPlayer(host).modes.register({ id: 'climb', hud: 'none', traverse: () => { asked++; return true; } }, host.scope, { events: host.events });
-  const start = bot.fall.grounded; bot.fall.grounded = false; bot.fall.vy = -1;
+  const start = bot.fall.grounded; bot.fall.grounded = false; bot.velocity.y = -1;
   for (let tick = 0; tick < 5; tick++) host.step();
   expect(asked).toBe(5); expect(leadPlayer(host).mode).toBe('climb'); expect(bot.mode).toBe('foot');
-  expect(start).toBe(true); expect(bot.fall.vy).not.toBe(-1);
+  expect(start).toBe(true); expect(bot.velocity.y).not.toBe(-1);
   host.dispose();
 });

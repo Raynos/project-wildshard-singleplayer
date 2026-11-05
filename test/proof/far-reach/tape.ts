@@ -148,7 +148,7 @@ export class SkyTape {
       case 'mode': {
         if (board === leg.board) return null;
         // a rider brakes onto the leg's last point before stepping off; a walker stands still and steps on
-        const bv = leadPlayer(host).boardVelocity, moving = board && Math.hypot(bv.x, bv.z) > REST;
+        const bv = leadPlayer(host).velocity, moving = board && Math.hypot(bv.x, bv.z) > REST;
         if (moving && this.hold !== null) return [this.ride(host, this.hold, true)];
         return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(host).yaw, ...(moving ? {} : { hover: true as const }) }];
       }
@@ -190,7 +190,7 @@ export class SkyTape {
    * toward CRUISE m/s along the line to the point (slowing into the last one), full stick against any larger error.
    */
   private ride(host: SimHost, to: Point, last: boolean): HeadlessCommand {
-    const p = leadPlayer(host).position, bv = leadPlayer(host).boardVelocity, dx = to[0] - p.x, dz = to[1] - p.z, d = Math.max(1e-6, Math.hypot(dx, dz));
+    const p = leadPlayer(host).position, bv = leadPlayer(host).velocity, dx = to[0] - p.x, dz = to[1] - p.z, d = Math.max(1e-6, Math.hypot(dx, dz));
     const speed = last ? Math.min(CRUISE, d * 1.2) : CRUISE, ex = (dx / d) * speed - bv.x, ez = (dz / d) * speed - bv.z, e = Math.max(STICK, Math.hypot(ex, ez));
     return { kind: 'player', moveX: ex / e, moveZ: ez / e, yaw: Math.atan2(-dx, -dz) };
   }

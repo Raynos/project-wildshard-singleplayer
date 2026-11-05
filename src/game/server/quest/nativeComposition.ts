@@ -276,7 +276,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
       const body = host.players.get(player);
       if (body === undefined || !graph.run(bench.d.id, undefined, player).ok) return;
       const pose = questBenchPose(need(rows.bench, 'bench').pose, bench.spot, bench.spot.yaw);
-      at.set(pose.x, pose.y, pose.z); body.motor.resetAt(at); body.position.copy(at); body.yaw = pose.yaw; body.fall.vy = 0;
+      at.set(pose.x, pose.y, pose.z); body.motor.resetAt(at); body.position.copy(at); body.yaw = pose.yaw; body.velocity.y = 0;
     });
     const rosterOver = (owned: typeof rules, player: string): readonly HeadlessPrompt[] => bindHeadlessPrompts(spots.promptRegistrations ?? [], id => {
       const policy = need(rows.prompts, 'prompts');

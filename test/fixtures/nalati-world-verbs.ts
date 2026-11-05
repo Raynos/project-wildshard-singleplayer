@@ -16,8 +16,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     const mounted=mountedPlayerOf(host);if(mounted===undefined)throw new Error('Nalati world verbs require their native movement owner');
     const places=placesWithDiscovery(structuredClone(page.places),host.flags,text=>context.emit({kind:'hint',text}),()=>[]);
     const snapshot=():string=>JSON.stringify({mode:leadPlayer(host).modes.current(),board:leadPlayer(host).board.on,swim:leadPlayer(host).swim.on,
-      crouching:mounted.rider.crouching,sprinting:mounted.rider.sprinting,walkSpeed:Math.hypot(leadPlayer(host).walk.x,leadPlayer(host).walk.z),
-      vy:leadPlayer(host).fall.vy,swimVelocity:leadPlayer(host).swimVelocity.toArray(),boardVelocity:leadPlayer(host).boardVelocity.toArray(),
+      crouching:mounted.rider.crouching,sprinting:mounted.rider.sprinting,velocity:leadPlayer(host).velocity.toArray(),
       places:places.points.map(point=>({id:point.id,discovered:places.discovered(point.id)}))});
     host.onStep('nalati.world',()=>{const p=leadPlayer(host).position;places.update(p.x,p.z,p.y);},{snapshot,restore:value=>{
       if(value!==snapshot())throw new Error('World observation differs from its restored native owners');

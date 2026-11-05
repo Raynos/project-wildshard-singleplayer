@@ -71,7 +71,8 @@ const strike = v.strictObject({ version, phase: v.picklist(['idle', 'windup', 'a
 const rng = v.strictObject({ version, state: uint32, initial: uint32, scrambledFork: v.boolean() });
 const frameIndex = v.pipe(v.number(), v.integer(), v.minValue(-1));
 const bandClock = v.strictObject({ elapsed: nonnegative, credit: nonnegative, frame: frameIndex, dt: nonnegative, last: finite, due: v.boolean(), tickFrame: frameIndex });
-const playerState = v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
+/** A version 1 or 2 save's player: a velocity for each mode. */
+const playerStateV2 = v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
   traversals: v.optional(v.pipe(v.array(v.picklist(['ride', 'grapple', 'glide', 'climb', 'drive'])), v.minLength(1), v.maxLength(5))),
   walk: v.optional(v.strictObject({ x: finite, z: finite })),
   moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
@@ -80,8 +81,18 @@ const playerState = v.strictObject({ id, position: vector, yaw: finite, health: 
   swim: v.optional(v.strictObject({ on: v.boolean(), velocity: vector, diving: v.boolean(), climbTo: v.nullable(finite), climbCooldown: nonnegative, stroke: nonnegative, stood: v.boolean() })),
   jump: v.optional(v.strictObject({ ago: v.nullable(nonnegative), left: v.picklist([0, 1]) })),
   dash: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })), dodge: v.optional(v.strictObject({ cd: nonnegative, t: nonnegative })) });
+const playerState = v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
+  traversals: v.optional(v.pipe(v.array(v.picklist(['ride', 'grapple', 'glide', 'climb', 'drive'])), v.minLength(1), v.maxLength(5))),
+  velocity: v.optional(vector), walking: v.optional(v.literal(true)), airborne: v.optional(v.literal(true)),
+  moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
+  shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
+  board: v.optional(v.strictObject({ air: v.boolean(), bob: finite, ground: v.boolean() })),
+  swim: v.optional(v.strictObject({ on: v.boolean(), diving: v.boolean(), climbTo: v.nullable(finite), climbCooldown: nonnegative, stroke: nonnegative, stood: v.boolean() })),
+  footing: v.optional(v.strictObject({ water: v.nullable(finite), depth: nonnegative, wading: v.boolean(), onPlatform: v.boolean(), sliding: v.boolean() })),
+  jump: v.optional(v.strictObject({ ago: v.nullable(nonnegative), left: v.picklist([0, 1]) })),
+  dash: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })), dodge: v.optional(v.strictObject({ cd: nonnegative, t: nonnegative })) });
 const entries = {
-  version: v.literal(2), apiVersion: integer, levelId: id, levelFingerprint: uint32,
+  version: v.literal(3), apiVersion: integer, levelId: id, levelFingerprint: uint32,
   state: v.strictObject({ tick: integer, accumulator: v.pipe(finite, v.minValue(-Number.EPSILON)), timers: v.record(v.string(), nonnegative) }),
   clock: v.strictObject({ version, elapsed: nonnegative, wall: nonnegative, frames: integer,
     captureFps: v.nullable(v.pipe(finite, v.check((value) => value > 0))), paused: v.boolean(), scale: nonnegative }),
@@ -120,10 +131,13 @@ const packedPhysicsSchema = v.variant('encoding', [
       chunks: v.pipe(v.array(v.pipe(v.string(), v.minLength(4), v.maxLength(Math.ceil((physicsBlockBytes + 64) / 3) * 4))), v.minLength(1), v.maxLength(Math.ceil(MAX_REFERENCE_BYTES / physicsBlockBytes))), checksum: uint32 }),
 ]);
 const packedSnapshot = v.strictObject({ ...entries, physics: packedPhysicsSchema });
-// P1-E5.2a: a version 1 save, as the old writer left it: one `player`, from an engine with a level API of 1.
+// P1-E5.3-A1: a version 2 save, as the old writer left it: a velocity for each mode.
 const { players: _players, ...sharedEntries } = entries;
-const packedSnapshotV1 = v.strictObject({ ...sharedEntries, version, apiVersion: version, player: playerState, physics: packedPhysicsSchema });
-const wire = v.variant('version', [v.strictObject({ format: v.literal('sim.snapshot'), version: v.literal(2), snapshot: packedSnapshot }),
+const packedSnapshotV2 = v.strictObject({ ...sharedEntries, version: v.literal(2), players: v.pipe(v.array(playerStateV2), v.minLength(1)), physics: packedPhysicsSchema });
+// P1-E5.2a: a version 1 save, as the old writer left it: one `player`, from an engine with a level API of 1.
+const packedSnapshotV1 = v.strictObject({ ...sharedEntries, version, apiVersion: version, player: playerStateV2, physics: packedPhysicsSchema });
+const wire = v.variant('version', [v.strictObject({ format: v.literal('sim.snapshot'), version: v.literal(3), snapshot: packedSnapshot }),
+  v.strictObject({ format: v.literal('sim.snapshot'), version: v.literal(2), snapshot: packedSnapshotV2 }),
   v.strictObject({ format: v.literal('sim.snapshot'), version, snapshot: packedSnapshotV1 })]);
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -331,14 +345,26 @@ export function decodeSnapshotDataBytes(input: unknown, apiVersion: number, phys
   const saved = readSnapshotData(input, apiVersion, physicsBasis, mismatch);
   return { ...saved, physics: saved.physics instanceof Uint8Array ? saved.physics : Uint8Array.from(saved.physics) };
 }
+/** A version 2 player's one velocity is the one its mode ran: the board's, the swim's, or the walk's over the fall's. */
+function migratePlayerV2({ walk, fall, board, swim, ...rest }: v.InferOutput<typeof playerStateV2>): v.InferOutput<typeof playerState> {
+  const velocity = board?.velocity ?? (swim?.on === true ? swim.velocity : [walk?.x ?? 0, fall?.vy ?? 0, walk?.z ?? 0]);
+  return { ...rest, ...(velocity.every(axis => axis === 0) ? {} : { velocity }), ...(walk === undefined ? {} : { walking: true as const }),
+    ...(fall?.grounded === false ? { airborne: true as const } : {}), ...(board === undefined ? {} : { board: { air: board.air, bob: board.bob, ground: board.ground } }),
+    ...(swim === undefined ? {} : { swim: { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.stroke, stood: swim.stood } }) };
+}
+/** A version 2 save is a version 3 save with one velocity on each player. Nothing else about the continuation moved. */
+function migrateV2({ players, ...rest }: v.InferOutput<typeof packedSnapshotV2>, apiVersion: number): v.InferOutput<typeof packedSnapshot> {
+  return { ...rest, version: 3, apiVersion, players: players.map(migratePlayerV2) };
+}
 /** A version 1 save is a version 2 save with its one player as the list. Nothing else about the continuation moved. */
 function migrateV1({ player, ...rest }: v.InferOutput<typeof packedSnapshotV1>, apiVersion: number): v.InferOutput<typeof packedSnapshot> {
-  return { ...rest, version: 2, apiVersion, players: [player] };
+  return migrateV2({ ...rest, version: 2, apiVersion, players: [player] }, apiVersion);
 }
 function readSnapshotData(input: unknown, apiVersion: number, physicsBasis: Uint8Array | undefined, mismatch: ((levelId: string, tick: number) => Error) | undefined): Omit<SimSnapshot, 'physics'> & { physics: number[] | Uint8Array } {
   const parsed: unknown = typeof input === 'string' ? JSON.parse(input) : input;
   jsonTree(parsed);
-  const envelope = v.parse(wire, parsed), saved = envelope.version === 1 ? migrateV1(envelope.snapshot, apiVersion) : envelope.snapshot;
+  const envelope = v.parse(wire, parsed);
+  const saved = envelope.version === 1 ? migrateV1(envelope.snapshot, apiVersion) : envelope.version === 2 ? migrateV2(envelope.snapshot, apiVersion) : envelope.snapshot;
   // Validate metadata/engine/identities before reporting a recoverable basis change. The placeholder is never returned:
   // the checksummed bytes replace it, as the writer does (a schema walk of Pine's 8.4M bytes was ~2 of a 2.3 s decode).
   const metadata = identities(v.parse(snapshot, { ...saved, physics: [0] }), apiVersion);

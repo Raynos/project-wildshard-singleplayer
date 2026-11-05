@@ -313,7 +313,7 @@ export class CableTraversal {
   private carry(entry: CableEntry, player: PlayerSim, rider: CableRider, holding: boolean): void {
     if (entry.row.lifecycle?.native !== 'motor') return;
     player.motor.resetAt(rider.position); player.position.copy(rider.position);
-    player.fall.vy = 0; player.fall.grounded = false;
+    player.velocity.y = 0; player.fall.grounded = false;
     if (!holding) player.addImpulse(rider.velocity);
   }
   /** Existing owner envelopes keep their bytes; no new save owner or live restore effects. */

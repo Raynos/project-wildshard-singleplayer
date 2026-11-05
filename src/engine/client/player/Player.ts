@@ -599,17 +599,15 @@ export class Player {
 }
 
 /**
- * This Player as `PlayerMotionState`. The page has one velocity through every mode (`PAGE_MOTION.oneVelocity`), so the
- * state's walk, board and swim velocities are that one vector and the fall's speed is its y. The rest reads and writes the
- * Player's public fields, which the view, the weapons and the shards read, or the motion state the Player owns (`own`).
+ * This Player as `PlayerMotionState`: it reads and writes the Player's public fields, which the view, the weapons and the
+ * shards read, or the motion state the Player owns (`own`).
  */
 function pageMotionState(player: Player, own: Pick<PlayerMotionState, 'impulse' | 'shove' | 'dash' | 'dodge' | 'jump'>): PlayerMotionState {
   const { position, velocity } = player;
-  return { ...own, position, walk: velocity, boardVelocity: velocity, swimVelocity: velocity,
+  return { ...own, position, velocity,
     get yaw() { return player.yaw; }, set yaw(value) { player.yaw = value; },
     get moveScale() { return player.moveScale; }, set moveScale(value) { player.moveScale = value; },
-    fall: { get vy() { return velocity.y; }, set vy(value) { velocity.y = value; },
-      get grounded() { return player.onGround; }, set grounded(value) { player.onGround = value; } },
+    fall: { get grounded() { return player.onGround; }, set grounded(value) { player.onGround = value; } },
     board: { get on() { return player.hover; }, get onGround() { return player.onGround; }, set onGround(value) { player.onGround = value; },
       get hoverAir() { return player.hoverAir; }, set hoverAir(value) { player.hoverAir = value; },
       get hoverBob() { return player.hoverBob; }, set hoverBob(value) { player.hoverBob = value; } },

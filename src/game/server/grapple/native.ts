@@ -67,7 +67,7 @@ class PlayerClaw {
   readonly view: GrappleView;
   pressed: GrapplePress | null = null;
   constructor(readonly player: PlayerSim, host: SimHost, profile: GrappleProfile, course: GrappleSim['course'], rise: boolean) {
-    this.state = { pitch: 0, last: player.position.clone(), fall: { vy: player.fall.vy, grounded: player.fall.grounded } };
+    this.state = { pitch: 0, last: player.position.clone(), fall: { vy: player.velocity.y, grounded: player.fall.grounded } };
     const body: GrappleBody = { get position() { return player.position; }, velocity: this.velocity,
       get onGround() { return player.fall.grounded; }, set onGround(on) { player.fall.grounded = on; },
       // the motor is read each time: a restore rebuilds the player's motor on the restored physics after install
@@ -125,18 +125,18 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
     setGuard();
     if (fired || sim.phase !== 'idle') {
       // the grapple answers before the walk: run it from where the tick began, and keep the walk only if it declines
-      const p = player.position, fall = player.fall;
-      moved.copy(p); walked.vy = fall.vy; walked.grounded = fall.grounded;
-      p.copy(state.last); fall.vy = state.fall.vy; fall.grounded = state.fall.grounded;
-      velocity.set(0, fall.vy, 0);
+      const p = player.position, fall = player.fall, moves = player.velocity;
+      moved.copy(p); walked.vy = moves.y; walked.grounded = fall.grounded;
+      p.copy(state.last); moves.y = state.fall.vy; fall.grounded = state.fall.grounded;
+      velocity.set(0, moves.y, 0);
       const settling = sim.phase === 'settle' && sim.target?.lifts === true;
-      if (sim.traverse(dt)) fall.vy = velocity.y;
-      else { p.copy(moved); fall.vy = walked.vy; fall.grounded = walked.grounded; }
+      if (sim.traverse(dt)) moves.y = velocity.y;
+      else { p.copy(moved); moves.y = walked.vy; fall.grounded = walked.grounded; }
       if (settling && sim.phase === 'idle' && profile.fact !== undefined) context.emit({ kind: 'fact', name: profile.fact.name, actorId: profile.fact.entity });
     }
     setGuard(); sim.drainEvents();
-    const p = player.position, fall = player.fall;
-    state.last.set(p.x, p.y, p.z); state.fall.vy = fall.vy; state.fall.grounded = fall.grounded;
+    const p = player.position;
+    state.last.set(p.x, p.y, p.z); state.fall.vy = player.velocity.y; state.fall.grounded = player.fall.grounded;
   };
   actRoutes(host).lock = profile.headless.lock;
   host.onStep(profile.headless.step, dt => {

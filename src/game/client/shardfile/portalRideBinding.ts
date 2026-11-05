@@ -148,7 +148,8 @@ async function installPageRide(ctx: Pick<ShardContext, 'game' | 'system' | 'scop
  *  physics, and a fixed-step system with continuation. */
 export interface RidePlayer {
   readonly position: PortalPlayer['position'] & { set: (x: number, y: number, z: number) => unknown }; yaw: number; readonly motor: PortalPlayer['motor'];
-  readonly fall: { vy: number; grounded: boolean };
+  readonly velocity: { y: number };
+  readonly fall: { grounded: boolean };
   readonly impulse: { set: (x: number, y: number, z: number) => unknown };
   readonly shove: { t: number };
   readonly dash: { t: number };
@@ -177,7 +178,7 @@ export function installHostPortalRide(host: RideHost<PortalTraversalPorts['physi
     let held: Point | null = null;
     const keep = (at: Point): void => {
       player.position.set(at.x, at.y, at.z); player.motor.resetAt(at);
-      player.fall.vy = 0; player.fall.grounded = false; player.impulse.set(0, 0, 0); player.shove.t = 0;
+      player.velocity.y = 0; player.fall.grounded = false; player.impulse.set(0, 0, 0); player.shove.t = 0;
     };
     const body: PortalPlayer = {
       // the motor is read each time: a restore rebuilds the player's motor on the restored physics after install

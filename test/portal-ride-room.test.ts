@@ -10,7 +10,7 @@ import { builtProduct } from './fixtures/builtProduct';
 const plan = portalPlanRows(), rows = { director: 'portal.test', trigger: portals.trigger, fade: portals.fade, landings: [], veil: {} } as never;
 function player(x: number, y: number, z: number): RidePlayer {
   const point = { x, y, z, set(a: number, b: number, c: number) { point.x = a; point.y = b; point.z = c; return point; } };
-  return { position: point, yaw: 0, motor: { resetAt: () => undefined, release: () => undefined } as never, fall: { vy: 0, grounded: true }, impulse: { set: () => undefined },
+  return { position: point, yaw: 0, motor: { resetAt: () => undefined, release: () => undefined } as never, velocity: { y: 0 }, fall: { grounded: true }, impulse: { set: () => undefined },
     shove: { t: 0 }, dash: { t: 0 }, board: { on: false }, setBoard: () => undefined };
 }
 function room(players: Map<string, RidePlayer>) {

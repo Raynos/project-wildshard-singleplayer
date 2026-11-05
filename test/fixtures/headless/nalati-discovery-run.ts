@@ -107,11 +107,11 @@ try{
     // and turns it before the next unchanged waypoint progress window.
     for(let turn=0;turn<120&&!arrived.has(place.id);turn++){
       const at=leadPlayer(host).position,dx=place.x-at.x,dz=place.z-at.z,distance=Math.hypot(dx,dz);
-      if(leadPlayer(host).boardVelocity.x*dx+leadPlayer(host).boardVelocity.z*dz>=0)break;
+      if(leadPlayer(host).velocity.x*dx+leadPlayer(host).velocity.z*dz>=0)break;
       assert.ok(distance>0);
       await step([{kind:'player',moveX:dx/distance,moveZ:dz/distance,yaw:Math.atan2(-dx,-dz)}]);alignmentTicks++;
     }
-    {const at=leadPlayer(host).position;assert.ok(arrived.has(place.id)||leadPlayer(host).boardVelocity.x*(place.x-at.x)+leadPlayer(host).boardVelocity.z*(place.z-at.z)>=0,
+    {const at=leadPlayer(host).position;assert.ok(arrived.has(place.id)||leadPlayer(host).velocity.x*(place.x-at.x)+leadPlayer(host).velocity.z*(place.z-at.z)>=0,
       'ordinary steering must turn momentum within the original 120-tick progress allowance');}
     if(arrived.has(place.id))return;
     const origin=leadPlayer(host).position,distance=Math.hypot(place.x-origin.x,place.z-origin.z);
@@ -130,7 +130,7 @@ try{
         const jump=stopped>=45&&stopped%30===15;
         await step([jump?{...command,jump:true}:command]);
       }
-    }catch(error){throw new Error(`Native discovery approach ${place.id} at ${JSON.stringify({feet:leadPlayer(host).position,board:leadPlayer(host).board,velocity:leadPlayer(host).boardVelocity,ground:host.groundHeightAt(leadPlayer(host).position.x,leadPlayer(host).position.z),motor:leadPlayer(host).motor.snapshot().result})} via ${JSON.stringify(points)}`,{cause:error});}
+    }catch(error){throw new Error(`Native discovery approach ${place.id} at ${JSON.stringify({feet:leadPlayer(host).position,board:leadPlayer(host).board,velocity:leadPlayer(host).velocity,ground:host.groundHeightAt(leadPlayer(host).position.x,leadPlayer(host).position.z),motor:leadPlayer(host).motor.snapshot().result})} via ${JSON.stringify(points)}`,{cause:error});}
     await step([]);assert.ok(arrived.has(place.id),`the real approach must discover ${place.id}`);
     console.error(JSON.stringify({place:place.id,tick:frames.length,at:leadPlayer(host).position}));
   }

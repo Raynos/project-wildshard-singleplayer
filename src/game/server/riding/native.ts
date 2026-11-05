@@ -162,7 +162,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     if (!inBounds(x, z, 3)) { x = site['altX'] ?? x; z = site['altZ'] ?? z; }
     rider.position.set(x, Math.max(heightAt(x, z), body.onDeck ? body.feet.y : -Infinity), z);
     rider.velocity.set(0, 0, 0); rider.onGround = true; rider.speedFactor = 1;
-    player.motor.setEnabled(true); player.fall.grounded = true; player.fall.vy = 0;
+    player.motor.setEnabled(true); player.fall.grounded = true; player.velocity.y = 0;
     horse = null; body.breaking = false; player.modes.exit('ride');
     settleHorse(a);
   };
@@ -254,7 +254,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     canRide: id => accepts(id, false), teleport,
     observe: dt => {
       if (horse !== null) return;
-      rider.velocity.set((rider.position.x - previousFoot.x) / dt, player.fall.vy, (rider.position.z - previousFoot.z) / dt);
+      rider.velocity.set((rider.position.x - previousFoot.x) / dt, player.velocity.y, (rider.position.z - previousFoot.z) / dt);
       rider.onGround = player.fall.grounded;
     },
     save: () => {

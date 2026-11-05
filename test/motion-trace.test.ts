@@ -155,7 +155,7 @@ async function run(frame: number): Promise<Trace> {
       acc -= FIXED_STEP; steps++; tick++;
       count(player.hover ? 'board' : player.swimming ? 'swim' : player.sliding ? 'slide' : player.wading ? 'wade' : player.onPlatform ? 'platform' : player.dashing ? 'dash' : player.onGround ? 'ground' : 'air');
       if (traversing) count('traversal');
-      if (lockOn.state === 'locked') count('lock');
+      if (phase === 'lock') count('lock');
       if (player.motor.result.groundCollider?.parent()?.isKinematic() === true) count('deck');
       if (tick % HASH_EVERY === 0) hashes.push(hash.copy().digest('hex').slice(0, 16));
     }

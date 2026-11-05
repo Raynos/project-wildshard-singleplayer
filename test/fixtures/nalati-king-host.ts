@@ -94,7 +94,7 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
   const encounter:{core?:KingContinuation<KingBody>}={};
   const player={position:leadPlayer(host).position,velocity:mount.rider.velocity,get yaw(){return leadPlayer(host).yaw;},set yaw(value:number){leadPlayer(host).yaw=value;},
     get pitch(){return weapons.look.pitch;},set pitch(value:number){weapons.look.pitch=value;}};
-  const publishPlayer=():void=>{leadPlayer(host).motor.resetAt(leadPlayer(host).position);leadPlayer(host).fall.vy=player.velocity.y;};
+  const publishPlayer=():void=>{leadPlayer(host).motor.resetAt(leadPlayer(host).position);leadPlayer(host).velocity.y=player.velocity.y;};
   const ui:BossPresentation={update:()=>undefined,get barShown(){return uiState.bar;},hideBar:()=>{uiState.bar=false;},hideNameCard:()=>{uiState.name='';uiState.title='';},
     hideReward:()=>{uiState.reward=false;},showRetry:(retry,attempts)=>{uiState.retry=retry;uiState.attempts=attempts;},
     showNameCard:(name,title)=>{uiState.name=name;uiState.title=title;},setSkip:value=>{uiState.skip=value;},showBar:name=>{uiState.name=name;uiState.bar=true;},

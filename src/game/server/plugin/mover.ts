@@ -315,7 +315,7 @@ export class MoverRuntime {
       const named = this.riders.get(id), rider = named === undefined ? leadPlayer(host) : host.players.get(named);
       if (!carry.riding) this.riders.delete(id);
       if (rider === undefined) continue; // left the world mid-ride: the boat goes on without them
-      rider.position.set(...carry.at); rider.motor.resetAt(rider.position); rider.fall.vy = 0; rider.fall.grounded = false; if (!carry.riding) rider.yaw = carry.yaw;
+      rider.position.set(...carry.at); rider.motor.resetAt(rider.position); rider.velocity.y = 0; rider.fall.grounded = false; if (!carry.riding) rider.yaw = carry.yaw;
     }
     this.carryPoses.clear();
   }

@@ -47,11 +47,12 @@ export class PlayerSim implements PlayerMotionState {
   held = 0;
   /** Transient world velocity (m/s), the client Player's impulse law (player/impulse.ts). */
   readonly impulse: Vector3 = new Vector3();
-  /** Vertical speed (m/s, negative = falling) and whether the motor last stood it on ground, the client Player's on-foot
-   * fall law (player/fall.ts). At rest (grounded, still) an idle tick leaves the player untouched. */
-  readonly fall = { vy: 0, grounded: true };
-  /** Version-1 on-foot velocity, inactive on legacy hosts. */
-  readonly walk = { active: false, x: 0, z: 0 };
+  /** The one world velocity (m/s, y negative = falling) through every mode, the client Player's `velocity`. */
+  readonly velocity: Vector3 = new Vector3();
+  /** Whether the motor last stood it on ground. At rest (grounded, still) an idle tick leaves the player untouched. */
+  readonly fall = { grounded: true };
+  /** This player walks on version-1 commands, inactive on legacy hosts. */
+  walkActive = false;
   /** The client Player's moveScale: what its owner (an input lock: 0, a slowing zone) scales the version-1 walk by, and
    *  what a mounted driver's reins read. Saved while it is not 1. */
   moveScale = 1;
@@ -60,13 +61,9 @@ export class PlayerSim implements PlayerMotionState {
   /** The hoverboard (SF72): on the board, each step runs the client Player's board law (player/board.ts) instead of the
    * walk, and the board-only colliders (SimHost.boardColliders) collide. Off by default. */
   readonly board: BoardState & { on: boolean } = { on: false, hoverAir: false, hoverBob: 0, onGround: false };
-  /** The riding board's world velocity (m/s), the client Player's `velocity` while it hovers; zero on foot. */
-  readonly boardVelocity: Vector3 = new Vector3();
   /** SF34: the swim (player/swim.ts, the client Player's water law), only on a host with water (useWater): on once the
    *  feet float, with the law's dive, haul-out and stroke clocks. */
   readonly swim: SwimState & { on: boolean; stood: boolean } = { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false };
-  /** The swimming player's world velocity (m/s), the client Player's `velocity` while it swims; zero otherwise. */
-  readonly swimVelocity: Vector3 = new Vector3();
   /**
    * SF34: this player's modes, the page Player's own registry (player/modes.ts): the motor mode (foot, board, swim, wade)
    * read from this state, and a driven mode a runtime declares and enters (`modes.register(def, scope)`,
@@ -95,7 +92,7 @@ export class PlayerSim implements PlayerMotionState {
   private motionObserver: { receive: (sample: SimPlayerMotionSample | null) => void; sample: { velocityX: number; velocityZ: number; grounded: boolean; swimming: boolean; hover: boolean } } | undefined;
   private external: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private modeDriver: SimPlayerDriver | null = null;
-  private readonly versionedWalking = { speed: 4.3, crouching: false, clientMotion: this.walk };
+  private readonly versionedWalking = { speed: 4.3, crouching: false, clientMotion: this.velocity };
   private readonly localMove = { x: 0, z: 0 };
   /** The motion step's world (player/motion.ts): this player's motor, the host's queries, and the host's moments. */
   private readonly world: MotionWorld = this.motionWorld();
@@ -225,7 +222,7 @@ export class PlayerSim implements PlayerMotionState {
     startShove(this.shove, this.position.x, this.position.z, fromX, fromZ, this.yaw, speed);
     this.dash.t = 0; // a knockback ends a dash
     const { fall } = this;
-    if (fall.grounded) { fall.vy = shoveHop(fall.vy); fall.grounded = false; }
+    if (fall.grounded) { this.velocity.y = shoveHop(this.velocity.y); fall.grounded = false; }
   }
   /** Dash this player at (vx, vz) m/s for `time` s, whatever the input says: the client Player's `dash` (a shard's
    * knock-down). The dash law's own rules hold (player/dash.ts: a wall ends it, a knockback cancels it, its last step
@@ -251,12 +248,11 @@ export class PlayerSim implements PlayerMotionState {
    * as the client's movers sync before its world step. */
   setBoard(on: boolean): void {
     this.refuseBorrowed('board');
-    const { board, fall } = this;
+    const { board, fall, velocity } = this;
     if (on === board.on) return;
-    if (on && this.swim.on) { leaveSwim(this, this.world); fall.vy = this.swimVelocity.y; fall.grounded = false; this.swimVelocity.set(0, 0, 0); } // the client's setHover ends the swim
+    if (on && this.swim.on) leaveSwim(this, this.world); // the client's setHover ends the swim
     board.on = on; board.hoverAir = false; board.hoverBob = 0; board.onGround = false;
-    if (on) { this.boardVelocity.set(0, fall.vy, 0); fall.vy = 0; fall.grounded = true; }
-    else { fall.vy = this.boardVelocity.y; fall.grounded = false; this.boardVelocity.set(0, 0, 0); }
+    velocity.x = 0; velocity.z = 0; fall.grounded = on;
   }
   /** Reposition this owned native traveller without stepping the world. Like the page's spawn, release the old ride,
    * velocity, dash and swimming state. */
@@ -266,8 +262,8 @@ export class PlayerSim implements PlayerMotionState {
     this.setBoard(false); leaveSwim(this, this.world);
     this.position.set(feet.x, feet.y, feet.z); this.yaw = yaw;
     this.motor.resetAt(this.position); this.impulse.set(0, 0, 0); this.dash.t = 0;
-    this.fall.vy = 0; this.fall.grounded = false; this.swim.stood = false;
-    Object.assign(this.walk, { active: false, x: 0, z: 0 });
+    this.velocity.set(0, 0, 0); this.fall.grounded = false; this.swim.stood = false;
+    this.walkActive = false;
   }
   /** The registry's view of this player: the mode driver slot and the motor state. */
   private modePlayer(): ModePlayer<SimPlayerDriver> {
@@ -341,12 +337,15 @@ export class PlayerSim implements PlayerMotionState {
     this.tickDriver = driver; this.delegated = delegated;
     const observe = this.motionObserver;
     if (observe !== undefined) { observe.sample.velocityX = 0; observe.sample.velocityZ = 0; }
-    const versioned = !delegated && (command?.commandVersion === 1 || command === undefined && this.walk.active);
+    const versioned = !delegated && (command?.commandVersion === 1 || command === undefined && this.walkActive);
     this.versioned = versioned;
     if (versioned) {
-      this.walk.active = true;
+      this.walkActive = true;
       versionedWalk(this, command, this.world, this.versionedWalking);
-    } else Object.assign(this.walk, { active: false, x: 0, z: 0 });
+    } else {
+      this.walkActive = false;
+      if (!this.board.on && !this.swim.on) { this.velocity.x = 0; this.velocity.z = 0; }
+    }
     const walking = delegated ? undefined : this.walkingControl ?? (versioned ? this.versionedWalking : driver?.walking);
     this.walking = walking;
     if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');
@@ -376,8 +375,7 @@ export class PlayerSim implements PlayerMotionState {
         const native = observe.sample;
         native.velocityX = motion?.walkX ?? 0; native.velocityZ = motion?.walkZ ?? 0;
         native.grounded = this.fall.grounded; native.swimming = this.swim.on; native.hover = this.board.on;
-        if (native.hover) { native.velocityX = this.boardVelocity.x; native.velocityZ = this.boardVelocity.z; }
-        else if (native.swimming) { native.velocityX = this.swimVelocity.x; native.velocityZ = this.swimVelocity.z; }
+        if (native.hover || native.swimming) { native.velocityX = this.velocity.x; native.velocityZ = this.velocity.z; }
         sample = native;
       }
       observe.receive(sample);

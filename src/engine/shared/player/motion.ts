@@ -40,11 +40,6 @@ const SLIDE_ACCEL = 5;
  */
 export interface MotionLaw {
   /**
-   * One velocity through every mode (the page: `walk`, `boardVelocity` and `swimVelocity` are one vector, so momentum
-   * carries from foot to board to water and back), or one per mode (the host: a mode starts from no horizontal speed).
-   */
-  readonly oneVelocity: boolean;
-  /**
    * The on-foot move. `true` (the page): a velocity. It approaches the input, a shove or a dash writes it (so it carries
    * out of them), a steep slope takes it over, and the step's move is (velocity + impulse) · dt, the impulse fading after
    * the step. `false` (the host): a displacement. Its velocity, if any (`MotionFoot.velocity`), runs underneath a shove or
@@ -58,9 +53,9 @@ export interface MotionLaw {
   readonly restsIdle: boolean;
 }
 /** The law the client's Player has always run. */
-export const PAGE_MOTION: MotionLaw = { oneVelocity: true, momentum: true, depthNow: false, restsIdle: false };
+export const PAGE_MOTION: MotionLaw = { momentum: true, depthNow: false, restsIdle: false };
 /** The law SimHost has always run. */
-export const HOST_MOTION: MotionLaw = { oneVelocity: false, momentum: false, depthNow: true, restsIdle: true };
+export const HOST_MOTION: MotionLaw = { momentum: false, depthNow: true, restsIdle: true };
 
 /** What a step resolved about the ground and water under the feet, for the view and the next step. */
 export interface MotionFooting {
@@ -84,21 +79,18 @@ export interface PlayerMotionState {
   moveScale: number;
   /** transient world velocity (m/s), player/impulse.ts */
   readonly impulse: Vector3;
-  /** vertical speed (m/s, negative = falling) and whether the feet last stood on ground */
-  readonly fall: { vy: number; grounded: boolean };
-  /** on-foot horizontal velocity (m/s) */
-  readonly walk: { x: number; z: number };
+  /** The one world velocity (m/s, y negative = falling) through every mode, so speed carries from foot to board to water
+   *  and back (P1-E5.3-A1). */
+  readonly velocity: Vector3;
+  /** whether the feet last stood on ground */
+  readonly fall: { grounded: boolean };
   readonly shove: ShoveState;
   readonly dash: DashState;
   readonly dodge: DodgeState;
   /** the jump clocks, or null until the first press: a player that never jumps keeps its exact bytes */
   jump: JumpState | null;
   readonly board: BoardState & { readonly on: boolean };
-  /** the riding board's world velocity */
-  readonly boardVelocity: Vector3;
   readonly swim: SwimState & { on: boolean; stood: boolean };
-  /** the swimmer's world velocity */
-  readonly swimVelocity: Vector3;
   readonly footing: MotionFooting;
 }
 
@@ -239,13 +231,12 @@ export function leaveSwim(s: PlayerMotionState, w: MotionWorld): void {
   swim.on = false; swim.climbTo = null; swim.diving = false;
   w.swimChanged(false);
 }
-/** Start swimming, from the walk: most of the fall speed goes into the splash. The two callers' velocities meet here: on
- *  one vector, the walk's own (`vx`, `vz`) stay and the vertical is the kept part; on two, the swim starts from them. */
+/** Start swimming, from the walk: most of the fall speed goes into the splash, and the walk's own (`vx`, `vz`) stay. */
 function enterSwim(s: PlayerMotionState, w: MotionWorld, run: MotionScratch, vx: number, vz: number): void {
-  const { swim, fall } = s, keep = entryKeep(fall.vy), vy = fall.vy * keep;
+  const { swim, fall, velocity } = s, keep = entryKeep(velocity.y);
   swim.on = true; swim.strokeTime = 0; run.out.entryKeep = keep;
-  fall.vy = 0; fall.grounded = false;
-  s.swimVelocity.set(vx, vy, vz);
+  fall.grounded = false;
+  velocity.set(vx, velocity.y * keep, vz);
   w.swimChanged(true);
 }
 
@@ -273,13 +264,13 @@ export function versionedWalk(s: PlayerMotionState, cmd: MotionCommand | undefin
 
 function stepOnBoard(s: PlayerMotionState, w: MotionWorld, run: MotionScratch, mx: number, mz: number, len: number, jump: boolean, dt: number): void {
   const { out, boardPorts } = run, { footing } = s;
-  stepBoard(s.position, s.boardVelocity, s.impulse, run.want, s.board, { mx, mz, len, yaw: s.yaw, top: w.boardTop(), capped: w.boardCapped(), jump }, boardPorts, dt, out.board);
+  stepBoard(s.position, s.velocity, s.impulse, run.want, s.board, { mx, mz, len, yaw: s.yaw, top: w.boardTop(), capped: w.boardCapped(), jump }, boardPorts, dt, out.board);
   decayImpulse(s.impulse, dt);
   footing.onPlatform = false; footing.water = out.board.water; footing.depth = 0; footing.wading = false;
 }
 
 function stepInWater(s: PlayerMotionState, cmd: MotionCommand | undefined, w: MotionWorld, run: MotionScratch, mx: number, mz: number, len: number, dt: number): void {
-  const { fall, footing, swim, swimVelocity: v } = s, { oneVelocity } = w.law;
+  const { fall, footing, swim, velocity: v } = s;
   s.impulse.set(0, 0, 0);
   footing.onPlatform = false;
   const left = stepSwim(s.position, v, run.want, swim, { mx, mz, len, dive: cmd?.dive === true, surface: cmd?.surface === true }, run.swimPorts, dt, run.swimOut);
@@ -287,7 +278,7 @@ function stepInWater(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mo
   footing.wading = false;
   if (left === 'dry') {
     // drifted off the water: back on foot, and gravity takes it from here
-    fall.vy = v.y; fall.grounded = false; if (!oneVelocity) v.set(0, 0, 0);
+    fall.grounded = false;
     footing.water = null; footing.depth = 0;
     return;
   }
@@ -295,13 +286,13 @@ function stepInWater(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mo
   footing.water = ws;
   footing.depth = ws === null ? 0 : Math.max(0, ws - s.position.y);
   fall.grounded = left === 'stood';
-  if (left === 'stood') { fall.vy = 0; if (!oneVelocity) v.set(0, 0, 0); swim.stood = true; }
+  if (left === 'stood') { v.y = 0; swim.stood = true; }
   swimStroke(swim, v, dt, w.stroked); // on the step a swimmer stands up too
 }
 
 /** `MotionLaw.momentum`: the velocity the input asks for, or a slide, a shove or a dash in its place. */
 function momentumWalk(s: PlayerMotionState, w: MotionWorld, run: MotionScratch, mx: number, mz: number, wadeT: number, dt: number): void {
-  const { dash, fall, footing, position: p, shove, walk } = s, speed = w.foot.speed(wadeT);
+  const { dash, fall, footing, position: p, shove, velocity: walk } = s, speed = w.foot.speed(wadeT);
   let accel = fall.grounded ? 14 : 3, wx = mx * speed, wz = mz * speed;
   // too steep: the controller will not climb ground past its limit (it is a wall); past SLOPE_SLIDE (the ground the feet
   // stood on last step) the feet slide down the fall line with no control
@@ -341,9 +332,9 @@ function displacementWalk(s: PlayerMotionState, cmd: MotionCommand | undefined, 
 }
 
 function stepOnFoot(s: PlayerMotionState, cmd: MotionCommand | undefined, w: MotionWorld, run: MotionScratch, mx: number, mz: number, dt: number): void {
-  const { law, foot } = w, { out, want } = run, { dash, fall, footing, impulse, position: p, shove, walk } = s, { momentum } = law;
+  const { law, foot } = w, { out, want } = run, { dash, fall, footing, impulse, position: p, shove, velocity } = s, { momentum } = law;
   const shoved = impulse.lengthSq() > 0;
-  if (law.restsIdle && cmd === undefined && !foot.active && !shoved && !(shove.t > 0) && !(dash.t > 0) && fall.grounded && fall.vy === 0) { out.mode = 'rest'; return; }
+  if (law.restsIdle && cmd === undefined && !foot.active && !shoved && !(shove.t > 0) && !(dash.t > 0) && fall.grounded && velocity.y === 0) { out.mode = 'rest'; return; }
   // the wade: water over the grounded feet slows the walk and saps the jump
   const wadeT = wadeFraction(fall.grounded, law.depthNow ? waterDepth(s, w) : footing.depth);
   if (momentum) momentumWalk(s, w, run, mx, mz, wadeT, dt);
@@ -352,41 +343,41 @@ function stepOnFoot(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mot
   if (s.jump !== null) jumpClock(s.jump, fall.grounded, dt);
   if (cmd?.jump === true) {
     s.jump ??= { ago: fall.grounded ? 0 : Infinity, left: 1 };
-    const vy = jumpLaw(s.jump, fall.grounded, fall.vy, foot.coyoteMs, foot.crouching || footing.sliding, jumpSpeed(wadeT));
-    if (vy !== null) { fall.vy = vy; fall.grounded = false; out.jumped = true; w.jumped(); }
+    const vy = jumpLaw(s.jump, fall.grounded, velocity.y, foot.coyoteMs, foot.crouching || footing.sliding, jumpSpeed(wadeT));
+    if (vy !== null) { velocity.y = vy; fall.grounded = false; out.jumped = true; w.jumped(); }
   }
   // gravity first, then the whole move through the motor. A displacement walker on the ground adds no downward push: the
   // motor's snap holds the feet, without snagging on a collider seam, and the tick it loses the ground takes that tick's
   // gravity below, so the fall speed runs exactly the velocity law's from there.
-  const standing = !momentum && foot.velocity === undefined && fall.grounded && fall.vy === 0 && (want.x !== 0 || want.z !== 0);
-  if (!standing) fall.vy = fallStep(fall.vy, dt);
-  if (momentum) want.set((walk.x + impulse.x) * dt, (fall.vy + impulse.y) * dt, (walk.z + impulse.z) * dt);
-  else want.y += fall.vy * dt;
+  const standing = !momentum && foot.velocity === undefined && fall.grounded && velocity.y === 0 && (want.x !== 0 || want.z !== 0);
+  if (!standing) velocity.y = fallStep(velocity.y, dt);
+  if (momentum) want.set((velocity.x + impulse.x) * dt, (velocity.y + impulse.y) * dt, (velocity.z + impulse.z) * dt);
+  else want.y += velocity.y * dt;
   // standing on something that moves: the feet ride the deck's new pose first, and the move gets no downward push (the
   // controller's slide would spread it along the moving contact into a sideways drift)
   if (fall.grounded && w.motor.carry(p) && want.y <= 0) want.y = 0;
   const moved = w.motor.move(p, want);
   // a dash that runs into a wall ends there, not grinding along it
-  dashBlocked(dash, moved.horizontalFreedom, momentum ? walk : run.dashVelocity);
+  dashBlocked(dash, moved.horizontalFreedom, momentum ? velocity : run.dashVelocity);
   // the floor-function bridge: a deck that is not a collider, stood on from on it or just under
   let grounded = moved.grounded;
   footing.onPlatform = false;
   const platform = platformUnderFeet(s, w);
-  if (platform !== undefined && p.y - platform <= 0.05 && fall.vy <= 0) { p.y = platform; grounded = true; footing.onPlatform = true; }
+  if (platform !== undefined && p.y - platform <= 0.05 && velocity.y <= 0) { p.y = platform; grounded = true; footing.onPlatform = true; }
   // The motor already resolved dry grounding: this extra ground query decides only water depth, entry and the cushion.
   const ws = w.hasWater ? w.water(p.x, p.z) : null, g = ws === null ? 0 : run.ground();
   if (swimEntry(p.y, ws, g)) {
-    enterSwim(s, w, run, momentum ? walk.x : out.walkX, momentum ? walk.z : out.walkZ);
+    enterSwim(s, w, run, momentum ? velocity.x : out.walkX, momentum ? velocity.z : out.walkZ);
     if (p.y < g) p.y = g;
   } else {
     if (grounded) {
       if (!fall.grounded) {
         // a landing in water is soft: the splash takes the impact
         const cushion = ws === null ? 0 : landingCushion(p.y < ws, ws - g);
-        w.landed(hardLanding(fall.vy, cushion), fall.vy, cushion);
+        w.landed(hardLanding(velocity.y, cushion), velocity.y, cushion);
       }
-      fall.vy = groundedVelocity(fall.vy);
-    } else if (standing) fall.vy = fallStep(fall.vy, dt);
+      velocity.y = groundedVelocity(velocity.y);
+    } else if (standing) velocity.y = fallStep(velocity.y, dt);
     fall.grounded = grounded;
   }
   footing.water = ws;
@@ -398,7 +389,7 @@ function stepOnFoot(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mot
 /** One fixed step of one player's own motion (`cmd` undefined: no input this tick). Reuses and returns the world's
  *  `MotionOut`. The world has stepped first; a driven mode that owns the step keeps its caller from calling this. */
 export function stepPlayerMotion(s: PlayerMotionState, cmd: MotionCommand | undefined, w: MotionWorld, dt: number): MotionOut {
-  const run = w.scratch ??= motionScratch(s, w), { out } = run, { board, dash, swim, walk } = s;
+  const run = w.scratch ??= motionScratch(s, w), { out } = run, { board, dash, swim } = s;
   out.jumped = false; out.left = null; out.walkX = 0; out.walkZ = 0;
   if (cmd !== undefined) s.yaw = cmd.yaw;
   if (cmd?.dodge === true) pressDodge(s, cmd, w, run);
@@ -407,10 +398,7 @@ export function stepPlayerMotion(s: PlayerMotionState, cmd: MotionCommand | unde
   let mx = cmd?.moveX ?? 0, mz = cmd?.moveZ ?? 0;
   const len = Math.hypot(mx, mz);
   if (len > 1) { mx /= len; mz /= len; }
-  if (board.on || swim.on) { // the board and the water end a dash
-    dash.t = 0;
-    if (!w.law.oneVelocity) { walk.x = 0; walk.z = 0; }
-  }
+  if (board.on || swim.on) dash.t = 0; // the board and the water end a dash
   if (board.on) { out.mode = 'board'; stepOnBoard(s, w, run, mx, mz, len, cmd?.jump === true, dt); }
   else if (swim.on) { out.mode = 'swim'; stepInWater(s, cmd, w, run, mx, mz, len, dt); }
   else { out.mode = 'foot'; stepOnFoot(s, cmd, w, run, mx, mz, dt); }

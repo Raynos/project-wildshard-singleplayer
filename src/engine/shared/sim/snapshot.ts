@@ -7,6 +7,7 @@ import { leadPlayer } from './leadPlayer';
 import type { PlayerSim } from '../../server/sim/playerSim';
 import { SHOVE_TIME } from '../player/shove';
 import type { DrivenMode } from '../player/modes';
+import type { MotionFooting } from '../player/motion';
 import type { AnimalSim } from '../../server/entities/AnimalSim';
 import type { StrikeRunner } from '../../server/ai/strikes';
 import type { PlayerHealth } from '../../server/combat/health';
@@ -24,7 +25,7 @@ import type { RespawnRow } from '../../server/sim/respawn';
 import type { DayClockState } from './dayClock';
 
 /** Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. */
-export const SIM_SNAPSHOT_VERSION = 2;
+export const SIM_SNAPSHOT_VERSION = 3;
 /** Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it. */
 export const SIM_REGION_SNAPSHOT_CHAR_BUDGET: number = 512 * 1024;
 /**
@@ -54,16 +55,22 @@ type MotorState = ReturnType<CharacterMotor['snapshot']>;
 export interface SimPlayerSnapshot { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined;
     /** Active traversal identities only; absent on hosts whose traversal has never claimed a tick. */
     traversals?: DrivenMode[] | undefined;
-    /** Opted-in version-1 walking velocity; absent preserves legacy hosts. */
-    walk?: { x: number; z: number } | undefined;
+    /** The one world velocity through every mode (P1-E5.3-A1); absent = still. */
+    velocity?: number[] | undefined;
+    /** This player walks on version-1 commands; absent preserves legacy hosts. */
+    walking?: true | undefined;
     /** SimHost.playerMoveScale while it is not 1 (an input lock or a slowing room); absent = 1. */
     moveScale?: number | undefined;
-    fall?: { vy: number; grounded: boolean } | undefined; shove?: { t: number; vx: number; vz: number } | undefined;
-    /** SF72: the riding hoverboard (SimHost.playerBoard + boardVelocity); absent on foot, so a host that never boards keeps its bytes. */
-    board?: { velocity: number[]; air: boolean; bob: number; ground: boolean } | undefined;
-    /** SF34: the swim (SimHost.playerSwim + swimVelocity) while swimming or its haul-out cooldown runs; absent otherwise,
-     *  so a host without water keeps its bytes. */
-    swim?: { on: boolean; velocity: number[]; diving: boolean; climbTo: number | null; climbCooldown: number; stroke: number; stood: boolean } | undefined;
+    /** The feet left the ground; absent = they stand on it. */
+    airborne?: true | undefined;
+    shove?: { t: number; vx: number; vz: number } | undefined;
+    /** SF72: the riding hoverboard (SimHost.playerBoard); absent on foot, so a host that never boards keeps its bytes. */
+    board?: { air: boolean; bob: number; ground: boolean } | undefined;
+    /** SF34: the swim (SimHost.playerSwim) while swimming or its haul-out cooldown runs; absent otherwise, so a host without
+     *  water keeps its bytes. */
+    swim?: { on: boolean; diving: boolean; climbTo: number | null; climbCooldown: number; stroke: number; stood: boolean } | undefined;
+    /** The feet's last resolve (P1-E5.3-A3), which the next step reads; absent = dry, firm ground. */
+    footing?: MotionFooting | undefined;
     /** SF72: the on-foot jump clocks (SimHost.playerJump; `ago` null = never grounded since: no coyote), present once the
      *  host has had a JUMP press; the running dash (playerDash) and the dodge clocks (playerDodge) only while they run. */
     jump?: { ago: number | null; left: 0 | 1 } | undefined; dash?: { t: number; vx: number; vz: number } | undefined;
@@ -270,21 +277,21 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
 /** One player, with everything at rest left out, so a player that never used a law keeps its exact bytes. */
 function playerSnapshot(host: SimHost, player: PlayerSim): SimPlayerSnapshot {
   return { id: player.id, position: player.position.toArray(), yaw: player.yaw, health: encode(player.health.snapshot(), host), motor: player.motor.snapshot(),
-    ...(player.walk.active ? { walk: { x: player.walk.x, z: player.walk.z } } : {}),
+    ...(player.velocity.lengthSq() > 0 ? { velocity: player.velocity.toArray() } : {}),
+    ...(player.walkActive ? { walking: true as const } : {}),
     ...(player.moveScale === 1 ? {} : { moveScale: player.moveScale }),
     // a resting impulse is omitted (canonical: absent = zero), so a host that was never shoved keeps its exact bytes
     ...(player.impulse.lengthSq() > 0 ? { impulse: player.impulse.toArray() } : {}),
-    // likewise a player at rest on the ground (the fall law's canonical state) is omitted
-    ...(player.fall.grounded && player.fall.vy === 0 ? {} : { fall: { ...player.fall } }),
+    ...(player.fall.grounded ? {} : { airborne: true as const }),
     ...(player.shove.t > 0 ? { shove: { ...player.shove } } : {}),
-    ...(player.board.on ? { board: { velocity: player.boardVelocity.toArray(), air: player.board.hoverAir, bob: player.board.hoverBob, ground: player.board.onGround } } : {}),
+    ...(player.board.on ? { board: { air: player.board.hoverAir, bob: player.board.hoverBob, ground: player.board.onGround } } : {}),
     ...swimField(player),
     ...jumpFields(player), ...traversalField(player) };
 }
 /** The swim (SF34) while it runs or its haul-out cooldown does, else omitted. */
 function swimField(player: PlayerSim): Pick<SimPlayerSnapshot, 'swim'> {
   const { swim } = player;
-  return swim.on || swim.stood || swim.climbCooldown > 0 ? { swim: { on: swim.on, velocity: player.swimVelocity.toArray(), diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.strokeTime, stood: swim.stood } } : {};
+  return swim.on || swim.stood || swim.climbCooldown > 0 ? { swim: { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.strokeTime, stood: swim.stood } } : {};
 }
 /** Omit inactive traversal state so ordinary hosts retain their existing snapshot bytes. */
 function traversalField(player: PlayerSim): Pick<SimPlayerSnapshot, 'traversals'> {
@@ -302,11 +309,10 @@ function jumpFields(player: PlayerSim): Pick<SimPlayerSnapshot, 'jump' | 'dash' 
 function invalidPlayer(saved: SimPlayerSnapshot): boolean {
   return saved.position.length !== 3 || !saved.position.every(Number.isFinite) || !Number.isFinite(saved.yaw)
     || (saved.impulse !== undefined && (saved.impulse.length !== 3 || !saved.impulse.every(Number.isFinite) || saved.impulse.every(value => value === 0)))
-    || (saved.walk !== undefined && ![saved.walk.x, saved.walk.z].every(Number.isFinite))
+    || (saved.velocity !== undefined && (saved.velocity.length !== 3 || !saved.velocity.every(Number.isFinite)))
     || (saved.moveScale !== undefined && !(Number.isFinite(saved.moveScale) && saved.moveScale >= 0 && saved.moveScale !== 1))
-    || (saved.fall !== undefined && (!Number.isFinite(saved.fall.vy) || (saved.fall.grounded && saved.fall.vy === 0)))
     || (saved.shove !== undefined && (![saved.shove.t, saved.shove.vx, saved.shove.vz].every(Number.isFinite) || saved.shove.t <= 0 || saved.shove.t > SHOVE_TIME))
-    || (saved.board !== undefined && (saved.board.velocity.length !== 3 || ![...saved.board.velocity, saved.board.bob].every(Number.isFinite) || saved.fall !== undefined))
+    || (saved.board !== undefined && (!Number.isFinite(saved.board.bob) || saved.airborne !== undefined))
     || (saved.dash !== undefined && (![saved.dash.t, saved.dash.vx, saved.dash.vz].every(Number.isFinite) || saved.dash.t <= 0))
     || (saved.dodge !== undefined && (!(saved.dodge.cd >= 0 && saved.dodge.t >= 0) || saved.dodge.cd + saved.dodge.t === 0))
     || (saved.jump !== undefined && ((saved.jump.ago !== null && !(saved.jump.ago >= 0)) || ![0, 1].includes(saved.jump.left)));
@@ -321,18 +327,17 @@ function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
   const player = savedPlayer(host, saved);
   player.position.fromArray(saved.position); player.yaw = saved.yaw;
   if (saved.impulse === undefined) player.impulse.set(0, 0, 0); else player.impulse.fromArray(saved.impulse);
-  Object.assign(player.walk, { active: saved.walk !== undefined, x: saved.walk?.x ?? 0, z: saved.walk?.z ?? 0 });
+  player.velocity.set(0, 0, 0); if (saved.velocity !== undefined) player.velocity.fromArray(saved.velocity);
+  player.walkActive = saved.walking === true;
   player.moveScale = saved.moveScale ?? 1;
-  player.fall.vy = saved.fall?.vy ?? 0; player.fall.grounded = saved.fall?.grounded ?? true;
+  player.fall.grounded = saved.airborne !== true;
   Object.assign(player.shove, saved.shove ?? { t: 0, vx: 0, vz: 0 });
   const { board } = saved;
   Object.assign(player.board, board === undefined ? { on: false, hoverAir: false, hoverBob: 0, onGround: false } : { on: true, hoverAir: board.air, hoverBob: board.bob, onGround: board.ground });
-  if (board === undefined) player.boardVelocity.set(0, 0, 0); else player.boardVelocity.fromArray(board.velocity);
   const { swim } = saved;
-  if ((swim !== undefined && (swim.velocity.length !== 3 || !swim.velocity.every(Number.isFinite) || (swim.on && (board !== undefined || !host.hasWater))))) throw new RangeError('Snapshot swim does not match');
+  if (swim?.on === true && (board !== undefined || !host.hasWater)) throw new RangeError('Snapshot swim does not match');
   Object.assign(player.swim, swim === undefined ? { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false }
     : { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, strokeTime: swim.stroke, stood: swim.stood });
-  if (swim === undefined) player.swimVelocity.set(0, 0, 0); else player.swimVelocity.fromArray(swim.velocity);
   const { jump } = saved;
   player.jump = jump === undefined ? null : { ago: jump.ago ?? Infinity, left: jump.left };
   Object.assign(player.dash, saved.dash ?? { t: 0, vx: 0, vz: 0 });

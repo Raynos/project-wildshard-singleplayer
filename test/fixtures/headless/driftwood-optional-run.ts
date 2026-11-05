@@ -102,7 +102,7 @@ try{
     for(let i=0;i<3600;i++){
       const p=leadPlayer(host).position,dx=x-p.x,dz=z-p.z,d=Math.hypot(dx,dz);
       if(leadPlayer(host).board.on){
-        const velocity=leadPlayer(host).boardVelocity;if(d<.25&&Math.hypot(velocity.x,velocity.z)<.25)return;
+        const velocity=leadPlayer(host).velocity;if(d<.25&&Math.hypot(velocity.x,velocity.z)<.25)return;
         const speed=Math.min(9,d*1.2),length=Math.max(.01,d),ex=dx/length*speed-velocity.x,ez=dz/length*speed-velocity.z,k=Math.max(3,Math.hypot(ex,ez));
         await step([{kind:'player',moveX:ex/k,moveZ:ez/k,yaw:Math.atan2(-dx,-dz)}]);
       }else{
