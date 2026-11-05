@@ -54,7 +54,7 @@ const Saved=v.strictObject({version:v.literal(1),enabled:v.optional(v.boolean(),
   javelins:v.array(v.strictObject({state:v.picklist([0,1,2]),age:finite,pos:vector,vel:vector,q:v.tuple([finite,finite,finite,finite])}))});
 
 /** One tick command, as these arms read it. */
-export interface HeldCommand { readonly kind: string; readonly actorId?: string; readonly value?: number; readonly attack?: unknown; readonly heavy?: unknown;
+export interface HeldCommand { readonly kind: string; readonly actorId?: string; readonly playerId?: string; readonly value?: number; readonly attack?: unknown; readonly heavy?: unknown;
   readonly swing?: boolean; readonly pitch?: number; readonly ads?: number }
 /** The tick's commands: the first player's list, then each other player's. */
 export interface HeldTick { readonly commands: () => readonly HeldCommand[]; readonly commandsOf: (id: string) => readonly HeldCommand[] }

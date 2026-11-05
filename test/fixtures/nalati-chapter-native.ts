@@ -19,7 +19,7 @@ import {installNalatiReadings} from './nalati-verbs';
 import {installNalatiMountInputs} from './nalati-mount-inputs';
 import {installNalatiKokpar} from './nalati-kokpar-native';
 import {installNalatiChapterObservation} from './nalati-chapter-observation';
-import type {NalatiChapterRecords} from './nalati-chapter-records';
+import type {ChapterRecords as NalatiChapterRecords} from '../../src/game/server/quest/chapterRecords';
 import {installPackedChapterTaming} from './headless/chapterObservation';
 import {createNalatiChapterPresentation} from './nalati-chapter-presentation';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

@@ -13,7 +13,7 @@ import type {PrepareHeadlessRuntime} from '../src/sdk/headlessRuntime';
 import type {SimHost} from '../src/engine/server/sim';
 import {builtProduct} from './fixtures/builtProduct';
 import {createNativeProofResident,prepareProductPlan as prepareNalati} from './fixtures/headless-native';
-import {prepareNalatiChapterRecords,type NalatiChapterRecords} from './fixtures/nalati-chapter-records';
+import {prepareChapterRecords,type ChapterRecords} from '../src/game/server/quest/chapterRecords';
 import {canonicalSimDigest} from './fake/simState';
 
 test('chapter saved reads borrow actual native records and restore without granting outcomes',async()=>{
@@ -22,7 +22,7 @@ test('chapter saved reads borrow actual native records and restore without grant
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
     Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm')),input={product,shard,assets,rapier};
-  const install=await prepareNalatiChapterRecords(product),owners=new WeakMap<SimHost,NalatiChapterRecords>();
+  const install=await prepareChapterRecords(product,{step:'nalati.chapter-records',elites:'nalati.elites'}),owners=new WeakMap<SimHost,ChapterRecords>();
   const prepare:PrepareHeadlessRuntime=async preparation=>{
     const base=await prepareNalati(preparation);
     return {...base,install:(host,context)=>{base.install(host,context);owners.set(host,install(host));}};

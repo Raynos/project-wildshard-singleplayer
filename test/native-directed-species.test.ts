@@ -21,7 +21,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { builtProduct } from './fixtures/builtProduct';
 import { createNativeProofResident } from './fixtures/headless-native';
 import { prepareNalatiWorld } from './fixtures/nalati-world';
-import { readNalatiPatrolIntake } from './fixtures/nalati-patrol-intake';
+import { readPatrolIntake } from '../src/game/server/boss/patrolNative';
 import { canonicalSimDigest } from './fake/simState';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
@@ -29,7 +29,7 @@ test('a bound ghost rider decides and scales hits through its law natively, and 
   const directory = builtProduct('nalati-grasslands'), product = await loadHeadlessProduct(directory), shard = product.shardfile;
   const descriptor = outputDescriptor(shard); if (descriptor === undefined) throw new Error('Missing admitted native inventory');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-  const input = await readNalatiPatrolIntake(product), book = v.parse(SpeciesActorsFileSchema, await product.json<unknown>('actors/sheep.json')).species.lookBook;
+  const input = await readPatrolIntake(product, {rows:'combat/timed-encounters.json',actors:'actors/sheep.json'}), book = v.parse(SpeciesActorsFileSchema, await product.json<unknown>('actors/sheep.json')).species.lookBook;
   const row = book.rows.find(candidate => candidate.metadata.kind === 'ghost-rider'), recipe = row?.directed;
   if (recipe === undefined || book.program === undefined) throw new Error('Missing the ghost riders\' directed recipe');
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')), preparation = { shard, assets, rapier, product };

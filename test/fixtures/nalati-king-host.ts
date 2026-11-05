@@ -15,7 +15,7 @@ import {mountedPlayerOf} from '../../src/game/server/riding/native';
 import {attachNativeCreaturePose,type NativeCreaturePose} from '../../src/game/shared/plugin/animation';
 import type {PhasedBossBrain} from '../../src/game/server/plugin/bossPhase';
 import type {NalatiKingData} from './nalati-king-data';
-import type {NalatiChapterRecords} from './nalati-chapter-records';
+import type {ChapterRecords as NalatiChapterRecords} from '../../src/game/server/quest/chapterRecords';
 import {nalatiWeaponsOf} from './nalati-weapons-native';
 import {nalatiBalbalsOf} from './nalati-balbal-native';
 import {restoreEncounterBrains} from './restoreEncounterBrains';

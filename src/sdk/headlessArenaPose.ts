@@ -12,7 +12,7 @@ import { viewProgram, type ViewTell } from '@wildshard/engine/script/viewProgram
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { ARENA_VIEW } from '@wildshard/format/arenaView';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
-import type { ArenaPoseCells, OpenArenaFight } from '../../../../src/game/shared/boss/openArenaFight';
+import type { ArenaPoseCells, OpenArenaFight } from '@wildshard/game/boss/openArenaFight';
 
 /** the display rate that keeps the view lane at every frame (its halving floor is the display rate over 15 Hz) */
 const EVERY_FRAME_HZ = 15;

@@ -9,9 +9,8 @@ import {nativePopulationOf} from '../src/game/server/riding/nativePopulation';
 import {builtProduct} from './fixtures/builtProduct';
 import {createNativeProofResident,prepareProductPlan as prepareHeadlessRuntime} from './fixtures/headless-native';
 import {prepareNalatiWorld} from './fixtures/nalati-world';
-import {readNalatiPatrolIntake} from './fixtures/nalati-patrol-intake';
+import {readPatrolIntake,readPatrolPoses} from '../src/game/server/boss/patrolNative';
 import {canonicalSimDigest} from './fake/simState';
-import {readNalatiPatrolPoses} from './fixtures/nalati-patrol-poses';
 import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
 import {NativeCreaturePose} from '../src/game/shared/plugin/animation';
 import {Vector3} from 'three';
@@ -22,7 +21,7 @@ test('admitting conditional patrol recipes preserves the complete page-joined in
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
   const descriptor=outputDescriptor(shard);if(descriptor===undefined)throw new Error('Missing admitted native inventory');
   const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-  const input=await readNalatiPatrolIntake(product),original=JSON.stringify(input);
+  const input=await readPatrolIntake(product,{rows:'combat/timed-encounters.json',actors:'actors/sheep.json'}),original=JSON.stringify(input);
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm')),preparation={shard,assets,rapier,product};
   const before=await createNativeProofResident(preparation,prepareHeadlessRuntime);
   let after:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
@@ -53,7 +52,7 @@ test('admitting conditional patrol recipes preserves the complete page-joined in
 
 test('patrol contact seats use admitted moving joints and preserve their quiet continuation',async()=>{
   const product=await loadHeadlessProduct(builtProduct('nalati-grasslands'));
-  const [intake,poses,encounters]=await Promise.all([readNalatiPatrolIntake(product),readNalatiPatrolPoses(product),
+  const [intake,poses,encounters]=await Promise.all([readPatrolIntake(product,{rows:'combat/timed-encounters.json',actors:'actors/sheep.json'}),readPatrolPoses(product,{rows:'combat/timed-encounters.json',actors:'actors/sheep.json',looks:'actors/species-looks.json'}),
     product.json<unknown>('combat/timed-encounters.json').then(value=>v.parse(TimedEncountersSchema,value))]);
   expect(poses.rows.map(row=>[row.kind,row.variant])).toEqual(intake.recipes.map(row=>[row.kind,row.variant]));
   const original=JSON.stringify(poses.rows),wind={x:-.8,z:.6,strength:.5};

@@ -10,6 +10,7 @@ import type { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, otherCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands } from '@wildshard/game/plugin/simulation';
+import { HEADLESS_ARENA } from './headlessArenaViews';
 import type { NativeSweptMeleeInput } from '@wildshard/game/plugin/nativeSwept';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel, type SimTickCommand } from '@wildshard/engine/sim';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
@@ -152,14 +153,14 @@ function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRunti
     grantItem: (player, item, count) => { context.emit({ kind: 'item', item, count, actorId: player }); } });
 }
 /** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */
-export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<HeadlessRuntimeInstallation> {
-  return { rapier, bindCommands: bindHeadlessCommands, grantItem: context => (player, item, count) => { context.emit({ kind: 'item', item, count, actorId: player }); }, tamingCommands: context => () => context.commands().map(tamingCommand),
+export function headlessAssemblyPorts(rapier: Rapier, room?: boolean): NativeAssemblyPorts<HeadlessRuntimeInstallation> {
+  return { rapier, ...(room === true ? { room, arena: HEADLESS_ARENA } : {}), ledger: context => ledgerPorts(context.emit), bindCommands: bindHeadlessCommands, grantItem: context => (player, item, count) => { context.emit({ kind: 'item', item, count, actorId: player }); }, tamingCommands: context => () => context.commands().map(tamingCommand),
     grappleTick: context => ({ emit: context.emit, commands: () => context.commands().map(grappleCommand), commandsOf: id => context.playerCommands?.(id).map(grappleCommand) ?? [] }),
     heldTick: context => ({ commands: context.commands, commandsOf: id => context.playerCommands?.(id) ?? [] }) };
 }
 /** Resolve only the admitted native data plan. Missing declarations never
  * fall back to a shard source path; product and level identities must agree. */
-export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Promise<HeadlessRuntimePlan> {
+export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, room?: boolean): Promise<HeadlessRuntimePlan> {
   if (!/^[a-z0-9][a-z0-9-]*$/u.test(provided.shard.identity.slug)) throw new Error('Invalid native product identity');
   await prepareAssetDecoders();
   let plan: HeadlessRuntimePlan, source = provided.shard, places: readonly PlaceArea[] = [];
@@ -176,7 +177,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
     const { slug: actualIdentity } = product, { slug: expectedIdentity } = provided.shard.identity;
     if (actualIdentity !== expectedIdentity || product.revision !== provided.shard.identity.revision) throw new Error('Native product and trusted identity differ');
     source = product.shardfile;
-    plan = await prepareProductRuntimePlan(product, provided.assets, headlessAssemblyPorts(provided.rapier));
+    plan = await prepareProductRuntimePlan(product, provided.assets, headlessAssemblyPorts(provided.rapier, room));
     if (product.has('economy/loot')) plan = { ...plan, economy: product.section('economy/loot') };
     places = await serverPlaces(product);
   }
@@ -207,7 +208,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
 /** Install the selected plan into one fresh or strictly restored native host.
  * A failed install disposes its world; installation may emit no gameplay effects. */
 export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>, world?: { readonly room?: boolean; readonly near?: NearColliders }): Promise<TrustedHeadlessResident> {
-  const plan = await prepareNativeRuntime(preparation);
+  const plan = await prepareNativeRuntime(preparation, world?.room);
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
   const combat = createNativeCombatFrame();

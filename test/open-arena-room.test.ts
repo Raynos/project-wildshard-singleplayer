@@ -14,7 +14,7 @@ import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with 
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import { lendNalatiPasture } from './fixtures/nalati-return-modules';
-import { titanNativeViews } from './fixtures/nalati-titan-views';
+import { openArenaNativeViews } from '../src/sdk/headlessArenaViews';
 import { titanFightOwners } from './fixtures/titanFightOwners';
 import { titanPrograms as programs } from './fixtures/titanInlineWitness';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -42,7 +42,7 @@ function room(extra = 1): { host: SimHost; lead: PlayerSim; bots: PlayerSim[]; a
   const fight = new OpenArenaFight({ scope: host.scope, weather: { stormActive: true, flash: 0, raise: () => undefined }, tieSpot: null, ai: () => host.rng.stream('ai'), fog: () => null,
     camera: new PerspectiveCamera(), wild: { trample: () => undefined, onEvent: () => undefined }, phone: true, ground: (x, z) => host.groundHeightAt(x, z), wind: { dirX: 1, dirZ: 0, speed: 1 } },
   { player: arena.party.player, get boss() { return owner.boss; }, get engaged() { return owner.boss?.engaged ?? false; }, mounted: () => true, contact: arena.contact,
-    throwRider: arena.throwRider, horseSteed: arena.horseSteed, heartScale: arena.heartScale, feed: () => undefined, toast: () => undefined, riderOwner: () => null }, data, titanNativeViews(host, data));
+    throwRider: arena.throwRider, horseSteed: arena.horseSteed, heartScale: arena.heartScale, feed: () => undefined, toast: () => undefined, riderOwner: () => null }, data, openArenaNativeViews(host, data));
   const boss = new BossBrain({ ...data.definition, reward: {} }, fight, { events: host.events, player: arena.party.player, lockInput: () => undefined, respawn: arena.party.respawn,
     skipHeld: () => true, faceToward: () => undefined, spawnReward: () => undefined, persist: () => undefined }, silentBossPresentation(), { defeated: false, rewardTaken: false, kills: 0 });
   owner.boss = boss; arena.bind(boss, fight);

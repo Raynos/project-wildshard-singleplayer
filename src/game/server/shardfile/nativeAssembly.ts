@@ -12,6 +12,8 @@ import { createNativeBakeReader, installNativeCollision, nativeBakeGround, type 
 import { NativePopulationField } from '../population/environment';
 import { need, readAssemblyInput, type AssemblyGround, type AssemblyPrepared, type NativeAssemblyContext, type NativeAssemblyPorts } from './nativeAssemblyInput';
 import { prepareAssemblyFeature, type AssemblyRun } from './nativeAssemblyHosts';
+import { readPatrolIntake } from '../boss/patrolNative';
+import { withEncounters } from '../population/encounterIntake';
 import { prepareReturns } from './nativeRuntimeLoans';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 
@@ -62,9 +64,11 @@ export function hasNativeAssembly(product: ShardProduct): boolean { return produ
  * Build one native world from a product's `server/native-assembly.json` (P1-E3.1b). Every read happens here, so a bad
  * plan refuses before a host exists; `install` is synchronous, in the plan's order, and restores like a typed plan.
  */
-export async function prepareNativeAssembly<C extends NativeAssemblyContext>(product: ShardProduct, assets: ReadonlyMap<string, Uint8Array>, ports: NativeAssemblyPorts<C>): Promise<NativeAssemblyRuntime<C>> {
-  const preparation = { product, assets }, lendReturns = await prepareReturns(preparation);
-  const plan = parseNativeAssembly(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await product.file(NATIVE_ASSEMBLY_FILE))));
+export async function prepareNativeAssembly<C extends NativeAssemblyContext>(input: ShardProduct, assets: ReadonlyMap<string, Uint8Array>, ports: NativeAssemblyPorts<C>): Promise<NativeAssemblyRuntime<C>> {
+  const preparation = { product: input, assets }, lendReturns = await prepareReturns(preparation);
+  const plan = parseNativeAssembly(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await input.file(NATIVE_ASSEMBLY_FILE))));
+  const patrol = ports.room === true ? plan.features.find(row => row.host === 'encounter.patrol') : undefined;
+  const product = patrol === undefined ? input : await withEncounters(input, await readPatrolIntake(input, patrol));
   const shard = product.shardfile, bake = await prepareBake(product, plan.bake), ground = await prepareGround(product, assets, plan, bake);
   const navigation = plan.navigation === 'shard' ? assets.get(need(shard.navigation, 'Missing navigation').file) : await product.file(plan.navigation.file);
   const nav = readNavmesh(navigation, 'Native assembly requires its navigation', () => 0);

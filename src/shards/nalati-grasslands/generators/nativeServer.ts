@@ -70,7 +70,7 @@ const GOLDEN_KING_DIMS = { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headR
 const BALBAL_DIMS = { bodyY: 0.9, bodyHalfLen: 0.6, bodyRadius: 0.4, headRadius: 0.26, legLen: 0.82, feet: [[0.16, 0.05], [-0.16, 0.05], [0.16, -0.05], [-0.16, -0.05]], halfWidth: 0.38, capsuleAxis: 'y' };
 
 /** Nalati's native assembly (P1-E3.1b, J90): its hosts in install order, as data over its product files. */
-function nalatiNativeAssemblyPlan(nativeBake: NativeAssemblyPlan['bake']['reader'] & { readonly size: number; readonly resolution: number }): NativeAssemblyPlan {
+function nalatiNativeAssemblyPlan(nativeBake: NativeAssemblyPlan['bake']['reader'] & { readonly size: number; readonly resolution: number }, rows: { readonly herds: string; readonly groups: string; readonly external: readonly unknown[] }): NativeAssemblyPlan {
   return { kind: 'native-assembly', level: { speed: 5, authorCap: true, ground: { size: nativeBake.size, height: 0 } }, terrain: { kind: 'shard-tile', resolution: 256, size: 500 }, navigation: 'shard',
     bake: { rows: { file: 'server/physics.json' }, reader: nativeBake, ground: 'data/physics-ground.bin', colliders: ['data/physics-colliders-0.bin', 'data/physics-colliders-1.bin'], read: 'bake',
       owners: { file: 'sim/population-metadata.json' }, seal: { file: 'combat/room-entry.json', path: ['room'] } },
@@ -85,7 +85,10 @@ function nalatiNativeAssemblyPlan(nativeBake: NativeAssemblyPlan['bake']['reader
         entrance: [GREAT_KURGAN.x - Math.sin(GREAT_KURGAN_DOOR) * (GREAT_KURGAN.r + 3), 0, GREAT_KURGAN.z - Math.cos(GREAT_KURGAN_DOOR) * (GREAT_KURGAN.r + 3), GREAT_KURGAN_DOOR] },
       { host: 'riding.taming', rows: { file: 'server/taming.json' }, poses: { file: 'sim/taming-poses.json', path: ['poses'] }, pose: { file: 'actors/species-looks.json', path: ['poses', 'horse'] } }, { host: 'riding.elites-ready' },
       { host: 'held.arms', step: 'nalati.weapons', slots: 'held/slots.json', speed: 7.2, weather: { file: 'server/weather.json' },
-        input: { attack: 'nalati.weapon.attack', swap: 'nalati.weapon.swap', aim: 'nalati.weapon.aim', pitch: 'nalati.weapon.pitch' } }] };
+        input: { attack: 'nalati.weapon.attack', swap: 'nalati.weapon.swap', aim: 'nalati.weapon.aim', pitch: 'nalati.weapon.pitch' } },
+      { host: 'encounter.patrol', step: 'nalati.patrol', rows: 'combat/timed-encounters.json', actors: 'actors/sheep.json', looks: 'actors/species-looks.json', herds: rows.herds, external: { value: rows.external } },
+      { host: 'boss.open-arena', id: 'nalati.titan', fight: 'combat/titan-fight.json', geometry: 'combat/titan-geometry.json', view: 'titan-view', groups: rows.groups,
+        input: { use: 'nalati.titan.use', skip: 'nalati.titan.skip' }, target: 'encounter:storm-titan:heart', grants: [{ item: 'naizagai', count: 1 }, { item: 'sky-marked-saddle', count: 1 }] }] };
 }
 
 /** Nalati's server-class files (J91), built from the same programs the product ships: a client never fetches one. */
@@ -95,7 +98,7 @@ export function nalatiServerFiles(pasture: NalatiTitanProgram, admission: Nalati
   const strikes = [strike(0), strike(1), strike(2)], [swipe, pounce, bite] = strikes;
   const elites = nalatiEliteRows({ ...constants, nativeKnockdown: parsePopulationKnockdownSource(bootFile.riding) },
     { swipe: declared(swipe, 'swipe'), pounce: declared(pounce, 'pounce'), bite: declared(bite, 'bite') });
-  return nativeAssemblyFiles(nalatiNativeAssemblyPlan(constants.nativeBake), new Map<string, unknown>([['server/physics.json', nalatiPhysics()], ['server/boot.json', bootFile],
+  return nativeAssemblyFiles(nalatiNativeAssemblyPlan(constants.nativeBake, { herds: constants.nativeTaming.herds, groups: constants.nativePopulation.groups, external: constants.pageElites.borrowed }), new Map<string, unknown>([['server/physics.json', nalatiPhysics()], ['server/boot.json', bootFile],
     ['server/shelters.json', constants.nativeShelters], ['server/weather.json', constants.nativeWeather], ['server/groups.json', constants.groupRows], ['server/elites.json', elites],
     ['server/elite-strikes.json', strikes], ['server/population.json', constants.nativePopulation], ['server/ride.json', constants.nativeRide], ['server/taming.json', constants.nativeTaming],
     ['server/arena-species.json', { species: [{ ...speciesRows.king, dims: GOLDEN_KING_DIMS }, { ...speciesRows.balbal, dims: BALBAL_DIMS }] }]]));

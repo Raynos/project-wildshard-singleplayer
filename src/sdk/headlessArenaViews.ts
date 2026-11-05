@@ -1,14 +1,16 @@
-import {InstancedMesh,Vector3} from 'three';
+import {InstancedMesh,PerspectiveCamera,Vector3} from 'three';
+import {bindArenaPoseView} from './headlessArenaPose';
+import type {OpenArenaPresentation} from '@wildshard/game/boss/openArenaNative';
 import type {ArenaScriptData} from '@wildshard/format/arenaScriptRows';
-import type {SimHost} from '../../src/engine/server/sim';
+import type {SimHost} from '@wildshard/engine/sim';
 import {parsePrivateScene} from '@wildshard/format/clientChannels';
-import {HeadlessCloudBody} from './native-hosts/boss/cloudRig';
-import {ArenaWhirls} from '../../src/game/shared/boss/arenaWhirls';
-import type {ArenaTell,OpenArenaViews} from '../../src/game/shared/boss/openArenaFight';
+import {HeadlessCloudBody} from './headlessCloudBody';
+import {ArenaWhirls} from '@wildshard/game/boss/arenaWhirls';
+import type {ArenaTell,OpenArenaViews} from '@wildshard/game/boss/openArenaFight';
 
 /** Only the drawing ports are silent. Heart matrices, pose feedback and every
  * whirlwind decision run their real owners. No drawn object is a target. */
-export function titanNativeViews(host:SimHost,data:ArenaScriptData):OpenArenaViews {
+export function openArenaNativeViews(host:SimHost,data:ArenaScriptData):OpenArenaViews {
   const tell=():ArenaTell=>({ring:()=>undefined,lane:()=>undefined,wedge:()=>undefined,hide:()=>undefined});
   const tells=new Map(Object.entries(data.geometry.arena.tells).map(([id,row])=>[id,Array.from({length:row.count},tell)]));
   const geometry=data.geometry,tier=geometry.phone;
@@ -42,3 +44,6 @@ export function titanNativeViews(host:SimHost,data:ArenaScriptData):OpenArenaVie
     fire:()=>({update:()=>undefined,smoke:instances('smoke'),flames:instances('flames')}),
   };
 }
+
+/** What a server lends an open arena: its silent views, its pose lane and a camera nothing draws through. */
+export const HEADLESS_ARENA:OpenArenaPresentation={views:openArenaNativeViews,pose:bindArenaPoseView,camera:()=>new PerspectiveCamera()};

@@ -19,6 +19,9 @@ import { installGroundBoss } from '../boss/native';
 import { EliteCore, memoryElitePersistence, type EliteCoreRule, type EliteCoreScript } from '../../shared/eliteSystem';
 import { installNativeHeldAmmunition } from '../loadout/nativeAmmunition';
 import { prepareHeldArms } from '../weapons/nativeHeld';
+import { openArenaArrows, prepareOpenArena, type OpenArenaPlan } from '../boss/openArenaNative';
+import { patrolOf, preparePatrol } from '../boss/patrolNative';
+import type { Wind } from '@wildshard/engine/world/steppeWind';
 import { dayClock } from '../../shared/looks/dayClock';
 import { keyedSkyDaySpec } from '../../shared/looks/keyedSkyClock';
 import { readDirectorProduct } from '../../shared/plugin/director';
@@ -47,7 +50,7 @@ import { parseGrappleProfile } from '@wildshard/format/grapple';
 import { tagOf } from '@wildshard/engine/physics/surface';
 import { installTrampleTrail } from '../../shared/systems/looks/trampleField';
 import { installWeatherContinuation, type NativeWeatherWorld } from '../weather/continuation';
-import { nativeWeatherBundle } from '../weather/reactions';
+import { nativeWeatherBundle, type WeatherReactions } from '../weather/reactions';
 import { nativeDecisionAuthority } from './borrowedDecisions';
 import { installNativeGroupRows } from './groupRuntime';
 import { need, readAssemblyInput, type AssemblyPrepared, type NativeAssemblyContext } from './nativeAssemblyInput';
@@ -59,6 +62,7 @@ export interface AssemblyRun<C extends NativeAssemblyContext> {
   day: DayCycleClock | null; boss?: ReturnType<typeof installGroundBoss>; quest?: ReturnType<typeof installNativeQuestComposition>;
   ammunition?: ReturnType<typeof installNativeHeldAmmunition>; elites?: ReturnType<typeof installNativeEliteFeature>;
   island?: ReturnType<typeof installMixedPopulation>; bindings?: NativeEliteBindings; roster?: ReturnType<typeof installNativeBootRoster>;
+  weather?: { readonly wind: Wind; readonly storm: WeatherReactions }; patrol?: () => void; arena?: OpenArenaPlan;
   wild?: NativeWildEnvironment; groups?: ReturnType<typeof installNativeGroupRows>; nativeElites?: NativeEliteRoster; creatures?: ReturnType<typeof installNativePopulationHunt>; taming?: ReturnType<typeof installNativeTaming>;
 }
 type Step<C extends NativeAssemblyContext> = (run: AssemblyRun<C>) => void;
@@ -141,7 +145,23 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     }
     case 'held.arms': {
       const arms = await prepareHeldArms(product, { ...row, weather: await readAssemblyInput<unknown>(product, row.weather) });
-      return run => { if (run.context.room === true) { installCombatMotion(run.host, run.context, row.speed); arms(run.host, { combat: combatOf(run), room: true, tick: at.ports.heldTick(run.context) }); } };
+      return run => { if (run.context.room === true) { installCombatMotion(run.host, run.context, row.speed);
+        arms(run.host, { combat: combatOf(run), room: true, tick: at.ports.heldTick(run.context), arrowTargets: openArenaArrows,
+          contacts: (host, from, direction, distance, hit) => patrolOf(host)?.target(from, direction, distance, hit) ?? hit }); } };
+    }
+    case 'encounter.patrol': {
+      if (at.ports.room !== true) return () => undefined;
+      const patrol = await preparePatrol(product, { ...row, external: await readAssemblyInput<readonly unknown[]>(product, row.external) });
+      return run => { run.patrol = patrol.begin(run.host, { eliteDamage: (host, actor, request) => run.arena?.eliteDamage(host, actor, request) ?? 1, afterPatrol: (host, dt) => { run.arena?.advance(host, dt); } }); };
+    }
+    case 'boss.open-arena': {
+      if (at.ports.room !== true) return () => undefined;
+      const arena = await prepareOpenArena(product, row);
+      return run => {
+        const { host, context } = run; run.arena = arena;
+        arena.observeWeather(host, need(run.weather, 'An open arena needs its weather')); arena.cover(host); need(run.patrol, 'An open arena needs its patrol')();
+        arena.install(host, { presentation: need(at.ports.arena, 'An open arena needs its presentation'), commands: at.ports.heldTick(context).commands, ledger: at.ports.ledger(context), restoring: context.restoring, grantItem: at.ports.grantItem(context) });
+      };
     }
     case 'grapple': {
       const profile = parseGrappleProfile(await readAssemblyInput<unknown>(product, row.profile)), hooks = await readAssemblyInput<readonly { readonly x: number; readonly y: number; readonly z: number }[]>(product, row.hooks);
@@ -179,7 +199,7 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     case 'weather.program': { const weather = parseWeatherProgram(await readAssemblyInput(product, row.program)); return run => { installWeatherContinuation(run.host, weather, dayOf(run), undefined, combatOf(run)); }; }
     case 'weather.native': {
       const program = nativeWeatherBundle(await readAssemblyInput(product, row.program), await readAssemblyInput(product, row.shelters)), input = await readAssemblyInput(product, row.rows);
-      return run => { const weather = installWeatherContinuation(run.host, { program, rows: input, clock: dayOf(run), env: need(run.wild, 'Native weather needs its environment'), bake: bake as NativeWeatherWorld['bake'] }); at.ports.observeWeather?.(run.host, weather); };
+      return run => { const weather = installWeatherContinuation(run.host, { program, rows: input, clock: dayOf(run), env: need(run.wild, 'Native weather needs its environment'), bake: bake as NativeWeatherWorld['bake'] }); run.weather = weather; at.ports.observeWeather?.(run.host, weather); };
     }
     case 'item.ranged': {
       const weapon = weaponRow(shard, row.weapon), policy = need(weapon.ranged, 'Missing native ranged policy'), profile = need(weapon.profile, 'Missing native ranged profile');
@@ -236,7 +256,6 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
       const captain = rows['captain'] as { pool: { x: number; z: number }; arena: unknown };
       return run => { installNativeChapterDirector(run.host, director, { id: row.id, rows: input, reward: row.reward, wake: { population: row.population, encounter: wake.encounter, placement: { pool: { x: captain.pool.x, z: captain.pool.z }, arena: captain.arena }, cues: wake.cues.map(({ id, operation }) => ({ id, operation })) } }, run.context.restoring); };
     }
-    case 'boss.open-arena': case 'encounter.patrol': throw new Error(`Native assembly host ${row.host} is not built yet`);
     default: throw new Error('Unknown native assembly host');
   }
 }

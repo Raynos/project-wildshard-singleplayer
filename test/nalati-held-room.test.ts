@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import type { NetCommand } from '@wildshard/format/netCommand';
-import type { NetTickAct } from '../src/engine/server/net/room';
+import type { NetTickAct } from '../src/engine/shared/net/acts';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { heldArmsOf } from '../src/game/server/weapons/nativeHeld';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';

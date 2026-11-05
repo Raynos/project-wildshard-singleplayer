@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import type {OpenArenaFightSnapshot} from '../../src/game/shared/boss/openArenaFight';
-import type {BossContinuation} from '../../src/engine/shared/ai/BossBrain';
+import type {OpenArenaFightSnapshot} from '../../shared/boss/openArenaFight';
+import type {BossContinuation} from '@wildshard/engine/ai/BossBrain';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
 const numbers=v.record(v.string(),finite),projection=v.strictObject({state:numbers,elapsed:finite});
@@ -18,6 +18,8 @@ const boss:v.GenericSchema<unknown,BossContinuation>=v.strictObject({state:v.pic
   saved:v.strictObject({defeated:v.boolean(),rewardTaken:v.boolean(),kills:natural}),director:v.exactOptional(v.string())});
 /** Continuation values are admitted before any fresh encounter mutates. The
  * production owners retain their own row-specific validation on restore. */
-export const TitanSaved=v.strictObject({version:v.literal(1),fight,boss,locked:v.boolean(),reward:v.boolean(),rewardPoint:v.optional(v.nullable(vector),null),bar:v.boolean(),
+export interface OpenArenaContinuation { version: 1; fight: OpenArenaFightSnapshot; boss: BossContinuation; locked: boolean; reward: boolean; rewardPoint: [number, number, number] | null; bar: boolean;
+  prompt: { radius: number; label: string }; support: [number, string][]; toasts: string[]; feeds: string[]; contacts: number; engaged?: number; earned?: string[] }
+export const OpenArenaSaved: v.GenericSchema<unknown, OpenArenaContinuation> = v.strictObject({version:v.literal(1),fight,boss,locked:v.boolean(),reward:v.boolean(),rewardPoint:v.optional(v.nullable(vector),null),bar:v.boolean(),
   prompt:v.strictObject({radius:finite,label:v.string()}),support:v.array(v.tuple([natural,v.string()])),
   toasts:v.array(v.string()),feeds:v.array(v.string()),contacts:natural,engaged:v.exactOptional(natural),earned:v.exactOptional(v.array(v.string()))});
