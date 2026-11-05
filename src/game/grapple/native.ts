@@ -5,6 +5,7 @@ import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { grappleCourse } from './course';
 import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } from './sim';
 
@@ -12,6 +13,8 @@ import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } fro
 export interface GrappleTickContext {
   commands: () => readonly ({ readonly kind: 'script'; readonly actorId: string; readonly value: number } | { readonly kind: string; readonly jump?: boolean })[];
   emit: (effect: { readonly kind: 'fact'; readonly name: string; readonly actorId: string }) => void;
+  /** Another player's tape; `press` is the only way in for a player without one. */
+  commandsOf?: (id: string) => readonly ({ readonly kind: 'script'; readonly actorId: string; readonly value: number } | { readonly kind: string; readonly jump?: boolean })[];
 }
 /** One player's grapple controls this tick. */
 export interface GrapplePress { readonly lock?: boolean; readonly fire?: boolean; readonly pitch?: number }
@@ -21,7 +24,7 @@ export interface NativeGrapple {
   readonly sim: GrappleSim;
   /** a player's claw, once it has played a tick */
   readonly clawOf: (id: string) => GrappleSim | undefined;
-  /** Any player's LOCK, JUMP and aim for the next tick. LOCK has no bit on the wire, so a room's server presses it here. */
+  /** Any player's LOCK, JUMP and aim for the next tick, beside their tape. */
   readonly press: (id: string, press: GrapplePress) => void;
   /** whether a crossing holds the course's guard open */
   readonly guardOpen: () => boolean;
@@ -101,9 +104,9 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
   const open = (): boolean => { for (const claw of claws.values()) if (claw.sim.guardOpen()) return true; return false; };
   const setGuard = (): void => { const opened = open(); guard.forEach(handle => { host.physics.world.getCollider(handle).setEnabled(!opened); }); };
   const moved = new Vector3(), walked = { vy: 0, grounded: true };
-  const tape = (): GrapplePress => {
+  const tape = (commands: ReturnType<GrappleTickContext['commands']>): GrapplePress => {
     let lock = false, fire = false, pitch: number | undefined;
-    for (const command of context.commands()) {
+    for (const command of commands) {
       if ('jump' in command && command.kind === 'player' && command.jump) fire = true;
       if ('actorId' in command) {
         if (command.actorId === profile.headless.lock) lock = true;
@@ -135,12 +138,13 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
     const p = player.position, fall = player.fall;
     state.last.set(p.x, p.y, p.z); state.fall.vy = fall.vy; state.fall.grounded = fall.grounded;
   };
+  actRoutes(host).lock = profile.headless.lock;
   host.onStep(profile.headless.step, dt => {
     for (const id of claws.keys()) if (!host.players.has(id)) { claws.delete(id); pending.delete(id); }
     for (const player of host.players.values()) {
       const claw = clawFor(player), press = pending.get(player.id) ?? null;
       pending.delete(player.id);
-      stepClaw(claw, claw === first ? { ...tape(), ...press } : press ?? {}, dt);
+      stepClaw(claw, { ...tape(claw === first ? context.commands() : context.commandsOf?.(player.id) ?? []), ...press }, dt);
     }
   }, { snapshot: () => {
     const { pitch, last, fall, velocity, sim } = first.save(), others = [...claws.values()].filter(claw => claw !== first).map(claw => [claw.player.id, claw.save()]);

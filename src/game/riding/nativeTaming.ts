@@ -7,6 +7,7 @@ import { pickPrompt, setPromptSight } from '@wildshard/engine/world/interact/pro
 import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { bondedMountRoster } from './roster';
 import { mountedPlayerOf } from './native';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { TamingSession,type TamingPrograms } from './taming';
 import type { TamingBindingProfile, TamingObservation } from './bindingTypes';
 import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '../plugin/animation';
@@ -255,6 +256,12 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
     if (!host.players.has(id)) throw new RangeError(`Unknown taming player ${id}`);
     pending.set(id, { ...pending.get(id), ...press });
   } });
+  const net = actRoutes(host);
+  net.ride = (id, action) => {
+    if (action === 'dismount') { mountedPlayerOf(host, id)?.dismount(); return; }
+    pending.set(id, { ...pending.get(id), [action]: true });
+  };
+  net.lean = (id, lean, pitch) => { if (sessions.has(id)) pending.set(id, { ...pending.get(id), lean, pitch }); };
   installed.set(host, law); return law;
 }
 

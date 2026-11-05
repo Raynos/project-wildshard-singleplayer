@@ -35,7 +35,7 @@ test('a bundle round-trips to admitted commands in about the design size', () =>
 
 test('malformed commands are refused before they reach the queue', () => {
   const bad: unknown[] = [
-    { ...command(1), yaw: Number.NaN }, { ...command(1), pitch: 4 }, { ...command(1), seq: 70000 }, { ...command(1), buttons: 256 },
+    { ...command(1), yaw: Number.NaN }, { ...command(1), pitch: 4 }, { ...command(1), seq: 70000 }, { ...command(1), buttons: 65536 },
     { ...command(1), steer: { ...steer, keyX: 2 } }, { ...command(1), steer: { ...steer, stickY: Number.POSITIVE_INFINITY } },
     { ...command(1), attack: { aim: { ...aim, origin: { x: Number.NaN, y: 0, z: 0 } } } }, { ...command(1), attack: { targetId: 'bad id', aim } },
     { ...command(1), launcher: { slot: 32, ads: 0 } }, { ...command(1), launcher: { slot: 1, ads: 2 } }, { ...command(1), extra: true },

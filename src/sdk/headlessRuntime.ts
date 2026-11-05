@@ -15,9 +15,10 @@ import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import type { NetCommand } from '@wildshard/format/netCommand';
 import type { NetTickAct } from '@wildshard/engine/net/acts';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
-import { netInteractCommands, netTickCommands } from './standalone/netInput';
+import { netInteractCommands, netRide, netTickCommands } from './standalone/netInput';
 import { installPersonalLoot, personalCoinTable } from '@wildshard/game/loot/personal';
 import { installRoomRespawn } from '@wildshard/game/roomRespawn';
+import type { GrappleTickContext } from '@wildshard/game/grapple/native';
 import { serverPlaces } from '@wildshard/game/quest/serverPlaces';
 import type { PlaceArea } from '@wildshard/engine/quest/lastPlace';
 import { checkSimSnapshotWire, decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
@@ -136,6 +137,11 @@ function tamingCommand(command: HeadlessCommand): ReturnType<ReturnType<NativeAs
   if (command.kind !== 'player') return { kind: 'action' };
   return command.steer === undefined ? { kind: 'player' } : { kind: 'player', steer: command.steer };
 }
+/** One tick command as a claw reads it. */
+function grappleCommand(command: HeadlessCommand): ReturnType<GrappleTickContext['commands']>[number] {
+  if (command.kind === 'script') return command;
+  return command.kind === 'player' && command.jump !== undefined ? { kind: command.kind, jump: command.jump } : { kind: command.kind };
+}
 /** J105: a shard whose kills pay coins pays a room's players each their own roll. */
 function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRuntimeInstallation): void {
   const coins = personalCoinTable(economy);
@@ -143,7 +149,8 @@ function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRunti
 }
 /** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */
 export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<HeadlessRuntimeInstallation> {
-  return { rapier, bindCommands: bindHeadlessCommands, tamingCommands: context => () => context.commands().map(tamingCommand) };
+  return { rapier, bindCommands: bindHeadlessCommands, tamingCommands: context => () => context.commands().map(tamingCommand),
+    grappleTick: context => ({ emit: context.emit, commands: () => context.commands().map(grappleCommand), commandsOf: id => context.playerCommands?.(id).map(grappleCommand) ?? [] }) };
 }
 /** Resolve only the admitted native data plan. Missing declarations never
  * fall back to a shard source path; product and level identities must agree. */
@@ -233,6 +240,8 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     step: (input, others, acts) => {
       const interacts = acts === undefined ? [] : [...acts].flatMap(([id, list]) => netInteractCommands(actRoutes(host), list, id));
       lend(interacts.length === 0 ? input : [...input, ...interacts]); lendOthers(others, acts);
+      for (const [id, list] of acts ?? []) netRide(actRoutes(host), id, undefined, list);
+      for (const [id, command] of others ?? []) netRide(actRoutes(host), id, command, []);
       const tick = new Map<string, SimTickCommand>(others);
       for (const command of input) if (command.kind === 'player') tick.set(lead.id, simPlayerCommand(command));
       host.step(tick);

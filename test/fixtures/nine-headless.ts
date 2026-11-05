@@ -1,5 +1,6 @@
 import { nineNativeConstants } from './nine-native-constants';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
+import type { HeadlessCommand } from '../../src/sdk/tickProtocol';
 import { trustedLevel, addBakedPieces } from '../../src/game/plugin/simulation';
 import { tagOf } from '../../src/engine/physics/surface';
 import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
@@ -11,6 +12,9 @@ import { prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import { nineNativeOracle } from './nine-native-oracle';
 import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with {type:'json'};
 import {registerNativeWalkBounds} from './headless/nativeBounds';
+
+/** One tick command as a claw reads it. */
+const tapeRow = (command: HeadlessCommand): { kind: 'script'; actorId: string; value: number } | { kind: string; jump?: boolean } => command.kind === 'script' ? command : { kind: command.kind, ...(command.kind === 'player' && command.jump !== undefined ? { jump: command.jump } : {}) };
 
 /** Direct typed native calls retain the Nine gameplay witness without a declaration interpreter. */
 export function nineHeadlessRuntime(rise: boolean): PrepareHeadlessRuntime {
@@ -35,7 +39,7 @@ return async preparation => {
       installNativeItems(host, context.combat, { kind: 'swept', items: shard.items.rows, policy: constants.jianPolicy });
       const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
       installHostPortalRide(host, constants.portalStep, shard, payload.portalRide, fact);
-      installGrapple(host, { emit: context.emit, commands: () => context.commands().map(command => command.kind === 'script' ? command : { kind: command.kind, ...(command.kind === 'player' && command.jump !== undefined ? { jump: command.jump } : {}) }) }, parseGrappleProfile(payload.grappleProfile), grapple, payload.hooks, guard, rise);
+      installGrapple(host, { emit: context.emit, commands: () => context.commands().map(tapeRow), commandsOf: id => context.playerCommands?.(id).map(tapeRow) ?? [] }, parseGrappleProfile(payload.grappleProfile), grapple, payload.hooks, guard, rise);
     } };
 };
 }

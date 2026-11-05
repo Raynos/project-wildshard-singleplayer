@@ -1,3 +1,4 @@
+import type { GrappleTickContext } from '../grapple/native';
 import type { bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import type { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
@@ -21,6 +22,8 @@ export interface NativeAssemblyPorts<C extends NativeAssemblyContext> {
   readonly rapier: Rapier;
   readonly bindCommands: (context: C, host: SimHost) => { readonly ledger: { readonly fact: (name: string, actorId: string) => void } };
   /** The tick's commands as the taming owner reads them. */
+  /** A grapple's view of the tick tape. */
+  readonly grappleTick: (context: C) => GrappleTickContext;
   readonly tamingCommands: (context: C) => () => readonly ({ kind: 'player'; steer?: { keyX: number } } | { kind: 'script'; actorId: string; value: number } | { kind: 'action' })[];
   /** A trusted wrapper's loans over the same world (proofs that drive a raid, the storm or an elite). The server sets none. */
   readonly pastureCues?: PastureCues;

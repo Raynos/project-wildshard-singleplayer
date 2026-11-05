@@ -34,11 +34,18 @@ export function netInteractCommands(routes: ActRoutes, acts: readonly NetTickAct
   });
 }
 
+/** A player's riding: a `ride` act goes to the taming law as it stands, and the lean and look follow its command. */
+export function netRide(routes: ActRoutes, player: string, command: NetCommand | undefined, acts: readonly NetTickAct[]): void {
+  for (const act of acts) if (act.kind === 'ride') routes.ride?.(player, act.action);
+  if (command !== undefined) routes.lean?.(player, command.steer.keyX, lookPitch(command));
+}
+
 /** Every tick command one player's input becomes: the player command, then its launcher and acts. `interact` is netInteractCommands'. */
 export function netTickCommands(command: NetCommand | null, acts: readonly NetTickAct[], routes?: ActRoutes): HeadlessCommand[] {
   const out: HeadlessCommand[] = [];
   if (command !== null) {
     out.push(netPlayerCommand(command));
+    if (has(command, NET_BUTTONS.lock) && routes?.lock !== null && routes?.lock !== undefined) out.push({ kind: 'script', actorId: routes.lock, value: 1 });
     const { launcher } = command;
     if (launcher !== undefined) out.push({ kind: 'launcher', slot: launcher.slot, ads: launcher.ads, pitch: lookPitch(command), ...(launcher.fire === undefined ? {} : { fire: launcher.fire }) });
   }

@@ -40,6 +40,9 @@ import { installNativeQuestComposition, readNativeQuestSpots, type NativeQuestCo
 import { installMountedPlayer } from '../riding/native';
 import { installNativeBootRoster, installNativePopulationHunt, type NativePopulationBootRows } from '../riding/nativePopulation';
 import { installNativeTaming, type NativeTamingRows } from '../riding/nativeTaming';
+import { installGrapple } from '../grapple/native';
+import { parseGrappleProfile } from '@wildshard/format/grapple';
+import { tagOf } from '@wildshard/engine/physics/surface';
 import { installTrampleTrail } from '../systems/looks/trampleField';
 import { installWeatherContinuation, type NativeWeatherWorld } from '../weather/continuation';
 import { nativeWeatherBundle } from '../weather/reactions';
@@ -129,6 +132,15 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     case 'riding.mounted': {
       const profile = await readAssemblyInput<object>(product, row.profile), { world } = at;
       return run => { const boot = bootOf(at); installMountedPlayer(run.host, { ...profile, world, mountable: boot.mountable.concat(need(run.creatures, 'Riding needs its creatures').bondedHorseIds()), program: boot.riding.riding }, need(at.pond, 'Riding needs its pond'), at.wet); };
+    }
+    case 'grapple': {
+      const profile = parseGrappleProfile(await readAssemblyInput<unknown>(product, row.profile)), hooks = await readAssemblyInput<readonly { readonly x: number; readonly y: number; readonly z: number }[]>(product, row.hooks);
+      const mode = shard.modes?.grapple?.find(entry => entry.id === row.mode);
+      if (mode === undefined) throw new Error(`Grapple row names no mode ${row.mode}`);
+      return run => {
+        const { context } = run, guard = context.restoring ? [] : run.host.physics.world.colliders.getAll().filter(collider => tagOf(collider)?.owner === row.guard).map(collider => collider.handle);
+        installGrapple(run.host, at.ports.grappleTick(context), profile, mode, hooks, guard, row.rise === true);
+      };
     }
     case 'riding.taming': {
       const input = await readAssemblyInput<object>(product, row.rows), poses = await readAssemblyInput<NativeTamingRows['poses']>(product, row.poses), poseProgram = await readAssemblyInput(product, row.pose);

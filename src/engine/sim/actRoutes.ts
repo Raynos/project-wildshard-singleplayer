@@ -1,3 +1,4 @@
+import type { NetAct } from '@wildshard/format/netCommand';
 import type { SimHost } from '../sim';
 
 /** The tick command a named interaction is, as its owner reads it. */
@@ -8,11 +9,17 @@ export interface ActRoutes {
   readonly interactions: Map<string, InteractRoute>;
   /** The script actor a player's loadout picks its slot from, on a shard with a native loadout. */
   equip: string | null;
+  /** The script actor a LOCK press lands on, on a shard with a grapple. */
+  lock: string | null;
+  /** A player's riding act, on a shard with taming. */
+  ride: ((player: string, action: Extract<NetAct, { kind: 'ride' }>['action']) => void) | null;
+  /** A player's lean and look while they ride, on a shard with taming. */
+  lean: ((player: string, lean: number, pitch: number) => void) | null;
 }
 const routes = new WeakMap<SimHost, ActRoutes>();
 /** One host's routes (P1-E5.2c). */
 export function actRoutes(host: SimHost): ActRoutes {
   let held = routes.get(host);
-  if (held === undefined) { held = { interactions: new Map(), equip: null }; routes.set(host, held); }
+  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null }; routes.set(host, held); }
   return held;
 }
