@@ -1,6 +1,5 @@
 import { app } from '@wildshard/engine/app/runtime';
 import type { ActorProjectionV2 } from '../../server/population/actorProjectionV2';
-import type { speciesBehaviour } from '../../server/population/speciesBehaviour';
 import { numericCreaturePose, numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { creatureFrame } from '../plugin/creatureFrame';
@@ -11,7 +10,7 @@ import { packedCreatureBodies,readBakedGeometry,type BakedGeometryRow } from '..
 import { Color, MeshBasicMaterial, SkinnedMesh, type BufferGeometry } from 'three';
 import { productRiggedHulls } from './riggedHulls';
 import { HullLookBookSchema, parsePackedCreatureLooks, type CompactSpeciesBodiesRows } from '@wildshard/format/speciesLooks';
-import type { SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
+import type { NativeSpeciesLookBookRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { EngineRows } from '@wildshard/engine/level/context';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
@@ -180,13 +179,13 @@ export function productHullBook(product: { readonly section: (name: 'look/hull-b
  * original packed-body owner, shared through world and kit installation. */
 export function productSpeciesCatalogue(product:Parameters<typeof productHullBook>[0],data:Pick<SpeciesPresentationRows,'lookBook'>,lookRows:unknown):SpeciesCatalogue{
   const book=productHullBook(product);
-  return speciesCatalogue(book,pageSim.speciesBehaviour(data.lookBook,app),book.packedLooks(lookRows));
+  return speciesCatalogue(book,speciesBehaviour(data.lookBook),book.packedLooks(lookRows));
 }
 /** `productSpeciesCatalogue` with a `pause` between its book, its behaviour rules and its packed looks: in one task they
  *  were ~102 ms of a cold Nine Dragon crossing's world step at phone 4x. Same catalogue. */
 export async function productSpeciesCatalogueSliced(product:Parameters<typeof productHullBook>[0],data:Pick<SpeciesPresentationRows,'lookBook'>,lookRows:unknown,pause:()=>Promise<void>):Promise<SpeciesCatalogue>{
   const book=productHullBook(product);await pause();
-  const rules=pageSim.speciesBehaviour(data.lookBook,app);await pause();
+  const rules=speciesBehaviour(data.lookBook);await pause();
   return speciesCatalogue(book,rules,book.packedLooks(lookRows));
 }
 function speciesCatalogue(book:HullLookBook,rules:ReturnType<typeof speciesBehaviour>,packed:ReturnType<HullLookBook['packedLooks']>):SpeciesCatalogue{
@@ -217,3 +216,5 @@ function expandCompactBodies(data:CompactSpeciesBodiesRows):unknown{
   return {file:data.file,bytes:data.bytes,bodies:data.rows.map(body=>{const skeleton=data.skeletons[body.skeleton];if(skeleton===undefined)throw new Error('Missing packed skeleton');
     return {kind:body.kind,variant:body.variant,bones:skeleton.bones,dims:skeleton.dims,fur:parts(body.fur),hard:parts(body.hard),eye:parts(body.eye)};})};
 }
+/** G600 L8: the species rows' behaviour hooks, from the page's sim (E6: they leave with it). */
+export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): ReturnType<typeof pageSim.speciesBehaviour> { return pageSim.speciesBehaviour(book, app); }

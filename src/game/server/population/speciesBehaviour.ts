@@ -12,7 +12,7 @@ import { groupSpecies } from './groupSpecies';
 /** G600 L8: the species rows' behaviour hooks (group, directed, crowd guard and the elites' think / act / damage), kept
  *  outside the look book until L4 (the engine elite feature) and L5 (the wildlife group sims) absorb them; the looks are
  *  the hull book's packed looks. */
-export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>, app: Pick<App, 'levelScope' | 'equipment' | 'events'>): { readonly rows: readonly SpeciesRow[]; readonly projections:ReadonlyMap<string,ActorProjectionV2>; look: (look: SpeciesLook) => SpeciesLook } {
+export function pageSpeciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>, app: Pick<App, 'levelScope' | 'equipment' | 'events'>): { readonly rows: readonly SpeciesRow[]; readonly projections:ReadonlyMap<string,ActorProjectionV2>; look: (look: SpeciesLook) => SpeciesLook } {
   if(book.rows.some(row=>row.control!==undefined&&(row.projection!==undefined||row.group!==undefined||row.directed!==undefined||row.guard===true||row.elite===true)))throw new Error('Conflicting species controls');
   const controls=new Map(book.rows.flatMap(row=>row.control===undefined?[]:[[row.metadata.kind,arenaRoomSpeciesControl(row.control)] as const]));
   const projections=new Map(book.rows.flatMap(row=>row.projection===undefined?[]:[[row.metadata.kind,new ActorProjectionV2(row.metadata.kind,row.projection,app)] as const]));
