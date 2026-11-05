@@ -7,7 +7,7 @@
 //
 //   node scripts/link-node-modules.mjs <repo> <tree>          (the shell scripts)
 //   import { linkNodeModules } from './link-node-modules.mjs'  (the node ones)
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, symlinkSync, unlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, symlinkSync, unlinkSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -65,13 +65,17 @@ export function linkNodeModules(repo, tree) {
   linkPackageNodeModules(repo, tree);
 }
 
-/** A package that left the workspace leaves a dangling link in an older export's node_modules: point it at the install. */
+/** A package that left the workspace leaves a stale link in an older export's node_modules: point it at the install. */
 function linkInstalledScope(repo, tree, from, to) {
   for (const name of WORKSPACE_SCOPES) {
     if (!existsSync(join(from, name))) continue;
     for (const pkg of readdirSync(join(from, name))) {
       const link = join(to, name, pkg), target = resolve(join(from, name), readlinkSync(join(from, name, pkg)));
-      if (relative(resolve(repo), target).startsWith('src/') || present(link)) continue;
+      if (relative(resolve(repo), target).startsWith('src/') || existsSync(resolve(tree, 'src', pkg, 'package.json'))) continue;
+      // The old link can still resolve: git removes the package's tracked files but keeps its ignored node_modules, so
+      // the folder survives with no manifest and every import of the package fails. Only a manifest proves the link.
+      if (present(link) && existsSync(join(link, 'package.json'))) continue;
+      rmSync(link, { force: true });
       mkdirSync(dirname(link), { recursive: true });
       symlinkSync(target, link);
     }

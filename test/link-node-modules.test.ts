@@ -36,4 +36,22 @@ describe('linkNodeModules', () => {
 
     expect(readlinkSync(join(tree, 'src', 'format', 'node_modules', 'valibot'))).toBe(store);
   });
+
+  it('repoints a package that left the workspace when its folder survives without a manifest', () => {
+    const root = scratch();
+    const repo = join(root, 'repo'), tree = join(root, 'tree');
+    const installed = join(repo, 'node_modules', '.pnpm', 'format@git', 'node_modules', '@wildshard', 'format');
+    mkdirSync(installed, { recursive: true });
+    writeFileSync(join(installed, 'package.json'), '{"name":"@wildshard/format"}');
+    mkdirSync(join(repo, 'node_modules', '@wildshard'), { recursive: true });
+    symlinkSync('../.pnpm/format@git/node_modules/@wildshard/format', join(repo, 'node_modules', '@wildshard', 'format'));
+    // the slot's link predates the move, and git left the ignored node_modules behind in src/format
+    mkdirSync(join(tree, 'node_modules', '@wildshard'), { recursive: true });
+    mkdirSync(join(tree, 'src', 'format', 'node_modules'), { recursive: true });
+    symlinkSync('../../src/format', join(tree, 'node_modules', '@wildshard', 'format'));
+
+    linkNodeModules(repo, tree);
+
+    expect(realpathSync(join(tree, 'node_modules', '@wildshard', 'format'))).toBe(installed);
+  });
 });
