@@ -3,7 +3,7 @@
 // .claude/skills/mockup-to-model ▸ 4 and src/shards/driftwood-isle/blender/fp-arms/gate.mjs run them). Loads a rigged GLB
 // (public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb), builds the skeleton the way the game does
 // (the joints at their GLB positions, `updateMatrixWorld(true)` then `new THREE.Skeleton` computing the inverses), poses
-// every clip of src/game/client/animation/limbBlend.ts at sampled times through the SAME functions the game's animate
+// every clip of src/game/shared/animation/limbBlend.ts at sampled times through the SAME functions the game's animate
 // calls (clipPose → applyKingPose), skins the mesh on the CPU (three's applyBoneTransform) and measures. An unmeasured
 // check is never a pass: each check reports its numbers, and an absent input is `unevaluated`.
 //
@@ -37,8 +37,8 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import * as THREE from 'three';
-import { limbRest, applyLimbPose, newLimbPose as newPose } from '../src/game/client/animation/limbRig.ts';
-import { LimbAnimator } from '../src/game/client/animation/limbBlend.ts';
+import { limbRest, applyLimbPose, newLimbPose as newPose } from '../src/game/shared/animation/limbRig.ts';
+import { LimbAnimator } from '../src/game/shared/animation/limbBlend.ts';
 import { parseLimbBlend } from '@wildshard/format/limbRig';
 import { KING_RIG, KING_GAITS, KING_BONES } from '../src/shards/pine-hollow/generators/kingRig.ts';
 import blend from '../src/shards/pine-hollow/data/kingBlend.json' with { type: 'json' };

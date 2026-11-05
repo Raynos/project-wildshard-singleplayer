@@ -1,5 +1,5 @@
 import type { Object3D, Vector3 } from 'three';
-import { newLimbPose } from './limbRig';
+import { newLimbPose } from '../../shared/animation/limbRig';
 import { bindLimbQuery, retireLimbQuery } from './limbView';
 import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import type { LimbCollisionJoints, LimbCollisionVolumes } from './limbCollision';

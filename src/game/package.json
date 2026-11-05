@@ -286,7 +286,7 @@
     "./shardfile/buildingDoor": "./shared/shardfile/buildingDoor.ts",
     "./shardfile/livingBuildings": "./client/shardfile/livingBuildings.ts",
     "./shardfile/buildingCloud": "./client/shardfile/buildingCloud.ts",
-    "./animation/limbRig": "./client/animation/limbRig.ts",
+    "./animation/limbRig": "./shared/animation/limbRig.ts",
     "./animation/limbView": "./client/animation/limbView.ts",
     "./models/worldSceneCatalogue": "./client/models/worldSceneCatalogue.ts",
     "./looks/dayLookPresets": "./shared/looks/dayLookPresets.ts",

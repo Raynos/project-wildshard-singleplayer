@@ -1610,7 +1610,7 @@
       }
     },
     {
-      "module": "src/game/client/animation/limbRig.ts",
+      "module": "src/game/shared/animation/limbRig.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1627,7 +1627,7 @@
       }
     },
     {
-      "module": "src/game/client/animation/limbBlend.ts",
+      "module": "src/game/shared/animation/limbBlend.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",

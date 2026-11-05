@@ -1,8 +1,8 @@
 import type { RigAnimCtx, SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import * as v from 'valibot';
 import { LimbRigSchema, parseLimbBlend } from '@wildshard/format/limbRig';
-import { LimbAnimator } from './limbBlend';
-import { limbRest, newLimbPose, applyLimbPose } from './limbRig';
+import { LimbAnimator } from '../../shared/animation/limbBlend';
+import { limbRest, newLimbPose, applyLimbPose } from '../../shared/animation/limbRig';
 import type { LimbQueryPose } from './limbQueryPose';
 
 const queries = new WeakMap<RigAnimCtx['animal'], LimbQueryPose>();

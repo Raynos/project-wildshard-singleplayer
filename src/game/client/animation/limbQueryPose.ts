@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { Vector3, type Matrix4 } from 'three';
-import { newLimbPose, type LimbPose } from './limbRig';
+import { newLimbPose, type LimbPose } from '../../shared/animation/limbRig';
 import { LimbCollision, type LimbCollisionJoints, type LimbCollisionVolumes } from './limbCollision';
 
 const finite = v.pipe(v.number(), v.finite());
