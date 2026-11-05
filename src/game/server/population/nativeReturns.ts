@@ -3,7 +3,7 @@ import { NativeReturnRowsSchema, type RespawnEntry } from '@wildshard/format/pop
 import type { SimHost } from '@wildshard/engine/sim';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
-import { RespawnQueue } from './respawn';
+import { RespawnQueue } from '../../shared/population/respawn';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { REFILL_WAIT, nearestPosition, roomRefillRate } from '@wildshard/engine/entities/creatureRefill';
 

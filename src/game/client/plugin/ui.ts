@@ -1,6 +1,6 @@
 import { createClientChannelView, moverChannelValues, type ClientGeometryKernels } from './clientChannelView';
 import { bindPageQuest, type RuntimeQuestPorts } from '../../shared/quest/pageState';
-import { bindPagePersistence, bindPageBossRecord, type PagePersistenceRows, type PagePersistence } from '../../server/quest/pagePersistence';
+import { bindPagePersistence, bindPageBossRecord, type PagePersistenceRows, type PagePersistence } from '../../shared/quest/pagePersistence';
 import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
 import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';

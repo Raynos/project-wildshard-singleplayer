@@ -18,7 +18,7 @@ import { installNativeHerdShelter, HerdShelter } from '../src/game/server/popula
 import { installWeatherContinuation } from '../src/game/server/weather/continuation';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import weatherRows from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
-import { RespawnQueue } from '../src/game/server/population/respawn';
+import { RespawnQueue } from '../src/game/shared/population/respawn';
 import { createNativeCreatureRoster } from '../src/game/server/shardfile/homeKeeper';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

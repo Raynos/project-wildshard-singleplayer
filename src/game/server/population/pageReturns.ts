@@ -2,7 +2,7 @@ import { PageReturnRowsSchema } from '@wildshard/format/namedJsonContracts';
 import type { ShardContext } from '../../client/plugin/context';
 import { app } from '@wildshard/engine/app/runtime';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import { RespawnQueue } from './respawn';
+import { RespawnQueue } from '../../shared/population/respawn';
 import * as v from 'valibot';
 
 /** Page actor returns over the real manager. The declared guest owns delay,

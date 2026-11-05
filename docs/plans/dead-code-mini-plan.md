@@ -477,7 +477,7 @@ deleting it.
 - `src/game/server/plugin/nativeItems.ts`: nativeMeleeItem* (3)
 - `src/game/shared/plugin/quests.ts`: installNativeQuestProps*, bindQuestTableSpots* (33)
 - `src/game/server/population/perchBody.ts`: nativePerchProgram* (5)
-- `src/game/server/population/respawn.ts`: ReturnGate* (16)
+- `src/game/shared/population/respawn.ts`: ReturnGate* (16)
 - `src/game/server/population/shelter.ts`: installNativeHerdShelter* (29)
 - `src/game/server/population/spawnScript.ts`: installNativeSpawnScript* (15)
 - `src/game/shared/quest/contractBoard.ts`: CONTRACT_ACTION* (4)

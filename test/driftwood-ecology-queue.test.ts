@@ -1,7 +1,7 @@
 import {Scope} from '../src/engine/shared/app/scope';
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { afterEach, expect, test } from 'vitest';
-import { RespawnQueue } from '../src/game/server/population/respawn';
+import { RespawnQueue } from '../src/game/shared/population/respawn';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { Rng } from '../src/engine/shared/core/rng';

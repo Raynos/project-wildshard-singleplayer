@@ -12,7 +12,7 @@ import { speciesDef } from '../src/engine/shared/entities/species/registry';
 import * as look from '../src/engine/client/world/lowpolyKit';
 import { PopulationProjection } from '../src/game/client/population/projection';
 import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
-import { ReturnGate } from '../src/game/server/population/respawn';
+import { ReturnGate } from '../src/game/shared/population/respawn';
 import { populationProjectionRows } from '../src/shards/driftwood-isle/generators/populationProjection';
 import { manager } from '@wildshard/engine/test/manager';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';

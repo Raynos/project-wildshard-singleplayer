@@ -1,5 +1,5 @@
 import type { RespawnRule, RespawnEntry, RespawnTraversal } from '@wildshard/format/populationRespawn';
-import type { ReturnProgram } from '../../shared/population/returnProgram';
+import type { ReturnProgram } from './returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 
 /** Corpse fade/refill mechanics. Timers remain in the caller's original save

@@ -4,11 +4,11 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { SaveSlot, SaveStore } from '@wildshard/engine/saves/store';
 import type { Progress } from '../../client/Progress';
 import * as v from 'valibot';
-import { bossesSave } from '../../shared/saves';
-import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags } from '../../shared/plugin/bossRecord';
-import { installRuntimeState } from '../../shared/shardfile/runtimeState';
-import { projectRuntimeFacts, type RuntimeFacts } from '../../shared/plugin/runtimeRows';
-import { createQuestLedger } from '../../shared/quest/ledger';
+import { bossesSave } from '../saves';
+import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags } from '../plugin/bossRecord';
+import { installRuntimeState } from '../shardfile/runtimeState';
+import { projectRuntimeFacts, type RuntimeFacts } from '../plugin/runtimeRows';
+import { createQuestLedger } from './ledger';
 
 /** Bind the existing declared state owner, including its original legacy read.
  * Native page admission owns this call; no runtime declaration is synthesized. */

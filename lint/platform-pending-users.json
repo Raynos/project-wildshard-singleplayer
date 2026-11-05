@@ -1174,7 +1174,7 @@
       }
     },
     {
-      "module": "src/game/server/population/respawn.ts",
+      "module": "src/game/shared/population/respawn.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",

@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { Rng } from '../src/engine/shared/core/rng';
 import { createCreatureSpawner } from '../src/game/server/plugin/brain';
 import { PageActorGroups } from '../src/game/server/population/pageGroups';
-import { ReturnGate } from '../src/game/server/population/respawn';
+import { ReturnGate } from '../src/game/shared/population/respawn';
 import { manager as realManager, huntOf } from '@wildshard/engine/test/manager';
 import {onFault,type Fault} from '../src/engine/shared/core/faults';
 import { speciesDef } from '../src/engine/shared/entities/species/registry';

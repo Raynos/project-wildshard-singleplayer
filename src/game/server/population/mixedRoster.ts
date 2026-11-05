@@ -9,7 +9,7 @@ import { createNativeHunt, createNativeSpeciesContext, admitSpeciesProgram } fro
 import { bindPerchBody, stepPerchRoot, nativePerchProgram } from './perchBody';
 import { installPopulationEnvironment, populationEnvironment } from './environment';
 import { NativeManager } from './nativeManager';
-import { ReturnGate } from './respawn';
+import { ReturnGate } from '../../shared/population/respawn';
 import { admitNativeRosterServices, createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot, type KeptPolicy } from '../shardfile/homeKeeper';
 import * as v from 'valibot';
 import { Vector3 } from 'three';

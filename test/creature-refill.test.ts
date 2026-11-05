@@ -10,7 +10,7 @@ import type { SimStateAdapter } from '../src/engine/server/sim';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
 import { populationCensus } from '../src/game/shared/population/census';
-import { RespawnQueue } from '../src/game/server/population/respawn';
+import { RespawnQueue } from '../src/game/shared/population/respawn';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';

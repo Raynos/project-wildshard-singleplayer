@@ -22,7 +22,7 @@ Research:
   `arc | lane | ring | wedge | point | sphere`, `windup`, `motion`, `eligibility.jumpDodges` (`:91`, `:160`): the
   Mite's 0.6 s crouch → 3 m lunge is a `lane` strike with a windup.
 - **Attack tokens** (`fight.attackers`, `src/engine/server/entities/fightRules.ts`, E297) cap simultaneous biters.
-- **Respawn is per kind, not per pack.** `RespawnQueue` (`src/game/server/population/respawn.ts:21`) keys rules by kind
+- **Respawn is per kind, not per pack.** `RespawnQueue` (`src/game/shared/population/respawn.ts:21`) keys rules by kind
   (`RespawnRule { delay: { min, max }, night? }`, `src/format/populationRespawn.ts:19`) with one global out-of-sight
   distance; `ReturnGate.step` (`respawn.ts:7`) waits for `delay` and `away`. Users: Driftwood (4–15 min, the sailor
   after dark), Pine and Nalati through `nativeReturns.ts` / `pageReturns.ts`.
