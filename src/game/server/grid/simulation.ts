@@ -6,7 +6,7 @@ import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { GridAssembly, GridCell, GridPoint } from '../../shared/grid/assembly';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
-import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
+import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from '../../shared/grid/continuations';
 import { gridBoardLimit } from '../../shared/grid/rules';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

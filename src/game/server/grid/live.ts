@@ -13,7 +13,7 @@ import type { DisposeStep } from '@wildshard/engine/app/scope';
 import type { GridAssembly, GridCell, GridPoint } from '../../shared/grid/assembly';
 import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from '../../shared/grid/allocator';
 import type { PreparedGridCrossing } from '../../shared/grid/crossing';
-import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
+import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from '../../shared/grid/continuations';
 import type { HomeResidencyClaim } from '../../client/grid/pageResidency';
 import { ApproachInputsDeferredError } from '../../client/grid/productInputs';
 import { clientPreparationBatch } from '../../client/shardfile/preparationTiming';

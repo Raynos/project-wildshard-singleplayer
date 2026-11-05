@@ -924,7 +924,7 @@
   "src/game/client/grid/cellScreens.ts": "client",
   "src/game/shared/grid/collisionStrips.ts": "shared",
   "src/game/shared/grid/compiledStrips.ts": "shared",
-  "src/game/server/grid/continuations.ts": "server",
+  "src/game/shared/grid/continuations.ts": "shared",
   "src/game/client/grid/copyIdentity.ts": "client",
   "src/game/client/grid/copyLayout.ts": "client",
   "src/game/client/grid/copyPrompts.ts": "client",
