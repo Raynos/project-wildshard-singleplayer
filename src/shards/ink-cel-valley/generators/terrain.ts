@@ -1,10 +1,13 @@
-import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import type { TerrainField, TerrainNoise } from '@wildshard/engine/level/data';
+import { createTerrainField } from '@wildshard/sdk/bake/nativeTerrainField';
 import { bakeTerrain, type BakedTerrain } from '@wildshard/sdk/bake/terrain';
 import { Color } from 'three';
 import layout from '../data/layout.json' with { type: 'json' };
 import { cellGround } from './cell';
 import { poolMask } from './world';
+
+/** The compiled valley field and the seeded noise its landscape callback reads, as the SDK field compiler types them. */
+type TerrainField = ReturnType<typeof createTerrainField>;
+type TerrainNoise = Parameters<Parameters<typeof createTerrainField>[1]['landscape']>[2];
 
 /** One authored trail point as the `[x, z]` pair the terrain field takes. */
 const point = (row: readonly number[]): [number, number] => {
@@ -26,7 +29,7 @@ export function inkField(): TerrainField {
     const ridge = smooth(RIDGE_FOOT, RIDGE_TOP, Math.abs(x)) * (RIDGE_HEIGHT + n.get(x * 0.06, z * 0.06) * 0.8);
     return n.get(x * 0.015, z * 0.015) * 0.5 + ridge;
   };
-  return buildTerrain(357, { landscape, trails: layout.TRAIL.map(trail => trail.map(point)), cabinSites: [], finish: cellGround });
+  return createTerrainField(357, { landscape, trails: layout.TRAIL.map(trail => trail.map(point)), cabinSites: [], finish: cellGround });
 }
 
 /**
