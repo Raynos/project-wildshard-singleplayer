@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -7,6 +8,19 @@ import { resolve } from 'node:path';
 export const BUILD_ID_EXPRESSION = '(globalThis.__WS_BUILD_ID__ ?? "")';
 export const VALIDATOR_EXPRESSION = 'globalThis.__WS_SHARDFILE_VALIDATOR__';
 export const VERDICTS_EXPRESSION = 'globalThis.__WS_SHARDFILE_VERDICTS__';
+
+/** Short git sha + build time: unique per build, so a build folder is never written twice. Vercel CLI builds have no git
+ * checkout. build-app mints it first, because the bundler names the folder and version.json serves the same id. */
+export function newBuildId() {
+  let sha = (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7);
+  try { sha ||= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a git checkout */ }
+  return `${sha || 'b'}-${Date.now().toString(36)}`;
+}
+
+/** J57, J131: a web build's own folder for code, CSS and wasm, immutable for good. Assets stay under /assets/, and only
+ * this name in an uncached document points a tab at a build.
+ * @param {string} build */
+export const codeDirectory = (build) => `b/${build}`;
 
 /** Stamp before executable module scripts, without changing the bundle's URLs.
  * @param {string} html @param {string} build

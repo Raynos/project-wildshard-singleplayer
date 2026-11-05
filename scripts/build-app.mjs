@@ -119,12 +119,13 @@ writeFileSync(resolve(outDir, 'build-flags.json'), JSON.stringify({ devserver: m
 // the data products beside the app (was vite/outputProducts.ts)
 copyOutputProducts(process.cwd(), outDir);
 
-// Carry only one previous deploy's immutable graph. The worker precache above
-// deliberately names this graph only; old pages demand their old files as needed.
+// Carry the kept builds' graphs. The worker precache above deliberately names this
+// graph only; old pages demand their old files as needed. CI's main push builds the
+// output production ships (deploy.yml's prepare job), so it carries from production too.
 if (mode !== 'native') {
   const previousDirectory = process.env.WS_PREVIOUS_DEPLOY_DIR;
-  const previousOrigin = process.env.WS_PREVIOUS_DEPLOY_ORIGIN
-    ?? (process.env.VERCEL_ENV === 'production' ? 'https://wildshard-singleplayer.vercel.app' : undefined);
+  const release = process.env.VERCEL_ENV === 'production' || (process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF === 'refs/heads/main');
+  const previousOrigin = process.env.WS_PREVIOUS_DEPLOY_ORIGIN ?? (release ? 'https://wildshard-singleplayer.vercel.app' : undefined);
   console.log('Previous deploy chunks:', await carryPreviousDeploy(outDir, {
     ...(previousDirectory === undefined ? {} : {previousDirectory}),
     ...(previousOrigin === undefined ? {} : {previousOrigin}),

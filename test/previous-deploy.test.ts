@@ -6,30 +6,49 @@ import {join, resolve as resolvePath} from 'node:path';
 import {createServer} from 'node:http';
 import {expect, test} from 'vitest';
 import {carryPreviousDeploy} from '../scripts/app-build/previousDeploy.mjs';
+import {KEEP_PROMOTED} from '../scripts/prune-deployments.mjs';
 
-test('a deploy carries its predecessor JS/CSS unchanged, but never a grandparent or maps', async () => {
+test('a deploy carries the kept builds unchanged, but never one past the prune, nor a map', async () => {
   mkdirSync('tmp', {recursive: true}); const root = mkdtempSync(resolvePath('tmp/previous-deploy-'));
   const output = (name: string, code: string): string => {
-    const dir = join(root, name); mkdirSync(join(dir, 'assets'), {recursive: true});
+    const dir = join(root, name); mkdirSync(join(dir, `b/${name}`), {recursive: true});
     writeFileSync(join(dir, 'version.json'), JSON.stringify({build: name}));
-    writeFileSync(join(dir, `assets/main-${name.repeat(8)}.js`), code);
-    writeFileSync(join(dir, `assets/main-${name.repeat(8)}.css`), `.${name}{color:red}`);
-    writeFileSync(join(dir, `assets/main-${name.repeat(8)}.js.map`), 'private'); return dir;
+    writeFileSync(join(dir, `b/${name}/main-${name.repeat(8)}.js`), code);
+    writeFileSync(join(dir, `b/${name}/main-${name.repeat(8)}.css`), `.${name}{color:red}`);
+    writeFileSync(join(dir, `b/${name}/main-${name.repeat(8)}.js.map`), 'private'); return dir;
   };
   try {
     const a = output('a', 'export const title="A";'); await carryPreviousDeploy(a);
     const b = output('b', 'export const title="B";');
-    expect(await carryPreviousDeploy(b, {previousDirectory: a})).toMatchObject({current: 2, carried: 2});
-    for (const ext of ['js', 'css']) expect(readFileSync(join(b, `assets/main-aaaaaaaa.${ext}`))).toEqual(readFileSync(join(a, `assets/main-aaaaaaaa.${ext}`)));
-    expect(existsSync(join(b, 'assets/main-aaaaaaaa.js.map'))).toBe(false);
+    expect(await carryPreviousDeploy(b, {previousDirectory: a})).toMatchObject({current: 2, builds: 2, carried: 2});
+    for (const ext of ['js', 'css']) expect(readFileSync(join(b, `b/a/main-aaaaaaaa.${ext}`))).toEqual(readFileSync(join(a, `b/a/main-aaaaaaaa.${ext}`)));
+    expect(existsSync(join(b, 'b/a/main-aaaaaaaa.js.map'))).toBe(false);
     const manifest: unknown = JSON.parse(readFileSync(join(b, 'deploy-chunks.json'), 'utf8'));
-    expect(manifest).toEqual({format: 1, build: 'b', files: [
-      {path: 'assets/main-bbbbbbbb.css', bytes: 13}, {path: 'assets/main-bbbbbbbb.js', bytes: 23},
+    expect(manifest).toEqual({format: 2, builds: [
+      {build: 'b', files: [{path: 'b/b/main-bbbbbbbb.css', bytes: 13}, {path: 'b/b/main-bbbbbbbb.js', bytes: 23}]},
+      {build: 'a', files: [{path: 'b/a/main-aaaaaaaa.css', bytes: 13}, {path: 'b/a/main-aaaaaaaa.js', bytes: 23}]},
     ]});
-    const c = output('c', 'export const title="C";'); await carryPreviousDeploy(c, {previousDirectory: b});
-    expect(existsSync(join(c, 'assets/main-bbbbbbbb.js'))).toBe(true);
-    expect(existsSync(join(c, 'assets/main-aaaaaaaa.js'))).toBe(false);
-    expect(readFileSync(join(c, 'assets/main-cccccccc.js'), 'utf8')).toBe('export const title="C";');
+    let previous = b;
+    for (const name of ['c', 'd', 'e', 'f']) {
+      const next = output(name, `export const title="${name}";`); await carryPreviousDeploy(next, {previousDirectory: previous}); previous = next;
+    }
+    // KEEP_PROMOTED: f and the four before it, so a is past the prune.
+    expect(KEEP_PROMOTED).toBe(5);
+    expect(existsSync(join(previous, 'b/b/main-bbbbbbbb.js'))).toBe(true);
+    expect(existsSync(join(previous, 'b/a/main-aaaaaaaa.js'))).toBe(false);
+    expect(readFileSync(join(previous, 'b/f/main-ffffffff.js'), 'utf8')).toBe('export const title="f";');
+  } finally {rmSync(root, {recursive: true, force: true});}
+});
+
+test('the format production published before the pointer still carries', async () => {
+  mkdirSync('tmp', {recursive: true}); const root = mkdtempSync(resolvePath('tmp/previous-deploy-format-'));
+  try {
+    const current = join(root, 'new'), previous = join(root, 'old'); mkdirSync(current); mkdirSync(join(previous, 'assets'), {recursive: true});
+    writeFileSync(join(current, 'version.json'), '{"build":"new"}');
+    writeFileSync(join(previous, 'assets/main-aaaaaaaa.js'), 'old');
+    writeFileSync(join(previous, 'deploy-chunks.json'), JSON.stringify({format: 1, build: 'old', files: [{path: 'assets/main-aaaaaaaa.js', bytes: 3}]}));
+    expect(await carryPreviousDeploy(current, {previousDirectory: previous})).toMatchObject({builds: 2, carried: 1});
+    expect(readFileSync(join(current, 'assets/main-aaaaaaaa.js'), 'utf8')).toBe('old');
   } finally {rmSync(root, {recursive: true, force: true});}
 });
 
@@ -77,6 +96,11 @@ test('the production HTTP carry preserves old JS/CSS and refuses a truncated bod
     truncate = true;
     const failed = join(root, 'failed'); mkdirSync(failed); writeFileSync(join(failed, 'version.json'), '{"build":"failed"}');
     await expect(carryPreviousDeploy(failed, options)).rejects.toThrow('Previous deploy chunk length differs');
+    // Production moved on while a release built: that build drops out whole, and the build still ships.
+    truncate = false; manifest.files.push({path: 'assets/gone-cccccccc.js', bytes: 1});
+    const moved = join(root, 'moved'); mkdirSync(moved); writeFileSync(join(moved, 'version.json'), '{"build":"moved"}');
+    expect(await carryPreviousDeploy(moved, options)).toMatchObject({builds: 1, carried: 0, bytes: 0});
+    for (const path of bodies.keys()) expect(existsSync(join(moved, path))).toBe(false);
   } finally {
     await new Promise<void>((resolve, reject) => {server.close(error => {if (error === undefined) resolve(); else reject(error);});});
     rmSync(root, {recursive: true, force: true});
