@@ -416,7 +416,8 @@ function rewriteDivided(path, source, spelled, moves, dirMoves, notes) {
     if (ts.isStringLiteralLike(node) || ts.isTemplateHead(node)) {
       const match = /^(?:\.\/)?src\/(engine|game)\/([\w\-/.]*?)(\/?)$/u.exec(node.text);
       const dir = match === null ? '' : `src/${match[1]}/${match[2]}`;
-      if (match !== null && dirMoves.divided.has(dir)) {
+      // A folder spelled with its side stays true when one file leaves it; only an unsorted spelling is ambiguous.
+      if (match !== null && dirMoves.divided.has(dir) && sideSegment(match[2] ?? '') === null) {
         const start = node.getStart(file), end = node.getEnd(), quote = source[start] ?? "'", slash = match[3], rest = match[2] ?? '', sides = sidesOf(dir), parent = node.parent;
         const inSide = side => `src/${match[1]}/${side}/${unsorted(rest)}${slash}`, named = sides.filter(side => spelled.includes(`src/${match[1]}/${side}/${unsorted(rest)}/`));
         if (ts.isArrayLiteralExpression(parent)) edits.push({ start, end, text: sides.map(side => `${quote}${inSide(side)}${quote}`).join(', ') });

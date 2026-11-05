@@ -152,6 +152,14 @@ test('--move plans a retag from HEAD on a dirty tree and takes its test with it'
   expect(git(root,'status','--porcelain','--','src/engine/client/core')).toBe('');
 });
 
+test('--move leaves a folder literal that still names its side',()=>{
+  const root=sorted();
+  put(root,{'scripts/names.mjs':"export const dir='src/engine/client/ui';\n"});commit(root);
+  const {tree,plan}=planMove(headTree(root),['src/engine/client/ui/worker.ts'],'shared');
+  expect(planFailures(tree,plan,root)).toEqual([]);
+  expect(plan.writes.has('scripts/names.mjs')).toBe(false);
+});
+
 test('--move refuses an untagged path, a wrong side and a file already there',()=>{
   const tree=headTree(sorted());
   expect(()=>planMove(tree,['src/engine/client/core/none.ts'],'shared')).toThrow(/no tag/u);
