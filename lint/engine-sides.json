@@ -462,6 +462,7 @@
   "src/engine/client/player/LockOnTarget.ts": "client",
   "src/engine/client/player/MeleeSweep.ts": "client",
   "src/engine/shared/player/modes.ts": "shared",
+  "src/engine/shared/player/lockOrbit.ts": "shared",
   "src/engine/shared/player/motion.ts": "shared",
   "src/engine/shared/player/motionState.ts": "shared",
   "src/engine/client/player/Player.ts": "client",
@@ -501,6 +502,7 @@
   "src/engine/shared/quest/lastPlace.ts": "shared",
   "src/engine/shared/quest/players.ts": "shared",
   "src/engine/shared/quest/progress.ts": "shared",
+  "src/engine/shared/quest/viewPort.ts": "shared",
   "src/engine/client/quest/view.ts": "client",
   "src/engine/client/quest/view/replica.ts": "client",
   "src/engine/client/quest/view/ui.ts": {

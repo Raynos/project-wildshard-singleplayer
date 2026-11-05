@@ -284,6 +284,7 @@
     "./quest/dialogueClock": "./shared/quest/dialogueClock.ts",
     "./quest/players": "./shared/quest/players.ts",
     "./quest/progress": "./shared/quest/progress.ts",
+    "./quest/viewPort": "./shared/quest/viewPort.ts",
     "./quest/view/replica": "./client/quest/view/replica.ts",
     "./quest/view": "./client/quest/view.ts",
     "./quest/view/ui": "./client/quest/view/ui.ts",

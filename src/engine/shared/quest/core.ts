@@ -3,6 +3,7 @@ import { test, type Flags } from '../world/interact/flags';
 import type { Scope } from '../app/scope';
 import type { Events } from '../events/events';
 import type { Cond, QuestPlace } from '../world/interact/types';
+import type { QuestView } from './viewPort';
 
 export interface QuestMarker {
   id: string;
@@ -159,7 +160,7 @@ export interface QuestMessageRows { readonly firstStep?:string;readonly started:
 /** Caller-owned presentation effects and an optional beat after the transition sting. */
 export interface QuestMessagePorts {readonly toast:(text:string)=>void;readonly sting:()=>void;readonly afterStep?:(step:QuestStep|null)=>void}
 /** Preflight authored notices without observing or owning quest state. The caller keeps its original phase. */
-export function questMessageHandlers(quest:QuestState,rows:QuestMessageRows,ports:QuestMessagePorts):{
+export function questMessageHandlers(quest:Pick<QuestView,'def'|'objective'>,rows:QuestMessageRows,ports:QuestMessagePorts):{
   step:(step:QuestStep|null,previous:QuestStep|null)=>void;complete:()=>void;
 } {
   const valid=(value:unknown):boolean=>typeof value==='string'&&value.length<=8192;

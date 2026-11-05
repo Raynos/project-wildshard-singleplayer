@@ -80,6 +80,8 @@ export class QuestBooks {
     this.host = host; this.lead = new QuestBook(first, host.flags, host.quests);
     this.books.set(this.lead.player, this.lead);
     this.claim(host.level.quests.flatMap(questFlags));
+    // A marker hides on a flag, and a client draws markers: it is told those flags as it is told a gate's.
+    this.show(host.level.quests.flatMap(markerFlags));
   }
   /** Name flags a client must read to draw its own world (J106): an open gate, a taken key. */
   show(flags: Iterable<string>): void { for (const flag of flags) this.shown.add(flag); }
@@ -135,3 +137,12 @@ export function questBooks(host: Pick<SimHost, 'flags' | 'quests' | 'players' | 
 }
 /** Every flag one quest row raises on its player. */
 export function questFlags(def: QuestDef): string[] { return [def.completeFlag]; }
+/** The flags a quest's markers hide on. */
+function markerFlags(def: QuestDef): string[] {
+  const flags: string[] = [];
+  for (const marker of [...def.intro?.markers ?? [], ...def.steps.flatMap(step => step.markers ?? [])]) {
+    const when = marker.hideWhen;
+    if (when !== undefined) flags.push(...when.all ?? [], ...when.any ?? [], ...when.none ?? []);
+  }
+  return flags;
+}

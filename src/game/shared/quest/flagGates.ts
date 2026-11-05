@@ -4,11 +4,18 @@ import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import { staticBoxCollider } from '@wildshard/engine/physics/query';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { ShardContext } from '../../client/plugin/context';
 import { questBooks } from '@wildshard/engine/quest/players';
 import { boundQuestState } from './boundState';
+import type { QuestGateView } from '@wildshard/engine/quest/viewPort';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 type Collider = ReturnType<SimHost['physics']['world']['getCollider']>;
+/** What a page gate borrows: its scope and the entered world's registry. */
+export interface QuestGatePage {
+  readonly scope: Scope;
+  readonly game: { readonly runtime?: { readonly world: { readonly registry: Pick<WorldRegistry, 'get' | 'add'> } | null } };
+}
 /** Gates borrow the installed flags and exact collision owners. Native gates run
  * at their caller's original phase; page pieces retain registry fixed-step sync.
  * No clock, flag listener, body duplication or save envelope is introduced. */
@@ -19,7 +26,8 @@ export class QuestFlagGates {
   private colliders: Collider[] = [];
   /** Whether a room has ever split these gates: a room of one never touches a motor. */
   private phased = false;
-  constructor(owner: SimHost | ShardContext, input: unknown, restoring = false) {
+  /** `view` is who reads a page gate: the page's quest flags, or a client's own `phase` events (J106). */
+  constructor(owner: SimHost | QuestGatePage, input: unknown, restoring = false, view?: QuestGateView) {
     this.rows = v.parse(QuestFlagGatesSchema, input);
     if (owner.scope.disposed) throw new Error('Quest gates require a live owner');
     this.native = 'physics' in owner ? owner : null;
@@ -32,6 +40,7 @@ export class QuestFlagGates {
       const world = owner.game.runtime?.world, quest = this.rows.quest;
       if (world === undefined || world === null || quest === undefined) throw new Error('Quest gates require their entered world and quest');
       this.flags = boundQuestState(owner.scope, quest).flags;
+      const gates = view ?? this.flags;
       const pieces = this.rows.gates.map(row => {
         if (row.target.kind !== 'piece' || world.registry.get(row.id) !== undefined) throw new Error('Page quest gates require unique registered piece targets');
         const source = world.registry.get(row.target.piece);
@@ -43,7 +52,7 @@ export class QuestFlagGates {
           id: row.id, name: row.name ?? row.id, category: source.category, file: 'src/game/shared/quest/flagGates.ts',
           ...(source.surface === undefined ? {} : { surface: source.surface }), colliders, follows,
           ...(source.followRotation === undefined ? {} : { followRotation: source.followRotation }),
-          active: () => !test(this.flags, row.opensWhen),
+          active: () => !test(gates, row.opensWhen),
         });
       });
     }
