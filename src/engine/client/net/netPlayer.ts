@@ -54,6 +54,8 @@ export class NetPlayer implements PlayerLink {
     },
     interact: id => { this.client.act({ kind: 'interact', seq: this.seq, id }); },
   };
+  /** The body a lock holds, by the server's name for it (J116). */
+  lockTarget: () => string | undefined = () => undefined;
   /** Whether this page stands in the world a frame came from. A crossing's frames wait behind this until the page has made it. */
   inCell: (cell: number) => boolean = () => true;
   /** A hook tool's presses: the next command carries them (J116, `hookTarget`). */
@@ -129,9 +131,9 @@ export class NetPlayer implements PlayerLink {
     return stepped;
   }
   /** The step's controls, with what the weapon in hand has for this command. */
-  private armed(input: PlayerWireInput): PlayerWireInput & Partial<Pick<NetCommand, 'attack' | 'launcher'>> {
-    const { launcher } = this, buttons = this.heavy ? input.buttons | NET_BUTTONS.heavy : input.buttons;
-    return { ...input, buttons, ...(this.pressed ? { attack: { aim: this.player.sampleAimCommand() } } : {}), ...(launcher === null ? {} : { launcher }) };
+  private armed(input: PlayerWireInput): PlayerWireInput & Partial<Pick<NetCommand, 'attack' | 'launcher' | 'lockTarget'>> {
+    const { launcher } = this, buttons = this.heavy ? input.buttons | NET_BUTTONS.heavy : input.buttons, lockTarget = this.lockTarget();
+    return { ...input, buttons, ...(this.pressed ? { attack: { aim: this.player.sampleAimCommand() } } : {}), ...(launcher === null ? {} : { launcher }), ...(lockTarget === undefined ? {} : { lockTarget }) };
   }
   /** What goes to the server beyond what this body steps: a claw's JUMP moves the body only there, and only by `led`. */
   private hooked<T extends PlayerWireInput>(armed: T): T & Pick<NetCommand, 'hookTarget'> {

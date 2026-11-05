@@ -91,7 +91,7 @@ export class Mount extends MountedBody {
   constructor(private readonly ctx: LevelContext, player: Player, private readonly animals: AnimalManager, private readonly opts: MountProfile) {
     super(opts.speeds);
     this.companions = new MountCompanions(opts);
-    enterMount(ctx.scope, this);
+    enterMount(ctx.scope, player, this);
     this.player = player; this.input = ctx.app.input;
     const p = this.player;
     const makeFrame = (m: Mount): ReinsFrame => {

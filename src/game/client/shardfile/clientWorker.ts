@@ -1,7 +1,6 @@
 // P1-E5.3 I6 (J126), J130: Settings ▸ Developer ▸ Worker client runs the real Game and Player against the real server in its
 // worker: the Player predicts and reconciles, and every creature is an interpolated row drawn by the real views. The flip commit
-// deletes the row and keeps this path. The page's other systems still run, on nothing: no blow goes to the server yet, and
-// movers, weapons, fights and riding wait for their own rows.
+// deletes the row and keeps this path. The page's other systems still run, on nothing: movers and fights wait for their own rows.
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { LiveGridWire } from '../grid/liveSession';
 import type { SystemSpec } from '@wildshard/engine/app/systems';
@@ -17,7 +16,10 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { creatureBodyShape } from '@wildshard/engine/sim/bands';
+import { lockOn } from '@wildshard/engine/player/AimTargets';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import { mountOf } from '../../shared/riding/entered';
+import type { Mount } from '../riding/mount';
 
 type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
 /** What a grid page lends: its crossing follows the server, and its creatures are the entered cell's. */
@@ -78,11 +80,11 @@ function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map
 
 /** Rows onto the bodies, and the near ones into the predicted world as capsules. */
 function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, bodies: ReadonlyMap<number, RowBody>, renderTick: number, dt: number, row: Float64Array, near: PredictedRow[]): number {
-  const { interpolator } = client;
+  const { interpolator } = client, own = client.welcome?.handle ?? 0, under = client.riders.get(own);
   let shown = 0;
   near.length = 0;
   for (const [handle, { body }] of bodies) {
-    if (!interpolator.sample(handle, renderTick, row)) continue;
+    if (handle === under || !interpolator.sample(handle, renderTick, row)) continue; // the body under this player is its own prediction (J48)
     body.showRow({ x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, yaw: row[YAW] ?? 0, state: ANIMAL_STATES[row[STATE] ?? 0] ?? 'idle', attack: row[ATTACK] ?? 0, flinch: row[FLINCH] ?? 0, hp: row[HP] ?? 0, alive: row[ALIVE] === 1 }, dt);
     shown++;
     const { radius, height } = creatureBodyShape(body.dims, body.scale);
@@ -111,6 +113,27 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix: PROOF_SAVES, ...await openIndexedSaves(PROOF_DATABASE) }), { client } = shell;
   scope.onDispose(() => { shell.dispose(); });
   const net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
+  // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it
+  let mount: Mount | null = null;
+  const bindMount = (): void => {
+    const next = mountOf(player) ?? null;
+    if (next === mount) return;
+    mount?.bindWire(null); next?.bindWire(net.ride); mount = next;
+  };
+  const allowed = new Set<string>(), offerMounts = (): void => {
+    for (const { a } of mount?.mountables ?? []) allowed.add(a.entityId);
+    for (const [handle, { body }] of bodies) {
+      const id = client.entities.get(handle)?.id;
+      if (id !== undefined && allowed.delete(id)) mount?.addMountable(body.entityId, id);
+    }
+  };
+  net.bindRide({ enter: handle => { const body = bodies.get(handle)?.body; if (body !== undefined) mount?.enter(body.entityId); }, leave: () => { mount?.leave(); } });
+  // J116: the lock's body by the server's name for it
+  net.lockTarget = () => {
+    if (lockOn.state !== 'locked' || lockOn.target === null) return undefined;
+    for (const [handle, { body }] of bodies) if (body === lockOn.target) return client.entities.get(handle)?.id;
+    return undefined;
+  };
   player.link = net; net.bindWeapons(ports.weapons, new Map(ports.items.flatMap(item => item.ranged === undefined ? [] : [[item.id, item.ranged.slot] as const])));
   // A frame names its world. A grid page crosses when one says so; a one-shard page has only the world it opened in, and waits there.
   const { grid } = ports, siteOf = (cell: number): string | null | undefined => cell === 0 ? null : grid?.cells[cell - 1]?.instance;
@@ -135,6 +158,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   system({ id: 'proof.worker.present', phase: 'update', run: dt => {
     const at = diagnosticNow(), renderTick = client.present();
     syncCreatures(client, grid === null ? ports.animals : grid.animals(), bodies);
+    bindMount(); offerMounts();
     report.rows = showRows(client, net, ports, bodies, renderTick, dt, row, near);
     net.present(dt);
     const now = diagnosticNow(), { predictor } = net, seconds = (now - started) / 1000, tick = client.latest?.tick ?? 0;
