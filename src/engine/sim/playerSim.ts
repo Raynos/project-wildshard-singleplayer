@@ -5,16 +5,17 @@ import { PlayerHealth } from '../combat/health';
 import { FIXED_STEP } from '../core/fixedStep';
 import type { CharacterMotor, MotorOptions } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
-import { addImpulse, decayImpulse } from '../player/impulse';
-import { fallStep, groundedVelocity, hardFallHit, hardLanding, landingCushion } from '../player/fall';
-import { hitShoveSpeed, shoveHop, startShove, stepShove, type ShoveState } from '../player/shove';
-import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardPorts, type BoardState, type BoardStepOut } from '../player/board';
+import { addImpulse } from '../player/impulse';
+import { hardFallHit } from '../player/fall';
+import { hitShoveSpeed, shoveHop, startShove, type ShoveState } from '../player/shove';
+import { boardShoved, HOVER_HARD_LANDING, type BoardState } from '../player/board';
 import { hoverSpeed } from '../player/hoverSpeed';
-import { COYOTE_MS, JUMP_SPEED, jump as jumpLaw, jumpClock, jumpSpeed, type JumpState } from '../player/jump';
-import { deepWater, entryKeep, NO_SPRINT_DEPTH, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts, type SwimState } from '../player/swim';
-import { localWalkingMove, walkingSpeed, wadeScale, walkVelocity } from '../player/walk';
+import { COYOTE_MS, type JumpState } from '../player/jump';
+import { pondBob, type SwimState } from '../player/swim';
+import { localWalkingMove, wadeScale } from '../player/walk';
 import { PlayerModes, type ModePlayer } from '../player/modes';
-import { DODGE_DIST, DODGE_TIME, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from '../player/dash';
+import { HOST_MOTION, leaveSwim, stepPlayerMotion, versionedWalk, waterDepth, type MotionFooting, type MotionOut, type MotionWorld, type PlayerMotionState } from '../player/motion';
+import { dashToward, startDash, type DashState, type DodgeState } from '../player/dash';
 import { validateLocalMovement } from '../input/commands';
 import { netSimCommand } from './netMotion';
 import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDriver, SimPlayerMotionSample, SimTickCommand, SimWalkingControl } from '../sim';
@@ -37,7 +38,7 @@ export interface PlayerSimBody {
  * One player of a SimHost (P1-E5.2a): its body, health, strike runner and the movement law's state. The law is the client
  * Player's, step for step; a host runs one `input` for every player before its physics step and one `move` after it.
  */
-export class PlayerSim {
+export class PlayerSim implements PlayerMotionState {
   readonly id: string;
   readonly position: Vector3;
   /** This player's strike clock; the host also lists it by id, so a strike is resolved like any other actor's. */
@@ -80,6 +81,8 @@ export class PlayerSim {
   readonly dash: DashState = { t: 0, vx: 0, vz: 0 };
   /** The dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
   readonly dodge: DodgeState = { cd: 0, t: 0 };
+  /** The motion step's read of the feet. Never saved: on this law it is derived from the position and the water. */
+  readonly footing: MotionFooting = { water: null, depth: 0, wading: false, onPlatform: false, sliding: false };
   private readonly host: SimHost;
   private readonly body: SimPlayerBody;
   /** The page lends this player; its motion, impulse and knockback stay the page's. */
@@ -90,31 +93,10 @@ export class PlayerSim {
   private motionObserver: { receive: (sample: SimPlayerMotionSample | null) => void; sample: { velocityX: number; velocityZ: number; grounded: boolean; swimming: boolean; hover: boolean } } | undefined;
   private external: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private modeDriver: SimPlayerDriver | null = null;
-  private readonly wanted = new Vector3();
   private readonly versionedWalking = { speed: 4.3, crouching: false, clientMotion: this.walk };
   private readonly localMove = { x: 0, z: 0 };
-  private readonly dashVelocity = { x: 0, z: 0 };
-  private readonly dodgeDir = { x: 0, z: 0 };
-  private readonly swimOut: { water: number | null } = { water: null };
-  private readonly swimPorts: SwimPorts = {
-    move: (feet, want) => this.motor.move(feet, want, true),
-    water: (x, z) => this.host.water?.surfaceAt(x, z) ?? null,
-    ground: () => this.groundUnderFeet(),
-    platforms: [],
-    floor: (x, z, fromY, maxDrop) => floorBelow(this.host.physics, x, z, fromY, maxDrop, this.motor.collider),
-    bob: (x, z) => this.host.water?.bob?.(x, z) ?? pondBob(this.host.clock.now),
-    leave: () => { this.leaveSwim(); },
-  };
-  private readonly boardOut: BoardStepOut = { lat: 0, fwd: 0, accel: 0, water: null };
-  private readonly boardPorts: BoardPorts = {
-    move: (feet, want) => { this.motor.move(feet, want, true); },
-    ground: () => this.groundUnderFeet(),
-    // the level's water (useWater): the board rides its surface, as the client's; none without it
-    water: (x, z) => this.host.water?.surfaceAt(x, z) ?? null,
-    jumped: () => { this.host.events.emit('player.jump', true); },
-    // a hard board touchdown files the client's fall hit (Player.onLand(hard) → PlayerHurt.fall)
-    landed: (speed) => { if (speed > HOVER_HARD_LANDING) this.host.combat.hit(hardFallHit(this.health, this.position)); },
-  };
+  /** The motion step's world (player/motion.ts): this player's motor, the host's queries, and the host's moments. */
+  private readonly world: MotionWorld = this.motionWorld();
   // This tick's command and what `input` decided, for `move`.
   private command: SimCommand | undefined;
   private tickDriver: SimPlayerDriver | undefined;
@@ -261,16 +243,6 @@ export class PlayerSim {
     if (this.board.on || this.swim.on) return false;
     return dashToward(this.dash, this.position.x, this.position.z, x, z, stopAt, time);
   }
-  /** The DODGE press: the client Player's dodge (no lock-on headless) toward the command's world move, a backstep with
-   * none (yaw = the command's), at DODGE_DIST / DODGE_TIME; the cooldown and the burst start, and 'player.dodge' fires. */
-  private dodgeAs(command: SimCommand): void {
-    if (this.dodge.cd > 0 || this.board.on || this.swim.on) return;
-    const heading = this.dodgeDir, v = DODGE_DIST / DODGE_TIME;
-    dodgeHeading(command.moveX, command.moveZ, command.yaw, heading);
-    if (!startDash(this.dash, heading.x * v, heading.z * v, DODGE_TIME)) return;
-    startDodge(this.dodge, 1);
-    this.host.events.emit('player.dodge', true);
-  }
   /** Step on or off the hoverboard, as the client Player's `setHover`: on, the board starts from the feet's vertical speed
    * with no horizontal speed (the host's walk keeps none) and is not yet riding; off, the board's vertical speed becomes
    * the fall's and the feet drop from the ride height. The board-only colliders follow on the next step, before physics,
@@ -279,24 +251,17 @@ export class PlayerSim {
     this.refuseBorrowed('board');
     const { board, fall } = this;
     if (on === board.on) return;
-    if (on && this.swim.on) { this.leaveSwim(); fall.vy = this.swimVelocity.y; fall.grounded = false; this.swimVelocity.set(0, 0, 0); } // the client's setHover ends the swim
+    if (on && this.swim.on) { leaveSwim(this, this.world); fall.vy = this.swimVelocity.y; fall.grounded = false; this.swimVelocity.set(0, 0, 0); } // the client's setHover ends the swim
     board.on = on; board.hoverAir = false; board.hoverBob = 0; board.onGround = false;
     if (on) { this.boardVelocity.set(0, fall.vy, 0); fall.vy = 0; fall.grounded = true; }
     else { fall.vy = this.boardVelocity.y; fall.grounded = false; this.boardVelocity.set(0, 0, 0); }
-  }
-  /** The client Player's ground with no floor functions: the terrain, or the first WORLD floor within 80 m under the
-   *  feet + 0.5 m (decks, islands and, while riding, the board-only decks), for the board, the swim and the wade. */
-  private groundUnderFeet(): number {
-    const p = this.position, g = this.host.heightAt(p.x, p.z);
-    const c = floorBelow(this.host.physics, p.x, p.z, p.y + 0.5, 80, this.motor.collider);
-    return c !== undefined && c > g ? c : g;
   }
   /** Reposition this owned native traveller without stepping the world. Like the page's spawn, release the old ride,
    * velocity, dash and swimming state. */
   resetPose(feet: { x: number; y: number; z: number }, yaw: number): void {
     if (this.host.disposed || this.host.embedded || this.borrowed || !this.hasMotor) throw new Error('Player pose belongs to an owned active host');
     if (![feet.x, feet.y, feet.z, yaw].every(Number.isFinite)) throw new RangeError('Invalid native player pose');
-    this.setBoard(false); if (this.swim.on) this.leaveSwim();
+    this.setBoard(false); leaveSwim(this, this.world);
     this.position.set(feet.x, feet.y, feet.z); this.yaw = yaw;
     this.motor.resetAt(this.position); this.impulse.set(0, 0, 0); this.dash.t = 0;
     this.fall.vy = 0; this.fall.grounded = false; this.swim.stood = false;
@@ -314,60 +279,46 @@ export class PlayerSim {
   get wading(): boolean {
     // the tick the swimmer stands up is on foot, not yet wading, as the client Player's (its wade resolves on the next walk)
     if (this.host.water === undefined || this.board.on || this.swim.on || this.swim.stood || !this.fall.grounded) return false;
-    return this.waterDepth() > 0.02;
+    return waterDepth(this, this.world) > 0.02;
   }
-  /** m of water over the feet right now (0 dry, or without water). */
-  private waterDepth(): number {
-    const p = this.position, ws = this.host.water?.surfaceAt(p.x, p.z) ?? null;
-    return ws === null ? 0 : Math.max(0, ws - p.y);
-  }
-  /** Start swimming, as the client Player's hand-over from the walk: the fall speed is mostly eaten by the splash. */
-  private enterSwim(vx: number, vz: number): void {
-    const { swim, fall } = this;
-    swim.on = true; swim.strokeTime = 0;
-    this.swimVelocity.set(vx, fall.vy * entryKeep(fall.vy), vz);
-    fall.vy = 0; fall.grounded = false;
-    this.host.events.emit('player.swim', true);
-  }
-  /** Stop swimming (the swim law's `leave`, or the board): the dive and the haul-out let go, as the client's setSwimming(false). */
-  private leaveSwim(): void {
-    const { swim } = this;
-    if (!swim.on) return;
-    swim.on = false; swim.climbTo = null; swim.diving = false;
-    this.host.events.emit('player.swim', false);
-  }
-  /** The swim step: the client Player's law (player/swim.ts) on the command's world move; then back on foot when it leaves. */
-  private stepSwimming(command: SimCommand | undefined): void {
-    if (command !== undefined) this.yaw = command.yaw;
-    let mx = command?.moveX ?? 0, mz = command?.moveZ ?? 0;
-    const len = Math.hypot(mx, mz);
-    if (len > 1) { mx /= len; mz /= len; }
-    this.impulse.set(0, 0, 0); this.dash.t = 0;
-    const v = this.swimVelocity, { fall } = this;
-    const left = stepSwim(this.position, v, this.wanted, this.swim, { mx, mz, len, dive: command?.dive === true, surface: command?.surface === true }, this.swimPorts, FIXED_STEP, this.swimOut);
-    if (left === 'dry') { fall.vy = v.y; fall.grounded = false; v.set(0, 0, 0); }
-    else if (left === 'stood') { fall.vy = 0; fall.grounded = true; v.set(0, 0, 0); this.swim.stood = true; }
-    else swimStroke(this.swim, v, FIXED_STEP, () => undefined);
-    this.attackFrom(command);
-  }
-  /** Deep water at (x, z) where a dash stops (player/swim.ts deepWater over the host's terrain and colliders). */
-  private deepAt(x: number, z: number): boolean {
-    return deepWater(x, z, this.position.y, this.host.water?.surfaceAt(x, z) ?? null, this.host.heightAt(x, z), [],
-      (fx, fz, fromY, maxDrop) => floorBelow(this.host.physics, fx, fz, fromY, maxDrop, this.motor.collider));
-  }
-  /** The board step: the client Player's law (player/board.ts) on the command's world move, then the impulse decays. */
-  private stepBoarding(command: SimCommand | undefined): void {
-    if (command !== undefined) this.yaw = command.yaw;
-    let mx = command?.moveX ?? 0, mz = command?.moveZ ?? 0;
-    const len = Math.hypot(mx, mz);
-    if (len > 1) { mx /= len; mz /= len; }
-    stepBoard(this.position, this.boardVelocity, this.impulse, this.wanted, this.board,
-      { mx, mz, len, yaw: this.yaw, top: hoverSpeed(), capped: false, jump: command?.jump === true }, this.boardPorts, FIXED_STEP, this.boardOut);
-    decayImpulse(this.impulse, FIXED_STEP);
-    this.attackFrom(command);
-  }
-  private attackFrom(command: SimCommand | undefined): void {
-    if (command?.attack !== undefined) this.host.startStrike(this.id, command.attack.targetId);
+  /** This host's side of the motion step, built before the constructor runs, so every read of the host is lazy. Its law
+   *  is `HOST_MOTION`; what it has no way to know is absent here: floor functions, a grid limit on the board, an authored
+   *  coyote window. */
+  private motionWorld(): MotionWorld {
+    const motor = (): CharacterMotor => this.motor, water = (): boolean => this.host.water !== undefined;
+    const walking = (): SimWalkingControl | undefined => this.walking, versioned = (): boolean => this.versioned;
+    return {
+      law: HOST_MOTION,
+      get motor() { return motor(); },
+      get hasWater() { return water(); },
+      // the level's water (useWater): the board rides its surface, as the client's; none without it
+      water: (x, z) => this.host.water?.surfaceAt(x, z) ?? null,
+      heightAt: (x, z) => this.host.heightAt(x, z),
+      platforms: [],
+      floor: (x, z, fromY, maxDrop) => floorBelow(this.host.physics, x, z, fromY, maxDrop, this.motor.collider),
+      bob: (x, z) => this.host.water?.bob?.(x, z) ?? pondBob(this.host.clock.now),
+      foot: {
+        speed: (wadeT) => {
+          const control = this.walking, levelSpeed = this.host.level.player.speed;
+          if (control === undefined) return this.host.water === undefined ? levelSpeed : levelSpeed * wadeScale(wadeT);
+          return control.speed * (control.clientMotion === undefined ? 1 : wadeScale(wadeT));
+        },
+        get crouching() { return walking()?.crouching === true; },
+        get velocity() { return walking()?.clientMotion; },
+        get active() { return versioned(); },
+        coyoteMs: COYOTE_MS,
+      },
+      boardTop: () => hoverSpeed(),
+      boardCapped: () => false,
+      jumped: () => { this.host.events.emit('player.jump', true); },
+      dodged: () => { this.host.events.emit('player.dodge', true); },
+      // a hard landing files the client's fall hit (Player.onLand(hard) → PlayerHurt.fall)
+      landed: (hard) => { if (hard) this.host.combat.hit(hardFallHit(this.health, this.position)); },
+      boardLanded: (speed) => { if (speed > HOVER_HARD_LANDING) this.host.combat.hit(hardFallHit(this.health, this.position)); },
+      swimChanged: (on) => { this.host.events.emit('player.swim', on); },
+      stroked: () => undefined,
+      scratch: null,
+    };
   }
   /** Check this tick's command before the host moves anything, and resolve raw axes to a world move. */
   take(input: SimTickCommand | undefined): void {
@@ -392,13 +343,7 @@ export class PlayerSim {
     this.versioned = versioned;
     if (versioned) {
       this.walk.active = true;
-      const forward = command === undefined ? 0 : command.steer === undefined
-        ? -Math.sin(command.yaw) * command.moveX - Math.cos(command.yaw) * command.moveZ
-        : Math.max(-1, Math.min(1, command.steer.keyY + command.steer.stickY));
-      const crouching = command?.crouch === true && !this.board.on && !this.swim.on;
-      this.versionedWalking.crouching = crouching;
-      this.versionedWalking.speed = walkingSpeed(crouching, command?.sprint === true && forward > 0 && !crouching
-        && (this.host.water === undefined || this.waterDepth() < NO_SPRINT_DEPTH), 0, this.moveScale, 1);
+      versionedWalk(this, command, this.world, this.versionedWalking);
     } else Object.assign(this.walk, { active: false, x: 0, z: 0 });
     const walking = delegated ? undefined : this.walkingControl ?? (versioned ? this.versionedWalking : driver?.walking);
     this.walking = walking;
@@ -409,95 +354,16 @@ export class PlayerSim {
   }
   /** The tick's motion phase, after the world steps. */
   move(): void {
-    const { command, delegated, versioned, walking } = this, driver = this.tickDriver, host = this.host;
+    const { command, delegated } = this, driver = this.tickDriver, host = this.host;
     const observe = this.motionObserver;
     // An unanswered ask returns its numeric dt input; only an explicit true claims motion.
     const traversal: unknown = delegated ? false : host.askTraversal(this);
     const traversed = traversal === true;
-    if (delegated) {
-      driver?.step(FIXED_STEP, host);
-      this.attackFrom(command);
-    }
-    else if (traversed) {
-      this.impulse.set(0, 0, 0);
-      this.attackFrom(command);
-    }
-    else {
-      const shoved = this.impulse.lengthSq() > 0, { fall, shove: knocked, dash, dodge, wanted } = this;
-      // the DODGE press, then the dodge clocks, as the client Player's step; the board ends a dash
-      if (command?.dodge === true) this.dodgeAs(command);
-      if (dodge.cd > 0 || dodge.t > 0) stepDodge(dodge, dash.t > 0, FIXED_STEP);
-      const { water } = host;
-      if (!this.swim.on) this.swim.stood = false; // last tick's stand-up is over
-      if (this.board.on || this.swim.on) { this.walk.x = 0; this.walk.z = 0; }
-      if (this.board.on) { dash.t = 0; this.stepBoarding(command); }
-      else if (this.swim.on) this.stepSwimming(command);
-      else if (command !== undefined || versioned || shoved || knocked.t > 0 || dash.t > 0 || !fall.grounded || fall.vy !== 0) {
-        // SF34 the wade (player/swim.ts): last step's water over the grounded feet slows the walk and saps the jump
-        const wadeT = water === undefined ? 0 : wadeFraction(fall.grounded, this.waterDepth());
-        if (command === undefined) wanted.set(0, 0, 0);
-        else {
-          this.yaw = command.yaw;
-          const levelSpeed = host.level.player.speed;
-          const speed = walking === undefined ? (water === undefined ? levelSpeed : levelSpeed * wadeScale(wadeT))
-            : walking.speed * (walking.clientMotion === undefined ? 1 : wadeScale(wadeT));
-          wanted.set(command.moveX, 0, command.moveZ).clampLength(0, 1).multiplyScalar(speed * FIXED_STEP);
-        }
-        const clientMotion = walking?.clientMotion;
-        if (clientMotion !== undefined) {
-          const acceleration = fall.grounded ? 14 : 3;
-          clientMotion.x = walkVelocity(clientMotion.x, wanted.x / FIXED_STEP, acceleration, FIXED_STEP);
-          clientMotion.z = walkVelocity(clientMotion.z, wanted.z / FIXED_STEP, acceleration, FIXED_STEP);
-          wanted.x = clientMotion.x * FIXED_STEP; wanted.z = clientMotion.z * FIXED_STEP;
-        }
-        if (knocked.t > 0) {
-          // knocked back: the shove overrides the walk and fades out; the motor stops it at a wall
-          const k = stepShove(knocked, FIXED_STEP);
-          wanted.x = knocked.vx * k * FIXED_STEP; wanted.z = knocked.vz * k * FIXED_STEP;
-        } else if (dash.t > 0) {
-          // a dash (dodge / lunge) overrides the walk; its last step brakes; deep water just ahead (with water) ends it
-          stepDash(dash, FIXED_STEP, this.position.x, this.position.z, water === undefined ? () => false : (x, z) => this.deepAt(x, z), this.dashVelocity);
-          wanted.x = this.dashVelocity.x * FIXED_STEP; wanted.z = this.dashVelocity.z * FIXED_STEP;
-        }
-        const walkX = wanted.x / FIXED_STEP, walkZ = wanted.z / FIXED_STEP;
-        if (observe !== undefined) { observe.sample.velocityX = walkX; observe.sample.velocityZ = walkZ; }
-        if (shoved) { wanted.addScaledVector(this.impulse, FIXED_STEP); decayImpulse(this.impulse, FIXED_STEP); }
-        // gravity first, then the whole move (walk + fall + impulse) through the motor, as the client Player's walk step.
-        // Walking on the ground (grounded, no vertical speed, a sideways move) the step adds no downward push: the motor's
-        // snap-to-ground holds the feet as the client's one-tick push does, without snagging on a collider seam; the tick
-        // the motor loses the ground takes that tick's gravity, so the fall speed runs exactly the client's from there.
-        // the jump (player/jump.ts) on last step's ground, before the step's gravity, as the client Player's walk
-        if (this.jump !== null) jumpClock(this.jump, fall.grounded, FIXED_STEP);
-        if (command?.jump === true) {
-          this.jump ??= { ago: fall.grounded ? 0 : Infinity, left: 1 };
-          const vy = jumpLaw(this.jump, fall.grounded, fall.vy, COYOTE_MS, walking?.crouching === true, water === undefined ? JUMP_SPEED : jumpSpeed(wadeT));
-          if (vy !== null) { fall.vy = vy; fall.grounded = false; host.events.emit('player.jump', true); }
-        }
-        const standing = clientMotion === undefined && fall.grounded && fall.vy === 0 && (wanted.x !== 0 || wanted.z !== 0);
-        if (!standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
-        wanted.y += fall.vy * FIXED_STEP;
-        // The page carries its grounded feet with a moving deck after the
-        // world step, before the commanded move, without downward sliding.
-        const riding = fall.grounded && this.motor.carry(this.position);
-        if (riding && wanted.y <= 0) wanted.y = 0;
-        const moved = this.motor.move(this.position, wanted);
-        dashBlocked(dash, moved.horizontalFreedom, this.dashVelocity); // a dash that runs into a wall ends there
-        // SF34 with water: the client Player's hand-over to the swim, and the water's cushion on a landing
-        const p = this.position, ws = water === undefined ? null : water.surfaceAt(p.x, p.z), g = ws === null ? 0 : this.groundUnderFeet();
-        if (swimEntry(p.y, ws, g)) {
-          this.enterSwim(walkX, walkZ);
-          if (p.y < g) p.y = g;
-        } else {
-          if (moved.grounded) {
-            // touching down from the air: a hard landing files the client's fall hit (PlayerHurt.fall); water softens it
-            if (!fall.grounded && hardLanding(fall.vy, ws === null ? 0 : landingCushion(p.y < ws, ws - g))) host.combat.hit(hardFallHit(this.health, this.position));
-            fall.vy = groundedVelocity(fall.vy);
-          } else if (standing) fall.vy = fallStep(fall.vy, FIXED_STEP);
-          fall.grounded = moved.grounded;
-        }
-        this.attackFrom(command);
-      }
-    }
+    let motion: MotionOut | undefined;
+    if (delegated) driver?.step(FIXED_STEP, host);
+    else if (traversed) this.impulse.set(0, 0, 0);
+    else motion = stepPlayerMotion(this, command, this.world, FIXED_STEP);
+    if (command?.attack !== undefined) host.startStrike(this.id, command.attack.targetId);
     if (observe !== undefined) {
       let sample: SimPlayerMotionSample | null;
       if (delegated || traversed) {
@@ -506,6 +372,7 @@ export class PlayerSim {
           || typeof sample.grounded !== 'boolean' || typeof sample.swimming !== 'boolean' || typeof sample.hover !== 'boolean')) throw new RangeError('Invalid delegated player motion sample');
       } else {
         const native = observe.sample;
+        native.velocityX = motion?.walkX ?? 0; native.velocityZ = motion?.walkZ ?? 0;
         native.grounded = this.fall.grounded; native.swimming = this.swim.on; native.hover = this.board.on;
         if (native.hover) { native.velocityX = this.boardVelocity.x; native.velocityZ = this.boardVelocity.z; }
         else if (native.swimming) { native.velocityX = this.swimVelocity.x; native.velocityZ = this.swimVelocity.z; }
