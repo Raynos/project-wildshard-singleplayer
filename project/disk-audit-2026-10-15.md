@@ -343,6 +343,12 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   (12 run dirs created 11-04). `tmp/goldens` (born 11-03 09:26; dated `2026-11-04-*` pack and ktx2 golden sets) passed
   2 GB at 2.7 GB.
 - `~/Library/Caches/node-compile-cache` was 3.6 GB at 11-02 22:16 and **29 GB** at 11-03 20:47 (about 1.3 GB an hour).
+- **11-05 16:47: `./tmp` 110 → 148 GB and 1.03M → 1.72M files in 4 h.** Nearly all of it is `tmp/ci-lane` (30 GB /
+  634k files, born 16:12, still written). `tmp/ci-lane/fprobe.sh` is a hand-rolled bisect: each probed sha gets its own
+  `tmp/ci-lane/f/<sha>` with a `git archive` tree, its own `pnpm install` and a `build-shardfiles`, so each sha costs
+  **2.3 GB / about 40k files**, 13 shas so far. Nothing removes `f/<sha>` when a probe ends. The `b` and `m` dirs add
+  3.4 GB / 111k files. `tmp/lane4/deploy` (2.6 GB, 15:14–15:40, finished) also passed 2 GB. This is repo `./tmp`, so it
+  costs disk only and is not boot-purged. **Fix:** a per-sha probe should remove `f/<sha>` after its `RESULT` lines.
 
 ## Decisions (Jake, 2026-10-15)
 
