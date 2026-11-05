@@ -833,10 +833,7 @@
   "src/game/boss/native.ts": "server",
   "src/game/boss/nativeArenaSeal.ts": "server",
   "src/game/boss/nativeWake.ts": "server",
-  "src/game/boss/openArenaFight.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/boss/openArenaFight.ts": "server",
   "src/game/boss/patrolLaw.ts": "server",
   "src/game/boss/presentation.ts": "client",
   "src/game/boss/roaming.ts": "server",
@@ -1529,7 +1526,7 @@
   "src/game/systems/audio/firearmSounds.ts": "client",
   "src/game/systems/audio/meleeSounds.ts": "client",
   "src/game/systems/audio/silentScore.ts": "client",
-  "src/game/systems/cellField.ts": "client",
+  "src/game/systems/cellField.ts": "server",
   "src/game/systems/effects/starter.generated.ts": "client",
   "src/game/systems/effects/view.ts": "client",
   "src/game/systems/items/declaredSword.ts": "client",
