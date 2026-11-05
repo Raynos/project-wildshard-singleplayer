@@ -483,7 +483,9 @@
   "src/engine/quest/dialogueClock.ts": "server",
   "src/engine/quest/discovery.ts": "server",
   "src/engine/quest/players.ts": "server",
+  "src/engine/quest/progress.ts": "shared",
   "src/engine/quest/view.ts": "client",
+  "src/engine/quest/view/replica.ts": "client",
   "src/engine/quest/view/ui.ts": {
    "side": "client",
    "mixed": true
