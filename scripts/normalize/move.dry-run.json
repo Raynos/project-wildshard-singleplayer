@@ -964,7 +964,7 @@
     "src/game/client/complete/ShardComplete.ts",
     "src/game/server/Elite.ts",
     "src/game/server/Inventory.ts",
-    "src/game/server/loot/CoinBurst.ts",
+    "src/game/client/loot/CoinBurst.ts",
     "src/game/loot/CoinChip.ts",
     "src/game/loot/finds.ts",
     "src/game/loot/install.ts",
