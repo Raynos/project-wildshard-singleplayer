@@ -2323,7 +2323,7 @@
       }
     },
     {
-      "module": "src/game/server/riding/taming.ts",
+      "module": "src/game/shared/riding/taming.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
