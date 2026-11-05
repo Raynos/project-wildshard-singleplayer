@@ -193,8 +193,8 @@ const RIBS = AIM_RIBS;
 /**
  * The King by weapon play, a tick at a time from what the player sees: into the stones; then a band round him (out of his
  * sweep, inside the ring), circling so his lanes miss; a jump over each root ring as it reaches the player; the lever-action
- * fired at him (a thrall that closes in first) while the action is idle (an empty trigger reloads), the crossbow once its
- * rounds are spent.
+ * fired at him while the action is idle (an empty trigger reloads), the crossbow once its rounds are spent. Thralls are
+ * outrun, never shot: the fight's 26 rounds don't cover both, and shooting them lost it on eight of eight circling rates.
  */
 function kingPlay(host: SimHost): HeadlessCommand[] {
   const p = leadPlayer(host).position, row = kingRow(host), C = LAYOUT.KINGS_CLEARING;
@@ -214,23 +214,17 @@ function kingPlay(host: SimHost): HeadlessCommand[] {
   const m = Math.max(1e-6, Math.hypot(mx, mz));
   // a root ring about to reach the player: jump it
   const jump = row.fight.waves.some(w => w.on && w.delay <= 0 && d - w.r > 0 && d - w.r < JUMP_AHEAD);
-  // the target: a thrall within 12 m, else the King
-  let target: { id: string; x: number; z: number } = { id: king.entityId, x: king.position.x, z: king.position.z };
-  for (const th of row.fight.thralls) {
-    const a = host.entities.get(th.a);
-    if (a !== undefined && a.alive && Math.hypot(a.position.x - p.x, a.position.z - p.z) < 12) { target = { id: a.entityId, x: a.position.x, z: a.position.z }; break; }
-  }
-  const tx = target.x - p.x, tz = target.z - p.z, yaw = Math.atan2(-tx, -tz), gun = lever(host);
+  const yaw = Math.atan2(-kx, -kz), gun = lever(host);
   const spent = gun.reserve === 0 && gun.tube === 0 && !gun.chambered;
   const commands: HeadlessCommand[] = [];
   const held = v.parse(LoadoutRow, host.adapters.get(LOADOUT_STEP)?.snapshot()).held, want = spent ? PINE_WEAPON.crossbow : PINE_WEAPON.lever;
   if (held !== want) commands.push({ kind: 'script', actorId: WEAPON_COMMAND, value: want });
-  // the King only into his open ribcage (×3; shut ×0.6, the bark ×0.25), aimed at it; a thrall at its middle
-  const ready = spent || gun.phase === 'idle', onKing = target.id === king.entityId;
+  // only into his open ribcage (×3; shut ×0.6, the bark ×0.25), aimed at it
+  const ready = spent || gun.phase === 'idle';
   // An empty trigger starts the page's reload; waiting for a chambered round would deadlock the tape.
-  const fire = ready && (!onKing || !gun.chambered || row.fight.open > 0.5);
-  if (fire && onKing) commands.push({ kind: 'script', actorId: AIM_COMMAND, value: RIBS });
-  commands.push({ kind: 'player', moveX: mx / m, moveZ: mz / m, yaw, ...(fire ? { attack: { targetId: target.id } } : {}), ...(jump && leadPlayer(host).fall.grounded ? { jump: true } : {}) });
+  const fire = ready && (!gun.chambered || row.fight.open > 0.5);
+  if (fire) commands.push({ kind: 'script', actorId: AIM_COMMAND, value: RIBS });
+  commands.push({ kind: 'player', moveX: mx / m, moveZ: mz / m, yaw, ...(fire ? { attack: { targetId: king.entityId } } : {}), ...(jump && leadPlayer(host).fall.grounded ? { jump: true } : {}) });
   return commands;
 }
 

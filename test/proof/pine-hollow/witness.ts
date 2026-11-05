@@ -129,7 +129,7 @@ export function pineTape(plan:HeadlessRuntimePlan,from?:TapeState):PineTape {
 
 const facts = (effects: readonly HeadlessEffect[]): string[] => effects.flatMap(effect => effect.kind === 'fact' ? [`${effect.name}/${effect.actorId}`] : []);
 
-/** Bound a failed fight separately from the whole walk. The current tape wins in 3,122 fight ticks. */
+/** Bound a failed fight separately from the whole walk. The current tape wins in 1,919 fight ticks. */
 const KING_PROBE = 5000;
 /**
  * The tape from the spawn: the day's legs to the den's lantern, Hale's watch till dark, the Ghost Stag's walk into the
