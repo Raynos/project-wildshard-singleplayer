@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 387,
+  "client → server": 371,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 144,
@@ -16,7 +16,7 @@
    "client → server": 3
   },
   "src/engine/ai/view/eliteEntry.ts": {
-   "client → server": 6
+   "client → server": 5
   },
   "src/engine/app/app.ts": {
    "client → server": 3
@@ -38,9 +38,6 @@
   },
   "src/engine/combat/view/SweptMelee.ts": {
    "client → server": 2
-  },
-  "src/engine/debug/probe.ts": {
-   "client → server": 1
   },
   "src/engine/entities/AnimalView.ts": {
    "client → server": 1
@@ -67,9 +64,6 @@
    "client → server": 2
   },
   "src/engine/script/client.ts": {
-   "client → server": 2
-  },
-  "src/engine/script/viewLane.ts": {
    "client → server": 2
   },
   "src/engine/sim/snapshot.ts": {
@@ -103,7 +97,7 @@
    "client → server": 1
   },
   "src/game/boss/encounterView.ts": {
-   "client → server": 5
+   "client → server": 4
   },
   "src/game/boss/roamingProjection.ts": {
    "client → server": 8
@@ -219,7 +213,7 @@
    "server → client": 2
   },
   "src/game/loadout/claims.ts": {
-   "client → server": 9
+   "client → server": 8
   },
   "src/game/loadout/effects.ts": {
    "server → client": 4
@@ -323,7 +317,7 @@
    "server → client": 1
   },
   "src/game/population/pageLife.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/population/pageReturns.ts": {
    "server → client": 1
@@ -339,12 +333,6 @@
   },
   "src/game/population/wildlife.ts": {
    "server → client": 4
-  },
-  "src/game/practice/course.ts": {
-   "client → server": 1
-  },
-  "src/game/practice/numericCourse.ts": {
-   "client → server": 1
   },
   "src/game/Progress.ts": {
    "client → server": 1
@@ -402,7 +390,7 @@
    "server → client": 7
   },
   "src/game/riding/client.ts": {
-   "client → server": 9
+   "client → server": 8
   },
   "src/game/riding/mount.ts": {
    "server → client": 3
@@ -465,7 +453,7 @@
    "client → server": 2
   },
   "src/game/shardfile/clientEliteConstruction.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/game/shardfile/clientEliteEntry.ts": {
    "client → server": 1
@@ -506,9 +494,6 @@
   "src/game/shardfile/clientResidency.ts": {
    "client → server": 1
   },
-  "src/game/shardfile/clientReturnModules.ts": {
-   "client → server": 1
-  },
   "src/game/shardfile/clientSkins.ts": {
    "client → server": 1
   },
@@ -522,7 +507,7 @@
    "client → server": 4
   },
   "src/game/shardfile/clientStealthEntry.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/shardfile/clientTargets.ts": {
    "client → server": 2
@@ -587,9 +572,6 @@
   "src/game/shardfile/worldUpdates.ts": {
    "server → client": 9
   },
-  "src/game/stealth/controller.ts": {
-   "client → server": 1
-  },
   "src/game/systems/items/declaredSword.ts": {
    "client → server": 1
   },
@@ -614,9 +596,6 @@
   "src/game/weapons/Bow.ts": {
    "server → client": 1
   },
-  "src/game/weapons/heldDecision.ts": {
-   "client → server": 1
-  },
   "src/game/weapons/heldLauncher.ts": {
    "client → server": 3
   },
@@ -636,7 +615,7 @@
    "server → client": 1
   },
   "src/game/weather/forest.ts": {
-   "client → server": 7
+   "client → server": 6
   },
   "src/game/weather/rainPresentation.ts": {
    "client → server": 1
