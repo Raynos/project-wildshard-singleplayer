@@ -45,6 +45,14 @@ test('one native metadata census completes a warm list without per-file cache ca
   expect(download.snapshot()).toMatchObject({complete: true, cachedBytes: 7, filesDone: 2});
 });
 
+test('a cache too big for the native census is read file by file: the player is not refused a held level', async () => {
+  const tooLarge = () => Promise.reject(new DOMException('Operation too large', 'UnknownError'));
+  const cached = vi.fn(() => Promise.resolve(new Response(text))), present = vi.fn(tooLarge), fetch = vi.fn(() => Promise.reject(new Error('Unexpected warm network')));
+  const download = downloadSpawnManifest(address, {cached, present, fetch}, base); await download.ready;
+  expect(present).toHaveBeenCalledTimes(1); expect(fetch).not.toHaveBeenCalled();
+  expect(download.snapshot()).toMatchObject({complete: true, cachedBytes: 7, filesDone: 2});
+});
+
 test('a pending cache census keeps its fixed total but publishes no invented zero percentage', async () => {
   let release: (urls: ReadonlySet<string>) => void = () => undefined;
   const present = new Promise<ReadonlySet<string>>(resolve => {release = resolve;});

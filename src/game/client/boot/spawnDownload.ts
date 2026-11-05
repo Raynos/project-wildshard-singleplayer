@@ -277,12 +277,14 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         }
         wireTotal = files.reduce((sum, file) => sum + file.wireBytes, 0);
       }
-      let heldIndex: HeldParts = {}, keys: ReadonlySet<string> = new Set();
+      // Both bulk reads only save lookups. Chromium refuses a whole-cache query past its size limit ("Operation too large"),
+      // and a player who has walked a road holds a cache that size: each file is then asked for on its own, below.
+      let heldIndex: HeldParts = {}, keys: ReadonlySet<string> | null = new Set();
       if (parts !== undefined && ports.held !== undefined) {
-        [heldIndex, keys] = await Promise.all([ports.held.read().catch(() => ({})), ports.held.keys()]);
+        [heldIndex, keys] = await Promise.all([ports.held.read().catch(() => ({})), ports.held.keys().catch(() => null)]);
         for (const part of parts) {
           const stored = new Set(heldIndex[part.hash]), urls = part.members.map(([at]) => files[at]?.url ?? '');
-          if (urls.every(url => stored.has(url) && keys.has(url))) for (const url of urls) heldFiles.add(url);
+          if (urls.every(url => stored.has(url) && keys?.has(url) !== false)) for (const url of urls) heldFiles.add(url);
         }
       }
       // A key only proves an entry exists. Each held member is credited only when its entry is a 200, not a page, and
@@ -294,7 +296,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         heldFiles.delete(file.url); unfit.add(file.url);
       }));
       const rest = files.filter(file => !heldFiles.has(file.url) && !unfit.has(file.url));
-      const present = heldFiles.size > 0 && rest.length <= 64 ? undefined : await ports.present?.(rest.map(file => file.url));
+      const present = heldFiles.size > 0 && rest.length <= 64 ? undefined : await ports.present?.(rest.map(file => file.url)).catch(() => undefined);
       // Bulk native metadata avoids hundreds of cache IPC calls. Unmapped
       // responses (older synthetic URLs/redirects) retain the exact hit check.
       const cached = await Promise.all(files.map(file => heldFiles.has(file.url) || unfit.has(file.url) || present?.has(file.url) === true ? Promise.resolve(undefined) : ports.cached(file.url)));

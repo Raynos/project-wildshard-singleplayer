@@ -119,6 +119,26 @@ test('DL18: a warm visit answers every packed member from the held-parts index, 
   }
 });
 
+test('a cache too big to list still answers held parts: each member is proved on its own and nothing refetches', async () => {
+  const disk = new Map<string, Response>(), reads: string[] = [];
+  let index: HeldParts = {};
+  const ports = (keys: () => Promise<ReadonlySet<string>>) => ({packs: true, whole: true,
+    cached: (url: string) => Promise.resolve(disk.get(url)?.clone()),
+    keep: (url: string, response: Response) => { disk.set(url, response); return Promise.resolve(); },
+    store: (url: string, response: Response) => { disk.set(url, response); return Promise.resolve(); },
+    held: {read: () => Promise.resolve(index), write: (next: HeldParts) => { index = next; return Promise.resolve(); }, keys},
+    fetch: (url: string) => {
+      const path = new URL(url).pathname; reads.push(path);
+      return Promise.resolve(new Response(path === address.url ? text : path === part.url ? partBytes : body(path)));
+    }});
+  await downloadSpawnManifest(address, ports(() => Promise.resolve(new Set(disk.keys()))), base).ready;
+  reads.length = 0;
+  const warm = downloadSpawnManifest(address, ports(() => Promise.reject(new DOMException('Operation too large', 'UnknownError'))), base);
+  await warm.ready;
+  expect(reads).not.toContain(part.url);
+  expect(warm.snapshot().complete).toBe(true);
+});
+
 test('DL15: on the packs path the wire facts are the parts\' q11 bodies plus the loose files', async () => {
   // Loose q3 estimates: bin 3, glb 4, code 2 (9). The part's q11 body is 6 bytes, so the wire is 6 + 2.
   const files = [{...bin, wireBytes: 3}, {...glb, wireBytes: 4}, {...code, wireBytes: 2}];
