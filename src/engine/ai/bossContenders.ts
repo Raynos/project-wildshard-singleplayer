@@ -44,6 +44,16 @@ export class BossContenders {
     return this.first();
   }
   private inside(): PlayerSim[] { return [...this.players.values()].filter(player => this.inArena(player.position)); }
+  /** Whom a body deals with: the living player past the threshold nearest it, else the contender. Unread for a lone player. */
+  nearest(point: { readonly x: number; readonly y: number; readonly z: number }): PlayerSim {
+    if (this.players.size <= 1) return this.first();
+    let best: PlayerSim | null = null, bestScore = Infinity;
+    for (const player of this.inside()) {
+      const score = player.health.alive ? player.position.distanceToSquared(point) : Infinity;
+      if (best === null || score < bestScore) { best = player; bestScore = score; }
+    }
+    return best ?? this.contender();
+  }
   /** The brain's respawn: who fell, or a lone player. */
   readonly respawn = (position: Vector3, yaw: number): void => {
     for (const player of this.returning ?? this.players.values()) this.place(player, position, yaw);
@@ -74,6 +84,10 @@ export class BossContenders {
   restoreEngaged(count: number): void { this.counted = count; }
   /** A hit on the body, over the health curve: the body keeps its authored hit points. */
   scaled(request: DamageRequest): DamageRequest { return this.counted <= 1 ? request : { ...request, amount: request.amount / bossHealthScale(this.counted) }; }
+  /** Whether a dealt blow is this fight's: the body's own, or a hazard's under the fight's `hazard` tag (env-sourced). */
+  owns(request: DamageRequest, body: { combatActor: () => unknown }, hazard: string | undefined): boolean {
+    return request.source === body.combatActor() || (hazard !== undefined && request.source === 'env' && request.sourceTags.some(tag => tag === hazard));
+  }
   /** A blow the body landed on one player also lands on the next nearest, up to the curve's count. */
   echo(request: DamageRequest, body: { readonly position: Vector3 }, combat: Pick<CombatPipeline, 'hit'>): void {
     const count = bossTargetCount(this.counted);

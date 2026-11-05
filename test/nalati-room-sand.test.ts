@@ -6,7 +6,7 @@ import {HeightPatch} from '../src/engine/physics/heightPatch';
 import {ArenaRoomGround} from '../src/game/boss/arenaGround';
 import {snapshotSimHostBytes,restoreSimHost} from '../src/engine/sim/snapshot';
 import {physicsState} from './fake/simState';
-import {NativeArenaSand} from './fixtures/nalati-room-sand-native';
+import {NativeArenaSand} from '../src/game/boss/nativeArenaSand';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 

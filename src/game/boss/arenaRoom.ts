@@ -2,7 +2,7 @@
  *  with, listens to and rides on arrives as `ArenaRoomPage` (arenaRoomView.ts), so this file imports no view. */
 import { Vector3, type Object3D, type PointLight, type Scene } from 'three';
 import * as v from 'valibot';
-import type { BossViewBinding } from '../plugin/bossPhase';
+import type { BossViewBinding, PhasedBossFight } from '../plugin/bossPhase';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
@@ -28,7 +28,10 @@ import type { WeatherReactions } from '../weather/reactions';
 import { wildEnv } from '../population/pageGroups';
 import { arenaBoundary, arenaTie } from './arenaAnswers';
 import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from './openArenaFight';
-import { ArenaFightPageSchema, arenaRoomFight } from './arenaRoomFight';
+import { ArenaFightPageSchema, arenaRoomFight, bindArenaBrain, type BoundedArenaFight } from './arenaRoomFight';
+import { bindRuntimeBoss } from '../plugin/headless';
+import type { BossScript } from '@wildshard/engine/ai/BossBrain';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ArenaRoomPortalSchema } from './arenaRoomRows';
 import type { ArenaRoomPortal, ArenaRoomPortalWorld, BossArenaRoom } from './arenaRoomView';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
@@ -77,13 +80,48 @@ export interface ArenaRoomPage {
   readonly listenSkip: (scope: Scope, held: (source: 'key' | 'touch', on: boolean) => void) => void;
 }
 
+/** The page's room fight, with the presence the portal toggles. */
+export interface ArenaPageFight { phased: PhasedBossFight<Animal>; script: BossScript; body: () => Animal | null; setPresent: (on: boolean) => void; devKill: () => void }
+/** The fight over the page's one player, body and room. */
+export function pageArenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, input: unknown, views: (presentation: BoundedArenaFight['presentation']) => BossViewBinding): ArenaPageFight {
+  const rows = v.parse(ArenaFightPageSchema, input), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
+  if (world === undefined || world === null || play === undefined || play === null) throw new Error('Arena fight requires its actual page owners');
+  const { animals } = play, { player } = world, owner = bindRuntimeBoss(ctx, ctx.product.shardfile, rows.body, undefined, { identity: rows.identity });
+  const floor = (actor: Animal): void => { actor.levelGround = true; actor.sampleTerrain(); };
+  const fight = arenaRoomFight<Animal>({ room: dungeon,
+    body: { spawn: () => { const actor = owner.spawn(); if (actor === null) return null; dungeon.actor = actor; actor.herd = -1; floor(actor); return actor; },
+      retire: actor => {
+        if (dungeon.actor === actor) dungeon.actor = null;
+        actor.hidden = true; actor.mesh.visible = false; actor.position.y = -9999;
+        const index = animals.animals.indexOf(actor); if (index !== -1) animals.animals.splice(index, 1);
+        actor.mesh.removeFromParent();
+      }, bind: (actor, brain) => { bindArenaBrain(actor, brain); },
+      ready: (actor, floorY) => { actor.yOffset = floorY - actor.position.y; actor.mesh.visible = true; } },
+    spawnAdd: (_i, x, z, yaw) => {
+      const actor = animals.spawn(rows.add.kind, x, z, yaw, rows.add.variant);
+      actor.herd = -1; floor(actor); Object.assign(actor.mem, rows.add.memory);
+      actor.yOffset = dungeon.rows.origin.y - actor.position.y; return actor;
+    },
+    target: () => ({ position: player.position, dash: (x, z, seconds) => { player.dash(x, z, seconds); }, health: ctx.app.player }),
+    combat: ctx.app.combat, physics: () => ctx.app.physics, rng: () => ctx.app.rng.stream('ai').next(), feed: line => { play.hud.killFeed(line); },
+  }, rows, views);
+  return { ...fight, setPresent: on => {
+    const body = fight.phased.body(), bodies = body === null ? fight.phased.adds() : [body, ...fight.phased.adds()];
+    for (const actor of bodies) {
+      const index = animals.animals.indexOf(actor);
+      if (on && index === -1 && !actor.hidden) { animals.animals.push(actor); animals.group.add(actor.mesh); }
+      if (!on && index !== -1) { animals.animals.splice(index, 1); actor.mesh.removeFromParent(); }
+    }
+  } };
+}
+
 export class ArenaRoomEncounter {
   /** the reward's light slot, dark until the victory (Boss.ts): a LightPool light once the arena is in its scene */
   spareLight:PointLight;
   private readonly room:BossArenaRoom|null;
   get dungeon():BossArenaRoom{if(this.room===null)throw new Error('Open arena has no room');return this.room;}
   boss:Boss|null=null;ui:BossBar|null=null;
-  fight:ReturnType<typeof arenaRoomFight>|null=null;
+  fight:ArenaPageFight|null=null;
   power:ReturnType<HeldSlotKit['bowPower']>|ArcWeaponPower|null=null;
   riders:PatrolEncounterView|null=null;mount:Mount|null=null;
   private readonly rows:v.InferOutput<typeof ArenaRoomEncounterSchema>|null;
@@ -164,7 +202,7 @@ export class ArenaRoomEncounter {
       if(room===null||this.room===null)throw new Error('Missing closed arena rows');
       this.portal=page.portal({game,player,animals:play.animals},this.dungeon,room.portal,ReturnProgram.page(room.program,game.levelScope),this.entrance);
       try{play.animals.factory.model(room.client.prewarm.kind,room.client.prewarm.variant);}catch(error:unknown){console.warn('Arena adds did not prewarm',error);}
-      this.power=bow=kit.bowPower('bow-reward');this.fight=arenaRoomFight(ctx,this.dungeon,room.page,presentation=>page.views(this.dungeon,presentation));
+      this.power=bow=kit.bowPower('bow-reward');this.fight=pageArenaRoomFight(ctx,this.dungeon,room.page,presentation=>page.views(this.dungeon,presentation));
     }else{
       if(equipment===undefined)throw new Error('Missing open arena equipment');this.mount=page.mount(ctx);
       this.power=blade=new(equipment.arsenal.blade('blade').Power)({scene:game.scene,player,camera:game.camera,animals:play.animals,weather:this.world.weather,scope:ctx.scope});

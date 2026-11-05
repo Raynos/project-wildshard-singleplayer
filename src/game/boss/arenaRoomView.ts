@@ -39,8 +39,7 @@ import { ArenaFireView, ArenaWhirlsView, lendOpenArenaView } from './arenaFire';
 import { ArenaPortalLaw } from './arenaPortal';
 import { ArenaRoomGround } from './arenaGround';
 import { ArenaRoomPortalSchema, ArenaRoomSchema, type ArenaRoomRows } from './arenaRoomRows';
-import type { arenaRoomFight } from './arenaRoomFight';
-import type { ArenaRoomEncounter, ArenaRoomPage } from './arenaRoom';
+import type { ArenaPageFight, ArenaRoomEncounter, ArenaRoomPage } from './arenaRoom';
 import { ArenaSceneView, CloudBody } from './encounterView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../shardfile/entryOwners';
 import { prepareLentLooks } from '../shardfile/lentLooks';
@@ -67,13 +66,13 @@ export class ArenaRoomPortal {
   private calmWas = false;
   private locked = false; private slow = false;
   private boss: Boss | null = null; private ui: BossBar | null = null;
-  private fight: ReturnType<typeof arenaRoomFight> | null = null;
+  private fight: ArenaPageFight | null = null;
   constructor(private readonly world: ArenaRoomPortalWorld, private readonly room: BossArenaRoom, input: unknown,
     program: ReturnProgram, private readonly entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null) {
     this.rows = v.parse(ArenaRoomPortalSchema, input); this.keep = new RegExp(this.rows.keep, 'i');
     this.law = new ArenaPortalLaw(program, this.rows, entrance);
   }
-  bind(boss: Boss, ui: BossBar, fight: ReturnType<typeof arenaRoomFight>): void { this.boss = boss; this.ui = ui; this.fight = fight; }
+  bind(boss: Boss, ui: BossBar, fight: ArenaPageFight): void { this.boss = boss; this.ui = ui; this.fight = fight; }
   setLocked(on: boolean): void { this.locked = on; this.move(); }
   private move(): void { this.world.player.moveScale = this.locked ? 0 : this.slow ? this.rows.slow : 1; }
   enter(immediate = false, atZ: number = this.rows.spawn.z): void {

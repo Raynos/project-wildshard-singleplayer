@@ -1,13 +1,17 @@
 import * as v from 'valibot';
-import type {SimHost} from '../../src/engine/sim';
-import {HeightPatch} from '../../src/engine/physics/heightPatch';
-import {tagOf,untagCollider} from '../../src/engine/physics/surface';
-import {toColumnMajor} from '../../src/engine/physics/terrain';
-import {groups} from '../../src/engine/physics/groups';
-import {ArenaRoomGround} from '../../src/game/boss/arenaGround';
+import type {SimHost} from '@wildshard/engine/sim';
+import {HeightPatch} from '@wildshard/engine/physics/heightPatch';
+import {tagOf,untagCollider} from '@wildshard/engine/physics/surface';
+import {toColumnMajor} from '@wildshard/engine/physics/terrain';
+import {groups} from '@wildshard/engine/physics/groups';
+import {ArenaRoomGround} from './arenaGround';
 
-const finite=v.pipe(v.number(),v.finite());
-const Saved=v.strictObject({version:v.literal(1),recipe:v.pipe(v.string(),v.maxLength(100_000)),
+const finite:v.GenericSchema<number>=v.pipe(v.number(),v.finite());
+/** The sand's continuation: its recipe, its ground and the grid and collider last published. */
+interface SandSaved {
+  version:1;recipe:string;ground:{sand:number[];dirty:boolean;clock:number};grid:number[]|null;collider:number|null;
+}
+const Saved:v.GenericSchema<SandSaved>=v.strictObject({version:v.literal(1),recipe:v.pipe(v.string(),v.maxLength(100_000)),
   ground:v.strictObject({sand:v.pipe(v.array(finite),v.maxLength(256*256)),dirty:v.boolean(),clock:finite}),
   grid:v.nullable(v.pipe(v.array(finite),v.maxLength(257*257))),collider:v.nullable(v.pipe(finite,v.minValue(0)))});
 
@@ -34,7 +38,7 @@ export class NativeArenaSand {
   private patch:HeightPatch|undefined;
   private grid:Float32Array|null=null;
   private retained:number|null=null;
-  private readonly options;
+  private readonly options:{x:number;y:number;z:number;size:number;res:number;material:'sand';owner:string};
   private readonly recipe:string;
   constructor(private readonly host:SimHost,private readonly rows:ConstructorParameters<typeof ArenaRoomGround>[0],private readonly id:string){
     if(id.length===0||rows.sandCells>256)throw new Error('Missing bounded room sand owner');
@@ -71,7 +75,7 @@ export class NativeArenaSand {
     this.patch??=new HeightPatch(this.host.physics,this.options);
     this.grid=arenaSandVertices(this.ground,this.rows.sandCells);this.patch.set(this.grid);
   }
-  snapshot():v.InferOutput<typeof Saved> {const ground=this.ground.snapshot();return {version:1,recipe:this.recipe,ground:{...ground,sand:[...ground.sand]},grid:this.grid===null?null:Array.from(this.grid),collider:this.collider()};}
+  snapshot():SandSaved {const ground=this.ground.snapshot();return {version:1,recipe:this.recipe,ground:{...ground,sand:[...ground.sand]},grid:this.grid===null?null:Array.from(this.grid),collider:this.collider()};}
   restore(input:unknown):void {
     this.live();const saved=v.parse(Saved,input),count=this.options.res*this.options.res;
     if(saved.recipe!==this.recipe||saved.ground.sand.some(value=>!Object.is(value,Math.fround(value)))

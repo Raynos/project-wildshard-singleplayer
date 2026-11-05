@@ -11,9 +11,8 @@ import type { ModelDef } from '../src/engine/models/model';
 import { currentOwner } from '../src/engine/app/ownership';
 import finishes from '../src/shards/nalati-grasslands/data/skinFinishes.json' with {type:'json'};
 import {lendNalatiPasture} from './fixtures/nalati-titan-loan';
-import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
+import { ArenaRoomEncounter, pageArenaRoomFight, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
 import { ARENA_ROOM_PAGE, arenaRoomViews } from '../src/game/boss/arenaRoomView';
-import { arenaRoomFight } from '../src/game/boss/arenaRoomFight';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
 // @vitest-environment happy-dom
@@ -111,7 +110,7 @@ test('Golden King runs all phases, clears the real adds and reaches its single r
     product: legacyDouble<ShardContext['product']>({ shardfile: legacyDouble<ShardContext['product']['shardfile']>({
       runtime: { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['spawns'], spawns: parseRuntimeSpawns(NALATI_RUNTIME_SPAWNS) },
     }) }) });
-  const fight = arenaRoomFight(context, dungeon, king.page, presentation => arenaRoomViews(dungeon, presentation));
+  const fight = pageArenaRoomFight(context, dungeon, king.page, presentation => arenaRoomViews(dungeon, presentation));
   const e = encounter(king.encounter, fight.script, f.player.position), direction = new Vector3(0, 0, -1);
   try {
     e.brain.arm();

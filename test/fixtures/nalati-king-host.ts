@@ -19,7 +19,7 @@ import type {NalatiChapterRecords} from './nalati-chapter-records';
 import {nalatiWeaponsOf} from './nalati-weapons-native';
 import {nalatiBalbalsOf} from './nalati-balbal-native';
 import {restoreEncounterBrains} from './restoreEncounterBrains';
-import {NativeArenaSand} from './nalati-room-sand-native';
+import {NativeArenaSand} from '../../src/game/boss/nativeArenaSand';
 import {KingContinuation,type KingObservation} from './nalati-king-continuation';
 import {nativeKingSeal} from './nalati-king-seal';
 import {readNalatiWeaponObservation} from './nalati-weapon-observation';

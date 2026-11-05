@@ -8,6 +8,7 @@ import { BossBrain, type BossContinuation, type BossDefinition, type BossSaved, 
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows, type SpeciesDecisionAuthority } from '../plugin/brain';
 import { BossContenders } from '@wildshard/engine/ai/bossContenders';
 import { publishEncounter } from '@wildshard/engine/sim/encounterRows';
@@ -47,6 +48,10 @@ export interface BossRowSpec {
   readonly armed?: boolean;
   /** After a restore: re-adopt the body the host reinstalled, mirror the restored record. */
   readonly restored?: (boss: BossContinuation) => void;
+  /** The tag an env-sourced hazard of this fight wears: its hits share to further players as the body's blows do (J104). */
+  readonly hazardTag?: string;
+  /** A player the brain just put back: the host's own part of the return (its motor, its kit). */
+  readonly returned?: (player: PlayerSim) => void;
 }
 
 const finite = v.pipe(v.number(), v.finite());
@@ -78,8 +83,8 @@ const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v
  * step. The player's weapons are locked through the intro (`locked`). Signal's Dune Matriarch and Sky Reach's Storm Roc
  * have this shape.
  */
-export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBrain; summon: () => void; locked: () => boolean } {
-  const party = new BossContenders(host.players, point => spec.script.inArena(point), (player, position, yaw) => { player.position.copy(position); player.yaw = yaw; });
+export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBrain; party: BossContenders; summon: () => void; locked: () => boolean } {
+  const party = new BossContenders(host.players, point => spec.script.inArena(point), (player, position, yaw) => { player.position.copy(position); player.yaw = yaw; spec.returned?.(player); });
   const ports = { events: host.events, player: party.player,
     lockInput: () => undefined, skipHeld: () => false, respawn: party.respawn, faceToward: party.faceToward,
     spawnReward: () => { spec.spawnReward?.(); }, persist: spec.persist };
@@ -87,7 +92,7 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
     ? new BossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved)
     : new DirectorBossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved, spec.stages);
   host.events.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() ? spec.shielded() ? null : party.scaled(request) : request; }, host.scope);
-  host.events.on('damage.dealt', ({ req }) => { const body = spec.body(); if (body !== null && req.source === body.combatActor()) party.echo(req, body, host.combat); }, host.scope);
+  host.events.on('damage.dealt', ({ req }) => { const body = spec.body(); if (body !== null && party.owns(req, body, spec.hazardTag)) party.echo(req, body, host.combat); }, host.scope);
   // A room asks first and acts on `player.died`, the one event that says who fell.
   host.events.answer('death.checkpoint', (value) => (host.players.size > 1 ? boss.engaged : boss.onPlayerDeath()) || value === true, host.scope);
   host.events.on('player.died', ({ actor }) => { if (host.players.size > 1) party.fell(actor.id, boss); }, host.scope);
@@ -106,7 +111,7 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
     },
   });
   publishEncounter(host, spec.step, () => ({ kind: 'boss', state: boss.state, hp: spec.script.hpFrac, phase: boss.phase, shield: spec.shielded() || boss.state === 'beat', body: spec.body()?.entityId ?? null }));
-  return { boss, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };
+  return { boss, party, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };
 }
 
 

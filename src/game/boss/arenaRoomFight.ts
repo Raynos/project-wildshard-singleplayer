@@ -1,30 +1,33 @@
-/** The arena room's sim half (P1-E4.2): its row-driven fight and the brain each body runs. Its looks are the view half's
- *  (arenaRoomView.ts `arenaRoomViews`), passed in; nothing here draws. */
+/** The arena room's sim half (P1-E4.2): its row-driven fight and the brain each body runs, over whichever host lends its
+ *  body, players and room (`ArenaFightPorts`): the page, or a SimHost's every player (arenaRoomNative.ts). Its looks are the
+ *  view half's (arenaRoomView.ts `arenaRoomViews`), passed in; nothing here draws. */
 import { Vector3 } from 'three';
 import * as v from 'valibot';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import { canReach } from '@wildshard/engine/ai/reach';
+import { canReach, type ReachActor } from '@wildshard/engine/ai/reach';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import { StrikeRunner } from '@wildshard/engine/ai/strikes';
-import type { CombatTag } from '@wildshard/engine/combat/pipeline';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { StrikeRunner, type StrikeContext } from '@wildshard/engine/ai/strikes';
+import type { CombatPipeline, CombatTag, DamageRequest } from '@wildshard/engine/combat/pipeline';
+import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { ArenaRoomSpeciesControlSchema } from '@wildshard/format/speciesBookRows';
-import { bossFight, type BossViewBinding, type PhasedBossBrain, type PhasedBossFight } from '../plugin/bossPhase';
-import type { ShardContext } from '../plugin/context';
-import { bindRuntimeBoss } from '../plugin/headless';
-import type { BossArenaRoom } from './arenaRoomView';
+import { bossFight, type BossViewBinding, type PhasedBossBody, type PhasedBossBrain, type PhasedBossFight, type PhasedBossPorts } from '../plugin/bossPhase';
 
 const finite = v.pipe(v.number(), v.finite());
 const rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const triple = v.tuple([finite,finite,finite]);
 
+/** The body of an arena fight, the page's or a host's: what the strike rows and the reach test read of it. */
+export type ArenaFightBody = PhasedBossBody & StrikeContext['actor'] & ReachActor & { readonly kind: string; readonly label: string };
 /** Built-in body binding for row-driven arena fights. Species adapters observe
  * the shared fight's brain rather than installing a shard decision owner. */
-const arenaBrains = new WeakMap<Animal, PhasedBossBrain<Animal>>();
-export function arenaRoomBrain(actor: Animal): PhasedBossBrain<Animal> | undefined { return arenaBrains.get(actor); }
+type SpeciesBody = Parameters<NonNullable<SpeciesDef['think']>>[0];
+const arenaBrains = new WeakMap<object, PhasedBossBrain<SpeciesBody>>();
+export function arenaRoomBrain(actor: SpeciesBody): PhasedBossBrain<SpeciesBody> | undefined { return arenaBrains.get(actor); }
+/** Hand a body its fight's brain, for the species' forwards. */
+export function bindArenaBrain(actor: SpeciesBody, brain: PhasedBossBrain<SpeciesBody>): void { arenaBrains.set(actor, brain); }
 
 /** Row-selected controls over the original arena brain; no other fight/body
  * owner is installed. Nullish defaults retain authored order and lazy height. */
@@ -54,71 +57,62 @@ export const ArenaFightPageSchema: v.GenericSchema<BoundedArenaFightInput, Bound
   cuts: v.pipe(v.array(CreatureStrikeSchema), v.minLength(1), v.maxLength(16)),
   hazards: v.record(rowId, CreatureStrikeSchema),
 });
-/** Client-only adapter over the existing boss host: admitted body rows, floor,
- * strikes and arena presentation. All public author inputs are data and ids. */
-export function arenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, input: unknown, views: (presentation: BoundedArenaFight['presentation']) => BossViewBinding): {
-  phased: PhasedBossFight<Animal>; script: BossScript; body: () => Animal | null; setPresent: (on: boolean) => void; devKill: () => void;
+/** The fight's world from wherever it runs. `target` is whom the fight deals with right now; a lone player always. */
+export interface ArenaFightTarget {
+  readonly position: Vector3; readonly dash: (x: number, z: number, seconds: number) => void;
+  /** The target's health in the combat pipeline; null: nobody to hurt yet. */
+  readonly health: DamageRequest['target'] | null;
+}
+export interface ArenaFightPorts<A extends ArenaFightBody> {
+  /** The walkable room the fight piles, drains and seals. */
+  readonly room: { readonly floorHeightAt: (x: number, z: number) => number | undefined; readonly addSand: (x: number, z: number, r: number, dh: number, cap: number) => void;
+    readonly clearSand: () => void; readonly drainSand: (dt: number, rate: number) => void; readonly inChamber: (p: Vector3) => boolean; readonly setSealed: (on: boolean) => void };
+  readonly body: { readonly spawn: () => A | null; readonly retire: (actor: A) => void; readonly bind: (actor: A, brain: PhasedBossBrain<A>) => void; readonly ready: (actor: A, floorY: number) => void };
+  readonly spawnAdd: PhasedBossPorts<A>['spawnAdd'];
+  readonly target: () => ArenaFightTarget;
+  readonly combat: Pick<CombatPipeline, 'hit'>;
+  readonly physics: () => Physics | null;
+  readonly rng: () => number;
+  readonly feed: (line: string) => void;
+}
+/** The fight a row describes: the same strikes, hazards and hurts for whichever host lends its ports. */
+export function arenaRoomFight<A extends ArenaFightBody>(ports: ArenaFightPorts<A>, rows: BoundedArenaFight, views: (presentation: BoundedArenaFight['presentation']) => BossViewBinding): {
+  phased: PhasedBossFight<A>; script: BossScript; body: () => A | null; devKill: () => void;
 } {
-  const rows = v.parse(ArenaFightPageSchema, input), profile = parseBossProfile(rows.profile);
+  const profile = parseBossProfile(rows.profile);
   if (profile.pattern !== 'arena') throw new Error('Arena room requires an arena boss profile');
-  const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
-  if (world === undefined || world === null || play === undefined || play === null) throw new Error('Arena fight requires its actual page owners');
-  const { animals } = play, { player } = world, owner = bindRuntimeBoss(ctx, ctx.product.shardfile, rows.body, undefined, { identity: rows.identity });
-  const cuts = rows.cuts.map(strikeFromData), hazards = new Map(Object.entries(rows.hazards).map(([id, row]) => [id, strikeFromData(row)]));
+  const { room, body, combat, physics } = ports, cuts = rows.cuts.map(strikeFromData), hazards = new Map(Object.entries(rows.hazards).map(([id, row]) => [id, strikeFromData(row)]));
   const contacts = new StrikeRunner();
-  const floor = (actor: Animal): void => { actor.levelGround = true; actor.sampleTerrain(); };
-  const retire = (actor: Animal): void => {
-    if (dungeon.actor === actor) dungeon.actor = null;
-    actor.hidden = true; actor.mesh.visible = false; actor.position.y = -9999;
-    const index = animals.animals.indexOf(actor); if (index !== -1) animals.animals.splice(index, 1);
-    actor.mesh.removeFromParent();
-  };
-  const phased = bossFight<Animal>(profile, {
-    arena: { floorAt: dungeon.floorHeightAt, pile: (x, z, r, dh, cap) => { dungeon.addSand(x, z, r, dh, cap); },
-      clear: () => { dungeon.clearSand(); }, drain: (dt, rate) => { dungeon.drainSand(dt, rate); },
-      inArena: p => dungeon.inChamber(p) && p.z < rows.maxZ, seal: on => { dungeon.setSealed(on); } },
-    body: { spawn: () => {
-      const actor = owner.spawn(); if (actor === null) return null;
-      dungeon.actor = actor; actor.herd = -1; floor(actor); return actor;
-    }, retire, bind: (actor, brain) => { arenaBrains.set(actor, brain); },
-    ready: (actor, floorY) => { actor.yOffset = floorY - actor.position.y; actor.mesh.visible = true; } },
-    spawnAdd: (_i, x, z, yaw) => {
-      const actor = animals.spawn(rows.add.kind, x, z, yaw, rows.add.variant);
-      actor.herd = -1; floor(actor); Object.assign(actor.mem, rows.add.memory);
-      actor.yOffset = dungeon.rows.origin.y - actor.position.y; return actor;
-    },
-    player: { get position() { return player.position; }, dash: (x, z, seconds) => { player.dash(x, z, seconds); } },
+  const phased = bossFight<A>(profile, {
+    arena: { floorAt: room.floorHeightAt, pile: (x, z, r, dh, cap) => { room.addSand(x, z, r, dh, cap); },
+      clear: () => { room.clearSand(); }, drain: (dt, rate) => { room.drainSand(dt, rate); },
+      inArena: p => room.inChamber(p) && p.z < rows.maxZ, seal: on => { room.setSealed(on); } },
+    body: { spawn: () => body.spawn(), retire: actor => { body.retire(actor); }, bind: (actor, brain) => { body.bind(actor, brain); }, ready: (actor, floorY) => { body.ready(actor, floorY); } },
+    spawnAdd: ports.spawnAdd,
+    player: { get position() { return ports.target().position; }, dash: (x, z, seconds) => { ports.target().dash(x, z, seconds); } },
     hurt: (amount, throughWalls = false) => {
-      const actor = phased.body(), target = ctx.app.player;
-      if (actor === null || target === null || (!throughWalls && !canReach(actor, player.position, ctx.app.physics))) return;
-      ctx.app.combat.hit({ source: 'env', sourceTags: [rows.damageTag, 'feel.blow', 'cover.checked'], target, amount,
+      const actor = phased.body(), { position, health } = ports.target();
+      if (actor === null || health === null || (!throughWalls && !canReach(actor, position, physics()))) return;
+      combat.hit({ source: 'env', sourceTags: [rows.damageTag, 'feel.blow', 'cover.checked'], target: health, amount,
         point: actor.position, dir: new Vector3(), cause: { kind: actor.kind, label: actor.label } });
     },
     cut: (i, actor, hit) => {
-      const strike = cuts[i] ?? cuts[0];
-      return strike !== undefined && contacts.contact(strike, { actor, target: player.position, hit, canReach: () => canReach(actor, player.position, ctx.app.physics) });
+      const strike = cuts[i] ?? cuts[0], { position } = ports.target();
+      return strike !== undefined && contacts.contact(strike, { actor, target: position, hit, canReach: () => canReach(actor, position, physics()) });
     },
     hazard: (id, from, hit, options) => {
       const strike = hazards.get(id); if (strike === undefined) throw new Error('Missing arena hazard strike');
-      const noop = (): void => undefined;
+      const noop = (): void => undefined, { position } = ports.target();
       const actor = { position: from, scale: 1, yaw: 0, alive: true, dims: { bodyY: 1.2, bodyRadius: .1 },
         headWorld: (out: Vector3) => out.copy(from).add(new Vector3(0, 1.2, 0)), startAttack: noop, cancelAttack: noop, setMotion: noop };
-      contacts.contact(strike, { actor, target: player.position, hit, ...options, canReach: () => canReach(actor, player.position, ctx.app.physics) });
+      contacts.contact(strike, { actor, target: position, hit, ...options, canReach: () => canReach(actor, position, physics()) });
     },
-    rng: () => ctx.app.rng.stream('ai').next(), feed: line => { play.hud.killFeed(line); },
+    rng: ports.rng, feed: ports.feed,
     views: views(rows.presentation),
     rewardPoint: () => new Vector3().fromArray(rows.reward),
     respawnPoint: () => ({ pos: new Vector3().fromArray(rows.respawn), yaw: rows.yaw }),
   });
-  return { phased, script: phased.script, body: phased.body, devKill: phased.kill,
-    setPresent: on => {
-      const body = phased.body(), bodies = body === null ? phased.adds() : [body, ...phased.adds()];
-      for (const actor of bodies) {
-        const index = animals.animals.indexOf(actor);
-        if (on && index === -1 && !actor.hidden) { animals.animals.push(actor); animals.group.add(actor.mesh); }
-        if (!on && index !== -1) { animals.animals.splice(index, 1); actor.mesh.removeFromParent(); }
-      }
-    } };
+  return { phased, script: phased.script, body: phased.body, devKill: phased.kill };
 }
 
 type BoundedArenaFightInput = BoundedArenaFight;
@@ -312,4 +306,4 @@ interface BoundedArenaFightFields {
             };
         }>;
 }
-type BoundedArenaFight = { [Key in keyof BoundedArenaFightFields]: BoundedArenaFightFields[Key] };
+export type BoundedArenaFight = { [Key in keyof BoundedArenaFightFields]: BoundedArenaFightFields[Key] };
