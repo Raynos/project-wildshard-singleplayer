@@ -36,7 +36,7 @@ import { installTrampleTrail } from '@wildshard/game/systems/looks/trampleField'
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { installNativeCollision } from '@wildshard/game/population/nativeBake';
 import { originalNalatiPhysics } from './nalati-physics-original';
-import { nativeArenaSealSolids } from './headless/arenaCollision';
+import { nativeArenaSealSolids } from '@wildshard/game/boss/nativeArenaSeal';
 import type { ArenaSealDimensions } from '../../src/game/boss/arenaCollision';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
@@ -48,7 +48,8 @@ import { NativeEliteRoster } from '@wildshard/engine/ai/eliteRoster';
 import { nativeEliteBindings, type NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
-import { need, readJson, prepareReturns } from './headless-plan';
+import { need, readJson } from './headless-plan';
+import { prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './nalati-encounter-loans';
 import { nalatiGroupInputs } from './nalati-group-inputs';
 import { nalatiNativeBoot } from './nalati-native-boot';

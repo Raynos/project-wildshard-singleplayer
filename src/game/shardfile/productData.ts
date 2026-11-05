@@ -14,7 +14,7 @@ export function shardProductData(source: Shardfile, base: string, read: (hash: s
   }] as const]));
   // J91: only a server reader asks for the server class. A client's product has no such name, so `file()` refuses it.
   if (server?.files === true) for (const file of descriptor?.index.admission.server ?? []) files.set(file.name, { hash: file.hash, url: new URL(file.path, base).href,
-    ...(file.schema === undefined ? {} : { jsonSchema: { $comment: file.schema } }) });
+    ...(file.schema === undefined ? {} : { jsonSchema: { $schema: 'http://json-schema.org/draft-07/schema#', $comment: file.schema } }) });
   // Native APIs may supply an already checked in-memory Shardfile. This does
   // not read an older disk format or fabricate custom sections/logical names.
   return createShardProduct({ slug: source.identity.slug, revision: source.identity.revision, shardfile: source,

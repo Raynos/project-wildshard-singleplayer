@@ -28,3 +28,11 @@ registered reader, and follows emitted section routes transitively through
 named documents. Its product summary's Custom column uses the same rule.
 The files remain separate streamed payloads with their original bytes,
 names, packing and runtime loading behavior.
+
+## Server-class families (P1-E3.1b, J90, J91)
+
+`server/native-assembly.json` (`@wildshard/format/nativeAssembly#NativeAssemblySchema`) is a shard's general native
+runtime plan, and any other `server/<name>.json` (`#NativeAssemblyDataSchema`) is plain rows the plan reads. Both are
+read by `src/game/shardfile/nativeAssembly.ts`. Jake approved them in J90 with three shard users to follow. They ship
+only in the server admission class: `index.admission.server`, never `index.files`, a section or a pack. A client reads
+every section, which is why the plan is a file. `src/sdk/server-class.test.ts` proves what a client can't reach.

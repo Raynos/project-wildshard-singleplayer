@@ -31,7 +31,8 @@ import { parseChapterDirector, parseChapterWake } from '@wildshard/format/chapte
 import { readDirectorProduct } from '@wildshard/game/plugin/director';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { waveHeight } from '@wildshard/engine/world/waves';
-import { bindHeadlessCommands, headlessSpecCatalogue } from '@wildshard/sdk/headlessRuntime';
+import { bindHeadlessCommands } from '@wildshard/sdk/headlessRuntime';
+import { headlessSpecCatalogue } from '@wildshard/game/population/specCatalogue';
 import { installNativeCollision } from '@wildshard/game/population/nativeBake';
 import { nativeBakeGround } from '@wildshard/game/population/nativeBake';
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
@@ -41,7 +42,8 @@ import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
-import { need, readJson, installBodyScripts, prepareReturns } from './headless-plan';
+import { need, readJson } from './headless-plan';
+import { installBodyScripts, prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 /** Original typed native facts, proof-only under G872. No shipping envelope
  * or fixture user is credited as a platform family. */
 export function driftwoodNativeOracleInputs() {

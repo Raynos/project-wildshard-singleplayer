@@ -4,7 +4,7 @@ import barrelSource from '../src/shards/driftwood-isle/behaviour/barrels.as?raw'
 import { beforeAll, expect, test } from 'vitest';
 import * as v from 'valibot';
 import { emptyShardfile } from '../src/sdk/author';
-import { installBodyScripts } from './fixtures/headless-plan';
+import { installBodyScripts } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';

@@ -6,7 +6,7 @@ import {installNativeCollision,type NativeCollisionSolid} from '@wildshard/game/
 import {loadRapier} from '../src/engine/physics/rapier';
 import {createShardfileSim} from '../src/game/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';
-import {nativeArenaSealSolids} from './fixtures/headless/arenaCollision';
+import {nativeArenaSealSolids} from '@wildshard/game/boss/nativeArenaSeal';
 
 const room={origin:{x:10,y:0,z:5},sealId:'test-seal',doorHeight:3,halfWidth:4,doorHalfWidth:1};
 const desc=arenaSealCollider(room);

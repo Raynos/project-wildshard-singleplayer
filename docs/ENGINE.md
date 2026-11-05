@@ -9230,9 +9230,16 @@ directly in test fixtures; their fixed test worker accepts no code URL. Borrowed
 bodies, quests, save/re-entry and complete checkpoint assertions keep running.
 The four existing `sim/headless-assembly.json` named files remain for admitted
 constants and page construction; their executable declaration subtrees are empty and grant no runtime loader
-or source-census credit. The twelve test-only native implementations live unchanged under
-`test/fixtures/native-hosts`; their gameplay assertions remain. Shipping data
+or source-census credit. The native hosts a server runs came back to `src/game` for P1-E3.1b (J90); the rest of the
+test-only implementations stay under `test/fixtures/native-hosts`. Shipping data
 hosts, shared legacy contracts and the four JSON constant sources stay.
+
+`@wildshard/game/shardfile/nativeAssembly` is the data path to the same hosts. `prepareNativeAssembly(product, assets,
+ports)` reads a product's server-class `server/native-assembly.json` (`@wildshard/format/nativeAssembly`), prepares
+every row before a host exists, and returns a plan whose `install` runs the listed hosts in order.
+`prepareProductRuntimePlan` selects it ahead of `sim/runtime-plan`; `HeadlessSimulation.create(..., { product })`
+gives the worker the same path. `test/native-assembly-parity.test.ts` holds each plan to its direct fixture, tick for
+tick and through a restore.
 
 `@wildshard/game/proof/entryways` defines `proveEntryways`, `proveSocketLift`,
 `proveShardfileEntries` and their proof port/result types. Only native proof

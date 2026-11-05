@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import {arenaSealCollider,type ArenaSealDimensions} from '../../../src/game/boss/arenaCollision';
-import type {NativeCollisionSolid} from '@wildshard/game/population/nativeBake';
+import {arenaSealCollider,type ArenaSealDimensions} from './arenaCollision';
+import type {NativeCollisionSolid} from '../population/nativeBake';
 
 const finite=v.pipe(v.number(),v.finite());
 const metadata=v.object({pieces:v.array(v.object({id:v.string(),colliders:finite,active:v.boolean(),

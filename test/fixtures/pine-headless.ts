@@ -43,7 +43,8 @@ import { installNativeEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { readEliteFeature } from '@wildshard/game/quest/eliteFeature';
 import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime, HeadlessRuntimePreparation, HeadlessRuntimePlan } from '../../src/sdk/headlessRuntime';
-import { need, readJson, fresh, installCombatMotion, coalesce, prepareReturns } from './headless-plan';
+import { need, readJson, fresh, coalesce } from './headless-plan';
+import { installCombatMotion, prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 /** Fresh source child and typed parent must agree before native installation. */
 export function readPineNativeOracle(): Promise<ReturnType<typeof pineNativeOracleInputs>> {
   return fencedNativeOracle(pineNativeOracleSpec(), pineNativeOracleInputs);

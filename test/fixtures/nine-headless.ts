@@ -7,7 +7,7 @@ import { installGrapple } from './native-hosts/grapple/headless';
 import { parseGrappleProfile } from '../../src/format/grapple';
 import { installHostPortalRide } from '../../src/game/shardfile/portalRideBinding';
 import { installNativeItems } from '../../src/game/plugin/nativeItems';
-import { prepareReturns } from './headless-plan';
+import { prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import { nineNativeOracle } from './nine-native-oracle';
 import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with {type:'json'};
 import {registerNativeWalkBounds} from './headless/nativeBounds';

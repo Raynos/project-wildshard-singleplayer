@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { headlessSpecCatalogue } from '../src/sdk/headlessRuntime';
+import { headlessSpecCatalogue } from '@wildshard/game/population/specCatalogue';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';

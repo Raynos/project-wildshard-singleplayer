@@ -25,8 +25,8 @@ import { headlessSections } from './headlessSections';
 export class HeadlessSimulation {
   private readonly runner: TickWorkerHost;
   private constructor(runner: TickWorkerHost) { this.runner = runner; }
-  /** Start the fixed worker with runtime deadlines by default. Trusted offline validation selects advisory timing; author data cannot select this policy. */
-  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory'; sections?: ReadonlyMap<string, unknown> } = {}): Promise<HeadlessSimulation> {
+  /** Start the fixed worker with runtime deadlines by default. `product` names a built output folder: the worker then runs its native plan, server-class files included. Trusted offline validation selects advisory timing; author data cannot select this policy. */
+  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory'; sections?: ReadonlyMap<string, unknown>; product?: string } = {}): Promise<HeadlessSimulation> {
     const sections = headlessSections(options.sections ?? outputDescriptor(shard)?.sections);
     const memory = offlineMemoryAdmission('refuse');
     await prepareAssetDecoders();
@@ -45,7 +45,7 @@ export class HeadlessSimulation {
     if (!distributed && (!existsSync(source) || !existsSync(loader))) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');
     // Source-checkout workers need their own Node hooks; parent Vitest/Vite transforms never cross the isolate boundary.
     const execArgv = distributed ? [] : ['--experimental-transform-types', '--import', pathToFileURL(loader).href];
-    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, sections, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
+    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, sections, ...(snapshot === undefined ? {} : { snapshot }), ...(options.product === undefined ? {} : { product: options.product }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
     try { await runner.initialized(); return new HeadlessSimulation(runner); } catch (error) { await runner.dispose(); throw error; }
   }
   /** Last committed state is detached; callers cannot change the checkpoint used after a refused or unfinished tick. */

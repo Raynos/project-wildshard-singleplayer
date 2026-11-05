@@ -21,11 +21,16 @@ import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/
 import { hashImmutableBytes } from '../immutable';
 
 await runTickWorker(async raw => {
-  const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)), binary: v.string(), snapshot: v.optional(v.string()), sections: v.exactOptional(v.map(v.string(), v.unknown())) }), raw);
+  const payload = v.parse(v.strictObject({ shard: v.unknown(), assets: v.map(v.string(), v.instance(Uint8Array)), binary: v.string(), snapshot: v.optional(v.string()), sections: v.exactOptional(v.map(v.string(), v.unknown())), product: v.exactOptional(v.string()) }), raw);
   const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
   const sections = headlessSections(payload.sections);
   await prepareAssetDecoders();
   validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(sections));
+  if (payload.product !== undefined) {
+    // A native assembly's server-class files live only in the built product, never in the client's sections or assets.
+    const { loadHeadlessProduct } = await import('../headlessProduct');
+    return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier, product: await loadHeadlessProduct(payload.product) }, payload.snapshot);
+  }
   if (sections.has('sim/runtime-plan')) return createTrustedHeadlessAdapter({ shard, assets: payload.assets, rapier, sections }, payload.snapshot);
   let commands: ReadonlyMap<string, number> = new Map();
   let effects: HeadlessEffect[] = [];

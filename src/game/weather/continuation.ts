@@ -14,7 +14,7 @@ import type { NativeCombatFrame } from '../plugin/nativeItems';
 /** A page borrows its existing system service; native composites retain their own snapshot/step adapter. */
 export interface WeatherInstallation { readonly seed:number; readonly system?:LevelContext['system']; readonly state?:{readonly paused:boolean} }
 /** Native world observations consumed by the shared weather installation. */
-interface NativeWeatherWorld { program: ReturnType<typeof nativeWeatherBundle>; rows: unknown;
+export interface NativeWeatherWorld { program: ReturnType<typeof nativeWeatherBundle>; rows: unknown;
   clock: Pick<DayCycleClock,'sunElevation'>; env: NativeWildEnvironment;
   bake: { readonly trees: readonly (readonly [number,number,number])[]; readonly tops: readonly number[] } }
 /** Install DATA weather on a native cadence or a declared page system. Without a cadence declaration the caller's

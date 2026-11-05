@@ -17,6 +17,7 @@ import { MAX_TICK_SNAPSHOT_CHARS, simPlayerCommand, TickCommandSchema, type Head
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareProductRuntimePlan } from '@wildshard/game/shardfile/nativePlan';
+import type { NativeAssemblyPorts } from '@wildshard/game/shardfile/nativeAssemblyInput';
 
 /** The same admitted bytes and native physics implementation used by the ordinary headless worker. */
 export interface HeadlessRuntimePreparation { shard: Shardfile; assets: ReadonlyMap<string, Uint8Array>; rapier: Rapier; readonly product: ShardProduct }
@@ -94,18 +95,6 @@ export interface HeadlessRuntimePlan {
 /** Direct typed legacy/proof factory contract; the public worker accepts only admitted data plans. */
 export type PrepareHeadlessRuntime = (context: HeadlessRuntimePreparation) => HeadlessRuntimePlan | Promise<HeadlessRuntimePlan>;
 
-/** Index already admitted native specs in first-seen order without copying their
- * bodies. Repeated identities must retain the same complete wire value. */
-export function headlessSpecCatalogue<Spec extends { readonly kind: string; readonly variant: string }>(specs: Iterable<Spec>): ReadonlyMap<string, Spec> {
-  const catalogue = new Map<string, Spec>();
-  for (const spec of specs) {
-    const key = `${spec.kind}.${spec.variant}`, previous = catalogue.get(key);
-    if (previous !== undefined && JSON.stringify(previous) !== JSON.stringify(spec)) throw new Error(`Divergent native spec ${key}`);
-    catalogue.set(key, spec);
-  }
-  return catalogue;
-}
-
 /**
  * One owned, renderer-free native world: the admitted data plan installed into one native host. The worker's
  * tick adapter (`createTrustedHeadlessAdapter`) and the grid's server-side admission (a `GridSimulation` `load` port,
@@ -126,6 +115,16 @@ export interface TrustedHeadlessResident {
   proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
   dispose: () => void;
 }
+/** One tick command as the taming owner reads it. */
+function tamingCommand(command: HeadlessCommand): ReturnType<ReturnType<NativeAssemblyPorts<HeadlessRuntimeInstallation>['tamingCommands']>>[number] {
+  if (command.kind === 'script') return command;
+  if (command.kind !== 'player') return { kind: 'action' };
+  return command.steer === undefined ? { kind: 'player' } : { kind: 'player', steer: command.steer };
+}
+/** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */
+export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<HeadlessRuntimeInstallation> {
+  return { rapier, bindCommands: bindHeadlessCommands, tamingCommands: context => () => context.commands().map(tamingCommand) };
+}
 /** Resolve only the admitted native data plan. Missing declarations never
  * fall back to a shard source path; product and level identities must agree. */
 export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Promise<HeadlessRuntimePlan> {
@@ -144,7 +143,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
     const { slug: actualIdentity } = product, { slug: expectedIdentity } = provided.shard.identity;
     if (actualIdentity !== expectedIdentity || product.revision !== provided.shard.identity.revision) throw new Error('Native product and trusted identity differ');
     source = product.shardfile;
-    plan = await prepareProductRuntimePlan(product, provided.assets);
+    plan = await prepareProductRuntimePlan(product, provided.assets, headlessAssemblyPorts(provided.rapier));
   }
   const identity = { id: source.identity.slug, seed: source.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');

@@ -34,7 +34,7 @@ import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
 import type {TargetAnimal,TargetHit} from '../../src/engine/combat/types';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareHeadlessRuntime as prepareCompanions} from './nalati-companions-native';
-import {installCombatMotion} from './headless-plan';
+import {installCombatMotion} from '@wildshard/game/shardfile/nativeRuntimeLoans';
 
 const finite=v.pipe(v.number(),v.finite()),count=v.pipe(finite,v.integer(),v.minValue(0)),vector=v.tuple([finite,finite,finite]);
 const SwingSaved=v.strictObject({move:v.nullable(count),swingT:finite,comboIdx:count,lastSwingEnd:finite,cooldown:finite,

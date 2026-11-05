@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped native physics owner.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { installCombatMotion } from './fixtures/headless-plan';
+import { installCombatMotion } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import { createSimHost, type SimPlayerMotionSample } from '../src/engine/sim';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
@@ -67,9 +67,9 @@ test('missing combat refuses before registering; delegated motion without a samp
   const prepared = plan(), host = createSimHost(SIM_LEVEL, { rapier }), frame = createNativeCombatFrame();
   try {
     const saved = snapshotSimHost(host);
-    expect(() => prepared.install(host, { restoring: false, commands: () => [], emit: () => undefined })).toThrow('requires its combat frame');
+    expect(() => prepared.install(host, {})).toThrow('requires its combat frame');
     expect(snapshotSimHost(host)).toEqual(saved);
-    prepared.install(host, { combat: frame, restoring: false, commands: () => [], emit: () => undefined });
+    prepared.install(host, { combat: frame });
     host.usePlayerDriver({ input: () => true, step: () => undefined });
     host.step(); expect(frame.speedFactor).toBeNull();
     const weapon = parseItems(items).rows.find(row => row.id === 'weapon.lever');

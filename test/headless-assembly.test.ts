@@ -12,7 +12,7 @@ import { beforeAll, expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { trustedLevel } from '../src/game/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
-import { installBodyScripts, prepareReturns } from './fixtures/headless-plan';
+import { installBodyScripts, prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost, onSimHostRestored } from '../src/engine/sim/snapshot';
@@ -55,7 +55,7 @@ test('refuses native body scripts before real ground admission or after its host
   const product = createShardProduct({ slug: 'native-ground', revision: 1, shardfile: shard, sections: new Map(),
     files: new Map(),
     read: () => Promise.reject(new Error('Direct body proof reads sections only')) });
-  const plan = directPlan(shard, (host, context) => installBodyScripts(host, context, {shard,product,assets:new Map(),rapier}));
+  const plan = directPlan(shard, (host, context) => installBodyScripts(host, context, {product,assets:new Map()}));
   const host = createSimHost(plan.level, { ...plan.ports, rapier });
   const context = { restoring: false, commands: () => [], emit: () => undefined };
   try {
@@ -85,7 +85,7 @@ test('native restore checks the restored ground before releasing the host', () =
     sections: new Map<string, unknown>([['sim/scripts', []], ['sim/bodies', {}]]),
     files: new Map(),
     read: () => Promise.reject(new Error('Direct body proof reads sections only')) });
-  const plan = directPlan(shard, (host, context) => installBodyScripts(host, context, {shard,product,assets:new Map(),rapier}));
+  const plan = directPlan(shard, (host, context) => installBodyScripts(host, context, {product,assets:new Map()}));
   const source = createSimHost(plan.level, { rapier }), empty = createSimHost(plan.level, { ...plan.ports, rapier });
   const ports = { ...plan.ports, rapier };
   const context = { restoring: true, commands: () => [], emit: () => undefined };
@@ -119,7 +119,7 @@ test('ABI1-only raw returns borrow the original asset map on fresh and restored 
   const product=createShardProduct({slug:shard.identity.slug,revision:1,shardfile:shard,sections:new Map([['actors/return-scripts',returns]]),
     files:new Map(),
     read:()=>Promise.reject(new Error('Direct ABI1 proof borrows its admitted asset map'))});
-  const lend=await prepareReturns({shard,product,assets,rapier});
+  const lend=await prepareReturns({product,assets});
   const plan=directPlan(shard,host=>{lend(host);install(host);});
   const fresh=createSimHost(plan.level,{...plan.ports,rapier}),foreign=createSimHost(plan.level,{...plan.ports,rapier});
   let restored:SimHost|undefined;
@@ -179,7 +179,7 @@ test('raw return modules are lent before original native assembly owners on fres
       if(hash===witnessHash){witnessReads++;return Promise.resolve(witness);}
       return Promise.reject(new Error('Unexpected direct native file read'));
     }});
-  const lend=await prepareReturns({shard,product,assets,rapier});
+  const lend=await prepareReturns({product,assets});
   const plan=directPlan(shard,host=>{lend(host);install(host);});
   expect(assets.get(artifact.hash)).toBe(bytes);expect(moduleReads).toBe(1);
   expect(assets.get(witnessHash)).toBe(witness);expect(witnessReads).toBe(1);
@@ -192,7 +192,7 @@ test('raw return modules are lent before original native assembly owners on fres
     });
     expect(captured).toHaveLength(2);expect(captured[0]).not.toBe(captured[1]);
     assets.set(artifact.hash,new Uint8Array([0]));
-    const corruptLend=await prepareReturns({shard,product,assets,rapier});
+    const corruptLend=await prepareReturns({product,assets});
     const corrupt=directPlan(shard,host=>{corruptLend(host);install(host);});
     expect(moduleReads).toBe(1);
     expect(()=>corrupt.install(fresh,{restoring:false,commands:()=>[],emit:()=>undefined})).toThrow('hash mismatch');
