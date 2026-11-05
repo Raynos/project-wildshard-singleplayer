@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 408,
+  "client → server": 401,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 151,
@@ -13,10 +13,10 @@
  },
  "files": {
   "src/engine/ai/view/eliteController.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/engine/ai/view/eliteEntry.ts": {
-   "client → server": 7
+   "client → server": 6
   },
   "src/engine/app/app.ts": {
    "client → server": 3
@@ -82,13 +82,10 @@
    "client → server": 1
   },
   "src/game/ambient/crowdDraw.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/ambient/crowdPage.ts": {
    "server → client": 4
-  },
-  "src/game/ambient/foragerDraw.ts": {
-   "client → server": 1
   },
   "src/game/ambient/wingField.ts": {
    "client → server": 1
@@ -109,10 +106,10 @@
    "client → server": 1
   },
   "src/game/boss/encounterView.ts": {
-   "client → server": 6
+   "client → server": 5
   },
   "src/game/boss/roamingProjection.ts": {
-   "client → server": 9
+   "client → server": 8
   },
   "src/game/boss/timedEncounters.ts": {
    "server → client": 3
@@ -338,7 +335,7 @@
    "server → client": 1
   },
   "src/game/population/pageLife.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/game/population/pageReturns.ts": {
    "server → client": 1
