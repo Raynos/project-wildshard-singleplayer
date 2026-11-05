@@ -2,7 +2,8 @@
 // J130: the Developer row on a built page. Turns Worker client on, enters Infinite Wildshard, walks off the home cell's south entry onto
 // the road and back in, and fails unless the page followed `--crossings=` of the server's crossings.
 // Then it reloads on the cache that walk left (Chromium refuses a whole-cache query that size), and with the link cut. --chunk= proves a one-shard page.
-//   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2] [--route=x,z;x,z] [--chunk=slug]
+// --play is the flip's checklist: one playthrough on the row, a line for every step, and it fails on any step that didn't work.
+//   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2] [--route=x,z;x,z] [--chunk=slug] [--play]
 import { chromium, devices } from 'playwright';
 import { saveFixture } from './debug-settings.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
@@ -13,6 +14,13 @@ if (base === '') throw new Error('Requires --base');
 const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const failures = [];
+if (process.argv.includes('--play')) {
+  const { play } = await import('./worker-client-play.mjs');
+  const steps = await play(browser, phone, base);
+  await browser.close();
+  console.log(JSON.stringify({ gate: 'worker-client-play', pass: steps.every(step => step.ok), failed: steps.filter(step => !step.ok).map(step => step.name) }));
+  process.exit(steps.every(step => step.ok) ? 0 : 1);
+}
 try {
   const context = await browser.newContext(phone), page = await context.newPage(), errors = [];
   page.on('pageerror', error => { errors.push(error.message); console.log('[error]', (error.stack ?? error.message).slice(0, 400)); });
