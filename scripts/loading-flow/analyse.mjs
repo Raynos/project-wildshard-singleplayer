@@ -32,16 +32,26 @@ const named = (foot, step) => {
 /** The wait text without its running seconds, so one wait is listed once. */
 const waitName = (foot) => foot.replaceAll(/ · \d+(?:\.\d+)? s\b/gu, '').replace(/^No reported progress for [\d.]+ s · /u, '');
 
-/** Frame gaps from the sampler's stamps (page epoch ms), split at a page change so a navigation is not a frame. */
+/** A page lifetime token, recorded in the sampler and polls, survives clock jitter
+ * and changes on a same-URL reload. URL and timeOrigin are never identity. */
+const documentId = row => typeof row?.documentId === 'string' && row.documentId !== '' ? row.documentId : null;
+const sameDocument = (a, b) => documentId(a) !== null && documentId(a) === documentId(b);
+
+/** Anchor each document's relative frame clock once. A later timeOrigin read
+ * can jitter on Safari; durations come from that document's performance clock. */
 function frameGaps(rows) {
-  const gaps = [];
+  const gaps = [], origins = new Map();
   let last = null;
   for (const row of rows) {
     if (row.ev !== 'frames') continue;
+    const id = documentId(row);
+    if (id === null || !Number.isFinite(row.origin)) { last = null; continue; }
+    if (!origins.has(id)) origins.set(id, row.origin);
     for (const at of row.f) {
-      const epoch = row.origin + at;
-      if (last !== null && last.origin === row.origin && epoch > last.epoch) gaps.push({ at: epoch, ms: epoch - last.epoch });
-      last = { origin: row.origin, epoch };
+      const epoch = origins.get(id) + at;
+      if (last !== null && last.documentId === id && at > last.at)
+        gaps.push({ at: epoch, ms: at - last.at, documentId: id });
+      last = { documentId: id, at };
     }
   }
   return gaps;
@@ -58,6 +68,10 @@ export function analyse(rows) {
   const controlRow = polls.find(row => row.control === true);
   const control = controlRow?.t ?? null;
   const end = control ?? polls.at(-1)?.t ?? tap;
+  const frameRows = rows.filter(row => row.ev === 'frames');
+  const loadingIdentity = frameRows.length > 0 && frameRows.every(row => documentId(row) !== null && Number.isFinite(row.origin));
+  const playPolls = control === null ? [] : polls.filter(row => row.t >= control && row.t <= control + BAR.playS * 1000);
+  const playIdentity = playPolls.length > 0 && playPolls.every(row => sameDocument(row, controlRow));
 
   const firsts = {};
   const first = (key, row, extra = {}) => { if (!(key in firsts)) firsts[key] = { t: T(row.t), ...extra }; };
@@ -151,7 +165,7 @@ export function analyse(rows) {
     let prev = null;
     for (const row of polls) {
       if (!row.drawn) continue;
-      if (prev !== null && row.drawn.n > prev.drawn.n && row.origin === prev.origin) {
+      if (prev !== null && row.drawn.n > prev.drawn.n && sameDocument(row, prev) && sameDocument(row, controlRow)) {
         const k = Math.min(row.drawn.ms.length, row.drawn.n - prev.drawn.n), size = row.drawn.ms.length;
         for (let j = 0; j < k; j++) {
           const ms = row.drawn.ms[(row.drawn.i - k + j + size * 2) % size];
@@ -163,9 +177,9 @@ export function analyse(rows) {
     // a ring that stops advancing while the polls go on is a world that stopped drawing (sp-x1): the time from its last
     // drawn frame to its last poll in the window is one open frame, as the HUD meter counts its pending interval
     const lastDrawnAt = drawn.at(-1)?.at ?? control, windowEnd = control + BAR.playS * 1000;
-    const lastPoll = polls.findLast(row => row.drawn && row.t <= windowEnd);
+    const lastPoll = polls.findLast(row => row.drawn && row.t <= windowEnd && sameDocument(row, controlRow));
     if (drawn.length > 0 && lastPoll !== undefined && lastPoll.t > lastDrawnAt) drawn.push({ at: lastPoll.t, ms: lastPoll.t - lastDrawnAt, open: true });
-    const page = playStats(gaps, 'page requestAnimationFrame');
+    const page = playStats(gaps.filter(gap => gap.documentId === documentId(controlRow)), 'page requestAnimationFrame');
     // what the player did: metres walked and boarded, top speed on the board (drive.mjs's walk, then hoverboard + boost)
     const motion = { walkM: 0, boostM: 0, boostTopMps: 0, boostEngaged: false };
     let last = null;
@@ -186,15 +200,15 @@ export function analyse(rows) {
   const retryShown = polls.some(row => row.retry === true);
   // covered means the game's frame ring was read at or after control + 30 s (unrounded; sp-x1: a log ending at 29 s
   // left its last second unseen)
-  const lastRing = control === null ? undefined : polls.findLast(row => row.drawn && row.t >= control);
+  const lastRing = control === null ? undefined : polls.findLast(row => row.drawn && row.t >= control && sameDocument(row, controlRow));
   const playCoveredS = lastRing === undefined || control === null ? 0 : (lastRing.t - control) / 1000;
   if (play !== null) play.coveredS = round(playCoveredS, 2);
-  const playJudged = play !== null && play.source === 'game drawn frames' && play.frames > 0 && playCoveredS >= BAR.playS;
+  const playJudged = playIdentity && loadingIdentity && play !== null && play.source === 'game drawn frames' && play.frames > 0 && playCoveredS >= BAR.playS;
   const bar = {
     reachesControl: control !== null,
     styledFromFirstFrame: firsts.cardAppears?.styled !== false && polls.filter(row => row.shown && row.t <= end).every(row => row.styled !== false),
     cardMovesEverySecond: still.length === 0,
-    noLoadingFrameOver250ms: loadGaps.length > 0 && loadWorst.ms <= BAR.loadingFrameMs,
+    noLoadingFrameOver250ms: loadingIdentity && loadGaps.length > 0 && loadWorst.ms <= BAR.loadingFrameMs,
     everyLongStepNamed: stalls.every(s => s.named),
     // the play lines need the whole window, judged on the game's own drawn frames (sp-x1's review): a short log or one
     // without the game's frame ring is no reading, so it fails rather than passes on the page's 60 Hz rAF
@@ -216,7 +230,8 @@ export function analyse(rows) {
     loading: { frames: loadGaps.length, longestFrameMs: Math.round(loadWorst.ms), longestFrameAt: T(loadWorst.at),
       framesOver250: loadGaps.filter(g => g.ms > BAR.loadingFrameMs).length,
       byStep: [...byStep.values()].filter(row => row.longestMs > 100).sort((a, b) => b.longestMs - a.longestMs) },
-    play,
+    play: playIdentity && loadingIdentity ? play : null,
+    documentIdentity: { loading: loadingIdentity, play: playIdentity, missingRows: rows.filter(row => (row.ev === 'frames' || row.ev === 'poll') && documentId(row) === null).length },
     errors,
     retryShown,
     bar,

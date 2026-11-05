@@ -48,9 +48,9 @@ process.on('exit', cleanup);
 // Every frame the page draws, stamped (performance.now); a long main-thread task shows up as one long gap. Installed on
 // each page the inspector meets and re-installed by every card poll (a navigation keeps the inspector but drops it);
 // drained into the timeline about once a second.
-const SAMPLER = `(() => { if (window.__lf) return 0; const l = window.__lf = { f: [] };
+const SAMPLER = `(() => { if (window.__lf) return 0; const l = window.__lf = { f: [], documentId: crypto.randomUUID() };
   const tick = (t) => { l.f.push(Math.round(t * 10) / 10); requestAnimationFrame(tick); }; requestAnimationFrame(tick); return 1; })()`;
-const DRAIN = `(() => { const l = window.__lf; if (!l) return null; const f = l.f; l.f = []; return JSON.stringify({ origin: performance.timeOrigin, href: location.href, f }); })()`;
+const DRAIN = `(() => { const l = window.__lf; if (!l) return null; const f = l.f; l.f = []; return JSON.stringify({ documentId: l.documentId, origin: performance.timeOrigin, href: location.href, f }); })()`;
 
 let page = null;
 async function connect(test, ms = 90000) {
@@ -209,7 +209,7 @@ const READ = `JSON.stringify((() => {
   // the game's own drawn frames (it paces its draws, so the page's rAF can run at 60 while the world draws at 5): frames
   // drawn since start and its 120-slot ring of frame times, read each poll (G1008's fps and longest frame)
   let drawn = null; try { const gm = w?.game; if (gm && typeof gm.frameCount === 'number') drawn = { n: gm.frameCount, i: gm.frameI, ms: Array.from(gm.frameMs, v => Math.round(v)) }; } catch { /* not built yet */ }
-  return { drawn, href: location.href, shown, styled: shown ? getComputedStyle(l).fontFamily.includes('JetBrains') : null,
+  return { documentId: window.__lf?.documentId ?? null, drawn, href: location.href, shown, styled: shown ? getComputedStyle(l).fontFamily.includes('JetBrains') : null,
     clock: g('clock'), slug: g('slug'), tier: g('tier'), dl: g('dlFact'), dlPct: g('dlPct'), su: g('suFact'), suPct: g('suPct'),
     line: g('line'), foot: g('foot'), rows: l ? l.querySelectorAll('[data-key]').length : 0,
     lastRow: l ? [...l.querySelectorAll('[data-key]')].map(e => e.textContent.trim().slice(0,80)).at(-1) ?? null : null,
