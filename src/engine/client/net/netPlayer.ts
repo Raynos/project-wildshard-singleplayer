@@ -18,6 +18,9 @@ import { Predictor } from './predictor';
 /** Where this player's attacks are drawn: `EquipmentService`, on a page. */
 export interface NetWeapons { readonly bindWire: (wire: WeaponWire | null) => void; readonly serverHit: (hit: OwnHit) => void; readonly attackRefused: () => void; readonly heldByServer: (row: string) => void }
 
+/** A traversal tool's line to the server. `lock` is a LOCK press naming its hook by index, and answers the `seq` that carries it. */
+export interface NetHookWire { readonly lock: (hook: number | undefined) => number; readonly fire: () => void }
+
 /** The owner block's columns for the last attack the server started and the slot it says this player holds. */
 const LAST_SWING = PLAYER_CLASS.owner.findIndex(column => column.name === 'lastSwingSeq'), HELD = PLAYER_CLASS.owner.findIndex(column => column.name === 'held');
 /** Ticks between asks for a slot: a timed swap's whole length, so a slot the server is still raising is not asked for again. */
@@ -49,6 +52,11 @@ export class NetPlayer implements PlayerLink {
   };
   /** Whether this page stands in the world a frame came from. A crossing's frames wait behind this until the page has made it. */
   inCell: (cell: number) => boolean = () => true;
+  /** A hook tool's presses: the next command carries them (J116, `hookTarget`). */
+  readonly hooks: NetHookWire = {
+    lock: hook => { this.hookLocked = true; this.hookTarget = hook; return (this.seq + 1) & 0xffff; },
+    fire: () => { this.hookFired = true; },
+  };
   /** Biggest camera offset a correction has left, in metres: what a proof page reports. */
   worstOffset = 0;
   private readonly client: NetClient;
@@ -61,6 +69,9 @@ export class NetPlayer implements PlayerLink {
   private afterStep: (() => void) | null = null;
   private frameSteps = 0;
   private launcher: NonNullable<NetCommand['launcher']> | null = null;
+  private hookLocked = false;
+  private hookTarget: number | undefined;
+  private hookFired = false;
   private seq = 0;
   private weapons: NetWeapons | null = null;
   /** The server's slot for each row this page can hold. A row it has no slot for is the server's own business. */
@@ -95,7 +106,8 @@ export class NetPlayer implements PlayerLink {
   /** A fixed step. False, with nothing sent, before the first frame or when a full ring says the server stopped answering. */
   step(input: PlayerWireInput): boolean {
     if (this.seen === null || this.predictor.full) return false;
-    const armed = this.armed(input), seq = this.seq = this.client.command(armed);
+    const armed = this.armed(input), seq = this.seq = this.client.command(this.hooked(armed));
+    this.hookLocked = false; this.hookTarget = undefined; this.hookFired = false;
     this.frameSteps++;
     if (this.pressStarted || armed.launcher?.fire === true) this.attacks.started(seq);
     this.pressed = false; this.pressStarted = false; this.launcher = null;
@@ -108,6 +120,11 @@ export class NetPlayer implements PlayerLink {
   private armed(input: PlayerWireInput): PlayerWireInput & Partial<Pick<NetCommand, 'attack' | 'launcher'>> {
     const { launcher } = this, buttons = this.heavy ? input.buttons | NET_BUTTONS.heavy : input.buttons;
     return { ...input, buttons, ...(this.pressed ? { attack: { aim: this.player.sampleAimCommand() } } : {}), ...(launcher === null ? {} : { launcher }) };
+  }
+  /** What goes to the server beyond what this body steps: a claw's JUMP moves the body only there, and only by `led`. */
+  private hooked<T extends PlayerWireInput>(armed: T): T & Pick<NetCommand, 'hookTarget'> {
+    const { hookLocked, hookFired, hookTarget } = this, lock = hookLocked ? NET_BUTTONS.lock : 0, jump = hookFired ? NET_BUTTONS.jump : 0;
+    return { ...armed, buttons: armed.buttons | lock | jump, ...(hookTarget === undefined ? {} : { hookTarget }) };
   }
   /** The start of a render frame, before its fixed steps: the newest owner block, compared once. */
   reconcile(): void {

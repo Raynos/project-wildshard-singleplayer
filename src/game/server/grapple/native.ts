@@ -6,7 +6,9 @@ import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { actRoutes, lockedHook } from '@wildshard/engine/sim/actRoutes';
+import { publishWorldState, type StateNetRow } from '@wildshard/engine/sim/shardRows';
 import { grappleCourse } from '../../shared/grapple/course';
+import { GRAPPLE_PHASES, grappleRow, NO_HOOK } from '../../shared/grapple/feed';
 import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } from '../../shared/grapple/sim';
 
 /** Standard tick services for the first player; content supplies profile rows, never authored handlers. */
@@ -85,6 +87,13 @@ class PlayerClaw {
     return { pitch: state.pitch, last: { x: state.last.x, y: state.last.y, z: state.last.z }, fall: { ...state.fall },
       velocity: { x: velocity.x, y: velocity.y, z: velocity.z }, sim: this.sim.snapshot() };
   }
+  /** This claw as a client reads it. */
+  rows(): readonly StateNetRow[] {
+    const { sim, player: { id } } = this, target = sim.target?.hook;
+    const hook = target === undefined ? NO_HOOK : sim.course.hooks.findIndex(row => row.x === target.x && row.y === target.y && row.z === target.z);
+    return [{ name: grappleRow(id, 'phase'), value: GRAPPLE_PHASES.indexOf(sim.phase) }, { name: grappleRow(id, 'clock'), value: sim.clock }, { name: grappleRow(id, 'hook'), value: hook },
+      { name: grappleRow(id, 'armed'), value: Number(sim.armedMiss) }, { name: grappleRow(id, 'mx'), value: sim.missEnd.x }, { name: grappleRow(id, 'my'), value: sim.missEnd.y }, { name: grappleRow(id, 'mz'), value: sim.missEnd.z }];
+  }
   load(saved: SavedClaw): void {
     const { state, velocity } = this;
     state.pitch = saved.pitch; state.last.set(saved.last.x, saved.last.y, saved.last.z); state.fall = { ...saved.fall };
@@ -144,6 +153,7 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
     state.last.set(p.x, p.y, p.z); state.fall.vy = player.velocity.y; state.fall.grounded = player.fall.grounded;
   };
   actRoutes(host).lock = profile.headless.lock;
+  publishWorldState(host, 'grapple', () => [...claws.values()].flatMap(claw => claw.rows()));
   host.leading.push(player => claws.get(player.id)?.sim.busy() === true); // a crossing keeps the body until it lands or bails
   host.onStep(profile.headless.step, dt => {
     for (const id of claws.keys()) if (!host.players.has(id)) { claws.delete(id); pending.delete(id); }

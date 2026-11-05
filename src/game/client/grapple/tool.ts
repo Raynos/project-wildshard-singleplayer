@@ -3,6 +3,7 @@ import { Tool } from '@wildshard/engine/combat/Tool';
 import type { EquipmentRow, EquipContext } from '@wildshard/engine/combat/Equipment';
 import { bindRuntimeLedger, projectRuntimeFacts } from '../../shared/plugin/runtimeRows';
 import { grappleCourse } from '../../shared/grapple/course';
+import type { GrappleClaw } from '../../shared/grapple/feed';
 import type { GrappleRows, GrappleProfile, GrappleCourseRow } from '@wildshard/format/grapple';
 import * as v from 'valibot';
 
@@ -111,7 +112,7 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
     visible: (course: GrappleCourse, eye: Vector3, hook: Vector3): boolean => hookVisible(ports, course, eye, hook),
     landing: (from: Vector3, hook: Vector3, out: Vector3): Side => landingFor(ports, from, hook, out),
     target: (course: GrappleCourse, hook: Vector3, landing: Vector3, side: Side): GrappleTarget => targetFor(ports, course, hook, landing, side),
-    traverse: (sim: GrappleSim, dt: number): boolean => {
+    traverse: (sim: GrappleClaw, dt: number): boolean => {
       const settling = sim.phase === 'settle' && sim.target?.lifts === true;
       const owned = sim.traverse(dt);
       if (settling && sim.phase === 'idle' && profile.fact !== undefined && facts !== undefined) facts(profile.fact.name, profile.fact.entity);
@@ -184,7 +185,7 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
   const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
   // the law (the caller's); the view draws, sounds and animates what it does
   // G946: the browser keeps its existing rise-to-ring zip; no player variant.
-  const sim = new GrappleSim(ports, fragment, { rise: () => true }); tool.sim = sim;
+  const sim: GrappleClaw = tool.claw?.(fragment) ?? new GrappleSim(ports, fragment, { rise: () => true }); tool.sim = sim;
   const callbacks = {
     fire: () => { muzzleFlash.burst(muzzle, up.set(0, 1, 0), 0); rules.cue('fire'); ctx.arms?.playLeft?.('grapple_fire'); ctx.arms?.setClawVisible?.(false); },
     miss: () => { ctx.toast(row.toasts.miss); },
@@ -294,6 +295,7 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
   }
 
   shard.app.addSystem({ id: row.systems.rope, phase: 'fixed.post', run: (dt) => {
+    flushEvents(); // a wire claw's phases arrive with its frames
     for (let i = 0; i < 4; i++) { const field = bursts[i]; if (field !== undefined) field.update(dt); }
     if (sim.phase === 'idle') return;
     time += dt; biteAge += dt;
@@ -445,7 +447,9 @@ export class GrappleTool extends Tool {
   readonly actions = ['lock', 'jump'] as const;
   enabled = true;
   holster = 0;
-  sim: GrappleSim | null = null;
+  sim: GrappleClaw | null = null;
+  /** The claw this tool draws, in place of the page's own law: the flip sets it to `netClaw`. */
+  claw: ((course: GrappleCourse) => GrappleClaw) | null = null;
   private setter: ((course: GrappleCourseRow | null) => void) | undefined;
   constructor(private readonly shard: ShardContext, private readonly data: { readonly equipment: EquipmentRow; readonly profile: GrappleProfile; readonly presentation: GrappleRows; readonly hooks: GrappleCourseRow['hooks'] }) {
     super(data.equipment);
