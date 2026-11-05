@@ -10,7 +10,7 @@ import {expect,test} from 'vitest';
 
 test('streamed native tape preserves all ticks, terminal ownership, aggregate caps and one global request clock',()=>{
  const child=spawnSync(process.execPath,['--experimental-transform-types','--import',pathToFileURL(resolve('scripts/sim-node-loader.mjs')).href,
-  resolve('test/fixtures/headless/stream-tape-run.mjs')],{encoding:'utf8',timeout:20_000});
+  resolve('test/fixtures/headless/stream-tape-run.mjs')],{encoding:'utf8',timeout:60_000});
  expect(child.status,child.stdout+child.stderr).toBe(0);
  expect(child.stdout).toContain('streamed native parity, aggregate budgets, producer failure, disposal and global deadline pass');
-},25_000);
+},65_000); // the bound stops a hang and claims no speed: 6 s on a laptop passed 20 s on a CI runner
