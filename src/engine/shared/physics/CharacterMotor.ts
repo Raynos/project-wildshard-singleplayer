@@ -92,6 +92,8 @@ export class CharacterMotor {
   /** J106: colliders this body walks through because they are gone in its own player's world (a quest gate it opened). */
   readonly phased: Set<number> = new Set<number>();
   private readonly notPhased = (collider: { readonly handle: number }): boolean => !this.phased.has(collider.handle);
+  /** What a floor query asks of a collider for this capsule: an open gate is no floor to the one who walks through it. */
+  get solidOnly(): ((collider: { readonly handle: number }) => boolean) | undefined { return this.phased.size > 0 ? this.notPhased : undefined; }
   private readonly notGroundOrPhased = (collider: Parameters<CharacterMotor['notGround']>[0]): boolean => this.notGround(collider) && this.notPhased(collider);
   private ghost = '';
   private enabled = true;

@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, test } from 'vitest';
 import { LOCK_REACH } from '../src/engine/shared/player/lockOrbit';
 import { simCommandOf } from '../src/engine/server/sim/playerSim';
-import { HostSide, loadCourseRapier, type MotionScenario } from './fixtures/motion-trace/parity';
+import { GATE_Z, HostSide, loadCourseRapier, type MotionScenario } from './fixtures/motion-trace/parity';
+import { floorBelow } from '../src/engine/shared/physics/query';
 import type { Rapier } from '../src/engine/shared/physics/rapier';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
@@ -68,5 +69,22 @@ describe('a command\'s lockTarget', () => {
   test('the orbit\'s radius starts where the feet stand, and a new body starts again', () => {
     const side = new HostSide(R, scenario({ x: 40, z: 54, r0: 6 }));
     try { strafe(side, TARGET, 1); expect(side.player.lock.r0).toBeCloseTo(6, 1); side.player.restoreLock(undefined); expect(side.player.lockHeld).toBeNull(); expect(side.player.lock.r0).toBe(0); } finally { side.dispose(); }
+  });
+});
+
+describe('a phased gate as a floor (P1-E5.3-A13)', () => {
+  let R: Rapier;
+  beforeAll(async () => { R = await loadCourseRapier(); });
+  test('it is no floor to the capsule it opened for, and stays one to everyone else', () => {
+    const side = new HostSide(R, { id: 'gate', start: { x: -32, z: GATE_Z - 3, yaw: SOUTH }, ticks: 1, intent: () => ({}) }), { host, player } = side;
+    try {
+      side.course.place(0); host.physics.step();
+      const below = (): number | undefined => floorBelow(host.physics, -32, GATE_Z, 10, 20, player.motor.collider, player.motor.solidOnly);
+      expect(below()).toBeCloseTo(4, 1); // the bars' top
+      expect(player.motor.solidOnly).toBeUndefined();
+      side.phaseGate();
+      expect(below()).toBeUndefined(); // the course has no ground collider: nothing under the bars
+      expect(floorBelow(host.physics, -32, GATE_Z, 10, 20)).toBeCloseTo(4, 1); // a query that is not this capsule's
+    } finally { side.dispose(); }
   });
 });

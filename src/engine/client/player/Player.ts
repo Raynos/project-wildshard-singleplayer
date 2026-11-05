@@ -283,7 +283,7 @@ export class Player {
       water: (x, z) => this.waterSurfaceAt(x, z),
       heightAt: (x, z) => this.groundHeightAt(x, z),
       get platforms() { return walkable(); },
-      floor: (x, z, fromY, maxDrop) => floorBelow(this.physics, x, z, fromY, maxDrop, this.motor.collider),
+      floor: (x, z, fromY, maxDrop) => floorBelow(this.physics, x, z, fromY, maxDrop, this.motor.collider, this.motor.solidOnly),
       // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
       bob: (x, z) => {
         const sea = app.world.water.sea, seconds = this.swellSeconds;

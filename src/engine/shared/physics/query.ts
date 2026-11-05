@@ -44,11 +44,11 @@ const rayOf = (physics: Physics): Ray => {
  * The top of the first world surface (terrain, deck, floor, rock) straight below (x, fromY, z), within `maxDrop`;
  * undefined when there is none. `exclude`: a collider the ray passes through (the caller's own body).
  */
-export function floorBelow(physics: Physics, x: number, z: number, fromY: number, maxDrop: number, exclude?: Collider): number | undefined {
+export function floorBelow(physics: Physics, x: number, z: number, fromY: number, maxDrop: number, exclude?: Collider, only?: (collider: Collider) => boolean): number | undefined {
   const ray = rayOf(physics);
   ray.origin.x = x; ray.origin.y = fromY; ray.origin.z = z;
   ray.dir.x = 0; ray.dir.y = -1; ray.dir.z = 0;
-  const hit = physics.castRay(ray, maxDrop, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(WORLD), exclude);
+  const hit = physics.castRay(ray, maxDrop, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(WORLD), exclude, undefined, only);
   return hit ? fromY - hit.timeOfImpact : undefined;
 }
 
