@@ -20,6 +20,7 @@ import type { Rapier } from '../physics/rapier';
 import { tagCollider, tagOf, type Material } from '../physics/surface';
 import type { BandsState } from './bands';
 import type { DamageRows } from '../combat/damageBook';
+import type { RespawnRow } from './respawn';
 import type { DayClockState } from './dayClock';
 
 /** Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. */
@@ -93,6 +94,8 @@ export interface SimSnapshot {
   bands?: BandsState | undefined;
   /** J105: who hurt which body, while a room has company; absent alone, so a one-player save keeps its bytes. */
   damage?: DamageRows | undefined;
+  /** J107: each room player's last place and fall count; absent until a room has one, so a one-player save keeps its bytes. */
+  respawn?: readonly RespawnRow[] | undefined;
   /** SF72 day clock (SimHost.useDayClock); absent for a host without one, so its bytes are unchanged. */
   day?: DayClockState | undefined;
   /** SF72 board-only collider handles (SimHost.boardColliders); absent when none are registered. */
@@ -215,9 +218,14 @@ export function regionalContinuation(host: SimHost): string {
     targets: host.attackTargets().filter(([id]) => !host.players.has(id)), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), ...savedBooks(host), slots: cloneSlots(host.slots),
     events: host.events.snapshot((value) => encode(value, host)),
     adapters: [...host.adapters].sort(([a], [b]) => a.localeCompare(b)).map(([id, adapter]) => [id, cloneValue(adapter.snapshot())]),
-    ...bandsField(host), ...dayField(host), ...damageField(host) });
+    ...bandsField(host), ...dayField(host), ...damageField(host), ...respawnField(host) });
 }
 /** The body band clocks, omitted for a host without bands (its continuation bytes stay as they were). */
+/** The respawn book, saved once it holds a row. */
+function respawnField(host: SimHost): { respawn?: readonly RespawnRow[] } {
+  const respawn = host.respawn.rows();
+  return respawn.length === 0 ? {} : { respawn };
+}
 /** The damage book, saved only with company: alone every drop is the page's. */
 function damageField(host: SimHost): { damage?: DamageRows } {
   const damage = host.damage.rows();
@@ -250,7 +258,7 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
     events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), ...savedBooks(host), slots: cloneSlots(host.slots),
     adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host),
-    ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host), ...damageField(host) };
+    ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host), ...damageField(host), ...respawnField(host) };
 }
 
 /** One player, with everything at rest left out, so a player that never used a law keeps its exact bytes. */
@@ -434,6 +442,7 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
     host.restoreBodyBands(saved.bands);
     host.restoreDayClock(saved.day);
     host.damage.load(saved.damage ?? []);
+    host.respawn.load(saved.respawn ?? []);
     const actors = new Set([...host.players.keys(), ...host.entities.keys()]);
     if (new Set(saved.targets.map(([id]) => id)).size !== saved.targets.length
       || saved.targets.some(([id, target]) => !host.strikes.has(id) || !actors.has(target))) throw new RangeError('Snapshot strike target does not exist');

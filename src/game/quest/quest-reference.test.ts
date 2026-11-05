@@ -3,7 +3,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { placesWithDiscovery } from '@wildshard/engine/quest/discovery';
 import {practiceRoom} from '@wildshard/engine/core/practiceRoom';
-import { LastPlace } from '../LastPlace';
+import { LastPlace } from '@wildshard/engine/quest/lastPlace';
 import type { QuestPageComposition } from './pageComposition';
 import { QuestPageReference } from './pageReference';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { installAppIdentity } from '@wildshard/engine/app/identity';
 import { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { LedgerBook, LedgerBookSchema, type LedgerBookSave } from '@wildshard/engine/net/ledgerBook';
+import { LedgerBook } from '@wildshard/engine/net/ledgerBook';
 import type { ChatReports } from '@wildshard/engine/net/chat';
 import { NetRoom } from '@wildshard/engine/net/room';
 import { ServerClock } from '@wildshard/engine/net/serverClock';
@@ -12,13 +12,13 @@ import { SimNetWorld } from '@wildshard/engine/net/simWorld';
 import { installSaveEnvironment } from '@wildshard/engine/saves/environment';
 import { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage';
 import { saves } from '@wildshard/engine/saves/runtime';
-import type { SaveKeyDef } from '@wildshard/engine/saves/store';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { serializeSimSnapshot, snapshotSimHostBytes } from '@wildshard/engine/sim/snapshot';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { createQuestLedger } from '@wildshard/game/quest/ledger';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput, type TrustedHeadlessResident } from '../headlessRuntime';
-import { MAX_TICK_SNAPSHOT_CHARS, tickCommands } from '../tickProtocol';
+import { tickCommands } from '../tickProtocol';
+import { CONTINUATION, ContinuationSlots, type SavedContinuation } from './continuation';
 import { ledgerFilings } from './ledgerFilings';
 import { netTickCommands } from './netInput';
 import { WorkerLoopback } from './workerLoopback';
@@ -29,16 +29,13 @@ export interface StandaloneServerOptions {
   readonly control: MessagePort; readonly game: MessagePort;
   /** Read and verify the shard's server inputs. */
   readonly load: (boot: Boot) => Promise<HeadlessRuntimeInput>;
+  /** A save read back but would not restore, and boot moved to the one before it. */
+  readonly onSaveRefused?: (error: unknown) => void;
   /** Where chat reports go (J110). Where that ends up is still to be decided. */
   readonly reports?: ChatReports;
 }
-interface SavedContinuation { readonly tick: number; readonly snapshot: string; readonly ledger?: LedgerBookSave }
 /** The tick allowance one player's input may use. */
 const COMMANDS_PER_TICK = 8;
-const CONTINUATION: SaveKeyDef<SavedContinuation | null> = { key: 'continuation', scope: 'shard', version: 1, initial: () => null,
-  schema: v.nullable(v.strictObject({ tick: v.pipe(v.number(), v.integer(), v.minValue(0)), snapshot: v.pipe(v.string(), v.maxLength(MAX_TICK_SNAPSHOT_CHARS)), ledger: v.exactOptional(LedgerBookSchema) })) };
-/** A continuation gets its own document: it is megabytes, and every other save write would rewrite it. */
-const continuationDocument = (slug: string): string => `standalone-${slug}`;
 
 /** A worker has no page, so no app identity: all it needs of one is the save prefix, which the page passes at boot. */
 function installWorkerIdentity(savePrefix: string): void {
@@ -54,7 +51,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
   const { control, game } = options, scope = new Scope('standalone.server');
   const book = new LedgerBook();
   let room: NetRoom | undefined, clock: ServerClock | undefined, resident: TrustedHeadlessResident | undefined, storage: ForwardedStorage | undefined;
-  let slot: ReturnType<typeof saves.define<SavedContinuation | null>> | undefined, slug = '', probing: number | null = null, tickMs = 0;
+  let slots: ContinuationSlots | undefined, slug = '', probing: number | null = null, tickMs = 0;
   const post = (message: ServerMessage): void => { control.postMessage(v.parse(ServerMessageSchema, message), []); };
   const fail = (error: unknown): void => { clock?.pause(); post({ kind: 'failed', reason: error instanceof Error ? error.message : String(error) }); };
 
@@ -64,10 +61,16 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     const local = storage;
     installWorkerIdentity(message.savePrefix);
     installSaveEnvironment({ storage: saveScope => saveScope === 'session' ? null : local, persistent: () => true, persist: () => Promise.resolve(false) });
-    slot = saves.define(CONTINUATION);
-    const input = await options.load(message), saved = slot.peek(continuationDocument(slug));
-    resident = await createTrustedHeadlessResident(input, saved?.snapshot);
+    slots = new ContinuationSlots(saves.define(CONTINUATION), slug, local, message.savePrefix);
+    const input = await options.load(message);
+    let saved: SavedContinuation | undefined;
+    for (const candidate of slots.candidates()) {
+      try { resident = await createTrustedHeadlessResident(input, candidate.saved.snapshot); saved = candidate.saved; slots.restored(candidate); break; }
+      catch (error) { slots.setAside(candidate); options.onSaveRefused?.(error); }
+    }
+    resident ??= await createTrustedHeadlessResident(input);
     const live = resident;
+    live.host.respawn.served = true;
     const step: ConstructorParameters<typeof NetRoom>[0]['step'] = inputs => {
       const started = diagnosticNow(), own = inputs[0];
       live.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(live.host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
@@ -83,15 +86,16 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     const tickRoom = room;
     clock = new ServerClock({ now: diagnosticNow, wait: (ms, run) => { const timer = scope.timeout(ms, run); return () => { scope.cancelTimer(timer); }; },
       step: () => { try { tickRoom.tick(); } catch (error) { fail(error); } } });
-    post({ kind: 'booted', tick: live.host.state.tick, restored: saved !== null && saved !== undefined });
+    post({ kind: 'booted', tick: live.host.state.tick, restored: saved !== undefined });
   };
 
   const save = async (id: number): Promise<void> => {
-    if (resident === undefined || slot === undefined || storage === undefined) throw new Error('Save before boot');
+    if (resident === undefined || slots === undefined || storage === undefined) throw new Error('Save before boot');
     const tick = resident.host.state.tick;
-    const wrote = slot.write({ tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(resident.host)), ledger: book.snapshot() }, continuationDocument(slug));
-    const durable = await storage.settled(); // J-ledger rule: a save counts only once the real storage has it (§6.3.3)
-    post({ kind: 'saved', id, tick, ok: wrote && durable });
+    const wrote = slots.write({ tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(resident.host)), ledger: book.snapshot() });
+    const durable = await storage.settled() && wrote; // J-ledger rule: a save counts only once the real storage has it (§6.3.3)
+    slots.settled(durable);
+    post({ kind: 'saved', id, tick, ok: durable });
   };
 
   const handle = (raw: unknown): void => {

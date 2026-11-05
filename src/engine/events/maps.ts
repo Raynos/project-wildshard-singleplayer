@@ -16,7 +16,7 @@ export interface EventMap {
   'reward.granted': { player: string; coins: number; body: string };
   'actor.died': { actor: Actor; req: DamageRequest };
   'player.died': { actor: Actor; checkpoint: boolean; cause?: DeathCause };
-  'player.respawned': { at: Vector3; checkpoint: boolean };
+  'player.respawned': { at: Vector3; checkpoint: boolean; player?: string };
   'practice.active': boolean;
   'explore.studio': boolean;
   'explore.turntable': { on: boolean; key?: { x: number; y: number; z: number } };

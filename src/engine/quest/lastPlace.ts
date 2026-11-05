@@ -20,6 +20,8 @@ export interface PlaceArea { id: string; label: string; x: number; z: number; r:
 export interface Stand { id: string; label: string; x: number; y: number; z: number; yaw: number }
 /** the player's feet and whether they stand on walkable footing right now */
 export interface Feet { x: number; y: number; z: number; grounded: boolean }
+/** What a tracker holds between ticks. */
+export interface LastPlaceSaved { readonly inside: string | null; readonly pending: string | null; readonly stand: Stand | null }
 
 /** the place (x, z) is in: of the ones whose radius holds it, the one it is deepest inside (distance / radius) */
 export function placeAt(places: readonly PlaceArea[], x: number, z: number): PlaceArea | null {
@@ -44,7 +46,9 @@ export class LastPlace {
   private pending: PlaceArea | null = null;
   private stand_: Stand | null = null;
 
-  constructor(private readonly places: () => readonly PlaceArea[]) {}
+  private readonly places: () => readonly PlaceArea[];
+
+  constructor(places: () => readonly PlaceArea[]) { this.places = places; }
 
   /** the checkpoint: the last place reached and where you stood in it (null: none reached yet) */
   get stand(): Stand | null { return this.stand_; }
@@ -60,6 +64,13 @@ export class LastPlace {
   }
 
   reset(): void { this.inside = null; this.pending = null; this.stand_ = null; }
+
+  /** The tracker's state, for a saved room. */
+  saved(): LastPlaceSaved { return { inside: this.inside, pending: this.pending?.id ?? null, stand: this.stand_ }; }
+  load(saved: LastPlaceSaved): void {
+    this.inside = saved.inside; this.stand_ = saved.stand;
+    this.pending = saved.pending === null ? null : this.places().find(place => place.id === saved.pending) ?? null;
+  }
 }
 
 /** a place's map label as the death card's words: "WRECK COVE" → "Wreck Cove", "THE LOOKOUT" → "the Lookout" */

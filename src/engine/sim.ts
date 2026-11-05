@@ -12,6 +12,7 @@ import { StrikeRunner, type StrikeSpec } from './ai/strikes';
 import { canReach } from './ai/reach';
 import { CombatPipeline } from './combat/pipeline';
 import { DamageBook } from './combat/damageBook';
+import { RespawnBook } from './sim/respawn';
 import type { PlayerHealth } from './combat/health';
 import { Physics } from './physics/Physics';
 import { CharacterMotor, PLAYER_BODY, type MotorOptions } from './physics/CharacterMotor';
@@ -191,6 +192,8 @@ export class SimHost {
   readonly combat: CombatPipeline;
   /** J105: who hurt which body. */
   readonly damage: DamageBook = new DamageBook();
+  /** J107: where each player of a room goes back to. */
+  readonly respawn: RespawnBook = new RespawnBook();
   physics: Physics;
   /** Every player in this host, the lead first. */
   readonly players: Map<string, PlayerSim> = new Map<string, PlayerSim>();

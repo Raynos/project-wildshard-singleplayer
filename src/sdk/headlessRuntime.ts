@@ -17,6 +17,9 @@ import type { NetTickAct } from '@wildshard/engine/net/acts';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { netInteractCommands, netTickCommands } from './standalone/netInput';
 import { installPersonalLoot, personalCoinTable } from '@wildshard/game/loot/personal';
+import { installRoomRespawn } from '@wildshard/game/roomRespawn';
+import { serverPlaces } from '@wildshard/game/quest/serverPlaces';
+import type { PlaceArea } from '@wildshard/engine/quest/lastPlace';
 import { checkSimSnapshotWire, decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
@@ -147,7 +150,7 @@ export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<Headl
 export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Promise<HeadlessRuntimePlan> {
   if (!/^[a-z0-9][a-z0-9-]*$/u.test(provided.shard.identity.slug)) throw new Error('Invalid native product identity');
   await prepareAssetDecoders();
-  let plan: HeadlessRuntimePlan, source = provided.shard;
+  let plan: HeadlessRuntimePlan, source = provided.shard, places: readonly PlaceArea[] = [];
   if (provided.sections !== undefined) {
     const declaration = parseNativeRuntimePlan(provided.sections.get('sim/runtime-plan'));
     plan = await prepareRuntimePlan(source, provided.assets, declaration.baked, declaration.recipe, provided.sections);
@@ -163,10 +166,12 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
     source = product.shardfile;
     plan = await prepareProductRuntimePlan(product, provided.assets, headlessAssemblyPorts(provided.rapier));
     if (product.has('economy/loot')) plan = { ...plan, economy: product.section('economy/loot') };
+    places = await serverPlaces(product);
   }
   const identity = { id: source.identity.slug, seed: source.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
   return { ...plan, install: (host, context) => {
+    installRoomRespawn(host, places);
     installCableModes(host.scope, source.modes?.traverse ?? [], host.flags).bindNative(host);
     const carried = source.runtime?.binds?.includes('movers') === true || hasDeclaredClientPage(source)
       ? source.movers.filter(row => row.carry !== undefined) : [];

@@ -61,7 +61,7 @@ import { Inventory } from '../Inventory';
 import { legacyHomeCheckpoint } from '../grid/homeCheckpoint';
 import { initialGridReload, plannedGridReload } from '../grid/recovery';
 import { ITEMS } from '../bag/itemCatalog';
-import { LastPlace, placeName } from '../LastPlace';
+import { LastPlace, placeName } from '@wildshard/engine/quest/lastPlace';
 import { shardCompleteUp } from '../complete/ShardComplete';
 import type { loadoutStage } from './loadout';
 import { animalPositions } from './positions';
