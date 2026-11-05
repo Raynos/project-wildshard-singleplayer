@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseWorldSceneWeld } from './worldSceneWeld';
+import { parseWorldSceneWeld } from './worldSceneWeld.ts';
 
 test('hydration can reuse an immutable admitted graph without trusting its input', () => {
   const input = { id: 'scene', root: 'root', nodes: [{ kind: 'group', id: 'child', parent: 'root' }] };

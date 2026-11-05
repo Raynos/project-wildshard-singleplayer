@@ -11,14 +11,14 @@
  * `attackSpan` is the attack duration the export sampled the attack clip with (seconds).
  */
 import * as v from 'valibot';
-import { parseSkinBindings, parseSkinRows, validateCreatureBones, type SkinBinding, type SkinRow } from '@wildshard/format/skinData';
-import type { ShardRows } from '@wildshard/format/rows';
-import type { Shardfile } from '@wildshard/format/shardSchema';
-import { parseGlbData as parseGlb } from './glbCost';
-import { skinLayerDecoded } from '@wildshard/format/skinLayers';
-import { MaterialsSchema } from '@wildshard/format/materials';
+import { parseSkinBindings, parseSkinRows, validateCreatureBones, type SkinBinding, type SkinRow } from './skinData.ts';
+import type { ShardRows } from './rows.ts';
+import type { Shardfile } from './shardSchema.ts';
+import { parseGlbData as parseGlb } from './glbCost.ts';
+import { skinLayerDecoded } from './skinLayers.ts';
+import { MaterialsSchema } from './materials.ts';
 
-import { SKIN_LOOK_RECIPE, SKIN_CLIPS_RECIPE, SkinLookParametersSchema, SkinClipParametersSchema, ShardSkinFileSchema, type SkinLookParameters } from '@wildshard/format/skins';
+import { SKIN_LOOK_RECIPE, SKIN_CLIPS_RECIPE, SkinLookParametersSchema, SkinClipParametersSchema, ShardSkinFileSchema, type SkinLookParameters } from './skins.ts';
 
 /** Parse a `platform.skin` look row's parameters (throws on anything else). */
 export function skinLookParameters(row: ShardRows['looks'][number]): SkinLookParameters {

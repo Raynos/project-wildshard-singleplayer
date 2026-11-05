@@ -1,8 +1,8 @@
-import { CELL_ABOVE, CELL_BELOW } from '@wildshard/format/contentBounds';
-import { parseBakedTerrain, type BakedGrid } from '@wildshard/format/bakedTerrainBytes';
-import { validateEntrywayGrid } from '@wildshard/format/entrywayAssets';
+import { CELL_ABOVE, CELL_BELOW } from './contentBounds.ts';
+import { parseBakedTerrain, type BakedGrid } from './bakedTerrainBytes.ts';
+import { validateEntrywayGrid } from './entrywayAssets.ts';
 
-import { nativeGroundRules, type NativeGroundSource } from '@wildshard/format/nativeGround';
+import { nativeGroundRules, type NativeGroundSource } from './nativeGround.ts';
 
 /** Parse the same original payload as the live terrain after bounding its header, then witness every native sample and entry. */
 export function validateNativeGround(source: NativeGroundSource, assets: ReadonlyMap<string, Uint8Array>): BakedGrid | null {

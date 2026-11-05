@@ -1,6 +1,6 @@
-import { DirectorStagesSchema } from './directorStages';
+import { DirectorStagesSchema } from './directorStages.ts';
 import * as v from 'valibot';
-import { EliteScriptSchema } from './eliteScripts';
+import { EliteScriptSchema } from './eliteScripts.ts';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));
 const positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));

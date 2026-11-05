@@ -1,12 +1,12 @@
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 /** Complete room and encounter documents; the existing native owners still construct and admit every resource. */
 import * as v from 'valibot';
-import { PrivateSceneSchema } from './clientChannels';
-import { BossProfileSchema } from './bossProfiles';
-import { BossEncounterDefinitionSchema, BossEncounterPresentationSchema } from './bossEncounter';
-import { CreatureStrikeSchema } from './creatures';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
+import { PrivateSceneSchema } from './clientChannels.ts';
+import { BossProfileSchema } from './bossProfiles.ts';
+import { BossEncounterDefinitionSchema, BossEncounterPresentationSchema } from './bossEncounter.ts';
+import { CreatureStrikeSchema } from './creatures.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument.ts';
 
 
 interface RoomPoint { x: number; z: number }

@@ -1,4 +1,4 @@
-import {isJsonData} from './json';
+import {isJsonData} from './json.ts';
 import * as v from 'valibot';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));

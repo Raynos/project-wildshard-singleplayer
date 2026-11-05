@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { encodeMeshCollision } from './meshCollisionBytes';
-import { validateMeshEntryways } from './meshEntryways';
-import type { ShardEntryways } from './entryways';
+import { encodeMeshCollision } from './meshCollisionBytes.ts';
+import { validateMeshEntryways } from './meshEntryways.ts';
+import type { ShardEntryways } from './entryways.ts';
 
 const entries: ShardEntryways = [
   { edge: 'north', at: [0, 0, 250], width: 8 }, { edge: 'east', at: [250, 0, 0], width: 8 },

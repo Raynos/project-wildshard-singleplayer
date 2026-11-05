@@ -2,9 +2,9 @@
  *  id, where it stands (composition places), its part geometry and extra objects by scene resource id, what it
  *  publishes, and its pose system; a trader figure adds its counter model and live owners. Numbers and ids only. */
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { SpecimenModelMetadataSchema } from './specimenCatalogue';
-import { FigureGroupSchema } from './figures';
+import { isJsonData } from './json.ts';
+import { SpecimenModelMetadataSchema } from './specimenCatalogue.ts';
+import { FigureGroupSchema } from './figures.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite()), triple = v.tuple([n, n, n]);
 const place = v.strictObject({ poi: id, x: n, z: n, y: v.exactOptional(n), dy: v.exactOptional(n), yaw: v.exactOptional(n), anchor: v.exactOptional(id) });

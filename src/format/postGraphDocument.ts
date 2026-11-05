@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { PostGraphLookSchema, type PostGraphLookRow } from './postGraphLook';
-import { GrassPresentationSchema, StaticCaptureSchema } from './fieldPresentation';
-import { SpecimenTextureSchema } from './specimenCatalogue';
-import { parsePaintedTerrain } from './materialFamilies';
-import { PaintedAirSchema, PaintedGroundSchema, PaintedPanoramaSchema, PainterKeyLightSchema, PainterlyWorldSchema } from './paintedResources';
-import { parseScaledPostRow } from './scaledPostContract';
+import { PostGraphLookSchema, type PostGraphLookRow } from './postGraphLook.ts';
+import { GrassPresentationSchema, StaticCaptureSchema } from './fieldPresentation.ts';
+import { SpecimenTextureSchema } from './specimenCatalogue.ts';
+import { parsePaintedTerrain } from './materialFamilies.ts';
+import { PaintedAirSchema, PaintedGroundSchema, PaintedPanoramaSchema, PainterKeyLightSchema, PainterlyWorldSchema } from './paintedResources.ts';
+import { parseScaledPostRow } from './scaledPostContract.ts';
 
 const tiles = v.record(v.string(), v.looseObject({ texture: v.optional(SpecimenTextureSchema) }));
 

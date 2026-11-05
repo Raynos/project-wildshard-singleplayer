@@ -1,8 +1,8 @@
-import type { LateFile } from './admissionLate';
-import { parseWorldScenes, worldScenesForTier } from './worldScenes';
-import { parseRiggedHullBook } from './riggedHulls';
-import { PosedLibrarySchema } from './namedJsonContracts';
-import { parseClientPlan } from './clientPlan';
+import type { LateFile } from './admissionLate.ts';
+import { parseWorldScenes, worldScenesForTier } from './worldScenes.ts';
+import { parseRiggedHullBook } from './riggedHulls.ts';
+import { PosedLibrarySchema } from './namedJsonContracts.ts';
+import { parseClientPlan } from './clientPlan.ts';
 import * as v from 'valibot';
 
 /** Only immutable addressing and typed alternatives are needed for selection.

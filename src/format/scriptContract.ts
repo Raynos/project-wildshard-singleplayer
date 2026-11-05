@@ -1,9 +1,9 @@
-import { isJsonData } from './json';
-import { SpawnScriptsSchema } from './spawnScripts';
+import { isJsonData } from './json.ts';
+import { SpawnScriptsSchema } from './spawnScripts.ts';
 import * as v from 'valibot';
-import { admitScript, type ScriptAdmission } from './scriptAdmission';
-import { admitScriptV2, SCRIPT_V2_REVISIONS, type ScriptAdmissionV2 } from './scriptAdmissionV2';
-import { DecisionScriptsSchema, parseDecisionScripts, type DecisionScripts } from './decisionScripts';
+import { admitScript, type ScriptAdmission } from './scriptAdmission.ts';
+import { admitScriptV2, SCRIPT_V2_REVISIONS, type ScriptAdmissionV2 } from './scriptAdmissionV2.ts';
+import { DecisionScriptsSchema, parseDecisionScripts, type DecisionScripts } from './decisionScripts.ts';
 
 /** Fixed ABI2 byte admission metadata, independent of execution or source sniffing. */
 export const ScriptV2ContractSchema: v.StrictObjectSchema<{ readonly abi: v.GenericSchema<ScriptV2ContractRowsInput['abi'], ScriptV2ContractRows['abi']>; readonly lane: v.GenericSchema<ScriptV2ContractRowsInput['lane'], ScriptV2ContractRows['lane']>; readonly pages: v.GenericSchema<ScriptV2ContractRowsInput['pages'], ScriptV2ContractRows['pages']>; readonly ioBytes: v.GenericSchema<ScriptV2ContractRowsInput['ioBytes'], ScriptV2ContractRows['ioBytes']>; readonly compilerRevision: v.GenericSchema<ScriptV2ContractRowsInput['compilerRevision'], ScriptV2ContractRows['compilerRevision']>; readonly admissionRevision: v.GenericSchema<ScriptV2ContractRowsInput['admissionRevision'], ScriptV2ContractRows['admissionRevision']>; }, undefined> = v.strictObject({ abi: v.literal(2), lane: v.picklist(['sim', 'project', 'view']), pages: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)),

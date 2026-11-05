@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SkinPoseLayerSchema, validateSkinLayers } from './skinLayers';
+import { SkinPoseLayerSchema, validateSkinLayers } from './skinLayers.ts';
 /** Animation clip identity; the native rig uses the same bounded family namespace. */
 export type SkinClipName = `${'idle' | 'walk' | 'run' | 'attack' | 'hit' | 'die' | 'turn' | 'swim' | 'fly'}${'' | `.${string}`}`;
 

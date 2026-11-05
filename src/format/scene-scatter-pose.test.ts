@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { readSceneScatterPose, SceneScatterPoseSchema } from './sceneDressing';
+import { readSceneScatterPose, SceneScatterPoseSchema } from './sceneDressing.ts';
 
 const base = { x: 1, y: -2.5, z: 3, yaw: 0.25, sx: 1, sy: 1.5, sz: 1, far: 40, r: 0.1, g: 0.2, b: 0.3 };
 

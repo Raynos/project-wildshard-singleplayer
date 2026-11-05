@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { QuestGraphSchema } from './questGraph';
-import { InteractionRowsSchema, QuestPageInteractionsSchema } from './questInteractions';
-import { NpcRowSchema } from './npcs';
-import { DirectorStagesSchema } from './directorStages';
-import { compileDirectorWhen } from './directorWhen';
-import { DeclaredQuestPageSchema } from './declaredQuestPage';
+import { QuestGraphSchema } from './questGraph.ts';
+import { InteractionRowsSchema, QuestPageInteractionsSchema } from './questInteractions.ts';
+import { NpcRowSchema } from './npcs.ts';
+import { DirectorStagesSchema } from './directorStages.ts';
+import { compileDirectorWhen } from './directorWhen.ts';
+import { DeclaredQuestPageSchema } from './declaredQuestPage.ts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
 const names = v.pipe(v.array(name), v.maxLength(64));

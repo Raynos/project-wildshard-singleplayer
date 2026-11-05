@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { parseWorldSceneModels, worldSceneModelResources } from './worldSceneModels';
-import { parseWorldSceneWeld } from './worldSceneWeld';
+import { parseWorldSceneModels, worldSceneModelResources } from './worldSceneModels.ts';
+import { parseWorldSceneWeld } from './worldSceneWeld.ts';
 
 const draw = (id: string) => ({ id, library: 'shapes', model: id, material: id });
 const graph = (id: string) => parseWorldSceneWeld({ id, root: 'root', nodes: [

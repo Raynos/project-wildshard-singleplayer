@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { PackedGeometryRowsSchema } from './geometryPack';
-import { WaterSurfaceSchema } from './water';
-import { ForestRoofMaskSchema } from './rangedPage';
+import { PackedGeometryRowsSchema } from './geometryPack.ts';
+import { WaterSurfaceSchema } from './water.ts';
+import { ForestRoofMaskSchema } from './rangedPage.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const count = (max: number) => v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(max));

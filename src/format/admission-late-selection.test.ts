@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { entryFileSteps, tierLibrarySteps } from './tierSelection';
+import { entryFileSteps, tierLibrarySteps } from './tierSelection.ts';
 
 const early = 'a'.repeat(64), gallery = 'b'.repeat(64);
 function fixture() {

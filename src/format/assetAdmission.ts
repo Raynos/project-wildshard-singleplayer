@@ -1,34 +1,34 @@
-import { acceptsProductCost, textureLibrarySource } from './deviceMemoryCost';
-import { admitScriptContract, decisionModuleContracts, type ScriptAdmissionRows } from './scriptContract';
-import type { TextureTranscodeSupport } from './contentBounds';
-import { admitScript } from '@wildshard/format/scriptAdmission';
-import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
-import { worstContentCost } from '@wildshard/format/budget';
-import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { assetCost, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph, type PropExtent } from '@wildshard/format/product';
-import type { MemoryAdmission } from '@wildshard/format/memoryAdmission';
+import { acceptsProductCost, textureLibrarySource } from './deviceMemoryCost.ts';
+import { admitScriptContract, decisionModuleContracts, type ScriptAdmissionRows } from './scriptContract.ts';
+import type { TextureTranscodeSupport } from './contentBounds.ts';
+import { admitScript } from './scriptAdmission.ts';
+import { SCRIPT_LIMITS } from './scriptLimits.ts';
+import { worstContentCost } from './budget.ts';
+import { parseShardfile, type Shardfile } from './shardSchema.ts';
+import { assetCost, validateTerrainAssets, validatePropDrawBounds, preflightAssetGraph, type PropExtent } from './product.ts';
+import type { MemoryAdmission } from './memoryAdmission.ts';
 
-import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
-import { validateNavigationAssets } from '@wildshard/format/navigation';
-import { validateNativeGround } from '@wildshard/format/nativeGroundAssets';
-import { validateMeshEntryways } from '@wildshard/format/meshEntryways';
-import { glbMaterialNames, validatePropMaterials, type PropMaterials } from '@wildshard/format/propMaterials';
-import { checkTileMaterialNames, splatTextureRefs } from '@wildshard/format/splatTerrain';
-import { validateSkinAssets } from '@wildshard/format/skinAssets';
-import { graphFileRules, inlineGraphRules } from '@wildshard/format/materials';
-import { postStackCost } from '@wildshard/format/postStack';
-import { validateEntrywayTerrain } from '@wildshard/format/entrywayAssets';
-import { validateEntrywayClearance } from '@wildshard/format/entryClearance';
-import { validateSocketLandings } from '@wildshard/format/entryLanding';
-import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
-import { validatePortalFloors } from '@wildshard/format/portalFloor';
-import { clientScriptViewCost } from '@wildshard/format/clientScripts';
-import { preflightShardfile } from '@wildshard/format/preflight';
+import { validateMeshCollisionAssets } from './meshCollisionAssets.ts';
+import { validateNavigationAssets } from './navigation.ts';
+import { validateNativeGround } from './nativeGroundAssets.ts';
+import { validateMeshEntryways } from './meshEntryways.ts';
+import { glbMaterialNames, validatePropMaterials, type PropMaterials } from './propMaterials.ts';
+import { checkTileMaterialNames, splatTextureRefs } from './splatTerrain.ts';
+import { validateSkinAssets } from './skinAssets.ts';
+import { graphFileRules, inlineGraphRules } from './materials.ts';
+import { postStackCost } from './postStack.ts';
+import { validateEntrywayTerrain } from './entrywayAssets.ts';
+import { validateEntrywayClearance } from './entryClearance.ts';
+import { validateSocketLandings } from './entryLanding.ts';
+import { portalLinkEntries } from './portalLinkAssets.ts';
+import { validatePortalFloors } from './portalFloor.ts';
+import { clientScriptViewCost } from './clientScripts.ts';
+import { preflightShardfile } from './preflight.ts';
 
-import { compendiumSketches } from '@wildshard/format/compendiumSketches';
-import { assertCommonsCosts, type CommonsCosts } from '@wildshard/format/commonsCosts';
-import { nearPlaceholderCost } from '@wildshard/format/nearPlaceholder';
-import { validateNearPlaceholderAssets } from '@wildshard/format/nearPlaceholderAssets';
+import { compendiumSketches } from './compendiumSketches.ts';
+import { assertCommonsCosts, type CommonsCosts } from './commonsCosts.ts';
+import { nearPlaceholderCost } from './nearPlaceholder.ts';
+import { validateNearPlaceholderAssets } from './nearPlaceholderAssets.ts';
 
 
 /** Check declared residency before immutable reads; exact parsed headers are checked again on admission. */

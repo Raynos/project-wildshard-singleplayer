@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 /** An inline compressed block or one verified product file containing the same raw bytes; never both. */
 export const BinaryDataSchema:v.StrictObjectSchema<{data:v.GenericSchema<unknown,string>},undefined>=v.strictObject({data:v.pipe(v.string(),v.minLength(1))});

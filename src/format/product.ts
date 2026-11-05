@@ -1,26 +1,26 @@
-import { admitScriptContract, type ScriptContract } from './scriptContract';
-import { prepareGlbBuffers } from './glbBuffers';
-import { parseGlbData } from './glbCost';
-import { parseKtx2 } from './ktx2Cost';
-import { indexRecordingAac } from '@wildshard/format/aacIndex';
-import { bilinearTerrainSamplers, decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
-import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/format/meshCollisionBytes";
-import type { GlbVertex } from "@wildshard/format/glbTriangles";
-import type { OverdrawEstimate } from "@wildshard/format/overdraw";
-import { parseImageAsset } from "@wildshard/format/stillImage";
-import { journalImageRefs } from './compendiumRows';
-import type { Shardfile } from "@wildshard/format/shardSchema";
-import type { ShardTerrain } from "@wildshard/format/terrain";
-import { worstContentCost, memoryTargetWarnings, nearbyContentCost } from "@wildshard/format/budget";
-import { CONTENT_CAPS as C, MEMORY_GATES } from '@wildshard/format/contentBounds';
-import { DEFAULT_GRAPH_BUDGET } from "@wildshard/format/materialGraph";
-import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
-import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
-import { MemoryAdmission } from './memoryAdmission';
-import { nearPlaceholderRoots } from '@wildshard/format/nearPlaceholder';
+import { admitScriptContract, type ScriptContract } from './scriptContract.ts';
+import { prepareGlbBuffers } from './glbBuffers.ts';
+import { parseGlbData } from './glbCost.ts';
+import { parseKtx2 } from './ktx2Cost.ts';
+import { indexRecordingAac } from './aacIndex.ts';
+import { bilinearTerrainSamplers, decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "./terrainTileBytes.ts";
+import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "./meshCollisionBytes.ts";
+import type { GlbVertex } from "./glbTriangles.ts";
+import type { OverdrawEstimate } from "./overdraw.ts";
+import { parseImageAsset } from "./stillImage.ts";
+import { journalImageRefs } from './compendiumRows.ts';
+import type { Shardfile } from "./shardSchema.ts";
+import type { ShardTerrain } from "./terrain.ts";
+import { worstContentCost, memoryTargetWarnings, nearbyContentCost } from "./budget.ts";
+import { CONTENT_CAPS as C, MEMORY_GATES } from './contentBounds.ts';
+import { DEFAULT_GRAPH_BUDGET } from "./materialGraph.ts";
+import { SCRIPT_LIMITS } from './scriptLimits.ts';
+import { runtimeAccountedBytes } from "./runtimeCost.ts";
+import { MemoryAdmission } from './memoryAdmission.ts';
+import { nearPlaceholderRoots } from './nearPlaceholder.ts';
 
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
-import { isNavigationData, navigationCost } from '@wildshard/format/navigationBytes';
+import { isNavigationData, navigationCost } from './navigationBytes.ts';
 
 /** Admitted decoded CPU bytes, GPU bytes, triangle count and draw count charged to the asset budget. */
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }

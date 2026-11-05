@@ -1,12 +1,12 @@
 /** Defining root wire sections shared by the authoring SDK and game admission.
  * Native reference/asset/entry/allocator checks stay in game; look and material contracts await DS1.4. */
 import * as v from 'valibot';
-import { WIRE_CELL, WIRE_TILE_SIZES } from './wireLimits';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
-import { SHARDFILE_VERSION } from './version';
-import { RuntimeCostSchema } from './runtimeCost';
-import { CommonsCostsSchema } from './commonsCosts';
-import { ScriptBindingsSchema } from './scripts';
+import { WIRE_CELL, WIRE_TILE_SIZES } from './wireLimits.ts';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits.ts';
+import { SHARDFILE_VERSION } from './version.ts';
+import { RuntimeCostSchema } from './runtimeCost.ts';
+import { CommonsCostsSchema } from './commonsCosts.ts';
+import { ScriptBindingsSchema } from './scripts.ts';
 
 const CHUNK_HALF = WIRE_CELL.half, CELL_BELOW = WIRE_CELL.below, CELL_ABOVE = WIRE_CELL.above;
 /** Nonnegative safe wire integer. */

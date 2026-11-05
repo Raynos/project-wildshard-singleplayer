@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { PrivateSceneSchema } from './clientChannels';
-import { WorldScenePoolSchema, type WorldScenePoolRowInput, type WorldScenePoolRow } from './worldScenes';
+import { PrivateSceneSchema } from './clientChannels.ts';
+import { WorldScenePoolSchema, type WorldScenePoolRowInput, type WorldScenePoolRow } from './worldScenes.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(512));

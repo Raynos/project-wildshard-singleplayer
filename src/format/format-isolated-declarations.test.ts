@@ -47,7 +47,7 @@ test('every isolated format declaration remains strictly checked by browser cons
     const target=ts.resolveModuleName(node.text,file,options,ts.sys).resolvedModule;
     const importedName=target===undefined?undefined:names.get(resolve(target.resolvedFileName));
     if(importedName!==undefined)edits.push({start:node.getStart(source),end:node.end,
-     text:JSON.stringify(`./${basename(importedName).replace(/\.d\.ts$/u,'')}`)});
+     text:JSON.stringify(`./${basename(importedName).replace(/\.d\.ts$/u,'.js')}`)});
    }
    ts.forEachChild(node,visit);
   };
@@ -65,7 +65,7 @@ test('every isolated format declaration remains strictly checked by browser cons
  const check=(paths:readonly string[]):readonly ts.Diagnostic[]=>ts.getPreEmitDiagnostics(ts.createProgram([...paths],options,host));
  expect(check(roots)).toEqual([]);
  const consumer=resolve('src/format/t4-emitted-invalid.ts');
- virtuals.set(consumer,"import type * as v from 'valibot';\nimport {AudioNodeSchema} from './t4-emitted-audioProfiles';\nexport const invalid:v.InferOutput<typeof AudioNodeSchema>={id:'emitter',panner:[1,2]};\n");
+ virtuals.set(consumer,"import type * as v from 'valibot';\nimport {AudioNodeSchema} from './t4-emitted-audioProfiles.js';\nexport const invalid:v.InferOutput<typeof AudioNodeSchema>={id:'emitter',panner:[1,2]};\n");
  const refused=check([...roots,consumer]);
  expect(refused.map(row=>row.code)).toEqual([2322]);
 });

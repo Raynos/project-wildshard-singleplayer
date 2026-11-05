@@ -1,10 +1,10 @@
-import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import type { ShardEntryways } from '@wildshard/format/entryways';
-import type { ShardProps } from '@wildshard/format/props';
-import { entryFootprints, clipEntryPolygon, type EntryFootprint, type EntryVertex } from '@wildshard/format/entryGeometry';
-import { glbPoint, glbTransform } from '@wildshard/format/glbTriangles';
-import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
-import { visitMeshTriangles } from '@wildshard/format/meshEntryways';
+import { decodeTerrainTile } from './terrainTileBytes.ts';
+import type { ShardEntryways } from './entryways.ts';
+import type { ShardProps } from './props.ts';
+import { entryFootprints, clipEntryPolygon, type EntryFootprint, type EntryVertex } from './entryGeometry.ts';
+import { glbPoint, glbTransform } from './glbTriangles.ts';
+import type { ShardMeshCollision } from './meshCollision.ts';
+import { visitMeshTriangles } from './meshEntryways.ts';
 
 type Box = Extract<ShardProps['colliders'][number]['shapes'][number], { kind: 'box' }>;
 function boxTop(box: Box): EntryVertex[][] {

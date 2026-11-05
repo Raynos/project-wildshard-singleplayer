@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const clock = v.picklist(['t', 'phase']);

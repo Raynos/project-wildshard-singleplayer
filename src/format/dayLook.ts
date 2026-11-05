@@ -1,4 +1,4 @@
-import type { DayClockRow, DayClockSegment } from './dayCycle';
+import type { DayClockRow, DayClockSegment } from './dayCycle.ts';
 
 type Range = readonly [number, number];
 /** A preset's fields: each a colour, a number, a name, or a nested group. */

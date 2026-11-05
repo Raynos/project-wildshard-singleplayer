@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import type { Shardfile } from './shardSchema';
+import { isJsonData } from './json.ts';
+import type { Shardfile } from './shardSchema.ts';
 
 const id = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9.:-]*$/u), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

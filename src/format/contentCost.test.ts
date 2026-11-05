@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { CONTENT_CAPS, ENGINE_BASE_BYTES } from './contentBounds';
-import { contentCost } from './contentCost';
+import { CONTENT_CAPS, ENGINE_BASE_BYTES } from './contentBounds.ts';
+import { contentCost } from './contentCost.ts';
 
 const MiB = 1024 * 1024;
 // Template 1's own 80 tile rows and declared library/sim, read from the

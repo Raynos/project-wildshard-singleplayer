@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 /** Serialized photographic sky presets. Client presentation is owned by the game. */
 export const SKY_PRESET = {

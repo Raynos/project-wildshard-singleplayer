@@ -1,7 +1,7 @@
 /** Strict stable-id continuation for ABI-v2 queries. Array limits come from
  * admitted fixed-memory capacities; this never executes or replays a query. */
 import * as v from 'valibot';
-import type { V2QueryRequest,V2QueryAnswer } from './scriptQueriesV2';
+import type { V2QueryRequest,V2QueryAnswer } from './scriptQueriesV2.ts';
 
 export interface V2QuerySnapshot {
   readonly phase: number;

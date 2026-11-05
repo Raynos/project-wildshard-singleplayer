@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const number = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(10000000));

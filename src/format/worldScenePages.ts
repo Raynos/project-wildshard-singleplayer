@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { WorldSceneWeldFieldsSchema, WorldSceneWeldNodeSchema, worldSceneWeldFieldsValid, parseWorldSceneWeld, type WorldSceneWeld, type SceneFileReference } from './worldSceneWeld';
-import { LivingPageFieldsSchema, LivingPageInputSchema, type LivingPageInputRows } from './forestPage';
+import { isJsonData } from './json.ts';
+import { WorldSceneWeldFieldsSchema, WorldSceneWeldNodeSchema, worldSceneWeldFieldsValid, parseWorldSceneWeld, type WorldSceneWeld, type SceneFileReference } from './worldSceneWeld.ts';
+import { LivingPageFieldsSchema, LivingPageInputSchema, type LivingPageInputRows } from './forestPage.ts';
 
 const index = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(65535));
 const packedGraph = v.strictObject({ ...WorldSceneWeldFieldsSchema.entries, nodes: v.pipe(v.array(index), v.maxLength(4096)) });

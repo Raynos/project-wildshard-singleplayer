@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { tierLibrarySteps } from '@wildshard/format/tierSelection';
+import { tierLibrarySteps } from './tierSelection.ts';
 
 const hash = (n: number): string => String(n).repeat(64).slice(0, 64);
 const file = (n: number, dependencies: string[] = []) => ({ hash: hash(n), kind: 'binary', decoded: 1, dependencies });

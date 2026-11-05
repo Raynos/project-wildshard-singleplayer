@@ -1,7 +1,7 @@
-import type { NearPlaceholder } from './nearPlaceholder';
-import { decodeTerrainTile } from './terrainTileBytes';
-import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from './contentBounds';
-import { visitGlbTriangles } from './product';
+import type { NearPlaceholder } from './nearPlaceholder.ts';
+import { decodeTerrainTile } from './terrainTileBytes.ts';
+import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from './contentBounds.ts';
+import { visitGlbTriangles } from './product.ts';
 
 /** Validate actual visual payloads: exact L1 tiles and cell-local GLBs, with no collider-only terrain. */
 export function validateNearPlaceholderAssets(near: NearPlaceholder, assets: ReadonlyMap<string, Uint8Array>): void {

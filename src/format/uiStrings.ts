@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 const key = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_.-]{0,127}$/u));
 

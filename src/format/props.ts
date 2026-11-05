@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { CELL_ABOVE, CELL_BELOW } from '@wildshard/format/contentBounds';
-import { isJsonData } from '@wildshard/format/json';
-import { PropMaterialsSchema, propMaterialTextureRefs, validatePropMaterials } from '@wildshard/format/propMaterials';
-import { SplatTerrainSchema, validateSplatTerrain } from '@wildshard/format/splatTerrain';
-import { glbPoint, glbTransform } from '@wildshard/format/glbTriangles';
+import { CELL_ABOVE, CELL_BELOW } from './contentBounds.ts';
+import { isJsonData } from './json.ts';
+import { PropMaterialsSchema, propMaterialTextureRefs, validatePropMaterials } from './propMaterials.ts';
+import { SplatTerrainSchema, validateSplatTerrain } from './splatTerrain.ts';
+import { glbPoint, glbTransform } from './glbTriangles.ts';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { CatalogueIconSchema } from './items';
+import { isJsonData } from './json.ts';
+import { CatalogueIconSchema } from './items.ts';
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(512)),count=v.pipe(v.number(),v.safeInteger(),v.minValue(0),v.maxValue(256));
 const flags=v.union([v.pipe(v.array(text),v.maxLength(256)),v.strictObject({prefix:text,count})]);

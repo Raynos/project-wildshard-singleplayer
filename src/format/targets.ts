@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { hookRules, type ShardHooks } from './hooks';
-import type { StateSchema } from './state';
-import type { ShardScriptBindings } from './scripts';
-import type { ShardItems } from './items';
+import { isJsonData } from './json.ts';
+import { hookRules, type ShardHooks } from './hooks.ts';
+import type { StateSchema } from './state.ts';
+import type { ShardScriptBindings } from './scripts.ts';
+import type { ShardItems } from './items.ts';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ClientChannelProgramSchema, ClientChannelPropertySchema } from './clientChannels';
+import { ClientChannelProgramSchema, ClientChannelPropertySchema } from './clientChannels.ts';
 
 const id=v.pipe(v.string(),v.minLength(1),v.maxLength(256));
 const finite=v.pipe(v.number(),v.finite());

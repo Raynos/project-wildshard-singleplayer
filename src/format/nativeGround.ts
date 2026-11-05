@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { ShardEntryways } from './entryways';
+import type { ShardEntryways } from './entryways.ts';
 
 /** Original native WSTR terrain retained by a trusted world-only hybrid; this declaration never installs collision. */
 export const NativeGroundSchema: v.GenericSchema<NativeGroundInput, NativeGround> = v.strictObject({ version: v.literal(1), file: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)) });

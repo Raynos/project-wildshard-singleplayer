@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { AmbientFlockSchema, AmbientPerchesSchema, ForagerPopulationSchema } from './ambientLife';
-import { CrowdWeaponTargetSchema } from './crowds';
+import { AmbientFlockSchema, AmbientPerchesSchema, ForagerPopulationSchema } from './ambientLife.ts';
+import { CrowdWeaponTargetSchema } from './crowds.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const number = v.pipe(v.number(), v.finite());

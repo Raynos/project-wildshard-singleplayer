@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { FollowTrailSamplingSchema } from './trail';
-import { ClientChannelsSchema as Channels, PrivateSceneSchema } from './clientChannels';
-import { HeldModelRowsSchema, HeldPresentationSchema, HeldBowDefinitionSchema } from './weaponProfiles';
+import { FollowTrailSamplingSchema } from './trail.ts';
+import { ClientChannelsSchema as Channels, PrivateSceneSchema } from './clientChannels.ts';
+import { HeldModelRowsSchema, HeldPresentationSchema, HeldBowDefinitionSchema } from './weaponProfiles.ts';
 
 const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();

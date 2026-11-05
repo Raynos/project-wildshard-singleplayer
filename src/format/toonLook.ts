@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ToonLightingSchema } from './toonLighting';
+import { isJsonData } from './json.ts';
+import { ToonLightingSchema } from './toonLighting.ts';
 
 /** Numeric channel contract for a toon day: sky palette, two-band light, fog and disc. */
 export const TOON_DAY_PRESET: { readonly sky: { readonly zenith: 'colour'; readonly horizon: 'colour'; readonly below: 'colour'; readonly sunGlow: 'colour'; readonly cloudLit: 'colour'; readonly cloudShade: 'colour'; readonly night: 'number'; }; readonly light: 'colour'; readonly lightI: 'number'; readonly hemiSky: 'colour'; readonly hemiGround: 'colour'; readonly hemiI: 'number'; readonly lift: 'colour'; readonly rim: 'colour'; readonly fogNear: 'colour'; readonly fogSun: 'colour'; readonly disc: 'colour'; readonly cloudShadow: 'number'; readonly dusk: 'number'; } = {

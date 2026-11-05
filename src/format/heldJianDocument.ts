@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { GraphArmsSchema } from './graphArmsRows';
-import { GrappleFilamentSchema, type GrappleRows } from './grapple';
-import { UniformRowsSchema } from './uniformRows';
-import { PostGraphLookSchema } from './postGraphLook';
+import { GraphArmsSchema } from './graphArmsRows.ts';
+import { GrappleFilamentSchema, type GrappleRows } from './grapple.ts';
+import { UniformRowsSchema } from './uniformRows.ts';
+import { PostGraphLookSchema } from './postGraphLook.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const text = v.pipe(v.string(), v.maxLength(512));

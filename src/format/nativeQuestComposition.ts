@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { QuestStorySchema } from './questStory';
-import { ChapterDirectorSchema, parseChapterDirector } from './chapterDirector';
+import { QuestStorySchema } from './questStory.ts';
+import { ChapterDirectorSchema, parseChapterDirector } from './chapterDirector.ts';
 
 const n = v.pipe(v.number(), v.finite()), key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const integer = v.pipe(n, v.safeInteger(), v.minValue(0));

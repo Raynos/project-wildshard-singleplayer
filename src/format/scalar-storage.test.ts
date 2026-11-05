@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { zlibSync, unzlibSync } from 'fflate';
-import { decodeScalarStorage } from './scalarChannel';
+import { decodeScalarStorage } from './scalarChannel.ts';
 
 test('bounded storage preserves every native f32/f64 bit in exactly one sized inflate', () => {
   for (const values of [new Float32Array([-0, 1 / 3, -123.5]), new Float64Array([-0, 1 / 3, Number.MAX_VALUE])]) {

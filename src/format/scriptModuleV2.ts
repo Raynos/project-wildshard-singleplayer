@@ -1,6 +1,6 @@
 /** Scalar Wasm reader for ABI v2 admission. Parsing never instantiates a guest;
  * this structural result alone is not permission to execute one. */
-import { SCRIPT_ABI } from './scriptAbi';
+import { SCRIPT_ABI } from './scriptAbi.ts';
 
 export interface V2Signature { params: readonly number[]; result: number | undefined }
 export interface V2Instruction { op: number; args: readonly number[]; literal: number | bigint | undefined; at: number; end: number }

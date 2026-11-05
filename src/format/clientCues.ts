@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { CueDirectorSchema } from './cueDirector';
+import { CueDirectorSchema } from './cueDirector.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 /** Compiled cue presentation binds an admitted held secondary to one cue id. */

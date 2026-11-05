@@ -1,10 +1,10 @@
-import { SceneBakedGeometrySchema } from './sceneDressing';
-import { BinaryFileSchema } from './binarySource';
+import { SceneBakedGeometrySchema } from './sceneDressing.ts';
+import { BinaryFileSchema } from './binarySource.ts';
 import * as v from 'valibot';
-import { ClipRowsSchema } from './kitFigure';
-import { isJsonData } from './json';
-import { PrivateSceneSchema } from './clientChannels';
-import { SpecimenModelMetadataSchema } from './specimenCatalogue';
+import { ClipRowsSchema } from './kitFigure.ts';
+import { isJsonData } from './json.ts';
+import { PrivateSceneSchema } from './clientChannels.ts';
+import { SpecimenModelMetadataSchema } from './specimenCatalogue.ts';
 
 const id=v.pipe(v.string(),v.minLength(1)),number=v.pipe(v.number(),v.finite());
 /** A look lent to the figure's port material, by look id (G603 L10): the painterly look's rim and bands. */

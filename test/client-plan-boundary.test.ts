@@ -26,6 +26,9 @@ test('client feature guard follows required section schemas without charging unr
     writeFileSync(resolve(root, 'src/format/loan.ts'), 'const loan={owner:"runtime",path:[]};export default loan;');
     nested("import loan from './loan'; export const Schema=loan;");
     expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('reflected {owner,path}')]);
+    // P1-F1 J53: format's relative imports name their `.ts` file.
+    nested("import loan from './loan.ts'; export const Schema=loan;");
+    expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('reflected {owner,path}')]);
   });
 });
 

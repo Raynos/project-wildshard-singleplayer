@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { validateGraph, type GraphIr } from './materialGraph';
-import type { ScaledPostRow } from './scaledPost';
+import { validateGraph, type GraphIr } from './materialGraph.ts';
+import type { ScaledPostRow } from './scaledPost.ts';
 
 const number = v.pipe(v.number(), v.finite());
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(256));

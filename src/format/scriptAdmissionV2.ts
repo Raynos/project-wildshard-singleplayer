@@ -1,7 +1,7 @@
 /** ABI v2 executable intake: validate actual bytes before any guest code runs.
  * Kept separate from scriptAdmission so shipped v0/v1 contracts stay unchanged. */
-import type { V2Body,V2Instruction,V2Signature } from './scriptModuleV2';
-import { inspectV2Fuel,type V2Lane } from './scriptFuelV2';
+import type { V2Body,V2Instruction,V2Signature } from './scriptModuleV2.ts';
+import { inspectV2Fuel,type V2Lane } from './scriptFuelV2.ts';
 import * as v from 'valibot';
 
 /** H13 selects these versioned implementations explicitly. They describe the

@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { CELL_ABOVE, CELL_BELOW } from './contentBounds';
-import { WaterBodySchema,WaterBodyIdSchema,waterBodiesOrdered } from './water';
-import { isJsonData } from './json';
-import { ScalarChannelSchema,ScalarLatticeSchema } from './scalarChannel';
+import { CELL_ABOVE, CELL_BELOW } from './contentBounds.ts';
+import { WaterBodySchema,WaterBodyIdSchema,waterBodiesOrdered } from './water.ts';
+import { isJsonData } from './json.ts';
+import { ScalarChannelSchema,ScalarLatticeSchema } from './scalarChannel.ts';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const address = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(7));

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits.ts';
 
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(Number.MAX_SAFE_INTEGER));
 const finite: v.GenericSchema<number, number> & { readonly pipe: readonly [unknown, v.FiniteAction<number, undefined>] } = v.pipe(v.number(), v.finite());

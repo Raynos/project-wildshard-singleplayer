@@ -1,13 +1,13 @@
-import { hasDeclaredClientPage } from './runtimeBinds';
+import { hasDeclaredClientPage } from './runtimeBinds.ts';
 import * as v from 'valibot';
 import {
   FAMILY_IDS, FamilyMaterialSchema, GRAPH_PRESET_VERSION, paintedTerrainTextureRefs, parseEmissiveLook, parsePainterlyLook, parseToonLook, presetRefusal,
   ToonLookSchema, PainterlyLookSchema, EmissiveLookSchema, type EmissiveLookParams, type FamilyMaterialParams, type PainterlyLookParams, type ToonLookParams,
-} from '@wildshard/format/materialFamilies';
+} from './materialFamilies.ts';
 
-import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
-import { isJsonData } from '@wildshard/format/json';
-import type { Shardfile } from '@wildshard/format/shardSchema';
+import { GRAPH_ADMISSION_LIMITS, validateGraph, type GraphIr } from './materialGraph.ts';
+import { isJsonData } from './json.ts';
+import type { Shardfile } from './shardSchema.ts';
 
 const graph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): GraphIr => {
   if (!isJsonData(dataset.value)) { addIssue({ message: 'material graph is plain JSON data' }); return NEVER; }

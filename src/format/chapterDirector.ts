@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { WakeEncounterSchema } from './bossEncounter';
-import { QuestCommitEffectSchema } from './questSteps';
+import { WakeEncounterSchema } from './bossEncounter.ts';
+import { QuestCommitEffectSchema } from './questSteps.ts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

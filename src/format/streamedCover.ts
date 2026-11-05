@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1e7));
 const positive = v.pipe(finite, v.minValue(0.0001));

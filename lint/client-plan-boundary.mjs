@@ -24,7 +24,7 @@ export function clientPlanSchemaViolations(root) {
       if (statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.DefaultKeyword)) { declarations.set('default', statement); exported.push('default'); }
       if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
         const name = statement.moduleSpecifier.text;
-        const target = name.startsWith('.') ? resolve(dirname(file), `${name}.ts`) : name.startsWith('@wildshard/format/') ? resolve(root, 'src/format', `${name.slice('@wildshard/format/'.length)}.ts`) : null;
+        const target = name.startsWith('.') ? resolve(dirname(file), name.endsWith('.ts') ? name : `${name}.ts`) : name.startsWith('@wildshard/format/') ? resolve(root, 'src/format', `${name.slice('@wildshard/format/'.length)}.ts`) : null;
         const bindings = statement.importClause?.namedBindings;
         if (target !== null && existsSync(target) && statement.importClause?.name)
           imports.set(statement.importClause.name.text, { file: target, name: 'default' });

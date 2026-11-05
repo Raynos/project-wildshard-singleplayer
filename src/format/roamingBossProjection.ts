@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { RoamingEncounterSchema } from './bossEncounter';
-import { BossSocketRigSchema } from './bossSocketRig';
-import { isJsonData } from './json';
+import { RoamingEncounterSchema } from './bossEncounter.ts';
+import { BossSocketRigSchema } from './bossSocketRig.ts';
+import { isJsonData } from './json.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const xyz = v.tuple([n, n, n]);

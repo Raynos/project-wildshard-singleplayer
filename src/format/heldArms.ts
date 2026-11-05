@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { BowVariantSchema } from './bowVariantRows';
-import { ToonLightingSchema } from './toonLighting';
-import { PrivateSceneSchema } from './clientChannels';
-import { QuestStepRowsSchema } from './questSteps';
+import { isJsonData } from './json.ts';
+import { BowVariantSchema } from './bowVariantRows.ts';
+import { ToonLightingSchema } from './toonLighting.ts';
+import { PrivateSceneSchema } from './clientChannels.ts';
+import { QuestStepRowsSchema } from './questSteps.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const name: v.GenericSchema<string> = v.pipe(v.string(), v.minLength(1), v.maxLength(512));

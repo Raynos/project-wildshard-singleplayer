@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { ScalarLatticeSchema } from './scalarChannel';
-import { isJsonData } from './json';
-import { decodeNavigation, type NavigationLayerData } from '@wildshard/format/navigationBytes';
+import { ScalarLatticeSchema } from './scalarChannel.ts';
+import { isJsonData } from './json.ts';
+import { decodeNavigation, type NavigationLayerData } from './navigationBytes.ts';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-16384), v.maxValue(16384));
 const positive = v.pipe(v.number(), v.finite(), v.minValue(Number.MIN_VALUE), v.maxValue(16384));

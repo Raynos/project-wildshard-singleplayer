@@ -1,4 +1,4 @@
-import type { BakedGrid } from './bakedTerrainBytes';
+import type { BakedGrid } from './bakedTerrainBytes.ts';
 
 /** Native height, normal and four-channel splat queries, without a renderer or active binding. */
 export interface BakedTerrainSamplers {

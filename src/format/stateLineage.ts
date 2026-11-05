@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { assertMigrationCompatibility } from './migrations';
-import { StateSchema } from './state';
-import type { Shardfile } from './shardSchema';
-import { isJsonDataWithFileSchemas } from './json';
-import { SHARDFILE_VERSION } from './version';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { assertMigrationCompatibility } from './migrations.ts';
+import { StateSchema } from './state.ts';
+import type { Shardfile } from './shardSchema.ts';
+import { isJsonDataWithFileSchemas } from './json.ts';
+import { SHARDFILE_VERSION } from './version.ts';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits.ts';
 
 const identity = v.object({ slug: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)),
   revision: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(Number.MAX_SAFE_INTEGER)) });

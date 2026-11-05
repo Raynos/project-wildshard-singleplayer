@@ -1,7 +1,7 @@
 /** Stable-identity H4 inbox continuation. Handles belong only to a captured
  * call and never enter this saved envelope. */
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 const id = v.pipe(v.string(),v.minLength(1),v.maxLength(256));
 const tick = v.pipe(v.number(),v.safeInteger(),v.minValue(0));

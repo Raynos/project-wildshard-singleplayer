@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { RoamingBossProfileSchema } from './bossProfiles';
+import { RoamingBossProfileSchema } from './bossProfiles.ts';
 
 const finite = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));
 const positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));

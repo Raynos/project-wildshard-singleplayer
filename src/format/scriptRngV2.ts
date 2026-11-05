@@ -1,6 +1,6 @@
 /** ABI-v2 random continuations. Preparing/copying a bank never advances its
  * owner; the owner commits the checked candidate with the rest of the call. */
-import type { V2Layout } from './scriptWireV2';
+import type { V2Layout } from './scriptWireV2.ts';
 
 type State = readonly [number,number,number,number,number,number];
 export interface V2RngInput {

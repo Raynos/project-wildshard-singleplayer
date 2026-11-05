@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { QuestFlagGatesSchema } from './questInteractions';
+import { QuestFlagGatesSchema } from './questInteractions.ts';
 
 /** the play music's stings (engine audio/Music StingName) */
 const STINGS = ['pickup', 'death', 'chunk', 'dawn'] as const;

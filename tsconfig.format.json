@@ -6,6 +6,10 @@
     "emitDeclarationOnly": true,
     "declaration": true,
     "isolatedDeclarations": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "types": [],
     "lib": [
       "ES2022"

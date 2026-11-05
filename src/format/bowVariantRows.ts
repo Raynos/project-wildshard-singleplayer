@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import {isJsonData} from './json';
-import {ReturnProgramSchema} from './namedJsonContracts';
-import {ProjectedTrailSchema} from './clientTrails';
+import {isJsonData} from './json.ts';
+import {ReturnProgramSchema} from './namedJsonContracts.ts';
+import {ProjectedTrailSchema} from './clientTrails.ts';
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(512)),finite=v.pipe(v.number(),v.finite()),positive=v.pipe(finite,v.minValue(0));
 const tag=v.custom<`${string}.${string}`>(input=>typeof input==='string'&&/^[^.]+\..+$/u.test(input));

@@ -1,5 +1,5 @@
-import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from './scriptAbi';
-import { SCRIPT_V1_EXPORTS, SCRIPT_V1_IMPORTS, SCRIPT_V1_LAYOUT } from './scriptAbiV1';
+import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from './scriptAbi.ts';
+import { SCRIPT_V1_EXPORTS, SCRIPT_V1_IMPORTS, SCRIPT_V1_LAYOUT } from './scriptAbiV1.ts';
 
 class Reader {
   pos = 0;

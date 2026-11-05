@@ -1,7 +1,7 @@
 /** H4 group continuation columns. The original group owns the bank and JSON
  * envelope; these rows only define a finite, reversible numeric representation. */
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128),
   v.regex(/^(?!(?:__proto__|prototype|constructor)$).+$/));

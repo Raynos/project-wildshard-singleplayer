@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import type { FilesSchema } from './shardSections';
-import type { CommonsCosts } from './commonsCosts';
-import { isJsonData } from './json';
+import type { FilesSchema } from './shardSections.ts';
+import type { CommonsCosts } from './commonsCosts.ts';
+import { isJsonData } from './json.ts';
 
 /**
  * G342 presentation limits, raised to the measured bakes (2026-10-12, `scripts/bake/near-placeholder.mjs`). Round 3's

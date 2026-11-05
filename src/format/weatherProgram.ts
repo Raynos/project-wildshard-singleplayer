@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { AudioMixExpressionSchema, type AudioMixExpr } from './audioProfiles';
+import { AudioMixExpressionSchema, type AudioMixExpr } from './audioProfiles.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

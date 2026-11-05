@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 /** Exact Z2 publication names, never paths into a shard-owned object. */
 export const HandleIdSchema: v.GenericSchema<HandleIdInput, HandleId> = v.pipe(v.string(), v.minLength(1), v.maxLength(256), v.regex(/^[a-z0-9][a-zA-Z0-9.-]*$/));

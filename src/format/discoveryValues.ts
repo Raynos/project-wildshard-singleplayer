@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { NavigationSchema } from './navigation';
-import { parseCapturePoses, type CapturePoseRows } from './minimap';
+import { isJsonData } from './json.ts';
+import { NavigationSchema } from './navigation.ts';
+import { parseCapturePoses, type CapturePoseRows } from './minimap.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(4096));
 const finite = v.pipe(v.number(), v.finite());

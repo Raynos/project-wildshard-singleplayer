@@ -1,5 +1,5 @@
-import { WIRE_CELL } from './wireLimits';
-import { isJsonData, isJsonDataSteps } from './json';
+import { WIRE_CELL } from './wireLimits.ts';
+import { isJsonData, isJsonDataSteps } from './json.ts';
 
 const record = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const coordinates = (value: unknown): value is [number, number, number] => Array.isArray(value) && value.length === 3 && value.every(item => typeof item === 'number' && Number.isFinite(item));

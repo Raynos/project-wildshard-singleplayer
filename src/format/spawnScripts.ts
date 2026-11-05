@@ -1,11 +1,11 @@
 import * as v from 'valibot';
-import { SpawnScriptV2Schema } from './spawnScriptV2';
-import { layoutV2 } from './scriptWireV2';
-import { isJsonData } from './json';
-import { SpawnCombatSchema } from './spawnCombat';
-import { actorDecisionRows,parseDecisionScripts, type DecisionScriptRow } from './decisionScripts';
-import { actorMoveRules, parseActorMoves } from './actorMoves';
-import type { DecisionRegistries } from './decisionBindings';
+import { SpawnScriptV2Schema } from './spawnScriptV2.ts';
+import { layoutV2 } from './scriptWireV2.ts';
+import { isJsonData } from './json.ts';
+import { SpawnCombatSchema } from './spawnCombat.ts';
+import { actorDecisionRows,parseDecisionScripts, type DecisionScriptRow } from './decisionScripts.ts';
+import { actorMoveRules, parseActorMoves } from './actorMoves.ts';
+import type { DecisionRegistries } from './decisionBindings.ts';
 
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 /** Little-endian IEEE scalars in a zlib stream. Count bounds the decoder's
  * allocation independently of compression ratio; neither caller resamples. */

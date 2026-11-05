@@ -1,5 +1,5 @@
-import { textureMipBytes, type TextureTranscodeSupport } from './contentBounds';
-import type { AssetCost } from './product';
+import { textureMipBytes, type TextureTranscodeSupport } from './contentBounds.ts';
+import type { AssetCost } from './product.ts';
 
 const MAX_BYTES = 25_000_000;
 function requireRange(bytes: Uint8Array, offset: number, size: number): void {

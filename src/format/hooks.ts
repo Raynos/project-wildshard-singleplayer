@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { ShardScriptField } from './scripts';
+import type { ShardScriptField } from './scripts.ts';
 
 type HookField = Pick<ShardScriptField, 'id' | 'type' | 'privacy'> & { min?: number | undefined; max?: number | undefined };
 

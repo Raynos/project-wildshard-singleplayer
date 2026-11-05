@@ -1,11 +1,11 @@
 import * as v from 'valibot';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { NativeRidingSchema } from './nativeRiding';
-import { isJsonData } from './json';
-import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, GuardianSchema, PerchHunterSchema, ScriptBrainSchema } from './brains';
-import { GroupBrainSchema, groupBrainRules, GuardedHerdGuestSchema, GroupGuestBindingSchema } from './groupBrains';
-import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from './grazers';
-import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from './flyers';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { NativeRidingSchema } from './nativeRiding.ts';
+import { isJsonData } from './json.ts';
+import { StalkerSchema, GuardianPatternsSchema, SkirmisherSchema, GuardianSchema, PerchHunterSchema, ScriptBrainSchema } from './brains.ts';
+import { GroupBrainSchema, groupBrainRules, GuardedHerdGuestSchema, GroupGuestBindingSchema } from './groupBrains.ts';
+import { RamGrazerSchema, ChallengeGrazerSchema, GrazerSchema } from './grazers.ts';
+import { DiverSchema, OrbitDiverSchema, PatrolDiverSchema, BurstFlyerSchema } from './flyers.ts';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]*$/u), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

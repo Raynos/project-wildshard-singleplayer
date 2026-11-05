@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { SocketRigCreatureSchema } from './socketRigCreature';
-import { FigureAtlasSchema } from './figures';
-import { MountedSpecimenSchema } from './mountedSpecimenRows';
+import { isJsonData } from './json.ts';
+import { SocketRigCreatureSchema } from './socketRigCreature.ts';
+import { FigureAtlasSchema } from './figures.ts';
+import { MountedSpecimenSchema } from './mountedSpecimenRows.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));

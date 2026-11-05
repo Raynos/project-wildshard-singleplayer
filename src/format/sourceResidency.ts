@@ -1,5 +1,5 @@
-import type {Shardfile} from './shardSchema';
-import {preflightShardfile} from './preflight';
+import type {Shardfile} from './shardSchema.ts';
+import {preflightShardfile} from './preflight.ts';
 
 /** Exact existing source/wire claim, computed once by the publisher for first-party clients. */
 export function publishedSourceResidency(source:Shardfile):number{

@@ -1,17 +1,17 @@
-import { parseOutputIndex, validateOutputSection, assembleOutputShardfile, type OutputFile, type OutputIndex } from './outputIndex';
-import { decisionModuleContracts, scriptAdmissionRows, type ScriptAdmissionRows, type ScriptContract } from './scriptContract';
-import { registeredJsonContract, validateRegisteredJson } from './registeredJson';
-import { validatePlatformFile } from './platformFileFamilies';
-import { parseNamedJson } from './json';
-import { ktx2DeviceCosts } from './ktx2Cost';
-import { isTerrainTileData } from './terrainTileBytes';
-import { parseImageAsset } from './stillImage';
-import { parseWorldTargets, worldTargetRules } from './worldTargets';
-import { parseShardfile, type Shardfile } from './shardSchema';
-import { assetCost, offlineMemoryAdmission, performanceTargetIssues } from './product';
-import { preflightDeclaredCosts, validateShardfileAssets } from './assetAdmission';
-import { validationSourceBytes } from './validationReceipt';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { parseOutputIndex, validateOutputSection, assembleOutputShardfile, type OutputFile, type OutputIndex } from './outputIndex.ts';
+import { decisionModuleContracts, scriptAdmissionRows, type ScriptAdmissionRows, type ScriptContract } from './scriptContract.ts';
+import { registeredJsonContract, validateRegisteredJson } from './registeredJson.ts';
+import { validatePlatformFile } from './platformFileFamilies.ts';
+import { parseNamedJson } from './json.ts';
+import { ktx2DeviceCosts } from './ktx2Cost.ts';
+import { isTerrainTileData } from './terrainTileBytes.ts';
+import { parseImageAsset } from './stillImage.ts';
+import { parseWorldTargets, worldTargetRules } from './worldTargets.ts';
+import { parseShardfile, type Shardfile } from './shardSchema.ts';
+import { assetCost, offlineMemoryAdmission, performanceTargetIssues } from './product.ts';
+import { preflightDeclaredCosts, validateShardfileAssets } from './assetAdmission.ts';
+import { validationSourceBytes } from './validationReceipt.ts';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits.ts';
 
 /**
  * P1-F3 format validation of a built shardfile product (format 2: `shard.json`, sections, blobs, packs): the schema,

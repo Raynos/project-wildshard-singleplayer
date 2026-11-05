@@ -1,9 +1,9 @@
-import { PanelDefinitionSchema } from './panelTemplate';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
+import { PanelDefinitionSchema } from './panelTemplate.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument.ts';
 import * as v from 'valibot';
-import { InputExtraEntries, InputKeysSchema } from './inputDeclarations';
-import { isJsonData } from './json';
+import { InputExtraEntries, InputKeysSchema } from './inputDeclarations.ts';
+import { isJsonData } from './json.ts';
 
 /** Client observations only; the HUD never receives a horse controller, shard callback or simulation object. */
 export interface RideHudState {

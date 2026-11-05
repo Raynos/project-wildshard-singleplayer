@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { parsePanelDefinition, type PanelDefinition } from './panelTemplate';
+import { isJsonData } from './json.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { parsePanelDefinition, type PanelDefinition } from './panelTemplate.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(400));
 const integer = v.pipe(v.number(), v.safeInteger(), v.minValue(0));

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { SCRIPT_V1_COMMANDS, SCRIPT_V1_EVENTS, SCRIPT_V1_LAYOUT, SCRIPT_V1_LISTS, SCRIPT_V1_READS, scriptV1Layout } from '@wildshard/format/scriptAbiV1';
+import { SCRIPT_V1_COMMANDS, SCRIPT_V1_EVENTS, SCRIPT_V1_LAYOUT, SCRIPT_V1_LISTS, SCRIPT_V1_READS, scriptV1Layout } from './scriptAbiV1.ts';
 
 it('keeps the declared wire ids and separate view command range', () => {
   expect(SCRIPT_V1_EVENTS['move.done']).toBe(10);

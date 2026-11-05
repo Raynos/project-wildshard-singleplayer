@@ -1,12 +1,12 @@
 import * as v from 'valibot';
-import type { GraphNode, GraphRef } from './materialGraph';
-import type { SurfaceLook } from './surfaceLooks';
-import { isJsonData } from './json';
-import { ClientChannelsSchema, HeldMeleePhaseSchema, PrivateSceneSchema, type ClientChannelProgram, type HeldMeleePhaseRows, type PrivateScene } from './clientChannels';
-import { SceneDrawsSchema, type SceneDrawsRows } from './sceneDraws';
-import { ItemEquipmentSchema, type ItemEquipmentRows } from './items';
-import { SpecimenModelMetadataSchema } from './specimenCatalogue';
-import { ColourFunctionSchema, type ColourFunctionRow } from './colourFunction';
+import type { GraphNode, GraphRef } from './materialGraph.ts';
+import type { SurfaceLook } from './surfaceLooks.ts';
+import { isJsonData } from './json.ts';
+import { ClientChannelsSchema, HeldMeleePhaseSchema, PrivateSceneSchema, type ClientChannelProgram, type HeldMeleePhaseRows, type PrivateScene } from './clientChannels.ts';
+import { SceneDrawsSchema, type SceneDrawsRows } from './sceneDraws.ts';
+import { ItemEquipmentSchema, type ItemEquipmentRows } from './items.ts';
+import { SpecimenModelMetadataSchema } from './specimenCatalogue.ts';
+import { ColourFunctionSchema, type ColourFunctionRow } from './colourFunction.ts';
 
 const text = v.pipe(v.string(), v.maxLength(4096));
 const finite = v.pipe(v.number(), v.finite());

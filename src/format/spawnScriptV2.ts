@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { createV2QuerySnapshotSchema } from './scriptQueryStateV2';
-import { ScriptArtifactV2Schema } from './scriptAdmissionV2';
-import { ObservationColumnsV2Schema } from './scriptObservationColumnsV2';
-import { ScriptInputStateV2Schema } from './scriptInputStateV2';
+import { createV2QuerySnapshotSchema } from './scriptQueryStateV2.ts';
+import { ScriptArtifactV2Schema } from './scriptAdmissionV2.ts';
+import { ObservationColumnsV2Schema } from './scriptObservationColumnsV2.ts';
+import { ScriptInputStateV2Schema } from './scriptInputStateV2.ts';
 
 const natural = v.pipe(v.number(),v.safeInteger(),v.minValue(0));
 const identity = v.pipe(v.string(),v.minLength(1),v.maxLength(128));

@@ -1,8 +1,8 @@
-import { CONTENT_CAPS as C, type TextureTranscodeSupport } from './contentBounds';
-import { worstContentCostSteps, type worstContentCost } from './budget';
-import type { Shardfile } from './shardSchema';
-import type { MemoryAdmission } from './memoryAdmission';
-import { parseKtx2, ktx2DeviceGpu, type Ktx2DeviceCosts } from './ktx2Cost';
+import { CONTENT_CAPS as C, type TextureTranscodeSupport } from './contentBounds.ts';
+import { worstContentCostSteps, type worstContentCost } from './budget.ts';
+import type { Shardfile } from './shardSchema.ts';
+import type { MemoryAdmission } from './memoryAdmission.ts';
+import { parseKtx2, ktx2DeviceGpu, type Ktx2DeviceCosts } from './ktx2Cost.ts';
 
 /** Apply the existing total-memory policy to declared or measured costs. */
 export function acceptsProductCost(memory: MemoryAdmission | undefined, source: Shardfile, stage: 'declared' | 'actual', cost: ReturnType<typeof worstContentCost>): boolean {

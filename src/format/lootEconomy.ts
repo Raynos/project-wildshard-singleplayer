@@ -1,8 +1,8 @@
-import { CatalogueEconomyRegistrationSchema, catalogueEconomyRules, EconomyEffectIdSchema as effectId } from './catalogueEconomy';
-import { ExchangeSchema } from './exchange';
+import { CatalogueEconomyRegistrationSchema, catalogueEconomyRules, EconomyEffectIdSchema as effectId } from './catalogueEconomy.ts';
+import { ExchangeSchema } from './exchange.ts';
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { LootPresentationSchema, LootProgressionSchema, LootFindsSchema, LootMarksSchema, lootBagRules } from './lootBag';
+import { isJsonData } from './json.ts';
+import { LootPresentationSchema, LootProgressionSchema, LootFindsSchema, LootMarksSchema, lootBagRules } from './lootBag.ts';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const text = v.pipe(v.string(), v.maxLength(4096));

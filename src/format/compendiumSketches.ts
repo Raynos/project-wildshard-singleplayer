@@ -1,6 +1,6 @@
-import { SHARDFILE_ADMISSION_LIMITS as L } from '@wildshard/format/admissionLimits';
-import { parseSketchSvg, sketchReference, type CompendiumSketch } from '@wildshard/format/sketch';
-import type { ShardRows } from '@wildshard/format/rows';
+import { SHARDFILE_ADMISSION_LIMITS as L } from './admissionLimits.ts';
+import { parseSketchSvg, sketchReference, type CompendiumSketch } from './sketch.ts';
+import type { ShardRows } from './rows.ts';
 
 const prefix = 'data:image/svg+xml,';
 

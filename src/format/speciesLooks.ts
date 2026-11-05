@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { SpeciesSchema } from './speciesPrograms';
-import { SkinClipNameSchema } from './skinData';
-import { ClientChannelsSchema, NumericPoseSchema } from './clientChannels';
-import { RidingPresentationSchema } from './riding';
+import { isJsonData } from './json.ts';
+import { SpeciesSchema } from './speciesPrograms.ts';
+import { SkinClipNameSchema } from './skinData.ts';
+import { ClientChannelsSchema, NumericPoseSchema } from './clientChannels.ts';
+import { RidingPresentationSchema } from './riding.ts';
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(4096)),number=v.pipe(v.number(),v.finite()),rgb=v.tuple([number,number,number]);
 const fur = v.object({ texSeed: number, tex: v.object({ contrast: number, grizzle: number, normalStrength: number,

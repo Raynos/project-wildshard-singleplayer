@@ -1,4 +1,4 @@
-import type { GraphIr } from './materialGraph';
+import type { GraphIr } from './materialGraph.ts';
 /** Client presentation rows for G478's post chain with scaled targets.
  * Programs are admitted arithmetic graphs. Targets are declared in dependency
  * order; draws never allocate, read back, or render the world a second time. */

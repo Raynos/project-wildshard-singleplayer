@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { SpecimenCatalogueSchema } from './specimenCatalogue';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { isJsonData } from './json';
-import { HandleIdSchema, ObservationRefSchema } from './sceneRefs';
+import { SpecimenCatalogueSchema } from './specimenCatalogue.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { isJsonData } from './json.ts';
+import { HandleIdSchema, ObservationRefSchema } from './sceneRefs.ts';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

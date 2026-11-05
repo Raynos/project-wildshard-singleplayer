@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { RuntimeCostSchema, runtimeAccountedBytes } from './runtimeCost';
-import { RuntimeBindsSchema } from './runtimeBinds';
-import { RuntimeSpawnsSchema } from './runtimeSpawns';
+import { RuntimeCostSchema, runtimeAccountedBytes } from './runtimeCost.ts';
+import { RuntimeBindsSchema } from './runtimeBinds.ts';
+import { RuntimeSpawnsSchema } from './runtimeSpawns.ts';
 
 const cost = v.pipe(RuntimeCostSchema, v.check((row) => {
   try { runtimeAccountedBytes(row); return true; } catch { return false; }

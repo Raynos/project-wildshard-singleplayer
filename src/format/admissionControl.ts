@@ -1,10 +1,10 @@
-import { parseWorldScenes } from './worldScenes';
-import { stringsSteps } from './tierSelection';
-import type { OutputIndex } from './outputIndex';
-import { materialTextureRefs } from './materials';
-import { propMaterialsOf, propMaterialTextureRefs } from './propMaterials';
-import { splatTerrainOf, splatTextureRefs } from './splatTerrain';
-import type { Shardfile } from './shardSchema';
+import { parseWorldScenes } from './worldScenes.ts';
+import { stringsSteps } from './tierSelection.ts';
+import type { OutputIndex } from './outputIndex.ts';
+import { materialTextureRefs } from './materials.ts';
+import { propMaterialsOf, propMaterialTextureRefs } from './propMaterials.ts';
+import { splatTerrainOf, splatTextureRefs } from './splatTerrain.ts';
+import type { Shardfile } from './shardSchema.ts';
 
 /** Exact required transport roots and their dependencies, shared by pack emission and phone admission.
  * Late is a scheduling hint: commons, critical flags, manifest images/navigation and the global LUT still win. */

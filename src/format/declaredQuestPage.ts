@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ObservationRefSchema, ScenePointRefSchema } from './sceneRefs';
-import { QuestEffectSchema } from './questSteps';
+import { isJsonData } from './json.ts';
+import { ObservationRefSchema, ScenePointRefSchema } from './sceneRefs.ts';
+import { QuestEffectSchema } from './questSteps.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const text = v.pipe(v.string(), v.maxLength(4096));

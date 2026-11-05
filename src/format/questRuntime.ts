@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument';
-import { QuestStepRowsSchema, QuestSpawnPageSchema, QuestLeadPageSchema } from './questSteps';
-import { NpcDialogueRowSchema } from './npcs';
-import { ContractOfferSchema, type ContractCatalogue } from './contracts';
-import { QuestPresentationChapterSchema, type QuestData } from './quests';
+import { isJsonData } from './json.ts';
+import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument.ts';
+import { QuestStepRowsSchema, QuestSpawnPageSchema, QuestLeadPageSchema } from './questSteps.ts';
+import { NpcDialogueRowSchema } from './npcs.ts';
+import { ContractOfferSchema, type ContractCatalogue } from './contracts.ts';
+import { QuestPresentationChapterSchema, type QuestData } from './quests.ts';
 
 const finite=v.pipe(v.number(),v.finite()),text=v.pipe(v.string(),v.maxLength(2048));
 /** The complete quest runtime has one admitted named-file address. */

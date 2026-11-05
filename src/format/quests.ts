@@ -1,4 +1,4 @@
-import { CatalogueIconSchema } from './items';
+import { CatalogueIconSchema } from './items.ts';
 import * as v from 'valibot';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { AudioMixExpressionSchema as expr } from './audioProfiles';
-import { ScalarChannelSchema } from './scalarChannel';
-import { parseWorldScenePlacement, parseWorldScenePlacementPage, type WorldScenePlacementRow } from './worldScenePlacement';
+import { AudioMixExpressionSchema as expr } from './audioProfiles.ts';
+import { ScalarChannelSchema } from './scalarChannel.ts';
+import { parseWorldScenePlacement, parseWorldScenePlacementPage, type WorldScenePlacementRow } from './worldScenePlacement.ts';
 
 const n=v.pipe(v.number(),v.finite()),id=v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 const point=v.tuple([n,n]);

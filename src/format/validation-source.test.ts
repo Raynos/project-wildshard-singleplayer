@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { validationSourceBytes, validationSourceBytesPaced } from './validationReceipt';
+import { validationSourceBytes, validationSourceBytesPaced } from './validationReceipt.ts';
 
 test.each([
   null,

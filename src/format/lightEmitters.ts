@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { SceneDrawsSchema } from './sceneDraws';
-import { HandleIdSchema, ScenePointRefSchema } from './sceneRefs';
+import { isJsonData } from './json.ts';
+import { SceneDrawsSchema } from './sceneDraws.ts';
+import { HandleIdSchema, ScenePointRefSchema } from './sceneRefs.ts';
 
 const id = HandleIdSchema;
 const finite = v.pipe(v.number(), v.finite());

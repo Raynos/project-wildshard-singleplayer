@@ -1,5 +1,5 @@
 import * as schema from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 /** A generator flap: the back plane z(y) = z0 + (y - y0) · slope; every vertex above `yMin` behind it is pressed onto it,
  *  keeping `keep` of its depth; `bulge` (m) rounds the pressed patch out into a dome (0 at its rim). */

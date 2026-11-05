@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { readOutputDownloadIndex } from './outputDownload';
+import { readOutputDownloadIndex } from './outputDownload.ts';
 
 const hash = 'a'.repeat(64);
 function input() {

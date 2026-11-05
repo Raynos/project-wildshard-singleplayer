@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 test('overlapping schema imports initialize their exports before explicit codec preparation', async () => {
   // Safari <27 can finish a second import of a TLA dependency prematurely.
   // Module evaluation must be synchronous; Wasm readiness belongs to admission.
-  const [buffers, product, schema] = await Promise.all([import('./glbBuffers'), import('./product'), import('./shardSchema')]);
+  const [buffers, product, schema] = await Promise.all([import('./glbBuffers.ts'), import('./product.ts'), import('./shardSchema.ts')]);
   expect(schema.ShardfileSchema['~run']).toBeTypeOf('function');
   expect(product.preflightAssetGraph).toBeTypeOf('function');
   const physical = new Uint8Array([9, 8, 7, 6]);

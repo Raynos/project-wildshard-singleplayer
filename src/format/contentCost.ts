@@ -1,4 +1,4 @@
-import { CONTENT_CAPS as C } from './contentBounds';
+import { CONTENT_CAPS as C } from './contentBounds.ts';
 
 /** Shared resident-cost input: dependency-deduplicated category bytes, including persistent CPU and GPU data. */
 export interface ContentCostInput {

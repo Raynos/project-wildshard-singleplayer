@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { CLIENT_SCRIPT_LIMITS } from './wireLimits';
+import { CLIENT_SCRIPT_LIMITS } from './wireLimits.ts';
 
 const finite = v.pipe(v.number(), v.finite()), positive = v.pipe(finite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff));
 const name = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));

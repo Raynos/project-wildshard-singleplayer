@@ -1,15 +1,15 @@
 import * as v from 'valibot';
-import { WorldEntrySchema } from './worldEntry';
-import { WorldSceneSurfaceSchema } from './worldSceneSurface';
-import { isJsonData } from './json';
-import { WorldSceneBindingsSchema } from './clientChannels';
-import { WorldScenePlacementSchema } from './worldScenePlacement';
-import { WorldSceneBatchSchema } from './worldSceneBatch';
-import { WorldSceneWeldMaterialSchema, WorldSceneWeldSourceSchema } from './worldSceneWeld';
-import { SceneDrawsSchema } from './sceneDraws';
-import { SpecimenCatalogueSchema } from './specimenCatalogue';
-import { UniformRowsSchema } from './uniformRows';
-import { WorldSceneSlabsSchema, type WorldSceneSlabLibrary } from './worldSceneSlabs';
+import { WorldEntrySchema } from './worldEntry.ts';
+import { WorldSceneSurfaceSchema } from './worldSceneSurface.ts';
+import { isJsonData } from './json.ts';
+import { WorldSceneBindingsSchema } from './clientChannels.ts';
+import { WorldScenePlacementSchema } from './worldScenePlacement.ts';
+import { WorldSceneBatchSchema } from './worldSceneBatch.ts';
+import { WorldSceneWeldMaterialSchema, WorldSceneWeldSourceSchema } from './worldSceneWeld.ts';
+import { SceneDrawsSchema } from './sceneDraws.ts';
+import { SpecimenCatalogueSchema } from './specimenCatalogue.ts';
+import { UniformRowsSchema } from './uniformRows.ts';
+import { WorldSceneSlabsSchema, type WorldSceneSlabLibrary } from './worldSceneSlabs.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));

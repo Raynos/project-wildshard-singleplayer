@@ -19,8 +19,8 @@
  * props GLBs' material names are checked).
  */
 import * as v from 'valibot';
-import { checkPropMaterialNames, type PropMaterials } from '@wildshard/format/propMaterials';
-import { materialTextureRefs, type MaterialsSchema } from '@wildshard/format/materials';
+import { checkPropMaterialNames, type PropMaterials } from './propMaterials.ts';
+import { materialTextureRefs, type MaterialsSchema } from './materials.ts';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const finite = v.pipe(v.number(), v.finite());

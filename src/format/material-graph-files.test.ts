@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { INLINE_GRAPH_REFUSAL, MaterialsSchema, inlineGraphRules, materialGraphIr } from './materials';
+import { INLINE_GRAPH_REFUSAL, MaterialsSchema, inlineGraphRules, materialGraphIr } from './materials.ts';
 
 const graph = { version: 1, kind: 'material', model: 'toon', nodes: { paint: { op: 'const', type: 'vec3', value: [1, 1, 1] } }, stages: { surface: { colour: 'paint' } } };
 

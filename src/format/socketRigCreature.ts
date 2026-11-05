@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SpecimenModelMetadataSchema } from './specimenCatalogue';
+import { SpecimenModelMetadataSchema } from './specimenCatalogue.ts';
 
 /** A socket-dressed creature card: the existing model, coat and socket source rows. */
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite()), rgb = v.tuple([n, n, n]);

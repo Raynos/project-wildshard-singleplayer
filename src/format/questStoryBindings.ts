@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { QuestPageTalksSchema } from './npcs';
-import { QuestRuntimeFileSchema } from './questRuntime';
-import { ContractBoardPageSchema } from './contracts';
+import { QuestPageTalksSchema } from './npcs.ts';
+import { QuestRuntimeFileSchema } from './questRuntime.ts';
+import { ContractBoardPageSchema } from './contracts.ts';
 
 const text=v.pipe(v.string(),v.minLength(1),v.maxLength(2048)),n=v.pipe(v.number(),v.finite());
 const point=v.tuple([n,n,n]);

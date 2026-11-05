@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { SpawnTablesSchema } from './spawnTables';
-import { isJsonData } from './json';
-import { SpeciesBrainSchema } from './speciesBrain';
-import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures';
+import { SpawnTablesSchema } from './spawnTables.ts';
+import { isJsonData } from './json.ts';
+import { SpeciesBrainSchema } from './speciesBrain.ts';
+import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures.ts';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-10000000), v.maxValue(10000000));
 const nonnegative = v.pipe(finite, v.minValue(0));

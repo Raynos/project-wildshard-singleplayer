@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { WeatherProgramSchema, WeatherReactionsSchema, parseWeatherProgram, parseWeatherReactions,
-  type WeatherProgram, type WeatherReactionRows } from './weatherProgram';
-import { DecisionScriptsSchema, parseDecisionScripts } from './decisionScripts';
+  type WeatherProgram, type WeatherReactionRows } from './weatherProgram.ts';
+import { DecisionScriptsSchema, parseDecisionScripts } from './decisionScripts.ts';
 
 /** A continuation and the admitted reaction program that reads its registers. */
 export interface WeatherBundle {

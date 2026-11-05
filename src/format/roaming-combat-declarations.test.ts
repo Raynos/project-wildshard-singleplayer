@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import ts from '@typescript/typescript6';
 import { expect, test } from 'vitest';
 import type * as v from 'valibot';
-import { RoamingCombatSchema, type RoamingCombatRows } from './roamingCombat';
+import { RoamingCombatSchema, type RoamingCombatRows } from './roamingCombat.ts';
 
 test('roaming combat declarations retain defining contracts without inlining their validators', () => {
   const emitted = ts.transpileDeclaration(readFileSync('src/format/roamingCombat.ts', 'utf8'), {

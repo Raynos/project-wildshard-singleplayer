@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { ValiError } from 'valibot';
-import { describeNavigation, readNavigation, validateNavigationAssets, type Navigation } from './navigation';
-import { decodeNavigation } from './navigationBytes';
+import { describeNavigation, readNavigation, validateNavigationAssets, type Navigation } from './navigation.ts';
+import { decodeNavigation } from './navigationBytes.ts';
 
 /** WSNM v1: one voxel triangle with one external neighbour and an implicit detail fan. */
 function triangle(): Uint8Array {

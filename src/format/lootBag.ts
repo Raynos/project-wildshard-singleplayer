@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { CurveSchema } from './materials';
+import { isJsonData } from './json.ts';
+import { CurveSchema } from './materials.ts';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const text = v.pipe(v.string(), v.maxLength(4096));

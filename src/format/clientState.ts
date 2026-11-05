@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { LogicalStateSchema } from './migrations';
-import { LiftRiderSchema } from './liftRider';
+import { LogicalStateSchema } from './migrations.ts';
+import { LiftRiderSchema } from './liftRider.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const natural = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));

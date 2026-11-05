@@ -1,5 +1,5 @@
-import { decodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
-import { meshCollisionRules, type CollisionSource } from '@wildshard/format/meshCollision';
+import { decodeMeshCollision } from './meshCollisionBytes.ts';
+import { meshCollisionRules, type CollisionSource } from './meshCollision.ts';
 
 /** Verify bounded WMC1 bytes and exact tile containment after immutable hashes and costs have been admitted. */
 export function validateMeshCollisionAssets(source: CollisionSource, assets: ReadonlyMap<string, Uint8Array>): void {

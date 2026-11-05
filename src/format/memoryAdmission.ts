@@ -1,5 +1,5 @@
-import { CONTENT_CAPS } from './contentBounds';
-import type { ContentCostInput } from './contentCost';
+import { CONTENT_CAPS } from './contentBounds.ts';
+import type { ContentCostInput } from './contentCost.ts';
 
 /** A measured opaque runtime retains both rulers and the evidence used to derive its full claim. All bytes are decimal. */
 export interface AdmissionMeasurement {

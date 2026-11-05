@@ -1,5 +1,5 @@
-import type { worstContentCost } from './budget';
-import type {PostStackCost} from './postStack';
+import type { worstContentCost } from './budget.ts';
+import type {PostStackCost} from './postStack.ts';
 
 declare const __SHARDFILE_VALIDATOR__: string;
 declare const __SHARDFILE_VERDICTS__: unknown;

@@ -1,6 +1,6 @@
 /** Bounded cell storage and numeric guest bindings, independent of any arena law. */
 import * as v from 'valibot';
-import { EncounterScheduleSchema } from './encounterRows';
+import { EncounterScheduleSchema } from './encounterRows.ts';
 
 const finite = v.pipe(v.number(),v.finite());
 const count = v.pipe(finite,v.integer(),v.minValue(1),v.maxValue(64));

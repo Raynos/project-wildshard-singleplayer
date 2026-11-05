@@ -1,9 +1,9 @@
-import { InputExtraSchema, inputExtraRules } from './inputDeclarations';
-import { BodyLaunchSchema, NativeLoadoutRowSchema, NativeRangedRowSchema } from './nativeItems';
-import { ClaimedPickupSchema, LootEconomySchema } from './lootEconomy';
+import { InputExtraSchema, inputExtraRules } from './inputDeclarations.ts';
+import { BodyLaunchSchema, NativeLoadoutRowSchema, NativeRangedRowSchema } from './nativeItems.ts';
+import { ClaimedPickupSchema, LootEconomySchema } from './lootEconomy.ts';
 import * as v from 'valibot';
-import { MeleeContactsSchema, NativeMeleeRowSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
-import { isJsonData } from './json';
+import { MeleeContactsSchema, NativeMeleeRowSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles.ts';
+import { isJsonData } from './json.ts';
 
 /** The bounded authored family/context name, also checked by the trusted family installer. */
 export const ItemFamilyNameSchema: v.GenericSchema<ItemFamilyNameRowsInput, ItemFamilyNameRows> = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));

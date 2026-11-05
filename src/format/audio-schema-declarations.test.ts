@@ -15,7 +15,7 @@ test('audio schemas emit isolated declarations that remain strictly checked and 
   const run = (config: string): ReturnType<typeof spawnSync> => spawnSync(execPath,
     [resolve('node_modules/typescript/bin/tsc'), '-p', resolve(root, config)], { encoding: 'utf8', timeout: 10_000 });
   const options = { strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, types: [],
-    target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler', skipLibCheck: false };
+    target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler', allowImportingTsExtensions: true, skipLibCheck: false };
   try {
     for (const name of ['audioProfiles', 'voicePatches']) put(`${name}.ts`, readFileSync(`src/format/${name}.ts`, 'utf8'));
     put('emit.json', JSON.stringify({ compilerOptions: { ...options, declaration: true, emitDeclarationOnly: true,

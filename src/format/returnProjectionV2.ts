@@ -1,10 +1,10 @@
 /** Stateless numeric projections use the existing ABI-v2 frame, field, command
  * and borrowed-RNG banks. A declaration grants names, never native owners. */
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ScriptArtifactV2Schema } from './scriptAdmissionV2';
-import { GroupStepV2Schema, parseGroupStepV2, groupStepLayoutV2, type GroupStepRowsV2 } from './scriptGroupStepV2';
-import { layoutV2, type V2Layout } from './scriptWireV2';
+import { isJsonData } from './json.ts';
+import { ScriptArtifactV2Schema } from './scriptAdmissionV2.ts';
+import { GroupStepV2Schema, parseGroupStepV2, groupStepLayoutV2, type GroupStepRowsV2 } from './scriptGroupStepV2.ts';
+import { layoutV2, type V2Layout } from './scriptWireV2.ts';
 
 const bindingName=v.pipe(v.string(),v.minLength(1),v.maxLength(512),v.regex(/^(?!__proto__$|prototype$|constructor$)/));
 const additionalNames=v.pipe(v.array(bindingName),v.maxLength(256));

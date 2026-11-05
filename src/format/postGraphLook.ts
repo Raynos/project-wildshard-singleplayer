@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import type { ScaledPostRow } from './scaledPost';
-import { ClientChannelsSchema } from './clientChannels';
+import type { ScaledPostRow } from './scaledPost.ts';
+import { ClientChannelsSchema } from './clientChannels.ts';
 
 /**
  * A post-graph look (G599 N1): a level's whole colour chain as scaled post graph passes (format/scaledPost rows), declared

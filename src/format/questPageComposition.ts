@@ -1,15 +1,15 @@
-import { QuestRuntimeFileSchema } from './questRuntime';
+import { QuestRuntimeFileSchema } from './questRuntime.ts';
 import * as v from 'valibot';
-import { FigureGroupSchema } from './figures';
-import { isJsonData } from './json';
-import { QuestWorldSchema } from './questWorld';
-import { QuestFiguresSchema } from './questFigures';
-import { QuestContinuationSchema } from './questContinuation';
-import { QuestPageTalksSchema, NpcDialogueRowSchema } from './npcs';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument';
-import { ContractBoardPageSchema } from './contracts';
-import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from './questPageFacets';
+import { FigureGroupSchema } from './figures.ts';
+import { isJsonData } from './json.ts';
+import { QuestWorldSchema } from './questWorld.ts';
+import { QuestFiguresSchema } from './questFigures.ts';
+import { QuestContinuationSchema } from './questContinuation.ts';
+import { QuestPageTalksSchema, NpcDialogueRowSchema } from './npcs.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument.ts';
+import { ContractBoardPageSchema } from './contracts.ts';
+import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from './questPageFacets.ts';
 
 const completeReturn: v.GenericSchema<unknown, v.InferOutput<typeof ReturnProgramSchema> & ReturnProgramDocumentInput> = v.intersect([ReturnProgramSchema, ReturnProgramWireDocumentSchema]);
 

@@ -1,7 +1,7 @@
-import type { Shardfile } from './shardSchema';
-import type { PlatformSectionName } from './sections';
-import type { PlatformDataSections } from './platformDataSections';
-import type { OutputIndex } from './outputIndex';
+import type { Shardfile } from './shardSchema.ts';
+import type { PlatformSectionName } from './sections.ts';
+import type { PlatformDataSections } from './platformDataSections.ts';
+import type { OutputIndex } from './outputIndex.ts';
 
 export interface SectionMapping { readonly name: PlatformSectionName; readonly fields: readonly (keyof Shardfile)[]; readonly row?: keyof Shardfile['rows']; readonly spawns?: true; }
 /** Root-key envelopes preserve optional-field absence and every existing host's values. */

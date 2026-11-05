@@ -1,7 +1,7 @@
-import { NativeReturnRowsSchema } from './populationRespawn';
+import { NativeReturnRowsSchema } from './populationRespawn.ts';
 import * as v from 'valibot';
-import { PopulationEnvironmentSchema } from './populationEnvironment';
-import { BodySlotsSchema } from './bodySlots';
+import { PopulationEnvironmentSchema } from './populationEnvironment.ts';
+import { BodySlotsSchema } from './bodySlots.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const stream = v.strictObject({ version: v.literal(1), state: finite, initial: finite, scrambledFork: v.boolean() });

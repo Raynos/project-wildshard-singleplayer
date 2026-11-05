@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { PackedGeometryRowsSchema } from './geometryPack';
+import { PackedGeometryRowsSchema } from './geometryPack.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const pair = v.tuple([n, n]), triple = v.tuple([n, n, n]);

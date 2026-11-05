@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { FixedDrawRowsSchema } from './fixedDraws';
+import { FixedDrawRowsSchema } from './fixedDraws.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const groupId = v.pipe(v.string(), v.maxLength(512));

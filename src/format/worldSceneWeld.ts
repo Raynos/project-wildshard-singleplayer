@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { WorldSceneSurfaceSchema } from './worldSceneSurface';
+import { isJsonData } from './json.ts';
+import { WorldSceneSurfaceSchema } from './worldSceneSurface.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-1e6), v.maxValue(1e6));

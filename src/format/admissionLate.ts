@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { ShardHashSchema } from './shardSections';
-import { SHARDFILE_ADMISSION_LIMITS } from './admissionLimits';
-import { WIRE_CELL } from './wireLimits';
+import { ShardHashSchema } from './shardSections.ts';
+import { SHARDFILE_ADMISSION_LIMITS } from './admissionLimits.ts';
+import { WIRE_CELL } from './wireLimits.ts';
 
 /** A declared library root which may warm after control. A required reader can demand it earlier.
  * Cell-local x/z is an ordering hint; no position means after positioned files. Full costs and inventory stay declared. */

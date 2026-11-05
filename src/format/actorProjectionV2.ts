@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { parseDecisionScripts } from './decisionScripts';
-import { isJsonData } from './json';
-import { ObservationColumnsV2Schema,type ObservationColumnV2 } from './scriptObservationColumnsV2';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { CreatureStrikeSchema } from './creatures';
+import { parseDecisionScripts } from './decisionScripts.ts';
+import { isJsonData } from './json.ts';
+import { ObservationColumnsV2Schema,type ObservationColumnV2 } from './scriptObservationColumnsV2.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { CreatureStrikeSchema } from './creatures.ts';
 
 
 /** Named output boundaries keep nested Valibot schema inference out of every

@@ -1,6 +1,6 @@
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 import * as v from 'valibot';
-import { SceneBakedGeometrySchema } from './sceneDressing';
+import { SceneBakedGeometrySchema } from './sceneDressing.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const offset = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(2 ** 31));

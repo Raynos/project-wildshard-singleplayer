@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { validateGraph, type GraphIr } from './materialGraph';
+import { isJsonData } from './json.ts';
+import { validateGraph, type GraphIr } from './materialGraph.ts';
 
 const id = v.pipe(v.string(), v.regex(/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/u),
   v.check(value => !/^(?:gl_|vec[234]$|float$|bool$|int$|void$|return$|uniform$)/u.test(value), 'Shader identifier'));

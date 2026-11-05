@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { LimbPopulationSchema } from './limbPopulation';
+import { LimbPopulationSchema } from './limbPopulation.ts';
 
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

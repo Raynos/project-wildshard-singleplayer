@@ -1,7 +1,7 @@
-import { hasDeclaredClientPage } from './runtimeBinds';
-import type { Shardfile } from './shardSchema';
-import { parseClientPlan } from './clientPlan';
-import { parseNativeRuntimePlan, nativeRuntimeActorIds } from './nativeRuntimePlan';
+import { hasDeclaredClientPage } from './runtimeBinds.ts';
+import type { Shardfile } from './shardSchema.ts';
+import { parseClientPlan } from './clientPlan.ts';
+import { parseNativeRuntimePlan, nativeRuntimeActorIds } from './nativeRuntimePlan.ts';
 
 /** Cross-section ownership replaces the former runtime-only requirement. This
  * runs on author output and checked network/native products before allocation. */

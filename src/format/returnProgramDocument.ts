@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { DecisionScriptRowDocumentSchema, DecisionScriptsSchema, type DecisionScriptRowInput, type DecisionScriptRow } from './decisionScripts';
-import { ReturnProjectionV2Schema } from './returnProjectionV2';
-import { isJsonData } from './json';
+import { DecisionScriptRowDocumentSchema, DecisionScriptsSchema, type DecisionScriptRowInput, type DecisionScriptRow } from './decisionScripts.ts';
+import { ReturnProjectionV2Schema } from './returnProjectionV2.ts';
+import { isJsonData } from './json.ts';
 
 export interface ReturnProgramDocumentInput {
   script: DecisionScriptRowInput;

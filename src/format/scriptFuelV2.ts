@@ -1,7 +1,7 @@
 /** ABI v2 fuel verification. This is one prerequisite of complete admission,
  * not permission to instantiate an image by itself. */
-import { SCRIPT_ABI } from './scriptAbi';
-import { readV2Module,type V2Instruction,type V2Module,type V2Signature } from './scriptModuleV2';
+import { SCRIPT_ABI } from './scriptAbi.ts';
+import { readV2Module,type V2Instruction,type V2Module,type V2Signature } from './scriptModuleV2.ts';
 
 export const V2_ENTRY_SIGNATURES: Readonly<Record<string,readonly number[]>> = Object.freeze({
   ws_init: [0x7f,0x7f,0x7f], ws_step: [0x7f,0x7f], ws_project: [0x7f], ws_view: [0x7c,0x7c,0x7f],

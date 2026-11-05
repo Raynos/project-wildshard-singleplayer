@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ActorProjectionStepV2Schema } from './actorProjectionV2';
+import { ActorProjectionStepV2Schema } from './actorProjectionV2.ts';
 
 const number = v.pipe(v.number(), v.finite()), positive = v.pipe(number,v.minValue(0));
 const triple = v.tuple([number,number,number]);

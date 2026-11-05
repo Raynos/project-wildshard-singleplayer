@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { CreatureStrikeSchema } from './creatures';
+import { isJsonData } from './json.ts';
+import { CreatureStrikeSchema } from './creatures.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const amount = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(60));

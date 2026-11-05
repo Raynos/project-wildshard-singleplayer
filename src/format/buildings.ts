@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ScenePointRefSchema, type ScenePointRef } from './sceneRefs';
+import { isJsonData } from './json.ts';
+import { ScenePointRefSchema, type ScenePointRef } from './sceneRefs.ts';
 
 /** A building leaf/static solid, independent of a renderer or physics backend. */
 export interface BuildingCollider { kind: 'box'; x: number; y: number; z: number; hx: number; hy: number; hz: number; yaw?: number; surface?: 'stone' | 'wood' }

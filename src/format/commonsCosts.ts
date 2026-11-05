@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits.ts';
 
 const natural = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const hash: v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.RegexAction<string, undefined>]> = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));

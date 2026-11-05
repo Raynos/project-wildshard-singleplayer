@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 /** Admitted ball-body pool policy; optional mechanics remain absent unless authored. */
 export interface BodySlotsData {

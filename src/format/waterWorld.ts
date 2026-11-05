@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { WaterSurfaceSchema } from './water';
-import { WorldSceneSchema } from './clientChannels';
-import { RidingPracticeSchema } from './practiceCourseRows';
-import { ReturnProgramDocumentSchema } from './returnProgramDocument';
+import { WaterSurfaceSchema } from './water.ts';
+import { WorldSceneSchema } from './clientChannels.ts';
+import { RidingPracticeSchema } from './practiceCourseRows.ts';
+import { ReturnProgramDocumentSchema } from './returnProgramDocument.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));

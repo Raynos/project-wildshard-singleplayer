@@ -1,6 +1,6 @@
-import { BinaryFileSchema, BinarySourceBanksSchema, type BinarySourceBank } from './binarySource';
+import { BinaryFileSchema, BinarySourceBanksSchema, type BinarySourceBank } from './binarySource.ts';
 import * as v from 'valibot';
-import { isJsonData } from '@wildshard/format/json';
+import { isJsonData } from './json.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const whole = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(268435456));

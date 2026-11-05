@@ -1,5 +1,5 @@
-import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
-import type { ShardEntryways } from '@wildshard/format/entryways';
+import { ENTRY_ASPHALT } from './contentBounds.ts';
+import type { ShardEntryways } from './entryways.ts';
 
 /** Shard-local, closed road approach rectangle; its depth comes from the platform contract. */
 export interface EntryFootprint { minX: number; maxX: number; minZ: number; maxZ: number }

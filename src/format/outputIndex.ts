@@ -1,21 +1,21 @@
-import { platformFileFamily } from './platformFileFamilies';
-import type { Ktx2DeviceCosts } from './ktx2Cost';
-import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate } from './admissionLate';
+import { platformFileFamily } from './platformFileFamilies.ts';
+import type { Ktx2DeviceCosts } from './ktx2Cost.ts';
+import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate } from './admissionLate.ts';
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
-import { isOutputIndex, outputBlobPath } from './outputAddress';
-import { OUTPUT_SECTIONS, assembleOutputTransport, isPlatformDataSection, type OutputHostSectionName } from './outputFields';
+import { isOutputIndex, outputBlobPath } from './outputAddress.ts';
+import { OUTPUT_SECTIONS, assembleOutputTransport, isPlatformDataSection, type OutputHostSectionName } from './outputFields.ts';
 import * as v from 'valibot';
-import { assertCellBounds } from './cellBounds';
-import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSchema';
-import { ClientPlanRuntimeSchema } from './runtime';
-import { RuntimeSpawnsSchema } from './runtimeSpawns';
-import { RowsSchema } from './rows';
-import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema, type ShardIdentityInput, type ShardRequiresInput, type ShardReferencesInput, type ShardIdentity, type ShardRequires, type ShardReferences } from './shardSections';
-import { SHARDFILE_VERSION } from './version';
-import { isJsonData, isJsonDataWithFileSchemas } from './json';
-import { clientOwnershipRules } from './clientOwnership';
-import { PLATFORM_DATA_SECTIONS } from './platformDataSections';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { assertCellBounds } from './cellBounds.ts';
+import { ShardfileFieldSchemas, parseShardfile, type Shardfile } from './shardSchema.ts';
+import { ClientPlanRuntimeSchema } from './runtime.ts';
+import { RuntimeSpawnsSchema } from './runtimeSpawns.ts';
+import { RowsSchema } from './rows.ts';
+import { ShardHashSchema, ShardNaturalSchema, IdentitySchema, RequiresSchema, FilesSchema, type ShardIdentityInput, type ShardRequiresInput, type ShardReferencesInput, type ShardIdentity, type ShardRequires, type ShardReferences } from './shardSections.ts';
+import { SHARDFILE_VERSION } from './version.ts';
+import { isJsonData, isJsonDataWithFileSchemas } from './json.ts';
+import { clientOwnershipRules } from './clientOwnership.ts';
+import { PLATFORM_DATA_SECTIONS } from './platformDataSections.ts';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits.ts';
 
 const path = v.pipe(v.string(), v.maxLength(240), v.regex(/^(?:[a-zA-Z0-9_-][a-zA-Z0-9_.-]*\/)*[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/u));
 const sectionName = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9-]*\/[a-zA-Z][a-zA-Z0-9_-]*$/u));

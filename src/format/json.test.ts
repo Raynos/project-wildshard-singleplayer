@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { isJsonData as boundedJson, isJsonDataWithFileSchemas, jsonDataHeapBytes, jsonDataNodes as countJsonNodes, parseNamedJson } from './json';
+import { isJsonData as boundedJson, isJsonDataWithFileSchemas, jsonDataHeapBytes, jsonDataNodes as countJsonNodes, parseNamedJson } from './json.ts';
 
 const bytes = (text: string): Uint8Array => new TextEncoder().encode(text);
 
@@ -19,16 +19,16 @@ test('G639: large finite exponents and inert numeric text remain canonical', () 
 });
 
 test('failure diagnostics report nodes without changing the 100000 admission bound',async()=>{
-  const {isJsonData,jsonDataNodes}=await import('./json');
+  const {isJsonData,jsonDataNodes}=await import('./json.ts');
   const atLimit=Array.from({length:99999},()=>0),overLimit=[...atLimit,0];
   expect(isJsonData(atLimit)).toBe(true);expect(jsonDataNodes(atLimit)).toBe(100000);
   expect(isJsonData(overLimit)).toBe(false);expect(jsonDataNodes(overLimit)).toBe(100001);
-  const {parseShardfile}=await import('./shardSchema');
+  const {parseShardfile}=await import('./shardSchema.ts');
   expect(()=>parseShardfile(overLimit)).toThrow('JSON nodes 100001 (limit 100000)');
 });
 
 test('node diagnostics do not invoke accessors or accept cycles',async()=>{
-  const {jsonDataNodes}=await import('./json');let reads=0;
+  const {jsonDataNodes}=await import('./json.ts');let reads=0;
   const getter={get value(){reads++;return 1;}},cycle:unknown[]=[];cycle.push(cycle);
   expect(jsonDataNodes(getter)).toBeUndefined();expect(reads).toBe(0);
   expect(jsonDataNodes(cycle)).toBeUndefined();

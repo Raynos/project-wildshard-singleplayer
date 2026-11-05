@@ -1,12 +1,12 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ActorProjectionV2Schema } from './actorProjectionV2';
-import { SpeciesSchema } from './speciesPrograms';
-import { FixedDrawRowsSchema } from './fixedDraws';
-import { RidingPresentationSchema } from './riding';
-import { CreatureStrikeSchema } from './creatures';
-import { SkinClipNameSchema } from './skinData';
-import { SpeciesGroupSchema, DirectedSpeciesSchema, CompactSpeciesBodiesSchema } from './speciesLooks';
+import { isJsonData } from './json.ts';
+import { ActorProjectionV2Schema } from './actorProjectionV2.ts';
+import { SpeciesSchema } from './speciesPrograms.ts';
+import { FixedDrawRowsSchema } from './fixedDraws.ts';
+import { RidingPresentationSchema } from './riding.ts';
+import { CreatureStrikeSchema } from './creatures.ts';
+import { SkinClipNameSchema } from './skinData.ts';
+import { SpeciesGroupSchema, DirectedSpeciesSchema, CompactSpeciesBodiesSchema } from './speciesLooks.ts';
 
 const guestNumber=v.pipe(v.number(),v.finite()),key=v.pipe(v.string(),v.minLength(1),v.maxLength(96),v.check(value=>!['__proto__','prototype','constructor'].includes(value)));
 /** The admitted guest owns every decision. Rows specify observation defaults,

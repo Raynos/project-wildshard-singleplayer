@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { VertexWearSchema } from './vertexWear';
+import { VertexWearSchema } from './vertexWear.ts';
 
 /**
  * Baked tiles (G532 (4)): a Blender-built set of terrain tiles drawn with one look, the lightmaps an offline bake lent to

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { WIRE_CELL } from './wireLimits';
+import { WIRE_CELL } from './wireLimits.ts';
 
 const CELL_ABOVE = WIRE_CELL.above, CELL_BELOW = WIRE_CELL.below, CHUNK_HALF = WIRE_CELL.half;
 

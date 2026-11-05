@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { BodySlotsSchema } from './bodySlots';
-import { BodyLaunchSchema } from './nativeItems';
-import { ConeWeaponProfileSchema } from './weaponProfiles';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument';
-import { EncounterScheduleSchema } from './encounterRows';
+import { BodySlotsSchema } from './bodySlots.ts';
+import { BodyLaunchSchema } from './nativeItems.ts';
+import { ConeWeaponProfileSchema } from './weaponProfiles.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument.ts';
+import { EncounterScheduleSchema } from './encounterRows.ts';
 
 const completeReturn:v.GenericSchema<v.InferInput<typeof ReturnProgramSchema>,v.InferOutput<typeof ReturnProgramSchema>&ReturnProgramDocumentInput>=v.intersect([ReturnProgramSchema,ReturnProgramWireDocumentSchema]);
 

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { GRAPH_ADMISSION_LIMITS, graphAdmissionErrors } from './materialGraph';
+import { GRAPH_ADMISSION_LIMITS, graphAdmissionErrors } from './materialGraph.ts';
 
 test('array length stays outside JSON byte and node counts at exact limits', () => {
   const exact = ['x'.repeat(GRAPH_ADMISSION_LIMITS.bytes - 4)];

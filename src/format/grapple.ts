@@ -1,4 +1,4 @@
-import { GrappleModeSchema, type GrappleMode } from './modes';
+import { GrappleModeSchema, type GrappleMode } from './modes.ts';
 import * as v from 'valibot';
 /** One baseline HUD hint; tone is admitted before the native tool installs it. */
 interface GrappleHint { readonly label: string; readonly icon?: string; readonly tone: string; readonly accent?: string }

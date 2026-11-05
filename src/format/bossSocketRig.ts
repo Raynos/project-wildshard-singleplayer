@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { LimbCollisionBake } from './limbCollision';
-import { isJsonData } from './json';
+import { LimbCollisionBake } from './limbCollision.ts';
+import { isJsonData } from './json.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 const xyz = v.tuple([n, n, n]);

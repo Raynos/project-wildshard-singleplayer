@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { stringsSteps } from './tierSelection';
+import { stringsSteps } from './tierSelection.ts';
 
 // Original stack walk, independent of the filtered pending queue.
 function original(roots: readonly unknown[]): string[] {

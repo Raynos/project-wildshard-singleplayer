@@ -1,6 +1,6 @@
 /** Data-only client weather bindings; safe for schema discovery in Node. */
 import * as v from 'valibot';
-import { WeatherWorldSchema, WeatherShelterCirclesSchema } from './weatherProgram';
+import { WeatherWorldSchema, WeatherShelterCirclesSchema } from './weatherProgram.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1));
 const count = v.pipe(n, v.integer(), v.minValue(1), v.maxValue(16384));

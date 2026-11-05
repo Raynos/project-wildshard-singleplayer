@@ -1,10 +1,10 @@
-import type { ShardEntryways } from '@wildshard/format/entryways';
-import type { ShardProps } from '@wildshard/format/props';
-import type { ShardWater } from '@wildshard/format/water';
-import { entryFootprints, clipEntryPolygon, obstructsEntry, type EntryVertex, type EntryFootprint } from '@wildshard/format/entryGeometry';
-import { PropExtent, visitGlbTriangles } from '@wildshard/format/product';
-import { glbPoint, glbTransform } from '@wildshard/format/glbTriangles';
-import { WAVES } from '@wildshard/format/waterWaves';
+import type { ShardEntryways } from './entryways.ts';
+import type { ShardProps } from './props.ts';
+import type { ShardWater } from './water.ts';
+import { entryFootprints, clipEntryPolygon, obstructsEntry, type EntryVertex, type EntryFootprint } from './entryGeometry.ts';
+import { PropExtent, visitGlbTriangles } from './product.ts';
+import { glbPoint, glbTransform } from './glbTriangles.ts';
+import { WAVES } from './waterWaves.ts';
 
 type Box = Extract<ShardProps['colliders'][number]['shapes'][number], { kind: 'box' }>;
 function boxTriangles(box: Box, visit: (triangle: readonly EntryVertex[]) => void): void {

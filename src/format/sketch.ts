@@ -1,4 +1,4 @@
-import { SHARDFILE_ADMISSION_LIMITS as L } from '@wildshard/format/admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS as L } from './admissionLimits.ts';
 
 const prefix = 'data:image/svg+xml,';
 const hash = /^(?:commons:)?[0-9a-f]{64}$/u;

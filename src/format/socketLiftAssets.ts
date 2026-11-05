@@ -1,10 +1,10 @@
-import { ENTRY_WIDTH } from '@wildshard/format/contentBounds';
-import { parseMovers, type MoverData } from '@wildshard/format/movers';
-import { glbPoint, glbTransform } from '@wildshard/format/glbTriangles';
-import { clipEntryPolygon, type EntryVertex } from '@wildshard/format/entryGeometry';
-import { validateLiftApproach, type LiftApproachSource } from './liftApproach';
+import { ENTRY_WIDTH } from './contentBounds.ts';
+import { parseMovers, type MoverData } from './movers.ts';
+import { glbPoint, glbTransform } from './glbTriangles.ts';
+import { clipEntryPolygon, type EntryVertex } from './entryGeometry.ts';
+import { validateLiftApproach, type LiftApproachSource } from './liftApproach.ts';
 
-import { parseSocketLift, type SocketLift } from '@wildshard/format/socketLift';
+import { parseSocketLift, type SocketLift } from './socketLift.ts';
 
 /** An edge's declared lift; shared structural shape avoids a schema dependency cycle. */
 export interface SocketLiftEntry { edge: 'north' | 'east' | 'south' | 'west'; lift: SocketLift }

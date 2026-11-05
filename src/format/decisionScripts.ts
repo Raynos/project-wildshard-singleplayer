@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { SCRIPT_V1_COMMANDS, SCRIPT_V1_EVENTS, SCRIPT_V1_LISTS, SCRIPT_V1_READS } from './scriptAbiV1';
-import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
+import { isJsonData } from './json.ts';
+import { SCRIPT_V1_COMMANDS, SCRIPT_V1_EVENTS, SCRIPT_V1_LISTS, SCRIPT_V1_READS } from './scriptAbiV1.ts';
+import { SCRIPT_LIMITS } from './scriptLimits.ts';
 
 function keys<T extends Readonly<Record<string, number>>>(table: T): (keyof T & string)[] { return Object.keys(table); }
 const id = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9.:-]*$/u), v.maxLength(128));

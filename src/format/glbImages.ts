@@ -1,5 +1,5 @@
-import { parseStillImage } from './stillImage';
-import { parseKtx2 } from './ktx2Cost';
+import { parseStillImage } from './stillImage.ts';
+import { parseKtx2 } from './ktx2Cost.ts';
 
 const record = (value: unknown): Record<string, unknown> => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('GLB image object required');

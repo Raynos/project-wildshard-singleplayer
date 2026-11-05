@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { LimbBlendSchema, BakedClipTable } from './limbRig';
-import { LimbCollisionBake } from './limbCollision';
+import { LimbBlendSchema, BakedClipTable } from './limbRig.ts';
+import { LimbCollisionBake } from './limbCollision.ts';
 
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 /** Native pose service selection and clocks are rows; collision and blend share the rendered rig's data. */

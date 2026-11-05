@@ -1,11 +1,11 @@
-import { BinaryFileSchema } from './binarySource';
-import { SceneInstancesSchema } from './sceneInstances';
+import { BinaryFileSchema } from './binarySource.ts';
+import { SceneInstancesSchema } from './sceneInstances.ts';
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenModelMetadataSchema, SpecimenTextureSchema } from './specimenCatalogue';
-import { AmbientFlockSchema, AmbientPerchesSchema } from './ambientLife';
-import { PrivateSceneSchema } from './clientChannels';
-import { EncounterSitesSchema } from './encounterRows';
+import { isJsonData } from './json.ts';
+import { SpecimenCatalogueSchema, PackedSpecimenSchema, SpecimenMaterialSchema, SpecimenAssetSchema, SpecimenModelMetadataSchema, SpecimenTextureSchema } from './specimenCatalogue.ts';
+import { AmbientFlockSchema, AmbientPerchesSchema } from './ambientLife.ts';
+import { PrivateSceneSchema } from './clientChannels.ts';
+import { EncounterSitesSchema } from './encounterRows.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite());

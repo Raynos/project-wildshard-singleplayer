@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { DirectorSchema, type DirectorData } from './director';
-import { DirectorStagesSchema, type DirectorStagesData, type DirectorStagesDataInput } from './directorStages';
+import { DirectorSchema, type DirectorData } from './director.ts';
+import { DirectorStagesSchema, type DirectorStagesData, type DirectorStagesDataInput } from './directorStages.ts';
 
 /** Complete existing director document shared by authored native director hosts.
  * Binary loading, declaration/hash agreement, ownership and fuel remain the

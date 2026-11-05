@@ -1,8 +1,8 @@
-import { SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow, type ScriptV1ReferenceKind } from './decisionScripts';
-import type { Shardfile } from './shardSchema';
-import type { ActorMove } from './actorMoves';
-import type { WorldTargets } from './worldTargets';
-import type { CreatureStrikes } from './creatures';
+import { SCRIPT_V1_REFERENCE_KINDS, type DecisionScriptRow, type ScriptV1ReferenceKind } from './decisionScripts.ts';
+import type { Shardfile } from './shardSchema.ts';
+import type { ActorMove } from './actorMoves.ts';
+import type { WorldTargets } from './worldTargets.ts';
+import type { CreatureStrikes } from './creatures.ts';
 
 /** Authoritative platform ids; actor handles are never allocated from aliases or guessed from row order. */
 export type DecisionRegistries = Readonly<Partial<Record<ScriptV1ReferenceKind, ReadonlyMap<string, number>>>>;

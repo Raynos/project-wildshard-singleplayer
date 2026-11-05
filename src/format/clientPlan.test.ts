@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseClientPlan } from './clientPlan';
+import { parseClientPlan } from './clientPlan.ts';
 
 test('cross-section ownership reuses only an owned immutable plan', () => {
   const input = { version: 1, features: [{ kind: 'world.scenes' }] };

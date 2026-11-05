@@ -1,4 +1,4 @@
-import { ConeWeaponProfileSchema } from './weaponProfiles';
+import { ConeWeaponProfileSchema } from './weaponProfiles.ts';
 import * as v from 'valibot';
 
 const finite = v.pipe(v.number(), v.finite()), scalar = v.pipe(finite, v.minValue(0), v.maxValue(10000));

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
+import { parseWorldScenes, worldScenesForTier } from './worldScenes.ts';
 
 function fixture() {
   return parseWorldScenes({ version: 1, catalogue: 'models/catalogue.json', materials: [],

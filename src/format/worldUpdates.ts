@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const order = { system: id, before: v.pipe(v.array(id), v.maxLength(16)), after: v.exactOptional(v.pipe(v.array(id), v.maxLength(16))) };

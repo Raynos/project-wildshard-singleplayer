@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { ENTRY_ASPHALT, ENTRY_WIDTH } from './contentBounds';
-import type { Shardfile } from './shardSchema';
+import { ENTRY_ASPHALT, ENTRY_WIDTH } from './contentBounds.ts';
+import type { Shardfile } from './shardSchema.ts';
 
 const criterion = v.strictObject({ verdict: v.picklist(['pass', 'fail']), evidence: v.pipe(v.string(), v.minLength(1), v.maxLength(1024)) });
 /** Build evidence is meaningful only inside its exact index/source/validator-bound validation receipt. */

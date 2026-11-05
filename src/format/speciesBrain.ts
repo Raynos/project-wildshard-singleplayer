@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { GrazerSchema, ChallengeGrazerSchema } from './grazers';
-import { DiverSchema, PatrolDiverSchema } from './flyers';
-import { ScriptSpeciesSchema } from './speciesScripts';
-import { StalkerSchema, SkirmisherSchema, GuardianSchema, GuardianPatternsSchema, PerchHunterSchema } from './brains';
-import { BorrowedDecisionSchema } from './decisionScripts';
+import { GrazerSchema, ChallengeGrazerSchema } from './grazers.ts';
+import { DiverSchema, PatrolDiverSchema } from './flyers.ts';
+import { ScriptSpeciesSchema } from './speciesScripts.ts';
+import { StalkerSchema, SkirmisherSchema, GuardianSchema, GuardianPatternsSchema, PerchHunterSchema } from './brains.ts';
+import { BorrowedDecisionSchema } from './decisionScripts.ts';
 
 const count = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0), v.maxValue(65535));
 /** The same callback-free policy declarations used by native recipes and product species catalogues. */

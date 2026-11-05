@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema, type NativeGroundFile, type NativeColliderRecord, type NativeArrayStorage } from './nativePhysics';
+import { isJsonData } from './json.ts';
+import { NativeGroundFileSchema, nativeBodySchema, nativeColliderRecordSchema, type NativeGroundFile, type NativeColliderRecord, type NativeArrayStorage } from './nativePhysics.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const triple = v.tuple([finite, finite, finite]);

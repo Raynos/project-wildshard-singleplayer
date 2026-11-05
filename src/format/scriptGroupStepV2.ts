@@ -1,10 +1,10 @@
 /** H4 one-group projection layout. It is a transport declaration, not a group
  * installer, species policy or native effect dispatcher. */
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { GroupBankV2Schema, groupBankWidthV2, parseGroupBankV2, type GroupBankFieldV2 } from './scriptGroupBankV2';
-import { ObservationColumnsV2Schema, parseObservationColumnsV2, type ObservationColumnV2 } from './scriptObservationColumnsV2';
-import { layoutV2, type V2Layout } from './scriptWireV2';
+import { isJsonData } from './json.ts';
+import { GroupBankV2Schema, groupBankWidthV2, parseGroupBankV2, type GroupBankFieldV2 } from './scriptGroupBankV2.ts';
+import { ObservationColumnsV2Schema, parseObservationColumnsV2, type ObservationColumnV2 } from './scriptObservationColumnsV2.ts';
+import { layoutV2, type V2Layout } from './scriptWireV2.ts';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const word = v.pipe(natural, v.maxValue(3));

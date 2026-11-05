@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { NativeRidingSchema } from './nativeRiding';
-import { StreamWaterSchema } from './water';
-import { ForagerContinuation } from './ambientLife';
+import { NativeRidingSchema } from './nativeRiding.ts';
+import { StreamWaterSchema } from './water.ts';
+import { ForagerContinuation } from './ambientLife.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const key = v.pipe(v.string(), v.minLength(1), v.maxLength(128));

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parseEliteEntryRows } from './eliteEntryRows';
+import { parseEliteEntryRows } from './eliteEntryRows.ts';
 
 function native() {
   return { kind: 'pouncer' as const, profile: 'ridge-pounce', observations: 'ridge-inputs', body: 'wildlife', model: 'ridge-drop',

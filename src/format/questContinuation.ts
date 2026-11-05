@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { LootBagSchema } from './lootBag';
+import { isJsonData } from './json.ts';
+import { LootBagSchema } from './lootBag.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 /** Client-only continuation over entered quest and collection owners. Every

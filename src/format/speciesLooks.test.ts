@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parsePackedCreatureLooks } from './speciesLooks';
+import { parsePackedCreatureLooks } from './speciesLooks.ts';
 
 const inputBook = () => ({ poses: {}, rows: [{ id: 'look', species: 'species', kind: 'kind', skeleton: 'rig', sockets: ['body'], clips: [],
   variants: { plain: { body: 'plain', tint: { coat: [0.1, 0.2, 0.3] } } } }] });

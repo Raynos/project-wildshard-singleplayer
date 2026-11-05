@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { BossCombatSessionSchema, BossEncounterPresentationSchema } from './bossEncounter';
-import { RoamingBossProjectionSchema } from './roamingBossProjection';
-import { EliteEnteredPresentationSchema } from './eliteFeature';
-import { isJsonData } from './json';
+import { BossCombatSessionSchema, BossEncounterPresentationSchema } from './bossEncounter.ts';
+import { RoamingBossProjectionSchema } from './roamingBossProjection.ts';
+import { EliteEnteredPresentationSchema } from './eliteFeature.ts';
+import { isJsonData } from './json.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
 /** Client-only encounter session resolves its installed loadout and body ids. */

@@ -1,8 +1,8 @@
 /** Build-only course admission. Native lifecycle and controllers remain counted. */
 import * as v from 'valibot';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
-import { isJsonData } from './json';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument.ts';
+import { isJsonData } from './json.ts';
 
 const completeReturn: v.GenericSchema<v.InferInput<typeof ReturnProgramSchema>, v.InferOutput<typeof ReturnProgramSchema> & ReturnProgramDocument> = v.intersect([ReturnProgramSchema, ReturnProgramDocumentSchema]);
 

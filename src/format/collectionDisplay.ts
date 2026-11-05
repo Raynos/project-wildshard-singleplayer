@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { PackedGeometryRowsSchema } from './geometryPack';
-import { AdventureContentSchema } from './questStory';
+import { PackedGeometryRowsSchema } from './geometryPack.ts';
+import { AdventureContentSchema } from './questStory.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.minValue(-Number.MAX_VALUE), v.maxValue(Number.MAX_VALUE));

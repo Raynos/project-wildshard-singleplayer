@@ -1,4 +1,4 @@
-import type { Shardfile } from './shardSchema';
+import type { Shardfile } from './shardSchema.ts';
 import * as v from 'valibot';
 
 /**

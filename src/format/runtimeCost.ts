@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { RUNTIME_RESIDENT_FACTOR } from './wireLimits';
+import { RUNTIME_RESIDENT_FACTOR } from './wireLimits.ts';
 
 const mb = v.pipe(v.number(), v.finite(), v.minValue(0));
 /** Reviewed trusted-runtime measurements, kept with their shard rather than presenting an empty data budget as its cost. */

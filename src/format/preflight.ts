@@ -1,6 +1,6 @@
-import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
-import { assertCellBounds, assertCellBoundsSteps } from './cellBounds';
-import { assertCommonsCosts } from './commonsCosts';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits.ts';
+import { assertCellBounds, assertCellBoundsSteps } from './cellBounds.ts';
+import { assertCommonsCosts } from './commonsCosts.ts';
 
 const identifierKeys = new Set(['id', 'slug', 'name', 'actorId', 'rewardId', 'field', 'scene', 'entity', 'owner', 'sharedField', 'playerField']);
 

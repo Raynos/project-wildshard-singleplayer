@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ScalarChannelSchema } from './scalarChannel';
+import { ScalarChannelSchema } from './scalarChannel.ts';
 
 const finite = v.pipe(v.number(), v.finite()), positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));

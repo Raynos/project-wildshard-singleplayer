@@ -1,14 +1,14 @@
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 import * as v from 'valibot';
-import { BossEncounterDefinitionSchema,BossEncounterPresentationSchema } from './bossEncounter';
-import { CellFieldSchema } from './cellField';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
-import { CreatureStrikeSchema } from './creatures';
-import { ArenaEncounterSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema,CloudBodySchema,ArenaSceneSchema } from './encounterRows';
-import { ClientChannelsSchema } from './clientChannels';
-import { WeatherGeometrySchema } from './weatherEffects';
-import { ArenaRoomDocumentRowsSchema, ArenaKingRowsSchema } from './arenaRoomDocument';
+import { BossEncounterDefinitionSchema,BossEncounterPresentationSchema } from './bossEncounter.ts';
+import { CellFieldSchema } from './cellField.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument.ts';
+import { CreatureStrikeSchema } from './creatures.ts';
+import { ArenaEncounterSchema,CoupledEncounterRowsSchema,ArenaWhirlsSchema,ArenaFireSchema,CloudBodySchema,ArenaSceneSchema } from './encounterRows.ts';
+import { ClientChannelsSchema } from './clientChannels.ts';
+import { WeatherGeometrySchema } from './weatherEffects.ts';
+import { ArenaRoomDocumentRowsSchema, ArenaKingRowsSchema } from './arenaRoomDocument.ts';
 
 /** Build-only validation; runtime readers import the inferred types only. */
 const returnProgram: v.GenericSchema<unknown, ReturnProgramDocument> = v.pipe(v.unknown(), v.check(isJsonData), v.intersect([ReturnProgramSchema, ReturnProgramDocumentSchema]));

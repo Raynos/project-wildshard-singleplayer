@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { HandleIdSchema, ScenePointRefSchema } from './sceneRefs';
-import { isJsonData } from './json';
-import { SkinClipNameSchema } from './skinData';
-import { PackedGeometryRowsSchema } from './geometryPack';
-import { KitFigureSchema } from './kitFigure';
+import { HandleIdSchema, ScenePointRefSchema } from './sceneRefs.ts';
+import { isJsonData } from './json.ts';
+import { SkinClipNameSchema } from './skinData.ts';
+import { PackedGeometryRowsSchema } from './geometryPack.ts';
+import { KitFigureSchema } from './kitFigure.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 /** The authored motion, reach, collider and flame facts, with no runtime defaults. */

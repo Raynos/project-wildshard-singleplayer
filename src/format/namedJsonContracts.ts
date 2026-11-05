@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ReturnProjectionV2Schema } from './returnProjectionV2';
+import { ReturnProjectionV2Schema } from './returnProjectionV2.ts';
 
 const finite = v.pipe(v.number(), v.finite()), natural = v.pipe(finite, v.minValue(0));
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(256));

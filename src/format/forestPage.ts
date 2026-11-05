@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { BuildingLifeLookSchema, BuildingLifeRowsSchema, type BuildingLifeRows } from './buildings';
-import { WorldSceneWeldSchema, SceneFileReferenceSchema, type WorldSceneWeld } from './worldSceneWeld';
-import { PageWaterBindingSchema } from './pagePreparation';
-import { isJsonData } from './json';
+import { BuildingLifeLookSchema, BuildingLifeRowsSchema, type BuildingLifeRows } from './buildings.ts';
+import { WorldSceneWeldSchema, SceneFileReferenceSchema, type WorldSceneWeld } from './worldSceneWeld.ts';
+import { PageWaterBindingSchema } from './pagePreparation.ts';
+import { isJsonData } from './json.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const point = { x: n, y: n, z: n }, count = v.pipe(n, v.integer(), v.minValue(0));

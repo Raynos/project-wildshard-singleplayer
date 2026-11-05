@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { CurveSchema } from './materials';
-import { isJsonData } from './json';
+import { CurveSchema } from './materials.ts';
+import { isJsonData } from './json.ts';
 
 const scalar = v.pipe(v.number(), v.finite()), rgb = v.tuple([scalar, scalar, scalar]), pair = v.tuple([scalar, scalar]);
 const colour = v.union([scalar, rgb]);

@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { WorldSceneDistanceSchema, type WorldSceneDistanceRows } from './worldSceneWeld';
+import { WorldSceneDistanceSchema, type WorldSceneDistanceRows } from './worldSceneWeld.ts';
 
 /** A static draw key, expressed in the original frozen anchor's local frame. */
 export interface WorldSceneSlabKey {

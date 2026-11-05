@@ -1,12 +1,12 @@
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 /** Build-only admission for existing encounter rows; play imports their types and the encounter sites' schema. */
 import * as v from 'valibot';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
-import { CreatureStrikeSchema } from './creatures';
-import { SpecimenAssetSchema } from './specimenCatalogue';
-import { PrivateSceneSchema, ClientChannelsSchema } from './clientChannels';
-import { WeatherGeometrySchema, WeatherGeometryPayloadSchema } from './weatherEffects';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument.ts';
+import { CreatureStrikeSchema } from './creatures.ts';
+import { SpecimenAssetSchema } from './specimenCatalogue.ts';
+import { PrivateSceneSchema, ClientChannelsSchema } from './clientChannels.ts';
+import { WeatherGeometrySchema, WeatherGeometryPayloadSchema } from './weatherEffects.ts';
 
 const returnProgram: v.GenericSchema<unknown, ReturnProgramDocument> = v.pipe(v.unknown(), v.check(isJsonData), v.intersect([ReturnProgramSchema, ReturnProgramDocumentSchema]));
 

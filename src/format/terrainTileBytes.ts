@@ -1,7 +1,7 @@
-import type { BakedGrid } from './bakedTerrainBytes';
-import { isJsonData } from './json';
-import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from './contentBounds';
-import { bakedSamplers, type BakedTerrainSamplers } from './bakedTerrainSampling';
+import type { BakedGrid } from './bakedTerrainBytes.ts';
+import { isJsonData } from './json.ts';
+import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from './contentBounds.ts';
+import { bakedSamplers, type BakedTerrainSamplers } from './bakedTerrainSampling.ts';
 
 const MAGIC = 0x31545457, HEADER = 32;
 /** Baked row-major heights in a shard-local square; optional linear RGB values describe the rendered vertices. */

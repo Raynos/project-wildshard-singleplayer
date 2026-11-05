@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { PersistedQuestPageSchema } from './questStory';
-import { MarkedBossPresentationSchema } from './bossProfiles';
+import { PersistedQuestPageSchema } from './questStory.ts';
+import { MarkedBossPresentationSchema } from './bossProfiles.ts';
 
 const finite = v.pipe(v.number(), v.finite());
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));

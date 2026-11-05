@@ -1,8 +1,8 @@
-import { decodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
-import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
-import type { ShardEntryways } from '@wildshard/format/entryways';
-import { clipEntryPolygon, entryFootprints, obstructsEntry, type EntryVertex } from '@wildshard/format/entryGeometry';
-import { convexEntryHull, entryCoverage } from '@wildshard/format/entryCoverage';
+import { decodeMeshCollision } from './meshCollisionBytes.ts';
+import type { ShardMeshCollision } from './meshCollision.ts';
+import type { ShardEntryways } from './entryways.ts';
+import { clipEntryPolygon, entryFootprints, obstructsEntry, type EntryVertex } from './entryGeometry.ts';
+import { convexEntryHull, entryCoverage } from './entryCoverage.ts';
 
 /** Visit immutable collision triangles without allocating a physics world or retaining decoded chunks. */
 export function visitMeshTriangles(file: string, assets: ReadonlyMap<string, Uint8Array>, visit: (triangle: readonly EntryVertex[]) => void): void {

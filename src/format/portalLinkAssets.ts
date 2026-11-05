@@ -1,7 +1,7 @@
-import type { ShardProps } from '@wildshard/format/props';
-import type { ShardMeshCollision } from '@wildshard/format/meshCollision';
+import type { ShardProps } from './props.ts';
+import type { ShardMeshCollision } from './meshCollision.ts';
 
-import { parsePortalLink, type PortalLink } from '@wildshard/format/portalLink';
+import { parsePortalLink, type PortalLink } from './portalLink.ts';
 
 /** One canonical edge and its fully bound data link. */
 export interface PortalLinkEntry { edge: 'north' | 'east' | 'south' | 'west'; portal: PortalLink }

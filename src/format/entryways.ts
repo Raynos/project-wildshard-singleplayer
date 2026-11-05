@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { WIRE_CELL } from './wireLimits';
-import { SocketLiftSchema } from './socketLift';
-import { PortalLinkSchema } from './portalLink';
+import { WIRE_CELL } from './wireLimits.ts';
+import { SocketLiftSchema } from './socketLift.ts';
+import { PortalLinkSchema } from './portalLink.ts';
 
 const ENTRY_WIDTH: typeof WIRE_CELL.entryWidth = WIRE_CELL.entryWidth;
 const finite = v.pipe(v.number(), v.finite());

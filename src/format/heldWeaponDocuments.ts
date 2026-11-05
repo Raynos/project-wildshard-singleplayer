@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { BladeRowsSchema, PolearmRowsSchema, ArcWeaponRowsSchema, type BladeRows, type PolearmRows, type ArcWeaponRows } from './heldMelee';
-import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument';
-import { HeldSlotsSchema, type HeldSlotsRows } from './heldArms';
-import { BowVariantSchema } from './bowVariantRows';
+import { BladeRowsSchema, PolearmRowsSchema, ArcWeaponRowsSchema, type BladeRows, type PolearmRows, type ArcWeaponRows } from './heldMelee.ts';
+import { ReturnProgramDocumentSchema, type ReturnProgramDocument } from './returnProgramDocument.ts';
+import { HeldSlotsSchema, type HeldSlotsRows } from './heldArms.ts';
+import { BowVariantSchema } from './bowVariantRows.ts';
 
 type SignalledProgram<Signal extends string> = ReturnProgramDocument & { signal: Signal };
 type ArcDocument = Omit<ArcWeaponRows, 'program'> & { program: SignalledProgram<'power'> };

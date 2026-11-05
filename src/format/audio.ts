@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { VoicePatchesSchema, type VoicePatches } from './voicePatches';
-import { AudioSceneSchema, SampledAudioSceneSchema, type SampledAudioScene, type AudioScene } from './audioScene';
-import { isJsonData } from './json';
-import {AudioBankSchema} from './audioBank';
-import { AudioRoutingSchema, AudioVoiceBindingsSchema } from './audioRouting';
-import { AudioLoopEmitterSchema, AudioPlaybackSchema, AudioSurfaceSchema, AudioLoopGraphSchema, AudioObservationSystemSchema, AudioPcmProgramSchema, AudioMusicSchema, AudioSamplesSchema, AudioZonesSchema, AudioPhraseProgramSchema, AudioPhraseScheduleSchema } from './audioProfiles';
+import { VoicePatchesSchema, type VoicePatches } from './voicePatches.ts';
+import { AudioSceneSchema, SampledAudioSceneSchema, type SampledAudioScene, type AudioScene } from './audioScene.ts';
+import { isJsonData } from './json.ts';
+import {AudioBankSchema} from './audioBank.ts';
+import { AudioRoutingSchema, AudioVoiceBindingsSchema } from './audioRouting.ts';
+import { AudioLoopEmitterSchema, AudioPlaybackSchema, AudioSurfaceSchema, AudioLoopGraphSchema, AudioObservationSystemSchema, AudioPcmProgramSchema, AudioMusicSchema, AudioSamplesSchema, AudioZonesSchema, AudioPhraseProgramSchema, AudioPhraseScheduleSchema } from './audioProfiles.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const recordingPath = v.pipe(v.string(), v.maxLength(256), v.regex(/^\/assets\/(?:music|sfx)\/(?:[a-zA-Z0-9][a-zA-Z0-9._-]*\/)+[a-zA-Z0-9][a-zA-Z0-9._-]*\.(?:m4a|wav)$/u));

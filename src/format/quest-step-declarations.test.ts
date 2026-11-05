@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import ts from '@typescript/typescript6';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { QuestStepRowsSchema } from './questSteps';
+import { QuestStepRowsSchema } from './questSteps.ts';
 
 test('quest declarations retain imported contracts and bound validator metadata', () => {
   const emitted = ts.transpileDeclaration(readFileSync('src/format/questSteps.ts', 'utf8'), {

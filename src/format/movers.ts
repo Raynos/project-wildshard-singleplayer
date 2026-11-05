@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { MoverAtEndSchema, MoverRestoreFromSchema } from './moverLifecycle';
-import { MoverTrackSchema, MoverTriggerSchema, MoverDriverSchema, MoverCarrySchema, lowerMoverMotion } from './moverMotion';
+import { MoverAtEndSchema, MoverRestoreFromSchema } from './moverLifecycle.ts';
+import { MoverTrackSchema, MoverTriggerSchema, MoverDriverSchema, MoverCarrySchema, lowerMoverMotion } from './moverMotion.ts';
 
 const finite = v.pipe(v.number(), v.finite()), coordinate = v.pipe(finite, v.minValue(-250), v.maxValue(250));
 const vector = v.strictObject({ x: coordinate, y: coordinate, z: coordinate });

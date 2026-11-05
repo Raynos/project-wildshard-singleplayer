@@ -1,6 +1,6 @@
-import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { clipEntryPolygon, entryFootprints } from '@wildshard/format/entryGeometry';
-import type { ShardEntryways } from '@wildshard/format/entryways';
+import { decodeTerrainTile } from './terrainTileBytes.ts';
+import { clipEntryPolygon, entryFootprints } from './entryGeometry.ts';
+import type { ShardEntryways } from './entryways.ts';
 
 /** Verify every native collision triangle across the full 8×15 m approach before platform floors exist. */
 export function validateEntrywayTerrain(source: { entryways: ShardEntryways; terrain: { collider: string } | null }, assets: ReadonlyMap<string, Uint8Array>): void {

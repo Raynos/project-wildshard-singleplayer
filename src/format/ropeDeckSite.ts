@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SpecimenModelMetadataSchema } from './specimenCatalogue';
+import { SpecimenModelMetadataSchema } from './specimenCatalogue.ts';
 
 /** The defining rope-deck grammar, moved unchanged from the site host. */
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128)), n = v.pipe(v.number(), v.finite());

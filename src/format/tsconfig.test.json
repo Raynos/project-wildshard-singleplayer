@@ -5,6 +5,10 @@
     "noEmit": false,
     "emitDeclarationOnly": true,
     "declaration": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "types": [
       "vite/client",
       "node"

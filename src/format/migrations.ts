@@ -1,4 +1,4 @@
-import { isJsonData } from './json';
+import { isJsonData } from './json.ts';
 import * as v from 'valibot';
 
 const positive = v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(0x7fffffff));

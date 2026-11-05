@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { ToonArmsLookSchema } from './heldArms';
-import { GraphArmsSchema } from './graphArmsRows';
+import { ToonArmsLookSchema } from './heldArms.ts';
+import { GraphArmsSchema } from './graphArmsRows.ts';
 
 /** G601 C10: a held view (first-person arms and what they hold) as one row family, its look kind choosing how its rig is
  *  dressed: `toon` (toon-family looks, two blades and swimming hands lit by the day) or `graph` (graph looks with their

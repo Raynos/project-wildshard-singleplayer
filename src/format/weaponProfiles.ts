@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { ClientChannelsSchema, ClientChannelInputsSchema, ClientChannelPropertySchema } from './clientChannels';
+import { isJsonData } from './json.ts';
+import { ClientChannelsSchema, ClientChannelInputsSchema, ClientChannelPropertySchema } from './clientChannels.ts';
 
 const scalar = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(10000));
 const positive = v.pipe(scalar, v.minValue(0.000001));

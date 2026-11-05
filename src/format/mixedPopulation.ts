@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { NumericPoseSchema } from './clientChannels';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument';
+import { NumericPoseSchema } from './clientChannels.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ReturnProgramWireDocumentSchema, type ReturnProgramDocumentInput } from './returnProgramDocument.ts';
 
 const completeReturn:v.GenericSchema<v.InferInput<typeof ReturnProgramSchema>,v.InferOutput<typeof ReturnProgramSchema>&ReturnProgramDocumentInput>=v.intersect([ReturnProgramSchema,ReturnProgramWireDocumentSchema]);
 

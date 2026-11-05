@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { CollectionMountPackSchema, CollectionChalkSchema } from './collectionDisplay';
-import { isJsonData } from './json';
+import { CollectionMountPackSchema, CollectionChalkSchema } from './collectionDisplay.ts';
+import { isJsonData } from './json.ts';
 
 const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1), v.maxLength(512)), text = v.string();
 /** Client-only equipment, pickup, collection and ambience composition. */

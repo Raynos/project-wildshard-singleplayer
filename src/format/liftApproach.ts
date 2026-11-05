@@ -1,8 +1,8 @@
-import type { ShardProps } from './props';
-import type { SocketLiftEntry } from './socketLiftAssets';
-import type { EntryVertex } from './entryGeometry';
-import { convexEntryHull as hull, entryCoverage as coverage } from './entryCoverage';
-import { glbPoint, glbTransform } from './glbTriangles';
+import type { ShardProps } from './props.ts';
+import type { SocketLiftEntry } from './socketLiftAssets.ts';
+import type { EntryVertex } from './entryGeometry.ts';
+import { convexEntryHull as hull, entryCoverage as coverage } from './entryCoverage.ts';
+import { glbPoint, glbTransform } from './glbTriangles.ts';
 
 /** Only admitted, permanently active collision rows may prove the static road-to-lift approach. */
 export interface LiftApproachSource {

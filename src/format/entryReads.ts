@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { SHARDFILE_ADMISSION_LIMITS } from './admissionLimits';
+import { SHARDFILE_ADMISSION_LIMITS } from './admissionLimits.ts';
 
 /** A same-product path or immutable public asset URL; no origin, fragment, escaped separator or parent traversal crosses
  * a prefetch boundary. The one query is a build's version token (`?v=<hex>`): the HTTP cache keys a read by its whole URL. */

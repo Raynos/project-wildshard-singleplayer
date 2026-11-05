@@ -1,11 +1,11 @@
-import { isJsonData } from './json';
-import { StreamedCoverSchema } from './streamedCover';
-import { AmbientFlockSchema } from './ambientLife';
+import { isJsonData } from './json.ts';
+import { StreamedCoverSchema } from './streamedCover.ts';
+import { AmbientFlockSchema } from './ambientLife.ts';
 import * as v from 'valibot';
-import { BuildingCloudPoseSchema } from './buildings';
-import { HandleIdSchema } from './sceneRefs';
-import { WorldEntryStepSchema } from './worldEntry';
-import { RopeDeckSiteSchema, RopeDeckSpanSchema } from './ropeDeckSite';
+import { BuildingCloudPoseSchema } from './buildings.ts';
+import { HandleIdSchema } from './sceneRefs.ts';
+import { WorldEntryStepSchema } from './worldEntry.ts';
+import { RopeDeckSiteSchema, RopeDeckSpanSchema } from './ropeDeckSite.ts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());

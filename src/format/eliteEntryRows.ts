@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import { HandleIdSchema } from './sceneRefs';
-import { isJsonData } from './json';
-import { EliteEnteredPresentationSchema, EliteOutputActionsSchema, ExternalEliteSchema, parseEliteOutputActions } from './eliteFeature';
-import { CreatureStrikeSchema } from './creatures';
-import { ObservationColumnsV2Schema, parseObservationColumnsV2, type ObservationColumnV2 } from './scriptObservationColumnsV2';
+import { HandleIdSchema } from './sceneRefs.ts';
+import { isJsonData } from './json.ts';
+import { EliteEnteredPresentationSchema, EliteOutputActionsSchema, ExternalEliteSchema, parseEliteOutputActions } from './eliteFeature.ts';
+import { CreatureStrikeSchema } from './creatures.ts';
+import { ObservationColumnsV2Schema, parseObservationColumnsV2, type ObservationColumnV2 } from './scriptObservationColumnsV2.ts';
 
 /** Fixed numeric inputs of the existing native kernels, explicitly declared
  * on the same H4 owner. These are selectors, never climate values or defaults. */

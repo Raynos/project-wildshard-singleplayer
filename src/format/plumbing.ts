@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { InputActionSchema, InputExtraEntries, InputKeysSchema, InputWhenSchema, inputActionOwned, inputExtraRules } from './inputDeclarations';
+import { isJsonData } from './json.ts';
+import { InputActionSchema, InputExtraEntries, InputKeysSchema, InputWhenSchema, inputActionOwned, inputExtraRules } from './inputDeclarations.ts';
 
 const name: v.SchemaWithPipe<readonly [v.StringSchema<undefined>, v.RegexAction<string, undefined>, v.MaxLengthAction<string, 64, undefined>]> = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9-]*$/u), v.maxLength(64));
 const id: v.GenericSchema<`${string}.${string}`> = v.custom<`${string}.${string}`>((value) => typeof value === 'string' && value.length <= 128 && /^[a-z][a-z0-9-]*(?:\.[a-z][a-zA-Z0-9-]*)+$/u.test(value), 'namespaced id');

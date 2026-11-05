@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {isJsonData} from './json';
+import {isJsonData} from './json.ts';
 
 const n=v.pipe(v.number(),v.finite(),v.minValue(-1_000_000),v.maxValue(1_000_000));
 const key=v.pipe(v.string(),v.minLength(1),v.maxLength(256)),text=v.pipe(v.string(),v.maxLength(2048));

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import { ObservationRefSchema } from './sceneRefs';
-import { QuestEffectSchema } from './questSteps';
-import { isJsonData } from './json';
+import { ObservationRefSchema } from './sceneRefs.ts';
+import { QuestEffectSchema } from './questSteps.ts';
+import { isJsonData } from './json.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite());

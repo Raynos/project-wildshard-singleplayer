@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { SpeciesBrainSchema } from './speciesBrain';
-import { BossOwnerRowSchema } from './bossProfiles';
-import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures';
-import { ScriptBindingsSchema } from './scripts';
-import { StateSchema } from './state';
+import { isJsonData } from './json.ts';
+import { SpeciesBrainSchema } from './speciesBrain.ts';
+import { BossOwnerRowSchema } from './bossProfiles.ts';
+import { CreatureBodyRecipeSchema, CreatureStrikeSchema } from './creatures.ts';
+import { ScriptBindingsSchema } from './scripts.ts';
+import { StateSchema } from './state.ts';
 
 const number = v.pipe(v.number(), v.finite());
 const count = v.pipe(number, v.integer(), v.minValue(0), v.maxValue(65535));

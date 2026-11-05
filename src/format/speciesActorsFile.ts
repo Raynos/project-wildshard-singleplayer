@@ -1,13 +1,13 @@
 import * as v from 'valibot';
-import {isJsonData} from './json';
-import {FixedDrawRowsSchema} from './fixedDraws';
-import {NumericPoseSchema,type NumericPoseRows} from './clientChannels';
-import {CreatureGuestSchema,SpeciesPresentationSchema,type CreatureGuestRows,type SpeciesPresentationRows} from './speciesBookRows';
-import {CompactSpeciesBodiesSchema,type CompactSpeciesBodiesRows} from './speciesLooks';
-import {type CrowdPresentationSchema,CrowdGuardSchema} from './crowdPresentation';
-import {FlockSchema} from './crowds';
-import {ReturnProgramWireDocumentSchema,type ReturnProgramDocumentInput} from './returnProgramDocument';
-import {ReturnProgramSchema} from './namedJsonContracts';
+import {isJsonData} from './json.ts';
+import {FixedDrawRowsSchema} from './fixedDraws.ts';
+import {NumericPoseSchema,type NumericPoseRows} from './clientChannels.ts';
+import {CreatureGuestSchema,SpeciesPresentationSchema,type CreatureGuestRows,type SpeciesPresentationRows} from './speciesBookRows.ts';
+import {CompactSpeciesBodiesSchema,type CompactSpeciesBodiesRows} from './speciesLooks.ts';
+import {type CrowdPresentationSchema,CrowdGuardSchema} from './crowdPresentation.ts';
+import {FlockSchema} from './crowds.ts';
+import {ReturnProgramWireDocumentSchema,type ReturnProgramDocumentInput} from './returnProgramDocument.ts';
+import {ReturnProgramSchema} from './namedJsonContracts.ts';
 
 const completeReturn:v.GenericSchema<v.InferInput<typeof ReturnProgramSchema>,v.InferOutput<typeof ReturnProgramSchema>&ReturnProgramDocumentInput>=v.intersect([ReturnProgramSchema,ReturnProgramWireDocumentSchema]);
 

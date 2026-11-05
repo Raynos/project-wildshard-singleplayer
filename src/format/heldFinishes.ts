@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { CatalogueIconSchema } from './items';
-import { PackedGeometryRowsSchema } from './geometryPack';
+import { CatalogueIconSchema } from './items.ts';
+import { PackedGeometryRowsSchema } from './geometryPack.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const finite = v.pipe(v.number(), v.finite());

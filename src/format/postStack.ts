@@ -10,10 +10,10 @@
  * it is static: no runtime sensing. Pure data and checks: no three.js.
  */
 import * as v from 'valibot';
-import { validateGraph, type GraphIr, type PostInputs } from '@wildshard/format/materialGraph';
-import { graphBindingSources, graphFileJson } from '@wildshard/format/materials';
-import { isJsonData } from '@wildshard/format/json';
-import type { Shardfile } from '@wildshard/format/shardSchema';
+import { validateGraph, type GraphIr, type PostInputs } from './materialGraph.ts';
+import { graphBindingSources, graphFileJson } from './materials.ts';
+import { isJsonData } from './json.ts';
+import type { Shardfile } from './shardSchema.ts';
 
 /** budget v1: at most 4 authored post passes and 1,000 post instructions per pixel at 2× (a pair at a blend included) */
 export const POST_STACK_BUDGET: Readonly<{passes:4;instructions:1000}> = Object.freeze({ passes: 4, instructions: 1000 });

@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import { CrowdWeaponTargetSchema } from './crowds';
-import { PageGroupRowsSchema } from './creatures';
-import { ReturnProgramSchema } from './namedJsonContracts';
-import { ForagerPopulationSchema, ForagerContinuation, ForagerDrawSchema } from './ambientLife';
+import { CrowdWeaponTargetSchema } from './crowds.ts';
+import { PageGroupRowsSchema } from './creatures.ts';
+import { ReturnProgramSchema } from './namedJsonContracts.ts';
+import { ForagerPopulationSchema, ForagerContinuation, ForagerDrawSchema } from './ambientLife.ts';
 
 const n = v.pipe(v.number(),v.finite()),id = v.pipe(v.string(),v.minLength(1),v.maxLength(128));
 const count = v.pipe(n,v.integer(),v.minValue(0),v.maxValue(256)),point = { x: n,z: n };

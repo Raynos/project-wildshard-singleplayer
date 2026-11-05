@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { nearestEntryReads, parseEntryReadSet } from './entryReads';
+import { nearestEntryReads, parseEntryReadSet } from './entryReads.ts';
 
 const read = { url: 'blobs/body.bin', hash: 'a'.repeat(64), bytes: 17 };
 const row = { region: 'west', tier: 'phone', at: [-250, 0], reads: [read] };

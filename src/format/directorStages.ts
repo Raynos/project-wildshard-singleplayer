@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { compileDirectorWhen } from './directorWhen';
+import { compileDirectorWhen } from './directorWhen.ts';
 
 const key = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const name = v.pipe(v.string(), v.regex(/^[A-Za-z_][A-Za-z0-9_]*$/u), v.maxLength(64));

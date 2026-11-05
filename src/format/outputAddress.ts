@@ -1,4 +1,4 @@
-import type { OutputFile } from './outputIndex';
+import type { OutputFile } from './outputIndex.ts';
 
 /** Detect the explicit disk envelope, including unsupported versions that must refuse. */
 export function isOutputIndex(input: unknown): boolean { return typeof input === 'object' && input !== null && 'format' in input && input.format === 'wildshard.shardfile'; }

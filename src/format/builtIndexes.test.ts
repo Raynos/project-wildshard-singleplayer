@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest';
-import { builtIndexHash, builtIndexHashes } from './builtIndexes';
+import { builtIndexHash, builtIndexHashes } from './builtIndexes.ts';
 
 const previous = Object.getOwnPropertyDescriptor(globalThis, '__SHARDFILE_VERDICTS__');
 function install(value: unknown): void { Object.defineProperty(globalThis, '__SHARDFILE_VERDICTS__', { configurable: true, writable: true, value }); }

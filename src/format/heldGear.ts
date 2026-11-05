@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { HeldFinishCardSchema } from './heldFinishes';
+import { HeldFinishCardSchema } from './heldFinishes.ts';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
 const number = v.pipe(v.number(), v.finite());

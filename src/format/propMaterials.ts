@@ -1,4 +1,4 @@
-import { graphUsesMeshMap } from './materialGraph';
+import { graphUsesMeshMap } from './materialGraph.ts';
 /**
  * Named prop materials (SHARD-PLATFORM SF55, G211): the data half of the GLB material adapter for authored (Blender)
  * worlds. Without it, every declared prop mesh draws with `props.family` and one per-model colour texture (the default
@@ -20,8 +20,8 @@ import { graphUsesMeshMap } from './materialGraph';
  * into `PropsSchema` and calls `validatePropMaterials` from the props reference check).
  */
 import * as v from 'valibot';
-import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
-import { materialGraphIr, materialTextureRefs, type MaterialsSchema } from '@wildshard/format/materials';
+import { FAMILY_IDS } from './materialFamilies.ts';
+import { materialGraphIr, materialTextureRefs, type MaterialsSchema } from './materials.ts';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));

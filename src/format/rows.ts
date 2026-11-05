@@ -1,8 +1,8 @@
-import { LootEconomySchema, BarterEconomySchema, lootEconomyRules } from './lootEconomy';
+import { LootEconomySchema, BarterEconomySchema, lootEconomyRules } from './lootEconomy.ts';
 import * as v from 'valibot';
-import { isJsonData } from './json';
-import { sketchReference } from './sketch';
-import { JournalRowSchema, journalRowRules } from './compendiumRows';
+import { isJsonData } from './json.ts';
+import { sketchReference } from './sketch.ts';
+import { JournalRowSchema, journalRowRules } from './compendiumRows.ts';
 
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
 const text = v.pipe(v.string(), v.maxLength(4096));
