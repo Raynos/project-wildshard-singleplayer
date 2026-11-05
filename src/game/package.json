@@ -200,7 +200,7 @@
     "./shardfile/socketLiftProof": "./server/plugin/simulation.ts",
     "./weapons/starterGlyphs": "./client/weapons/starterGlyphs.ts",
     "./weapons/mountedPass": "./server/weapons/mountedPass.ts",
-    "./weapons/heldBowBase": "./client/weapons/heldBowBase.ts",
+    "./weapons/heldBowBase": "./shared/weapons/heldBowBase.ts",
     "./weapons/polearmContact": "./server/weapons/polearmContact.ts",
     "./weapons/starterMoves": "./shared/weapons/starterMoves.ts",
     "./weapons/starterMeleeProfile": "./server/weapons/starterMeleeProfile.ts",

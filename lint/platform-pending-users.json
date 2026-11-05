@@ -2180,7 +2180,7 @@
       }
     },
     {
-      "module": "src/game/client/weapons/heldDecision.ts",
+      "module": "src/game/shared/weapons/heldDecision.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "held-arms",

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {Vector3} from 'three';
 import {HeldBowFileSchema} from '@wildshard/format/weaponProfiles';
-import {heldBowBase} from '../../../src/game/client/weapons/heldBowBase';
+import {heldBowBase} from '../../../src/game/shared/weapons/heldBowBase';
 import {bowLaunchSpeed} from '../../../src/engine/shared/combat/bowLaw';
 import {nativeGroupCollection} from '../../../src/game/server/shardfile/groupRuntime';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';

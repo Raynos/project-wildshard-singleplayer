@@ -1,7 +1,7 @@
 import {ArcWeaponRowsSchema,type ArcWeaponRows} from '@wildshard/format/heldMelee';
 import type {Scope} from '@wildshard/engine/app/scope';
 import type { MountedSword } from './mountedBlade';
-import { HeldDecision } from './heldDecision';
+import { HeldDecision } from '../../shared/weapons/heldDecision';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Move } from '@wildshard/engine/combat/view/melee';

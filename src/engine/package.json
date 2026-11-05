@@ -263,7 +263,7 @@
     "./player/CameraFX": "./client/player/CameraFX.ts",
     "./player/Hands": "./client/player/Hands.ts",
     "./player/LockOnTarget": "./client/player/LockOnTarget.ts",
-    "./player/MeleeSweep": "./client/player/MeleeSweep.ts",
+    "./player/MeleeSweep": "./shared/player/MeleeSweep.ts",
     "./player/Player": "./client/player/Player.ts",
     "./player/Skins": "./client/player/Skins.ts",
     "./player/TouchControls": "./client/player/TouchControls.ts",

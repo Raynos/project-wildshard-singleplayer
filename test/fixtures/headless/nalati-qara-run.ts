@@ -12,7 +12,7 @@ import {canonicalSimDigest} from '../../fake/simState';
 import {decodeSimSnapshot,snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/shared/sim/snapshot';
 import {HeldBowFileSchema} from '@wildshard/format/weaponProfiles';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
-import {heldBowBase} from '../../../src/game/client/weapons/heldBowBase';
+import {heldBowBase} from '../../../src/game/shared/weapons/heldBowBase';
 import {bowLaunchSpeed} from '../../../src/engine/shared/combat/bowLaw';
 import {runTrustedHeadlessTape,type HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand,HeadlessEffect,HeadlessTickCommit} from '../../../src/sdk/tickProtocol';

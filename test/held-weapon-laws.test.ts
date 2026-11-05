@@ -1,7 +1,7 @@
 import {afterEach,beforeEach,expect,it} from 'vitest';
 import {Scope} from '../src/engine/shared/app/scope';
 import {lendNalatiHeld,heldWitnessBytes} from './fixtures/nalati-return-modules';
-import {HeldDecision} from '../src/game/client/weapons/heldDecision';
+import {HeldDecision} from '../src/game/shared/weapons/heldDecision';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 
 const { held: rows } = originalHeldMetadata();

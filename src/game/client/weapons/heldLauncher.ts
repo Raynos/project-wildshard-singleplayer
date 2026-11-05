@@ -25,7 +25,7 @@ import * as v from 'valibot';
 import { heldFirearmParts, heldGrip, placeHeldFist, type HeldFirearmHands, type HeldFirearmModel, type HeldModelRows } from '../plugin/heldFirearm';
 import type { ModelLibrary } from '../plugin/geometry';
 import type { HeldBowRowsSchema } from '@wildshard/format/weaponProfiles';
-import { heldBowBase, type HeldBowBase } from './heldBowBase';
+import { heldBowBase, type HeldBowBase } from '../../shared/weapons/heldBowBase';
 import { createClientScene } from '../plugin/scene';
 import { HeldPlayback } from '../plugin/weaponFamily';
 import { advanceLauncherSpring, type LauncherSpringState } from '../../shared/weapons/launcherSpring';

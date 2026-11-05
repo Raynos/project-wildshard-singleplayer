@@ -9,7 +9,7 @@ import {SweptMeleeCore,sweptLunge,sweptMoveDamage} from '../../src/engine/shared
 import {SweptBasePose} from '../../src/engine/shared/combat/sweptBasePose';
 import {BladeSweep,bladeInReach,sweptBladeDirs,type BladeKey} from '../../src/engine/shared/combat/sweptBlade';
 import {pickLunge,targetRadius} from '../../src/engine/shared/combat/lungeTarget';
-import {bladeBlocked} from '../../src/engine/client/player/MeleeSweep';
+import {bladeBlocked} from '../../src/engine/shared/player/MeleeSweep';
 import {worldHit,floorBelow} from '../../src/engine/shared/physics/query';
 import {Wind} from '../../src/engine/shared/world/steppeWind';
 import {WindStateSchema,WeatherWorldSchema} from '@wildshard/format/weatherProgram';
@@ -18,9 +18,9 @@ import {BladeRowsSchema,PolearmRowsSchema,type BladeRows} from '@wildshard/forma
 import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {ClientPlanSchema} from '@wildshard/format/clientPlan';
 import {filterCombatAimTargets} from '../../src/game/shared/shardfile/aimTargetFilter';
-import {heldBowBase} from '../../src/game/client/weapons/heldBowBase';
+import {heldBowBase} from '../../src/game/shared/weapons/heldBowBase';
 import {SWORD_WOOD} from '../../src/game/server/weapons/starterMeleeProfile';
-import {HeldDecision} from '../../src/game/client/weapons/heldDecision';
+import {HeldDecision} from '../../src/game/shared/weapons/heldDecision';
 import {MountedPassLaw} from '../../src/game/server/weapons/mountedPass';
 import {PolearmDecision} from '../../src/game/server/weapons/polearmDecision';
 import {PolearmContact} from '../../src/game/server/weapons/polearmContact';

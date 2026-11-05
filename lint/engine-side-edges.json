@@ -241,9 +241,6 @@
   "src/game/server/weapons/Bow.ts": {
    "server → client": 1
   },
-  "src/game/server/weapons/polearmDecision.ts": {
-   "server → client": 1
-  },
   "src/game/server/weapons/starterMeleeProfile.ts": {
    "server → client": 1
   },

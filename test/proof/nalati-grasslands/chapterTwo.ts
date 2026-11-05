@@ -6,7 +6,7 @@ import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {mountedPlayerOf} from '../../../src/game/server/riding/native';
 import {nativeTamingOf} from '../../../src/game/server/riding/nativeTaming';
 import type {parseHeldSlots} from '@wildshard/format/heldArms';
-import type {heldBowBase} from '../../../src/game/client/weapons/heldBowBase';
+import type {heldBowBase} from '../../../src/game/shared/weapons/heldBowBase';
 import {bowLaunchSpeed} from '../../../src/engine/shared/combat/bowLaw';
 import {DRAW_TIME,RENOCK_TIME} from '../../../src/engine/shared/combat/bowDraw';
 import {FIXED_STEP} from '../../../src/engine/shared/core/fixedStep';

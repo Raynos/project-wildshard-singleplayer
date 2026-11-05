@@ -11,7 +11,7 @@
  */
 import type { Scope } from '@wildshard/engine/app/scope';
 import * as schema from 'valibot';
-import { HeldDecision } from '../../client/weapons/heldDecision';
+import { HeldDecision } from '../../shared/weapons/heldDecision';
 
 interface Point { readonly x: number; readonly y: number; readonly z: number }
 /** an aim target as the decision reads it */

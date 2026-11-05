@@ -15,7 +15,7 @@ import { pickLunge, targetRadius } from '../../../shared/combat/lungeTarget';
 import { BladeGlow } from '../../player/bladeGlow';
 import { CameraFX } from '../../player/CameraFX';
 import { dodgeFx, dodgeEnv } from '../../../shared/player/dodge';
-import { bladeBlocked, bladeContact, type Clang } from '../../player/MeleeSweep';
+import { bladeBlocked, bladeContact, type Clang } from '../../../shared/player/MeleeSweep';
 import type { Player } from '../../player/Player';
 import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';

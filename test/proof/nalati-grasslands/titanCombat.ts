@@ -6,7 +6,7 @@ import {Vector3,PerspectiveCamera} from 'three';
 import {HeadlessCloudBody} from '../../fixtures/native-hosts/boss/cloudRig';
 import {HeldBowFileSchema} from '@wildshard/format/weaponProfiles';
 import {WeatherWorldSchema,WindStateSchema} from '@wildshard/format/weatherProgram';
-import {heldBowBase} from '../../../src/game/client/weapons/heldBowBase';
+import {heldBowBase} from '../../../src/game/shared/weapons/heldBowBase';
 import {bowLaunchSpeed,bowMuzzle,bowMount} from '../../../src/engine/shared/combat/bowLaw';
 import {projectileFlightStep} from '../../../src/engine/shared/combat/projectileFlight';
 import {Wind} from '../../../src/engine/shared/world/steppeWind';

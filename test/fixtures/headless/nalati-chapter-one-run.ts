@@ -15,7 +15,7 @@ import {outputDescriptor} from '../../../src/game/shared/shardfile/outputDescrip
 import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {HeldBowFileSchema} from '@wildshard/format/weaponProfiles';
-import {heldBowBase} from '../../../src/game/client/weapons/heldBowBase';
+import {heldBowBase} from '../../../src/game/shared/weapons/heldBowBase';
 import {decodeSimSnapshot,decodeSimSnapshotBytes,snapshotSimHostBytes,serializeSimSnapshot,type SimSnapshotBytes} from '../../../src/engine/shared/sim/snapshot';
 import {physicsState,sameBytes} from '../../fake/simState';
 import {chapterCampInputs,chapterApproachInputs,chapterBondInputs,chapterGoatInputs,chapterReturnInputs,chapterHomeInputs} from '../../proof/nalati-grasslands/chapterOne';

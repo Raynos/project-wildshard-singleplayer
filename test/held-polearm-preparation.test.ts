@@ -11,7 +11,7 @@ import { PolearmSet, type HeldPolearmWorld } from '../src/game/client/weapons/he
 import { nalatiSpear } from './fixtures/nalati-spear';
 import { parse } from 'valibot';
 import { PolearmRowsSchema } from '@wildshard/format/heldMelee';
-import { HeldDecision } from '../src/game/client/weapons/heldDecision';
+import { HeldDecision } from '../src/game/shared/weapons/heldDecision';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { originalSpeciesFile } from './fixtures/nalati-original-species';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
