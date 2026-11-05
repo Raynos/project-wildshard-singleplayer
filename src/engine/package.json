@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./core/faults": "./shared/core/faults.ts",
+    "./core/fixedStep": "./shared/core/fixedStep.ts",
     "./test/FakeGame": "./test/FakeGame.ts",
     "./test/realGc": "./test/realGc.ts",
     "./test/world": "./test/world.ts",

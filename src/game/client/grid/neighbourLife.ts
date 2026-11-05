@@ -10,19 +10,25 @@
  */
 import { Bone, Skeleton, SkinnedMesh, type Group, type Object3D, type Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { createShardfileClientScripts } from '../shardfile/clientScripts';
 import type { ClientScriptTarget } from '@wildshard/format/clientScripts';
-import { loadClientSkins, SkinDriver, type ClientSkin } from '../shardfile/clientSkins';
+import { loadClientSkins, SkinDriver, type ClientSkin, type SkinDriveState } from '../shardfile/clientSkins';
 import { ClientScriptViews, type ClientScriptViewTarget, type ClientScriptViewState } from "../plugin/ui";
-import type { ShardfileSimulation } from '../../server/plugin/simulation';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { GridCell } from '../../shared/grid/assembly';
 
+/** One creature as a view draws it (E6): a page reads the region's sim entity, a client reads its row. */
+export interface NeighbourCreature {
+  readonly position: { readonly x: number; readonly y: number; readonly z: number };
+  readonly yaw: number; readonly scale: number; readonly speed: number; readonly strafe: number;
+  readonly alive: boolean; readonly attackPhase: number; readonly state: SkinDriveState['state'];
+}
+/** A cell's admitted region, as much of it as a view reads. */
+export interface NeighbourRegion { readonly host: { readonly entities: { get: (id: string) => NeighbourCreature | undefined } } }
 /** What a cell's life reads from the session: its admitted region (absent until the live host admits it) and whether it is the active frame. */
 export interface NeighbourLifePorts {
   readonly scope: Scope;
-  readonly simulation: (instance: string) => ShardfileSimulation | undefined;
+  readonly simulation: (instance: string) => NeighbourRegion | undefined;
   readonly active: (instance: string) => boolean;
 }
 /** One cell's readout. */
@@ -127,7 +133,7 @@ export class NeighbourLife {
       // G663: a frozen cell draws none of its creatures and composes no lane
       if (!live) { for (const view of life.creatures.values()) view.mesh.visible = false; continue; }
       for (const view of life.creatures.values()) {
-        const sim: AnimalSim | undefined = region?.host.entities.get(view.id);
+        const sim = region?.host.entities.get(view.id);
         view.mesh.visible = true;
         if (sim !== undefined) { view.mesh.position.copy(sim.position); view.mesh.rotation.set(0, sim.yaw, 0, 'YXZ'); view.mesh.scale.setScalar(sim.scale); }
         view.t += dt; const speed = sim?.speed ?? 0, strafe = sim?.strafe ?? 0;

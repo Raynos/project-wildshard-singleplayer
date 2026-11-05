@@ -962,11 +962,9 @@
   "src/game/client/grid/nearGrain.ts": "client",
   "src/game/client/grid/nearPlaceholderPlan.ts": "client",
   "src/game/client/grid/nearPlaceholderView.ts": "client",
-  "src/game/client/grid/neighbourLife.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/grid/neighbourLife.ts": "client",
   "src/game/client/grid/neighbourPanels.ts": "client",
+  "src/game/client/grid/neighbourRows.ts": "client",
   "src/game/client/grid/pageEntry.ts": "client",
   "src/game/shared/grid/pageMode.ts": "shared",
   "src/game/client/grid/pageResidency.ts": "client",
@@ -1138,10 +1136,7 @@
   "src/game/client/plugin/bossStorm.ts": "client",
   "src/game/server/plugin/brain.ts": "server",
   "src/game/shared/plugin/channelPrograms.ts": "shared",
-  "src/game/shared/plugin/channels.ts": {
-   "side": "shared",
-   "mixed": true
-  },
+  "src/game/shared/plugin/channels.ts": "shared",
   "src/game/client/plugin/clientChannelView.ts": "client",
   "src/game/client/plugin/context.ts": "client",
   "src/game/client/plugin/creatureFrame.ts": "client",
@@ -1338,10 +1333,7 @@
   "src/game/client/shard/pagePolicy.ts": "client",
   "src/game/server/shard/portShares.generated.ts": "server",
   "src/game/client/shard/registry.ts": "client",
-  "src/game/client/shard/retainedHooks.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/shard/retainedHooks.ts": "client",
   "src/game/shared/shard/runtime.ts": "shared",
   "src/game/client/shard/scopedRuntime.ts": "client",
   "src/game/shared/shard/enteredServices.ts": "shared",

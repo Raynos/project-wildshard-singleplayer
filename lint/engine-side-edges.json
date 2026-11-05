@@ -4,7 +4,7 @@
   "client → server": 122,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 126,
+  "server → client": 125,
   "server → dom": 2,
   "server → render": 4,
   "shared → client": 3,
@@ -272,7 +272,7 @@
    "server → client": 1
   },
   "src/game/server/population/pageGroups.ts": {
-   "server → client": 3
+   "server → client": 2
   },
   "src/game/server/population/pageReturns.ts": {
    "server → client": 1

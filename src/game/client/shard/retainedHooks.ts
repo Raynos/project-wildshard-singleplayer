@@ -2,7 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
 import type { ShardContext } from "../plugin/context";
 import { bindPlayerEffects } from '@wildshard/engine/combat/effects/EffectService';
-import { enteredServices } from '../../shared/shard/enteredServices';
+import { enteredServices, installEnteredService } from '../../shared/shard/enteredServices';
 import type { Vector3 } from 'three';
 
 const ownerBelongsTo = (owner: Scope | null, entered: Scope): boolean => owner?.belongsTo(entered) === true;
@@ -31,13 +31,9 @@ export function installRetainedPlayerEffects(context: ShardContext, player: {
 }
 
 /** Install a transient service for each home entry; ordinary staged contexts keep their original level scope. */
-export function installEnteredRuntimeService(context: ShardContext, install: (scope: Scope) => void): void { installEnteredLevelService(context, install); }
+export function installEnteredRuntimeService(context: ShardContext, install: (scope: Scope) => void): void { installEnteredService(context, install); }
 /** The same for a level-facing host that holds the trusted context as its LevelContext (riding, page owners). */
-export function installEnteredLevelService(context: { readonly scope: Scope }, install: (scope: Scope) => void): void {
-  if (context.scope.disposed) throw new Error('Trusted runtime is disposed');
-  const entered = enteredServices.get(context);
-  if (entered === undefined) install(context.scope); else entered(install);
-}
+export function installEnteredLevelService(context: { readonly scope: Scope }, install: (scope: Scope) => void): void { installEnteredService(context, install); }
 
 /** Resolve a retained kit's input definition during construction; enable actions and binding labels only on entry. */
 export function installEnteredRuntimeInput(context: ShardContext, definition: Parameters<ShardContext['inputContext']>[0],

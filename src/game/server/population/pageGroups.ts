@@ -1,5 +1,5 @@
 import type {Vector3} from 'three';
-import { installEnteredRuntimeService } from '../../client/shard/retainedHooks';
+import { installEnteredService } from '../../shared/shard/enteredServices';
 import type { ShardContext } from '../../client/plugin/context';
 import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
@@ -196,7 +196,7 @@ export function bindPageGroups(ctx: ShardContext,input: unknown,wetBlock?: {read
   const rows = v.parse(PageGroupRowsSchema,input),herd = nativeGroupBrain(rows.herd);
   if (herd.kind !== 'herd') throw new Error('Invalid rendered damage preset');
   const program=ReturnProgram.page(rows.damage,ctx.scope),notices=rows.effects===undefined?null:new GroupNotices(rows.effects),knocked={x:0,z:0};
-  installEnteredRuntimeService(ctx,scope=>{
+  installEnteredService(ctx,scope=>{
     const previous=renderedDamage;renderedDamage={program,variant:herd.stallionVariant};
     scope.onDispose(()=>{renderedDamage=previous;});wildEnv.enter(scope,input,program,wetBlock);
     const effects=rows.effects;if(effects===undefined||notices===null)return;
