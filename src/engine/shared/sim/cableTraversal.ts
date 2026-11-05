@@ -216,6 +216,12 @@ export class CableTraversal {
       const rider = this.lend(entry, player);
       entry.native = rider; entry.rider = rider;
     }
+    host.leading.push(body => this.carrying(body, player));
+  }
+  /** Whether any cable has `body` on it. The first player's ride is the entry's own; everyone else's is their seat. */
+  private carrying(body: PlayerSim, first: PlayerSim): boolean {
+    for (const entry of this.entries.values()) if ((body === first ? entry.rider?.carried : entry.seats.get(body.id)?.rider.carried) === true) return true;
+    return false;
   }
   private lend(entry: CableEntry, player: PlayerSim): NativeCableRider {
     return { position: entry.row.lifecycle?.native === 'position' ? player.position : new Vector3(), velocity: new Vector3(), pitch: 0, carried: false,

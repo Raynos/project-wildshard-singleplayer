@@ -7,6 +7,7 @@ import { STALL_TICKS } from '../src/engine/server/net/commandQueue';
 import { NetRoom } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { directLoopback, type DirectLoopback } from '../src/engine/test/netLoopback';
@@ -87,4 +88,24 @@ test('a host with no room steps as it always has: an empty tick still moves a fa
   for (let tick = 0; tick < 20; tick++) host.step();
   expect(player.position.y).toBeLessThan(start);
   host.dispose();
+});
+
+test('P1-E5.3-A17: during a fall\'s fade a press moves nothing, the owner block says the server leads, and the fade\'s end frees the player', () => {
+  const { host, room, client, link } = stage(), player = leadPlayer(host);
+  const drive = (ticks: number): void => { for (let tick = 0; tick < ticks; tick++) { client.command({ ...walking, buttons: NET_BUTTONS.jump }); client.flush(); link.pump(); room.tick(); link.pump(); } };
+  drive(30);
+  host.respawn.fell(player.id, player.health);
+  const led = (): unknown => { const frame = client.latest; return frame === null ? null : client.owner(frame)['led']; };
+  drive(30); // the walk's own momentum runs out
+  expect(led()).toBe(true);
+  const faded = player.position.clone();
+  drive(30);
+  expect(Math.hypot(player.position.x - faded.x, player.position.z - faded.z)).toBeLessThan(0.05);
+  for (let tick = 0; tick < 120 && host.respawn.fading(player.id); tick++) drive(1);
+  expect(host.respawn.fading(player.id)).toBe(false);
+  const free = player.position.clone();
+  drive(60);
+  expect(led()).toBe(false);
+  expect(Math.hypot(player.position.x - free.x, player.position.z - free.z)).toBeGreaterThan(1);
+  room.dispose(); host.dispose();
 });

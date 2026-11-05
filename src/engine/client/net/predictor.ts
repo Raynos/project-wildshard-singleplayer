@@ -8,7 +8,7 @@ import { seqAfter } from '../../shared/net/command';
 import type { NetColumn } from '../../shared/net/schema';
 import { CAPTURED, captureMotion, MOTION_WORDS, restoreMotion } from '../../shared/player/motionState';
 import type { PlayerMotionState } from '../../shared/player/motion';
-import type { CharacterMotor } from '../../shared/physics/CharacterMotor';
+import type { CharacterMotor, MoveResult } from '../../shared/physics/CharacterMotor';
 
 /** Saved moves: about a second. A full ring means the server has stopped answering, and the player holds still. */
 export const PREDICTION_RING = 64;
@@ -30,25 +30,41 @@ export interface PredictedBody {
   step: (command: NetCommand, replay: boolean) => boolean;
 }
 
+const orNull = (value: number): number | null => Number.isNaN(value) ? null : value;
 /** Owner block columns to the state they carry. A field not listed here keeps its saved value on a correction. */
-const OWNER_WRITES: Readonly<Record<string, (s: PlayerMotionState, value: number) => void>> = {
+const OWNER_WRITES: Readonly<Record<string, (s: PlayerMotionState, value: number, ground: MoveResult) => void>> = {
   px: (s, value) => { s.position.x = value; }, py: (s, value) => { s.position.y = value; }, pz: (s, value) => { s.position.z = value; },
   vx: (s, value) => { s.velocity.x = value; }, vy: (s, value) => { s.velocity.y = value; }, vz: (s, value) => { s.velocity.z = value; },
-  dashT: (s, value) => { s.dash.t = value; }, dodgeT: (s, value) => { s.dodge.t = value; }, dodgeCd: (s, value) => { s.dodge.cd = value; }, shoveT: (s, value) => { s.shove.t = value; },
+  dashT: (s, value) => { s.dash.t = value; }, dashX: (s, value) => { s.dash.vx = value; }, dashZ: (s, value) => { s.dash.vz = value; },
+  dodgeT: (s, value) => { s.dodge.t = value; }, dodgeCd: (s, value) => { s.dodge.cd = value; },
+  shoveT: (s, value) => { s.shove.t = value; }, shoveX: (s, value) => { s.shove.vx = value; }, shoveZ: (s, value) => { s.shove.vz = value; },
+  impulseX: (s, value) => { s.impulse.x = value; }, impulseY: (s, value) => { s.impulse.y = value; }, impulseZ: (s, value) => { s.impulse.z = value; },
+  // `jumpAgo` is declared first, so a clock the server has just started exists when `jumpLeft` lands
+  jumpAgo: (s, value) => { if (Number.isNaN(value)) s.jump = null; else if (s.jump === null) s.jump = { ago: value, left: 0 }; else s.jump.ago = value; },
+  jumpLeft: (s, value) => { if (s.jump !== null) s.jump.left = value; },
+  hoverBob: (s, value) => { s.board.hoverBob = value; },
+  climbTo: (s, value) => { s.swim.climbTo = orNull(value); }, climbCooldown: (s, value) => { s.swim.climbCooldown = value; }, strokeTime: (s, value) => { s.swim.strokeTime = value; },
+  water: (s, value) => { s.footing.water = orNull(value); }, depth: (s, value) => { s.footing.depth = value; },
+  groundNormalY: (_s, value, ground) => { ground.groundNormalY = value; }, downhillX: (_s, value, ground) => { ground.downhillX = value; }, downhillZ: (_s, value, ground) => { ground.downhillZ = value; },
+  freedom: (_s, value, ground) => { ground.horizontalFreedom = value; },
+  moveScale: (s, value) => { s.moveScale = value; },
 };
-const OWNER_FLAGS: Readonly<Record<string, (s: PlayerMotionState, value: boolean) => void>> = {
+const OWNER_FLAGS: Readonly<Record<string, (s: PlayerMotionState, value: boolean, ground: MoveResult) => void>> = {
   grounded: (s, value) => { s.fall.grounded = value; }, board: (s, value) => { s.board.on = value; }, swim: (s, value) => { s.swim.on = value; },
+  hoverAir: (s, value) => { s.board.hoverAir = value; }, stood: (s, value) => { s.swim.stood = value; }, diving: (s, value) => { s.swim.diving = value; },
+  wading: (s, value) => { s.footing.wading = value; }, onPlatform: (s, value) => { s.footing.onPlatform = value; }, sliding: (s, value) => { s.footing.sliding = value; },
+  motorGrounded: (_s, value, ground) => { ground.grounded = value; },
 };
 
 /** The owner block's columns as the predictor reads them, resolved once. */
-interface OwnerTable { readonly x: number; readonly y: number; readonly z: number; readonly grounded: number; readonly board: number; readonly swim: number }
+interface OwnerTable { readonly x: number; readonly y: number; readonly z: number; readonly grounded: number; readonly board: number; readonly swim: number; readonly led: number; readonly resets: number }
 function ownerTable(columns: readonly NetColumn<never>[]): OwnerTable {
   const at = (name: string): number => {
     const index = columns.findIndex(column => column.name === name);
     if (index === -1) throw new Error(`Owner block has no ${name}`);
     return index;
   };
-  return { x: at('px'), y: at('py'), z: at('pz'), grounded: at('grounded'), board: at('board'), swim: at('swim') };
+  return { x: at('px'), y: at('py'), z: at('pz'), grounded: at('grounded'), board: at('board'), swim: at('swim'), led: at('led'), resets: at('resets') };
 }
 
 /** One player's prediction. */
@@ -65,6 +81,9 @@ export class Predictor {
   private head = 0;
   private count = 0;
   private acked: number | null = null;
+  /** The server is carrying this body (the owner block's `led`), as of the newest frame: nothing here steps it. */
+  private led = false;
+  private resets: number | null = null;
   constructor(body: PredictedBody, columns: readonly NetColumn<never>[]) {
     this.body = body; this.columns = columns; this.table = ownerTable(columns);
   }
@@ -73,39 +92,48 @@ export class Predictor {
   /** Moves the server has not acknowledged. */
   get pending(): number { return this.count; }
 
-  /** Run and save one step. False, with nothing changed, when the ring is full. */
+  /** Run and save one step. False, with nothing changed, when the ring is full. While the server leads the step is only saved:
+   *  it was sent, and if the server ends up taking it free, the frame that ends the lead replays it. */
   step(command: NetCommand): boolean {
     if (this.full) return false;
     const { body } = this, slot = (this.head + this.count) % PREDICTION_RING;
-    this.owned[slot] = body.step(command, false) ? 1 : 0;
+    this.owned[slot] = this.led || body.step(command, false) ? 1 : 0;
     this.seqs[slot] = command.seq; this.commands[slot] = command;
     captureMotion(body.motionState, body.motor, this.states, slot * MOTION_WORDS);
     this.count++;
     return true;
   }
 
-  /** A frame: `lastSeq` is the newest command the server has stepped, `owner` its state after it. True when it corrected. */
+  /**
+   * A frame: `lastSeq` is the newest command the server has stepped, `owner` its state after it. True when it corrected.
+   * While the owner block says `led` the server's state is taken as it comes, with no compare and no replay. The frame that
+   * ends the lead, or that says the server reset this body, always takes the server's state, whatever `lastSeq` it brings.
+   */
   reconcile(lastSeq: number, owner: ArrayLike<number>): boolean {
-    if (this.acked !== null && !seqAfter(lastSeq, this.acked)) return false;
+    const { acked, table } = this;
+    if (acked !== null && seqAfter(acked, lastSeq)) return false;
+    const led = this.flag(table.led, owner) === 1, resets = this.value(table.resets, owner);
+    const forced = led || this.led || (this.resets !== null && this.resets !== resets);
+    this.led = led; this.resets = resets;
+    if (!forced && acked === lastSeq) return false;
     const { body, seqs, states, count, head } = this, offset = count === 0 ? -1 : (lastSeq - (seqs[head] ?? 0)) & 0xffff;
     this.acked = lastSeq;
-    if (offset < 0 || offset >= count) return false; // older than the ring, or nothing saved
-    const slot = (head + offset) % PREDICTION_RING, at = slot * MOTION_WORDS;
-    this.head = (slot + 1) % PREDICTION_RING; this.count = count - offset - 1;
-    if (this.matches(at, owner)) return false;
+    const saved = offset >= 0 && offset < count, slot = (head + offset) % PREDICTION_RING, at = slot * MOTION_WORDS; // else older than the ring, or nothing saved
+    if (saved) { this.head = (slot + 1) % PREDICTION_RING; this.count = count - offset - 1; }
+    if (!forced && (!saved || this.matches(at, owner))) return false;
     const s = body.motionState, feet = s.position, x = feet.x + body.renderOffset.x, y = feet.y + body.renderOffset.y, z = feet.z + body.renderOffset.z, { yaw } = s;
-    restoreMotion(s, body.motor, states, at);
+    if (saved) restoreMotion(s, body.motor, states, at);
     this.write(s, owner);
-    for (let left = 0, run = this.head; left < this.count; left++, run = (run + 1) % PREDICTION_RING) {
+    if (!led) for (let left = 0, run = this.head; left < this.count; left++, run = (run + 1) % PREDICTION_RING) {
       const command = this.commands[run];
       if (command !== null && command !== undefined && this.owned[run] === 1) { body.step(command, true); this.replays++; }
       captureMotion(s, body.motor, states, run * MOTION_WORDS);
     }
     s.yaw = yaw; // the view is this client's own: the server sends it back later than the thumb has moved
-    this.corrections++;
+    if (!led) this.corrections++;
     const offsetX = x - feet.x, offsetY = y - feet.y, offsetZ = z - feet.z, far = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ > PREDICTION_SNAP * PREDICTION_SNAP;
     body.renderOffset.set(far ? 0 : offsetX, far ? 0 : offsetY, far ? 0 : offsetZ);
-    return true;
+    return !led;
   }
 
   /** Each render frame: the camera glides back onto the predicted feet. */
@@ -128,11 +156,11 @@ export class Predictor {
     return typeof value === 'number' ? value : 0;
   }
   private write(s: PlayerMotionState, owner: ArrayLike<number>): void {
-    const { columns } = this;
+    const { columns } = this, ground = this.body.motor.result;
     for (const [index, column] of columns.entries()) {
       const value = column.value(owner[index] ?? 0);
-      if (typeof value === 'number') OWNER_WRITES[column.name]?.(s, value);
-      else if (typeof value === 'boolean') OWNER_FLAGS[column.name]?.(s, value);
+      if (typeof value === 'number') OWNER_WRITES[column.name]?.(s, value, ground);
+      else if (typeof value === 'boolean') OWNER_FLAGS[column.name]?.(s, value, ground);
     }
   }
 }

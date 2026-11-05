@@ -1,9 +1,15 @@
+import type { MoveResult } from '../physics/CharacterMotor';
 import type { PlayerSim } from '../../server/sim/playerSim';
 import { netSchema, type NetSchema } from './schema';
 
-// P1-E5.2 (E5-REPLICATION §3.5, §4.3): the player's wire fields. Others interpolate a quantised row; the owner gets the
-// exact motion state back in the owner block. E5.3 adds the rest of the predicted state (jump, swim and swing clocks, the mount) when the client predicts it.
+// P1-E5.2 (E5-REPLICATION §3.5, §4.3), P1-E5.3-C2: the player's wire fields. Others interpolate a quantised row; the owner
+// gets back all the motion state a step reads, exact, 30 times a second, so a correction replays from what the server had.
+// A null is NaN. The swing clocks come with E1 and the mount with D3. `yaw` stays out: the view is the client's own.
 const metres = { kind: 'f32q', min: -260, max: 260, bits: 16 } as const;
+const orNaN = (value: number | null | undefined): number => value ?? Number.NaN;
+/** The last move's ground, as a body with no capsule has it. */
+const NO_GROUND: Pick<MoveResult, 'grounded' | 'groundNormalY' | 'downhillX' | 'downhillZ' | 'horizontalFreedom'> = { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1 };
+const ground = (player: PlayerSim): typeof NO_GROUND => player.hasMotor ? player.motor.result : NO_GROUND;
 
 /** The `player` class: a row for everyone else, an exact owner block for its owner. */
 export const PLAYER_NET: NetSchema<PlayerSim> = netSchema<PlayerSim>({
@@ -28,5 +34,35 @@ export const PLAYER_NET: NetSchema<PlayerSim> = netSchema<PlayerSim>({
     dodgeT: { kind: 'f32', predicted: true, read: player => player.dodge.t },
     dodgeCd: { kind: 'f32', predicted: true, read: player => player.dodge.cd },
     shoveT: { kind: 'f32', predicted: true, read: player => player.shove.t },
+    shoveX: { kind: 'f32', predicted: true, read: player => player.shove.vx },
+    shoveZ: { kind: 'f32', predicted: true, read: player => player.shove.vz },
+    dashX: { kind: 'f32', predicted: true, read: player => player.dash.vx },
+    dashZ: { kind: 'f32', predicted: true, read: player => player.dash.vz },
+    impulseX: { kind: 'f32', predicted: true, read: player => player.impulse.x },
+    impulseY: { kind: 'f32', predicted: true, read: player => player.impulse.y },
+    impulseZ: { kind: 'f32', predicted: true, read: player => player.impulse.z },
+    jumpAgo: { kind: 'f32', predicted: true, read: player => orNaN(player.jump?.ago) },
+    jumpLeft: { kind: 'f32', predicted: true, read: player => orNaN(player.jump?.left) },
+    hoverAir: { kind: 'bool', predicted: true, read: player => player.board.hoverAir },
+    hoverBob: { kind: 'f32', predicted: true, read: player => player.board.hoverBob },
+    stood: { kind: 'bool', predicted: true, read: player => player.swim.stood },
+    diving: { kind: 'bool', predicted: true, read: player => player.swim.diving },
+    climbTo: { kind: 'f32', predicted: true, read: player => orNaN(player.swim.climbTo) },
+    climbCooldown: { kind: 'f32', predicted: true, read: player => player.swim.climbCooldown },
+    strokeTime: { kind: 'f32', predicted: true, read: player => player.swim.strokeTime },
+    water: { kind: 'f32', predicted: true, read: player => orNaN(player.footing.water) },
+    depth: { kind: 'f32', predicted: true, read: player => player.footing.depth },
+    wading: { kind: 'bool', predicted: true, read: player => player.footing.wading },
+    onPlatform: { kind: 'bool', predicted: true, read: player => player.footing.onPlatform },
+    sliding: { kind: 'bool', predicted: true, read: player => player.footing.sliding },
+    motorGrounded: { kind: 'bool', predicted: true, read: player => ground(player).grounded },
+    groundNormalY: { kind: 'f32', predicted: true, read: player => ground(player).groundNormalY },
+    downhillX: { kind: 'f32', predicted: true, read: player => ground(player).downhillX },
+    downhillZ: { kind: 'f32', predicted: true, read: player => ground(player).downhillZ },
+    freedom: { kind: 'f32', predicted: true, read: player => ground(player).horizontalFreedom },
+    // what the server alone decides: the client reads these, never predicts them
+    moveScale: { kind: 'f32', send: 'owner', read: player => player.moveScale },
+    resets: { kind: 'u16', send: 'owner', read: player => player.resets % 0x10000 },
+    led: { kind: 'bool', send: 'owner', read: player => player.led },
   },
 });

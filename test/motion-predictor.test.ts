@@ -9,9 +9,9 @@ import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
 import { BitReader, BitWriter } from '../src/engine/shared/net/bits';
 import { quantiseCommand, readCommand, writeCommand } from '../src/engine/shared/net/command';
 import { PLAYER_CLASS } from '../src/engine/shared/net/netSchemas';
-import type { CharacterMotor } from '../src/engine/shared/physics/CharacterMotor';
+import { MOTOR_WORDS, type CharacterMotor } from '../src/engine/shared/physics/CharacterMotor';
 import type { Rapier } from '../src/engine/shared/physics/rapier';
-import { createMotionState } from '../src/engine/shared/player/motionState';
+import { CAPTURED, captureMotion, createMotionState, MOTION_WORDS } from '../src/engine/shared/player/motionState';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { linkedPlayer, type LinkedPlayer } from './fixtures/motion-trace/link';
 import { loadCourseRapier, type MotionScenario } from './fixtures/motion-trace/parity';
@@ -115,7 +115,7 @@ test('a full ring holds still', () => {
 
 test('an old frame is ignored, and seq wraps', () => {
   const state = createMotionState(), steps: number[] = [];
-  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ captureState: () => undefined, restoreState: () => undefined }), renderOffset: new Vector3(),
+  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), renderOffset: new Vector3(),
     step: command => { steps.push(command.seq); return true; } };
   const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
   for (const seq of [0xfffe, 0xffff, 0, 1]) predictor.step({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 });
@@ -129,7 +129,7 @@ test('an old frame is ignored, and seq wraps', () => {
 
 test('a step and a frame within tolerance allocate nothing', async () => {
   const state = createMotionState();
-  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ captureState: () => undefined, restoreState: () => undefined }), renderOffset: new Vector3(), step: () => true };
+  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), renderOffset: new Vector3(), step: () => true };
   const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
   PLAYER_CLASS.owner.forEach((column, index) => { if (column.name === 'grounded') owner[index] = 1; });
   const commands = Array.from({ length: 0x10000 }, (_, seq) => ({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 }));
@@ -148,3 +148,72 @@ test('a step and a frame within tolerance allocate nothing', async () => {
   expect(predictor.corrections).toBe(0);
   expect(seen.filter(time => time >= start && time <= end).length).toBeLessThanOrEqual(2);
 }, 30_000);
+
+test('P1-E5.3-C2: a correction puts back everything a step reads, exact to the wire\'s float', () => {
+  const link = linkedPlayer(R, scenario, 0), { player: client } = link, server = link.host.player;
+  try {
+    link.run();
+    server.position.set(1, 2, 3); server.velocity.set(4, 5, 6); server.impulse.set(.1, .2, .3); server.moveScale = .5;
+    server.fall.grounded = false; Object.assign(server.shove, { t: .1, vx: 1.5, vz: -1.5 }); Object.assign(server.dash, { t: .2, vx: 2.5, vz: -2.5 }); Object.assign(server.dodge, { t: .3, cd: .4 });
+    server.jump = { ago: .25, left: 1 }; server.board.on = true; server.board.hoverAir = true; server.board.hoverBob = .125;
+    Object.assign(server.swim, { on: true, stood: true, diving: true, climbTo: 7.5, climbCooldown: .75, strokeTime: 1.25 });
+    Object.assign(server.footing, { water: 8.5, depth: 1.5, wading: true, onPlatform: true, sliding: true });
+    Object.assign(server.motor.result, { grounded: true, groundNormalY: .75, downhillX: .5, downhillZ: .25, horizontalFreedom: .625 });
+    server.resets++; // the frame that says so takes the server's state whatever its seq
+    const owner = Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(server, () => 0)), mine = new Float64Array(MOTION_WORDS), theirs = new Float64Array(MOTION_WORDS);
+    link.predictor.reconcile(1, owner);
+    captureMotion(client.motionState, client.motor, mine); captureMotion(server, server.motor, theirs);
+    const skipped = new Set([CAPTURED.yaw, ...[0, 1, 2, 3, 9].map(word => MOTION_WORDS - MOTOR_WORDS + word)]); // the view is ours, and anchors and handles are each world's own
+    theirs.forEach((word, at) => { if (!skipped.has(at)) expect(mine[at], `word ${String(at)}`).toBe(Math.fround(word)); });
+    const bits = PLAYER_CLASS.owner.reduce((sum, column) => sum + column.bits, 0);
+    expect(Math.ceil(bits / 8)).toBeLessThanOrEqual(150); // the plan's estimate for the block
+  } finally { link.dispose(); }
+});
+
+test('a null clock stays null across the wire', () => {
+  const link = linkedPlayer(R, scenario, 0), { player: client } = link, server = link.host.player;
+  try {
+    link.run();
+    server.jump = null; server.swim.climbTo = null; server.footing.water = null; server.resets++;
+    link.predictor.reconcile(1, Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(server, () => 0)));
+    expect(client.motionState.jump).toBeNull(); expect(client.motionState.swim.climbTo).toBeNull(); expect(client.motionState.footing.water).toBeNull();
+  } finally { link.dispose(); }
+});
+
+test('while the server leads the client takes no step and compares nothing, and the end of it replays what is still in flight', () => {
+  const link = linked(), { predictor, player, host } = link;
+  let carried = true;
+  try {
+    for (let at = 0; at < 30; at++) link.run();
+    const walked = predictor.corrections, ride = host.player.position.clone();
+    host.host.leading.push(() => carried);
+    for (let at = 0; at < 60; at++) {
+      host.player.position.copy(ride.set(ride.x, ride.y, at * .2)); host.player.motor.resetAt(ride);
+      link.run();
+    }
+    expect(player.position.z).toBeGreaterThan(10); // it follows the server, with no walk of its own in the way
+    expect(player.position.distanceTo(host.player.position)).toBeLessThan(2);
+    expect(predictor.corrections).toBe(walked);
+    const replays = predictor.replays;
+    carried = false;
+    for (let at = 0; at < 2 * DELAY + 2; at++) link.run();
+    expect(predictor.replays).toBeGreaterThan(replays); // the moves in flight when it ended are walked, not lost
+    let drift = 0;
+    for (let at = 0; at < 30; at++) { if (link.run().corrected) drift++; }
+    expect(drift).toBe(0);
+    expect(Math.abs(player.position.x - host.player.position.x)).toBeLessThan(1.5); // the same walk, DELAY × 2 steps ahead
+  } finally { carried = false; link.dispose(); }
+});
+
+test('a reset is heard with no command on its way', () => {
+  const link = linked(), { predictor, player, host } = link;
+  try {
+    for (let at = 0; at < 2 * DELAY + 4; at++) link.run();
+    const seq = host.player.position.clone();
+    host.player.position.set(seq.x, seq.y, 40); host.player.resets++;
+    predictor.reconcile(2, Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(host.player, () => 0)));
+    expect(player.position.z).toBeLessThan(39); // an old frame says nothing
+    predictor.reconcile(DELAY + 2, Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(host.player, () => 0)));
+    expect(player.position.z).toBeCloseTo(40, 3);
+  } finally { link.dispose(); }
+});

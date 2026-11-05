@@ -139,6 +139,7 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
     state.last.set(p.x, p.y, p.z); state.fall.vy = player.velocity.y; state.fall.grounded = player.fall.grounded;
   };
   actRoutes(host).lock = profile.headless.lock;
+  host.leading.push(player => claws.get(player.id)?.sim.busy() === true); // a crossing keeps the body until it lands or bails
   host.onStep(profile.headless.step, dt => {
     for (const id of claws.keys()) if (!host.players.has(id)) { claws.delete(id); pending.delete(id); }
     for (const player of host.players.values()) {

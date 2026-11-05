@@ -38,12 +38,15 @@ test('a bot locks, fires and crosses on its own claw while the lead stands idle'
     grapple.press(bot.id, { lock: true }); host.step();
     const claw = grapple.clawOf(bot.id); if (claw === undefined) throw new Error('Missing bot claw');
     expect(claw).not.toBe(grapple.sim); expect(claw.target).not.toBeNull(); expect(grapple.sim.target).toBeNull();
+    expect(bot.led).toBe(false); // a lock is aim: only a crossing takes the body
     grapple.press(bot.id, { fire: true }); host.step();
     expect(claw.phase).not.toBe('idle'); expect(grapple.sim.phase).toBe('idle');
     expect(grapple.guardOpen()).toBe(true); expect(rail.isEnabled()).toBe(false);
+    expect(bot.led).toBe(true); expect(lead.led).toBe(false); // the server carries this body, and no one else's
     const leadAt = lead.position.clone();
     for (let frame = 0; frame < 240; frame++) host.step();
     expect(claw.phase).toBe('idle'); expect(grapple.guardOpen()).toBe(false); expect(rail.isEnabled()).toBe(true);
+    expect(bot.led).toBe(false);
     expect(bot.position.x).toBeLessThan(-1); expect(lead.position.distanceTo(leadAt)).toBeLessThan(.05);
     expect(facts).toEqual(['quarry.crossed']);
   } finally { host.dispose(); }

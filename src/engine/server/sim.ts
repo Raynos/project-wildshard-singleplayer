@@ -215,6 +215,8 @@ export class SimHost {
   readonly parked: Set<string> = new Set<string>();
   /** What a net room's queues say of the next `step` (J125). That step clears it; a host with no room never has one. */
   commanded: { readonly still: ReadonlySet<string>; readonly extra: ReadonlyMap<string, SimTickCommand> } | null = null;
+  /** Each says whether its system alone moves a player now, for the owner block's `led`: a grapple's pull, a cable. */
+  readonly leading: ((player: PlayerSim) => boolean)[] = [];
   /** The player `player.traversal` is being asked for: a mode answers only for its own player. */
   traversing: PlayerSim | null = null;
   private boardHandles: number[] = [];

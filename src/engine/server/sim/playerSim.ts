@@ -83,6 +83,8 @@ export class PlayerSim implements PlayerMotionState {
   readonly dash: DashState = { t: 0, vx: 0, vz: 0 };
   /** The dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
   readonly dodge: DodgeState = { cd: 0, t: 0 };
+  /** Counts this player's teleports, for the wire: a client hears one even when no command is on its way (P1-E5.3-C2). Never saved. */
+  resets = 0;
   /** The motion step's read of the feet: the page's, and the next step reads it. Saved while it is not dry, firm ground. */
   readonly footing: MotionFooting = { water: null, depth: 0, wading: false, onPlatform: false, sliding: false };
   private readonly host: SimHost;
@@ -261,8 +263,11 @@ export class PlayerSim implements PlayerMotionState {
     this.setBoard(false); leaveSwim(this, this.world);
     this.position.set(feet.x, feet.y, feet.z); this.yaw = yaw;
     this.motor.resetAt(this.position); this.impulse.set(0, 0, 0); this.dash.t = 0;
-    this.velocity.set(0, 0, 0); this.fall.grounded = false; this.swim.stood = false;
+    this.velocity.set(0, 0, 0); this.fall.grounded = false; this.swim.stood = false; this.resets++;
   }
+  /** Nothing the client commands moves this player now: a traversal or carry has them (a boat, a cable, a grapple's pull), or
+   *  a fall's fade. Its client takes no step and compares nothing until this ends; the client's own moves wait. */
+  get led(): boolean { return this.traversed || this.host.respawn.fading(this.id) || this.host.leading.some(leads => leads(this)); }
   /** The registry's view of this player: the mode driver slot and the motor state. */
   private modePlayer(): ModePlayer<SimPlayerDriver> {
     const read = (): SimPlayerDriver | null => this.modeDriver, write = (driver: SimPlayerDriver | null): void => { this.modeDriver = driver; };
@@ -315,7 +320,8 @@ export class PlayerSim implements PlayerMotionState {
   /** Check this tick's command before the host moves anything, and resolve raw axes to a world move. */
   take(input: SimTickCommand | undefined, still = false): void {
     this.still = still;
-    if (input === undefined) { this.command = undefined; return; }
+    // P1-E5.3-A17: a press during a fall's fade moves nothing
+    if (input === undefined || this.host.respawn.fading(this.id)) { this.command = undefined; return; }
     const command = simCommandOf(input);
     if (![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     validateLocalMovement(command);

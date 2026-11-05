@@ -105,12 +105,18 @@ test('built Pine: a bot rides the canoe on a scripted tape and a client sees the
     room.join(link.server, world.playerOf(BOT)); client.hello(); link.pump(); room.open(); link.pump();
     resident.step([{ kind: 'script', actorId: canoe.id, value: 1, playerId: BOT }]);
     expect(host.events.ask('player.carrying', false)).toBe(false); // the lead's own weapons and prompts stay free
-    let ticks = 0;
-    for (; ticks < 545 && bot.position.distanceTo(new Vector3(...canoe.carry.landings[1])) > 1e-6; ticks++) { room.tick(); link.pump(); }
+    let ticks = 0, led = 0;
+    for (; ticks < 545 && bot.position.distanceTo(new Vector3(...canoe.carry.landings[1])) > 1e-6; ticks++) {
+      room.tick(); link.pump();
+      const frame = client.latest;
+      if (frame !== null && client.owner(frame)['led'] === true) led++;
+    }
     expect(ticks).toBeLessThan(545);
+    expect(led).toBeGreaterThan(ticks / 2); // the owner block says the boat has them (P1-E5.3-C2)
     expect(lead.position.distanceTo(standing)).toBeLessThan(1);
     expect(host.flags.has('secret:islet')).toBe(true);
     room.tick(); room.tick(); link.pump();
+    expect(bot.led).toBe(false); expect(lead.led).toBe(false);
     expect(client.flags().has('secret:islet')).toBe(true);
     expect([...client.entities.values()].some(entity => entity.id === `script:${canoe.id}`)).toBe(true);
     expect(client.dropped).toBe(0);
