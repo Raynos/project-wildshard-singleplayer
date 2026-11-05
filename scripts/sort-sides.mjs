@@ -9,6 +9,9 @@
 //   node scripts/sort-sides.mjs --apply --agent <id>  refuse a dirty tree, re-plan from HEAD, write, regenerate source
 //                                                     tables, commit through scripts/commit.sh
 //   node scripts/sort-sides.mjs --undo                back to HEAD after an apply that failed before its commit
+//   node scripts/sort-sides.mjs --move <path> [--move <path>…] --to <side>
+//                                                     dry run of a retag on a dirty tree: the same plan and proofs
+//     … --apply --agent <id> [--message <subject>]    land it with commit.sh --patch, then carry other lanes' working text
 // Rerun after any commit: it reads the current map, so a late retag moves one file, and a sorted tree plans no work.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, rmdirSync, statSync, writeFileSync } from 'node:fs';
@@ -20,6 +23,7 @@ export const SIDES = ['client', 'shared', 'server', 'cook'];
 export const LAYERS = ['engine', 'game'];
 export const PLAN_FILE = 'tmp/sort/plan.json';
 const SIDES_FILE = 'lint/engine-sides.json';
+const EDGES_FILE = 'lint/engine-side-edges.json';
 const ALLOW_FILE = 'scripts/check-paths.allow.json';
 const LAYER_FILE = /^src\/(engine|game)\/(.+)$/u;
 const CODE = /\.(?:[cm]?[jt]s|tsx)$/u;
@@ -38,6 +42,11 @@ const REVIEWED_LITERALS = { 'src/engine/client/explore/ModelExplorer.ts:src/engi
 
 const byPath = (a, b) => a.localeCompare(b);
 const git = (root, args, options = {}) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30, ...options });
+/** Every path the working tree holds against HEAD, literal, for commit.sh, the undo or a carry. */
+const changedPaths = root => {
+  const rows = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--no-renames']).split('\0').filter(Boolean);
+  return rows.map(row => ({ state: row.slice(0, 2), path: row.slice(3) }));
+};
 
 /** A committed tree in memory. @param {string} root @returns {Tree} */
 export function headTree(root) {
@@ -446,24 +455,90 @@ function rewriteSource(tree, index, moves, dirMoves, path, source, notes) {
   return applyEdits(source, edits);
 }
 
+/** One file's text after a plan's moves: HEAD's bytes, or a lane's working bytes of the same file. */
+function rewriteText(tree, placement, dirMoves, path, before, notes) {
+  const { moves, index, stale } = placement;
+  let after = rewriteSource(tree, index, moves, dirMoves, path, before, notes);
+  if (CODE.test(path) && after.includes('src/')) after = applyEdits(after, rewriteDivided(path, after, rewriteTokens(after, path, tree, moves, dirMoves, []), moves, dirMoves, notes));
+  after = rewriteTokens(after, path, tree, moves, dirMoves, notes);
+  if (path === SIDES_FILE) after = dropStale(after, stale);
+  if (path === ALLOW_FILE) after = rewriteAllowances(after, moves);
+  const layer = /^src\/(engine|game)\/package\.json$/u.exec(path)?.[1];
+  if (layer !== undefined) after = rewriteExports(after, layer, moves);
+  return after === before ? after : resortJson(path, before, after);
+}
+
 /** The whole transformation of a tree: pure, no disk. @param {Tree} tree @returns {Plan} */
 export function planSort(tree) {
   const raw = tree.text.get(SIDES_FILE);
   if (raw === undefined) throw new Error(`sort-sides: ${SIDES_FILE} is missing`);
-  const placement = placeFiles(tree, JSON.parse(raw).files), { moves, index } = placement, dirMoves = directoryMoves(tree, moves);
+  const placement = placeFiles(tree, JSON.parse(raw).files), dirMoves = directoryMoves(tree, placement.moves);
   const notes = [], writes = new Map();
   for (const [path, before] of tree.text) {
-    let after = rewriteSource(tree, index, moves, dirMoves, path, before, notes);
-    if (CODE.test(path) && after.includes('src/')) after = applyEdits(after, rewriteDivided(path, after, rewriteTokens(after, path, tree, moves, dirMoves, []), moves, dirMoves, notes));
-    after = rewriteTokens(after, path, tree, moves, dirMoves, notes);
-    if (path === SIDES_FILE) after = dropStale(after, placement.stale);
-    if (path === ALLOW_FILE) after = rewriteAllowances(after, moves);
-    const layer = /^src\/(engine|game)\/package\.json$/u.exec(path)?.[1];
-    if (layer !== undefined) after = rewriteExports(after, layer, moves);
-    if (after !== before) after = resortJson(path, before, after);
+    const after = rewriteText(tree, placement, dirMoves, path, before, notes);
     if (after !== before) writes.set(path, after);
   }
   return { head: tree.head, ...placement, dirMoves, notes, writes };
+}
+
+/** The sides file with these files on `side`; a `mixed` mark stays. */
+function retagText(text, paths, side) {
+  const raw = JSON.parse(text);
+  for (const path of paths) {
+    const entry = raw.files[path];
+    if (entry !== undefined) raw.files[path] = typeof entry === 'string' ? side : { ...entry, side };
+  }
+  return `${JSON.stringify(raw, null, 1)}\n`;
+}
+
+/** LEAVES: a retag on a tree that is never clean. Change the tags in memory and let planSort find everything that
+ * follows. @param {Tree} tree @param {string[]} paths @param {string} side @returns {{tree: Tree, plan: Plan}} */
+export function planMove(tree, paths, side) {
+  const raw = tree.text.get(SIDES_FILE);
+  if (raw === undefined) throw new Error(`sort-sides: ${SIDES_FILE} is missing`);
+  if (!SIDES.includes(side)) throw new Error(`sort-sides: ${side} is not one of ${SIDES.join(', ')}`);
+  const tags = JSON.parse(raw).files;
+  for (const path of paths) {
+    if (tags[path] === undefined) throw new Error(`sort-sides: ${path} has no tag in ${SIDES_FILE}`);
+    if (sideOf(tags[path]) === side) throw new Error(`sort-sides: ${path} is already ${side}`);
+  }
+  const text = retagText(raw, paths, side), moved = { ...tree, text: new Map(tree.text).set(SIDES_FILE, text) }, plan = planSort(moved);
+  if (!plan.writes.has(SIDES_FILE)) plan.writes.set(SIDES_FILE, text);
+  return { tree: moved, plan };
+}
+
+/** Three-way, line by line: what a committed table changed, kept on top of a lane's working rows. */
+function mergeRows(root, scratch, name, ours, base, theirs) {
+  const file = label => resolve(scratch, `${name}.${label}`);
+  writeFileSync(file('ours'), ours); writeFileSync(file('base'), base); writeFileSync(file('theirs'), theirs);
+  const result = spawnSync('git', ['merge-file', '-p', file('ours'), file('base'), file('theirs')], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 });
+  return result.status === 0 ? result.stdout : null;
+}
+
+/** What a landed move leaves in the working tree: another lane's dirty or new text still spells the old layout. It takes
+ * the same rewrite, and a dirty moved file goes to its new path with its edits. @returns {{carried: string[], refused: string[]}} */
+export function carryWorkingText(root, tree, plan, paths, side, { committed = new Map(), scratch = root } = {}) {
+  const carried = [], refused = [];
+  for (const { state, path } of changedPaths(root)) {
+    if (state.includes('D') || !TEXT.test(path) || FROZEN.test(path)) continue;
+    const at = resolve(root, path);
+    if (statSync(at).size > MAX_TEXT) continue;
+    const before = readFileSync(at, 'utf8'), to = plan.moves.get(path) ?? path;
+    if (before.includes('\0')) continue;
+    let after = rewriteText(tree, plan, plan.dirMoves, path, path === SIDES_FILE ? retagText(before, paths, side) : before, []);
+    const landed = committed.get(path);
+    if (landed !== undefined) {
+      const merged = mergeRows(root, scratch, posix.basename(path), after, tree.text.get(path) ?? '', landed);
+      if (merged === null) { refused.push(path); continue; }
+      after = merged;
+    }
+    if (to === path && after === before) continue;
+    mkdirSync(dirname(resolve(root, to)), { recursive: true });
+    writeFileSync(resolve(root, to), after);
+    if (to !== path) rmSync(at);
+    carried.push(to);
+  }
+  return { carried, refused };
 }
 
 /** The tree after the plan, for proofs. */
@@ -664,11 +739,6 @@ export function applyPlan(root, tree, plan) {
   }
 }
 
-/** Every path the working tree holds against HEAD, literal, for commit.sh or the undo. */
-const changedPaths = root => {
-  const rows = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--no-renames']).split('\0').filter(Boolean);
-  return rows.map(row => ({ state: row.slice(0, 2), path: row.slice(3) }));
-};
 
 /** Back to HEAD after a failed apply. The tree was clean when it started, so every change here is the sort's. */
 export function undoApply(root) {
@@ -699,9 +769,61 @@ function commitPlan(root, plan, agent) {
   if (result.status !== 0) throw new Error(`sort-sides: commit.sh exited ${result.status}; the tree is applied and uncommitted: run --undo`);
 }
 
+/** What the side ratchet reads for a candidate: its table, or the rise that refuses it. */
+function candidateEdges(root, tree, { env, commit }) {
+  const result = spawnSync('node', [resolve(root, 'scripts/sort-sides.mjs'), '--view', commit, 'scripts/check-engine-sides.mjs', '--print'], { cwd: root, env, encoding: 'utf8', maxBuffer: 1 << 30, timeout: 280_000 });
+  return result.status === 0 ? { table: result.stdout } : { failure: `${result.stdout ?? ''}${result.stderr ?? ''}`.trim() };
+}
+
+function landMove(root, tree, plan, candidate, scratch, subject, agent) {
+  const patch = resolve(scratch, 'move.patch'), { env, commit } = candidate;
+  writeFileSync(patch, execFileSync('git', ['diff', '--binary', '--full-index', '-M50%', tree.head, commit], { cwd: root, env, maxBuffer: 1 << 30 }));
+  const files = [...new Set([...plan.moves.keys(), ...plan.moves.values(), ...plan.writes.keys()])];
+  const message = `${subject}\n\nLEAVES: ${plan.moves.size} files change side with\nscripts/sort-sides.mjs --move. Paths and specifiers only.\n\nAssisted-by: ${agent}`;
+  return spawnSync('scripts/commit.sh', ['--patch', patch, message, '--', ...files], { cwd: root, stdio: 'inherit' }).status === 0;
+}
+
+/** Empty folders a moved file left: git keeps no record of them, and the sorted layout should not either. */
+function pruneMoved(root, plan) {
+  for (const from of plan.moves.keys()) for (let dir = dirname(from); dir !== 'src' && dir !== '.'; dir = dirname(dir)) {
+    const at = resolve(root, dir);
+    try { if (readdirSync(at).length > 0) break; rmdirSync(at); } catch { break; }
+  }
+}
+
+/** `--move` on any tree: plan from HEAD, prove, commit a patch, and only then touch what the patch did not advance. */
+function moveMain(argv, root) {
+  const all = flag => argv.flatMap((arg, i) => arg === flag ? [argv[i + 1]] : []), one = flag => all(flag)[0];
+  const paths = all('--move'), side = one('--to'), apply = argv.includes('--apply'), agent = one('--agent');
+  if (side === undefined || paths.some(path => path === undefined)) { console.error('sort-sides: --move <path> … --to <side>'); return 2; }
+  if (apply && agent === undefined) { console.error('sort-sides: --apply needs --agent <name:model>'); return 2; }
+  const subject = one('--message') ?? `refactor(src): move ${paths.length} files to ${side}`;
+  const head = headTree(root), { tree, plan } = planMove(head, paths, side), failures = planFailures(tree, plan, root);
+  const scratch = resolve(root, `tmp/sort/move-${process.pid}`), objects = resolve(scratch, 'candidate');
+  try {
+    if (failures.length > 0) { console.error(`sort-sides: ${failures.length} failures, the first:\n  ${failures.slice(0, 40).join('\n  ')}`); return 1; }
+    mkdirSync(scratch, { recursive: true });
+    const first = candidateCommit(root, head, plan, objects), edges = candidateEdges(root, head, first);
+    if (edges.table === undefined) { console.error(`sort-sides: the side ratchet refuses this move:\n${edges.failure}`); return 1; }
+    plan.writes.set(EDGES_FILE, edges.table);
+    const before = JSON.parse(head.text.get(EDGES_FILE) ?? '{}').totals, after = JSON.parse(edges.table).totals;
+    console.log(JSON.stringify({ moves: Object.fromEntries(plan.moves), rewritten: plan.writes.size, edges: { before, after } }, null, 1));
+    if (!apply) { console.log('sort-sides: dry run clean'); return 0; }
+    const candidate = candidateCommit(root, head, plan, objects);
+    if (!landMove(root, head, plan, candidate, scratch, subject, agent)) { console.error('sort-sides: commit.sh refused; nothing moved, rerun against fresh inputs'); return 1; }
+    const { carried, refused } = carryWorkingText(root, tree, plan, paths, side, { committed: new Map([[EDGES_FILE, edges.table]]), scratch });
+    pruneMoved(root, plan);
+    if (carried.length > 0) console.log(`sort-sides: carried other lanes' working text: ${carried.join(', ')}`);
+    if (refused.length > 0) { console.error(`sort-sides: landed, but these working files conflict and need a hand: ${refused.join(', ')}`); return 1; }
+    console.log(`sort-sides: moved ${plan.moves.size} files to ${side}`);
+    return 0;
+  } finally { rmSync(scratch, { recursive: true, force: true }); }
+}
+
 /** @param {string[]} argv @param {string} root */
 export function main(argv, root = process.cwd()) {
   if (argv.includes('--undo')) { undoApply(root); console.log('sort-sides: tree is back at HEAD'); return 0; }
+  if (argv.includes('--move')) return moveMain(argv, root);
   const apply = argv.includes('--apply'), agentAt = argv.indexOf('--agent'), agent = agentAt === -1 ? undefined : argv[agentAt + 1];
   if (apply && agent === undefined) { console.error('sort-sides: --apply needs --agent <name:model>'); return 2; }
   if (apply && !cleanTree(root)) { console.error('sort-sides: refusing a dirty tree; commit or clear it first'); return 1; }

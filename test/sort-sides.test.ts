@@ -8,7 +8,7 @@ import {afterEach,expect,test} from 'vitest';
 import {compareSideEdges} from '../lint/engine-sides.mjs';
 import {unsortedPath} from '../lint/layer-exports.mjs';
 import {compareCounts} from '../scripts/guard-counts.mjs';
-import {appliedTree,applyPlan,headTree,main,planFailures,planSort} from '../scripts/sort-sides.mjs';
+import {appliedTree,applyPlan,carryWorkingText,headTree,main,planFailures,planMove,planSort} from '../scripts/sort-sides.mjs';
 
 const roots:string[]=[];
 afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -136,6 +136,45 @@ test('a late retag after the sort moves one file and its importers follow',()=>{
   const plan=planSort(headTree(root));
   expect([...plan.moves]).toEqual([['src/engine/client/core/view.ts','src/engine/shared/core/view.ts']]);
   expect(clean(root)).toEqual([]);
+});
+
+const sorted=():string=>{const root=fixture(),tree=headTree(root);applyPlan(root,tree,planSort(tree));commit(root);return root;};
+
+test('--move plans a retag from HEAD on a dirty tree and takes its test with it',()=>{
+  const root=sorted();
+  put(root,{'src/engine/client/core/view.test.ts':"import {view} from './view';\nexport const seen=view;\n"});commit(root);
+  put(root,{'src/engine/client/ui/hud.ts':'// a lane is here\n'});
+  const {tree,plan}=planMove(headTree(root),['src/engine/client/core/view.ts'],'shared'),after=appliedTree(tree,plan);
+  expect([...plan.moves]).toEqual([['src/engine/client/core/view.test.ts','src/engine/shared/core/view.test.ts'],['src/engine/client/core/view.ts','src/engine/shared/core/view.ts']]);
+  expect(planFailures(tree,plan,root)).toEqual([]);
+  expect(json(after.text.get('lint/engine-sides.json')??'')['files']).toMatchObject({'src/engine/shared/core/view.ts':'shared'});
+  expect(Object.keys(json(after.text.get('lint/ratchet.json')??'')['wildshard/rule']??{})).toContain('src/engine/shared/core/view.ts');
+  expect(git(root,'status','--porcelain','--','src/engine/client/core')).toBe('');
+});
+
+test('--move refuses an untagged path, a wrong side and a file already there',()=>{
+  const tree=headTree(sorted());
+  expect(()=>planMove(tree,['src/engine/client/core/none.ts'],'shared')).toThrow(/no tag/u);
+  expect(()=>planMove(tree,['src/engine/client/core/view.ts'],'moon')).toThrow(/not one of/u);
+  expect(()=>planMove(tree,['src/engine/client/core/view.ts'],'client')).toThrow(/already client/u);
+});
+
+test('a move carries other lanes\' working text and keeps their hunks',()=>{
+  const root=sorted();
+  put(root,{'src/engine/client/core/peer.ts':"import {view} from './view';\nexport const peer=view;\n"});commit(root);
+  put(root,{
+    'src/engine/client/core/peer.ts':"import {view} from './view';\nexport const peer=[view,'a lane'];\n",
+    'src/engine/client/core/view.ts':"export const view=2; // a lane\n",
+    'src/engine/client/core/fresh.ts':"export {view} from './view';\n",
+  });
+  const paths=['src/engine/client/core/view.ts'],{tree,plan}=planMove(headTree(root),paths,'shared');
+  const {carried,refused}=carryWorkingText(root,tree,plan,paths,'shared');
+  expect(refused).toEqual([]);
+  expect(carried.sort()).toEqual(['src/engine/client/core/fresh.ts','src/engine/client/core/peer.ts','src/engine/shared/core/view.ts']);
+  expect(readFileSync(resolve(root,'src/engine/client/core/peer.ts'),'utf8')).toBe("import {view} from '../../shared/core/view';\nexport const peer=[view,'a lane'];\n");
+  expect(readFileSync(resolve(root,'src/engine/client/core/fresh.ts'),'utf8')).toContain("'../../shared/core/view'");
+  expect(readFileSync(resolve(root,'src/engine/shared/core/view.ts'),'utf8')).toContain('a lane');
+  expect(existsSync(resolve(root,'src/engine/client/core/view.ts'))).toBe(false);
 });
 
 test('undo returns a failed apply to HEAD',()=>{

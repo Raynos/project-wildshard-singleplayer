@@ -5,6 +5,7 @@
 //   node scripts/check-engine-sides.mjs            check (fails on an untagged file or a rise; warns on stale tags / falls)
 //   node scripts/check-engine-sides.mjs --update   lower lint/engine-side-edges.json to today's counts, drop stale tags
 //   node scripts/check-engine-sides.mjs --report   files / LOC per side, edge totals, the top violating folder pairs
+//   node scripts/check-engine-sides.mjs --print    print the table --update would write and write nothing
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -31,10 +32,12 @@ function main(argv) {
     if (now < was) notes.push(`${path} ${edge} fell ${was} → ${now}; lower it with --update`);
   }
   if (argv.includes('--report')) report(census, sides);
-  if (argv.includes('--update')) {
+  if (argv.includes('--update') || argv.includes('--print')) {
     if (failures.length > 0) { console.error(`check-engine-sides: refusing --update:\n  ${failures.join('\n  ')}`); return 1; }
     const files = sortKeys(Object.fromEntries(Object.entries(census.counts).map(([path, edges]) => [path, sortKeys(edges)])));
-    writeFileSync(SIDE_EDGES_FILE, `${JSON.stringify({ about: EDGES_ABOUT, totals: edgeTotals(files), files }, null, 1)}\n`);
+    const table = `${JSON.stringify({ about: EDGES_ABOUT, totals: edgeTotals(files), files }, null, 1)}\n`;
+    if (argv.includes('--print')) { process.stdout.write(table); return 0; }
+    writeFileSync(SIDE_EDGES_FILE, table);
     if (census.stale.length > 0) {
       for (const path of census.stale) delete rawSides.files[path];
       writeFileSync(SIDES_FILE, `${JSON.stringify(rawSides, null, 1)}\n`);
