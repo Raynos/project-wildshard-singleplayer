@@ -33,7 +33,7 @@ export interface NetWorld {
   /** What the tick settled (P1-E3.2): each hit and death since the last call. A world with no fights leaves it out. */
   combat?: () => readonly CombatEvent[];
   /** A player's quests, when they moved past `since`. A world with no quests leaves it out. */
-  quests?: (player: string, since: number) => { readonly version: number; readonly rows: readonly QuestProgress[] } | null;
+  quests?: (player: string, since: number) => { readonly version: number; readonly rows: readonly QuestProgress[]; readonly flags: readonly string[] } | null;
   /** The player a client owns unless it joins as another. */
   readonly player: NetPlayer;
 }
@@ -59,7 +59,7 @@ interface RoomClient {
   state: 'new' | 'waiting' | 'live';
   ack: number; readonly acts: NetAct[]; readonly known: Set<number>;
   /** The quest rows this client holds, and the book version they came from. */
-  questVersion: number; readonly quests: Map<string, string>;
+  questVersion: number; readonly quests: Map<string, string>; readonly phased: Set<string>;
   /** What this client could see at each recent frame: a baseline is the frame and this set. */
   readonly views: ClientView[]; nextView: number;
   readonly owner: Uint32Array; dispose: () => void;
@@ -98,7 +98,7 @@ export class NetRoom {
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), owner,
+    const client: RoomClient = { id, transport, player, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -227,6 +227,8 @@ export class NetRoom {
         if (client.quests.get(row.quest) === seen) continue;
         client.quests.set(row.quest, seen); events.push({ kind: 'quest', tick: frame.tick, ...row });
       }
+      for (const flag of client.phased) if (!quests.flags.includes(flag)) { client.phased.delete(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: false }); }
+      for (const flag of quests.flags) if (!client.phased.has(flag)) { client.phased.add(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: true }); }
     }
     for (const handle of retired) if (client.known.delete(handle)) events.push({ kind: 'despawn', handle });
     if (events.length > 0) {
