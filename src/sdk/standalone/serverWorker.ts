@@ -8,5 +8,6 @@ self.onmessage = (event: MessageEvent<unknown>): void => {
   self.onmessage = null;
   const [control, game] = event.ports;
   if (control === undefined || game === undefined) return;
-  runStandaloneServer({ control, game, load: async boot => fetchServerProduct(boot.base, await loadRapier()) });
+  runStandaloneServer({ control, game, load: async boot => fetchServerProduct(boot.base, await loadRapier()),
+    onSaveRefused: error => { console.warn('Standalone save refused, falling back', error); } });
 };

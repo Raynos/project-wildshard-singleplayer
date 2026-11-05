@@ -43,7 +43,7 @@ function input(index: number, tick: number, target: string | undefined): Omit<Ne
 }
 const percentile = (sorted: readonly number[], at: number): number => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * at))] ?? Infinity;
 
-function run(live: TrustedHeadlessResident): { p50: number; p95: number; p99: number; max: number; creatures: number; downPerClient: number; rowsSeen: number; moved: number } {
+function run(live: TrustedHeadlessResident): { tierSkipsPerFrame: number; p50: number; p95: number; p99: number; max: number; creatures: number; downPerClient: number; rowsSeen: number; moved: number } {
   const { host } = live, world = new SimNetWorld(host), spawn = leadPlayer(host).position, bots: Bot[] = [];
   const room = new NetRoom({ world, step: inputs => {
     const [lead, ...others] = inputs, commands = new Map<string, NetCommand>();
@@ -76,7 +76,17 @@ function run(live: TrustedHeadlessResident): { p50: number; p95: number; p99: nu
   });
   const last = bots.at(-1)?.client.latest;
   expect(room.admission.refused).toBe(0);
-  return { p50: percentile(sorted, 0.5), p95: percentile(sorted, 0.95), p99: percentile(sorted, 0.99), max: sorted.at(-1) ?? Infinity, creatures: host.entities.size,
+  // P1-E5.2c: what a client holds for a far creature is an old row, but a true one: it trails by what the body covers between sends.
+  for (const bot of bots) {
+    const frame = bot.client.latest, player = host.players.get(bot.id);
+    if (frame === null || player === undefined) throw new Error('No frame');
+    for (const entity of bot.client.entities.values()) {
+      const sim = host.entities.get(entity.id), fields = bot.client.fields(frame, entity.handle);
+      if (sim === undefined || fields === null) continue;
+      expect(Math.hypot(Number(fields['x']) - sim.position.x, Number(fields['z']) - sim.position.z), `${bot.id} on ${entity.id}`).toBeLessThan(sim.position.distanceTo(player.position) > 59 ? 1.5 : 0.5);
+    }
+  }
+  return { tierSkipsPerFrame: room.stats.tierSkips / room.stats.frames, p50: percentile(sorted, 0.5), p95: percentile(sorted, 0.95), p99: percentile(sorted, 0.99), max: sorted.at(-1) ?? Infinity, creatures: host.entities.size,
     downPerClient: (bots.reduce((sum, bot) => sum + bot.link.client.stats.recvBytes, 0) - down) / PLAYERS / seconds, rowsSeen: last === null || last === undefined ? 0 : last.rows.size, moved };
 }
 
@@ -88,6 +98,7 @@ test.each(['sunscar-dunes', 'driftwood-isle'])('32 players on %s hold a 60 Hz ti
   const report = process.env['WS_ROOM_REPORT'];
   if (report !== undefined) writeFileSync(report, `${JSON.stringify({ slug, players: PLAYERS, ...result })}\n`, { flag: 'a' });
   expect(result.moved).toBe(PLAYERS);
+  expect(result.tierSkipsPerFrame, 'far entities use their tier').toBeGreaterThan(0);
   expect(result.rowsSeen).toBeGreaterThanOrEqual(PLAYERS - 1); // everyone else, within a client's view of the crowd
   expect(result.p95).toBeLessThan(TICK_BUDGET_MS);
 }, 180_000);
