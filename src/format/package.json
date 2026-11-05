@@ -339,8 +339,7 @@
     "./glbImages": "./glbImages.ts",
     "./trail": "./trail.ts",
     "./uiStrings": "./uiStrings.ts",
-    "./wireLimits": "./wireLimits.ts",
-    "./memoryGates.json": "./memoryGates.json"
+    "./wireLimits": "./wireLimits.ts"
   },
   "dependencies": {
     "meshoptimizer": "1.2.0",
