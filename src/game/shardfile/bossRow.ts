@@ -9,7 +9,7 @@ import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows, type SpeciesDecisionAuthority } from '../plugin/brain';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { BossContenders } from '@wildshard/engine/ai/bossContenders';
 
 /** A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). */
 export interface BossRowFlagNames { readonly defeated: string; readonly paid: string }
@@ -65,7 +65,7 @@ export interface BossViewRows {
 const Boss = v.strictObject({ state: v.picklist(['dormant', 'armed', 'intro', 'fight', 'beat', 'victory']), phase: finite, checkpoint: finite, attempts: finite, t: finite, skipT: finite, short: v.boolean(),
   director: v.exactOptional(v.string()),
   saved: v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite }) });
-const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v.unknown() });
+const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v.unknown(), out: v.exactOptional(v.array(v.string())) });
 
 /**
  * A declared boss row's encounter in a renderer-free host (SHARD-PLATFORM SF72): the engine's `BossBrain` (arm, intro,
@@ -78,26 +78,28 @@ const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v
  * have this shape.
  */
 export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBrain; summon: () => void; locked: () => boolean } {
-  const lead = leadPlayer(host);
-  const player = lead;
-  const ports = { events: host.events, player: { position: player.position },
-    lockInput: () => undefined, skipHeld: () => false,
-    respawn: (pos: Vector3, yaw: number) => { player.position.copy(pos); player.yaw = yaw; },
-    faceToward: (target: Vector3) => { player.yaw = Math.atan2(player.position.x - target.x, player.position.z - target.z); },
+  const party = new BossContenders(host.players, point => spec.script.inArena(point), (player, position, yaw) => { player.position.copy(position); player.yaw = yaw; });
+  const ports = { events: host.events, player: party.player,
+    lockInput: () => undefined, skipHeld: () => false, respawn: party.respawn, faceToward: party.faceToward,
     spawnReward: () => { spec.spawnReward?.(); }, persist: spec.persist };
   const boss = spec.stages === undefined
     ? new BossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved)
     : new DirectorBossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved, spec.stages);
   host.events.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() && spec.shielded() ? null : request; }, host.scope);
-  host.events.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true, host.scope);
+  // A room asks first and acts on `player.died`, the one event that says who fell.
+  host.events.answer('death.checkpoint', (value) => (host.players.size > 1 ? boss.engaged : boss.onPlayerDeath()) || value === true, host.scope);
+  host.events.on('player.died', ({ actor }) => { if (host.players.size > 1) party.fell(actor.id, boss); }, host.scope);
   if (spec.armed === true) boss.arm();
-  host.onStep(spec.step, dt => { boss.update(dt, host.clock.now); }, {
-    snapshot: () => JSON.stringify({ version: spec.stages === undefined ? 1 : 2, boss: boss.snapshot(), fight: spec.fight.snapshot() }),
+  host.onStep(spec.step, dt => {
+    const body = spec.body(); if (body !== null) host.focusOn(body.position);
+    boss.update(dt, host.clock.now);
+  }, {
+    snapshot: () => { const out = party.out; return JSON.stringify({ version: spec.stages === undefined ? 1 : 2, boss: boss.snapshot(), fight: spec.fight.snapshot(), ...(out.length === 0 ? {} : { out }) }); },
     restore: value => {
       if (typeof value !== 'string') throw new Error(`Invalid ${spec.step} continuation`);
       const state = v.parse(Saved, JSON.parse(value));
       if (state.version !== (spec.stages === undefined ? 1 : 2) || (state.boss.director === undefined) !== (spec.stages === undefined)) throw new Error('Incompatible boss stage continuation');
-      boss.restore(state.boss); spec.fight.restore(state.fight); spec.restored?.(state.boss);
+      boss.restore(state.boss); spec.fight.restore(state.fight); party.restoreOut(state.out ?? []); spec.restored?.(state.boss);
     },
   });
   return { boss, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };

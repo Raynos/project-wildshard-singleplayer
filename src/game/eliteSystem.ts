@@ -18,6 +18,7 @@
 import * as v from 'valibot';
 import { EliteCoreContinuationSchema, type EliteCoreContinuation } from '@wildshard/format/eliteContinuation';
 import { emitFault } from '@wildshard/engine/core/faults';
+import { nearestOnGround } from '@wildshard/engine/sim/nearPlayer';
 
 export type EliteCoreRule = 'always' | 'dusk' | 'night' | 'storm';
 
@@ -89,11 +90,16 @@ export interface EliteCorePersistence {
   write: (value: Record<string, EliteCoreRecord>, slug: string) => void;
 }
 
-/** The world the rules read: the player's ground position and the spawn rules. */
-export interface EliteCoreHost {
-  readonly player: { readonly position: { readonly x: number; readonly z: number } };
-  condition: (rule: EliteCoreRule) => boolean;
+/** A player as the rules read it. */
+export interface EliteCorePlayer {
+  readonly position: { readonly x: number; readonly z: number };
+  readonly health: { readonly alive: boolean };
 }
+/** The world the rules read: the spawn rules, and the page's one player or a room's. A room's elite answers to whoever is
+ *  nearest it, and its lair stays held while anyone is near. */
+export type EliteCoreHost = { condition: (rule: EliteCoreRule) => boolean } & (
+  | { readonly player: { readonly position: { readonly x: number; readonly z: number } }; readonly players?: undefined }
+  | { readonly players: ReadonlyMap<string, EliteCorePlayer> });
 
 /** The view's answers to the rules' moments, all optional (a renderer-free host answers none). Each runs where the page ran it. */
 export interface EliteCoreHooks<S extends EliteCoreScript> {
@@ -144,8 +150,11 @@ export class EliteCore<S extends EliteCoreScript> {
     this.saved = persistence.read(slug);
   }
 
-  /** Original concrete player loan, for identity admission before registration. */
-  get player(): EliteCoreHost['player'] { return this.host.player; }
+  /** The room this core serves, for identity admission before registration. */
+  get players(): ReadonlyMap<string, EliteCorePlayer> | undefined { return this.host.players; }
+  private near(x: number, z: number): { readonly x: number; readonly z: number } {
+    return this.host.players === undefined ? this.host.player.position : nearestOnGround(this.host.players, x, z).position;
+  }
 
   add(script: S): EliteCoreEntry<S> {
     const s = this.saved[script.def.id] ?? { timer: 0, discovered: false, skinTaken: false, kills: 0, retired: false };
@@ -196,14 +205,13 @@ export class EliteCore<S extends EliteCoreScript> {
 
   /** One frame of the rules; returns the nearest aware / engaged elite (the view's focus). */
   update(dt: number, t: number): EliteCoreEntry<S> | null {
-    const p = this.host.player.position;
     const dusk = this.host.condition('dusk');
     const duskEdge = dusk && !this.lastDusk; this.lastDusk = dusk;
     let best: EliteCoreEntry<S> | null = null, bestD = Infinity;
     for (const e of this.entries) {
       try {
       const def = e.script.def;
-      const dl = Math.hypot(p.x - def.lair.x, p.z - def.lair.z);
+      const home = this.near(def.lair.x, def.lair.z), dl = Math.hypot(home.x - def.lair.x, home.z - def.lair.z);
       if (!e.discovered && dl < DISCOVER_R) { e.discovered = true; this.save(); }
       if (e.state === 'retired') continue;
       if (e.script.retired?.() === true) { this.retire(e); continue; }
@@ -228,7 +236,7 @@ export class EliteCore<S extends EliteCoreScript> {
       if (e.state === 'broken') e.state = 'engaged';
       // ── the rule ended: it leaves (never mid-fight) ──
       if (e.state === 'idle' && !e.forced && !this.host.condition(def.rule)) { e.script.despawn(); e.state = 'absent'; continue; }
-      const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
+      const foe = this.near(a.position.x, a.position.z), d = Math.hypot(foe.x - a.position.x, foe.z - a.position.z);
       const hit = a.lastHitT > e.lastHit; if (hit) e.lastHit = a.lastHitT;
       // ── aware / engaged / leash ──
       if (e.state === 'idle' && (d < def.awareR || hit)) { e.state = 'aware'; e.discovered = true; }

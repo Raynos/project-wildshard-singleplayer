@@ -47,7 +47,6 @@ import { nativeDecisionAuthority } from './borrowedDecisions';
 import { installNativeGroupRows } from './groupRuntime';
 import { need, readAssemblyInput, type AssemblyPrepared, type NativeAssemblyContext } from './nativeAssemblyInput';
 import { installBodyScripts, installCombatMotion } from './nativeRuntimeLoans';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** What one install's hosts hand each other, in the plan's order. A later host reads what an earlier one left. */
 export interface AssemblyRun<C extends NativeAssemblyContext> {
@@ -94,8 +93,7 @@ async function prepareMixed<C extends NativeAssemblyContext>(row: Extract<Native
 }
 /** The elite core a riding world binds: each rule's word, read through its programme from the clock and the storm. */
 export function nativeEliteCore(host: Pick<SimHost, 'players' | 'level'>, conditions: NativeEliteConditions, program: Pick<ReturnProgram, 'project'>, day: { readonly dayPhase: string }, env: Pick<NativeWildEnvironment, 'storm'>): EliteCore<EliteCoreScript> {
-  const lead = leadPlayer(host);
-  return new EliteCore({ player: lead, condition: (rule: EliteCoreRule) => {
+  return new EliteCore({ players: host.players, condition: (rule: EliteCoreRule) => {
     const code = need(conditions.rules[rule], 'Missing elite rule');
     return program.project('eliteRule', { rule: code.rule, phase: code.phase ? conditions.phases[day.dayPhase] ?? 0 : 0, storm: code.storm ? (env.storm ? conditions.storm.storm : conditions.storm.calm) : 0 })['accept'] === 1;
   } }, {}, host.level.id, memoryElitePersistence());

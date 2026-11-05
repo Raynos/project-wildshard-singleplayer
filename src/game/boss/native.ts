@@ -16,7 +16,7 @@ import { Lane } from './lane';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { nearestOnGround } from '@wildshard/engine/sim/nearPlayer';
 
 /** The actual native body remains owned by its installed population service; its limb pose roster publishes the ribs
  * volume (game/animation/limbPopulation `ribsWorld`: the chest chain, then the baked ribs point). */
@@ -114,8 +114,8 @@ const finite = v.pipe(v.number(), v.finite());
 export function installGroundBoss(host: SimHost, input: unknown, profile: unknown, program: SpeciesProgramData, bindingInput: unknown): { boss: BossBrain; fight: GroundBossFight<NativeGroundBossBody>; locked: () => boolean;
   rewardPoint: () => { x: number; y: number; z: number } | null; takeReward: (eye: { x: number; y: number; z: number }) => boolean } {
   const row = parseRoamingEncounter(input, profile), binding = v.parse(NativeBossBindingSchema, bindingInput), roster = () => populationRoster(host, binding.population);
-  const { fight, own, waves } = nativeGroundFight(host, row, program, binding), player = leadPlayer(host).position, brain: { boss: BossBrain | null } = { boss: null };
-  host.onStep(row.steps.presence, () => { if (brain.boss !== null) groundBossPresence(row, brain.boss, fight, player, (host.dayClock?.night ?? 0) > 0.5); });
+  const { fight, own, waves } = nativeGroundFight(host, row, program, binding), brain: { boss: BossBrain | null } = { boss: null }, origin = row.profile.fight.origin;
+  host.onStep(row.steps.presence, () => { if (brain.boss !== null) groundBossPresence(row, brain.boss, fight, nearestOnGround(host.players, origin.x, origin.z).position, (host.dayClock?.night ?? 0) > 0.5); });
   // read at install (a restoring install's record is the brain's continuation, which restores over it)
   const record = bossFlagRecord(host.flags, row.record), saved = record.saved;
   let reward: { x: number; y: number; z: number } | null = null;
@@ -147,7 +147,7 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
     if (req === null || k === null || req.target !== k.combatActor()) return req;
     return { ...req, amount: Math.max(1, Math.round(req.amount * fight.damageMul(k, req.point))) };
   }, host.scope, { order: 50 });
-  host.onStep(row.steps.dormant, dt => { groundBossDormant(owner.boss, fight, dt, host.clock.now); });
+  host.onStep(row.steps.dormant, dt => { if (fight.body !== null) host.focusOn(fight.body.position); groundBossDormant(owner.boss, fight, dt, host.clock.now); });
   const result = { boss: owner.boss, fight, locked: owner.locked,
     rewardPoint: () => reward === null ? null : { ...reward },
     takeReward: (eye: { x: number; y: number; z: number }) => {

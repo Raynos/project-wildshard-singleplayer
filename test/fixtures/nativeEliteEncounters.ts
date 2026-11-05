@@ -6,7 +6,6 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { NativeElitePopulation } from '@wildshard/engine/ai/eliteLifecycle';
 import { NativeEliteRoster, nativeEliteBindings, type NativeEliteRosterRows, type NativeEliteRosterLoans, type NativeEliteBond } from '@wildshard/engine/ai/eliteRoster';
 import { EliteCore, type EliteCoreScript } from '../../src/game/eliteSystem';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Manager-owned elite pins and decision bindings; the manager retains its single body-step installer. */
 export type EliteBindings = NativeEliteRosterLoans['bindings'] & { readonly absent: Set<AnimalSim> };
@@ -42,7 +41,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
   readonly initialize: () => void; readonly bindPopulation: (population: NativeElitePopulation) => void; readonly bindBond: (owner: NativeEliteBond) => void;
 } {
   const core = spec.core;
-  if (!(core instanceof EliteCore) || Object.getPrototypeOf(core) !== EliteCore.prototype || core.player !== leadPlayer(host) || core.entries.length > 0) throw new Error('Foreign or populated native elite core');
+  if (!(core instanceof EliteCore) || Object.getPrototypeOf(core) !== EliteCore.prototype || core.players !== host.players || core.entries.length > 0) throw new Error('Foreign or populated native elite core');
   const ports = spec.ports, rows = spec.rows ?? [];
   if (ports === undefined) throw new Error('Encounter rows need native body authority');
   if (!isJsonData(rows)) throw new Error('Encounter rows require plain JSON');

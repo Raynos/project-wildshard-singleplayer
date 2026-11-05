@@ -8,7 +8,7 @@ import { EliteCore, memoryElitePersistence } from '../eliteSystem';
 import { EliteDecisions } from './eliteDecisions';
 import { SpawnScript, readSpawnScript } from '../population/spawnScript';
 import type { ShardProduct } from '../shardfile/shardProduct';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { nearestOnGround } from '@wildshard/engine/sim/nearPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
 const uint = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff));
@@ -31,35 +31,55 @@ export async function readEliteFeature(product: ShardProduct, name: string): Pro
 export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, input: unknown): {
   readonly core: EliteCore<EliteDecisions>; readonly scripts: readonly EliteDecisions[]; readonly initialize: () => void;
 } {
-  const lead = leadPlayer(host);
   const rows = parseEliteFeature(input);
   if (rows.fights.some(row => row.def.rule === 'storm')) throw new Error('Storm encounter needs an admitted weather owner');
-  const core = new EliteCore<EliteDecisions>({ player: lead, condition: rule => rule === 'always'
+  const core = new EliteCore<EliteDecisions>({ players: host.players, condition: rule => rule === 'always'
     || (rule === 'dusk' ? day.dusk > 0.5 : rule === 'night' ? day.night > 0.5 : false) }, {}, host.level.id, memoryElitePersistence());
   const scripts = rows.fights.map(row => new EliteDecisions(row, SpawnScript.native(host, row.program), rows, host.level.seed));
   for (const script of scripts) core.add(script);
-  const saved = v.strictObject({ version: v.literal(rows.version), ...EliteCoreContinuationSchema.entries, scripts: v.array(savedScript), stun: v.nullable(root) });
-  let restored: SimValue | undefined, stun: v.InferOutput<typeof root> | null = null;
+  const saved = v.strictObject({ version: v.literal(rows.version), ...EliteCoreContinuationSchema.entries, scripts: v.array(savedScript), stun: v.nullable(root), others: v.exactOptional(v.record(v.string(), root)) });
+  type Stun = v.InferOutput<typeof root>;
+  let restored: SimValue | undefined;
+  /** Who is held by a stun, by player. `stun` on the wire is the room's first player; `others` appears only for the rest. */
+  const stuns = new Map<string, Stun>();
+  const firstId = (): string => { const first = host.players.keys().next(); if (first.done === true) throw new Error('Simulation host has no player'); return first.value; };
+  const setStuns = (first: Stun | null, others: Readonly<Record<string, Stun>> = {}): void => {
+    stuns.clear(); if (first !== null) stuns.set(firstId(), first);
+    for (const [id, row] of Object.entries(others)) stuns.set(id, row);
+  };
+  const wireStuns = (): { stun: Stun | null; others?: Record<string, Stun> } => {
+    const lead = firstId(), others = Object.fromEntries([...stuns].flatMap(([id, row]) => id === lead ? [] : [[id, { ...row }]])), first = stuns.get(lead);
+    return { stun: first === undefined ? null : { ...first }, ...(Object.keys(others).length === 0 ? {} : { others }) };
+  };
   const validateRecords = (records: Readonly<Record<string, unknown>>): void => {
     if (Object.keys(records).length !== scripts.length || scripts.some(script => records[script.def.id] === undefined)) throw new Error('Incompatible elite records');
   };
   const held = new Vector3(), direction = new Vector3();
   host.onStep(rows.step, dt => {
     restored = undefined;
-    if (stun !== null) { held.set(stun.x, stun.y, stun.z); lead.position.copy(held); lead.motor.resetAt(held); stun.t -= dt; if (stun.t <= 0) stun = null; }
-    for (const script of scripts) script.frame(lead.position, day.dusk, day.night, false, lead.yaw);
+    for (const [id, stun] of stuns) {
+      const player = host.players.get(id);
+      if (player === undefined) { stuns.delete(id); continue; }
+      held.set(stun.x, stun.y, stun.z); player.position.copy(held); player.motor.resetAt(held); stun.t -= dt; if (stun.t <= 0) stuns.delete(id);
+    }
+    for (const script of scripts) {
+      const at = script.animal?.position ?? script.def.lair, foe = nearestOnGround(host.players, at.x, at.z);
+      script.frame(foe.position, day.dusk, day.night, false, foe.yaw);
+    }
     core.update(dt, host.clock.now);
     for (const script of scripts) for (const effect of script.program.drainEffects()) {
       if (effect.kind === 'cue') { if (rows.view?.cues.find(row => row.id === script.program.cue(effect.id))?.signature === true) core.signature(script.def.id); continue; }
       if (effect.kind !== 'hit') continue;
       const body = script.program.body(effect.actor); if (body === null) throw new Error('Missing elite contact body');
-      host.combat.hit({ source: body.combatActor(), sourceTags: [`creature.${body.kind}`, 'feel.blow', 'cover.checked'], target: lead.health,
+      const foe = nearestOnGround(host.players, body.position.x, body.position.z);
+      host.combat.hit({ source: body.combatActor(), sourceTags: [`creature.${body.kind}`, 'feel.blow', 'cover.checked'], target: foe.health,
         amount: effect.hit.damage, point: body.position.clone(), dir: direction.set(0, 0, 0), throughWalls: effect.hit.throughWalls, cause: { kind: body.kind, label: body.label } });
-      if (effect.hit.stun > 0) { const p = lead.position; stun = { t: effect.hit.stun, x: stun?.x ?? p.x, y: stun?.y ?? p.y, z: stun?.z ?? p.z }; }
+      if (effect.hit.stun > 0) { const p = foe.position, stun = stuns.get(foe.id); stuns.set(foe.id, { t: effect.hit.stun, x: stun?.x ?? p.x, y: stun?.y ?? p.y, z: stun?.z ?? p.z }); }
     }
   }, {
-    snapshot: () => restored ?? { version: rows.version, ...core.snapshot(), stun: stun === null ? null : { ...stun }, scripts: scripts.map(script => ({ id: script.def.id,
-      program: script.program.snapshot(), spawn: { ...script.spawnStream.snapshot() }, phase2: script.isPhase2 })) },
+    snapshot: () => { if (restored !== undefined) return restored; const { stun, others } = wireStuns();
+      return { version: rows.version, ...core.snapshot(), stun, scripts: scripts.map(script => ({ id: script.def.id,
+        program: script.program.snapshot(), spawn: { ...script.spawnStream.snapshot() }, phase2: script.isPhase2 })), ...(others === undefined ? {} : { others }) }; },
     restore: wireInput => {
       if (typeof wireInput === 'object' && wireInput !== null && !Array.isArray(wireInput) && 'version' in wireInput && wireInput['version'] !== rows.version) {
         const mapping = rows.legacy, upgrade = mapping?.upgrades.find(row => row.version === wireInput['version']);
@@ -80,7 +100,7 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
           return script.prepareLegacy(state);
         });
         const commit = core.prepareRestore(continuation), nextStun = upgrade.clearStun ? null : v.parse(v.nullable(root), old[mapping.stun]);
-        commit(); for (const restore of commits) restore(); stun = nextStun; restored = structuredClone(wireInput); return;
+        commit(); for (const restore of commits) restore(); setStuns(nextStun); restored = structuredClone(wireInput); return;
       }
       const state = v.parse(saved, wireInput); validateRecords(state.records);
       const commitCore = core.prepareRestore(state);
@@ -90,7 +110,7 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
         const script = scripts[i]; if (script === undefined) throw new Error('Missing elite script');
         return script.prepareRestore(row);
       });
-      commitCore(); for (const commit of commits) commit(); stun = state.stun; restored = structuredClone(wireInput);
+      commitCore(); for (const commit of commits) commit(); setStuns(state.stun, state.others); restored = structuredClone(wireInput);
     },
   });
   return { core, scripts, initialize: () => { core.initialize(); } };

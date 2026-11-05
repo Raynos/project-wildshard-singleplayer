@@ -11,7 +11,7 @@ import { StalkerBrain, readPouncerSpec, readHowlerSpec, type PouncerContext, typ
 import type { PackBrain } from './pack';
 import { StrikeRunner, type StrikeSpec } from './strikes';
 import { canReach } from './reach';
-import { leadPlayer } from '../sim/leadPlayer';
+import { nearestOnGround } from '../sim/nearPlayer';
 
 const finite = v.pipe(v.number(), v.finite()), handle = HandleIdSchema;
 const rowSchema: v.GenericSchema<NativeEliteKernelPayloadInput, NativeEliteKernelPayload> = v.strictObject({
@@ -48,7 +48,7 @@ export class NativeEliteKernels {
   private readonly host; private readonly scope; private readonly lifecycle;
   private readonly contacts; private readonly strikeOwner; private readonly strikes; private readonly terrain; private readonly environment;
   private readonly ledges; private readonly brains;
-  private readonly player; private readonly combat; private readonly rng;
+  private readonly players; private readonly combat; private readonly rng;
   private readonly methods: readonly unknown[];
   private readonly loans: NativeEliteKernelLoans;
   private readonly head = new Vector3(); private readonly direction = new Vector3(); private readonly knocked = { x: 0, z: 0 };
@@ -64,12 +64,12 @@ export class NativeEliteKernels {
     if (rows.some(row => row.profile.pattern === 'pouncer') && ledges.length > 6) throw new RangeError('Pouncer ledge bound exceeded');
     this.host = host; this.scope = scope; this.lifecycle = lifecycle; this.contacts = contacts; this.strikeOwner = strikes; this.strikes = [...strikes];
     this.terrain = terrain; this.environment = environment; this.ledges = ledges; this.brains = brains;
-    this.player = leadPlayer(host); this.combat = host.combat; this.rng = host.rng;
+    this.players = host.players; this.combat = host.combat; this.rng = host.rng;
     if (!(scope instanceof Scope) || !(contacts instanceof StrikeRunner) || !(brains instanceof Map) || scope !== host.scope
       || new Set(rows.map(row => row.id)).size !== rows.length || new Set(strikes.map(row => row.id)).size !== strikes.length
       || rows.some(row => row.knockdown.min > row.knockdown.max || new Set(row.contacts.map(contact => contact.amount)).size !== row.contacts.length
         || [...row.contacts.map(contact => contact.strike), row.fallbackStrike].some(name => !strikes.some(strike => strike.id === name)))) throw new Error('Invalid elite kernel owners or rows');
-    this.methods = [method(contacts, 'contact'), method(terrain, 'heightAt'), method(environment, 'grassHeightAt'), method(lifecycle, 'signature'), method(this.player, 'dashAt'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(brains, 'set')];
+    this.methods = [method(contacts, 'contact'), method(terrain, 'heightAt'), method(environment, 'grassHeightAt'), method(lifecycle, 'signature'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(brains, 'set')];
     if (this.methods.some(callable => typeof callable !== 'function')) throw new Error('Missing elite kernel operation');
     this.validate();
   }
@@ -81,8 +81,8 @@ export class NativeEliteKernels {
     if (this.scope.disposed || this.scope.disposing || loans.scope !== this.scope || loans.host !== host || host.scope !== this.scope
       || loans.lifecycle !== this.lifecycle || loans.contacts !== this.contacts || loans.terrain !== this.terrain || loans.environment !== this.environment
       || loans.ledges !== this.ledges || loans.brains !== this.brains || loans.strikes !== this.strikeOwner || loans.strikes.length !== this.strikes.length || loans.strikes.some((row, i) => row !== this.strikes[i])
-      || leadPlayer(host) !== this.player || host.combat !== this.combat || host.rng !== this.rng
-      || [method(this.contacts, 'contact'), method(this.terrain, 'heightAt'), method(this.environment, 'grassHeightAt'), method(this.lifecycle, 'signature'), method(this.player, 'dashAt'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(this.brains, 'set')]
+      || host.players !== this.players || host.combat !== this.combat || host.rng !== this.rng
+      || [method(this.contacts, 'contact'), method(this.terrain, 'heightAt'), method(this.environment, 'grassHeightAt'), method(this.lifecycle, 'signature'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(this.brains, 'set')]
         .some((callable, i) => callable !== this.methods[i])) throw new Error('Retired or replaced elite kernel owner');
   }
   create(id: string, state: NativeEliteKernelState): StalkerBrain<AnimalSim> {
@@ -90,25 +90,27 @@ export class NativeEliteKernels {
     const row = this.rows.find(candidate => candidate.id === id); if (row === undefined) throw new Error('Missing elite kernel row');
     // Native restore replaces physics after installing controllers; each contact
     // pins the current owner through both reach checks and damage delivery.
-    let striking: AnimalSim | null = null, physics = this.host.physics;
-    const hit = { source: 'env' as const, sourceTags: [`elite.${id}`, 'feel.blow', 'cover.checked'] as `${string}.${string}`[], target: this.player.health,
+    // Each elite deals with the player nearest it, read as it acts: a stored player would pin one member of the room.
+    const foe = () => { const at = state.animal?.position ?? row.lair; return nearestOnGround(this.players, at.x, at.z); };
+    let striking: AnimalSim | null = null, physics = this.host.physics, struck = foe();
+    const hit = { source: 'env' as const, sourceTags: [`elite.${id}`, 'feel.blow', 'cover.checked'] as `${string}.${string}`[], target: struck.health,
       amount: 0, point: this.head, dir: this.direction, cause: { kind: '', label: '' } };
     const reach = (): boolean => {
       this.validate();
       if (this.host.physics !== physics) throw new Error('Replaced elite contact physics owner');
-      const allowed = striking !== null && canReach(striking, this.player.position, physics);
+      const allowed = striking !== null && canReach(striking, struck.position, physics);
       if (this.host.physics !== physics) throw new Error('Replaced elite contact physics owner');
       return allowed;
     };
     const deliver = (): void => { this.validate(); if (reach()) this.combat.hit(hit); };
     const contactPorts = { canReach: reach, hit: deliver };
     const hurt = (actor: AnimalSim, amount: number): void => {
-      this.validate(); physics = this.host.physics; striking = actor; hit.amount = amount; hit.point = actor.position; hit.cause.kind = actor.kind; hit.cause.label = actor.label;
+      this.validate(); physics = this.host.physics; striking = actor; struck = nearestOnGround(this.players, actor.position.x, actor.position.z); hit.target = struck.health; hit.amount = amount; hit.point = actor.position; hit.cause.kind = actor.kind; hit.cause.label = actor.label;
       const name = row.contacts.find(contact => contact.amount === amount)?.strike ?? row.fallbackStrike;
       const strike = this.strikes.find(candidate => candidate.id === name); if (strike === undefined) throw new Error('Missing elite contact row');
-      this.contacts.contact(strike, { ...contactPorts, actor, target: this.player.position });
+      this.contacts.contact(strike, { ...contactPorts, actor, target: struck.position });
     };
-    const common = { player: this.player, lair: row.lair, phase2: () => state.phase2, signature: () => { this.validate(); this.lifecycle.signature(id); } };
+    const common = { player: { get position() { return foe().position; } }, lair: row.lair, phase2: () => state.phase2, signature: () => { this.validate(); this.lifecycle.signature(id); } };
     const tells = { setTime: silent, ring: silent, lane: silent, hide: silent };
     const profile = row.profile;
     const controller = profile.pattern === 'pouncer' ? new StalkerBrain<AnimalSim>({ pattern: profile.pattern, spec: profile.spec, ports: {
@@ -118,7 +120,7 @@ export class NativeEliteKernels {
         this.validate(); const d = Math.hypot(dx, dz) || 1, x = dx / d, z = dz / d, length = Math.hypot(x, z) || 1;
         const speed = row.knockdown.speed * Math.max(row.knockdown.min, Math.min(row.knockdown.max, 1));
         this.knocked.x = x / length * speed; this.knocked.z = z / length * speed;
-        this.player.dashAt(this.knocked.x, this.knocked.z, row.knockdown.seconds);
+        foe().dashAt(this.knocked.x, this.knocked.z, row.knockdown.seconds);
       }, opened: silent, growl: silent,
     } }) : new StalkerBrain<AnimalSim>({ pattern: profile.pattern, spec: profile.spec, ports: {
       ...common, pack: () => state.pack, environment: () => this.environment, random: () => this.rng.stream('ai').next(), rings: tells,

@@ -9,7 +9,7 @@ import { NativeEliteKernels, type NativeEliteKernelLoans } from './eliteKernels'
 import { NativeEliteLifecycle, type NativeElitePopulation } from './eliteLifecycle';
 import { GrazerBrain } from './grazer';
 import { NativeEliteContinuation, type EliteContinuationCore, type EliteContinuationGroups, type EliteContinuationMember } from './eliteContinuation';
-import { leadPlayer } from '../sim/leadPlayer';
+import { nearestOnGround } from '../sim/nearPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
 const projectionRows = v.strictObject({ signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
@@ -72,7 +72,7 @@ export interface NativeEliteScript {
   readonly broken?: () => boolean; readonly retired?: () => boolean; readonly canSpawn?: () => boolean;
 }
 export interface NativeEliteRosterCore extends EliteContinuationCore {
-  readonly player: { readonly position: { readonly x: number; readonly z: number } };
+  readonly players: ReadonlyMap<string, unknown> | undefined;
   readonly add: (script: NativeEliteScript) => unknown; readonly update: (dt: number, time: number) => void;
   readonly initialize: () => void; readonly signature: (id: string) => void;
 }
@@ -131,7 +131,7 @@ export class NativeEliteRoster {
     this.brains = this.bindings.brains; this.pinned = this.bindings.pinned; this.packs = this.groups?.packs; this.guards = this.groups?.herds;
     this.borrowedGroups = this.rows.map(row => row.continuation?.borrowed === undefined ? undefined : this.guards?.[row.continuation.borrowed.group]); this.kernelLoans = this.kernelMembers();
     const ids = this.rows.map(row => row.def.id), keys = ['version', ...Object.keys(EliteCoreContinuationSchema.entries), ...(input.wire.detached === undefined ? [] : [input.wire.detached]), ...this.rows.map(row => row.snapshot)];
-    if (new Set(ids).size !== ids.length || input.roles.length !== ids.length || this.entries.length > 0 || this.core.player !== leadPlayer(this.host)
+    if (new Set(ids).size !== ids.length || input.roles.length !== ids.length || this.entries.length > 0 || this.core.players !== this.host.players
       || new Set(keys).size !== keys.length || keys.some(key => key.length === 0 || ['__proto__', 'constructor', 'prototype'].includes(key))
       || this.rows.some(row => (row.pack !== undefined && this.groups === undefined)
         || (row.continuation?.borrowed !== undefined && !(this.groups?.herds[row.continuation.borrowed.group] instanceof GrazerBrain)))
@@ -151,7 +151,7 @@ export class NativeEliteRoster {
   private kernelMembers(): readonly unknown[] { const owner = this.kernelOwner; return owner === undefined ? [] : [owner.contacts, owner.strikes, owner.terrain, owner.environment, owner.ledges]; }
   private validate(): void {
     const loans = this.loans; this.lifecycle?.validate();
-    if (this.scope.disposed || this.scope.disposing || this.host.scope !== this.scope || this.host.clock !== this.clock || loans.host !== this.host || loans.core !== this.core || this.core.player !== leadPlayer(this.host)
+    if (this.scope.disposed || this.scope.disposing || this.host.scope !== this.scope || this.host.clock !== this.clock || loans.host !== this.host || loans.core !== this.core || this.core.players !== this.host.players
       || loans.bindings !== this.bindings || loans.kernel !== this.kernelOwner || loans.groups !== this.groups || this.core.entries !== this.entries
       || this.projected.some(loan => loan.group.leadAway !== loan.lead || loan.program.project !== loan.project || loan.core.won !== loan.won || readers(loan.group, ['leaderState','leader']).some((reader, i) => reader !== loan.readers[i]))
       || (this.bond !== null && (this.bond.scope !== this.bondScope || this.bondScope !== this.scope || this.bondScope.disposed || this.bondScope.disposing || readers(this.bond).some((reader, i) => reader !== this.bondReaders[i])))
@@ -203,7 +203,7 @@ export class NativeEliteRoster {
         live(); const bond = this.bond; if (bond === null) throw new Error('Missing elite bond owner'); const animal = member.animal; if (animal !== null) { if (engaged) this.pinned.add(animal); else this.pinned.delete(animal); }
         if (animal === null || member.detached) return;
         // Capture the original bond facade before signature/lead can reenter its owner.
-        const phase = bond.phase, adopted = bond.companion, at = animal.position, player = leadPlayer(this.host).position;
+        const phase = bond.phase, adopted = bond.companion, at = animal.position, player = nearestOnGround(this.host.players, at.x, at.z).position;
         const effects = controller.advance(dt, { state: group.leaderState, phase2: member.phase2, engaged, bonded: phase === profile.bondedState,
           same: group.leader === animal, health: animal.hp / animal.maxHp, at: [at.x, at.y, at.z], player: [player.x, player.y, player.z] });
         if (effects.signature) { live(); core.signature(row.def.id); } if (effects.lead) { live(); group.leadAway(player.x, player.z); }

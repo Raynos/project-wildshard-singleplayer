@@ -107,7 +107,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
   readonly initialize: () => void;
 } {
   const conditions = spec.conditions;
-  const core = new EliteCore<EliteCoreScript<AnimalSim>>({ player: leadPlayer(host), condition: rule => {
+  const core = new EliteCore<EliteCoreScript<AnimalSim>>({ players: host.players, condition: rule => {
     if (rule === 'always') return true;
     if (conditions.mode === 'weights') return rule === 'dusk' ? conditions.dusk() > 0.5 : rule === 'night' && conditions.night() > 0.5;
     const phase = conditions.phase();

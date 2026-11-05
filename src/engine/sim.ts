@@ -325,7 +325,8 @@ export class SimHost {
   }
   /** The player `playerFocus` follows. */
   get focusedPlayer(): PlayerSim { return this.focused; }
-  private focusOn(point: { readonly x: number; readonly y: number; readonly z: number }): void { if (this.players.size > 1) this.focused = this.nearestPlayer(point); }
+  /** Make `playerFocus` the player nearest `point`: each body before it decides and moves, an encounter before its step. */
+  focusOn(point: { readonly x: number; readonly y: number; readonly z: number }): void { if (this.players.size > 1) this.focused = this.nearestPlayer(point); }
   /** Materialize a trusted deferred actor. Stable identity and immutable recipe are included in exact continuation.
    * The installer reinstalls the saved dynamic roster before restore; native motors belong to this host, never its caller.
    */

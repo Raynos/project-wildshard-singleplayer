@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { BossBrain, type BossSaved, type BossPresentation } from './BossBrain';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimHost, SimValue } from '../sim';
-import { leadPlayer } from '../sim/leadPlayer';
+import { BossContenders } from './bossContenders';
 
 /** One ordered phase: health threshold, steering and a presentation caption, authored without callbacks. */
 export interface EncounterPhase { at: number; name: string; caption: string; speed: number; stopDistance: number; turnRate: number }
@@ -40,6 +40,9 @@ export class PhaseEncounter {
       || !Number.isFinite(spec.arena.radius) || spec.arena.radius <= 0 || spec.arena.radius > 500 || ![...spec.arena.at, ...spec.respawn.at, spec.respawn.yaw, spec.intro, spec.introShort].every(Number.isFinite) || spec.intro < 0 || spec.introShort < 0) throw new Error('Invalid phase encounter');
     this.actor = actor; this.spec = structuredClone(spec); this.contract = JSON.stringify(this.spec); this.presentation = ports.presentation ?? silentBossPresentation();
     const focus = new Vector3(...spec.arena.at), saved = { ...ports.saved };
+    const party = new BossContenders(sim.players, (point) => point.distanceTo(focus) < spec.arena.radius, (player, position, yaw) => {
+      player.position.copy(position); player.yaw = yaw; player.health.attributes.health = player.health.attributes.maxHealth;
+    });
     const phase = (): EncounterPhase => { const value = this.spec.phases[this.boss.phase]; if (!value) throw new Error('Missing encounter phase'); return value; };
     this.boss = new BossBrain({ id: spec.id, name: spec.name, title: spec.title, retryTitle: spec.retry, intro: spec.intro, introShort: spec.introShort,
       phases: spec.phases.map((p) => ({ at: p.at, name: p.name, caption: p.caption })), reward: {} }, {
@@ -55,8 +58,7 @@ export class PhaseEncounter {
       clampHp: (fraction) => { actor.hp = actor.maxHp * fraction; }, setInvulnerable: (on) => { this.shield = on; },
       victory: () => { actor.setMotion(actor.yaw, 0, 4); }, rewardPoint: () => focus,
       respawnPoint: () => ({ pos: new Vector3(...spec.respawn.at), yaw: spec.respawn.yaw }),
-    }, { events: sim.events, player: { position: sim.playerFocus }, lockInput: () => undefined,
-      respawn: (position, yaw) => { const player = leadPlayer(sim); player.position.copy(position); player.yaw = yaw; player.health.attributes.health = player.health.attributes.maxHealth; },
+    }, { events: sim.events, player: party.player, lockInput: () => undefined, respawn: party.respawn,
       skipHeld: () => false, faceToward: () => undefined, spawnReward: ports.reward, persist: (value) => { ports.persist({ ...value }); },
     }, this.presentation, saved);
     sim.events.answer('damage.modify', (request) => {
@@ -68,7 +70,7 @@ export class PhaseEncounter {
       // A large hit cannot skip a checkpoint or kill through the next phase threshold.
       return next ? { ...request, amount: Math.min(request.amount, Math.max(0, actor.hp - actor.maxHp * next.at)) } : request;
     }, sim.scope, { order: 100 });
-    sim.events.on('actor.died', ({ actor: dead }) => { if (sim.players.has(dead.id)) this.boss.onPlayerDeath(); }, sim.scope);
+    sim.events.on('actor.died', ({ actor: dead }) => { if (sim.players.size > 1) party.fell(dead.id, this.boss); else if (sim.players.has(dead.id)) this.boss.onPlayerDeath(); }, sim.scope);
     sim.onStep(`encounter.${spec.id}`, (_dt) => { this.boss.update(1 / 60, sim.clock.now); }, { snapshot: () => this.snapshot(), restore: (value) => { this.restore(value); } });
     sim.scope.onDispose(() => { this.boss.disarm(); }); this.boss.arm();
   }
