@@ -225,9 +225,9 @@ rewrite still needs Jake's approval.
   CI's `pnpm run typecheck` / `lint` run `pnpm gen` first. Never export a
   copy of the repo to run it; CF1 selects local related tests and warm project
   types automatically from the staged paths (G612, G670, G689).
-- **CI-only node checks:** `pnpm test`'s check-paths, audit-assets, check-model-sources and webgpu-inventory don't run
-  in the pre-push gate (its tree drops paths they read). After moving fixtures or editing an allowlist, run
-  `node scripts/check-paths.mjs` yourself.
+- **CI-only node checks:** check-paths (its own step in CI's `typecheck-lint` job, J122), audit-assets, check-model-sources
+  and webgpu-inventory don't run in the pre-push gate (its tree drops paths they read). After moving fixtures or editing
+  an allowlist, run `node scripts/check-paths.mjs` yourself.
 - **Your CI run:** with ~10 agents pushing, `gh run list --limit 1` is often someone else's run, and a newer push
   cancels the pending run of an older one. Pick yours by `headSha`
   (`gh run list --json databaseId,headSha -q '.[]|select(.headSha|startswith("<sha>"))'`); if it was cancelled, check
