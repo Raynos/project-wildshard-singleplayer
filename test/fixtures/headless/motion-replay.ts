@@ -1,5 +1,6 @@
 import { PerspectiveCamera } from 'three';
 import { Player, type PlayerWireInput } from '../../../src/engine/client/player/Player';
+import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE } from '../../../src/engine/shared/physics/CharacterMotor';
 import { NET_BUTTONS } from '../../../src/engine/shared/input/netButtons';
 import { legacyDouble } from '../../../src/engine/test/FakeGame';
 import { FIXED_STEP } from '../../../src/engine/shared/core/fixedStep';
@@ -8,9 +9,11 @@ import { runHeadlessJourney, type HeadlessJourneyPlan, type HeadlessJourneyRepor
 import type { TrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
 
 // P1-E5.3 B3: what a real journey did on the server, tick for tick, run again on the client's step in a second world from
-// the same product. The second world is a stand-in for C5's prediction world: the real `Player`, its capsule in a second
-// resident's physics, reading that resident's ground and water, with the resident ticked with no input so everything but
-// the player moves as it did. I1 makes this strict.
+// the same product. The second world is a stand-in for C5's prediction world: the real `Player` on the second resident's
+// own capsule, reading that resident's ground and water, with the resident ticked with no input so everything but the player
+// moves as it did. I1 holds it to 2 cm. A rope deck is dynamic and chaotic, and Rapier breaks a tie between two planks by its
+// collider tree, so that second world has to grow as the first did: one capsule, rebuilt where each leg rebuilt it. A capsule
+// of the `Player`'s own there sent a bridge 11 cm off, with no law wrong.
 
 /** Feet and ground, every tick of one or more journeys. */
 export interface MotionCapture { readonly samples: HeadlessJourneySample[] }
@@ -42,27 +45,33 @@ function clientCommand(sample: HeadlessJourneySample, yaw: number): PlayerWireIn
 export function replayOnClient(resident: TrustedHeadlessResident, capture: MotionCapture): MotionReplayReport {
   const { host } = resident, player = new Player(new PerspectiveCamera(), host.physics, legacyDouble<HTMLCanvasElement>({}), { waterLine: { update: () => undefined, setHint: () => undefined } });
   const lead = leadPlayer(host), { samples } = capture, errors = new Float64Array(samples.length);
-  player.bindFrame(host.physics, player.motor, { heightAt: (x, z) => host.groundHeightAt(x, z), waterSurfaceAt: (x, z) => host.waterSurfaceAt(x, z), platforms: [] });
+  const frame = { heightAt: (x: number, z: number) => host.groundHeightAt(x, z), waterSurfaceAt: (x: number, z: number) => host.waterSurfaceAt(x, z), platforms: [] };
+  /** The body a leg starts in, as `runHeadlessJourney` makes it. */
+  const standIn = (): CharacterMotor => {
+    lead.releaseMotor().dispose();
+    const motor = new CharacterMotor(host.physics, { ...PLAYER_CAPSULE, ...PLAYER_BODY, owner: lead.id });
+    lead.attachMotor(motor); player.bindFrame(host.physics, motor, frame);
+    return motor;
+  };
+  player.motor.dispose(); // the host moves no one: its player's capsule is this `Player`'s
+  host.parked.add(lead.id);
   let worst = 0, worstTick = 0, overTolerance = 0, groundTicks = 0, yaw = lead.yaw, previous: HeadlessJourneySample | undefined;
-  lead.motor.setEnabled(false);
-  try {
-    for (const [tick, sample] of samples.entries()) {
-      for (const actor of host.entities.values()) actor.harnessHold = true;
-      const placed = previous === undefined || sample.commands.length === 0 && Math.hypot(sample.x - previous.x, sample.y - previous.y, sample.z - previous.z) > 1;
-      previous = sample;
-      if (placed) { player.spawn(sample.x, sample.z, yaw, sample.y); player.motor.resetAt(player.position); continue; }
-      const command = clientCommand(sample, yaw);
-      yaw = command.yaw;
-      lead.position.copy(player.position); // the host's bands stand bodies near its player: here, that is the client's feet
-      resident.step([]);
-      player.step(FIXED_STEP, command);
-      const p = player.position, error = Math.hypot(p.x - sample.x, p.y - sample.y, p.z - sample.z);
-      errors[tick] = error;
-      if (error > worst) { worst = error; worstTick = tick; }
-      if (error > TOLERANCE) overTolerance++;
-      if (player.onGround !== sample.grounded) groundTicks++;
-    }
-  } finally { player.motor.dispose(); }
+  for (const [tick, sample] of samples.entries()) {
+    for (const actor of host.entities.values()) actor.harnessHold = true;
+    const placed = previous === undefined || sample.commands.length === 0 && Math.hypot(sample.x - previous.x, sample.y - previous.y, sample.z - previous.z) > 1;
+    previous = sample;
+    if (placed) { const motor = standIn(); player.spawn(sample.x, sample.z, yaw, sample.y); motor.resetAt(player.position); continue; }
+    const command = clientCommand(sample, yaw);
+    yaw = command.yaw;
+    lead.position.copy(player.position); // the host's bands stand bodies near its player: here, that is the client's feet
+    resident.step([]);
+    player.step(FIXED_STEP, command);
+    const p = player.position, error = Math.hypot(p.x - sample.x, p.y - sample.y, p.z - sample.z);
+    errors[tick] = error;
+    if (error > worst) { worst = error; worstTick = tick; }
+    if (error > TOLERANCE) overTolerance++;
+    if (player.onGround !== sample.grounded) groundTicks++;
+  }
   const step = Math.max(1, Math.floor(samples.length / 100)), curve: number[] = [];
   for (let at = 0; at < samples.length; at += step) curve.push(Math.max(...errors.subarray(at, at + step)));
   return { ticks: samples.length, worst, worstTick, overTolerance, groundTicks, curve };

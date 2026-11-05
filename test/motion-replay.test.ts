@@ -14,11 +14,10 @@ import { installWalkRopeBodies } from './fixtures/headless/ropeBodies';
 import { physicsRoutes } from './fixtures/headless/physicsRoutes';
 import { captureJourney, replayOnClient, type MotionCapture } from './fixtures/headless/motion-replay';
 
-// P1-E5.3 B3: a real Driftwood walk on the server, replayed on the client's step in a second world from the same product.
-// This reports its error per tick; I1 holds it to 2 cm. It runs exact for 2,640 ticks, then 180 of 4,234 are over, by 11 cm at
-// worst, on one climb near (26, 24). Until that has a cause the limit only says the two steps walk the same route.
+// P1-E5.3 B3, I1: a real Driftwood walk on the server, replayed on the client's step in a second world from the same product,
+// and held to 2 cm and equal ground flags on every tick. It runs exact, rope bridge included.
 
-const SLUG = 'driftwood-isle', LIMIT = .2;
+const SLUG = 'driftwood-isle', LIMIT = .02;
 
 test('a Driftwood journey replays on the client step', async () => {
   const directory = builtProduct(SLUG), product = await loadHeadlessProduct(directory), shard = product.shardfile, descriptor = outputDescriptor(shard);
@@ -45,5 +44,7 @@ test('a Driftwood journey replays on the client step', async () => {
     console.info(JSON.stringify({ diagnostic: 'motion-replay', slug: SLUG, ...replay }));
     expect(replay.ticks).toBe(capture.samples.length);
     expect(replay.worst).toBeLessThan(LIMIT);
+    expect(replay.overTolerance).toBe(0);
+    expect(replay.groundTicks).toBe(0);
   } finally { client.retire(); client.dispose(); }
 }, 120_000);
