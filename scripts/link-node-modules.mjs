@@ -7,7 +7,7 @@
 //
 //   node scripts/link-node-modules.mjs <repo> <tree>          (the shell scripts)
 //   import { linkNodeModules } from './link-node-modules.mjs'  (the node ones)
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, symlinkSync, unlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, symlinkSync, unlinkSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -40,6 +40,7 @@ export function linkNodeModules(repo, tree) {
   if (!existsSync(from)) return; // nothing installed (a test's throwaway repo): the tree resolves no packages, as before
   if (existsSync(to)) {
     if (lstatSync(to).isSymbolicLink()) throw new Error(`link-node-modules: ${to} is a whole-folder link; remove it first`);
+    dropStaleScopeLinks(to);
     linkWorkspaceSources(tree, to);
     linkInstalledScope(repo, tree, from, to);
     linkPackageNodeModules(repo, tree);
@@ -65,17 +66,28 @@ export function linkNodeModules(repo, tree) {
   linkPackageNodeModules(repo, tree);
 }
 
+/**
+ * Drop a scope link that reaches no package. Only a manifest proves one: when a package leaves the workspace, git removes
+ * its tracked files but keeps its ignored node_modules, so the old link still resolves to a folder with nothing to import.
+ */
+function dropStaleScopeLinks(to) {
+  for (const name of WORKSPACE_SCOPES) {
+    const scope = join(to, name);
+    if (!existsSync(scope)) continue;
+    for (const pkg of readdirSync(scope)) {
+      const link = join(scope, pkg);
+      if (lstatSync(link).isSymbolicLink() && !existsSync(join(link, 'package.json'))) unlinkSync(link);
+    }
+  }
+}
+
 /** A package that left the workspace leaves a stale link in an older export's node_modules: point it at the install. */
 function linkInstalledScope(repo, tree, from, to) {
   for (const name of WORKSPACE_SCOPES) {
     if (!existsSync(join(from, name))) continue;
     for (const pkg of readdirSync(join(from, name))) {
       const link = join(to, name, pkg), target = resolve(join(from, name), readlinkSync(join(from, name, pkg)));
-      if (relative(resolve(repo), target).startsWith('src/') || existsSync(resolve(tree, 'src', pkg, 'package.json'))) continue;
-      // The old link can still resolve: git removes the package's tracked files but keeps its ignored node_modules, so
-      // the folder survives with no manifest and every import of the package fails. Only a manifest proves the link.
-      if (present(link) && existsSync(join(link, 'package.json'))) continue;
-      rmSync(link, { force: true });
+      if (relative(resolve(repo), target).startsWith('src/') || present(link)) continue;
       mkdirSync(dirname(link), { recursive: true });
       symlinkSync(target, link);
     }
@@ -109,7 +121,12 @@ function linkPackageNodeModules(repo, tree) {
   for (const pkg of readdirSync(src)) {
     const from = join(src, pkg, 'node_modules'), to = resolve(tree, 'src', pkg, 'node_modules');
     if (!existsSync(from) || !existsSync(resolve(tree, 'src', pkg))) continue;
-    if (existsSync(to)) { linkMissingDependencies(repo, resolve(tree, 'src', pkg), to); continue; }
+    if (existsSync(to)) {
+      dropStaleScopeLinks(to);
+      linkInstalledScope(repo, tree, from, to);
+      linkMissingDependencies(repo, resolve(tree, 'src', pkg), to);
+      continue;
+    }
     mkdirSync(to);
     const mirror = (fromDir, toDir) => {
       for (const name of readdirSync(fromDir)) {

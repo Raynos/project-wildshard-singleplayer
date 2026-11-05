@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Every write is confined to an owned fixture under ./tmp.
-import { mkdirSync, mkdtempSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths.
 import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -49,9 +49,19 @@ describe('linkNodeModules', () => {
     mkdirSync(join(tree, 'node_modules', '@wildshard'), { recursive: true });
     mkdirSync(join(tree, 'src', 'format', 'node_modules'), { recursive: true });
     symlinkSync('../../src/format', join(tree, 'node_modules', '@wildshard', 'format'));
+    // a package's own links: the checkout's sdk has the install, its commons resolves from the root
+    mkdirSync(join(repo, 'src', 'sdk', 'node_modules', '@wildshard'), { recursive: true });
+    symlinkSync(join(repo, 'node_modules', '@wildshard', 'format'), join(repo, 'src', 'sdk', 'node_modules', '@wildshard', 'format'));
+    mkdirSync(join(repo, 'src', 'commons', 'node_modules'), { recursive: true });
+    for (const pkg of ['sdk', 'commons']) {
+      mkdirSync(join(tree, 'src', pkg, 'node_modules', '@wildshard'), { recursive: true });
+      symlinkSync('../../../format', join(tree, 'src', pkg, 'node_modules', '@wildshard', 'format'));
+    }
 
     linkNodeModules(repo, tree);
 
     expect(realpathSync(join(tree, 'node_modules', '@wildshard', 'format'))).toBe(installed);
+    expect(realpathSync(join(tree, 'src', 'sdk', 'node_modules', '@wildshard', 'format'))).toBe(installed);
+    expect(existsSync(join(tree, 'src', 'commons', 'node_modules', '@wildshard', 'format'))).toBe(false);
   });
 });
