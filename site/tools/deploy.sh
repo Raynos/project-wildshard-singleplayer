@@ -15,7 +15,6 @@ set -euo pipefail
 site="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 cd "$site"
 sha="$(git rev-parse --short HEAD)"
-prefix="$(git rev-parse --show-prefix)" # site/ inside the game repo, empty in its own
 dirty="$(git status --porcelain -- . | grep -v '^??' || true)"
 if [ -n "$dirty" ]; then
   echo "deploy-site: site/ has uncommitted edits; HEAD ($sha) ships without them:" >&2
@@ -25,7 +24,8 @@ fi
 mkdir -p "$site/.deploy"
 work="$(mktemp -d "$site/.deploy/build.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
-git archive "HEAD:$prefix" | tar -x -C "$work"
+git archive HEAD | tar -x -C "$work" # run from this folder, git archives only it, unprefixed
+test -f "$work/index.html" || { echo "deploy-site: the export of HEAD holds no index.html" >&2; exit 1; }
 
 echo "deploy-site: building $sha"
 vite="$(cd "$work" && node -p "require('node:path').join(require('node:path').dirname(require.resolve('vite/package.json')), 'bin/vite.js')")"
