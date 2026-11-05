@@ -14,16 +14,16 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 const failures = [];
 try {
   const context = await browser.newContext(phone), page = await context.newPage(), errors = [];
-  page.on('pageerror', error => { errors.push(error.message); });
+  page.on('pageerror', error => { errors.push(error.message); console.log('[error]', (error.stack ?? error.message).slice(0, 400)); });
   page.on('console', line => { if (/worker client|Standalone|save refused/iu.test(line.text())) console.log('[page]', line.text().slice(0, 240)); });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
   await saveFixture(context, { scope: 'device', key: 'debug.workerClient', data: 'on' });
   const enter = async () => {
     await page.goto(floorGridBenchmarkUrl(base), { waitUntil: 'load' });
     await page.locator('.ws-main-grid').click({ timeout: 60_000 });
-    await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady, undefined, { timeout: 240_000 });
+    await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady, undefined, { timeout: 60_000 });
     await page.evaluate(FLOOR_GRID_ENTER);
-    await page.waitForFunction(() => window.__workerClient !== undefined, undefined, { timeout: 120_000 });
+    await page.waitForFunction(() => window.__workerClient !== undefined, undefined, { timeout: 40_000 });
   };
   await enter();
   const started = Date.now(), seen = [];
@@ -41,19 +41,22 @@ try {
     const place = String(final.current);
     console.log(JSON.stringify({ at: Math.round((Date.now() - started) / 1000), place, phase: final.phase, feet: [Math.round(final.feet.x), Math.round(final.feet.z)], server: [final.report.cell, Math.round(final.report.serverX), Math.round(final.report.serverZ)], fps: Math.round(final.report.framesPerSecond), ticks: Math.round(final.report.ticksPerSecond), corrections: final.report.corrections, worst: Number(final.report.worstOffset.toFixed(2)), rows: final.report.rows, closed: final.report.closed, dropped: final.report.dropped }));
     if (place !== last) { seen.push(place); last = place; }
-    if (seen.length > crossings || final.report.closed !== null) break;
+    if ((seen.length > crossings && final.report.rows > 0) || final.report.closed !== null) break;
   }
   // Save where it stands; a new page restores it, out of IndexedDB, and crosses there.
-  await page.evaluate(() => { window.__wildshard.world.game.app.input.clear(); return window.__workerClientSave(); });
+  await page.evaluate(() => { window.__wildshard.world.game.app.input.clear(); return Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]); });
   await page.waitForTimeout(500);
   const stood = await page.evaluate(() => window.__workerClient());
   if (!stood.savedOk) failures.push('the save was not durable');
+  // Chromium refuses matchAll on a Cache this size at the next boot ("Operation too large"), row or no row. The saves are in IndexedDB.
+  await page.evaluate(async () => { for (const key of await caches.keys()) await caches.delete(key); });
   await enter();
   await page.waitForFunction(cell => { const report = window.__workerClient(); return report.cell === cell && report.frames > 30; }, stood.cell, { timeout: 60_000 }).catch(() => { failures.push(`the reload did not resume cell ${stood.cell}`); });
   const back = await page.evaluate(() => ({ report: window.__workerClient(), current: window.__wildshard.shard.grid.state().live.live.current }));
   if (!back.report.restored) failures.push('the reload did not restore');
   if (Math.hypot(back.report.serverX - stood.serverX, back.report.serverZ - stood.serverZ) > 3) failures.push('the reload moved the player');
   console.log(JSON.stringify({ saved: [stood.cell, stood.serverX, stood.serverZ], resumed: [back.report.cell, back.report.serverX, back.report.serverZ], page: back.current, restored: back.report.restored }));
+  if (final?.report.rows === 0) failures.push('no creature row is drawn in the last world');
   if (seen.length <= crossings) failures.push(`the page made ${seen.length - 1} of ${crossings} crossings: ${seen.join(' -> ')}`);
   if (final?.report.closed !== null) failures.push(`the wire closed: ${final?.report.closed}`);
   if (errors.length > 0) failures.push(...errors.slice(0, 6));
