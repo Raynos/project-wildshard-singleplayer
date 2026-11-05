@@ -6,6 +6,7 @@ import { DropArc } from './DropArc';
 import { Projectiles, type WindField } from './projectile';
 import { fovForAspect, FOV_HIP, isMesh } from './ranged';
 import { Weapon, quiverState, type OwnHit } from '../../../shared/combat/Weapon';
+import { FIXED_STEP } from '../../../shared/core/fixedStep';
 import type { Game } from '../../core/Game';
 import { weaponActionGate } from '../../input/weaponActions';
 import { placeArm } from '../../player/firstPersonArms';
@@ -25,8 +26,8 @@ import * as THREE from 'three';
 
 
 
-import { BowDraw, RENOCK_TIME } from '../../../shared/combat/bowDraw';
-import { shotSpread } from '../../../shared/combat/shotSpread';
+import { BowDraw, RENOCK_TIME, type DrawEvent } from '../../../shared/combat/bowDraw';
+import { shotRandom, shotSpread } from '../../../shared/combat/shotSpread';
 import { bowAimOn, bowBlocked, bowLaunchSpeed, bowLooseSpreadDegrees, bowMount, bowMuzzle } from '../../../shared/combat/bowLaw';
 
 import type { BowProfile, BowView } from './bowProfile';
@@ -96,6 +97,8 @@ export class Bow<Style extends string = string> extends Weapon {
 
   // draw state (bowDraw.ts)
   private readonly draw: BowDraw;
+  /** The hold the frame's commands went out with, on a link: `update` runs after they are gone. */
+  private carried = false;
   private p = 0;              // the draw, 0..1
   private vis = 0; private visVel = 0; // the string's visual draw (a spring: the release overshoots)
   private mouseDraw = false; private mouseAds = false;
@@ -176,6 +179,24 @@ export class Bow<Style extends string = string> extends Weapon {
     app.input.onReset(() => { if (this.mouseDraw) this.mouseCancel = true; this.mouseDraw = false; this.mouseAds = false; }, ctx.scope);
   }
 
+  /**
+   * The draw's clock. On a link it takes one step for each command the frame sent, on the hold those commands carried, so it
+   * keeps the server's count and lets go on the very command the server does (P1-E5.3-E1).
+   */
+  private stepDraw(dt: number, held: boolean, blocked: boolean): { ev: DrawEvent | null; shot: number } {
+    const rate = this.drawSpeedScale * this.mountDraw, { wire } = this;
+    if (wire === null) return { ev: this.draw.step(dt, held, blocked, rate), shot: 0 };
+    const carried = this.carried, steps = wire.steps(), first = (wire.nextSeq() - steps) & 0xffff;
+    this.carried = held; wire.hold(held);
+    let ev: DrawEvent | null = null, shot = 0;
+    for (let at = 0; at < steps; at++) {
+      const event = this.draw.step(FIXED_STEP, carried, blocked, rate);
+      if (event === 'loose') { shot = (first + at) & 0xffff; wire.shot(shot); }
+      ev = event ?? ev;
+    }
+    return { ev, shot };
+  }
+
   /** the FIRE disc's touch-down (Weapons.tryFire): the draw itself is the hold (`altHeld`), so this only clicks dry on an
    *  empty quiver — there is no quick-fire (N18) */
   tryFire(): void {
@@ -184,16 +205,16 @@ export class Bow<Style extends string = string> extends Weapon {
 
   override serverHit(hit: OwnHit): void { super.serverHit(hit); this.arrows.endShot(hit.seq); }
 
-  /** the loose — only ever from a full draw (bowDraw's 'loose') */
-  private loose(): void {
+  /** the loose — only ever from a full draw (bowDraw's 'loose'); `shot`: the command that let go, on a link */
+  private loose(shot = 0): void {
     const p = 1;
     this.aimRay(_v1, _fwd);
     const spreadDeg = bowLooseSpreadDegrees(this.profile, this.aimBlend, this.player.speedFactor, this.extraSpreadDeg, this.mountSpread);
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
-    shotSpread(_dir, spread, this.shotDraws(gameplayRandom), this.profile.loose ?? { radius: 'sqrt', axisScale: 1 }, _v2);
+    shotSpread(_dir, spread, shot === 0 ? gameplayRandom : shotRandom(shot), this.profile.loose ?? { radius: 'sqrt', axisScale: 1 }, _v2);
     this.launchFrom(_dir, p, this.spawnPos, this.launchVel);
-    this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: this.profile.damageScale, onHitScale: this.damageMultiplier, ...(this.wire === null ? {} : { shot: this.wire.nextSeq() }) });
+    this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: this.profile.damageScale, onHitScale: this.damageMultiplier, ...(shot === 0 ? {} : { shot }) });
     this.state.bolts--;
     this.p = 0;
     this.releasePos.copy(this.handPos);
@@ -254,16 +275,15 @@ export class Bow<Style extends string = string> extends Weapon {
     //    hand is still coming up from the quiver (RN_EARLY of the re-nock left): the string comes back to meet the hand
     //    halfway, instead of the hand reaching all the way out to the braced string ──
     const held = this.mouseDraw || this.altHeld;
-    this.wire?.hold(held);
     // sprinting on foot lowers the bow; a gallop does not (horse archery): combat/bowLaw.ts
     const { running, blocked } = bowBlocked({ enabled: this.enabled, cancel: this.mouseCancel, bolts: this.state.bolts, sprinting: pl.sprinting, mounted: this.mounted, swimming: pl.swimming });
     if (!held) this.mouseCancel = false;
-    const ev = this.draw.step(dt, held, blocked, this.drawSpeedScale * this.mountDraw);
+    const { ev, shot } = this.stepDraw(dt, held, blocked);
     if (ev === 'start') { this.chargeEvent('draw'); this.onDrawStart?.(); }
     else if (ev === 'full') { this.chargeEvent('draw', 1); this.onFullDraw?.(); }
     else if (ev === 'letdown' || ev === 'tired') { this.chargeEvent('letdown'); this.onLetDown?.(); }
     this.p = this.freezeDraw ?? this.draw.p;
-    if (ev === 'loose') this.loose();
+    if (ev === 'loose') this.loose(shot);
     this.state.loaded = this.state.bolts > 0;
     this.state.reloading = false;
     this.state.reloadProgress = 1 - this.draw.renockT / RENOCK_TIME;

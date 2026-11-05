@@ -16,10 +16,14 @@ import { predictedPlayer, PredictionWorld } from './predictionWorld';
 import { Predictor } from './predictor';
 
 /** Where this player's attacks are drawn: `EquipmentService`, on a page. */
-export interface NetWeapons { readonly bindWire: (wire: WeaponWire | null) => void; readonly serverHit: (hit: OwnHit) => void; readonly attackRefused: () => void }
+export interface NetWeapons { readonly bindWire: (wire: WeaponWire | null) => void; readonly serverHit: (hit: OwnHit) => void; readonly attackRefused: () => void; readonly heldByServer: (row: string) => void }
 
 /** The owner block's columns for the last attack the server started and the slot it says this player holds. */
 const LAST_SWING = PLAYER_CLASS.owner.findIndex(column => column.name === 'lastSwingSeq'), HELD = PLAYER_CLASS.owner.findIndex(column => column.name === 'held');
+/** Ticks between asks for a slot: a timed swap's whole length, so a slot the server is still raising is not asked for again. */
+const ASK_TICKS = 30;
+/** Asks for a slot before this page takes the server's word: long enough for a pickup or a purchase to land first. */
+const MOST_ASKS = 10;
 
 /** One client's own character. */
 export class NetPlayer implements PlayerLink {
@@ -35,6 +39,13 @@ export class NetPlayer implements PlayerLink {
     afterStep: run => { this.afterStep = run; },
     steps: () => this.frameSteps,
     nextSeq: () => (this.seq + 1) & 0xffff,
+    shot: seq => { this.attacks.started(seq); },
+    equip: row => {
+      const slot = this.slots.get(row);
+      if (slot === undefined) return;
+      this.wanted = slot; this.asks = 0; this.askAt = 0; this.heavy = false;
+    },
+    interact: id => { this.client.act({ kind: 'interact', seq: this.seq, id }); },
   };
   /** Whether this page stands in the world a frame came from. A crossing's frames wait behind this until the page has made it. */
   inCell: (cell: number) => boolean = () => true;
@@ -52,6 +63,12 @@ export class NetPlayer implements PlayerLink {
   private launcher: NonNullable<NetCommand['launcher']> | null = null;
   private seq = 0;
   private weapons: NetWeapons | null = null;
+  /** The server's slot for each row this page can hold. A row it has no slot for is the server's own business. */
+  private slots: ReadonlyMap<string, number> = new Map<string, number>();
+  /** The slot this page holds and the server has not yet said it does. */
+  private wanted: number | null = null;
+  private asks = 0;
+  private askAt = 0;
   private readonly off: readonly (() => void)[];
   constructor(client: NetClient, player: Player, physics: Physics) {
     this.client = client; this.player = player;
@@ -69,7 +86,9 @@ export class NetPlayer implements PlayerLink {
     client.onTravel(() => { this.seen = null; })];
   }
   /** Draw this player's attacks on `weapons`: they stop settling their own contact and take the server's word. */
-  bindWeapons(weapons: NetWeapons): void { this.weapons = weapons; weapons.bindWire(this.wire); }
+  bindWeapons(weapons: NetWeapons, slots: ReadonlyMap<string, number>): void { this.weapons = weapons; this.slots = slots; weapons.bindWire(this.wire); }
+  /** The slot the server says this player holds. */
+  get heldSlot(): number { return this.held; }
   /** The server has put this body somewhere: a frame has been heard. */
   get joined(): boolean { return this.seen !== null; }
 
@@ -102,7 +121,21 @@ export class NetPlayer implements PlayerLink {
     this.predictor.reconcile(frame.lastSeq, frame.owner, frame.tick);
     const swung = PLAYER_CLASS.owner[LAST_SWING]?.value(frame.owner[LAST_SWING] ?? 0), held = PLAYER_CLASS.owner[HELD]?.value(frame.owner[HELD] ?? 0);
     this.attacks.frame(frame.lastSeq, typeof swung === 'number' ? swung : 0);
-    if (typeof held === 'number') this.held = held;
+    if (typeof held === 'number') this.heldIs(held, frame.tick);
+  }
+  /** The slot the server says this player holds. It goes on asking for the page's until that lands or plainly will not. */
+  private heldIs(held: number, tick: number): void {
+    const moved = held !== this.held, { wanted } = this;
+    this.held = held;
+    if (wanted === held) { this.wanted = null; return; }
+    if (wanted === null) { if (moved) this.follow(held); return; }
+    if (tick < this.askAt) return;
+    if (this.asks >= MOST_ASKS) { this.wanted = null; this.follow(held); return; }
+    this.client.act({ kind: 'equip', seq: this.seq, slot: wanted });
+    this.asks++; this.askAt = tick + ASK_TICKS;
+  }
+  private follow(slot: number): void {
+    for (const [row, at] of this.slots) if (at === slot) { this.weapons?.heldByServer(row); return; }
   }
   /** The end of a render frame: send what its steps queued, and glide the camera. */
   present(dt: number): void {

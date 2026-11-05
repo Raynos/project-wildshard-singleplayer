@@ -308,10 +308,12 @@ export class EquipmentService implements WeaponHooks {
     if (instant) {
       this.current.setActive(false); this.current.holster = 0;
       this.current = to; to.holster = 0; to.setActive(true); to.model.visible = this._visible;
+      this.serverWire?.equip(to.row.id);
       this.apply();
       return;
     }
     this.swapping = { from: this.current, to, t: 0, switched: false };
+    this.serverWire?.equip(to.row.id);
     this.apply();
     this.events?.emit('weapon.swap', { to: to.row.id });
     this.onSwap?.(to.id);
@@ -344,7 +346,15 @@ export class EquipmentService implements WeaponHooks {
   get reach(): number | undefined { return this.current.reach; }
 
   /** Give every weapon its line to the server (P1-E5.3-E1). */
-  bindWire(wire: WeaponWire | null): void { this.serverWire = wire; for (const w of this.list) w.wire = wire; }
+  bindWire(wire: WeaponWire | null): void { this.serverWire = wire; for (const w of this.list) w.wire = wire; wire?.equip(this.current.row.id); }
+  /** A named interaction the server must judge: nothing, where no server owns the player. */
+  interact(id: string): void { this.serverWire?.interact(id); }
+  /** The server says this row is what the player holds (P1-E6): the page holds it too, owned or lent here or not. */
+  heldByServer(row: string): void {
+    const weapon = this.list.find(w => w.row.id === row);
+    if (weapon === undefined) return;
+    this.unlock(weapon.id); this.select(weapon.id);
+  }
   /** The server settled a blow of ours: the weapon in hand plays it. */
   serverHit(hit: OwnHit): void { this.current.serverHit(hit); }
   /** The server refused a start: the weapon in hand lets go. */

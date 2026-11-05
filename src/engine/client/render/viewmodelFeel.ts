@@ -216,7 +216,8 @@ export class RangedFrame {
     model: Object3D, muzzle: readonly [number, number, number], time: number, tracers: readonly RangedTrace[], puffs: Puffs,
     directionScratch: Vector3, pointScratch: Vector3): void {
     if (tracers.length === 0 || tracers.length > 128) throw new RangeError('Invalid hitscan trace roster');
-    const {point, direction, surface, hit, killed} = hitscan((origin, dir) => weapon.aimRay(origin, dir), targets, profile, this.adsBlend, bloom, speedFactor, world => weapon.shotDraws(world));
+    // off the wire the blow is the server's to settle: this shot draws only its trace, to the wall
+    const {point, direction, surface, hit, killed} = hitscan((origin, dir) => weapon.aimRay(origin, dir), weapon.wire === null ? targets : undefined, profile, this.adsBlend, bloom, speedFactor, world => weapon.shotDraws(world));
     weapon.wire?.press(true);
     if (hit) weapon.onHit?.(hit.animal.kind, hit.headshot, killed);
     directionScratch.copy(direction);

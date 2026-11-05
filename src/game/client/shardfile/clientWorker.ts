@@ -27,6 +27,8 @@ export interface WorkerClientGrid {
   readonly frame: () => string | null;
   readonly animals: () => Creatures | null;
 }
+/** The part of an item row that says where the server holds it. */
+export interface WorkerItemRow { readonly id: string; readonly ranged?: { readonly slot: number } | undefined }
 /** What the page hands the proof. */
 export interface WorkerClientPorts {
   readonly slug: string;
@@ -36,6 +38,8 @@ export interface WorkerClientPorts {
   readonly grid: WorkerClientGrid | null;
   /** The real weapons: they send their presses and take the server's word. */
   readonly weapons: NetWeapons;
+  /** The shard's item rows: a ranged row names the server's slot for it. */
+  readonly items: readonly WorkerItemRow[];
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
 }
@@ -51,7 +55,7 @@ const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), ST
 /** What the page measures, as I6 lists it. */
 export interface WorkerClientReport {
   frames: number; framesPerSecond: number; ticksPerSecond: number; correctionsPerMinute: number; corrections: number; worstOffset: number; queue: number; replaysPerFrame: number;
-  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; dropped: number; closed: string | null; x: number; z: number; cell: number; serverX: number; serverZ: number;
+  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; held: number; dropped: number; closed: string | null; x: number; z: number; cell: number; serverX: number; serverZ: number;
 }
 declare global { interface Window { __workerClient?: () => WorkerClientReport } }
 
@@ -107,7 +111,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix: PROOF_SAVES, ...await openIndexedSaves(PROOF_DATABASE) }), { client } = shell;
   scope.onDispose(() => { shell.dispose(); });
   const net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
-  player.link = net; net.bindWeapons(ports.weapons);
+  player.link = net; net.bindWeapons(ports.weapons, new Map(ports.items.flatMap(item => item.ranged === undefined ? [] : [[item.id, item.ranged.slot] as const])));
   // A frame names its world. A grid page crosses when one says so; a one-shard page has only the world it opened in, and waits there.
   const { grid } = ports, siteOf = (cell: number): string | null | undefined => cell === 0 ? null : grid?.cells[cell - 1]?.instance;
   let opened: number | undefined;
@@ -119,7 +123,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
   await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, dropped: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0 };
   scope.onDispose(client.onCombat(event => { if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; } }));
   let firstTick = -1, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started;
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
@@ -135,7 +139,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     report.ticksPerSecond = firstTick === -1 ? 0 : (tick - firstTick) / seconds;
     report.corrections = predictor.corrections; report.correctionsPerMinute = predictor.corrections / seconds * 60; report.worstOffset = net.worstOffset; report.queue = predictor.pending;
     report.replaysPerFrame = predictor.replays / report.frames; report.delayMs = client.clock.delayMs; report.jitterMs = client.clock.jitterMs;
-    report.refused = net.attacks.refused; report.attacks = net.attacks.pending;
+    report.refused = net.attacks.refused; report.attacks = net.attacks.pending; report.held = net.heldSlot;
     report.dropped = client.dropped; report.closed = client.closed; report.x = player.position.x; report.z = player.position.z;
     const { latest } = client;
     if (latest !== null) { const { px, pz } = client.owner(latest); report.cell = latest.cell; report.serverX = Number(px); report.serverZ = Number(pz); }
@@ -143,7 +147,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;
     report.mainMsP95 = [...costs].sort((a, b) => a - b)[Math.floor(Math.min(report.frames, costs.length) * 0.95) + Math.max(0, costs.length - report.frames)] ?? 0;
     if (now - sampleAt > 2000) { sampleAt = now; void readWorker(shell, report); }
-    show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}`);
+    show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}  held ${report.held}`);
   } });
   window.__workerClient = () => ({ ...report });
 }

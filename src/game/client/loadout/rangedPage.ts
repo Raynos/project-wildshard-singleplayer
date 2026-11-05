@@ -83,7 +83,7 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
   const loadout = installHeldLoadout(ctx, slots), pickup = rows.drops.rifle;
   const rifleDrop = ctx.scope.run(() => new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new Vector3(...pickup.at), tier: 'common', prompt: pickup.label, scale: pickup.scale, random: random(rows.drops.rifleStream) }));
   runtime.interactables.push(rifleDrop.interactable); rifleDrop.onNear = inside => { audio.pickupHum(inside); };
-  rifleDrop.onPickup = () => { weapons.unlock(slots.firearm.slot); weapons.select(slots.firearm.slot); audio.hitMarker(); music.sting('pickup'); hud.toast(pickup.toast); };
+  rifleDrop.onPickup = () => { weapons.interact('quest.pickup'); weapons.unlock(slots.firearm.slot); weapons.select(slots.firearm.slot); audio.hitMarker(); music.sting('pickup'); hud.toast(pickup.toast); };
   if (loadout.hasRifle || pickup.parameters.includes(params.get('weapon') ?? '')) rifleDrop.dispose();
   runtime.hooks.disposeRifleDrop = () => { rifleDrop.dispose(); };
   runtime.hooks.updatePickups = (dt, time) => { rifleDrop.update(dt, time, game.renderer, game.camera); drops.update(dt, time, game.renderer, game.camera, player.position); };

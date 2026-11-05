@@ -102,8 +102,10 @@ export class ProjectileLaw<V extends object, S> {
       world: ports.world,
       target: (from, direction, distance) => this.kind.hitsAnimals !== false ? ports.targets(from, direction, distance) : null,
       hit: (flight, hit, direction) => {
-        ports.targetHit(hit);
         const animal = hit.animal;
+        // an own shot off the wire is the server's to settle: here it only stops where it struck
+        if (flight.shot !== 0) { this.stop(flight, hit.point, direction, 'flesh', animal.alive ? animal : null, true); return; }
+        ports.targetHit(hit);
         const damage = Math.max(1, Math.round(animal.damageFor(hit.headshot, hit.point.distanceTo(flight.origin)) * flight.scale * (flight.hitScale?.(hit) ?? 1)));
         const killed = animal.applyDamage(damage, hit.point, direction);
         ports.hit(animal.kind, hit.headshot, killed, hit.point, damage);

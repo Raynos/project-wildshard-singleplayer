@@ -32,6 +32,12 @@ export interface WeaponWire {
   readonly steps: () => number;
   /** The `seq` the next command takes. */
   readonly nextSeq: () => number;
+  /** A shot that left on a command already gone (a loose, on the step that let go): the server must confirm or refuse it. */
+  readonly shot: (seq: number) => void;
+  /** This row is now in hand here. The server hears of it, and the weapon it answers with is the one this player holds. */
+  readonly equip: (row: string) => void;
+  /** The player used this named interaction, which the server judges. */
+  readonly interact: (id: string) => void;
 }
 export interface WeaponHooks {
   onFire?: (() => void) | undefined;

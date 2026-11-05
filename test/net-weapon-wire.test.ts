@@ -47,7 +47,7 @@ function sword(wire: WeaponWire): { blade: SweptMelee; stops: ReturnType<typeof 
 }
 const wireSpy = (steps: () => number = () => 1): WeaponWire & { presses: boolean[]; holds: boolean[] } => {
   const presses: boolean[] = [], holds: boolean[] = [];
-  return { presses, holds, press: started => { presses.push(started); }, hold: held => { holds.push(held); }, fire: () => undefined, afterStep: run => { run(); }, steps: () => steps(), nextSeq: () => 1 };
+  return { presses, holds, press: started => { presses.push(started); }, hold: held => { holds.push(held); }, fire: () => undefined, afterStep: run => { run(); }, steps: () => steps(), nextSeq: () => 1, shot: () => undefined, equip: () => undefined, interact: () => undefined };
 };
 
 test('a tap starts here at once, and tells the wire whether the server has a start to rule on', () => {
@@ -103,7 +103,7 @@ test('over a bad link a start with no answer is refused inside RTT and two frame
   const net = new NetPlayer(client, player, page.physics), refusals: number[] = [];
   let tick = 0, pressedAt = 0;
   const hits: OwnHit[] = [];
-  net.bindWeapons({ bindWire: () => undefined, serverHit: hit => { hits.push(hit); }, attackRefused: () => { refusals.push(tick - pressedAt); } });
+  net.bindWeapons({ bindWire: () => undefined, serverHit: hit => { hits.push(hit); }, attackRefused: () => { refusals.push(tick - pressedAt); }, heldByServer: () => undefined }, new Map());
   player.link = net; player.locked = true;
   for (; tick < 600; tick++) {
     pass(); net.reconcile(); page.stepWorld(); player.setBodyEnabled(true);
