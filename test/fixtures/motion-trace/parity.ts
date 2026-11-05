@@ -244,6 +244,7 @@ export class HostSide implements MotionEvents {
       ground: { size: SIZE, height: 0 }, player: { at: { x: start.x, y: start.y ?? courseHeightAt(start.x, start.z), z: start.z }, yaw: start.yaw, speed: 5 } };
     const host = this.host = createSimHost(level, { rapier: R, ground: false, heightAt: courseHeightAt });
     this.course = buildCourse(host.physics); this.scenario = scenario; this.player = leadPlayer(host);
+    host.floors.push(...courseFloors);
     for (const actor of host.entities.values()) actor.harnessHold = true;
     if (scenario.hostCapsule !== true) {
       const { player } = this;
@@ -288,8 +289,7 @@ export class HostSide implements MotionEvents {
   moveScale(value: number): void { this.player.moveScale = value; }
   effect(moveScale: number, locked: boolean): void { Object.assign(this.player.health.attributes, { moveSpeedMul: moveScale, moveLocked: locked ? 1 : 0 }); }
   carried(on: boolean): void { this.player.carried = on; }
-  /** A10: the host's board has no limit yet; its source is the grid's rules. */
-  boardLimit(): void { /* A10 */ }
+  boardLimit(top: number | null): void { this.player.hoverSpeedLimit = top === null ? null : () => top; }
   dodgeCooldownScale(scale: number): void { this.player.health.attributes['dodgeCooldownMul'] = scale; }
   phaseGate(): void { this.player.motor.phased.add(this.course.gate); }
   dispose(): void { this.host.dispose(); }

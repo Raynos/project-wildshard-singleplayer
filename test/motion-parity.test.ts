@@ -48,6 +48,8 @@ describe('the server against the page', () => {
   });
   afterAll(() => {
     if (!UPDATE) return;
+    // a scenario that threw has no row: without this, a crash reads as its debt paid and empties the ratchet
+    if (measured.size !== MOTION_SCENARIOS.length) throw new Error(`Measured ${measured.size} of ${MOTION_SCENARIOS.length}: the ratchet stays`);
     const rows = [...measured.values()].filter(r => r.failing > 0).sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
     process.stderr.write(`${rows.map(say).join('\n')}\n`);
     const rose = rows.filter(r => r.failing > (ratchet[r.id] ?? 0));

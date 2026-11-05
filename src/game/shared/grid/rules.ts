@@ -18,6 +18,13 @@ export function gridHoverSpeed(local: Readonly<GridPoint>, shardCap = 14, speedC
   const t = Math.max(0, Math.min(1, (Math.max(Math.abs(local.x), Math.abs(local.z)) - CHUNK_HALF) / STRIP));
   return shardCap + (30 - shardCap) * t * t * (3 - 2 * t);
 }
+/** What a board's cap reads of the feet. */
+export interface GridHoverState { readonly local: Readonly<GridPoint>; readonly shardCap: number; readonly onHighwayDeck: boolean; readonly speedClass?: 'shard' | 'road' }
+/** The board's cap at these feet: the page's and the server's one read of it. */
+export function gridBoardLimit(state: GridHoverState): number {
+  const cap = gridHoverSpeed(state.local, state.shardCap, state.speedClass);
+  return gridZone(state.local) === 'highway' && !state.onHighwayDeck ? state.shardCap : cap;
+}
 /** Minimal board port for standalone and residency policy; no Player or browser dependency enters here. */
 export interface GridHoverPort { hoverSpeedLimit: (() => number) | null }
 /** A directly opened padding shard uses its same authored road class; ordinary shards retain their existing port. */
@@ -32,11 +39,7 @@ export function installShardHoverSpeed(player: GridHoverPort, scope: Scope, spee
 export function installGridHoverSpeed(player: GridHoverPort, scope: Scope, read: () => { local: Readonly<GridPoint>; shardCap: number; onHighwayDeck: boolean; speedClass?: 'shard' | 'road' }): void {
   if (scope.disposed) return;
   const previous = player.hoverSpeedLimit;
-  const limit = () => {
-    const state = read();
-    const cap = gridHoverSpeed(state.local, state.shardCap, state.speedClass);
-    return gridZone(state.local) === 'highway' && !state.onHighwayDeck ? state.shardCap : cap;
-  };
+  const limit = () => gridBoardLimit(read());
   player.hoverSpeedLimit = limit;
   scope.onDispose(() => { if (player.hoverSpeedLimit === limit) player.hoverSpeedLimit = previous; });
 }

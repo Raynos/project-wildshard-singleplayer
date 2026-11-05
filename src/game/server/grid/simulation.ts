@@ -7,6 +7,7 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { GridAssembly, GridCell, GridPoint } from '../../shared/grid/assembly';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
+import { gridBoardLimit } from '../../shared/grid/rules';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates. */
@@ -25,6 +26,8 @@ export interface GridSimulationPorts {
    */
   durable?: (instance: string, host: SimHost) => boolean;
   read?: (instance: string) => SimSnapshot | undefined;
+  /** A shard's authored board class (the manifest's `hoverSpeedClass`): an ordinary interior without one. */
+  hoverClass?: (slug: string) => 'shard' | 'road' | undefined;
   admitted?: (instance: string) => boolean;
   beforeMove?: (instance: string | null, host: SimHost) => void;
   /** Additional traveling body, normally the ridden mount, retained by its gameplay owner. */
@@ -284,6 +287,14 @@ export class GridSimulation {
     traveller.position.set(x, y, z); traveller.yaw = held.yaw; traveller.motor.resetAt(traveller.position);
     (await this.prepare(null, instance)).commit();
   }
+  /** A seat's board cap, read in world space from wherever it stands: a resident host's feet are its cell's (P1-E5.3-A10). */
+  private boardLimit(player: string): number {
+    const site = this.current(player), seat = this.seat(this.hostAt(site), player), { assembly } = this;
+    const feet = site === null ? seat.position : assembly.world(seat.position, assembly.cell(site));
+    const p = assembly.pitch, cx = Math.round(feet.x / p), cz = Math.round(feet.z / p), cell = assembly.cells.find(row => row.cell[0] === cx && row.cell[1] === cz);
+    return gridBoardLimit({ local: { x: feet.x - cx * p, y: feet.y, z: feet.z - cz * p }, shardCap: 14, onHighwayDeck: feet.y < 4,
+      speedClass: (cell === undefined ? undefined : this.ports.hoverClass?.(cell.slug)) ?? 'shard' });
+  }
   /** The empty seat a player takes on arrival. The lead's is always there; anyone else's is made for them. */
   private arrivalSeat(host: SimHost, player: string, traveller: PlayerSim): PlayerSim {
     if (player === this.owner) { this.unparkOwner(host); return this.seat(host, player); }
@@ -297,6 +308,7 @@ export class GridSimulation {
   /** One tick for every world with a player in it: each player's command goes to the host it stands in. */
   stepAll(commands?: ReadonlyMap<string, SimTickCommand>): void {
     if (this.disposed) throw new Error('Grid simulation is disposed');
+    for (const [player, site] of this.sites) this.seat(this.hostAt(site), player).hoverSpeedLimit ??= () => this.boardLimit(player);
     const sites = new Set(this.sites.values());
     for (const site of sites) {
       const host = this.hostAt(site); this.ports.beforeMove?.(site, host);

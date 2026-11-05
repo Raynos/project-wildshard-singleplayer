@@ -1,3 +1,4 @@
+import type { MotionPlatform } from '../shared/player/motion';
 import { validateLocalMovement, type LocalMovementCommand } from '../shared/input/commands';
 import type { NetCommand } from '@wildshard/format/netCommand';
 import { Vector3 } from 'three';
@@ -231,6 +232,9 @@ export class SimHost {
   private readonly ownsPlayer: boolean;
   /** The terrain under (x, z). */
   heightAt: (x: number, z: number) => number;
+  /** Walkable floor functions, as the page's `Player.platforms`: decks with no collider. A `solidFloor` piece is its colliders
+   *  on both sides, so no shipped row lends one today (P1-E5.3-A10); the owner of one pushes it here. */
+  readonly floors: MotionPlatform[] = [];
   /** SF34: the level's water (useWater), if any. */
   water: SimWater | undefined;
   private bands: { clocks: BodyBandClocks; rate: (body: AnimalSim) => string; present: ((body: AnimalSim) => boolean) | undefined; physics: boolean } | undefined;

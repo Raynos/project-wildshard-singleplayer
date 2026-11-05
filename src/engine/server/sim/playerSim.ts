@@ -14,7 +14,7 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { commandedWalk, pressDodge, resetMotion, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { commandedWalk, pressDodge, resetMotion, setBoard, stepPlayerMotion, type MotionFooting, type MotionPlatform, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import { LOCK_REACH, type LockState, type MotionLock } from '../../shared/player/lockOrbit';
 import { targetRadius } from '../../shared/combat/lungeTarget';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
@@ -85,6 +85,9 @@ export class PlayerSim implements PlayerMotionState {
   readonly dash: DashState = { t: 0, vx: 0, vz: 0 };
   /** The dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
   readonly dodge: DodgeState = { cd: 0, t: 0 };
+  /** The board's live speed cap where something rules one (the grid, GridSimulation): the page's `hoverSpeedLimit`. Never saved:
+   *  its owner puts it back. */
+  hoverSpeedLimit: (() => number) | null = null;
   /** The orbit radius a lock holds (player/lockOrbit.ts). */
   readonly lock: LockState = { r0: 0 };
   /** The body this player's lock holds, as its last command named it; null with none. */
@@ -311,6 +314,7 @@ export class PlayerSim implements PlayerMotionState {
   private motionWorld(): MotionWorld {
     const motor = (): CharacterMotor => this.motor, water = (): boolean => this.host.water !== undefined;
     const walking = (): SimWalkingControl => this.walking;
+    const floors = (): readonly MotionPlatform[] => this.host.floors;
     const coyote = (): number => this.host.level.player.coyoteMs ?? COYOTE_MS;
     return {
       get motor() { return motor(); },
@@ -318,7 +322,7 @@ export class PlayerSim implements PlayerMotionState {
       // the level's water (useWater): the board rides its surface, as the client's; none without it
       water: (x, z) => this.host.water?.surfaceAt(x, z) ?? null,
       heightAt: (x, z) => this.host.heightAt(x, z),
-      platforms: [],
+      get platforms() { return floors(); },
       floor: (x, z, fromY, maxDrop) => floorBelow(this.host.physics, x, z, fromY, maxDrop, this.motor.collider),
       bob: (x, z) => this.host.water?.bob?.(x, z) ?? pondBob(this.host.clock.now),
       foot: {
@@ -326,8 +330,8 @@ export class PlayerSim implements PlayerMotionState {
         get crouching() { return walking().crouching; },
         get coyoteMs() { return coyote(); },
       },
-      boardTop: () => hoverSpeed(),
-      boardCapped: () => false,
+      boardTop: () => hoverSpeed(this.hoverSpeedLimit?.()),
+      boardCapped: () => this.hoverSpeedLimit !== null,
       jumped: () => { this.host.events.emit('player.jump', true); },
       dodged: () => { this.host.events.emit('player.dodge', true); },
       lunged: () => undefined,
