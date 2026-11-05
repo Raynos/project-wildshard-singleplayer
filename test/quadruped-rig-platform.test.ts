@@ -7,7 +7,7 @@ import { LimbAnimator, type LimbPoseInput } from '../src/game/shared/animation/l
 import { limbRest, applyLimbPose, newLimbPose } from '../src/game/shared/animation/limbRig';
 import { LimbQueryPose } from '../src/game/client/animation/limbQueryPose';
 import { installKingPoseKeeper } from './fixtures/pine/kingPoseBefore';
-import { installNativeLimbPoses } from '../src/game/client/animation/limbPopulation';
+import { installNativeLimbPoses } from '../src/game/server/animation/limbPopulation';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost } from '../src/engine/server/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';

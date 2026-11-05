@@ -1,5 +1,5 @@
 import { populationEnvironment } from './environment';
-import { installNativeLimbPoses } from '../../client/animation/limbPopulation';
+import { installNativeLimbPoses } from '../animation/limbPopulation';
 import * as v from 'valibot';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { fnv1a32, Rng } from '@wildshard/engine/core/rng';

@@ -800,7 +800,7 @@
   "src/game/client/ambient/wingField.ts": "client",
   "src/game/shared/animation/limbBlend.ts": "shared",
   "src/game/client/animation/limbCollision.ts": "client",
-  "src/game/client/animation/limbPopulation.ts": "client",
+  "src/game/server/animation/limbPopulation.ts": "server",
   "src/game/client/animation/limbQueryPose.ts": "client",
   "src/game/client/animation/limbQueryView.ts": "client",
   "src/game/shared/animation/limbRig.ts": "shared",

@@ -1698,7 +1698,7 @@
       }
     },
     {
-      "module": "src/game/client/animation/limbPopulation.ts",
+      "module": "src/game/server/animation/limbPopulation.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
