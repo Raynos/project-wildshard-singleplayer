@@ -16,7 +16,7 @@ import type { NetCommand } from '@wildshard/format/netCommand';
 import type { NetTickAct } from '@wildshard/engine/net/acts';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { netInteractCommands, netRide, netTickCommands } from './standalone/netInput';
-import { installPersonalLoot, personalCoinTable } from '@wildshard/game/loot/personal';
+import { installPersonalLoot, personalCoinTable, personalItemTable } from '@wildshard/game/loot/personal';
 import { installRoomRespawn } from '@wildshard/game/roomRespawn';
 import type { GrappleTickContext } from '@wildshard/game/grapple/native';
 import { serverPlaces } from '@wildshard/game/quest/serverPlaces';
@@ -142,10 +142,11 @@ function grappleCommand(command: HeadlessCommand): ReturnType<GrappleTickContext
   if (command.kind === 'script') return command;
   return command.kind === 'player' && command.jump !== undefined ? { kind: command.kind, jump: command.jump } : { kind: command.kind };
 }
-/** J105: a shard whose kills pay coins pays a room's players each their own roll. */
+/** J105: a shard whose kills pay coins or items pays a room's players each their own roll. */
 function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRuntimeInstallation): void {
-  const coins = personalCoinTable(economy);
-  if (coins !== null) installPersonalLoot(host, { coins, grant: (player, amount) => { context.emit({ kind: 'coins', amount, actorId: player }); } });
+  const coins = personalCoinTable(economy), items = personalItemTable(economy);
+  if (coins !== null || items !== null) installPersonalLoot(host, { coins, ...(items === null ? {} : { items }), grant: (player, amount) => { context.emit({ kind: 'coins', amount, actorId: player }); },
+    grantItem: (player, item, count) => { context.emit({ kind: 'item', item, count, actorId: player }); } });
 }
 /** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */
 export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<HeadlessRuntimeInstallation> {

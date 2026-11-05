@@ -50,6 +50,7 @@ export interface HeadlessCommandSource { source: string; commands: readonly Head
 export const TickEffectSchema: v.GenericSchema<BoundedTickEffectInput, BoundedTickEffect> = v.variant('kind', [
   v.strictObject({ kind: v.literal('fact'), name: text, actorId: text }),
   v.strictObject({ kind: v.literal('coins'), amount: finite, actorId: text }),
+  v.strictObject({ kind: v.literal('item'), item: text, count: finite, actorId: text }),
   v.strictObject({ kind: v.literal('hint'), text: v.pipe(v.string(),v.minLength(1),v.maxLength(4096)) }),
 ]);
 /** Only completed, in-budget ticks can expose these durable quest requests to the parent. */
@@ -163,6 +164,11 @@ type BoundedTickEffect = {
     amount: number;
     actorId: string;
 } | {
+    kind: "item";
+    item: string;
+    count: number;
+    actorId: string;
+} | {
     kind: "hint";
     text: string;
 };
@@ -177,6 +183,11 @@ interface BoundedTickCommitFields {
     } | {
         kind: "coins";
         amount: number;
+        actorId: string;
+     } | {
+        kind: "item";
+        item: string;
+        count: number;
         actorId: string;
     } | {
         kind: "hint";

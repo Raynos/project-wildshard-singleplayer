@@ -12,7 +12,7 @@ const fits = (text: string): string => new TextEncoder().encode(text).length <= 
 export interface LedgerFiling extends LedgerGrant { readonly player: string }
 interface Book { serial: number; readonly rows: NetLedger[]; readonly ids: Set<string> }
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
-const Row: v.GenericSchema<NetLedger> = v.strictObject({ kind: v.literal('ledger'), tick: natural, serial: natural, id: v.string(), grant: v.picklist(['fact', 'coins']), name: v.string(), amount: v.pipe(v.number(), v.finite()), pending: v.boolean() });
+const Row: v.GenericSchema<NetLedger> = v.strictObject({ kind: v.literal('ledger'), tick: natural, serial: natural, id: v.string(), grant: v.picklist(['fact', 'coins', 'item']), name: v.string(), amount: v.pipe(v.number(), v.finite()), pending: v.boolean() });
 /** A book's saved form: it goes with the continuation, beside the sim and not in it. */
 export const LedgerBookSchema: v.GenericSchema<LedgerBookSave> = v.record(v.string(), v.strictObject({ serial: natural, rows: v.array(Row) }));
 /** Every player's serial and the receipts still kept. */
