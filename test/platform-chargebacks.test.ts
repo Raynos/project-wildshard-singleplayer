@@ -468,7 +468,8 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
 
 test('G665 credits only the complete listed open-arena host',()=>{
   const rows = [
-    ['src/game/boss/arenaRoom.ts',['buildOpenArenaEncounter','OpenArenaWorld','_openW','arenaScriptCloud']],
+    ['src/game/boss/arenaRoom.ts',['OpenArenaWorld','_openW']],
+    ['src/game/boss/arenaRoomView.ts',['buildOpenArenaEncounter','arenaScriptCloud']],
     ['src/game/boss/openArenaFight.ts',['OpenArenaFight','SupportActor','Chain','_openV','_openRAY','_openSPH','_openHITP','readArenaScriptData','OpenArenaViews','OpenArenaFightWorld','OpenArenaFightHost','ArenaBodyPort','ArenaScenePort','ArenaFirePort','ArenaWhirlsPort']],
     ['src/game/riding/client.ts',['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked']],
   ] as const;
