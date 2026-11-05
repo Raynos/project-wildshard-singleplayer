@@ -37,7 +37,7 @@ import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { TIER, TIER_CONFIG, frameCapFps, gfxPrefs, type Tier } from './tier';
 import { worldTime } from './time';
 import { installViewport, viewportHeight } from './viewport';
-import { FIXED_STEP } from './fixedStep';
+import { FIXED_STEP, MAX_FIXED_STEPS } from './fixedStep';
 import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { ownComposerDepth } from '../render/composerDepth';
@@ -75,7 +75,6 @@ export function frameCapAnchor(lastDrawn: number, t: number, cap: number): numbe
   if (since <= step + FRAME_CAP_SLACK_MS || !Number.isFinite(lastDrawn)) return t;
   return Math.max(lastDrawn + step, t - Math.max(0, step - FRAME_CAP_SLACK_MS - 1000 / 60 - 0.5));
 }
-const MAX_FIXED_STEPS = 3; // per frame; past it the backlog is dropped (a stall never replays as a burst)
 /** E153: the boot's warm-up draws of the world, one per quarter-turn (Game.warmTurn) */
 const WARM_TURNS = 4;
 /** the three slots of one fixed step, in order: `pre` readies the world, `step` advances it, `post` moves against it */
