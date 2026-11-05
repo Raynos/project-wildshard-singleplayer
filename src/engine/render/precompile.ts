@@ -302,6 +302,9 @@ function holdDrawnPrograms(renderer: Renderer, root: THREE.Object3D): () => void
  *  retired identity has nothing left to prepare, and any query of it would hand `getProgramParameter` an undefined
  *  program (WebKit: 'Argument 1 ... is not a WebGLProgram', CI's road journey on fa1da6a58c). */
 export function nativeRetired(program: object): boolean {
+  // three's program always carries the key (set in its constructor, emptied by destroy()); an object without it (a
+  // test double, a foreign holder) is not a retired three program
+  if (!Reflect.has(program, 'program')) return false;
   const handle: unknown = Reflect.get(program, 'program');
   return handle === undefined || handle === null;
 }

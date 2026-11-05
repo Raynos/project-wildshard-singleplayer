@@ -45,6 +45,7 @@ test('a program three destroyed reads as retired; a live one does not', () => {
   expect(nativeRetired({ program: undefined })).toBe(true);
   expect(nativeRetired({ program: null })).toBe(true);
   expect(nativeRetired({ program: {} })).toBe(false);
+  expect(nativeRetired({ isReady: () => true })).toBe(false); // no `program` key: not a three program at all
 });
 
 // sp-x8's C25: the baked entry list is optional. A read that fails before the renderer step reaches it (offline, an HTML
