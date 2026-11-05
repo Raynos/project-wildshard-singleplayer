@@ -4,6 +4,7 @@ import type { JsonSchema } from '@valibot/to-json-schema';
 import type { AssetCost } from '@wildshard/format/product';
 import type { OutputFile } from '@wildshard/format/outputIndex';
 import { AdmissionServerSchema, serverFilePath, type ServerFile } from '@wildshard/format/admissionServer';
+import { NATIVE_ASSEMBLY_DATA_SCHEMA, NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA, type NativeAssemblyPlan as AssemblyPlan } from '@wildshard/format/nativeAssembly';
 import { validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import { outputBlobKind } from '@wildshard/format/productValidation';
 import { parse } from 'valibot';
@@ -128,3 +129,10 @@ export function serverBlob(name: string, input: { readonly bytes: Uint8Array } |
   return { bytes, file: parse(AdmissionServerSchema, [{ name, path: serverFilePath('json', hash), hash, bytes: bytes.length, kind: 'json', schema: input.schema }])[0] ?? missingServerRow() };
 }
 function missingServerRow(): never { throw new Error('Missing server file row'); }
+/** J90: a native world's plan, as a generator writes it. */
+export type NativeAssemblyPlan = AssemblyPlan;
+/** A native world's server class: its plan, then the JSON rows and binary files it names. */
+export function nativeAssemblyFiles(plan: NativeAssemblyPlan, rows: ReadonlyMap<string, unknown>, binary: ReadonlyMap<string, Uint8Array> = new Map()): ServerBlob[] {
+  return [serverBlob(NATIVE_ASSEMBLY_FILE, { schema: NATIVE_ASSEMBLY_SCHEMA, value: plan }),
+    ...[...rows].map(([name, value]) => serverBlob(name, { schema: NATIVE_ASSEMBLY_DATA_SCHEMA, value })), ...[...binary].map(([name, bytes]) => serverBlob(name, { bytes }))];
+}

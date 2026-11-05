@@ -9,7 +9,7 @@ import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { resolveOutputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
 import { copyOutputProducts } from '../../scripts/app-build/outputProducts.mjs';
-import { serverBlob } from './blobs';
+import { nativeAssemblyFiles, serverBlob, type NativeAssemblyPlan } from './blobs';
 import { loadHeadlessProduct } from './headlessProduct';
 import { hashImmutableBytes } from './immutable';
 import { validateOutputProduct, writeOutputProduct } from './outputProduct';
@@ -107,4 +107,12 @@ it('refuses a server class that overlaps the client, escapes server/ or is unreg
   expect(() => parseOutputIndex(withServer([{ ...row, name: 'data/physics.bin' }]))).toThrow();
   expect(() => parseOutputIndex(withServer([{ ...row, kind: 'json', path: `server/json/${row.hash}.json`, name: 'server/x.json', schema: 'unregistered' }]))).toThrow(/Unregistered/u);
   expect(() => serverBlob('server/x.json', { schema: 'unregistered', value: {} })).toThrow(/Unregistered/u);
+});
+
+it('a native world names its plan, rows and binaries through one server class', () => {
+  const plan: NativeAssemblyPlan = { kind: 'native-assembly', level: { speed: 5, ground: { size: 500, height: 0 } }, terrain: { kind: 'bake-ground' }, navigation: 'shard',
+    bake: { rows: { file: 'server/physics.json' }, reader: { label: 'Fixture', resolution: 4, size: 4 }, ground: 'data/ground.bin', colliders: [], read: 'bake' }, collision: { resolution: 4 }, entries: { walk: {} }, features: [{ host: 'decisions' }] };
+  const files = nativeAssemblyFiles(plan, new Map([['server/physics.json', {}]]), new Map([['server/navmesh.bin', MARK]]));
+  expect(files.map(row => row.file.name)).toEqual(['server/native-assembly.json', 'server/physics.json', 'server/navmesh.bin']);
+  expect(() => nativeAssemblyFiles({ ...plan, features: [] }, new Map())).toThrow();
 });
