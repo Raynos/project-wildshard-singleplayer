@@ -11,8 +11,8 @@ const cls: NetClass<never> = ANIMAL_CLASS;
 const index = (name: string): number => cls.row.findIndex(column => column.name === name);
 const row = (state: number): Uint32Array => { const out = new Uint32Array(cls.row.length); out[index('state')] = state; return out; };
 const frame = (tick: number, state: number): DecodedFrame => ({ tick, baselineTick: 0, cell: 0, lastSeq: 0, owner: new Uint32Array(0), rows: new Map([[1, row(state)]]), fresh: new Set([1]) });
-const died = (tick: number): NetDied => ({ kind: 'died', tick, id: 1, by: 0, dir: { x: 0, y: 0, z: 1 }, impulse: 0 });
-const hit = (tick: number, confirmFor: number): NetHit => ({ kind: 'hit', tick, target: 1, amount: 1, at: { x: 0, y: 0, z: 0 }, head: false, killed: false, confirmFor });
+const died = (tick: number): NetDied => ({ kind: 'died', tick, id: 1, by: 0, dir: [0, 0, 1], impulse: 0 });
+const hit = (tick: number, confirmFor: number): NetHit => ({ kind: 'hit', tick, target: 1, amount: 1, at: [0, 0, 0], head: false, killed: false, confirmFor });
 function stack(): { lerp: Interpolator; delivery: NetDelivery; played: NetCombatEvent[] } {
   const lerp = new Interpolator(() => cls), delivery = new NetDelivery(lerp, () => cls.cls), played: NetCombatEvent[] = [];
   delivery.onEvent(event => { played.push(event); });
