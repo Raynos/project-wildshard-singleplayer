@@ -1,8 +1,13 @@
 {
   "name": "@wildshard/format",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "files": [
+    "*.ts",
+    "!*.test.ts",
+    "memoryGates.json"
+  ],
   "exports": {
     "./heldJianDocument": "./heldJianDocument.ts",
     "./heldWeaponDocuments": "./heldWeaponDocuments.ts",
@@ -326,6 +331,7 @@
     "./arenaRoomDocument": "./arenaRoomDocument.ts"
   },
   "dependencies": {
+    "meshoptimizer": "1.2.0",
     "valibot": "1.5.0"
   }
 }
