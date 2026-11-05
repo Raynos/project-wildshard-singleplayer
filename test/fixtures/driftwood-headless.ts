@@ -1,20 +1,6 @@
-import keeperFixture from './driftwood-keeper.json' with { type: 'json' };
-import { driftwoodPhysics } from '../../src/shards/driftwood-isle/generators/physics';
-import { DRIFTWOOD_NATIVE_QUEST } from '../../src/shards/driftwood-isle/generators/nativeQuest';
-import { DRIFTWOOD_SPOTS } from '../../src/shards/driftwood-isle/generators/spots';
-import mixedPopulation from '../../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
-import nativePopulationPolicy from '../../src/shards/driftwood-isle/data/nativePopulationPolicy.json' with { type: 'json' };
-import { PRACTICE_AT } from '../../src/shards/driftwood-isle/generators/enemyPlacement';
-import { DRIFTWOOD_SPAWNS } from '../../src/shards/driftwood-isle/generators/spawnTables';
-import { CRAB_CLIPS } from '../../src/shards/driftwood-isle/generators/crabClips';
-import { SAILOR_CLIPS, CAPTAIN_CLIPS } from '../../src/shards/driftwood-isle/generators/humanoidClips';
-import { MONKEY_CLIPS } from '../../src/shards/driftwood-isle/generators/monkeyClips';
-import { NATIVE_QUEST_PROPS } from '../../src/shards/driftwood-isle/generators/nativeQuestProps';
-import questKillSteps from '../../src/shards/driftwood-isle/data/questKillSteps.json' with { type: 'json' };
-import { ENTRY_WALK } from '../../src/shards/driftwood-isle/generators/entryWalk';
-import swords from '../../src/shards/driftwood-isle/data/nativeSwords.json' with { type: 'json' };
+import keeperFixture from '../../src/shards/driftwood-isle/data/nativeKeeper.json' with { type: 'json' };
 import { canonicalNativeOracleInput, fencedNativeOracle } from './native-oracle';
-import { driftwoodNativeRows } from '../../src/shards/driftwood-isle/generators/nativeBake';
+import { driftwoodNativeInputs } from '../../src/shards/driftwood-isle/generators/nativeServer';
 import type { NativeQuestCompositionInput } from '@wildshard/game/quest/nativeComposition';
 import type { MixedPopulationInput } from '@wildshard/game/population/mixedRoster';
 import { installMixedPopulation } from '@wildshard/game/population/mixedRoster';
@@ -44,22 +30,8 @@ import { trustedLevel } from '../../src/game/plugin/simulation';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import { need, readJson } from './headless-plan';
 import { installBodyScripts, prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
-/** Original typed native facts, proof-only under G872. No shipping envelope
- * or fixture user is credited as a platform family. */
-export function driftwoodNativeOracleInputs() {
-  return canonicalNativeOracleInput({ nativeQuest: { ...DRIFTWOOD_NATIVE_QUEST,
-      reward: need(DRIFTWOOD_NATIVE_QUEST.reward, 'Missing native quest reward'),
-      acquisition: need(DRIFTWOOD_NATIVE_QUEST.acquisition, 'Missing native quest acquisition') },
-    nativeQuestSpots: DRIFTWOOD_SPOTS,
-    mixedPopulation: { ...mixedPopulation, attackTurnCap: nativePopulationPolicy.attackTurnCap,
-      practice: { ...mixedPopulation.practice, at: PRACTICE_AT,
-        ...DRIFTWOOD_SPAWNS.find(row => row.id === 'spawn.driftwood.practice')?.respawn },
-      poses: [{ kind: 'crab', clips: [CRAB_CLIPS] },
-        { kind: 'sailor', clips: [SAILOR_CLIPS], lift: [1.5, 1.5, -2.3, 6] },
-        { kind: 'captain', clips: [CAPTAIN_CLIPS] }, { kind: 'monkey', clips: MONKEY_CLIPS }] },
-    questProps: NATIVE_QUEST_PROPS, physics: driftwoodNativeRows(driftwoodPhysics()).physics,
-    questKillSteps, entries: ENTRY_WALK, swords });
-}
+/** The generator's typed native facts, in the canonical key order the oracle pins. */
+export function driftwoodNativeOracleInputs() { return canonicalNativeOracleInput(driftwoodNativeInputs()); }
 /** Fresh source child and typed parent must agree before native installation. */
 export function readDriftwoodNativeOracle(): Promise<ReturnType<typeof driftwoodNativeOracleInputs>> {
   return fencedNativeOracle({ id: 'driftwood-native-oracle', script: 'test/fixtures/driftwood-native-oracle.mjs',

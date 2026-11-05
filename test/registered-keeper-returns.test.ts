@@ -1,4 +1,4 @@
-import keeperFixture from './fixtures/driftwood-keeper.json' with { type: 'json' };
+import keeperFixture from '../src/shards/driftwood-isle/data/nativeKeeper.json' with { type: 'json' };
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify actual admitted product bodies without rebuilding them.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the admitted product member path only.

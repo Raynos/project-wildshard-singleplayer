@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import type { NativeAssemblyPlan } from '@wildshard/format/nativeAssembly';
 import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
 import storyPolicy from './pine-native-story.json' with { type: 'json' };
-import keeper from './driftwood-keeper.json' with { type: 'json' };
+import keeper from '../../src/shards/driftwood-isle/data/nativeKeeper.json' with { type: 'json' };
 import TERRAIN from '../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { need, readJson } from './headless-plan';
 import { readPineNativeOracle } from './pine-headless';

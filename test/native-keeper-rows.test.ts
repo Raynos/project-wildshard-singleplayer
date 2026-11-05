@@ -1,4 +1,4 @@
-import keeperFixture from './fixtures/driftwood-keeper.json' with { type: 'json' };
+import keeperFixture from '../src/shards/driftwood-isle/data/nativeKeeper.json' with { type: 'json' };
 import {encodeCanonicalJson,hashImmutableBytes} from '@wildshard/sdk/immutable';
 import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';

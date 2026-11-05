@@ -79,7 +79,8 @@ import { captureDriftwoodMovers } from './movers';
 import { emitPlatformSections, type PlatformSectionName as PlatformDataSectionName } from '@wildshard/sdk/platformSections';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';
 import {FixedGeometryGroupsSchema} from './sections';
-import { emitNamedBlobs, nameBlob as nameGuestBlob } from '@wildshard/sdk/blobs';
+import { emitNamedBlobs, nameBlob as nameGuestBlob, type ServerBlob } from '@wildshard/sdk/blobs';
+import { driftwoodServerFiles } from './nativeServer';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { DRIFTWOOD_FEAT_COUNTERS } from './questInventory';
 import { enemyPlacements } from './enemyPlacement';
@@ -186,7 +187,7 @@ export function driftwoodCatalogueFiles(banks: DriftwoodSceneBanks): ReturnType<
 
 /** Prototype geometry and the cove's and sea's page files (I8) belong to the owned-byte cache, never a generated asset
  *  under src. */
-export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles' | 'compileScript' | 'compileScriptV2' | 'compileDecisionRows'>): Promise<typeof output & { late: { hash: string }[] }> {
+export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached' | 'inputFiles' | 'compileScript' | 'compileScriptV2' | 'compileDecisionRows'>): Promise<typeof output & { late: { hash: string }[]; server: ServerBlob[] }> {
   const banks = await driftwoodSceneBanksCached(ctx), bankFiles = await driftwoodSceneBankOutput(banks), foliageFiles = await driftwoodFoliageSceneOutput(ctx);
   const guestFiles = await driftwoodGuestFiles(ctx), guests = driftwoodGuestRows(guestFiles), guestModules = guestModuleFiles(guestFiles, guests);
   const floor = emitNamedBlobs([driftwoodPhysicsFloor()]);
@@ -194,7 +195,7 @@ export async function prepareOutput(ctx: Pick<ProjectGenerationContext, 'cached'
   const rows = driftwoodOutputRows(banks.layouts, banks.facts, guests);
   const catalogue = driftwoodCatalogueFiles(banks);
   const fixed = await driftwoodFixedModelOutput(ctx), protos = await driftwoodIslandProtoOutput(ctx), pages = await driftwoodPageFileOutput(ctx), phoneRocks = await driftwoodPhoneRockOutput(banks.rocks.glbs), scenes = await driftwoodSceneModelOutput(ctx);
-  return { ...rows, platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts, banks.facts, banks.creatures, guests)),
+  return { ...rows, server: driftwoodServerFiles(), platform: emitPlatformSections(platformRows(worldScenes(banks), banks.layouts, banks.facts, banks.creatures, guests)),
     blobs: rows.blobs.filter(row => !hullNames.has(row.name)), late: driftwoodProofLateRoots([...rows.namedFiles, ...floor.files, ...hulls.files]),
     namedFiles: [...rows.namedFiles, ...floor.files, ...hulls.files, ...guestModules.files, ...catalogue.files, ...protos.files, ...pages.files, ...phoneRocks.files, ...fixed.files, ...scenes.files, ...bankFiles.files, ...foliageFiles.files],
     assets: new Map([...rows.assets, ...floor.assets, ...hulls.assets, ...guestModules.assets, ...catalogue.assets, ...protos.assets, ...pages.assets, ...phoneRocks.assets, ...fixed.assets, ...scenes.assets, ...bankFiles.assets, ...foliageFiles.assets]) };
