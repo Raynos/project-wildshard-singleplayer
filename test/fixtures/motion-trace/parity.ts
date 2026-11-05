@@ -153,10 +153,10 @@ const NO_AIM = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } 
 const axis = (key: number | undefined, stick: number | undefined): number => Math.max(-1, Math.min(1, (key ?? 0) + (stick ?? 0)));
 
 /** The real Player on the page's fixed step: movers, physics, then the step, with a replay command and a real device. */
-class PageSide implements MotionEvents {
+export class PageSide implements MotionEvents {
   readonly player: Player;
-  private readonly physics: Physics;
-  private readonly course: Course;
+  readonly physics: Physics;
+  readonly course: Course;
   private readonly scope = new Scope('motion-parity');
   private readonly tickClock = { seconds: 0 };
   private readonly target: AimTarget | undefined;
@@ -177,6 +177,7 @@ class PageSide implements MotionEvents {
       lockOn.state = 'locked'; lockOn.target = this.target; lockOn.r0 = scenario.lockAt.r0;
     }
   }
+  stepWorld(): void { this.physics.step(); }
   view(): MotionView {
     const { player: p } = this;
     return { x: p.position.x, y: p.position.y, z: p.position.z, grounded: p.onGround, swimming: p.swimming, hover: p.hover };
