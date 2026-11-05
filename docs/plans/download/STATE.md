@@ -22,4 +22,4 @@
 
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
 
-**LIVE 463ab110da (463ab11-mw2q02mz, 18:25):** first green since 86f2590 (09:04): packs on, DL10 early compile, Z15, dead code, DL21 card fixes; 24 required CI + boot smoke green. Plots: Safari ITP purge (harness only), tap fix next.
+**LIVE 65a3f41ce9 (65a3f41-mw2rltbw, 19:00):** third green today (463ab110da 18:25, 2dad4e2e6c). DL5: packs slower on http-decoded parts; gzip rerun next. Nalati fence set DL17 complete (60.9 vs 88.1 MB). Plots: native tap fixes the ITP purge; Clockwork official next.
