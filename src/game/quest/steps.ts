@@ -50,6 +50,10 @@ export class QuestStepRunner {
       output.push(effect);
     }
   }
+  /** Every flag these rows may raise or clear on the player they run for. */
+  get writes(): string[] {
+    return this.rows.steps.flatMap(row => [...row.once === undefined ? [] : [row.once], ...row.effects.flatMap(effect => effect.kind === 'flag' ? [effect.flag] : [])]);
+  }
   /** Evaluate completed signals once. Delivery takes precede all grants and cannot partially consume a stack. */
   signal(signal: QuestStepSignal, source: QuestStepFrame): readonly QuestStepEffect[] {
     const frame = this.frame(source), output: QuestStepEffect[] = [];

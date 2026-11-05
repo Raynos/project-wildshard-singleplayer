@@ -43,6 +43,11 @@ export function commitQuestEffects(context: Pick<ShardContext, 'scope' | 'game'>
     nativePresentation===undefined?undefined:effect=>{presentQuestEffect(effect,context.flags,nativePresentation);});
 }
 
+/** One player's effects on its own book and pack, as a room's other players run them; they have no presentation. */
+export function commitSeatEffects(effects: readonly QuestStepEffect[], flags: Flags, pack: { readonly add: (item: string, count: number) => boolean; readonly take: (item: string, count: number) => boolean }): void {
+  commit(effects, flags, (item, count) => { pack.add(item, count); }, (item, count) => pack.take(item, count), () => undefined);
+}
+
 /** Client-only named actions borrow existing services; parsing creates no state, listener or save owner. */
 export async function readQuestServiceActions(ctx: Pick<ShardContext, 'scope' | 'game' | 'product'>, quest: string, file: string): Promise<{ readonly run: (id: string) => void }> {
   if (!ctx.product.shardfile.quests.quests.some(row => row.id === quest)) throw new Error('Quest service actions require a declared quest');

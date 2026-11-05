@@ -93,6 +93,8 @@ export interface InteractionRowPorts {
   readonly commands: () => readonly { readonly actorId: string; readonly value: number; readonly playerId?: string | undefined }[];
   /** Actual page registration order, including live reach/position and native sight identity. */
   readonly prompts?: readonly HeadlessPrompt[];
+  /** A player's own roster, when what it may reach depends on its book. */
+  readonly rosterOf?: (player: string) => readonly HeadlessPrompt[];
   /** the item that cracks: its light / heavy reach, and the act its lash reached this tick (null: none); its step runs before this one */
   readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
   /** a row ran (the shard's beat on it: a summons, a cue) */
@@ -143,7 +145,8 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
   const act = (value: number, lashed: boolean, player: string): void => {
     const feet = host.players.get(player)?.position;
     if (feet === undefined) return;
-    if (!lashed && ports.prompts !== undefined && picker.pick(ports.prompts, feet)?.act !== value) return;
+    const roster = ports.rosterOf?.(player) ?? ports.prompts;
+    if (!lashed && roster !== undefined && picker.pick(roster, feet)?.act !== value) return;
     const found = byAct.get(value); if (found === undefined) return;
     const { entry, spot } = found, crack = ports.crack;
     if ((entry.crack !== undefined) !== lashed) return;

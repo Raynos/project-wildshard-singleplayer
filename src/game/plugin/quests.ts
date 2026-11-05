@@ -169,6 +169,8 @@ export interface QuestGraphPorts {
   readonly promptRegistrations?: readonly PromptRegistration[];
   /** Already-bound live rows, including unhosted competitors; external routes use their actual sight and order. */
   readonly prompts?: readonly HeadlessPrompt[];
+  /** A player's own rows, when what it may reach depends on its book. */
+  readonly rosterOf?: (player: string) => readonly HeadlessPrompt[];
   /** An existing modal/ride owner delivers actions itself. With no marks, no extra step or snapshot is installed. */
   readonly drive?: 'commands' | 'external';
   readonly fact: (name: string, entity: string) => void;
@@ -204,16 +206,18 @@ export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: Qu
   }));
   if (ports.drive !== 'external') installInteractionRows(host, rules, { actorId: rows.graph.actor, stepId: rows.graph.step, spots, commands: ports.commands,
     ...(prompts === undefined ? {} : { prompts }),
+    ...(ports.rosterOf === undefined ? {} : { rosterOf: ports.rosterOf }),
     ...(ports.crack === undefined ? {} : { crack: ports.crack }),
     done });
   return { quests, rules, run: (id, changed, player = books.lead.player) => { const result = rulesOf(player).run(id, changed); if (result.ok) done(id); return result; },
     near: (id, player = books.lead.player) => {
       const feet = host.players.get(player)?.position;
       if (feet === undefined) return false;
-      if (ports.prompts !== undefined) {
-        const prompt = ports.prompts.reduce<HeadlessPrompt | undefined>((last, row) => row.id === id ? row : last, undefined);
+      const roster = ports.rosterOf?.(player) ?? ports.prompts;
+      if (roster !== undefined) {
+        const prompt = roster.reduce<HeadlessPrompt | undefined>((last, row) => row.id === id ? row : last, undefined);
         if (prompt === undefined) throw new Error(`Undeclared quest prompt ${id}`);
-        return prompt.act !== null && picker.pick(ports.prompts, feet)?.act === prompt.act && eyeReaches(feet, { ...prompt.position, radius: prompt.radius });
+        return prompt.act !== null && picker.pick(roster, feet)?.act === prompt.act && eyeReaches(feet, { ...prompt.position, radius: prompt.radius });
       }
       const spot = spots[id]; if (spot === undefined) throw new Error(`Undeclared quest spot ${id}`); return eyeReaches(feet, spot);
     } };
