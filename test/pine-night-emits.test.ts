@@ -261,3 +261,19 @@ test('raw night sidecar preserves original staged spawning, RNG and save bytes',
     }finally{raw.host.dispose();}
   }finally{original.host.dispose();}
 });
+
+test('in a room the night reads the player nearest its bodies, not the first', () => {
+  const { host } = scenario();
+  try {
+    const live = installNativeSpawnScript(host, { night: 1 }, { ...parseSpawnScript(night), roster: 'pine.roster' });
+    for (let tick = 0; tick < 200; tick++) host.step();
+    const body = active.created[0]; if (body === undefined) throw new Error('The night sent nobody');
+    expect(live.standing).toBe(body.position);
+    const lead = [...host.players.values()][0], bot = host.addPlayer('bot:1', { x: body.position.x + 2, y: body.position.y, z: body.position.z });
+    const advance = vi.spyOn(live, 'advance');
+    host.step();
+    expect(advance.mock.lastCall?.[1], 'the bot stands by the body').toBe(bot.position);
+    bot.position.set(body.position.x + 900, bot.position.y, body.position.z); host.step();
+    expect(advance.mock.lastCall?.[1], 'and when it walks off the first player is nearer').toBe(lead?.position);
+  } finally { host.dispose(); }
+});
