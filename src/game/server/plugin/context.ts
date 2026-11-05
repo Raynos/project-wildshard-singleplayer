@@ -10,11 +10,11 @@ import { registerAchievements, type AchievementDef } from '../../shared/achievem
 import { registerCompendium } from '../../shared/compendium/registry';
 import type { ShardCompendium } from '../../shared/compendium/types';
 import type { ShardRuntime } from '../../shared/shard/runtime';
-import { normalizeItemRow, type ItemRow } from '../bag/items';
+import { normalizeItemRow, type ItemRow } from '../../shared/bag/items';
 import type { ContentRow, EngineRows, LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { AudioData } from '@wildshard/format/audio';
-import { parseShardSlug } from '../shard/slug';
+import { parseShardSlug } from '../../shared/shard/slug';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { ownedPresentationImages } from '../../client/shardfile/presentation';
 import { absentShardProduct, type ShardProduct } from '../../shared/shardfile/shardProduct';

@@ -7,7 +7,7 @@ import type { CombatCueMap } from '@wildshard/engine/combat/cues';
 import type { Tool } from '@wildshard/engine/combat/Tool';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import type { ItemRow } from '../../server/bag/items';
+import type { ItemRow } from '../../shared/bag/items';
 import type { ShardManifest } from '../../server/shard/manifest';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import type { TravelHandoff } from '../travel/travel';

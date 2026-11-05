@@ -8,7 +8,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { shardContext } from '../src/game/server/plugin/context';
-import { parseShardSlug } from '../src/game/server/shard/slug';
+import { parseShardSlug } from '../src/game/shared/shard/slug';
 import { prepareQuestEntry } from '../src/game/server/quest/chapter';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { parseQuestStory } from '@wildshard/format/questStory';

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { configuredShardfile, preparePageResidency } from './clientSource';
-import { parseShardSlug } from '../../server/shard/slug';
+import { parseShardSlug } from '../../shared/shard/slug';
 import type { ProductOptions } from './product';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';

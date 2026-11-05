@@ -4,7 +4,7 @@ import type { IconId } from '@wildshard/engine/ui/icons';
 import { findTitleManifest } from '../client/shard/titleList';
 import { findShard } from '../client/shard/registry';
 import { inventorySave, saveSlug } from '../shared/saves';
-import type { ItemRow } from './bag/items';
+import type { ItemRow } from '../shared/bag/items';
 import { DEFAULT_PACK_SLOTS, addInventory, takeInventory } from './inventoryLaw';
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle

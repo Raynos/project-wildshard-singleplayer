@@ -8,7 +8,7 @@ import type { ShardSlug } from '../../server/shard/slugs.generated';
 import type { SpawnPose } from '../../server/shard/manifest';
 import type { Inventory, ItemId } from '../../server/Inventory';
 import { isItemId, ITEMS } from '../../shared/bag/itemCatalog';
-import type { ItemRow } from '../../server/bag/items';
+import type { ItemRow } from '../../shared/bag/items';
 
 export interface TravelRequest { to: ShardSlug; mode: 'enter' | 'explore' | 'arena'; arrive?: SpawnPose }
 export interface TravelHandoff {

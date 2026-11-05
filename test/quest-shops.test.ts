@@ -9,7 +9,7 @@ import { shardContext } from '../src/game/server/plugin/context';
 import { QuestViews } from '../src/game/client/plugin/ui';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { parseShardSlug } from '../src/game/server/shard/slug';
+import { parseShardSlug } from '../src/game/shared/shard/slug';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { TRADER_STALL as coinRows } from '../src/shards/driftwood-isle/generators/questShop';

@@ -157,7 +157,7 @@
     "./achievements": "./shared/achievements.ts",
     "./bag/bag": "./client/bag/bag.ts",
     "./bag/itemCatalog": "./shared/bag/itemCatalog.ts",
-    "./bag/items": "./server/bag/items.ts",
+    "./bag/items": "./shared/bag/items.ts",
     "./compendium/Journal": "./client/compendium/Journal.ts",
     "./compendium/install": "./client/compendium/install.ts",
     "./compendium/state": "./shared/compendium/state.ts",
