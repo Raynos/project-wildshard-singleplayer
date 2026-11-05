@@ -193,12 +193,14 @@ test('a canceled request with no response retains failure and measured absence w
 });
 
 
-function workerPair(withWorker: boolean, bodyReader?: ConstructorParameters<typeof NativeSizeLedger>[0]) {
+function workerPair(withWorker: boolean, bodyReader?: ConstructorParameters<typeof NativeSizeLedger>[0], startOnly = false) {
   const ledger = new NativeSizeLedger(bodyReader), url = 'https://game.test/ktx2.worker.js',
     headers = {etag: 'worker-exact', 'content-type': 'text/javascript', 'content-encoding': 'br', 'content-length': '17499'};
   ledger.event('page', false, 'Network.requestWillBeSent', {requestId: 'facade', wallTime: .1, timestamp: 10, request: {url, method: 'GET'}});
-  ledger.event('page', false, 'Network.responseReceived', {requestId: 'facade', response: {status: 200, headers, fromServiceWorker: true, encodedDataLength: -1}});
-  ledger.event('page', false, 'Network.loadingFinished', {requestId: 'facade', timestamp: 10.108, encodedDataLength: -1});
+  if (!startOnly) {
+    ledger.event('page', false, 'Network.responseReceived', {requestId: 'facade', response: {status: 200, headers, fromServiceWorker: true, encodedDataLength: -1}});
+    ledger.event('page', false, 'Network.loadingFinished', {requestId: 'facade', timestamp: 10.108, encodedDataLength: -1});
+  }
   if (withWorker) {
     ledger.event('worker', true, 'Network.requestWillBeSent', {requestId: 'physical', wallTime: .101, timestamp: 10, request: {url, method: 'GET'}});
     ledger.event('worker', true, 'Network.responseReceived', {requestId: 'physical', response: {status: 200, headers, encodedDataLength: 390}});
@@ -249,5 +251,57 @@ test('unresolved facade keeps its original native body reader for an independent
     expect(network.rows[0]).toMatchObject({bytes: 0, transferBytes: 0, decodedBytes: 4, bodyBasis: 'native-body',
       nativeMatch: {outcome: 'facade-unmatched'}, nativeResult: {transferBytes: null, bodyReader: true}});
     expect(readBody).toHaveBeenCalledOnce();
+  } finally {network.stop();}
+});
+
+
+test.each(['facade-first', 'worker-first'])('start-only native facade counts one worker row in either completion order: %s', async order => {
+  const {network, finish, make} = workerPair(true, undefined, true);
+  try {
+    if (order === 'worker-first') {finish(make(true)); finish(make(false));}
+    else {finish(make(false)); finish(make(true));}
+    expect(await network.settle()).toMatchObject({complete: true, incomplete: 0});
+    expect(network.rows.find(row => row.source === 'service-worker')).toMatchObject({bytes: 0, accounting: 'complete',
+      nativeMatch: {outcome: 'facade-matched', entry: {complete: false}}, nativeResult: {facadeOf: expect.stringContaining('physical')}});
+    expect(network.rows.reduce((sum, row) => sum + (row.transferBytes ?? -1), 0)).toBe(17889);
+  } finally {network.stop();}
+});
+
+test.each(['absent', 'failed', 'unaccounted', 'duplicate', 'outside-visit'] as const)(
+  'facade cannot hide an %s counted worker row', async reason => {
+    const {network, finish, make} = workerPair(true);
+    try {
+      finish(make(false));
+      const original = make(true);
+      const physical: Request = {...original,
+        ...(reason === 'failed' ? {failure: () => ({errorText: 'net::ERR_FAILED'})} : {}),
+        ...(reason === 'unaccounted' ? {sizes: () => Promise.reject(new Error('Physical sizes refused'))} : {}),
+        ...(reason === 'outside-visit' ? {timing: () => ({...original.timing(), startTime: 99})} : {})};
+      if (reason !== 'absent') finish(physical);
+      if (reason === 'duplicate') finish(physical);
+      expect(await network.settle(100)).toMatchObject({complete: false});
+      expect(network.rows[0]).toMatchObject({bytes: null, accounting: 'incomplete', sizeComplete: false,
+        nativeResult: {facadeOf: expect.stringContaining('physical')}, accountingError: expect.stringContaining('complete counted worker')});
+      expect(network.rows[0]?.transferBytes).toBeUndefined();
+      expect(network.errors).toContainEqual(expect.objectContaining({source: 'native.facade'}));
+      // Missing counterpart at settlement seals the refusal, even if it arrives later.
+      if (reason === 'absent') {finish(make(true)); expect((await network.settle()).complete).toBe(false);}
+    } finally {network.stop();}
+  });
+
+
+test('bounded diagnostic IDs never become the worker-pair matching authority', async () => {
+  const id = 'physical:'.padEnd(700, 'x');
+  const {network, request, finish} = fixture(req => req.serviceWorker() === null
+    ? {requestId: 'facade', facadeOf: id, decodedBytes: 4, encodedBytes: 0, transferBytes: 0}
+    : {requestId: id, decodedBytes: 4, encodedBytes: 4, transferBytes: 6});
+  const physical: Request = {...request('worker', () => Promise.resolve(response()), () => Promise.resolve(sizes)),
+    serviceWorker: () => legacyDouble<NonNullable<ReturnType<Request['serviceWorker']>>>({})};
+  try {
+    finish(request('worker', () => Promise.resolve(response()), () => Promise.resolve(sizes))); finish(physical);
+    expect((await network.settle()).complete).toBe(true);
+    expect(network.rows[0]?.nativeResult?.facadeOf).toHaveLength(512);
+    expect(network.rows[1]?.nativeRequestId).toBe(id);
+    expect(network.rows.reduce((sum, row) => sum + (row.transferBytes ?? -1), 0)).toBe(6);
   } finally {network.stop();}
 });

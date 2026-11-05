@@ -204,3 +204,28 @@ test('match diagnostics truncate retained native headers without truncating matc
   expect(found.match.alternatives?.[0]?.headers['etag']).toHaveLength(512);
   expect(found.match.alternatives?.[0]?.truncated).toBe(true);
 });
+
+
+test('a start-only page native entry uses completed validated worker evidence without inventing its completion', () => {
+  const ledger = new NativeSizeLedger(), url = 'https://game.test/ktx2.worker.js';
+  begin(ledger, url, 'facade'); physicalWorker(ledger);
+  const found = ledger.observe(request(url, 1000, false, 'GET', 108), facadeResponse());
+  expect(found).toMatchObject({sizes: {encodedBytes: 0, transferBytes: 0, facadeOf: expect.stringContaining('physical')},
+    match: {outcome: 'facade-matched', entry: {complete: false, status: null, headers: {}}, workerFetch: {complete: true, transfer: 17889}}});
+});
+
+test.each(['unfinished-response', 'failed', 'wrong-validator', 'no-validator', 'not-sw', 'unfinished-worker', 'ambiguous', 'before', 'after'] as const)(
+  'start-only facade still refuses %s evidence', reason => {
+    const ledger = new NativeSizeLedger(), url = 'https://game.test/ktx2.worker.js';
+    begin(ledger, url, 'facade');
+    if (reason === 'unfinished-response') ledger.event('session', false, 'Network.responseReceived', {
+      requestId: 'facade', response: {status: 200, headers: facadeHeaders, fromServiceWorker: true, encodedDataLength: -1}});
+    if (reason === 'failed') ledger.event('session', false, 'Network.loadingFailed', {requestId: 'facade'});
+    physicalWorker(ledger, 'physical', reason === 'before' ? .999 : 1.001, reason === 'after' ? 10.2 : 10.104,
+      facadeHeaders, 200, 'GET', reason !== 'unfinished-worker');
+    if (reason === 'ambiguous') physicalWorker(ledger, 'other');
+    const headers = reason === 'wrong-validator' ? {...facadeHeaders, etag: 'different'} : reason === 'no-validator' ? {} : facadeHeaders;
+    const found = ledger.observe(request(url, 1000, false, 'GET', 108), facadeResponse(headers, reason !== 'not-sw'));
+    expect(found.match.outcome).not.toBe('facade-matched');
+    expect(found.sizes?.facadeOf).toBeUndefined();
+  });

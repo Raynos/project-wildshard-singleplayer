@@ -53,10 +53,12 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
 } {
   const rows: RequestRow[] = [], errors: ErrorRow[] = [], jobs = new Set<Job>();
   const starts = new Map<Request, RequestRow>();
+  const nativeResults = new Map<RequestRow, NativeSizes>();
   const nativeResult = (row: RequestRow, observed: NativeSizes | NativeSizeObservation | null): NativeSizes | null => {
     const sizes = observed !== null && 'sizes' in observed ? observed.sizes : observed;
     if (observed !== null && 'match' in observed) row.nativeMatch = observed.match;
     row.nativeResult = sizes === null ? null : nativeSizeSnapshot(sizes);
+    if (sizes !== null) nativeResults.set(row, sizes);
     return sizes;
   };
   let stopped = false;
@@ -114,6 +116,32 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
       finally {jobs.delete(job);}
     })();
   };
+  // A native worker event alone is not a counted transfer. Zero a facade only
+  // while its exact physical request ID has one complete row in this visit.
+  // Refusals seal here too: a worker arriving after settlement cannot cure one.
+  const checkFacades = (since: number): void => {
+    const workers = new Map<string, RequestRow[]>();
+    for (const row of rows) if (row.source === 'worker' && row.nativeRequestId !== undefined) {
+      const group = workers.get(row.nativeRequestId) ?? [];
+      group.push(row); workers.set(row.nativeRequestId, group);
+    }
+    for (const row of rows) {
+      const id = nativeResults.get(row)?.facadeOf;
+      if (row.start < since || row.accounting !== 'complete' || id === undefined || id === null) continue;
+      const matches = workers.get(id) ?? [], physical = matches[0];
+      const native = physical === undefined ? undefined : nativeResults.get(physical);
+      if (matches.length === 1 && physical !== undefined && physical.start >= since && physical.end !== null
+        && physical.url === row.url && physical.status === row.status && physical.failure === null
+        && physical.accounting === 'complete' && physical.sizeComplete === true
+        && native?.requestId === id && native.facadeOf === undefined && native.partial !== true
+        && measured(physical.bytes) && measured(physical.transferBytes) && physical.bytes <= physical.transferBytes
+        && physical.bytes === native.encodedBytes && physical.transferBytes === native.transferBytes) continue;
+      const reason = 'Native facade lacks exactly one complete counted worker request';
+      row.accounting = 'incomplete'; row.accountingError = reason; row.bytes = null; row.sizeComplete = false;
+      delete row.transferBytes; delete row.headerBytes;
+      errors.push({message: `Request accounting: ${reason}`, source: 'native.facade', url: row.url, at: row.end ?? Date.now()});
+    }
+  };
   const detach = attach(start, finish);
   return {rows, errors, settle: async (since = 0) => {
     const selected = [...jobs];
@@ -124,6 +152,7 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
       })]);
       const pending = selected.filter(job => job.active);
       for (const job of pending) incomplete(job, `Incomplete native ${job.stage} after ${ACCOUNTING_DEADLINE_MS}ms accounting deadline`);
+      checkFacades(since);
       const incompleteRows = rows.filter(row => row.start >= since && row.accounting === 'incomplete');
       const inFlight = rows.filter(row => row.start >= since && row.end === null).length;
       return {complete: incompleteRows.length === 0, incomplete: incompleteRows.length,

@@ -138,15 +138,20 @@ export class NativeSizeLedger {
   private facade(request: Request, response: Response | null | undefined, entry: Entry | undefined,
     basis: NativeSizeMatch['basis']): NativeSizeObservation | undefined {
     if (request.serviceWorker() !== null || request.method() !== 'GET' || response?.fromServiceWorker() !== true) return undefined;
-    const timing = request.timing(), start = entry?.start ?? timing.startTime,
-      end = entry?.end ?? timing.startTime + timing.responseEnd;
+    // CDP sometimes emits only the page's request start for a SW facade. Its
+    // completed Playwright response still supplies the lifetime and validators;
+    // partial or contradictory native response evidence never takes this path.
+    const startOnly = entry !== undefined && !entry.complete && !entry.failed && entry.status === undefined
+      && Object.keys(entry.headers).length === 0 && !entry.chunks && entry.initial === undefined && entry.transfer === undefined;
+    const timing = request.timing(), start = startOnly ? timing.startTime : entry?.start ?? timing.startTime,
+      end = startOnly ? timing.startTime + timing.responseEnd : entry?.end ?? timing.startTime + timing.responseEnd;
     const eligible = this.entries.filter(row => row.worker && row.url === request.url() && row.method === request.method());
-    const workers = eligible.filter(row => row.complete && !row.failed && !row.sw && (entry === undefined || entry.sw && this.overlaps(entry, request, response))
+    const workers = eligible.filter(row => row.complete && !row.failed && !row.sw && (entry === undefined || startOnly || entry.sw && this.overlaps(entry, request, response))
       && timing.responseEnd >= 0 && row.end !== undefined && row.start >= start && row.end <= end
       && this.overlaps(row, request, response));
     const match = {basis, candidates: workers.length, ...(entry === undefined ? {} : {entry: matchEntry(entry)}),
       ...(workers.length === 1 ? {} : {alternatives: eligible.slice(0, 2).map(matchEntry)})};
-    const original = entry === undefined ? null : this.sizes(entry);
+    const original = entry === undefined || !entry.complete ? null : this.sizes(entry);
     if (workers.length !== 1) return {sizes: original, match: {...match, outcome: workers.length === 0 ? 'facade-unmatched' : 'facade-ambiguous'}};
     const worker = workers[0]; if (worker === undefined) return undefined;
     const physical = this.sizes(worker);
@@ -177,7 +182,8 @@ export class NativeSizeLedger {
         ?? {sizes: null, match: {outcome: 'unmatched', basis: 'none', candidates: 0, alternatives: eligible.slice(0, 2).map(matchEntry)}};
       entry = first; this.claimed.add(entry); this.requests.set(request, entry);
     }
-    if (!entry.complete) return {sizes: null, match: {outcome: 'unfinished', basis, candidates: 1, entry: matchEntry(entry)}};
+    if (!entry.complete) return this.facade(request, response, entry, basis)
+      ?? {sizes: null, match: {outcome: 'unfinished', basis, candidates: 1, entry: matchEntry(entry)}};
     const sizes = this.sizes(entry);
     if (!size(sizes.transferBytes) || !size(sizes.encodedBytes) || sizes.encodedBytes > sizes.transferBytes) {
       const facade = this.facade(request, response, entry, basis); if (facade !== undefined) return facade;
