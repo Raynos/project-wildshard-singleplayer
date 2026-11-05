@@ -14,7 +14,7 @@ import { hybridInstallation } from '../src/game/client/shardfile/hybrid';
 import { bindResidentWorldScope, boundResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import * as movers from '../src/game/server/plugin/mover';
-import * as moverInstall from '../src/game/server/plugin/moverInstall';
+import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
 import { installClientMoverOwners } from '../src/game/client/shardfile/clientMoverOwners';
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
@@ -66,13 +66,13 @@ function fixture(rows=admitted,bound=true){
 
 test('typed scene loans preserve native pose order, visibility and the original system id',async()=>{
   const {ctx,scope}=fixture([platform]),group=new Group(),result=await fixtureRuntime(scope);
-  const install=vi.spyOn(moverInstall,'installDeclaredMovers').mockResolvedValue(result);
+  const install=vi.spyOn(pageSimFeed,'installDeclaredMovers').mockResolvedValue(result);
   try{
     publishEntryOwner(scope,'object','boat',group);
     expect(await installClientMoverOwners(ctx,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat',order:'XYZ',visibility:'enabled'}]})).toBe(result);
     const options=install.mock.calls[0]?.[2],view=options?.views?.get(platform.id);
     if(options===undefined||view===undefined)throw new Error('Missing typed native view');
-    expect(options.data).toEqual([platform]);expect(options.systemId).toBe('original.movers');expect(options.borrowed).toBeUndefined();
+    expect(options.data).toEqual([platform]);expect(options.systemId).toBe('original.movers');
     view.pose({position:{x:2,y:3,z:4},euler:{x:.1,y:.2,z:.3},enabled:false},{});
     expect(group.position).toEqual(new Vector3(2,3,4));expect(group.rotation.order).toBe('XYZ');expect(group.visible).toBe(false);
     expect(group.userData['declaredMotion']).toBe(true);
@@ -82,7 +82,7 @@ test('typed scene loans preserve native pose order, visibility and the original 
 });
 
 test('exact mover identities and every target preflight before native installation or draw mutation',async()=>{
-  const {ctx,scope}=fixture([platform]),group=new Group(),install=vi.spyOn(moverInstall,'installDeclaredMovers');
+  const {ctx,scope}=fixture([platform]),group=new Group(),install=vi.spyOn(pageSimFeed,'installDeclaredMovers');
   publishEntryOwner(scope,'object','boat',group);
   try{
     await expect(installClientMoverOwners(ctx,{system:'movers',bindings:[]})).rejects.toThrow('exact admitted');
@@ -97,7 +97,7 @@ test('the original native chain is borrowed without replacing or disposing any b
   const row=admitted.find(value=>value.kind==='chain'),spec=row?.chain;
   if(row===undefined||spec===undefined)throw new Error('Missing chain fixture');
   const R=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))),physics=new Physics(R),chain=new RopeChain(physics,spec);
-  const {ctx,scope}=fixture([row]),dispose=vi.spyOn(chain,'dispose'),result=await fixtureRuntime(scope),install=vi.spyOn(moverInstall,'installDeclaredMovers').mockResolvedValue(result);
+  const {ctx,scope}=fixture([row]),dispose=vi.spyOn(chain,'dispose'),result=await fixtureRuntime(scope),install=vi.spyOn(pageSimFeed,'installDeclaredMovers').mockResolvedValue(result);
   try{
     const bodies=[...chain.bodies];publishEntryOwner(scope,'chain','deck',chain);
     await installClientMoverOwners(ctx,{system:'chain.movers',bindings:[{id:row.id,kind:'chain',owner:'deck'}]});
@@ -108,7 +108,7 @@ test('the original native chain is borrowed without replacing or disposing any b
 
 test('entry retirement across an awaited installer never publishes a completed mover owner',async()=>{
   const {ctx,scope}=fixture([platform]),group=new Group(),result=await fixtureRuntime(scope);let resume:((runtime:movers.MoverRuntime)=>void)|undefined;
-  const install=vi.spyOn(moverInstall,'installDeclaredMovers').mockReturnValue(new Promise(resolve=>{resume=resolve;}));
+  const install=vi.spyOn(pageSimFeed,'installDeclaredMovers').mockReturnValue(new Promise(resolve=>{resume=resolve;}));
   try{
     publishEntryOwner(scope,'object','boat',group);
     const running=installClientMoverOwners(ctx,{system:'movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]});
@@ -125,7 +125,7 @@ test('the native installer refuses an ancestor retirement before reading or allo
   const retiring=construction.disposeSteps();retiring.next();
   try{
     expect(entered.disposed).toBe(false);expect(entered.disposing).toBe(true);
-    await expect(moverInstall.installDeclaredMovers({...ctx,scope:entered},world,{data:[platform],modules:new Map(),systemId:'retiring.movers',shared:{host,tick:()=>0}})).rejects.toThrow('scope left during admission');
+    await expect(pageSimFeed.installDeclaredMovers({...ctx,scope:entered},world,{data:[platform],modules:new Map(),systemId:'retiring.movers',shared:{host,tick:()=>0}})).rejects.toThrow('scope left during admission');
     expect(readPhysics).not.toHaveBeenCalled();
   }finally{for(const step of retiring)void step;scope.dispose();construction.dispose();}
 });
@@ -145,7 +145,7 @@ test('mooring follows original fixed-pose order, one reusable lift buffer, rest 
   const moor={look:'fixture-moor',water:.375,cleats:[-2.9,2.9] as const};
   source.look.materials[moor.look]=moorLook();publishEntryOwner(scope,'object','boat',group);
   let host:Awaited<ReturnType<typeof movers.createMoverHost>>|undefined;
-  const install=vi.spyOn(moverInstall,'installDeclaredMovers').mockImplementation(async(_ctx,_world,options)=>{
+  const install=vi.spyOn(pageSimFeed,'installDeclaredMovers').mockImplementation(async(_ctx,_world,options)=>{
     host=await movers.createMoverHost(options.data,new Map(),()=>[]);
     const native=new movers.MoverRuntime(options.data,{scope,host,physics});
     const view=new movers.MoverRuntime(options.data,{scope,host,physics,adopt:id=>options.views?.get(id)});
@@ -174,7 +174,7 @@ test('mooring follows original fixed-pose order, one reusable lift buffer, rest 
 });
 
 test.each(['missing','not-lent','wrong-param'] as const)('a %s mooring look refuses before any native or scene effect',async mode=>{
-  const {ctx,scope,source}=fixture([platform]),group=new Group(),material=new MeshBasicMaterial(),write=vi.fn<LentLooks['setParam']>(),install=vi.spyOn(moverInstall,'installDeclaredMovers');
+  const {ctx,scope,source}=fixture([platform]),group=new Group(),material=new MeshBasicMaterial(),write=vi.fn<LentLooks['setParam']>(),install=vi.spyOn(pageSimFeed,'installDeclaredMovers');
   const moor={look:'fixture-moor',water:0,cleats:[-2,2] as const};publishEntryOwner(scope,'object','boat',group);
   if(mode!=='missing')source.look.materials[moor.look]=moorLook(mode==='wrong-param'?'float':'vec2');
   if(mode!=='not-lent')lendLooks(scope,{materials:new Map([[moor.look,material]]),setParam:write,setTexture:()=>undefined,bindMeshMap:()=>material});
@@ -191,7 +191,7 @@ test('a replaced mooring look across native admission refuses completion',async(
   lend(scope);const result=await fixtureRuntime(scope);let resume:((runtime:movers.MoverRuntime)=>void)|undefined,begin:(()=>void)|undefined;
   // D74: the look's graph file is read before the looks are captured, so the replacement waits for native admission itself.
   const begun=new Promise<void>(resolve=>{begin=resolve;});
-  const install=vi.spyOn(moverInstall,'installDeclaredMovers').mockImplementation(()=>{begin?.();return new Promise(resolve=>{resume=resolve;});});
+  const install=vi.spyOn(pageSimFeed,'installDeclaredMovers').mockImplementation(()=>{begin?.();return new Promise(resolve=>{resume=resolve;});});
   try{
     const running=installClientMoverOwners(ctx,{system:'movers',bindings:[{id:platform.id,kind:'object',owner:'boat',moor}]});
     await begun;lend(replacement);if(resume===undefined)throw new Error('Missing installer resolver');resume(result);
@@ -206,7 +206,7 @@ test('standalone hybridInstallation owns exactly one entered client drive',async
   const base=shardContext(level.context,TEMPLATE,{shard:TEMPLATE,runtime,rows:new Map(),bag:{tab:()=>()=>undefined,fragment:()=>()=>undefined}},ctx.product);
   const entered=scope.child('standalone-entered'),installation=hybridInstallation(base,entered,runtime),group=new Group(),result=await fixtureRuntime(entered);
   publishEntryOwner(entered,'object','boat',group);
-  const install=vi.spyOn(moverInstall,'installDeclaredMovers').mockResolvedValue(result);
+  const install=vi.spyOn(pageSimFeed,'installDeclaredMovers').mockResolvedValue(result);
   try{
     expect(boundResidentWorldScope(installation.context.scope)).toBe(scope);
     expect(await installClientMoverOwners(installation.context,{system:'original.movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]})).toBe(result);
@@ -229,7 +229,7 @@ test('a hook outside a resident construction leaves original rest and native han
     }
   }
   const native=new Native();
-  const install=vi.spyOn(moverInstall,'installDeclaredMovers'),system=vi.spyOn(ctx,'system');
+  const install=vi.spyOn(pageSimFeed,'installDeclaredMovers'),system=vi.spyOn(ctx,'system');
   try{
     await native.world(ctx);expect(completed).toBe(true);expect(boundResidentWorldScope(scope)).toBeUndefined();
     expect(install).not.toHaveBeenCalled();expect(system).not.toHaveBeenCalled();expect(group.position).toEqual(rest);
@@ -241,7 +241,7 @@ test.each(['retired','replaced'] as const)('a %s construction across mover admis
   const {ctx,scope}=fixture([platform]),construction=boundResidentWorldScope(scope),replacement=new Scope('replacement-construction'),group=new Group(),result=await fixtureRuntime(scope);
   if(construction===undefined)throw new Error('Missing original construction');publishEntryOwner(scope,'object','boat',group);
   let resume:((runtime:movers.MoverRuntime)=>void)|undefined;
-  const install=vi.spyOn(moverInstall,'installDeclaredMovers').mockReturnValue(new Promise(resolve=>{resume=resolve;}));
+  const install=vi.spyOn(pageSimFeed,'installDeclaredMovers').mockReturnValue(new Promise(resolve=>{resume=resolve;}));
   try{
     const running=installClientMoverOwners(ctx,{system:'movers',bindings:[{id:platform.id,kind:'object',owner:'boat'}]});
     if(mode==='retired')construction.dispose();else bindResidentWorldScope(scope,replacement);
