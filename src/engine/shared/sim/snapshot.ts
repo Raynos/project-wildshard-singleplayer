@@ -360,7 +360,10 @@ function sameIds(actual: readonly string[], expected: Iterable<string>): boolean
   return wanted.size === actual.length && new Set(actual).size === actual.length && actual.every((id) => wanted.has(id));
 }
 
-export const restoreChecks = new WeakMap<SimHost, (() => void)[]>();
+const restoreChecks = new WeakMap<SimHost, (() => void)[]>();
+/** Open a fresh host's restore checks; `sim/restore` closes them when the host is kept or consumed. */
+export function openRestoreChecks(host: SimHost): (() => void)[] { const checks: (() => void)[] = []; restoreChecks.set(host, checks); return checks; }
+export function closeRestoreChecks(host: SimHost): void { restoreChecks.delete(host); }
 /** Reinstalled services may require native state that does not exist until the
  * restore transaction replaces physics and reconnects its tags and adapters.
  * Checks run once before the restored host escapes; ordinary hosts refuse. */
