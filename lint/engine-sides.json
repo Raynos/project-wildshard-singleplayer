@@ -369,6 +369,7 @@
   "src/engine/net/animalNet.ts": "shared",
   "src/engine/net/bits.ts": "shared",
   "src/engine/net/client.ts": "client",
+  "src/engine/net/combatWire.ts": "server",
   "src/engine/net/command.ts": "shared",
   "src/engine/net/commandQueue.ts": "server",
   "src/engine/net/frame.ts": "shared",

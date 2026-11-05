@@ -314,6 +314,7 @@
     "./saves/environment": "./saves/environment.ts",
     "./saves/forwardedStorage": "./saves/forwardedStorage.ts",
     "./net/client": "./net/client.ts",
+    "./net/combatWire": "./net/combatWire.ts",
     "./net/room": "./net/room.ts",
     "./net/serverClock": "./net/serverClock.ts",
     "./net/simWorld": "./net/simWorld.ts",

@@ -5,7 +5,7 @@ import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
 import { BitWriter } from './bits';
 import { encodeCommands, seqAfter } from './command';
 import { decodeFrame, FRAME_RING, NO_BASELINE, type DecodedFrame, type FrameTable } from './frame';
-import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetWelcome } from './messages';
+import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetWelcome } from './messages';
 import { NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from './netSchemas';
 import type { NetClass, NetValue } from './schema';
 import type { Transport } from './transport';
@@ -41,6 +41,7 @@ export class NetClient {
   private readonly writer = new BitWriter(1024);
   private readonly frames = new Map<number, DecodedFrame>();
   private readonly listeners = new Set<(frame: DecodedFrame) => void>();
+  private readonly fights = new Set<(event: NetCombatEvent) => void>();
   private readonly table: FrameTable;
   private readonly ids = new Map<string, number>();
   private unacked: NetCommand[] = [];
@@ -56,6 +57,8 @@ export class NetClient {
   hello(build = ''): void { this.transport.send('reliable', encodeHello(this.writer, { schemaHash: NET_SCHEMA_HASH, build })); }
   /** Call for every frame decoded; returns the unsubscribe. */
   onFrame(listener: (frame: DecodedFrame) => void): () => void { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; }
+  /** Call for every settled hit and death (P1-E3.2); returns the unsubscribe. */
+  onCombat(listener: (event: NetCombatEvent) => void): () => void { this.fights.add(listener); return () => { this.fights.delete(listener); }; }
   /** A held frame by tick. */
   frame(tick: number): DecodedFrame | null { return this.frames.get(tick) ?? null; }
   /** One entity's row in a frame, as field values. */
@@ -83,7 +86,7 @@ export class NetClient {
   /** Send a non-movement action on the reliable channel. */
   act(act: NetAct): void { this.transport.send('reliable', encodeAct(this.writer, act)); }
   /** Stop listening; the transport stays with its owner. */
-  dispose(): void { for (const off of this.off) off(); this.listeners.clear(); }
+  dispose(): void { for (const off of this.off) off(); this.listeners.clear(); this.fights.clear(); }
 
   private receive(bytes: Uint8Array): void {
     switch (messageId(bytes)) {
@@ -97,6 +100,7 @@ export class NetClient {
     const decoded = decodeEvents(bytes, initialBits);
     if (decoded === null) { this.dropped++; return; }
     for (const event of decoded.events) {
+      if (event.kind === 'hit' || event.kind === 'died') { for (const listener of this.fights) listener(event); continue; }
       if (event.kind === 'despawn') {
         const id = this.entities.get(event.handle)?.id;
         if (id !== undefined) this.ids.delete(id);

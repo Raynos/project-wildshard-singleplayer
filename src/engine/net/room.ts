@@ -4,11 +4,12 @@
 import * as v from 'valibot';
 import { NetActSchema, type NetAct, type NetCommand } from '@wildshard/format/netCommand';
 import { BitWriter } from './bits';
-import { decodeCommands } from './command';
+import type { CombatEvent } from './combatWire';
+import { decodeCommands, NET_BUTTONS } from './command';
 import { CommandQueue } from './commandQueue';
 import { encodeFrame, FRAME_RING, WorldFrameRing, type WorldFrame } from './frame';
 import { NetHandles } from './handles';
-import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetEvent } from './messages';
+import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetEvent, type NetHit } from './messages';
 import { NET_CLASSES, NET_SCHEMA_HASH } from './netSchemas';
 import type { NetClass, NetRefs } from './schema';
 import type { NetChannel, Transport } from './transport';
@@ -26,6 +27,8 @@ export interface NetWorld {
   cell: () => number;
   /** Visit every replicated entity, the player included. */
   visit: (visitor: NetVisitor) => void;
+  /** What the tick settled (P1-E3.2): each hit and death since the last call. A world with no fights leaves it out. */
+  combat?: () => readonly CombatEvent[];
   /** The player a client owns. E5.2a makes this per client; today's host has one. */
   readonly player: { readonly id: string; readonly cls: NetClass<never>; sample: (out: Uint32Array, refs: NetRefs) => void };
 }
@@ -43,11 +46,17 @@ export interface NetRoomOptions {
 }
 
 interface ClientView { tick: number; readonly visible: Set<number> }
+/** A settled event in handles, kept until the next frame. */
+type RoomCombat = NetDied | (NetHit & { readonly owned: boolean });
+/** A command that starts or holds a swing or shot. */
+const attacks = (command: NetCommand): boolean => command.attack !== undefined || command.launcher?.fire === true || (command.buttons & NET_BUTTONS.heavy) !== 0;
 interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue;
   /** waiting: said hello before the room opened. live: welcomed. */
   state: 'new' | 'waiting' | 'live';
   ack: number; readonly acts: NetAct[]; readonly known: Set<number>;
+  /** The `seq` of this client's newest swing or shot, which the hits it lands confirm (J47). */
+  attackSeq: number;
   /** What this client could see at each recent frame: a baseline is the frame and this set. */
   readonly views: ClientView[]; nextView: number;
   readonly owner: Uint32Array; dispose: () => void;
@@ -72,6 +81,7 @@ export class NetRoom {
   private readonly step: NetRoomOptions['step'];
   private readonly build: string;
   private readonly inputs: NetTickInput[] = [];
+  private readonly combat: RoomCombat[] = [];
   private opened = false;
   private serial = 0;
   private clientIds = 0;
@@ -85,7 +95,7 @@ export class NetRoom {
   /** Connect a client. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport): number {
     const id = ++this.clientIds, owner = new Uint32Array(this.world.player.cls.owner.length);
-    const client: RoomClient = { id, transport, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), owner,
+    const client: RoomClient = { id, transport, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), attackSeq: 0, owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -103,10 +113,24 @@ export class NetRoom {
   /** One fixed tick: one command per client, the world's step, and on every second tick a frame. */
   tick(): void {
     this.inputs.length = 0;
-    for (const client of this.clients) if (client.state === 'live') this.inputs.push({ client: client.id, command: client.queue.next(), acts: client.acts.splice(0) });
+    for (const client of this.clients) {
+      if (client.state !== 'live') continue;
+      const command = client.queue.next();
+      if (command !== null && attacks(command)) client.attackSeq = command.seq;
+      this.inputs.push({ client: client.id, command, acts: client.acts.splice(0) });
+    }
     this.step(this.inputs);
+    this.settled();
     const tick = this.world.tick();
     if (tick % TICKS_PER_FRAME === 0) this.snapshot(tick);
+  }
+  /** Turn the tick's settled combat into handles now: a body retired by the next frame still gets its death. */
+  private settled(): void {
+    for (const row of this.world.combat?.() ?? []) {
+      const { refs } = this.handles;
+      if (row.kind === 'hit') { const target = refs(row.target); if (target !== 0) this.combat.push({ ...row, target, confirmFor: 0, owned: row.owned }); }
+      else { const id = refs(row.id); if (id !== 0) this.combat.push({ ...row, id, by: row.by === null ? 0 : refs(row.by) }); }
+    }
   }
   /** Drop every client. */
   dispose(): void { for (const client of this.clients.slice()) this.remove(client); }
@@ -155,8 +179,8 @@ export class NetRoom {
       const row = handles.touch(id, cls, view, serial), at = frame.claim(row.handle, cls.row.length);
       cls.row.forEach((column, index) => { frame.data[at + index] = column.sample(view, handles.refs); });
     } });
-    const retired = handles.sweep(serial);
-    for (const client of this.clients) if (client.state === 'live') this.send(client, frame, retired);
+    const retired = handles.sweep(serial), combat = this.combat.splice(0);
+    for (const client of this.clients) if (client.state === 'live') this.send(client, frame, retired, combat);
   }
   /** Every entity in range of this client, itself excluded: its own state is the owner block. */
   private view(client: RoomClient, frame: WorldFrame, own: number): ClientView {
@@ -175,9 +199,8 @@ export class NetRoom {
     }
     return view;
   }
-  private send(client: RoomClient, frame: WorldFrame, retired: readonly number[]): void {
+  private send(client: RoomClient, frame: WorldFrame, retired: readonly number[], combat: readonly RoomCombat[]): void {
     const { handles, writer, world } = this, own = handles.refs(world.player.id), view = this.view(client, frame, own), events: NetEvent[] = [];
-    for (const handle of retired) if (client.known.delete(handle)) events.push({ kind: 'despawn', handle });
     for (const handle of view.visible) {
       if (client.known.has(handle)) continue;
       const row = handles.row(handle);
@@ -185,6 +208,14 @@ export class NetRoom {
       client.known.add(handle);
       events.push({ kind: 'spawn', handle, cls: row.cls.id, id: row.id, initial: row.initial, text: row.text });
     }
+    // Spawns, then what happened, then who left: a body's last hit and its death arrive before its despawn.
+    for (const row of combat) {
+      if (row.kind === 'died') { if (row.id === own || client.known.has(row.id)) events.push(row); continue; }
+      if (row.target !== own && !row.owned && !client.known.has(row.target)) continue;
+      const { owned, ...hit } = row;
+      events.push({ ...hit, confirmFor: owned ? client.attackSeq : 0 });
+    }
+    for (const handle of retired) if (client.known.delete(handle)) events.push({ kind: 'despawn', handle });
     if (events.length > 0) {
       const bytes = encodeEvents(writer, frame.tick, events, initialBits);
       this.stats.eventBytes += bytes.byteLength;

@@ -1,6 +1,7 @@
 import type { AnimalPoseSample } from '../entities/AnimalSim';
 import type { SimHost } from '../sim';
 import type { AnimalNetView } from './animalNet';
+import { CombatWire, type CombatEvent } from './combatWire';
 import { ANIMAL_CLASS, PLAYER_CLASS } from './netSchemas';
 import type { NetRefs } from './schema';
 import type { NetVisitor, NetWorld } from './room';
@@ -12,12 +13,14 @@ export class SimNetWorld implements NetWorld {
   readonly player: NetWorld['player'];
   private readonly host: SimHost;
   private readonly pose: AnimalPoseSample = emptyPose();
+  private readonly wire: CombatWire;
   constructor(host: SimHost) {
-    this.host = host;
+    this.host = host; this.wire = new CombatWire(host);
     this.player = { id: host.player.id, cls: PLAYER_CLASS, sample: (out: Uint32Array, refs: NetRefs) => { PLAYER_CLASS.owner.forEach((column, index) => { out[index] = column.sample(host, refs); }); } };
   }
   tick(): number { return this.host.state.tick; }
   cell(): number { return 0; }
+  combat(): readonly CombatEvent[] { return this.wire.drain(); }
   visit(visitor: NetVisitor): void {
     const { host, pose } = this, targets = new Map(host.attackTargets());
     visitor.entity(host.player.id, PLAYER_CLASS, host);

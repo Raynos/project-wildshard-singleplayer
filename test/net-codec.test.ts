@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { BitReader, BitWriter, NetDecodeError } from '../src/engine/net/bits';
 import { decodeCommands, encodeCommands, NET_BUTTONS } from '../src/engine/net/command';
 import { decodeFrame, encodeFrame, WorldFrame, type DecodedFrame, type FrameInput } from '../src/engine/net/frame';
-import { decodeAct, decodeEvents, decodeHello, decodeWelcome, encodeAct, encodeEvents, encodeHello, encodeWelcome, type InitialBits } from '../src/engine/net/messages';
+import { decodeAct, decodeEvents, decodeHello, decodeWelcome, encodeAct, encodeEvents, encodeHello, encodeWelcome, type InitialBits, type NetEvent } from '../src/engine/net/messages';
 import { NET_SCHEMA_HASH } from '../src/engine/net/netSchemas';
 import { compileSchema, netSchema, netSchemaHash, schemaDescription, type NetClass } from '../src/engine/net/schema';
 
@@ -170,4 +170,18 @@ test('fuzzed bytes never throw past any decoder boundary', () => {
     if (round % 3 === 1) for (let flips = 1 + Math.floor(random() * 4); flips > 0; flips--) bytes[Math.floor(random() * bytes.length)] = Math.floor(random() * 256);
     expect(() => { decodeAll(round % 3 === 2 ? Uint8Array.from({ length: Math.floor(random() * 64) }, () => Math.floor(random() * 256)) : bytes); }).not.toThrow();
   }
+});
+
+test('hit and died cross the wire: amounts exact, vectors within a step, and a truncated event refuses', () => {
+  const hit: NetEvent = { kind: 'hit', tick: 901, target: 0x1203, amount: 37.5, at: [12.5, -3.25, 200], head: true, killed: false, confirmFor: 4242 };
+  const died: NetEvent = { kind: 'died', tick: 902, id: 0x1203, by: 7, dir: [0, -1, 0.5], impulse: 37.5 };
+  const bytes = encodeEvents(new BitWriter(), 902, [hit, died], () => undefined), decoded = decodeEvents(new Uint8Array(bytes), () => undefined);
+  if (decoded === null) throw new Error('Events did not decode');
+  const [first, second] = decoded.events;
+  if (first?.kind !== 'hit' || second?.kind !== 'died') throw new Error('Events changed kind');
+  expect({ ...first, at: 0 }).toEqual({ ...hit, at: 0 });
+  first.at.forEach((axis, index) => { expect(Math.abs(axis - (hit.at[index] ?? 0))).toBeLessThan(0.008); });
+  expect({ ...second, dir: 0 }).toEqual({ ...died, dir: 0 });
+  second.dir.forEach((axis, index) => { expect(Math.abs(axis - (died.dir[index] ?? 0))).toBeLessThan(0.008); });
+  expect(decodeEvents(new Uint8Array(bytes).slice(0, 20), () => undefined)).toBeNull();
 });
