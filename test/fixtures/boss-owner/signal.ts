@@ -5,7 +5,8 @@ import stages from '../../../src/shards/sunscar-dunes/data/bossStages.json' with
 import { Vector3 } from 'three';
 import type { BossBrain } from '@wildshard/engine/ai/BossBrain';
 import type { SimHost } from '@wildshard/engine/sim';
-import { bossFlagRecord, installBossRow } from '@wildshard/game/shardfile/bossRow';
+import { installBossRow } from '@wildshard/game/shardfile/bossRow';
+import { bossFlagRecord } from '@wildshard/game/plugin/bossRecord';
 import { bossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { KeptBossBody } from '@wildshard/game/shardfile/homeKeeper';

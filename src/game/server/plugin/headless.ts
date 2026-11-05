@@ -1,13 +1,9 @@
 import { installPageItems, installPageItemContexts } from '../shardfile/pageItems';
-import { bindPageQuest } from '../../shared/quest/pageState';
-import type { installCableModes } from '@wildshard/engine/player/modes';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { parseItems } from '@wildshard/format/items';
-import { requireBound, runtimeBinds, sameRuntimeProfile, type RuntimeFacts } from '../../shared/plugin/runtimeRows';
+import { requireBound, sameRuntimeProfile } from '../../shared/plugin/runtimeRows';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
-import type { QuestState, QuestMarker } from '@wildshard/engine/quest/core';
-import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { ShardContext } from '../../client/plugin/context';
 import type { DeclaredItems, DeclaredItemPorts } from "../shardfile/items";
 import type { Shardfile } from "@wildshard/format/shardSchema";
@@ -21,39 +17,6 @@ import type { Shardfile } from "@wildshard/format/shardSchema";
  * for its declared creatures (`runtime.spawns`). The runtime binds to the result; it never
  * rebuilds the rows. The data client installs none of a bound section (`withoutRuntimeRows`).
  */
-
-type QuestRow = Shardfile['quests']['quests'][number];
-type MarkerRow = NonNullable<QuestRow['steps'][number]['markers']>[number];
-
-/** What a runtime lends a declared quest: its flags, built marker positions and an optional trusted presentation override. */
-export interface RuntimeQuestPorts {
-  readonly flags: Flags;
-  /** Required when the quest's `onComplete` names a fact. */
-  readonly facts?: RuntimeFacts;
-  /** The marker's spot on its built piece (the world decides its height); `undefined` keeps the declared spot. */
-  readonly place?: (marker: MarkerRow) => QuestMarker['at'] | undefined;
-  /** A chip for a step, overriding the declared one. */
-  readonly chip?: (step: QuestRow['steps'][number]) => string | undefined;
-}
-/** A declared quest bound into the runtime's play scope. Coins are the runtime's to pay (its purse and its beat). */
-export interface RuntimeQuest {
-  /** The mode host's admitted cable owner, on this quest's existing scope and flags. */
-  readonly cables: ReturnType<typeof installCableModes>;
-  readonly state: QuestState;
-  readonly declared: QuestRow;
-  readonly reward: { readonly coins: number; readonly fact: string | null };
-}
-
-/**
- * Build one declared quest's state over the runtime's flags, scoped to its play scope. The `onComplete` fact is emitted
- * through the bound ledger when the quest completes, and once on bind for a save that finished it before facts existed.
- */
-export function bindRuntimeQuest(ctx: Pick<ShardContext, 'app' | 'scope'> & Partial<Pick<ShardContext, 'product'>>, source: Shardfile, id: string, ports: RuntimeQuestPorts): RuntimeQuest {
-  requireBound(source, 'quests');
-  const modeSource = runtimeBinds(source).has('modes') ? ctx.product : null;
-  if (modeSource === undefined) throw new Error('Runtime-bound modes require an admitted product');
-  return bindPageQuest(ctx, source, id, ports, modeSource === null ? source.modes : modeSource.shardfile.modes);
-}
 
 /** What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. */
 export interface RuntimeItemPorts {

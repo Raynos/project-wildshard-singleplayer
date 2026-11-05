@@ -1,5 +1,5 @@
 import { createClientChannelView, moverChannelValues, type ClientGeometryKernels } from './clientChannelView';
-import { bindPageQuest } from '../../shared/quest/pageState';
+import { bindPageQuest, type RuntimeQuestPorts } from '../../shared/quest/pageState';
 import { bindPagePersistence, bindPageBossRecord, type PagePersistenceRows, type PagePersistence } from '../../server/quest/pagePersistence';
 import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
@@ -40,9 +40,9 @@ import type { ShardContext } from './context';
 import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
-import { CoinBurst } from '../../server/loot/CoinBurst';
+import { app } from '@wildshard/engine/app/runtime';
+import { CoinMotion } from '../loot/CoinMotion';
 import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from '../../shared/plugin/director';
-import type { RuntimeQuestPorts } from '../../server/plugin/headless';
 import { bindRuntimeCoins, type RuntimeBoss, type RuntimeCoins } from '../../shared/plugin/runtimeRows';
 import type { SpeciesPageCatalogue } from '../../server/plugin/brain';
 import type { BossViewRows } from '../../server/shardfile/bossRow';
@@ -51,7 +51,7 @@ import { npcDef, type NpcRow } from '../../shared/plugin/quests';
 import { installPivotNpc, pivotNpcParts, type PivotNpcGeometry, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
 import { parseQuestNpcBinding, type QuestNpcTalkBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
-import { bossFight, type HeldBossBrain } from '../../server/plugin/bossPhase';
+import { bodyBossFight, type HeldBossBrain } from '../../shared/plugin/bodyBoss';
 import { bossStorm } from './bossStorm';
 import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 
@@ -547,7 +547,7 @@ export function installQuestPresentation(ctx: QuestPresentationContext, source: 
     dayNight: world.sky.dayNight ?? null, setViewmodel: (on) => { play.weapons.visible = on; }, stowWeapon: (on) => { play.weapons.stowed = on; } }, quest, { ...options, flags, reward,
       stepCompleteToast: options.stepCompleteToast ?? ((step) => `Step complete · ${step.chip ?? step.objective}`),
       places: options.places ?? targetPlaces, npcs: [...(options.npcs ?? []), ...targetNpcs] });
-  ctx.system({ id: `game.quest.${quest.def.id}`, phase: 'update', when: (app) => app.state === 'play', run: presentation.update });
+  ctx.system({ id: `game.quest.${quest.def.id}`, phase: 'update', when: (live) => live.state === 'play', run: presentation.update });
   if (!(source instanceof QuestState)) {
     const disposeView = presentation.dispose;
     presentation.dispose = () => { disposeView(); quest.dispose(); };
@@ -858,8 +858,11 @@ export function installDeclaredNpcTalks<F extends QuestTalkFigure>(source: Pick<
   return installed;
 }
 
+/** The page's coins, on the cosmetic stream: looked up on each throw, as the burst always has. */
+const coinBurst = (scene: Scene): CoinMotion => new CoinMotion(scene, () => app.rng.stream('cosmetic').next());
+
 /** A quest's coin reward: the burst that flies the coins to the player, `pay`, which pays once per save, and `spawn`, any other coins through the same burst. */
-export interface QuestReward { readonly burst: CoinBurst; readonly pay: () => undefined; readonly spawn: (amount: number, toast: string) => void }
+export interface QuestReward { readonly burst: CoinMotion; readonly pay: () => undefined; readonly spawn: (amount: number, toast: string) => void }
 
 /**
  * A declared quest's coin reward (SHARD-PLATFORM M3; Signal Dunes and Sky Reach): `amount` coins burst out of the player through the platform purse
@@ -867,7 +870,7 @@ export interface QuestReward { readonly burst: CoinBurst; readonly pay: () => un
  * save). The burst lives on the play scene, or on a scene of its own headless.
  */
 export function questReward(ctx: ShardContext, o: { readonly player: Vector3; readonly coins: RuntimeCoins; readonly amount: number; readonly paid: () => boolean; readonly markPaid: () => void; readonly toast: string }): QuestReward {
-  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
+  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = coinBurst(scene);
   const spawn = (amount: number, toast: string): void => { burst.spawn(o.player, amount, o.coins, () => { ctx.game.runtime?.play?.hud.toast(toast); }); };
   const pay = (): undefined => {
     if (o.paid()) return undefined;
@@ -1246,7 +1249,7 @@ export interface PersistedQuestPorts {
 }
 /** Live quest services over the original durable flag, reward and boss owners. */
 export interface PersistedQuest {
-  readonly quest: QuestState; readonly flags: Flags; readonly reward: QuestReward; readonly burst: CoinBurst;
+  readonly quest: QuestState; readonly flags: Flags; readonly reward: QuestReward; readonly burst: CoinMotion;
   readonly view: QuestPresentation | null; readonly persistence: PagePersistence;
   readonly facts: PagePersistence['facts']; readonly finished: () => void;
 }
@@ -1379,14 +1382,14 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
   const base = { definition: rows.definition, stages: rows.stages, player, saved, persist: record.persist };
   if ('held' in ports) {
     if (profile.pattern !== 'held') throw new Error(`${rows.definition.id} requires its declared held-body pattern`);
-    const fight = bossFight(profile, { body: ports.held, brain: ports.brain, victory: ports.victory });
+    const fight = bodyBossFight(profile, { body: ports.held, brain: ports.brain, victory: ports.victory });
     return { spec: { ...base, script: fight.script, body: () => ports.held, shielded: fight.shielded }, at: null, weather: { storm: 0 }, after: () => undefined };
   }
   if (profile.pattern !== 'spawned') throw new Error(`${rows.definition.id} requires its declared spawned-body pattern`);
   const look = ports.presentation, body = ports.body, onDown = ports.onDown;
   const at = new Vector3(body.row.at[0], look.floor, body.row.at[1]);
-  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), weather = bossStorm(ctx, ports.source, player, look.storm)(scene);
-  const fight = bossFight<Animal>(profile, { body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
+  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = coinBurst(scene), weather = bossStorm(ctx, ports.source, player, look.storm)(scene);
+  const fight = bodyBossFight<Animal>(profile, { body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
     respawnPoint: () => ({ pos: new Vector3(look.respawn.x, ctx.manifest.ground.terrain?.heightAt(look.respawn.x, look.respawn.z) ?? 0, look.respawn.z), yaw: look.respawn.yaw }),
     victory: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); onDown?.(); },
     update: (dt, strength) => { weather(dt, strength); burst.update(dt, player); } });

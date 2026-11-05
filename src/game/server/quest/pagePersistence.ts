@@ -5,7 +5,7 @@ import type { SaveSlot, SaveStore } from '@wildshard/engine/saves/store';
 import type { Progress } from '../../client/Progress';
 import * as v from 'valibot';
 import { bossesSave } from '../../shared/saves';
-import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags } from '../shardfile/bossRow';
+import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags } from '../../shared/plugin/bossRecord';
 import { installRuntimeState } from '../../shared/shardfile/runtimeState';
 import { projectRuntimeFacts, type RuntimeFacts } from '../../shared/plugin/runtimeRows';
 import { createQuestLedger } from '../../shared/quest/ledger';

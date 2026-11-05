@@ -1146,6 +1146,8 @@
   "src/game/client/plugin/context.ts": "client",
   "src/game/client/plugin/creatureFrame.ts": "client",
   "src/game/shared/plugin/director.ts": "shared",
+  "src/game/shared/plugin/bodyBoss.ts": "shared",
+  "src/game/shared/plugin/bossRecord.ts": "shared",
   "src/game/client/plugin/geometry.ts": "client",
   "src/game/server/plugin/headless.ts": "server",
   "src/game/shared/plugin/runtimeRows.ts": "shared",

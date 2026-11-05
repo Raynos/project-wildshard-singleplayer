@@ -15,7 +15,7 @@ import { QuestLine, questMessageHandlers, type QuestState, type NpcDef } from '@
 import type { Progress } from '../../client/Progress';
 import { progressSave } from '../../shared/saves';
 import { createAchievementCounters } from '../../shared/achievements';
-import { bindRuntimeQuest } from '../plugin/headless';
+import { bindRuntimeQuest } from '../../shared/quest/pageState';
 import { bindRuntimeLedger, bindRuntimeJsonRecord, type RuntimeFacts } from '../../shared/plugin/runtimeRows';
 import { chapterFlow } from '../../shared/quest/chapterFlow';
 import type { ShardContext } from '../../client/plugin/context';

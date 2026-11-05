@@ -231,6 +231,8 @@
     "./plugin/bossPhase": "./server/plugin/bossPhase.ts",
     "./plugin/mover": "./server/plugin/mover.ts",
     "./plugin/director": "./shared/plugin/director.ts",
+    "./plugin/bodyBoss": "./shared/plugin/bodyBoss.ts",
+    "./plugin/bossRecord": "./shared/plugin/bossRecord.ts",
     "./plugin/scene": "./client/plugin/scene.ts",
     "./plugin/ui": "./client/plugin/ui.ts",
     "./plugin/audio": "./client/plugin/audio.ts",

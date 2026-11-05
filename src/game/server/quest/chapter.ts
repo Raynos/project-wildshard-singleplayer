@@ -26,7 +26,7 @@ import type { FigureRows } from '../../client/systems/npc/figureRows';
 import type { CompletionProgress } from '../../client/complete/declared';
 import type { QuestPresentationHost, QuestPresentationOptions } from '../../client/plugin/ui';
 import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from '../../shared/quest/boundState';
-import { bindRuntimeQuest } from '../plugin/headless';
+import { bindRuntimeQuest } from '../../shared/quest/pageState';
 import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory, installStoryTalks } from './story';
 import { questPageWorld } from '../../shared/quest/pageResources';
 import { questBenchPose } from '../../shared/quest/storyLaw';

@@ -4,7 +4,7 @@ import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import * as THREE from 'three';
 import type { QuestPageRows, ChapterViewRows } from '@wildshard/format/questPageComposition';
 import type { PageTamingOwner } from '../../client/riding/client';
-import { ArenaRoomEncounter } from '../boss/arenaRoom';
+import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {prepareSpecimenCatalogue} from '../../client/models/specimenCatalogue';
 import { CarriedQuestProp } from './carriedProp';
@@ -32,7 +32,7 @@ import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { prepareQuestEntry, buildQuestChapter, type QuestChapter } from './chapter';
 import type { QuestCableView } from '../../client/quest/chapterView';
-import { bindRuntimeQuest } from '../plugin/headless';
+import { bindRuntimeQuest } from '../../shared/quest/pageState';
 import { installQuestShop, type QuestTrader } from './trader';
 import { PlaceGuide } from '@wildshard/engine/quest/view';
 import type {Places} from '@wildshard/engine/quest/discovery';
@@ -177,8 +177,7 @@ export function installQuestPageComposition(ctx: ShardContext, input: QuestPageR
 export async function installQuestPageComposition(ctx: ShardContext, input: QuestPageRows | { readonly chapterView: string; readonly story: string }, owners?: ChapterViewOwners): Promise<QuestPageComposition | Flags> {
   if ('chapterView' in input) {
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
-    if (runtime === undefined || world === undefined || world === null || play === undefined || play === null || owners === undefined
-      || !(owners.arena instanceof ArenaRoomEncounter) || !(owners.fight instanceof ArenaRoomEncounter)) throw new Error('Chapter view requires its concrete entered owners');
+    if (runtime === undefined || world === undefined || world === null || play === undefined || play === null || owners === undefined) throw new Error('Chapter view requires its concrete entered owners');
     const product = ctx.product, ports = owners, { taming, arena, fight, figures } = ports;
     const live = (): void => { if (ports.taming !== taming || ports.arena !== arena || ports.fight !== fight || ports.figures !== figures
       || ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product || ctx.game.runtime !== runtime

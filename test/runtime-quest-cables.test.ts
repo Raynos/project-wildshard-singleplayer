@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { bindRuntimeQuest } from '../src/game/server/plugin/headless';
+import { bindRuntimeQuest } from '../src/game/shared/quest/pageState';
 import { boundQuestState } from '../src/game/shared/quest/boundState';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
