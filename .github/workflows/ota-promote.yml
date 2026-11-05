@@ -106,6 +106,23 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      # Inline, not ./.github/actions/org-deps: this job runs the pin's tree, which
+      # can predate that action.
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: project-wildshard
+          permission-contents: read
+      - name: Read org repos with the app token
+        env:
+          TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          base="https://x-access-token:${TOKEN}@github.com/project-wildshard/"
+          git config --global url."$base".insteadOf "https://github.com/project-wildshard/"
+          git config --global --add url."$base".insteadOf "git@github.com:project-wildshard/"
+          git config --global --add url."$base".insteadOf "ssh://git@github.com/project-wildshard/"
       - name: Install
         run: pnpm install --frozen-lockfile
 

@@ -323,6 +323,25 @@ jobs:
         if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
         with:
           version: 10
+      # Inline, not ./.github/actions/org-deps: this job runs the pin's tree, which
+      # can predate that action.
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: project-wildshard
+          permission-contents: read
+      - name: Read org repos with the app token
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
+        env:
+          TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          base="https://x-access-token:${TOKEN}@github.com/project-wildshard/"
+          git config --global url."$base".insteadOf "https://github.com/project-wildshard/"
+          git config --global --add url."$base".insteadOf "git@github.com:project-wildshard/"
+          git config --global --add url."$base".insteadOf "ssh://git@github.com/project-wildshard/"
       - name: Install exact recovery source dependencies
         if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
         run: pnpm install --frozen-lockfile
@@ -447,6 +466,10 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Install
         run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
@@ -490,6 +513,10 @@ jobs:
         with: {version: 10}
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
         with:
@@ -541,6 +568,10 @@ jobs:
         with: {version: 10}
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: pnpm install --frozen-lockfile
       - name: Bind cache snapshot to source inputs
         id: inputs
@@ -826,6 +857,10 @@ jobs:
         with: {version: 10}
       - uses: actions/setup-node@v4
         with: {node-version: '24.22.2', cache: pnpm}
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
         with:
@@ -979,6 +1014,11 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.admission.outputs.run == 'true'
         with: {node-version: '24.22.2', cache: pnpm}
+      - uses: ./.github/actions/org-deps
+        if: steps.admission.outputs.run == 'true'
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: pnpm install --frozen-lockfile
         if: steps.admission.outputs.run == 'true'
       - name: Bind cache snapshot to source inputs
@@ -1063,6 +1103,10 @@ jobs:
         with: {version: 10}
       - uses: actions/setup-node@v4
         with: {node-version: '24.22.2', cache: pnpm}
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: pnpm install --frozen-lockfile
       # Prepare publishes this small tool cache before the dependent matrix.
       # Do not restore the full product cache or share mutable build owners.
@@ -1186,6 +1230,10 @@ jobs:
         with: {version: 10}
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: pnpm install --frozen-lockfile
       - uses: actions/cache@v4
         with:
@@ -1290,6 +1338,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Install exact dependencies from a fresh store
         run: |
           store="$(mktemp -d "${RUNNER_TEMP:?}/journey-pnpm-store.XXXXXX")"

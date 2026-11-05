@@ -66,6 +66,10 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: pnpm install --frozen-lockfile
       - run: npm install --global vercel@59.11.2
       - run: pnpm gen --inputs-only
