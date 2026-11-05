@@ -418,7 +418,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             counts.parts++;
             // Every member of the part is now stored (kept here, or already credited): the index may name it.
             // A part shared by another entry keeps that entry's members too, while they are still keyed.
-            if (ports.keep !== undefined) stored.set(part.hash, [...new Set([...(heldIndex[part.hash] ?? []).filter(url => keys.has(url)),
+            if (ports.keep !== undefined) stored.set(part.hash, [...new Set([...(heldIndex[part.hash] ?? []).filter(url => keys?.has(url) !== false),
               ...part.members.map(([member]) => files[member]?.url ?? '')])]);
           } catch {
             // Settle first: a page read already waiting on a member must fall through, even when this download aborts.
@@ -447,7 +447,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         // One index write per download: this download's stored parts, plus earlier entries whose members are all
         // still keyed (the worker prunes old builds' files, so an entry never outlives its members).
         if (stored.size > 0 && ports.held !== undefined) {
-          const kept = Object.entries(heldIndex).filter(([hash, urls]) => !stored.has(hash) && urls.every(url => keys.has(url)));
+          const kept = Object.entries(heldIndex).filter(([hash, urls]) => !stored.has(hash) && urls.every(url => keys?.has(url) !== false));
           await ports.held.write(Object.fromEntries([...kept, ...stored])).catch(() => undefined);
         }
         // a failed part's unfinished members join the loose files, read after the parts in manifest order
