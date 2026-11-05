@@ -25,7 +25,7 @@ import { GridAssembly, type GridCell, type GridPoint } from '@wildshard/game/gri
 import { GridRoom } from '@wildshard/game/grid/room';
 import { commandsOf, GridNetRooms } from '@wildshard/game/grid/roomNet';
 import { GridSimulation, type GridResident } from '@wildshard/game/grid/simulation';
-import { bindShardfileSim, createShardfileSim, HOST_PROBE, type ShardfileSimPorts } from '@wildshard/game/plugin/simulation';
+import { bindShardfileSim, createShardfileSim, HOST_PROBE, type ShardfileSimPorts, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
 import { hasNativeAssembly } from '@wildshard/game/shardfile/nativeAssembly';
 import { createQuestLedger } from '@wildshard/game/quest/ledger';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../headlessRuntime';
@@ -106,17 +106,17 @@ function addRim(host: SimHost): void {
 }
 
 /** A cell with no native plan: a data shard, which any host can run from its output. */
-async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, effects: HeadlessEffect[]): Promise<Pick<CellWorld, 'host' | 'dispose'>> {
+async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, effects: HeadlessEffect[]): Promise<Pick<CellWorld, 'host' | 'dispose'> & { readonly sim: () => ShardfileSimulation | undefined }> {
   await Promise.resolve();
   const { shard, assets, rapier } = input;
   const ports: ShardfileSimPorts = { rapier,
     quest: { fact: (name, actorId) => { effects.push({ kind: 'fact', name, actorId }); }, coins: (amount, actorId) => { effects.push({ kind: 'coins', amount, actorId }); } } };
   const fresh = createShardfileSim(shard, assets, ports);
-  if (snapshot === undefined) { addRim(fresh.host); return { host: fresh.host, dispose: () => { fresh.dispose(); } }; }
+  if (snapshot === undefined) { addRim(fresh.host); return { host: fresh.host, sim: () => fresh, dispose: () => { fresh.dispose(); } }; }
   const { level } = fresh.host; fresh.dispose();
   const installed: { value?: ReturnType<typeof bindShardfileSim> } = {};
   const host = restoreSimHost(level, { rapier }, typeof snapshot === 'string' ? decodeSimSnapshot(snapshot) : snapshot, restored => { installed.value = bindShardfileSim(restored, shard, assets, { ...ports, restoring: true }); });
-  return { host, dispose: () => { (installed.value ?? { dispose: () => { host.dispose(); } }).dispose(); } };
+  return { host, sim: () => installed.value, dispose: () => { (installed.value ?? { dispose: () => { host.dispose(); } }).dispose(); } };
 }
 
 /** The one client this worker serves is on the wire as the host's own player. A room with more players keeps this seat. */
@@ -226,8 +226,13 @@ export class StandaloneGrid {
         resident.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
       } };
     }
-    const effects: HeadlessEffect[] = [], { host, dispose } = await openDataCell(input, snapshot, effects);
-    return { host, dispose, fact, effects: () => effects, step: inputs => { effects.length = 0; host.step(commandsOf(inputs)); } };
+    const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects);
+    return { host, dispose, fact, effects: () => effects, step: inputs => {
+      effects.length = 0;
+      // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
+      for (const { player, acts } of inputs) for (const act of acts) if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
+      host.step(commandsOf(inputs));
+    } };
   }
 
   private step(site: string | null, inputs: readonly NetTickInput[]): boolean {
