@@ -1,11 +1,13 @@
 import { installBrowserSaveEnvironment } from '../../src/engine/client/saves/view/storage';
+import { framesBetween } from '../../src/engine/server/net/tiers';
 import { saveEnvironment } from '../../src/engine/shared/saves/environment';
 import { NET_BUTTONS } from '../../src/engine/shared/input/netButtons';
 import { ANIMAL_CLASS } from '../../src/engine/shared/net/netSchemas';
-import { startStandalone, type StandaloneShell } from '../../src/sdk/standalone/shell';
+import type { StandaloneShell, startStandalone } from '../../src/sdk/standalone/shell';
 
 // P1-E5.2: the test page scripts/standalone-smoke.mjs drives. It never ships: it is the first real client of the standalone
-// shell, so the proof runs in a real Web Worker on real MessagePorts while the shipped client stays exactly as it is.
+// shell, so the proof runs in a real Web Worker on real MessagePorts while the shipped client stays exactly as it is. It
+// imports the shell as a page would: by URL from the folder of the build its document names, never from source.
 
 /** What one proof run measured in the page. */
 export interface ProofReport {
@@ -17,11 +19,13 @@ export interface ProofReport {
 /** What the smoke script calls. */
 export interface StandaloneProof {
   boot: (slug: string) => Promise<{ tick: number; restored: boolean }>;
+  /** A stale tab reaches a server of `build`: resolves with why the connection closed, if the page is still here. */
+  refused: (slug: string, build: string) => Promise<string | null>;
   play: (seconds: number) => Promise<ProofReport>;
   save: () => Promise<{ tick: number; ok: boolean }>;
   stored: (slug: string) => number;
 }
-declare global { interface Window { standaloneProof: StandaloneProof } }
+declare global { interface Window { standaloneProof: StandaloneProof; __WS_BUILD_ID__: string } }
 
 const SAVE_PREFIX = 'wildshard.';
 let shell: StandaloneShell | null = null;
@@ -35,9 +39,13 @@ async function probe(): Promise<{ error: number; rows: number; tickMs: number } 
   const frame = client.frame(truth.tick);
   if (frame === null) return null;
   let error = 0, rows = 0;
+  const owner = client.owner(frame);
   for (const row of truth.rows) {
     const handle = [...client.entities.values()].find(entity => entity.id === row.id)?.handle, fields = handle === undefined ? null : client.fields(frame, handle);
-    if (fields === null) continue;
+    if (fields === null || owner === null) continue;
+    // P1-E5.2c: a far row is sent on a slower tier, so only a row on the every-frame tier is this frame's tick. A metre of margin.
+    const away = Math.hypot(row.x - Number(owner['px']), row.y - Number(owner['py']), row.z - Number(owner['pz'])) + 1;
+    if (framesBetween(away * away) !== 1) continue;
     error = Math.max(error, Math.abs(Number(fields['x']) - row.x), Math.abs(Number(fields['y']) - row.y), Math.abs(Number(fields['z']) - row.z));
     rows++;
   }
@@ -73,16 +81,35 @@ async function play(seconds: number): Promise<ProofReport> {
     bytesPerFrame: frames === 0 ? 0 : (transport.stats.recvBytes - down) / frames, tickMs, crossOriginIsolated: globalThis.crossOriginIsolated, positionMoved: Math.hypot(endX - startX, endZ - startZ) };
 }
 
+/** A session of the shell in `/b/<from>/`, as a page of this document's build. */
+async function start(slug: string, from: string): Promise<StandaloneShell> {
+  const storage = saveEnvironment().storage('global');
+  if (storage === null) throw new Error('No page storage');
+  await import(/* @vite-ignore */ `/b/${from}/standalone/identity.js`);
+  const environment = await import(/* @vite-ignore */ `/b/${from}/standalone/storage.js`) as { installBrowserSaveEnvironment: typeof installBrowserSaveEnvironment };
+  environment.installBrowserSaveEnvironment();
+  const shellModule = await import(/* @vite-ignore */ `/b/${from}/standalone/shell.js`) as { startStandalone: typeof startStandalone };
+  return shellModule.startStandalone({ slug, base: `/shards/${slug}/`, build: window.__WS_BUILD_ID__, savePrefix: SAVE_PREFIX, storage });
+}
+
 installBrowserSaveEnvironment();
 window.standaloneProof = {
   boot: async slug => {
-    const storage = saveEnvironment().storage('global');
-    if (storage === null) throw new Error('No page storage');
-    shell = startStandalone({ slug, base: `/shards/${slug}/`, build: 'smoke', savePrefix: SAVE_PREFIX, storage });
+    shell = await start(slug, window.__WS_BUILD_ID__);
     const booted = await shell.booted;
     shell.ready();
     while (shell.client.latest === null) await wait(5);
     return booted;
+  },
+  refused: async (slug, build) => {
+    live().dispose();
+    const stale = await start(slug, build);
+    shell = stale;
+    stale.transport.onClose(reason => { sessionStorage.setItem('proof.closed', reason); });
+    await stale.booted;
+    stale.ready();
+    while (stale.client.closed === null) await wait(5);
+    return stale.client.closed;
   },
   play,
   save: () => live().save(),
