@@ -1,11 +1,11 @@
 # Final readings for the ten remaining open plots
 
-**Status:** `in flight` (2026-11-03, sp-x1 + sp-x8), **6/10 fully qualified; C/control measured on 10/10**.
+**Status:** `done` (2026-11-04, sp-x1 + sp-x8), **10/10 fully qualified; C/control and memory/official measured on 10/10**.
 **Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
 and the eight-view golden bridge. Sp-x8 completed separate Chromium memory
-and official Simulator windows for six plots; sp-x1 owns the four remaining
+and official Simulator windows for six plots; sp-x1 completed the final four
 Clockwork, Desert, Race and Showcase memory/official cohorts. Sp-x6 owns audio/native bar 10, body/pack/wire proof, activation and joint
 row integration for Saltwind and Fossil. Sp-x1 takes the final audio,
 activation, native bar 10 and C reports for Clockwork, Desert, Floating
@@ -31,24 +31,24 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
-| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; native-tap official 8 windows and native envelopes pass; final Nalati pending witness refuses full scope; old Safari purge refusal retained |
-| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Chromium memory complete; official Sim open |
-| Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Chromium memory complete; official Sim open |
+| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj`, fresh Sim `a3a6feb-mw2wavhf` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory + fresh-process standalone/grid official Sim complete; original refusals retained |
+| Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj`, fresh Sim `a3a6feb-mw2wjv5m` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Chromium memory + fresh-process standalone/grid official Sim complete; original refusals retained |
+| Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj`, fresh Sim `a3a6feb-mw2wgh61` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Chromium memory + fresh-process standalone/grid official Sim complete; original refusals retained |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
-| Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; official Sim open |
+| Showcase Template | `open-plot-sw` / (-1,-1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj`, fresh Sim `a3a6feb-mw2wn440` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory + fresh-process standalone/grid official Sim complete; original refusals retained |
 
 All ten plots have eight committed golden cameras and maintained route
 inputs. Saltwind's `db418c06d7` adds `road-avenue-plaza`: 14 waypoints with
-the original 180 s bound, awaiting qualification on the final audio candidate.
+the original 180 s bound, qualified on the final audio candidate below.
 Desert's two legs remain intact.
 Pastel's final board is `6aaef37e93`; Showcase's is `6d8d10289d`.
 Their original maintained route inputs were restored by `3dde21ddfb`; each
 has 14 waypoints and a 180 s bound. O2's Showcase walk on `300a65548b`
-reports one complete leg with zero stuck/out; this stays geometry-only
-evidence until its final audio-containing cohort is measured.
+reports one complete leg with zero stuck/out; that geometry-only evidence
+is superseded for closure by the final audio-containing walk below.
 Starfall's `d4d4b17674` walk (164.478 s) and Clockwork's `f1d64e700c` walk
 (164.421 s) each completed 14 waypoints with zero stuck/out; these remain
-geometry-only evidence in the plan until the final candidate is checked.
+geometry-only evidence; the later final-candidate walks are recorded below.
 
 The maintained Chromium pair uses phone 2×, live clock, acknowledged 4× CPU,
 120 drawn frames per window, and the same real road/plaza poses for each plot
@@ -58,8 +58,9 @@ waypoint and timeout guards. The golden bridge uses the maintained eight-view
 capture and Homebrew Python board maker; all eight rows are read, with original
 G994 visual gaps retained and no golden promotion by the readings lane.
 
-Final sections below will record actual source/build, numbers, failures,
-remaining owner work and lease release. Unmeasured values remain open.
+The sections below record actual source/build, numbers, failures and lease
+release. Earlier open states and refusals remain as dated history; the final
+four-official section closes the remaining scopes without regrading old raw.
 
 ## Saltwind Lighthouse — Chromium/control (sp-x1)
 
@@ -1976,3 +1977,88 @@ No game visit, native sample or new official qualification follows from
 this bridge. The next quiet window remains after sp-o1's DL23 Nine turn: a
 real native preparation tap, one fresh Clockwork official, and the other
 three only if Clockwork qualifies. Full cohorts remain **6/10**.
+
+
+## Final four officials — qualified and resources released (sp-x1, November 4 Panama / November 5 UTC)
+
+All ten reading cohorts are now qualified. The final four use source
+**a3a6feb97611240cbfef3a094f1fa9b07c8fa6ef**, with the exact audio/native
+source and plot-body/pack bridge above. G872 admits only the recorded 164 B
+`look/map.tilesHash` provenance changes and their containing packs; map
+images are exact and swapping only the stamp reconstructs every original
+body and whole-pack hash. No other content difference is accepted.
+
+Each official has its own newly started normal D223 preview process and no
+prior game visit. The reader and all ten tracked inputs remain byte-exact
+through each command. The normal exclusive model lock, Simulator lane and
+G670 quiet window are retained. The original configuration, readback,
+120-frame, native phase/GPU and four-neighbour gates are unchanged.
+
+Before Clockwork, a **real native preparation tap** reports a trusted click
+with active user activation. Safari's `127.0.0.1` ITP interaction timestamp
+advances from 1793837745.2984 to 1793843899.193321; removal count stays 16.
+Tracking prevention stays enabled. The following three officials reuse that
+same registrable-domain interaction. This addresses the observed Simulator
+Safari harness purge; the approved WebKit home-screen exemption means that
+specific harness purge is not a claimed risk to Jake's installed PWA. This
+is Simulator evidence, not a physical-phone memory or performance clearance.
+
+| Plot | Fresh build / port | Original command seconds | Windows / frames | Native + GPU standalone playing / loading MB | Pooled grid playing / loading MB |
+|---|---|---:|---|---:|---:|
+| Clockwork Canyon | `a3a6feb-mw2wavhf` / 4470 | 90.387 | 8 × 120; 0 skipped | 340.472 / 458.095 | 933.857 / 814.206 |
+| Desert Ruin | `a3a6feb-mw2wgh61` / 4471 | 91.118 | 8 × 120; 0 skipped | 343.303 / 441.249 | 990.606 / 854.900 |
+| Floating Island Race | `a3a6feb-mw2wjv5m` / 4472 | 88.723 | 8 × 120; 0 skipped | 325.663 / 428.934 | 966.063 / 890.273 |
+| Showcase Template | `a3a6feb-mw2wn440` / 4473 | 88.791 | 8 × 120; 0 skipped | 363.900 / 508.082 | 935.400 / 909.598 |
+
+All **32 windows / 3,840 drawn frames** pass the existing 30 fps floor:
+30.303 fps and p95 34 ms throughout. All strict 33.3 ms flags remain
+**false**. Each standalone envelope stays below 1.2 GB playing / 1.8 GB
+loading. The grid figures are actual pooled page observations with no
+per-shard 1.2 GB page cap (G556); logical pool diagnostics are not added to
+native memory. Native readings combine the conservative phase footprint
+and GPU ledger maxima, excluding GPU process footprint.
+
+| Plot | Standalone phase samples playing / loading; GPU samples | Grid phase samples playing / loading; GPU samples | Retained Inspector diagnostics standalone / grid |
+|---|---|---|---|
+| Clockwork Canyon | 222 / 31; 46 | 373 / 70; 77 | 0 / 1 |
+| Desert Ruin | 228 / 31; 47 | 374 / 65; 77 | 0 / 1 |
+| Floating Island Race | 215 / 30; 46 | 364 / 64; 77 | 0 / 1 |
+| Showcase Template | 221 / 27; 47 | 364 / 63; 77 | 0 / 1 |
+
+The grid diagnostic is `Inspector closed` once for Clockwork, Desert and
+Race, and `InvalidStateError: Sent before connected.` once for Showcase.
+These raw diagnostics remain listed. Every native phase and GPU sample gate
+passes, with no missing measurement or promoted zero.
+
+Every non-spawn junction heading has the actual four expected neighbours
+near and drawn, crossing settled, and **world pending empty**. Race's last
+heading lists one optional radial metadata request for Nine, **44.194 m
+outside** its cell, with gameplay ready and no resident/entered Nine content.
+It is listed separately under the narrow G872 ruling, not erased. All other
+junction headings have no optional pending work. The original grid-spawn
+warmup still lists world admission; its unchanged spawn gate is not replaced
+by the settled-junction test. No legacy union-only witness is requalified.
+
+Resources were released after each command, with final literal END
+**2026-11-05T02:08:31.440571Z**: quiet absent, zero booted Simulators,
+zero game browsers, immediate model-lock probe free, and all four own preview
+leases normally stopped. No overlap is recorded. The first three qualified
+before the next command started; the cohort never skipped a refusal.
+
+Raw evidence is retained under
+`tmp/sp-x1-open-plots/audio4-pending-officials-a3a6feb976/<plot>/`:
+`admission.json`, `official-preflight.json`, `reader-fence.json`, the single
+original Simulator JSON, native samples, `summary.json` and
+`resource-release.json`. The native tap is in Clockwork's
+`native-preparation.json`. The prior Safari purge, configuration failures,
+contaminated readings and union-only Nalati pending refusal all remain
+historical evidence above.
+
+**OP23 plan-end scope is complete:** this all-product build has every plot
+built and was read inside four plots plus four real ring junctions, with
+all four neighbours drawn in each heading. The four current standalone
+scopes meet their native envelopes and floor; their grid pages complete
+without a crash. Together with the six previously qualified cohorts and the
+separate Jungle/Fairground wave-A readings, no plot reading scope remains
+open. Accepted artistic gaps, raw strict/CPU misses and Jake's live playtest
+remain distinct from this measured closure.
