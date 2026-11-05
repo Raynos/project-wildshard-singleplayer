@@ -86,7 +86,7 @@ const playerState = v.strictObject({ id, position: vector, yaw: finite, health: 
   velocity: v.optional(vector), walking: v.optional(v.literal(true)), airborne: v.optional(v.literal(true)),
   moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
   shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
-  board: v.optional(v.strictObject({ air: v.boolean(), bob: finite, ground: v.boolean() })),
+  board: v.optional(v.strictObject({ air: v.boolean(), bob: finite })),
   swim: v.optional(v.strictObject({ on: v.boolean(), diving: v.boolean(), climbTo: v.nullable(finite), climbCooldown: nonnegative, stroke: nonnegative, stood: v.boolean() })),
   footing: v.optional(v.strictObject({ water: v.nullable(finite), depth: nonnegative, wading: v.boolean(), onPlatform: v.boolean(), sliding: v.boolean() })),
   jump: v.optional(v.strictObject({ ago: v.nullable(nonnegative), left: v.picklist([0, 1]) })),
@@ -349,7 +349,7 @@ export function decodeSnapshotDataBytes(input: unknown, apiVersion: number, phys
 function migratePlayerV2({ walk, fall, board, swim, ...rest }: v.InferOutput<typeof playerStateV2>): v.InferOutput<typeof playerState> {
   const velocity = board?.velocity ?? (swim?.on === true ? swim.velocity : [walk?.x ?? 0, fall?.vy ?? 0, walk?.z ?? 0]);
   return { ...rest, ...(velocity.every(axis => axis === 0) ? {} : { velocity }), ...(walk === undefined ? {} : { walking: true as const }),
-    ...(fall?.grounded === false ? { airborne: true as const } : {}), ...(board === undefined ? {} : { board: { air: board.air, bob: board.bob, ground: board.ground } }),
+    ...(board === undefined ? fall?.grounded === false : !board.ground) ? { airborne: true as const } : {}, ...(board === undefined ? {} : { board: { air: board.air, bob: board.bob } }),
     ...(swim === undefined ? {} : { swim: { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.stroke, stood: swim.stood } }) };
 }
 /** A version 2 save is a version 3 save with one velocity on each player. Nothing else about the continuation moved. */

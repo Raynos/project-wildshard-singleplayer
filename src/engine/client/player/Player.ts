@@ -4,7 +4,7 @@ import { walkingSpeed } from '../../shared/player/walk';
 import { pondBob } from '../../shared/player/swim';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { boardShoved, HOVER_HARD_LANDING } from '../../shared/player/board';
-import { leaveSwim, PAGE_MOTION, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { leaveSwim, PAGE_MOTION, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../../shared/events/events';
@@ -282,8 +282,8 @@ export class Player {
   /** step on / off the hoverboard. Off: the board fades and gravity lands you; on: the spring lifts you to ride height. */
   setHover(on: boolean): void {
     if (on === this.hover) return;
-    this.hover = on;
-    if (on) { this.crouching = false; this.sprinting = false; this.onGround = false; leaveSwim(this.motionState, this.motionWorld); }
+    setBoard(this.motionState, this.motionWorld, on);
+    if (on) { this.crouching = false; this.sprinting = false; }
     this.onHoverChange?.(on); app.events.emit('player.hover', on);
   }
 
@@ -608,7 +608,7 @@ function pageMotionState(player: Player, own: Pick<PlayerMotionState, 'impulse' 
     get yaw() { return player.yaw; }, set yaw(value) { player.yaw = value; },
     get moveScale() { return player.moveScale; }, set moveScale(value) { player.moveScale = value; },
     fall: { get grounded() { return player.onGround; }, set grounded(value) { player.onGround = value; } },
-    board: { get on() { return player.hover; }, get onGround() { return player.onGround; }, set onGround(value) { player.onGround = value; },
+    board: { get on() { return player.hover; }, set on(value) { player.hover = value; }, get onGround() { return player.onGround; }, set onGround(value) { player.onGround = value; },
       get hoverAir() { return player.hoverAir; }, set hoverAir(value) { player.hoverAir = value; },
       get hoverBob() { return player.hoverBob; }, set hoverBob(value) { player.hoverBob = value; } },
     swim: { stood: false, get on() { return player.swimming; }, set on(value) { player.swimming = value; },

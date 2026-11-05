@@ -91,8 +91,8 @@ function versionOnePlayer(player: Readonly<Record<string, unknown>>): Record<str
   const riding = board !== undefined || swim?.on === true, airborne = player['airborne'] === true, vy = riding ? 0 : y;
   const mapped: Record<string, unknown> = { ...player,
     ...(player['walking'] === true ? { walk: riding ? { x: 0, z: 0 } : { x, z } } : {}),
-    ...(airborne || vy !== 0 ? { fall: { vy, grounded: !airborne } } : {}),
-    ...(board === undefined ? {} : { board: { velocity: [...velocity], ...board } }),
+    ...(board === undefined && (airborne || vy !== 0) ? { fall: { vy, grounded: !airborne } } : {}),
+    ...(board === undefined ? {} : { board: { velocity: [...velocity], ...board, ground: !airborne } }),
     ...(swim === undefined ? {} : { swim: { on: swim.on, velocity: swim.on ? [...velocity] : [0, 0, 0], diving: swim['diving'], climbTo: swim['climbTo'], climbCooldown: swim['climbCooldown'], stroke: swim['stroke'], stood: swim['stood'] } }) };
   const out: Record<string, unknown> = {};
   for (const key of V1_PLAYER_FIELDS) if (mapped[key] !== undefined) out[key] = mapped[key];

@@ -87,7 +87,7 @@ export interface PlayerMotionState {
   readonly dodge: DodgeState;
   /** the jump clocks, or null until the first press: a player that never jumps keeps its exact bytes */
   jump: JumpState | null;
-  readonly board: BoardState & { readonly on: boolean };
+  readonly board: BoardState & { on: boolean };
   readonly swim: SwimState & { on: boolean; stood: boolean };
   readonly footing: MotionFooting;
 }
@@ -228,6 +228,12 @@ export function leaveSwim(s: PlayerMotionState, w: MotionWorld): void {
   if (!swim.on) return;
   swim.on = false; swim.climbTo = null; swim.diving = false;
   w.swimChanged(false);
+}
+/** Step on or off the board, keeping the one velocity. On: the swim ends and the feet leave the ground. Off: gravity lands
+ *  them from the ride height, on the next step. */
+export function setBoard(s: PlayerMotionState, w: MotionWorld, on: boolean): void {
+  s.board.on = on;
+  if (on) { s.fall.grounded = false; leaveSwim(s, w); }
 }
 /** Start swimming, from the walk: most of the fall speed goes into the splash, and the walk's own (`vx`, `vz`) stay. */
 function enterSwim(s: PlayerMotionState, w: MotionWorld, run: MotionScratch, vx: number, vz: number): void {
@@ -393,6 +399,7 @@ export function stepPlayerMotion(s: PlayerMotionState, cmd: MotionCommand | unde
   if (cmd?.dodge === true) pressDodge(s, cmd, w, run);
   stepDodge(s.dodge, dash.t > 0, dt);
   if (!swim.on) swim.stood = false; // last tick's stand-up is over
+  if (!board.on) board.hoverBob = 0;
   let mx = cmd?.moveX ?? 0, mz = cmd?.moveZ ?? 0;
   const len = Math.hypot(mx, mz);
   if (len > 1) { mx /= len; mz /= len; }

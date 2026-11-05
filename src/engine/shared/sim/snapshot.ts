@@ -65,7 +65,7 @@ export interface SimPlayerSnapshot { id: string; position: number[]; yaw: number
     airborne?: true | undefined;
     shove?: { t: number; vx: number; vz: number } | undefined;
     /** SF72: the riding hoverboard (SimHost.playerBoard); absent on foot, so a host that never boards keeps its bytes. */
-    board?: { air: boolean; bob: number; ground: boolean } | undefined;
+    board?: { air: boolean; bob: number } | undefined;
     /** SF34: the swim (SimHost.playerSwim) while swimming or its haul-out cooldown runs; absent otherwise, so a host without
      *  water keeps its bytes. */
     swim?: { on: boolean; diving: boolean; climbTo: number | null; climbCooldown: number; stroke: number; stood: boolean } | undefined;
@@ -284,7 +284,7 @@ function playerSnapshot(host: SimHost, player: PlayerSim): SimPlayerSnapshot {
     ...(player.impulse.lengthSq() > 0 ? { impulse: player.impulse.toArray() } : {}),
     ...(player.fall.grounded ? {} : { airborne: true as const }),
     ...(player.shove.t > 0 ? { shove: { ...player.shove } } : {}),
-    ...(player.board.on ? { board: { air: player.board.hoverAir, bob: player.board.hoverBob, ground: player.board.onGround } } : {}),
+    ...(player.board.on ? { board: { air: player.board.hoverAir, bob: player.board.hoverBob } } : {}),
     ...swimField(player), ...footingField(player),
     ...jumpFields(player), ...traversalField(player) };
 }
@@ -316,7 +316,7 @@ function invalidPlayer(saved: SimPlayerSnapshot): boolean {
     || (saved.velocity !== undefined && (saved.velocity.length !== 3 || !saved.velocity.every(Number.isFinite)))
     || (saved.moveScale !== undefined && !(Number.isFinite(saved.moveScale) && saved.moveScale >= 0 && saved.moveScale !== 1))
     || (saved.shove !== undefined && (![saved.shove.t, saved.shove.vx, saved.shove.vz].every(Number.isFinite) || saved.shove.t <= 0 || saved.shove.t > SHOVE_TIME))
-    || (saved.board !== undefined && (!Number.isFinite(saved.board.bob) || saved.airborne !== undefined))
+    || (saved.board !== undefined && !Number.isFinite(saved.board.bob))
     || (saved.dash !== undefined && (![saved.dash.t, saved.dash.vx, saved.dash.vz].every(Number.isFinite) || saved.dash.t <= 0))
     || (saved.dodge !== undefined && (!(saved.dodge.cd >= 0 && saved.dodge.t >= 0) || saved.dodge.cd + saved.dodge.t === 0))
     || (saved.jump !== undefined && ((saved.jump.ago !== null && !(saved.jump.ago >= 0)) || ![0, 1].includes(saved.jump.left)));
@@ -334,10 +334,10 @@ function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
   player.velocity.set(0, 0, 0); if (saved.velocity !== undefined) player.velocity.fromArray(saved.velocity);
   player.walkActive = saved.walking === true;
   player.moveScale = saved.moveScale ?? 1;
-  player.fall.grounded = saved.airborne !== true;
   Object.assign(player.shove, saved.shove ?? { t: 0, vx: 0, vz: 0 });
   const { board } = saved;
-  Object.assign(player.board, board === undefined ? { on: false, hoverAir: false, hoverBob: 0, onGround: false } : { on: true, hoverAir: board.air, hoverBob: board.bob, onGround: board.ground });
+  Object.assign(player.board, board === undefined ? { on: false, hoverAir: false, hoverBob: 0 } : { on: true, hoverAir: board.air, hoverBob: board.bob });
+  player.fall.grounded = saved.airborne !== true;
   const { swim } = saved;
   if (swim?.on === true && (board !== undefined || !host.hasWater)) throw new RangeError('Snapshot swim does not match');
   Object.assign(player.swim, swim === undefined ? { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false }

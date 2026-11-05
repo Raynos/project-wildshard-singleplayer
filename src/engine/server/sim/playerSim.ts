@@ -14,7 +14,7 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { HOST_MOTION, leaveSwim, stepPlayerMotion, versionedWalk, type MotionFooting, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { HOST_MOTION, leaveSwim, setBoard, stepPlayerMotion, versionedWalk, type MotionFooting, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import { validateLocalMovement } from '../../shared/input/commands';
 import { netSimCommand } from '../../shared/sim/netMotion';
@@ -22,6 +22,10 @@ import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDr
 
 /** The world-space command a tick's input means. */
 export function simCommandOf(input: SimTickCommand): SimCommand { return 'seq' in input ? netSimCommand(input) : input; }
+/** A board whose "riding near the ride height" is the fall's ground. */
+function boardOn(fall: { grounded: boolean }): BoardState & { on: boolean } {
+  return { on: false, hoverAir: false, hoverBob: 0, get onGround() { return fall.grounded; }, set onGround(on) { fall.grounded = on; } };
+}
 /** How a host makes a player's body. */
 export interface PlayerSimBody {
   /** The page's own player: this sim reads it and leaves its motion to the page. */
@@ -59,8 +63,9 @@ export class PlayerSim implements PlayerMotionState {
   /** The running creature-hit knockback, the client Player's shove law (player/shove.ts). */
   readonly shove: ShoveState = { t: 0, vx: 0, vz: 0 };
   /** The hoverboard (SF72): on the board, each step runs the client Player's board law (player/board.ts) instead of the
-   * walk, and the board-only colliders (SimHost.boardColliders) collide. Off by default. */
-  readonly board: BoardState & { on: boolean } = { on: false, hoverAir: false, hoverBob: 0, onGround: false };
+   * walk, and the board-only colliders (SimHost.boardColliders) collide. Off by default. Riding near the ride height is
+   * the fall's own ground, as on the client's Player. */
+  readonly board: BoardState & { on: boolean } = boardOn(this.fall);
   /** SF34: the swim (player/swim.ts, the client Player's water law), only on a host with water (useWater): on once the
    *  feet float, with the law's dive, haul-out and stroke clocks. */
   readonly swim: SwimState & { on: boolean; stood: boolean } = { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false };
@@ -242,17 +247,11 @@ export class PlayerSim implements PlayerMotionState {
     if (this.board.on || this.swim.on) return false;
     return dashToward(this.dash, this.position.x, this.position.z, x, z, stopAt, time);
   }
-  /** Step on or off the hoverboard, as the client Player's `setHover`: on, the board starts from the feet's vertical speed
-   * with no horizontal speed (the host's walk keeps none) and is not yet riding; off, the board's vertical speed becomes
-   * the fall's and the feet drop from the ride height. The board-only colliders follow on the next step, before physics,
-   * as the client's movers sync before its world step. */
+  /** Step on or off the hoverboard, the client Player's `setHover` (player/motion.ts). The board-only colliders follow on
+   * the next step, before physics, as the client's movers sync before its world step. */
   setBoard(on: boolean): void {
     this.refuseBorrowed('board');
-    const { board, fall, velocity } = this;
-    if (on === board.on) return;
-    if (on && this.swim.on) leaveSwim(this, this.world); // the client's setHover ends the swim
-    board.on = on; board.hoverAir = false; board.hoverBob = 0; board.onGround = false;
-    velocity.x = 0; velocity.z = 0; fall.grounded = on;
+    if (on !== this.board.on) setBoard(this, this.world, on);
   }
   /** Reposition this owned native traveller without stepping the world. Like the page's spawn, release the old ride,
    * velocity, dash and swimming state. */
