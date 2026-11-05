@@ -19,8 +19,10 @@ export class SimNetWorld implements NetWorld {
   private readonly host: SimHost;
   private readonly pose: AnimalPoseSample = emptyPose();
   private readonly wire: CombatWire;
-  constructor(host: SimHost) {
-    this.host = host; this.wire = new CombatWire(host);
+  private readonly frame: number;
+  /** `frame` names the cell this host's positions are local to; 0 is the highway, and any world that is not on a grid. */
+  constructor(host: SimHost, frame = 0) {
+    this.host = host; this.frame = frame; this.wire = new CombatWire(host);
     this.player = this.playerOf(leadPlayer(host).id);
   }
   /** A player, as the client that owns it reads it. */
@@ -30,7 +32,7 @@ export class SimNetWorld implements NetWorld {
     return { id, cls: PLAYER_CLASS, sample: (out: Uint32Array, refs: NetRefs) => { PLAYER_CLASS.owner.forEach((column, index) => { out[index] = column.sample(player, refs); }); } };
   }
   tick(): number { return this.host.state.tick; }
-  cell(): number { return 0; }
+  cell(): number { return this.frame; }
   combat(): readonly CombatEvent[] { return this.wire.drain(); }
   quests(player: string, since: number): QuestProgressRead | null { return questBooks(this.host).progressOf(player, since); }
   visit(visitor: NetVisitor): void {

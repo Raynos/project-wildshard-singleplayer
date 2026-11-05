@@ -42,11 +42,10 @@ export class GridRoom {
     crossing.scope.dispose(); this.crossings.delete(player);
     return true;
   }
+  /** Everyone's own crossing, once per fixed tick, before any world steps. */
+  cross(): void { for (const [player, { session }] of this.crossings) session.step(this.grid.worldFeet(player)); }
   /** One fixed tick: everyone's own crossing, then every occupied world. */
-  step(commands?: ReadonlyMap<string, SimTickCommand>): void {
-    for (const [player, { session }] of this.crossings) session.step(this.grid.worldFeet(player));
-    this.grid.stepAll(commands);
-  }
+  step(commands?: ReadonlyMap<string, SimTickCommand>): void { this.cross(); this.grid.stepAll(commands); }
   /** Every hand-off since the last call. */
   drainTravels(): readonly GridTravel[] { return this.travels.splice(0); }
   /** Stop every crossing; the grid stays with its owner. */

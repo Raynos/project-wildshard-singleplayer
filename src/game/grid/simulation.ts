@@ -75,6 +75,8 @@ export class GridSimulation {
   }
   /** The host a player stands in, which holds that player's enabled capsule and character controller. */
   host(player: string = this.owner): SimHost { return this.hostAt(this.current(player)); }
+  /** The host of a world, resident or the highway. */
+  hostOf(site: string | null): SimHost { return this.hostAt(site); }
   private hostAt(site: string | null): SimHost { return site === null ? this.ports.highway.host : this.resident(site).value.host; }
   /** Whether any player stands in this cell, so it advances and cannot be evicted. */
   private occupied(site: string | null): boolean { for (const at of this.sites.values()) if (at === site) return true; return false; }
@@ -282,6 +284,13 @@ export class GridSimulation {
       host.step(own);
     }
   }
+  /** One tick of one world, for a room stepping its own (`stepAll` does every world). */
+  stepSite(site: string | null, commands: ReadonlyMap<string, SimTickCommand>): void {
+    if (this.disposed) throw new Error('Grid simulation is disposed');
+    const host = this.hostAt(site); this.ports.beforeMove?.(site, host); host.step(commands);
+  }
+  /** Every world with a player in it. */
+  occupiedSites(): ReadonlySet<string | null> { return new Set(this.sites.values()); }
   /** Global render pose is derived from local feet and the current frame, never saved into an authored host. */
   worldFeet(player: string = this.owner): GridPoint {
     const site = this.current(player), { position } = this.seat(this.hostAt(site), player);

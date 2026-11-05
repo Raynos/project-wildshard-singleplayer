@@ -6,7 +6,7 @@ import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
 import { BitWriter } from './bits';
 import { encodeCommands, seqAfter } from './command';
 import { decodeFrame, FRAME_RING, NO_BASELINE, type DecodedFrame, type FrameTable } from './frame';
-import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetWelcome } from './messages';
+import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetTravel, type NetWelcome } from './messages';
 import { FLAG_CLASS, NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from './netSchemas';
 import { FLAG_PREFIX, STATE_PREFIX } from './shardNet';
 import type { NetClass, NetValue } from './schema';
@@ -44,6 +44,7 @@ export class NetClient {
   private readonly frames = new Map<number, DecodedFrame>();
   private readonly listeners = new Set<(frame: DecodedFrame) => void>();
   private readonly fights = new Set<(event: NetCombatEvent) => void>();
+  private readonly travels = new Set<(event: NetTravel) => void>();
   /** This client's own player's quests, newest row each (P1-E3.3): what a QuestReplica reads. */
   readonly quests: Map<string, QuestProgress> = new Map<string, QuestProgress>();
   /** The flags up in this client's own world (J106): what its view of a gate or a key reads. */
@@ -65,6 +66,8 @@ export class NetClient {
   onFrame(listener: (frame: DecodedFrame) => void): () => void { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; }
   /** Call for every settled hit and death (P1-E3.2); returns the unsubscribe. */
   onCombat(listener: (event: NetCombatEvent) => void): () => void { this.fights.add(listener); return () => { this.fights.delete(listener); }; }
+  /** Call when this client's player crosses, before the new cell's `welcome`; returns the unsubscribe. */
+  onTravel(listener: (event: NetTravel) => void): () => void { this.travels.add(listener); return () => { this.travels.delete(listener); }; }
   /** A held frame by tick. */
   frame(tick: number): DecodedFrame | null { return this.frames.get(tick) ?? null; }
   /** One entity's row in a frame, as field values. */
@@ -103,7 +106,7 @@ export class NetClient {
   /** Send a non-movement action on the reliable channel. */
   act(act: NetAct): void { this.transport.send('reliable', encodeAct(this.writer, act)); }
   /** Stop listening; the transport stays with its owner. */
-  dispose(): void { for (const off of this.off) off(); this.listeners.clear(); this.fights.clear(); }
+  dispose(): void { for (const off of this.off) off(); this.listeners.clear(); this.fights.clear(); this.travels.clear(); }
 
   private receive(bytes: Uint8Array): void {
     switch (messageId(bytes)) {
@@ -119,6 +122,7 @@ export class NetClient {
     for (const event of decoded.events) {
       if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
+      if (event.kind === 'travel') { this.left(); for (const listener of this.travels) listener(event); continue; }
       if (event.kind === 'phase') { if (event.on) this.phased.add(event.flag); else this.phased.delete(event.flag); continue; }
       if (event.kind === 'despawn') {
         const id = this.entities.get(event.handle)?.id;
@@ -134,8 +138,10 @@ export class NetClient {
       this.ids.set(event.id, event.handle);
     }
   }
+  /** Everything it holds named the cell it left. Commands stand: the player's own stream goes on. */
+  private left(): void { this.welcome = null; this.latest = null; this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); }
   private decoded(frame: DecodedFrame | null): void {
-    if (frame === null) { this.dropped++; return; }
+    if (frame === null || (this.welcome !== null && frame.cell !== this.welcome.cell)) { this.dropped++; return; }
     this.frames.set(frame.tick, frame);
     if (this.frames.size > FRAME_RING) for (const tick of this.frames.keys()) { this.frames.delete(tick); if (this.frames.size <= FRAME_RING) break; }
     if (this.latest === null || frame.tick > this.latest.tick) this.latest = frame;
