@@ -442,6 +442,7 @@
   },
   "src/engine/player/MeleeSweep.ts": "client",
   "src/engine/player/modes.ts": "shared",
+  "src/engine/player/motion.ts": "shared",
   "src/engine/player/Player.ts": {
    "side": "shared",
    "mixed": true
