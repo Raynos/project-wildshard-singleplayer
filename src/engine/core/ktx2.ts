@@ -198,8 +198,8 @@ export async function prepareCompressedTexture<T extends THREE.Texture>(texture:
  * Clones share the mip data, so it is freed when the last of them has uploaded. An in-place WebGL restore could not
  * re-upload it, so a context loss reloads the page instead (gpuOnly.ts, GpuRecovery.ts — as iOS's GPU-process loss already does).
  */
-export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T, immutable = false): T {
-  registerCompressedMipmaps(t, immutable);
+export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T, immutable = false, retireAtUpload = false): T {
+  registerCompressedMipmaps(t, immutable, retireAtUpload);
   t.onUpdate = (): void => { compressedMipmapsUploaded(t); };
   return t;
 }

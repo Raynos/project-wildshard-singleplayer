@@ -161,8 +161,9 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
       // a splat layer is copied into its array, never uploaded itself (clientSplatTerrain)
       texture.flipY = false; texture.name = `shardfile:${ref}`;
       const sampler = shard.look.samplers?.[ref]; if (sampler !== undefined) applyTextureSampler(texture, sampler);
-      // D227 (Debug 'Retire texture mips', default off): retire at the first draw, the immutable path
-      if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture, retireCompressedMipsAtFirstDraw());
+      // D227 (Debug 'Retire texture mips at first draw', default off): these maps' samplers are final before their upload, so
+      // they retire when it completes (a loader upload of a prop never drawn yet kept its mips for good)
+      if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture, false, retireCompressedMipsAtFirstDraw());
       // a raw-texel file (uncompressed KTX2) arrives as a DataTexture: its decoded texels go once it is on the GPU too
       else if (texture instanceof DataTexture) releaseRawAfterUpload(texture);
       scope.own(texture); textures.set(ref, texture);
