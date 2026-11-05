@@ -5,13 +5,15 @@ import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { RespawnQueue } from './respawn';
 import { ReturnProgram } from './returnProgram';
-import { nearestPosition, roomRefillRate } from '@wildshard/engine/entities/creatureRefill';
+import { REFILL_WAIT, nearestPosition, roomRefillRate } from '@wildshard/engine/entities/creatureRefill';
 
 const finite = v.pipe(v.number(), v.finite());
 const savedEntry: v.GenericSchema<BoundedNativeReturnSaveInput, BoundedNativeReturnSave> = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite,
   x: finite, z: finite, due: finite, night: v.boolean(), id: v.string() });
 interface ReturnBody { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly actor: HuntBody | null }
 type ReturnEntry = v.InferOutput<typeof savedEntry>;
+/** J109: in a room a kind no author timed still comes back. Declared rules stay on their own clock. */
+const ROOM_RULE = { delay: { min: REFILL_WAIT, max: REFILL_WAIT } };
 
 /** Built-in roster child. Only createNativeCreatureRoster constructs it with
  * its actual body map and hunt; shard callers supply declaration rows only.
@@ -29,14 +31,20 @@ export class NativeReturns {
     this.rows = v.parse(NativeReturnRowsSchema, input);
     this.queue = new RespawnQueue(this.rows.rules, this.rows.outOfSight,
       { order: 'reverse', limit: this.rows.limit, result: 'reuse' }, ReturnProgram.native(host, this.rows.program));
+    const owe = (kind: string, variant: string, herd: number, x: number, z: number, id: string): void => {
+      if (this.queue.pending.length >= this.rows.limit) throw new Error('Native return queue exceeds its bound');
+      const entry = this.queue.add(kind, variant, herd, x, z, this.now, host.rng.stream('spawn').next(), ROOM_RULE);
+      if (entry !== null) this.predecessors.set(entry, id);
+    };
     host.events.on('actor.died', ({ actor }) => {
       const body = [...bodies.values()].find(row => row.actor?.combatActor() === actor), native = body?.actor;
-      if (body === undefined || native === null || native === undefined || !this.queue.accepts(body.kind)) return;
-      if (this.queue.pending.length >= this.rows.limit) throw new Error('Native return queue exceeds its bound');
+      if (body === undefined || native === null || native === undefined || !(this.queue.accepts(body.kind) || host.players.size > 1)) return;
       const herd = hunt.herds[body.herd];
-      const entry = this.queue.add(body.kind, body.variant, body.herd, herd?.cx ?? native.position.x,
-        herd?.cz ?? native.position.z, this.now, host.rng.stream('spawn').next());
-      if (entry !== null) this.predecessors.set(entry, body.id);
+      owe(body.kind, body.variant, body.herd, herd?.cx ?? native.position.x, herd?.cz ?? native.position.z, body.id);
+    }, host.scope);
+    // J108: a tame leaves its spot empty on this roster too. Only a room owes it: one player's world stays as it was.
+    host.events.on('creature.tamed', ({ kind, variant, herd, x, z, id }) => {
+      if (host.players.size > 1 && bodies.has(id)) owe(kind, variant, herd, x, z, id);
     }, host.scope);
   }
   /** At most one bounded queue scan per declared interval; retry entries keep

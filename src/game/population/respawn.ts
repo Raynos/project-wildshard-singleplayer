@@ -35,8 +35,8 @@ export class RespawnQueue {
   accepts(kind: string): boolean { return this.rules[kind] !== undefined; }
 
   /** a kill at `now` (seconds): queue its replacement at (x, z) if the kind comes back at all */
-  add(kind: string, variant: string | undefined, herd: number, x: number, z: number, now: number, draw: number): RespawnEntry | null {
-    const r = this.rules[kind];
+  add(kind: string, variant: string | undefined, herd: number, x: number, z: number, now: number, draw: number, fallback?: RespawnRule): RespawnEntry | null {
+    const r = this.rules[kind] ?? fallback;
     if (!r) return null;
     if (!Number.isFinite(draw) || draw < 0 || draw >= 1) throw new RangeError('Invalid population return draw');
     const due = this.program === undefined ? now + r.delay.min + (r.delay.max - r.delay.min) * draw
