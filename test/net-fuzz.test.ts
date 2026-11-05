@@ -76,6 +76,7 @@ test.each(['pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'driftwood-isle'
   let sent = 0, frames = 0, worst = 0;
   clean.net.onFrame(() => { frames++; });
   for (let tick = 0; tick < TICKS; tick++) {
+    if (tick % 200 === 0) fuzz.nasty = fuzz.pick([0, 0.02, 0.3]);
     if (tick % 40 === 0) for (const body of [lead, rival]) {
       // somewhere with something to reach, then a blow that sometimes kills: every act lands in every state
       const spot = fuzz.chance(0.7) && places.length > 0 ? fuzz.pick(places) : { x: body.position.x + fuzz.int(100) - 50, z: body.position.z + fuzz.int(100) - 50 };

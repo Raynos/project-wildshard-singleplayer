@@ -23,7 +23,9 @@ export class Fuzz {
   int(top: number): number { return Math.floor(this.rng.next() * top); }
   chance(odds: number): boolean { return this.rng.next() < odds; }
   pick<T>(rows: readonly T[]): T { const row = rows[this.int(rows.length)]; if (row === undefined) throw new Error('Empty pick'); return row; }
-  float(): number { return this.chance(0.3) ? this.pick(FLOATS) : (this.rng.next() - 0.5) * 1000; }
+  /** How often a float is a nasty one. A stretch of sound ones lets commands past admission to the weapons behind it. */
+  nasty = 0.3;
+  float(): number { return this.chance(this.nasty) ? this.pick(FLOATS) : (this.rng.next() - 0.5) * 1000; }
   text(): string { return this.pick(TEXTS); }
 }
 
