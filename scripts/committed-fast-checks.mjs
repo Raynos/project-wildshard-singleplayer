@@ -169,23 +169,29 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       }
       const commits=execFileSync('git',['rev-list','--reverse',`${base}..${tip}`],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(Boolean);
       const approvals=[];
+      const NET_LIST='lint/engine-side-edges.json';
+      const compareList=(path,before,after)=>{
+        const a=resolve(temporary,'before.json'),b=resolve(temporary,'after.json');
+        if(before.files.has(path))writeFileSync(a,before.read(path));
+        if(after.files.has(path))writeFileSync(b,after.read(path));
+        failures.push(...comparePlatformList(path,a,b,undefined,{
+          before:file=>before.files.has(file)?before.read(file).toString('utf8'):undefined,
+          after:file=>after.files.has(file)?after.read(file).toString('utf8'):undefined,
+        }));
+        rmSync(a,{force:true});rmSync(b,{force:true});
+      };
       for(const commit of commits) {
         const before=gitSourceView(root,`${commit}^`),after=gitSourceView(root,commit);
         const message=execFileSync('git',['show','-s','--format=%B',commit],{cwd:root,encoding:'utf8'});
         const content=message.trimEnd().replace(/\n\nAssisted-by:[^\n]+$/u,'').replaceAll(/\n[ \t]+/gu,' ');
         const footer=content.split(/\n\s*\n/u).at(-1)??'';
         approvals.push(...footer.split('\n').filter(line=>line.startsWith('Ratchet-Approved:')));
-        for(const path of PLATFORM_LISTS)if(before.files.get(path)!==after.files.get(path)) {
-          const a=resolve(temporary,'before.json'),b=resolve(temporary,'after.json');
-          if(before.files.has(path))writeFileSync(a,before.read(path));
-          if(after.files.has(path))writeFileSync(b,after.read(path));
-          failures.push(...comparePlatformList(path,a,b,undefined,{
-            before:file=>before.files.has(file)?before.read(file).toString('utf8'):undefined,
-            after:file=>after.files.has(file)?after.read(file).toString('utf8'):undefined,
-          }));
-          rmSync(a,{force:true});rmSync(b,{force:true});
-        }
+        for(const path of PLATFORM_LISTS)if(path!==NET_LIST&&before.files.get(path)!==after.files.get(path)) compareList(path,before,after);
       }
+      // Lanes share one tree and this table is one file, so a whole-file commit can carry a peer's rows up and the
+      // next commit bring them down. Only the published step can't rise (J122 lanes): compare base to tip, once.
+      const published=gitSourceView(root,base);
+      if(published.files.get(NET_LIST)!==view.files.get(NET_LIST)) compareList(NET_LIST,published,view);
       // G768 checks the net published candidate. A later exact approval can
       // repair a local receipt without rewriting any commit or reusing a
       // partial increment to approve a larger final allowance.
