@@ -8,7 +8,7 @@ import {afterEach,expect,test} from 'vitest';
 import {compareSideEdges} from '../lint/engine-sides.mjs';
 import {unsortedPath} from '../lint/layer-exports.mjs';
 import {compareCounts} from '../scripts/guard-counts.mjs';
-import {appliedTree,applyPlan,carryWorkingText,headTree,main,planFailures,planMove,planSort} from '../scripts/sort-sides.mjs';
+import {appliedTree,applyPlan,carryWorkingText,GATE_PHASES,gatePhaseCommand,headTree,main,planFailures,planMove,planSort} from '../scripts/sort-sides.mjs';
 
 const roots:string[]=[];
 afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
@@ -68,6 +68,19 @@ function fixture(tags:Record<string,string>=sides):string{
 }
 const json=(text:string):Record<string,Record<string,unknown>>=>JSON.parse(text) as Record<string,Record<string,unknown>>;
 const clean=(root:string)=>planFailures(headTree(root),planSort(headTree(root)),root);
+
+test('the gate proof runs the push gate\'s phases on its path lists',()=>{
+  const gate=/names = \(([^)]+)\)/u.exec(readFileSync('scripts/push-loop.py','utf8'))?.[1]?.split(',').map(name=>name.trim().replaceAll("'",''));
+  expect(gate?.filter(name=>name!=='tool-inputs')).toEqual(GATE_PHASES);
+  const root=fixture(),from='src/game/bake.ts',to='src/game/cook/bake.ts',base=git(root,'rev-parse','HEAD').trim();
+  mkdirSync(resolve(root,'src/game/cook'),{recursive:true});
+  git(root,'mv',from,to);commit(root);
+  const tip=git(root,'rev-parse','HEAD').trim();
+  const paths=(phase:string):unknown=>JSON.parse(gatePhaseCommand(root,base,tip,phase).at(-1)??'[]');
+  expect(gatePhaseCommand(root,base,tip,'binary-json')).toEqual(['scripts/no-binary-json.mjs','--range',base,tip]);
+  expect(paths('deleted-paths')).toEqual([from]);
+  expect(paths('storage')).toEqual([from,to]);
+});
 
 test('plans each layer under its sides without colliding',()=>{
   const root=fixture(),plan=planSort(headTree(root));

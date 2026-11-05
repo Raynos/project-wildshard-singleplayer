@@ -35,7 +35,7 @@ export const FROZEN = /^(?:progress|project|art|public|ios|android|sources|calib
 /** Each side segment a regular expression may meet once a path is sorted; the group keeps it true before and after. */
 const SIDE_GROUP = String.raw`(?:(?:client|cook|server|shared)\/)?`;
 const MAX_TEXT = 8 * 1024 * 1024;
-const GATE_PHASES = ['storage', 'deleted-paths', 'ratchet', 'guards'];
+export const GATE_PHASES = ['binary-json', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint'];
 const CENSUS_CHECKS = [['scripts/check-engine-sides.mjs'], ['scripts/check-sim-players.mjs'], ['scripts/check-graph.mjs', '--source-only']];
 /** Divided folders named by a string that is not a path a tool opens: reviewed by hand, file:literal → new text. */
 const REVIEWED_LITERALS = { 'src/engine/client/explore/ModelExplorer.ts:src/engine/entities/species/': 'src/engine/*/entities/species/' };
@@ -683,12 +683,20 @@ export function renameProof(root, plan, { env, commit }) {
   return { ...count, worst: worst ?? null, lostFiles };
 }
 
+/** One phase as scripts/push-loop.py runs it on a tip: its checker, its path list. A rename is a delete plus an add there.
+ * @returns {string[]} */
+export function gatePhaseCommand(root, base, tip, phase) {
+  if (phase === 'binary-json') return ['scripts/no-binary-json.mjs', '--range', base, tip];
+  const paths = git(root, ['diff', '--name-only', ...(phase === 'deleted-paths' ? ['--diff-filter=D'] : []), '--no-renames', base, tip]).split('\n').filter(Boolean);
+  return ['scripts/committed-fast-checks.mjs', root, base, tip, phase, JSON.stringify(paths)];
+}
+
 /** The push gate's own committed checks, run on the candidate's blobs. A failed phase is a verdict, not a crash.
  * @returns {Record<string, string>} */
-export function gateProof(root, plan, { env, commit }, phases) {
-  const paths = JSON.stringify([...new Set([...plan.moves.keys(), ...plan.moves.values(), ...plan.writes.keys()])]), verdicts = {};
+export function gateProof(root, { env, commit }, phases) {
+  const base = git(root, ['rev-parse', 'HEAD']).trim(), verdicts = {};
   for (const phase of phases) {
-    const started = Date.now(), result = spawnSync('node', ['scripts/committed-fast-checks.mjs', root, git(root, ['rev-parse', 'HEAD']).trim(), commit, phase, paths], { cwd: root, env, encoding: 'utf8', maxBuffer: 1 << 30, timeout: 280_000 });
+    const started = Date.now(), result = spawnSync('node', gatePhaseCommand(root, base, commit, phase), { cwd: root, env, encoding: 'utf8', maxBuffer: 1 << 30, timeout: 280_000 });
     const output = `${result.stdout ?? ''}${result.stderr ?? ''}`.trim().split('\n');
     const local = output.some(line => /Error: Missing committed input: /u.test(line)) && output.filter(line => /deleted path|rose|Refused|REFUSED/u.test(line)).length === 0;
     verdicts[phase] = `${result.status === 0 ? 'pass' : local ? 'pass but for gen-source, which resolves through the real node_modules and proves only after --apply' : `FAIL ${result.status ?? 'timeout'}`} in ${Math.round((Date.now() - started) / 1000)}s: ${output.slice(result.status === 0 ? -1 : 0, 40).join(' | ').slice(0, 4000)}`;
@@ -833,7 +841,7 @@ export function main(argv, root = process.cwd()) {
   if (proving && plan.moves.size > 0) {
     const scratch = resolve(root, 'tmp/sort/candidate'), candidate = candidateCommit(root, tree, plan, scratch);
     extra.renames = renameProof(root, plan, candidate);
-    if (argv.includes('--gate-proof')) { extra.gate = gateProof(root, plan, candidate, GATE_PHASES); extra.census = censusProof(root, tree, candidate); }
+    if (argv.includes('--gate-proof')) { extra.gate = gateProof(root, candidate, GATE_PHASES); extra.census = censusProof(root, tree, candidate); }
     rmSync(scratch, { recursive: true, force: true });
   }
   const about = writePlan(root, tree, plan, failures, extra);
