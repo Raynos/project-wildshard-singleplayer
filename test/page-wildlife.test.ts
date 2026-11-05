@@ -67,7 +67,7 @@ test('orchard population emits crowd work between native groups and mount placem
   expect(population.predators.map(body => body.kind)).toEqual(['boar']);
   population.killCrowd({ flock: view,index: 0 }); expect(view.alive).toBe(23);
   population.endFrame(.1,new Vector3(),0,true);
-  const raid = new PagePastureRaid(manager,population,population.pastureProfile);
+  const raid = new PagePastureRaid(manager,population,population.pastureProfile,app.rng.stream('ai'));
   expect(raid.shepherd?.kind).toBe('deer'); expect(raid.shepherd?.label).toBe('Orchard rider');
   expect(raid.start(true)).toBe(true); expect(raid.raids).toBe(1);
   expect(raid.nextCue()).toMatchObject({ kind: 'start',text: 'Orchard raid' });
