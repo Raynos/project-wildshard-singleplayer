@@ -4,6 +4,7 @@
 import { existsSync, globSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { checkShards } from './check-shards.mjs';
+import { onDisk } from './format-package.mjs';
 import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 const ROOT = process.cwd();
@@ -42,7 +43,8 @@ function check(file, text, path, index, folder = ROOT) {
   if (allowed.has(`${file}\0${path}`)) return;
   // Component ownership keys append a declaration name to an existing module.
   const target = file === 'scripts/shard-components.mjs' ? path.split('#')[0] : path;
-  const at = resolve(folder, target);
+  // Censuses and G571 approvals keep format's logical src/format/x.ts labels (format-package.mjs): check where they live.
+  const at = onDisk(folder, target.replace(/^\.\//u, ''));
   const found = GLOB.test(path) ? globSync(at).some((p) => statSync(p).isFile()) : existsSync(at);
   if (!found) failures.add(`${file}:${text.slice(0, index).split('\n').length}: ${GLOB.test(path) ? 'empty glob' : 'missing path'} ${path}`);
 }

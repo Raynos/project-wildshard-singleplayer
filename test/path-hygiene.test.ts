@@ -33,6 +33,23 @@ test('ownership declaration suffixes preserve the module existence check', () =>
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('a logical src/format label is checked where the installed package holds it', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp', 'path-hygiene-'));
+  const put = (path: string, content: string): void => {
+    mkdirSync(dirname(resolve(root, path)), { recursive: true });
+    writeFileSync(resolve(root, path), content);
+  };
+  const run = (): ReturnType<typeof spawnSync> => spawnSync(execPath, [resolve('scripts/check-paths.mjs')], { cwd: root, encoding: 'utf8' });
+  try {
+    put('node_modules/@wildshard/format/src/format/live.ts', 'export const live = 1;');
+    put('scripts/shard-components.mjs', "const owner = 'src/format/live.ts#live';");
+    expect(run().status).toBe(0);
+    put('scripts/shard-components.mjs', "const owner = 'src/format/gone.ts#live';");
+    expect(run().status).toBe(1);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test('Python dynamic/regex strings are not bare tokens while real Python and shell literals stay strict', () => {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp', 'path-lexing-'));
