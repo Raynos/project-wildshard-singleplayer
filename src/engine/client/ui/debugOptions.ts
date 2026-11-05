@@ -150,7 +150,7 @@ const workerClientRow: DebugRow = { purpose: 'developer', id: 'workerClient', gr
   get: () => workerClientSlot.read() === 'on' ? 'on' : 'off',
   set: (next) => { if (next === 'off' || next === 'on') workerClientSlot.write(next); },
   on: () => undefined,
-  note: 'J130: run this page on the server in its worker. Saves stand apart from your real ones; the flip deletes this row.',
+  note: 'J130: run this page on the server in its worker, which keeps its saves in IndexedDB from a copy of yours. The flip deletes this row.',
   ask: 'E535', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);

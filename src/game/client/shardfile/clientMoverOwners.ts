@@ -20,18 +20,19 @@ export type MoverOwnerBinding =
 export interface MoverOwnerRows {readonly system:string;readonly bindings:readonly MoverOwnerBinding[]}
 const installed=new WeakSet<Scope>();
 /** The client's one seat on the page sim's feed. The flip replaces this binding; views only read it. */
-export const pageSim:PageSimFeed={...pageSimFeed};
+export const pageSim:PageSimFeed=pageSimFeed;
 /** J130: this page runs on a server. Motion and the sky come off rows; what else `pageSim` holds still builds, on nothing, and
  * stands down where a bar, a payout or a flag would otherwise have two drivers. */
 export function wirePageSim():void{
   wirePage.followBooks();
+  const {installDeclaredMovers,climate}=pageSim;
   Object.assign(pageSim,{
     installDeclaredMovers:async(...[ctx,world,options]:Parameters<PageSimFeed['installDeclaredMovers']>)=>{
-      const runtime=await pageSimFeed.installDeclaredMovers(ctx,world,{...options,followed:true});
+      const runtime=await installDeclaredMovers(ctx,world,{...options,followed:true});
       for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{runtime.follow(row.id,pose);}});
       return runtime;
     },
-    climate:(ports:Parameters<PageSimFeed['climate']>[0])=>pageSimFeed.climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows)}),
+    climate:(ports:Parameters<PageSimFeed['climate']>[0])=>climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows)}),
   } satisfies Partial<PageSimFeed>);
 }
 // The grass a creature reads and parts is a view's, so this seat lends it the moment the page sim is reachable.
