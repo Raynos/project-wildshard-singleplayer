@@ -9,7 +9,7 @@ import { EliteDecisions } from './eliteDecisions';
 import { SpawnScript, readSpawnScript } from '../population/spawnScript';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { nearestOnGround } from '@wildshard/engine/sim/nearPlayer';
-import { eliteNetView, publishEncounter } from '@wildshard/engine/net/encounterNet';
+import { eliteNetView, publishEncounter } from '@wildshard/engine/sim/encounterRows';
 
 const finite = v.pipe(v.number(), v.finite());
 const uint = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff));

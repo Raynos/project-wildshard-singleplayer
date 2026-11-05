@@ -1,6 +1,7 @@
 import type { PlayerSim } from '../sim/playerSim';
 import { ANIMAL_NET, type AnimalNetView } from './animalNet';
-import { ENCOUNTER_NET, type EncounterNetView } from './encounterNet';
+import type { EncounterNetView } from '../sim/encounterRows';
+import { ENCOUNTER_NET } from './encounterNet';
 import { NET_EVENT_FORMS } from './messages';
 import { PLAYER_NET } from './playerNet';
 import { compileSchema, netSchemaHash, schemaDescription, type NetClass } from './schema';

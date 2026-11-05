@@ -10,7 +10,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows, type SpeciesDecisionAuthority } from '../plugin/brain';
 import { BossContenders } from '@wildshard/engine/ai/bossContenders';
-import { publishEncounter } from '@wildshard/engine/net/encounterNet';
+import { publishEncounter } from '@wildshard/engine/sim/encounterRows';
 
 /** A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). */
 export interface BossRowFlagNames { readonly defeated: string; readonly paid: string }

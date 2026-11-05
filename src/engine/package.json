@@ -424,7 +424,7 @@
     "./sim": "./sim.ts",
     "./sim/bands": "./sim/bands.ts",
     "./input/netButtons": "./input/netButtons.ts",
-    "./net/encounterNet": "./net/encounterNet.ts",
+    "./sim/encounterRows": "./sim/encounterRows.ts",
     "./sim/leadPlayer": "./sim/leadPlayer.ts",
     "./sim/nearPlayer": "./sim/nearPlayer.ts",
     "./sim/netMotion": "./sim/netMotion.ts",

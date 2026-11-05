@@ -10,7 +10,7 @@ import { NativeEliteLifecycle, type NativeElitePopulation } from './eliteLifecyc
 import { GrazerBrain } from './grazer';
 import { NativeEliteContinuation, type EliteContinuationCore, type EliteContinuationGroups, type EliteContinuationMember } from './eliteContinuation';
 import { nearestOnGround } from '../sim/nearPlayer';
-import { eliteNetView, publishEncounter } from '../net/encounterNet';
+import { eliteNetView, publishEncounter } from '../sim/encounterRows';
 
 const finite = v.pipe(v.number(), v.finite());
 const projectionRows = v.strictObject({ signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),

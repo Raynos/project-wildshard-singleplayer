@@ -4,7 +4,7 @@ import { BossBrain, type BossSaved, type BossPresentation } from './BossBrain';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimHost, SimValue } from '../sim';
 import { BossContenders } from './bossContenders';
-import { publishEncounter } from '../net/encounterNet';
+import { publishEncounter } from '../sim/encounterRows';
 
 /** One ordered phase: health threshold, steering and a presentation caption, authored without callbacks. */
 export interface EncounterPhase { at: number; name: string; caption: string; speed: number; stopDistance: number; turnRate: number }

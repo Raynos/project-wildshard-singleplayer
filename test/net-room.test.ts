@@ -41,6 +41,9 @@ function roomOver(resident: TrustedHeadlessResident): NetRoom {
 }
 const walk = (yaw: number): Omit<NetCommand, 'seq'> => ({ viewTick: 0, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 }, yaw, pitch: 0, buttons: NET_BUTTONS.sprint });
 
+/** A creature's row, and not one of the cell's encounter rows, which have no position and reach every client. */
+const isCreature = (client: NetClient, handle: number): boolean => client.entities.get(handle)?.cls.cls === 'animal';
+const creatureCount = (client: NetClient): number => [...client.entities.keys()].filter(handle => isCreature(client, handle)).length;
 function checkRows(resident: TrustedHeadlessResident, client: NetClient): number {
   const frame = client.latest;
   if (frame === null) throw new Error('No frame');
@@ -48,6 +51,7 @@ function checkRows(resident: TrustedHeadlessResident, client: NetClient): number
   const columns = new Map(ANIMAL_CLASS.row.map(column => [column.name, column]));
   let rows = 0;
   for (const [handle, row] of frame.rows) {
+    if (!isCreature(client, handle)) continue;
     const info = client.entities.get(handle), sim = resident.host.entities.get(info?.id ?? ''), fields = client.fields(frame, handle);
     if (sim === undefined || fields === null) throw new Error(`Row ${String(handle)} names no creature`);
     expect(row).toHaveLength(ANIMAL_CLASS.row.length);
@@ -67,7 +71,7 @@ test('frames carry every creature within one quantisation step, and the owner bl
   room.open(); link.pump();
   expect(client.welcome).toMatchObject({ schemaHash: NET_SCHEMA_HASH, simHz: 60, frameHz: 30 });
   expect(client.latest?.baselineTick).toBe(0xffffffff);
-  expect(client.entities.size).toBe(resident.host.entities.size);
+  expect(creatureCount(client)).toBe(resident.host.entities.size);
   let frames = 0, seq = 0;
   client.onFrame(() => { frames++; });
   for (let tick = 0; tick < 600; tick++) {
@@ -122,12 +126,13 @@ test('a bad link heals: loss, jitter and reordering never corrupt a row', async 
     const held = truth.get(frame.tick);
     if (held === undefined) throw new Error(`No server state for tick ${String(frame.tick)}`);
     decoded++; if (frame.baselineTick !== 0xffffffff) deltas++;
-    for (const handle of frame.rows.keys()) {
+    const creatures = [...frame.rows.keys()].filter(handle => isCreature(client, handle));
+    for (const handle of creatures) {
       const fields = client.fields(frame, handle), at = held.get(client.entities.get(handle)?.id ?? '');
       if (at === undefined || fields === null) throw new Error(`Row ${String(handle)} names nothing in range on the server`);
       for (const axis of ['x', 'y', 'z'] as const) expect(Math.abs(Number(fields[axis]) - at[axis])).toBeLessThanOrEqual(step);
     }
-    expect(frame.rows.size).toBe(held.size);
+    expect(creatures.length).toBe(held.size);
   });
   const settle = (ms: number): void => { up.advance(ms); down.advance(ms); link.pump(); };
   settle(200); remember(); room.open(); settle(200);
@@ -175,7 +180,7 @@ test('relevance and handles: entities come and go with their spawn, and a retire
   const room = new NetRoom({ world, step: () => { resident.step([]); } }), link = directLoopback(), client = new NetClient(link.client);
   room.join(link.server); client.hello(); link.pump(); room.open(); link.pump();
   const run = (): void => { for (let round = 0; round < 3; round++) { client.flush(); link.pump(); room.tick(); room.tick(); link.pump(); } };
-  const shown = (): string[] => [...client.latest?.rows.keys() ?? []].map(handle => client.entities.get(handle)?.id ?? '').sort();
+  const shown = (): string[] => [...client.latest?.rows.keys() ?? []].filter(handle => isCreature(client, handle)).map(handle => client.entities.get(handle)?.id ?? '').sort();
   const handleOf = (id: string): number | undefined => [...client.entities.values()].find(entity => entity.id === id)?.handle;
   expect(shown()).toEqual(ids.filter(id => id !== last).sort());
 
@@ -186,7 +191,7 @@ test('relevance and handles: entities come and go with their spawn, and a retire
   expect(inRange(159).length).toBeLessThan(ids.length - 1);
   expect(shown()).toEqual(expect.arrayContaining(inRange(159)));
   expect(shown().every(id => inRange(161).includes(id))).toBe(true);
-  expect(client.entities.size).toBe(ids.length - 1);
+  expect(creatureCount(client)).toBe(ids.length - 1);
   leadPlayer(host).position.set(0, 40, 0);
   run();
   expect(shown()).toEqual(ids.filter(id => id !== last).sort());

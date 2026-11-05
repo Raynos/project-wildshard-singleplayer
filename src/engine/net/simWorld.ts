@@ -3,7 +3,7 @@ import type { SimHost } from '../sim';
 import { leadPlayer } from '../sim/leadPlayer';
 import type { AnimalNetView } from './animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
-import { encounterRows } from './encounterNet';
+import { encounterRows } from '../sim/encounterRows';
 import { ANIMAL_CLASS, ENCOUNTER_CLASS, PLAYER_CLASS } from './netSchemas';
 import type { NetRefs } from './schema';
 import type { NetPlayer, NetVisitor, NetWorld } from './room';
