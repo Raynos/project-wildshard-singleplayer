@@ -3169,9 +3169,20 @@ chains keep their existing native owners and cannot use the platform/static nati
 
 `@wildshard/engine/sim` exports `SIM_API_VERSION`, `SimLevel`, `SimCommand`, `SimHost` and `createSimHost`.
 The embedding root loads Rapier WASM and supplies it to `createSimHost(level, { rapier })`; plain level data
-defines the heightfield, player, creature identities, strike timings and quests. `step(command)` advances one
-60 Hz tick; `advance(seconds, command)` retains its fixed-step accumulator. Each host owns its physics,
-clock, RNG, events, entities, damage pipeline, flags, quest progress and timers.
+defines the heightfield, player, creature identities, strike timings and quests. `step(commands?)` advances one
+60 Hz tick from a `ReadonlyMap<id, NetCommand | SimCommand>`, one entry per player with input; `advance(seconds, commands?)`
+retains its fixed-step accumulator. Each host owns its physics, clock, RNG, events, entities, damage pipeline, flags,
+quest progress and timers.
+
+A host holds `players: Map<id, PlayerSim>` (`sim/playerSim.ts`). A `PlayerSim` owns one player's body, health, strike
+runner, motor, every clock of the movement law, its modes and its driver slots; each tick runs every player's input
+phase, the world step, then every player's motion phase. `addPlayer(id, at?, yaw?)` joins a room and `removePlayer(id)`
+leaves one. The host is built with its lead player, `actor.player`, which cannot leave. `nearestPlayer(point)` is the
+living player closest to a point, and a creature deals with that player: its hits land there. `playerFocus` is a live
+view of the position of the player nearest whichever body is acting, for brains that hold one position for their whole
+life. Weapons, quests, riding and grid hand-offs are not per-player yet: they bind `leadPlayer(host)`
+(`sim/leadPlayer.ts`) at install, and a room's other players have none of them. `scripts/check-sim-players.mjs` counts
+those binds and only lets them fall; it also refuses any return of a one-player member on `SimHost`.
 `onStep(id, run, adapter?, phase?)` registers scoped per-instance behaviour with optional continuation state.
 Nalati’s local `runtime/playerModes.ts` adapter registers its traversal against the host’s events.
 After physics, an undriven player asks `player.traversal`; a true answer owns that tick's capsule movement,
@@ -3182,7 +3193,7 @@ The optional snapshot player `traversals` retains the registry's last claimed id
 the freshly installed traversal declarations. Restore publishes their active modes without invoking motion;
 inactive hosts omit the field and keep existing bytes. `PlayerModes.snapshotTraversals` / `restoreTraversals`
 only transfer those identities; the traversal's own clocks and targets remain its adapter's responsibility.
-`usePlayerDriver({ input, step })` binds one scoped motion law to an owned host with a player motor.
+`PlayerSim.useDriver({ input, step })` binds one scoped motion law to an owned player with a motor.
 `input(command, dt, host)` runs before the one native physics step; true delegates the player to
 `step(dt, host)` after physics, skipping the ordinary walk/board/dodge/jump. False runs the ordinary
 motion unchanged. Creature systems, health and fixed-post events still advance exactly once. Borrowed,
@@ -3259,7 +3270,7 @@ fall hit). `SimCommand.hover: true` is that tick's HOVER press and toggles the b
 (`advance` refuses it, since it repeats its command); `setBoard(on)` is the direct switch. `boardColliders(colliders)`
 registers board-only colliders (a `Piece.active` that follows `app.player.mode === 'board'`, such as hover decks):
 they collide only while the player rides, synced before each step's physics. On the board a creature's knockback is
-ignored and `impulsePlayer` with upward speed lifts the board off, as on the client. The snapshot keeps the ride
+ignored and `addImpulse` with upward speed lifts the board off, as on the client. The snapshot keeps the ride
 (`player.board`) and the handles (`boardColliders`) only when present, so a host that never boards keeps its bytes.
 
 **Player modes and water (SF34).** The player's modes are one registry for both hosts (`@wildshard/engine/player/modes`,
@@ -3267,7 +3278,7 @@ Nalati’s local `runtime/playerModes.ts` adapter): the page Player's is `player
 player. The motor modes (`foot`, `board`, `swim`, `wade`) read the player's own state; a driven mode (`ride`, `grapple`;
 `glide` / `climb` / `drive` approved) is declared `PlayerModeDef { id, hud, context?, traverse?, enter?, exit? }` and
 entered with a driver: on the page a `PlayerModeDriver` takes the Player's `ride` slot; headless a `SimPlayerDriver`
-(`enterHeadlessMode(host, 'ride', driver)`) owns the motion ahead of any `usePlayerDriver` driver until
+(`enterHeadlessMode(host, 'ride', driver)`) owns the motion ahead of any `useDriver` driver until
 `exitHeadlessMode`; the entered driver is not snapshot state, so the installer re-enters it from its own adapter before
 restore. A headless host runs no traversal or input context yet. A mode-only piece collides only in its mode, one rule
 (`modeCollides`) on both hosts: `Piece.mode: 'board'` on the page, `boardColliders` headless, synced from `host.modes`.
@@ -3296,17 +3307,20 @@ a new native body at the same frame position as the page; callers do not duplica
 
 `@wildshard/engine/sim/snapshot` exports `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost(host)`
 and `restoreSimHost(level, { rapier }, saved, install?)`. Capture between fixed steps; the versioned JSON state
-includes entities and strikes, queued events, timers and the accumulator, RNG and clock continuations,
+includes every player (`players`, lead first), entities and strikes, queued events, timers and the accumulator, RNG and clock continuations,
 the complete Rapier world and motor contacts, flags and quest progress, the four `SimSlots`, and each
 registered adapter. Actor and live-position references resolve by stable identity in the restored host.
 Restore boots a fresh matching level and invokes `install` to register its scoped callbacks and adapters;
 authored content and functions stay outside the snapshot. Engine, snapshot and level fingerprints must match.
+A version 1 save held one `player`; the decoders turn it into a list of one (P1-E5.2a), and the level fingerprint leaves
+out the level's `version`, so an engine version bump does not orphan a save. `install` runs for the lead player, and the
+other saved players rejoin before their state lands.
 For a regional basis that needs a complete fresh installation first, `prepareSimHostRestore(level, ports)`
 creates one unpublished owned host and its restore-check context before services bind. Its one-use `keep()`
 retains the fresh/logically migrated target, or `restore(saved, install?)` applies the same exact transaction
 without reinstalling its services. Consumed, disposed, stepped and borrowed targets refuse; failure discards
 only the unpublished target. `isSimHostRestoring(host)` is true only during that native replacement.
-`SimHost.playerMotorOptions()` preserves the constructor capsule law for a bodyless regional restore target;
+`SimHost.playerMotorOptions(player)` preserves the constructor capsule law for a bodyless regional restore target;
 the restored temporary motor is detached before the destination is published. The game-side
 `prepareShardfileSimRestore` uses this capability after the identical full authored/basis setup.
 Use the returned host for the recorded suffix and dispose it normally. The sim-level fight fixture proves
@@ -12566,7 +12580,7 @@ native/page player owners. The caller validates the prepared bank, then runs
 its ordered operations at the original synchronous apply slot.
 Dismount rechecks the same mount before each effect and adds no extra impulse;
 ignite calls the same CellField.activate. Player impulses use the existing
-SimHost.impulsePlayer or Player.impulse law; embedded hosts cannot claim owned
+PlayerSim.addImpulse or Player.impulse law; embedded hosts cannot claim owned
 player authority. All loans preflight before effects and retirement fences
 each subsequent effect. This API creates no registry, queue, clock or save.
 
