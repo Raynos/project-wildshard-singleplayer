@@ -15,11 +15,12 @@ import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { FlockBrain, type FlockPorts } from '@wildshard/engine/ai/flock';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
-import { nativeGroupCollection } from '../shardfile/groupRuntime';
+import { nativeGroupCollection, nativeHerdCollection } from '../shardfile/groupRuntime';
 import { creatureFloor, admitNativeRosterServices, createNativeCreatureRoster, NativeDeferredRoster, type NativeCreatureSlot } from '../shardfile/homeKeeper';
 import { BondedMountRoster } from './roster';
 import { mountedPlayerOf } from './native';
 import { nativeTamingOf } from './nativeTaming';
+import { installWildRefill } from './wildRefill';
 import { createNativeHunt } from '../plugin/brain';
 import { NativePopulationField } from '../population/environment';
 import type { NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
@@ -216,6 +217,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     scale: scaleVariants.get(cfg.companion.kind)?.find(row => row.id === cfg.companion.variant)?.scale ?? [1,1], spawnY: ports.spawnY, program: ports.boot.admission },
     { host, id: cfg.step, identities: intake.identities, random: rng, hunt, bodies, sight: seen, retired, flocks });
   const bonded = mountRoster.records, hiddenStallions = mountRoster.hidden;
+  const stepWildRefill = installWildRefill(host, mountRoster, () => nativeHerdCollection(host, cfg.herds).herds, cfg.step, ports.snapshot);
   const deferred = new NativeDeferredRoster(host, intake, hunt, rng, bodies, seen, retired, ports.elites.absent,
     { limit: POP_BODY_MAX, spawnY: ports.spawnY, motorKinds: cfg.motorKinds, retiredY: cfg.retiredY });
   let reinstalling = ports.snapshot !== undefined;
@@ -339,7 +341,8 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     const vital = near.health.attributes; env.playerHealth01 = vital.health / vital.maxHealth;
     frame.update(dt, env.playerCrouched);
     // Ride.update follows Wildlife and precedes the manager's think loop on the page.
-    nativeTamingOf(host)?.update(dt); 
+    nativeTamingOf(host)?.update(dt);
+    stepWildRefill(dt);
     // the raid watches for whoever is closest to the flock it hunts
     const flock = flocks[0]; raid.update(dt, (flock === undefined ? near : host.nearestPlayer({ x: flock.cx, y: near.position.y, z: flock.cz })).position, wolves, host.clock.now);
     driver.update(dt);

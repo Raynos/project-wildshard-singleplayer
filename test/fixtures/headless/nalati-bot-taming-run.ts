@@ -8,6 +8,7 @@ import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {loadRapier} from '../../../src/engine/physics/rapier';
 import {NET_BUTTONS} from '../../../src/engine/input/netButtons';
+import {serializeSimSnapshot,snapshotSimHostBytes} from '../../../src/engine/sim/snapshot';
 import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {nativeTamingControls,nativeTamingOf} from '../../../src/game/riding/nativeTaming';
 import {createNativeProofResident} from '../headless-native';
@@ -49,15 +50,30 @@ try{
   assert.equal(seat.horse,mount,'the bot rides off on its own mount');assert.equal(host.entities.get(mount.entityId),mount,'everyone sees it');
   assert.equal(stallion.position.y,-1e4,'the stallion has left the wild');
   seat.dismount();assert.equal(first.canRide(mount.entityId),false,'that horse is not the first player\'s');assert.equal(seat.canRide(mount.entityId),true);
-  const adapter=host.adapters.get('nalati.taming');assert.ok(adapter);
   resident.lend([]);host.step();
-  const wild=v.parse(v.looseObject({wild:v.record(v.string(),v.number())}),adapter.snapshot()).wild;
-  assert.deepEqual(Object.keys(wild),[stallion.entityId],'a room waits for a new wild one');
-  const due=wild[stallion.entityId];assert.ok(due!==undefined&&due>host.clock.now+60);
-  // Five minutes of game clock, skipped through the save: the return is a saved appointment.
-  const saved=adapter.snapshot();assert.ok(typeof saved==='object'&&saved!==null&&!Array.isArray(saved));
-  adapter.restore({...saved,wild:{[stallion.entityId]:host.clock.now}});
-  resident.lend([]);host.step();
+  const refillId=[...host.adapters.keys()].find(id=>id.endsWith('.refill'));assert.ok(refillId,'a room waits for a new wild one');
+  const adapter=host.adapters.get(refillId);assert.ok(adapter);
+  const Owed=v.looseObject({clock:v.number(),pending:v.array(v.looseObject({from:v.string(),wait:v.number(),x:v.number(),z:v.number()}))});
+  const owed=v.parse(Owed,adapter.snapshot()),entry=owed.pending[0];
+  assert.deepEqual(owed.pending.map(row=>row.from),[stallion.entityId],'the room owes that horse');assert.ok(entry!==undefined&&entry.wait>60);
+  const stand=(metres:number):void=>{for(const player of host.players.values()){player.position.set(entry.x+metres,player.position.y,entry.z);player.motor.resetAt(player.position);}};
+  const seconds=(count:number):void=>{for(let tick=0;tick<count*60;tick++){resident.lend([]);host.step();}};
+  // Two players near the spot run the clock twice as fast, and no player watches the horse appear.
+  stand(10);seconds(1);
+  const before=v.parse(Owed,adapter.snapshot()).pending[0]?.wait??0;seconds(4);
+  assert.ok(Math.abs(before-(v.parse(Owed,adapter.snapshot()).pending[0]?.wait??0)-8)<2.1,'the wait runs at both players\' rate');
+  // The room's debt survives a real save, and a save from the retired `wild` timer still loads.
+  const resumed=await createNativeProofResident({shard,assets,rapier,product},prepareHeadlessRuntime,serializeSimSnapshot(snapshotSimHostBytes(host)));
+  try{
+    assert.deepEqual(v.parse(Owed,resumed.host.adapters.get(refillId)?.snapshot()).pending,v.parse(Owed,adapter.snapshot()).pending);
+    const taming=resumed.host.adapters.get('nalati.taming');assert.ok(taming);
+    const row=taming.snapshot();assert.ok(typeof row==='object'&&row!==null&&!Array.isArray(row));
+    taming.restore({...row,wild:{[stallion.entityId]:0}});
+  }finally{resumed.dispose();}
+  const saved=v.parse(Owed,adapter.snapshot());
+  adapter.restore({...saved,pending:saved.pending.map(row=>({...row,wait:0}))});
+  seconds(2);assert.equal(stallion.position.y,-1e4,'it does not appear in front of a player');
+  stand(150);seconds(2);
   assert.ok(stallion.position.y>-1e3,'a wild stallion stands again');assert.equal(stallion.alive,true);
   assert.equal(firstTaming.phase,'wild');assert.equal(first.canRide(mount.entityId),false,'the tamed horse stays the bot\'s');
   console.info(JSON.stringify({story:'bot-taming',ticks:host.state.tick,breakingTicks,rounds,mount:mount.entityId}));

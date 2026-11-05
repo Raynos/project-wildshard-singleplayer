@@ -52,9 +52,9 @@ const SessionRows = { law: v.string(), bond: v.nullable(v.string()),
 const SessionSaved = v.strictObject(SessionRows);
 const Saved = v.strictObject({ version: v.literal(1), ...SessionRows,
   poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(64)),
-  others: v.exactOptional(v.record(v.string(), SessionSaved)), wild: v.exactOptional(v.record(v.string(), finite)) });
-/** How long a tamed horse's place in the wild stands empty (s) when a room still has players. */
-const WILD_RETURN_SECONDS = 300;
+  others: v.exactOptional(v.record(v.string(), SessionSaved)),
+  // retired: wild returns moved to the population's refill row, which queues a saved hidden stallion again on load
+  wild: v.exactOptional(v.record(v.string(), finite)) });
 /** One player's session over the world's herds and poses. */
 interface TamingSeat {
   readonly player: PlayerSim; readonly law: TamingSession<AnimalSim, HerdBrain<AnimalSim>>;
@@ -77,7 +77,7 @@ export function nativeTamingControls(host: SimHost): NativeTamingControls | unde
 export function installNativeTaming(host: SimHost, context: NativeTamingContext, rows: NativeTamingRows): NativeTamingOwner {
   const { herds, wind } = nativeHerdCollection(host, rows.herds), creatures = bondedMountRoster(host, rows.roster), firstSeat = mountedPlayerOf(host);
   if (firstSeat === undefined) throw new Error('Missing native mounted owner');
-  const sessions = new Map<string, TamingSeat>(), pending = new Map<string, NativeTamingPress>(), wild = new Map<string, number>();
+  const sessions = new Map<string, TamingSeat>(), pending = new Map<string, NativeTamingPress>();
   const draw = numericCreaturePose(rows.poseProgram);
   if (installed.has(host)) throw new Error('native taming already installed');
   const poses = createNativeCreaturePoses(rows.poses, 64), poseRows: AnimalSim[] = [];
@@ -187,18 +187,6 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
     for (let i = 0; i < 16; i++) { const f = creatures.flocks[i]; if (f === undefined) break; if (Math.hypot(f.cx - point.x, f.cz - point.z) < rows.scareRange) f.scare(point.x, point.z, rows.scareSeconds); }
     for (const session of sessions.values()) session.law.noteShot(point.x, point.z);
   }, host.scope);
-  /** J108: the place a tamed horse left in the wild. A lone player's world keeps today's empty pasture. */
-  const wildReturns = (): void => {
-    if (host.players.size < 2 && wild.size === 0) return;
-    for (const id of creatures.hidden) if (!wild.has(id)) wild.set(id, host.clock.now + WILD_RETURN_SECONDS);
-    for (const [id, at] of wild) {
-      if (host.clock.now < at) continue;
-      const actor = host.entities.get(id), herd = herds.find(row => actor !== undefined && row.members.includes(actor)) ?? herds[0];
-      wild.delete(id); if (actor === undefined || herd === undefined) continue;
-      creatures.reveal(id, herd.cx, herd.cz, actor.yaw);
-      herd.adoptStallion(actor); herd.addTrust(-100);
-    }
-  };
   const closestToWild = (): TamingSeat | null => {
     let best: TamingSeat | null = null, nearest = Infinity;
     for (const session of sessions.values()) {
@@ -221,7 +209,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
       const player = host.players.get(id);
       if (player !== undefined && !sessions.has(id) && (press.offer === true || press.mount === true)) sessionFor(player).tick(dt, false);
     }
-    pending.clear(); wildReturns();
+    pending.clear();
   };
   const missingPose = new Error('Missing native taming pose');
   host.onStep(rows.step, () => {
@@ -236,7 +224,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
     snapshot: (): SimValue => {
       const rest = others();
       return { version: 1, ...first.save(), poses: poseRows.map(actor => { const pose = poses.get(actor.entityId); if (pose === undefined) throw missingPose; return [actor.entityId, pose.snapshot('local')]; }),
-        ...(rest.length === 0 ? {} : { others: Object.fromEntries(rest.map(session => [session.player.id, session.save()])) }), ...(wild.size === 0 ? {} : { wild: Object.fromEntries(wild) }) };
+        ...(rest.length === 0 ? {} : { others: Object.fromEntries(rest.map(session => [session.player.id, session.save()])) }) };
     },
     restore: value => {
       const saved = v.parse(Saved, value);
@@ -248,7 +236,6 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
         const player = host.players.get(id); if (player === undefined) throw new Error('Unknown native tamer');
         sessionFor(player).load(row, horses);
       }
-      wild.clear(); for (const [id, at] of Object.entries(saved.wild ?? {})) wild.set(id, at);
     },
   }, 'afterBodies');
   host.scope.onDispose(() => { for (let i = 0; i < 64; i++) { const actor = poseRows[i]; if (actor === undefined) break; poses.delete(actor.entityId); } poseRows.length = 0; installed.delete(host); });

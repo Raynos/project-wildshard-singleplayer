@@ -1286,6 +1286,7 @@
   "src/game/riding/roster.ts": "server",
   "src/game/riding/seatedFigure.ts": "client",
   "src/game/riding/taming.ts": "server",
+  "src/game/riding/wildRefill.ts": "server",
   "src/game/saves.ts": "shared",
   "src/game/savesSettings.ts": "client",
   "src/game/session/clockSettings.ts": "client",
