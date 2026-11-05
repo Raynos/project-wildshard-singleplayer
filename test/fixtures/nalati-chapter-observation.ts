@@ -1,7 +1,7 @@
 import {QuestLine} from '../../src/engine/shared/quest/core';
 import type {SimHost} from '../../src/engine/server/sim';
 import type {parseChapterStoryPresentation} from '@wildshard/format/questStory';
-import {chapterFlow} from '../../src/game/server/quest/chapterFlow';
+import {chapterFlow} from '../../src/game/shared/quest/chapterFlow';
 
 /** Observe the page's actual chapter readouts over the existing native quest
  * owners. No quest, flag, dialogue clock or completion callback is replaced. */

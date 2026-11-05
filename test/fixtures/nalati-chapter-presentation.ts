@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import {DialogueClock} from '../../src/engine/shared/quest/dialogueClock';
 import type {SimHost} from '../../src/engine/server/sim';
 import type {HeadlessRuntimeInstallation} from '../../src/sdk/headlessRuntime';
-import type {QuestPresentationPorts} from '../../src/game/client/quest/effectPresentation';
+import type {QuestPresentationPorts} from '../../src/game/shared/quest/effectPresentation';
 import type {Scope} from '../../src/engine/shared/app/scope';
 
 interface PresentationHost {

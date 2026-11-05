@@ -134,7 +134,7 @@
       }
     },
     {
-      "module": "src/game/server/quest/pageResources.ts",
+      "module": "src/game/shared/quest/pageResources.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "quest-step-runner",

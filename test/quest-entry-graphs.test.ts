@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { installQuestGraph } from '../src/game/shared/plugin/quests';
 import { prepareNativeQuestEntry } from '@wildshard/game/quest/nativeEntry';
 import { registerNativeQuestInputs } from '../src/game/server/quest/nativeInputs';
-import { nativeInventorySchema } from '../src/game/server/inventoryLaw';
+import { nativeInventorySchema } from '../src/game/shared/inventoryLaw';
 import * as v from 'valibot';
 import { parseQuestHost, questHostBindingRules } from '@wildshard/format/questHost';
 import { PINE as pine } from './fixtures/pine-program';

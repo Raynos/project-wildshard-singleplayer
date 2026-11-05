@@ -3,7 +3,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { parseQuestKillRows } from '@wildshard/format/questSteps';
 import { createAchievementCounters, type AchievementDef } from '../../shared/achievements';
 import { QuestStepRunner } from '../../shared/quest/steps';
-import { commitQuestEffects } from './effects';
+import { commitQuestEffects } from '../../shared/quest/effects';
 
 /** Actor identity is borrowed; this observer never spawns, retires or saves actors. */
 export interface QuestKilledBody {

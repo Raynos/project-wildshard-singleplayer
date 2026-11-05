@@ -2,8 +2,8 @@ import {expect,test} from 'vitest';
 import {Flags} from '@wildshard/engine/world/interact/flags';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import type {SimHost} from '@wildshard/engine/sim';
-import {presentQuestEffect,type QuestPresentationPorts} from '../src/game/client/quest/effectPresentation';
-import {commitQuestEffects} from '../src/game/server/quest/effects';
+import {presentQuestEffect,type QuestPresentationPorts} from '../src/game/shared/quest/effectPresentation';
+import {commitQuestEffects} from '../src/game/shared/quest/effects';
 
 function fixture(){
   const flags=new Flags('unplayed-presentation',false),events:unknown[]=[];

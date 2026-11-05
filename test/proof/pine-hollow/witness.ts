@@ -24,7 +24,7 @@ import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProto
 import PINE_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { prepareProductRuntimePlan } from '../../../src/game/server/shardfile/nativePlan';
 import { QUEST_STEP } from '../../../src/shards/pine-hollow/generators/questPrompts';
-import { nativeInventorySchema } from '../../../src/game/server/inventoryLaw';
+import { nativeInventorySchema } from '../../../src/game/shared/inventoryLaw';
 import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' with { type: 'json' };
 import bossRows from '../../../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import { canonicalSimDigest, simWireV1 } from '../../fake/simState';

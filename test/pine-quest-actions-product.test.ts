@@ -1,7 +1,7 @@
 import { PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
 import { registerItemRow } from '../src/game/shared/bag/itemCatalog';
 import { QuestStepRunner } from '../src/game/shared/quest/steps';
-import { commitQuestEffects, readQuestServiceActions } from '../src/game/server/quest/effects';
+import { commitQuestEffects, readQuestServiceActions } from '../src/game/shared/quest/effects';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { QuestState } from '../src/engine/shared/quest/core';
 import { Scope } from '../src/engine/shared/app/scope';
@@ -19,7 +19,7 @@ import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wil
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/shared/quest/contracts';
-import { Exchange } from '../src/game/server/loot/exchange';
+import { Exchange } from '../src/game/shared/loot/exchange';
 import { TRADES, tradeExchange } from '../src/shards/pine-hollow/generators/trades';
 
 const releaseItems = PINE_BAG_ITEMS.map(registerItemRow);

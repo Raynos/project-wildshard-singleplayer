@@ -1,6 +1,6 @@
 import { parseQuestWorldDocument } from '@wildshard/format/questWorld';
 import type { ShardContext } from '../../client/plugin/context';
-import { registerQuestPageWorld } from '../quest/pageResources';
+import { registerQuestPageWorld } from '../../shared/quest/pageResources';
 import { entryOwner } from '../../client/shardfile/entryOwners';
 
 const ended = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.disposing;

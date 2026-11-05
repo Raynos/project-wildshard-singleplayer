@@ -8,10 +8,10 @@ import { modelContext } from '@wildshard/engine/models/model';
 import { defineSpecimenCatalogue } from '../../client/models/specimenCatalogue';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { pageRidingMount } from '../../client/riding/client';
-import { commitQuestEffects } from './effects';
+import { commitQuestEffects } from '../../shared/quest/effects';
 import { boundQuestState } from '../../shared/quest/boundState';
 import type { ShardContext } from '../../client/plugin/context';
-import { carriedRound, carriedRoundCarrying, carriedRoundDue, carriedRoundFrame, carriedRoundGoal, carriedRoundHome, carriedRoundOutputs, type CarriedRound } from './carriedRound';
+import { carriedRound, carriedRoundCarrying, carriedRoundDue, carriedRoundFrame, carriedRoundGoal, carriedRoundHome, carriedRoundOutputs, type CarriedRound } from '../../shared/quest/carriedRound';
 
 /** Client-only projection of an existing carried-prop guest. The entered world,
  * mount, saved flags and page services are borrowed by their native identities. */

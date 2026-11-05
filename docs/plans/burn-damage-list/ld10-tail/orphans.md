@@ -160,7 +160,7 @@ only contains the word, not a `#box` row).
 - `game/client/bag/bag.ts`: `CosmeticSlot`
 - `game/cook/bake/entryways.ts`: `proveSocketLift`
 - `game/shared/compendium/types.ts`: `CompendiumSkin`
-- `game/server/inventoryLaw.ts`: `InventoryState`
+- `game/shared/inventoryLaw.ts`: `InventoryState`
 - `game/client/plugin/context.ts`: `ShardCube`
 - `game/server/plugin/mover.ts`: `moverQueries`
 - `game/server/shard/manifest.ts`: `Vec2`, `RGB`, `OceanDef`

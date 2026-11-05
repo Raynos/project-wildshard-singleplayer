@@ -7,7 +7,7 @@ import { readCoinBurstState } from '../../../../src/game/shared/loot/coinBurstSt
 import { Owned, isOwnedId, isCosmetic } from '../../../../src/game/shared/loot/Owned';
 import { Purse } from '../../../../src/game/shared/loot/Purse';
 import { Bounty } from '../../../../src/game/server/loot/Bounty';
-import { Exchange } from '../../../../src/game/server/loot/exchange';
+import { Exchange } from '../../../../src/game/shared/loot/exchange';
 import { DEATH_ORDER } from '../../../../src/game/server/loot/deaths';
 import { coinValue } from '../../../../src/game/shared/loot/coinAmounts';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';

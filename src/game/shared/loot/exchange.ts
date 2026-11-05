@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { ExchangeSchema, type ExchangeRows } from '@wildshard/format/exchange';
-import { bindBorrowedMethod } from '../../shared/plugin/borrowed';
+import { bindBorrowedMethod } from '../plugin/borrowed';
 import type { ShopCost, ShopState } from '../../client/loot/ui/ShopPanel';
 
 const saved = v.strictObject({ version: v.literal(1), open: v.boolean() });

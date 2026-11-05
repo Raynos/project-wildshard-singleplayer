@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { NativeInventory } from '../src/game/server/inventoryLaw';
+import { NativeInventory } from '../src/game/shared/inventoryLaw';
 import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { DRIFTWOOD_ITEMS as DRIFTWOOD } from './fixtures/driftwood-items';

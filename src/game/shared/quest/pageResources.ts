@@ -1,7 +1,7 @@
 import { isJsonData } from '@wildshard/format/json';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
-import type { AmbientGroup } from '../../shared/ambient/flock';
+import type { AmbientGroup } from '../ambient/flock';
 /** Existing native page owners are published once under declared identities.
  * Content supplies anchor values and a concrete platform flock, never methods. */
 export interface QuestPageWorld {

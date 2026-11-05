@@ -3,7 +3,7 @@ import type { QuestPageRows } from '@wildshard/format/questPageComposition';
 import { createShardProduct } from '../../shared/shardfile/shardProduct';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
-import { startQuestPageReads } from './pageReads';
+import { startQuestPageReads } from '../../shared/quest/pageReads';
 
 function deferred<T>() {
   let finish: (value: T) => void = () => { throw new Error('Deferred read not initialized'); };

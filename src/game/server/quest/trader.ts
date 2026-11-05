@@ -9,7 +9,7 @@ import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { isJsonData } from '@wildshard/format/json';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { enteredPurse } from '../../shared/loot/Purse';
-import { Exchange } from '../loot/exchange';
+import { Exchange } from '../../shared/loot/exchange';
 import { ShopPanel, type ShopGood } from '../../client/loot/ui/ShopPanel';
 import { enteredHeldLoadout } from '../../client/loadout/held';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';

@@ -12,7 +12,7 @@ import { enteredAdventurePersistence, publishChapterFlags } from '../../shared/q
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import { installQuestHintFile } from '../../client/quest/hints';
-import { questPageWorld } from './pageResources';
+import { questPageWorld } from '../../shared/quest/pageResources';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { installWorldScenes } from '../../client/shardfile/worldScenes';
@@ -48,7 +48,7 @@ import { rangedPage } from '../../client/loadout/rangedPage';
 import { installPageMap, installPageMover, pageCollectionCalls } from './pageFacets';
 import { installPageDoor } from './pageDoors';
 import { installQuestFigures } from '../../client/quest/figures';
-import { startQuestPageReads } from './pageReads';
+import { startQuestPageReads } from '../../shared/quest/pageReads';
 
 /** The page borrows the actual native boss and its baked reward pose. */
 interface PageFinale { readonly actor: Animal | null; readonly rewardAt: THREE.Vector3; readonly rewardPose: { yaw: number; pitch: number; phase: number } }

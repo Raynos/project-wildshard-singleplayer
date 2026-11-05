@@ -12,7 +12,7 @@ import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/clien
 import { prepareQuestWorldEntry } from '../src/game/server/shardfile/questWorld';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import { questPageWorld } from '../src/game/server/quest/pageResources';
+import { questPageWorld } from '../src/game/shared/quest/pageResources';
 import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { driftwoodQuestWorld } from '../src/shards/driftwood-isle/generators/questWorld';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';

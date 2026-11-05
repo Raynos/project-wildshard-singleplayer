@@ -19,7 +19,7 @@ import type { ContractBoardPage } from '../../client/quest/contractBoardPage';
 import type { ContractBoardPageRows } from '@wildshard/format/contracts';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
-import { commitQuestEffects, readQuestServiceActions } from './effects';
+import { commitQuestEffects, readQuestServiceActions } from '../../shared/quest/effects';
 import { QuestEffectSchema } from '@wildshard/format/questSteps';
 import type { ShardContext } from '../../client/plugin/context';
 import type { FigureRows } from '../../client/systems/npc/figureRows';
@@ -28,11 +28,11 @@ import type { QuestPresentationHost, QuestPresentationOptions } from '../../clie
 import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from '../../shared/quest/boundState';
 import { bindRuntimeQuest } from '../plugin/headless';
 import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory, installStoryTalks } from './story';
-import { questPageWorld } from './pageResources';
+import { questPageWorld } from '../../shared/quest/pageResources';
 import { questBenchPose } from '../../shared/quest/storyLaw';
 import type { QuestPageTalksRows } from '@wildshard/format/npcs';
 import { QuestStepRunner } from '../../shared/quest/steps';
-import { chapterDecide } from './chapterDecision';
+import { chapterDecide } from '../../shared/quest/chapterDecision';
 import { openQuestTrader, installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 

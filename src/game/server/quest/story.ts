@@ -17,7 +17,7 @@ import { progressSave } from '../../shared/saves';
 import { createAchievementCounters } from '../../shared/achievements';
 import { bindRuntimeQuest } from '../plugin/headless';
 import { bindRuntimeLedger, bindRuntimeJsonRecord, type RuntimeFacts } from '../../shared/plugin/runtimeRows';
-import { chapterFlow } from './chapterFlow';
+import { chapterFlow } from '../../shared/quest/chapterFlow';
 import type { ShardContext } from '../../client/plugin/context';
 import { QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../../client/plugin/ui';
 

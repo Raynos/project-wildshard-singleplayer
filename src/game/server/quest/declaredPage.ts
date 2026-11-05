@@ -7,7 +7,7 @@ import type { MoverRuntime } from '../plugin/mover';
 import type { SceneHandles } from '../../client/shardfile/sceneHandles';
 import { WorldTargetHost, type WorldTargetLanding } from '../shardfile/worldTargets';
 import { InteractionRules } from '../../shared/quest/interactionRows';
-import { commitQuestEffects } from './effects';
+import { commitQuestEffects } from '../../shared/quest/effects';
 import type { QuestEffect } from '@wildshard/format/questSteps';
 import { lightEmitterPresentation } from '../../client/shardfile/lightEmitters';
 import { residentWorldScope } from '../../client/shardfile/hybridPresentation';

@@ -1,7 +1,7 @@
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { NativeInventory } from '../inventoryLaw';
+import { NativeInventory } from '../../shared/inventoryLaw';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { bindQuestTableSpots } from '../../shared/plugin/quests';
 import { installDeclaredQuestHost, type QuestHostPorts } from '../plugin/simulation';

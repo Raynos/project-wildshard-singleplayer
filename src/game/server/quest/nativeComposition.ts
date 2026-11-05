@@ -18,15 +18,15 @@ import type { AchievementCounterData } from '@wildshard/format/achievementCounte
 import { QuestRewardController, installNativeQuestProps, createReadingRoster, bindQuestDeathEffects, type QuestReadingRows } from '../../shared/plugin/quests';
 import { nativeMeleeItem, otherCombatFrame, readNativeRangedItem, seatedBolt, type NativeBoltItem } from '../plugin/nativeItems';
 import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/nativeAmmunition';
-import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
+import { nativeInventorySchema, type NativeInventory } from '../../shared/inventoryLaw';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '../../shared/quest/interactionRows';
 import { ContractBoard, CONTRACT_ACTION } from '../../shared/quest/contractBoard';
 import { contractKill } from '../../shared/quest/contracts';
-import { Exchange } from '../loot/exchange';
+import { Exchange } from '../../shared/loot/exchange';
 import { QuestStepRunner } from '../../shared/quest/steps';
-import { commitQuestEffects, commitSeatEffects } from './effects';
+import { commitQuestEffects, commitSeatEffects } from '../../shared/quest/effects';
 import { questBenchPose } from '../../shared/quest/storyLaw';
 import { installNativeChapterDirector } from './nativeChapter';
 import { takeNativeBossReward } from '../boss/native';

@@ -3,7 +3,7 @@ import ORIGINAL from './fixtures/pine-trade-catalogue.json' with { type: 'json' 
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { parseTradeCatalogue, type TradeCatalogue } from '../src/shards/pine-hollow/generators/sections';
-import { Exchange } from '../src/game/server/loot/exchange';
+import { Exchange } from '../src/game/shared/loot/exchange';
 import type { ExchangeRows } from '@wildshard/format/exchange';
 import { parseBarterEconomy, type BarterEconomy } from '@wildshard/format/lootEconomy';
 import { declaredLootEconomy } from '../src/game/shared/shard/declaredRows';

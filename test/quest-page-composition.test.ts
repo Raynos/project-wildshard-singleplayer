@@ -8,7 +8,7 @@ import type { Interactable } from '../src/engine/shared/world/interact/types';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
-import { registerQuestPageWorld, questPageWorld } from '../src/game/server/quest/pageResources';
+import { registerQuestPageWorld, questPageWorld } from '../src/game/shared/quest/pageResources';
 import { installQuestTrader } from '../src/game/server/quest/trader';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';

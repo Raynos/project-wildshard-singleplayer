@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { carriedRound, carriedRoundCarrying, carriedRoundDue, carriedRoundFrame, carriedRoundGoal, carriedRoundHome, carriedRoundOutputs } from './carriedRound';
+import { carriedRound, carriedRoundCarrying, carriedRoundDue, carriedRoundFrame, carriedRoundGoal, carriedRoundHome, carriedRoundOutputs } from '../../shared/quest/carriedRound';
 
 // The kokpar shape (carriedQuest.ts): carry poses 2 and 3, the goal pose 3 (a delivery also takes the carry pose first)
 const rows = {

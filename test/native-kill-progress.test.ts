@@ -8,9 +8,9 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installQuestKillSteps } from '@wildshard/game/quest/killSteps';
 import rows from '../src/shards/driftwood-isle/data/questKillSteps.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
-import { NativeInventory, creditNativeInventory, debitNativeInventory, type NativeInventoryProfile } from '../src/game/server/inventoryLaw';
+import { NativeInventory, creditNativeInventory, debitNativeInventory, type NativeInventoryProfile } from '../src/game/shared/inventoryLaw';
 import { QuestStepRunner } from '../src/game/shared/quest/steps';
-import { commitQuestEffects } from '../src/game/server/quest/effects';
+import { commitQuestEffects } from '../src/game/shared/quest/effects';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('native kill counters resume old progress, keep flag/emission order and refuse malformed saves', async () => {

@@ -5,7 +5,7 @@ import { findTitleManifest } from '../client/shard/titleList';
 import { findShard } from '../client/shard/registry';
 import { inventorySave, saveSlug } from '../shared/saves';
 import type { ItemRow } from '../shared/bag/items';
-import { DEFAULT_PACK_SLOTS, addInventory, takeInventory } from './inventoryLaw';
+import { DEFAULT_PACK_SLOTS, addInventory, takeInventory } from '../shared/inventoryLaw';
 /**
  * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
  * crab claws and coconuts — the drowned sailor and captain fade, nothing to harvest, E318). Counts

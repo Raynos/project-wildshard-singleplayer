@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { QuestLine, type QuestDef, type QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
-import { chapterFlow } from './chapterFlow';
+import { chapterFlow } from '../../shared/quest/chapterFlow';
 
 const defs: QuestDef[] = [
   { id: 'ch1', title: 'Tulpar', intro: { objective: 'Speak to the elder', chip: 'TULPAR', hint: 'At the camp' }, startWhen: { all: ['talked'] }, completeFlag: 'ch1-done',

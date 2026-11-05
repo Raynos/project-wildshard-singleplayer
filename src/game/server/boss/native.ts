@@ -2,7 +2,7 @@
  * damage ownership, reward flags and save continuation are shared platform law. */
 import { nativeDecisions } from '../shardfile/borrowedDecisions';
 import { populationRoster, type NativePopulationActor } from '../population/roster';
-import { grantNativeInventory } from '../inventoryLaw';
+import { grantNativeInventory } from '../../shared/inventoryLaw';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import * as v from 'valibot';
 import { Vector3 } from 'three';

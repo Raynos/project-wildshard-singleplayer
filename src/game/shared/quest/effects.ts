@@ -2,12 +2,12 @@ import type { parseQuestServiceActions } from '@wildshard/format/questSteps';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { ShardContext } from '../../client/plugin/context';
-import { isItemId } from '../../shared/bag/itemCatalog';
+import { isItemId } from '../bag/itemCatalog';
 import { creditNativeInventory, debitNativeInventory } from '../inventoryLaw';
-import { boundQuestState } from '../../shared/quest/boundState';
-import { boundChapter, readQuestObservation } from '../../shared/quest/chapterBindings';
-import type { QuestStepEffect } from '../../shared/quest/steps';
-import {presentQuestEffect,type QuestPresentationPorts} from '../../client/quest/effectPresentation';
+import { boundQuestState } from './boundState';
+import { boundChapter, readQuestObservation } from './chapterBindings';
+import type { QuestStepEffect } from './steps';
+import {presentQuestEffect,type QuestPresentationPorts} from './effectPresentation';
 
 /** Framework-internal dispatch; shard APIs supply effect rows and owner ids only. */
 function commit(effects: readonly QuestStepEffect[], flags: Flags,

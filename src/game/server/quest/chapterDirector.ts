@@ -11,7 +11,7 @@ import type { ShardContext } from '../../client/plugin/context';
 import { readDirectorProduct } from '../plugin/director';
 import { enteredCompletion } from '../../client/complete/declared';
 import { boundQuestChapter } from './chapter';
-import { commitQuestEffects } from './effects';
+import { commitQuestEffects } from '../../shared/quest/effects';
 import { QuestRewardController } from '../../shared/plugin/quests';
 import { parseQuestSpawnPage, parseQuestLeadPage, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
 import * as v from 'valibot';

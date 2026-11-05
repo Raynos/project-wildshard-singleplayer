@@ -8,7 +8,7 @@
  *   chapterDecide(program, decision, 'tick', { t }, source => readQuestObservation(ctx, quest, source), effects => commit(effects));
  */
 import type { ChapterStoryPresentation } from '@wildshard/format/questStory';
-import type { ReturnProgram } from '../../shared/population/returnProgram';
+import type { ReturnProgram } from '../population/returnProgram';
 
 type Decision = NonNullable<ChapterStoryPresentation['decision']>;
 type Source = Decision['observations'][string]['source'];
