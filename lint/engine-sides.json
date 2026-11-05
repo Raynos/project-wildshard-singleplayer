@@ -589,7 +589,7 @@
   "src/engine/saves/forwardedStorage.ts": "server",
   "src/engine/saves/legacy.ts": "shared",
   "src/engine/saves/runtime.ts": "shared",
-  "src/engine/saves/slots.ts": "shared",
+  "src/engine/saves/slots.ts": "client",
   "src/engine/saves/store.ts": "shared",
   "src/engine/saves/view/storage.ts": "client",
   "src/engine/script/checkpointBytes.ts": "server",
