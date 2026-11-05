@@ -14,7 +14,7 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { HOST_MOTION, leaveSwim, stepPlayerMotion, versionedWalk, waterDepth, type MotionFooting, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { HOST_MOTION, leaveSwim, stepPlayerMotion, versionedWalk, type MotionFooting, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import { validateLocalMovement } from '../../shared/input/commands';
 import { netSimCommand } from '../../shared/sim/netMotion';
@@ -80,7 +80,7 @@ export class PlayerSim implements PlayerMotionState {
   readonly dash: DashState = { t: 0, vx: 0, vz: 0 };
   /** The dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
   readonly dodge: DodgeState = { cd: 0, t: 0 };
-  /** The motion step's read of the feet. Never saved: on this law it is derived from the position and the water. */
+  /** The motion step's read of the feet: the page's, and the next step reads it. Saved while it is not dry, firm ground. */
   readonly footing: MotionFooting = { water: null, depth: 0, wading: false, onPlatform: false, sliding: false };
   private readonly host: SimHost;
   private readonly body: SimPlayerBody;
@@ -274,10 +274,14 @@ export class PlayerSim implements PlayerMotionState {
   /** The current mode (SF34): an entered driven mode, else the motor mode (board, swim, wade, foot). */
   get mode(): ReturnType<PlayerModes['current']> { return this.modes.current(); }
   /** Water over the standing feet (SF34: a host with water, on foot, grounded, the feet more than 2 cm under). */
-  get wading(): boolean {
-    // the tick the swimmer stands up is on foot, not yet wading, as the client Player's (its wade resolves on the next walk)
-    if (this.host.water === undefined || this.board.on || this.swim.on || this.swim.stood || !this.fall.grounded) return false;
-    return waterDepth(this, this.world) > 0.02;
+  get wading(): boolean { return this.footing.wading; }
+  /** A saved read of the feet, or for a save older than it, what the step would have left at this pose. */
+  restoreFooting(saved: MotionFooting | undefined): void {
+    if (saved !== undefined) { Object.assign(this.footing, saved); return; }
+    const { footing, position: p } = this, water = this.board.on ? null : this.world.water(p.x, p.z);
+    footing.water = water; footing.depth = water === null ? 0 : Math.max(0, water - p.y);
+    footing.wading = !this.swim.on && !this.swim.stood && this.fall.grounded && footing.depth > 0.02;
+    footing.onPlatform = false; footing.sliding = false;
   }
   /** This host's side of the motion step, built before the constructor runs, so every read of the host is lazy. Its law
    *  is `HOST_MOTION`; what it has no way to know is absent here: floor functions, a grid limit on the board, an authored
@@ -341,7 +345,7 @@ export class PlayerSim implements PlayerMotionState {
     this.versioned = versioned;
     if (versioned) {
       this.walkActive = true;
-      versionedWalk(this, command, this.world, this.versionedWalking);
+      versionedWalk(this, command, this.versionedWalking);
     } else {
       this.walkActive = false;
       if (!this.board.on && !this.swim.on) { this.velocity.x = 0; this.velocity.z = 0; }

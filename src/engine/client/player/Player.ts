@@ -1,10 +1,10 @@
 import { hoverSpeed } from '../../shared/player/hoverSpeed';
 import { isDev } from '../core/devMode';
 import { walkingSpeed } from '../../shared/player/walk';
-import { NO_SPRINT_DEPTH, pondBob } from '../../shared/player/swim';
+import { pondBob } from '../../shared/player/swim';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { boardShoved, HOVER_HARD_LANDING } from '../../shared/player/board';
-import { leaveSwim, PAGE_MOTION, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { leaveSwim, PAGE_MOTION, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../../shared/events/events';
@@ -482,7 +482,7 @@ export class Player {
     const hover = this.hover;
     const swim = this.swimming && !hover;
     this.crouching = !hover && !swim && this.crouchWanted;
-    this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && command.sprint && fwd > 0 && !this.crouching;
+    this.sprinting = sprints(this.motionState, command.sprint, fwd, this.crouching);
     this.waveTime += dt;
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);

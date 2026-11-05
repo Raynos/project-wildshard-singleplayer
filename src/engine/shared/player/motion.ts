@@ -47,15 +47,13 @@ export interface MotionLaw {
    * and without a velocity a grounded walker takes no gravity until the motor loses the ground.
    */
   readonly momentum: boolean;
-  /** The depth a walk reads: the feet's last resolve (the page: `footing.depth`), or the water at the feet now (the host). */
-  readonly depthNow: boolean;
   /** A grounded, still player with no command takes no step at all (the host: a resting body's bytes do not move). */
   readonly restsIdle: boolean;
 }
 /** The law the client's Player has always run. */
-export const PAGE_MOTION: MotionLaw = { momentum: true, depthNow: false, restsIdle: false };
+export const PAGE_MOTION: MotionLaw = { momentum: true, restsIdle: false };
 /** The law SimHost has always run. */
-export const HOST_MOTION: MotionLaw = { momentum: false, depthNow: true, restsIdle: true };
+export const HOST_MOTION: MotionLaw = { momentum: false, restsIdle: true };
 
 /** What a step resolved about the ground and water under the feet, for the view and the next step. */
 export interface MotionFooting {
@@ -207,10 +205,10 @@ function platformUnderFeet(s: PlayerMotionState, w: MotionWorld): number | undef
   }
   return best;
 }
-/** m of water over the feet right now (0 dry). */
-export function waterDepth(s: PlayerMotionState, w: MotionWorld): number {
-  const p = s.position, ws = w.water(p.x, p.z);
-  return ws === null ? 0 : Math.max(0, ws - p.y);
+/** Whether a step sprints: asked for, going forward (the command's `keyY + stickY`), on foot, not crouching, and not past
+ *  sprint depth at the feet's last resolve. */
+export function sprints(s: PlayerMotionState, sprint: boolean, forward: number, crouching: boolean): boolean {
+  return sprint && forward > 0 && !crouching && !s.board.on && !s.swim.on && s.footing.depth < NO_SPRINT_DEPTH;
 }
 
 function motionScratch(s: PlayerMotionState, w: MotionWorld): MotionScratch {
@@ -253,13 +251,13 @@ function pressDodge(s: PlayerMotionState, cmd: MotionCommand, w: MotionWorld, ru
 
 /** The walk's speed and crouch from a raw version-1 command, the on-foot law a host runs for a client: no effect channels
  *  yet, and the wade applied after (`MotionFoot.speed`). */
-export function versionedWalk(s: PlayerMotionState, cmd: MotionCommand | undefined, w: MotionWorld, out: { speed: number; crouching: boolean }): void {
+export function versionedWalk(s: PlayerMotionState, cmd: MotionCommand | undefined, out: { speed: number; crouching: boolean }): void {
   const forward = cmd === undefined ? 0 : cmd.steer === undefined
     ? -Math.sin(cmd.yaw) * cmd.moveX - Math.cos(cmd.yaw) * cmd.moveZ
     : Math.max(-1, Math.min(1, cmd.steer.keyY + cmd.steer.stickY));
   const crouching = cmd?.crouch === true && !s.board.on && !s.swim.on;
   out.crouching = crouching;
-  out.speed = walkingSpeed(crouching, cmd?.sprint === true && forward > 0 && !crouching && (!w.hasWater || waterDepth(s, w) < NO_SPRINT_DEPTH), 0, s.moveScale, 1);
+  out.speed = walkingSpeed(crouching, sprints(s, cmd?.sprint === true, forward, crouching), 0, s.moveScale, 1);
 }
 
 function stepOnBoard(s: PlayerMotionState, w: MotionWorld, run: MotionScratch, mx: number, mz: number, len: number, jump: boolean, dt: number): void {
@@ -336,7 +334,7 @@ function stepOnFoot(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mot
   const shoved = impulse.lengthSq() > 0;
   if (law.restsIdle && cmd === undefined && !foot.active && !shoved && !(shove.t > 0) && !(dash.t > 0) && fall.grounded && velocity.y === 0) { out.mode = 'rest'; return; }
   // the wade: water over the grounded feet slows the walk and saps the jump
-  const wadeT = wadeFraction(fall.grounded, law.depthNow ? waterDepth(s, w) : footing.depth);
+  const wadeT = wadeFraction(fall.grounded, footing.depth);
   if (momentum) momentumWalk(s, w, run, mx, mz, wadeT, dt);
   else displacementWalk(s, cmd, w, run, wadeT, shoved, dt);
   // the jump on last step's ground, before the step's gravity

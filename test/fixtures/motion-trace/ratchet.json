@@ -1,6 +1,5 @@
 {
   "A1.board-off-at-speed": 120,
-  "A1.swim-out-of-the-water": 116,
   "A1.walk-onto-board": 180,
   "A2.authored-speed": 120,
   "A2.dash": 77,
@@ -9,7 +8,6 @@
   "A2.slope-slide": 149,
   "A4.rest-on-a-deck": 239,
   "A4.rest-on-a-slope": 119,
-  "A5.stand-up": 86,
   "A6.climb-42": 197,
   "A6.narrow-gap": 150,
   "A6.step-up": 108,
@@ -32,8 +30,6 @@
   "A11.impulse-while-locked": 85,
   "A13.walk-through-a-gate": 78,
   "A14.sea-swell": 251,
-  "A14.swim-across": 239,
   "A17.reset-mid-air": 49,
-  "A17.reset-mid-run": 70,
-  "A17.reset-swimming": 119
+  "A17.reset-mid-run": 70
 }

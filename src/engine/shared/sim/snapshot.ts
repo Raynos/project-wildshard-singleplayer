@@ -285,13 +285,17 @@ function playerSnapshot(host: SimHost, player: PlayerSim): SimPlayerSnapshot {
     ...(player.fall.grounded ? {} : { airborne: true as const }),
     ...(player.shove.t > 0 ? { shove: { ...player.shove } } : {}),
     ...(player.board.on ? { board: { air: player.board.hoverAir, bob: player.board.hoverBob, ground: player.board.onGround } } : {}),
-    ...swimField(player),
+    ...swimField(player), ...footingField(player),
     ...jumpFields(player), ...traversalField(player) };
 }
 /** The swim (SF34) while it runs or its haul-out cooldown does, else omitted. */
 function swimField(player: PlayerSim): Pick<SimPlayerSnapshot, 'swim'> {
   const { swim } = player;
   return swim.on || swim.stood || swim.climbCooldown > 0 ? { swim: { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.strokeTime, stood: swim.stood } } : {};
+}
+/** The feet's last resolve, omitted on dry, firm ground. */
+function footingField({ footing }: PlayerSim): Pick<SimPlayerSnapshot, 'footing'> {
+  return footing.water === null && footing.depth === 0 && !footing.wading && !footing.onPlatform && !footing.sliding ? {} : { footing: { ...footing } };
 }
 /** Omit inactive traversal state so ordinary hosts retain their existing snapshot bytes. */
 function traversalField(player: PlayerSim): Pick<SimPlayerSnapshot, 'traversals'> {
@@ -343,6 +347,7 @@ function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
   Object.assign(player.dash, saved.dash ?? { t: 0, vx: 0, vz: 0 });
   Object.assign(player.dodge, saved.dodge ?? { cd: 0, t: 0 });
   player.health.restore(decode(saved.health, host) as ReturnType<PlayerHealth['snapshot']>);
+  player.restoreFooting(saved.footing);
   if (saved.traversals?.length === 0) throw new Error('Invalid empty traversal mode continuation');
   player.modes.restoreTraversals(saved.traversals ?? []);
 }
