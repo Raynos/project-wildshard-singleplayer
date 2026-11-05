@@ -151,7 +151,7 @@ const gltfMipsRow: DebugRow = { id: 'gltfMips', group: 'loading', label: engineS
   get: () => gltfMipsSlot.read() === 'on' ? 'on' : 'off',
   set: (next) => { if (next === 'off' || next === 'on') gltfMipsSlot.write(next); },
   on: () => undefined,
-  note: 'D227: free glTF models\' CPU texture mips at their first draw (77 textures, 35.1 MB kept on one level); default off until a Simulator memory reading.',
+  note: 'D227: free uploaded KTX2 textures\' CPU mips at their first draw (glTF models and the client\'s own maps: 77 textures, 35.1 MB kept on one level); default off until a Simulator memory reading.',
   ask: 'E526', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);

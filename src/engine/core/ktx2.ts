@@ -211,7 +211,9 @@ export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T, immu
  *  nothing, and a sampler change after the first draw throws (assertCompressedMipmapsUnchanged). Read once per page. */
 export const GLTF_MIPS_SLOT = 'debug.gltfMips';
 let gltfMipsFrozen: boolean | undefined;
-function retireGltfMips(): boolean {
+/** Whether the row is on: the shardfile client's own KTX2 textures use it too (`clientMaterials`: Pine's 77 prop maps, the
+ *  probe's 35.1 MB, come in there, not through a glTF parse). */
+export function retireCompressedMipsAtFirstDraw(): boolean {
   gltfMipsFrozen ??= jsonSlot(GLTF_MIPS_SLOT, 'device').read() === 'on';
   return gltfMipsFrozen;
 }
@@ -238,7 +240,7 @@ export function installGltfKtx2(type: typeof GLTFLoader): void {
           gltf.scene.traverse((o) => {
             if (!(o instanceof THREE.Mesh)) return;
             const mats: unknown[] = Array.isArray(o.material) ? o.material : [o.material];
-            for (const m of mats) if (m instanceof THREE.Material) for (const v of Object.values(m)) if (v instanceof THREE.CompressedTexture) { releaseAfterUpload(v, retireGltfMips()); textures.add(v); }
+            for (const m of mats) if (m instanceof THREE.Material) for (const v of Object.values(m)) if (v instanceof THREE.CompressedTexture) { releaseAfterUpload(v, retireCompressedMipsAtFirstDraw()); textures.add(v); }
           });
           const publish = async (): Promise<void> => {
             try {
