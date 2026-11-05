@@ -21,6 +21,12 @@ export function kingWalkingRoute(from:{readonly x:number;readonly z:number},to:{
   return [{x:from.x,z:from.z},{x:to.x,z:to.z}];
 }
 
+/** J112's 0.38 m capsule no longer shaves the dromos jamb on a slant: line up on the door's axis, then walk in. */
+function kingDoorRoute(from:{readonly x:number;readonly z:number},e:Pick<NalatiKingData['entrance'],'x'|'z'|'facing'>):{x:number;z:number}[] {
+  const to=kingEntryPoint(e);
+  return [{x:from.x,z:from.z},{x:e.x-Math.sin(e.facing)*6,z:e.z-Math.cos(e.facing)*6},{x:to.x,z:to.z}];
+}
+
 /** Stay on the real corridor's walkable extension. Even the route cursor's
  * arrival radius must leave the feet beyond the original exit threshold. */
 export function kingExitPoint(room:Pick<NalatiKingData['room'],'origin'|'corridorEnd'>,end:number):{x:number;z:number} {
@@ -60,7 +66,7 @@ export function* kingEntryInputs(host:SimHost,read:()=>KingObservation,rows:Nala
   for(const flag of ['clue:1','clue:2','clue:3'])assert.ok(host.flags.has(flag),flag);
   assert.equal(host.flags.has('dead:golden-king'),false);
   const e=rows.entrance;
-  for(const commands of chapterWalkInputs(host,'earned-king-door',kingWalkingRoute(leadPlayer(host).position,kingEntryPoint(e)),2400)){
+  for(const commands of chapterWalkInputs(host,'earned-king-door',kingDoorRoute(leadPlayer(host).position,e),2400)){
     if(read().inside)break;yield commands;
   }
   for(let tick=0;tick<120&&!read().inside;tick++)yield [{kind:'player',moveX:0,moveZ:0,yaw:e.facing,commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:0}}];

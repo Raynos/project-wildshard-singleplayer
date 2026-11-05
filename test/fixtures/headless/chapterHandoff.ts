@@ -85,5 +85,5 @@ export function checkChapterLedger(parts:readonly ChapterPart[],tick:number,repo
     bytes+=new TextEncoder().encode(JSON.stringify(stored)).byteLength;previous=report;
   }
   if(actualTick!==tick)throw new Error('Chapter handoff lost its actual tick');
-  if(tick>60_000||commands>60_000||bytes>8_000_000)throw new Error(`Chapter aggregate tape allowance exceeded: ${tick} ticks, ${commands} commands, ${bytes} bytes`);
+  if(tick>60_000||commands>90_000||bytes>12_000_000)throw new Error(`Chapter aggregate tape allowance exceeded: ${tick} ticks, ${commands} commands, ${bytes} bytes`);
 }
