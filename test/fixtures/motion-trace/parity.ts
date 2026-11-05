@@ -148,6 +148,8 @@ export interface MotionScenario {
   readonly lockAt?: { readonly x: number; readonly z: number; readonly r0: number };
   /** The sea's swell instead of the pond's bob. */
   readonly sea?: boolean;
+  /** A host with no water installed. */
+  readonly dry?: boolean;
   /** A real held creature on the host, in the way: what the client knows of it is its row. */
   readonly bodyAt?: { readonly x: number; readonly z: number };
   /** Keep the host's own capsule. Every other scenario gives it the page's, as a physics route does, so a row that lands
@@ -170,6 +172,7 @@ const axis = (key: number | undefined, stick: number | undefined): number => Mat
 /** The real Player on the page's fixed step: movers, physics, then the step, with a replay command and a real device. */
 export class PageSide implements MotionEvents {
   readonly player: Player;
+  readonly camera: PerspectiveCamera = new PerspectiveCamera();
   readonly physics: Physics;
   readonly course: Course;
   private readonly scope = new Scope('motion-parity');
@@ -178,7 +181,7 @@ export class PageSide implements MotionEvents {
   constructor(R: Rapier, scenario: MotionScenario) {
     const physics = this.physics = new Physics(R);
     this.course = buildCourse(physics);
-    const { start } = scenario, player = this.player = new Player(new PerspectiveCamera(), physics, document.createElement('canvas'), { waterLine: { update: () => undefined, setHint: () => undefined } });
+    const { start } = scenario, player = this.player = new Player(this.camera, physics, document.createElement('canvas'), { waterLine: { update: () => undefined, setHint: () => undefined } });
     player.bindFrame(physics, player.motor, { heightAt: courseHeightAt, waterSurfaceAt: courseWaterAt, platforms: courseFloors });
     player.position.set(start.x, start.y ?? courseHeightAt(start.x, start.z), start.z); player.yaw = start.yaw;
     player.motor.resetAt(player.position);
@@ -250,7 +253,7 @@ export class HostSide implements MotionEvents {
       player.attachMotor(new CharacterMotor(host.physics, { ...PLAYER_CAPSULE, ...PLAYER_BODY, owner: player.id }));
       player.motor.resetAt(player.position);
     }
-    host.useWater({ surfaceAt: courseWaterAt, ...(scenario.sea === true ? { bob: (x: number, z: number): number => seaSwell(x, z, host.clock.now) } : {}) });
+    if (scenario.dry !== true) host.useWater({ surfaceAt: courseWaterAt, ...(scenario.sea === true ? { bob: (x: number, z: number): number => seaSwell(x, z, host.clock.now) } : {}) });
   }
   tick(tick: number, intent: MotionIntent): void {
     const { host, player } = this;
@@ -262,7 +265,8 @@ export class HostSide implements MotionEvents {
     const { player, scenario } = this, yaw = intent.yaw ?? player.yaw;
     if (scenario.wire === 'legacy') {
       const moveX = axis(intent.keyX, intent.stickX), moveY = axis(intent.keyY, intent.stickY), sin = Math.sin(yaw), cos = Math.cos(yaw);
-      const legacy: SimCommand = { moveX: -sin * moveY + cos * moveX, moveZ: -cos * moveY - sin * moveX, yaw, ...(intent.jump === true ? { jump: true } : {}) };
+      const legacy: SimCommand = { moveX: -sin * moveY + cos * moveX, moveZ: -cos * moveY - sin * moveX, yaw, dive: intent.dive === true, surface: intent.surface === true,
+        ...(intent.jump === true ? { jump: true } : {}), ...(intent.dodge === true ? { dodge: true } : {}), ...(intent.hover === true ? { hover: true } : {}) };
       return legacy;
     }
     const button = (on: boolean | undefined, bit: number): number => on === true ? bit : 0;
