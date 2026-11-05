@@ -34,10 +34,10 @@ export function generatedSourcePolicy(value) {
     || files.some(file => !sourcePath(file))) throw new Error(`GENERATED-SOURCE ${GENERATED_SOURCE_POLICY}: invalid policy`);
   return { schema, source, files };
 }
-/** A row follows its file across a side move (J122). This is lint/layer-exports.mjs's unsortedPath, repeated because the
+/** A row follows its file across a side move (J122) and into sharddev (P1-F4). This is lint/layer-exports.mjs's unsortedPath, repeated because the
  * push gate copies this module and no-binary-json.mjs alone into a scratch folder, where a ../lint import cannot load;
  * test/generated-source-guard.test.ts holds the two equal. @param {string} path */
-export const sidelessPath = path => path.replace(/^src\/(engine|game)\/(?:client|cook|server|shared)\//u, 'src/$1/');
+export const sidelessPath = path => path.replace(/^src\/(engine|game)\/(?:client|cook|server|shared)\//u, 'src/$1/').replace(/^src\/sharddev\//u, 'src/sdk/');
 /** The rows of `after` past what `before` allowed under the same side-free path: a move keeps its one row, a second
  * row beside it is growth. @param {readonly string[]} before @param {readonly string[]} after */
 export function grownRows(before, after) {

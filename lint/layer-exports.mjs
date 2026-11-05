@@ -18,4 +18,4 @@ export function exportedPath(layer, sub, root = REPO) {
 
 /** A layer path without its side folder: the identity of a file across a sort or a retag.
  * @param {string} path @returns {string} */
-export const unsortedPath = path => path.replace(/^src\/(engine|game)\/(?:client|cook|server|shared)\//u, 'src/$1/');
+export const unsortedPath = path => path.replace(/^src\/(engine|game)\/(?:client|cook|server|shared)\//u, 'src/$1/').replace(/^src\/sharddev\//u, 'src/sdk/');
