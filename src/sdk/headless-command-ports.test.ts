@@ -18,7 +18,7 @@ it('keeps ordered native tick inputs, releases and effects without retaining a p
   expect(ports.lastScript('absent', 7)).toBe(7);
   expect(scripts().map(row => row.value)).toEqual([3, 0]);
   expect(allScripts().map(row => row.actorId)).toEqual(['pick', 'other', 'pick']);
-  expect(ports.melee()).toEqual({ attack: 'second', heavy: false, heavyTarget: null });
+  expect(ports.melee()).toEqual({ attack: 'second', heavy: false, heavyTarget: null, swing: false });
   expect(ports.walk(5)).toEqual({ x: 3, z: 4 });
   ports.ledger.fact('entered', 'player'); ports.ledger.coins(2, 'reward');
   expect(effects).toEqual([{ kind: 'fact', name: 'entered', actorId: 'player' }, { kind: 'coins', amount: 2, actorId: 'reward' }]);
