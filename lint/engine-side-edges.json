@@ -4,7 +4,7 @@
   "client → server": 454,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 169,
+  "server → client": 168,
   "server → dom": 2,
   "server → render": 7,
   "shared → client": 3,
@@ -530,9 +530,6 @@
   },
   "src/game/riding/mount.ts": {
    "server → client": 3
-  },
-  "src/game/riding/nativeTaming.ts": {
-   "server → client": 1
   },
   "src/game/riding/pagePasture.ts": {
    "server → client": 2

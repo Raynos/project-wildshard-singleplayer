@@ -1,7 +1,7 @@
 {
  "about": "P1-E5.2a: per-file reads of a one-player SimHost member (`members`, which ended at 0) and leadPlayer binds (`lead`: systems not yet per-player) in non-test source, by type, not by spelling (scripts/check-sim-players.mjs). They never rise.",
  "members": 0,
- "lead": 42,
+ "lead": 40,
  "files": {
   "src/engine/net/simWorld.ts": 1,
   "src/engine/sim/cableTraversal.ts": 2,
@@ -17,12 +17,10 @@
   "src/game/population/spawnScript.ts": 1,
   "src/game/quest/nativeBodyScripts.ts": 1,
   "src/game/quest/nativeComposition.ts": 1,
-  "src/game/riding/nativePopulation.ts": 1,
   "src/game/shardfile/borrowedDecisions.ts": 1,
   "src/game/shardfile/dataCreaturePorts.ts": 1,
   "src/game/shardfile/decisions.ts": 1,
   "src/game/shardfile/groupRuntime.ts": 2,
-  "src/game/shardfile/ladder.ts": 1,
   "src/game/shardfile/liftRider.ts": 4,
   "src/game/shardfile/nativeRuntimeLoans.ts": 1,
   "src/game/shardfile/portalRideBinding.ts": 1,
