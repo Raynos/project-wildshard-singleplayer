@@ -62,6 +62,8 @@ export interface GridServerOptions {
   readonly now: () => number;
   /** A proof's way in: start on the road at this world point, as no player can, rather than in the home cell. */
   readonly arrival?: Readonly<GridPoint>;
+  /** A proof's override of `STANDALONE_RESIDENTS`. */
+  readonly residents?: number;
 }
 
 /** What boot hands the session it built. */
@@ -74,13 +76,15 @@ interface GridParts {
   readonly saved: number;
 }
 
-/** The four deck slabs around a cell, in its own coordinates. A restored world has them already: its save holds its colliders. */
+/** One slab of deck at road level, made as a level's flat ground is, so a capsule crossing from the road's own ground meets no lip. A capsule that starts a skin inside a solid box stays stuck in it. */
+function addDeck(host: SimHost, x: number, z: number, hx: number, hz: number): void {
+  const { R, world } = host.physics;
+  withOwner(host.scope, () => { world.createCollider(R.ColliderDesc.heightfield(1, 1, new Float32Array(4), { x: hx * 2, y: 1, z: hz * 2 }).setTranslation(x, 0, z).setCollisionGroups(groups('WORLD'))); });
+}
+/** The four slabs around a cell, in its own coordinates. A restored world has them already: its save holds its colliders. */
 function addRim(host: SimHost): void {
-  const { R, world } = host.physics, reach = CHUNK_HALF + RIM / 2, long = CHUNK_HALF + RIM;
-  withOwner(host.scope, () => {
-    for (const [x, z, hx, hz] of [[reach, 0, RIM / 2, long], [-reach, 0, RIM / 2, long], [0, reach, long, RIM / 2], [0, -reach, long, RIM / 2]] as const)
-      world.createCollider(R.ColliderDesc.cuboid(hx, 0.5, hz).setTranslation(x, -0.5, z).setCollisionGroups(groups('WORLD')));
-  });
+  const reach = CHUNK_HALF + RIM / 2, long = CHUNK_HALF + RIM;
+  for (const [x, z, hx, hz] of [[reach, 0, RIM / 2, long], [-reach, 0, RIM / 2, long], [0, reach, long, RIM / 2], [0, -reach, long, RIM / 2]] as const) addDeck(host, x, z, hx, hz);
 }
 
 /** A cell with no native plan: a data shard, which any host can run from its output. */
@@ -151,11 +155,10 @@ export class StandaloneGrid {
       return StandaloneGrid.world(cell, source, undefined, options);
     };
     const road = StandaloneGrid.road(rapier, site === null ? candidate?.saved.road : undefined, options.arrival);
-    // `read` stands for the saves `open` walks itself: with it declared, a cell that unloads leaves nothing packed in memory.
-    const grid = new GridSimulation(assembly, { highway: { host: road, dispose: () => { road.dispose(); } }, maxResidents: STANDALONE_RESIDENTS, read: () => undefined,
+    const grid: GridSimulation = new GridSimulation(assembly, { highway: { host: road, dispose: () => { road.dispose(); } }, maxResidents: options.residents ?? STANDALONE_RESIDENTS,
       load: async (cell, cached) => { const world = await open(cell, cached); worlds.set(cell.instance, world); return { host: world.host, dispose: () => { worlds.delete(cell.instance); world.dispose(); } }; },
-      save: (instance, snapshot) => {
-        const held = slots(instance), wrote = held.write({ tick: grid.hostOf(instance).state.tick, snapshot: serializeSimSnapshot(snapshot), ledger: options.book.snapshot() });
+      durable: (instance, host) => {
+        const held = slots(instance), wrote = held.write({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), ledger: options.book.snapshot() });
         settle(held);
         return wrote;
       } });
@@ -198,6 +201,15 @@ export class StandaloneGrid {
   private filings(site: string | null, first: string): ReturnType<typeof ledgerFilings> {
     const world = site === null ? undefined : this.worlds.get(site);
     return world === undefined ? [] : ledgerFilings(world.host, first, world.effects(), world.fact);
+  }
+  /** Worlds held beside the road. */
+  get residents(): number { return this.worlds.size; }
+  /** Characters of save documents this worker keeps a copy of. */
+  get docsChars(): number {
+    const { storage } = this.options;
+    let total = 0;
+    for (let index = 0; index < storage.length; index++) total += storage.getItem(storage.key(index) ?? '')?.length ?? 0;
+    return total;
   }
   /** The host the session's player stands in. */
   get host(): SimHost { return this.grid.host(); }

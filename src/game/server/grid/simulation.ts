@@ -17,7 +17,13 @@ export interface GridSimLease { release: () => void; update?: (state: { needed?:
 export interface GridSimulationPorts {
   readonly highway: GridResident;
   load: (cell: GridCell, saved: SimSnapshot | undefined) => Promise<GridResident>;
-  save: (instance: string, snapshot: SimSnapshot) => boolean;
+  save?: (instance: string, snapshot: SimSnapshot) => boolean;
+  /**
+   * An owner that keeps every continuation itself, and reloads them in `load` (E5.2b, a phone's worker). It captures an occupied
+   * world when told to, in whatever form it stores. Nothing is captured on admission or packed in memory: capturing a whole
+   * physics world grows a wasm heap that never gives it back, and a world nobody entered has nothing to keep.
+   */
+  durable?: (instance: string, host: SimHost) => boolean;
   read?: (instance: string) => SimSnapshot | undefined;
   admitted?: (instance: string) => boolean;
   beforeMove?: (instance: string | null, host: SimHost) => void;
@@ -158,9 +164,10 @@ export class GridSimulation {
         if (this.disposed || value.host.embedded || !value.host.players.get(this.owner)?.hasMotor) throw new Error('Grid admission requires an owned host');
         // A save holds whoever stood here when it was made; they carry themselves now, and nobody stands here yet.
         for (const id of value.host.players.keys()) if (id !== this.owner) value.host.removePlayer(id);
-        const checkpoint = this.snapshots.pack(instance, snapshotSimHost(value.host));
+        const checkpoint = this.ports.durable === undefined ? this.snapshots.pack(instance, snapshotSimHost(value.host)) : undefined;
         if (checkpoint === null) throw new Error('Grid continuation cache capacity exceeded');
-        this.seat(value.host, this.owner).detachMotor(); this.snapshots.store(instance, checkpoint);
+        this.seat(value.host, this.owner).detachMotor();
+        if (checkpoint !== undefined) this.snapshots.store(instance, checkpoint);
         this.residents.set(instance, { value, touched: ++this.used, reservations: 0, retained: false, evicting: false, lease });
         lease?.update?.({ needed: false });
       } catch (error) { try { value.dispose(); } finally { lease?.release(); } throw error; }
@@ -184,10 +191,11 @@ export class GridSimulation {
   /** Snapshot before leaving the active region. Failure keeps both its world and the traveller authoritative. */
   checkpoint(instance: string): boolean {
     const resident = this.residents.get(instance); if (resident === undefined || this.disposed) return false;
+    if (this.ports.durable !== undefined) return !this.occupied(instance) || this.ports.durable(instance, resident.value.host);
     const snapshot = this.occupied(instance) ? snapshotSimHost(resident.value.host) : this.snapshots.read(instance);
     if (snapshot === undefined) throw new Error('Missing admitted grid continuation');
     const packed = this.snapshots.pack(instance, snapshot); if (packed === null) return false;
-    if (!this.ports.save(instance, snapshot)) return false;
+    if (this.ports.save?.(instance, snapshot) !== true) return false;
     this.snapshots.store(instance, packed); return true;
   }
   /** Readiness keeps a frozen destination resident; unneeded neighbours may be evicted by the shared allocator. */

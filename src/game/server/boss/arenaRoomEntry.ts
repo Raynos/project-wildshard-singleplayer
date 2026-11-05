@@ -34,7 +34,7 @@ export function arenaSpecies(input: unknown): ArenaEntryPorts['spec'] {
   return (kind, variant) => {
     const row = species.find(entry => entry.kind === kind), selected = row?.variants.find(entry => entry.id === variant);
     if (row === undefined || selected === undefined) throw new Error(`Arena body ${kind}.${variant} has no species row`);
-    const spec: unknown = { kind, label: selected.label, variant, rarity: selected.rarity, hp: selected.hp, aggressive: row.aggressive, dims: row.dims, mods: selected.mods ?? {}, ...(row.lockable === undefined ? {} : { lockable: row.lockable }) };
+    const spec: unknown = { kind, label: selected.label, variant, rarity: selected.rarity, hp: selected.hp, aggressive: row.aggressive, dims: row.dims, mods: { speed: 1, chargeDist: 1, damageTaken: 1, chargeDamage: 1, relentless: false, ...selected.mods }, ...(row.lockable === undefined ? {} : { lockable: row.lockable }) };
     return spec as AnimalSimSpec;
   };
 }

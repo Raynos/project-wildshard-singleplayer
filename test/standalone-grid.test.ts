@@ -27,7 +27,7 @@ class PageStorage implements SaveStorage {
 async function serverInput(slug: string): Promise<HeadlessRuntimeInput> {
   const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), descriptor = outputDescriptor(product.shardfile);
   if (descriptor === undefined) throw new Error(`Missing ${slug} output`);
-  const server = descriptor.index.files.filter(file => serverReadsFile(file, product.shardfile.terrain?.collider));
+  const server = descriptor.index.files.filter(file => serverReadsFile(file, product.shardfile.terrain?.collider) && (file.name === undefined || file.kind === 'wasm' || file.kind === 'tile'));
   const assets = new Map(server.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   return { shard: product.shardfile, assets, rapier: await loadRapier(readFileSync('public/assets/physics/rapier.wasm')), product };
 }
@@ -38,7 +38,7 @@ const until = async (ready: () => boolean, timeout = 30_000): Promise<void> => {
 
 function start(storage: SaveStorage, arrival?: GridPoint): { shell: StandaloneShell; stop: () => void } {
   const control = new MessageChannel(), game = new MessageChannel();
-  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => serverInput(slug), ...(arrival === undefined ? {} : { arrival }) });
+  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => serverInput(slug), ...(arrival === undefined ? {} : { proof: { arrival } }) });
   const shell = connectStandalone({ slug: HOME, base: `/shards/${HOME}/`, build: 'test', savePrefix: 'wildshard.', storage }, control.port2, game.port2, () => { server.dispose(); });
   return { shell, stop: () => { shell.dispose(); } };
 }

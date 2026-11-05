@@ -27,8 +27,8 @@ export interface StandaloneServerOptions {
   readonly onSaveRefused?: (error: unknown) => void;
   /** Where chat reports go (J110). Where that ends up is still to be decided. */
   readonly reports?: ChatReports;
-  /** A proof's way in: boot on the road at this world point. No product path passes it. */
-  readonly arrival?: Readonly<GridPoint>;
+  /** A proof's ways in, which no product path passes: boot on the road at this world point, hold this many worlds, read each tick's cost and the running server. */
+  readonly proof?: { readonly arrival?: Readonly<GridPoint>; readonly residents?: number; readonly ticked?: (ms: number) => void; readonly booted?: (server: StandaloneGrid) => void };
 }
 
 /** A worker has no page, so no app identity: all it needs of one is the save prefix, which the page passes at boot. */
@@ -48,23 +48,25 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
   const post = (message: ServerMessage): void => { control.postMessage(v.parse(ServerMessageSchema, message), []); };
   const fail = (error: unknown): void => { clock?.pause(); post({ kind: 'failed', reason: error instanceof Error ? error.message : String(error) }); };
   const stepped = (host: SimHost, tickMs: number): void => {
+    options.proof?.ticked?.(tickMs);
     if (probing !== null && host.state.tick % 2 === 0) { post({ kind: 'probed', id: probing, tick: host.state.tick, tickMs, rows: probeRows(host) }); probing = null; }
   };
 
   const boot = async (message: Boot): Promise<void> => {
     storage = new ForwardedStorage(message.saves, write => { post({ kind: 'write', ...write }); });
-    const local = storage;
+    const local = storage, { arrival, residents } = options.proof ?? {};
     installWorkerIdentity(message.savePrefix);
     installSaveEnvironment({ storage: saveScope => saveScope === 'session' ? null : local, persistent: () => true, persist: () => Promise.resolve(false) });
     const server = await StandaloneGrid.boot({ slug: message.slug, build: message.build, book, saves, storage: local, savePrefix: message.savePrefix, now: diagnosticNow,
       load: slug => options.load(message, slug), stepped, ...(options.onSaveRefused === undefined ? {} : { refused: options.onSaveRefused }), ...(options.reports === undefined ? {} : { reports: options.reports }),
-      ...(options.arrival === undefined ? {} : { arrival: options.arrival }) });
+      ...(arrival === undefined ? {} : { arrival }), ...(residents === undefined ? {} : { residents }) });
     grid = server;
     const { restored } = server;
     if (restored?.ledger !== undefined) book.restore(restored.ledger);
     server.connect(new WorkerLoopback(game));
     clock = new ServerClock({ now: diagnosticNow, wait: (ms, run) => { const timer = scope.timeout(ms, run); return () => { scope.cancelTimer(timer); }; },
       step: () => { try { server.tick(); } catch (error) { fail(error); } } });
+    options.proof?.booted?.(server);
     post({ kind: 'booted', tick: server.host.state.tick, restored: restored !== undefined });
   };
 

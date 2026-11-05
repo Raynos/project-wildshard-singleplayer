@@ -37,7 +37,8 @@ export async function fetchServerProduct(base: string, rapier: Rapier): Promise<
   };
   const product = shardProductData(shard, root, verified, true, false, nodeNamedJsonCheck, { files: true });
   const assets = new Map<string, Uint8Array>();
-  // E5.2b: only what a server reads. Everything else is the page's, and every byte here would be a phone's.
-  await Promise.all(descriptor.index.files.filter(file => serverReadsFile(file, shard.terrain?.collider)).map(async file => { const ref = file.commons === true ? `commons:${file.hash}` : file.hash; assets.set(ref, await verified(ref)); }));
+  // E5.2b: only what a server reads, and of that only what it asks for by hash: a named file is fetched when the product is asked
+  // for it. Everything else is the page's, and every byte here would be a phone's.
+  await Promise.all(descriptor.index.files.filter(file => serverReadsFile(file, shard.terrain?.collider) && (file.name === undefined || file.kind === 'wasm' || file.kind === 'tile')).map(async file => { const ref = file.commons === true ? `commons:${file.hash}` : file.hash; assets.set(ref, await verified(ref)); }));
   return { shard, assets, rapier, product };
 }
