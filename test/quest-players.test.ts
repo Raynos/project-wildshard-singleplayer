@@ -8,6 +8,7 @@ import { createSimHost, type SimHost } from '../src/engine/sim';
 import { leadPlayer } from '../src/engine/sim/leadPlayer';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { DeclaredQuests } from '../src/game/quest/declared';
+import { InteractionRules, parseInteractionRows, playerInteractionRules } from '../src/game/quest/interactionRows';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3.3: quest state is per player. Each player's book is its own over the world's flags; the lead's is the host's.
@@ -80,4 +81,14 @@ test('a room of one saves exactly what it did', () => {
   const saved = snapshotSimHost(host);
   expect('books' in saved).toBe(false);
   expect(saved.flags).toContain('been:there');
+});
+
+test('a graph and its interaction step give a player one set of rules', () => {
+  const { host } = room(), bot = host.addPlayer('bot:1', { x: 0, y: 1, z: 0 });
+  const rules = new InteractionRules(host.flags, parseInteractionRows({ marks: [{ id: 'held' }], rows: [{ id: 'talk', act: 1, at: 'spot', sets: ['talked:elder'] }] }));
+  const first = playerInteractionRules(host, rules), second = playerInteractionRules(host, rules);
+  expect(first(bot.id)).toBe(second(bot.id));
+  first(bot.id).run('talk');
+  expect(second(bot.id).has('talked:elder')).toBe(true);
+  expect(snapshotSimHost(host).books?.[0]?.parts['marks:talk']).toBeDefined();
 });

@@ -112,18 +112,24 @@ export function eyeReaches(feet: Readonly<Feet>, spot: InteractionSpot, reach = 
 /** The tick protocol's command allowance (sdk/tickProtocol.ts). */
 const MAX_COMMANDS = 1024;
 
+const playerRules = new WeakMap<InteractionRules, (player: string) => InteractionRules>();
 /** Each player's rules over the same rows: a player's marks and flags are its own, and the book saves their marks. */
 export function playerInteractionRules(host: Pick<SimHost, 'flags' | 'quests' | 'players' | 'level' | 'questStore'>, rules: InteractionRules): (player: string) => InteractionRules {
+  // a graph and its interaction step share one set of rules, so a player has one set too
+  const known = playerRules.get(rules);
+  if (known !== undefined) return known;
   const books = questBooks(host), held = new Map<string, InteractionRules>([[books.lead.player, rules]]);
   books.claim(rules.data.rows.flatMap(row => row.sets));
   books.install(book => {
     const own = new InteractionRules(book.flags, rules.data); held.set(book.player, own);
     if (rules.data.marks.length > 0) book.part(`marks:${rules.data.rows[0]?.id ?? ''}`, { read: () => own.snapshot(), write: saved => { own.restore(saved); } });
   });
-  return player => {
+  const read = (player: string): InteractionRules => {
     books.of(player);
     const own = held.get(player); if (own === undefined) throw new Error(`Unknown interaction player ${player}`); return own;
   };
+  playerRules.set(rules, read);
+  return read;
 }
 
 /**
