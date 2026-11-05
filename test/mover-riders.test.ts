@@ -11,6 +11,14 @@ import { emptyShardfile } from '../src/sdk/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { builtProduct } from './fixtures/builtProduct';
+import { NetClient } from '../src/engine/net/client';
+import { NetRoom } from '../src/engine/net/room';
+import { SimNetWorld } from '../src/engine/net/simWorld';
+import { directLoopback } from '../src/engine/test/netLoopback';
+import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
 // P1-E3.10: a carry mover carries whoever called it, not the host's first player.
@@ -82,3 +90,29 @@ test('a stand trigger reads every player in the world', async () => {
     expect([...playerGrounds(host)]).toEqual([host.players.get(BOT)?.motor.result]);
   } finally { host.dispose(); }
 });
+
+test('built Pine: a bot rides the canoe on a scripted tape and a client sees the boat and the flag', async () => {
+  const directory = builtProduct('pine-hollow'), product = await loadHeadlessProduct(directory), source = product.shardfile;
+  const descriptor = outputDescriptor(source); if (descriptor === undefined) throw new Error('Missing admitted inventory');
+  const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
+  const resident = await createTrustedHeadlessResident({ shard: source, assets, rapier: await rapierNow(), product });
+  try {
+    const { host } = resident, canoe = source.movers.find(value => value.id === 'pine.canoe');
+    if (canoe?.carry === undefined) throw new Error('Missing admitted carry row');
+    const lead = leadPlayer(host), bot = host.addPlayer(BOT, lead.position.clone().add(new Vector3(2, 0, 0))), standing = lead.position.clone();
+    const world = new SimNetWorld(host), link = directLoopback(), client = new NetClient(link.client);
+    const room = new NetRoom({ world, step: () => { resident.step([]); } });
+    room.join(link.server, world.playerOf(BOT)); client.hello(); link.pump(); room.open(); link.pump();
+    resident.step([{ kind: 'script', actorId: canoe.id, value: 1, playerId: BOT }]);
+    expect(host.events.ask('player.carrying', false)).toBe(false); // the lead's own weapons and prompts stay free
+    let ticks = 0;
+    for (; ticks < 545 && bot.position.distanceTo(new Vector3(...canoe.carry.landings[1])) > 1e-6; ticks++) { room.tick(); link.pump(); }
+    expect(ticks).toBeLessThan(545);
+    expect(lead.position.distanceTo(standing)).toBeLessThan(1);
+    expect(host.flags.has('secret:islet')).toBe(true);
+    room.tick(); room.tick(); link.pump();
+    expect(client.flags().has('secret:islet')).toBe(true);
+    expect([...client.entities.values()].some(entity => entity.id === `script:${canoe.id}`)).toBe(true);
+    expect(client.dropped).toBe(0);
+  } finally { resident.dispose(); }
+}, 120_000);

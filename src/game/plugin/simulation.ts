@@ -1112,7 +1112,7 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     } else if (route.action.kind === 'mover') {
       const action = route.action, motion = ports.mechanics?.motion;
       if (motion === undefined || !motion.data.some(value => value.id === action.mover)) throw new Error(`Unbound quest mover ${action.mover}`);
-      actions.set(route, () => { motion.command(action.mover, action.command); });
+      actions.set(route, (_value, player) => { motion.command(action.mover, action.command, player === books.lead.player ? undefined : player); });
     } else if (route.action.kind === 'cable') {
       const action = route.action, cables = ports.mechanics?.cables;
       if (cables === undefined) throw new Error(`Unbound quest cable ${action.cable}`);
