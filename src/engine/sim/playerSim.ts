@@ -16,7 +16,7 @@ import { localWalkingMove, walkingSpeed, wadeScale, walkVelocity } from '../play
 import { PlayerModes, type ModePlayer } from '../player/modes';
 import { DODGE_DIST, DODGE_TIME, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from '../player/dash';
 import { validateLocalMovement } from '../input/commands';
-import { netSimCommand } from '../net/command';
+import { netSimCommand } from './netMotion';
 import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDriver, SimPlayerMotionSample, SimTickCommand, SimWalkingControl } from '../sim';
 
 /** The world-space command a tick's input means. */

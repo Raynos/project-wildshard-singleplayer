@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture uses shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { NET_BUTTONS } from '../src/engine/net/command';
+import { NET_BUTTONS } from '../src/engine/input/netButtons';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimCommand, type SimHost, type SimLevel } from '../src/engine/sim';
 import { leadCommands, leadPlayer } from '../src/engine/sim/leadPlayer';

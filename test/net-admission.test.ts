@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { BitWriter } from '../src/engine/net/bits';
-import { decodeCommands, encodeCommands, MAX_BUNDLE, NET_BUTTONS, seqAfter } from '../src/engine/net/command';
+import { NET_BUTTONS } from '../src/engine/input/netButtons';
+import { decodeCommands, encodeCommands, MAX_BUNDLE, seqAfter } from '../src/engine/net/command';
 import { CommandQueue, MAX_QUEUED_COMMANDS } from '../src/engine/net/commandQueue';
 import { localWalkingMove } from '../src/engine/player/walk';
 import { NetActSchema, NetCommandSchema, type NetCommand } from '@wildshard/format/netCommand';

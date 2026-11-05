@@ -1,6 +1,6 @@
 import { installBrowserSaveEnvironment } from '../../src/engine/saves/view/storage';
 import { saveEnvironment } from '../../src/engine/saves/environment';
-import { NET_BUTTONS } from '../../src/engine/net/command';
+import { NET_BUTTONS } from '../../src/engine/input/netButtons';
 import { ANIMAL_CLASS } from '../../src/engine/net/netSchemas';
 import { startStandalone, type StandaloneShell } from '../../src/sdk/standalone/shell';
 

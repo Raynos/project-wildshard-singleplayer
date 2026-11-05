@@ -1,14 +1,11 @@
 // P1-E5.2 (E5-REPLICATION §4.2): NetCommand on the wire. One command is about 14 bytes; a bundle carries every sim step
 // the client frame ran plus up to 4 older unacked commands, so a lost packet costs no input.
 import type { NetAim, NetCommand } from '@wildshard/format/netCommand';
-import type { SimCommand } from '../sim';
-import { localWalkingMove } from '../player/walk';
+import { NET_BUTTONS } from '../input/netButtons';
 import { bitsToFloat, BitReader, floatToBits, NetDecodeError, type BitWriter } from './bits';
 import { MSG_CMDS } from './messages';
 import type { NetRefs } from './schema';
 
-/** The command's button bits. */
-export const NET_BUTTONS = { jump: 1, dodge: 2, hover: 4, sprint: 8, crouch: 16, dive: 32, surface: 64, heavy: 128 } as const;
 /** Buttons that fire once on their `seq`; the rest are holds, and only holds repeat when the queue starves. */
 export const NET_PRESSES: number = NET_BUTTONS.jump | NET_BUTTONS.dodge | NET_BUTTONS.hover;
 /** The most commands one bundle may carry: MAX_FIXED_STEPS new ones plus 4 redundant copies. */
@@ -20,18 +17,6 @@ const TAU = Math.PI * 2, YAW_STEPS = 0x10000, PITCH_TOP = 0xffff, AXIS = 127;
 /** True when wrapping `seq` is newer than `than`. */
 export function seqAfter(seq: number, than: number): boolean { const gap = (seq - than) & 0xffff; return gap !== 0 && gap < 0x8000; }
 
-/** What a NetCommand means to the movement law: a version-1 command, world move resolved from its raw axes. Pitch, the
- *  swing's aim, a heavy hold and a launcher belong to the weapon systems, which read them from the tick's commands. */
-export function netSimCommand(command: NetCommand): SimCommand {
-  const move = { x: 0, z: 0 }, { steer, attack, buttons } = command;
-  localWalkingMove(steer, command.yaw, move);
-  return { moveX: move.x, moveZ: move.z, yaw: command.yaw, commandVersion: 1, steer: { ...steer },
-    sprint: (buttons & NET_BUTTONS.sprint) !== 0, crouch: (buttons & NET_BUTTONS.crouch) !== 0,
-    dive: (buttons & NET_BUTTONS.dive) !== 0, surface: (buttons & NET_BUTTONS.surface) !== 0,
-    ...(attack?.targetId === undefined ? {} : { attack: { targetId: attack.targetId } }),
-    ...((buttons & NET_BUTTONS.hover) === 0 ? {} : { hover: true as const }), ...((buttons & NET_BUTTONS.jump) === 0 ? {} : { jump: true as const }),
-    ...((buttons & NET_BUTTONS.dodge) === 0 ? {} : { dodge: true as const }) };
-}
 const packAxis = (value: number): number => Math.round(value * AXIS) + AXIS + 1;
 const unpackAxis = (value: number): number => (value - AXIS - 1) / AXIS;
 const writeFloat = (writer: BitWriter, value: number): void => { writer.write(floatToBits(value), 32); };

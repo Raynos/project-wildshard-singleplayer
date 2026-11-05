@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { BitReader, BitWriter, NetDecodeError } from '../src/engine/net/bits';
-import { decodeCommands, encodeCommands, NET_BUTTONS } from '../src/engine/net/command';
+import { NET_BUTTONS } from '../src/engine/input/netButtons';
+import { decodeCommands, encodeCommands } from '../src/engine/net/command';
 import { decodeFrame, encodeFrame, WorldFrame, type DecodedFrame, type FrameInput } from '../src/engine/net/frame';
 import { decodeAct, decodeEvents, decodeHello, decodeWelcome, encodeAct, encodeEvents, encodeHello, encodeWelcome, type InitialBits, type NetEvent } from '../src/engine/net/messages';
 import { NET_SCHEMA_HASH } from '../src/engine/net/netSchemas';

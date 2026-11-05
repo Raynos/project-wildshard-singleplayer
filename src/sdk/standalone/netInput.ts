@@ -1,5 +1,6 @@
 import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
-import { NET_BUTTONS, netSimCommand } from '@wildshard/engine/net/command';
+import { NET_BUTTONS } from '@wildshard/engine/input/netButtons';
+import { netSimCommand } from '@wildshard/engine/sim/netMotion';
 import type { HeadlessCommand } from '../tickProtocol';
 
 const has = (command: NetCommand, button: number): boolean => (command.buttons & button) !== 0;

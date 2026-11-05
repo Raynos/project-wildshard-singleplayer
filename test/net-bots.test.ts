@@ -4,7 +4,7 @@ import { beforeAll, expect, test } from 'vitest';
 import type { NetCommand } from '@wildshard/format/netCommand';
 import { diagnosticNow } from '../src/engine/core/clock';
 import { NetClient } from '../src/engine/net/client';
-import { NET_BUTTONS } from '../src/engine/net/command';
+import { NET_BUTTONS } from '../src/engine/input/netButtons';
 import { NetRoom } from '../src/engine/net/room';
 import { SimNetWorld } from '../src/engine/net/simWorld';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';

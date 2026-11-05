@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The server half runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { NET_BUTTONS } from '../src/engine/net/command';
+import { NET_BUTTONS } from '../src/engine/input/netButtons';
 import { ANIMAL_CLASS } from '../src/engine/net/netSchemas';
 import { ServerClock } from '../src/engine/net/serverClock';
 import { FIXED_STEP } from '../src/engine/core/fixedStep';
