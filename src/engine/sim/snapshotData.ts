@@ -5,7 +5,7 @@ import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferen
 import type { SimValue } from '../sim';
 import type { SimSnapshot, SimSnapshotBytes } from './snapshot';
 import { DAY_CLOCK_PHASES } from './dayClock';
-import { ANIMAL_STATES } from '../entities/AnimalSim';
+import { ANIMAL_STATES } from '../entities/animalStates';
 
 const finite = v.pipe(v.number(), v.finite());
 // Reserved only in the snapshot transport. Logical clocks/memory can use infinity; native poses and physics stay finite.

@@ -1,7 +1,8 @@
 import { parseActorProjectionV2,type ActorProjectionV2Rows } from '@wildshard/format/actorProjectionV2';
 import { ObservationColumnsV2,type V2ColumnOwners } from '@wildshard/engine/script/observationColumnsV2';
 import type { App } from '@wildshard/engine/app/app';
-import { ANIMAL_STATES,type AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef,ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';

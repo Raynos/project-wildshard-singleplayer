@@ -2,7 +2,7 @@ import { ActorProjectionV2,type ActorProjectionOwner } from '../population/actor
 import type { ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
-import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
+import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { CrowdPresentationSchema, CrowdGuardSchema } from '@wildshard/format/crowdPresentation';
 import { FlockSchema, parseFlock } from '@wildshard/format/crowds';
 import { app } from '@wildshard/engine/app/runtime';

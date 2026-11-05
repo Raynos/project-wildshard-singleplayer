@@ -4,9 +4,9 @@ import { FlightMotion, type SpeciesFlight } from '../ai/flight';
 import type { Actor, DamageRequest, DamageDealt } from '../combat/pipeline';
 import type { AnimalDims, Rarity, VariantMods } from './species/registry';
 import { tap } from '../core/harnessTap';
+import type { ANIMAL_STATES } from './animalStates';
 
 /** Shared behaviour state consumed by simulation and pose adapters. */
-export const ANIMAL_STATES = ['idle', 'graze', 'wander', 'alert', 'flee', 'charge', 'stalk', 'dead', 'attack', 'perch', 'rise', 'hide', 'sidestep'] as const;
 export type AnimalState = typeof ANIMAL_STATES[number];
 /** Authored creature health, dimensions and motion settings, without a rig. */
 export interface AnimalSimSpec {

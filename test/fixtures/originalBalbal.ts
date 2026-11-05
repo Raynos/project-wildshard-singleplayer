@@ -5,7 +5,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesDef,ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
-import { ANIMAL_STATES } from '@wildshard/engine/entities/AnimalSim';
+import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';

@@ -30,7 +30,8 @@ import { sha256 } from '../plugin/moduleHash';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { populationRoster } from './roster';
 import { nativePopulationOf } from '../riding/nativePopulation';
-import { ANIMAL_STATES, type AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 

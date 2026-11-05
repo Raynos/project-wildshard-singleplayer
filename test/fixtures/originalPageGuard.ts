@@ -1,7 +1,7 @@
 import {Vector3} from 'three';
 import type {Animal} from '../../src/engine/entities/AnimalView';
 import type {ThinkCtx} from '../../src/engine/entities/species/registry';
-import {ANIMAL_STATES} from '../../src/engine/entities/AnimalSim';
+import {ANIMAL_STATES} from '../../src/engine/entities/animalStates';
 import {app} from '../../src/engine/app/runtime';
 import {terrainHeight as heightAt} from '../../src/engine/world/terrainHeight';
 import type {Rng} from '../../src/engine/core/rng';

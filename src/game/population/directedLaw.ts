@@ -9,7 +9,8 @@
  */
 import * as v from 'valibot';
 import { DirectedSpeciesSchema } from '@wildshard/format/speciesLooks';
-import { ANIMAL_STATES, type AnimalState } from '@wildshard/engine/entities/AnimalSim';
+import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
+import type { AnimalState } from '@wildshard/engine/entities/AnimalSim';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { eliteDamageMul } from '@wildshard/engine/entities/eliteBrain';
 import type { ReturnProgram } from './returnProgram';
