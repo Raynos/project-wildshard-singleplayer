@@ -97,7 +97,7 @@ def run(command, root, deadline, env=None):
 def failure_paths(output):
     plain = ANSI.sub('', output)
     # TS, oxlint and Vitest diagnostics. Unknown errors never guess a prefix.
-    return sorted(set(re.findall(r'(?<![\w])((?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh))\b', plain)))
+    return sorted(set(re.findall(r'((?<![\w])(?:src|scripts|test|admin|api|drafts|lint|vite)/[^\s():\x1b]+\.(?:json|[cm]?[jt]sx?|py|sh)|(?<![\w/.-])(?:pnpm-lock\.yaml|package\.json))\b', plain)))
 
 
 def json_path_list(output):

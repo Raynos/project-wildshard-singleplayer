@@ -4,12 +4,15 @@
 import { existsSync, globSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { checkShards } from './check-shards.mjs';
+import { formatLockFailures } from './format-lock.mjs';
 import { onDisk } from './format-package.mjs';
 import { checkGeneratedSourceTree } from './generated-source.mjs';
 
 const ROOT = process.cwd();
 const failures = new Set();
 for (const failure of checkGeneratedSourceTree(ROOT)) failures.add(failure);
+const readTree = path => (existsSync(resolve(ROOT, path)) ? readFileSync(resolve(ROOT, path), 'utf8') : undefined);
+for (const failure of formatLockFailures(readTree, globSync('.github/workflows/*.yml', { cwd: ROOT }))) failures.add(failure);
 const allowFile = 'scripts/check-paths.allow.json';
 const allow = existsSync(resolve(ROOT, allowFile)) ? JSON.parse(readFileSync(resolve(ROOT, allowFile), 'utf8')) : [];
 const allowed = new Set();

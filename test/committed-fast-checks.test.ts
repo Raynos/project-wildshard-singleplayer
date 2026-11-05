@@ -91,6 +91,44 @@ export function sourceProbeTables(root,slug){return {tables:{
   } finally { f.close(); }
 });
 
+test('a format bump the lock left behind is refused, naming the lock, and an untouching push is not',()=>{
+  const f=fixture();try{
+    f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
+    f.put('scripts/check-platform-ratchets.mjs','export const PLATFORM_LISTS=[];export function comparePlatformList(){return [];}');
+    f.put('scripts/ratchet-approval.mjs','export function ratchetApprovalFailures(){return [];}');
+    f.put('scripts/format-lock.mjs',readFileSync(resolve('scripts/format-lock.mjs'),'utf8'));
+    f.put('package.json',JSON.stringify({dependencies:{'@wildshard/format':'github:project-wildshard/shardfile#v0.3.4'}}));
+    const sha='a'.repeat(40),row=`git+ssh://git@github.com/project-wildshard/shardfile.git#${sha}`;
+    const lock=(version:string)=>`lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    dependencies:
+      '@wildshard/format':
+        specifier: github:project-wildshard/shardfile#v0.3.4
+        version: ${row}(typescript@7.0.2)
+
+packages:
+
+  '@wildshard/format@${row}':
+    resolution: {commit: ${sha}, repo: ${f.root}/absent.git, type: git}
+    version: ${version}
+`;
+    f.put('pnpm-lock.yaml',lock('0.3.4'));const good=f.commit();
+    f.put('pnpm-lock.yaml',lock('0.3.3'));const bad=f.commit();
+    const refused=f.run('guards',bad,['pnpm-lock.yaml'],good);
+    expect(refused.status,refused.stdout+refused.stderr).toBe(1);
+    expect(refused.stderr).toContain('pnpm-lock.yaml: @wildshard/format row says version 0.3.3, the pin says v0.3.4');
+    const elsewhere=f.run('guards',bad,['src/main.ts'],good);
+    expect(elsewhere.status,elsewhere.stdout+elsewhere.stderr).toBe(0);
+    // The tag can't be read here, and an unreadable tag belongs to CI.
+    const unread=f.run('guards',good,['pnpm-lock.yaml'],good);
+    expect(unread.status,unread.stdout+unread.stderr).toBe(0);
+    expect(unread.stdout).toContain('v0.3.4 unread');
+  }finally{f.close();}
+});
+
 test('native-output handoff keeps ordinary source errors blocking',()=>{
   const f=fixture();try{
     f.put('.gitignore','tmp/\nnode_modules/\n*.generated.ts\n');
@@ -221,7 +259,7 @@ test('native generated inputs match canonical committed producer bytes',()=>{
   const f=fixture();try {
     f.put('scripts/gen-starter-weapons.mjs',readFileSync(resolve('scripts/gen-starter-weapons.mjs'),'utf8'));
     f.put('src/game/shared/weapons/starterBow.json','{"damage":1}');
-    f.put('src/main.ts',"import {STARTER_BOW} from './game/server/weapons/starter.generated';export const value=STARTER_BOW;");
+    f.put('src/main.ts',"import {STARTER_BOW} from './game/shared/weapons/starter.generated';export const value=STARTER_BOW;");
     f.put('.gitignore','.gitignore\ntmp/\nnode_modules/\n*.generated.ts\n');
     const tip=f.commit();
     const generate=()=>execFileSync('node',['--input-type=module','--eval',"import {genStarterWeapons} from './scripts/gen-starter-weapons.mjs';genStarterWeapons();"],{cwd:f.root});

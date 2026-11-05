@@ -160,6 +160,14 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       const {ratchetApprovalFailures}=/** @type {typeof import('./ratchet-approval.mjs')} */(await module('scripts/ratchet-approval.mjs'));
       const policy=json(view,'lint/ratchet.json');
       failures.push(...closedComponentSources(root,policy.closedComponents));
+      if(view.files.has('scripts/format-lock.mjs')) {
+        const {formatLockFailures,formatTagFailures,isFormatLockInput}=/** @type {typeof import('./format-lock.mjs')} */(await module('scripts/format-lock.mjs'));
+        if(paths.some(isFormatLockInput)) {
+          const read=(/** @type {string} */ path)=>view.files.has(path)?view.read(path).toString('utf8'):undefined;
+          const local=formatLockFailures(read,[...view.files.keys()].filter(path=>/^\.github\/workflows\/[^/]+\.yml$/u.test(path)));
+          failures.push(...local,...(local.length>0?[]:formatTagFailures(read)));
+        }
+      }
       // GS5 (G798): each committed gen:source table the push touches (an input or the table) equals a fresh run over
       // the tip's own inputs.
       if(view.files.has('scripts/gen-source.mjs')&&paths.length>0) {

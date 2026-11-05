@@ -633,6 +633,9 @@ readFileSync('../public/assets/native/untracked.bin');
         self.assertEqual(PUSH['refusal_signature'](first), PUSH['refusal_signature'](second))
         self.assertNotEqual(PUSH['refusal_signature'](first), PUSH['refusal_signature'](first.replace('entry.ts', 'other.ts')))
         self.assertEqual(LIVE['failure_paths']('file:///repo/tmp/push-source-abcd/src/entry.ts:2:1'), ['src/entry.ts'])
+        # A lock-only commit can be attributed, and refused, only if the lock itself is named.
+        self.assertEqual(LIVE['failure_paths']('pnpm-lock.yaml: row, package.json: pins, src/game/package.json: pin'),
+                         ['package.json', 'pnpm-lock.yaml', 'src/game/package.json'])
 
     def test_source_type_cache_binds_contents_and_inventory(self):
         records = [b'100644 blob aaa\tsrc/author.ts', b'100644 blob bbb\tsrc/data.json']
