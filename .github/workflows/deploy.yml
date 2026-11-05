@@ -196,7 +196,7 @@ jobs:
           range="${previous:0:10}..${GITHUB_SHA:0:10}"
           { echo "### Commits since the last finished run: $range"; echo '```'; echo "$commits"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           case " $RESULTS " in
-            *' failure '*) echo "::error title=Red run covers $range::$(printf '%s' "$commits" | wc -l | tr -d ' ') commits after the last finished run; see this job's summary" ;;
+            *' failure '*) echo "::error title=Red run covers $range::$(printf '%s\n' "$commits" | wc -l | tr -d ' ') commits after the last finished run; see this job's summary" ;;
           esac
 
       # Automatic releases restore the exact tested output; source bodies are
