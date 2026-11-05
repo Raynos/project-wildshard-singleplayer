@@ -96,6 +96,8 @@ export interface SimSnapshot {
   damage?: DamageRows | undefined;
   /** J107: each room player's last place and fall count; absent until a room has one, so a one-player save keeps its bytes. */
   respawn?: readonly RespawnRow[] | undefined;
+  /** Who `playerFocus` follows, when it is not the first player: a restore must read the same player the next body would. */
+  focus?: string | undefined;
   /** SF72 day clock (SimHost.useDayClock); absent for a host without one, so its bytes are unchanged. */
   day?: DayClockState | undefined;
   /** SF72 board-only collider handles (SimHost.boardColliders); absent when none are registered. */
@@ -218,9 +220,13 @@ export function regionalContinuation(host: SimHost): string {
     targets: host.attackTargets().filter(([id]) => !host.players.has(id)), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), ...savedBooks(host), slots: cloneSlots(host.slots),
     events: host.events.snapshot((value) => encode(value, host)),
     adapters: [...host.adapters].sort(([a], [b]) => a.localeCompare(b)).map(([id, adapter]) => [id, cloneValue(adapter.snapshot())]),
-    ...bandsField(host), ...dayField(host), ...damageField(host), ...respawnField(host) });
+    ...bandsField(host), ...dayField(host), ...damageField(host), ...respawnField(host), ...focusField(host) });
 }
 /** The body band clocks, omitted for a host without bands (its continuation bytes stay as they were). */
+/** The focus, saved only off the first player. */
+function focusField(host: SimHost): { focus?: string } {
+  return host.focusedPlayer === host.players.values().next().value ? {} : { focus: host.focusedPlayer.id };
+}
 /** The respawn book, saved once it holds a row. */
 function respawnField(host: SimHost): { respawn?: readonly RespawnRow[] } {
   const respawn = host.respawn.rows();
@@ -258,7 +264,7 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
     events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), ...savedBooks(host), slots: cloneSlots(host.slots),
     adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host),
-    ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host), ...damageField(host), ...respawnField(host) };
+    ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host), ...damageField(host), ...respawnField(host), ...focusField(host) };
 }
 
 /** One player, with everything at rest left out, so a player that never used a law keeps its exact bytes. */
@@ -443,6 +449,7 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
     host.restoreDayClock(saved.day);
     host.damage.load(saved.damage ?? []);
     host.respawn.load(saved.respawn ?? []);
+    host.restoreFocus(saved.focus);
     const actors = new Set([...host.players.keys(), ...host.entities.keys()]);
     if (new Set(saved.targets.map(([id]) => id)).size !== saved.targets.length
       || saved.targets.some(([id, target]) => !host.strikes.has(id) || !actors.has(target))) throw new RangeError('Snapshot strike target does not exist');
