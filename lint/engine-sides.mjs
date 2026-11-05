@@ -25,9 +25,10 @@ export const DOM = new Set([...SIM_DOM, 'AudioContext', 'getComputedStyle']);
 const RENDER_MODULE = /^(?:three\/|postprocessing(?:\/|$)|n8ao(?:\/|$))/u;
 const SOURCE = /\.[cm]?[jt]sx?$/u;
 
-/** A non-test source file the map must tag. */
+/** A non-test source file the map must tag: the two sorted layers, and src/sdk, which holds the headless host and the
+ * standalone target and is tagged in place until they move (MOVES P3). */
 export function inScope(path) {
-  return /^src\/(?:engine|game)\//u.test(path) && SOURCE.test(path) && !path.endsWith('.d.ts')
+  return /^src\/(?:engine|game|sdk)\//u.test(path) && SOURCE.test(path) && !path.endsWith('.d.ts') && !path.startsWith('src/sdk/dist/')
     && !/\.test\.[cm]?[jt]sx?$/u.test(path) && !path.includes('/test/');
 }
 
@@ -199,11 +200,11 @@ export function sideSources(root) {
     if (!existsSync(resolve(root, dir))) return;
     for (const entry of readdirSync(resolve(root, dir), { withFileTypes: true })) {
       const path = `${dir}/${entry.name}`;
-      if (entry.isDirectory()) { if (entry.name !== 'node_modules') scan(path); }
+      if (entry.isDirectory()) { if (entry.name !== 'node_modules' && path !== 'src/sdk/dist') scan(path); }
       else if (inScope(path)) files.push(path);
     }
   };
-  scan('src/engine'); scan('src/game');
+  scan('src/engine'); scan('src/game'); scan('src/sdk');
   return files.sort((a, b) => a.localeCompare(b));
 }
 

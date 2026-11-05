@@ -4,9 +4,9 @@ import { expect, test } from 'vitest';
 import { parseSync } from 'vite';
 import { importCandidates, readSides, sideFacts, SIDES_FILE } from '../lint/engine-sides.mjs';
 
-// P1-E5.2 (J2, J31): the sides lint covers src/engine and src/game. The standalone shell sits in src/sdk, outside that map,
-// so this walks its real import graph: the page half must reach no `server` module, and the shipped entry must reach no
-// standalone module, because nothing switches the client onto the worker until E5.4.
+// P1-E5.2 (J2, J31): the sides lint rejects a direct edge; this walks the real import graph, so the page half reaches no
+// `server` module even by a chain, and the shipped entry reaches no standalone module, because nothing switches the client
+// onto the worker until E5.4.
 
 const sides = readSides(JSON.parse(readFileSync(SIDES_FILE, 'utf8')));
 /** Every source file `entry` reaches through value imports. */
