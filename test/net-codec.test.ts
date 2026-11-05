@@ -134,6 +134,18 @@ test('P1-E5.3-F1: a frame tells a sent row, a still row and a held row apart, on
   expect(encodeFrame(writer, frame).byteLength - bare.byteLength).toBe(8);
 });
 
+test('a class with no row fields is its spawn alone: it costs no fresh bit, and the frames after it still decode', () => {
+  const writer = new BitWriter(), random = stream(7), bare: NetClass<never> = { ...erased, row: [] };
+  const classOf = (handle: number): NetClass<never> => handle === 2 ? bare : erased;
+  const first = new WorldFrame(); first.reset(1); fill(first, new Map([[1, draw(random)], [2, draw(random)]]));
+  const full = { ...input(first, null), classOf }, tables = { ...table(null), classOf };
+  const held = decodeFrame(new Uint8Array(encodeFrame(writer, full)), tables);
+  expect([...held?.rows.keys() ?? []]).toEqual([1]);
+  const next = { ...input(first, { frame: first, visible: new Set(first.handles()) }), classOf };
+  const decoded = decodeFrame(new Uint8Array(encodeFrame(writer, next)), { ...table(held), classOf });
+  expect(decoded?.fresh).toEqual(new Set([1]));
+});
+
 test('a row that leaves relevance goes, and one that enters arrives whole', () => {
   const writer = new BitWriter(), random = stream(5), a = draw(random), b = draw(random);
   const first = new WorldFrame(); first.reset(1); fill(first, new Map([[1, a], [2, b]]));

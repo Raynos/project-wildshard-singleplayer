@@ -82,7 +82,7 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
   const changed: number[] = [], left: number[] = [];
   for (const handle of visible) {
     const cls = classOf(handle), at = frame.offset(handle);
-    if (cls === undefined || at === undefined) continue;
+    if (cls === undefined || at === undefined || cls.row.length === 0) continue; // a class with no row is only its spawn
     const base = baseOf(handle);
     if (base !== null && due?.(handle) === false) { left.push(handle); continue; }
     if (rowMask(frame, at, base, base?.offset(handle), cls.row.length) !== 0) changed.push(handle);
