@@ -13,6 +13,7 @@ import { serverBlob } from './blobs';
 import { loadHeadlessProduct } from './headlessProduct';
 import { hashImmutableBytes } from './immutable';
 import { validateOutputProduct, writeOutputProduct } from './outputProduct';
+import { prepareProjectOutput } from './projectOutput';
 import { nodeOutputDescriptorChecks } from '@wildshard/game/shardfile/outputChecksNode';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 
@@ -88,6 +89,12 @@ it('never publishes the server class to the app, and only a server reader can na
   const client = shardProductData(headless.shardfile, 'https://example.test/', () => Promise.reject(new Error('A client must not read this')));
   expect(client.hasFile(server.file.name)).toBe(false);
   await expect(client.file(server.file.name)).rejects.toThrow(/names no file/u);
+});
+
+it('carries a generator\'s server files from its project output to the writer', async () => {
+  const blob = serverBlob('server/navmesh.bin', { bytes: MARK });
+  expect((await prepareProjectOutput(root(), { server: [blob] })).options.server).toEqual([blob]);
+  await expect(prepareProjectOutput(root(), { server: [{ file: blob.file }] })).rejects.toThrow();
 });
 
 it('refuses a server class that overlaps the client, escapes server/ or is unregistered', () => {
