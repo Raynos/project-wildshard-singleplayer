@@ -2,7 +2,7 @@ import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
 import { Rng } from '../../shared/core/rng';
 import { HuntingStalkerCore,type HuntGround } from '../../shared/ai/huntPattern';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import { decodeTerrainTile,encodeTerrainTile,bilinearTerrainSamplers,type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 

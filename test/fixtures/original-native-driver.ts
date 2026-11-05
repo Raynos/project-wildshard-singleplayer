@@ -11,7 +11,7 @@ import { canReach } from '../../src/engine/shared/ai/reach';
 import { createNativeSpeciesContext } from '../../src/game/server/plugin/brain';
 import type { NativeEliteBindings } from '../../src/engine/server/ai/eliteRoster';
 import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
-import type { AnimalSim } from '../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../../src/engine/shared/entities/AnimalSim';
 import type { HuntBody } from '../../src/engine/server/ai/hunt';
 import type { StalkerBrain } from '../../src/engine/shared/ai/stalker';
 import type { Rng } from '../../src/engine/shared/core/rng';

@@ -1,7 +1,7 @@
 // P1-E5.3-G1 (J50, J127, E5-REPLICATION §6.2): where every hittable stood on each recent tick, so a player's blow is settled
 // against what that player saw. Bodies and their colliders never move: a query reads a `RewoundBody` beside the real one.
 import { Vector3 } from 'three';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import { hitHistoryOf, publishHitHistory } from '../combat/rewind';
 import type { SimHost } from '../sim';
 

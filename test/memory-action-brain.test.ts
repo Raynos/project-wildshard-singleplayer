@@ -1,7 +1,7 @@
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/server/plugin/brain';
 import { bindPerchBody, PerchBodyBinding, type PerchBodyPorts } from '../src/game/server/population/perchBody';
 import { speciesBrains } from '../src/sharddev/speciesBrains';

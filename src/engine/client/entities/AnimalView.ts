@@ -10,8 +10,8 @@ import { heightAt } from '../../shared/world/Heightfield';
 import type { AnimalMaterial, AnimalModel, AnimalRig } from './AnimalFactory';
 import { variantMods, type RigAnimCtx } from '../../shared/entities/species/registry';
 import { app, gameplayRandom } from '../app/runtime';
-import type { DamageRequest } from '../../server/combat/pipeline';
-import { AnimalSim, damageFor as simDamageFor, type AnimalPoseSample, type AnimalVolumePort } from '../../server/entities/AnimalSim';
+import type { DamageRequest } from '../../shared/combat/pipeline';
+import { AnimalSim, damageFor as simDamageFor, type AnimalPoseSample, type AnimalVolumePort } from '../../shared/entities/AnimalSim';
 import { floorBelow } from '../../shared/physics/query';
 
 /**

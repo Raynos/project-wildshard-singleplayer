@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { Events } from '../../shared/events/events';
 import type { Scope } from '../../shared/app/scope';
-import type { Actor, DeathCause } from '../../server/combat/pipeline';
+import type { Actor, DeathCause } from '../../shared/combat/pipeline';
 
 /** Health emits death; this scope-owned presentation/respawn subscriber runs after queued hurt feedback. */
 export function installPlayerDeath(events: Events, scope: Scope, actor: Actor, ports: {

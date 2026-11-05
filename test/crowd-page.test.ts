@@ -3,7 +3,7 @@ import {parse} from 'valibot';
 import {ActorProjectionStepV2Schema} from '@wildshard/format/actorProjectionV2';
 import {bindOriginalPageGuard,originalPageGuard,type OriginalGuardBinding} from './fixtures/originalPageGuard';
 import {Scope} from '../src/engine/shared/app/scope';
-import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {AnimalSim} from '../src/engine/shared/entities/AnimalSim';
 import {app} from '../src/engine/client/app/runtime';
 import {ActorProjectionV2} from '../src/game/server/population/actorProjectionV2';
 import guardProjection from '../src/shards/nalati-grasslands/data/crowdProjection.json' with {type:'json'};

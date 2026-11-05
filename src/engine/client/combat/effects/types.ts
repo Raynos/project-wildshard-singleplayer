@@ -1,4 +1,4 @@
-import type { Actor, CombatTag } from '../../../server/combat/pipeline';
+import type { Actor, CombatTag } from '../../../shared/combat/pipeline';
 
 /** Numeric attributes stay live at the simulation ports; modifiers retain a separate base. */
 export type AttributeSet = Record<string, number | undefined>;

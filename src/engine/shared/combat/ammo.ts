@@ -1,4 +1,4 @@
-import type { CombatTag } from '../../server/combat/pipeline';
+import type { CombatTag } from './pipeline';
 
 export type AmmoId = `ammo.${string}`;
 export interface AmmoRow {

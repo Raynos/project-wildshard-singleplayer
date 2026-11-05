@@ -4,7 +4,7 @@
 import type { Collider,Ball,Ray } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
 import type { Navmesh } from './navmesh';
-import type { AnimalSim } from '../../server/entities/AnimalSim';
+import type { AnimalSim } from '../entities/AnimalSim';
 import { lineOfSight } from './query';
 import { queryGroups,type GroupName } from './groups';
 import { validateV2QueryRequest,type V2QueryRequest,type V2QueryAnswer } from '@wildshard/format/scriptQueriesV2';

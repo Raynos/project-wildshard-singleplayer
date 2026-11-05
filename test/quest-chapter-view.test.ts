@@ -30,7 +30,7 @@ import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState } from '../src/engine/shared/quest/core';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import type { Actor, DamageRequest } from '../src/engine/server/combat/pipeline';
+import type { Actor, DamageRequest } from '../src/engine/shared/combat/pipeline';
 import { Events } from '../src/engine/shared/events/events';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { Animal } from '../src/engine/client/entities/AnimalView';

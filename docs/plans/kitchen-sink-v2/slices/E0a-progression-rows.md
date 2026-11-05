@@ -19,7 +19,7 @@ levels-combat §15 (locked, 19aa). Nothing in this slice changes a fight; E0b–
 Research (HEAD `83fe4ad845`):
 
 - Nothing levelled exists. The player is `PlayerHealth` with a fixed `{ health: 100, maxHealth: 100, incomingCap:
-  Infinity }` (`src/engine/server/combat/health.ts:29`); creatures carry their authored `hp` per species variant
+  Infinity }` (`src/engine/shared/combat/health.ts:29`); creatures carry their authored `hp` per species variant
   (`out/_template/sections/actors/species.json`). No `progression` section is registered in `src/format/sections.ts`.
 - Opt-in works by section presence: a product that ships no section gets no reader (the custom-section freeze and the
   section registry in `src/format/sections.ts`, `src/format/platformFileFamilies.ts`). A missing `progression` section

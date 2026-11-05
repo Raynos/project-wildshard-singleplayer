@@ -5,7 +5,7 @@ import {nativeTamingOf} from '../../src/game/server/riding/nativeTaming';
 import {ReturnProgram} from '../../src/game/shared/population/returnProgram';
 import {ClientRidingSessionSchema,cleanMountName} from '@wildshard/format/riding';
 import {pickPrompt} from '../../src/engine/shared/world/interact/prompts';
-import type {AnimalSim} from '../../src/engine/server/entities/AnimalSim';
+import type {AnimalSim} from '../../src/engine/shared/entities/AnimalSim';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

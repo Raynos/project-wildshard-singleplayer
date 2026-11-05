@@ -22,7 +22,7 @@ import type { Game } from '../src/engine/client/core/Game';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { Player } from '../src/engine/client/player/Player';
-import type { PlayerHealth } from '../src/engine/server/combat/health';
+import type { PlayerHealth } from '../src/engine/shared/combat/health';
 import { EliteBar } from '../src/engine/client/ui/EliteBar';
 import { installEngineStrings } from '../src/engine/shared/strings';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';

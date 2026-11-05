@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import type { CombatPipeline, DamageRequest } from '../combat/pipeline';
+import type { CombatPipeline, DamageRequest } from '../../shared/combat/pipeline';
 import type { PlayerSim } from '../sim/playerSim';
 import { bossHealthScale, bossTargetCount } from '../../shared/ai/bossScale';
 

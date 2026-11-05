@@ -1,6 +1,6 @@
 import type { Vector3 } from 'three';
-import type { Events } from '../../shared/events/events';
-import type { Scope } from '../../shared/app/scope';
+import type { Events } from '../events/events';
+import type { Scope } from '../app/scope';
 import type { Actor, CombatTag, DamageRequest, DeathCause, HealthAttributes } from './pipeline';
 
 export type PlayerMode = 'foot' | 'board' | 'swim' | 'ride';

@@ -4,7 +4,7 @@ import { App } from '../src/engine/client/app/app';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { app } from '../src/engine/client/app/runtime';
 import { Scope } from '../src/engine/shared/app/scope';
-import { PlayerHealth } from '../src/engine/server/combat/health';
+import { PlayerHealth } from '../src/engine/shared/combat/health';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { bindPageGroups, wildEnv } from '../src/game/server/population/pageGroups';
 import { PagePastureRaid } from '../src/game/server/riding/pagePasture';

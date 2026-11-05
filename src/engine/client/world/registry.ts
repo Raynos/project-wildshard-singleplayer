@@ -19,7 +19,7 @@ import type { Animal } from '../entities/AnimalView';
 import { app } from '../app/runtime';
 import { currentOwner, enteredOwner } from '../../shared/app/ownership';
 import type { Scope } from '../../shared/app/scope';
-import type { PlayerMode } from '../../server/combat/health';
+import type { PlayerMode } from '../../shared/combat/health';
 import { labelObjectTree } from '../render/gpuLabels';
 
 interface Vec3 { x: number; y: number; z: number }

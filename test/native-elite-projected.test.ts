@@ -3,7 +3,7 @@ import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { SimHost } from '../src/engine/server/sim';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { HerdBrain, type HerdPorts } from '../src/engine/server/ai/herd';
 import { nativeEliteBindings as eliteBindings, NativeEliteRoster, type NativeEliteBond } from '../src/engine/server/ai/eliteRoster';
 

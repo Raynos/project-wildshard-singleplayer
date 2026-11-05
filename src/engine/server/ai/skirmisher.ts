@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { SimValue } from '../sim';
 import { StalkerBrain, type SkirmisherSpec as SharedSpec, type SkirmisherPorts as SharedPorts } from '../../shared/ai/stalker';
 

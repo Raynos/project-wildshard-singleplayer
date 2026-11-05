@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {Vector3} from 'three';
-import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {AnimalSim} from '../src/engine/shared/entities/AnimalSim';
 import {GuardianPolicy, type GuardianProfile, type GuardianObservation} from '../src/engine/server/ai/guardianPolicy';
 import {DiverBrain, type DiverProfile, type DiverObservation} from '../src/engine/shared/ai/diver';
 import type {StrikeSpec} from '../src/engine/shared/ai/strikes';

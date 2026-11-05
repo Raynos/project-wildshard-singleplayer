@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { SimValue } from '../sim';
 import type { StrikeSpec } from '../../shared/ai/strikes';
 import { GrazerBrain, type CircleGrazerSpec, type CircleGrazerPorts } from './grazer';

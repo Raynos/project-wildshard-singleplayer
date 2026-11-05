@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import { GrazerBrain, type GuardedStallionState, type GuardedHerdSpec, type GuardedHerdContext, type GuardedHerdPorts } from './grazer';
 
 /** Existing guard/taming states, preserving all native callbacks and saved state. */

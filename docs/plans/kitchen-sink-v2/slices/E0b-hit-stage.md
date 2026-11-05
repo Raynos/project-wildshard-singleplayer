@@ -16,7 +16,7 @@ Its swings at you show the same both ways (the silver hurt arc). No XP (the pen 
 
 Research:
 
-- **The pipeline** is `CombatPipeline.hit` (`src/engine/server/combat/pipeline.ts:119`): `damage.admit` → line of sight →
+- **The pipeline** is `CombatPipeline.hit` (`src/engine/shared/combat/pipeline.ts:119`): `damage.admit` → line of sight →
   `damage.modify` (an ordered ask chain) → `applyDamage` → `damage.dealt` + `actor.died` (`:134-135`). The chain today:
   order **0** death-fade refusal (`:85`), **1** boss-god (`:100`, opt-in), **10** dodge i-frames (`:101`), **40**
   `damageTakenMul` on creatures (`:86-92`), **50** the species/elite `damageMul` adapter (`:93-98`), **90** `incomingCap`
@@ -26,7 +26,7 @@ Research:
   `sourceTags`; **no outcome, no damage type, no miss**. A refused hit returns `null` and emits nothing.
 - The only "MISS" today is the aim miss in `src/engine/client/ui/Combat.ts:22` (a shot that lands in a tree); ruling 19r keeps
   that word for aim misses only.
-- `AnimalSim.stagger(dir, strength)` (`src/engine/server/entities/AnimalSim.ts:264`) already shoves a creature back with a stun
+- `AnimalSim.stagger(dir, strength)` (`src/engine/shared/entities/AnimalSim.ts:264`) already shoves a creature back with a stun
   timer: the DODGE slip is a short version of it (LVF1).
 
 Work:

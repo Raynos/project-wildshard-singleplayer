@@ -11,7 +11,7 @@ import {createNativeProofResident,prepareProductPlan as prepareHeadlessRuntime} 
 import {prepareNalatiWorld} from './fixtures/nalati-world';
 import {readPatrolIntake,readPatrolPoses} from '../src/game/server/boss/patrolNative';
 import {canonicalSimDigest} from './fake/simState';
-import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {AnimalSim} from '../src/engine/shared/entities/AnimalSim';
 import {NativeCreaturePose} from '../src/game/shared/plugin/animation';
 import {Vector3} from 'three';
 import * as v from 'valibot';

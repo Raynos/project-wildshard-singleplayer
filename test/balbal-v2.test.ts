@@ -9,7 +9,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
-import type { DamageRequest } from '../src/engine/server/combat/pipeline';
+import type { DamageRequest } from '../src/engine/shared/combat/pipeline';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import { BALBAL_SPECIES as ORIGINAL } from './fixtures/originalBalbal';

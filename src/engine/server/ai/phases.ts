@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { BossBrain, type BossSaved, type BossPresentation } from '../../shared/ai/BossBrain';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { SimHost, SimValue } from '../sim';
 import { BossContenders } from './bossContenders';
 import { publishEncounter } from '../../shared/sim/encounterRows';

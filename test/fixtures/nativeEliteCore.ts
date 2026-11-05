@@ -1,6 +1,6 @@
 import {admissionNative} from './nalati-return-modules';
 import { EliteCore, memoryElitePersistence, type EliteCoreScript } from '../../src/game/shared/eliteSystem';
-import type { AnimalSim } from '../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../../src/engine/shared/entities/AnimalSim';
 import type { SimHost } from '../../src/engine/server/sim';
 
 

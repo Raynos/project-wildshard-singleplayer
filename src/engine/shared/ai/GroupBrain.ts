@@ -1,5 +1,5 @@
 import {prepareGroupNativeV2,type GroupStepV2,type GroupStepNativeOwnersV2,type GroupStepNativeResultV2} from '../script/groupStepV2';
-import type {AnimalSim} from '../../server/entities/AnimalSim';
+import type {AnimalSim} from '../entities/AnimalSim';
 import type {V2ColumnOwners} from '../script/observationColumnsV2';
 import type {GroupStepRowsV2} from '@wildshard/format/scriptGroupStepV2';
 import type {GroupBankValueV2} from '@wildshard/format/scriptGroupBankV2';

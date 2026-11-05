@@ -2,7 +2,7 @@ import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import { engineString } from '../../shared/strings';
 import './styles/combat.css';
-import type { DeathCause } from '../../server/combat/pipeline';
+import type { DeathCause } from '../../shared/combat/pipeline';
 
 /**
  * HurtArc — the "you were hit FROM THERE" indicator (DOM in `#hud`, styled in `src/engine/client/ui/styles/combat.css`, prefix

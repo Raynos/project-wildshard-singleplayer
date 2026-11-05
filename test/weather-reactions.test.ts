@@ -5,7 +5,7 @@ import {onFault, type Fault} from '../src/engine/shared/core/faults';
 import { WeatherContinuation } from '../src/engine/shared/world/weatherContinuation';
 import { parseWeatherProgram, parseWeatherReactions } from '@wildshard/format/weatherProgram';
 import { App } from '../src/engine/client/app/app';
-import { PlayerHealth } from '../src/engine/server/combat/health';
+import { PlayerHealth } from '../src/engine/shared/combat/health';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ShardContext } from '../src/game/client/plugin/context';

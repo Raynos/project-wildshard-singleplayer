@@ -17,7 +17,7 @@ import { applyMeleeCombatProfile, type MeleeProfile } from '../src/engine/shared
 import { hitscan } from '../src/engine/client/combat/view/hitscan';
 import { Projectiles } from '../src/engine/client/combat/view/projectile';
 import { SweptMelee } from '../src/engine/client/combat/view/SweptMelee';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import type { Targets, TargetHit } from '../src/engine/client/combat/types';
 import type { Player } from '../src/engine/client/player/Player';
 import type { Forest } from '../src/engine/client/world/forest/Forest';

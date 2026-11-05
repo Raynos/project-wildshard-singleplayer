@@ -11,7 +11,7 @@ import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import type { SimHost } from '../src/engine/server/sim';
 import { eliteBindings, installEliteEncounters } from './fixtures/nativeEliteEncounters';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 
 function fixture(scope?: Scope) {
   const f = nativeKernelOwners(scope), bindings = eliteBindings();

@@ -22,7 +22,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
-import type { Actor } from '../src/engine/server/combat/pipeline';
+import type { Actor } from '../src/engine/shared/combat/pipeline';
 import { canonicalSimDigest } from './fake/simState';
 import { builtProduct } from './fixtures/builtProduct';
 

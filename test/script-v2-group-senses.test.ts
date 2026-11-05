@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { Rng } from '../src/engine/shared/core/rng';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ObservationColumnsV2, type V2ColumnOwners, type V2SenseColumns } from '../src/engine/shared/script/observationColumnsV2';

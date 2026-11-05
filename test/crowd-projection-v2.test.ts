@@ -3,7 +3,7 @@ import {ReturnProjectionV2} from '../src/game/shared/population/returnProjection
 import {expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
 import {Scope} from '../src/engine/shared/app/scope';
-import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {AnimalSim} from '../src/engine/shared/entities/AnimalSim';
 import {Rng} from '../src/engine/shared/core/rng';
 import {ObservationColumnsV2} from '../src/engine/shared/script/observationColumnsV2';
 import {ActorProjectionV2,type ActorProjectionContext,type ActorProjectionOwner} from '../src/game/server/population/actorProjectionV2';

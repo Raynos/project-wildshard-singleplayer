@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { NativeCreaturePose } from '../src/game/shared/plugin/animation';
 import { tamingPoses, NALATI_BODY_ROWS } from '../src/shards/nalati-grasslands/generators/bodies';
 import { bodyKey } from '../src/shards/nalati-grasslands/generators/bodyKey';

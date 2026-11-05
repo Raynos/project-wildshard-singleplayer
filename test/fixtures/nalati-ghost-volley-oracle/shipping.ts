@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../../../src/engine/shared/entities/AnimalSim';
 export interface GhostVolleyPorts<A extends AnimalSim> {
   readonly player: { readonly position: THREE.Vector3 };
   /** The real published horse-body socket, before the shipping shoulder offset. Never infer it from feet. */

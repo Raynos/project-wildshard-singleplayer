@@ -9,7 +9,7 @@ import {ObservationColumnsV2,type V2ColumnOwners} from '../src/engine/shared/scr
 
 import * as v from 'valibot';
 import {Vector3} from 'three';
-import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {AnimalSim} from '../src/engine/shared/entities/AnimalSim';
 import {HerdBrain,type HerdSpec,type HerdPorts,type HerdContext} from '../src/engine/server/ai/herd';
 import {Scope} from '../src/engine/shared/app/scope';
 import {Rng} from '../src/engine/shared/core/rng';

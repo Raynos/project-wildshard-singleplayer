@@ -7,7 +7,7 @@ import {CreatureStrikeSchema} from '@wildshard/format/creatures';
 import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
 import {SpeciesActorsFileSchema,type ArenaRoomSpeciesControlRows} from '@wildshard/format/speciesBookRows';
 import {parseRuntimeSpawns,type RuntimeBossRow} from '@wildshard/format/runtimeSpawns';
-import type {CombatTag} from '../../src/engine/server/combat/pipeline';
+import type {CombatTag} from '../../src/engine/shared/combat/pipeline';
 import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 import {readNalatiArenaIntake} from './nalati-arena-intake';
 import {readNalatiArenaPoses} from './nalati-arena-poses';

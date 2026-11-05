@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { ScriptQuery, ScriptCall } from '../../shared/script/host';
 import { SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
 import { ScriptWorld, SCRIPT_OP, type ScriptEffect, type EffectTransaction } from '../../shared/script/effects';

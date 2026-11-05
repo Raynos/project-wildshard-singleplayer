@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { expect, test, vi } from 'vitest';
 import type { NetCommand } from '@wildshard/format/netCommand';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { NetClient } from '../src/engine/client/net/client';
 import { CombatWire, type CombatEvent } from '../src/engine/server/net/combatWire';
 import { NetRoom } from '../src/engine/server/net/room';

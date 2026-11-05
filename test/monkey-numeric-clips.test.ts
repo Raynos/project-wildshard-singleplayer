@@ -46,7 +46,7 @@ test('monkey numeric joints preserve frozen gait, scratch, throw, bite, fall, cl
 
 test('predecessor native monkey saves retain root authority, pose LOD and exact continuation', async () => {
   const { NativeCreaturePose } = await import('../src/game/shared/plugin/animation');
-  const { AnimalSim } = await import('../src/engine/server/entities/AnimalSim');
+  const { AnimalSim } = await import('../src/engine/shared/entities/AnimalSim');
   const recipe = { custom: true, joints: names.map((name, i) => ({ name, parent: i === 0 ? -1 : 0,
     position: [0, i === 0 ? 1 : .3, 0] as const, order: 'YXZ' as const, scale: [1, 1, 1] as const })) };
   const make = () => new AnimalSim({ kind: 'monkey', label: 'Monkey', variant: 'monkey', rarity: 'common', hp: 30,

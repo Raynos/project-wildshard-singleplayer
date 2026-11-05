@@ -6,7 +6,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
-import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../../../src/engine/shared/entities/AnimalSim';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/shared/ledger';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { productHeadlessSections } from '../../../src/sdk/headlessSections';

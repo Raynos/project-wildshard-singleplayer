@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from './AnimalSim';
+import { AnimalSim } from '../../shared/entities/AnimalSim';
 import { StalkerBrain, type StalkerObservation } from '../../shared/ai/stalker';
 import {onFault,type Fault} from '../../shared/core/faults';
 

@@ -7,7 +7,7 @@ import type { SimHost } from '../../src/engine/server/sim';
 import { RngService } from '../../src/engine/shared/core/rng';
 import { StrikeRunner } from '../../src/engine/shared/ai/strikes';
 import type { NativeEliteKernelLoans, NativeEliteKernelRow } from '../../src/engine/server/ai/eliteKernels';
-import type { AnimalSim } from '../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../../src/engine/shared/entities/AnimalSim';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_STRIKES } from './nalati-strikes';
 import { NALATI_ECOLOGY as ecology } from '../../src/shards/nalati-grasslands/generators/ecology.mjs';

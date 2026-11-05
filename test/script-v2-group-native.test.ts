@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Events } from '../src/engine/shared/events/events';
 import { AggressionDirector, AggressionService } from '../src/engine/shared/ai/director';

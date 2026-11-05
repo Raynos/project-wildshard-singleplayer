@@ -1,6 +1,6 @@
 import type { NavmeshGroundRows,NavigationContent } from '@wildshard/format/navigation';
 import type { SetName } from '../../client/player/viewmodelTextures';
-import type { FallCause } from '../../server/combat/pipeline';
+import type { FallCause } from '../combat/pipeline';
 import type { HorizonStrips } from '../../client/world/HorizonMatte';
 import type { ByteKey } from '../boot/steps';
 import type { Ktx2Table, TexMode } from '../../client/boot/gpuFiles';

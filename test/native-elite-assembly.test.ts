@@ -5,7 +5,7 @@ import { expect, test, vi } from 'vitest';
 import { NativeEliteRoster, nativeEliteBindings } from '../src/engine/server/ai/eliteRoster';
 import { NativeEliteLifecycle } from '../src/engine/server/ai/eliteLifecycle';
 import { HerdBrain, type HerdPorts } from '../src/engine/server/ai/herd';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';

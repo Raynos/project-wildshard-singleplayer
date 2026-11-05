@@ -1,4 +1,4 @@
-import type { AnimalSim as Animal } from '../entities/AnimalSim';
+import type { AnimalSim as Animal } from '../../shared/entities/AnimalSim';
 import type { ThinkCtx } from '../../shared/entities/species/registry';
 import { Hfsm } from '../../shared/ai/hfsm';
 import { inspectBrain } from '../../shared/ai/inspect';

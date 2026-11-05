@@ -1,5 +1,5 @@
 import { melee } from './blocks/melee';
-import type { Actor, CombatPipeline, DamageDealt } from '../../server/combat/pipeline';
+import type { Actor, CombatPipeline, DamageDealt } from './pipeline';
 import type { TargetAnimal } from '../../client/combat/types';
 import type { Move } from '../../client/combat/view/melee';
 import { Weapon } from './Weapon';

@@ -1,6 +1,6 @@
 import { parseObservationColumnsV2,type ObservationColumnV2 } from '@wildshard/format/scriptObservationColumnsV2';
 import type { Scope } from '../app/scope';
-import type { AnimalSim } from '../../server/entities/AnimalSim';
+import type { AnimalSim } from '../entities/AnimalSim';
 import type { GrazerBrain } from '../../server/ai/grazer';
 import type { Vector3 } from 'three';
 import type { DayCycleClock } from '../world/dayCycle';

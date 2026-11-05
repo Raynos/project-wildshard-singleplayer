@@ -13,7 +13,7 @@ import { GroupStepV2,type GroupStepNativeResultV2 } from '../src/engine/shared/s
 import { Scope } from '../src/engine/shared/app/scope';
 import { onFault,type Fault } from '../src/engine/shared/core/faults';
 import { Rng } from '../src/engine/shared/core/rng';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { PackBrain, type PackPorts,type PackSpec } from '../src/engine/server/ai/pack';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };

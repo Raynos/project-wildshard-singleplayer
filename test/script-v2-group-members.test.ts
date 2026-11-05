@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { Rng } from '../src/engine/shared/core/rng';
 import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
 import { ObservationColumnsV2, type V2ColumnOwners } from '../src/engine/shared/script/observationColumnsV2';

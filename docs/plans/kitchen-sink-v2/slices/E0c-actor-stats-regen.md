@@ -16,14 +16,14 @@ after the last hit, full in 12 s.
 
 Research:
 
-- `PlayerHealth` is fixed at 100 / 100 (`src/engine/server/combat/health.ts:29`) with `setMaxHealth(max)` already there
+- `PlayerHealth` is fixed at 100 / 100 (`src/engine/shared/combat/health.ts:29`) with `setMaxHealth(max)` already there
   (`:61`, it raises current HP by the gain). Regen is hard-coded: **4 HP/s after 6,000 ms** (`:77`). The snapshot is
   `version: 1` (`:41`); `restore` throws on any other version.
 - `HealthAttributes extends AttributeSet` (`pipeline.ts:12`, `engine/client/combat/effects/types.ts`): an open record, so the
   seven attributes and `grade` can live on it without a schema break, but the snapshot copies every key, so a levelled
   player's snapshot grows (a levelled-only change).
 - Creature HP: `AnimalSim` exposes `health` / `maxHealth` / `damageTakenMul` from its variant row
-  (`src/engine/server/entities/AnimalSim.ts:243`). Strike damage is a flat authored number (`combat/strikes` rows, e.g. the
+  (`src/engine/shared/entities/AnimalSim.ts:243`). Strike damage is a flat authored number (`combat/strikes` rows, e.g. the
   template's `template.blob.bump` damage 8).
 - **Leash and walk home already exist** in the `pursue` brain row (`awareRadius`, `leashRadius`, `returnSpeed`,
   `src/format/creatures.ts:15`) and in elites (`leashR`, `src/format/eliteFeature.ts:12`), but a creature that walks

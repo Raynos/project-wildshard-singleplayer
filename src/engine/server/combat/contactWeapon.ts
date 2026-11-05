@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import type { Actor, CombatTag, DamageDealt, DamageRequest } from './pipeline';
+import type { Actor, CombatTag, DamageDealt, DamageRequest } from '../../shared/combat/pipeline';
 
 const contactDelta = new Vector3();
 

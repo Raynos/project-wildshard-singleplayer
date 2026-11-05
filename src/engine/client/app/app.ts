@@ -29,11 +29,11 @@ import { LevelLoader, type LevelDriver } from '../level/load';
 import { LevelRegistrations } from '../level/registrations';
 import type { LevelAdapters, LevelHooks } from '../../server/level/context';
 import type { LevelSpec } from '../../shared/level/spec';
-import { CombatPipeline } from '../../server/combat/pipeline';
+import { CombatPipeline } from '../../shared/combat/pipeline';
 import { AggressionService } from '../../shared/ai/director';
 import { EncounterRegistry } from '../../shared/ai/encounters';
 import { SpeciesService } from '../entities/species/look';
-import type { PlayerHealth } from '../../server/combat/health';
+import type { PlayerHealth } from '../../shared/combat/health';
 import type { EffectService } from '../combat/effects/EffectService';
 
 interface StateHook { state: AppState; run: () => void }

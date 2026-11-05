@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { AnimalSim as Animal } from '../../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim as Animal } from '../../../src/engine/shared/entities/AnimalSim';
 import type { PouncerContext as ThinkCtx, PouncerLedge as Ledge, PouncerPorts } from '../../../src/engine/shared/ai/stalker';
 type AqbarsPorts<A> = Omit<PouncerPorts<A>, 'opened' | 'growl'> & { feed: (text: string) => void; sound: (name: 'leopard_growl', at: THREE.Vector3) => void };
 /** Frozen page decisions, with their native body and authored input/output ports. No renderer stands in for a world. */

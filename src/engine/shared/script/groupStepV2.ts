@@ -14,7 +14,7 @@ import { ScriptModuleV2 } from './moduleV2';
 import type { QueryRingV2 } from '../../server/script/queriesV2';
 import type { Scope } from '../app/scope';
 import { ANIMAL_STATES } from '../entities/animalStates';
-import type { AnimalSim } from '../../server/entities/AnimalSim';
+import type { AnimalSim } from '../entities/AnimalSim';
 import type { Rng, RngState } from '../core/rng';
 import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';

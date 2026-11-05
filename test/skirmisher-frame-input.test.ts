@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {AnimalSim} from '../src/engine/shared/entities/AnimalSim';
 import {SkirmisherBrain, type SkirmisherPorts, type SkirmisherSpec} from '../src/engine/server/ai/skirmisher';
 import {CapturedSkirmisherBrain} from './fixtures/stalker-oracle/skirmisher';
 import {Rng} from '../src/engine/shared/core/rng';

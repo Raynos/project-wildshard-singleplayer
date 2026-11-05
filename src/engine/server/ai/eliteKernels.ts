@@ -4,7 +4,7 @@ import { isJsonData } from '@wildshard/format/json';
 import { HandleIdSchema } from '@wildshard/format/sceneRefs';
 import { Scope } from '../../shared/app/scope';
 import type { SimHost } from '../sim';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { TerrainField } from '../../shared/level/data';
 import type { V2EnvironmentColumns } from '../../shared/script/observationColumnsV2';
 import { StalkerBrain, readPouncerSpec, readHowlerSpec, type PouncerContext, type PouncerLedge } from '../../shared/ai/stalker';

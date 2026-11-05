@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { Rng } from '../src/engine/shared/core/rng';
 import { FlockBrain } from '../src/engine/shared/ai/flock';
 import { CrowdTargets } from '../src/game/shared/shardfile/crowdRuntime';

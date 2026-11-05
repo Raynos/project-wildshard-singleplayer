@@ -1,7 +1,7 @@
 import type { HuntTuning } from './hunt';
 import type { VariantMods, Rarity, ThinkCtx } from '../../shared/entities/species/registry';
 import type { Animal } from '../../client/entities/AnimalView';
-import type { SpeciesFlight } from './flight';
+import type { SpeciesFlight } from '../../shared/ai/flight';
 
 /** Gameplay data only. A procedural builder, palette or hull never belongs on this row. */
 export interface SpeciesVariant {

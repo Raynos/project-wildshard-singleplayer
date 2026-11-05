@@ -1,5 +1,5 @@
 import { MathUtils, Vector3 } from 'three';
-import type { AnimalSim, AnimalState } from '../../server/entities/AnimalSim';
+import type { AnimalSim, AnimalState } from '../entities/AnimalSim';
 import { GroupBrain } from './GroupBrain';
 import type { Rng } from '../core/rng';
 import type { FightRules } from '../level/spec';

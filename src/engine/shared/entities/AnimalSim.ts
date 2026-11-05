@@ -1,10 +1,10 @@
 import { Vector3, MathUtils } from 'three';
-import type { AnimalPoseLaw } from '../../shared/entities/animalPose';
+import type { AnimalPoseLaw } from './animalPose';
 import { FlightMotion, type SpeciesFlight } from '../ai/flight';
 import type { Actor, DamageRequest, DamageDealt } from '../combat/pipeline';
-import type { AnimalDims, Rarity, VariantMods } from '../../shared/entities/species/registry';
-import { tap } from '../../shared/core/harnessTap';
-import type { ANIMAL_STATES } from '../../shared/entities/animalStates';
+import type { AnimalDims, Rarity, VariantMods } from './species/registry';
+import { tap } from '../core/harnessTap';
+import type { ANIMAL_STATES } from './animalStates';
 
 /** Shared behaviour state consumed by simulation and pose adapters. */
 export type AnimalState = typeof ANIMAL_STATES[number];

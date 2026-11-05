@@ -7,7 +7,7 @@ import { PackBrain, type PackPorts } from '../src/engine/server/ai/pack';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import { HerdBrain, type HerdPorts } from '../src/engine/server/ai/herd';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import type { EliteContinuationRows } from '@wildshard/format/eliteContinuation';
 
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';

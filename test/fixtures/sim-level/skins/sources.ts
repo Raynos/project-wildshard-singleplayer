@@ -2,7 +2,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { Bone, BufferAttribute, BufferGeometry, Matrix4, Skeleton, SkinnedMesh, Vector3, type MeshStandardMaterial } from 'three';
-import { AnimalSim } from '../../../../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../../../../src/engine/shared/entities/AnimalSim';
 import { Animal } from '../../../../src/engine/client/entities/AnimalView';
 import type { AnimalModel } from '../../../../src/engine/client/entities/AnimalFactory';
 import { variantMods } from '../../../../src/engine/shared/entities/species/registry';

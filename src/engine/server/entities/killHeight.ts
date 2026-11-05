@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import type { Actor, CombatPipeline } from '../combat/pipeline';
+import type { Actor, CombatPipeline } from '../../shared/combat/pipeline';
 import type { LevelSpec } from '../../shared/level/spec';
 import { engineString } from '../../shared/strings';
 

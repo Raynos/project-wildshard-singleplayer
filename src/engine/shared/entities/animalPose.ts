@@ -1,6 +1,6 @@
 import { MathUtils, Vector3 } from 'three';
 import * as schema from 'valibot';
-import type { AnimalState } from '../../server/entities/AnimalSim';
+import type { AnimalState } from './AnimalSim';
 import type { AnimalDims } from './species/registry';
 
 /** Numeric inputs to the shipping gait/overlay law. The caller owns body motion and these sampled clocks. */

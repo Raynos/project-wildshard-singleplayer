@@ -11,7 +11,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_NIGHT as rawNight, PINE_NIGHT_MODULE } from './fixtures/pine-night';
 import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { parseSpawnScript } from '@wildshard/format/spawnScripts';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import { installPopulationRoster } from '../src/game/server/population/roster';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 

@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { HandleIdSchema } from '@wildshard/format/sceneRefs';
 import type { SimHost } from '../sim';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { PackBrain } from './pack';
 import type { StalkerBrain } from '../../shared/ai/stalker';
 import { NativeEliteKernels, type NativeEliteKernelState, type NativeEliteKernelLoans } from './eliteKernels';

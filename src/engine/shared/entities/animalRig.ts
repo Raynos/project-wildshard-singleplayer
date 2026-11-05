@@ -1,5 +1,5 @@
 import type { Euler, Vector3 } from 'three';
-import type { AnimalSim } from '../../server/entities/AnimalSim';
+import type { AnimalSim } from './AnimalSim';
 import type { RigAnimCtx } from './species/registry';
 
 /** A joint's numeric local transform. Real visual bones and renderer-free joints satisfy the same port. */

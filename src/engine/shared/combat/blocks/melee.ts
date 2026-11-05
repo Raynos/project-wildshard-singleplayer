@@ -1,6 +1,6 @@
 import type { AimCommand } from '../../input/commands';
 import type { Vector3 } from 'three';
-import type { CombatPipeline, DamageDealt, DamageRequest } from '../../../server/combat/pipeline';
+import type { CombatPipeline, DamageDealt, DamageRequest } from '../pipeline';
 
 /** Public contact block: callers choose the move and target; combat owns cover and damage rules. */
 export function melee(combat: CombatPipeline): { hit: (req: DamageRequest) => DamageDealt | null; dispose: () => void } {

@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import type { Actor, DamageRequest } from '../../server/combat/pipeline';
+import type { Actor, DamageRequest } from '../combat/pipeline';
 
 /** On-foot gravity (m/s²). There is no terminal velocity: a fall speeds up until the feet find ground. */
 export const PLAYER_GRAVITY = 22;

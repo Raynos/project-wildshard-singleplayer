@@ -7,7 +7,7 @@ import type { Scope } from '../../shared/app/scope';
 import { GroupBankV2 } from '../../shared/script/groupBankV2';
 import type { GroupStepNativeResultV2 } from '../../shared/script/groupStepV2';
 import { isJsonData } from '@wildshard/format/json';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { Rng } from '../../shared/core/rng';
 import { emitFault } from '../../shared/core/faults';
 import type { SimValue } from '../sim';

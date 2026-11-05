@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import type { AimCommand } from '../input/commands';
-import type { Actor, CombatPipeline, CombatTag, CombatTarget } from '../../server/combat/pipeline';
+import type { Actor, CombatPipeline, CombatTag, CombatTarget } from './pipeline';
 import type { EffectId } from '../../client/combat/effects/types';
 import type { ScriptHost } from '../script/host';
 import type { Scope } from '../app/scope';

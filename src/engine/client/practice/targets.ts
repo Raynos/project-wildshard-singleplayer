@@ -1,4 +1,4 @@
-import type { Actor } from '../../server/combat/pipeline';
+import type { Actor } from '../../shared/combat/pipeline';
 import type { TargetAnimal } from '../combat/types';
 
 /** Practice bodies keep their armour, floats and animation reactions for pipeline hits too. */

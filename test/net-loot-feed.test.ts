@@ -9,7 +9,7 @@ import { NetRoom, type NetTickInput } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
-import type { Actor } from '../src/engine/server/combat/pipeline';
+import type { Actor } from '../src/engine/shared/combat/pipeline';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { netLootFeed, pageLootFeed, type LootPayout } from '../src/game/client/loot/feed';

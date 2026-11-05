@@ -1,6 +1,6 @@
 import type { Scope } from '../app/scope';
 import type { AttributeSet, CueId } from '../../client/combat/effects/types';
-import type { CombatTag } from '../../server/combat/pipeline';
+import type { CombatTag } from './pipeline';
 import type { HitStopProfile } from '../../client/combat/cues';
 import type { Events } from '../events/events';
 import type { EquipmentPickupSpec } from '../../server/combat/EquipmentPickup';

@@ -3,11 +3,11 @@ import { validateCreatureBones as validateDeclaredBones } from '@wildshard/forma
 import { WeightedTable } from '../../ai/weighted';
 import type * as THREE from 'three';
 import type { Rng } from '../../core/rng';
-import type { DamageRequest } from '../../../server/combat/pipeline';
+import type { DamageRequest } from '../../combat/pipeline';
 import type { HuntTuning } from '../../../server/ai/hunt';
 import type { Animal } from '../../../client/entities/AnimalView';
-import type { AnimalSim, AnimalState } from '../../../server/entities/AnimalSim';
-import type { SpeciesFlight } from '../../../server/ai/flight';
+import type { AnimalSim, AnimalState } from '../AnimalSim';
+import type { SpeciesFlight } from '../../ai/flight';
 
 /**
  * Species registry — the pluggable contract every huntable species implements.

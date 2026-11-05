@@ -1,6 +1,6 @@
 import { nalatiNativeAssembly } from './nalati-native-assembly';
 import * as v from 'valibot';
-import type {DamageRequest} from '../../src/engine/server/combat/pipeline';
+import type {DamageRequest} from '../../src/engine/shared/combat/pipeline';
 import type {HuntBody} from '../../src/engine/server/ai/hunt';
 import type {SimHost} from '../../src/engine/server/sim';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { AnimalSim as Animal } from '../../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim as Animal } from '../../../src/engine/shared/entities/AnimalSim';
 /** The actual night roster owns these actors, its kill counter and its line/arrow policy. */
 export interface QaraCrew<A extends Animal> {
   readonly killsTonight: number;

@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { SimValue } from '../sim';
 import type { StrikeSpec } from '../../shared/ai/strikes';
 import { DiverBrain, type BurstFlyerSpec as SharedSpec, type BurstFlyerPorts as SharedPorts } from '../../shared/ai/diver';

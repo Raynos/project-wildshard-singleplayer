@@ -8,7 +8,7 @@ import { Vector3 } from 'three';
 import { BALBAL_SPECIES } from './fixtures/projectedCreature';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
-import type { DamageRequest } from '../src/engine/server/combat/pipeline';
+import type { DamageRequest } from '../src/engine/shared/combat/pipeline';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import {titanPrograms as titan} from './fixtures/titanInlineWitness';

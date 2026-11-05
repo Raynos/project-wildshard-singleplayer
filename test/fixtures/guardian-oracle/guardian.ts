@@ -1,6 +1,6 @@
 // Pre-SF82 shipping policy at cc643216bdc6bb87d38661071374866ee98c3011; only imports and class name differ.
 // Original SHA-256: ffbd57a911609d2533d4cbc74068b27b9d151af62717a44876ff791b853fc24c
-import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../../../src/engine/shared/entities/AnimalSim';
 import type { Rng } from '../../../src/engine/shared/core/rng';
 import type { SimValue } from '../../../src/engine/server/sim';
 

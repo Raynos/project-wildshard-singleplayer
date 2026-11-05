@@ -1,5 +1,5 @@
 import type { NetCommand } from '@wildshard/format/netCommand';
-import type { AnimalPoseSample } from '../entities/AnimalSim';
+import type { AnimalPoseSample } from '../../shared/entities/AnimalSim';
 import type { SimHost } from '../sim';
 import { actRoutes } from '../../shared/sim/actRoutes';
 import { leadPlayer } from '../../shared/sim/leadPlayer';

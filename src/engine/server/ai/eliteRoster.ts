@@ -3,7 +3,7 @@ import { isJsonData } from '@wildshard/format/json';
 import { HandleIdSchema } from '@wildshard/format/sceneRefs';
 import { EliteContinuationRowsSchema, EliteCoreContinuationSchema } from '@wildshard/format/eliteContinuation';
 import type { Scope } from '../../shared/app/scope';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { SimHost } from '../sim';
 import { NativeEliteKernels, type NativeEliteKernelLoans } from './eliteKernels';
 import { NativeEliteLifecycle, type NativeElitePopulation } from './eliteLifecycle';

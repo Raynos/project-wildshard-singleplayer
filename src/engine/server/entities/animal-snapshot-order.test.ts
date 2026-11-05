@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { AnimalSim } from './AnimalSim';
+import { AnimalSim } from '../../shared/entities/AnimalSim';
 
 test('creature snapshots retain their bytes after admitted modifier key reordering', () => {
   const actor = () => new AnimalSim({ kind: 'fixture', label: 'Fixture', variant: 'plain', rarity: 'common', hp: 40, aggressive: false,

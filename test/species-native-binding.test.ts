@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Bone, BufferGeometry, MeshStandardMaterial, SkinnedMesh, Vector3 } from 'three';
 import { Animal } from '../src/engine/client/entities/AnimalView';
-import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import type { AnimalModel } from '../src/engine/client/entities/AnimalFactory';
 import { speciesWithLook, type SpeciesLook } from '../src/engine/client/entities/species/look';
 import type { SpeciesRow } from '../src/engine/server/ai/species';

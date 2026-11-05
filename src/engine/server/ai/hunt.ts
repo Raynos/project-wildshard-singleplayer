@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import { StalkerBrain } from '../../shared/ai/stalker';
 import * as law from '../../shared/ai/huntPattern';
 

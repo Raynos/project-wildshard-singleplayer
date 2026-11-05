@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { Rng } from '../../shared/core/rng';
 import type { SimValue } from '../sim';
 import { emitFault } from '../../shared/core/faults';

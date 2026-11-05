@@ -9,7 +9,7 @@ import * as reach from '../src/engine/shared/ai/reach';
 import { NALATI_STRIKES } from './fixtures/nalati-strikes';
 import { installEliteEncounters, eliteBindings, type EliteEncounterPorts, type EliteEncounterRow } from './fixtures/nativeEliteEncounters';
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts, type EliteEncounterRow as OriginalRow } from './fixtures/originalEliteEncounters';
-import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/shared/entities/AnimalSim';
 import type { SimHost } from '../src/engine/server/sim';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';

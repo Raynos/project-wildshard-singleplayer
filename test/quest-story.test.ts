@@ -31,7 +31,7 @@ import { ProductFigureCatalogue } from '../src/game/client/models/figureCatalogu
 import { QuestPageTalksSchema } from '@wildshard/format/npcs';
 import driftPage from '../src/shards/driftwood-isle/data/questPageComposition.json';
 import pinePage from '../src/shards/pine-hollow/data/forestStory.json';
-import type { Actor } from '../src/engine/server/combat/pipeline';
+import type { Actor } from '../src/engine/shared/combat/pipeline';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import deaths from '../src/shards/driftwood-isle/data/questDeaths.json';
 import { TRADER_PAGE } from '../src/shards/driftwood-isle/generators/traderPage';

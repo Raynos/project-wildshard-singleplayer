@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
 import { EliteContinuationRowsSchema, EliteCoreContinuationSchema, EliteMemberContinuationSchema, type EliteCoreContinuation } from '@wildshard/format/eliteContinuation';
 import type { SimHost, SimValue } from '../sim';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import { GrazerBrain } from './grazer';
 import { StalkerBrain } from '../../shared/ai/stalker';
 import type { PackBrain } from './pack';

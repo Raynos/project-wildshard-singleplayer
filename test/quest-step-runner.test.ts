@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { QuestStepRunner } from '../src/game/shared/quest/steps';
 import { QuestHintFeed } from '../src/game/client/quest/hints';
-import type { Actor } from '../src/engine/server/combat/pipeline';
+import type { Actor } from '../src/engine/shared/combat/pipeline';
 import type { HintTrigger, HintControl } from '../src/engine/client/ui/FirstHints';
 import { parseQuestStepRows, parseQuestKillRows, parseQuestServiceActions } from '@wildshard/format/questSteps';
 import pine from '../src/shards/pine-hollow/data/questSteps.json' with { type: 'json' };

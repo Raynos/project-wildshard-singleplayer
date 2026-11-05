@@ -1,8 +1,8 @@
-import { PlayerHealth } from '../../../server/combat/health';
+import { PlayerHealth } from '../../../shared/combat/health';
 import type { Scope } from '../../../shared/app/scope';
 import { Vector3 } from 'three';
 import type { Events } from '../../../shared/events/events';
-import type { Actor, CombatPipeline, CombatTag } from '../../../server/combat/pipeline';
+import type { Actor, CombatPipeline, CombatTag } from '../../../shared/combat/pipeline';
 import { harmfulEffect, matchesTag, type ActiveEffect, type AttributeSet, type EffectDef, type EffectId, type EffectTarget } from './types';
 
 declare module '../../events/maps' {

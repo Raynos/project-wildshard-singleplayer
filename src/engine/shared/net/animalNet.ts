@@ -1,5 +1,5 @@
 import { ANIMAL_STATES } from '../entities/animalStates';
-import type { AnimalPoseSample, AnimalSim } from '../../server/entities/AnimalSim';
+import type { AnimalPoseSample, AnimalSim } from '../entities/AnimalSim';
 import { netSchema, type NetSchema } from './schema';
 
 /** One creature's per-tick read: the sim, its sampled pose and its strike target. A reused buffer, never kept. */

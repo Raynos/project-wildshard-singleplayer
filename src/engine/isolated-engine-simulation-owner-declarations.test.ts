@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["client/app/app","client/core/Game","server/entities/AnimalSim","shared/entities/animalPose","server/sim","client/world/interact/Interactables"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/app/app","client/core/Game","shared/entities/AnimalSim","shared/entities/animalPose","server/sim","client/world/interact/Interactables"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["client/app/app","client/core/Game","server/entities/AnimalSi
 
 test('simulation resources retain mutable storage and readonly owners',()=>{
  const consumer=resolve('src/engine/t4-isolated-engine-simulation-owner-declarations-consumer.ts');
- let source="import type {App} from './client/app/app';\nimport type {Game} from './client/core/Game';\nimport type {AnimalSim} from './server/entities/AnimalSim';\nimport type {AnimalPoseLaw} from './shared/entities/animalPose';\nimport type {SimHost} from './server/sim';\nimport type {Live} from './client/world/interact/Interactables';\nimport type {Vector3,Scene} from 'three';\ndeclare const app:App; app.params=new URLSearchParams(); app.params.set('key','value');\ndeclare const game:Game; export const root:Scene=game.rootScene; game.levelScope.child('unit');\ndeclare const animal:AnimalSim; declare const point:Vector3; animal.position=point; animal.lookWeight=0.5;\ndeclare const pose:AnimalPoseLaw; export const buffer:Float32Array<ArrayBuffer>=pose.pose; buffer[0]=1;\ndeclare const sim:SimHost; sim.entities.set('actor',animal);\ndeclare const live:Live; export const position:Vector3=live.position; position.set(0,1,0);\n";
+ let source="import type {App} from './client/app/app';\nimport type {Game} from './client/core/Game';\nimport type {AnimalSim} from './shared/entities/AnimalSim';\nimport type {AnimalPoseLaw} from './shared/entities/animalPose';\nimport type {SimHost} from './server/sim';\nimport type {Live} from './client/world/interact/Interactables';\nimport type {Vector3,Scene} from 'three';\ndeclare const app:App; app.params=new URLSearchParams(); app.params.set('key','value');\ndeclare const game:Game; export const root:Scene=game.rootScene; game.levelScope.child('unit');\ndeclare const animal:AnimalSim; declare const point:Vector3; animal.position=point; animal.lookWeight=0.5;\ndeclare const pose:AnimalPoseLaw; export const buffer:Float32Array<ArrayBuffer>=pose.pose; buffer[0]=1;\ndeclare const sim:SimHost; sim.entities.set('actor',animal);\ndeclare const live:Live; export const position:Vector3=live.position; position.set(0,1,0);\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

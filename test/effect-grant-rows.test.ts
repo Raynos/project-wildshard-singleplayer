@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Events } from '../src/engine/shared/events/events';
-import { PlayerHealth } from '../src/engine/server/combat/health';
+import { PlayerHealth } from '../src/engine/shared/combat/health';
 import { EffectService, selectEffectGrants } from '../src/engine/client/combat/effects/EffectService';
 import { isOwnedId, type OwnedId } from '../src/game/shared/loot/Owned';
 import { bindFixtureEffects } from './fixtures/item-effects';

@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import { StalkerBrain, type CirclingPackPhase, type CirclingPackPrey, type CirclingPackSpec, type CirclingPackContext, type CirclingPackPorts } from '../../shared/ai/stalker';
 
 /** Historical circling-pack phase names. */

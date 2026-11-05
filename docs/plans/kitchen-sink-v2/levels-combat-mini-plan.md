@@ -171,9 +171,9 @@ engine says `grade`, never "level" (its word for a map).
 |---|---|---|---|
 | LV1 | Progression rows: range, attributes, growth, cap, XP, kill and gap tables, ranks, dice, death | `format/progression.ts` (new), `shardSchema.ts` | 4 |
 | LV2 | Pure formula module; golden tests (the three examples, the gap table) | `game/combat/levelMath.ts` (new) | 4 |
-| LV3 | Engine: `DamageRequest.damageType`, `.outcome`; a miss emits `damage.missed`, applies nothing; regen an attribute (default 4); `combat` rng stream | `engine/server/combat/pipeline.ts`, `health.ts`, `engine/client/events/maps.ts`, `game/shared/rng.merge.d.ts` | 4 |
+| LV3 | Engine: `DamageRequest.damageType`, `.outcome`; a miss emits `damage.missed`, applies nothing; regen an attribute (default 4); `combat` rng stream | `engine/shared/combat/pipeline.ts`, `health.ts`, `engine/client/events/maps.ts`, `game/shared/rng.merge.d.ts` | 4 |
 | LV4 | Stat stage: one `damage.modify` answer (order 30): roll, S, G, A, Q, streak guard; levelled shards only (needs W6) | `game/combat/statStage.ts` (new), `game/client/session/play.ts` | 5 |
-| LV5 | Actor stats: player max HP via `setMaxHealth`; grade and the eight on each `AttributeSet`; strike `damage` → multiplier when levelled; boss phases as attribute effects (needs W11) | `game/combat/actorStats.ts` (new), `format/creatures.ts`, `bossProfiles.ts`, `eliteFeature.ts`, `engine/server/entities/AnimalSim.ts` | 8 |
+| LV5 | Actor stats: player max HP via `setMaxHealth`; grade and the eight on each `AttributeSet`; strike `damage` → multiplier when levelled; boss phases as attribute effects (needs W11) | `game/combat/actorStats.ts` (new), `format/creatures.ts`, `bossProfiles.ts`, `eliteFeature.ts`, `engine/shared/entities/AnimalSim.ts` | 8 |
 | LV6 | Experience host: XP on `actor.died`, level-up with automatic growth, death XP loss, killer heal and reset, save keyed by shard (road = flat), achievements | `game/progression/experience.ts` (new), `game/shared/saves.ts`, `Progress.ts` | 6 |
 | LV7 | `scaling`, `tier`, `requirement`, `damageType`, `pierce` on W6's weapon and ammo rows (×0.6, no crit under requirement); parry stays W6 | `format/weaponProfiles.ts`, `heldEquipment.ts`, `engine/shared/combat/ammo.ts` | 4 |
 | LV8 | `pays: false` zones (no XP, no coins, with LE); quest `minLevel`; unlock-only rewards | `format/quests.ts`, `questSteps.ts`, `game/server/loot/Bounty.ts` | 4 |
@@ -226,7 +226,7 @@ whoosh, no stop; PARRY gold ring. Hits wordless: glance grey, clean white, crit 
 
 | Row | What | Files | h |
 |---|---|---|---|
-| LVF1 | Slip: push, no stun | `engine/server/entities/AnimalSim.ts` | 3 |
+| LVF1 | Slip: push, no stun | `engine/shared/entities/AnimalSim.ts` | 3 |
 | LVF2 | Deflect: clang path, recoil | `engine/client/combat/view/SweptMelee.ts` | 3 |
 | LVF3 | Words and colours (+LVH3) | `engine/client/ui/Combat.ts` | 2 |
 | LVF4 | Clang, whoosh, ring, thud, crack | `public/assets/sfx/best/` | 3 |

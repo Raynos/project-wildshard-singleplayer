@@ -1,5 +1,5 @@
 import {Vector3} from 'three';
-import type {AnimalSim} from '../../src/engine/server/entities/AnimalSim';
+import type {AnimalSim} from '../../src/engine/shared/entities/AnimalSim';
 import type {Rng} from '../../src/engine/shared/core/rng';
 import type {FlockThreat} from '../../src/engine/shared/ai/flock';
 import type {ReturnProgram} from '../../src/game/shared/population/returnProgram';

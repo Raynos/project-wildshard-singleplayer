@@ -1,6 +1,6 @@
 import type { AppState, Phase } from '../app/systems';
 import type { Vector3 } from 'three';
-import type { Actor, DamageDealt, DamageRequest, DeathCause } from '../../server/combat/pipeline';
+import type { Actor, DamageDealt, DamageRequest, DeathCause } from '../../shared/combat/pipeline';
 
 export interface FaultEvent { source: string; message: string; phase?: Phase; limit?: number; error?: unknown }
 export interface EventMap {

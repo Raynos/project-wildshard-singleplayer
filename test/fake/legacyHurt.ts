@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import { vi } from 'vitest';
 import { Events } from '../../src/engine/shared/events/events';
 import { Scope } from '../../src/engine/shared/app/scope';
-import { CombatPipeline, type DeathCause } from '../../src/engine/server/combat/pipeline';
-import { PlayerHealth } from '../../src/engine/server/combat/health';
+import { CombatPipeline, type DeathCause } from '../../src/engine/shared/combat/pipeline';
+import { PlayerHealth } from '../../src/engine/shared/combat/health';
 import { PlayerHurt } from '../../src/engine/client/ui/playerHurt';
 import { FakeGame } from '@wildshard/engine/test/FakeGame';
 

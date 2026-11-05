@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import type { AnimalSim } from '../../../src/engine/shared/entities/AnimalSim';
 /** Body allocation, line steering and projectile flight have separate real owners. These are the roster's own clocks. */
 export interface GhostRosterMember<A extends AnimalSim> {
   readonly a: A; readonly quiet: boolean;

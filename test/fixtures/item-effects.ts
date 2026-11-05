@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { app } from '../../src/engine/client/app/runtime';
 import type { Scope } from '../../src/engine/shared/app/scope';
 import type { EffectService } from '../../src/engine/client/combat/effects/EffectService';
-import type { PlayerHealth } from '../../src/engine/server/combat/health';
+import type { PlayerHealth } from '../../src/engine/shared/combat/health';
 import type { EffectTarget } from '../../src/engine/client/combat/effects/types';
 import type { ShardContext } from '../../src/game/client/plugin/context';
 import type { Owned } from '../../src/game/shared/loot/Owned';

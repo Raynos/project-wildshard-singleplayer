@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import * as v from 'valibot';
-import type { AnimalSim } from '../../server/entities/AnimalSim';
+import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../../server/sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from './strikes';

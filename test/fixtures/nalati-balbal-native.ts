@@ -3,7 +3,7 @@ import {Vector3} from 'three';
 import type {SimHost} from '../../src/engine/server/sim';
 import type {HuntBody} from '../../src/engine/server/ai/hunt';
 import type {NativeEliteBindings} from '../../src/engine/server/ai/eliteRoster';
-import type {AnimalSim} from '../../src/engine/server/entities/AnimalSim';
+import type {AnimalSim} from '../../src/engine/shared/entities/AnimalSim';
 import {onSimHostRestored} from '../../src/engine/shared/sim/snapshot';
 import {ObservationColumnsV2} from '../../src/engine/shared/script/observationColumnsV2';
 import {parseActorProjectionV2} from '@wildshard/format/actorProjectionV2';

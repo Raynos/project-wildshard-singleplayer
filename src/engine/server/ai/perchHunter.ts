@@ -1,4 +1,4 @@
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { SimValue } from '../sim';
 import { GuardianPolicy, type PerchHunterSpec as SharedSpec, type PerchHunterPorts as SharedPorts } from './guardianPolicy';
 

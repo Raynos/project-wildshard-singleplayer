@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { AnimalSim, AnimalSimSpec } from '../entities/AnimalSim';
+import type { AnimalSim, AnimalSimSpec } from '../../shared/entities/AnimalSim';
 import type { SimHost, SimSpawn, SimStrike, SimValue } from '../sim';
 import { castRay } from '../../shared/physics/query';
 

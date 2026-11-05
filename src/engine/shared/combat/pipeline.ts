@@ -1,8 +1,8 @@
 import type { Vector3 } from 'three';
-import type { Scope } from '../../shared/app/scope';
-import type { Events } from '../../shared/events/events';
-import type { Physics } from '../../shared/physics/Physics';
-import { lineOfSight } from '../../shared/physics/query';
+import type { Scope } from '../app/scope';
+import type { Events } from '../events/events';
+import type { Physics } from '../physics/Physics';
+import { lineOfSight } from '../physics/query';
 import type { AttributeSet } from '../../client/combat/effects/types';
 import type { TargetAnimal } from '../../client/combat/types';
 

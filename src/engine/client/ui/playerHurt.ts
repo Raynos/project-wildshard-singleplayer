@@ -1,8 +1,8 @@
 import { Vector3 } from 'three';
 import type { Events } from '../../shared/events/events';
 import type { Scope } from '../../shared/app/scope';
-import type { CombatPipeline, CombatTag, DeathCause } from '../../server/combat/pipeline';
-import type { PlayerHealth } from '../../server/combat/health';
+import type { CombatPipeline, CombatTag, DeathCause } from '../../shared/combat/pipeline';
+import type { PlayerHealth } from '../../shared/combat/health';
 import { hardFallHit } from '../../shared/player/fall';
 import { hitShoveSpeed } from '../../shared/player/shove';
 

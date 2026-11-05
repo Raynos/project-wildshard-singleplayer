@@ -1,7 +1,7 @@
 import {beforeAll,expect,expectTypeOf,test,vi} from 'vitest';
 import {Vector3} from 'three';
 import {Scope} from '../src/engine/shared/app/scope';
-import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {AnimalSim} from '../src/engine/shared/entities/AnimalSim';
 import type {Animal} from '../src/engine/client/entities/AnimalView';
 import {Rng} from '../src/engine/shared/core/rng';
 import {StalkerBrain,type CirclingPackContext,type CirclingPackPorts} from '../src/engine/shared/ai/stalker';

@@ -16,7 +16,7 @@ import { DirectedLaw } from '../src/game/server/population/directedLaw';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
-import type { DamageRequest } from '../src/engine/server/combat/pipeline';
+import type { DamageRequest } from '../src/engine/shared/combat/pipeline';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { builtProduct } from './fixtures/builtProduct';
 import { createNativeProofResident } from './fixtures/headless-native';

@@ -1,4 +1,4 @@
-import type { DamageRequest } from './pipeline';
+import type { DamageRequest } from '../../shared/combat/pipeline';
 
 /** J105: a player earns a roll by dealing at least this share of what a body took... */
 export const MEANINGFUL_SHARE = 0.1;
