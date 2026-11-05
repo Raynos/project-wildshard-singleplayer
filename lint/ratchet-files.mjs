@@ -4,7 +4,7 @@ import { globSync, realpathSync, statSync } from 'node:fs';
 import { matchesGlob, resolve } from 'node:path';
 import { committedSourceFiles } from '../scripts/source-input-proof.mjs';
 
-const roots = ['src', 'scripts', 'test', 'vite', 'api', 'admin', 'drafts', 'lint', 'site'];
+const roots = ['src', 'scripts', 'test', 'vite', 'api', 'admin', 'drafts', 'lint'];
 const code = /\.[cm]?[jt]sx?$/u;
 
 /** Enumerate inside the requested tree, never through a parent's ignored directory.

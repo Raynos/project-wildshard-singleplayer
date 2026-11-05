@@ -4,7 +4,7 @@
  *   POST { email, build?, cell?, website? }  → { ok: true }    writes waitlist/<id>.json to Vercel Blob (private)
  *   GET  (x-review-password header)          → { entries: [...] }   every signup, for the admin site's Waitlist tab
  *
- * The POST is public: the site (`site/index.html`) calls it cross-origin, so CORS allows the site's origins only
+ * The POST is public: the site (the www.wildshard.io repo) calls it cross-origin, so CORS allows the site's origins only
  * (`wildshard.io` and `wildshard-site.vercel.app`, plus any in `WAITLIST_ORIGINS`, comma-separated). A claimed
  * cell is a wish, not a promise: any empty grid cell (not a shard's, not the centre). `trap` is a honeypot a person never
  * fills. A browser post from any other origin is refused (CORS only hides the answer; it doesn't stop the write), and

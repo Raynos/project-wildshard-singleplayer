@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-// The marketing site's facts (P1-W1, E506 RD14): every number and excerpt site/ shows about the game, read from the
+// The marketing site's facts (P1-W1, E506 RD14): every number and excerpt the site shows about the game, read from the
 // game's own sources and published as one JSON, so the site reads that file and nothing else of this repo.
-//   node scripts/site-facts.mjs                    writes site/facts.json (committed: the site builds from it alone)
-//   node scripts/site-facts.mjs --out <file>       writes <file> instead (`pnpm build` publishes dist/site-facts.json)
-//   node scripts/site-facts.mjs --check            exits 1 when site/facts.json differs from the sources
-//   --stale-warn <file>                            with --out: also warn (never fail) when <file> is stale
+//   node scripts/site-facts.mjs --out <file>       writes <file> (`pnpm build` writes dist/site-facts.json)
+// The site lives in project-wildshard/www.wildshard.io, which commits a copy as src/site/facts.json and refreshes it by
+// hand at a release (its docs/dev.md). Nothing here checks that copy.
 // Sources: the single-player grid (src/game/grid/singleplayer.json), the cell size and memory caps
 // (@wildshard/format/contentBounds), the road width (@wildshard/engine/core/config), the shard.json schema's path count
 // (@wildshard/format/shardSchema through scripts/docs/schema-reference.mjs) and an excerpt of the template's built
@@ -14,7 +13,6 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '..');
-export const SITE_FACTS = resolve(root, 'site/facts.json');
 const FORMAT = 'wildshard-site-facts/1';
 
 /** @param {unknown} v @param {string} what @returns {Record<string, unknown>} */
@@ -56,7 +54,7 @@ function shardfileExcerpt() {
   };
 }
 
-/** every fact, in the published shape (numbers stay numbers; site/tools/facts.ts words them) */
+/** every fact, in the published shape (numbers stay numbers; the site words them) */
 export async function siteFacts() {
   await import('./sim-node-loader.mjs');
   const { CHUNK_SIZE, MEMORY_GATES } = await import('@wildshard/format/contentBounds');
@@ -79,23 +77,12 @@ export const factsText = (facts) => `${JSON.stringify(facts, null, 2)}\n`;
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const args = process.argv.slice(2);
-  /** @param {string} flag */
-  const value = (flag) => { const i = args.indexOf(flag); return i === -1 ? undefined : args[i + 1]; };
-  const text = factsText(await siteFacts());
-  const out = resolve(value('--out') ?? SITE_FACTS);
-  const stale = (/** @type {string} */ file) => !existsSync(file) || readFileSync(file, 'utf8') !== text;
-  if (args.includes('--check')) {
-    if (stale(SITE_FACTS)) {
-      console.error('site-facts: site/facts.json is stale; run node scripts/site-facts.mjs and commit it');
-      process.exit(1);
-    }
-    console.info('site-facts: site/facts.json is current');
-  } else {
-    writeFileSync(out, text);
-    console.info(`site-facts: wrote ${out}`);
-    const warn = value('--stale-warn');
-    if (warn !== undefined && stale(resolve(warn))) {
-      console.warn(`site-facts: ${warn} is stale; run node scripts/site-facts.mjs and commit it (the site builds from it)`);
-    }
+  const file = args[args.indexOf('--out') + 1];
+  if (!args.includes('--out') || file === undefined) {
+    console.error('usage: node scripts/site-facts.mjs --out <file>');
+    process.exit(2);
   }
+  const out = resolve(file);
+  writeFileSync(out, factsText(await siteFacts()));
+  console.info(`site-facts: wrote ${out}`);
 }

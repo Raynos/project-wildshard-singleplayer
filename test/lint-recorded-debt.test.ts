@@ -79,7 +79,7 @@ test('the actual lint configuration applies source debt only to the primary sour
   writeFileSync(config,JSON.stringify({...readLintConfig(resolve('.oxlintrc.json')),
     jsPlugins:original.jsPlugins.map(file=>resolve(file)),options:{...original.options,typeAware:false}}));
   try {
-    for(const folder of ['src','src/game','drafts/src','admin/src','site/src']) {
+    for(const folder of ['src','src/game','drafts/src','admin/src']) {
       const file=resolve(root,folder,'clock.js');mkdirSync(dirname(file),{recursive:true});
       writeFileSync(file,'export const measured = performance.now();\n');
       const result=spawnSync(resolve('node_modules/.bin/oxlint'),['-c',config,'--threads=1',file],

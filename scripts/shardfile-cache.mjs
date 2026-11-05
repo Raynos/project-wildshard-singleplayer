@@ -26,8 +26,8 @@ export function readBuildKey(directory) {
 const ENTRY = /^[a-f0-9]{64}$/u;
 // Top-level entries no shardfile build reads (outputs, docs, native shells, side sites, local caches).
 const SKIP_TOP = new Set(['.git', '.github', '.githooks', '.claude', '.cache', '.review', '.vercel', '.native-build', '.tsc-layers',
-  'node_modules', 'tmp', 'out', 'dist', 'dist-native', 'dist-drafts', 'dist-site', 'dist-admin', 'coverage',
-  'art', 'progress', 'sources', 'docs', 'admin', 'site', 'drafts', 'ios', 'android', 'api', 'deploy', 'project', 'calibration']);
+  'node_modules', 'tmp', 'out', 'dist', 'dist-native', 'dist-drafts', 'dist-admin', 'coverage',
+  'art', 'progress', 'sources', 'docs', 'admin', 'drafts', 'ios', 'android', 'api', 'deploy', 'project', 'calibration']);
 const SKIP_ANYWHERE = new Set(['node_modules', '.git', '.wildshard', '.DS_Store']);
 // Outputs and derived docs inside included folders: products, legacy boot packs, the API surface and the scripts index (full `pnpm gen` only, so they differ by slot history).
 const SKIP_PATHS = new Set(['public/shardfiles', 'public/assets/packs', 'lint/api-surface.json', 'scripts/README.md']);
