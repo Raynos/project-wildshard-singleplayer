@@ -30,6 +30,11 @@ import { DODGE_COOLDOWN, DODGE_TIME, DODGE_DIST, dashToward, dodgeHeading, start
 import type { Physics } from '../../shared/physics/Physics';
 
 /** Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. */
+/** A step's controls, as a wire command before it has a `seq` (P1-E5.3-C6). */
+export type PlayerWireInput = Pick<NetCommand, 'steer' | 'yaw' | 'pitch' | 'buttons'>;
+/** Where a controls step goes when a server owns this body: `client/net/netPlayer.ts`. False: the step did not run. */
+export interface PlayerLink { readonly step: (input: PlayerWireInput) => boolean }
+
 export interface PlayerFrameQueries {
   heightAt: (x: number, z: number) => number;
   waterSurfaceAt: (x: number, z: number) => number | null;
@@ -215,6 +220,12 @@ export class Player {
   private dodgeQueued = false;
   /** Optional recording sink; called once per fixed step, before the command is applied. */
   recordCommand: ((command: PlayerCommand) => void) | null = null;
+  /** Where a controls step goes when a server owns this body (P1-E5.3-C6). Null: the step is taken here, and nothing reconciles. */
+  link: PlayerLink | null = null;
+  /** A board press waiting for the next command: with a link the server rules on it, so the step toggles it, on both sides. */
+  private boardPressed = false;
+  /** Inside `stepNet`: the step itself toggling the board. */
+  private stepping = false;
   /** the feet before the last fixed step: update() interpolates the camera between it and `position` */
   private readonly prevFeet = new THREE.Vector3();
   private readonly renderFeet = new THREE.Vector3();
@@ -308,6 +319,7 @@ export class Player {
   /** step on / off the hoverboard. Off: the board fades and gravity lands you; on: the spring lifts you to ride height. */
   setHover(on: boolean): void {
     if (on === this.hover) return;
+    if (this.link !== null && !this.stepping) { this.boardPressed = !this.boardPressed; return; }
     setBoard(this.motionState, this.motionWorld, on);
     if (on) { this.crouching = false; this.sprinting = false; }
     if (this.replaying) return;
@@ -481,21 +493,45 @@ export class Player {
     };
   }
 
+  /** The controls as a wire command. The page's move wins: where a context holds the keys, or a stick and keys clamp, the steer says what the step will do. */
+  private wireCommand(sampled: PlayerCommand): PlayerWireInput {
+    const raw = this.sampleSteer(), clamp = (value: number): number => Math.max(-1, Math.min(1, value));
+    const steer = clamp(raw.keyX + raw.stickX) === sampled.moveX && clamp(raw.keyY + raw.stickY) === sampled.moveY ? raw : { keyX: 0, keyY: 0, stickX: sampled.moveX, stickY: sampled.moveY };
+    const board = this.boardPressed;
+    this.boardPressed = false;
+    const buttons = (sampled.jump ? NET_BUTTONS.jump : 0) | (sampled.dodge ? NET_BUTTONS.dodge : 0) | (sampled.sprint ? NET_BUTTONS.sprint : 0) | (sampled.crouch ? NET_BUTTONS.crouch : 0)
+      | (sampled.dive ? NET_BUTTONS.dive : 0) | (sampled.surface ? NET_BUTTONS.surface : 0) | (board ? NET_BUTTONS.hover : 0);
+    return { steer, yaw: sampled.yaw, pitch: sampled.pitch, buttons };
+  }
+
+  /**
+   * One fixed step from the controls (P1-E5.3-C6): the one path the game runs. With no `link` (the page today) the step is
+   * taken here and nothing reconciles. With one, it goes to the wire and through the predictor, which steps it back here.
+   */
+  stepDevice(dt: number): void {
+    const input = this.wireCommand(this.sampleCommand()), { link } = this;
+    this.commandJumpUsed = false; this.commandDodgeUsed = false;
+    if (link === null) this.stepNet(dt, { ...input, seq: 0, viewTick: 0 }, false); else link.step(input);
+    const { jump, dodge } = this.commandUse();
+    if (jump) this.inputService?.consume('jump');
+    if (dodge) this.inputService?.consume('dodge');
+  }
+
   /**
    * One predicted step of a wire command (P1-E5.3-C4): the page's own step, on the quantised command the server will decode.
    * `replay` is that step's second run, which fires no moment. The view keeps the raw yaw and pitch, so a slow thumb is not
-   * rounded away. False when a ride or a traversal owned the motion: nothing to replay.
+   * rounded away, unless the step itself turned it. False when a ride or a traversal owned the motion: nothing to replay.
    */
   stepNet(dt: number, command: NetCommand, replay: boolean): boolean {
     const { buttons, steer } = command, held = (button: number): boolean => (buttons & button) !== 0, { yaw, pitch } = this;
-    this.replaying = replay;
+    this.replaying = replay; this.stepping = true;
     try {
       if (held(NET_BUTTONS.hover)) this.setHover(!this.hover);
       this.step(dt, { moveX: Math.max(-1, Math.min(1, steer.keyX + steer.stickX)), moveY: Math.max(-1, Math.min(1, steer.keyY + steer.stickY)), yaw: command.yaw, pitch: command.pitch,
         crouch: held(NET_BUTTONS.crouch), sprint: held(NET_BUTTONS.sprint), jump: held(NET_BUTTONS.jump), dodge: held(NET_BUTTONS.dodge), dive: held(NET_BUTTONS.dive), surface: held(NET_BUTTONS.surface),
         aim: this.sampleAimCommand() });
-    } finally { this.replaying = false; }
-    if (!replay) { this.yaw = yaw; this.pitch = pitch; }
+    } finally { this.replaying = false; this.stepping = false; }
+    if (!replay) { if (this.yaw === command.yaw) this.yaw = yaw; if (this.pitch === command.pitch) this.pitch = pitch; }
     return !this.lawless;
   }
 

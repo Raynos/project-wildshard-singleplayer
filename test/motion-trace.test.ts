@@ -151,7 +151,7 @@ async function run(frame: number): Promise<Trace> {
     while (acc >= FIXED_STEP && steps < MAX_FIXED_STEPS) {
       deck(tick); physics.step();
       if (phase === 'lock') target.position.set(Math.sin(tick * .003) * 2, 0, Math.cos(tick * .004) * 2);
-      player.setBodyEnabled(true); player.step(FIXED_STEP);
+      player.setBodyEnabled(true); player.stepDevice(FIXED_STEP);
       acc -= FIXED_STEP; steps++; tick++;
       count(player.hover ? 'board' : player.swimming ? 'swim' : player.sliding ? 'slide' : player.wading ? 'wade' : player.onPlatform ? 'platform' : player.dashing ? 'dash' : player.onGround ? 'ground' : 'air');
       if (traversing) count('traversal');

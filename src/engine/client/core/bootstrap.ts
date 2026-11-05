@@ -159,7 +159,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   game.onInput((dt) => { if (playing()) player.input(dt); }, 'engine.player.input');
   game.onFixed('pre', () => { for (const m of moving) m(); }, 'physics.movers');
   game.onFixed('step', () => { world.physics.step(); }, 'physics.step', true);
-  game.onFixed('post', (dt) => { const on = playing(); player.setBodyEnabled(on); if (on) player.step(dt); }, 'player.step', true);
+  game.onFixed('post', (dt) => { const on = playing(); player.setBodyEnabled(on); if (on) player.stepDevice(dt); }, 'player.step', true);
   game.onUpdate((dt) => {
     if (tour.active) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }
     else if (!world.freeCamera) player.update(dt, game.alpha);
