@@ -333,6 +333,23 @@ export const PLATFORM_LISTS=['lint/ratchet.json'];`);
   }finally{f.close();}
 });
 
+test('side edges compare net across a push, so only the published step cannot rise',()=>{
+  const f=fixture();try{
+    const edges=(count:number)=>JSON.stringify({files:{'src/game/client/a.ts':{'client → server':count}}});
+    f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
+    f.put('scripts/ratchet-approval.mjs','export function ratchetApprovalFailures(){return [];}');
+    f.put('scripts/check-platform-ratchets.mjs',`export {comparePlatformList} from '${pathToFileURL(resolve('scripts/check-platform-ratchets.mjs')).href}';
+export const PLATFORM_LISTS=['lint/engine-side-edges.json'];`);
+    f.put('lint/engine-side-edges.json',edges(2));const base=f.commit();
+    f.put('lint/engine-side-edges.json',edges(3));const raised=f.commit();
+    f.put('lint/engine-side-edges.json',edges(2));const back=f.commit();
+    const interim=f.run('guards',back,[],base);expect(interim.status,interim.stdout+interim.stderr).toBe(0);
+    f.put('lint/engine-side-edges.json',edges(3));const net=f.commit();
+    const bad=f.run('guards',net,[],base);expect(bad.status).toBe(1);expect(bad.stderr).toContain('rose 2 → 3');
+    const single=f.run('guards',raised,[],base);expect(single.status).toBe(1);expect(single.stderr).toContain('rose 2 → 3');
+  }finally{f.close();}
+});
+
 test('a later exact approval repairs a net candidate but cannot approve a larger final row',()=>{
   const f=fixture();try {
     f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
