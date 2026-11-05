@@ -5,10 +5,10 @@ import { PlayerHealth } from '../combat/health';
 import { FIXED_STEP } from '../../shared/core/fixedStep';
 import type { CharacterMotor, MotorOptions } from '../../shared/physics/CharacterMotor';
 import { floorBelow } from '../../shared/physics/query';
-import { addImpulse } from '../../shared/player/impulse';
+import { applyImpulse } from '../../shared/player/impulse';
 import { hardFallHit } from '../../shared/player/fall';
 import { hitShoveSpeed, shoveHop, startShove, type ShoveState } from '../../shared/player/shove';
-import { boardShoved, HOVER_HARD_LANDING, type BoardState } from '../../shared/player/board';
+import { HOVER_HARD_LANDING, type BoardState } from '../../shared/player/board';
 import { hoverSpeed } from '../../shared/player/hoverSpeed';
 import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
@@ -87,6 +87,8 @@ export class PlayerSim implements PlayerMotionState {
   readonly dodge: DodgeState = { cd: 0, t: 0 };
   /** Counts this player's teleports, for the wire: a client hears one even when no command is on its way (P1-E5.3-C2). Never saved. */
   resets = 0;
+  /** Something else owns the position (a cable's seat): the step leaves it alone, and the client takes no local step. */
+  carried = false;
   /** The motion step's read of the feet: the page's, and the next step reads it. Saved while it is not dry, firm ground. */
   readonly footing: MotionFooting = { water: null, depth: 0, wading: false, onPlatform: false, sliding: false };
   private readonly host: SimHost;
@@ -219,8 +221,7 @@ export class PlayerSim implements PlayerMotionState {
    * after it exactly as the client Player's `impulse` (player/impulse.ts). A borrowed player owns its impulse. */
   addImpulse(velocity: Readonly<Vector3>): void {
     this.refuseBorrowed('impulse');
-    addImpulse(this.impulse, velocity);
-    if (this.board.on) boardShoved(this.board, velocity.y); // an upward shove (an updraft) lifts the board off
+    applyImpulse(this, velocity, this.modeDriver !== null || this.carried || this.moveLocked);
   }
   /** Knock this player `speed` m/s away from (fromX, fromZ), exactly as the client Player's `shove`: the knockback
    * overrides the walk input and fades over SHOVE_TIME through the motor, and a grounded player hops off the ground. */
@@ -269,7 +270,7 @@ export class PlayerSim implements PlayerMotionState {
   }
   /** Nothing the client commands moves this player now: a traversal or carry has them (a boat, a cable, a grapple's pull), or
    *  a fall's fade. Its client takes no step and compares nothing until this ends; the client's own moves wait. */
-  get led(): boolean { return this.traversed || this.host.respawn.fading(this.id) || this.host.leading.some(leads => leads(this)); }
+  get led(): boolean { return this.traversed || this.carried || this.host.respawn.fading(this.id) || this.host.leading.some(leads => leads(this)); }
   /** The registry's view of this player: the mode driver slot and the motor state. */
   private modePlayer(): ModePlayer<SimPlayerDriver> {
     const read = (): SimPlayerDriver | null => this.modeDriver, write = (driver: SimPlayerDriver | null): void => { this.modeDriver = driver; };
@@ -280,6 +281,8 @@ export class PlayerSim implements PlayerMotionState {
   get mode(): ReturnType<PlayerModes['current']> { return this.modes.current(); }
   /** Water over the standing feet (SF34: a host with water, on foot, grounded, the feet more than 2 cm under). */
   get wading(): boolean { return this.footing.wading; }
+  /** A status effect holds this player still: the page's `effectMoveLocked`. */
+  get moveLocked(): boolean { return (this.health.attributes['moveLocked'] ?? 0) > 0; }
   /** A saved read of the feet, or for a save older than it, what the step would have left at this pose. */
   restoreFooting(saved: MotionFooting | undefined): void {
     if (saved !== undefined) { Object.assign(this.footing, saved); return; }
@@ -303,7 +306,7 @@ export class PlayerSim implements PlayerMotionState {
       floor: (x, z, fromY, maxDrop) => floorBelow(this.host.physics, x, z, fromY, maxDrop, this.motor.collider),
       bob: (x, z) => this.host.water?.bob?.(x, z) ?? pondBob(this.host.clock.now),
       foot: {
-        speed: (wadeT) => this.walking.speed * wadeScale(wadeT) * this.moveScale,
+        speed: (wadeT) => this.walking.speed * wadeScale(wadeT) * this.moveScale * (this.health.attributes['moveSpeedMul'] ?? 1),
         get crouching() { return walking().crouching; },
         coyoteMs: COYOTE_MS,
       },
@@ -357,6 +360,7 @@ export class PlayerSim implements PlayerMotionState {
     this.traversed = traversed;
     if (delegated) driver?.step(FIXED_STEP, host);
     else if (traversed) this.impulse.set(0, 0, 0);
+    else if (this.carried || this.moveLocked) { this.impulse.set(0, 0, 0); this.velocity.set(0, 0, 0); this.fall.grounded = false; }
     else if (!this.still) stepPlayerMotion(this, command, this.world, FIXED_STEP);
     if (command?.attack !== undefined) host.startStrike(this.id, command.attack.targetId);
     if (observe !== undefined) {

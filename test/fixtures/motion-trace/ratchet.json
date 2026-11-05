@@ -4,11 +4,7 @@
   "A8.dodge-at-a-target": 69,
   "A8.dodge-round-a-target": 79,
   "A10.board-limit": 162,
-  "A10.carried": 100,
-  "A10.effect-locked": 100,
-  "A10.effect-slow": 99,
   "A10.floor-function": 91,
-  "A11.impulse-while-locked": 85,
   "A14.sea-swell": 251,
   "A17.reset-mid-air": 49,
   "A17.reset-mid-run": 70

@@ -288,10 +288,8 @@ export class HostSide implements MotionEvents {
   dashTo(x: number, z: number, stopAt: number, time: number): void { this.player.dashTo(x, z, stopAt, time); }
   reset(x: number, y: number, z: number, yaw: number): void { this.player.resetPose({ x, y, z }, yaw); }
   moveScale(value: number): void { this.player.moveScale = value; }
-  /** A10: the host reads no effect channel, so nothing arrives yet. */
-  effect(): void { /* A10 */ }
-  /** A10: the host has no `carried` yet; its source is the cable seat. */
-  carried(): void { /* A10 */ }
+  effect(moveScale: number, locked: boolean): void { Object.assign(this.player.health.attributes, { moveSpeedMul: moveScale, moveLocked: locked ? 1 : 0 }); }
+  carried(on: boolean): void { this.player.carried = on; }
   /** A10: the host's board has no limit yet; its source is the grid's rules. */
   boardLimit(): void { /* A10 */ }
   /** A8: the host has no perk scale yet; its source is the health attribute. */

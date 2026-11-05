@@ -3,7 +3,7 @@ import { isDev } from '../core/devMode';
 import { walkingSpeed } from '../../shared/player/walk';
 import { pondBob } from '../../shared/player/swim';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
-import { boardShoved, HOVER_HARD_LANDING } from '../../shared/player/board';
+import { HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
 import { leaveSwim, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
@@ -23,7 +23,7 @@ import { targetRadius } from '../../shared/combat/lungeTarget';
 import { addLockOffset } from './LockOnTarget';
 import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE } from '../../shared/physics/CharacterMotor';
 import { floorBelow } from '../../shared/physics/query';
-import { addImpulse } from '../../shared/player/impulse';
+import { applyImpulse } from '../../shared/player/impulse';
 import { shoveHop, startShove, type ShoveState } from '../../shared/player/shove';
 import { COYOTE_MS } from '../../shared/player/jump';
 import { DODGE_COOLDOWN, DODGE_TIME, DODGE_DIST, dashToward, dodgeHeading, startDash, startDodge, type DashState, type DodgeState } from '../../shared/player/dash';
@@ -410,10 +410,7 @@ export class Player {
   }
   /** Add transient world velocity in m/s independently of steering; every displacement uses the motor. */
   impulse(worldVelocityMps: THREE.Vector3): void {
-    if (![worldVelocityMps.x, worldVelocityMps.y, worldVelocityMps.z].every(Number.isFinite)) throw new Error('Player impulse must be finite');
-    if (this.ride !== null || this.carried || this.effectMoveLocked || this.swimming) return;
-    addImpulse(this.impulseVelocity, worldVelocityMps);
-    if (worldVelocityMps.y > 0) { if (this.hover) boardShoved(this, worldVelocityMps.y); else this.onGround = false; }
+    applyImpulse(this.motionState, worldVelocityMps, this.ride !== null || this.carried || this.effectMoveLocked);
   }
 
   /** A creature hit you from (fromX, fromZ): knocked `speed` m/s away from it, fading over SHOVE_TIME (≈ a step at 6 m/s). */
