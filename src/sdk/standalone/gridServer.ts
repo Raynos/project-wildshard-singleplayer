@@ -44,6 +44,8 @@ const ROAD_HALF_SIZE = 2000, ROAD_SPEED = 8;
 const RIM = 16;
 /** A cell wall's thickness and half its height. */
 const WALL = 0.5, WALL_HEIGHT = 30;
+/** How far out from a cell's edge its wall stands. */
+const WALL_OFF = 2;
 const ROAD: SimLevel = { version: SIM_API_VERSION, id: 'grid-road', seed: 1, ground: { size: ROAD_HALF_SIZE * 2, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: ROAD_SPEED }, entities: [], quests: [], weapon: HOST_PROBE };
 
 /** One world the worker has open: its host, and how it takes a tick and reports what the tick granted. */
@@ -85,14 +87,15 @@ function addDeck(host: SimHost, x: number, z: number, hx: number, hz: number): v
   withOwner(host.scope, () => { world.createCollider(R.ColliderDesc.heightfield(1, 1, new Float32Array(4), { x: hx * 2, y: 1, z: hz * 2 }).setTranslation(x, 0, z).setCollisionGroups(groups('WORLD'))); });
 }
 /**
- * A wall around every cell in the road's own world, as the page's readiness walls are while a cell loads. A player stops at a cell's
- * edge until its world is ready and the crossing takes them in, which happens 6 m short of here; the road's flat deck never runs on
- * under a cell's own hills, where a late hand-off would set them down inside one.
+ * A wall around every cell in the road's own world, as the page's readiness walls are while a cell loads. A player stops just short of
+ * a cell until its world is ready and the crossing takes them in, 6 m out at most; the road's flat deck never runs on under a cell's own
+ * hills, where a late hand-off would set them down inside one. A cell's terrain can end in a bank above road level at its very edge,
+ * and a capsule set down touching that bank stays stuck in it, so the wall stands clear of it.
  */
 function addCellWalls(road: SimHost, cells: readonly GridCell[]): void {
-  const { R, world } = road.physics, long = CHUNK_HALF + WALL / 2;
+  const { R, world } = road.physics, reach = CHUNK_HALF + WALL_OFF + WALL / 2, long = reach + WALL / 2;
   withOwner(road.scope, () => {
-    for (const { origin } of cells) for (const [x, z, hx, hz] of [[CHUNK_HALF + WALL / 2, 0, WALL / 2, long], [-CHUNK_HALF - WALL / 2, 0, WALL / 2, long], [0, CHUNK_HALF + WALL / 2, long, WALL / 2], [0, -CHUNK_HALF - WALL / 2, long, WALL / 2]] as const)
+    for (const { origin } of cells) for (const [x, z, hx, hz] of [[reach, 0, WALL / 2, long], [-reach, 0, WALL / 2, long], [0, reach, long, WALL / 2], [0, -reach, long, WALL / 2]] as const)
       world.createCollider(R.ColliderDesc.cuboid(hx, WALL_HEIGHT, hz).setTranslation(origin.x + x, WALL_HEIGHT, origin.z + z).setCollisionGroups(groups('WORLD')));
   });
 }

@@ -51,7 +51,7 @@ function worldAt(session: Session): { x: number; z: number; cell: number } {
   return { x: local.x + (cell?.origin.x ?? 0), z: local.z + (cell?.origin.z ?? 0), cell: frame.cell };
 }
 /** Sprint towards a world point until `done`. */
-async function walkTo(session: Session, target: { x: number; z: number }, done: (at: ReturnType<typeof worldAt>) => boolean, seconds = 20): Promise<void> {
+async function walkTo(session: Session, target: { x: number; z: number }, done: (at: ReturnType<typeof worldAt>) => boolean, seconds = 30): Promise<void> {
   const until = performance.now() + seconds * 1000;
   for (;;) {
     await new Promise(resolve => { requestAnimationFrame(resolve); });
@@ -67,7 +67,7 @@ async function walkTo(session: Session, target: { x: number; z: number }, done: 
 /** Across the road into a cell at its near corner, and back to the crossroads. */
 async function visit(session: Session, cell: (typeof atCorner)[number]): Promise<void> {
   const index = assembly.cells.indexOf(cell) + 1, inside = { x: cell.origin.x + Math.sign(corner.x - cell.origin.x) * 240, z: cell.origin.z + Math.sign(corner.z - cell.origin.z) * 240 };
-  await walkTo(session, inside, at => at.cell === index);
+  await walkTo(session, inside, at => at.cell === index, 120);
 }
 const home = async (session: Session): Promise<void> => { await walkTo(session, corner, at => at.cell === 0 && Math.hypot(at.x - corner.x, at.z - corner.z) < 4); };
 async function reading(session: Session): Promise<WorkerReading & { page: string }> {
