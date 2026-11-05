@@ -17,7 +17,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { bindNativeLoadout, createNativeLoadout, HOST_PROBE } from '../src/game/plugin/simulation';
 import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
-import { NativeHeldAmmunition } from './fixtures/native-hosts/loadout/nativeAmmunition';
+import { NativeHeldAmmunition } from '@wildshard/game/loadout/nativeAmmunition';
 import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';

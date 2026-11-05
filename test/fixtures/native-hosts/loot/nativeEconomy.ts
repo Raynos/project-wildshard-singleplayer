@@ -15,8 +15,8 @@ import { readLootTables } from '../../../../src/game/loot/tableRows';
 import { declaredLootEconomy } from '../../../../src/game/shard/declaredRows';
 import { createHeadlessPromptPicker, type HeadlessPrompt } from '../../../../src/game/quest/interactionRows';
 import { nativeQuestInputs } from '../../../../src/game/quest/nativeInputs';
-import type { MixedPopulationBody } from '../population/mixedRoster';
-import { nativeQuestPromptRoster } from '../quest/nativeComposition';
+import type { MixedPopulationBody } from '@wildshard/game/population/mixedRoster';
+import { nativeQuestPromptRoster } from '@wildshard/game/quest/nativeComposition';
 
 const integer = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 const counts = v.pipe(v.record(v.string(), integer), v.check(rows => Object.keys(rows).length <= 64));

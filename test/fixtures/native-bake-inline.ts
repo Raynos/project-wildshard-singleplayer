@@ -1,4 +1,4 @@
-import type {NativeGroundRecord,NativeCollisionBake} from './native-hosts/population/nativeBake';
+import type {NativeGroundRecord,NativeCollisionBake} from '@wildshard/game/population/nativeBake';
 
 /** Independent pre-B6 inline decoder, held only by the historical native oracle. */
 /** Decode an owned copy of one native base64 buffer; typed views never share

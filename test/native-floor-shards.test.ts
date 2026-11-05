@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nativeGroundRecordSchema } from '../src/format/nativePhysics';
-import { nativeBakeGround } from './fixtures/native-hosts/population/nativeBake';
+import { nativeBakeGround } from '@wildshard/game/population/nativeBake';
 import { nativeBakeFloats,originalNativeGround } from './fixtures/native-bake-inline';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 

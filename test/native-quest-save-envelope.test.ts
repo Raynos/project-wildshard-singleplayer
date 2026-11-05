@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { createSimHost, type SimValue } from '../src/engine/sim';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { prepareNativeQuestEntry } from './fixtures/native-hosts/quest/nativeEntry';
+import { prepareNativeQuestEntry } from '@wildshard/game/quest/nativeEntry';
 import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
 import { PINE as pine } from './fixtures/pine-program';
 import driftwood from './fixtures/driftwood-product-source';

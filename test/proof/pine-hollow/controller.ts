@@ -6,7 +6,7 @@ import type {SimHost} from '../../../src/engine/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {HeadlessRuntimePlan} from '../../../src/sdk/headlessRuntime';
 import {parseNavmesh,type Navmesh} from '../../../src/engine/physics/navmesh';
-import {nativeGroundBossObservation} from '../../fixtures/native-hosts/boss/native';
+import {nativeGroundBossObservation} from '@wildshard/game/boss/native';
 import {PINE_ACT,PINE_INTERACT,QUEST_STEP,pineSpots,type PineSpots} from '../../../src/shards/pine-hollow/generators/questPrompts';
 import * as LAYOUT from '../../../src/shards/pine-hollow/generators/layout';
 import leadJson from '../../../src/shards/pine-hollow/data/questLead.json' with {type:'json'};

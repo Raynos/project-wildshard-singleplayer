@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import { createNativeBakeReader } from './fixtures/native-hosts/population/nativeBake';
+import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { readNamedBlob } from '../src/sdk/blobs';
 import { pinePhysics, pinePhysicsSources } from '../src/shards/pine-hollow/generators/physics';
 

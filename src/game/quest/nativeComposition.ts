@@ -1,8 +1,8 @@
 import { isJsonData } from '@wildshard/format/json';
 import { parseNativeQuestComposition, type NativeQuestCompositionRows } from '@wildshard/format/nativeQuestComposition';
-import { nativeQuestChannels } from '../../../../src/game/quest/nativeInputs';
+import { nativeQuestChannels } from './nativeInputs';
 import { prepareNativeQuestEntry } from './nativeEntry';
-import { nativeStageLane, type readDirectorProduct } from '../../../../src/game/plugin/director';
+import { nativeStageLane, type readDirectorProduct } from '../plugin/director';
 import { mixedPopulation } from '../population/mixedRoster';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
@@ -12,22 +12,22 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { NpcDialogueRow } from '@wildshard/format/npcs';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
-import { QuestRewardController, installNativeQuestProps, createReadingRoster, bindQuestDeathEffects, type QuestReadingRows } from '../../../../src/game/plugin/quests';
-import { nativeMeleeItem, readNativeRangedItem } from '../../../../src/game/plugin/nativeItems';
+import { QuestRewardController, installNativeQuestProps, createReadingRoster, bindQuestDeathEffects, type QuestReadingRows } from '../plugin/quests';
+import { nativeMeleeItem, readNativeRangedItem } from '../plugin/nativeItems';
 import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/nativeAmmunition';
-import { nativeInventorySchema, type NativeInventory } from '../../../../src/game/inventoryLaw';
+import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
 import { cableModes } from '@wildshard/engine/player/modes';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
-import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '../../../../src/game/quest/interactionRows';
-import { ContractBoard, CONTRACT_ACTION } from '../../../../src/game/quest/contractBoard';
-import { contractKill } from '../../../../src/game/quest/contracts';
-import { Exchange } from '../../../../src/game/loot/exchange';
-import { QuestStepRunner } from '../../../../src/game/quest/steps';
-import { commitQuestEffects } from '../../../../src/game/quest/effects';
-import { questBenchPose } from '../../../../src/game/quest/storyLaw';
+import { bindHeadlessPrompts, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from './interactionRows';
+import { ContractBoard, CONTRACT_ACTION } from './contractBoard';
+import { contractKill } from './contracts';
+import { Exchange } from '../loot/exchange';
+import { QuestStepRunner } from './steps';
+import { commitQuestEffects } from './effects';
+import { questBenchPose } from './storyLaw';
 import { installNativeChapterDirector } from './nativeChapter';
 import { takeNativeBossReward } from '../boss/native';
-import { ReturnProgram } from '../../../../src/game/population/returnProgram';
+import { ReturnProgram } from '../population/returnProgram';
 
 const promptLoans = new WeakMap<SimHost, Map<string, readonly HeadlessPrompt[]>>();
 /** Borrow the actual bound roster, including unhosted prompts and live reach. */
@@ -41,7 +41,7 @@ const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: 
 const Row = v.strictObject({ id: v.string(), kind: v.string(), ...xyz, yaw: finite, prompt: v.optional(v.strictObject(xyz)),
   collider: v.optional(v.strictObject({ x: finite, z: finite, hw: finite, hd: finite, rot: finite, yTop: finite, yBottom: finite })) });
 const Prompt = v.strictObject({ label: v.string(), ...xyz, radius: finite });
-const Spots = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt, sword: Prompt,
+const Spots: v.GenericSchema<unknown, NativeQuestSpotRows> = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt, sword: Prompt,
   reward: v.strictObject({ ...xyz, yaw: finite, pitch: finite, phase: finite }), promptRegistrations: v.unknown(),
   zipline: v.strictObject({ top: v.strictObject(xyz), bottom: v.strictObject(xyz), sag: finite, prompt: v.strictObject({ ...xyz, radius: finite }) }) });
 const Fast = v.strictObject({ from: finite, span: finite, t: finite, dur: finite, to: finite });
@@ -61,7 +61,17 @@ interface NativeQuestPlaces {
   readonly cable: { readonly top: Point; readonly bottom: Point; readonly sag?: number; readonly prompt: QuestPrompt };
   readonly promptRegistrations?: readonly PromptRegistration[];
 }
-export type NativeQuestSpots = Omit<v.InferOutput<typeof Spots>, 'promptRegistrations'> & NativeQuestPlaces;
+interface NativePoint { x: number; y: number; z: number }
+interface NativeSpotPrompt extends NativePoint { label: string; radius: number }
+/** The admitted spot file, spelled out for the declaration boundary. */
+interface NativeQuestSpotRows {
+  version: 1; talk: NativeSpotPrompt; sword: NativeSpotPrompt; promptRegistrations: unknown;
+  rows: (NativePoint & { id: string; kind: string; yaw: number; prompt?: NativePoint | undefined;
+    collider?: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number } | undefined })[];
+  reward: NativePoint & { yaw: number; pitch: number; phase: number };
+  zipline: { top: NativePoint; bottom: NativePoint; sag: number; prompt: NativePoint & { radius: number } };
+}
+export type NativeQuestSpots = Omit<NativeQuestSpotRows, 'promptRegistrations'> & NativeQuestPlaces;
 /** Existing authored world placements, with one borrowed cable view for the shared frame. */
 export function readNativeQuestSpots(input: unknown): NativeQuestSpots {
   const spots = v.parse(Spots, input);
@@ -84,7 +94,7 @@ export interface NativeQuestCompositionInput {
 export function installNativeQuestComposition(host: SimHost, ports: NativeQuestCompositionInput): {
   readonly quests: ReturnType<ReturnType<typeof prepareNativeQuestEntry>['install']>['quests'];
   readonly pack: NativeInventory<string>; readonly cables: ReturnType<typeof cableModes>;
-  readonly lead: v.InferOutput<typeof LeadSaved> | null; readonly board: ContractBoard | null; readonly trader: Exchange | null;
+  readonly lead: NativeLeadSaved | null; readonly board: ContractBoard | null; readonly trader: Exchange | null;
   readonly riding: () => boolean; readonly talking: () => boolean;
   readonly ownsFinish: (skin: string) => boolean; readonly ownsBoardFinish: () => boolean; readonly takePickup: () => boolean;
 } {
@@ -325,7 +335,8 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
 
 const LEAD_MODES = ['none', 'stare', 'trot', 'gone'] as const;
 /** The guide's saved walk: the same {i, mode, t} bytes as Pine's questSaved envelope `lead` (nativeStory.ts LeadSaved). */
-const LeadSaved = v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(LEAD_MODES), t: v.pipe(finite, v.minValue(0)) });
+interface NativeLeadSaved { [field: string]: SimValue; i: number; mode: (typeof LEAD_MODES)[number]; t: number }
+const LeadSaved: v.GenericSchema<unknown, NativeLeadSaved> = v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0)), mode: v.picklist(LEAD_MODES), t: v.pipe(finite, v.minValue(0)) });
 
 /**
  * The native composition's lead facet (G565 QC / QB): the guide's walk continuation. Its gate, its stare / trot / gone
@@ -336,7 +347,7 @@ const LeadSaved = v.strictObject({ i: v.pipe(finite, v.integer(), v.minValue(0))
  */
 function prepareNativeQuestLead(host: SimHost, rows: { readonly program: unknown; readonly path: readonly (readonly [number, number])[]; readonly step: string; readonly target: string }): {
   readonly state: { i: number; mode: (typeof LEAD_MODES)[number]; t: number };
-  snapshot: () => v.InferOutput<typeof LeadSaved>; prepareRestore: (input: unknown) => () => void; step: (dt: number, chapterId: string | undefined) => boolean;
+  snapshot: () => NativeLeadSaved; prepareRestore: (input: unknown) => () => void; step: (dt: number, chapterId: string | undefined) => boolean;
 } {
   const state: { i: number; mode: (typeof LEAD_MODES)[number]; t: number } = { i: 0, mode: 'none', t: 0 }, program = ReturnProgram.native(host, rows.program);
   const input = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, leadStep: 0, night: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };

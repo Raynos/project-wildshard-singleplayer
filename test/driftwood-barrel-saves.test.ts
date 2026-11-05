@@ -11,7 +11,7 @@ import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { parseDecisionScripts } from '../src/format/decisionScripts';
 import { declaredBodyRegistries, DeclaredBodyOpsSchema } from '../src/format/bodySlots';
 import { NativeQuestProps } from '../src/game/quest/nativeProps';
-import { installNativeBodyScripts } from './fixtures/native-hosts/quest/nativeBodyScripts';
+import { installNativeBodyScripts } from '@wildshard/game/quest/nativeBodyScripts';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { Bodies } from '../src/engine/physics/bodies';

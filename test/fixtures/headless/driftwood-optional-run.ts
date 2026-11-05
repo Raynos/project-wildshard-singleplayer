@@ -14,7 +14,7 @@ import {installWalkRopeBodies} from './ropeBodies';
 import {installNativeWalkBounds} from './nativeBounds';
 import {prepareHeadlessRuntime} from '../../proof/driftwood-isle/worker';
 import {DRIFTWOOD_SPOTS} from '../../../src/shards/driftwood-isle/generators/spots';
-import {readNativeQuestSpots} from '../native-hosts/quest/nativeComposition';
+import {readNativeQuestSpots} from '@wildshard/game/quest/nativeComposition';
 import {eyeReaches} from '../../../src/game/quest/interactionRows';
 import {REEF_TREASURE} from '../../../src/shards/driftwood-isle/generators/interactables';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with {type:'json'};
