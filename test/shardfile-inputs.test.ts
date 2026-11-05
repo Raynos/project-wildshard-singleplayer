@@ -20,7 +20,7 @@ const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
 function fixture(): string {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/product-inputs-')); owned.push(root);
-  for (const path of ['src/engine', 'src/sdk', 'src/format', 'assets']) mkdirSync(resolve(root,path), { recursive: true });
+  for (const path of ['src/engine', 'src/sharddev', 'src/format', 'assets']) mkdirSync(resolve(root,path), { recursive: true });
   for (const path of ['package.json','pnpm-lock.yaml','pnpm-workspace.yaml']) writeFileSync(resolve(root,path),'{}');
   writeFileSync(resolve(root,'entry.ts'), "import {value} from './src/engine/used'; export const answer=value;\n");
   writeFileSync(resolve(root,'src/engine/used.ts'),'export const value=1;\n');
