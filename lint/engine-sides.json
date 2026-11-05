@@ -505,10 +505,7 @@
   "src/engine/shared/quest/viewPort.ts": "shared",
   "src/engine/client/quest/view.ts": "client",
   "src/engine/client/quest/view/replica.ts": "client",
-  "src/engine/client/quest/view/ui.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/engine/client/quest/view/ui.ts": "client",
   "src/engine/client/render/allocationBytes.ts": "client",
   "src/engine/client/render/allocationJournal.ts": "client",
   "src/engine/client/render/aoTransparency.ts": "client",
@@ -1185,6 +1182,7 @@
   "src/game/server/population/nativeReturns.ts": "server",
   "src/game/server/population/pageGroups.ts": "server",
   "src/game/shared/population/pageHomes.ts": "shared",
+  "src/game/client/population/netCounts.ts": "client",
   "src/game/client/population/pageLife.ts": "client",
   "src/game/client/population/pageReturns.ts": "client",
   "src/game/shared/population/pageRows.ts": "shared",
@@ -1200,6 +1198,7 @@
   "src/game/server/population/scriptStrikes.ts": "server",
   "src/game/server/population/shelter.ts": "server",
   "src/game/server/population/spawnScript.ts": "server",
+  "src/game/server/population/speciesBehaviour.ts": "server",
   "src/game/server/population/specCatalogue.ts": "server",
   "src/game/client/population/speciesViewSlots.ts": "client",
   "src/game/server/population/wildlife.ts": "server",
@@ -1210,10 +1209,7 @@
   "src/game/client/Progress.ts": "client",
   "src/game/server/quest/bodyOps.ts": "server",
   "src/game/shared/quest/boundState.ts": "shared",
-  "src/game/client/quest/carriedProp.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/quest/carriedProp.ts": "client",
   "src/game/shared/quest/carriedRound.ts": "shared",
   "src/game/client/quest/chapter.ts": "client",
   "src/game/shared/quest/chapterBindings.ts": "shared",
@@ -1252,10 +1248,7 @@
   "src/game/server/quest/nativeEntry.ts": "server",
   "src/game/server/quest/nativeInputs.ts": "server",
   "src/game/shared/quest/nativeProps.ts": "shared",
-  "src/game/client/quest/pageComposition.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/quest/pageComposition.ts": "client",
   "src/game/client/quest/pageDoors.ts": "client",
   "src/game/client/quest/pageFacets.ts": "client",
   "src/game/shared/quest/pagePersistence.ts": "shared",
@@ -1266,14 +1259,8 @@
   "src/game/shared/quest/pageState.ts": "shared",
   "src/game/shared/quest/persistence.ts": "shared",
   "src/game/shared/quest/questObservation.ts": "shared",
-  "src/game/client/quest/questPageViews.ts": {
-   "side": "client",
-   "mixed": true
-  },
-  "src/game/client/quest/reward.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/quest/questPageViews.ts": "client",
+  "src/game/client/quest/reward.ts": "client",
   "src/game/shared/quest/steps.ts": "shared",
   "src/game/client/quest/story.ts": "client",
   "src/game/shared/quest/storyLaw.ts": "shared",

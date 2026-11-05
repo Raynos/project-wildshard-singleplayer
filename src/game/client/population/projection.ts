@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { PopulationProjectionSchema, type PopulationProjectionRows } from '@wildshard/format/populationProjection';
-import { PageActorGroups } from '../../server/population/pageGroups';
+import type { PageActorGroups } from '../../server/population/pageGroups';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -40,7 +41,7 @@ export class PopulationProjection {
     private readonly lightScene: THREE.Scene = scene) {
     this.rows = v.parse(PopulationProjectionSchema, input); const row = this.rows;
     if (row.seed !== SEED) throw new Error('Population projection requires its authored seed');
-    this.creatures = new PageActorGroups(animals, row.practice, scope); this.rng = new Rng(row.random);
+    this.creatures = pageSim.actorGroups(animals, row.practice, scope); this.rng = new Rng(row.random);
     this.volley = new RowBodySlots(row.volley, app.bodies, { kind: row.id });
     const geometry = scope.own(new THREE.IcosahedronGeometry(row.volley.body.radius, row.husk.detail)), colour = new THREE.Color(row.husk.colour).toArray();
     geometry.setAttribute('color', new THREE.BufferAttribute(Float32Array.from({ length: geometry.getAttribute('position').count * 3 }, (_, i) => colour[i % 3] ?? 0), 3));

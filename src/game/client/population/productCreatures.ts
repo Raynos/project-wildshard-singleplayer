@@ -6,8 +6,7 @@ import type { AnimalMaterial } from '@wildshard/engine/entities/AnimalFactory';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import type { ShardContext } from '../plugin/context';
-import { PerchBodyBinding } from '../../server/population/perchBody';
-import { registerLootTable } from '../../server/loot/tables';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { readLootTables } from '../../shared/loot/tableRows';
 import { installPopulationProjection } from '../shardfile/clientPopulationProjection';
 import { productHullBook } from '../looks/speciesBook';
@@ -31,7 +30,7 @@ export async function installProductCreatures(ctx: ShardContext, decisions: Spec
   if (left(ctx)) return;
   const lookRows = await ctx.product.json(rows.packed.file);
   if (left(ctx)) return;
-  const perch = new PerchBodyBinding(perchRows, ctx.scope);
+  const perch = pageSim.perchBody(perchRows, ctx.scope);
   const section = ctx.product.section('actors/species-programs'), program = section.program;
   if (program === undefined || section.spawns?.find(row => row.id === rows.practice)?.respawn === undefined) throw new Error('Creature install requires its admitted species programs');
   ctx.rows.species([...perch.species(ctx, program, decisions), ...section.page]);
@@ -41,7 +40,7 @@ export async function installProductCreatures(ctx: ShardContext, decisions: Spec
   ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
   const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
   ctx.rows.lootTable(loot);
-  for (const row of loot) registerLootTable(row, ctx.scope);
+  for (const row of loot) pageSim.registerLootTable(row, ctx.scope);
   await book.packed.preload();
   if (left(ctx)) return;
   const projection = await ctx.product.json(rows.projection);

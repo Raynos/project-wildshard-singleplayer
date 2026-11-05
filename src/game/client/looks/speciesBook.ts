@@ -1,22 +1,17 @@
 import { app } from '@wildshard/engine/app/runtime';
-import { thinkCrowdGuard } from '../../server/ambient/crowdPage';
-import { arenaRoomSpeciesControl } from '../../server/boss/arenaRoomFight';
-import { eliteAct, eliteDamageMul, eliteThink } from '@wildshard/engine/entities/eliteBrain';
-import { ActorProjectionV2 } from '../../server/population/actorProjectionV2';
-import { DirectedSpecies } from '../../server/population/directedSpecies';
-import { groupSpecies } from '../../server/population/groupSpecies';
+import type { ActorProjectionV2 } from '../../server/population/actorProjectionV2';
+import type { speciesBehaviour } from '../../server/population/speciesBehaviour';
 import { numericCreaturePose, numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { creatureFrame } from '../plugin/creatureFrame';
 import { poseRidingEnvelopes } from '../../shared/riding/presentation';
-import { wildEnv } from '../../server/population/pageGroups';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';
 import { packedCreatureBodies,readBakedGeometry,type BakedGeometryRow } from '../plugin/geometry';
 import { Color, MeshBasicMaterial, SkinnedMesh, type BufferGeometry } from 'three';
 import { productRiggedHulls } from './riggedHulls';
 import { HullLookBookSchema, parsePackedCreatureLooks, type CompactSpeciesBodiesRows } from '@wildshard/format/speciesLooks';
-import type { NativeSpeciesLookBookRows, SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
+import type { SpeciesPresentationRows } from '@wildshard/format/speciesBookRows';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { EngineRows } from '@wildshard/engine/level/context';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
@@ -24,6 +19,7 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { roamingBossDamage } from '../boss/roamingProjection';
 import { limbAnimation } from '../animation/limbView';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import type { Scope } from '@wildshard/engine/app/scope';
 
 /** Client-only hull projection on shared fauna or declared skeletons. The data
@@ -98,7 +94,7 @@ export class HullLookBook {
     const envelopes = new Map(book.rows.flatMap(row => row.postPose?.envelopes === undefined ? [] : [[row.postPose.alive, row.postPose.envelopes] as const]));
     const pose = (id: string, context: AnimalRigContext): void => {
       const programme = programmes.get(id); if (programme === undefined) throw new Error('Missing species pose programme');
-      const envelope = envelopes.get(id); if (envelope !== undefined) poseRidingEnvelopes(context, envelope, wildEnv.wind);
+      const envelope = envelopes.get(id); if (envelope !== undefined) poseRidingEnvelopes(context, envelope, pageSim.wind());
       programme(context);
     };
     let hulls: ReturnType<typeof productRiggedHulls> | undefined;
@@ -184,13 +180,13 @@ export function productHullBook(product: { readonly section: (name: 'look/hull-b
  * original packed-body owner, shared through world and kit installation. */
 export function productSpeciesCatalogue(product:Parameters<typeof productHullBook>[0],data:Pick<SpeciesPresentationRows,'lookBook'>,lookRows:unknown):SpeciesCatalogue{
   const book=productHullBook(product);
-  return speciesCatalogue(book,speciesBehaviour(data.lookBook),book.packedLooks(lookRows));
+  return speciesCatalogue(book,pageSim.speciesBehaviour(data.lookBook,app),book.packedLooks(lookRows));
 }
 /** `productSpeciesCatalogue` with a `pause` between its book, its behaviour rules and its packed looks: in one task they
  *  were ~102 ms of a cold Nine Dragon crossing's world step at phone 4x. Same catalogue. */
 export async function productSpeciesCatalogueSliced(product:Parameters<typeof productHullBook>[0],data:Pick<SpeciesPresentationRows,'lookBook'>,lookRows:unknown,pause:()=>Promise<void>):Promise<SpeciesCatalogue>{
   const book=productHullBook(product);await pause();
-  const rules=speciesBehaviour(data.lookBook);await pause();
+  const rules=pageSim.speciesBehaviour(data.lookBook,app);await pause();
   return speciesCatalogue(book,rules,book.packedLooks(lookRows));
 }
 function speciesCatalogue(book:HullLookBook,rules:ReturnType<typeof speciesBehaviour>,packed:ReturnType<HullLookBook['packedLooks']>):SpeciesCatalogue{
@@ -220,16 +216,4 @@ function expandCompactBodies(data:CompactSpeciesBodiesRows):unknown{
   });
   return {file:data.file,bytes:data.bytes,bodies:data.rows.map(body=>{const skeleton=data.skeletons[body.skeleton];if(skeleton===undefined)throw new Error('Missing packed skeleton');
     return {kind:body.kind,variant:body.variant,bones:skeleton.bones,dims:skeleton.dims,fur:parts(body.fur),hard:parts(body.hard),eye:parts(body.eye)};})};
-}
-/** G600 L8: the species rows' behaviour hooks (group, directed, crowd guard and the elites' think / act / damage), kept
- *  outside the look book until L4 (the engine elite feature) and L5 (the wildlife group sims) absorb them; the looks are
- *  the hull book's packed looks. */
-export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): { readonly rows: readonly SpeciesRow[]; readonly projections:ReadonlyMap<string,ActorProjectionV2>; look: (look: SpeciesLook) => SpeciesLook } {
-  if(book.rows.some(row=>row.control!==undefined&&(row.projection!==undefined||row.group!==undefined||row.directed!==undefined||row.guard===true||row.elite===true)))throw new Error('Conflicting species controls');
-  const controls=new Map(book.rows.flatMap(row=>row.control===undefined?[]:[[row.metadata.kind,arenaRoomSpeciesControl(row.control)] as const]));
-  const projections=new Map(book.rows.flatMap(row=>row.projection===undefined?[]:[[row.metadata.kind,new ActorProjectionV2(row.metadata.kind,row.projection,app)] as const]));
-  const rows = book.rows.map(row => ({ ...row.metadata, ...controls.get(row.metadata.kind), ...(projections.get(row.metadata.kind)?.binding), ...(row.group === undefined ? {} : groupSpecies(row.group)), ...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),
-    ...(row.guard === true ? { think: thinkCrowdGuard } : {}), ...(row.elite === true ? { think: eliteThink, act: eliteAct } : {}) }));
-  const elites = new Set(book.rows.flatMap(row => row.elite === true ? [row.metadata.kind] : []));
-  return { rows, projections, look: look => {const controlled=projections.get(look.kind)?.binding.damageMul??controls.get(look.kind)?.damageMul;return controlled!==undefined?{...look,damageMul:controlled}:elites.has(look.kind)?{...look,damageMul:eliteDamageMul}:look;} };
 }

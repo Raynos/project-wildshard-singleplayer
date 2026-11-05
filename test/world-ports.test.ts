@@ -8,6 +8,7 @@ import { createSimHost, type SimHost } from '../src/engine/server/sim';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { netNeighbourRegion } from '../src/game/client/grid/neighbourRows';
+import { netCreatureCount } from '../src/game/client/population/netCounts';
 import { netMoverPoses } from '../src/game/client/plugin/moverViews';
 import { MoverScriptDriver, type MoverView } from '../src/game/server/plugin/mover';
 import { emptyShardfile } from '../src/sdk/author';
@@ -38,6 +39,21 @@ test('a neighbour creature reads the same off its row as off the sim', () => {
     expect(shown?.alive).toBe(sim.alive); expect(shown?.state).toBe(sim.state); expect(shown?.scale).toBeCloseTo(sim.scale);
     expect(shown?.position.x).toBeCloseTo(sim.position.x, 1); expect(shown?.position.z).toBeCloseTo(sim.position.z, 1);
     expect(netNeighbourRegion(client, () => 0).host.entities.get('nobody')).toBeUndefined();
+  } finally { host.dispose(); }
+});
+
+test('a population count off the rows is the server\'s, and a death leaves it', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier });
+  try {
+    const { client, run } = wired(host), lead = [...host.players.values()][0], bodies = [...host.entities.values()], kind = bodies[0]?.kind;
+    if (lead === undefined || kind === undefined) throw new Error('No creature on the level');
+    for (const sim of bodies) { sim.harnessHold = true; sim.position.set(lead.position.x + 5, lead.position.y, lead.position.z); }
+    run(30);
+    const alive = (): number => bodies.filter(sim => sim.kind === kind && sim.alive).length, before = alive();
+    expect(netCreatureCount(client, kind)).toBe(before);
+    const first = bodies[0]; if (first === undefined) throw new Error('No creature on the level');
+    first.alive = false; run(10);
+    expect(netCreatureCount(client, kind)).toBe(before - 1);
   } finally { host.dispose(); }
 });
 
