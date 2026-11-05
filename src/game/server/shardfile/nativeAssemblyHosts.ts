@@ -26,7 +26,8 @@ import { dayClock } from '../../shared/looks/dayClock';
 import { keyedSkyDaySpec } from '../../shared/looks/keyedSkyClock';
 import { readDirectorProduct } from '../../shared/plugin/director';
 import { installNativeItems, otherCombatFrame } from '../plugin/nativeItems';
-import { bindNativeLoadout, weaponRow } from '../plugin/simulation';
+import { addBakedPieces, bindNativeLoadout, weaponRow } from '../plugin/simulation';
+import { installHostPortalRide, type PortalRideRows } from '../../shared/shardfile/portalRide';
 import { installPopulationEnvironment } from '../population/environment';
 import { installMixedPopulation, type MixedPopulationInput } from '../population/mixedRoster';
 import { installNativeCollision } from '../population/nativeBake';
@@ -183,7 +184,15 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     };
     case 'decisions': return run => { nativeDecisionAuthority(shard, assets, run.host); };
     case 'commands': return run => { run.input = at.ports.bindCommands(run.context, run.host); };
-    case 'collision': return run => { if (row.skipOnRestore !== true || !run.context.restoring) installNativeCollision(run.host, at.bake, plan.collision as Parameters<typeof installNativeCollision>[2]); };
+    case 'collision': {
+      const collision = need(plan.collision, 'Native collision needs its settings'); need(plan.bake, 'Native collision needs its bake');
+      return run => { if (row.skipOnRestore !== true || !run.context.restoring) installNativeCollision(run.host, at.bake, collision as Parameters<typeof installNativeCollision>[2]); };
+    }
+    case 'collision.pieces': { const pieces = await readAssemblyInput<unknown>(product, row.rows); return run => { if (!run.context.restoring) addBakedPieces(run.host.physics, pieces); }; }
+    case 'portal.ride': {
+      const ride = await readAssemblyInput<PortalRideRows>(product, row.rows);
+      return run => { installHostPortalRide(run.host, row.step, shard, ride, at.ports.ledger(run.context).fact); };
+    }
     case 'day.keyed-sky': { const spec = keyedSkyDaySpec(product.section('look/keyed-sky')); return run => { run.day = run.host.useDayClock(new DayCycle(spec)); }; }
     case 'day.toon': {
       const style = product.section('look/toon').sky.day;

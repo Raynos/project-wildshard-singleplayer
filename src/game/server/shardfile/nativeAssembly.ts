@@ -24,8 +24,11 @@ export interface NativeAssemblyRuntime<C extends NativeAssemblyContext> {
   readonly install: (host: SimHost, context: C) => void;
   readonly proveEntries: (host: SimHost) => ReturnType<typeof proveTerrainEntries>;
 }
+/** A world with no population has no bake: no ground lattice and no solids of its own. */
+const NO_BAKE: NativeCollisionBake & Readonly<Record<string, unknown>> = { ground: { heights: new Float32Array(0), friction: 0, groups: 0, scale: { x: 0, y: 0, z: 0 }, at: { x: 0, y: 0, z: 0 } }, solids: [] };
 /** The bake every population host reads: the reader's rows joined with the plan's owners. Each host admits its fields. */
-async function prepareBake(product: ShardProduct, row: NativeAssemblyBake): Promise<NativeCollisionBake & Readonly<Record<string, unknown>>> {
+async function prepareBake(product: ShardProduct, row: NativeAssemblyBake | undefined): Promise<NativeCollisionBake & Readonly<Record<string, unknown>>> {
+  if (row === undefined) return NO_BAKE;
   const rows = await readAssemblyInput<Record<string, unknown>>(product, row.rows), ground = { file: row.ground, bytes: await product.file(row.ground) };
   const colliders = await Promise.all(row.colliders.map(async file => ({ file, bytes: await product.file(file) })));
   const reader = createNativeBakeReader(rows, row.reader, ground, colliders);
@@ -41,8 +44,9 @@ async function prepareBake(product: ShardProduct, row: NativeAssemblyBake): Prom
 }
 async function prepareGround(product: ShardProduct, assets: ReadonlyMap<string, Uint8Array>, plan: NativeAssemblyPlan, bake: NativeCollisionBake): Promise<AssemblyGround> {
   const shard = product.shardfile;
+  if (plan.terrain.kind === 'flat') { const { height } = plan.level.ground; return { grid: null, samplers: null, heightAt: () => height }; }
   if (plan.terrain.kind === 'bake-ground') {
-    const { resolution, size } = plan.bake.reader, half = size / 2;
+    const { resolution, size } = need(plan.bake, 'Bake ground needs its bake').reader, half = size / 2;
     return { grid: null, samplers: null, heightAt: (x: number, z: number): number => terrainTileHeight({ resolution, x: -half, z: -half, size, heights: bake.ground.heights }, x, z, { layout: 'column-major', boundary: 'clamp' }) };
   }
   const grid = plan.terrain.kind === 'baked'
@@ -76,14 +80,15 @@ export async function prepareNativeAssembly<C extends NativeAssemblyContext>(inp
     boot: plan.boot === undefined ? null : await readAssemblyInput(product, plan.boot) };
   const steps = await Promise.all(plan.features.map(feature => prepareAssemblyFeature(feature, prepared)));
   const heightAt = ground.heightAt, speed = plan.level.authorCap === true ? clamp(shard.authorCaps.speed, 0, plan.level.speed) : plan.level.speed;
-  const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed }, plan.level.ground);
+  const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, plan.level.stand ?? heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed }, plan.level.ground);
   const levelPorts = { ground: false as const, heightAt };
   const walk = (host: SimHost): ReturnType<typeof proveTerrainEntries> => proveTerrainEntries(host.physics, shard.entryways, heightAt, plan.entries.walk as Parameters<typeof proveTerrainEntries>[3]);
   return { level, ports: levelPorts, proveEntries: host => {
-    const fresh = plan.entries.fresh;
+    const { fresh, proven } = plan.entries;
+    if (proven !== undefined) return proven;
     if (fresh === undefined) return walk(host);
     const proof = createSimHost(level, { ...levelPorts, rapier: ports.rapier });
-    try { installNativeCollision(proof, bake, { ...plan.collision, omit: fresh.omit } as Parameters<typeof installNativeCollision>[2]); proof.step(); return walk(proof); } finally { proof.dispose(); }
+    try { installNativeCollision(proof, bake, { ...need(plan.collision, 'A fresh entry walk needs its collision'), omit: fresh.omit } as Parameters<typeof installNativeCollision>[2]); proof.step(); return walk(proof); } finally { proof.dispose(); }
   }, install: (host, context) => {
     lendReturns(host);
     const run: AssemblyRun<C> = { host, context, input: null, day: null };

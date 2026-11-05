@@ -48,8 +48,8 @@ importers:
         specifier: workspace:*
         version: link:src/engine
       '@wildshard/format':
-        specifier: github:project-wildshard/shardfile#v0.3.4
-        version: git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)
+        specifier: github:project-wildshard/shardfile#v0.3.6
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#b1e54122aac196470f841351d56ebd58de016deb(typescript@7.0.2)
       '@wildshard/game':
         specifier: workspace:*
         version: link:src/game
@@ -148,8 +148,8 @@ importers:
   src/commons:
     dependencies:
       '@wildshard/format':
-        specifier: github:project-wildshard/shardfile#v0.3.4
-        version: git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)
+        specifier: github:project-wildshard/shardfile#v0.3.6
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#b1e54122aac196470f841351d56ebd58de016deb(typescript@7.0.2)
       '@wildshard/sharddev':
         specifier: workspace:*
         version: link:../sharddev
@@ -162,8 +162,8 @@ importers:
   src/game:
     dependencies:
       '@wildshard/format':
-        specifier: github:project-wildshard/shardfile#v0.3.4
-        version: git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)
+        specifier: github:project-wildshard/shardfile#v0.3.6
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#b1e54122aac196470f841351d56ebd58de016deb(typescript@7.0.2)
       ajv:
         specifier: 6.15.0
         version: 6.15.0
@@ -189,8 +189,8 @@ importers:
         specifier: 1.8.0
         version: 1.8.0(valibot@1.5.0(typescript@7.0.2))
       '@wildshard/format':
-        specifier: github:project-wildshard/shardfile#v0.3.4
-        version: git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)
+        specifier: github:project-wildshard/shardfile#v0.3.6
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#b1e54122aac196470f841351d56ebd58de016deb(typescript@7.0.2)
       ajv:
         specifier: 6.15.0
         version: 6.15.0
@@ -246,8 +246,8 @@ importers:
         specifier: 1.8.0
         version: 1.8.0(valibot@1.5.0(typescript@7.0.2))
       '@wildshard/format':
-        specifier: github:project-wildshard/shardfile#v0.3.4
-        version: git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)
+        specifier: github:project-wildshard/shardfile#v0.3.6
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#b1e54122aac196470f841351d56ebd58de016deb(typescript@7.0.2)
       ajv:
         specifier: 6.15.0
         version: 6.15.0
@@ -1335,9 +1335,9 @@ packages:
   '@vitest/spy@5.0.1':
     resolution: {integrity: sha512-rbto/mF/SGERxEgYOek7Xm6B9b+y+mVoo+f4b2LymYO8zM1b7uB5nHuhVMTP2hxdzgxvGiZYGxGIaMvL5y180Q==}
 
-  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a':
-    resolution: {commit: 711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a, repo: git@github.com:project-wildshard/shardfile.git, type: git}
-    version: 0.3.4
+  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#b1e54122aac196470f841351d56ebd58de016deb':
+    resolution: {commit: b1e54122aac196470f841351d56ebd58de016deb, repo: git@github.com:project-wildshard/shardfile.git, type: git}
+    version: 0.3.6
     engines: {node: '>=24.18.0'}
     hasBin: true
 
@@ -3384,7 +3384,7 @@ snapshots:
 
   '@vitest/spy@5.0.1': {}
 
-  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)':
+  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#b1e54122aac196470f841351d56ebd58de016deb(typescript@7.0.2)':
     dependencies:
       meshoptimizer: 1.2.0
       valibot: 1.5.0(typescript@7.0.2)
