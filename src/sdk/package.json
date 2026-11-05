@@ -136,6 +136,7 @@
     "./productOutput": "./productOutput.ts",
     "./projectMap": "./projectMap.ts",
     "./random": "./random.ts",
+    "./measure": "./measure.ts",
     "./sections": "./sections.ts",
     "./platformSections": "./platformSections.ts",
     "./blobs": "./blobs.ts",
@@ -651,6 +652,10 @@
       "./random": {
         "types": "./dist/types/sdk/random.d.ts",
         "default": "./dist/random.js"
+      },
+      "./measure": {
+        "types": "./dist/types/sdk/measure.d.ts",
+        "default": "./dist/measure.js"
       },
       "./sections": {
         "types": "./dist/types/sdk/sections.d.ts",
