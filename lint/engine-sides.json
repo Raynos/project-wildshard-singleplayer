@@ -1197,15 +1197,13 @@
    "mixed": true
   },
   "src/game/quest/carriedRound.ts": "server",
-  "src/game/quest/chapter.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/quest/chapter.ts": "server",
   "src/game/quest/chapterBindings.ts": "server",
   "src/game/quest/chapterClock.ts": "server",
   "src/game/quest/chapterDecision.ts": "server",
   "src/game/quest/chapterDirector.ts": "server",
   "src/game/quest/chapterFlow.ts": "server",
+  "src/game/quest/chapterView.ts": "client",
   "src/game/quest/continuation.ts": "client",
   "src/game/quest/contractBoard.ts": "server",
   "src/game/quest/contractBoardPage.ts": "client",
