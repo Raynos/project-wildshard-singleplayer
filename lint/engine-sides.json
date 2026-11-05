@@ -1330,6 +1330,7 @@
   },
   "src/game/shared/shard/runtime.ts": "shared",
   "src/game/client/shard/scopedRuntime.ts": "client",
+  "src/game/shared/shard/enteredServices.ts": "shared",
   "src/game/shared/shard/slug.ts": "shared",
   "src/game/server/shard/slugs.generated.ts": "server",
   "src/game/server/shard/spec.ts": "server",

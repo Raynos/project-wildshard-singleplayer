@@ -2,10 +2,10 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
 import type { ShardContext } from "../plugin/context";
 import { bindPlayerEffects } from '@wildshard/engine/combat/effects/EffectService';
+import { enteredServices } from '../../shared/shard/enteredServices';
 import type { Vector3 } from 'three';
 
 const ownerBelongsTo = (owner: Scope | null, entered: Scope): boolean => owner?.belongsTo(entered) === true;
-const enteredServices = new WeakMap<object, (install: (scope: Scope) => void) => void>();
 type InputDefinition = Parameters<ShardContext['inputContext']>[0];
 const residentInputs = new WeakMap<ShardContext, (definition: InputDefinition) => void>();
 const playerBindings = new WeakSet<ShardContext>();
