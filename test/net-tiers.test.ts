@@ -102,3 +102,28 @@ test('a change on a frame that skipped the row still arrives, though it never ch
   }
   room.dispose(); host.dispose();
 });
+
+test('P1-E5.3-F1: a far row between its samples is held, and a still row is fresh on every frame it was due', () => {
+  const { host, near, mid, far } = stage(), link = directLoopback(), client = new NetClient(link.client);
+  const room = new NetRoom({ world: new SimNetWorld(host), step: () => { host.step(); } });
+  room.join(link.server); client.hello(); link.pump(); room.open(); link.pump();
+  const ids = [near, mid, far], fresh = new Map(ids.map(id => [id, 0])), held = new Map(ids.map(id => [id, 0]));
+  let frames = 0;
+  for (let tick = 0; tick < 240; tick++) {
+    if (tick < 60) nudge(host, [far], tick); // far moves, then stands; near never moves
+    client.flush(); link.pump(); room.tick(); link.pump();
+    const frame = client.latest;
+    if (frame === null || frame.tick % 2 !== 0 || tick < 12) continue;
+    frames++;
+    for (const id of ids) {
+      expect(frame.rows.has(handleOf(client, id))).toBe(true);
+      const count = frame.fresh.has(handleOf(client, id)) ? fresh : held;
+      count.set(id, (count.get(id) ?? 0) + 1);
+    }
+  }
+  expect(client.dropped).toBe(0);
+  expect(fresh.get(near)).toBe(frames); // standing still inside the first tier: a true sample every frame
+  expect(held.get(mid)).toBeGreaterThan(frames * 0.4); expect(held.get(mid)).toBeLessThan(frames * 0.6); // 15 Hz
+  expect(held.get(far)).toBeGreaterThan(frames * 0.6); expect(held.get(far)).toBeLessThan(frames * 0.72); // 10 Hz, moving or not
+  room.dispose(); host.dispose();
+});

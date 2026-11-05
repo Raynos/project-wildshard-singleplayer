@@ -111,8 +111,27 @@ test('an unchanged world costs no rows, and a frame carries its header and owner
   frame.reset(10); fill(frame, new Map(Array.from({ length: 60 }, (_, index) => [index + 1, draw(random)])));
   const full = encodeFrame(writer, input(frame, null)), still = encodeFrame(writer, input(frame, { frame, visible: new Set(frame.handles()) }));
   expect(still.byteLength).toBeLessThan(full.byteLength / 10);
-  const decoded = decodeFrame(new Uint8Array(still), table({ tick: 10, baselineTick: 0, cell: 3, lastSeq: 0, owner: new Uint32Array(2), rows: new Map() }));
-  expect(decoded).toMatchObject({ tick: 10, cell: 3, lastSeq: 77, rows: new Map() });
+  const held = decodeFrame(new Uint8Array(full), table(null));
+  const decoded = decodeFrame(new Uint8Array(still), table(held));
+  expect(decoded).toMatchObject({ tick: 10, cell: 3, lastSeq: 77 });
+  expect(rowsOf(decoded)).toEqual(rowsOf(held));
+  expect(decoded?.fresh.size).toBe(60); // nothing changed and every row was due: all true samples
+});
+
+test('P1-E5.3-F1: a frame tells a sent row, a still row and a held row apart, on 64 rows in 8 bytes', () => {
+  const writer = new BitWriter(), random = stream(6), rows = new Map(Array.from({ length: 64 }, (_, index) => [index + 1, draw(random)]));
+  const first = new WorldFrame(); first.reset(10); fill(first, rows);
+  const held = decodeFrame(new Uint8Array(encodeFrame(writer, input(first, null))), table(null));
+  const moved = new Map(rows).set(1, { ...draw(random), x: 3 });
+  const next = new WorldFrame(); next.reset(12); fill(next, moved);
+  const heldBack = (handle: number): boolean => handle % 2 === 1; // odd handles are not due, even ones are
+  const base = { frame: first, visible: new Set(first.handles()) };
+  const frame = { ...input(next, base), due: (handle: number) => !heldBack(handle) };
+  const decoded = decodeFrame(new Uint8Array(encodeFrame(writer, frame)), table(held));
+  expect(decoded?.fresh).toEqual(new Set([...rows.keys()].filter(handle => !heldBack(handle))));
+  expect(rowsOf(decoded)).toEqual(rowsOf(held)); // handle 1 moved, but it was not due: the client keeps its copy
+  const bare = encodeFrame(writer, { ...input(next, base, new Set()), baseline: { frame: first, visible: new Set() } });
+  expect(encodeFrame(writer, frame).byteLength - bare.byteLength).toBe(8);
 });
 
 test('a row that leaves relevance goes, and one that enters arrives whole', () => {

@@ -74,7 +74,7 @@ export interface NetPhase { readonly kind: 'phase'; readonly tick: number; reado
 export interface NetTravel { readonly kind: 'travel'; readonly tick: number; readonly from: number; readonly to: number }
 export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent | NetQuest | NetPhase | NetTravel | NetLedger | NetChat;
 /** The events' and commands' wire form, in NET_SCHEMA_HASH: a change here must refuse a stale client like a field table's does (J54). */
-export const NET_EVENT_FORMS = 'hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;ride:u8';
+export const NET_EVENT_FORMS = 'hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;ride:u8;fresh:b';
 /** The spawn's column widths, which only the receiver's class table knows. */
 export type InitialBits = (cls: number) => { readonly bits: readonly number[]; readonly text: number } | undefined;
 

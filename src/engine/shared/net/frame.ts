@@ -62,6 +62,7 @@ export interface FrameInput {
 }
 
 const fullMask = (fields: number): number => fields >= 32 ? 0xffffffff : 2 ** fields - 1;
+const ascending = (a: number, b: number): number => a - b;
 
 function rowMask(frame: WorldFrame, at: number, base: WorldFrame | null, baseAt: number | undefined, fields: number): number {
   if (base === null || baseAt === undefined) return fullMask(fields);
@@ -78,13 +79,14 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
   writer.write(MSG_FRAME, 8); writer.write(frame.tick, 32); writer.write(baseline?.frame.tick ?? NO_BASELINE, 32);
   writer.write(input.cell, 16); writer.write(input.lastSeq, 16);
   input.ownerClass.owner.forEach((column, index) => { writer.write(input.owner[index] ?? 0, column.bits); });
-  const changed: number[] = [];
+  const changed: number[] = [], left: number[] = [];
   for (const handle of visible) {
     const cls = classOf(handle), at = frame.offset(handle);
     if (cls === undefined || at === undefined) continue;
     const base = baseOf(handle);
-    if (base !== null && due?.(handle) === false) continue;
+    if (base !== null && due?.(handle) === false) { left.push(handle); continue; }
     if (rowMask(frame, at, base, base?.offset(handle), cls.row.length) !== 0) changed.push(handle);
+    else left.push(handle);
   }
   const gone: number[] = [];
   if (seen !== undefined) for (const handle of seen) if (!visible.has(handle)) gone.push(handle);
@@ -97,6 +99,9 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
     writer.write(handle, 16); writer.writeBool(false); writer.write(mask, cls.row.length);
     cls.row.forEach((column, index) => { if (Math.floor(mask / 2 ** index) % 2 === 1) writer.write(frame.data[at + index] ?? 0, column.bits); });
   }
+  // P1-E5.3-F1: a row left out is one of two things. Due and unchanged is a true sample of something standing still; not due is a stale copy.
+  left.sort(ascending);
+  for (const handle of left) writer.writeBool(due?.(handle) !== false);
   return writer.finish();
 }
 
@@ -104,6 +109,8 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
 export interface DecodedFrame {
   readonly tick: number; readonly baselineTick: number; readonly cell: number; readonly lastSeq: number;
   readonly owner: Uint32Array; readonly rows: Map<number, Uint32Array>;
+  /** The rows that are a true sample of this tick, sent or standing still. Any other row is a held copy of an older one. */
+  readonly fresh: ReadonlySet<number>;
 }
 /** What decoding needs from the receiver. */
 export interface FrameTable {
@@ -119,7 +126,7 @@ function readFrame(reader: BitReader, table: FrameTable): DecodedFrame | null {
   table.ownerClass.owner.forEach((column, index) => { owner[index] = reader.read(column.bits); });
   const base = baselineTick === NO_BASELINE ? null : table.baseline(baselineTick);
   if (baselineTick !== NO_BASELINE && base === null) return null; // not held any more: wait for the full frame that follows
-  const rows = new Map(base?.rows), count = reader.read(16);
+  const rows = new Map(base?.rows), fresh = new Set<number>(), count = reader.read(16);
   for (let index = 0; index < count; index++) {
     const handle = reader.read(16);
     if (reader.readBool()) { rows.delete(handle); continue; }
@@ -129,10 +136,11 @@ function readFrame(reader: BitReader, table: FrameTable): DecodedFrame | null {
     if (previous === undefined && mask !== fullMask(fields)) throw new NetDecodeError('Delta row without a baseline');
     const row = previous === undefined ? new Uint32Array(fields) : previous.slice();
     cls.row.forEach((column, at) => { if (Math.floor(mask / 2 ** at) % 2 === 1) row[at] = reader.read(column.bits); });
-    rows.set(handle, row);
+    rows.set(handle, row); fresh.add(handle);
   }
+  for (const handle of [...rows.keys()].sort(ascending)) if (!fresh.has(handle) && reader.readBool()) fresh.add(handle);
   reader.end();
-  return { tick, baselineTick, cell, lastSeq, owner, rows };
+  return { tick, baselineTick, cell, lastSeq, owner, rows, fresh };
 }
 
 /** Decode a frame. Malformed bytes or a frame that cannot apply yet give null; nothing throws past this boundary. */
