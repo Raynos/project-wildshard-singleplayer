@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
 import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/generators/questPageInteractions';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';

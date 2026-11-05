@@ -15,7 +15,7 @@ import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { Player } from '../src/engine/client/player/Player';
 import type { EliteBar } from '../src/engine/client/ui/EliteBar';
-import { EncounterRegistry } from '../src/engine/server/ai/encounters';
+import { EncounterRegistry } from '../src/engine/shared/ai/encounters';
 import { Elites, type EliteDeclaredEntryOwners } from '../src/game/server/Elite';
 import { app } from '../src/engine/client/app/runtime';
 import type { AdventurePersistence } from '../src/game/server/quest/persistence';
@@ -36,7 +36,7 @@ import { NativeEliteController } from '../src/engine/client/ai/view/eliteControl
 import { parseEliteEntryPageRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '@wildshard/format/eliteEntryRows';
 import { ObservationColumnsV2, type V2EnvironmentColumns } from '../src/engine/shared/script/observationColumnsV2';
 import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
-import { eliteThink, eliteDamageMul, setEliteBrain, setEliteDamage } from '../src/engine/server/entities/eliteBrain';
+import { eliteThink, eliteDamageMul, setEliteBrain, setEliteDamage } from '../src/engine/shared/entities/eliteBrain';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

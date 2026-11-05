@@ -1,6 +1,6 @@
 import { readSpawnTables } from '@wildshard/format/spawnTables';
-import type { Scope } from '../../shared/app/scope';
-import { WeightedTable, type TableSpec } from '../../shared/ai/weighted';
+import type { Scope } from '../app/scope';
+import { WeightedTable, type TableSpec } from './weighted';
 
 export interface EncounterDefinition { id: string; displayName?: string; showHeadBar?: boolean }
 interface Entry { definition: EncounterDefinition; scope: Scope }

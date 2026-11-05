@@ -4,7 +4,7 @@ import { checkClientPlanModules } from './clientModules';
 import { entryOwner as declaredOwner } from './entryOwners';
 import { prepareClientReturnModules } from './clientReturnModules';
 import { preflightIslandBook } from './islandBook';
-import { enteredAdventurePersistence } from '../../server/quest/chapterBindings';
+import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
 import { timeClientPreparation } from './preparationTiming';
 import { runtimeLookMaterials } from './runtimeProduct';
 import { hasLentLook, lendLooks } from './lentLooks';

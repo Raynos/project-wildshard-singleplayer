@@ -9,7 +9,7 @@ import { nativeGroupBrain, type ShardHerdGroup } from '@wildshard/format/groupBr
 import { PageGroupRowsSchema } from '@wildshard/format/creatures';
 import { GroupNotices } from './groupNotices';
 import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
-import { grassBaseHeightAt } from '../systems/looks/grassField';
+import { grassBaseHeightAt } from '../../shared/systems/looks/grassField';
 import { grassHeightAt, trample } from '../../client/systems/looks/trample';
 import * as v from 'valibot';
 import type { Rng } from '@wildshard/engine/core/rng';

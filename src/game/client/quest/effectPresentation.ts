@@ -1,6 +1,6 @@
 import type {Flags} from '@wildshard/engine/world/interact/flags';
 import type {ObservationRef} from '@wildshard/format/sceneRefs';
-import type {QuestStepEffect} from '../../server/quest/steps';
+import type {QuestStepEffect} from '../../shared/quest/steps';
 
 export type QuestPresentationEffect=Extract<QuestStepEffect,{kind:'toast'|'sting'|'reading'}>;
 /** Entered presentation loans; only the quest commit owns gameplay effects. */

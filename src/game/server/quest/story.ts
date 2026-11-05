@@ -1,4 +1,4 @@
-import { findBoundQuestState, publishQuestFacts } from './boundState';
+import { findBoundQuestState, publishQuestFacts } from '../../shared/quest/boundState';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
 import { parseChapterStoryPresentation, type ChapterStoryPresentation, type QuestStory } from '@wildshard/format/questStory';
@@ -14,7 +14,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { QuestLine, questMessageHandlers, type QuestState, type NpcDef } from '@wildshard/engine/quest/core';
 import type { Progress } from '../../client/Progress';
 import { progressSave } from '../../shared/saves';
-import { createAchievementCounters } from '../achievements';
+import { createAchievementCounters } from '../../shared/achievements';
 import { bindRuntimeLedger, bindRuntimeJsonRecord, bindRuntimeQuest, type RuntimeFacts } from '../plugin/headless';
 import { chapterFlow } from './chapterFlow';
 import type { ShardContext } from '../plugin/context';

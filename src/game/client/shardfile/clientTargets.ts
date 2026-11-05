@@ -10,7 +10,7 @@ import {clientWildlifeState,type PageWildlife} from '../../server/population/wil
 import type { CrowdDraw } from '../ambient/crowdDraw';
 import {entryOwner} from './entryOwners';
 import { installEnteredLevelService } from '../shard/retainedHooks';
-import { filterCombatAimTargets } from '../../server/shardfile/aimTargetFilter';
+import { filterCombatAimTargets } from '../../shared/shardfile/aimTargetFilter';
 
 /** Borrow original native projections; rows never provide a callback or factory. */
 export type CombatTargetOwner = Pick<CrowdWeaponTarget<ForagerTargets>, 'raycast'>

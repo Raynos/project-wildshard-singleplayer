@@ -3,7 +3,7 @@ import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
 import {parsePackedCreatureLooks} from '@wildshard/format/speciesLooks';
 import {numericCreaturePoseFromBook} from '../../src/game/server/plugin/channelPrograms';
 import {creatureFrame} from '../../src/game/client/plugin/creatureFrame';
-import type {NativeCreaturePoseRecipe} from '../../src/game/server/plugin/animation';
+import type {NativeCreaturePoseRecipe} from '../../src/game/shared/plugin/animation';
 import type {AnimalRigContext} from '../../src/engine/shared/entities/animalRig';
 import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { EliteReadiness, eliteDamageScale, eliteScriptFrame, type EliteProjection, type EliteScriptFight } from './eliteScript';
+import { EliteReadiness, eliteDamageScale, eliteScriptFrame, type EliteProjection, type EliteScriptFight } from '../../shared/ai/eliteScript';
 
 const row = { mode: 'script' as const, ready: 'ready', step: 'step', damage: 'damage',
   cues: { roar: { signature: true, voice: 'qara.roar' }, call: { feed: 'Riders!' }, quiet: {} } };

@@ -8,7 +8,7 @@ import { ArenaRoomEncounter } from '../boss/arenaRoom';
 import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {prepareSpecimenCatalogue} from '../../client/models/specimenCatalogue';
 import { CarriedQuestProp } from './carriedProp';
-import { enteredAdventurePersistence, publishChapterFlags } from './chapterBindings';
+import { enteredAdventurePersistence, publishChapterFlags } from '../../shared/quest/chapterBindings';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import { installQuestHintFile } from '../../client/quest/hints';

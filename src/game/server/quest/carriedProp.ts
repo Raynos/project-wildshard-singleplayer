@@ -9,7 +9,7 @@ import { defineSpecimenCatalogue } from '../../client/models/specimenCatalogue';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { pageRidingMount } from '../../client/riding/client';
 import { commitQuestEffects } from './effects';
-import { boundQuestState } from './boundState';
+import { boundQuestState } from '../../shared/quest/boundState';
 import type { ShardContext } from '../plugin/context';
 import { carriedRound, carriedRoundCarrying, carriedRoundDue, carriedRoundFrame, carriedRoundGoal, carriedRoundHome, carriedRoundOutputs, type CarriedRound } from './carriedRound';
 

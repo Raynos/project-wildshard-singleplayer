@@ -4,7 +4,7 @@ import { prepareOffscreenBuild } from '../render/offscreenBuild';
 import type { Renderer } from '../render/renderer';
 import type { Scope } from '../../shared/app/scope';
 import type { SkyRig as Sky } from './skyRig';
-import type { SkySpec } from '../../server/level/data';
+import type { SkySpec } from '../../shared/level/data';
 import { levelBakedId, type LevelSpec } from '../../shared/level/spec';
 import type { SkyDressing } from '../render/look';
 import { loadHDR } from '../core/assets';

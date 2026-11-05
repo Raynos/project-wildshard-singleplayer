@@ -16,7 +16,7 @@ import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { clientHomeBytes } from '../src/game/client/shardfile/clientResidency';
 import { expect, it } from 'vitest';
 import { parseNativeRuntimePlan, nativeRuntimeActorIds } from '@wildshard/format/nativeRuntimePlan';
-import { pagePopulationRows } from '../src/game/server/population/pageRows';
+import { pagePopulationRows } from '../src/game/shared/population/pageRows';
 import { SKY_SPAWNS } from '../src/shards/far-reach/generators/rows/spawns';
 import { SIGNAL_SPAWNS } from '../src/shards/sunscar-dunes/generators/rows/spawns';
 import { SKY_CLIENT_PLAN } from '../src/shards/far-reach/generators/clientPlan';

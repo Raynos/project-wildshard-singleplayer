@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { GrassTrample } from './trample';
-import { RECOVER, TrampleField, type TrampleState } from '../../../server/systems/looks/trampleField';
+import { RECOVER, TrampleField, type TrampleState } from '../../../shared/systems/looks/trampleField';
 
 function texels(field: GrassTrample): Uint8Array {
   const data = field.texture.image.data;

@@ -3,7 +3,7 @@ import type { AnimalSim, AnimalState } from '../entities/AnimalSim';
 import { GroupBrain } from './GroupBrain';
 import type { Rng } from '../../shared/core/rng';
 import type { FightRules } from '../../shared/level/spec';
-import type { HerdPlan } from '../level/data';
+import type { HerdPlan } from '../../shared/level/data';
 import type { Navmesh } from '../../shared/physics/navmesh';
 import { creatureSoundDefaults, rollVariant, speciesDef, variantOf, type SpeciesDef, type VariantDef, type VariantTable } from '../../shared/entities/species/registry';
 import { AggressionDirector } from './director';

@@ -1,4 +1,4 @@
-import catalogue from '../../shared/grid/singleplayer.json' with { type: 'json' };
+import catalogue from '../grid/singleplayer.json' with { type: 'json' };
 
 const reserved = new Set([...catalogue.placements.map((row) => row.slug.replace(/^_/u, '')), 'global', 'profile', 'device', 'session']);
 /** Outside products cannot impersonate a platform shard or a private save namespace. */

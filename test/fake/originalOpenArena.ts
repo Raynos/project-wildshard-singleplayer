@@ -38,7 +38,7 @@ import type { GroundTell } from '../../src/game/client/eliteView';
 import type { ArcWeaponPower } from '../../src/game/client/weapons/arcPower';
 import type { HeldClaims, HeldSlotKit } from '../../src/game/client/loadout/claims';
 import type { CosmeticFinishLocker } from '../../src/game/client/loadout/cosmeticFinishes';
-import { enteredAdventurePersistence } from '../../src/game/server/quest/chapterBindings';
+import { enteredAdventurePersistence } from '../../src/game/shared/quest/chapterBindings';
 import {pageRidingMount,respawnPageMounted,arenaBlockedAt,installArenaBoundary,type ArenaBoundary} from '../../src/game/client/riding/client';
 import type { Mount } from '../../src/game/server/riding/mount';
 

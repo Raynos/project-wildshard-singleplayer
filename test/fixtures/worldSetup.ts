@@ -38,7 +38,7 @@ async function prepareWorld(): Promise<void> {
     }
     prepareNativeScalarBlocks(definition, process.cwd());
   }
-  const { registerAchievements } = await import('../../src/game/server/achievements');
+  const { registerAchievements } = await import('../../src/game/shared/achievements');
   const { PINE_FEATS } = await import('../../src/shards/pine-hollow/generators/questInventory');
   const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../../src/shards/driftwood-isle/generators/questInventory');
   registerAchievements('pine-hollow', PINE_FEATS);

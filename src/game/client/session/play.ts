@@ -239,7 +239,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   app.combat.playerRules(game.levelScope, { target: playerHealth, bossGod: params.has('bossGod'), capExempt: chunk.fight?.capExempt ?? [] });
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/client/ui/Menu.ts) ──
-  const progress = new Progress(manifest.slug);     // shard achievements → titles (src/game/server/achievements.ts)
+  const progress = new Progress(manifest.slug);     // shard achievements → titles (src/game/shared/achievements.ts)
   const inventory = new Inventory(manifest.slug);   // the pack: harvest drops
   if (boot.featTotal !== undefined) progress.setFeatTotal(boot.featTotal);
   applyTravelCarry(boot.handoff, inventory);

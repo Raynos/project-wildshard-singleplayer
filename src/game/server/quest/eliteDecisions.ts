@@ -5,7 +5,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { EliteCoreScript } from '../eliteSystem';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { EliteFeatureRows } from '@wildshard/format/eliteFeature';
-import { eliteStream } from './eliteStreams';
+import { eliteStream } from '../../shared/quest/eliteStreams';
 import type { SpawnScript } from '../population/spawnScript';
 
 type Fight = EliteFeatureRows['fights'][number];

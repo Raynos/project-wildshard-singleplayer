@@ -1,5 +1,5 @@
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import type { TerrainField } from '../level/data';
+import type { TerrainField } from '../../shared/level/data';
 import type { HuntGround } from './huntPattern';
 import { expect, test } from 'vitest';
 

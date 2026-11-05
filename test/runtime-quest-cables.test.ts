@@ -2,9 +2,9 @@
 import { expect, test } from 'vitest';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { bindRuntimeQuest } from '../src/game/server/plugin/headless';
-import { boundQuestState } from '../src/game/server/quest/boundState';
+import { boundQuestState } from '../src/game/shared/quest/boundState';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';

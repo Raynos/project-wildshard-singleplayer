@@ -9,7 +9,7 @@ import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { parseEliteFeature } from '@wildshard/format/eliteFeature';
 import { installPopulationRoster } from '../src/game/server/population/roster';
 import { installNativeEliteFeature } from '../src/game/server/quest/eliteFeature';
-import { eliteStream } from '../src/game/server/quest/eliteStreams';
+import { eliteStream } from '../src/game/shared/quest/eliteStreams';
 import { DayCycle } from '../src/engine/shared/world/dayCycle';
 import { keyedSkyDaySpec } from '../src/game/shared/looks/keyedSkyClock';
 import PINE_SKY from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };

@@ -1,4 +1,4 @@
-import type { TerrainField } from '../../server/level/data';
+import type { TerrainField } from '../level/data';
 
 /** A flat placement datum at `height` over its metadata (trails, pads, masks, water): a structure-first world's
  *  ground, never drawn as terrain; level, upright and one splat layer everywhere. */

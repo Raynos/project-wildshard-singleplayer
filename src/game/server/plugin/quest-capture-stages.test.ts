@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { bindBorrowedMethod } from './borrowed';
+import { bindBorrowedMethod } from '../../shared/plugin/borrowed';
 import { expect, test } from 'vitest';
 
 test('a borrowed method keeps its receiver and resolution does not run it', () => {

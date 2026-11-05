@@ -5,7 +5,7 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Events } from '../src/engine/shared/events/events';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { PlayerHealth } from '../src/engine/server/combat/health';
 import { EffectService } from '../src/engine/client/combat/effects/EffectService';
 import { Owned } from '../src/game/shared/loot/Owned';

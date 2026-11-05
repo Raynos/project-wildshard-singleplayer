@@ -72,7 +72,7 @@ import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 import type { Renderer } from '../render/renderer';
 import { prepareSceneRoots, type UploadBudget } from '../render/precompile';
-import type { AtmosphereSpec, SkySpec } from '../../server/level/data';
+import type { AtmosphereSpec, SkySpec } from '../../shared/level/data';
 import { compassDir } from '../../shared/world/dayCycle';
 
 /**

@@ -59,7 +59,7 @@ import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
 import { TileStreamer, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingTile, type RingWait } from '@wildshard/engine/world/tileStreamer';
-import { GhostWorlds, type GhostRegion } from '../../server/grid/ghosts';
+import { GhostWorlds, type GhostRegion } from '../../shared/grid/ghosts';
 import { farRingPorts, type FarPreparationWait, type FarPrepared, type FarProxyView } from './farView';
 import { decodeFarImpostor, farBandShare } from './farImpostorView';
 import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';

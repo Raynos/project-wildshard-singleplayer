@@ -17,7 +17,7 @@ import { ClaimedPickupRoster } from '../../server/loot/runtime';
 import { HeldLauncher } from '../weapons/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';
 import { Bow } from '../../server/weapons/Bow';
-import { eliteStream } from '../../server/quest/eliteStreams';
+import { eliteStream } from '../../shared/quest/eliteStreams';
 import { readEliteFeature } from '../../server/quest/eliteFeature';
 import { installRoamingCombat, type RoamingCombat } from '../../server/combat/roamingSession';
 import { installCollectionCompendium } from '../models/collectionWall';

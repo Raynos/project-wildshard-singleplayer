@@ -14,7 +14,7 @@ import { CompendiumState } from '../src/game/shared/compendium/state';
 import type { ShardCompendium } from '../src/game/shared/compendium/types';
 import { Owned } from '../src/game/shared/loot/Owned';
 import { ownedSave, compendiumSave } from '../src/game/shared/saves';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { defineModel, modelContext } from '../src/engine/client/models/model';
 import { parseRows } from '@wildshard/format/rows';
 import { emptyShardfile } from '../src/sdk/author';

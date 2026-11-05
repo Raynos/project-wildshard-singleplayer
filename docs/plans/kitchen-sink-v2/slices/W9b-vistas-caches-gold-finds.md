@@ -21,7 +21,7 @@ Research:
 
 - **Benches, chests and touch pickups are interactable kinds** (`src/engine/shared/world/interact/types.ts:191`; bench drawn in
   `Interactables.ts:363`); Driftwood's quest host already routes a `vista-bench` owner. Named places and discovery:
-  `src/engine/server/quest/discovery.ts` (`PlacePoint { id, label, x, z, r, quiet }`).
+  `src/engine/shared/quest/discovery.ts` (`PlacePoint { id, label, x, z, r, quiet }`).
 - **The finds catalogue is nearly the collectible-set host:** `src/format/findsCatalogue.ts`: `counters [{label,
   flags}]`, `sections [{title, items [{label, icon, prize?, flag | owned}]}]`, **`glass`** (Driftwood's sea glass: flags,
   colours, fallback) and **`next {counter, every, max, text}`** ("every 5 glass → a charm"). The perk the charm grants is
@@ -29,7 +29,7 @@ Research:
   (`game/server/loot/runtime.ts`), Nalati (`bag.finds`, `game/client/shardfile/clientFinds.ts`), the SDK (`src/sdk/finds.ts`).
 - **Feats with joke titles exist:** quest `achievements [{ id, name, goal, count, kind, variant, event, title, icon }]`
   (`src/format/quests.ts:20-21`, "display metadata for the existing achievement registry"); counters
-  `src/format/achievementCounters.ts`, `src/game/server/achievements.ts`.
+  `src/format/achievementCounters.ts`, `src/game/shared/achievements.ts`.
 - Driftwood also ships `custom/collections` (the plaque displays, `out/driftwood-isle/sections/collections/displays.json`,
   host `src/game/client/models/collectionWall.ts`, 236 lines).
 

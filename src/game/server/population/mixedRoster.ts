@@ -3,7 +3,7 @@ import { MixedPopulationSchema } from '@wildshard/format/mixedPopulation';
 import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
-import { createNativeCreaturePoses, stepCreatureLift, type NativeCreaturePoseRecipe } from '../plugin/animation';
+import { createNativeCreaturePoses, stepCreatureLift, type NativeCreaturePoseRecipe } from '../../shared/plugin/animation';
 import { numericCreaturePose } from '../plugin/channelPrograms';
 import { createNativeHunt, createNativeSpeciesContext, admitSpeciesProgram } from '../plugin/brain';
 import { bindPerchBody, stepPerchRoot, nativePerchProgram } from './perchBody';

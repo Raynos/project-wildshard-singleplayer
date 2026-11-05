@@ -1,5 +1,5 @@
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import type { RuntimeFacts } from '../plugin/headless';
+import type { RuntimeFacts } from '../../server/plugin/headless';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { QuestState } from '@wildshard/engine/quest/core';
 

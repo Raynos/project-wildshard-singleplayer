@@ -17,7 +17,7 @@ import {MeleeWeaponProfileSchema,ThrownWeaponProfileSchema,HeldBowFileSchema} fr
 import {BladeRowsSchema,PolearmRowsSchema,type BladeRows} from '@wildshard/format/heldMelee';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {ClientPlanSchema} from '@wildshard/format/clientPlan';
-import {filterCombatAimTargets} from '../../src/game/server/shardfile/aimTargetFilter';
+import {filterCombatAimTargets} from '../../src/game/shared/shardfile/aimTargetFilter';
 import {heldBowBase} from '../../src/game/client/weapons/heldBowBase';
 import {SWORD_WOOD} from '../../src/game/server/weapons/starterMeleeProfile';
 import {HeldDecision} from '../../src/game/client/weapons/heldDecision';

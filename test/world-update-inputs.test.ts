@@ -14,7 +14,7 @@ import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
 import { installWorldUpdates } from '../src/game/server/shardfile/worldUpdates';
 import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { clientCosmeticFinishes, installClientCosmeticFinishes } from '../src/game/client/shardfile/clientCosmeticFinishes';
-import { publishBoundPersistence } from '../src/game/server/quest/chapterBindings';
+import { publishBoundPersistence } from '../src/game/shared/quest/chapterBindings';
 import type { AdventurePersistence } from '../src/game/server/quest/persistence';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { snapshotSimHost, restoreSimHost, serializeSimSnapshot } from '../src/engine/shared/sim/snapshot';

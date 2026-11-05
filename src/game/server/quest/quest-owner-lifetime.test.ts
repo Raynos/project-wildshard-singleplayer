@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { QuestState } from '@wildshard/engine/quest/core';
-import { boundQuestServices, boundQuestState, findBoundQuestState, installBoundQuestFlags, publishBoundQuest, publishQuestFacts } from './boundState';
+import { boundQuestServices, boundQuestState, findBoundQuestState, installBoundQuestFlags, publishBoundQuest, publishQuestFacts } from '../../shared/quest/boundState';
 
 test('retiring a quest entry refuses late publication without disturbing the next entry', () => {
   const retired = new Scope('old-quest-entry'), active = new Scope('new-quest-entry');

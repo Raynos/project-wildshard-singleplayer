@@ -1,10 +1,10 @@
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { expect, test } from 'vitest';
 import { bindQuestDeathEffects } from '../src/game/server/plugin/quests';
-import { createAchievementCounters } from '../src/game/server/achievements';
+import { createAchievementCounters } from '../src/game/shared/achievements';
 import { PINE_DEATH_EFFECTS, PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
 import deathRows from '../src/shards/driftwood-isle/data/questDeaths.json' with { type: 'json' };
-import { recordKill, isFilled, type Board } from '../src/game/server/quest/contracts';
+import { recordKill, isFilled, type Board } from '../src/game/shared/quest/contracts';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 

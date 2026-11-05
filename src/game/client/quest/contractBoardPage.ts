@@ -13,8 +13,8 @@ import { QuestViews } from '../plugin/ui';
 import { enteredHeldLoadout } from '../loadout/held';
 import { HeldFinishes } from '../loadout/finishes';
 import { DataPanel } from '../ui/dataPanels';
-import { ContractBoard } from '../../server/quest/contractBoard';
-import { saveBoard, contractKill, isFilled, ownContractCatalogue, type Board } from '../../server/quest/contracts';
+import { ContractBoard } from '../../shared/quest/contractBoard';
+import { saveBoard, contractKill, isFilled, ownContractCatalogue, type Board } from '../../shared/quest/contracts';
 import { commitQuestEffects } from '../../server/quest/effects';
 import type { bindStoryAchievements } from '../../server/quest/story';
 

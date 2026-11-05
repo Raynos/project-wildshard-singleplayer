@@ -3,7 +3,7 @@ import { isMeleeProfile, type MeleeProfile } from '@wildshard/engine/combat/mele
 import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { SWORD_WOOD, SWORD_IRON } from './starterMeleeProfile';
-import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY } from './starterMoves';
+import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY } from '../../shared/weapons/starterMoves';
 
 /** The starter recipes share their original sound/reaction hooks, supplied to the platform family. */
 export const swordEvents: MeleeEvents = {};

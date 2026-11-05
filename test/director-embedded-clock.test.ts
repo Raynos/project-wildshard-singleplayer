@@ -6,7 +6,7 @@ import declaration from '../src/shards/pine-hollow/data/director.json';
 import {pineDirector as module} from './fixtures/director-modules';
 import rows from '../src/shards/pine-hollow/data/watchStages.json';
 import bindings from './fixtures/pine-director-bindings.json' with { type: 'json' };
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import {parseDirector} from '@wildshard/format/director';
 import { pineDirectorClock } from './fixtures/director-pine/stageClock';
 

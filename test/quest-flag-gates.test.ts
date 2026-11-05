@@ -9,7 +9,7 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import { QuestState } from '../src/engine/server/quest/core';
 import { withOwner } from '../src/engine/shared/app/ownership';
 import { QuestFlagGates } from '../src/game/server/quest/flagGates';
-import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import type { ShardContext } from '../src/game/server/plugin/context';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

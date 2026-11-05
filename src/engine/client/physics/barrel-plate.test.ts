@@ -6,7 +6,7 @@ import { Physics } from '../../shared/physics/Physics';
 import { loadRapier } from '../../shared/physics/rapier';
 import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, plateOverlap } from '../../shared/world/interact/barrel';
 import { Live, plateDown } from '../world/interact/Interactables';
-import { Flags } from '../../server/world/interact/flags';
+import { Flags } from '../../shared/world/interact/flags';
 
 test('page and native plates feel an upright or fallen barrel, respect filters and release when it leaves', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

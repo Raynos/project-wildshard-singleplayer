@@ -421,7 +421,7 @@ look of its own.
   `pineCoats.ts`, `pineCreatureRigs.ts`); the small life — ravens, the owl, a woodpecker, hares (`pinehollow/life/`);
   the crossbow, the lever-action and the Warden's Longbow (`pinehollow/loadout.ts`); the hunter's journal and the trophy
   wall (the engine Compendium: `ui/compendium/` + `shards/pine-hollow.ts`, `world/TrophyWall.ts`); 19 achievements
-  (`game/server/achievements.ts`).
+  (`game/shared/achievements.ts`).
 - **Sound:** theme 1 (pine calm / tension) + calm-night, the King's three stems and the dawn sting; zoned beds and
   interior reverb (`audio/ForestAmbience.ts`); the generated one-shot sprite and the NPC barks (`audio/PineHollowSfx.ts`,
   `public/assets/sfx/pine-hollow/`).
@@ -467,7 +467,7 @@ The pipelines take the shard as an argument: `scripts/blender/build.sh <slug>/<t
 6. Its own nouns on the loading screen: a `SHARD_STEPS` entry in `src/engine/shared/boot/steps.ts` (each step names what it really
    builds there; `test/boot-plan.test.ts`).
 7. Its game layer: an adventure (`ADVENTURES` in `game/quest/Adventure.ts`, or a `src/<shard>/` installer called from
-   `main.ts` as Pine Hollow and Nalati do), an achievements table (`TABLES` in `game/server/achievements.ts`), a compendium
+   `main.ts` as Pine Hollow and Nalati do), an achievements table (`TABLES` in `game/shared/achievements.ts`), a compendium
    (`ui/compendium/shards/<slug>.ts`) if it hunts, and its sound.
 8. `npx tsc --noEmit`, `pnpm lint`, `pnpm test` (`test/chunks.test.ts` checks every def), then
    `http://localhost:5173/?chunk=<slug>&nolock=1&skipintro=1`; screenshot it headlessly (`docs/SUBAGENT-BRIEF.md`) on

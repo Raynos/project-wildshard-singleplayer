@@ -520,7 +520,7 @@ test('retired elite keeper selectors carry no chargeback after declared engine e
 test('G667 case three credits only its exact original binding selectors',()=>{
   const rows = [
     ['src/game/client/looks/speciesBook.ts',['productSpeciesCatalogue', 'SpeciesCatalogue', 'speciesBehaviour']],
-    ['src/engine/server/entities/eliteBrain.ts',['current', 'eliteThink', 'eliteAct', 'eliteDamageMul']],
+    ['src/engine/shared/entities/eliteBrain.ts',['current', 'eliteThink', 'eliteAct', 'eliteDamageMul']],
     ['src/game/shared/shardfile/crowdRuntime.ts',['CrowdPrey', 'CrowdTargets', 'CrowdRoster']],
     ['src/game/server/ambient/crowdPage.ts',['thinkCrowdGuard']],
   ] as const;
@@ -539,7 +539,7 @@ test('G667 case three credits only its exact original binding selectors',()=>{
   }
   expect(approvedG571Host(approvals,'src/game/server/ambient/crowdPage.ts','createPageCrowds')).toBe(false);
   expect(approvedG571Host(approvals,'src/game/shared/shardfile/crowdRuntime.ts','CrowdWeaponTarget')).toBe(false);
-  expect(approvedG571Host(approvals,'src/engine/server/entities/eliteBrain.ts','setEliteBrain')).toBe(false);
+  expect(approvedG571Host(approvals,'src/engine/shared/entities/eliteBrain.ts','setEliteBrain')).toBe(false);
 });
 
 

@@ -6,7 +6,7 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { KitFigureSchema, type KitFigureRows } from '@wildshard/format/kitFigure';
 import { FigureRowSchema } from '@wildshard/format/figures';
-import { playClips, type ClipCtx } from '../../../server/plugin/animation';
+import { playClips, type ClipCtx } from '../../../shared/plugin/animation';
 import { installChannelPrograms } from '../../../server/plugin/channelPrograms';
 import { createClientScene, bindWorldSceneParts } from '../../plugin/scene';
 import type { SceneHandles } from '../../shardfile/sceneHandles';

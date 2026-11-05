@@ -45,7 +45,7 @@ import type { SelectTarget } from './pick';
 import { boxEntry, firstView, physicsClear, roundBlocker, viewCandidates } from './viewPoint';
 import { placedGroups } from '../models/place';
 import { MiniMap } from './MiniMap';
-import { exploreArt } from '../../server/level/data';
+import { exploreArt } from '../../shared/level/data';
 import { Compare, hasCompareTargets } from './Compare';
 import { isDev, onDev } from '../core/devMode';
 import { asPlaygroundId, playgroundsFor, type PlaygroundCard, type PlaygroundId } from '../practice/playground/catalog';

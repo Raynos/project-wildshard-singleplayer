@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { parseContractCatalogue } from '@wildshard/format/contracts';
-import { ContractBoard, CONTRACT_ACTION } from '../src/game/server/quest/contractBoard';
-import { contractKill, counts, draw, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/server/quest/contracts';
+import { ContractBoard, CONTRACT_ACTION } from '../src/game/shared/quest/contractBoard';
+import { contractKill, counts, draw, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/shared/quest/contracts';
 
 // A made-up island has two notices, different species/ranks, a tag objective,
 // a first-claim finish and four-item rewards. It has no lodge or Pine ids.

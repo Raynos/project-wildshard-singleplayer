@@ -1,4 +1,4 @@
-import type { GridCellEvents } from '../../server/grid/cellEvents';
+import type { GridCellEvents } from '../../shared/grid/cellEvents';
 import { enterDeclaredAudioPhase } from '../audio/sceneDirector';
 import { admittedProductClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';

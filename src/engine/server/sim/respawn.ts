@@ -1,4 +1,4 @@
-import { LastPlace, type Feet, type LastPlaceSaved, type PlaceArea, type Stand } from '../quest/lastPlace';
+import { LastPlace, type Feet, type LastPlaceSaved, type PlaceArea, type Stand } from '../../shared/quest/lastPlace';
 import type { PlayerHealth } from '../combat/health';
 
 /** The page's death fade (ui/DeathFade: dark, then the fade back): no blow lands on the fallen until then. */

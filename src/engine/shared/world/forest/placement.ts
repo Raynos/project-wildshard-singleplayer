@@ -1,5 +1,5 @@
 import { TREE_SPECS, treeSetOf } from './treeSpec';
-import type { TreeSpec, ForestSpec, TerrainField } from '../../../server/level/data';
+import type { TreeSpec, ForestSpec, TerrainField } from '../../level/data';
 /**
  * Where the forest and the forest floor go — the pure part of Forest / Undergrowth, shared by the game
  * and by the build (scripts/bake-chunk.mjs, project/archive/2026-09-22-load-perf.md). Nothing here touches the GPU or

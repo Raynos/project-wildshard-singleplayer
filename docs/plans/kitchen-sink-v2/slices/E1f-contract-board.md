@@ -19,7 +19,7 @@ Research (correcting W1b §3 and the migration map):
   `draws` (weighted rotation, `:17`), `matches` (`species | rarity | elite | tag`, `:26`), `ranks`, `initial`,
   `fallback`, `elites`, `rows { id, kind, target, need, reward }` (`:33`); rewards carry Pine's `bolts` (`:10`, `:91`).
   `ContractBoardPageSchema` (`:62`) adds the panel, store, ammunition owner and finishes. Game:
-  `src/game/server/quest/contractBoard.ts`, `contractBoardPage.ts`, `contracts.ts`; installed by `installContractBoardPage(ctx:
+  `src/game/shared/quest/contractBoard.ts`, `contractBoardPage.ts`, `contracts.ts`; installed by `installContractBoardPage(ctx:
   ShardContext, …)` (`contractBoardPage.ts:36`) from the chapter host (`src/game/server/quest/chapter.ts:177`), i.e. on the
   plugin context. AS: Pine's `behaviour/contracts.as`, `contractsRandom.as`, `contractsRules.as` (the ninth decision
   module, `test/decision-module-cap.test.ts`).

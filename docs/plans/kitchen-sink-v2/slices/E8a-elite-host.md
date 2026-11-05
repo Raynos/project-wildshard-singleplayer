@@ -22,7 +22,7 @@ Research:
   dusk | night` (`:24-26`), and a `legacy` block (fields, rivals, lanes). Presentation stings are a closed picklist
   `pickup | death | chunk | dawn` (`:20`). Game: `src/game/server/Elite.ts` (653), `eliteSystem.ts` (330),
   `src/game/server/quest/eliteFeature.ts`, `elitePage.ts`, `eliteDecisions.ts`, `eliteStreams.ts`; engine
-  `src/engine/server/ai/eliteRoster.ts`, `src/engine/server/entities/eliteBrain.ts`. Save: `elitesSave { timer, discovered,
+  `src/engine/server/ai/eliteRoster.ts`, `src/engine/shared/entities/eliteBrain.ts`. Save: `elitesSave { timer, discovered,
   skinTaken, kills, retired }` (`src/game/shared/saves.ts:18`).
 - Users: Pine (`generators/eliteFeatureRows.ts`, `sourceOutput.ts`), Nalati (`generators/eliteEntryRows.ts` via
   `src/sdk/eliteEntryRows.ts`), the template (`combat/encounters` kind `elite`, "Greyback").

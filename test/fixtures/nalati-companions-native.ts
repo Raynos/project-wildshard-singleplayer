@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {MountCompanions,companionToName} from '../../src/game/server/riding/companions';
+import {MountCompanions,companionToName} from '../../src/game/shared/riding/companions';
 import {mountedPlayerOf} from '../../src/game/server/riding/native';
 import {nativeTamingOf} from '../../src/game/server/riding/nativeTaming';
 import {ReturnProgram} from '../../src/game/shared/population/returnProgram';

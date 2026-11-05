@@ -55,7 +55,7 @@ const hosts = {
   'economy/ledger': ['game/server/ledger#Ledger', 'game/server/ledger#installLedgerEmitter'],
   'economy/loot': ['game/shared/shard/declaredRows#declaredLootPresentation'],
   'state/state': ['game/server/shardfile/scripts#numericScriptState'],
-  'state/migrations': ['game/server/shardfile/logicalState#logicalStateFromLane'],
+  'state/migrations': ['game/shared/shardfile/logicalState#logicalStateFromLane'],
   'state/modes': ['engine/shared/player/modes#playerModes'],
   'sim/runtime-plan': ['game/server/shardfile/nativePlan#prepareProductRuntimePlan'],
   'world/scenes': ['game/client/shardfile/worldScenes#installWorldScenes'],

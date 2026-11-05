@@ -398,7 +398,7 @@
 | src/entities/creatureKit.ts | src/engine/entities/creatureKit.ts | src/shards/nalati-grasslands/species/creatureKit.ts |
 | src/entities/creatureRigBake.ts | src/engine/entities/creatureRigBake.ts | src/engine/entities/creatureRigBake.ts |
 | src/entities/creatureRigs.ts | src/engine/entities/creatureRigs.ts | src/shards/nalati-grasslands/species/creatureRigs.ts |
-| src/entities/eliteBrain.ts | src/engine/server/entities/eliteBrain.ts | deleted by its owner |
+| src/entities/eliteBrain.ts | src/engine/shared/entities/eliteBrain.ts | deleted by its owner |
 | src/entities/farHerd.ts | src/engine/client/entities/farHerd.ts | src/engine/client/entities/farHerd.ts |
 | src/entities/fightRules.ts | src/engine/server/entities/fightRules.ts | src/engine/server/ai/director.ts |
 | src/entities/glbCreatures.ts | src/engine/entities/glbCreatures.ts | src/shards/nalati-grasslands/species/glbCreatures.ts |
@@ -506,7 +506,7 @@
 | src/game/LastPlace.ts | src/game/LastPlace.ts | src/game/LastPlace.ts |
 | src/game/client/Progress.ts | src/game/client/Progress.ts | src/game/client/Progress.ts |
 | src/game/Taming.ts | src/shards/nalati-grasslands/ride/Taming.ts | src/shards/nalati-grasslands/ride/Taming.ts |
-| src/game/server/achievements.ts | src/game/server/achievements.ts | src/game/server/achievements.ts |
+| src/game/shared/achievements.ts | src/game/shared/achievements.ts | src/game/shared/achievements.ts |
 | src/game/server/loot/Bounty.ts | src/game/server/loot/Bounty.ts | src/game/server/loot/Bounty.ts |
 | src/game/server/loot/CoinBurst.ts | src/game/server/loot/CoinBurst.ts | src/game/server/loot/CoinBurst.ts |
 | src/game/shared/loot/Owned.ts | src/game/shared/loot/Owned.ts | src/game/shared/loot/Owned.ts |
@@ -865,7 +865,7 @@
 | src/world/fx.ts | src/engine/world/fx.ts | src/engine/world/fx.ts |
 | src/world/interact/Interactables.ts | src/engine/client/world/interact/Interactables.ts | src/engine/client/world/interact/Interactables.ts |
 | src/world/interact/driftwood.ts | src/shards/driftwood-isle/quest/interactables.ts | src/shards/driftwood-isle/quest/interactables.ts |
-| src/world/interact/flags.ts | src/engine/server/world/interact/flags.ts | src/engine/server/world/interact/flags.ts |
+| src/world/interact/flags.ts | src/engine/shared/world/interact/flags.ts | src/engine/shared/world/interact/flags.ts |
 | src/world/interact/models.ts | src/engine/world/interact/models.ts | src/kit/interact/models.ts |
 | src/world/interact/types.ts | src/engine/shared/world/interact/types.ts | src/engine/shared/world/interact/types.ts |
 | src/world/interact/validate.ts | src/engine/shared/world/interact/validate.ts | src/engine/shared/world/interact/validate.ts |

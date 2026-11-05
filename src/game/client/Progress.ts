@@ -15,7 +15,7 @@ import type { ShardSlug } from '../server/shard/slugs.generated';
  *   progress.rows                                          // [{ def, count, earned }] for the Achievements tab
  *   progress.title / progress.wear(def.id)                 // the worn title (the first earned one is worn automatically)
  */
-import { achievementsFor, type AchievementDef } from '../server/achievements';
+import { achievementsFor, type AchievementDef } from '../shared/achievements';
 
 interface ShardProgress { counts: Record<string, number>; earned: string[]; title: string | null; playS: number }
 const PLAY_SAVE_S = 15;

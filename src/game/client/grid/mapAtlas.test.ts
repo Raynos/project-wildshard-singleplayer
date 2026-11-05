@@ -5,7 +5,7 @@ import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { loadGridMapAtlas } from './mapAtlas';
 import { GridAssembly } from '../../shared/grid/assembly';
 import { fullMapOverlay } from './minimapBlend';
-import { GridCellEvents } from '../../server/grid/cellEvents';
+import { GridCellEvents } from '../../shared/grid/cellEvents';
 
 const spec = { url: '/atlas.webp', compressed: 99, width: 512, height: 256, tileSize: 256, slugs: ['a', 'b'] };
 test('one charged decode supplies crops until its owner retires', async () => {

@@ -5,7 +5,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { tagCollider } from '../src/engine/shared/physics/surface';
 import { createSimHost } from '../src/engine/server/sim';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
-import { captureLiftRider, captureLiftRiders, firstLiftRider, parseLiftRiders, restoreLiftRider } from '../src/game/server/shardfile/liftRider';
+import { captureLiftRider, captureLiftRiders, firstLiftRider, parseLiftRiders, restoreLiftRider } from '../src/game/shared/shardfile/liftRider';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3: a lift carries whoever stands on it, so a save names every rider. Alone, the wire stays the bare edge.

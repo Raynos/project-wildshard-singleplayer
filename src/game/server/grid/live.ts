@@ -7,7 +7,7 @@ import { TraversalReadiness, readinessModel, type ReadinessBundle, type Readines
 import type { ReadinessWalls } from '@wildshard/engine/physics/readinessWalls';
 import { CHUNK_HALF, CONTENT_CAPS, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { GhostWorlds, type GhostRegion } from './ghosts';
+import { GhostWorlds, type GhostRegion } from '../../shared/grid/ghosts';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import type { DisposeStep } from '@wildshard/engine/app/scope';
 import type { GridAssembly, GridCell, GridPoint } from '../../shared/grid/assembly';

@@ -9,7 +9,7 @@ import { macrotask } from '../boot/plan';
 import { groundSet } from './lookFlags';
 import type { PainterField, TerrainPainter } from '../render/look';
 import type { Scope } from '../../shared/app/scope';
-import type { LevelAssets, TerrainField } from '../../server/level/data';
+import type { LevelAssets, TerrainField } from '../../shared/level/data';
 import type { LevelSpec } from '../../shared/level/spec';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { workSlice } from '../../shared/core/workSlice';

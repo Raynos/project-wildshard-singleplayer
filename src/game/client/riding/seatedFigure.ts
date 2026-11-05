@@ -4,7 +4,7 @@ import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
 import { bakedGeometryBytes,readBakedGeometry,expandBakedGeometry } from '../plugin/geometry';
 import { prepareBinarySources,type BinaryFileReader } from '../models/binarySource';
-import { playClips, type ClipCtx } from '../../server/plugin/animation';
+import { playClips, type ClipCtx } from '../../shared/plugin/animation';
 import { createClientScene } from '../plugin/scene';
 
 /** The profile admits at most 16 gestures; a riding session presents at most 8 cue kinds a frame. */

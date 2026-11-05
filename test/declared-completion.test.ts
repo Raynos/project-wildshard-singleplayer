@@ -2,7 +2,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { createQuestPlacements } from '../src/engine/shared/world/interact/types';
 import { parseCompletion } from '@wildshard/format/completion';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

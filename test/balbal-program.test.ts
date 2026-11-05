@@ -6,7 +6,7 @@ import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { object, parse } from 'valibot';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { program } from './fixtures/projectedCreature';
-import * as strikes from '../src/engine/server/ai/strikeRows';
+import * as strikes from '../src/engine/shared/ai/strikeRows';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema})}),originalSpeciesJson('species.json'));

@@ -8,7 +8,7 @@ import { SweptBasePose } from '@wildshard/engine/combat/sweptBasePose';
 import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush } from '@wildshard/engine/combat/sweptMeleeCore';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
-import { STARTER_BLADE } from '../weapons/starterMoves';
+import { STARTER_BLADE } from '../../shared/weapons/starterMoves';
 import { playerSeats } from './playerSeats';
 import { createNativeLoadout, createNativeTargetQueries } from './simulation';
 

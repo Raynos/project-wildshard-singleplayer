@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { lin } from '@wildshard/engine/math/color';
-import { REST } from '../../../server/weapons/starterMoves';
+import { REST } from '../../../shared/weapons/starterMoves';
 
 /**
  * SF54: a private, byte-identical copy of the low-poly sword builder (the original moved to Driftwood's

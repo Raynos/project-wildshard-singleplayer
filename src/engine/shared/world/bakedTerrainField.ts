@@ -1,4 +1,4 @@
-import type { TerrainField, CabinSite, Vec2 } from '../../server/level/data';
+import type { TerrainField, CabinSite, Vec2 } from '../level/data';
 import { buildTerrainMetadata } from './terrainField';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 

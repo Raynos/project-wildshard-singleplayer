@@ -17,7 +17,7 @@ import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { BossEncounterDefinitionSchema, type BossEncounterDefinitionRows } from '@wildshard/format/bossEncounter';
 import type { ReturnProjectionV2RowsInput, ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
 import type { HeldSlotKit, HeldClaims } from '../../client/loadout/claims';
-import { enteredAdventurePersistence } from '../quest/chapterBindings';
+import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
 import type { ModelDef, ModelContext } from '@wildshard/engine/models/model';
 import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import type { TargetHit } from '@wildshard/engine/combat/types';

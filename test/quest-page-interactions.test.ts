@@ -8,7 +8,7 @@ import { output as traderOutput } from '../src/shards/driftwood-isle/generators/
 import { InteractionRules } from '../src/game/server/quest/interactionRows';
 import { Vector3 } from 'three';
 import { expect, test, vi } from 'vitest';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { createQuestPagePrompts, bindQuestPageInteractions } from '../src/game/client/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';

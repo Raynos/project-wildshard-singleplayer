@@ -1,8 +1,8 @@
 import { parseFindsCatalogue } from '@wildshard/format/findsCatalogue';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import { createFindsCatalogue } from '../../server/bag/findsCatalogue';
+import { createFindsCatalogue } from '../../shared/bag/findsCatalogue';
 import { renderFinds } from '../bag/bag';
-import { boundQuestState } from '../../server/quest/boundState';
+import { boundQuestState } from '../../shared/quest/boundState';
 import { isOwnedId } from '../../shared/loot/Owned';
 import type { ShardContext } from '../../server/plugin/context';
 

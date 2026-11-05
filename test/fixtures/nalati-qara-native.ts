@@ -4,7 +4,7 @@ import {Vector3} from 'three';
 import type {HuntBody} from '../../src/engine/server/ai/hunt';
 import type {SimHost} from '../../src/engine/server/sim';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {eliteScriptFrame,eliteDamageScale} from '../../src/engine/server/ai/eliteScript';
+import {eliteScriptFrame,eliteDamageScale} from '../../src/engine/shared/ai/eliteScript';
 import {pinBrain} from '../../src/engine/shared/ai/pinning';
 import {parseExternalElite} from '@wildshard/format/eliteFeature';
 import {ReturnProgram} from '../../src/game/shared/population/returnProgram';
@@ -14,7 +14,7 @@ import {NALATI_ELITE_CONDITIONS} from '../../src/shards/nalati-grasslands/genera
 import {withNalatiWeapons} from './nalati-weapons-native';
 import {prepareNalatiPatrol,nalatiPatrolOf} from './nalati-patrol-native';
 import {StrikeRunner} from '../../src/engine/server/ai/strikes';
-import {strikeFromData} from '../../src/engine/server/ai/strikeRows';
+import {strikeFromData} from '../../src/engine/shared/ai/strikeRows';
 import {canReach} from '../../src/engine/server/ai/reach';
 import {nativeGroupCollection} from '../../src/game/server/shardfile/groupRuntime';
 import {parseEliteEntryPageRows} from '@wildshard/format/eliteEntryRows';

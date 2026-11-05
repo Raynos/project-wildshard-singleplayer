@@ -4,7 +4,7 @@
  *
  *   const g = groundSet(def);                   // Terrain.build, the boot manifest
  */
-import type { LevelAssets, RGB } from '../../server/level/data';
+import type { LevelAssets, RGB } from '../../shared/level/data';
 
 /** the ground layers the terrain loads, with the boreal set (canopy litter, moss, tiling breakup) when the shard has one */
 export function groundSet(def: { assets?: LevelAssets | undefined }): { layers: readonly string[]; tints: readonly RGB[]; boreal: { normalK: readonly number[]; trailDust: readonly number[]; grassTint: readonly number[] } | null } {

@@ -1,5 +1,5 @@
 import type { SimHost } from '../sim';
-import { Flags, type FlagListener } from '../world/interact/flags';
+import { Flags, type FlagListener } from '../../shared/world/interact/flags';
 import { QuestState, type QuestDef } from './core';
 import type { QuestProgress } from '../../shared/quest/progress';
 

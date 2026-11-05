@@ -3,7 +3,7 @@ import type { MinimapPalette } from '../../client/ui/Minimap';
 import type { LookReplaceContext } from '../../client/render/look';
 import type { SkyRig as Sky } from '../../client/world/skyRig';
 import type { TreeFactory } from '../../client/world/TreeFactory';
-import type { Noise2D } from '../../shared/core/noise';
+import type { Noise2D } from '../core/noise';
 import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '../../client/world/forest/treeSpecies';
 // Engine-owned level data; structurally compatible with the transitional manifests.
 export type Vec2 = [number, number];

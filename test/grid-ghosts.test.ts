@@ -6,7 +6,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed runner and exact fixture without a shell.
 import { resolve as resolvePath } from 'node:path';
 import { Group } from 'three';
-import { GHOST_AFTER_MS, GhostWorlds } from '../src/game/server/grid/ghosts';
+import { GHOST_AFTER_MS, GhostWorlds } from '../src/game/shared/grid/ghosts';
 import { Scope } from '../src/engine/shared/app/scope';
 import { TileStreamer, scopedTilePorts, type RingPorts, type RingTile } from '../src/engine/client/world/tileStreamer';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';

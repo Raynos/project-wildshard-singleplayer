@@ -1,7 +1,7 @@
 import type { Vector3 } from 'three';
 import type { Animal } from '../../client/entities/AnimalView';
-import type { ThinkCtx } from '../../shared/entities/species/registry';
-import type { Scope } from '../../shared/app/scope';
+import type { ThinkCtx } from './species/registry';
+import type { Scope } from '../app/scope';
 
 interface Binding<T> { readonly scope: Scope | null; readonly value: T }
 type Think = (a: Animal, c: ThinkCtx) => void;

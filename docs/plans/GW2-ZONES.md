@@ -554,7 +554,7 @@ Singleplayer already built most of the **kit**, mostly once and wired to one sha
 | Respawn queue | `src/game/quest/Ecology.ts` | Driftwood | Event and ecology respawns |
 | Loot: coins, purse, bounty cap, shop, perks, Owned | `src/game/loot/` | coins / shop Driftwood-only | Currency and vendor rows |
 | Contract board, drawn by a hash of a serial, with no clock (PH-U21) | `src/pinehollow/quest/contracts.ts` | Pine | A reusable deterministic draw. A daily seed would hash the date instead, which is new work |
-| Achievements + titles | `src/game/server/achievements.ts`, `Progress.ts` | all, per shard | Account titles |
+| Achievements + titles | `src/game/shared/achievements.ts`, `Progress.ts` | all, per shard | Account titles |
 | Compendium + trophy wall | `src/ui/compendium/`, `src/world/TrophyWall.ts` | Pine (built shard-agnostic) | Collections |
 | Shard-complete card; last-place checkpoint | `src/ui/ShardComplete.ts`, `src/game/LastPlace.ts` | Driftwood only | Completion; checkpoints |
 | Breadcrumb guides (gulls; ravens and owl) | `gullGuide.ts`, `src/pinehollow/life/` | Driftwood, Pine (built twice) | Diegetic "what's over there"; clue flights for hunts |

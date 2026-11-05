@@ -9,7 +9,7 @@ import { app } from '../src/engine/client/app/runtime';
 import { RngService } from '../src/engine/shared/core/rng';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
-import { EliteReadiness, type EliteProjection } from '../src/engine/server/ai/eliteScript';
+import { EliteReadiness, type EliteProjection } from '../src/engine/shared/ai/eliteScript';
 import { EncounterPatrolSchema } from '@wildshard/format/encounterRows';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

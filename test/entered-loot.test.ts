@@ -1,6 +1,6 @@
 import {expect,test,vi} from 'vitest';
 import {Scope} from '../src/engine/shared/app/scope';
-import {Flags} from '../src/engine/server/world/interact/flags';
+import {Flags} from '../src/engine/shared/world/interact/flags';
 import {Owned} from '../src/game/shared/loot/Owned';
 import {Purse} from '../src/game/server/loot/Purse';
 import {enteredLootPresentation} from '../src/game/server/loot/runtime';

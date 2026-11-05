@@ -2,7 +2,7 @@ import { bindLegacyDirector } from './fixtures/legacy-director-bindings';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { DirectorScriptStageLane, prepareEmbeddedDirector } from '../src/game/server/plugin/director';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 import {driftwoodDirector as module} from './fixtures/director-modules';

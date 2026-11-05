@@ -14,7 +14,7 @@ import { isDev } from '@wildshard/engine/core/devMode';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import catalogue from '../shared/grid/singleplayer.json' with { type: 'json' };
-import { previewNewGame, resetNewGame, type NewGameProgress, type NewGameSummary } from '../server/newGame';
+import { previewNewGame, resetNewGame, type NewGameProgress, type NewGameSummary } from '../shared/newGame';
 import type { LocalSaveInstance } from '../shared/instanceSaves';
 import { catalogueManifests } from './shard/titleList';
 import type { ShardManifest } from '../server/shard/manifest';

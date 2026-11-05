@@ -2,7 +2,7 @@
  * admitted identities, detached rewards and the original page save envelope. */
 import { parseContractCatalogue, type ContractCatalogue, type ContractReward as Reward } from '@wildshard/format/contracts';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { ReturnProgram } from '../../shared/population/returnProgram';
+import { ReturnProgram } from '../population/returnProgram';
 
 export interface Contract {
   serial:number; kind:string; target:string; need:number; have:number;

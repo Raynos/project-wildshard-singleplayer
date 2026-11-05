@@ -11,7 +11,7 @@ import type { SimBodyBands, SimHost, SimSpawn, SimValue } from '@wildshard/engin
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { castRay } from '@wildshard/engine/physics/query';
 import { HuntBrain, type HuntBody } from '@wildshard/engine/ai/hunt';
-import { isNativeCreaturePoseService, type createNativeCreaturePoses } from '../plugin/animation';
+import { isNativeCreaturePoseService, type createNativeCreaturePoses } from '../../shared/plugin/animation';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { creatureBodyDistance, keepsCreatureBody } from '@wildshard/engine/sim/bands';

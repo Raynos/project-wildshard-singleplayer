@@ -13,7 +13,7 @@ import type { RosterEntry } from '../../client/models/live';
 import type { InputContextDef } from '../../server/level/context';
 import type { SfxDecodePolicy } from '../../client/audio/preload';
 import type { LevelAudioProfile } from '../../client/audio/levelAudio';
-import type { AtmosphereSpec, ExploreSpec, ForestSpec, GradeSpec, GradeLook, HerdPlan, HorizonSpec, HudSpec, LevelAssets, MinimapSpec, PoiSpec, RGB, SkySpec, SpawnPose, TerrainField, TreeSpec } from '../../server/level/data';
+import type { AtmosphereSpec, ExploreSpec, ForestSpec, GradeSpec, GradeLook, HerdPlan, HorizonSpec, HudSpec, LevelAssets, MinimapSpec, PoiSpec, RGB, SkySpec, SpawnPose, TerrainField, TreeSpec } from './data';
 import type { EngineTierKnobs } from '../../client/render/tiers';
 import type { BudgetInputs } from '../../client/render/budgets';
 import type { TickRate } from '../app/scheduler';

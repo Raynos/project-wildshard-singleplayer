@@ -1,5 +1,5 @@
 import { questChip, questHint, questObjective, type QuestProgress } from '../../shared/quest/progress';
-import { test, type Flags } from '../world/interact/flags';
+import { test, type Flags } from '../../shared/world/interact/flags';
 import type { Scope } from '../../shared/app/scope';
 import type { Events } from '../../shared/events/events';
 import type { Cond, QuestPlace } from '../../shared/world/interact/types';

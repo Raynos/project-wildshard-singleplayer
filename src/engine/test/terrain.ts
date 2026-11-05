@@ -1,5 +1,5 @@
 import { bindHeightfield, captureHeightfield, HeightfieldBinding } from '../shared/world/Heightfield';
-import type { TerrainField } from '../server/level/data';
+import type { TerrainField } from '../shared/level/data';
 import type { LevelSpec } from '../shared/level/spec';
 import { bindLevelSelection } from '../shared/level/selection';
 import { flatTerrainField } from '../shared/world/groundField';

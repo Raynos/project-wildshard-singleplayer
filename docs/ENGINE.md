@@ -7137,7 +7137,7 @@ Supply the actual owners to `createCueRouter` alongside those bindings.
 
 ### Native interaction transitions
 
-`engine/server/world/interact/flags.ts` defines `InteractionTransitionPorts`,
+`engine/shared/world/interact/flags.ts` defines `InteractionTransitionPorts`,
 `InteractionTransitions` and `bindInteractionTransitions`. A preflighted,
 bounded table borrows graph-run, item-grant, touch and plate callbacks.
 Transitions preserve ordered automatic/explicit flags, physical door toggles,
@@ -8285,7 +8285,7 @@ clones. Omission preserves existing direct/merged material ownership.
 Tree cloning, content selection and the crossbow's three cord-rest rows
 remain Pine-owned; there is no tree-copy host or extra pending-user credit.
 
-`src/game/server/bag/findsCatalogue.ts#createFindsCatalogue` prepares bounded
+`src/game/shared/bag/findsCatalogue.ts#createFindsCatalogue` prepares bounded
 `FindsCatalogueRows` for the existing Bag FINDS renderer. Counters read
 declared flag sets (explicit IDs or a numbered prefix); stickers read
 flags or registered ownership, preserving authored labels, icons, prizes
@@ -8687,7 +8687,7 @@ HandSpec/palette and grip-quaternion law. G441 pending W3 user: Nalati
 
 ### Native NPC facing
 
-`src/game/server/plugin/animation.ts#stepNpcFacing(current, target, profile, dt)`
+`src/game/shared/plugin/animation.ts#stepNpcFacing(current, target, profile, dt)`
 advances the caller's yaw by the wrapped shortest-angle difference and its
 exponential response. `NpcFacingProfile.rate` sets that response;
 `maxSpeed` optionally caps the angular step. `wrapTarget` and `wrapOutput`

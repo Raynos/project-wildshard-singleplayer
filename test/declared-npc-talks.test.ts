@@ -6,7 +6,7 @@ import { QuestNpcBindingsSchema, questNpcBindingRules } from '@wildshard/format/
 import { installDeclaredNpcTalks, type QuestNpcTalkPorts } from '../src/game/client/plugin/ui';
 import { Scope } from '../src/engine/shared/app/scope';
 import { DialogueBox } from '../src/engine/client/quest/view/ui';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
 import { parseQuestData } from '../src/sdk/quests';

@@ -1,6 +1,6 @@
 import { setTerrainDatum, setTerrainHeight, setTerrainPlacement } from './terrainHeight';
 import { terrainFieldFor } from './groundField';
-import type { PondDef, TerrainField } from '../../server/level/data';
+import type { PondDef, TerrainField } from '../level/data';
 import type { LevelSpec } from '../level/spec';
 import { activeLevel, onLevelChange, selectedLevel } from '../level/selection';
 // The level's terrain shape. Pure functions so the same field drives the mesh,

@@ -13,7 +13,7 @@ import type { EliteDef, Elites } from '../src/game/server/Elite';
 import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';
 import { BorrowedElite } from '../src/engine/client/ai/view/eliteEntry';
 import type { StallionState } from '../src/engine/server/ai/herd';
-import { eliteDamageMul } from '../src/engine/server/entities/eliteBrain';
+import { eliteDamageMul } from '../src/engine/shared/entities/eliteBrain';
 import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };

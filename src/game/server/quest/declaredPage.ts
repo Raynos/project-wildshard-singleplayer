@@ -11,7 +11,7 @@ import { commitQuestEffects } from './effects';
 import type { QuestEffect } from '@wildshard/format/questSteps';
 import { lightEmitterPresentation } from '../../client/shardfile/lightEmitters';
 import { residentWorldScope } from '../../client/shardfile/hybridPresentation';
-import { readQuestObservation } from './chapterBindings';
+import { readQuestObservation } from '../../shared/quest/chapterBindings';
 import type { PageQuestStages } from '../../client/plugin/ui';
 
 /** Original owners installed by the compiled client features, never shard callbacks. */

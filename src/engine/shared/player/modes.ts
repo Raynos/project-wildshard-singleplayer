@@ -16,7 +16,7 @@
  */
 import { CableTraversal } from '../sim/cableTraversal';
 import { parseModes, type ModeRows } from '@wildshard/format/modes';
-import type { Flags } from '../../server/world/interact/flags';
+import type { Flags } from '../world/interact/flags';
 import type { Scope } from '../app/scope';
 import type { Events } from '../events/events';
 import type { RideCommandSample } from '../input/commands';

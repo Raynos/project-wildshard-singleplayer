@@ -14,7 +14,7 @@
  */
 import { Noise2D, smoothstep, clamp, lerp } from '../core/noise';
 import { CHUNK_HALF, ROAD_WIDTH, ROAD_LENGTH } from '../core/config';
-import type { TerrainField, TerrainSpec, TerrainNoise, Vec2, CabinSite } from '../../server/level/data';
+import type { TerrainField, TerrainSpec, TerrainNoise, Vec2, CabinSite } from '../level/data';
 
 function distToSegmentSquared(px: number, pz: number, ax: number, az: number, bx: number, bz: number) {
   const vx = bx - ax, vz = bz - az;

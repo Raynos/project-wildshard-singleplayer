@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {placesWithDiscovery} from '../../src/engine/server/quest/discovery';
+import {placesWithDiscovery} from '../../src/engine/shared/quest/discovery';
 import {ChapterViewSchema} from '@wildshard/format/questPageComposition';
 import {mountedPlayerOf} from '../../src/game/server/riding/native';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';

@@ -6,7 +6,7 @@ import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {snapshotSimHost,serializeSimSnapshot} from '../src/engine/shared/sim/snapshot';
 import {outputDescriptor} from '../src/game/shared/shardfile/outputDescriptor';
-import {questObservation} from '../src/game/server/quest/questObservation';
+import {questObservation} from '../src/game/shared/quest/questObservation';
 import {AdventurePersistenceSchema} from '@wildshard/format/namedJsonContracts';
 import {parseChapterStoryPresentation} from '@wildshard/format/questStory';
 import type {PrepareHeadlessRuntime} from '../src/sdk/headlessRuntime';

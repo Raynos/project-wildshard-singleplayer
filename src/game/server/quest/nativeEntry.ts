@@ -6,7 +6,7 @@ import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { bindQuestTableSpots } from '../plugin/quests';
 import { installDeclaredQuestHost, type QuestHostPorts } from '../plugin/simulation';
 import { nativeQuestInputs } from './nativeInputs';
-import { AchievementCounterBook, type AchievementCounterRows } from '../achievements';
+import { AchievementCounterBook, type AchievementCounterRows } from '../../shared/achievements';
 import * as v from 'valibot';
 import { bindInteractionTransitions, type Flags, type InteractionState, type InteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import { plateOverlap } from '@wildshard/engine/world/interact/barrel';

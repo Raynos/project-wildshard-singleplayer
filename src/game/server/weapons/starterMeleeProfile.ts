@@ -1,7 +1,7 @@
-import { STARTER_MELEE_PROFILE, IRON_MELEE_PROFILE } from './starterCombat';
+import { STARTER_MELEE_PROFILE, IRON_MELEE_PROFILE } from '../../shared/weapons/starterCombat';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { SWAP_GLYPHS } from '../../client/weapons/starterGlyphs';
-import { REST, CHARGE, SPRINT, COMBO, HEAVY, CHARGE_BLEND } from './starterMoves';
+import { REST, CHARGE, SPRINT, COMBO, HEAVY, CHARGE_BLEND } from '../../shared/weapons/starterMoves';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 
 /** The starter wooden sword equipment row and existing UI metadata. */

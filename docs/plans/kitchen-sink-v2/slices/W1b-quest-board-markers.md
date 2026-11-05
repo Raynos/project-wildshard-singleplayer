@@ -27,7 +27,7 @@ Research:
 - **The UI shows one quest.** The HUD has one objective chip (`src/engine/client/ui/HUD.ts:572` `.ws-quest-obj`) and the map tab
   one quest card (`src/engine/client/ui/Menu.ts:352` `renderQuest()` reads a single `fullMap.quest`). No quest list, no accept,
   no turn-in, no giver marker exists.
-- **Discovery** exists (`src/engine/server/quest/discovery.ts`, 45 lines); no "discover N of these places" step.
+- **Discovery** exists (`src/engine/shared/quest/discovery.ts`, 45 lines); no "discover N of these places" step.
 
 Work (data-only rows, game layer):
 

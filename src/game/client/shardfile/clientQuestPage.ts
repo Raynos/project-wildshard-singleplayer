@@ -7,7 +7,7 @@ import type { DirectorActionBinding } from '../../server/plugin/director';
 import { bindRuntimeCoins } from '../../server/plugin/headless';
 import { installRuntimeAudio } from '../plugin/audio';
 import { installRuntimeLoot } from '../../server/loot/runtime';
-import { installBoundQuestFlags, publishQuestFacts } from '../../server/quest/boundState';
+import { installBoundQuestFlags, publishQuestFacts } from '../../shared/quest/boundState';
 import { resolveSceneNpc } from '../models/sceneSpecimens';
 import { productPainterLight } from '../looks/paintedLook';
 import { clientNativeBook } from './clientNativeBook';

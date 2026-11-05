@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { NpcTalk } from '../src/engine/client/quest/view';
 import { DialogueBox } from '../src/engine/client/quest/view/ui';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { createReadingRoster } from '../src/game/server/plugin/quests';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 

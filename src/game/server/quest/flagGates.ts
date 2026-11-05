@@ -6,7 +6,7 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { ShardContext } from '../plugin/context';
 import { questBooks } from '@wildshard/engine/quest/players';
-import { boundQuestState } from './boundState';
+import { boundQuestState } from '../../shared/quest/boundState';
 
 type Collider = ReturnType<SimHost['physics']['world']['getCollider']>;
 /** Gates borrow the installed flags and exact collision owners. Native gates run

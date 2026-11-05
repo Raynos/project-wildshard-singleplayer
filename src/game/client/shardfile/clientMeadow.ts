@@ -3,7 +3,7 @@ import type { ShardContext } from '../../server/plugin/context';
 import { Grass } from '@wildshard/engine/world/Grass';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { Particles } from '../systems/looks/particles';
-import { configureGrassFieldData } from '../../server/systems/looks/grassField';
+import { configureGrassFieldData } from '../../shared/systems/looks/grassField';
 
 /** Client-only meadow assembly over the native population field rows. The
  * existing level grass driver and atmosphere own their rendering resources. */

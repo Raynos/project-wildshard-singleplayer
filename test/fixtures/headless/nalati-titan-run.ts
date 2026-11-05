@@ -14,7 +14,7 @@ import {createNativeProofResident} from '../headless-native';
 import {createNativeProofWorker} from '../headless-worker';
 import {prepareHeadlessRuntime,nalatiTitanOf} from '../nalati-titan-native';
 import {readArenaScriptData} from '../../../src/game/server/boss/openArenaFight';
-import {questObservation} from '../../../src/game/server/quest/questObservation';
+import {questObservation} from '../../../src/game/shared/quest/questObservation';
 import {parseChapterStoryPresentation} from '@wildshard/format/questStory';
 import {reachTitanCairn} from '../../proof/nalati-grasslands/titanTravel';
 import {titanBowPilot,titanRidersPilot} from '../../proof/nalati-grasslands/titanCombat';

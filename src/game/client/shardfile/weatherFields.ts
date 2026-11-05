@@ -1,6 +1,6 @@
 import { EasedFields } from '@wildshard/engine/world/easedFields';
 import { parseEasedFields } from '@wildshard/format/easedFields';
-import { boundQuestState } from '../../server/quest/boundState';
+import { boundQuestState } from '../../shared/quest/boundState';
 import { sceneScalar } from './sceneInputs';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { ShardContext } from '../../server/plugin/context';

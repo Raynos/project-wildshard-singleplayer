@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { configureGrassFieldData,populationMeadow } from './grassField';
+import { configureGrassFieldData,populationMeadow } from '../../../shared/systems/looks/grassField';
 import { parse } from 'valibot';
 import { PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 

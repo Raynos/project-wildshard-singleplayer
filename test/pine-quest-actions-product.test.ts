@@ -1,8 +1,8 @@
 import { PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
 import { registerItemRow } from '../src/game/shared/bag/itemCatalog';
-import { QuestStepRunner } from '../src/game/server/quest/steps';
+import { QuestStepRunner } from '../src/game/shared/quest/steps';
 import { commitQuestEffects, readQuestServiceActions } from '../src/game/server/quest/effects';
-import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { QuestState } from '../src/engine/server/quest/core';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
@@ -17,8 +17,8 @@ import { PINE_QUEST_TRANSACTIONS } from './fixtures/pine-quest-transactions';
 import { PINE_QUEST_CONSEQUENCES } from './fixtures/pine-quest-consequences';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
-import { Flags } from '../src/engine/server/world/interact/flags';
-import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/server/quest/contracts';
+import { Flags } from '../src/engine/shared/world/interact/flags';
+import { claim, loadBoard, newBoard, recordKill, saveBoard } from '../src/game/shared/quest/contracts';
 import { Exchange } from '../src/game/server/loot/exchange';
 import { TRADES, tradeExchange } from '../src/shards/pine-hollow/generators/trades';
 

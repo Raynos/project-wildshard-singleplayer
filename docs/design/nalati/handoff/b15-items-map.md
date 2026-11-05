@@ -14,7 +14,7 @@ Stopped on the user's WRAP UP (token usage). Plan row: `project/archive/2026-09-
   (stone shard), `ghost-rider` (grave dust), `marmot` (fur). The elite trophies (`leopard-pelt`, `grey-mother-pelt`,
   `eagle-feather`, `captain-standard`, `mane-braid`) and the Golden King's `gold-plaque` already existed (B12 / B13).
   main.ts's harvest path (`[E] Harvest …` → `harvestOf(kind, variant)`) picks these up with no wiring.
-- **Achievements** (`src/game/server/achievements.ts`, NALATI table): WOLFBANE (5 wolves → "Pack Leader (Self-Appointed)"),
+- **Achievements** (`src/game/shared/achievements.ts`, NALATI table): WOLFBANE (5 wolves → "Pack Leader (Self-Appointed)"),
   THE BIG BAD (25 → "Not Afraid Of The Big Bad Anything"), ALPHA MALE SEMINAR (a pack alpha → "Sigma Grindset
   Survivor"), ROCK BOTTOM (5 balbals → "Licensed Stonemason"), NIGHT WATCH (10 ghost riders → "Ghost Rider (No
   Relation)"), on top of the existing Golden King + five elite rows. `progress.recordKill(kind, variant)` in main's

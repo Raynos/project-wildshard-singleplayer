@@ -16,7 +16,7 @@ import * as terrainBytes from '@wildshard/format/bakedTerrainBytes';
 import { publicBytes } from '../boot/tables';
 import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { SEED } from '../core/config';
-import type { TerrainField } from '../../server/level/data';
+import type { TerrainField } from '../level/data';
 import { levelBakedId } from '../level/spec';
 import { bakedTerrainSource, installDeclaredBakedTerrain, loadRequiredGround, type BakedTerrainSource, type RequiredGround } from './bakedTerrainField';
 

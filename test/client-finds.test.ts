@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { expect,test,vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState } from '../src/engine/server/quest/core';
 import { Owned } from '../src/game/shared/loot/Owned';
-import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installClientFinds } from '../src/game/client/shardfile/clientFinds';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { parseClientPlan } from '@wildshard/format/clientPlan';

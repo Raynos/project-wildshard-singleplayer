@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { Flags,bindInteractionState,bindInteractionTransitions } from './flags';
+import { Flags,bindInteractionState,bindInteractionTransitions } from '../../../shared/world/interact/flags';
 
 test('read-only row state keeps locks, pickup visibility, loot order and live door reach',()=>{
   const flags=new Flags('interaction-state-fixture',false);

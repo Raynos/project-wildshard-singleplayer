@@ -15,7 +15,7 @@ import policy from '../src/shards/pine-hollow/data/nativeStory.json' with { type
 import { contractCatalogue } from '../src/shards/pine-hollow/generators/contractRows';
 import { pineSpots } from '../src/shards/pine-hollow/generators/spots';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
-import { CONTRACT_ACTION } from '../src/game/server/quest/contractBoard';
+import { CONTRACT_ACTION } from '../src/game/shared/quest/contractBoard';
 import { builtProduct } from './fixtures/builtProduct';
 
 // P1-E3.3: the owners that carry one traveller seat every player: a bot rides the cable on its own ride, and it saves.

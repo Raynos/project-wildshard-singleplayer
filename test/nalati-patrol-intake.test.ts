@@ -13,7 +13,7 @@ import {readNalatiPatrolIntake} from './fixtures/nalati-patrol-intake';
 import {canonicalSimDigest} from './fake/simState';
 import {readNalatiPatrolPoses} from './fixtures/nalati-patrol-poses';
 import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
-import {NativeCreaturePose} from '../src/game/server/plugin/animation';
+import {NativeCreaturePose} from '../src/game/shared/plugin/animation';
 import {Vector3} from 'three';
 import * as v from 'valibot';
 import {TimedEncountersSchema} from '@wildshard/format/encounterRows';

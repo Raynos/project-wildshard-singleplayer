@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { grassBaseHeightAt } from '../../../server/systems/looks/grassField';
-import { TRAMPLE_SPAN, TRAMPLE_SIZE, TrampleField } from '../../../server/systems/looks/trampleField';
+import { grassBaseHeightAt } from '../../../shared/systems/looks/grassField';
+import { TRAMPLE_SPAN, TRAMPLE_SIZE, TrampleField } from '../../../shared/systems/looks/trampleField';
 
 /**
  * Grass that parts around movers and stays trampled (Nalati, `stealth-and-storms.md` → "Living grass").

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { autoFlag, createQuestPlacements, bindInteractPlacements, readInteractPlacements, type InteractTable } from '../src/engine/shared/world/interact/types';
-import { bindInteractionState, Flags } from '../src/engine/server/world/interact/flags';
+import { bindInteractionState, Flags } from '../src/engine/shared/world/interact/flags';
 import { bindInteractionPlacements, readInteractionPlacements } from '../src/sdk/interactions';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
 import { pineSpots } from '../src/shards/pine-hollow/generators/spots';

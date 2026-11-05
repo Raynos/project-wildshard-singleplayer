@@ -10,7 +10,7 @@ import { mountedPlayerOf } from './native';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { TamingSession,type TamingPrograms } from './taming';
 import type { TamingBindingProfile, TamingObservation } from './bindingTypes';
-import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '../plugin/animation';
+import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '../../shared/plugin/animation';
 import { numericCreaturePose } from '../plugin/channelPrograms';
 import { poseRidingEnvelopes, type RidingPresentationRows } from '../../shared/riding/presentation';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';

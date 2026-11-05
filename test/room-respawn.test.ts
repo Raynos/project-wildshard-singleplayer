@@ -7,7 +7,7 @@ import { createSimHost, type SimHost } from '../src/engine/server/sim';
 import { snapshotSimHostBytes, serializeSimSnapshot } from '../src/engine/shared/sim/snapshot';
 import { FALL_FADE } from '../src/engine/server/sim/respawn';
 import { DARK_UNTIL, FADE_IN } from '../src/engine/client/ui/DeathFade';
-import { LastPlace } from '../src/engine/server/quest/lastPlace';
+import { LastPlace } from '../src/engine/shared/quest/lastPlace';
 import { installRoomRespawn } from '../src/game/server/roomRespawn';
 import { serverPlaces } from '../src/game/server/quest/serverPlaces';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';

@@ -5,7 +5,7 @@ import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { SkyRig } from '../src/engine/client/world/skyRig';
 import { WorldRegistry } from '../src/engine/client/world/registry';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { Audio } from '../src/engine/client/audio/Audio';
 import { Events } from '../src/engine/shared/events/events';
 import type { ShardContext } from '../src/game/server/plugin/context';

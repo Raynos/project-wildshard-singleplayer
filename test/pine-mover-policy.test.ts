@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { PINE_MILL_DOOR } from '../src/shards/pine-hollow/generators/questConsequences';

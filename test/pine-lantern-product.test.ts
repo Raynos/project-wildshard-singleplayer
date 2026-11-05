@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { readPineProject } from './fixtures/pine-project';
 import { parseQuestPageInteractions, parseInteractionRows } from '@wildshard/format/questInteractions';
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { Scope } from '../src/engine/shared/app/scope';
 import { QuestState } from '../src/engine/server/quest/core';
 import type { Interactable } from '../src/engine/shared/world/interact/types';

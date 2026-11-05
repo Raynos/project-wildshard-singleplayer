@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import { EncounterRegistry, declaredSpawnTables, type SpawnTableRow } from '../src/engine/server/ai/encounters';
+import { EncounterRegistry, declaredSpawnTables, type SpawnTableRow } from '../src/engine/shared/ai/encounters';
 import { Rng } from '../src/engine/shared/core/rng';
 import { readSpawnTables } from '@wildshard/format/spawnTables';
 import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';

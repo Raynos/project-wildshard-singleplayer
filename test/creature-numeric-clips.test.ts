@@ -2,7 +2,7 @@ import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChann
 import { SAILOR_CLIPS, CAPTAIN_CLIPS } from '../src/shards/driftwood-isle/generators/humanoidClips';
 import { animateSailor as shippingSailorPose } from './fixtures/animal-pose/sailorPoseShipping';
 import { animateCaptain as shippingCaptainPose } from './fixtures/animal-pose/captainPoseShipping';
-import { NativeCreaturePose, stepCreatureLift, type NativeCreaturePoseRecipe } from '../src/game/server/plugin/animation';
+import { NativeCreaturePose, stepCreatureLift, type NativeCreaturePoseRecipe } from '../src/game/shared/plugin/animation';
 import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 import { Bone, Euler, Vector3 } from 'three';
 import { expect, test } from 'vitest';

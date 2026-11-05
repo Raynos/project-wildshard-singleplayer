@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { saves } from '../../../shared/saves/runtime';
+import { saves } from '../../saves/runtime';
 /**
  * Flags — the one piece of world state the interactables kit and the quests share: a set of strings, persisted per
  * level in localStorage ('ws.flags.v1'), with change listeners. Transient flags (`plate:*`, see types.ts) live in
@@ -10,7 +10,7 @@ import { saves } from '../../../shared/saves/runtime';
  *   flags.onChange((flag, on) => …);   test(flags, { all: ['a'], none: ['b'] })
  *   flags.reset()                      // dev: `?resetquest` — forget this level's progress
  */
-import { TRANSIENT_PREFIXES, autoFlag, type InteractDef, type Cond } from '../../../shared/world/interact/types';
+import { TRANSIENT_PREFIXES, autoFlag, type InteractDef, type Cond } from './types';
 
 const flagsSave = saves.define({ key: 'flags', scope: 'shard', version: 1, schema: v.array(v.string()), initial: () => [] as string[] });
 

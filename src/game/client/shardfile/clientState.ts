@@ -3,10 +3,10 @@ import type { ShardfileSimulation } from '../../server/plugin/simulation';
 import type { DeclaredItems } from '../../server/shardfile/items';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { migrateLogicalState } from '@wildshard/format/migrations';
-import { logicalStateFromLane, logicalStateFromWorld, restoreLogicalLane } from '../../server/shardfile/logicalState';
+import { logicalStateFromLane, logicalStateFromWorld, restoreLogicalLane } from '../../shared/shardfile/logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
 import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
-import { captureLiftRider, firstLiftRider, parseLiftRiders, restoreLiftRider } from '../../server/shardfile/liftRider';
+import { captureLiftRider, firstLiftRider, parseLiftRiders, restoreLiftRider } from '../../shared/shardfile/liftRider';
 import { portalTransitioning } from '../../shared/shardfile/portalTraversal';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 

@@ -34,7 +34,7 @@ import type { GroupName } from '../../../shared/physics/groups';
 import type { Body } from '../../../shared/physics/bodies';
 import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, barrelAtPlate, plateOverlap, type BarrelEnv } from '../../../shared/world/interact/barrel';
 import { waterLevel } from '../../../shared/world/Heightfield';
-import { test, bindInteractionState, type Flags } from '../../../server/world/interact/flags';
+import { test, bindInteractionState, type Flags } from '../../../shared/world/interact/flags';
 import { bindInteractPlacements, autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from '../../../shared/world/interact/types';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';

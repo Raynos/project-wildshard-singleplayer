@@ -189,7 +189,7 @@ both are probably still true (unverified).
 - **Places:** 17 discoverable places (§1). FINDS in the Bag lists them (`src/nalati/bag.ts`).
 - **No other collectibles.** Nothing comparable to Driftwood's sea glass or treasure. I found no secrets or hidden items
   (grep for secret, collectible or treasure in the Nalati modules returns nothing).
-- **Achievements:** 17 (`src/game/server/achievements.ts` NALATI). 2 bosses, 5 elites, tame, kokpar, 3 chapters, then wolf5,
+- **Achievements:** 17 (`src/game/shared/achievements.ts` NALATI). 2 bosses, 5 elites, tame, kokpar, 3 chapters, then wolf5,
   wolf25, the pack alpha, balbal5 and ghost10, each with a joke title (worn on the menu; single-player only shows it
   there). wolf25 needs several sessions of reloads: the den pack doesn't respawn and the raid pack respawns at most twice.
 - **Cosmetics:** 5 skins (`src/player/nalatiSkins.ts`): Irbis sabre, Sky-Wolf bow, Storm-Wing arrows, Night Rider mount,

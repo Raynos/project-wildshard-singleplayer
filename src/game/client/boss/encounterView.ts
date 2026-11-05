@@ -21,7 +21,7 @@ import { replaceSpecimenInstances } from '../models/specimenCatalogue';
 import type { CueDirector } from '../audio/cueDirector';
 import { GroundTell } from '../eliteView';
 import { LightningStrip } from '../weapons/arcPower';
-import { nearestJointHit, type JointPorts } from '../../server/boss/jointTargets';
+import { nearestJointHit, type JointPorts } from '../../shared/boss/jointTargets';
 import { ProjectedState, type ReturnProgram } from '../../shared/population/returnProgram';
 import { PatrolLaw, type PatrolRider } from '../../server/boss/patrolLaw';
 import { SlotEncounterLaw } from '../../server/boss/slotLaw';

@@ -348,7 +348,7 @@ Nalati also has.
 | Piece | File | What it does |
 |---|---|---|
 | Quest as data | `src/game/quest/quest.ts` | `QuestDef`: steps with an objective (`{n}/{of}`), a `chip` of 18 characters or fewer (E51), a `hint`, a `done` condition over flags, a `count` and map `markers`. The NPC talk tables (`when` / `lines` / `sets`) live here too. |
-| Flags | `src/engine/server/world/interact/flags.ts` | Strings saved per shard (`ws.flags.v1`). Conditions are `{all, any, none}`. `?resetquest` clears them. |
+| Flags | `src/engine/shared/world/interact/flags.ts` | Strings saved per shard (`ws.flags.v1`). Conditions are `{all, any, none}`. `?resetquest` clears them. |
 | Items / puzzles | `src/world/interact/*` | Chests, keys, doors, levers, plates, pickups, altars… All the models are **low-poly** and placed at Driftwood's named spots. |
 | Driftwood's line | `src/shards/driftwood-isle/quest/questLine.ts` | **THE SEALED RING:** Wendell → 3 glyph shards → the altar → the Drowned Captain → stand in the ring. Plus sea glass, dive treasure. |
 | Wiring | `src/game/quest/Adventure.ts` (`installAdventure`, **returns null unless `driftwood-isle`**, line 107), `Spine.ts` (NPC + talk prompt + dialogue panel + the quest chip + the MAP-tab quest card + kills chained on the first frame), `Places.ts` (walk-in discovery → a saved `seen:<id>` and a "Discovered · X" toast; names on the map once found), `Finale.ts` / `QuestUI.ts` (boss, reward, the golden-hour view), `Feats.ts` (flags → achievements) | — |
@@ -409,7 +409,7 @@ The **ghost riders** (night, `onRiderKilled`) and **Qara Batyr** fit as a later 
 | W4 | **Painterly NPCs** (elder, eagle hunter, healer): idle, talk, wave. The camp has **no people at all** today. | new `src/entities/npc/Nomad.ts` (procedural first; generated and rigged with N12 later) | M (L generated) |
 | W5 | **Places with saved discovery**: `Places.ts` over `NALATI_MAP.pois` (17 places, 3 zones) replaces main.ts:498–506. The fog stays for the ground only. Coordinate with N15 ("too much text"): names show only once found. | `Places.ts`, `main.ts` | S |
 | W6 | Painterly pickups (lotus, ovoo stone): a material hook in the item kit | `Interactables.ts`, `models.ts` | M |
-| W7 | Quest + discovery achievements in the NALATI table; tests | `src/game/server/achievements.ts`, `test/quest.test.ts` | S |
+| W7 | Quest + discovery achievements in the NALATI table; tests | `src/game/shared/achievements.ts`, `test/quest.test.ts` | S |
 
 **Choose one boss bar.** Two boss-bar designs now exist: Nalati's gold `src/engine/client/ui/BossBar.ts` and main's `QuestUI` boss bar
 (the Drowned Captain). They should become one component.
@@ -430,7 +430,7 @@ The **ghost riders** (night, `onRiderKilled`) and **Qara Batyr** fit as a later 
 | Title / hero art | `src/shards/nalati-grasslands/manifest.ts:555–562`, `art/hero-images/round-3-nalati-in-engine` | Present (in-engine heroes, "Experimental" tag) | – | – |
 | EXPLORE WORLD / Model Explorer | `explore:` flag, `src/explore/*` | **Off for Nalati**; no Nalati models registered | Covered by the physics / explore review (N16, E72) | M |
 | Feedback note context | main.ts:410 | Works; the note context lacks mounted / storm / time of day / inside kurgan | Add those fields, so the user's notes say where they were | S |
-| Achievements UI | `src/game/server/achievements.ts:45` | 15 Nalati achievements (bosses, elites, tame, wolves, balbals, ghosts). None for discovery, collectibles or quests. | W7 | S |
+| Achievements UI | `src/game/shared/achievements.ts:45` | 15 Nalati achievements (bosses, elites, tame, wolves, balbals, ghosts). None for discovery, collectibles or quests. | W7 | S |
 | The hoverboard | Player `setHover`, HOVER tab | Live on the steppe, and the tab stays up in the saddle | Decision below | S |
 
 ## Decisions for the user

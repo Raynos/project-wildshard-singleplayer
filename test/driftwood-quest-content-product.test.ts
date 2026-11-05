@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState, lineFor } from '../src/engine/server/quest/core';
 import { parseQuestStory } from '@wildshard/format/questStory';
 import { output } from '../src/shards/driftwood-isle/generators/output';

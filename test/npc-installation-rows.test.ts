@@ -2,7 +2,7 @@
 import { expect, test } from 'vitest';
 import { Group, Vector3 } from 'three';
 import { installNpcTalk } from '../src/game/client/plugin/ui';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { DialogueBox } from '../src/engine/client/quest/view/ui';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { NpcDef } from '../src/engine/server/quest/core';

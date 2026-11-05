@@ -24,7 +24,7 @@ import type { Forest } from '../src/engine/client/world/forest/Forest';
 import type { SkyRig } from '../src/engine/client/world/skyRig';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { SWORD_WOOD } from '../src/game/server/weapons/starterMeleeProfile';
-import { HEAVY, SLASH, FINISHER } from '../src/game/server/weapons/starterMoves';
+import { HEAVY, SLASH, FINISHER } from '../src/game/shared/weapons/starterMoves';
 import { nativeMeleeItem, readNativeRangedItem } from '../src/game/server/plugin/nativeItems';
 import { weaponRow } from '../src/game/server/plugin/simulation';
 import { FakeGame, legacyDouble } from '../src/engine/test/FakeGame';

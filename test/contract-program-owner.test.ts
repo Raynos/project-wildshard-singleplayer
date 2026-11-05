@@ -4,7 +4,7 @@ import { realGc } from '@wildshard/engine/test/realGc';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { CONTRACTS } from './fixtures/pine-contracts';
-import { contractKill, draw, loadBoard, ownContractCatalogue, saveBoard } from '../src/game/server/quest/contracts';
+import { contractKill, draw, loadBoard, ownContractCatalogue, saveBoard } from '../src/game/shared/quest/contracts';
 
 const original = CONTRACTS;
 const declaration = original.program;

@@ -8,7 +8,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { bindRuntimeJsonRecord, bindRuntimeLedger, bindRuntimeState, projectRuntimeFacts, type RuntimeFacts } from '../plugin/headless';
 import { bossesSave, elitesSave, progressSave } from '../../shared/saves';
 import type { Progress } from '../../client/Progress';
-import { publishBoundPersistence } from './chapterBindings';
+import { publishBoundPersistence } from '../../shared/quest/chapterBindings';
 import { featOutcome, witnessSavedFeats, type FeatCounterPorts } from './featCounters';
 import { publishEntryOwner } from '../../client/shardfile/entryOwners';
 

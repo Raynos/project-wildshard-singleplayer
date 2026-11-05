@@ -2,7 +2,7 @@ import runtimeFixture from './fixtures/quest-runtime.json' with { type: 'json' }
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState } from '../src/engine/server/quest/core';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { DeclaredSoundBank } from '../src/engine/client/audio/declaredBank';
@@ -10,7 +10,7 @@ import type { ShardContext } from '../src/game/server/plugin/context';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
 import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
-import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/server/quest/chapterDirector';
 import * as spawn from '../src/game/server/population/spawnScript';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';

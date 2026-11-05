@@ -41,7 +41,7 @@ test('approved feature receipts survive a next-wave switch without waiving unrel
 });
 
 test('G473 contracts and elites keep their approved credit across waves', () => {
-  const module = 'src/game/server/quest/contracts.ts';
+  const module = 'src/game/shared/quest/contracts.ts';
   const allowance: PendingPlatformUser = { module, shard: 'nalati-grasslands',
     plan: { path: 'docs/plans/decisions.md', row: 'G484' },
     documentation: 'docs/ENGINE.md', 'rechecked-by': 'end of W3',

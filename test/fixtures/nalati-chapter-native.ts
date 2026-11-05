@@ -6,7 +6,7 @@ import {parseChapterStoryPresentation} from '@wildshard/format/questStory';
 import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {ReturnProgram} from '../../src/game/shared/population/returnProgram';
 import {chapterDecide} from '../../src/game/server/quest/chapterDecision';
-import {questObservation} from '../../src/game/server/quest/questObservation';
+import {questObservation} from '../../src/game/shared/quest/questObservation';
 import {commitQuestEffects} from '../../src/game/server/quest/effects';
 import {nativeTamingOf} from '../../src/game/server/riding/nativeTaming';
 import {nalatiTitanOf} from './nalati-titan-native';

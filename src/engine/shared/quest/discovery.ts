@@ -1,5 +1,5 @@
-import {engineString} from '../../shared/strings';
-import {practiceRoomState as practiceRoom} from '../../shared/core/practiceRoomState';
+import {engineString} from '../strings';
+import {practiceRoomState as practiceRoom} from '../core/practiceRoomState';
 import type {Flags} from '../world/interact/flags';
 import type {MapPoi} from '../../client/ui/Map';
 import type {LiveMarker} from '../../client/quest/view';

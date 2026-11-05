@@ -14,7 +14,7 @@ import { app } from '../../app/runtime';
 import { resourceScope } from '../../../shared/app/resources';
 import { GroundTell } from '../../fx/groundTell';
 import { fxMaterial, FX } from '../../fx/groundFx';
-import { setEliteBrain, setEliteAct, setEliteDamage } from '../../../server/entities/eliteBrain';
+import { setEliteBrain, setEliteAct, setEliteDamage } from '../../../shared/entities/eliteBrain';
 
 type EliteDefinition = EliteFeatureRows['fights'][number]['def'];
 

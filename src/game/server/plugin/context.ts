@@ -1,12 +1,12 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import { pageGridCells } from '../grid/cellEvents';
+import { pageGridCells } from '../../shared/grid/cellEvents';
 import type { HomeResidencyClaim, PageResidency } from '../../client/grid/pageResidency';
 import { currentPageMode } from '../../shared/grid/pageMode';
 import type { ShardManifest } from '../shard/manifest';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
 import { registerItemRow } from '../../shared/bag/itemCatalog';
-import { registerAchievements, type AchievementDef } from '../achievements';
+import { registerAchievements, type AchievementDef } from '../../shared/achievements';
 import { registerCompendium } from '../../shared/compendium/registry';
 import type { ShardCompendium } from '../../shared/compendium/types';
 import type { ShardRuntime } from '../../shared/shard/runtime';

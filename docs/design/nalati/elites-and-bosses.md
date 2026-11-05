@@ -510,7 +510,7 @@ The **Antler King** is the design to use when Pine Hollow gets its boss.
 | Skins as uniform-only material overrides, `skinFor(kind, variant)`, `SkinLocker` | `src/engine/client/player/Skins.ts` | elite drops (sabre, bow, spear, arrow and mount skins) |
 | `WeaponPickup` with a `rare` (purple) orb | `src/engine/client/player/WeaponPickup.ts` | the elite drop orb (a new gold `legendary` tier for the boss) |
 | Found-weapon unlock (`IronSwordPickup` → `weapons.unlock`) | `src/shards/driftwood-isle/weapons/IronSword.ts`, `main.ts` | the Golden Bow |
-| Achievements with a `variant` match plus joke titles | `src/game/server/achievements.ts`, `src/game/client/Progress.ts` | elite and boss achievements (a new `NALATI` table) |
+| Achievements with a `variant` match plus joke titles | `src/game/shared/achievements.ts`, `src/game/client/Progress.ts` | elite and boss achievements (a new `NALATI` table) |
 | Head-anchored health bars, floats, MISS | `src/engine/client/ui/Combat.ts` | the named elite bar is a new *style* of the same pooled bar |
 | White ring for rare / legendary dots | `src/engine/client/ui/Minimap.ts` | replaced by skulls for elites |
 | `hud.toast`, `hud.killFeed`, `music.sting` | `src/engine/client/ui/HUD.ts`, `src/engine/client/audio/Music.ts` | the banner and boss stings |

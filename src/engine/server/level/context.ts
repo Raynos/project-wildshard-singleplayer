@@ -10,7 +10,7 @@ import type { ListenerOptions } from '../../shared/events/events';
 import type { DiscOpts, DiscSpot, TouchRelabel, HudBand } from '../../client/ui/hudSlots';
 import type { Piece } from '../../client/world/registry';
 import type { TierKnobs } from '../../shared/level/spec';
-import type { EncounterDefinition, SpawnTableRow } from '../ai/encounters';
+import type { EncounterDefinition, SpawnTableRow } from '../../shared/ai/encounters';
 import type { SpeciesRow } from '../ai/species';
 import type { SpeciesLook } from '../../client/entities/species/look';
 

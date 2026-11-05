@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { filterCombatAimTargets, type AimTargetExclusion } from '../src/game/server/shardfile/aimTargetFilter';
+import { filterCombatAimTargets, type AimTargetExclusion } from '../src/game/shared/shardfile/aimTargetFilter';
 
 // CI12: the extracted aim filter keeps exactly the targets, order and memory reads of clientTargets' original inline filter.
 function original<T extends object>(list: readonly T[], exclude: readonly AimTargetExclusion[]): T[] {

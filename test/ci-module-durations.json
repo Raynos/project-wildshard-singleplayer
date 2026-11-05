@@ -412,7 +412,7 @@
   "src/game/client/models/world-scene-shared-lods.test.ts": 0.614797303,
   "src/game/client/page-combat-session.test.ts": 0.41343359,
   "src/game/client/plugin/bakedGeometry.test.ts": 1.664704043,
-  "src/game/server/plugin/borrowed.test.ts": 0.035599633,
+  "src/game/shared/plugin/borrowed.test.ts": 0.035599633,
   "src/game/client/plugin/client-place-sets-readiness.test.ts": 0.163693719,
   "src/game/client/plugin/client-place-sets.test.ts": 0.224271953,
   "src/game/server/plugin/client-runtime-hooks.test.ts": 0.053048991,

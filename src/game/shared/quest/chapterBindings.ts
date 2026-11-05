@@ -1,10 +1,10 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ObservationRef } from '@wildshard/format/sceneRefs';
-import type { ShardContext } from '../plugin/context';
-import type { QuestChapter } from './chapter';
+import type { ShardContext } from '../../server/plugin/context';
+import type { QuestChapter } from '../../server/quest/chapter';
 import { boundQuestState } from './boundState';
 import { questObservation } from './questObservation';
-import type { AdventurePersistence } from './persistence';
+import type { AdventurePersistence } from '../../server/quest/persistence';
 
 const persistenceOwners = new WeakMap<Scope, AdventurePersistence>();
 /** Saved owners publish directly, so numeric readers never import client persistence code. */

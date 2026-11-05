@@ -1,5 +1,5 @@
 import type { SaveStore } from '@wildshard/engine/saves/store';
-import { instanceSaveIdentity, type LocalSaveInstance } from '../shared/instanceSaves';
+import { instanceSaveIdentity, type LocalSaveInstance } from './instanceSaves';
 
 /** Optional quest identities let an unloaded shard's card count completion from its legacy flags without executing its runtime. */
 export interface NewGameQuest { id: string; completeFlag: string }

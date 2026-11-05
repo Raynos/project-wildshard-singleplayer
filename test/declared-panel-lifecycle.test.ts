@@ -7,7 +7,7 @@ import { DataPanel } from '../src/game/client/ui/dataPanels';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };
-import { claim, newBoard, reroll } from '../src/game/server/quest/contracts';
+import { claim, newBoard, reroll } from '../src/game/shared/quest/contracts';
 import { cleanMountName } from '@wildshard/format/riding';
 
 test('the persistent lodge board retains its frame, payouts, keys and scoped row listeners', () => {

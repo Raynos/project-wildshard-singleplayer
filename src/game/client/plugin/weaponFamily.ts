@@ -1,7 +1,7 @@
 import { createClientChannelView, type ClientGeometryKernels } from './clientChannelView';
 import { admitHeldRecipe } from './heldRecipe';
 import { createClientChannels, bindClientChannelInputs } from '../../server/plugin/channels';
-import { readBorrowedOwner, type BorrowedOwnerPath } from '../../server/plugin/borrowed';
+import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
 import { bindMeleeContacts } from '../../server/plugin/simulation';
 import { createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts } from './scene';
 import { Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";

@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { shardContext } from '../src/game/server/plugin/context';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { buildQuestChapter, installQuestFlags } from '../src/game/server/quest/chapter';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
@@ -17,7 +17,7 @@ import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests
 import { completionRows } from '../src/shards/driftwood-isle/generators/completion';
 import type { MapQuest, MapPoi } from '../src/engine/client/ui/Map';
 import {QuestState,questMessageHandlers} from '../src/engine/server/quest/core';
-import {Flags} from '../src/engine/server/world/interact/flags';
+import {Flags} from '../src/engine/shared/world/interact/flags';
 import {QUEST_PRESENTATION as pine} from '../src/shards/pine-hollow/generators/questPresentation';
 import {QUEST_PRESENTATION as driftwood} from '../src/shards/driftwood-isle/generators/questPresentation';
 

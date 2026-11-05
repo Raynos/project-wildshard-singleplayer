@@ -19,7 +19,7 @@
     "../../sdk/bake/mapRest.ts",
     "../../../src/game/client/plugin/clientChannelView.ts",
     "../../../src/game/server/plugin/channels.ts",
-    "../../../src/game/server/plugin/borrowed.ts",
+    "../../../src/game/shared/plugin/borrowed.ts",
     "generators/bake-map.mjs",
     "../../../public/assets/far-reach/fan/hand-hd.glb",
     "../../../public/assets/far-reach/models/crown/crown-dais.glb",

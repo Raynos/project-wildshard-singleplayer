@@ -10,7 +10,7 @@ import { painterlyUniforms, setPainterlyLook } from '../src/engine/client/world/
 import * as lookCompiler from '../src/game/client/shardfile/runtimeProduct';
 import { hasLentLook, lentLook } from '../src/game/client/shardfile/lentLooks';
 import { clientCosmeticFinishes } from '../src/game/client/shardfile/clientCosmeticFinishes';
-import { publishBoundPersistence } from '../src/game/server/quest/chapterBindings';
+import { publishBoundPersistence } from '../src/game/shared/quest/chapterBindings';
 import type { AdventurePersistence } from '../src/game/server/quest/persistence';
 import type { CosmeticState } from '../src/game/client/cosmetics/locker';
 import { clientSceneHandles } from '../src/game/client/shardfile/clientSceneHandles';

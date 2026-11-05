@@ -98,7 +98,7 @@ NF18 orphaned seven of these (marked); they are dead code now, nothing reads the
 - `engine/shared/world/waves.ts`: `WAVES_GLSL`, `WAVES_NORMAL_GLSL`
 - `game/client/Progress.ts`: `ProgressSink`
 - `game/shared/saves.ts`: `shardSave`
-- `game/server/systems/looks/grassField.ts`: `flowerPatchAt`, `groundColorAt`
+- `game/shared/systems/looks/grassField.ts`: `flowerPatchAt`, `groundColorAt`
 - `game/client/systems/looks/rainCurtain.ts`: `rainCurtain`
 - `engine/client/world/cascadeLights.ts`: `cascadeOf` (NF18), `ghostOf` (NF18), `isCascadeGhost` (NF18)
 - `engine/client/world/Atmosphere.ts`: `atmosphereTerms` (NF18)
@@ -167,7 +167,7 @@ only contains the word, not a `#box` row).
 - `game/client/shardfile/bakedKinds.ts`: `BakedKindRow`, `BakedColliderRow`, `bakedColliders`, `bakedKindsGroup`
 - `game/server/shardfile/homeKeeper.ts`: `KeptBossRow`
 - `game/shared/shardfile/movers.ts`: `MoverData`
-- `game/server/systems/looks/grassField.ts`: `TALL_GRASS`, `GrassFieldLayout`, `trailGrass`, `grassToneAt`, `grassBloomAt`, `flowerSpeciesAt`
+- `game/shared/systems/looks/grassField.ts`: `TALL_GRASS`, `GrassFieldLayout`, `trailGrass`, `grassToneAt`, `grassBloomAt`, `flowerSpeciesAt`
 - `game/client/systems/looks/particles.ts`: `makeMistTexture`
 - `game/client/systems/looks/trample.ts`: `MAX_MOVERS`
 - `game/client/systems/npc/npcRig.ts`: `NpcRigProfile`, `NpcRow`, `NpcRig`, `rigLegs`, `legRigOf`
@@ -201,13 +201,13 @@ string (legacy oracle), not a live import; where it is the only "reader" the sym
 - `game/server/shard/manifest.ts#ChunkTerrain` (also used inside its module): test/fixtures/nalati-terrain.ts, test/nalati-terrain-source-contract.test.ts
 - `game/server/shard/manifest.ts#ChunkHorizon` (also used inside its module): test/scene-author-ports.test.ts
 - `game/server/shardfile/bossRow.ts#installBossRow` (also used inside its module): test/fixtures/boss-owner/signal.ts, test/fixtures/native-hosts/boss/native.ts
-- `game/server/systems/looks/grassField.ts#configureGrassField` (also used inside its module): test/fixtures/legacy-oracles/nalati-runtime-debt.json
+- `game/shared/systems/looks/grassField.ts#configureGrassField` (also used inside its module): test/fixtures/legacy-oracles/nalati-runtime-debt.json
 - `game/client/systems/looks/trample.ts#RECOVER` (also used inside its module): game/client/systems/looks/trample-upload.test.ts
 - `game/client/systems/looks/trample.ts#TrampleState` (also used inside its module): game/client/systems/looks/trample-upload.test.ts
 - `game/client/systems/looks/trample.ts#installTrampleTrail` (no internal use): test/fixtures/nalati-headless.ts
 - `game/client/systems/looks/trample.ts#GrassTrample` (also used inside its module): game/client/systems/looks/trample-upload.test.ts, test/fixtures/legacy-oracles/nalati-runtime-debt.json
 - `game/server/weapons/starterBowProfile.ts#BOW` (no internal use): sdk/weapons/bow-file.test.ts, test/nalati-recurve-source-inputs.test.ts
-- `game/server/weapons/starterMoves.ts#key` (also used inside its module): sdk/weapons/melee-authoring.test.ts
+- `game/shared/weapons/starterMoves.ts#key` (also used inside its module): sdk/weapons/melee-authoring.test.ts
 - `sdk/headlessRuntime.ts#HeadlessRuntimePreparation` (also used inside its module): test/fixtures/headless-native.ts, test/fixtures/headless-plan.ts, test/fixtures/pine-headless.ts +2
 - `sdk/headlessRuntime.ts#HeadlessRuntimeInstallation` (also used inside its module): test/fixtures/headless-native.ts, test/fixtures/headless-plan.ts, test/fixtures/nalati-chapter-native.ts +8
 - `sdk/headlessRuntime.ts#HeadlessRuntimePlan` (also used inside its module): test/driftwood-barrel-saves.test.ts, test/driftwood-physics-binary.test.ts, test/fixtures/headless-native.ts +12

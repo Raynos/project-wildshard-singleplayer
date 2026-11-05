@@ -3,7 +3,7 @@ import { bindPageQuest } from '../../server/quest/pageState';
 import { bindPagePersistence, bindPageBossRecord, type PagePersistenceRows, type PagePersistence } from '../../server/quest/pagePersistence';
 import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
-import { readBorrowedOwner, type BorrowedOwnerPath } from '../../server/plugin/borrowed';
+import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
 import { createClientChannels, type ClientChannelObservation, type ClientChannelFrame } from '../../server/plugin/channels';
 import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server/plugin/mover';
 import { installDeclaredMovers } from '../../server/plugin/moverInstall';

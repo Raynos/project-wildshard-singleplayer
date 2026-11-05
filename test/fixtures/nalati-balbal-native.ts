@@ -14,7 +14,7 @@ import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {ActorProjectionV2,type ActorProjectionContext} from '../../src/game/server/population/actorProjectionV2';
 import {ReturnProgram} from '../../src/game/shared/population/returnProgram';
 import {nativePopulationOf} from '../../src/game/server/riding/nativePopulation';
-import {attachNativeCreaturePose,type NativeCreaturePose} from '../../src/game/server/plugin/animation';
+import {attachNativeCreaturePose,type NativeCreaturePose} from '../../src/game/shared/plugin/animation';
 import {SlotEncounterLaw,type SlotTell} from '../../src/game/server/boss/slotLaw';
 import {prepareNalatiTitan} from './nalati-titan-native';
 import {readNalatiArenaIntake} from './nalati-arena-intake';

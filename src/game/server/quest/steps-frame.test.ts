@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {QuestStepRunner} from './steps';
+import {QuestStepRunner} from '../../shared/quest/steps';
 import {onFault, type Fault} from '@wildshard/engine/core/faults';
 
 test.each(['position', 'inventory'])('missing %s facts cannot publish partial quest commands or consume wait time', missing => {

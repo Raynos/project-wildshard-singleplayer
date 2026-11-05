@@ -1,4 +1,4 @@
-import type { FindsCatalogueRows } from '../../server/bag/findsCatalogue';
+import type { FindsCatalogueRows } from '../bag/findsCatalogue';
 import { parseLootEconomy, parseBarterEconomy, type BarterEconomy, type LootEconomy } from '@wildshard/format/lootEconomy';
 import { isOwnedId, isCosmetic, type OwnedId, type CosmeticId } from '../loot/Owned';
 import { Weather, type WeatherProfile } from '@wildshard/engine/world/weather';

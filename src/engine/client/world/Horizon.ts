@@ -5,7 +5,7 @@ import { attachFogUniforms, fogUniforms } from './Atmosphere';
 import { PaintedHorizon, levelHorizonStrips } from './HorizonMatte';
 import type { SkyRig as Sky } from './skyRig';
 import { activeLevel } from '../../shared/level/selection';
-import type { HorizonSpec } from '../../server/level/data';
+import type { HorizonSpec } from '../../shared/level/data';
 import type { LevelSpec } from '../../shared/level/spec';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 

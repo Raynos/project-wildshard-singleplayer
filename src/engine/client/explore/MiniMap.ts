@@ -16,7 +16,7 @@ import { app } from '../app/runtime';
 import { CHUNK_HALF } from '../../shared/core/config';
 import { heightAt, normalAt } from '../../shared/world/Heightfield';
 import { fogUniforms } from '../world/Atmosphere';
-import type { PoiSpec } from '../../server/level/data';
+import type { PoiSpec } from '../../shared/level/data';
 import type { Explore } from './Explore';
 
 const RES = 192; // the fallback relief's pixels (no composer yet / a lost context)

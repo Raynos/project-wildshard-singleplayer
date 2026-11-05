@@ -84,7 +84,7 @@ const reviewedW2Owners = new Map([
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/client/entities/lowpoly.ts#crestSpikes', 'C4'],
   ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],
-  ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose'].map(name => [`src/game/server/plugin/animation.ts#${name}`, 'C4']),
+  ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose'].map(name => [`src/game/shared/plugin/animation.ts#${name}`, 'C4']),
   // Journal, onboarding, discovery and quest presentation.
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
@@ -183,7 +183,7 @@ function fileRole(path, name = '') {
   if (['src/format/materialGraph.ts', 'src/game/client/shardfile/clientMaterials.ts', 'src/game/client/shardfile/clientGraphs.ts'].includes(path)) return 'C2';
   if (path === 'src/game/client/shardfile/hybrid.ts') return 'C9';
   if(questOwners.has(path))return 'C5';
-  if(path==='src/engine/server/world/interact/flags.ts'&&name==='bindInteractionState')return 'C5';
+  if(path==='src/engine/shared/world/interact/flags.ts'&&name==='bindInteractionState')return 'C5';
   if (path === 'src/game/client/plugin/ui.ts' && ['WorldSceneBoundParts', 'bindWorldSceneParts'].includes(name)) return 'C1';
   if (path === 'src/game/client/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
   if (path === 'src/sdk/questGraph.ts' && name === 'parseNpcRow') return 'C5';

@@ -2,7 +2,7 @@
 // exactly as the page's inline read did, calls the same owners in the same order, and refuses and recovers the same way.
 import { expect, test } from 'vitest';
 import type { ObservationRef } from '@wildshard/format/sceneRefs';
-import { questObservation, type ObservedQuest, type ObservedRecords } from '../src/game/server/quest/questObservation';
+import { questObservation, type ObservedQuest, type ObservedRecords } from '../src/game/shared/quest/questObservation';
 
 interface World {
   readonly flags: Set<string>; readonly quests: Map<string, ObservedQuest>; readonly active: ObservedQuest | undefined;

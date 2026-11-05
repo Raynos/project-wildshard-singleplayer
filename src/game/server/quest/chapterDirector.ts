@@ -16,7 +16,7 @@ import { QuestRewardController } from '../plugin/quests';
 import { parseQuestSpawnPage, parseQuestLeadPage, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
 import * as v from 'valibot';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
-import { boundQuestState } from './boundState';
+import { boundQuestState } from '../../shared/quest/boundState';
 import { TIER } from '@wildshard/engine/core/tier';
 import { entryOwner } from '../../client/shardfile/entryOwners';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';

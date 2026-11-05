@@ -2,7 +2,7 @@
 // renderer-free) find exactly the rider, distance, headshot flag and entry point the page's inline loop found.
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { nearestJointHit, type JointActor } from '../src/game/server/boss/jointTargets';
+import { nearestJointHit, type JointActor } from '../src/game/shared/boss/jointTargets';
 
 interface Rider { readonly a: JointActor & { readonly id: number }; readonly dead: boolean; readonly bone: THREE.Object3D }
 const rows = [{ at: [0, 1.6, 0] as [number, number, number], radius: .22, head: true }, { at: [0, 1.1, .1] as [number, number, number], radius: .35, head: false },

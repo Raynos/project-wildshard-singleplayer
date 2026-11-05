@@ -16,7 +16,7 @@ import { inChunk, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { Bow } from '@wildshard/game/weapons/Bow';
-import { MountCompanions, type Companion } from './companions';
+import { MountCompanions, type Companion } from '../../shared/riding/companions';
 
 const enteredMounts = new WeakMap<Scope, Mount>();
 /** Borrow the native entered mount without constructing a riding controller. */

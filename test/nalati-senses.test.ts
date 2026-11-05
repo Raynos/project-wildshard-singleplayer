@@ -2,8 +2,8 @@ import {admissionPage,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { GrassField } from '../src/game/server/systems/looks/grassField';
-import { TrampleField } from '../src/game/server/systems/looks/trampleField';
+import { GrassField } from '../src/game/shared/systems/looks/grassField';
+import { TrampleField } from '../src/game/shared/systems/looks/trampleField';
 import { NativeWildEnvironment } from '../src/game/server/population/nativeManager';
 import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
 

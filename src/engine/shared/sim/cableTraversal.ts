@@ -1,6 +1,6 @@
 import type { SimHost } from '../../server/sim';
 import type { PlayerSim } from '../../server/sim/playerSim';
-import type { Flags } from '../../server/world/interact/flags';
+import type { Flags } from '../world/interact/flags';
 import { CableProfileSchema, parseModes, ZiplineModeSchema, type ModeRows, type ZiplineMode } from '@wildshard/format/modes';
 import { MathUtils, Vector3, type Object3D } from 'three';
 import * as v from 'valibot';

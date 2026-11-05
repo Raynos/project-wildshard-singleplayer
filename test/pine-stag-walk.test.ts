@@ -1,10 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { SkinnedMesh, Scene, Vector3 } from 'three';
 import { installChapterLead } from '../src/game/server/quest/chapterDirector';
-import { publishBoundChapter } from '../src/game/server/quest/chapterBindings';
-import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { publishBoundChapter } from '../src/game/shared/quest/chapterBindings';
+import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState } from '../src/engine/server/quest/core';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/client/entities/AnimalView';

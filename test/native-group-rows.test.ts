@@ -8,8 +8,8 @@ import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { installNativeGroupRows, nativeGroupCollection, nativeHerdCollection } from '../src/game/server/shardfile/groupRuntime';
 import { NativeWildEnvironment } from '../src/game/server/population/nativeManager';
-import { GrassField } from '../src/game/server/systems/looks/grassField';
-import { TrampleField } from '../src/game/server/systems/looks/trampleField';
+import { GrassField } from '../src/game/shared/systems/looks/grassField';
+import { TrampleField } from '../src/game/shared/systems/looks/trampleField';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const pack = { id: 'orchard.boars', kind: 'pack', members: ['orchard.scout'], home: [3,4], thinkDivisor: 6,

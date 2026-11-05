@@ -3,7 +3,7 @@ import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
 import type {DialogueEntry,NpcDef} from '../../server/quest/core';
 import {NpcReading} from '../../server/quest/dialogueClock';
-import type { Flags } from '../../server/world/interact/flags';
+import type { Flags } from '../../shared/world/interact/flags';
 import type { Interactable } from '../../shared/world/interact/types';
 import { emitFault } from '../../shared/core/faults';
 

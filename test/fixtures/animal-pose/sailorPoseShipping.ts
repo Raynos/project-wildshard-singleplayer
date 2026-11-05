@@ -1,7 +1,7 @@
 /** Frozen predecessor pose; do not update to follow the data implementation. */
 import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/shared/entities/animalRig';
 import { bump, clamp, lookAngles, smooth01, squashBody, step } from '../../../src/engine/shared/entities/species/rigs';
-import { stepCreatureLift } from '../../../src/game/server/plugin/animation';
+import { stepCreatureLift } from '../../../src/game/shared/plugin/animation';
 import { poseCreatureStride } from '@wildshard/engine/test/creatureStride';
 import { sampleCreatureSwing } from '../creatureSwing';
 

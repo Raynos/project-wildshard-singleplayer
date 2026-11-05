@@ -4,9 +4,9 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { ShardContext } from '../plugin/context';
 import { isItemId } from '../../shared/bag/itemCatalog';
 import { creditNativeInventory, debitNativeInventory } from '../inventoryLaw';
-import { boundQuestState } from './boundState';
-import { boundChapter, readQuestObservation } from './chapterBindings';
-import type { QuestStepEffect } from './steps';
+import { boundQuestState } from '../../shared/quest/boundState';
+import { boundChapter, readQuestObservation } from '../../shared/quest/chapterBindings';
+import type { QuestStepEffect } from '../../shared/quest/steps';
 import {presentQuestEffect,type QuestPresentationPorts} from '../../client/quest/effectPresentation';
 
 /** Framework-internal dispatch; shard APIs supply effect rows and owner ids only. */

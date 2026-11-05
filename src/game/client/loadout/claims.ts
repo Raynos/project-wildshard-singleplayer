@@ -25,7 +25,7 @@ import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
 import type { Targets, TargetAnimal } from '@wildshard/engine/combat/types';
 import { GrappleTool, grappleGuard } from '../grapple/tool';
 import { parseGrappleProfile, GrappleProfileSchema, GrappleHooksSchema, type GrappleRows } from '@wildshard/format/grapple';
-import { QuestStepRunner, type QuestStepFrame } from '../../server/quest/steps';
+import { QuestStepRunner, type QuestStepFrame } from '../../shared/quest/steps';
 
 import { macrotask } from '@wildshard/engine/boot/plan';
 import type { Scope } from '@wildshard/engine/app/scope';

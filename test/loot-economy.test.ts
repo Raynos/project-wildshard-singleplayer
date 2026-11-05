@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
-import { createFindsCatalogue } from '../src/game/server/bag/findsCatalogue';
+import { createFindsCatalogue } from '../src/game/shared/bag/findsCatalogue';
 import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { parseLootEconomy } from '@wildshard/format/lootEconomy';
 import { parseRows } from '@wildshard/format/rows';
 import { declaredLootEconomy } from '../src/game/shared/shard/declaredRows';
 import { Exchange } from '../src/game/server/loot/exchange';
 import { fixtureLootPresentation } from './fixtures/loot-page';
-import { Flags } from '../src/engine/server/world/interact/flags';
+import { Flags } from '../src/engine/shared/world/interact/flags';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Owned, type OwnedId } from '../src/game/shared/loot/Owned';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';

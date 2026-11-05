@@ -4,7 +4,7 @@ import { installWorldFixture } from './fixtures/worldSetup';
 import { installArenaRoomEntry } from '../src/game/client/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { installClientCosmeticFinishes, clientCosmeticFinishes } from '../src/game/client/shardfile/clientCosmeticFinishes';
-import { publishBoundPersistence } from '../src/game/server/quest/chapterBindings';
+import { publishBoundPersistence } from '../src/game/shared/quest/chapterBindings';
 import type { AdventurePersistence } from '../src/game/server/quest/persistence';
 import { HeldClaims, type HeldSlotKit } from '../src/game/client/loadout/claims';
 import type { ModelDef } from '../src/engine/client/models/model';
@@ -14,7 +14,7 @@ import {lendNalatiPasture} from './fixtures/nalati-titan-loan';
 import { ArenaRoomEncounter, pageArenaRoomFight, type OpenArenaWorld } from '../src/game/server/boss/arenaRoom';
 import { ARENA_ROOM_PAGE, arenaRoomViews } from '../src/game/client/boss/arenaRoomView';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
-import { eliteDamageMul } from '../src/engine/server/entities/eliteBrain';
+import { eliteDamageMul } from '../src/engine/shared/entities/eliteBrain';
 // @vitest-environment happy-dom
 import { app } from '../src/engine/client/app/runtime';
 import { shardContext, type ShardContext } from '../src/game/server/plugin/context';

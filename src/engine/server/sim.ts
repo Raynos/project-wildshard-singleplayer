@@ -23,7 +23,7 @@ import { modeCollides } from '../shared/player/modes';
 import type { Rapier } from '../shared/physics/rapier';
 import { groups } from '../shared/physics/groups';
 import { tagCollider } from '../shared/physics/surface';
-import { Flags } from './world/interact/flags';
+import { Flags } from '../shared/world/interact/flags';
 import type { QuestBookSaved } from './quest/players';
 import { QuestState, type QuestDef } from './quest/core';
 import type { DayCycle, DayCycleClock, DayCycleSpec } from '../shared/world/dayCycle';

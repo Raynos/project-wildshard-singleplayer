@@ -6,7 +6,7 @@ import { ResidencyAllocator } from '../../../../src/game/shared/grid/allocator';
 import { buildYield } from '../../../../src/engine/shared/core/workSlice';
 import { Scope } from '../../../../src/engine/shared/app/scope';
 import { buildTerrain } from '../../../../src/engine/shared/world/terrainField';
-import type { Vec2 } from '../../../../src/engine/server/level/data';
+import type { Vec2 } from '../../../../src/engine/shared/level/data';
 import { clientMaterials } from '../../../../src/game/client/shardfile/clientMaterials';
 import { clientViews } from '../../../../src/game/client/shardfile/clientViews';
 import { standaloneClientTiles } from '../../../../src/game/client/shardfile/tileContent';

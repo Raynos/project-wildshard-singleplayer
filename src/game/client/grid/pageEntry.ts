@@ -10,7 +10,7 @@ import { pageGridIntents } from '../../server/grid/intent';
 import { DEVSERVER, gridMode, type MenuMode } from './menu';
 import { gridRecovery, recoveryCatalogue, type GridRecoveryRecord } from '../../shared/grid/recovery';
 import { setPageMode } from '../../shared/grid/pageMode';
-import { pageGridCells as gridCells } from '../../server/grid/cellEvents';
+import { pageGridCells as gridCells } from '../../shared/grid/cellEvents';
 import type { PageMode } from '../../server/plugin/context';
 import { findTitleManifest } from '../shard/titleList';
 import { travel, travelSlot } from '../travel/travel';

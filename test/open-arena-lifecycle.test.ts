@@ -10,7 +10,7 @@ import {ArenaRoomEncounter} from '../src/game/server/boss/arenaRoom';
 import {ARENA_ROOM_PAGE} from '../src/game/client/boss/arenaRoomView';
 import {OriginalOpenArenaEncounter} from './fake/originalOpenArena';
 import * as bossHost from '../src/game/server/Boss';
-import * as persistence from '../src/game/server/quest/chapterBindings';
+import * as persistence from '../src/game/shared/quest/chapterBindings';
 import type {ShardContext} from '../src/game/server/plugin/context';
 import type {HeldClaims,HeldSlotKit} from '../src/game/client/loadout/claims';
 import type {CosmeticFinishLocker} from '../src/game/client/loadout/cosmeticFinishes';

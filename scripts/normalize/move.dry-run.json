@@ -558,7 +558,7 @@
     "src/engine/entities/creatureKit.ts",
     "src/engine/entities/creatureRigBake.ts",
     "src/engine/entities/creatureRigs.ts",
-    "src/engine/server/entities/eliteBrain.ts",
+    "src/engine/shared/entities/eliteBrain.ts",
     "src/engine/client/entities/farHerd.ts",
     "src/engine/server/entities/fightRules.ts",
     "src/engine/entities/Flock.ts",
@@ -810,7 +810,7 @@
     "src/engine/shared/world/Heightfield.ts",
     "src/engine/client/world/Horizon.ts",
     "src/engine/client/world/HorizonMatte.ts",
-    "src/engine/server/world/interact/flags.ts",
+    "src/engine/shared/world/interact/flags.ts",
     "src/engine/client/world/interact/Interactables.ts",
     "src/engine/world/interact/models.ts",
     "src/engine/shared/world/interact/types.ts",
@@ -948,7 +948,7 @@
     "src/explore/viewPoint.ts",
     "src/fx/Impacts.ts",
     "src/fx/LightPool.ts",
-    "src/game/server/achievements.ts",
+    "src/game/shared/achievements.ts",
     "src/game/client/bag/bag.ts",
     "src/game/client/bag/BagButton.ts",
     "src/game/server/Boss.ts",
@@ -3372,7 +3372,7 @@
     },
     {
       "from": "src/entities/eliteBrain.ts",
-      "to": "src/engine/server/entities/eliteBrain.ts"
+      "to": "src/engine/shared/entities/eliteBrain.ts"
     },
     {
       "from": "src/entities/farHerd.ts",
@@ -5116,7 +5116,7 @@
     },
     {
       "from": "src/world/interact/flags.ts",
-      "to": "src/engine/server/world/interact/flags.ts"
+      "to": "src/engine/shared/world/interact/flags.ts"
     },
     {
       "from": "src/world/interact/models.ts",

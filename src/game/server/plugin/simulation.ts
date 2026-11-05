@@ -70,7 +70,7 @@ import { socketLiftEntries } from "@wildshard/format/socketLiftAssets";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
 import { portalTransitioning } from "../../shared/shardfile/portalTraversal";
-import { captureLiftRiders, parseLiftRiders, restoreLiftRider, type LiftRiders } from "../shardfile/liftRider";
+import { captureLiftRiders, parseLiftRiders, restoreLiftRider, type LiftRiders } from "../../shared/shardfile/liftRider";
 import * as v from "valibot";
 import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
 import { addPiece, type AddedPiece } from "@wildshard/engine/physics/pieces";
