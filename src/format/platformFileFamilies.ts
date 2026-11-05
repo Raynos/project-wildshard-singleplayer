@@ -58,6 +58,7 @@ import { ChapterDirectorSchema, ChapterWakeSchema } from './chapterDirector.ts';
 import { QuestPageInteractionsSchema } from './questInteractions.ts';
 import { QuestServiceActionsSchema, QuestHintRowsSchema, CarriedQuestSchema } from './questSteps.ts';
 import { DirectorProductSchema } from './directorProduct.ts';
+import { NativeAssemblySchema, NativeAssemblyDataSchema, NATIVE_ASSEMBLY_SCHEMA, NATIVE_ASSEMBLY_DATA_SCHEMA } from './nativeAssembly.ts';
 import { QuestPanelCatalogueSchema } from './panelTemplate.ts';
 import { ForestWeatherSchema } from './forestWeather.ts';
 import { WeatherEffectsSchema } from './weatherEffects.ts';
@@ -81,6 +82,9 @@ export interface PlatformFileFamily {
  * ground and encounter grammars remain outside this registry unless separately
  * admitted by Jake, as G1004 admits the two exact baked placement plans. */
 export const PLATFORM_FILE_FAMILIES: readonly PlatformFileFamily[] = [
+  // P1-E3.1b (J90, Jake's approval): the three native shards' server inputs. Server class only (J91).
+  { pattern: /^server\/native-assembly\.json$/u, schema: NativeAssemblySchema, source: NATIVE_ASSEMBLY_SCHEMA, reader: 'src/game/shardfile/nativeAssembly.ts' },
+  { pattern: /^server\/[a-z0-9][a-z0-9.-]*\.json$/u, schema: NativeAssemblyDataSchema, source: NATIVE_ASSEMBLY_DATA_SCHEMA, reader: 'src/game/shardfile/nativeAssembly.ts' },
   { pattern: /^quests\/runtime\.json$/u, schema: QuestRuntimeDocumentSchema,
     source: '@wildshard/format/questRuntime#QuestRuntimeDocumentSchema', reader: 'src/game/quest/chapterDirector.ts' },
   { pattern: /^quests\/forest-story\.json$/u, schema: QuestStoryBindingsSchema,

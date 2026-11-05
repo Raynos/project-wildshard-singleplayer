@@ -523,6 +523,8 @@ export function validateRegisteredJson(name:string,value:unknown):void {
       if(registeredJsonContract(name)===fieldContract){parseSceneBuffers(value);break;}
       if(registeredJsonContract(name)===placementPageContract){parseWorldScenePlacementPage(value);break;}
       if(registeredJsonContract(name)===placementContract){parseWorldScenePlacement(value);break;}
+      // J91: a server-class file's own platform family admits it; no client contract names it.
+      if(name.startsWith('server/'))break;
       throw new Error(`Unregistered JSON name: ${name}`);
   }
 }
