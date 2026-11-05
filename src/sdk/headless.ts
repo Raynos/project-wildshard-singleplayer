@@ -16,7 +16,7 @@ import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/
 import { TickWorkerHost } from './tickWorkerHost';
 import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit, type HeadlessTapePartReport } from './tickProtocol';
 import * as v from 'valibot';
-import { decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { leadSnapshot, decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { headlessSections } from './headlessSections';
@@ -169,7 +169,7 @@ export interface MesaNativeReport {
   beacon: { id: string; field: string; lit: true }; replay: { checkpointTick: number; suffixTicks: 30; exact: true };
 }
 function authorHealth(saved: ReturnType<typeof decodeSimSnapshot>): number {
-  const root = saved.player.health;
+  const root = leadSnapshot(saved).health;
   if (root.kind !== 'record') throw new Error('Missing native player health');
   const attributes = root.entries.find(([name]) => name === 'attributes')?.[1];
   if (attributes?.kind !== 'record') throw new Error('Missing native health attributes');
@@ -222,7 +222,7 @@ export async function proveMesaNative(shard: Shardfile, assets: ReadonlyMap<stri
       const hawk = last.entities.find(row => row.id === plan.hawk); if (hawk === undefined) throw new Error('Required native hawk disappeared');
       attacks.attacking ||= hawk.state.motion.attackT >= 0;
       attacks.hit ||= authorStrikeHit(last, plan.hawk);
-      minimumAbovePlayer = Math.min(minimumAbovePlayer, (hawk.state.position[1] ?? Infinity) - (last.player.position[1] ?? -Infinity));
+      minimumAbovePlayer = Math.min(minimumAbovePlayer, (hawk.state.position[1] ?? Infinity) - (leadSnapshot(last).position[1] ?? -Infinity));
       minimumHealth = Math.min(minimumHealth, authorHealth(last));
     };
     for (const commands of route) observeMesa((await sim.step([{ source: 'mesa.route', commands }])).snapshot);
@@ -245,7 +245,7 @@ export async function proveMesaNative(shard: Shardfile, assets: ReadonlyMap<stri
     }
     const flights = goats.map(goat => {
       const body = last.entities.find(row => row.id === goat.id); if (body === undefined) throw new Error('Missing final native goat');
-      const displacement = distance(body.state.position, goat.start), away = distance(body.state.position, last.player.position);
+      const displacement = distance(body.state.position, goat.start), away = distance(body.state.position, leadSnapshot(last).position);
       if (!goat.fleeing || displacement <= 10 || away <= 15) throw new Error(`Goat flight not proved: ${goat.id}`);
       return { id: goat.id, fleeing: true as const, displacement, distance: away };
     });

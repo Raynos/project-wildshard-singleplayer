@@ -1,6 +1,5 @@
 import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
-import { NET_BUTTONS } from '@wildshard/engine/net/command';
-import { localWalkingMove } from '@wildshard/engine/player/walk';
+import { NET_BUTTONS, netSimCommand } from '@wildshard/engine/net/command';
 import type { HeadlessCommand } from '../tickProtocol';
 
 const has = (command: NetCommand, button: number): boolean => (command.buttons & button) !== 0;
@@ -8,21 +7,16 @@ const has = (command: NetCommand, button: number): boolean => (command.buttons &
 const lookPitch = (command: NetCommand): number => Math.max(-Math.PI / 2, Math.min(Math.PI / 2, command.pitch));
 
 /**
- * P1-E5.2: today's one-player SimHost through a NetCommand adapter (§8), until E5.2a has it take commands directly. The
- * result is an ordinary player command, so the tick admits it with the same `TickCommandSchema` every other source uses.
+ * P1-E5.2: the lead player's command as an ordinary tick command, so the tick admits it with the same `TickCommandSchema`
+ * every other source uses and the weapon systems bound to the lead read its swing, heavy hold and launcher. SimHost takes a
+ * NetCommand directly for every other player.
  */
 export function netPlayerCommand(command: NetCommand): Extract<HeadlessCommand, { kind: 'player' }> {
-  const move = { x: 0, z: 0 }, { steer, attack, heavyTarget } = command;
-  localWalkingMove(steer, command.yaw, move);
-  return { kind: 'player', moveX: move.x, moveZ: move.z, yaw: command.yaw, pitch: lookPitch(command), commandVersion: 1, steer: { ...steer },
-    sprint: has(command, NET_BUTTONS.sprint), crouch: has(command, NET_BUTTONS.crouch),
-    dive: has(command, NET_BUTTONS.dive), surface: has(command, NET_BUTTONS.surface),
-    ...(attack?.targetId === undefined ? {} : { attack: { targetId: attack.targetId } }),
-    ...(has(command, NET_BUTTONS.hover) ? { hover: true as const } : {}), ...(has(command, NET_BUTTONS.jump) ? { jump: true as const } : {}),
-    ...(has(command, NET_BUTTONS.dodge) ? { dodge: true as const } : {}),
-    ...(has(command, NET_BUTTONS.heavy) ? { heavy: heavyTarget === undefined ? {} : { targetId: heavyTarget } } : {}),
+  const { attack, heavyTarget } = command, heavy = has(command, NET_BUTTONS.heavy);
+  return { kind: 'player', ...netSimCommand(command), pitch: lookPitch(command), sprint: has(command, NET_BUTTONS.sprint), crouch: has(command, NET_BUTTONS.crouch),
+    ...(heavy ? { heavy: heavyTarget === undefined ? {} : { targetId: heavyTarget } } : {}),
     // P1-E3.2: a swing that names nothing still swings; the server finds what it strikes (J41).
-    ...((attack !== undefined && attack.targetId === undefined) || (has(command, NET_BUTTONS.heavy) && heavyTarget === undefined) ? { swing: true as const } : {}) };
+    ...((attack !== undefined && attack.targetId === undefined) || (heavy && heavyTarget === undefined) ? { swing: true as const } : {}) };
 }
 
 /** Every tick command one player's input becomes: the player command, then its launcher and acts. */

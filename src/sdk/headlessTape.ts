@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {SimHost} from '@wildshard/engine/sim';
 import {PhysicsRouteCursor,type WalkPoint} from './headlessJourney';
 import type {HeadlessCommand,HeadlessEffect} from './tickProtocol';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 export interface HeadlessTapeSegment {id:string;ticks:number;commands:HeadlessCommand[];route?:WalkPoint[];frames?:HeadlessCommand[][]}
 export interface HeadlessTapePlan {version:1;observe:string[];segments:HeadlessTapeSegment[]}
@@ -42,14 +43,14 @@ export function runTrustedHeadlessTape(host:SimHost,step:(commands:readonly Head
   effects:()=>readonly HeadlessEffect[],plan:HeadlessTapePlan):HeadlessTapeReport {
   if(host.scope.disposed||host.scope.disposing)throw new Error('Tape owner retired');
   const owners=plan.observe.map(id=>{const owner=host.adapters.get(id);if(owner===undefined)throw new Error(`Missing tape observation owner ${id}`);return {id,owner};});
-  const initial=host.state.tick,observations:HeadlessTapeObservation[]=[],encoder=new TextEncoder();let bytes=0;
+  const player=leadPlayer(host),initial=host.state.tick,observations:HeadlessTapeObservation[]=[],encoder=new TextEncoder();let bytes=0;
   for(const segment of plan.segments){
-    let peakY=host.player.position.y;const emitted:HeadlessEffect[]=[];
+    let peakY=player.position.y;const emitted:HeadlessEffect[]=[];
     const cursor=segment.route===undefined?null:new PhysicsRouteCursor(segment.route,{once:true});
     const moving=[...segment.commands];if(cursor!==null)moving.push({kind:'player',moveX:0,moveZ:0,yaw:0});
     for(let tick=0;tick<segment.ticks;tick++){
       if(cursor!==null){
-        const p=host.player.position,command=cursor.command([p.x,p.y,p.z],tick);
+        const p=player.position,command=cursor.command([p.x,p.y,p.z],tick);
         if(cursor.complete)break;
         if(cursor.stuck.length>0)throw new Error(`Tape route stuck ${segment.id}`);
         moving[moving.length-1]=command;
@@ -57,17 +58,17 @@ export function runTrustedHeadlessTape(host:SimHost,step:(commands:readonly Head
       const prior=host.state.tick;step(segment.frames?.[tick]??(cursor===null?segment.commands:moving));
       if(host.scope.disposed||host.scope.disposing)throw new Error('Tape owner retired');
       if(host.state.tick!==prior+1)throw new Error('Tape did not commit exactly one tick');
-      const p=host.player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Nonfinite tape feet');
+      const p=player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Nonfinite tape feet');
       peakY=Math.max(peakY,p.y);for(const effect of effects())emitted.push({...effect});
       if(emitted.length>1024)throw new Error('Tape effect allowance exceeded');
     }
     if(cursor!==null&&!cursor.complete){
-      const p=host.player.position;cursor.command([p.x,p.y,p.z],segment.ticks);
+      const p=player.position;cursor.command([p.x,p.y,p.z],segment.ticks);
       if(!cursor.complete)throw new Error(`Tape route incomplete ${segment.id}`);
     }
-    const p=host.player.position;
+    const p=player.position;
     const observation:HeadlessTapeObservation={id:segment.id,tick:host.state.tick,position:[p.x,p.y,p.z],peakY,
-      grounded:host.player.motor.snapshot().result.grounded,flags:[...host.flags.all],
+      grounded:player.motor.snapshot().result.grounded,flags:[...host.flags.all],
       quests:host.quests.map(quest=>({id:quest.def.id,currentId:quest.current?.id??null,started:quest.snapshot().started,complete:quest.isComplete})),effects:emitted,
       adapters:owners.map(({id,owner})=>{
         if(host.adapters.get(id)!==owner)throw new Error(`Tape observation owner changed ${id}`);

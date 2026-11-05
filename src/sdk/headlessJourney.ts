@@ -6,6 +6,7 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { walkingSpeed } from '@wildshard/engine/player/walk';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 export interface WalkPoint { readonly x:number;readonly z:number;readonly jump?:boolean|number;readonly jumpAt?:number }
 export interface WalkStall { readonly tick:number;readonly waypoint:number;readonly x:number;readonly y:number;readonly z:number }
@@ -94,7 +95,7 @@ export class PhysicsRouteCursor {
  * its script/decision/finite-state refusals. The parent request watchdog still
  * preempts a blocked worker. This proof does not encode a resumable checkpoint. */
 export function runHeadlessJourney(host:SimHost,step:(commands:readonly HeadlessCommand[])=>void,input:HeadlessJourneyPlan):HeadlessJourneyReport {
-  const plan=v.parse(HeadlessJourneyPlanSchema,input),cursor=new PhysicsRouteCursor(plan.points,{once:plan.once===true,edge:plan.inside!==undefined}),initial=host.state.tick;
+  const player=leadPlayer(host),plan=v.parse(HeadlessJourneyPlanSchema,input),cursor=new PhysicsRouteCursor(plan.points,{once:plan.once===true,edge:plan.inside!==undefined}),initial=host.state.tick;
   let distance=0,maxTickMicros=0,out=0,ticks=0;
   const held=new Map<AnimalSim,boolean>();
   const holdActors=():void=>{
@@ -107,27 +108,27 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
     if(plan.holdActors===true)holdActors();
     const prior=host.state.tick,started=diagnosticNow();step(commands);maxTickMicros=Math.max(maxTickMicros,(diagnosticNow()-started)*1000);
     if(host.state.tick!==prior+1)throw new Error('Journey did not commit exactly one tick');
-    const p=host.player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Journey produced invalid feet');
+    const p=player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Journey produced invalid feet');
   };
   const preparationTicks=plan.start===undefined?0:36;
   const walking={speed:walkingSpeed(false,false,0,1,1),crouching:false,clientMotion:{x:0,z:0}};
   // Only explicit physics routes replace the native capsule and walking law.
-  const releaseWalk=plan.start===undefined?()=>undefined:host.useWalkingControl(walking);
+  const releaseWalk=plan.start===undefined?()=>undefined:player.useWalkingControl(walking);
   let releaseActors:()=>void=()=>undefined;
   try {
   if(plan.holdActors===true){holdActors();releaseActors=host.onStep('physics.walk.hold',holdActors);}
   if(plan.start!==undefined){
-    const start=plan.start,p=host.player.position,ground=host.groundHeightAt(start.x,start.z);
-    const floor=start.y??Math.max(ground,floorBelow(host.physics,start.x,start.z,ground+2.5,2.6,host.player.motor.collider)??ground);
-    host.resetPlayerPose({x:start.x,y:floor,z:start.z},start.yaw);
-    host.releasePlayerMotor().dispose();
-    const motor=new CharacterMotor(host.physics,{...PLAYER_CAPSULE,...PLAYER_BODY,owner:host.player.id});
-    host.attachPlayerMotor(motor);motor.resetAt(p);
-    if(start.hover===true)host.setBoard(true);
+    const start=plan.start,p=player.position,ground=host.groundHeightAt(start.x,start.z);
+    const floor=start.y??Math.max(ground,floorBelow(host.physics,start.x,start.z,ground+2.5,2.6,player.motor.collider)??ground);
+    player.resetPose({x:start.x,y:floor,z:start.z},start.yaw);
+    player.releaseMotor().dispose();
+    const motor=new CharacterMotor(host.physics,{...PLAYER_CAPSULE,...PLAYER_BODY,owner:player.id});
+    player.attachMotor(motor);motor.resetAt(p);
+    if(start.hover===true)player.setBoard(true);
     for(let at=0;at<preparationTicks;at++)tick([]);
   }
   for(let at=0;at<plan.ticks;at++){
-    const p=host.player.position,x=p.x,z=p.z,command=cursor.command([p.x,p.y,p.z],at);
+    const p=player.position,x=p.x,z=p.z,command=cursor.command([p.x,p.y,p.z],at);
     if(plan.once===true&&cursor.complete)break;
     tick([command]);ticks++;distance+=Math.hypot(p.x-x,p.z-z);
     const box=plan.inside;
@@ -138,8 +139,8 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
   // integration tape releases input for its final grounded observation.
   const settledTicks=plan.once===true?0:60;for(let at=0;at<settledTicks;at++)tick([]);
   if(host.state.tick!==initial+preparationTicks+ticks+settledTicks)throw new Error('Journey tick count differs');
-  const p=host.player.position;
+  const p=player.position;
   return {ticks,preparationTicks,settledTicks,complete:cursor.complete,out,distance,visited:cursor.visited,traversals:cursor.traversals,stuck:cursor.stuck,
-    final:{tick:host.state.tick,position:[p.x,p.y,p.z],grounded:host.player.motor.snapshot().result.grounded},maxTickMicros};
+    final:{tick:host.state.tick,position:[p.x,p.y,p.z],grounded:player.motor.snapshot().result.grounded},maxTickMicros};
   } finally { releaseActors();for(const [actor,prior] of held)actor.harnessHold=prior;held.clear();releaseWalk(); }
 }

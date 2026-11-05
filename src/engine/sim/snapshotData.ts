@@ -35,14 +35,14 @@ const motor = v.strictObject({
 const simValue: v.GenericSchema<SimValue> = v.union([
   v.null(), v.boolean(), scalar, v.string(), v.array(v.lazy(() => simValue)), v.record(v.string(), v.lazy(() => simValue)),
 ]);
-type EventValue = SimSnapshot['player']['health'];
+type EventValue = SimSnapshot['players'][number]['health'];
 const eventValue: v.GenericSchema<EventValue> = v.variant('kind', [
   v.strictObject({ kind: v.literal('value'), value: v.union([v.null(), v.boolean(), finite, v.string()]) }),
   v.strictObject({ kind: v.literal('undefined') }),
   v.strictObject({ kind: v.literal('number'), value: v.picklist(['infinity', '-infinity', 'nan']) }),
   v.strictObject({ kind: v.literal('vector'), value: vector }),
   v.strictObject({ kind: v.literal('actor'), id }), v.strictObject({ kind: v.literal('entity'), id }),
-  v.strictObject({ kind: v.literal('position'), id }), v.strictObject({ kind: v.literal('player') }),
+  v.strictObject({ kind: v.literal('position'), id }), v.strictObject({ kind: v.literal('player'), id: v.optional(id) }),
   v.strictObject({ kind: v.literal('array'), items: v.array(v.lazy(() => eventValue)) }),
   v.strictObject({ kind: v.literal('record'), entries: v.pipe(v.array(v.tuple([v.string(), v.lazy(() => eventValue)])),
     v.check((entries) => new Set(entries.map(([key]) => key)).size === entries.length, 'Duplicate payload key')) }),
@@ -70,23 +70,24 @@ const strike = v.strictObject({ version, phase: v.picklist(['idle', 'windup', 'a
 const rng = v.strictObject({ version, state: uint32, initial: uint32, scrambledFork: v.boolean() });
 const frameIndex = v.pipe(v.number(), v.integer(), v.minValue(-1));
 const bandClock = v.strictObject({ elapsed: nonnegative, credit: nonnegative, frame: frameIndex, dt: nonnegative, last: finite, due: v.boolean(), tickFrame: frameIndex });
+const playerState = v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
+  traversals: v.optional(v.pipe(v.array(v.picklist(['ride', 'grapple', 'glide', 'climb', 'drive'])), v.minLength(1), v.maxLength(5))),
+  walk: v.optional(v.strictObject({ x: finite, z: finite })),
+  moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
+  fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })), shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
+  board: v.optional(v.strictObject({ velocity: vector, air: v.boolean(), bob: finite, ground: v.boolean() })),
+  swim: v.optional(v.strictObject({ on: v.boolean(), velocity: vector, diving: v.boolean(), climbTo: v.nullable(finite), climbCooldown: nonnegative, stroke: nonnegative, stood: v.boolean() })),
+  jump: v.optional(v.strictObject({ ago: v.nullable(nonnegative), left: v.picklist([0, 1]) })),
+  dash: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })), dodge: v.optional(v.strictObject({ cd: nonnegative, t: nonnegative })) });
 const entries = {
-  version, apiVersion: integer, levelId: id, levelFingerprint: uint32,
+  version: v.literal(2), apiVersion: integer, levelId: id, levelFingerprint: uint32,
   state: v.strictObject({ tick: integer, accumulator: v.pipe(finite, v.minValue(-Number.EPSILON)), timers: v.record(v.string(), nonnegative) }),
   clock: v.strictObject({ version, elapsed: nonnegative, wall: nonnegative, frames: integer,
     captureFps: v.nullable(v.pipe(finite, v.check((value) => value > 0))), paused: v.boolean(), scale: nonnegative }),
   rng: v.strictObject({ version, seed: uint32, streams: v.array(v.strictObject({
     name: v.picklist(['gameplay', 'ai', 'spawn', 'cosmetic']), state: rng })) }),
   entities: v.array(v.strictObject({ id, state: animal, motor: v.nullable(motor) })),
-  player: v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
-    traversals: v.optional(v.pipe(v.array(v.picklist(['ride', 'grapple', 'glide', 'climb', 'drive'])), v.minLength(1), v.maxLength(5))),
-    walk: v.optional(v.strictObject({ x: finite, z: finite })),
-    moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
-    fall: v.optional(v.strictObject({ vy: finite, grounded: v.boolean() })), shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
-    board: v.optional(v.strictObject({ velocity: vector, air: v.boolean(), bob: finite, ground: v.boolean() })),
-    swim: v.optional(v.strictObject({ on: v.boolean(), velocity: vector, diving: v.boolean(), climbTo: v.nullable(finite), climbCooldown: nonnegative, stroke: nonnegative, stood: v.boolean() })),
-    jump: v.optional(v.strictObject({ ago: v.nullable(nonnegative), left: v.picklist([0, 1]) })),
-    dash: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })), dodge: v.optional(v.strictObject({ cd: nonnegative, t: nonnegative })) }),
+  players: v.pipe(v.array(playerState), v.minLength(1)),
   strikes: v.array(v.strictObject({ id, state: strike })), targets: v.array(v.tuple([id, id])),
   events: v.strictObject({ version, queue: v.array(v.strictObject({
     name: v.custom<SimSnapshot['events']['queue'][number]['name']>((input) => typeof input === 'string' && input.length > 0), payload: eventValue })),
@@ -105,15 +106,19 @@ const entries = {
 };
 const snapshot: v.GenericSchema<unknown, SimSnapshot> = v.strictObject({ ...entries,
   physics: v.pipe(v.array(v.pipe(integer, v.maxValue(255))), v.minLength(1), v.maxLength(maxPhysicsBytes)) });
-const packedSnapshot = v.strictObject({ ...entries,
-  physics: v.variant('encoding', [
+const packedPhysicsSchema = v.variant('encoding', [
     v.strictObject({ encoding: v.literal('base64'), data: v.pipe(v.string(), v.minLength(4), v.maxLength(maxBase64Length)), checksum: uint32 }),
     v.strictObject({ encoding: v.literal('deflate-lz-base64-v1'), length: v.pipe(integer, v.minValue(1), v.maxValue(maxPhysicsBytes)),
       packedLength: v.pipe(integer, v.minValue(1), v.maxValue(MAX_REFERENCE_BYTES)),
       basis: v.optional(v.strictObject({ length: v.pipe(integer, v.minValue(1), v.maxValue(maxPhysicsBytes)), checksum: uint32 })),
       chunks: v.pipe(v.array(v.pipe(v.string(), v.minLength(4), v.maxLength(Math.ceil((physicsBlockBytes + 64) / 3) * 4))), v.minLength(1), v.maxLength(Math.ceil(MAX_REFERENCE_BYTES / physicsBlockBytes))), checksum: uint32 }),
-  ]) });
-const wire = v.strictObject({ format: v.literal('sim.snapshot'), version, snapshot: packedSnapshot });
+]);
+const packedSnapshot = v.strictObject({ ...entries, physics: packedPhysicsSchema });
+// P1-E5.2a: a version 1 save, as the old writer left it: one `player`, from an engine with a level API of 1.
+const { players: _players, ...sharedEntries } = entries;
+const packedSnapshotV1 = v.strictObject({ ...sharedEntries, version, apiVersion: version, player: playerState, physics: packedPhysicsSchema });
+const wire = v.variant('version', [v.strictObject({ format: v.literal('sim.snapshot'), version: v.literal(2), snapshot: packedSnapshot }),
+  v.strictObject({ format: v.literal('sim.snapshot'), version, snapshot: packedSnapshotV1 })]);
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 // A JSON-tree fence also rejects cycles/accessors/classes before lazy recursive schemas run.
@@ -227,14 +232,14 @@ function healthData(value: EventValue): unknown {
 }
 
 function identities(saved: SimSnapshot, apiVersion: number): SimSnapshot {
-  v.parse(health, healthData(saved.player.health));
+  for (const player of saved.players) v.parse(health, healthData(player.health));
   if (saved.apiVersion !== apiVersion) throw new RangeError('Incompatible simulation engine version');
   const unique = (ids: readonly (string | number)[]) => new Set(ids).size === ids.length;
   if (!unique(saved.entities.map((entity) => entity.id)) || !unique(saved.strikes.map((entry) => entry.id))
     || !unique(saved.adapters.map((entry) => entry.id)) || !unique(saved.quests.map((entry) => entry.id))
     || !unique(saved.rng.streams.map((entry) => entry.name)) || !unique(saved.colliderTags.map((entry) => entry.handle))
-    || !unique(saved.targets.map(([source]) => source)) || !unique(saved.flags)
-    || saved.entities.some((entity) => entity.id !== entity.state.id || entity.id === saved.player.id)) throw new RangeError('Invalid snapshot identities');
+    || !unique(saved.targets.map(([source]) => source)) || !unique(saved.flags) || !unique(saved.players.map((player) => player.id))
+    || saved.entities.some((entity) => entity.id !== entity.state.id || saved.players.some((player) => player.id === entity.id))) throw new RangeError('Invalid snapshot identities');
   return saved;
 }
 // JSON.parse preserves the valid numeric literal -0; JSON.stringify normally loses its sign.
@@ -288,10 +293,10 @@ export function checkSnapshotDataWire(input: SimSnapshot | SimSnapshotBytes, api
   if (!Number.isSafeInteger(maximumChars) || maximumChars < 0) throw new RangeError('Invalid snapshot character bound');
   const { raw, saved } = prepareSnapshot(input, apiVersion);
   if (raw.length === 0) throw new RangeError('Snapshot physics exceeds byte bounds');
-  const metadataChars = stringifiedLength({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics: 0 } }) - 1;
+  const metadataChars = stringifiedLength({ format: 'sim.snapshot', version: saved.version, snapshot: { ...saved, physics: 0 } }) - 1;
   if (metadataChars + Math.ceil(raw.length / 3) * 4 + physicsHeaderChars <= maximumChars) return;
   const physics = finishSteps(packedPhysics(raw));
-  if (stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } }).length > maximumChars) throw new RangeError('Snapshot wire exceeds character bound');
+  if (stringify({ format: 'sim.snapshot', version: saved.version, snapshot: { ...saved, physics } }).length > maximumChars) throw new RangeError('Snapshot wire exceeds character bound');
 }
 /** Internal packed wire writer, in stages a caller may spread over frames (rt3-freeze: one regional autosave was a
  *  1–2.7 s main-thread task). Each `yield` is a safe pause: the input is read in the first stage only, so later stages
@@ -304,7 +309,7 @@ export function* serializeSnapshotDataSteps(input: SimSnapshot | SimSnapshotByte
   yield;
   const physics = yield* packedPhysics(raw, physicsBasis);
   yield;
-  return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } });
+  return stringify({ format: 'sim.snapshot', version: saved.version, snapshot: { ...saved, physics } });
 }
 /** Internal packed wire writer; the defining public entry supplies its current engine version. */
 export function serializeSnapshotData(input: SimSnapshot | SimSnapshotBytes, apiVersion: number, physicsBasis?: Uint8Array): string {
@@ -320,10 +325,14 @@ export function decodeSnapshotDataBytes(input: unknown, apiVersion: number, phys
   const saved = readSnapshotData(input, apiVersion, physicsBasis, mismatch);
   return { ...saved, physics: saved.physics instanceof Uint8Array ? saved.physics : Uint8Array.from(saved.physics) };
 }
+/** A version 1 save is a version 2 save with its one player as the list. Nothing else about the continuation moved. */
+function migrateV1({ player, ...rest }: v.InferOutput<typeof packedSnapshotV1>, apiVersion: number): v.InferOutput<typeof packedSnapshot> {
+  return { ...rest, version: 2, apiVersion, players: [player] };
+}
 function readSnapshotData(input: unknown, apiVersion: number, physicsBasis: Uint8Array | undefined, mismatch: ((levelId: string, tick: number) => Error) | undefined): Omit<SimSnapshot, 'physics'> & { physics: number[] | Uint8Array } {
   const parsed: unknown = typeof input === 'string' ? JSON.parse(input) : input;
   jsonTree(parsed);
-  const saved = v.parse(wire, parsed).snapshot;
+  const envelope = v.parse(wire, parsed), saved = envelope.version === 1 ? migrateV1(envelope.snapshot, apiVersion) : envelope.snapshot;
   // Validate metadata/engine/identities before reporting a recoverable basis change. The placeholder is never returned:
   // the checksummed bytes replace it, as the writer does (a schema walk of Pine's 8.4M bytes was ~2 of a 2.3 s decode).
   const metadata = identities(v.parse(snapshot, { ...saved, physics: [0] }), apiVersion);

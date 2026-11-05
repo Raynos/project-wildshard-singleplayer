@@ -1,4 +1,5 @@
 import { validateLocalMovement, type LocalMovementCommand } from './input/commands';
+import type { NetCommand } from '@wildshard/format/netCommand';
 import { Vector3 } from 'three';
 import { Scope, type DisposeStep } from './app/scope';
 import { withOwner } from './app/ownership';
@@ -13,10 +14,9 @@ import { CombatPipeline } from './combat/pipeline';
 import type { PlayerHealth } from './combat/health';
 import { Physics } from './physics/Physics';
 import { CharacterMotor, PLAYER_BODY, type MotorOptions } from './physics/CharacterMotor';
-import { PlayerSim } from './sim/playerSim';
+import { PlayerSim, simCommandOf } from './sim/playerSim';
 import { BodyBandClocks, creatureBodyDistance, creatureBodyShape, keepsCreatureBody, tickDistance, type BandsState } from './sim/bands';
 import type { TickRate } from './app/scheduler';
-import { localWalkingMove } from './player/walk';
 import { modeCollides } from './player/modes';
 import type { Rapier } from './physics/rapier';
 import { groups } from './physics/groups';
@@ -27,7 +27,7 @@ import type { DayCycle, DayCycleClock, DayCycleSpec } from './world/dayCycle';
 import { clockDayPhase, clockPeriod, wrapClock, type DayClockState } from './sim/dayClock';
 
 /** The embedded simulation contract. Versions change when level or command semantics change. */
-export const SIM_API_VERSION = 1;
+export const SIM_API_VERSION = 2;
 /** Serializable F1 extension values, without callbacks or renderer objects. */
 export type SimValue = null | boolean | number | string | SimValue[] | { [key: string]: SimValue };
 /** Script instance memory, module globals, authored quest data and ledger dedupe live on the host. */
@@ -69,6 +69,9 @@ export interface SimCommand extends LocalMovementCommand {
    *  touch discs). Held states, so `advance` repeats them; read only by a host with water (useWater). */
   dive?: boolean; surface?: boolean;
 }
+/** One player's input for one tick: off the wire, or a recorded world-space tape command. Only `SimCommand` can say a
+ *  legacy move at the level's own speed, which every recorded tape does and the wire format cannot. */
+export type SimTickCommand = NetCommand | SimCommand;
 /** Resident on-foot tuning supplied by an owned driver; the ordinary native motor, fall and jump remain authoritative. */
 export interface SimWalkingControl {
   readonly speed: number; readonly crouching: boolean;
@@ -187,6 +190,7 @@ export class SimHost {
   readonly players: Map<string, PlayerSim> = new Map<string, PlayerSim>();
   /** The player this host was built with (leadPlayer). */
   private readonly lead: PlayerSim;
+  private readonly playerScopes = new Map<string, Scope>();
   private readonly callbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly afterCallbacks = new Map<string, (dt: number, host: SimHost) => void>();
   private readonly weapons = new Map<string, StrikeSpec>();
@@ -203,7 +207,6 @@ export class SimHost {
   /** The player `player.traversal` is being asked for: a mode answers only for its own player. */
   traversing: PlayerSim | null = null;
   private boardHandles: number[] = [];
-  private readonly localMove = { x: 0, z: 0 };
   private readonly direction = new Vector3();
   private readonly hitOrigin = new Vector3();
   private readonly hitPoint = new Vector3();
@@ -257,8 +260,7 @@ export class SimHost {
     this.events.on('actor.died', ({ actor }) => { this.flags.set(`dead:${actor.id}`); }, this.scope);
     this.scope.onDispose(() => {
       this.disposed = true;
-      this.lead.releaseExternal();
-      if (this.ownsPlayer) this.lead.disposeMotor();
+      for (const player of this.players.values()) { player.releaseExternal(); if (this.ownsPlayer) player.disposeMotor(); }
       for (const entity of this.entities.values()) entity.motor?.dispose();
       if (!this.embedded) this.physics.dispose();
     });
@@ -288,6 +290,29 @@ export class SimHost {
     }
     return entity;
   }
+  /** A player joins: a body at `at` (the level's spawn by default), with its own health, strike runner and motor. Systems
+   *  bound to the lead at install do not extend to it. */
+  addPlayer(id: string, at: { readonly x: number; readonly y: number; readonly z: number } = this.level.player.at, yaw: number = this.level.player.yaw): PlayerSim {
+    if (this.disposed || this.embedded || this.players.has(id) || this.entities.has(id) || !/^[a-zA-Z0-9._:-]{1,128}$/u.test(id) || ![at.x, at.y, at.z, yaw].every(Number.isFinite)) throw new Error('Invalid simulation player');
+    const scope = this.scope.child(`player:${id}`);
+    const player = new PlayerSim(this, { id, at, yaw, motor: health => this.motor('PLAYER', 0.35, 1.8, health.id) }, scope);
+    this.players.set(id, player); this.playerScopes.set(id, scope);
+    this.strikes.set(id, player.strike); this.weapons.set(id, { ...this.level.weapon, weight: () => 1 });
+    return player;
+  }
+  /** A player leaves, with its body and strike. The lead stays: the host's systems are bound to it. */
+  removePlayer(id: string): boolean {
+    if (this.disposed) throw new Error('Simulation host is disposed');
+    const player = this.players.get(id);
+    if (player === undefined || player === this.lead) return false;
+    if (this.focused === player) this.focused = this.lead;
+    player.disposeMotor(); this.playerScopes.get(id)?.dispose(); this.playerScopes.delete(id);
+    this.players.delete(id); this.strikes.delete(id); this.weapons.delete(id);
+    for (const [source, target] of this.targetIds) if (source === id || target === id) {
+      this.strikes.get(source)?.cancel(); this.entities.get(source)?.cancelAttack(); this.targetIds.delete(source);
+    }
+    return true;
+  }
   /** The living player nearest `point`, else the nearest of the dead: who a creature there is dealing with. */
   nearestPlayer(point: { readonly x: number; readonly y: number; readonly z: number }): PlayerSim {
     if (this.players.size === 1) return this.lead;
@@ -301,22 +326,6 @@ export class SimHost {
   /** The player `playerFocus` follows. */
   get focusedPlayer(): PlayerSim { return this.focused; }
   private focusOn(point: { readonly x: number; readonly y: number; readonly z: number }): void { if (this.players.size > 1) this.focused = this.nearestPlayer(point); }
-  get player(): PlayerSim { return this.lead; }
-  get playerImpulse(): PlayerSim['impulse'] { return this.lead.impulse; }
-  get playerFall(): PlayerSim['fall'] { return this.lead.fall; }
-  get playerWalk(): PlayerSim['walk'] { return this.lead.walk; }
-  get playerMoveScale(): number { return this.lead.moveScale; }
-  set playerMoveScale(value: number) { this.lead.moveScale = value; }
-  get playerShove(): PlayerSim['shove'] { return this.lead.shove; }
-  get playerBoard(): PlayerSim['board'] { return this.lead.board; }
-  get boardVelocity(): PlayerSim['boardVelocity'] { return this.lead.boardVelocity; }
-  get playerSwim(): PlayerSim['swim'] { return this.lead.swim; }
-  get swimVelocity(): PlayerSim['swimVelocity'] { return this.lead.swimVelocity; }
-  get modes(): PlayerSim['modes'] { return this.lead.modes; }
-  get playerJump(): PlayerSim['jump'] { return this.lead.jump; }
-  set playerJump(value: PlayerSim['jump']) { this.lead.jump = value; }
-  get playerDash(): PlayerSim['dash'] { return this.lead.dash; }
-  get playerDodge(): PlayerSim['dodge'] { return this.lead.dodge; }
   /** Materialize a trusted deferred actor. Stable identity and immutable recipe are included in exact continuation.
    * The installer reinstalls the saved dynamic roster before restore; native motors belong to this host, never its caller.
    */
@@ -374,7 +383,7 @@ export class SimHost {
     return new CharacterMotor(this.physics, this.motorOptions(group, radius, height, owner));
   }
   /** The original capsule law also reconstructs a saved motor for a bodyless restore target. */
-  playerMotorOptions(player: PlayerSim = this.lead): MotorOptions {
+  playerMotorOptions(player: PlayerSim): MotorOptions {
     return player.motorOptions(() => this.motorOptions('PLAYER', 0.35, 1.8, player.id));
   }
   /** Opt into the page's distance bands for every body (SimBodyBands), once, before the first step; the installer runs
@@ -392,9 +401,6 @@ export class SimHost {
     if (this.disposed || this.bodyStep !== undefined) throw new Error('Body step hooks belong to one installer, once');
     this.bodyStep = hooks;
   }
-  usePlayerDriver(driver: SimPlayerDriver): () => void { return this.lead.useDriver(driver); }
-  useWalkingControl(control: SimWalkingControl): () => void { return this.lead.useWalkingControl(control); }
-  observePlayerMotion(observer: (sample: SimPlayerMotionSample | null) => void): () => void { return this.lead.observeMotion(observer); }
   /** Whether the host runs on body bands, and with the physics body LOD. */
   get bodyBands(): { physics: boolean } | undefined { return this.bands === undefined ? undefined : { physics: this.bands.physics }; }
   /** This tick's update step for body `id` (s): the fixed step without bands; with them 0 while paused or on the off
@@ -481,19 +487,6 @@ export class SimHost {
     if (!Number.isFinite(x) || !Number.isFinite(z)) throw new RangeError('Invalid regional ground query');
     return this.heightAt(x, z);
   }
-  /** True only while this regional world owns the traveller's capsule and controller. */
-  get hasPlayerMotor(): boolean { return this.embedded || this.lead.hasMotor; }
-  /** Freeze a regional host after its checkpoint; its authored creatures and colliders remain available for views. */
-  detachPlayerMotor(): void { this.lead.detachMotor(); }
-  releasePlayerMotor(): CharacterMotor { return this.lead.releaseMotor(); }
-  attachPlayerMotor(motor: CharacterMotor): void { this.lead.attachMotor(motor); }
-  /** Bind the page traveller to an owned bodyless region; deactivation leaves the page's health and motor intact. */
-  bindExternalPlayer(value: SimExternalPlayer): () => void {
-    if (this.embedded) throw new Error('Invalid external regional player');
-    return this.lead.bindExternal(value, new Scope(`sim:${this.level.id}:traveller`));
-  }
-  /** Trusted page-object alias used only by same-engine continuation encoding, never author-selected query input. */
-  isExternalPlayerObject(value: unknown): boolean { return this.lead.isExternalObject(value); }
   /** One active region's systems/local clock after the page move; no physics, player, health or page event phase advances. */
   stepExternal(): void {
     if (this.disposed || this.embedded) throw new Error('External regional player is not bound');
@@ -518,14 +511,6 @@ export class SimHost {
     };
     forget = this.scope.capture('disposers', remove); return remove;
   }
-  impulsePlayer(velocity: Readonly<Vector3>): void { this.lead.addImpulse(velocity); }
-  shovePlayer(fromX: number, fromZ: number, speed: number): void { this.lead.knockBack(fromX, fromZ, speed); }
-  dashPlayer(vx: number, vz: number, time: number): boolean { return this.lead.dashAt(vx, vz, time); }
-  dashTo(x: number, z: number, stopAt: number, time: number): boolean { return this.lead.dashTo(x, z, stopAt, time); }
-  setBoard(on: boolean): void { this.lead.setBoard(on); }
-  resetPlayerPose(feet: { x: number; y: number; z: number }, yaw: number): void { this.lead.resetPose(feet, yaw); }
-  get playerMode(): PlayerSim['mode'] { return this.lead.mode; }
-  get playerWading(): boolean { return this.lead.wading; }
   /**
    * SF34: give the owned player the level's water (SimWater), once, before the first step; the installer runs it again
    * on a restoring host, before restore. From then the client Player's water law (player/swim.ts) holds headless: on foot
@@ -569,19 +554,23 @@ export class SimHost {
     try { return this.events.ask('player.traversal', FIXED_STEP); }
     finally { this.traversing = null; }
   }
-  /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
-  step(input?: SimCommand): void {
+  /** One simulation tick, with at most one command per player. No wall clock, renderer, active app or device input is
+   *  consulted. Every player's input lands, then the world steps, then every player moves, in join order. */
+  step(commands?: ReadonlyMap<string, SimTickCommand>): void {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
-    if (!this.hasPlayerMotor) throw new Error('Frozen simulation cannot step');
-    const command = resolvedCommand(input, this.localMove), player = this.lead;
+    const { players } = this;
+    for (const player of players.values()) if (!player.hasMotor) throw new Error('Frozen simulation cannot step');
+    if (commands !== undefined) for (const id of commands.keys()) if (!players.has(id)) throw new RangeError(`Unknown simulation player ${id}`);
+    for (const player of players.values()) player.take(commands?.get(player.id));
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
-    player.input(command);
+    for (const player of players.values()) player.input();
     if (this.boardHandles.length > 0) this.syncBoardColliders();
     this.physics.step();
-    player.move();
+    for (const player of players.values()) player.move();
     this.stepSystems();
-    player.health.update(FIXED_STEP); this.events.flush('fixed.post');
+    for (const player of players.values()) player.health.update(FIXED_STEP);
+    this.events.flush('fixed.post');
   }
   /** Called once by the client's fixed.post slot; it never advances physics, clock, player or event phases. */
   stepEmbedded(): void {
@@ -615,17 +604,18 @@ export class SimHost {
     hooks?.after?.(id, entity, dt);
   };
   /** Accumulate elapsed simulation seconds; a caller can submit exactly the same command tape after restoration. */
-  advance(seconds: number, command?: SimCommand): number {
+  advance(seconds: number, commands?: ReadonlyMap<string, SimTickCommand>): number {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
     if (!Number.isFinite(seconds) || seconds < 0) throw new RangeError('Invalid simulation delta');
-    if (command !== undefined) {
+    if (commands !== undefined) for (const input of commands.values()) {
+      const command = simCommandOf(input);
       if (![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
       validateLocalMovement(command);
+      if (command.hover !== undefined || command.jump !== undefined || command.dodge !== undefined) throw new RangeError('A HOVER, JUMP or DODGE press is one tick\'s input; advance repeats its command');
     }
-    if (command?.hover !== undefined || command?.jump !== undefined || command?.dodge !== undefined) throw new RangeError('A HOVER, JUMP or DODGE press is one tick\'s input; advance repeats its command');
     this.state.accumulator += seconds; let ticks = 0;
-    while (this.state.accumulator + Number.EPSILON >= FIXED_STEP) { this.state.accumulator -= FIXED_STEP; this.step(command); ticks++; }
+    while (this.state.accumulator + Number.EPSILON >= FIXED_STEP) { this.state.accumulator -= FIXED_STEP; this.step(commands); ticks++; }
     return ticks;
   }
   /** Start an authored strike; active/recovery/cooldown timing remains in StrikeRunner. */
@@ -667,28 +657,6 @@ export class SimHost {
     if (this.disposed) return; this.disposed = true;
     yield* this.scope.disposeSteps();
   }
-}
-/** A command checked and, for raw axes, resolved to its world move. */
-function resolvedCommand(input: SimCommand | undefined, move: { x: number; z: number }): SimCommand | undefined {
-  if (input === undefined) return undefined;
-  if (![input.moveX, input.moveZ, input.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
-  validateLocalMovement(input);
-  if ((input.dive !== undefined && typeof input.dive !== 'boolean') || (input.surface !== undefined && typeof input.surface !== 'boolean')) throw new RangeError('Invalid held swim control');
-  if (input.commandVersion !== 1 || input.steer === undefined) return input;
-  localWalkingMove(input.steer, input.yaw, move);
-  return { ...input, moveX: move.x, moveZ: move.z };
-}
-/**
- * The player a system not yet per-player serves: the host's first. Weapons, quests, riding and hand-offs are bound to it;
- * a room's other players share its world, creatures and physics, but have none of those (P1-E5.2a). The uses are a ratchet.
- */
-export function leadPlayer(host: SimHost): PlayerSim {
-  for (const player of host.players.values()) return player;
-  throw new Error('Simulation host has no player');
-}
-/** One tick's commands for a host driven as one player. */
-export function leadCommands(host: SimHost, command: SimCommand | undefined): ReadonlyMap<string, SimCommand> | undefined {
-  return command === undefined ? undefined : new Map([[leadPlayer(host).id, command]]);
 }
 /** Embed a level with an initialized Rapier module. Its own scope owns teardown, independently of the caller's ambient page callback. */
 export function createSimHost(level: SimLevel, ports: SimHostPorts): SimHost { return withOwner(null, () => new SimHost(level, ports)); }

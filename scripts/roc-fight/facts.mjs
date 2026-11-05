@@ -10,6 +10,7 @@
 import { writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
+import { leadPlayer } from '../../src/engine/sim/leadPlayer.ts';
 
 const arg = (/** @type {string} */ name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const tree = pathToFileURL(`${resolve(arg('tree') ?? process.cwd())}/`);
@@ -57,7 +58,7 @@ const hits = [];
 /** @type {number[]} */
 const stoops = [];
 /** loop-carried observation state */
-const seen = { last: '', hp: host.player.health.attributes.health, grounded: false, minHp: host.player.health.attributes.health };
+const seen = { last: '', hp: leadPlayer(host).health.attributes.health, grounded: false, minHp: leadPlayer(host).health.attributes.health };
 let crownTick = null, victoryTick = null;
 for (let i = 0; i < LIMIT; i++) {
   const commands = tape.next(host);
@@ -69,7 +70,7 @@ for (let i = 0; i < LIMIT; i++) {
       ...(player.attack === undefined ? {} : { attack: player.attack }), ...(player.hover === undefined ? {} : { hover: player.hover }) });
   } finally { session.tape = []; }
   session.effects.push(...session.tick);
-  const tick = host.state.tick, hp = host.player.health.attributes.health, body = roc();
+  const tick = host.state.tick, hp = leadPlayer(host).health.attributes.health, body = roc();
   if (crownTick === null && tape.walked) crownTick = tick;
   if (hp < seen.hp) hits.push({ tick, damage: round(seen.hp - hp), playerHp: round(hp) });
   seen.hp = hp; seen.minHp = Math.min(seen.minHp, hp);
@@ -80,7 +81,7 @@ for (let i = 0; i < LIMIT; i++) {
     if (low && !seen.grounded) stoops.push(tick);
     seen.grounded = low;
     if ((tick - crownTick) % HP_EVERY === 0) samples.push({ tick, rocHp: body === undefined ? null : round(body.hp), phase: e?.phase ?? null, flockAlive: flockAlive(), playerHp: round(hp),
-      roc: body === undefined ? null : [body.position.x, body.position.y, body.position.z].map(round), player: [host.player.position.x, host.player.position.y, host.player.position.z].map(round) });
+      roc: body === undefined ? null : [body.position.x, body.position.y, body.position.z].map(round), player: [leadPlayer(host).position.x, leadPlayer(host).position.y, leadPlayer(host).position.z].map(round) });
   }
   if (victoryTick === null && host.flags.has(FLAGS.roc)) victoryTick = tick;
   if (victoryTick !== null && tick >= victoryTick + AFTER) break;

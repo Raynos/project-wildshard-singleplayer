@@ -9,7 +9,9 @@ import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mov
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
-import { createSimHost, type SimHost, type SimHostPorts, type SimLevel } from '@wildshard/engine/sim';
+import { createSimHost, type SimHost, type SimHostPorts, type SimLevel, type SimTickCommand } from '@wildshard/engine/sim';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import type { NetCommand } from '@wildshard/format/netCommand';
 import { checkSimSnapshotWire, decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
@@ -111,7 +113,8 @@ export interface TrustedHeadlessResident {
   readonly host: SimHost;
   lend: (commands: readonly HeadlessCommand[]) => void;
   readonly effects: readonly HeadlessEffect[];
-  step: (commands: readonly HeadlessCommand[]) => void;
+  /** One tick: `commands` for the lead player and the systems bound to it, `others` for the room's other players. */
+  step: (commands: readonly HeadlessCommand[], others?: ReadonlyMap<string, NetCommand>) => void;
   proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
   dispose: () => void;
 }
@@ -186,18 +189,19 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     });
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
   } catch (error) { installing?.dispose(); throw error; }
+  const lead = leadPlayer(host);
   const lend = (input: readonly HeadlessCommand[]): void => {
     validateHeadlessCommandOwners(host,input);
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
   return {
     host, lend,
     get effects() { return effects; },
-    step: input => {
+    step: (input, others) => {
       lend(input);
-      let player: Parameters<SimHost['step']>[0];
-      for (const command of input) if (command.kind === 'player') player = simPlayerCommand(command);
-      host.step(player);
-      if (![host.player.position, ...[...host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
+      const tick = new Map<string, SimTickCommand>(others);
+      for (const command of input) if (command.kind === 'player') tick.set(lead.id, simPlayerCommand(command));
+      host.step(tick);
+      if (![...[...host.players.values()].map(player => player.position), ...[...host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
     },
     proveEntries: () => {
       if (plan.proveEntries === undefined) throw new Error('Trusted runtime has no entry proof');

@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import type { Scope } from '../app/scope';
+import { Scope } from '../app/scope';
 import { StrikeRunner } from '../ai/strikes';
 import { PlayerHealth } from '../combat/health';
 import { FIXED_STEP } from '../core/fixedStep';
@@ -12,11 +12,15 @@ import { boardShoved, HOVER_HARD_LANDING, stepBoard, type BoardPorts, type Board
 import { hoverSpeed } from '../player/hoverSpeed';
 import { COYOTE_MS, JUMP_SPEED, jump as jumpLaw, jumpClock, jumpSpeed, type JumpState } from '../player/jump';
 import { deepWater, entryKeep, NO_SPRINT_DEPTH, pondBob, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts, type SwimState } from '../player/swim';
-import { walkingSpeed, wadeScale, walkVelocity } from '../player/walk';
+import { localWalkingMove, walkingSpeed, wadeScale, walkVelocity } from '../player/walk';
 import { PlayerModes, type ModePlayer } from '../player/modes';
 import { DODGE_DIST, DODGE_TIME, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from '../player/dash';
-import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDriver, SimPlayerMotionSample, SimWalkingControl } from '../sim';
+import { validateLocalMovement } from '../input/commands';
+import { netSimCommand } from '../net/command';
+import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDriver, SimPlayerMotionSample, SimTickCommand, SimWalkingControl } from '../sim';
 
+/** The world-space command a tick's input means. */
+export function simCommandOf(input: SimTickCommand): SimCommand { return 'seq' in input ? netSimCommand(input) : input; }
 /** How a host makes a player's body. */
 export interface PlayerSimBody {
   /** The page's own player: this sim reads it and leaves its motion to the page. */
@@ -88,6 +92,7 @@ export class PlayerSim {
   private modeDriver: SimPlayerDriver | null = null;
   private readonly wanted = new Vector3();
   private readonly versionedWalking = { speed: 4.3, crouching: false, clientMotion: this.walk };
+  private readonly localMove = { x: 0, z: 0 };
   private readonly dashVelocity = { x: 0, z: 0 };
   private readonly dodgeDir = { x: 0, z: 0 };
   private readonly swimOut: { water: number | null } = { water: null };
@@ -170,9 +175,9 @@ export class PlayerSim {
     this.bodyMotor = motor;
   }
   /** Bind the page traveller to an owned bodyless region; deactivation leaves the page's health and motor intact. */
-  bindExternal(value: SimExternalPlayer, scope: Scope): () => void {
+  bindExternal(value: SimExternalPlayer): () => void {
     if (this.host.disposed || this.borrowed || this.hasMotor || this.external !== undefined || value.health.id !== this.id) throw new Error('Invalid external regional player');
-    const binding = { value, health: this.health, scope };
+    const scope = new Scope(`sim:${this.host.level.id}:traveller`), binding = { value, health: this.health, scope };
     this.external = binding; this.health = value.health;
     this.host.combat.playerRules(scope, { target: value.health });
     return () => {
@@ -364,9 +369,20 @@ export class PlayerSim {
   private attackFrom(command: SimCommand | undefined): void {
     if (command?.attack !== undefined) this.host.startStrike(this.id, command.attack.targetId);
   }
+  /** Check this tick's command before the host moves anything, and resolve raw axes to a world move. */
+  take(input: SimTickCommand | undefined): void {
+    if (input === undefined) { this.command = undefined; return; }
+    const command = simCommandOf(input);
+    if (![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
+    validateLocalMovement(command);
+    if ((command.dive !== undefined && typeof command.dive !== 'boolean') || (command.surface !== undefined && typeof command.surface !== 'boolean')) throw new RangeError('Invalid held swim control');
+    if (command.commandVersion !== 1 || command.steer === undefined) { this.command = command; return; }
+    localWalkingMove(command.steer, command.yaw, this.localMove);
+    this.command = { ...command, moveX: this.localMove.x, moveZ: this.localMove.z };
+  }
   /** The tick's input phase, before the world steps: the drivers, the walk's speed and the HOVER press. */
-  input(command: SimCommand | undefined): void {
-    this.command = command;
+  input(): void {
+    const { command } = this;
     // an entered driven mode's driver (SF34, modes.enter) owns the motion ahead of a useDriver driver
     const driver = this.modeDriver ?? this.driver, delegated = driver?.input(command, FIXED_STEP, this.host) === true;
     this.tickDriver = driver; this.delegated = delegated;

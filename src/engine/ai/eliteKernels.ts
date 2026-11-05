@@ -11,6 +11,7 @@ import { StalkerBrain, readPouncerSpec, readHowlerSpec, type PouncerContext, typ
 import type { PackBrain } from './pack';
 import { StrikeRunner, type StrikeSpec } from './strikes';
 import { canReach } from './reach';
+import { leadPlayer } from '../sim/leadPlayer';
 
 const finite = v.pipe(v.number(), v.finite()), handle = HandleIdSchema;
 const rowSchema: v.GenericSchema<NativeEliteKernelPayloadInput, NativeEliteKernelPayload> = v.strictObject({
@@ -63,12 +64,12 @@ export class NativeEliteKernels {
     if (rows.some(row => row.profile.pattern === 'pouncer') && ledges.length > 6) throw new RangeError('Pouncer ledge bound exceeded');
     this.host = host; this.scope = scope; this.lifecycle = lifecycle; this.contacts = contacts; this.strikeOwner = strikes; this.strikes = [...strikes];
     this.terrain = terrain; this.environment = environment; this.ledges = ledges; this.brains = brains;
-    this.player = host.player; this.combat = host.combat; this.rng = host.rng;
+    this.player = leadPlayer(host); this.combat = host.combat; this.rng = host.rng;
     if (!(scope instanceof Scope) || !(contacts instanceof StrikeRunner) || !(brains instanceof Map) || scope !== host.scope
       || new Set(rows.map(row => row.id)).size !== rows.length || new Set(strikes.map(row => row.id)).size !== strikes.length
       || rows.some(row => row.knockdown.min > row.knockdown.max || new Set(row.contacts.map(contact => contact.amount)).size !== row.contacts.length
         || [...row.contacts.map(contact => contact.strike), row.fallbackStrike].some(name => !strikes.some(strike => strike.id === name)))) throw new Error('Invalid elite kernel owners or rows');
-    this.methods = [method(contacts, 'contact'), method(terrain, 'heightAt'), method(environment, 'grassHeightAt'), method(lifecycle, 'signature'), method(host, 'dashPlayer'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(brains, 'set')];
+    this.methods = [method(contacts, 'contact'), method(terrain, 'heightAt'), method(environment, 'grassHeightAt'), method(lifecycle, 'signature'), method(this.player, 'dashAt'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(brains, 'set')];
     if (this.methods.some(callable => typeof callable !== 'function')) throw new Error('Missing elite kernel operation');
     this.validate();
   }
@@ -80,8 +81,8 @@ export class NativeEliteKernels {
     if (this.scope.disposed || this.scope.disposing || loans.scope !== this.scope || loans.host !== host || host.scope !== this.scope
       || loans.lifecycle !== this.lifecycle || loans.contacts !== this.contacts || loans.terrain !== this.terrain || loans.environment !== this.environment
       || loans.ledges !== this.ledges || loans.brains !== this.brains || loans.strikes !== this.strikeOwner || loans.strikes.length !== this.strikes.length || loans.strikes.some((row, i) => row !== this.strikes[i])
-      || host.player !== this.player || host.combat !== this.combat || host.rng !== this.rng
-      || [method(this.contacts, 'contact'), method(this.terrain, 'heightAt'), method(this.environment, 'grassHeightAt'), method(this.lifecycle, 'signature'), method(host, 'dashPlayer'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(this.brains, 'set')]
+      || leadPlayer(host) !== this.player || host.combat !== this.combat || host.rng !== this.rng
+      || [method(this.contacts, 'contact'), method(this.terrain, 'heightAt'), method(this.environment, 'grassHeightAt'), method(this.lifecycle, 'signature'), method(this.player, 'dashAt'), method(this.combat, 'hit'), method(this.rng, 'stream'), method(this.brains, 'set')]
         .some((callable, i) => callable !== this.methods[i])) throw new Error('Retired or replaced elite kernel owner');
   }
   create(id: string, state: NativeEliteKernelState): StalkerBrain<AnimalSim> {
@@ -117,7 +118,7 @@ export class NativeEliteKernels {
         this.validate(); const d = Math.hypot(dx, dz) || 1, x = dx / d, z = dz / d, length = Math.hypot(x, z) || 1;
         const speed = row.knockdown.speed * Math.max(row.knockdown.min, Math.min(row.knockdown.max, 1));
         this.knocked.x = x / length * speed; this.knocked.z = z / length * speed;
-        this.host.dashPlayer(this.knocked.x, this.knocked.z, row.knockdown.seconds);
+        this.player.dashAt(this.knocked.x, this.knocked.z, row.knockdown.seconds);
       }, opened: silent, growl: silent,
     } }) : new StalkerBrain<AnimalSim>({ pattern: profile.pattern, spec: profile.spec, ports: {
       ...common, pack: () => state.pack, environment: () => this.environment, random: () => this.rng.stream('ai').next(), rings: tells,

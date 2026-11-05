@@ -2,6 +2,8 @@ import { Vector3 } from 'three';
 import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps, checkSnapshotDataWire } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../sim';
+import { leadPlayer } from './leadPlayer';
+import type { PlayerSim } from './playerSim';
 import { SHOVE_TIME } from '../player/shove';
 import type { DrivenMode } from '../player/modes';
 import type { AnimalSim } from '../entities/AnimalSim';
@@ -19,7 +21,7 @@ import type { BandsState } from './bands';
 import type { DayClockState } from './dayClock';
 
 /** Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. */
-export const SIM_SNAPSHOT_VERSION = 1;
+export const SIM_SNAPSHOT_VERSION = 2;
 /** Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it. */
 export const SIM_REGION_SNAPSHOT_CHAR_BUDGET: number = 512 * 1024;
 /**
@@ -40,17 +42,13 @@ type EventValue =
   | { kind: 'actor'; id: string }
   | { kind: 'entity'; id: string }
   | { kind: 'position'; id: string }
-  | { kind: 'player' }
+  /** A player object; `id` is left out for the lead player, which is all a version 1 save ever held. */
+  | { kind: 'player'; id?: string | undefined }
   | { kind: 'array'; items: EventValue[] }
   | { kind: 'record'; entries: [string, EventValue][] };
 type MotorState = ReturnType<CharacterMotor['snapshot']>;
-/** Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. */
-export interface SimSnapshot {
-  version: number; apiVersion: number; levelId: string; levelFingerprint: number;
-  state: { tick: number; accumulator: number; timers: Record<string, number> };
-  clock: GameClockState; rng: RngStreamsState;
-  entities: { id: string; state: ReturnType<AnimalSim['snapshot']>; motor: MotorState | null }[];
-  player: { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined;
+/** One player's continuation. */
+export interface SimPlayerSnapshot { id: string; position: number[]; yaw: number; health: EventValue; motor: MotorState; impulse?: number[] | undefined;
     /** Active traversal identities only; absent on hosts whose traversal has never claimed a tick. */
     traversals?: DrivenMode[] | undefined;
     /** Opted-in version-1 walking velocity; absent preserves legacy hosts. */
@@ -66,7 +64,21 @@ export interface SimSnapshot {
     /** SF72: the on-foot jump clocks (SimHost.playerJump; `ago` null = never grounded since: no coyote), present once the
      *  host has had a JUMP press; the running dash (playerDash) and the dodge clocks (playerDodge) only while they run. */
     jump?: { ago: number | null; left: 0 | 1 } | undefined; dash?: { t: number; vx: number; vz: number } | undefined;
-    dodge?: { cd: number; t: number } | undefined };
+    dodge?: { cd: number; t: number } | undefined }
+/** The lead player's continuation, first in the list. */
+export function leadSnapshot(saved: Pick<SimSnapshot, 'players'>): SimPlayerSnapshot {
+  const lead = saved.players[0];
+  if (lead === undefined) throw new RangeError('Snapshot has no player');
+  return lead;
+}
+/** Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. */
+export interface SimSnapshot {
+  version: number; apiVersion: number; levelId: string; levelFingerprint: number;
+  state: { tick: number; accumulator: number; timers: Record<string, number> };
+  clock: GameClockState; rng: RngStreamsState;
+  entities: { id: string; state: ReturnType<AnimalSim['snapshot']>; motor: MotorState | null }[];
+  /** Every player, lead first (P1-E5.2a). A version 1 save held one, as `player`, and decodes to a list of one. */
+  players: SimPlayerSnapshot[];
   strikes: { id: string; state: ReturnType<StrikeRunner['snapshot']> }[];
   targets: readonly (readonly [string, string])[];
   events: { version: number; queue: { name: keyof EventMap; payload: EventValue }[]; frameCount: number; frameBound: boolean };
@@ -116,9 +128,12 @@ function encode(value: unknown, host: SimHost, parents = new Set<object>()): Eve
   if (typeof value === 'number' && !Number.isFinite(value)) return { kind: 'number', value: Number.isNaN(value) ? 'nan' : value > 0 ? 'infinity' : '-infinity' };
   if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string') return { kind: 'value', value };
   if (typeof value !== 'object') throw new TypeError('Snapshot payload contains a callback or unsupported value');
-  if (value === host.player || host.isExternalPlayerObject(value)) return { kind: 'player' };
-  if (value === host.player.position) return { kind: 'position', id: host.player.id };
-  if (value === host.player.health) return { kind: 'actor', id: host.player.id };
+  for (const player of host.players.values()) {
+    if (value === player || player.isExternalObject(value)) return player === leadPlayer(host) ? { kind: 'player' } : { kind: 'player', id: player.id };
+    if (value === player.position) return { kind: 'position', id: player.id };
+    if (value === player.health) return { kind: 'actor', id: player.id };
+  }
+  if (value === host.playerFocus) return { kind: 'position', id: host.focusedPlayer.id };
   for (const entity of host.entities.values()) {
     if (value === entity) return { kind: 'entity', id: entity.entityId };
     if (value === entity.position) return { kind: 'position', id: entity.entityId };
@@ -135,14 +150,14 @@ function decode(value: EventValue, host: SimHost): unknown {
   switch (value.kind) {
     case 'value': return value.value;
     case 'undefined': return undefined;
-    case 'player': return host.player;
+    case 'player': { const player = value.id === undefined ? leadPlayer(host) : host.players.get(value.id); if (player === undefined) throw new RangeError(`Unknown snapshot player: ${value.id ?? ''}`); return player; }
     case 'number': return value.value === 'nan' ? Number.NaN : value.value === 'infinity' ? Infinity : -Infinity;
     case 'vector': {
       if (value.value.length !== 3 || !value.value.every(Number.isFinite)) throw new RangeError('Invalid event vector');
       return new Vector3().fromArray(value.value);
     }
     case 'actor': {
-      const actor = value.id === host.player.id ? host.player.health : host.entities.get(value.id)?.combatActor();
+      const actor = host.players.get(value.id)?.health ?? host.entities.get(value.id)?.combatActor();
       if (actor === undefined) throw new RangeError(`Unknown snapshot actor: ${value.id}`);
       return actor;
     }
@@ -152,7 +167,7 @@ function decode(value: EventValue, host: SimHost): unknown {
       return entity;
     }
     case 'position': {
-      const position = value.id === host.player.id ? host.player.position : host.entities.get(value.id)?.position;
+      const position = host.players.get(value.id)?.position ?? host.entities.get(value.id)?.position;
       if (position === undefined) throw new RangeError(`Unknown snapshot position: ${value.id}`);
       return position;
     }
@@ -190,8 +205,8 @@ export function regionalContinuation(host: SimHost): string {
   };
   return JSON.stringify({ level: host.level, state: host.state, clock: host.clock.snapshot(), rng: host.rng.snapshot(),
     entities: [...host.entities].sort(([a], [b]) => a.localeCompare(b)).map(([id, entity]) => [id, entity.snapshot(), motorState(entityMotor(entity))]),
-    strikes: [...host.strikes].filter(([id]) => id !== host.player.id).sort(([a], [b]) => a.localeCompare(b)).map(([id, runner]) => [id, runner.snapshot()]),
-    targets: host.attackTargets().filter(([id]) => id !== host.player.id), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
+    strikes: [...host.strikes].filter(([id]) => !host.players.has(id)).sort(([a], [b]) => a.localeCompare(b)).map(([id, runner]) => [id, runner.snapshot()]),
+    targets: host.attackTargets().filter(([id]) => !host.players.has(id)), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
     events: host.events.snapshot((value) => encode(value, host)),
     adapters: [...host.adapters].sort(([a], [b]) => a.localeCompare(b)).map(([id, adapter]) => [id, cloneValue(adapter.snapshot())]),
     ...bandsField(host), ...dayField(host) });
@@ -216,20 +231,10 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
   if (host.scope.disposed) throw new Error('Cannot snapshot a disposed host');
   const colliderTags: SimSnapshot['colliderTags'] = [];
   host.physics.world.forEachCollider((collider) => { const tag = tagOf(collider); if (tag !== undefined) colliderTags.push({ handle: collider.handle, material: tag.material, owner: encode(tag.owner, host) }); });
-  return { version: SIM_SNAPSHOT_VERSION, apiVersion: SIM_API_VERSION, levelId: host.level.id, levelFingerprint: fnv1a32(JSON.stringify(host.level)),
+  return { version: SIM_SNAPSHOT_VERSION, apiVersion: SIM_API_VERSION, levelId: host.level.id, levelFingerprint: levelFingerprint(host.level),
     state: { tick: host.state.tick, accumulator: host.state.accumulator, timers: { ...host.state.timers } }, clock: host.clock.snapshot(), rng: host.rng.snapshot(),
     entities: [...host.entities].map(([id, entity]) => ({ id, state: entity.snapshot(), motor: entityMotor(entity)?.snapshot() ?? null })),
-    // a resting impulse is omitted (canonical: absent = zero), so a host that was never shoved keeps its exact bytes
-    player: { id: host.player.id, position: host.player.position.toArray(), yaw: host.player.yaw, health: encode(host.player.health.snapshot(), host), motor: host.player.motor.snapshot(),
-      ...(host.playerWalk.active ? { walk: { x: host.playerWalk.x, z: host.playerWalk.z } } : {}),
-      ...(host.playerMoveScale === 1 ? {} : { moveScale: host.playerMoveScale }),
-      ...(host.playerImpulse.lengthSq() > 0 ? { impulse: host.playerImpulse.toArray() } : {}),
-      // likewise a player at rest on the ground (the fall law's canonical state) is omitted
-      ...(host.playerFall.grounded && host.playerFall.vy === 0 ? {} : { fall: { ...host.playerFall } }),
-      ...(host.playerShove.t > 0 ? { shove: { ...host.playerShove } } : {}),
-      ...(host.playerBoard.on ? { board: { velocity: host.boardVelocity.toArray(), air: host.playerBoard.hoverAir, bob: host.playerBoard.hoverBob, ground: host.playerBoard.onGround } } : {}),
-      ...swimField(host),
-      ...jumpFields(host), ...traversalField(host) },
+    players: [...host.players.values()].map(player => playerSnapshot(host, player)),
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
@@ -237,24 +242,80 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
     ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host) };
 }
 
+/** One player, with everything at rest left out, so a player that never used a law keeps its exact bytes. */
+function playerSnapshot(host: SimHost, player: PlayerSim): SimPlayerSnapshot {
+  return { id: player.id, position: player.position.toArray(), yaw: player.yaw, health: encode(player.health.snapshot(), host), motor: player.motor.snapshot(),
+    ...(player.walk.active ? { walk: { x: player.walk.x, z: player.walk.z } } : {}),
+    ...(player.moveScale === 1 ? {} : { moveScale: player.moveScale }),
+    // a resting impulse is omitted (canonical: absent = zero), so a host that was never shoved keeps its exact bytes
+    ...(player.impulse.lengthSq() > 0 ? { impulse: player.impulse.toArray() } : {}),
+    // likewise a player at rest on the ground (the fall law's canonical state) is omitted
+    ...(player.fall.grounded && player.fall.vy === 0 ? {} : { fall: { ...player.fall } }),
+    ...(player.shove.t > 0 ? { shove: { ...player.shove } } : {}),
+    ...(player.board.on ? { board: { velocity: player.boardVelocity.toArray(), air: player.board.hoverAir, bob: player.board.hoverBob, ground: player.board.onGround } } : {}),
+    ...swimField(player),
+    ...jumpFields(player), ...traversalField(player) };
+}
 /** The swim (SF34) while it runs or its haul-out cooldown does, else omitted. */
-function swimField(host: SimHost): Pick<SimSnapshot['player'], 'swim'> {
-  const swim = host.playerSwim;
-  return swim.on || swim.stood || swim.climbCooldown > 0 ? { swim: { on: swim.on, velocity: host.swimVelocity.toArray(), diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.strokeTime, stood: swim.stood } } : {};
+function swimField(player: PlayerSim): Pick<SimPlayerSnapshot, 'swim'> {
+  const { swim } = player;
+  return swim.on || swim.stood || swim.climbCooldown > 0 ? { swim: { on: swim.on, velocity: player.swimVelocity.toArray(), diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.strokeTime, stood: swim.stood } } : {};
 }
 /** Omit inactive traversal state so ordinary hosts retain their existing snapshot bytes. */
-function traversalField(host: SimHost): Pick<SimSnapshot['player'], 'traversals'> {
-  const traversals = host.modes.snapshotTraversals();
+function traversalField(player: PlayerSim): Pick<SimPlayerSnapshot, 'traversals'> {
+  const traversals = player.modes.snapshotTraversals();
   return traversals.length === 0 ? {} : { traversals };
 }
 /** The jump, dash and dodge state (SF72), each omitted while unused or at rest, so a host that never jumps or dodges keeps its bytes. */
-function jumpFields(host: SimHost): Pick<SimSnapshot['player'], 'jump' | 'dash' | 'dodge'> {
-  const jump = host.playerJump, dash = host.playerDash, dodge = host.playerDodge;
+function jumpFields(player: PlayerSim): Pick<SimPlayerSnapshot, 'jump' | 'dash' | 'dodge'> {
+  const { jump, dash, dodge } = player;
   if (jump !== null && jump.left !== 0 && jump.left !== 1) throw new Error('Invalid player jump state');
   return { ...(jump === null ? {} : { jump: { ago: Number.isFinite(jump.ago) ? jump.ago : null, left: jump.left === 0 ? 0 : 1 } }),
     ...(dash.t > 0 ? { dash: { ...dash } } : {}), ...(dodge.cd > 0 || dodge.t > 0 ? { dodge: { ...dodge } } : {}) };
 }
 
+function invalidPlayer(saved: SimPlayerSnapshot): boolean {
+  return saved.position.length !== 3 || !saved.position.every(Number.isFinite) || !Number.isFinite(saved.yaw)
+    || (saved.impulse !== undefined && (saved.impulse.length !== 3 || !saved.impulse.every(Number.isFinite) || saved.impulse.every(value => value === 0)))
+    || (saved.walk !== undefined && ![saved.walk.x, saved.walk.z].every(Number.isFinite))
+    || (saved.moveScale !== undefined && !(Number.isFinite(saved.moveScale) && saved.moveScale >= 0 && saved.moveScale !== 1))
+    || (saved.fall !== undefined && (!Number.isFinite(saved.fall.vy) || (saved.fall.grounded && saved.fall.vy === 0)))
+    || (saved.shove !== undefined && (![saved.shove.t, saved.shove.vx, saved.shove.vz].every(Number.isFinite) || saved.shove.t <= 0 || saved.shove.t > SHOVE_TIME))
+    || (saved.board !== undefined && (saved.board.velocity.length !== 3 || ![...saved.board.velocity, saved.board.bob].every(Number.isFinite) || saved.fall !== undefined))
+    || (saved.dash !== undefined && (![saved.dash.t, saved.dash.vx, saved.dash.vz].every(Number.isFinite) || saved.dash.t <= 0))
+    || (saved.dodge !== undefined && (!(saved.dodge.cd >= 0 && saved.dodge.t >= 0) || saved.dodge.cd + saved.dodge.t === 0))
+    || (saved.jump !== undefined && ((saved.jump.ago !== null && !(saved.jump.ago >= 0)) || ![0, 1].includes(saved.jump.left)));
+}
+function savedPlayer(host: SimHost, saved: SimPlayerSnapshot): PlayerSim {
+  const player = host.players.get(saved.id);
+  if (player === undefined) throw new RangeError('Snapshot instance registrations do not match');
+  return player;
+}
+/** One player's state back into its live objects; motors follow with the world. */
+function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
+  const player = savedPlayer(host, saved);
+  player.position.fromArray(saved.position); player.yaw = saved.yaw;
+  if (saved.impulse === undefined) player.impulse.set(0, 0, 0); else player.impulse.fromArray(saved.impulse);
+  Object.assign(player.walk, { active: saved.walk !== undefined, x: saved.walk?.x ?? 0, z: saved.walk?.z ?? 0 });
+  player.moveScale = saved.moveScale ?? 1;
+  player.fall.vy = saved.fall?.vy ?? 0; player.fall.grounded = saved.fall?.grounded ?? true;
+  Object.assign(player.shove, saved.shove ?? { t: 0, vx: 0, vz: 0 });
+  const { board } = saved;
+  Object.assign(player.board, board === undefined ? { on: false, hoverAir: false, hoverBob: 0, onGround: false } : { on: true, hoverAir: board.air, hoverBob: board.bob, onGround: board.ground });
+  if (board === undefined) player.boardVelocity.set(0, 0, 0); else player.boardVelocity.fromArray(board.velocity);
+  const { swim } = saved;
+  if ((swim !== undefined && (swim.velocity.length !== 3 || !swim.velocity.every(Number.isFinite) || (swim.on && (board !== undefined || !host.hasWater))))) throw new RangeError('Snapshot swim does not match');
+  Object.assign(player.swim, swim === undefined ? { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false }
+    : { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, strokeTime: swim.stroke, stood: swim.stood });
+  if (swim === undefined) player.swimVelocity.set(0, 0, 0); else player.swimVelocity.fromArray(swim.velocity);
+  const { jump } = saved;
+  player.jump = jump === undefined ? null : { ago: jump.ago ?? Infinity, left: jump.left };
+  Object.assign(player.dash, saved.dash ?? { t: 0, vx: 0, vz: 0 });
+  Object.assign(player.dodge, saved.dodge ?? { cd: 0, t: 0 });
+  player.health.restore(decode(saved.health, host) as ReturnType<PlayerHealth['snapshot']>);
+  if (saved.traversals?.length === 0) throw new Error('Invalid empty traversal mode continuation');
+  player.modes.restoreTraversals(saved.traversals ?? []);
+}
 function sameIds(actual: readonly string[], expected: Iterable<string>): boolean {
   const wanted = new Set(expected);
   return wanted.size === actual.length && new Set(actual).size === actual.length && actual.every((id) => wanted.has(id));
@@ -301,9 +362,12 @@ export function prepareSimHostRestore(level: SimLevel, ports: SimHostPorts): Pre
       return restoreInstalledHost(host, ports, saved, checks, install);
     } };
 }
+/** A level's identity in a save. The version is left out: every level version has held this content, so a new engine
+ *  version does not orphan a save, and `apiVersion` already says which engine wrote it. */
+function levelFingerprint(level: SimLevel): number { return fnv1a32(JSON.stringify({ ...level, version: 1 })); }
 function validateSnapshot(level: SimLevel, saved: SimSnapshot | SimSnapshotBytes): void {
   if (saved.version !== SIM_SNAPSHOT_VERSION || saved.apiVersion !== SIM_API_VERSION || saved.levelId !== level.id
-    || saved.levelFingerprint !== fnv1a32(JSON.stringify(level)) || !Number.isSafeInteger(saved.state.tick) || saved.state.tick < 0
+    || saved.levelFingerprint !== levelFingerprint(level) || !Number.isSafeInteger(saved.state.tick) || saved.state.tick < 0
     || !Number.isFinite(saved.state.accumulator) || saved.state.accumulator < -Number.EPSILON
     || !Object.values(saved.state.timers).every((value) => Number.isFinite(value) && value >= 0)
     || saved.physics.length === 0 || (!(saved.physics instanceof Uint8Array && ArrayBuffer.isView(saved.physics)) && saved.physics.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255))) throw new RangeError('Incompatible simulation snapshot');
@@ -320,42 +384,14 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
   let replacement: Physics | null = null;
   try {
     install?.(host);
-    if (saved.player.id !== host.player.id || !sameIds(saved.entities.map((entry) => entry.id), host.entities.keys())
+    // The installers ran for the lead player; everyone else rejoins here, before their state lands.
+    for (const entry of saved.players.slice(1)) if (!host.players.has(entry.id)) host.addPlayer(entry.id);
+    if (saved.players[0]?.id !== leadPlayer(host).id || !sameIds(saved.players.map((entry) => entry.id), host.players.keys()) || !sameIds(saved.entities.map((entry) => entry.id), host.entities.keys())
       || !sameIds(saved.strikes.map((entry) => entry.id), host.strikes.keys()) || !sameIds(saved.adapters.map((entry) => entry.id), host.adapters.keys())
       || !sameIds(saved.quests.map((entry) => entry.id), host.quests.map((quest) => quest.def.id))
-      || saved.player.position.length !== 3 || !saved.player.position.every(Number.isFinite) || !Number.isFinite(saved.player.yaw)
-      || (saved.player.impulse !== undefined && (saved.player.impulse.length !== 3 || !saved.player.impulse.every(Number.isFinite) || saved.player.impulse.every(value => value === 0)))
-      || (saved.player.walk !== undefined && ![saved.player.walk.x, saved.player.walk.z].every(Number.isFinite))
-      || (saved.player.moveScale !== undefined && !(Number.isFinite(saved.player.moveScale) && saved.player.moveScale >= 0 && saved.player.moveScale !== 1))
-      || (saved.player.fall !== undefined && (!Number.isFinite(saved.player.fall.vy) || (saved.player.fall.grounded && saved.player.fall.vy === 0)))
-      || (saved.player.shove !== undefined && (![saved.player.shove.t, saved.player.shove.vx, saved.player.shove.vz].every(Number.isFinite) || saved.player.shove.t <= 0 || saved.player.shove.t > SHOVE_TIME))
-      || (saved.player.board !== undefined && (saved.player.board.velocity.length !== 3 || ![...saved.player.board.velocity, saved.player.board.bob].every(Number.isFinite) || saved.player.fall !== undefined))
-      || (saved.player.dash !== undefined && (![saved.player.dash.t, saved.player.dash.vx, saved.player.dash.vz].every(Number.isFinite) || saved.player.dash.t <= 0))
-      || (saved.player.dodge !== undefined && (!(saved.player.dodge.cd >= 0 && saved.player.dodge.t >= 0) || saved.player.dodge.cd + saved.player.dodge.t === 0))
-      || (saved.player.jump !== undefined && ((saved.player.jump.ago !== null && !(saved.player.jump.ago >= 0)) || ![0, 1].includes(saved.player.jump.left)))
-      || saved.boardColliders?.length === 0) throw new RangeError('Snapshot instance registrations do not match');
+      || saved.players.some(invalidPlayer) || saved.boardColliders?.length === 0) throw new RangeError('Snapshot instance registrations do not match');
     for (const entry of saved.entities) host.entities.get(entry.id)?.restore(entry.state);
-    host.player.position.fromArray(saved.player.position); host.player.yaw = saved.player.yaw;
-    if (saved.player.impulse === undefined) host.playerImpulse.set(0, 0, 0); else host.playerImpulse.fromArray(saved.player.impulse);
-    Object.assign(host.playerWalk, { active: saved.player.walk !== undefined, x: saved.player.walk?.x ?? 0, z: saved.player.walk?.z ?? 0 });
-    host.playerMoveScale = saved.player.moveScale ?? 1;
-    host.playerFall.vy = saved.player.fall?.vy ?? 0; host.playerFall.grounded = saved.player.fall?.grounded ?? true;
-    Object.assign(host.playerShove, saved.player.shove ?? { t: 0, vx: 0, vz: 0 });
-    const board = saved.player.board;
-    Object.assign(host.playerBoard, board === undefined ? { on: false, hoverAir: false, hoverBob: 0, onGround: false } : { on: true, hoverAir: board.air, hoverBob: board.bob, onGround: board.ground });
-    if (board === undefined) host.boardVelocity.set(0, 0, 0); else host.boardVelocity.fromArray(board.velocity);
-    const swim = saved.player.swim;
-    if ((swim !== undefined && (swim.velocity.length !== 3 || !swim.velocity.every(Number.isFinite) || (swim.on && (board !== undefined || !host.hasWater))))) throw new RangeError('Snapshot swim does not match');
-    Object.assign(host.playerSwim, swim === undefined ? { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false }
-      : { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, strokeTime: swim.stroke, stood: swim.stood });
-    if (swim === undefined) host.swimVelocity.set(0, 0, 0); else host.swimVelocity.fromArray(swim.velocity);
-    const jump = saved.player.jump;
-    host.playerJump = jump === undefined ? null : { ago: jump.ago ?? Infinity, left: jump.left };
-    Object.assign(host.playerDash, saved.player.dash ?? { t: 0, vx: 0, vz: 0 });
-    Object.assign(host.playerDodge, saved.player.dodge ?? { cd: 0, t: 0 });
-    host.player.health.restore(decode(saved.player.health, host) as ReturnType<PlayerHealth['snapshot']>);
-    if (saved.player.traversals?.length === 0) throw new Error('Invalid empty traversal mode continuation');
-    host.modes.restoreTraversals(saved.player.traversals ?? []);
+    for (const entry of saved.players) restorePlayer(host, entry);
     for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);
     for (const quest of host.quests) { const state = saved.quests.find((entry) => entry.id === quest.def.id); if (state !== undefined) quest.restore(state); }
@@ -381,13 +417,13 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
     for (const entry of saved.adapters) host.adapters.get(entry.id)?.restore(cloneValue(entry.state));
     host.restoreBodyBands(saved.bands);
     host.restoreDayClock(saved.day);
-    const actors = new Set([host.player.id, ...host.entities.keys()]);
+    const actors = new Set([...host.players.keys(), ...host.entities.keys()]);
     if (new Set(saved.targets.map(([id]) => id)).size !== saved.targets.length
       || saved.targets.some(([id, target]) => !host.strikes.has(id) || !actors.has(target))) throw new RangeError('Snapshot strike target does not exist');
     host.restoreAttackTargets(saved.targets);
     host.events.restore(saved.events, (value) => decode(value, host));
-    replacement = new Physics(ports.rapier, new Uint8Array(saved.physics));
-    const playerMotor = new CharacterMotor(replacement, host.playerMotorOptions(), saved.player.motor);
+    const world = new Physics(ports.rapier, new Uint8Array(saved.physics)); replacement = world;
+    const playerMotors = saved.players.map(entry => { const player = savedPlayer(host, entry); return [player, new CharacterMotor(world, host.playerMotorOptions(player), entry.motor)] as const; });
     const motors = new Map<string, CharacterMotor>();
     // under the physics body LOD the saved bodies hold motors by distance: each saved one reconnects in the page's capsule
     const lod = host.bodyBands?.physics === true;
@@ -397,8 +433,11 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
       if ((entry.motor === null) !== (motor === null)) throw new RangeError('Snapshot motor registrations do not match');
       if (motor !== null && entry.motor !== null) motors.set(entry.id, new CharacterMotor(replacement, motor.opts, entry.motor));
     }
-    if (host.hasPlayerMotor) host.player.motor.dispose(); for (const entity of host.entities.values()) entity.motor?.dispose(); host.physics.dispose();
-    host.physics = replacement; replacement = null; host.player.motor = playerMotor;
+    for (const player of host.players.values()) if (player.hasMotor) player.motor.dispose();
+    for (const entity of host.entities.values()) entity.motor?.dispose();
+    host.physics.dispose();
+    host.physics = world; replacement = null;
+    for (const [player, motor] of playerMotors) player.motor = motor;
     if (lod) for (const [id, entity] of host.entities) entity.motor = motors.get(id) ?? null;
     else for (const [id, motor] of motors) { const entity = host.entities.get(id); if (entity !== undefined) entity.motor = motor; }
     for (const tag of saved.colliderTags) {
