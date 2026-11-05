@@ -320,7 +320,7 @@ export class CharacterMotor {
     r.groundNormalY = 1; r.downhillX = 0; r.downhillZ = 0; r.groundCollider = null;
     if (r.grounded) {
       this.ray.origin.x = feet.x; this.ray.origin.y = feet.y + GROUND_PROBE_UP; this.ray.origin.z = feet.z;
-      const hit = this.physics.castRayAndGetNormal(this.ray, GROUND_PROBE_UP + GROUND_PROBE_DOWN, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, this.collider, undefined, undefined, this.groundHit);
+      const hit = this.physics.castRayAndGetNormal(this.ray, GROUND_PROBE_UP + GROUND_PROBE_DOWN, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, this.collider, undefined, this.phased.size > 0 ? this.notPhased : undefined, this.groundHit);
       if (hit) {
         const nrm = hit.normal, h = Math.hypot(nrm.x, nrm.z) || 1;
         r.groundCollider = hit.collider;
