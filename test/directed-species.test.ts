@@ -21,7 +21,7 @@ test('a marsh courier projects its own target memory, cadence and hit rules thro
     speed: 3, turn: 1.8, threshold: 5, stopDistance: 1.2, look: .4, states: ['wander', 'flee'],
     damage: { signal: 'riderDamage', player: ['eye.x', 'eye.z'], radius: 2, scale: 1.4, elite: false } };
   const scope=new Scope('directed.fixture');scopes.push(scope);lendNalatiAdmission(scope);scope.expose(app,'levelScope',scope);
-  const binding = new DirectedSpecies(row, admission).binding, motions: number[][] = [];
+  const binding = new DirectedSpecies(row, admission, app).binding, motions: number[][] = [];
   const actor = legacyDouble<Animal>({ position: new Vector3(4, 0, 8), yaw: .3, state: 'idle',
     mem: { 'guide.x': 7, 'guide.z': 12, 'guide.speed': 6, 'eye.x': 0, 'eye.z': 0 }, lookTarget: new Vector3(), lookWeight: 0,
     setMotion: (yaw: number, speed: number, turn?: number) => { motions.push([yaw, speed, turn ?? 1]); } });
@@ -32,7 +32,7 @@ test('a marsh courier projects its own target memory, cadence and hit rules thro
   delete actor.mem['guide.x']; frame.t = .1; binding.think?.(actor, frame); expect(motions[1]).toEqual([.3, 0, 1]); expect(actor.state).toBe('flee');
   expect(binding.damageMul?.(actor, new Vector3(1, 0, 0), new Vector3())).toBe(1.4);
   expect(binding.damageMul?.(actor, new Vector3(2, 0, 0), new Vector3())).toBe(1);
-  expect(() => new DirectedSpecies({ ...row, every: .05 }, admission)).toThrow();
+  expect(() => new DirectedSpecies({ ...row, every: .05 }, admission, app)).toThrow();
 });
 
 test('both spectral figure bakes retain every authored vertex and normal', () => {

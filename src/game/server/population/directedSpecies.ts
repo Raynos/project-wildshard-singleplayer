@@ -1,4 +1,4 @@
-import { app } from '@wildshard/engine/app/runtime';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { DirectedLaw } from './directedLaw';
@@ -10,7 +10,7 @@ import { DirectedLaw } from './directedLaw';
  * on the level scope at each call, as before. */
 export class DirectedSpecies {
   readonly binding: Pick<SpeciesDef, 'think' | 'damageMul'>;
-  constructor(recipe: unknown, input: unknown) {
-    this.binding = new DirectedLaw(recipe, () => ReturnProgram.page(input, app.levelScope ?? undefined)).binding;
+  constructor(recipe: unknown, input: unknown, page: { readonly levelScope: Scope | null }) {
+    this.binding = new DirectedLaw(recipe, () => ReturnProgram.page(input, page.levelScope ?? undefined)).binding;
   }
 }

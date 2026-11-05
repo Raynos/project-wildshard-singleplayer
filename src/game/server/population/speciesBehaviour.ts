@@ -16,7 +16,7 @@ export function pageSpeciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows
   if(book.rows.some(row=>row.control!==undefined&&(row.projection!==undefined||row.group!==undefined||row.directed!==undefined||row.guard===true||row.elite===true)))throw new Error('Conflicting species controls');
   const controls=new Map(book.rows.flatMap(row=>row.control===undefined?[]:[[row.metadata.kind,arenaRoomSpeciesControl(row.control)] as const]));
   const projections=new Map(book.rows.flatMap(row=>row.projection===undefined?[]:[[row.metadata.kind,new ActorProjectionV2(row.metadata.kind,row.projection,app)] as const]));
-  const rows = book.rows.map(row => ({ ...row.metadata, ...controls.get(row.metadata.kind), ...(projections.get(row.metadata.kind)?.binding), ...(row.group === undefined ? {} : groupSpecies(row.group)), ...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program).binding),
+  const rows = book.rows.map(row => ({ ...row.metadata, ...controls.get(row.metadata.kind), ...(projections.get(row.metadata.kind)?.binding), ...(row.group === undefined ? {} : groupSpecies(row.group)), ...(row.directed === undefined ? {} : new DirectedSpecies(row.directed, book.program, app).binding),
     ...(row.guard === true ? { think: thinkCrowdGuard } : {}), ...(row.elite === true ? { think: eliteThink, act: eliteAct } : {}) }));
   const elites = new Set(book.rows.flatMap(row => row.elite === true ? [row.metadata.kind] : []));
   return { rows, projections, look: look => {const controlled=projections.get(look.kind)?.binding.damageMul??controls.get(look.kind)?.damageMul;return controlled!==undefined?{...look,damageMul:controlled}:elites.has(look.kind)?{...look,damageMul:eliteDamageMul}:look;} };

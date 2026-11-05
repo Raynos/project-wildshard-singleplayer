@@ -30,7 +30,7 @@ test('the directed law decides as the page binding does: state, look, motion and
     speed: 3, turn: 1.8, threshold: 5, stopDistance: 1.2, look: .4, states: ['wander', 'flee'],
     damage: { signal: 'riderDamage', player: ['eye.x', 'eye.z'], radius: 2, scale: 1.4, elite: false } };
   const scope = new Scope('directed.law'); scopes.push(scope); lendNalatiAdmission(scope); scope.expose(app, 'levelScope', scope);
-  const page = new DirectedSpecies(row, admission).binding, native = new DirectedLaw(row, () => ReturnProgram.page(admission, scope)).binding;
+  const page = new DirectedSpecies(row, admission, app).binding, native = new DirectedLaw(row, () => ReturnProgram.page(admission, scope)).binding;
   const rider = (log: number[][]) => legacyDouble<Animal>({ position: new Vector3(4, 0, 8), yaw: .3, state: 'idle',
     mem: { 'guide.x': 7, 'guide.z': 12, 'guide.speed': 6, 'eye.x': 0, 'eye.z': 0 }, lookTarget: new Vector3(), lookWeight: 0,
     setMotion: (yaw: number, speed: number, turn?: number) => { log.push([yaw, speed, turn ?? 1]); } });
