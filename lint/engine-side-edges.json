@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 454,
+  "client → server": 408,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 151,
@@ -19,40 +19,13 @@
    "client → server": 7
   },
   "src/engine/app/app.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/engine/blocks.ts": {
    "client → server": 2
   },
-  "src/engine/boot/bootTrace.ts": {
-   "client → server": 1
-  },
-  "src/engine/boot/browserChunkRecovery.ts": {
-   "client → server": 1
-  },
-  "src/engine/boot/clearDownloads.ts": {
-   "client → server": 1
-  },
-  "src/engine/boot/earlyPrograms.ts": {
-   "client → server": 1
-  },
-  "src/engine/boot/lastEnd.ts": {
-   "client → server": 1
-  },
-  "src/engine/boot/loadingPacks.ts": {
-   "client → server": 1
-  },
   "src/engine/boot/loadingWaits.ts": {
    "shared → dom": 1
-  },
-  "src/engine/boot/shardPrefetch.ts": {
-   "client → server": 1
-  },
-  "src/engine/boot/stuck.ts": {
-   "client → server": 1
-  },
-  "src/engine/boot/titleArrival.ts": {
-   "client → server": 1
   },
   "src/engine/combat/effects/EffectService.ts": {
    "client → server": 1
@@ -66,21 +39,6 @@
   "src/engine/combat/view/SweptMelee.ts": {
    "client → server": 2
   },
-  "src/engine/core/devMode.ts": {
-   "client → server": 1
-  },
-  "src/engine/core/errorReport.ts": {
-   "client → server": 2
-  },
-  "src/engine/core/GpuRecovery.ts": {
-   "client → server": 1
-  },
-  "src/engine/core/reloadGuard.ts": {
-   "client → server": 1
-  },
-  "src/engine/core/tier.ts": {
-   "client → server": 1
-  },
   "src/engine/debug/probe.ts": {
    "client → server": 1
   },
@@ -88,12 +46,6 @@
    "client → server": 3
   },
   "src/engine/explore/Explore.ts": {
-   "client → server": 1
-  },
-  "src/engine/input/bindings.ts": {
-   "client → server": 1
-  },
-  "src/engine/native/saves.ts": {
    "client → server": 1
   },
   "src/engine/physics/active.ts": {
@@ -111,14 +63,8 @@
   "src/engine/quest/view/ui.ts": {
    "client → server": 1
   },
-  "src/engine/render/tierBoot.ts": {
-   "client → server": 1
-  },
   "src/engine/render/viewmodelFeel.ts": {
    "client → server": 2
-  },
-  "src/engine/saves/view/storage.ts": {
-   "client → server": 1
   },
   "src/engine/script/client.ts": {
    "client → server": 2
@@ -128,45 +74,6 @@
   },
   "src/engine/sim/snapshot.ts": {
    "shared → server": 1
-  },
-  "src/engine/telemetry/crossroads.ts": {
-   "client → server": 1
-  },
-  "src/engine/telemetry/runtime.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/cards.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/DebugMenu.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/debugOptions.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/ErrorModal.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/FirstHints.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/Loading.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/Perf.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/perfHud.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/perfLap.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/review.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/Settings.ts": {
-   "client → server": 1
   },
   "src/engine/world/interact/Interactables.ts": {
    "client → server": 2
@@ -195,9 +102,6 @@
   "src/game/animation/limbPopulation.ts": {
    "client → server": 2
   },
-  "src/game/boot/spawnDownload.ts": {
-   "client → server": 1
-  },
   "src/game/Boss.ts": {
    "server → client": 6
   },
@@ -225,9 +129,6 @@
   },
   "src/game/compendium/rules.ts": {
    "server → client": 1
-  },
-  "src/game/cosmetics/locker.ts": {
-   "client → server": 1
   },
   "src/game/Elite.ts": {
    "server → client": 5
@@ -291,16 +192,13 @@
    "client → server": 1
   },
   "src/game/grid/pageEntry.ts": {
-   "client → server": 5
+   "client → server": 4
   },
   "src/game/grid/pageResidency.ts": {
    "client → server": 1
   },
   "src/game/grid/pageShell.ts": {
    "client → server": 2
-  },
-  "src/game/grid/prefetch.ts": {
-   "client → server": 1
   },
   "src/game/grid/prefetchIndexCore.ts": {
    "client → server": 2
@@ -381,9 +279,6 @@
   },
   "src/game/loot/tables.ts": {
    "server → client": 1
-  },
-  "src/game/mainMenu.ts": {
-   "client → server": 1
   },
   "src/game/models/socketRigCreature.ts": {
    "client → server": 1
@@ -483,7 +378,7 @@
    "client → server": 5
   },
   "src/game/quest/contractBoardPage.ts": {
-   "client → server": 5
+   "client → server": 4
   },
   "src/game/quest/declaredPage.ts": {
    "server → client": 2
@@ -534,9 +429,6 @@
    "client → server": 1
   },
   "src/game/savesSettings.ts": {
-   "client → server": 1
-  },
-  "src/game/session/crashResume.ts": {
    "client → server": 1
   },
   "src/game/session/finish.ts": {
@@ -681,10 +573,7 @@
    "client → server": 2
   },
   "src/game/shardfile/product.ts": {
-   "client → server": 5
-  },
-  "src/game/shardfile/productCacheCompletion.ts": {
-   "client → server": 1
+   "client → server": 4
   },
   "src/game/shardfile/productCost.ts": {
    "client → server": 1
@@ -723,7 +612,7 @@
    "client → server": 1
   },
   "src/game/summary.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/systems/items/declaredSword.ts": {
    "client → server": 1
@@ -738,10 +627,10 @@
    "client → server": 1
   },
   "src/game/titleDeck.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/travel/travel.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/weapons/arcPower.ts": {
    "client → server": 2
@@ -774,9 +663,6 @@
    "client → server": 7
   },
   "src/game/weather/rainPresentation.ts": {
-   "client → server": 1
-  },
-  "src/game/whatsNewBanner.ts": {
    "client → server": 1
   }
  }
