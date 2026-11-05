@@ -24,18 +24,21 @@ try {
     await page.goto(new URL(`/?chunk=${chunk}`, base).href, { waitUntil: 'load' });
     await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 90_000 });
     await page.waitForFunction(() => window.__workerClient !== undefined, undefined, { timeout: 60_000 }).catch(() => { failures.push('the row did not start'); });
-    let report = null;
+    await page.evaluate(FLOOR_GRID_ENTER);
+    let report = null, last = Number.NaN, still = 0;
     const started = Date.now();
     while (failures.length === 0 && Date.now() - started < seconds * 1000) {
       await page.waitForTimeout(2000);
       report = await page.evaluate(() => { const { player, game } = window.__wildshard.world; player.yaw = Math.PI / 2; game.app.input.setHeld('move.forward', true); return window.__workerClient(); });
       console.log(JSON.stringify({ at: Math.round((Date.now() - started) / 1000), server: [report.cell, Math.round(report.serverX), Math.round(report.serverZ)], page: [Math.round(report.x), Math.round(report.z)], rows: report.rows, corrections: report.corrections, closed: report.closed }));
-      if (report.closed !== null) break;
+      still = Math.abs(report.serverX - last) < 0.05 ? still + 1 : 0; last = report.serverX;
+      if (report.closed !== null || still >= 3) break;
     }
     if (report === null) failures.push('no report');
     else {
       if (report.closed !== null) failures.push(`the wire closed: ${report.closed}`);
       if (report.cell !== 1) failures.push(`the server left the cell: ${report.cell}`);
+      if (still < 3) failures.push('the player never reached a wall');
       if (Math.hypot(report.x - report.serverX, report.z - report.serverZ) > 3) failures.push('the page and the server parted');
     }
     if (errors.length > 0) failures.push(...errors.slice(0, 6));
@@ -64,7 +67,7 @@ try {
     }, route[leg]);
     if (Math.hypot(final.feet.x - route[leg].x, final.feet.z - route[leg].z) < 6 && leg < route.length - 1) leg++;
     const place = String(final.current);
-    console.log(JSON.stringify({ at: Math.round((Date.now() - started) / 1000), place, phase: final.phase, feet: [Math.round(final.feet.x), Math.round(final.feet.z)], server: [final.report.cell, Math.round(final.report.serverX), Math.round(final.report.serverZ)], fps: Math.round(final.report.framesPerSecond), ticks: Math.round(final.report.ticksPerSecond), corrections: final.report.corrections, worst: Number(final.report.worstOffset.toFixed(2)), rows: final.report.rows, closed: final.report.closed, dropped: final.report.dropped }));
+    console.log(JSON.stringify({ at: Math.round((Date.now() - started) / 1000), place, phase: final.phase, feet: [Math.round(final.feet.x), Math.round(final.feet.z)], server: [final.report.cell, Math.round(final.report.serverX), Math.round(final.report.serverZ)], fps: Math.round(final.report.framesPerSecond), ticks: Math.round(final.report.ticksPerSecond), corrections: final.report.corrections, worst: Number(final.report.worstOffset.toFixed(2)), rows: final.report.rows, hp: final.report.hp, falls: final.report.falls, closed: final.report.closed, dropped: final.report.dropped }));
     if (place !== last) { seen.push(place); last = place; }
     if ((seen.length > crossings && final.report.rows > 0) || final.report.closed !== null) break;
   }

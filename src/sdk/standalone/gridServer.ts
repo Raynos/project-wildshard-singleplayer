@@ -181,7 +181,7 @@ export class StandaloneGrid {
     let settle: (held: ContinuationSlots<SavedContinuation>) => void = () => undefined;
     // A lone cell's world has walls and a grid cell's has a rim, so neither can restore the other's continuation. Facts and page progress they share.
     const documents = options.lone === true ? (instance: string): readonly [string, string] => cellDocuments(`lone-${instance}`) : cellDocuments;
-    const continuation = saves.define(CONTINUATION), sites = new ContinuationSlots(saves.define(SITE), siteDocuments(options.lone === true ? `lone-${home.instance}` : options.slug), storage, savePrefix);
+    const continuation = saves.define(CONTINUATION), sites = new ContinuationSlots(saves.define(SITE), siteDocuments(options.lone === true ? `lone-${home.instance}` : 'grid'), storage, savePrefix);
     const slots = (instance: string): ContinuationSlots<SavedContinuation> => {
       const held = cells.get(instance) ?? new ContinuationSlots(continuation, documents(instance), storage, savePrefix);
       cells.set(instance, held);

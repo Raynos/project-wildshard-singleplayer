@@ -37,7 +37,7 @@ import { spawnViewThenNamed } from './readyFrame';
 
 /** What a grid page lends the worker client (J130). */
 function workerGrid({ grid, gridLive }: Pick<Awaited<ReturnType<typeof playStage>>, 'grid' | 'gridLive'>): WorkerClientGrid | null {
-  return grid === null || gridLive === null ? null : { cells: grid.assembly.cells, bindWire: wire => { gridLive.bindWire(wire); }, frame: () => gridLive.frame(), animals: () => gridLive.enteredAnimals(), items: () => gridLive.enteredItems() };
+  return grid === null || gridLive === null ? null : { cells: grid.assembly.cells, bindWire: wire => { gridLive.bindWire(wire); }, frame: () => gridLive.frame(), animals: () => gridLive.enteredAnimals(), items: () => gridLive.enteredItems(), saveLocation: () => { gridLive.saveLocation(); } };
 }
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */

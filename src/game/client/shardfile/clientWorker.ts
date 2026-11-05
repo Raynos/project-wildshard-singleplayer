@@ -33,6 +33,8 @@ export interface WorkerClientGrid {
   readonly animals: () => Creatures | null;
   /** The entered cell's item rows; none on the road, which keeps the last cell's. */
   readonly items: () => readonly WorkerItemRow[] | null;
+  /** Say where the page stands: a reload boots the cell it names, and has to open where the server's save stands. */
+  readonly saveLocation: () => void;
 }
 /** The part of an item row that says where the server holds it. */
 export interface WorkerItemRow { readonly id: string; readonly ranged?: { readonly slot: number } | undefined }
@@ -171,7 +173,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   attributes.incomingCap = 0;
   scope.onDispose(() => { attributes.incomingCap = cap ?? Infinity; });
   // The server keeps the session's saves, and only a page knows when to ask: on a timer and as a phone hides it.
-  const save = async (): Promise<void> => { const { tick, ok } = await shell.save(); report.savedTick = tick; report.savedOk = ok; };
+  const save = async (): Promise<void> => { const { tick, ok } = await shell.save(); report.savedTick = tick; report.savedOk = ok; grid?.saveLocation(); };
   scope.interval(SAVE_EVERY_MS, () => { void save(); });
   scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') void save(); });
   let firstTick = -1, ticksFrom = started, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started;

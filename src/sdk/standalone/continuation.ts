@@ -15,8 +15,8 @@ export const SITE: SaveKeyDef<SavedSite | null> = { key: 'continuationSite', sco
   schema: v.nullable(v.strictObject({ tick: v.pipe(v.number(), v.integer(), v.minValue(0)), site: v.nullable(v.string()), road: v.exactOptional(v.pipe(v.string(), v.maxLength(MAX_TICK_SNAPSHOT_CHARS))), ledger: v.exactOptional(LedgerBookSchema) })) };
 /** A cell's documents. A continuation gets its own: it is megabytes, and every other save write would rewrite it. Two, for the fallback. */
 export const cellDocuments = (instance: string): readonly [string, string] => [`standalone-${instance}`, `standalonealt-${instance}`];
-/** The documents saying where the session that entered at `slug` stands. */
-export const siteDocuments = (slug: string): readonly [string, string] => [`standalonesite-${slug}`, `standalonesitealt-${slug}`];
+/** The documents saying where a session stands. A grid has one session, whichever cell a page boots into; a lone cell has its own. */
+export const siteDocuments = (session: string): readonly [string, string] => [`standalonesite-${session}`, `standalonesitealt-${session}`];
 
 /** A save that read back whole, and which document it came from. */
 export interface ContinuationCandidate<T> { readonly index: number; readonly saved: T }

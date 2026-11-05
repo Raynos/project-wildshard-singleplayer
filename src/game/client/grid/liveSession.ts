@@ -501,7 +501,12 @@ export class LiveGridSession {
     const current = this.live.current();
     const durable = current === null ? this.checkpointHome() : yield* this.live.checkpointSteps(current);
     if (!durable || this.live.current() !== current) return false; // suppression cancels a staged save outright
-    const cell = current === null ? this.ports.home : this.ports.assembly.cell(current);
+    return this.saveLocation();
+  }
+
+  /** Where this page stands, which is the cell its next boot opens in. On a wire it's all a page saves. */
+  saveLocation(): boolean {
+    const current = this.live.current(), cell = current === null ? this.ports.home : this.ports.assembly.cell(current);
     const feet = this.worldFeet();
     const inside = this.ports.assembly.at(feet.x, feet.z)?.instance === current;
     const local = this.ports.assembly.local(feet, cell);
