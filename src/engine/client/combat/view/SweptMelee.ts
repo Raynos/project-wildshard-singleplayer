@@ -4,7 +4,7 @@ import type { EquipmentRow, EquipContext } from '../../../shared/combat/Equipmen
 import type { Targets, TargetHit } from '../types';
 import type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet, Move } from './melee';
 import { SlashTrail } from './slashTrail';
-import type { WeaponState, AimInfo } from '../../../shared/combat/Weapon';
+import type { OwnHit, WeaponState, AimInfo } from '../../../shared/combat/Weapon';
 import type { Game } from '../../core/Game';
 import { worldTime } from '../../../shared/core/time';
 import { Impacts } from '../../fx/Impacts';
@@ -201,6 +201,8 @@ export class SweptMelee extends Melee {
   // (renderer-free, combat/sweptBasePose.ts; a Node simulation steps the same)
   private readonly basePose = new SweptBasePose();
   private hitDone = false; private kicked = false; private clanged = false;
+  /** Swings started so far, and the last, which a late `hit` lands on. */
+  private swingsStarted = 0; private lastMove: Move | null = null;
   private fx: CameraFX;
   private impacts: Impacts;
   private iron: boolean;
@@ -294,8 +296,20 @@ export class SweptMelee extends Melee {
    */
   tryFire(): void {
     if (!this.enabled) return;
+    const started = this.swingsStarted;
     this.clock.tryFire((input) => this.pickMove(input));
+    this.wire?.press(this.swingsStarted !== started);
   }
+  /** A blow the server settled (J47): everything `strike` plays, here where the swing was predicted. */
+  override serverHit(hit: OwnHit): void {
+    const move = this.clock.move ?? this.lastMove;
+    if (move === null) { super.serverHit(hit); return; }
+    this.aimPose(_aimOrigin, _aimRotation); this.aimRay(_aimOrigin, _fwd);
+    _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2); sweptStrikePush(_push, _fwd, _v2, move.sweep);
+    this.landed(move, hit.kind, _hitPoint.copy(hit.at), this.player.position.y, hit.killed);
+  }
+  /** The start the server refused goes at once, with whatever it queued (P1-E5.3-E5). */
+  override attackRefused(): void { this.clock.stop(); }
   /** start one specific move (outside the combo — the sabre's mounted pass slash): false when a swing or charge is running.
    *  `lunge` false = no dash onto the target (in the saddle the horse does the moving). Ends the combo. */
   strikeMove(move: Move, lunge = true): boolean {
@@ -310,6 +324,7 @@ export class SweptMelee extends Melee {
   }
   /** the clock started `move` (its swing time is 0 and the queued tap consumed): the presentation and the lunge */
   private startSwing(move: Move, lunge: boolean): void {
+    this.swingsStarted++; this.lastMove = move;
     this.hitDone = false; this.kicked = false; this.clanged = false;
     this.sweep.reset();
     this.basePose.startSwing();
@@ -507,6 +522,11 @@ export class SweptMelee extends Melee {
     // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
     sweptStrikePush(_push, _fwd, _v2, move.sweep);
     if (!killed) animal.stagger?.(_push, move.stagger);
+    this.landed(move, animal.kind, point, animal.position.y, killed);
+    this.onMoveHit(move, hit, killed);
+  }
+  /** What a blow plays, wherever it was settled. `point`, and `_push`, `_fwd` for its throw, are the caller's. */
+  private landed(move: Move, kind: string, point: THREE.Vector3, feetY: number, killed: boolean): void {
     // hit-stop (C2): the first contact of a swing stops the WORLD (Game.hitStop — the swing, the target, the player) for the
     // move's 60 / 90 / 140 ms; the stars, trail fade and camera kick run on worldTime.realDt through it
     if (!this.hitDone) { this.hitDone = true; this.game.hitStop(move.hitStop * this.swingScale); this.jolt = move === this.mv.heavy ? 1.6 : 1; this.fx.kick(move.kick.pitch * 0.5, move.kick.roll * 0.5); }
@@ -514,15 +534,14 @@ export class SweptMelee extends Melee {
     // contact debris by what was struck (C4): shell shards off a crab, splinters off the sailor, a sand puff at anything
     // else's feet; the iron blade throws sparks off shell and timber
     const heavyK = move === this.mv.heavy ? 1.6 : 1;
-    const debris = this.defaults.debris(animal.kind);
-    const debrisPoint = debris.atFeet ? _v3.set(point.x, animal.position.y + 0.05, point.z) : point;
+    const debris = this.defaults.debris(kind);
+    const debrisPoint = debris.atFeet ? _v3.set(point.x, feetY + 0.05, point.z) : point;
     this.impacts.burst(debris.surface, debrisPoint, _push, Math.round(debris.count * heavyK));
     if (this.iron && debris.sparks) this.impacts.burst('sparks', point, _push, Math.round(10 * heavyK));
-    this.defaults.events.onStrike?.(animal.kind, point, move === this.mv.heavy ? 1 : move === this.defaults.finisher ? 0.75 : 0.5, killed);
-    this.onHit?.(animal.kind, false, killed);
+    this.defaults.events.onStrike?.(kind, point, move === this.mv.heavy ? 1 : move === this.defaults.finisher ? 0.75 : 0.5, killed);
+    this.onHit?.(kind, false, killed);
     this.onImpact?.('flesh', point);
     this.onMoveHitEvent?.(move, killed);
-    this.onMoveHit(move, hit, killed);
   }
 
 
@@ -546,7 +565,9 @@ export class SweptMelee extends Melee {
     // chains the moment the active window closes (combat/sweptMeleeCore.ts, with the cooldown)
     if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle
     const held = (this.mouseHeld || this.adsHeld) && this.enabled;
-    const { move, active } = this.clock.step(dt, t, this.swingScale, held, (input) => this.pickMove(input));
+    this.wire?.hold(held);
+    const charged = this.clock.chargingHeavy, { move, active } = this.clock.step(dt, t, this.swingScale, held, (input) => this.pickMove(input));
+    if (charged && !this.clock.chargingHeavy && move !== null) this.wire?.press(true);
     // the camera leans along the swing as the blade comes through (C3), the heavy punches the FOV in
     if (move && active && !this.kicked && this.model.visible) { this.kicked = true; this.fx.kick(move.kick.pitch, move.kick.roll); if (move.kick.fov !== undefined) this.fx.fovPunch(move.kick.fov); }
     // the melee lock (HUD brackets, touch lunge camera turn): the lunge's target while a swing runs, else what a swing would take

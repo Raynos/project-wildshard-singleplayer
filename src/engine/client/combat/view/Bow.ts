@@ -189,7 +189,7 @@ export class Bow<Style extends string = string> extends Weapon {
     const spreadDeg = bowLooseSpreadDegrees(this.profile, this.aimBlend, this.player.speedFactor, this.extraSpreadDeg, this.mountSpread);
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
-    shotSpread(_dir, spread, gameplayRandom, this.profile.loose ?? { radius: 'sqrt', axisScale: 1 }, _v2);
+    shotSpread(_dir, spread, this.shotDraws(gameplayRandom), this.profile.loose ?? { radius: 'sqrt', axisScale: 1 }, _v2);
     this.launchFrom(_dir, p, this.spawnPos, this.launchVel);
     this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: this.profile.damageScale, onHitScale: this.damageMultiplier });
     this.state.bolts--;
@@ -252,6 +252,7 @@ export class Bow<Style extends string = string> extends Weapon {
     //    hand is still coming up from the quiver (RN_EARLY of the re-nock left): the string comes back to meet the hand
     //    halfway, instead of the hand reaching all the way out to the braced string ──
     const held = this.mouseDraw || this.altHeld;
+    this.wire?.hold(held);
     // sprinting on foot lowers the bow; a gallop does not (horse archery): combat/bowLaw.ts
     const { running, blocked } = bowBlocked({ enabled: this.enabled, cancel: this.mouseCancel, bolts: this.state.bolts, sprinting: pl.sprinting, mounted: this.mounted, swimming: pl.swimming });
     if (!held) this.mouseCancel = false;

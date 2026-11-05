@@ -2,7 +2,7 @@ import type { Vector3 } from 'three';
 import { Scope } from '../../shared/app/scope';
 import { emitFault } from '../../shared/core/faults';
 import type { Equipment, WeaponId } from '../../shared/combat/Equipment';
-import type { Weapon, WeaponHooks, WeaponState, AimInfo } from '../../shared/combat/Weapon';
+import type { OwnHit, Weapon, WeaponHooks, WeaponState, AimInfo, WeaponWire } from '../../shared/combat/Weapon';
 import { Tool } from '../../shared/combat/Tool';
 import type { EquipmentInput } from '../input/equipmentInput';
 import type { Events } from '../../shared/events/events';
@@ -20,6 +20,7 @@ export class EquipmentService implements WeaponHooks {
   /** a weapon was unlocked (the touch layer shows its SWAP pill) */
   onUnlock?: ((id: Equipment['id']) => void) | undefined;
   private unlocked = new Set<Equipment['id']>();
+  private serverWire: WeaponWire | null = null;
   private _enabled = true;
   private _adsHeld = false;
   private _altHeld = false;
@@ -114,7 +115,7 @@ export class EquipmentService implements WeaponHooks {
     if (w instanceof Tool) this.tools.push(w);
     else {
       this.input?.bind(`swap.weapon.${String(w.id)}`, () => { this.select(w.id); }, this.scope, () => this.enabled);
-      this.wire(w);
+      this.wire(w); w.wire = this.serverWire;
       if (opts.order === undefined) this.list.push(w); else this.list.splice(opts.order, 0, w);
       w.setActive(w === this.current); this.apply();
     }
@@ -342,6 +343,12 @@ export class EquipmentService implements WeaponHooks {
   /** the HELD weapon's melee reach (m from the eye), undefined while a ranged weapon is out — Combat's MISS judgement reads it per swing */
   get reach(): number | undefined { return this.current.reach; }
 
+  /** Give every weapon its line to the server (P1-E5.3-E1). */
+  bindWire(wire: WeaponWire | null): void { this.serverWire = wire; for (const w of this.list) w.wire = wire; }
+  /** The server settled a blow of ours: the weapon in hand plays it. */
+  serverHit(hit: OwnHit): void { this.current.serverHit(hit); }
+  /** The server refused a start: the weapon in hand lets go. */
+  attackRefused(): void { this.current.attackRefused(); }
   update(dt: number, t: number): void {
     const s = this.swapping;
     if (s !== null) {

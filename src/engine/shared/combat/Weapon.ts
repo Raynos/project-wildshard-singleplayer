@@ -1,4 +1,5 @@
 import type { Vector3, Matrix4, Quaternion } from 'three';
+import { shotRandom } from './shotSpread';
 import { Equipment, type WeaponId, type EquipmentRow, type EquipContext } from './Equipment';
 import type { AimCommand, FightCommand } from '../input/commands';
 import type { WeaponChargePhase } from '../../client/combat/cues';
@@ -15,6 +16,19 @@ export interface WeaponState {
   bolts?: number;
 }
 export interface AimInfo { kind: string; distance: number }
+/** A blow of this client's that the server settled (J47), in the page's terms. `at` is where its shooter saw it land. */
+export interface OwnHit { readonly kind: string; readonly at: Vector3; readonly head: boolean; readonly killed: boolean; readonly amount: number; readonly seq: number }
+/** A held weapon's line to the server when one owns its player (P1-E5.3-E1): what its next command should carry. */
+export interface WeaponWire {
+  /** An attack press. `started`: it started a swing or shot here, which the server must confirm or refuse. */
+  readonly press: (started: boolean) => void;
+  /** The heavy, or a draw: held down this step. */
+  readonly hold: (heavy: boolean) => void;
+  /** A launcher's trigger, at this aim. The server's slot is the one it says this player holds. */
+  readonly fire: (ads: number) => void;
+  /** The `seq` the next command takes. */
+  readonly nextSeq: () => number;
+}
 export interface WeaponHooks {
   onFire?: (() => void) | undefined;
   onHit?: ((kind: string, headshot: boolean, killed: boolean) => void) | undefined;
@@ -53,6 +67,8 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
   get charge(): number | undefined { return undefined; }
   ammoSelect?: (() => void) | undefined;
   onFire?: WeaponHooks['onFire']; onHit?: WeaponHooks['onHit']; onImpact?: WeaponHooks['onImpact'];
+  /** Set where a server owns the player; null on a page, whose own contact settles every blow. */
+  wire: WeaponWire | null = null;
   onReloadStart?: WeaponHooks['onReloadStart']; onReloadEnd?: WeaponHooks['onReloadEnd']; onDry?: WeaponHooks['onDry'];
   override install(ctx: EquipContext): void {
     super.install(ctx);
@@ -65,6 +81,12 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
     this.equipEvents?.emit('weapon.charge', { id: this.row.id, phase, ...(value === undefined ? {} : { value }) });
   }
   abstract tryFire(): void;
+  /** The server's word on this weapon's blow, where one owns the player (J47): what a contact plays here without one. */
+  serverHit(hit: OwnHit): void { this.onHit?.(hit.kind, hit.head, hit.killed); this.onImpact?.('flesh', hit.at); }
+  /** The server refused the start this weapon predicted (P1-E5.3-E5). */
+  attackRefused(): void { /* A weapon with no running start has nothing to let go of. */ }
+  /** A shot's random draws: its own off the wire, so client and server fly one shot (P1-E5.3-E4), else the world's. */
+  shotDraws(world: () => number): () => number { return this.wire === null ? world : shotRandom(this.wire.nextSeq()); }
   reload(): void { /* Melee weapons and tools have no reload action. */ }
   addBolts(_n: number): void { /* Ammo families override the refill. */ }
   aimRay(origin: Vector3, dir: Vector3): Vector3 {

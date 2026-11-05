@@ -298,7 +298,8 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     this.aimRay(_v3, _fwd);
     const spread = THREE.MathUtils.degToRad((p.spreadAds ?? 0.15) + (1 - a) * ((p.spreadHip ?? 0.75) - (p.spreadAds ?? 0.15)));
     _dir.copy(_fwd);
-    shotSpread(_dir, spread, gameplayRandom, { radius: p.spreadRadius ?? 'linear', axisScale: p.spreadAxisScale ?? 2 }, _v1);
+    shotSpread(_dir, spread, this.shotDraws(gameplayRandom), { radius: p.spreadRadius ?? 'linear', axisScale: p.spreadAxisScale ?? 2 }, _v1);
+    this.wire?.fire(this.feel.adsBlend);
     b.pos.copy(_v3).addScaledVector(_fwd, p.muzzle ?? 0.35); // the command's origin, never the drawn bolt's
     b.vel.copy(_dir).multiplyScalar(p.speed);
     b.roll = 0; b.mod = this.boltMod; b.ammo = this.selectedAmmo;
