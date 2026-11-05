@@ -309,6 +309,17 @@ export function nativeRetired(program: object): boolean {
   return handle === undefined || handle === null;
 }
 
+/** DL21: an upload this long (ms) is named in a Developer measure, 'wildshard.precompile.upload:<name>' (the DL23 recordings
+ *  keep every measure), with its size and bytes. */
+const SLOW_UPLOAD_MS = 100;
+function slowUpload(texture: THREE.Texture, start: number, bytes: number): void {
+  const image: unknown = texture.image, source = typeof image === 'object' && image !== null ? Reflect.get(image, 'currentSrc') ?? Reflect.get(image, 'src') : undefined;
+  const width = typeof image === 'object' && image !== null ? Reflect.get(image, 'width') : undefined, height = typeof image === 'object' && image !== null ? Reflect.get(image, 'height') : undefined;
+  const name = texture.name !== '' ? texture.name : typeof source === 'string' ? source.slice(-80) : `texture-${String(texture.id)}`;
+  performance.measure(`wildshard.precompile.upload:${name}`, { start, end: performance.now(),
+    detail: { bytes, width: typeof width === 'number' ? width : null, height: typeof height === 'number' ? height : null, compressed: texture instanceof THREE.CompressedTexture } });
+}
+
 /** How many programs the renderer holds (0 for a test double without `info.programs`). */
 function programCount(renderer: Renderer): number {
   const info: unknown = Reflect.get(renderer, 'info');
@@ -1433,6 +1444,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
     if (imageUpload) { imageBytes += bytes; slowestUpload = Math.max(slowestUpload, performance.now() - tUpload); }
+    // DL21: name an upload that held a loading frame (Nine's Shardfile cold card sat 1.0 s on '30 / 33 textures uploaded')
+    if (isDev() && performance.now() - tUpload >= SLOW_UPLOAD_MS) slowUpload(tex, tUpload, compressed ? 0 : bytes);
     if (compressed) { checkCurrent(); tSlice = performance.now(); batch?.reset(); }
     else if (batch !== undefined) { if (imageUpload) batch.add(bytes, performance.now() - tUpload); }
     else if (isolateImageUploads ? imageUpload : performance.now() - tSlice > heldBudget(sliceMs)) { await pause(); checkCurrent(); tSlice = performance.now(); }
