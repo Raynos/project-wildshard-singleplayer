@@ -34,7 +34,6 @@ import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Entered concrete service loans only; no shard callback or reflected name resolver. */
 export type SpawnV2Owners = Omit<V2ColumnOwners,'self' | 'player' | 'observed' | 't' | 'dt'> & { readonly module?: Uint8Array };
@@ -279,6 +278,13 @@ export class SpawnScript {
   }
   private observational(handle: number): boolean { return this.observingSlots.has(handle); }
   private actor(handle: number): ControlledBody | undefined { return this.handles.get(handle); }
+  /** The player `body` deals with: in a room the one nearest it; alone, the frame's point. */
+  private foe(body: { readonly position: Point }): Point {
+    const host = this.nativeHost;
+    return host === undefined || host.players.size === 1 ? this.point : host.nearestPlayer(body.position).position;
+  }
+  /** Where the roster stands, for the one player the script reads: its first body, if it has one. */
+  get standing(): Point | undefined { for (const body of this.handles.values()) if (body.alive) return body.position; return undefined; }
   private position(handle: number): Point { return handle === DECISION_PLAYER_HANDLE ? this.point : this.actor(handle)?.position ?? { x: 0, y: 0, z: 0 }; }
   private field(actor: number, id: number): number {
     const row = value(this.rows.fields[id - 1], 'field'), body = this.actor(actor);
@@ -460,7 +466,7 @@ export class SpawnScript {
           const body = value(this.actor(actor), 'move body'), runner = new ActorMoveRunner(row, body);
           if (row.kind !== 'relocate') { this.motions.set(actor, { id: a, target: b, runner }); return; }
           const site = this.rows.sites.find(item => this.rows.slots.find(owned => owned.id === item.slot)?.handle === actor), face = site?.face;
-          const target = b !== 0 ? this.position(b) : face === undefined || face === 'player' ? this.point : { x: face[0], y: body.position.y, z: face[1] };
+          const target = b !== 0 ? this.position(b) : face === undefined || face === 'player' ? this.foe(body) : { x: face[0], y: body.position.y, z: face[1] };
           const destination = row.point.kind === 'fields' ? { x: this.namedField(actor, row.point.x), z: this.namedField(actor, row.point.z) } : undefined;
           const frame = runner.step({ body, target, ...(destination === undefined ? {} : { destination }) });
           if (frame.placement !== undefined) { const at = frame.placement; body.place(at.x, at.z, at.yaw, at.y); }
@@ -471,7 +477,7 @@ export class SpawnScript {
         value(this.rows.strikes?.[a - 1], 'strike');
         if (b !== DECISION_PLAYER_HANDLE || c !== 0 || this.actor(actor) === undefined) throw new Error('Invalid scripted strike target');
         operations.push(() => { this.motions.delete(actor);
-          for (const cue of this.combat.start(actor, a, value(this.actor(actor), 'strike actor'), this.point)) this.emitCue(actor, cue); });
+          for (const cue of this.combat.start(actor, a, value(this.actor(actor), 'strike actor'), this.foe(value(this.actor(actor), 'strike actor')))) this.emitCue(actor, cue); });
       } else if (op === 3) {
         operations.push(() => { this.combat.cancel(actor, this.actor(actor)); this.motions.delete(actor); const body = this.actor(actor); body?.setMotion(body.yaw, 0); });
       } else if (op === 7) {
@@ -506,7 +512,7 @@ export class SpawnScript {
         let site = this.motionSites.get(handle);
         if (site === undefined && !this.motionSites.has(handle)) { site = this.rows.sites.find(row => this.rows.slots.find(slot => slot.id === row.slot)?.handle === handle); this.motionSites.set(handle, site); }
         const face = site?.face;
-        const target = motion.target !== 0 ? this.position(motion.target) : face === undefined || face === 'player' ? this.point : { x: face[0], y: body.position.y, z: face[1] };
+        const target = motion.target !== 0 ? this.position(motion.target) : face === undefined || face === 'player' ? this.foe(body) : { x: face[0], y: body.position.y, z: face[1] };
         const move = value(this.rows.moves[motion.id - 1], 'owned motion');
         const controls = move.kind === 'steer' ? { yaw: this.namedField(handle, move.fields.yaw), speed: this.namedField(handle, move.fields.speed), turn: this.namedField(handle, move.fields.turn) } : undefined;
         const destination = move.kind === 'relocate' && move.point.kind === 'fields' ? { x: this.namedField(handle, move.point.x), z: this.namedField(handle, move.point.z) } : undefined;
@@ -517,8 +523,9 @@ export class SpawnScript {
       }
       for (const [handle, body] of this.handles) {
         if (this.observational(handle)) continue;
-        if ('spawnGroup' in this.rows.script.binding) { body.lookTarget.set(this.point.x, this.point.y + this.sourceField(handle, 'lookHeight'), this.point.z); }
-        const frame = this.combat.advance(handle, 1 / 60, body, this.point, () => this.bodies.reach(body, this.point));
+        const foe = this.foe(body);
+        if ('spawnGroup' in this.rows.script.binding) { body.lookTarget.set(foe.x, foe.y + this.sourceField(handle, 'lookHeight'), foe.z); }
+        const frame = this.combat.advance(handle, 1 / 60, body, foe, () => this.bodies.reach(body, foe));
         if (frame.hit !== null) this.effects.push({ kind: 'hit', actor: handle, hit: frame.hit });
         for (const cue of frame.cues) this.emitCue(handle, cue);
       }
@@ -764,7 +771,7 @@ export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock,
   let restored: SimValue | undefined;
   host.onStep(rows.step, dt => {
     restored = undefined;
-    runner.advance(dt, leadPlayer(host).position, day.night, rows.maximum, rows.flags.filter(flag => host.flags.has(flag)));
+    runner.advance(dt, host.nearestPlayer(runner.standing ?? host.playerFocus).position, day.night, rows.maximum, rows.flags.filter(flag => host.flags.has(flag)));
     for (const flag of rows.flags) if (runner.hasFlag(flag) !== host.flags.has(flag)) host.flags.set(flag, runner.hasFlag(flag));
     runner.drainEffects();
   }, { snapshot: () => restored ?? runner.snapshot(), restore: saved => { runner.restore(saved); restored = structuredClone(saved); } });

@@ -23,7 +23,6 @@ import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
 import { emitFault } from '@wildshard/engine/core/faults';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Existing native envelope fields; adapters retain their historical wire names. */
 export interface NativeHuntContinuation {
@@ -273,6 +272,8 @@ interface NativeDirected {
   readonly eliteDamage?: (actor: HuntBody, request: DamageRequest) => number;
 }
 interface WildlifeFrameState { init: boolean; x: number; z: number; v: number; at?: number }
+/** A room player's saved gait. */
+type WildlifeGait = Readonly<Required<Omit<WildlifeFrameState, 'init'>>>;
 export interface NativeWildlifeRows {
   speed: string; alert: string; range: string; packRadius: number; scareSeconds: number; scareRadius: number; foragerRunSpeed: number;
   trample: { kinds: Readonly<Record<string, number>>; minSpeed: number; range: number; fullSpeed: number };
@@ -283,6 +284,8 @@ export interface NativeWildlifeRows {
 export class NativeWildlifeFrame {
   private reportedFrame = false;
   private readonly state: WildlifeFrameState = { init: false, x: 0, z: 0, v: 0, at: 0 };
+  /** Every other player's gait, by id. It saves beside the first's only with company, so a lone save keeps its bytes. */
+  private readonly company = new Map<string, WildlifeFrameState>();
   private readonly fields = { x: 0, z: 0, px: 0, pz: 0, dt: 0, speed: 0 };
   private readonly relations: PopulationRelations<AnimalSim>;
   constructor(private readonly host: SimHost, private readonly author: ReturnProgram, private readonly bodies: readonly HuntBody[],
@@ -301,24 +304,47 @@ export class NativeWildlifeFrame {
   }
   /** Accepted native effects stay accepted; a refused frame is never replayed. */
   private updateFrame(dt: number, crouched: boolean): void {
-    const player = leadPlayer(this.host).position, state = this.state;
-    if (!state.init) { state.x = player.x; state.z = player.z; state.init = true; }
-    const elapsed = this.host.clock.now-(state.at ?? 0);
-    if (elapsed >= .1-1e-9) {
-      Object.assign(this.fields, { x: player.x, z: player.z, px: state.x, pz: state.z, dt: elapsed, speed: state.v });
-      const speed = this.author.project(this.rows.speed, this.fields)['speed']; if (speed === undefined || !Number.isFinite(speed)) throw new Error('Invalid native wildlife speed');
-      state.v = speed; state.x = player.x; state.z = player.z; state.at = this.host.clock.now;
-    }
+    const host = this.host, company = this.company; let first = true;
+    for (const id of company.keys()) if (!host.players.has(id)) company.delete(id);
+    for (const body of host.players.values()) { this.pace(first ? this.state : this.gaitOf(body.id), body.position); first = false; }
     this.wolves.length = 0; for (const wolf of this.wildWolves) if (wolf.alive) this.wolves.push(wolf);
     const row = this.rows.trample;
     for (const actor of this.bodies) {
       const radius = row.kinds[actor.kind];
-      if (radius === undefined || !actor.alive || actor.speed < row.minSpeed || Math.hypot(actor.position.x-player.x, actor.position.z-player.z) > row.range) continue;
+      if (radius === undefined || !actor.alive || actor.speed < row.minSpeed) continue;
+      const player = host.nearestPlayer(actor.position).position;
+      if (Math.hypot(actor.position.x-player.x, actor.position.z-player.z) > row.range) continue;
       this.trample.push(actor.position.x, actor.position.z, radius*actor.scale, Math.min(1,actor.speed/row.fullSpeed), Math.sin(actor.yaw)*actor.speed, Math.cos(actor.yaw)*actor.speed);
     }
-    for (const flock of this.flocks) flock.update(dt, this.host.clock.now, player, state.v, this.wolves);
-    const alarm = this.foragers.update(dt, player, state.v > this.rows.foragerRunSpeed, crouched); if (alarm !== null) this.relations.alert(alarm.x, alarm.z);
+    for (const flock of this.flocks) {
+      const near = host.nearestPlayer({ x: flock.cx, y: host.playerFocus.y, z: flock.cz });
+      flock.update(dt, host.clock.now, near.position, this.gaitOf(near.id).v, this.wolves);
+    }
+    const run = this.rows.foragerRunSpeed, focus = host.focusedPlayer;
+    const alarm = this.foragers.update(dt, focus.position, this.gaitOf(focus.id).v > run, crouched, host.players.size === 1 ? undefined : (x, z) => {
+      const near = host.nearestPlayer({ x, y: focus.position.y, z });
+      return { viewer: near.position, fast: this.gaitOf(near.id).v > run, crouched: crouched && near === focus };
+    });
+    if (alarm !== null) this.relations.alert(alarm.x, alarm.z);
     this.relations.ripple();
+  }
+  /** How `player` moves: the host's first player keeps the frame's own `state`, the rest a row of `company`. */
+  private gaitOf(player: string): WildlifeFrameState {
+    if (this.host.players.size === 1) return this.state;
+    const [first] = this.host.players.keys();
+    if (first === player) return this.state;
+    let gait = this.company.get(player);
+    if (gait === undefined) { gait = { init: false, x: 0, z: 0, v: 0, at: this.host.clock.now }; this.company.set(player, gait); }
+    return gait;
+  }
+  /** Measure one player's speed on the 10 Hz clock, through the guest's own projection. */
+  private pace(state: WildlifeFrameState, player: { readonly x: number; readonly z: number }): void {
+    if (!state.init) { state.x = player.x; state.z = player.z; state.init = true; }
+    const elapsed = this.host.clock.now-(state.at ?? 0);
+    if (elapsed < .1-1e-9) return;
+    Object.assign(this.fields, { x: player.x, z: player.z, px: state.x, pz: state.z, dt: elapsed, speed: state.v });
+    const speed = this.author.project(this.rows.speed, this.fields)['speed']; if (speed === undefined || !Number.isFinite(speed)) throw new Error('Invalid native wildlife speed');
+    state.v = speed; state.x = player.x; state.z = player.z; state.at = this.host.clock.now;
   }
   scare(x: number, z: number, radius: number = this.rows.scareRadius): void { this.relations.scare(x, z, radius); this.host.events.emit('creature.signal', { name: 'scare', x, z }); }
   private readonly knocked={x:0,z:0};
@@ -326,12 +352,15 @@ export class NativeWildlifeFrame {
     const row=this.rows.knockdown;knockdownVelocity(row,x,z,strength,this.knocked);
     this.host.nearestPlayer({x,y:this.host.playerFocus.y,z}).dashAt(this.knocked.x,this.knocked.z,row.seconds);
   }
-  snapshot(): { wild: { init: boolean; x: number; z: number; v: number; at: number }; flocks: string[]; marmots: ReturnType<ForagerPopulation['snapshot']> } {
-    return { wild: { ...this.state, at: this.state.at ?? 0 }, flocks: this.flocks.map(flock => flock.snapshot()), marmots: this.foragers.snapshot() };
+  snapshot(): { wild: { init: boolean; x: number; z: number; v: number; at: number; company?: Record<string, WildlifeGait> }; flocks: string[]; marmots: ReturnType<ForagerPopulation['snapshot']> } {
+    const company = Object.fromEntries([...this.company].map(([id, { x, z, v: speed, at }]) => [id, { x, z, v: speed, at: at ?? 0 }]));
+    return { wild: { ...this.state, at: this.state.at ?? 0, ...(this.company.size === 0 ? {} : { company }) }, flocks: this.flocks.map(flock => flock.snapshot()), marmots: this.foragers.snapshot() };
   }
-  restore(saved: { wild: WildlifeFrameState; flocks: readonly string[]; marmots: unknown }): void {
+  restore(saved: { wild: WildlifeFrameState & { readonly company?: Readonly<Record<string, WildlifeGait>> }; flocks: readonly string[]; marmots: unknown }): void {
     if (saved.flocks.length !== this.flocks.length || ![saved.wild.x,saved.wild.z,saved.wild.v,saved.wild.at ?? this.host.clock.now].every(Number.isFinite)) throw new Error('Invalid native wildlife continuation');
-    Object.assign(this.state, saved.wild, { at: saved.wild.at ?? this.host.clock.now }); this.foragers.restore(saved.marmots);
+    const { company = {}, ...own } = saved.wild;
+    Object.assign(this.state, own, { at: own.at ?? this.host.clock.now }); this.foragers.restore(saved.marmots);
+    this.company.clear(); for (const [id, gait] of Object.entries(company)) this.company.set(id, { ...gait, init: true });
     saved.flocks.forEach((wire, index) => { this.flocks[index]?.restore(wire); });
   }
 }

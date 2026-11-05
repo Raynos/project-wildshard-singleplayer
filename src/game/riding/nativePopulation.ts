@@ -41,7 +41,8 @@ const PopulationSaved = v.strictObject({ calm: v.exactOptional(v.boolean()), rng
   // the declared groups' continuations (PackBrain / HerdBrain `snapshot()`), packs then herds: they decide on this step
   groups: v.array(v.string()),
   // Wildlife's own smoothed player speed (the flocks read it) and the flocks' continuations (FlockBrain `snapshot()`)
-  wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite, at: v.exactOptional(finite) }), flocks: v.array(v.string()),
+  wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite, at: v.exactOptional(finite),
+    company: v.exactOptional(v.record(v.string(), v.strictObject({ x: finite, z: finite, v: finite, at: finite }))) }), flocks: v.array(v.string()),
   marmots: MarmotContinuation, placement: Stream, raids: v.array(PopulationPack), elitePacks: v.array(PopulationPack), dormant: v.array(v.string()), elites: v.array(EliteSpawn),
   bonded: v.exactOptional(v.pipe(v.array(BondedSpawn), v.maxLength(32))), hiddenStallions: v.exactOptional(v.pipe(v.array(v.string()), v.maxLength(32))),
   retired: v.array(v.string()), nextId: v.pipe(finite, v.integer(), v.minValue(0)), dodgeCd: v.pipe(finite, v.minValue(0)), otherDodges: v.exactOptional(v.record(v.string(), finite)) });

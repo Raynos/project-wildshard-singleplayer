@@ -171,6 +171,8 @@ if (FX === undefined) throw new Error('Missing canonical forager FX rate');
 const MODES = ['graze', 'sentry', 'flee', 'hide'] as const, STATE = { graze: 0, sentry: 1, alert: 1, flee: 2, hide: 3 } as const;
 /** where the population is watched from: the player on the ground and the view's forward (fx, fz; a roaming population reads it) */
 export interface ForagerViewer extends ForagerPlayer { readonly fx?: number; readonly fz?: number }
+/** The one a forager at some point answers to in a room: its viewer and how that viewer moves. */
+export interface ForagerWatcher { readonly viewer: ForagerViewer; readonly fast: boolean; readonly crouched: boolean }
 type Roam = Extract<ForagerPopulationRows['place'], { kind: 'roam' }>;
 
 /** One forager population (`@wildshard/format/ambientLife#ForagerPopulationSchema`): its rows on the fx band clocks
@@ -235,8 +237,9 @@ export class ForagerPopulation {
     }
     return false;
   }
-  /** One frame: re-seat the roaming rows out of sight, step the rows the fx band clocks say are due. */
-  update(dt: number, viewer: ForagerViewer, fast: boolean, crouched = false): ForagerState | null {
+  /** One frame: re-seat the roaming rows out of sight, step the rows the fx band clocks say are due. With `near` each row
+   *  answers to the watcher it names (a room's nearest player); without it, to `viewer`. */
+  update(dt: number, viewer: ForagerViewer, fast: boolean, crouched = false, near?: (x: number, z: number) => ForagerWatcher): ForagerState | null {
     const roam = this.row.place.kind === 'roam' ? this.row.place : null;
     this.bands.beginTick(dt);
     let alarm: ForagerState | null = null;
@@ -245,12 +248,13 @@ export class ForagerPopulation {
       if (s === undefined || motion === undefined || id === undefined) break;
       this.due[i] = 0; this.active[i] = 0;
       if (this.retired.has(i)) { this.shown[i] = 0; continue; }
-      let d = Math.hypot(s.x - viewer.x, s.z - viewer.z);
-      if (roam !== null && !(d <= roam.range && (d <= roam.visibleRange || ForagerPopulation.seen(s.x, s.z, viewer, roam.view[0])))) {
+      const watcher = near?.(s.x, s.z), seer = watcher?.viewer ?? viewer;
+      let d = Math.hypot(s.x - seer.x, s.z - seer.z);
+      if (roam !== null && !(d <= roam.range && (d <= roam.visibleRange || ForagerPopulation.seen(s.x, s.z, seer, roam.view[0])))) {
         this.shown[i] = 0; this.bands.forget(id);
         if ((this.retry[i] = (this.retry[i] ?? 0) - dt) > 0) continue;
-        if (!this.seat(s, roam, roam.reseat, viewer, true)) { this.retry[i] = roam.retry; s.x = 1e5; s.z = 1e5; continue; }
-        d = Math.hypot(s.x - viewer.x, s.z - viewer.z);
+        if (!this.seat(s, roam, roam.reseat, seer, true)) { this.retry[i] = roam.retry; s.x = 1e5; s.z = 1e5; continue; }
+        d = Math.hypot(s.x - seer.x, s.z - seer.z);
       }
       this.shown[i] = 1;
       const step = this.bands.takeBrainDt(id, 'fx', d, false);
@@ -258,9 +262,9 @@ export class ForagerPopulation {
       this.active[i] = 1;
       if (step <= 0) continue;
       this.due[i] = 1;
-      if (this.brain.step(s, motion, step, viewer, fast, crouched) && alarm === null) alarm = s;
+      if (this.brain.step(s, motion, step, seer, watcher?.fast ?? fast, watcher?.crouched ?? crouched) && alarm === null) alarm = s;
     }
-    if (alarm !== null) for (let i = 0; i < MAX; i++) { const s = this.rows[i]; if (s === undefined) break; if (this.active[i] === 1) this.brain.bolt(s, viewer); }
+    if (alarm !== null) for (let i = 0; i < MAX; i++) { const s = this.rows[i]; if (s === undefined) break; if (this.active[i] === 1) this.brain.bolt(s, near?.(s.x, s.z).viewer ?? viewer); }
     return alarm;
   }
   snapshot(): ForagerSnapshot {

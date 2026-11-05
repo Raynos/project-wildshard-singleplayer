@@ -11,10 +11,11 @@ import type { ShardCreatures } from '@wildshard/format/creatures';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { DeclaredBrainPorts } from './brainRuntime';
 import type { DeclaredGroupPorts, DeclaredPackRecipe } from './groupRuntime';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
-const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) });
+const paceSchema = { x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) };
+/** The first player's pace is the save as it always was; the rest ride beside it, only with company. */
+const motionSchema = v.strictObject({ ...paceSchema, others: v.exactOptional(v.record(v.string(), v.strictObject(paceSchema))) });
 /** Bind bounded player impulses to the real owner without a host, phase or clock.
  * Directed hits preserve their yaw/speed projection; column callbacks read feet and
  * board state in the caller's existing fixed phase. Each binding owns one vector. */
@@ -71,11 +72,14 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
   const phases = new Map(spawns.map(row => [row.id, row.phaseOffset]));
   const impulse = borrowedImpulse ?? (host.embedded ? undefined : (velocity: Vector3) => { host.focusedPlayer.addImpulse(velocity); });
   const forces = impulse === undefined ? undefined : bindPlayerImpulse(impulse);
-  const lead = leadPlayer(host), motion = { x: lead.position.x, z: lead.position.z, speed: 0 };
+  const start = host.focusedPlayer.position, motion = { x: start.x, z: start.z, speed: 0 };
+  /** Every other player's pace: a body's reading is its own foe's, not the first player's. */
+  const company = new Map<string, typeof motion>();
   const from = new Vector3(), to = new Vector3(), direction = new Vector3(), point = new Vector3();
   const strikes = new Map<string, StrikeSpec>(rows.strikes.map(({ weight, speed, ...row }) =>
     [row.id, { ...row, motion: { speed }, weight: () => weight }]));
   const foe = (actor: AnimalSim): ReturnType<SimHost['nearestPlayer']> => host.nearestPlayer(actor.position);
+  const speedOf = (actor: AnimalSim): number => company.get(foe(actor).id)?.speed ?? motion.speed;
   const calm = (actor: AnimalSim): boolean => !foe(actor).health.alive;
   const reach = (actor: AnimalSim): boolean => canReach(actor, foe(actor).position, host.physics);
   const hurt = (actor: AnimalSim, damage: number, tags: StrikeSpec['tags'], moveId: string): void => {
@@ -143,11 +147,14 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
       const memberSet = new Set(members);
       return { ports: {
         sharedRng: () => host.rng.stream('ai'),
-        environment: () => ({ playerFwdX: Math.sin(lead.yaw), playerFwdZ: Math.cos(lead.yaw),
-          playerMounted: lead.mode === 'ride',
-          playerHealth01: lead.health.attributes.health / lead.health.attributes.maxHealth,
-          // Data-only rows declare no grass/scent field or animal-prey binding.
-          grassHeightAt: () => 0 }),
+        environment: () => {
+          const player = host.focusedPlayer;
+          return { playerFwdX: Math.sin(player.yaw), playerFwdZ: Math.cos(player.yaw),
+            playerMounted: player.mode === 'ride',
+            playerHealth01: player.health.attributes.health / player.health.attributes.maxHealth,
+            // Data-only rows declare no grass/scent field or animal-prey binding.
+            grassHeightAt: () => 0 };
+        },
         visibility: (x, z, player) => {
           from.set(x, host.groundHeightAt(x, z) + 1.2, z); to.copy(player); to.y += 1.2;
           return lineOfSight(host.physics, from, to) ? 1 : 0;
@@ -165,7 +172,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
         // The stock group has only its actual player target; injected recipes own animal prey.
         preyIdentity: () => { throw new Error('Undeclared data-host pack prey'); }, resolvePrey: () => null,
       }, observe: (body, dt) => ({ dt, t: host.clock.now, player: foe(body).position,
-        playerSpeed: motion.speed, calm: calm(body), rng: host.rng.stream('ai'),
+        playerSpeed: speedOf(body), calm: calm(body), rng: host.rng.stream('ai'),
         sound: () => undefined,
         claim: actor => host.events.ask('ai.claim', actor) && (directors.get(actor)?.take(actor) ?? false),
         steer: (actor, yaw, speed, turn) => { actor.setMotion(yaw, speed, turn); },
@@ -179,7 +186,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
       used = true;
       return { ports: {
         sharedRng: () => host.rng.stream('ai'),
-        environment: () => ({ playerMounted: lead.mode === 'ride', playerCrouched: false }),
+        environment: () => ({ playerMounted: host.focusedPlayer.mode === 'ride', playerCrouched: false }),
         visibility: (x, z, player) => {
           from.set(x, host.groundHeightAt(x, z) + 1.2, z); to.copy(player); to.y += 1.2;
           return lineOfSight(host.physics, from, to) ? 1 : 0;
@@ -197,7 +204,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
         },
         // No declared pack owner is installed by this herd-only recipe.
         scarePack: () => false, resolveActor: id => host.entities.get(id) ?? null,
-      }, observe: (actor, dt) => ({ dt, t: host.clock.now, player: foe(actor).position, playerSpeed: motion.speed,
+      }, observe: (actor, dt) => ({ dt, t: host.clock.now, player: foe(actor).position, playerSpeed: speedOf(actor),
         calm: calm(actor), rng: host.rng.stream('ai'),
         // Cues are presentation-only; this owner has no audio callback, reward or event grant.
         sound: () => undefined, hurt: (damage: number) => { hurt(actor, damage, ['animal.herd', 'feel.blow'], group.id); },
@@ -212,10 +219,21 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
     install: () => {
       if (!used) return;
       host.onStep('creatures.data-motion', dt => {
-        const player = lead.position;
-        motion.speed = Math.hypot(player.x - motion.x, player.z - motion.z) / dt;
-        motion.x = player.x; motion.z = player.z;
-      }, { snapshot: () => ({ ...motion }), restore: value => { Object.assign(motion, v.parse(motionSchema, value)); } });
+        for (const id of company.keys()) if (!host.players.has(id)) company.delete(id);
+        let first = true;
+        for (const player of host.players.values()) {
+          const { x, z } = player.position;
+          const pace = first ? motion : company.get(player.id) ?? { x, z, speed: 0 };
+          if (!first) company.set(player.id, pace);
+          first = false;
+          pace.speed = Math.hypot(x - pace.x, z - pace.z) / dt; pace.x = x; pace.z = z;
+        }
+      }, { snapshot: () => company.size === 0 ? { ...motion } : { ...motion, others: Object.fromEntries([...company].map(([id, pace]) => [id, { ...pace }])) },
+      restore: value => {
+        const { others = {}, ...own } = v.parse(motionSchema, value);
+        Object.assign(motion, own); company.clear();
+        for (const [id, pace] of Object.entries(others)) company.set(id, { ...pace });
+      } });
     },
   };
 }
