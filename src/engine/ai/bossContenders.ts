@@ -7,7 +7,7 @@ import { bossHealthScale, bossTargetCount } from './bossScale';
 interface ContendedBoss {
   readonly engaged: boolean;
   readonly script: { readonly respawnPoint: () => { pos: Vector3; yaw: number } };
-  readonly disarm: () => void; readonly arm: () => void;
+  readonly disarm: () => void; readonly arm: () => void; readonly onPlayerDeath: () => boolean;
 }
 type ArenaPlayer = (point: Vector3) => boolean;
 /** Marks a blow's share on a further player, which lands no further shares. */
@@ -71,6 +71,8 @@ export class BossContenders {
     try { this.respawn(pos, yaw); } finally { this.returning = null; }
     return true;
   }
+  /** The death checkpoint's answer. A room's only says the fight owns the death (`fell` returns them); a lone player's is the brain's. */
+  died(boss: ContendedBoss): boolean { return this.players.size > 1 ? boss.engaged : boss.onPlayerDeath(); }
   /** Each fixed step, before the brain's: count who began the fight, and reset it once nobody is left inside. */
   observe(boss: ContendedBoss): void {
     if (this.players.size <= 1 && this.counted === 0) return;
@@ -85,8 +87,8 @@ export class BossContenders {
   /** A hit on the body, over the health curve: the body keeps its authored hit points. */
   scaled(request: DamageRequest): DamageRequest { return this.counted <= 1 ? request : { ...request, amount: request.amount / bossHealthScale(this.counted) }; }
   /** Whether a dealt blow is this fight's: the body's own, or a hazard's under the fight's `hazard` tag (env-sourced). */
-  owns(request: DamageRequest, body: { combatActor: () => unknown }, hazard: string | undefined): boolean {
-    return request.source === body.combatActor() || (hazard !== undefined && request.source === 'env' && request.sourceTags.some(tag => tag === hazard));
+  owns(request: DamageRequest, body: { combatActor: () => unknown } | null, hazard: string | undefined): boolean {
+    return (body !== null && request.source === body.combatActor()) || (hazard !== undefined && request.source === 'env' && request.sourceTags.some(tag => tag === hazard));
   }
   /** A blow the body landed on one player also lands on the next nearest, up to the curve's count. */
   echo(request: DamageRequest, body: { readonly position: Vector3 }, combat: Pick<CombatPipeline, 'hit'>): void {

@@ -94,7 +94,7 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
   host.events.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() ? spec.shielded() ? null : party.scaled(request) : request; }, host.scope);
   host.events.on('damage.dealt', ({ req }) => { const body = spec.body(); if (body !== null && party.owns(req, body, spec.hazardTag)) party.echo(req, body, host.combat); }, host.scope);
   // A room asks first and acts on `player.died`, the one event that says who fell.
-  host.events.answer('death.checkpoint', (value) => (host.players.size > 1 ? boss.engaged : boss.onPlayerDeath()) || value === true, host.scope);
+  host.events.answer('death.checkpoint', (value) => party.died(boss) || value === true, host.scope);
   host.events.on('player.died', ({ actor }) => { if (host.players.size > 1) party.fell(actor.id, boss); }, host.scope);
   if (spec.armed === true) boss.arm();
   host.onStep(spec.step, dt => {

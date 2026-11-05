@@ -90,6 +90,8 @@ export interface OpenArenaFightHost {
   readonly mounted: () => boolean; readonly contact: (name: string, origin: THREE.Vector3, amount: number, why: string) => boolean;
   readonly throwRider: () => void; readonly horseSteed: (amount: number) => void; readonly feed: (message: string) => void;
   readonly toast: (message: string) => void; readonly riderOwner: () => ArenaRiderOwner | null;
+  /** The heart's health curve (J104), dividing each hit: absent, or 1, for one player. */
+  readonly heartScale?: () => number;
 }
 interface SupportActor { readonly rider: ArenaSupportRider; readonly a: ArenaSupportBody; readonly lane: ArenaTell; readonly law: ProjectedState }
 /** the view module's cells (format/arenaView `cells`): the eased pose and the aim's operands */
@@ -439,7 +441,7 @@ export class OpenArenaFight implements BossScript {
   }
 
   private hitHeart(amount: number): boolean {
-    const answer = this.life.event('damage',{ amount,mode: this.clocks.value('mode') });
+    const answer = this.life.event('damage',{ amount: amount / (this.host.heartScale?.() ?? 1),mode: this.clocks.value('mode') });
     if (answer['show']===1) this.host.toast(this.data.immuneLines[answer['index'] ?? 0] ?? '');
     if (answer['flash']===1) this.body.flash.value = 1;
     return this.dead;

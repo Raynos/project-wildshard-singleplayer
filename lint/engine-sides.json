@@ -846,6 +846,7 @@
   "src/game/boss/nativeArenaSeal.ts": "server",
   "src/game/boss/nativeWake.ts": "server",
   "src/game/boss/openArenaFight.ts": "server",
+  "src/game/boss/openArenaRoom.ts": "server",
   "src/game/boss/patrolLaw.ts": "server",
   "src/game/boss/presentation.ts": "client",
   "src/game/boss/roaming.ts": "server",
