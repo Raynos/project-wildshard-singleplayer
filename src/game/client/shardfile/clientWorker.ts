@@ -22,6 +22,8 @@ import { lockOn } from '@wildshard/engine/player/AimTargets';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { netNeighbourRegion } from '../grid/neighbourRows';
 import { mountOf } from '../../shared/riding/entered';
+import { GrappleTool } from '../grapple/tool';
+import { netClaw } from '../grapple/netClaw';
 import type { Mount } from '../riding/mount';
 
 type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
@@ -53,6 +55,8 @@ export interface WorkerClientPorts {
   readonly died: () => void;
   /** The page's own shard's item rows: a ranged row names the server's slot for it. */
   readonly items: readonly WorkerItemRow[];
+  /** The tools this page holds now: a hook tool's claw goes on the wire. */
+  readonly tools: () => readonly object[];
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
 }
@@ -142,6 +146,15 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     }
   };
   net.bindRide({ enter: handle => { const body = bodies.get(handle)?.body; if (body !== undefined) mount?.enter(body.entityId); }, leave: () => { mount?.leave(); } });
+  // J116: a hook tool's claw reads this player's rows, so it waits for the server to name them. A grid cell holds its own tool.
+  let clawed: GrappleTool | null = null;
+  const bindClaw = (): void => {
+    const tool = ports.tools().find(item => item instanceof GrappleTool) ?? null, id = client.entities.get(client.welcome?.handle ?? 0)?.id;
+    if (tool === clawed || id === undefined) return;
+    clawed?.useClaw(null); clawed = tool;
+    tool?.useClaw(course => netClaw(client, id, net.hooks, course));
+  };
+  scope.onDispose(() => { clawed?.useClaw(null); clawed = null; });
   // J116: the lock's body by the server's name for it
   net.lockTarget = () => {
     if (lockOn.state !== 'locked' || lockOn.target === null) return undefined;
@@ -185,7 +198,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     const entered = grid?.items() ?? items;
     if (entered !== items) { items = entered; net.bindSlots(slotsOf(items)); }
     syncCreatures(client, animals, bodies);
-    bindMount(); offerMounts();
+    bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near);
     report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
     net.present(dt);

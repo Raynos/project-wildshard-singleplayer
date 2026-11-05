@@ -185,7 +185,7 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
   const hideCues = (): void => { chip.show(false); for (const m of marks) m.show(false); };
   // the law (the caller's); the view draws, sounds and animates what it does
   // G946: the browser keeps its existing rise-to-ring zip; no player variant.
-  const sim: GrappleClaw = tool.claw?.(fragment) ?? new GrappleSim(ports, fragment, { rise: () => true }); tool.sim = sim;
+  let sim: GrappleClaw = tool.claw?.(fragment) ?? new GrappleSim(ports, fragment, { rise: () => true }); tool.sim = sim;
   const callbacks = {
     fire: () => { muzzleFlash.burst(muzzle, up.set(0, 1, 0), 0); rules.cue('fire'); ctx.arms?.playLeft?.('grapple_fire'); ctx.arms?.setClawVisible?.(false); },
     miss: () => { ctx.toast(row.toasts.miss); },
@@ -410,7 +410,8 @@ function installGrappleAim(ctx: EquipmentHost, shard: ShardContext, scope: Scope
     muzzleFlash.object.position.copy(muzzle);
     dockFlash.object.position.copy(muzzle);
   } }, scope);
-  scope.onDispose(() => { sim.release(); flushEvents(); input.pop('grapple'); for (let i = 0; i < 4; i++) bursts[i]?.object.removeFromParent(); });
+  tool.swapClaw = make => { sim.release(); flushEvents(); sim = make?.(sim.course) ?? new GrappleSim(ports, sim.course, { rise: () => true }); tool.sim = sim; };
+  scope.onDispose(() => { tool.swapClaw = null; sim.release(); flushEvents(); input.pop('grapple'); for (let i = 0; i < 4; i++) bursts[i]?.object.removeFromParent(); });
   return setCourse;
 }
 
@@ -448,8 +449,12 @@ export class GrappleTool extends Tool {
   enabled = true;
   holster = 0;
   sim: GrappleClaw | null = null;
-  /** The claw this tool draws, in place of the page's own law: the flip sets it to `netClaw`. */
+  /** The claw this tool draws, in place of the page's own law: a wire's `netClaw`. Its client may start after this tool installs. */
   claw: ((course: GrappleCourse) => GrappleClaw) | null = null;
+  /** Set while installed: where `useClaw` lands. */
+  swapClaw: ((make: GrappleTool['claw']) => void) | null = null;
+  /** Draw this claw from now on, installed or not; null gives the page's law back. */
+  useClaw(make: GrappleTool['claw']): void { this.claw = make; this.swapClaw?.(make); }
   private setter: ((course: GrappleCourseRow | null) => void) | undefined;
   constructor(private readonly shard: ShardContext, private readonly data: { readonly equipment: EquipmentRow; readonly profile: GrappleProfile; readonly presentation: GrappleRows; readonly hooks: GrappleCourseRow['hooks'] }) {
     super(data.equipment);
