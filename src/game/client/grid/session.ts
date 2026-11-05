@@ -103,7 +103,7 @@ import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type
 import { GAME_STRINGS } from '../../shared/strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type ShardRefusal } from './refusal';
 import { tileRing } from '../shardfile/tileDriver';
-import { CellLoading, type CellLoadingInput } from '../../server/grid/cellLoading';
+import { CellLoading, type CellLoadingInput } from './cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
 import { readGridSeamData, type GridSeamAddress } from '../../shared/grid/seamData';
 import { readCompiledGridStrips } from '../../shared/grid/compiledStrips';

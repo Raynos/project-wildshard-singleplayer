@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { CellLoading, type CellLoadingInput } from '../../server/grid/cellLoading';
+import { CellLoading, type CellLoadingInput } from './cellLoading';
 import type { CellScreenView } from './cellScreens';
 
 test('an actual hook corrects an inferred row and warm-up names its own work', () => {

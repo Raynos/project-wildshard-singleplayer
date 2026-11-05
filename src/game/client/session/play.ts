@@ -717,7 +717,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     mark('audio');
 
     // nearest interactable: standalone and in the grid's home frame the page runtime's own; inside an entered runtime cell
-    // (Sky Reach's RIDE, a cell's talk / pickup / open) that cell's own, in its frame (grid-interact, src/game/server/grid/enteredInteract.ts)
+    // (Sky Reach's RIDE, a cell's talk / pickup / open) that cell's own, in its frame (grid-interact, src/game/client/grid/enteredInteract.ts)
     const physics = app.physics;
     const homeActive = grid === null || gridLive === null;
     nearest = gridLive === null ? pickInteractable(boot.runtime.interactables, game.camera.position, physics)

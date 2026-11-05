@@ -8,9 +8,9 @@
  * `CellLoading` owns the one scoped screen: it opens on the cell the traveller waits at (or has entered before it is
  * gameplay-ready), steps it at most a few times a second, and fades it out when the cell is ready or left.
  */
-import type { CellScreen, CellScreenView } from '../../client/grid/cellScreens';
-import type { SoftWallEdge } from '../../client/grid/softWallLook';
-import { loadingPath } from '../../client/boot/loadingPaths';
+import type { CellScreen, CellScreenView } from './cellScreens';
+import type { SoftWallEdge } from './softWallLook';
+import { loadingPath } from '../boot/loadingPaths';
 
 /** One waiting cell's live admission, read through the grid session's read-only port. */
 export interface CellLoadingInput {

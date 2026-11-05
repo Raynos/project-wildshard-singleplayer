@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { CellLoading, type CellLoadingInput, type CellScreenPlace } from '../src/game/server/grid/cellLoading';
+import { CellLoading, type CellLoadingInput, type CellScreenPlace } from '../src/game/client/grid/cellLoading';
 import { facingEdge, type CellScreenView } from '../src/game/client/grid/cellScreens';
 import { loadingPath } from '../src/game/client/boot/loadingPaths';
 

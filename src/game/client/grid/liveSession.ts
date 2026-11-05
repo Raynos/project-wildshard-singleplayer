@@ -73,7 +73,7 @@ import type { LocalSaveInstance } from '../../shared/instanceSaves';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
 import { constructionOwner, currentOwner } from '@wildshard/engine/app/ownership';
 import { prepareScriptMemoryLease, SCRIPT_LIMITS } from '@wildshard/engine/script/host';
-import { enteredRuntime, pickInFrame } from '../../server/grid/enteredInteract';
+import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';

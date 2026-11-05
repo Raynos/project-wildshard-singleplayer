@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { cellLoadingStep, type CellLoadingInput } from '../src/game/server/grid/cellLoading';
+import { cellLoadingStep, type CellLoadingInput } from '../src/game/client/grid/cellLoading';
 import { loadingPath } from '../src/game/client/boot/loadingPaths';
 
 const base: CellLoadingInput = { instance: 'pine-hollow', slug: 'pine-hollow', name: 'Pine Hollow', refusal: null, product: false,
