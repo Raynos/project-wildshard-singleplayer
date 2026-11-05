@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { cellCoverPort } from './cellCover';
+import { cellCoverPort } from '../../client/grid/cellCover';
 
 // G784 / D189: a world that draws its whole cell's ground itself hides the coarse root at once; one whose ground is the
 // coarse tiles keeps them until their replacement is ready (Pine went white when every entered cell hid at once)

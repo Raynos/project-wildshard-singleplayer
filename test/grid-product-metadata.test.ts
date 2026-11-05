@@ -7,7 +7,7 @@ import { postStackCost } from '@wildshard/format/postStack';
 import * as product from '../src/game/client/shardfile/product';
 import * as runtime from '../src/game/client/shardfile/runtimeProduct';
 import { gridShardfileProduct,prioritizeGridProduct } from '../src/game/client/grid/products';
-import { prepareHomeMetadata } from '../src/game/server/grid/homeMetadata';
+import { prepareHomeMetadata } from '../src/game/client/grid/homeMetadata';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { prepareApproachProductInputs } from '../src/game/client/grid/approachProductInputs';
 import { ApproachInputsDeferredError } from '../src/game/client/grid/productInputs';

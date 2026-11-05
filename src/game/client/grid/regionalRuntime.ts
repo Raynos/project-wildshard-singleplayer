@@ -1,5 +1,5 @@
 import { bindResidentTileEntry } from '../shardfile/tileEntry';
-import {bindEquipmentActors} from '../../server/loadout/actors';
+import {bindEquipmentActors} from '../loadout/actors';
 import { freezeParkedMatrices } from '@wildshard/engine/render/precompile';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { isDev } from '@wildshard/engine/core/devMode';
@@ -36,7 +36,7 @@ import { installEnteredRuntimeService } from "../shard/retainedHooks";
 import { Progress } from '../Progress';
 import { Inventory } from '../../server/Inventory';
 import { Owned } from '../../shared/loot/Owned';
-import type { EnteredEquipment } from '../../server/grid/enteredEquipment';
+import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';
 import { coverRuntimeAssets } from './assetResidency';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';

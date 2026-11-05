@@ -8,7 +8,7 @@ import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { smooth01, step } from '../src/engine/shared/entities/species/rigs';
 import { shardContext } from '../src/game/server/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import type { SpeciesViewActor } from '../src/game/server/population/speciesViewSlots';
+import type { SpeciesViewActor } from '../src/game/client/population/speciesViewSlots';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { installViewProgram } from '../src/game/client/shardfile/clientViewProgram';

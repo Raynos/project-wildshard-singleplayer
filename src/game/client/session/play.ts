@@ -1,7 +1,7 @@
 
 import type { GridSession as DeclarationGridSession } from '../grid/session';
 import { exitSessionToTitle } from './exitToTitle';
-import { initialHomeMetadataRequired } from '../../server/grid/homeMetadata';
+import { initialHomeMetadataRequired } from '../grid/homeMetadata';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -13,7 +13,7 @@ import type { TrainingArena } from '@wildshard/engine/practice/TrainingArena';
 
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import type { EnteredEquipment } from '../../server/grid/enteredEquipment';
+import type { EnteredEquipment } from '../grid/enteredEquipment';
 import type { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
 import type { TouchControls } from '@wildshard/engine/player/TouchControls';
 import type { HUD } from '@wildshard/engine/ui/HUD';
@@ -40,7 +40,7 @@ import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { resolveLevelBounds } from '../../shared/shard/runtime';
 import { SkinLocker } from '../cosmetics/locker';
 import { BagMenu } from '../bag/tabs';
-import { equipmentEntry, toolEntries } from '../../server/bag/equipment';
+import { equipmentEntry, toolEntries } from '../bag/equipment';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { DeathCause } from '@wildshard/engine/combat/pipeline';
 import { type Bucket, frameCost } from '@wildshard/engine/core/frameCost';

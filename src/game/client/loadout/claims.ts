@@ -37,7 +37,7 @@ import { Bow } from '../../server/weapons/Bow';
 import { bindHeldBow } from '../weapons/heldLauncher';
 import { HeldFirearm, type HeldFirearmProfile, type HeldFirearmView, type HeldFirearmRows } from '../plugin/heldFirearm';
 import type { BowVariantRows } from '@wildshard/format/bowVariantRows';
-import { equipmentActorOwner } from '../../server/loadout/actors';
+import { equipmentActorOwner } from './actors';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { ProjectedTrail } from '@wildshard/engine/combat/view/projectedTrail';
 import type { ArcWeaponPower } from '../weapons/arcPower';

@@ -4,7 +4,7 @@ import { BatchedMesh, Bone, Box3, BufferAttribute, InstancedMesh, Line, Color, M
 import type { Scope } from '@wildshard/engine/app/scope';
 import { PATCH_ORDER, copyShaderPatches, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
-import { onCellField, onCellMethods } from '../../server/grid/cellChanges';
+import { onCellField, onCellMethods } from './cellChanges';
 import { skinEnvelope, uploadedSkinBounds } from './skinEnvelope';
 import { guardObjectDraw, type DrawGuard } from '@wildshard/engine/render/drawGuards';
 import { instanceEnvelope } from '@wildshard/engine/render/instancedGeometry';

@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { prepareRegionalInputs } from '../../server/grid/regionalInputs';
+import { prepareRegionalInputs } from './regionalInputs';
 
 function deferred<T>() {
   let finish: (value: T) => void = () => undefined;

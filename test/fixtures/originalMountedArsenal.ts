@@ -2,7 +2,7 @@
 // Only import paths change; production never imports this fixture.
 import * as THREE from 'three';
 import type { BowVariantRows } from '@wildshard/format/bowVariantRows';
-import { equipmentActorOwner } from '../../src/game/server/loadout/actors';
+import { equipmentActorOwner } from '../../src/game/client/loadout/actors';
 import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { ProjectedTrail } from '@wildshard/engine/combat/view/projectedTrail';
 import { parse } from 'valibot';

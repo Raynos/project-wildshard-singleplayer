@@ -442,7 +442,7 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const rows = [
     ['src/engine/shared/physics/heightPatch.ts', ['HeightPatch', 'HeightPatchOpts']],
-    ['src/game/server/loadout/actors.ts', ['EquipmentActorOwner', 'owners', 'equipmentActorOwner']],
+    ['src/game/client/loadout/actors.ts', ['EquipmentActorOwner', 'owners', 'equipmentActorOwner']],
     ['src/game/client/systems/npc/figureSkins.ts', ['atlasFigureSkin']],
   ] as const;
   const modules = new Map(rows.map(([path]) => [path, shared]));

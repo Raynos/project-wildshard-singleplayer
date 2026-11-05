@@ -63,7 +63,7 @@ import { gridPostPairRefusal } from '../../shared/grid/postPairs';
 import {productPostCost} from '../shardfile/productCost';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from '../../shared/grid/recovery';
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from '../../shared/grid/roadRecovery';
-import { GridCellWaitingError } from '../../server/grid/refusal';
+import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../../shared/shardfile/scriptNotice';
 import { prepareShardfileSimRestore, type ShardfileSimulation } from '../../server/plugin/simulation';
 import { withCopyLayout } from './copyLayout';

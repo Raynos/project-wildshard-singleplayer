@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { initialHomeMetadataRequired, prepareHomeMetadata, withInitialHomeMetadata } from './homeMetadata';
+import { initialHomeMetadataRequired, prepareHomeMetadata, withInitialHomeMetadata } from '../../client/grid/homeMetadata';
 
 function deferred<T>() {
   let finish = (_value: T): void => { throw new Error('Missing resolver'); };

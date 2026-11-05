@@ -316,7 +316,7 @@
   "src/game/client/grid/approach-product-inputs.test.ts": 0.501821819,
   "src/game/client/grid/cell-clip-defines.test.ts": 0.133251077,
   "src/game/server/grid/cell-cover-own-ground.test.ts": 0.043122071,
-  "src/game/server/grid/cellChanges.test.ts": 0.066312965,
+  "src/game/client/grid/cellChanges.test.ts": 0.066312965,
   "src/game/client/grid/entry-read-prefetch.test.ts": 0.064157275,
   "src/game/client/grid/far-bands.test.ts": 0.065104032,
   "src/game/client/grid/far-preparation-waits.test.ts": 0.079010783,

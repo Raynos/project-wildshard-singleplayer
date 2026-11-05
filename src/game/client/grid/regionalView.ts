@@ -34,7 +34,7 @@ import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import { WorldRegistry, type Piece } from '@wildshard/engine/world/registry';
 import type { GridCell } from '../../shared/grid/assembly';
 import type { ResidencyAllocator, ResidencyLease } from '../../shared/grid/allocator';
-import { cellCoverOf } from '../../server/grid/cellCover';
+import { cellCoverOf } from './cellCover';
 import { cellClip } from './cellClip';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 

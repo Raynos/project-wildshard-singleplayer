@@ -1,4 +1,4 @@
-import type { SessionState } from '../../client/session/context';
+import type { SessionState } from '../session/context';
 import type { Scope } from '@wildshard/engine/app/scope';
 
 interface MetadataOwner { readonly disposed: boolean; readonly disposing: boolean; onDispose: (release: () => void) => void }

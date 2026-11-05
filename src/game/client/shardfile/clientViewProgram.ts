@@ -11,7 +11,7 @@ import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { viewProgram, type ViewProgram, type ViewSlots, type ViewTell } from '@wildshard/engine/script/viewProgram';
 import { prepareViewMemory } from '@wildshard/engine/script/viewLane';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { speciesViewSlots } from '../../server/population/speciesViewSlots';
+import { speciesViewSlots } from '../population/speciesViewSlots';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../../server/plugin/context';
 import { entryOwner } from './entryOwners';

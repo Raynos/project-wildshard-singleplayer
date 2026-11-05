@@ -35,7 +35,7 @@ import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from '../shared/strings';
 import { menuMode, selectEnters, selectExplores, type MenuMode } from './grid/menu';
-import { pageShardRefusals, refusalReason, type ShardRefusal } from '../server/grid/refusal';
+import { pageShardRefusals, refusalReason, type ShardRefusal } from './grid/refusal';
 import './summary.css';
 import './upgrade.css';
 
@@ -63,7 +63,7 @@ export interface TitleCard {
  *  admission (src/game/client/shardfile/product.ts, previous versions) is where an outside author's older shard will report one. */
 export type UpgradeNeeded = (slug: string) => number | null;
 const noUpgrades: UpgradeNeeded = () => null;
-/** Which shards this session refused (G167; `src/game/server/grid/refusal.ts`), default: the page's session record. */
+/** Which shards this session refused (G167; `src/game/client/grid/refusal.ts`), default: the page's session record. */
 export type RefusedShard = (slug: string) => ShardRefusal | null;
 const sessionRefusals: RefusedShard = (slug) => pageShardRefusals().read(slug);
 

@@ -78,7 +78,7 @@ import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { prepareManifestScalarBlocks,type ShardManifest } from '../../server/shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../../server/shard/spec';
-import { prepareRegionalInputs } from '../../server/grid/regionalInputs';
+import { prepareRegionalInputs } from './regionalInputs';
 import { regionalBuildCheckpoint } from './regionalBuildCheckpoint';
 import { clientPreparationBatch, timeClientPreparation } from '../shardfile/preparationTiming';
 import type { ShardWorld } from '../../server/shard/world';

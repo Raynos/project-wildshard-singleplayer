@@ -24,7 +24,7 @@ import { EdgeProfilesSchema } from '@wildshard/format/edgeProfiles';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
 import * as v from 'valibot';
 
-import { GridAdmissionPriority } from '../../server/grid/admissionPriority';
+import { GridAdmissionPriority } from './admissionPriority';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { readCheckedOutputIndex } from '../../server/shardfile/outputIndexChecks';
 import { packReads, type PackReads } from '../../shared/shardfile/packReads';

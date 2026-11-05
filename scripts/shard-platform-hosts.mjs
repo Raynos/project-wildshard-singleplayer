@@ -70,7 +70,7 @@ const hosts = {
   'audio/audio': ['engine/client/audio/declared#installDeclaredAudio'],
   'ui/card': [], // Discovery metadata; no per-shard executable implementation.
   'ui/level': [],
-  'ui/ui': ['game/client/shard/declaredUi#mountDeclaredUi', 'game/server/shard/declaredTargets#installDeclaredTargets'],
+  'ui/ui': ['game/client/shard/declaredUi#mountDeclaredUi', 'game/client/shard/declaredTargets#installDeclaredTargets'],
   'ui/compendium': ['game/shared/shard/declaredRows#declaredProductCompendium'],
   'ui/completion': ['game/client/complete/declared#installCompletion'],
   'ui/strings': [], // Read by an explicitly imported consumer, not executed.

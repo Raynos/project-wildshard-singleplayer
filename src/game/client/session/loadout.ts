@@ -1,6 +1,6 @@
 
 import type { SwimArms } from '@wildshard/engine/player/Hands';
-import type { EnteredEquipment as DeclarationEnteredEquipment } from '../../server/grid/enteredEquipment';
+import type { EnteredEquipment as DeclarationEnteredEquipment } from '../grid/enteredEquipment';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import type { ShardManifest, FieldModelsContext } from '../../server/shard/manifest';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -24,7 +24,7 @@ import type { Preload, AudioBanks } from '@wildshard/engine/boot/extras';
 import type { LoadStage } from '../shard/load';
 import type { StagedBoot, SessionState, KitPorts } from './context';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import { bindEquipmentActors } from '../../server/loadout/actors';
+import { bindEquipmentActors } from '../loadout/actors';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import { weaponInputContext } from '@wildshard/engine/input/gameplay';
@@ -104,7 +104,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) : Promi
     } } satisfies NonNullable<ConstructorParameters<typeof EquipmentService>[1]>),
     ...(authoredKit.order === undefined ? {} : { order: [...authoredKit.order] }) });
   const enteredEquipment = ctx.session.ownedGridHome === true ? await (async () => {
-    const { EnteredEquipment } = await import('../../server/grid/enteredEquipment');
+    const { EnteredEquipment } = await import('../grid/enteredEquipment');
     if (game.levelScope.disposed || game.levelScope.disposing) throw new Error('Grid owner retired while loading equipment');
     return new EnteredEquipment(roadEquipment);
   })() : undefined;

@@ -11,7 +11,7 @@ import { createLevelInstallation, type LevelInstallation } from '@wildshard/engi
 import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellRef, ShardPlugin } from '../../server/plugin/context';
 
 import type { ShardRuntime } from '../../shared/shard/runtime';
-import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../../server/shard/scopedRuntime';
+import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
 import { RetainedRuntimeHooks, installEnteredRuntimeService } from "../shard/retainedHooks";
 import { enterSkyClock } from '../session/clockSettings';
 

@@ -5,7 +5,7 @@ import { parse } from 'valibot';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
 import { MountedArsenal, VariantBowPower } from './fixtures/originalMountedArsenal';
 import * as THREE from 'three';
-import { bindEquipmentActors } from '../src/game/server/loadout/actors';
+import { bindEquipmentActors } from '../src/game/client/loadout/actors';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import variant from '../src/shards/nalati-grasslands/boot/bowVariant.json' with { type:'json' };
 import { Scope } from '../src/engine/shared/app/scope';

@@ -37,7 +37,7 @@ import type { ShardContext } from "../../server/plugin/context";
 import type { ShardPlayHost } from '../../shared/shard/runtime';
 import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
 import { declaredProductCompendium, declaredDay, declaredWeather } from '../../shared/shard/declaredRows';
-import { installDeclaredTargets } from '../../server/shard/declaredTargets';
+import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
 import { createQuestScriptPorts } from '../../server/quest/declared';
 import type { ClientScriptViewTarget } from "../plugin/ui";

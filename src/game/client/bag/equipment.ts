@@ -1,4 +1,4 @@
-import type { GearTool } from '../../client/bag/bag';
+import type { GearTool } from './bag';
 import type { Tool } from '@wildshard/engine/combat/Tool';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import type { KitEntry } from '@wildshard/engine/ui/Menu';

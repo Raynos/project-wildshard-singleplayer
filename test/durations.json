@@ -249,7 +249,7 @@
  "src/game/client/grid/approach-product-inputs.test.ts": 0,
  "src/game/client/grid/cell-clip-defines.test.ts": 0,
  "src/game/server/grid/cell-cover-own-ground.test.ts": 0,
- "src/game/server/grid/cellChanges.test.ts": 0,
+ "src/game/client/grid/cellChanges.test.ts": 0,
  "src/game/client/grid/entry-read-prefetch.test.ts": 0,
  "src/game/client/grid/far-bands.test.ts": 0,
  "src/game/client/grid/far-preparation-waits.test.ts": 0,

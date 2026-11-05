@@ -25,7 +25,7 @@ import type { AmbientFlockDraw } from '../ambient/ambientFlock';
 import type { CollectionCatalogue } from '../models/collectionDisplay';
 import type { HeldClaims } from '../loadout/claims';
 import type { QuestPageComposition } from '../../server/quest/pageComposition';
-import type { QuestPageReference } from '../../server/quest/pageReference';
+import type { QuestPageReference } from '../quest/pageReference';
 import type { CaveInterior } from './caveInterior';
 import type { ForestPage } from './forestPage';
 import type { SceneHandles } from './sceneHandles';

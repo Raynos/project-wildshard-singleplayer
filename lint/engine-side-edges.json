@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 206,
+  "client → server": 186,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 137,
@@ -66,14 +66,11 @@
   "src/game/client/grapple/tool.ts": {
    "client → server": 1
   },
-  "src/game/client/grid/cellClip.ts": {
-   "client → server": 1
-  },
   "src/game/client/grid/copyPrompts.ts": {
    "client → server": 1
   },
   "src/game/client/grid/liveSession.ts": {
-   "client → server": 9
+   "client → server": 8
   },
   "src/game/client/grid/pageEntry.ts": {
    "client → server": 1
@@ -85,22 +82,19 @@
    "client → server": 1
   },
   "src/game/client/grid/products.ts": {
-   "client → server": 2
-  },
-  "src/game/client/grid/regionalRuntime.ts": {
-   "client → server": 3
-  },
-  "src/game/client/grid/regionalView.ts": {
    "client → server": 1
   },
+  "src/game/client/grid/regionalRuntime.ts": {
+   "client → server": 2
+  },
   "src/game/client/grid/regionalWorld.ts": {
-   "client → server": 5
+   "client → server": 4
   },
   "src/game/client/grid/session.ts": {
-   "client → server": 5
+   "client → server": 2
   },
   "src/game/client/loadout/claims.ts": {
-   "client → server": 5
+   "client → server": 4
   },
   "src/game/client/loadout/held.ts": {
    "client → server": 2
@@ -166,13 +160,13 @@
    "client → server": 6
   },
   "src/game/client/session/finish.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/session/loadout.ts": {
-   "client → server": 4
+   "client → server": 2
   },
   "src/game/client/session/play.ts": {
-   "client → server": 6
+   "client → server": 4
   },
   "src/game/client/session/session.ts": {
    "client → server": 2
@@ -187,7 +181,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/client.ts": {
-   "client → server": 8
+   "client → server": 7
   },
   "src/game/client/shardfile/clientBossFight.ts": {
    "client → server": 1
@@ -223,7 +217,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/clientQuestComposition.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/shardfile/clientQuestPage.ts": {
    "client → server": 3
@@ -243,14 +237,11 @@
   "src/game/client/shardfile/clientTimedEncounters.ts": {
    "client → server": 1
   },
-  "src/game/client/shardfile/clientViewProgram.ts": {
-   "client → server": 1
-  },
   "src/game/client/shardfile/clientWorldAssembly.ts": {
    "client → server": 1
   },
   "src/game/client/shardfile/hybrid.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/client/shardfile/portalRideBinding.ts": {
    "client → server": 1
@@ -274,9 +265,6 @@
    "client → server": 1
   },
   "src/game/client/systems/npc/kitFigure.ts": {
-   "client → server": 1
-  },
-  "src/game/client/titleDeck.ts": {
    "client → server": 1
   },
   "src/game/client/weapons/heldPolearm.ts": {

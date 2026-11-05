@@ -5,7 +5,7 @@ import * as bowBinding from '../src/game/server/weapons/Bow';
 import {HeldClaims} from '../src/game/client/loadout/claims';
 import {parseHeldSlots,HeldSlotsSchema} from '@wildshard/format/heldArms';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {bindEquipmentActors,equipmentActorOwner} from '../src/game/server/loadout/actors';
+import {bindEquipmentActors,equipmentActorOwner} from '../src/game/client/loadout/actors';
 import {AnimalManager} from '../src/engine/server/entities/AnimalManager';
 import {Animal} from '../src/engine/client/entities/AnimalView';
 import {Scope} from '../src/engine/shared/app/scope';

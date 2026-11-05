@@ -4,7 +4,7 @@ import {createSimHost} from '../src/engine/server/sim';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {viewProgram} from '../src/engine/client/script/viewProgram';
-import {speciesViewSlots} from '../src/game/server/population/speciesViewSlots';
+import {speciesViewSlots} from '../src/game/client/population/speciesViewSlots';
 import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
 import {nalatiCreatureViews} from '../src/shards/nalati-grasslands/generators/creatureViews';
 import source from '../src/shards/nalati-grasslands/behaviour/creatureViews.as?raw';

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { GridAdmissionPriority } from './admissionPriority';
+import { GridAdmissionPriority } from '../../client/grid/admissionPriority';
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
   let finish: (value: T) => void = () => { throw new Error('Deferred resolver was not installed'); };
