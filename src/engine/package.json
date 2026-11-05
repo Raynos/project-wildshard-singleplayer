@@ -90,6 +90,7 @@
     "./app/disposalCache": "./client/app/disposalCache.ts",
     "./app/identity": "./shared/app/identity.ts",
     "./app/ownership": "./shared/app/ownership.ts",
+    "./app/pageSeat": "./shared/app/pageSeat.ts",
     "./app/resources": "./shared/app/resources.ts",
     "./app/runtime": "./client/app/runtime.ts",
     "./app/scheduler": "./shared/app/scheduler.ts",

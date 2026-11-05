@@ -1,3 +1,4 @@
+import '../src/engine/client/app/runtime';
 import {admissionPage,admission} from './fixtures/nalati-return-modules';
 import { PopulationRelations } from '../src/game/server/population/relations';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/shared/world/terrainHeight';

@@ -10,7 +10,7 @@ import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sharddev/author';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {parseClientPlan} from '@wildshard/format/clientPlan';
-import {installClientWildlife} from '../src/game/server/population/wildlife';
+import {installClientWildlife} from '../src/game/client/population/wildlifeFeature';
 import * as groups from '../src/game/server/population/pageGroups';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';

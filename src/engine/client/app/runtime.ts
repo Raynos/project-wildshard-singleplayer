@@ -1,10 +1,12 @@
 import { setSpeciesResolver } from '../../shared/entities/species/registry';
+import { seatPageApp } from '../../shared/app/pageSeat';
 import { bindTelemetry } from '../telemetry/runtime';
 import { bindAudioRandom } from '../audio/util';
 import { App } from './app';
 
 /** The page app; legacy active-service entry points delegate here during the migration. */
 export const app: App = new App();
+seatPageApp(app);
 bindTelemetry(app);
 bindAudioRandom(() => app.rng.stream('audio').next());
 

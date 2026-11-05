@@ -13,7 +13,7 @@ import type {TimedEncounters} from '../src/game/client/boss/timedEncounters';
 import type {ArenaRoomEncounter} from '../src/game/client/boss/arenaRoom';
 import type {ForestWeatherRig} from '../src/game/client/weather/forest';
 import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
-import * as population from '../src/game/server/population/wildlife';
+import * as population from '../src/game/shared/population/wildlifeOwner';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {emptyShardfile} from '../src/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';

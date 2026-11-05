@@ -9,6 +9,7 @@ import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { hasLentLook, lentLooksOf, setLentParam, type LentLooks } from './lentLooks';
 import { productClosureFile } from '../../shared/shardfile/shardProduct';
 import { materialGraphIr } from '@wildshard/format/materials';
+import { grassHeightAt, trample } from '../systems/looks/trample';
 
 export interface MoverMoorRows {readonly look:string;readonly water:number;readonly cleats:readonly [number,number]}
 export type MoverOwnerBinding =
@@ -18,6 +19,8 @@ export interface MoverOwnerRows {readonly system:string;readonly bindings:readon
 const installed=new WeakSet<Scope>();
 /** The client's one seat on the page sim's feed. The flip replaces this binding; views only read it. */
 export const pageSim:PageSimFeed=pageSimFeed;
+// The grass a creature reads and parts is a view's, so this seat lends it the moment the page sim is reachable.
+pageSim.lendPageGrass({heightAt:grassHeightAt,push:(x,z,radius,strength,vx,vz)=>{trample.push(x,z,radius,strength,vx,vz);}});
 
 /** Every mover id and original target is admitted before effects. The existing
  * native mover host owns tick, collider, script and save identities. No authored

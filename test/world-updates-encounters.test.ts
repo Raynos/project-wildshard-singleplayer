@@ -15,7 +15,7 @@ import {createShardProduct,type ShardProduct} from '../src/game/shared/shardfile
 import {emptyShardfile} from '../src/sharddev/author';
 import {installWorldUpdates} from '../src/game/server/shardfile/worldUpdates';
 import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/shared/shardfile/entryOwners';
-import * as population from '../src/game/server/population/wildlife';
+import * as population from '../src/game/shared/population/wildlifeOwner';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows=[

@@ -4,7 +4,7 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import { updateWind } from '@wildshard/engine/world/wind';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { clientWildlife } from '../population/wildlife';
+import { clientWildlife } from '../../shared/population/wildlifeOwner';
 import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { ArenaRoomEncounter } from '../../client/boss/arenaRoom';
 import type { ShardContext } from '../../client/plugin/context';

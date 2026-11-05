@@ -6,11 +6,10 @@ import { entryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/s
 import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import { admitSpeciesProgram } from '../../server/plugin/brain';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { bindPlayerImpulse } from '../../shared/shardfile/dataCreaturePorts';
-import { borrowedDecisionAuthority } from '../../server/shardfile/borrowedDecisions';
+import { pageSim } from './clientMoverOwners';
 import { clientNativeBook } from './clientNativeBook';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { sceneModelSource } from './sceneSources';
@@ -51,7 +50,7 @@ export async function installClientSpeciesProgram(ctx: ShardContext, input: unkn
     book.decisionAssets.set(hash, await product.file(file.name));
   }));
   if (ctx.scope.disposed) throw new Error('Species preparation left its entered owner');
-  const brains = admitSpeciesProgram(declared.program);
+  const brains = pageSim.admitSpeciesProgram(declared.program);
   const impulse = bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).directed;
   let push: typeof impulse | null = null;
   if (row.shove) installEnteredRuntimeService(ctx, scope => { push = impulse; scope.onDispose(() => { push = null; }); });
@@ -60,7 +59,7 @@ export async function installClientSpeciesProgram(ctx: ShardContext, input: unkn
       const world = ctx.game.runtime?.world, physics = ctx.app.physics, health = ctx.app.player, quest = book.quest;
       if (world === null || world === undefined || physics === null || health === null || quest === null)
         throw new Error('Decision body needs its actual world, player and quest');
-      book.decisions ??= borrowedDecisionAuthority(source, book.decisionAssets, descriptor.sections, {
+      book.decisions ??= pageSim.borrowedDecisionAuthority(source, book.decisionAssets, descriptor.sections, {
         scope: ctx.scope, events: ctx.app.events, flags: quest.flags, physics,
         player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, health, motor: world.player.motor },
         groundHeightAt: (x, z) => {

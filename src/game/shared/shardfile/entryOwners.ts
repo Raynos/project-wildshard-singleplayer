@@ -7,7 +7,7 @@ import type { SpeciesCatalogue } from '../../client/looks/speciesBook';
 import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import type { EliteDeclaredEntryOwners } from '../../client/Elite';
-import type { clientWildlifeState } from '../../server/population/wildlife';
+import type { clientWildlifeState } from '../population/wildlifeOwner';
 import type { ArenaRoomEncounter } from '../../client/boss/arenaRoom';
 import type { PageTamingOwner, PageRidingView } from '../../client/riding/client';
 import type { AdventurePersistence } from '../quest/persistence';

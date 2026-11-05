@@ -11,7 +11,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import type { HeldClaims, HeldSlotKit } from '../src/game/client/loadout/claims';
 import type { StealthController } from '../src/game/client/stealth/controller';
 import type { PageRidingView } from '../src/game/client/riding/client';
-import type { clientWildlifeState } from '../src/game/server/population/wildlife';
+import type { clientWildlifeState } from '../src/game/shared/population/wildlifeOwner';
 import { wildEnv } from '../src/game/server/population/pageGroups';
 import { bindStealthWeapons, installClientStealthEntry } from '../src/game/client/shardfile/clientStealthEntry';
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';

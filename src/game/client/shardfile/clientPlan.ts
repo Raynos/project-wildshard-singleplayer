@@ -210,8 +210,8 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   } },
   'population.product-creatures': { phase: 'kit', rank: -20, lifetime: 'entered', sections: ['actors/species-programs'], install: async ctx => {
     const { installProductCreatures } = await import('../population/productCreatures');
-    const { pageDecisionAuthority } = await import('../../server/shardfile/borrowedDecisions');
-    const authority = await pageDecisionAuthority(ctx);
+    const { pageSim } = await import('./clientMoverOwners');
+    const authority = await pageSim.pageDecisionAuthority(ctx);
     if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Client feature owner is disposed');
     await installProductCreatures(ctx, authority);
   } },
@@ -248,11 +248,11 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     await installClientTimedEncounters(ctx, row);
   } },
   'practice.course': { phase: 'play', rank: 100, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('../practice/registration')).installPracticeCourse) },
-  'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('../../server/population/wildlife')).installClientWildlife),
+  'population.wildlife': { phase: 'world', rank: 49, lifetime: 'entered', sections: [], install: loadFeature(async () => (await import('../population/wildlifeFeature')).installClientWildlife),
     play: { rank: 120, install: async (ctx, row) => {
       if (row.kind !== 'population.wildlife') throw new Error('Invalid wildlife publication');
       if (row.publish === undefined) return;
-      const { clientWildlife } = await import('../../server/population/wildlife');
+      const { clientWildlife } = await import('../../shared/population/wildlifeOwner');
       const runtime = ctx.game.runtime;
       if (ctx.scope.disposed || ctx.scope.disposing || runtime === undefined || runtime.world === null || runtime.step === null || runtime.play === null) throw new Error('Wildlife publication requires its entered world and play owner');
       const wildlife = clientWildlife(ctx); if (wildlife === null) throw new Error('Wildlife has not been built');

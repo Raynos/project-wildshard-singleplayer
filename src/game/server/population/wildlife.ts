@@ -1,31 +1,21 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import { macrotask } from '@wildshard/engine/boot/plan';
-import { buildYield } from '@wildshard/engine/core/workSlice';
-import { wind } from '@wildshard/engine/world/steppeWind';
-import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../client/plugin/context';
-import { createPageCrowds } from '../ambient/crowdPage';
-import { fixedDraws } from '../../client/models/fixedDraws';
-import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import type { CrowdDraw } from '../../client/ambient/crowdDraw';
-import { prepareForagerDraw, type ForagerDraw } from '../../client/ambient/foragerDraw';
-import { pageRidingMounted } from '../../shared/riding/entered';
 import { lendRidingPopulation, type PageRidingPopulation } from '../../shared/riding/pagePopulation';
+import { adoptClientWildlife, type WildlifeOwner } from '../../shared/population/wildlifeOwner';
 import { PagePastureRaid } from '../riding/pagePasture';
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
-import type { RayTargets } from '@wildshard/engine/combat/targets';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import { Vector3 } from 'three';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { Rng } from '@wildshard/engine/core/rng';
-import { app } from '@wildshard/engine/app/runtime';
+import { pageApp } from '@wildshard/engine/app/pageSeat';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { installDeclaredCrowdFrames, CrowdTargets, CrowdRoster, CrowdWeaponTarget } from '../../shared/shardfile/crowdRuntime';
-import { PageGroups, PagePopulationPlanner, bindPageGroups, drainSteps, wildEnv } from './pageGroups';
+import { CrowdTargets, CrowdRoster, CrowdWeaponTarget } from '../../shared/shardfile/crowdRuntime';
+import { PageGroups, PagePopulationPlanner, drainSteps, wildEnv } from './pageGroups';
 import { ReturnProgram, ProjectedMotionSample } from '../../shared/population/returnProgram';
 
 type Rows = v.InferOutput<typeof WildlifePopulationSchema>;
@@ -96,12 +86,12 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
     }
     this.flocks.push(view); return dog;
   }
-  sound(cue: string,x: number,z: number,height: number = this.rows.soundHeight): void { app.events.emit('creature.sound',{ cue,x,y: terrainHeight(x,z)+height,z }); }
+  sound(cue: string,x: number,z: number,height: number = this.rows.soundHeight): void { pageApp().events.emit('creature.sound',{ cue,x,y: terrainHeight(x,z)+height,z }); }
   /** Observe before advancing declared crowds, without a per-crowd callback. */
   beginFrame(dt: number,player: { position: Vector3; forward: Vector3; crouching: boolean },extra: { mounted?: boolean }): number {
     const p = player.position,speed = this.motion.update(dt,p.x,p.z),length = Math.hypot(player.forward.x,player.forward.z);
     if (length > 1e-4) { wildEnv.playerFwdX = player.forward.x/length; wildEnv.playerFwdZ = player.forward.z/length; }
-    const health=app.player?.attributes;
+    const health=pageApp().player?.attributes;
     wildEnv.playerCrouched = player.crouching; wildEnv.playerMounted = extra.mounted ?? false; wildEnv.playerHealth01=health===undefined?1:health.health/health.maxHealth;
     this.predators.length = 0; for (const actor of this.predatorBodies) if (actor.alive) this.predators.push(actor);
     const row = this.rows.trample;
@@ -129,103 +119,14 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   killCrowd(hit: { flock: T; index: number }): void { hit.flock.kill(hit.index); }
 }
 
-const clientPopulations = new WeakMap<Scope, { wildlife: PageWildlife<CrowdDraw> | null }>();
 /** The riding page's port on this population (E6). */
 function ridingPort(population: PageWildlife<CrowdDraw>): PageRidingPopulation {
   return { get herds() { return population.herds; }, mountables: population.mountables, predators: population.predators, get wind() { return wildEnv.wind; },
     wetAt: (x, z) => wildEnv.wetAt(x, z), rider: mounted => { wildEnv.playerMounted = mounted; },
-    raid: animals => new PagePastureRaid(animals, population, population.pastureProfile, app.rng.stream('ai')) };
+    raid: animals => new PagePastureRaid(animals, population, population.pastureProfile, pageApp().rng.stream('ai')) };
 }
-/** Borrow the actual population assembled by the declared animal stage. */
-export function clientWildlifeState(ctx: Pick<ShardContext, 'scope'>): { readonly wildlife: PageWildlife<CrowdDraw> | null } {
-  if (ctx.scope.disposed) throw new Error('Wildlife owner is disposed');
-  const owner = clientPopulations.get(ctx.scope);
-  if (owner === undefined) throw new Error('Wildlife feature is not installed');
-  return owner;
-}
-/** The original population, null until its native animal stage completes. */
-export function clientWildlife(ctx: Pick<ShardContext, 'scope'>): PageWildlife<CrowdDraw> | null { return clientWildlifeState(ctx).wildlife; }
-/** Client-only lifecycle adapter for the existing population host. Admitted
- * files select geometry and population rows; native owners retain all clocks. */
-export async function installClientWildlife(ctx: ShardContext, feature: ClientFeatureRow): Promise<void> {
-  if (feature.kind !== 'population.wildlife' || ctx.scope.disposed || clientPopulations.has(ctx.scope)) throw new Error('Invalid wildlife feature owner');
-  const runtime = ctx.game.runtime, world = runtime?.world;
-  if (runtime === undefined || world === undefined || world === null || runtime.hooks.animalsBuilt !== undefined) throw new Error('Wildlife requires its unbound world animal stage');
-  const rows = v.parse(WildlifePopulationSchema, await ctx.product.json(feature.file));
-  // Resolve the named wet loan before publishing any entered population owner.
-  const wet=rows.groups.world.wet,wetFile=typeof wet==='string'||typeof wet.data==='string'?undefined:wet.data.file;
-  if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during wet preparation');
-  const wetBlock=wetFile===undefined?undefined:{file:wetFile,bytes:await ctx.product.file(wetFile)};
-  if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during wet preparation');
-  // Only programmes this population consumes, in the same two original scopes.
-  // Guest initialization stays at bindPageGroups / animalsBuilt below.
-  for (const [program, scope] of [[rows.groups.damage, ctx.scope], [rows.admission, world.game.levelScope], [rows.pasture, world.game.levelScope]] as const) {
-    if (ReturnProgram.prepareMemory(program, scope)) await buildYield(scope);
-    if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during memory preparation');
-  }
-  bindPageGroups(ctx, rows.groups,wetBlock);
-  const page = await ctx.product.json<SpeciesActorsFileRows>(feature.crowd.json);
-  if (page.parts.length === 0 || page.parts.length !== page.pivots.length || page.radius <= 0 || page.draws.length !== 1) throw new Error('Invalid crowd body joints or bound');
-  const draws = fixedDraws(ctx.product, page.draws), template = draws.handle(feature.crowd.binary);
-  const closed = (): boolean => ctx.scope.disposed || ctx.scope.disposing;
-  await draws.load();
-  const geometry = template.take();
-  if (closed() || geometry.boundingSphere === null) { geometry.dispose(); throw new Error('Crowd geometry owner left or bounds are missing'); }
-  ctx.scope.own(geometry);
-  // The original animated sphere includes moving limbs; fixedDraws stays static.
-  geometry.boundingSphere.radius = page.radius;
-  const body = { geometry, pivots: page.pivots, parts: page.parts };
-  const predators: Animal[] = [], crowds = createPageCrowds(world.sky, world.chunk.seed, body, page.page.world, predators,world.game.levelScope);
-  const foragers = rows.foragers?.view === undefined ? null : await prepareForagerDraw(ctx, rows);
-  const owner: { wildlife: PageWildlife<CrowdDraw> | null } = { wildlife: null };
-  let draw: ForagerDraw | null = null;
-  clientPopulations.set(ctx.scope, owner);
-  lendRidingPopulation(ctx.scope, () => owner.wildlife === null ? null : ridingPort(owner.wildlife));
-  // Registered at feature install, before later state reducers. The same
-  // mutable owner is empty until animalsBuilt and retires with this scope.
-  ctx.answer('combat.targets.ray',(request:RayTargets):RayTargets=>({...request,
-    hit:owner.wildlife===null?request.hit:owner.wildlife.raycastWeapon(request.origin,request.dir,request.maxDist,request.hit)}));
-  let started = false;
-  const ensureActive = (): void => { if (ctx.scope.disposed) throw new Error('Wildlife owner left during construction'); };
-  const build = async (animals: AnimalManager): Promise<void> => {
-    if (ctx.scope.disposed || started) throw new Error('Wildlife animal stage is unavailable');
-    started = true;
-    animals.wetAt = (x, z) => wildEnv.wetAt(x, z);
-    animals.navSteer = feature.navSteer;
-    const population = new PageWildlife<CrowdDraw>(animals, rows,world.game.levelScope,world.player.position);
-    // the population's admission and its first pack take a task each: together they were one 117 ms afterKit frame of a
-    // cold Nalati crossing at phone 4x (~32 ms admitting its programmes, ~59 ms the first pack)
-    await macrotask(); ensureActive();
-    for (const step of population.buildSteps()) {
-      ensureActive();
-      if (step.kind === 'crowd') {
-        const view = crowds.factory(step.options, step.index); world.game.scene.add(view.mesh);
-        const guardian = population.attachCrowd(step.index, view);
-        if (guardian !== null) { view.dog = guardian; crowds.guardian(guardian, step.index, population.placement, ctx.app.rng.stream('ai')); }
-      } else if (step.kind === 'foragers' && population.foragers !== null && foragers !== null) {
-        draw = foragers.create(population.foragers.rules); world.game.scene.add(draw.mesh);
-      }
-      await macrotask();
-    }
-    await macrotask();
-    ensureActive();
-    owner.wildlife = population;
-  };
-  runtime.hooks.animalsBuilt = build;
-  ctx.scope.onDispose(() => { clientPopulations.delete(ctx.scope); if (runtime.hooks.animalsBuilt === build) delete runtime.hooks.animalsBuilt; });
-  const player = { position: world.player.position, forward: new Vector3(0, 0, -1), crouching: false };
-  const extra = { mounted: false };
-  installDeclaredCrowdFrames(ctx, { systemId: feature.frame.id, after: feature.frame.after, before: feature.frame.before,
-    current: () => owner.wildlife === null ? null : crowds.runtime,
-    frame: (dt, time, advance) => {
-      const population = owner.wildlife; if (population === null) return;
-      player.forward.set(-Math.sin(world.player.yaw), 0, -Math.cos(world.player.yaw)); player.crouching = world.player.crouching;
-      extra.mounted = pageRidingMounted(ctx);
-      wildEnv.wind.x = wind.dirX; wildEnv.wind.z = wind.dirZ; wildEnv.wind.strength = Math.min(1, wind.speed / 10);
-      const speed = population.beginFrame(dt, player, extra);
-      predators.length = 0;
-      for (let index = 0; index < 64; index++) { const actor = population.predators[index]; if (actor === undefined) break; predators.push(actor); }
-      for (const [index, view] of population.flocks.entries()) crowds.advance(view, index, speed, player.position, dt, time, advance);
-      population.endFrame(dt, player.position, speed, player.crouching); draw?.project();
-    } });
+/** Lend a scope its population's owner, and the riding page its port on it; the owner stays empty until the animal stage builds. */
+export function lendClientWildlife(scope: Scope, owner: WildlifeOwner): void {
+  adoptClientWildlife(scope, owner);
+  lendRidingPopulation(scope, () => owner.wildlife === null ? null : ridingPort(owner.wildlife));
 }

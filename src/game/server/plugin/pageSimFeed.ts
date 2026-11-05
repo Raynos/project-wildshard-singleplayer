@@ -1,15 +1,19 @@
 import { installDeclaredMovers } from './moverInstall';
 import { bindMeleeContacts, bindQuestWorldReactions, commandSocketLift, declaredItemScriptBindings, startMeleeSecondary } from './simulation';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
-import { FixedPageSpawnTable, PageActorGroups, wildEnv } from '../population/pageGroups';
-import { clientWildlifeState } from '../population/wildlife';
+import { FixedPageSpawnTable, PageActorGroups, bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
+import { PageWildlife, lendClientWildlife } from '../population/wildlife';
+import { clientWildlifeState } from '../../shared/population/wildlifeOwner';
+import { bindCrowdGuard, crowdGuardProjection } from '../ambient/crowdPage';
+import { admitSpeciesProgram } from './brain';
+import type { CrowdDraw } from '../../client/ambient/crowdDraw';
 import { bossFight } from './bossPhase';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
 import { arenaRoomFight, bindArenaBrain } from '../boss/arenaRoomFight';
 import { readEliteFeature } from '../quest/eliteFeature';
-import { pageDecisionAuthority, prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
+import { borrowedDecisionAuthority, pageDecisionAuthority, prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
 
 /**
  * What the page's quest views and motion still take from the page's own sim (E6: port first, flip last). A view asks
@@ -40,6 +44,17 @@ export interface PageSimFeed {
   readonly bossFight: typeof bossFight;
   readonly fixedSpawnTable: (...args: ConstructorParameters<typeof FixedPageSpawnTable>) => FixedPageSpawnTable;
   readonly clientWildlifeState: typeof clientWildlifeState;
+  /** The page's population, which its wildlife feature builds and lends (E6 WORLD). */
+  readonly lendClientWildlife: typeof lendClientWildlife;
+  readonly bindPageGroups: typeof bindPageGroups;
+  readonly pageWildlife: (...args: ConstructorParameters<typeof PageWildlife<CrowdDraw>>) => PageWildlife<CrowdDraw>;
+  readonly lendPageGrass: typeof lendPageGrass;
+  /** A crowd's guardian, whose law is the page sim's and whose crowd is a view. */
+  readonly crowdGuardProjection: typeof crowdGuardProjection;
+  readonly bindCrowdGuard: typeof bindCrowdGuard;
+  /** The page's species programme and the decisions its bodies borrow. */
+  readonly admitSpeciesProgram: typeof admitSpeciesProgram;
+  readonly borrowedDecisionAuthority: typeof borrowedDecisionAuthority;
   /** A held blade's contacts and its secondary, which the page's weapons still settle themselves. */
   readonly bindMeleeContacts: typeof bindMeleeContacts;
   readonly startMeleeSecondary: typeof startMeleeSecondary;
@@ -51,6 +66,8 @@ export const pageSimFeed: PageSimFeed = {
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
   wild: wildEnv, arenaRoomFight, bindArenaBrain, readEliteFeature, prepareProductDecisionMemories, pageDecisionAuthority, bossFight,
-  fixedSpawnTable: (...args) => new FixedPageSpawnTable(...args), clientWildlifeState, bindMeleeContacts, startMeleeSecondary,
+  fixedSpawnTable: (...args) => new FixedPageSpawnTable(...args), clientWildlifeState, lendClientWildlife,
+  bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
+  admitSpeciesProgram, borrowedDecisionAuthority, bindMeleeContacts, startMeleeSecondary,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
 };

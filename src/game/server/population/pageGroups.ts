@@ -4,13 +4,12 @@ import type { ShardContext } from '../../client/plugin/context';
 import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import { CrowdRoster, type CrowdTargets } from '../../shared/shardfile/crowdRuntime';
-import { app } from '@wildshard/engine/app/runtime';
+import { pageApp } from '@wildshard/engine/app/pageSeat';
 import { nativeGroupBrain, type ShardHerdGroup } from '@wildshard/format/groupBrains';
 import { PageGroupRowsSchema } from '@wildshard/format/creatures';
 import { GroupNotices } from './groupNotices';
 import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { grassBaseHeightAt } from '../../shared/systems/looks/grassField';
-import { grassHeightAt, trample } from '../../client/systems/looks/trample';
 import * as v from 'valibot';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { knockdownVelocity } from './relations';
@@ -159,6 +158,14 @@ export class PagePopulationPlanner {
   private member(actor: Animal, herd: number): Animal { actor.herd = herd; this.animals.herds[herd]?.members.push(actor); return actor; }
 }
 
+/** The page's grass: its height with trampling, and its trample map. The client seat lends it; without a page, grass stands. */
+export interface PageGrass {
+  readonly heightAt: (x: number,z: number) => number;
+  readonly push: (x: number,z: number,radius: number,strength: number,vx: number,vz: number) => void;
+}
+let pageGrass: PageGrass | null = null;
+export function lendPageGrass(grass: PageGrass): void { pageGrass = grass; }
+
 /** Client-only observations over the installed native grass and terrain. A scope
  * lends numeric weather/player state and a baked wet mask; no query hook binds. */
 export class PageWildEnvironment extends WildSenses {
@@ -179,12 +186,12 @@ export class PageWildEnvironment extends WildSenses {
     this.wind = { ...rows.wind }; this.author = author;
     scope.onDispose(() => { this.states.set(input,Object.getOwnPropertyDescriptors(this)); Object.defineProperties(this,previous); });
   }
-  grassHeightAt(x: number,z: number): number { return grassHeightAt(x,z); }
+  grassHeightAt(x: number,z: number): number { return pageGrass?.heightAt(x,z) ?? grassBaseHeightAt(x,z); }
   grassStandingAt(x: number,z: number): number { return grassBaseHeightAt(x,z); }
-  trample(x: number,z: number,radius: number,strength: number,vx: number,vz: number): void { trample.push(x,z,radius,strength,vx,vz); }
+  trample(x: number,z: number,radius: number,strength: number,vx: number,vz: number): void { pageGrass?.push(x,z,radius,strength,vx,vz); }
   wetAt(x: number,z: number): boolean { return (this.wet?.(x,z) ?? 0) > .5; }
-  onEvent(name: string,x: number,z: number): void { app.events.emit('creature.signal',{ name,x,z }); }
-  onKnockdown(x: number,z: number,strength: number): void { app.events.emit('creature.knockdown',{ x,z,strength }); }
+  onEvent(name: string,x: number,z: number): void { pageApp().events.emit('creature.signal',{ name,x,z }); }
+  onKnockdown(x: number,z: number,strength: number): void { pageApp().events.emit('creature.knockdown',{ x,z,strength }); }
 }
 /** The entered page's observation surface; construction installs no service. */
 export const wildEnv: PageWildEnvironment = new PageWildEnvironment();
@@ -245,12 +252,12 @@ export class PageGroups {
   private actor(id: string): Animal { const actor = this.animals.animals.find(body => body.entityId === id); if (actor === undefined) throw new Error('Missing rendered group actor'); return actor; }
   private common() {
     const half = this.rows.world.size/2;
-    return sharedGroupPorts(wildEnv, { rng: () => app.rng.stream('ai'), normalY: (x, z) => terrainNormal(x,z)[1],
+    return sharedGroupPorts(wildEnv, { rng: () => pageApp().rng.stream('ai'), normalY: (x, z) => terrainNormal(x,z)[1],
       inBounds: (x, z, margin) => Math.abs(x) <= half-margin && Math.abs(z) <= half-margin });
   }
   pack(ids: readonly string[],x: number,z: number): PackBrain<Animal> {
     const members = ids.map(id => this.actor(id)), row = { ...this.packRow,members: [...ids],home: [x,z] as [number,number] };
-    const ports: PackPorts<Animal> = { ...this.common(),register: (actor,director) => { app.aggression.register(actor,director); },
+    const ports: PackPorts<Animal> = { ...this.common(),register: (actor,director) => { pageApp().aggression.register(actor,director); },
       bite: (actor,context,radius) => { this.contact(actor,context,radius,false); },preyIdentity: prey => this.targets.identity(prey),resolvePrey: id => this.targets.resolve(id) };
     const pack = new PackBrain(members,x,z,row,ports);
     initializeDeclaredGroup(pack,this.rows.packGuest,this.groupOwner===undefined?undefined:{scope:this.groupOwner.scope,

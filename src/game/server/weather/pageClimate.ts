@@ -13,7 +13,7 @@ import { ReturnProgram } from '../../shared/population/returnProgram';
 import type { ClimateFeed } from '../../shared/weather/feed';
 import { wildEnv } from '../population/pageGroups';
 import { HerdShelter, type Herd, type Tree } from '../population/shelter';
-import { clientWildlife } from '../population/wildlife';
+import { clientWildlife } from '../../shared/population/wildlifeOwner';
 import { installWeatherContinuation } from './continuation';
 import { bindPageWeatherHit } from './pageHit';
 import { applyWeatherCover, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from './reactions';

@@ -5,7 +5,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
-import * as population from '../src/game/server/population/wildlife';
+import * as population from '../src/game/shared/population/wildlifeOwner';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
