@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 396,
+  "client → server": 389,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 144,
@@ -79,9 +79,6 @@
    "client → server": 2
   },
   "src/game/ambient/ambientFlock.ts": {
-   "client → server": 1
-  },
-  "src/game/ambient/crowdDraw.ts": {
    "client → server": 1
   },
   "src/game/ambient/crowdPage.ts": {
@@ -212,9 +209,6 @@
   "src/game/grid/roadTileArchive.ts": {
    "client → server": 1
   },
-  "src/game/grid/runtimeCheckpoint.ts": {
-   "client → server": 1
-  },
   "src/game/grid/session.ts": {
    "client → server": 15
   },
@@ -329,7 +323,7 @@
    "server → client": 1
   },
   "src/game/population/pageLife.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/population/pageReturns.ts": {
    "server → client": 1
@@ -455,14 +449,11 @@
   "src/game/shardfile/audioCatalogue.ts": {
    "server → client": 2
   },
-  "src/game/shardfile/bakedTiles.ts": {
-   "client → server": 1
-  },
   "src/game/shardfile/calibrationScripts.ts": {
    "client → server": 1
   },
   "src/game/shardfile/client.ts": {
-   "client → server": 16
+   "client → server": 15
   },
   "src/game/shardfile/clientBossFight.ts": {
    "client → server": 2
@@ -553,9 +544,6 @@
   },
   "src/game/shardfile/hybrid.ts": {
    "client → server": 3
-  },
-  "src/game/shardfile/livingBuildings.ts": {
-   "client → server": 2
   },
   "src/game/shardfile/pageItems.ts": {
    "server → client": 1
