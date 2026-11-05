@@ -75,13 +75,13 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     const row = {url: versioned ? url : `${url}?v=${hash.slice(0, 8)}`, bytes: bytes.length, hash, wireBytes: wireBytes(url, bytes, hash)};
     assets.set(url, row); sources.set(row.url, () => bytesFor(url)); return row;
   };
-  // DL22: this build's /assets files (emitted and authored) and its pack parts, for the fence lists' /assets entries.
+  // DL22: this build's /assets and /b files (emitted and authored) and its pack parts, for the fence lists' /assets entries.
   let assetsSeen: readonly string[] | undefined, partsSeen: ReadonlyMap<string, PackPart> | undefined;
   const publicAssets = (): readonly string[] => {
     if (assetsSeen !== undefined) return assetsSeen;
     const urls = new Set<string>();
-    for (const base of [output, publicRoot]) {
-      const folder = join(base, 'assets');
+    for (const [base, name] of [[output, 'assets'], [output, 'b'], [publicRoot, 'assets']] as const) {
+      const folder = join(base, name);
       if (!existsSync(folder)) continue;
       for (const entry of readdirSync(folder, {recursive: true, withFileTypes: true})) {
         if (entry.isFile()) urls.add(`/${relative(base, join(entry.parentPath, entry.name)).split(sep).join('/')}`);

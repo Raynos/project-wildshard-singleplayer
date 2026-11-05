@@ -29,14 +29,17 @@ test('product blobs are immutable; sections and Rapier revalidate', async () => 
   const root = mkdtempSync(resolve('tmp/vercel-headers-'));
   writeFileSync(join(root, 'vercel.json'), readFileSync('vercel.json'));
   const hash = 'a'.repeat(64), files = [`shardfiles/driftwood-isle/blobs/glb/${hash}.glb`,
-    'shardfiles/driftwood-isle/sections/world/tiles.json', 'shardfiles/driftwood-isle/shard.json', 'assets/physics/rapier.wasm'];
+    'shardfiles/driftwood-isle/sections/world/tiles.json', 'shardfiles/driftwood-isle/shard.json', 'assets/physics/rapier.wasm',
+    'b/a3e7ef2-mw3ukc3m/main-Ab_3-xyz.js', 'b/a3e7ef2-mw3ukc3m/main-Ab_3-xyz.css', 'b/a3e7ef2-mw3ukc3m/standalone/shell.js', 'index.html'];
   for (const file of files) { mkdirSync(dirname(join(root, 'dist', file)), { recursive: true }); writeFileSync(join(root, 'dist', file), 'x'); }
   const server = await previewServer(root);
   try {
     const { base } = server;
     const control = await Promise.all(files.map(async file => (await fetch(new URL(file, base))).headers.get('cache-control')));
     expect(control).toEqual(['public, max-age=31536000, immutable', 'public, max-age=0, must-revalidate',
-      'public, max-age=0, must-revalidate', 'public, max-age=0, must-revalidate']);
+      'public, max-age=0, must-revalidate', 'public, max-age=0, must-revalidate',
+      // J57: a build's folder never changes; the uncached document is the pointer that names it.
+      'public, max-age=31536000, immutable', 'public, max-age=31536000, immutable', 'public, max-age=31536000, immutable', 'no-store']);
   } finally {
     server.close(); rmSync(root, { recursive: true, force: true });
   }

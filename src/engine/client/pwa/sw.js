@@ -15,7 +15,8 @@ const abs = path => new URL(path, self.registration.scope).href;
 const bookKey = build => abs(`/__ws_build__/${encodeURIComponent(build)}`);
 const CONTENT = /-[a-f0-9]{8,64}\.[a-z0-9]+$|\/[a-f0-9]{64}\.[a-z0-9]+$/;
 const HASH = /\/([a-f0-9]{64})\.[a-z0-9]+$/;
-const immutable = url => NAMED.has(url.pathname) || CONTENT.test(url.pathname)
+/** @param {URL} url */
+const immutable = url => NAMED.has(url.pathname) || url.pathname.startsWith('/b/') || CONTENT.test(url.pathname)
   || /^[a-f0-9]{8,64}$/.test(url.searchParams.get('v') ?? '');
 const isHtml = response => /\btext\/html\b/i.test(response.headers.get('content-type') ?? '');
 
@@ -71,7 +72,7 @@ workerScope.listen(self, 'install', event => {
   const pattern = pathname => ({ protocol: self.location.protocol.slice(0, -1), hostname: self.location.hostname,
     port: self.location.port, pathname, search: '' });
   const routes = typeof event.addRoutes === 'function' ? event.addRoutes([
-    ...['script', 'style'].map(requestDestination => ({ condition: { urlPattern: pattern('/assets/*'), requestDestination, requestMethod: 'GET' }, source: { cacheName: ASSETS } })),
+    ...['script', 'style'].map(requestDestination => ({ condition: { urlPattern: pattern('/b/*'), requestDestination, requestMethod: 'GET' }, source: { cacheName: ASSETS } })),
     { condition: { urlPattern: pattern('/assets/title/*'), requestDestination: 'image', requestMethod: 'GET' }, source: { cacheName: ASSETS } },
     { condition: { urlPattern: pattern('/fonts/*'), requestDestination: 'font', requestMethod: 'GET' }, source: { cacheName: SHELL } },
   ]) : undefined;

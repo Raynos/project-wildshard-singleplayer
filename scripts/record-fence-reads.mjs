@@ -40,7 +40,7 @@ const manifest = await (await fetch(new URL(address.url, base))).json();
 const listed = new Set(manifest.files.map(row => row.url.split('?')[0]));
 // Title art loads through <img> on the title page; any other image read before control is recorded (DL11: an unlisted
 // read waits for the whole set).
-const prefix = `/shardfiles/${slug}/`, shell = /^\/assets\/(?!spawn\/|boot-tables-)[^?]+$/u, code = /\.(?:js|mjs|css|map)$/u;
+const prefix = `/shardfiles/${slug}/`, shell = /^\/(?:assets\/(?!spawn\/|boot-tables-)|b\/)[^?]+$/u, code = /\.(?:js|mjs|css|map)$/u;
 // DL11 slice 4: setup reads only its selected boot audio (`profile.bootFiles`, extras.ts); every other music / sfx read
 // before control is the extras queue's speculative prefetch (`prefetchAfter`). Listing those made control wait for them
 // (Nalati packs +19.7 MB wire), so an audio file is recorded only when the run held it for the whole set (below).
@@ -73,8 +73,8 @@ const product = join(dist, 'shardfiles', slug), index = JSON.parse(readFileSync(
 const sections = new Map(index.sections.map(row => [row.name, JSON.parse(readFileSync(join(product, row.path), 'utf8'))]));
 const identities = fenceReadIdentities(index.files, sections), recorded = [], unknown = [];
 for (const hash of outside) { const aliases = fenceReadAliases(identities, hash); if (aliases.length === 0) unknown.push(hash); else recorded.push(...aliases); }
-// /assets: this build's files and its boot tables' pack parts.
-const assetUrls = readdirSync(join(dist, 'assets'), { recursive: true, withFileTypes: true }).filter(entry => entry.isFile())
+// /assets and /b: this build's files and its boot tables' pack parts.
+const assetUrls = ['assets', 'b'].flatMap(folder => existsSync(join(dist, folder)) ? readdirSync(join(dist, folder), { recursive: true, withFileTypes: true }) : []).filter(entry => entry.isFile())
   .map(entry => `/${relative(dist, join(entry.parentPath, entry.name)).split(sep).join('/')}`);
 const parts = new Map(), audioRefs = [];
 for (const url of assetUrls.filter(name => /^\/assets\/boot-tables-[a-f0-9]{8}\.json$/u.test(name))) {

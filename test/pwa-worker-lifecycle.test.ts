@@ -168,7 +168,7 @@ test('native title routes use exact same-origin bare GETs and the existing cache
   await worker.dispatch('install'); await worker.dispatch('activate');
   const pattern = (pathname: string): object => ({protocol: 'https', hostname: 'worker.test', port: '', pathname, search: ''});
   expect(worker.routes).toHaveBeenCalledExactlyOnceWith([
-    ...['script', 'style'].map(requestDestination => ({condition: {urlPattern: pattern('/assets/*'), requestDestination, requestMethod: 'GET'}, source: {cacheName: ASSET_CACHE_NAME}})),
+    ...['script', 'style'].map(requestDestination => ({condition: {urlPattern: pattern('/b/*'), requestDestination, requestMethod: 'GET'}, source: {cacheName: ASSET_CACHE_NAME}})),
     {condition: {urlPattern: pattern('/assets/title/*'), requestDestination: 'image', requestMethod: 'GET'}, source: {cacheName: ASSET_CACHE_NAME}},
     {condition: {urlPattern: pattern('/fonts/*'), requestDestination: 'font', requestMethod: 'GET'}, source: {cacheName: 'ws-shell-v3-A'}},
   ]);
@@ -348,6 +348,17 @@ test('quota denial serves online bytes; partial bodies never replace a full cach
   expect(await (await worker.dispatch('fetch', { request }))?.text()).toBe(`body:${request.url}`);
   const partial = fixture(() => Promise.resolve(new Response('part', { status: 206 }))), ranged = partial.load('A', []);
   await ranged.dispatch('fetch', { request }); expect(await (await partial.open(ASSET_CACHE_NAME)).match(request)).toBeUndefined();
+});
+
+test('a build folder is immutable whatever its names, so a stale tab keeps its code under a newer worker', async () => {
+  const f = fixture(), worker = f.load('B', []); await worker.dispatch('install'); await worker.dispatch('activate');
+  const request = new Request(url('/b/a3e7ef2-mw3ukc3m/standalone/shell.js'));
+  f.fetch.mockClear(); f.fetch.mockResolvedValue(new Response('old code'));
+  await worker.dispatch('fetch', {request});
+  f.fetch.mockRejectedValue(new Error('offline'));
+  const response = await worker.dispatch('fetch', {request});
+  expect(await response?.text()).toBe('old code');
+  expect(await (await f.open(ASSET_CACHE_NAME)).match(request)).toBeDefined();
 });
 
 test('an inert legacy hash body serves offline and migrates once to its exact immutable URL', async () => {

@@ -12,7 +12,7 @@ import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { writeTitleAssets } from './title-assets.mjs';
 import { copyOutputProducts, copyDeferredPublic, deferredPublicCopy } from './app-build/outputProducts.mjs';
-import { stampBuildDocuments } from './app-build/buildIdentity.mjs';
+import { newBuildId, stampBuildDocuments } from './app-build/buildIdentity.mjs';
 import { carryPreviousDeploy } from './app-build/previousDeploy.mjs';
 import { buildValidationReceipts } from './app-build/validationReceipts.mjs';
 import { shardfileValidationRevision } from './shardfile-validation-revision.mjs';
@@ -55,10 +55,11 @@ catch (error) { console.error(error instanceof Error ? error.message : String(er
 step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "await (await import('./scripts/app-build/worldMapAtlas.ts')).writeWorldMapAtlas(process.cwd());"]);
 
 const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
+const buildId = newBuildId();
 const deferPublic = deferredPublicCopy(process.cwd(), outDir, args);
 // vite.config.ts bundles to one module whose static imports reach @wildshard/format, so the hook comes first (J82).
 const build = spawnSync(process.execPath, ['--import', resolve(import.meta.dirname, '../src/sdk/bake/format-hook.mjs'), vite, 'build', ...args], {
-  stdio: 'inherit', env: {...process.env, WS_APP_DEFER_PUBLIC_COPY: deferPublic ? '1' : '0'},
+  stdio: 'inherit', env: {...process.env, WS_APP_DEFER_PUBLIC_COPY: deferPublic ? '1' : '0', WS_BUILD_ID: buildId},
 });
 if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
@@ -72,7 +73,7 @@ if (mode === 'native') {
   for (const trailer of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(resolve(outDir, trailer), { force: true });
 }
 // version.json (the build id the documents are stamped with), asset-index.json and asset-manifest.json
-step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "(await import('./scripts/app-build/versionFiles.ts')).writeVersionFiles(process.argv[1]);", outDir]);
+step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "(await import('./scripts/app-build/versionFiles.ts')).writeVersionFiles(process.argv[1], process.argv[2]);", outDir, buildId]);
 // the seams', boot tables' and world map's exact bytes as their hashed assets, beside the bundle that names them
 writeGridSeams(outDir, process.cwd());
 writeAssetTables(outDir, process.cwd());
@@ -110,6 +111,9 @@ if (mode !== 'native') {
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
     "(await import('./scripts/app-build/serviceWorker.ts')).writeServiceWorker(process.argv[1], process.cwd());", outDir]);
 }
+
+// the standalone shell and its server worker under the build's folder, unused until the flip (J129)
+if (mode !== 'native') await (await import('./app-build/standaloneOutput.mjs')).writeStandaloneOutput(outDir, buildId, process.cwd());
 
 // the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sdk/dev.ts);
 // the bundle itself takes it from the __DEVSERVER__ define (was vite/devserver.ts)

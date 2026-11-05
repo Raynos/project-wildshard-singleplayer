@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { rapierAlias } from './vite/rapier';
 import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 import { buildValidationReceipts } from './scripts/app-build/validationReceipts.mjs';
-import { BUILD_ID_EXPRESSION, VALIDATOR_EXPRESSION, VERDICTS_EXPRESSION } from './scripts/app-build/buildIdentity.mjs';
+import { BUILD_ID_EXPRESSION, VALIDATOR_EXPRESSION, VERDICTS_EXPRESSION, codeDirectory } from './scripts/app-build/buildIdentity.mjs';
 import { controlChunkGroups, controlChunkFileName } from './scripts/app-build/controlChunks';
 
 /** The world map atlas's define, as scripts/app-build/worldMapAtlas.ts baked it before the bundle. */
@@ -21,6 +21,9 @@ function worldMapDefine(): unknown {
 export default defineConfig(({ mode, command }) => {
   if (command === 'build') assertHeavyLease('build');
   const native = mode === 'native';
+  // J57, J131: the web build's code, CSS and wasm go under its immutable folder; build-app mints the id. Other emitted
+  // files are content-named and stay under /assets/, and native bundles its one build, with no pointer to follow.
+  const build = process.env['WS_BUILD_ID'], code = native || build === undefined ? 'assets' : codeDirectory(build);
   const validationRevision = shardfileValidationRevision();
   buildValidationReceipts(validationRevision); // Fail before bundling on any stale or missing product.
   return {
@@ -37,12 +40,16 @@ export default defineConfig(({ mode, command }) => {
         // shardfiles tree that final product publication replaces (G799: no plugin).
         copyPublicDir: process.env['WS_APP_DEFER_PUBLIC_COPY'] !== '1',
         // The mandatory chunk report measures and gates gzip bytes after this web build.
-        target: 'es2022', reportCompressedSize: false, chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
+        assetsDir: code, target: 'es2022', reportCompressedSize: false, chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
         // G221: standalone CLI calibration, never a game-entry or Developer switch.
         rolldownOptions: {
           input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') },
           preserveEntrySignatures: false,
-          output: { strictExecutionOrder: true, chunkFileNames: controlChunkFileName, codeSplitting: { groups: controlChunkGroups(process.cwd()) } },
+          output: {
+            strictExecutionOrder: true, chunkFileNames: chunk => controlChunkFileName(chunk, code),
+            assetFileNames: asset => `${asset.names.some(name => /\.(?:js|css|wasm)$/u.test(name)) ? code : 'assets'}/[name]-[hash][extname]`,
+            codeSplitting: { groups: controlChunkGroups(process.cwd()) },
+          },
         },
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],

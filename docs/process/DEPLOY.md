@@ -7,6 +7,14 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **Deployment storage:** each deployment is a full ~2.5 GB copy and every push stages one, while Vercel's retention
   trails by days. On every push the stage job runs `scripts/prune-deployments.mjs`, so a red streak still clears them. It keeps the live deployment, every aliased
   one (v0.2, v0.3), the last five promoted builds and stages under an hour old (Jake, 2026-11-05). Roll forward, not back.
+- **The build-hash pointer (J57, J129, J131):** a web build's code, CSS and bundled wasm live under immutable
+  `/b/<build>/`, where `<build>` is `version.json`'s id; the uncached `index.html` is the only thing that names it.
+  Content-named assets stay at `/assets/`, and Rapier and Basis keep their pinned public URLs. Native bundles its one build
+  under `assets/`. The alias serves only the live deployment, so a kept old deployment does nothing for a stale tab:
+  `scripts/app-build/previousDeploy.mjs` copies the graphs of the last `KEEP_PROMOTED` builds into every main build, from
+  production's `deploy-chunks.json`. A build production has lost drops out whole, and chunk recovery moves its tabs on.
+  `/b/<build>/standalone/` holds the emitted shell and server worker, unused until SESSION's flip;
+  `scripts/standalone-smoke.mjs --dist=dist` plays them, across a pointer move.
 - `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
   deploys as soon as CI and the exact six pass, or from `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`
   redeploys the same commit. The job builds Vercel output in GitHub Actions and uploads it

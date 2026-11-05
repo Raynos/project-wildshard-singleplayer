@@ -96,6 +96,6 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
 
 /** Entry-aware subgroup labels contain '~'; named module banks accept only
  * URL-safe tokens. Keep the content hash, not a permissive bank parser. */
-export function controlChunkFileName(chunk: Pick<Rolldown.PreRenderedChunk, 'name'>): string {
-  return `assets/${chunk.name.replaceAll(/[^a-zA-Z0-9_.-]/gu, '-')}-[hash].js`;
+export function controlChunkFileName(chunk: Pick<Rolldown.PreRenderedChunk, 'name'>, directory = 'assets'): string {
+  return `${directory}/${chunk.name.replaceAll(/[^a-zA-Z0-9_.-]/gu, '-')}-[hash].js`;
 }
