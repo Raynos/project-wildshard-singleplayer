@@ -59,6 +59,10 @@ export class DeclaredScriptWorld extends ScriptWorld {
   }
   /** `view(actorId)[scope][name]`, read from the cached projection without copying its records. */
   viewField(actorId: string, scope: 'shared' | 'player', name: string): number | undefined { return this.projection(actorId)[scope][name]; }
+  /** Every public shared field: what any player may see, so what a room sends. */
+  publicShared(): readonly { readonly name: string; readonly value: number }[] {
+    return this.declaration.shared.flatMap((field, index) => field.privacy === 'public' ? [{ name: field.name, value: this.shared[index] ?? field.default }] : []);
+  }
   private projection(actorId: string): { shared: Record<string, number>; player: Record<string, number> } {
     const values = this.players.get(actorId);
     if (!values) throw new Error('Unknown actor');

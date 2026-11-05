@@ -22,6 +22,7 @@ import { MoverLifecycle, MoverLifecycleStateSchema, moverEndState, type MoverEnd
 import { MoverMechanic, type NativeMoverMotion } from '@wildshard/engine/sim/moverMotion';
 import { parseMovers, type MoverData } from "@wildshard/format/movers";
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { publishScriptBody } from '@wildshard/engine/sim/shardRows';
 
 /** One declared entryway as the shardfile states it (a midpoint opening on an edge). */
 export interface TerrainEntryway { readonly edge: 'north' | 'east' | 'south' | 'west'; readonly kind?: string | undefined }
@@ -507,6 +508,7 @@ export class MoverScriptDriver {
       ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }),
       activation: { ground: () => playerGrounds(sim), ...options.activation } });
     this.runtime = runtime; runtime.bindNativeCarry(sim);
+    for (const row of this.data) publishScriptBody(sim, row.id, () => runtime.pose(row.id));
     sim.onStep(options.id, () => { if (options.drive === true) lane.step(sim.state.tick); runtime.capture(); }, {
       snapshot: () => runtime.snapshotState(this.resetIds), restore: value => {
         if (typeof value !== 'string') throw new Error('Invalid mover continuation'); runtime.restoreState(value);

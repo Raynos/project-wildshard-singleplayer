@@ -39,6 +39,7 @@ import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles"
 import { decodeTerrainTile, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
 import { fnv1a32 } from "@wildshard/engine/core/rng";
 import { installScriptLane, type ScriptLanePort } from "@wildshard/engine/script/lane";
+import { publishShardState } from '@wildshard/engine/sim/shardRows';
 import type { EffectRules, ScriptEntity } from "@wildshard/engine/script/effects";
 import { declaredWaterBody } from "@wildshard/engine/world/water/declared";
 import { WaterBodies } from "@wildshard/engine/world/water/body";
@@ -523,6 +524,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         movers = runtime;
       }
       installScriptLane(host, 'script.declared', lane, ports.commands);
+      const stateLane = lane;
+      if (shard.state.shared.some(field => field.privacy === 'public')) publishShardState(host, () => stateLane.world.publicShared());
     }
     if (shard.targets.panels.length > 0) {
       const targetLane = lane; if (targetLane === undefined) throw new Error('Target fields require an installed script lane');

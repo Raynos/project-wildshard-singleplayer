@@ -433,6 +433,7 @@
     "./sim/nearPlayer": "./sim/nearPlayer.ts",
     "./sim/netMotion": "./sim/netMotion.ts",
     "./sim/playerSim": "./sim/playerSim.ts",
+    "./sim/shardRows": "./sim/shardRows.ts",
     "./sim/snapshot": "./sim/snapshot.ts",
     "./script/state": "./script/state.ts",
     "./script/lane": "./script/lane.ts",

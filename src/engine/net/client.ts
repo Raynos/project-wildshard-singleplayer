@@ -7,7 +7,8 @@ import { BitWriter } from './bits';
 import { encodeCommands, seqAfter } from './command';
 import { decodeFrame, FRAME_RING, NO_BASELINE, type DecodedFrame, type FrameTable } from './frame';
 import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetWelcome } from './messages';
-import { NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from './netSchemas';
+import { FLAG_CLASS, NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from './netSchemas';
+import { FLAG_PREFIX, STATE_PREFIX } from './shardNet';
 import type { NetClass, NetValue } from './schema';
 import type { Transport } from './transport';
 
@@ -44,7 +45,9 @@ export class NetClient {
   private readonly listeners = new Set<(frame: DecodedFrame) => void>();
   private readonly fights = new Set<(event: NetCombatEvent) => void>();
   /** This client's own player's quests, newest row each (P1-E3.3): what a QuestReplica reads. */
-  readonly quests = new Map<string, QuestProgress>();
+  readonly quests: Map<string, QuestProgress> = new Map<string, QuestProgress>();
+  /** The flags up in this client's own world (J106): what its view of a gate or a key reads. */
+  readonly phased: Set<string> = new Set<string>();
   private readonly table: FrameTable;
   private readonly ids = new Map<string, number>();
   private unacked: NetCommand[] = [];
@@ -68,6 +71,17 @@ export class NetClient {
   fields(frame: DecodedFrame, handle: number): NetFields | null {
     const row = frame.rows.get(handle), cls = this.entities.get(handle)?.cls;
     return row === undefined || cls === undefined ? null : decodeColumns(cls.row, row);
+  }
+  /** The flags set in the shard, by name: a flag's entity exists while it is set (P1-E3.10). */
+  flags(): ReadonlySet<string> {
+    const out = new Set<string>();
+    for (const entity of this.entities.values()) if (entity.cls === FLAG_CLASS) out.add(entity.id.slice(FLAG_PREFIX.length));
+    return out;
+  }
+  /** One public shared state field in a frame, by its declared name. */
+  stateField(frame: DecodedFrame, name: string): number | undefined {
+    const value = this.fields(frame, this.ids.get(`${STATE_PREFIX}${name}`) ?? 0)?.['value'];
+    return typeof value === 'number' ? value : undefined;
   }
   /** The owner block of a frame, as field values. */
   owner(frame: DecodedFrame): NetFields { return decodeColumns(PLAYER_CLASS.owner, frame.owner); }
@@ -105,6 +119,7 @@ export class NetClient {
     for (const event of decoded.events) {
       if (event.kind === 'hit' || event.kind === 'died') { for (const listener of this.fights) listener(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
+      if (event.kind === 'phase') { if (event.on) this.phased.add(event.flag); else this.phased.delete(event.flag); continue; }
       if (event.kind === 'despawn') {
         const id = this.entities.get(event.handle)?.id;
         if (id !== undefined) this.ids.delete(id);

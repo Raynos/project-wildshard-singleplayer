@@ -3,10 +3,11 @@ import type { SimHost } from '../sim';
 import { leadPlayer } from '../sim/leadPlayer';
 import type { AnimalNetView } from './animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
-import { questBooks } from '../quest/players';
-import type { QuestProgress } from '../quest/progress';
+import { questBooks, type QuestProgressRead } from '../quest/players';
 import { encounterRows } from '../sim/encounterRows';
-import { ANIMAL_CLASS, ENCOUNTER_CLASS, PLAYER_CLASS } from './netSchemas';
+import { ANIMAL_CLASS, ENCOUNTER_CLASS, FLAG_CLASS, PLAYER_CLASS, SCRIPT_CLASS, STATE_CLASS } from './netSchemas';
+import { shardRows } from '../sim/shardRows';
+import { FLAG_PREFIX, STATE_PREFIX } from './shardNet';
 import type { NetRefs } from './schema';
 import type { NetPlayer, NetVisitor, NetWorld } from './room';
 
@@ -31,7 +32,7 @@ export class SimNetWorld implements NetWorld {
   tick(): number { return this.host.state.tick; }
   cell(): number { return 0; }
   combat(): readonly CombatEvent[] { return this.wire.drain(); }
-  quests(player: string, since: number): { readonly version: number; readonly rows: readonly QuestProgress[] } | null { return questBooks(this.host).progressOf(player, since); }
+  quests(player: string, since: number): QuestProgressRead | null { return questBooks(this.host).progressOf(player, since); }
   visit(visitor: NetVisitor): void {
     const { host, pose } = this, targets = new Map(host.attackTargets());
     for (const player of host.players.values()) visitor.entity(player.id, PLAYER_CLASS, player);
@@ -41,5 +42,9 @@ export class SimNetWorld implements NetWorld {
       visitor.entity(id, ANIMAL_CLASS, view);
     }
     for (const [id, read] of encounterRows(host)) visitor.entity(id, ENCOUNTER_CLASS, read());
+    const { bodies, state } = shardRows(host);
+    for (const [id, read] of bodies) visitor.entity(id, SCRIPT_CLASS, read());
+    if (state !== null) for (const row of state()) visitor.entity(`${STATE_PREFIX}${row.name}`, STATE_CLASS, row);
+    for (const flag of host.flags.all) visitor.entity(`${FLAG_PREFIX}${flag}`, FLAG_CLASS, flag);
   }
 }
