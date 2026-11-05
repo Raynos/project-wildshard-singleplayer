@@ -7,12 +7,11 @@ import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ArenaScriptData, ArenaScriptFightFile, ArenaScriptRows } from '@wildshard/format/arenaScriptRows';
-import { ARENA_BURNT_PER_FRAME, ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
+import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
 import { V2_ACTION_OPS, type V2ActionBinding } from '@wildshard/format/scriptActionsV2';
 import { ReturnProgram, ProjectedState, type ProjectedSnapshot } from '../population/returnProgram';
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { CellField, type CellFieldSnapshot } from '../systems/cellField';
-import { lendViewArray, lendViewCell, lendViewDraw, lendViewFrame, lendViewTell, lendViewValues } from '../shardfile/clientViewProgram';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
 import type { ViewTell } from '@wildshard/engine/script/viewProgram';
 import type { ShardProduct } from '../shardfile/shardProduct';
@@ -110,6 +109,14 @@ export interface OpenArenaFightSnapshot {
   readonly heart: { readonly position: readonly [number, number, number]; readonly alive: boolean };
   /** the view module's cells after its last frame (null: no view bound) */
   readonly view: Readonly<Record<typeof POSE_CELLS[number], number>> | null;
+}
+/** The view half's reading of a fight (`OpenArenaFight.viewLoan`). */
+export interface OpenArenaViewLoan {
+  readonly arena: ArenaScenePort; readonly chains: readonly ArenaTell[]; readonly field: CellField; readonly groundAt: (x: number, z: number) => number;
+  readonly fire: ArenaFirePort; readonly scorch: THREE.InstancedMesh; readonly whirls: ArenaWhirlsPort; readonly phone: boolean;
+  readonly smoke: readonly [number, number] | undefined; readonly wind: { readonly dirX: number; readonly dirZ: number; readonly speed: number };
+  readonly burnt: Float32Array; readonly fireOn: () => boolean; readonly fireClear: () => boolean;
+  readonly bindFire: (scope: Scope, frame: (dt: number, time: number) => boolean) => void;
 }
 interface Chain { readonly tell:ArenaTell; readonly row:ArenaScriptData['clocks']['landings'][number] }
 const _openV = new THREE.Vector3(), _openRAY = new THREE.Ray(), _openSPH = new THREE.Sphere(), _openHITP = new THREE.Vector3();
@@ -218,31 +225,11 @@ export class OpenArenaFight implements BossScript {
     this.heartLock = { kind: data.definition.id,position: new THREE.Vector3(),alive: true,lockable: true,lockRange: target.range,dims: { bodyY: 0,bodyRadius: target.closed } };
   }
 
-  /** Lend the view module (format/arenaView) what it samples and writes, then the frame slot it runs at, for `scope`'s life. */
-  lendView(scope: Scope): void {
-    const { sources, cells: ids, tells } = ARENA_VIEW;
-    for (const source of [sources.life, sources.clocks, sources.pose, sources.spear]) lendViewValues(scope, source, this.viewSource(source));
-    const cells = this.poseCells();
-    for (const key of POSE_CELLS) lendViewCell(scope, ids[key], cells[key]);
-    lendViewTell(scope, tells.spear, this.arena.tell('spear')); lendViewTell(scope, tells.fork, this.arena.tell('fork'));
-    for (const [i, chain] of this.chains.entries()) lendViewTell(scope, arenaChainTell(i), chain.tell);
-    const view = { frame: lendViewFrame(scope, ARENA_VIEW.slot).frame, cells };
-    // the grass fire: its field (modes, lifetimes, the ground under each cell, this frame's burnt-out cells), its values
-    // and its draws, at the fire's own slot
-    const fire = ARENA_VIEW.fire, field = this.field, ground = new Float32Array(field.length), smoke = this.data.arenaFire.cells?.smoke;
-    for (let c = 0; c < field.length; c++) ground[c] = this.groundAt(field.x(c), field.z(c));
-    const smokeRate = smoke === undefined ? 0 : this.ctx.phone ? smoke[0] : smoke[1];
-    const values: Readonly<Record<string, () => number>> = { on: () => Number(this.fireOn), clear: () => Number(this.fireClear), windX: () => this.windNow.dirX,
-      windZ: () => this.windNow.dirZ, windSpeed: () => this.windNow.speed, smokeCap: () => this.fire.smoke.instanceMatrix.count, smokeRate: () => smokeRate,
-      scorchCap: () => this.scorch.instanceMatrix.count };
-    lendViewValues(scope, fire.values, name => values[name]?.() ?? Number.NaN);
-    lendViewArray(scope, fire.arrays.modes, () => field.modeCells); lendViewArray(scope, fire.arrays.lifetimes, () => field.lifetimeCells);
-    lendViewArray(scope, fire.arrays.ground, () => ground); lendViewArray(scope, fire.arrays.burnt, () => this.burnt);
-    lendViewDraw(scope, fire.draws.flames, this.fire.flames); lendViewDraw(scope, fire.draws.smoke, this.fire.smoke); lendViewDraw(scope, fire.draws.scorch, this.scorch);
-    const fireFrame = lendViewFrame(scope, fire.slot).frame;
-    this.fireFrame = fireFrame; scope.onDispose(() => { if (this.fireFrame === fireFrame) this.fireFrame = null; });
-    this.whirls.bindView(scope);
-    this.adoptView(scope, view);
+  /** What the fight's view half (arenaFire.ts `lendOpenArenaView`) draws from: live owners and reads, nothing to step. */
+  get viewLoan(): OpenArenaViewLoan {
+    return { arena: this.arena, chains: this.chains.map(chain => chain.tell), field: this.field, groundAt: this.groundAt, fire: this.fire, scorch: this.scorch, whirls: this.whirls,
+      phone: this.ctx.phone, smoke: this.data.arenaFire.cells?.smoke, wind: this.windNow, burnt: this.burnt, fireOn: () => this.fireOn, fireClear: () => this.fireClear,
+      bindFire: (scope, frame) => { this.fireFrame = frame; scope.onDispose(() => { if (this.fireFrame === frame) this.fireFrame = null; }); } };
   }
   /** What the view module samples from `source` (format/arenaView `sources`: the life and clock state, the pose, the spear
    *  on the ground), one finite field at a time; the page lends these, a native proof's lane reads the same (test/fixtures/native-hosts/boss/arenaPoseView.ts). */

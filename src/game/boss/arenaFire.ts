@@ -6,8 +6,38 @@ import type { ReturnProgram } from '../population/returnProgram';
 import { ArenaWhirls, type ArenaWhirlsSnapshot, type WhirlFrame } from './arenaWhirls';
 import type {Scope} from '@wildshard/engine/app/scope';
 import {presentEntryOwner,publishEntryOwner} from '../shardfile/entryOwners';
-import {preflightViewLends,lendViewValues,lendViewDraw,lendViewFrame} from '../shardfile/clientViewProgram';
+import {preflightViewLends,lendViewArray,lendViewCell,lendViewValues,lendViewDraw,lendViewFrame,lendViewTell} from '../shardfile/clientViewProgram';
 import type { ArenaWhirlsRows,ArenaFireRows } from '@wildshard/format/encounterRows';
+import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
+import type { OpenArenaFight } from './openArenaFight';
+
+const POSE_CELLS = ['bend', 'raise', 'castL', 'struck', 'alpha'] as const;
+/** The open arena's view half: lend its view module (format/arenaView) what it samples and writes, then the frame slot it
+ *  runs at, for `scope`'s life. The fight below stays numbers and rules. */
+export function lendOpenArenaView(fight: OpenArenaFight, scope: Scope): void {
+  const { sources, cells: ids, tells } = ARENA_VIEW, { arena, chains, field, fire, scorch, whirls, phone, smoke, wind, burnt, groundAt, fireOn, fireClear, bindFire } = fight.viewLoan;
+  for (const source of [sources.life, sources.clocks, sources.pose, sources.spear]) lendViewValues(scope, source, fight.viewSource(source));
+  const cells = fight.poseCells();
+  for (const key of POSE_CELLS) lendViewCell(scope, ids[key], cells[key]);
+  lendViewTell(scope, tells.spear, arena.tell('spear')); lendViewTell(scope, tells.fork, arena.tell('fork'));
+  for (const [i, tell] of chains.entries()) lendViewTell(scope, arenaChainTell(i), tell);
+  const view = { frame: lendViewFrame(scope, ARENA_VIEW.slot).frame, cells };
+  // the grass fire: its field (modes, lifetimes, the ground under each cell, this frame's burnt-out cells), its values
+  // and its draws, at the fire's own slot
+  const lent = ARENA_VIEW.fire, ground = new Float32Array(field.length);
+  for (let c = 0; c < field.length; c++) ground[c] = groundAt(field.x(c), field.z(c));
+  const smokeRate = smoke === undefined ? 0 : phone ? smoke[0] : smoke[1];
+  const values: Readonly<Record<string, () => number>> = { on: () => Number(fireOn()), clear: () => Number(fireClear()), windX: () => wind.dirX,
+    windZ: () => wind.dirZ, windSpeed: () => wind.speed, smokeCap: () => fire.smoke.instanceMatrix.count, smokeRate: () => smokeRate,
+    scorchCap: () => scorch.instanceMatrix.count };
+  lendViewValues(scope, lent.values, name => values[name]?.() ?? Number.NaN);
+  lendViewArray(scope, lent.arrays.modes, () => field.modeCells); lendViewArray(scope, lent.arrays.lifetimes, () => field.lifetimeCells);
+  lendViewArray(scope, lent.arrays.ground, () => ground); lendViewArray(scope, lent.arrays.burnt, () => burnt);
+  lendViewDraw(scope, lent.draws.flames, fire.flames); lendViewDraw(scope, lent.draws.smoke, fire.smoke); lendViewDraw(scope, lent.draws.scorch, scorch);
+  bindFire(scope, lendViewFrame(scope, lent.slot).frame);
+  whirls.bindView(scope);
+  fight.adoptView(scope, view);
+}
 
 /** The phase-3 fire's instanced flames and smoke (each copy's aInst: the flames' heat, front and seed, the smoke's age,
  *  glow and seed) and their looks. The fight's fire view module draws them (Nalati zero R6: behaviour/titanFireView). */

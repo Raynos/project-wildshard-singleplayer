@@ -32,7 +32,7 @@ import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../population/returnProgram';
 import { RideHUD } from './hud';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import {CellField} from '../systems/cellField';
+import type {CellField} from '../systems/cellField';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 
 function nativeHerds(value: unknown): value is readonly HerdBrain<Animal>[] {
@@ -390,7 +390,7 @@ export interface ArenaBoundary { readonly field: CellField; readonly boundary: {
 const boundaries = new WeakMap<Scope, Set<ArenaBoundary>>();
 /** Riding borrows fields directly; no author refusal callback is installed. */
 export function installArenaBoundary(scope: Scope, boundary: ArenaBoundary): void {
-  if (scope.disposed || !(boundary.field instanceof CellField) || !Object.values(boundary.boundary).every(Number.isFinite)) throw new Error('Invalid native arena boundary');
+  if (scope.disposed || typeof boundary.field.activeAt !== 'function' || !Object.values(boundary.boundary).every(Number.isFinite)) throw new Error('Invalid native arena boundary');
   const rows = boundaries.get(scope) ?? new Set<ArenaBoundary>();
   if (rows.has(boundary) || rows.size>=8) throw new Error('Duplicate or excessive arena boundary');
   rows.add(boundary); boundaries.set(scope,rows); scope.onDispose(() => { rows.delete(boundary); });

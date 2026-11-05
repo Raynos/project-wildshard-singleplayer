@@ -1,3 +1,4 @@
+import { lendOpenArenaView } from '../src/game/boss/arenaFire';
 import { titanFightOwners } from './fixtures/titanFightOwners';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
@@ -58,7 +59,7 @@ function fight(scope: Scope, view: 'page' | 'native'): { fight: OpenArenaFight; 
     const level = createLevelInstallation(new App(), scope.child('titan-view'), {}, () => ({ set: () => undefined, detail: () => undefined }));
     const ctx = shardContext(level.context, TEMPLATE, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
     Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), player: f.player, game: { camera } } } });
-    owner.openFight.lendView(ctx.scope);
+    lendOpenArenaView(owner.openFight, ctx.scope);
     installViewProgram(ctx, { kind: 'view.program', id: 'titan-view', module: 'views/nalati.titan-view.wasm', rows }, module);
   }
   return { fight: owner.openFight, player: f.player.position };

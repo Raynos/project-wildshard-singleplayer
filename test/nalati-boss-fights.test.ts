@@ -1,3 +1,4 @@
+import { lendOpenArenaView } from '../src/game/boss/arenaFire';
 import { titanFightOwners } from './fixtures/titanFightOwners';
 import { installWorldFixture } from './fixtures/worldSetup';
 import { installArenaRoomEntry } from '../src/game/shardfile/clientEntryBinds';
@@ -76,7 +77,7 @@ function adoptTitanView(fight: ArenaScriptFight, scope: Scope): void {
   const level = createLevelInstallation(new App(), scope.child('titan-view'), {}, () => ({ set: () => undefined, detail: () => undefined }));
   const ctx = shardContext(level.context, TEMPLATE, { shard: TEMPLATE, rows: new Map(), bag: { tab: () => () => undefined, fragment: () => () => undefined } }, product);
   Object.defineProperty(ctx.game, 'runtime', { value: { world: { registry: new WorldRegistry(), player: { position: new Vector3(), velocity: new Vector3(), yaw: 0 }, game: { camera: new PerspectiveCamera() } } } });
-  fight.lendView(ctx.scope);
+  lendOpenArenaView(fight, ctx.scope);
   installViewProgram(ctx, { kind: 'view.program', id: 'titan-view', module: 'views/nalati.titan-view.wasm', rows }, module);
 }
 

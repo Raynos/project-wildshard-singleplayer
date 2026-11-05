@@ -52,7 +52,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { WeatherReactions } from '../weather/reactions';
 import { wildEnv } from '../population/pageGroups';
-import { ArenaFireView, ArenaWhirlsView } from './arenaFire';
+import { ArenaFireView, ArenaWhirlsView, lendOpenArenaView } from './arenaFire';
 import { ArenaPortalLaw } from './arenaPortal';
 import { ArenaRoomGround } from './arenaGround';
 import { arenaBoundary, arenaTie } from './arenaAnswers';
@@ -701,7 +701,7 @@ export class ArenaRoomEncounter {
     }else{
       if(this.prompt===null||this.projection===null)throw new Error('Missing open arena projection');runtime.interactables.push(this.prompt);
       if(encounter.boss.rewardTaken){if(blade===null)throw new Error('Missing open arena power');kit.upgradeBlade('blade-reward',play.weapons,blade);}
-      installArenaBoundary(ctx.scope,this.projection.boundary);this.projection.lendView(ctx.scope);
+      installArenaBoundary(ctx.scope,this.projection.boundary);lendOpenArenaView(this.projection,ctx.scope);
     }
     listenPage(scope,'keydown',event=>{if(event instanceof KeyboardEvent&&event.code==='Enter')this.skipKeys=true;});listenPage(scope,'keyup',event=>{if(event instanceof KeyboardEvent&&event.code==='Enter')this.skipKeys=false;});
     listenPage(scope,'pointerdown',()=>{this.skipTouch=true;});listenPage(scope,'pointerup',()=>{this.skipTouch=false;});listenPage(scope,'pointercancel',()=>{this.skipTouch=false;});
