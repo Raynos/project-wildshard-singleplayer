@@ -1,4 +1,4 @@
-import { engineString } from '../strings';
+import { questChip, questHint, questObjective, type QuestProgress } from './progress';
 import { test, type Flags } from '../world/interact/flags';
 import type { Scope } from '../app/scope';
 import type { Events } from '../events/events';
@@ -115,24 +115,11 @@ export class QuestState {
     return { n: step.count.filter((f) => this.flags.has(f)).length, of: step.count.length };
   }
 
-  objective(): string {
-    if (!this.started) return this.def.intro?.objective ?? '';
-    const s = this.cur;
-    if (!s) return `${this.def.title} — complete`;
-    const c = this.counter(s);
-    return c ? s.objective.replace('{n}', String(c.n)).replace('{of}', String(c.of)) : s.objective;
-  }
-  /** the HUD chip's two parts: a short label and the counter ('' when the step has none) — the counter is kept apart so
-   *  the chip can truncate the label and never the count */
-  chip(): { label: string; count: string } {
-    if (!this.started) return { label: this.def.intro?.chip ?? this.def.intro?.objective ?? '', count: '' };
-    const s = this.cur;
-    if (!s) return { label: engineString('s_f316ae64883e'), count: '' };
-    const c = this.counter(s);
-    const label = s.chip ?? s.objective.replace(/\s*·?\s*\{n\}\s*\/\s*\{of\}/, '');
-    return { label, count: c ? `${c.n}/${c.of}` : '' };
-  }
-  hint(): string { return !this.started ? this.def.intro?.hint ?? '' : this.cur?.hint ?? ''; }
+  objective(): string { return questObjective(this.def, this.started, this.cur, this.counter(this.cur)); }
+  chip(): { label: string; count: string } { return questChip(this.def, this.started, this.cur, this.counter(this.cur)); }
+  hint(): string { return questHint(this.def, this.started, this.cur); }
+  /** What a client is told of this quest. */
+  progress(): QuestProgress { return { quest: this.def.id, started: this.started, step: this.cur?.id ?? null, n: this.counter(this.cur)?.n ?? 0 }; }
 
   markers(): QuestMarker[] {
     const list = !this.started ? this.def.intro?.markers ?? [] : this.cur?.markers ?? [];

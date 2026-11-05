@@ -1,6 +1,7 @@
 import type { SimHost } from '../sim';
 import { Flags, type FlagListener } from '../world/interact/flags';
 import { QuestState, type QuestDef } from './core';
+import type { QuestProgress } from './progress';
 
 /**
  * P1-E3.3: one player's flags over the world's. A flag a quest row writes (`QuestBooks.claim`) is that player's own; any
@@ -97,6 +98,12 @@ export class QuestBooks {
     this.list.length = 0;
     for (const id of this.host.players.keys()) this.list.push(this.of(id));
     return this.list;
+  }
+  /** What one player's client is told, when its book moved past `since`. */
+  progressOf(id: string, since: number): { readonly version: number; readonly rows: readonly QuestProgress[] } | null {
+    if (!this.host.players.has(id)) return null;
+    const book = this.of(id);
+    return book.version === since ? null : { version: book.version, rows: book.quests.map(quest => quest.progress()) };
   }
   /** Every other player's book, or undefined: a one-player save never holds this. */
   save(): QuestBookSaved[] | undefined {

@@ -1,6 +1,7 @@
 // P1-E5.2 (E5-REPLICATION §4.2–4.3): the small messages around `frame` and `cmds`. Every message starts with its id byte.
 import type { NetAct } from '@wildshard/format/netCommand';
 import { BitReader, bitsToFloat, floatToBits, NetDecodeError, type BitWriter } from './bits';
+import type { QuestProgress } from '../quest/progress';
 
 export const MSG_HELLO = 1;
 export const MSG_CMDS = 2;
@@ -55,14 +56,16 @@ export interface NetHit { readonly kind: 'hit'; readonly tick: number; readonly 
 export interface NetDied { readonly kind: 'died'; readonly tick: number; readonly id: number; readonly by: number; readonly dir: NetVector; readonly impulse: number }
 /** The events a settled fight sends. */
 export type NetCombatEvent = NetHit | NetDied;
+/** A quest moved for this client's own player (P1-E3.3), or it joined: quest state is per player and goes only to its owner. */
+export interface NetQuest extends QuestProgress { readonly kind: 'quest'; readonly tick: number }
 /** One reliable event. E3 and E4 add `ledger` and the rest as their views need them. */
-export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent;
+export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent | NetQuest;
 /** The events' wire form, in NET_SCHEMA_HASH: a change here must refuse a stale client like a field table's does (J54). */
-export const NET_EVENT_FORMS = 'hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32';
+export const NET_EVENT_FORMS = 'hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16';
 /** The spawn's column widths, which only the receiver's class table knows. */
 export type InitialBits = (cls: number) => { readonly bits: readonly number[]; readonly text: number } | undefined;
 
-const EVENT_SPAWN = 1, EVENT_DESPAWN = 2, EVENT_HIT = 3, EVENT_DIED = 4;
+const EVENT_SPAWN = 1, EVENT_DESPAWN = 2, EVENT_HIT = 3, EVENT_DIED = 4, EVENT_QUEST = 5;
 /** Cell-local metres, as a field table declares them (§3.5). */
 const METRES = 260, METRE_TOP = 0xffff, UNIT_TOP = 0xff;
 const clampTo = (value: number, limit: number): number => Math.max(-limit, Math.min(limit, value));
@@ -90,6 +93,7 @@ export function encodeEvents(writer: BitWriter, tick: number, events: readonly N
   for (const event of events) {
     if (event.kind === 'despawn') { writer.write(EVENT_DESPAWN, 8); writer.write(event.handle, 16); continue; }
     if (event.kind === 'hit' || event.kind === 'died') { writeCombat(writer, event); continue; }
+    if (event.kind === 'quest') { writer.write(EVENT_QUEST, 8); writer.write(event.tick, 32); writer.writeText(event.quest); writer.writeBool(event.started); writer.writeBool(event.step !== null); writer.writeText(event.step ?? ''); writer.write(event.n, 16); continue; }
     writer.write(EVENT_SPAWN, 8); writer.write(event.handle, 16); writer.write(event.cls, 8); writer.writeText(event.id);
     bits(event.cls)?.bits.forEach((width, index) => { writer.write(event.initial[index] ?? 0, width); });
     for (const text of event.text) writer.writeText(text);
@@ -105,6 +109,10 @@ export function decodeEvents(bytes: Uint8Array, bits: InitialBits): { readonly t
       if (kind === EVENT_DESPAWN) { events.push({ kind: 'despawn', handle: reader.read(16) }); continue; }
       if (kind === EVENT_HIT) { events.push(readHit(reader)); continue; }
       if (kind === EVENT_DIED) { events.push(readDied(reader)); continue; }
+      if (kind === EVENT_QUEST) {
+        const at = reader.read(32), quest = reader.readText(), started = reader.readBool(), held = reader.readBool(), step = reader.readText();
+        events.push({ kind: 'quest', tick: at, quest, started, step: held ? step : null, n: reader.read(16) }); continue;
+      }
       if (kind !== EVENT_SPAWN) throw new NetDecodeError('Unknown event');
       const handle = reader.read(16), cls = reader.read(8), id = reader.readText(), widths = bits(cls);
       if (widths === undefined) throw new NetDecodeError('Unknown class');

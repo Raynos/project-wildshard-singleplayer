@@ -1,7 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The product and Rapier are shipped bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
+import { NetClient } from '../src/engine/net/client';
+import { NetRoom } from '../src/engine/net/room';
+import { SimNetWorld } from '../src/engine/net/simWorld';
 import { questBooks } from '../src/engine/quest/players';
+import { QuestReplica } from '../src/engine/quest/view/replica';
+import { directLoopback, type DirectLoopback } from '../src/engine/test/netLoopback';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { leadPlayer } from '../src/engine/sim/leadPlayer';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
@@ -53,5 +58,31 @@ test('a bot plays Driftwood\'s opening, and the quest is the bot\'s alone', asyn
 
   const saved = snapshotSimHost(host);
   expect(saved.books?.[0]?.flags).toEqual(expect.arrayContaining(['talked:castaway', 'open:castaway-chest', 'has:flint']));
+  live.dispose();
+}, 60_000);
+
+test('a client reads the same quest the server holds, and only its own', async () => {
+  const live = await resident(), { host } = live, spawn = leadPlayer(host).position;
+  const world = new SimNetWorld(host), room = new NetRoom({ world, step: () => undefined });
+  host.addPlayer('bot:1', { x: spawn.x, y: spawn.y, z: spawn.z }); host.addPlayer('bot:2', { x: spawn.x, y: spawn.y, z: spawn.z });
+  const join = (id: string): { client: NetClient; link: DirectLoopback } => {
+    const link = directLoopback(), client = new NetClient(link.client);
+    room.join(link.server, world.playerOf(id)); client.hello(); link.pump(); return { client, link };
+  };
+  const one = join('bot:1'), two = join('bot:2');
+  room.open(); one.link.pump(); two.link.pump();
+  const defs = host.quests.map(quest => quest.def), view = new QuestReplica(defs, one.client.quests), other = new QuestReplica(defs, two.client.quests);
+  const book = questBooks(host).of('bot:1'), server = () => { const quest = book.quests.find(row => row.def.id === 'sealed-ring'); if (quest === undefined) throw new Error('No quest'); return quest; };
+  const frame = (): void => { room.tick(); one.link.pump(); two.link.pump(); };
+  frame(); frame();
+  expect(view.isStarted('sealed-ring')).toBe(false);
+  expect(view.objective('sealed-ring')).toBe(server().objective());
+
+  stand(live, -22, -71.5); live.step([use(0)]); frame(); frame();
+  expect(view.isStarted('sealed-ring')).toBe(true);
+  expect(view.objective('sealed-ring')).toBe(server().objective());
+  expect(view.chip('sealed-ring')).toEqual(server().chip());
+  expect(view.hint('sealed-ring')).toBe(server().hint());
+  expect(other.isStarted('sealed-ring'), 'another player\'s client hears nothing of it').toBe(false);
   live.dispose();
 }, 60_000);

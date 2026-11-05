@@ -3,6 +3,8 @@ import type { SimHost } from '../sim';
 import { leadPlayer } from '../sim/leadPlayer';
 import type { AnimalNetView } from './animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
+import { questBooks } from '../quest/players';
+import type { QuestProgress } from '../quest/progress';
 import { encounterRows } from '../sim/encounterRows';
 import { ANIMAL_CLASS, ENCOUNTER_CLASS, PLAYER_CLASS } from './netSchemas';
 import type { NetRefs } from './schema';
@@ -29,6 +31,7 @@ export class SimNetWorld implements NetWorld {
   tick(): number { return this.host.state.tick; }
   cell(): number { return 0; }
   combat(): readonly CombatEvent[] { return this.wire.drain(); }
+  quests(player: string, since: number): { readonly version: number; readonly rows: readonly QuestProgress[] } | null { return questBooks(this.host).progressOf(player, since); }
   visit(visitor: NetVisitor): void {
     const { host, pose } = this, targets = new Map(host.attackTargets());
     for (const player of host.players.values()) visitor.entity(player.id, PLAYER_CLASS, player);

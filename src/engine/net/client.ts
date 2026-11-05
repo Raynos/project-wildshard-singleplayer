@@ -1,6 +1,7 @@
 // P1-E5.2 (E5-REPLICATION §4): the client's end of the game protocol. It says hello, decodes frames and events, acks, and
 // sends commands in bundles with redundant copies. Prediction and interpolation build on this in E5.3; the view halves
 // read its rows in E4.3. It knows nothing of how bytes travel, and imports nothing from the server.
+import type { QuestProgress } from '../quest/progress';
 import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
 import { BitWriter } from './bits';
 import { encodeCommands, seqAfter } from './command';
@@ -42,6 +43,8 @@ export class NetClient {
   private readonly frames = new Map<number, DecodedFrame>();
   private readonly listeners = new Set<(frame: DecodedFrame) => void>();
   private readonly fights = new Set<(event: NetCombatEvent) => void>();
+  /** This client's own player's quests, newest row each (P1-E3.3): what a QuestReplica reads. */
+  readonly quests = new Map<string, QuestProgress>();
   private readonly table: FrameTable;
   private readonly ids = new Map<string, number>();
   private unacked: NetCommand[] = [];
@@ -101,6 +104,7 @@ export class NetClient {
     if (decoded === null) { this.dropped++; return; }
     for (const event of decoded.events) {
       if (event.kind === 'hit' || event.kind === 'died') { for (const listener of this.fights) listener(event); continue; }
+      if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
       if (event.kind === 'despawn') {
         const id = this.entities.get(event.handle)?.id;
         if (id !== undefined) this.ids.delete(id);
