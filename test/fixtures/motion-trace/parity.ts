@@ -150,9 +150,6 @@ export interface MotionScenario {
   readonly dry?: boolean;
   /** A real held creature on the host, in the way: what the client knows of it is its row. */
   readonly bodyAt?: { readonly x: number; readonly z: number };
-  /** Keep the host's own capsule. Every other scenario gives it the page's, as a physics route does, so a row that lands
-   *  ahead of A6 reads only its own difference, not every seam the two capsules meet differently. A6 ends this. */
-  readonly hostCapsule?: boolean;
   /** What the page must really do here, or the scenario proves nothing: `rose` left the feet's start by half a metre up. */
   readonly reaches?: readonly MotionReach[];
 }
@@ -243,12 +240,6 @@ export class HostSide implements MotionEvents {
     this.course = buildCourse(host.physics); this.scenario = scenario; this.player = leadPlayer(host);
     host.floors.push(...courseFloors);
     for (const actor of host.entities.values()) actor.harnessHold = true;
-    if (scenario.hostCapsule !== true) {
-      const { player } = this;
-      player.releaseMotor().dispose();
-      player.attachMotor(new CharacterMotor(host.physics, { ...PLAYER_CAPSULE, ...PLAYER_BODY, owner: player.id }));
-      player.motor.resetAt(player.position);
-    }
     if (scenario.dry !== true) host.useWater({ surfaceAt: courseWaterAt, ...(scenario.sea === true ? { bob: (x: number, z: number): number => seaSwell(x, z, host.clock.now) } : {}) });
   }
   tick(tick: number, intent: MotionIntent): void {

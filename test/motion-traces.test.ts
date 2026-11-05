@@ -63,7 +63,7 @@ const sample = new Float64Array(16), bytes = new Uint8Array(sample.buffer);
 let R: Rapier;
 beforeAll(async () => { R = await loadCourseRapier(); });
 
-const scenario = (id: string, extra: Partial<MotionScenario> = {}): MotionScenario => ({ id, start: { x: -10, z: 0, yaw: 0 }, ticks: TICKS, intent: () => ({}), hostCapsule: true, ...extra });
+const scenario = (id: string, extra: Partial<MotionScenario> = {}): MotionScenario => ({ id, start: { x: -10, z: 0, yaw: 0 }, ticks: TICKS, intent: () => ({}), ...extra });
 
 function pageTrace(): Trace {
   const page = new PageSide(R, scenario('page')), { player, camera } = page, out = trace(), { intent, site } = seededIntent(0x5EED);

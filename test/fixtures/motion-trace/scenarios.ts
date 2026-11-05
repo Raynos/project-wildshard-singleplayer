@@ -45,9 +45,9 @@ export const MOTION_SCENARIOS: readonly MotionScenario[] = [
   { id: 'A5.stand-up', reaches: ['swim', 'wade'], start: { x: POOL_X - 9, y: 0, z: 0, yaw: EAST }, ticks: 180, intent: () => walk },
 
   // A6: one capsule
-  { id: 'A6.step-up', hostCapsule: true, start: { x: -12, z: STEP_Z + 4, yaw: SOUTH }, ticks: 150, intent: () => walk },
-  { id: 'A6.narrow-gap', hostCapsule: true, start: { x: 0, z: GAP_Z + 4, yaw: SOUTH }, ticks: 200, intent: () => walk },
-  { id: 'A6.climb-42', hostCapsule: true, start: { x: 0, z: RAMP_Z - 3, yaw: NORTH }, ticks: 240, intent: () => walk },
+  { id: 'A6.step-up', start: { x: -12, z: STEP_Z + 4, yaw: SOUTH }, ticks: 150, intent: () => walk },
+  { id: 'A6.narrow-gap', start: { x: 0, z: GAP_Z + 4, yaw: SOUTH }, ticks: 200, intent: () => walk },
+  { id: 'A6.climb-42', start: { x: 0, z: RAMP_Z - 3, yaw: NORTH }, ticks: 240, intent: () => walk },
 
   // A7: the lock-on orbit
   { id: 'A7.orbit', start: { x: 40, z: 60, yaw: SOUTH }, ticks: 240, lockAt: { x: 40, z: 54, r0: 6 }, intent: () => ({ keyX: 1 }) },

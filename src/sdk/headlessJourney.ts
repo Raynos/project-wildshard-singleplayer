@@ -116,7 +116,7 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
     observe(commands);
   };
   const preparationTicks=plan.start===undefined?0:36;
-  const walking={speed:walkingSpeed(false,false,0,1,1),crouching:false,clientMotion:{x:0,z:0}};
+  const walking={speed:walkingSpeed(false,false,0,1,1),crouching:false};
   // Only explicit physics routes replace the native capsule and walking law.
   const releaseWalk=plan.start===undefined?()=>undefined:player.useWalkingControl(walking);
   let releaseActors:()=>void=()=>undefined;
