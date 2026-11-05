@@ -1,7 +1,10 @@
 import * as v from 'valibot';
 import { nativeBodySchema, nativeGroundRecordSchema, nativeColliderRecordSchema, type NativeGroundStorage, type NativeArrayStorage } from '@wildshard/format/nativePhysics';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import type { Collider } from '@dimforge/rapier3d-simd';
 import { withOwner } from '@wildshard/engine/app/ownership';
+import { solidReach } from '@wildshard/engine/physics/nearColliders';
+import type { Physics } from '@wildshard/engine/physics/Physics';
 import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
 import type { SimHost } from '@wildshard/engine/sim';
 
@@ -78,18 +81,32 @@ export function installNativeCollision(host:Pick<SimHost,'physics'|'scope'|'onSt
   withOwner(host.scope,()=>{
     const ground=world.createCollider(R.ColliderDesc.heightfield(n,n,g.heights,g.scale).setTranslation(g.at.x,g.at.y,g.at.z).setCollisionGroups(g.groups).setFriction(g.friction));
     tagCollider(ground,'ground');
+    const build=(physics:Physics,solid:NativeCollisionSolid):Collider=>{
+      const shapes=physics.R.ColliderDesc,desc=solid.shape===1&&solid.half!==undefined?shapes.cuboid(solid.half[0],solid.half[1],solid.half[2])
+        :solid.shape===2&&solid.halfHeight!==undefined&&solid.radius!==undefined?shapes.capsule(solid.halfHeight,solid.radius)
+        :solid.shape===6&&solid.points!==undefined&&solid.indices!==undefined?shapes.trimesh(solid.points,solid.indices)
+        :solid.shape===9&&solid.points!==undefined?shapes.convexHull(solid.points):null;
+      if(desc===null)throw new Error('Unbuildable native collider');
+      return physics.world.createCollider(desc.setTranslation(solid.at[0],solid.at[1],solid.at[2]).setRotation({x:solid.rot[0],y:solid.rot[1],z:solid.rot[2],w:solid.rot[3]})
+        .setCollisionGroups(solid.groups).setFriction(solid.friction));
+    };
+    const tagged=(physics:Physics,solid:NativeCollisionSolid,owner:unknown):Collider=>{
+      const collider=build(physics,solid);
+      if(solid.enabled!==undefined)collider.setEnabled(solid.enabled);
+      if(policy!==undefined)tagCollider(collider,solid.material??policy.fallback,owner);
+      else if(solid.material!==undefined)tagCollider(collider,solid.material,owner);
+      return collider;
+    };
+    const near=host.physics.near;
     for(const solid of bake.solids){
       if(omitted(solid))continue;
-      const desc=solid.shape===1&&solid.half!==undefined?R.ColliderDesc.cuboid(solid.half[0],solid.half[1],solid.half[2])
-        :solid.shape===2&&solid.halfHeight!==undefined&&solid.radius!==undefined?R.ColliderDesc.capsule(solid.halfHeight,solid.radius)
-        :solid.shape===6&&solid.points!==undefined&&solid.indices!==undefined?R.ColliderDesc.trimesh(solid.points,solid.indices)
-        :solid.shape===9&&solid.points!==undefined?R.ColliderDesc.convexHull(solid.points):null;
-      if(desc===null)throw new Error('Unbuildable native collider');
-      const collider=world.createCollider(desc.setTranslation(solid.at[0],solid.at[1],solid.at[2]).setRotation({x:solid.rot[0],y:solid.rot[1],z:solid.rot[2],w:solid.rot[3]})
-        .setCollisionGroups(solid.groups).setFriction(solid.friction));
-      if(solid.enabled!==undefined)collider.setEnabled(solid.enabled);
-      if(policy!==undefined)tagCollider(collider,solid.material??policy.fallback,solid.ownerId===undefined?null:owners.get(solid.ownerId));
-      else if(solid.material!==undefined)tagCollider(collider,solid.material,solid.owner??null);
+      const owner=policy===undefined?solid.owner??null:solid.ownerId===undefined?null:owners.get(solid.ownerId);
+      // A hull or mesh is most of a Rapier heap; a declared owner's solid stays, since a script may look it up.
+      if(near!==null&&typeof owner!=='string'&&solid.enabled!==false&&(solid.shape===9||solid.shape===6)&&solid.points!==undefined){
+        near.hold({x:solid.at[0],z:solid.at[2],reach:solidReach(solid.points),make:physics=>withOwner(host.scope,()=>tagged(physics,solid,owner))});
+        continue;
+      }
+      tagged(host.physics,solid,owner);
     }
   });
   if(policy!==undefined){

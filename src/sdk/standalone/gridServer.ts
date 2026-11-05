@@ -12,6 +12,7 @@ import type { LedgerBook } from '@wildshard/engine/net/ledgerBook';
 import type { ChatReports } from '@wildshard/engine/net/chat';
 import type { NetTickInput } from '@wildshard/engine/net/room';
 import { groups } from '@wildshard/engine/physics/groups';
+import { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
@@ -101,6 +102,13 @@ async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimS
   return { host, dispose: () => { (installed.value ?? { dispose: () => { host.dispose(); } }).dispose(); } };
 }
 
+/** A world's continuation. The solids held near its player are out of it while it is taken: they are in no save. */
+function capture(host: SimHost): string {
+  const { near } = host.physics, { position } = leadPlayer(host);
+  near?.suspend();
+  try { return serializeSimSnapshot(snapshotSimHostBytes(host)); } finally { near?.resume(position.x, position.z); }
+}
+
 /** Whether this output runs on the trusted headless owner. */
 const nativeCell = (input: HeadlessRuntimeInput): boolean => input.product !== undefined && (hasNativeAssembly(input.product) || input.product.has('sim/runtime-plan'));
 
@@ -158,7 +166,7 @@ export class StandaloneGrid {
     const grid: GridSimulation = new GridSimulation(assembly, { highway: { host: road, dispose: () => { road.dispose(); } }, maxResidents: options.residents ?? STANDALONE_RESIDENTS,
       load: async (cell, cached) => { const world = await open(cell, cached); worlds.set(cell.instance, world); return { host: world.host, dispose: () => { worlds.delete(cell.instance); world.dispose(); } }; },
       durable: (instance, host) => {
-        const held = slots(instance), wrote = held.write({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHostBytes(host)), ledger: options.book.snapshot() });
+        const held = slots(instance), wrote = held.write({ tick: host.state.tick, snapshot: capture(host), ledger: options.book.snapshot() });
         settle(held);
         return wrote;
       } });
@@ -180,11 +188,15 @@ export class StandaloneGrid {
     const declared = new Set(input.shard.ledger.map(row => row.fact));
     const ledger = createQuestLedger(options.saves, input.shard, cell.instance), fact: CellWorld['fact'] = (name, entity) => declared.has(name) ? ledger(name, entity) : null;
     if (nativeCell(input)) {
-      const resident = await createTrustedHeadlessResident(input, snapshot, { room: true }), { host } = resident;
+      // J68: a native assembly keeps its ground whole and its solids as data. A saved world holds none of them, so a throwaway fresh one lists them.
+      const near = input.product !== undefined && hasNativeAssembly(input.product) ? new NearColliders() : undefined, around = near === undefined ? { room: true } : { room: true, near };
+      if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
+      const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
       if (snapshot === undefined) addRim(host);
       host.respawn.served = true;
       return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects, step: inputs => {
-        const own = inputs.find(row => row.player === leadPlayer(host).id);
+        const lead = leadPlayer(host), own = inputs.find(row => row.player === lead.id);
+        near?.update(lead.position.x, lead.position.z);
         resident.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
       } };
     }
@@ -204,6 +216,8 @@ export class StandaloneGrid {
   }
   /** Worlds held beside the road. */
   get residents(): number { return this.worlds.size; }
+  /** Solids kept as data by the world the player stands in, and those it holds now. */
+  get near(): { readonly held: number; readonly live: number } { return this.host.physics.near?.counts ?? { held: 0, live: 0 }; }
   /** Characters of save documents this worker keeps a copy of. */
   get docsChars(): number {
     const { storage } = this.options;
@@ -224,7 +238,7 @@ export class StandaloneGrid {
   }
   /** Save where the session stands. The document for that place first, then the site that names it. */
   async save(): Promise<{ readonly tick: number; readonly durable: boolean }> {
-    const site = this.grid.current(), { host } = this, { tick } = host.state, wire = serializeSimSnapshot(snapshotSimHostBytes(host)), ledger = this.options.book.snapshot();
+    const site = this.grid.current(), { host } = this, { tick } = host.state, wire = capture(host), ledger = this.options.book.snapshot();
     const cell = site === null ? undefined : this.slots(site);
     const wrote = (cell?.write({ tick, snapshot: wire, ledger }) ?? true) && this.sites.write({ tick: ++this.saved, site, ...(site === null ? { road: wire, ledger } : {}) });
     return { tick, durable: await this.settle(cell === undefined ? [this.sites] : [cell, this.sites]) && wrote };

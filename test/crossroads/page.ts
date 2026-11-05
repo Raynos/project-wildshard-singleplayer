@@ -79,7 +79,7 @@ async function reading(session: Session): Promise<WorkerReading & { page: string
   return { ...worker, bytes: inWorker, page: `total ${MB(heap.bytes)} MB` };
 }
 function percentile(values: readonly number[], at: number): number { const sorted = [...values].sort((a, b) => a - b); return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * at))] ?? 0; }
-const line = (name: string, row: Awaited<ReturnType<typeof reading>>): string => `${name}: wasm ${MB(row.wasmBytes)} MB, worlds ${String(row.residents)}, save copies ${MB(row.docsChars * 2)} MB${row.bytes === null ? '' : `, worker ${MB(row.bytes)} MB`}, ${row.page}`;
+const line = (name: string, row: Awaited<ReturnType<typeof reading>>): string => `${name}: wasm ${MB(row.wasmBytes)} MB, worlds ${String(row.residents)}, near solids ${row.solids}, save copies ${MB(row.docsChars * 2)} MB${row.bytes === null ? '' : `, worker ${MB(row.bytes)} MB`}, ${row.page}`;
 
 /** The shipped server on a walk through all four cells, then the design's four worlds at once. */
 async function run(pause: (name: string) => Promise<void> = () => Promise.resolve()): Promise<string[]> {

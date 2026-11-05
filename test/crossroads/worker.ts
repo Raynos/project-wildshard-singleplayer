@@ -10,7 +10,7 @@ import { fetchServerProduct } from '../../src/sdk/standalone/serverProduct';
 /** What a reading asks, on the proof port. */
 export type ProofAsk = { readonly kind: 'admit'; readonly instances: readonly string[] } | { readonly kind: 'reading' } | { readonly kind: 'ticks' };
 /** What the worker can say about its own memory. WebKit has no heap number: the page's balloon gives that one. */
-export interface WorkerReading { readonly wasmBytes: number; readonly residents: number; readonly docsChars: number; readonly bytes: number | null }
+export interface WorkerReading { readonly wasmBytes: number; readonly residents: number; readonly docsChars: number; readonly solids: string; readonly bytes: number | null }
 /** The boot message's data. */
 export interface ProofStart { readonly arrival?: GridPoint; readonly residents?: number }
 
@@ -40,6 +40,6 @@ self.onmessage = (event: MessageEvent<ProofStart>): void => {
     if (data.kind === 'admit') {
       void admit(data.instances).then(answer);
     } else if (data.kind === 'ticks') answer({ kind: 'ticks', ms: ticks.splice(0) });
-    else answer({ kind: 'reading', wasmBytes: wasm?.buffer.byteLength ?? 0, residents: server?.residents ?? 0, docsChars: server?.docsChars ?? 0, bytes: null } satisfies WorkerReading & { kind: string });
+    else answer({ kind: 'reading', wasmBytes: wasm?.buffer.byteLength ?? 0, residents: server?.residents ?? 0, docsChars: server?.docsChars ?? 0, solids: server === undefined ? '' : `${String(server.near.live)}/${String(server.near.held)}`, bytes: null } satisfies WorkerReading & { kind: string });
   };
 };

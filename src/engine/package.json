@@ -246,6 +246,7 @@
     "./physics/bodies": "./shared/physics/bodies.ts",
     "./physics/box": "./shared/physics/box.ts",
     "./physics/groups": "./shared/physics/groups.ts",
+    "./physics/nearColliders": "./shared/physics/nearColliders.ts",
     "./physics/heightPatch": "./shared/physics/heightPatch.ts",
     "./physics/paths": "./shared/physics/paths.ts",
     "./physics/query": "./shared/physics/query.ts",

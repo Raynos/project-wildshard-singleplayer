@@ -424,6 +424,7 @@
   "src/engine/shared/physics/navmesh.ts": "shared",
   "src/engine/shared/physics/navmeshLoad.ts": "shared",
   "src/engine/shared/physics/navmeshUrl.ts": "shared",
+  "src/engine/shared/physics/nearColliders.ts": "shared",
   "src/engine/shared/physics/overlap.ts": "shared",
   "src/engine/shared/physics/paths.ts": "shared",
   "src/engine/shared/physics/Physics.ts": "shared",

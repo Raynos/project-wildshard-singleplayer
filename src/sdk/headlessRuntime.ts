@@ -6,6 +6,7 @@ import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { prepareAssetDecoders } from '@wildshard/format/product';
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
+import type { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, otherCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands } from '@wildshard/game/plugin/simulation';
@@ -204,7 +205,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
 }
 /** Install the selected plan into one fresh or strictly restored native host.
  * A failed install disposes its world; installation may emit no gameplay effects. */
-export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>, world?: { readonly room?: boolean }): Promise<TrustedHeadlessResident> {
+export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>, world?: { readonly room?: boolean; readonly near?: NearColliders }): Promise<TrustedHeadlessResident> {
   const plan = await prepareNativeRuntime(preparation);
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
@@ -215,11 +216,12 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   let installing: SimHost | undefined;
   let host: SimHost;
   try {
-    if (saved === undefined) { installing = createSimHost(plan.level, ports); plan.install(installing, context); host = installing; }
+    if (saved === undefined) { installing = createSimHost(plan.level, ports); if (world?.near !== undefined) { installing.physics.near = world.near; world.near.attach(installing.physics); } plan.install(installing, context); host = installing; }
     else host = restoreSimHost(plan.level, ports, saved, fresh => {
       installing = fresh; if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, context);
     });
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
+    if (saved !== undefined && world?.near !== undefined) { host.physics.near = world.near; world.near.attach(host.physics); }
   } catch (error) { installing?.dispose(); throw error; }
   if (plan.economy !== undefined) installRoomLoot(host, plan.economy, context);
   const lead = leadPlayer(host);

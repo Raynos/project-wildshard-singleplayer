@@ -9,6 +9,7 @@ import { currentOwner, withOwner } from '../app/ownership';
 import type { ColliderDesc, Piece } from '../../client/world/registry';
 import type { Physics } from './Physics';
 import { groups } from './groups';
+import { solidReach } from './nearColliders';
 import { tagCollider, untagCollider, type Material } from './surface';
 
 /** One tread of a stair: a solid block from the stair's foot up to this tread's top. */
@@ -85,17 +86,27 @@ export function addPiece(physics: Physics, piece: Piece, frame?: Object3D): Adde
   let colliderData = piece.colliders;
   const create = (): void => withOwner(owner, () => {
     const collisionGroups = groups('WORLD');
-    const one = (d: Exclude<ColliderDesc, { kind: 'treads' }>, raw: ColliderDesc): void => {
-      const desc = rapierDesc(physics, d);
-      if (desc === null) return; // a degenerate hull: nothing to collide with
+    const made = (target: Physics, d: Exclude<ColliderDesc, { kind: 'treads' }>, raw: ColliderDesc): Collider | null => {
+      const desc = rapierDesc(target, d);
+      if (desc === null) return null; // a degenerate hull: nothing to collide with
       desc.setTranslation(d.x, d.y, d.z).setCollisionGroups(collisionGroups);
       if (d.rot) desc.setRotation(d.rot);
       else if (d.yaw !== undefined && d.yaw !== 0) desc.setRotation({ x: 0, y: Math.sin(d.yaw / 2), z: 0, w: Math.cos(d.yaw / 2) });
       else desc.setRotation(IDENTITY_ROTATION); // a reused box must not carry the preceding piece's rotation
-      const c = world.createCollider(desc, body ?? undefined);
+      const c = target.world.createCollider(desc, body ?? undefined);
       const material: Material = d.surface ?? raw.surface ?? piece.surface ?? 'wood';
       tagCollider(c, material, piece.colliderOwner ?? piece);
-      out.push(c);
+      return c;
+    };
+    const one = (d: Exclude<ColliderDesc, { kind: 'treads' }>, raw: ColliderDesc): void => {
+      const { near } = physics;
+      // J68: a phone's server keeps a still piece's hulls and meshes as data until its player is near.
+      if (near !== null && !follows && piece.active === undefined && (d.kind === 'hull' || d.kind === 'trimesh')) {
+        near.hold({ x: d.x, z: d.z, reach: solidReach(d.kind === 'hull' ? d.points : d.vertices), make: target => withOwner(owner, () => made(target, d, raw)) });
+        return;
+      }
+      const c = made(physics, d, raw);
+      if (c !== null) out.push(c);
     };
     for (const raw of piece.colliders ?? []) {
       if (raw.kind === 'treads') for (const tread of treadBoxes(raw)) one(tread, raw);

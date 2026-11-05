@@ -10,6 +10,7 @@
  */
 import { RawVector } from '@dimforge/rapier3d-simd/raw.js';
 import type { Collider, RigidBody, World, Ray, RayColliderHit, RayColliderIntersection, QueryFilterFlags, InteractionGroups } from '@dimforge/rapier3d-simd';
+import type { NearColliders } from './nearColliders';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
 import { currentOwner, ownerOr } from '../app/ownership';
@@ -51,6 +52,8 @@ export class Physics {
   /** Trusted native captures read the same surface/owner metadata as collision queries, without inferring identity. */
   colliderTag(collider: Collider): Readonly<ColliderTag> | undefined { return tagOf(collider); }
   readonly world: World;
+  /** Where a phone's server worker keeps the solids far from its player (J68). Elsewhere, every solid is in the world. */
+  near: NearColliders | null = null;
   /** ms the last `step()` took (the perf meter / bench read it) */
   stepMs = 0;
 

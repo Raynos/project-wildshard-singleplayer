@@ -8,6 +8,7 @@ import { GridAssembly, type GridPoint } from '../src/game/shared/grid/assembly';
 import { outputDescriptor, serverReadsFile } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { HeadlessRuntimeInput } from '../src/sdk/headlessRuntime';
+import type { StandaloneGrid } from '../src/sdk/standalone/gridServer';
 import { runStandaloneServer } from '../src/sdk/standalone/serverHost';
 import { connectStandalone, type StandaloneShell } from '../src/sdk/standalone/shell';
 import { builtProduct } from './fixtures/builtProduct';
@@ -36,10 +37,11 @@ const HOME = 'sunscar-dunes', NEIGHBOUR = 'driftwood-isle';
 const cell = (slug: string): number => assembly.cells.findIndex(row => row.slug === slug) + 1;
 const until = async (ready: () => boolean, timeout = 30_000): Promise<void> => { await vi.waitFor(() => { expect(ready()).toBe(true); }, { timeout, interval: 5 }); };
 
-function start(storage: SaveStorage, arrival?: GridPoint): { shell: StandaloneShell; stop: () => void } {
+let running: StandaloneGrid | undefined;
+function start(storage: SaveStorage, arrival?: GridPoint, home = HOME): { shell: StandaloneShell; stop: () => void } {
   const control = new MessageChannel(), game = new MessageChannel();
-  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => serverInput(slug), ...(arrival === undefined ? {} : { proof: { arrival } }) });
-  const shell = connectStandalone({ slug: HOME, base: `/shards/${HOME}/`, build: 'test', savePrefix: 'wildshard.', storage }, control.port2, game.port2, () => { server.dispose(); });
+  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => serverInput(slug), proof: { ...(arrival === undefined ? {} : { arrival }), booted: grid => { running = grid; } } });
+  const shell = connectStandalone({ slug: home, base: `/shards/${home}/`, build: 'test', savePrefix: 'wildshard.', storage }, control.port2, game.port2, () => { server.dispose(); });
   return { shell, stop: () => { shell.dispose(); } };
 }
 /** Keep walking on a heading until `done`. Yaw π/2 is -x. */
@@ -86,4 +88,21 @@ test('a client walks off the road into a cell and back, and a reload resumes it 
   await until(() => third.shell.client.latest !== null);
   expect(third.shell.client.latest?.cell).toBe(0);
   third.stop();
+});
+
+test('J68: a world keeps its far solids as data, in its save too, and a restored one knows them again', { timeout: 60_000 }, async () => {
+  const storage = new PageStorage(), first = start(storage, undefined, 'nalati-grasslands');
+  await first.shell.booted; first.shell.ready();
+  await until(() => (running?.near.live ?? 0) > 0 || first.shell.client.latest !== null);
+  const held = running?.near.held ?? 0;
+  expect(held).toBeGreaterThan(1000);
+  await until(() => (first.shell.client.latest?.tick ?? 0) > 10);
+  expect(running?.near.live).toBeLessThan(held / 4);
+  expect((await first.shell.save()).ok).toBe(true);
+  expect(storage.getItem('wildshard.standalone-nalati-grasslands')?.length).toBeLessThan(2_000_000);
+  first.stop();
+  const second = start(storage, undefined, 'nalati-grasslands');
+  expect((await second.shell.booted).restored).toBe(true);
+  expect(running?.near.held).toBe(held);
+  second.stop();
 });
