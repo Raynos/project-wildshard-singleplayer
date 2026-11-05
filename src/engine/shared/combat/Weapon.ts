@@ -28,6 +28,8 @@ export interface WeaponWire {
   readonly fire: (ads: number) => void;
   /** Run this once the next command has stepped: the server's seat starts a lunge after the tick's move, so a dash here waits too. */
   readonly afterStep: (run: () => void) => void;
+  /** Commands this frame has sent: a swing's clock takes one step for each, so it keeps the server's count (P1-E5.3-E1). */
+  readonly steps: () => number;
   /** The `seq` the next command takes. */
   readonly nextSeq: () => number;
 }

@@ -33,6 +33,7 @@ export class NetPlayer implements PlayerLink {
     hold: heavy => { this.heavy = heavy; },
     fire: ads => { this.launcher = { slot: this.held, ads, fire: true }; },
     afterStep: run => { this.afterStep = run; },
+    steps: () => this.frameSteps,
     nextSeq: () => (this.seq + 1) & 0xffff,
   };
   /** Biggest camera offset a correction has left, in metres: what a proof page reports. */
@@ -45,6 +46,7 @@ export class NetPlayer implements PlayerLink {
   private heavy = false;
   private held = 0;
   private afterStep: (() => void) | null = null;
+  private frameSteps = 0;
   private launcher: NonNullable<NetCommand['launcher']> | null = null;
   private seq = 0;
   private weapons: NetWeapons | null = null;
@@ -71,6 +73,7 @@ export class NetPlayer implements PlayerLink {
   step(input: PlayerWireInput): boolean {
     if (this.seen === null || this.predictor.full) return false;
     const armed = this.armed(input), seq = this.seq = this.client.command(armed);
+    this.frameSteps++;
     if (this.pressStarted || armed.launcher?.fire === true) this.attacks.started(seq);
     this.pressed = false; this.pressStarted = false; this.launcher = null;
     this.world.poseFor(seq, false);
@@ -85,6 +88,7 @@ export class NetPlayer implements PlayerLink {
   }
   /** The start of a render frame, before its fixed steps: the newest owner block, compared once. */
   reconcile(): void {
+    this.frameSteps = 0;
     const frame = this.client.latest;
     if (frame === null || frame === this.seen) return;
     const first = this.seen === null;

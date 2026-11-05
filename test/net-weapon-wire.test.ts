@@ -45,9 +45,9 @@ function sword(wire: WeaponWire): { blade: SweptMelee; stops: ReturnType<typeof 
   blade.onHit = kind => { heard.push(kind); };
   return { blade, stops, heard, player, done: () => { app.physics = was; app.aimTargets = aimed; physics.dispose(); } };
 }
-const wireSpy = (): WeaponWire & { presses: boolean[]; holds: boolean[] } => {
+const wireSpy = (steps: () => number = () => 1): WeaponWire & { presses: boolean[]; holds: boolean[] } => {
   const presses: boolean[] = [], holds: boolean[] = [];
-  return { presses, holds, press: started => { presses.push(started); }, hold: held => { holds.push(held); }, fire: () => undefined, afterStep: run => { run(); }, nextSeq: () => 1 };
+  return { presses, holds, press: started => { presses.push(started); }, hold: held => { holds.push(held); }, fire: () => undefined, afterStep: run => { run(); }, steps: () => steps(), nextSeq: () => 1 };
 };
 
 test('a tap starts here at once, and tells the wire whether the server has a start to rule on', () => {
@@ -68,6 +68,19 @@ test('the server\'s hit plays the blow once, and a refusal lets the swing go at 
     blade.serverHit(HIT); blade.serverHit({ ...HIT, seq: 10 });
     expect(stops).toHaveBeenCalledTimes(1); expect(heard).toEqual(['crab', 'crab']);
     blade.attackRefused(); blade.update(1 / 60, 1 / 60);
+    expect(player.swinging).toBe(false);
+  } finally { done(); }
+});
+
+test('on a link the swing clock takes one step for each command the frame sent, whatever the frame took', () => {
+  let steps = 0;
+  const wire = wireSpy(() => steps), { blade, player, done } = sword(wire), { total } = SLASH;
+  try {
+    blade.tryFire();
+    for (let frame = 0; frame < 20; frame++) blade.update(0.041, frame * 0.041);
+    expect(player.swinging).toBe(true); // twenty slow frames and no command: the server has not moved either
+    steps = Math.ceil(total / STARTER_MELEE_PROFILE.swingScale / FIXED_STEP) + 1;
+    blade.update(0.041, 1);
     expect(player.swinging).toBe(false);
   } finally { done(); }
 });

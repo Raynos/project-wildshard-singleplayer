@@ -20,7 +20,8 @@ import type { Player } from '../../player/Player';
 import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import { Melee } from '../../../shared/combat/Melee';
-import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush } from '../../../shared/combat/sweptMeleeCore';
+import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush, type SweptStep } from '../../../shared/combat/sweptMeleeCore';
+import { FIXED_STEP } from '../../../shared/core/fixedStep';
 import { BladeSweep, bladeInReach, sweptBladeDirs } from '../../../shared/combat/sweptBlade';
 import { SweptBasePose } from '../../../shared/combat/sweptBasePose';
 import type { MeleeProfile } from '../../../shared/combat/meleeProfile';
@@ -310,6 +311,15 @@ export class SweptMelee extends Melee {
   }
   /** The start the server refused goes at once, with whatever it queued (P1-E5.3-E5). */
   override attackRefused(): void { this.clock.stop(); }
+  /** The swing clock's step: a frame's, or on a link one per command this frame sent, so it counts what the server counts (P1-E5.3-E1). */
+  private stepClock(dt: number, t: number, held: boolean): SweptStep<Move> {
+    const pick = (input: 'attack' | 'heavy'): Move | null => this.pickMove(input);
+    if (this.wire === null) return this.clock.step(dt, t, this.swingScale, held, pick);
+    const steps = this.wire.steps();
+    let out = this.clock.step(steps > 0 ? FIXED_STEP : 0, t, this.swingScale, held, pick);
+    for (let at = 1; at < steps; at++) out = this.clock.step(FIXED_STEP, t, this.swingScale, held, pick);
+    return out;
+  }
   /** start one specific move (outside the combo — the sabre's mounted pass slash): false when a swing or charge is running.
    *  `lunge` false = no dash onto the target (in the saddle the horse does the moving). Ends the combo. */
   strikeMove(move: Move, lunge = true): boolean {
@@ -569,7 +579,7 @@ export class SweptMelee extends Melee {
     if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle
     const held = (this.mouseHeld || this.adsHeld) && this.enabled;
     this.wire?.hold(held);
-    const charged = this.clock.chargingHeavy, { move, active } = this.clock.step(dt, t, this.swingScale, held, (input) => this.pickMove(input));
+    const charged = this.clock.chargingHeavy, { move, active } = this.stepClock(dt, t, held);
     if (charged && !this.clock.chargingHeavy && move !== null) this.wire?.press(true);
     // the camera leans along the swing as the blade comes through (C3), the heavy punches the FOV in
     if (move && active && !this.kicked && this.model.visible) { this.kicked = true; this.fx.kick(move.kick.pitch, move.kick.roll); if (move.kick.fov !== undefined) this.fx.fovPunch(move.kick.fov); }
