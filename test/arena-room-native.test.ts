@@ -8,13 +8,15 @@ import { createSimHost, type SimCommand, type SimHost } from '../src/engine/sim'
 import type { PlayerSim } from '../src/engine/sim/playerSim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { ArenaFightPageSchema } from '../src/game/boss/arenaRoomFight';
-import { installArenaRoom, type ArenaRoomBody } from '../src/game/boss/arenaRoomNative';
+import { installArenaRoom, type ArenaRoomBody, type ArenaRoomDoorRows } from '../src/game/boss/arenaRoomNative';
+import { ReturnProgram } from '../src/game/population/returnProgram';
 import { ArenaRoomSchema } from '../src/game/boss/arenaRoomRows';
 import { SIM_CREATURE_RECIPE } from '../src/game/test/creatureRecipe';
 import room from '../src/shards/nalati-grasslands/data/bossArenaRoom.json' with { type: 'json' };
 import view from '../src/shards/nalati-grasslands/data/kurganView.json' with { type: 'json' };
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { titanPrograms as programs } from './fixtures/titanInlineWitness';
 
 // Row 2 of the boss lane: the Golden King's real rows, in a real room on a real host, for bots. The sim level is flat at
 // y = 0 and small, so the room comes down to it: the same fight, moved.
@@ -38,14 +40,14 @@ function until(host: SimHost, done: () => boolean, limit = 2400): void {
   for (let i = 0; i < limit && !done(); i++) tick(host);
   expect(done()).toBe(true);
 }
-function roomHost(host: SimHost) {
+function roomHost(host: SimHost, portal?: ArenaRoomDoorRows) {
   const saved = { defeated: false, rewardTaken: false, kills: 0 };
   let adds = 0; const seal: boolean[] = [], returned: string[] = [];
   const body = (id: string): ArenaRoomBody => {
     const actor = host.entities.get(id); if (actor === undefined) throw new Error('No body');
     return Object.assign(actor, { hidden: false });
   };
-  const fight = installArenaRoom<ArenaRoomBody>(host, { step: 'room.king', room: roomRows, definition, fight: fightRows }, {
+  const fight = installArenaRoom<ArenaRoomBody>(host, { step: 'room.king', room: roomRows, definition, fight: fightRows, ...(portal === undefined ? {} : { portal }) }, {
     spawnBody: () => { const actor = body(KING); actor.place(0, -5, 0); return actor; },
     spawnAdd: (_i, x, z, yaw) => { const actor = body(`add.${String(adds++ % ADDS)}`); actor.place(x, z, yaw); return actor; },
     retire: actor => { actor.hidden = true; }, find: id => { const actor = host.entities.get(id); return actor === undefined ? null : body(id); },
@@ -150,6 +152,19 @@ test('J105: when the King falls in a room each player with meaningful damage has
     expect(fight.bounty.owed).toEqual([bot.id]);
     expect(fight.bounty.take(third.id)).toBe(false);
     expect(fight.bounty.take(bot.id)).toBe(true); expect(fight.bounty.take(bot.id)).toBe(false); expect(fight.bounty.owed).toEqual([]);
+  } finally { host.dispose(); }
+});
+
+test('each player takes the portal down alone, by the row\'s own program', () => {
+  const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0], entrance = { x: 14, y: 0, z: 14, facing: 0 };
+  if (lead === undefined) throw new Error('No lead');
+  lead.position.set(-14, 0, -14);
+  const bot = host.addPlayer('bot:1', { x: entrance.x, y: 0, z: entrance.z + 1.5 });
+  const fight = roomHost(host, { rows: king.portal, program: ReturnProgram.native(host, programs.rules), entrance });
+  try {
+    until(host, () => fight.inside(bot.id), 240);
+    expect(fight.inside(lead.id)).toBe(false); expect(lead.position.x).toBeCloseTo(-14, 0);
+    expect(bot.position.x).toBeCloseTo(king.portal.spawn.x, 0); expect(bot.position.z).toBeCloseTo(king.portal.spawn.z, 0);
   } finally { host.dispose(); }
 });
 

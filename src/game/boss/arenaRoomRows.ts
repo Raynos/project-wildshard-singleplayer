@@ -31,6 +31,8 @@ export const ArenaRoomSchema: v.GenericSchema<BoundedArenaRoomInput, BoundedAren
  view: v.strictObject({ scene: v.unknown(), static: v.unknown(), fx: list(v.strictObject({ id: rowId, mode: finite,
   color: v.tuple([finite,finite,finite]), alpha: finite, additive: v.boolean(), depthTest: v.boolean(), p: v.tuple([finite,finite,finite,finite]) })) }),
 });
+/** The portal as admitted. */
+export type ArenaRoomPortalRows = v.InferOutput<typeof ArenaRoomPortalSchema>;
 /** Baked scene ids, local placement and walkable surfaces; no executable hooks. */
 export type ArenaRoomRows = v.InferOutput<typeof ArenaRoomSchema>;
 

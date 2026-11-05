@@ -12,6 +12,8 @@ import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { PhasedBossFight } from '../plugin/bossPhase';
 import { installBossRow } from '../shardfile/bossRow';
 import type { ArenaRoomGround } from './arenaGround';
+import { ArenaPortalLaw, type ArenaPortalEntrance } from './arenaPortal';
+import type { ArenaRoomPortalRows } from './arenaRoomRows';
 import type { BossBounty } from './bounty';
 import { arenaRoomFight, type ArenaFightBody, type ArenaFightTarget, type BoundedArenaFight } from './arenaRoomFight';
 import { NativeArenaSand } from './nativeArenaSand';
@@ -27,6 +29,14 @@ export interface ArenaRoomNativeRows {
   readonly definition: BossDefinition;
   readonly fight: BoundedArenaFight;
   readonly initialize?: ArenaRoomFirstThink;
+  /** The way in from the surface, each player's own (the page has one portal, a room one per player). Absent: walk in. */
+  readonly portal?: ArenaRoomDoorRows;
+}
+/** The portal's rows and the admitted program that decides it. */
+export interface ArenaRoomDoorRows {
+  readonly rows: Pick<ArenaRoomPortalRows, 'signal' | 'end' | 'spawn' | 'exitOffset' | 'slow'> & { readonly fade: Pick<ArenaRoomPortalRows['fade'], 'hold'> };
+  readonly program: ConstructorParameters<typeof ArenaPortalLaw>[0];
+  readonly entrance: ArenaPortalEntrance;
 }
 /** What the host's roster and world lend the fight. */
 export interface ArenaRoomNativePorts<A extends ArenaRoomBody> {
@@ -45,15 +55,17 @@ export interface ArenaRoomNativePorts<A extends ArenaRoomBody> {
 }
 const THINK = 0.1;
 const finite = v.pipe(v.number(), v.finite());
-const Saved = v.strictObject({ think: finite, sealed: v.boolean(), fight: v.unknown(), sand: v.unknown() });
+const Door = v.strictObject({ inside: v.boolean(), elapsed: finite, fade: finite, pending: v.nullable(v.picklist(['enter', 'exit'])) });
+const Saved = v.strictObject({ think: finite, sealed: v.boolean(), fight: v.unknown(), sand: v.unknown(), doors: v.exactOptional(v.array(v.tuple([v.string(), Door]))) });
 
 /** Install the fight in its armed state, waiting at the door. No body is spawned until the first reset. */
 export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: ArenaRoomNativeRows, ports: ArenaRoomNativePorts<A>): {
-  boss: ReturnType<typeof installBossRow>['boss']; party: BossContenders; bounty: BossBounty; fight: PhasedBossFight<A>; ground: ArenaRoomGround; locked: () => boolean;
+  boss: ReturnType<typeof installBossRow>['boss']; party: BossContenders; bounty: BossBounty; inside: (id: string) => boolean; fight: PhasedBossFight<A>; ground: ArenaRoomGround; locked: () => boolean;
 } {
   const sand = new NativeArenaSand(host, rows.room, `${rows.step}.sand`), ground = sand.ground, profile = parseBossProfile(rows.fight.profile);
   if (profile.pattern !== 'arena') throw new Error('Arena room requires an arena boss profile');
   const owner: { party: BossContenders | null; fight: PhasedBossFight<A> | null } = { party: null, fight: null };
+  const doors = new Map<string, ArenaPortalLaw>();
   let sealWanted = false, sealShown = false, think = 0;
   /** The door shuts with the fight, and stands open while anyone waits outside it to come back in (J107). */
   const seal = (): void => {
@@ -76,13 +88,32 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
   const row = installBossRow(host, { step: rows.step, definition: rows.definition, script, body: () => fight.body(), shielded: () => script.shielded,
     hazardTag: rows.fight.damageTag, saved: ports.saved, persist: ports.persist, armed: true,
     ...(ports.spawnReward === undefined ? {} : { spawnReward: ports.spawnReward }), ...(ports.returned === undefined ? {} : { returned: ports.returned }),
-    fight: { snapshot: () => ({ think, sealed: sealWanted, fight: fight.continuation(actor => actor.entityId), sand: sand.snapshot() }),
+    fight: { snapshot: () => ({ think, sealed: sealWanted, fight: fight.continuation(actor => actor.entityId), sand: sand.snapshot(),
+      ...(rows.portal === undefined ? {} : { doors: [...doors].map(([id, law]) => [id, law.snapshot()]) }) }),
       restore: value => {
         const saved = v.parse(Saved, value); think = saved.think; sealWanted = saved.sealed;
+        for (const [id, door] of saved.doors ?? []) { const portal = rows.portal; if (portal !== undefined) { const law = new ArenaPortalLaw(portal.program, portal.rows, portal.entrance); law.restore(door); doors.set(id, law); } }
         sand.restore(saved.sand); fight.restore(saved.fight, ports.find);
       } } });
   owner.party = row.party; owner.fight = fight;
+  const { portal } = rows;
+  const put = (player: PlayerSim, x: number, y: number, z: number, yaw: number): void => { player.position.set(x, y, z); player.motor.resetAt(player.position); player.yaw = yaw; ports.returned?.(player); };
+  const through = (player: PlayerSim, door: ArenaRoomDoorRows, dt: number): void => {
+    const law = doors.get(player.id) ?? new ArenaPortalLaw(door.program, door.rows, door.entrance), p = player.position; doors.set(player.id, law);
+    const step = law.step(dt, () => ({ px: p.x, py: p.y, pz: p.z, floor: ground.floorAt(p.x, p.z), volume: ground.inVolume(p), engaged: row.boss.engaged,
+      sand: ground.inChamber(p) ? ground.sandAt(p.x - at.x, p.z - at.z) : 0, originY: at.y, originZ: at.z }));
+    const out = (): void => { const { x, y, z, facing } = door.entrance, back = door.rows.exitOffset; put(player, x - Math.sin(facing) * back, y, z - Math.cos(facing) * back, facing); law.inside = false; player.moveScale = 1; };
+    if (step.kind === 'faded') {
+      if (step.pending === 'enter') { const { spawn } = door.rows; put(player, at.x + spawn.x, at.y, at.z + spawn.z, spawn.yaw); law.inside = true; } else if (step.pending === 'exit') out();
+    } else if (step.kind === 'decided') {
+      if (!law.inside) { if (step.enter) law.begin('enter', door.rows.fade.hold); return; }
+      if (step.exit === 2) { law.begin('exit', door.rows.fade.hold); return; }
+      if (step.exit !== 0) { law.inside = false; player.moveScale = 1; return; }
+      player.moveScale = step.slow ? door.rows.slow : 1;
+    }
+  };
   host.onStep(`${rows.step}.brain`, dt => {
+    if (portal !== undefined) for (const player of host.players.values()) through(player, portal, dt);
     seal(); sand.advance(dt);
     const body = fight.body(); if (body === null || !body.alive) return;
     const foe = row.party.nearest(body.position).position, initial = rows.initialize;
@@ -93,5 +124,5 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
     think += dt; if (think >= THINK) { fight.brain.think(body, { dt: think, player: foe }); think = 0; }
     fight.brain.act(body, { player: foe });
   });
-  return { boss: row.boss, party: row.party, bounty: row.bounty, fight, ground, locked: row.locked };
+  return { boss: row.boss, party: row.party, bounty: row.bounty, inside: id => doors.get(id)?.inside === true, fight, ground, locked: row.locked };
 }
