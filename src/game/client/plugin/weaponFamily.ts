@@ -2,7 +2,7 @@ import { createClientChannelView, type ClientGeometryKernels } from './clientCha
 import { admitHeldRecipe } from './heldRecipe';
 import { createClientChannels, bindClientChannelInputs } from '../../shared/plugin/channels';
 import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
-import { bindMeleeContacts } from '../../server/plugin/simulation';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts } from './scene';
 import { Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
@@ -457,7 +457,7 @@ export function createHeldMelee(app: App, row: EquipmentRow, phases: unknown, po
     ...(ports.restingGroup === undefined ? {} : { restingVisible: model.model?.group(ports.restingGroup) === null }),
     ...(caught === undefined ? {} : { caughtPart: () => { const mesh = model.createPart(caught.scene).mesh(caught.part); if (mesh === null) throw new Error('Declared caught part unavailable'); return mesh; } }),
     targets: ports.targets ?? (() => app.combat.targets()),
-    contacts: bound => bindMeleeContacts(row.id, ports.contacts, { ...bound, owner: 'env',
+    contacts: bound => pageSim.bindMeleeContacts(row.id, ports.contacts, { ...bound, owner: 'env',
       ...(ports.raycast === undefined ? {} : { body: (from: Vector3, dir: Vector3, reach: number) => {
         const hit = ports.raycast?.(from, dir, reach) ?? null, target = hit === null ? null : app.combat.target(hit.animal);
         return hit === null || target === null ? null : { port: target, point: hit.point };

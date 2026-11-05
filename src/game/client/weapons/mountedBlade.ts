@@ -15,7 +15,7 @@ import type { Targets } from '@wildshard/engine/combat/types';
 import type { Key, Move, SwordRig, SwordWorld } from '@wildshard/engine/combat/view/melee';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { HeldDecision } from '../../shared/weapons/heldDecision';
-import { MountedPassLaw } from '../../server/weapons/mountedPass';
+import { MountedPassLaw } from '../../shared/weapons/mountedPass';
 
 export interface MountedSwordMount { speed: number; yaw: number }
 

@@ -1,13 +1,15 @@
 import { installDeclaredMovers } from './moverInstall';
-import { bindQuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
+import { bindMeleeContacts, bindQuestWorldReactions, commandSocketLift, declaredItemScriptBindings, startMeleeSecondary } from './simulation';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
-import { PageActorGroups, wildEnv } from '../population/pageGroups';
+import { FixedPageSpawnTable, PageActorGroups, wildEnv } from '../population/pageGroups';
+import { clientWildlifeState } from '../population/wildlife';
+import { bossFight } from './bossPhase';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
 import { arenaRoomFight, bindArenaBrain } from '../boss/arenaRoomFight';
 import { readEliteFeature } from '../quest/eliteFeature';
-import { prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
+import { pageDecisionAuthority, prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
 
 /**
  * What the page's quest views and motion still take from the page's own sim (E6: port first, flip last). A view asks
@@ -34,6 +36,13 @@ export interface PageSimFeed {
   readonly bindArenaBrain: typeof bindArenaBrain;
   readonly readEliteFeature: typeof readEliteFeature;
   readonly prepareProductDecisionMemories: typeof prepareProductDecisionMemories;
+  readonly pageDecisionAuthority: typeof pageDecisionAuthority;
+  readonly bossFight: typeof bossFight;
+  readonly fixedSpawnTable: (...args: ConstructorParameters<typeof FixedPageSpawnTable>) => FixedPageSpawnTable;
+  readonly clientWildlifeState: typeof clientWildlifeState;
+  /** A held blade's contacts and its secondary, which the page's weapons still settle themselves. */
+  readonly bindMeleeContacts: typeof bindMeleeContacts;
+  readonly startMeleeSecondary: typeof startMeleeSecondary;
   readonly spawnScript: { readonly read: typeof readSpawnScript; readonly page: typeof SpawnScript.page };
 }
 /** The page sim's own owners. */
@@ -41,6 +50,7 @@ export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
-  wild: wildEnv, arenaRoomFight, bindArenaBrain, readEliteFeature, prepareProductDecisionMemories,
+  wild: wildEnv, arenaRoomFight, bindArenaBrain, readEliteFeature, prepareProductDecisionMemories, pageDecisionAuthority, bossFight,
+  fixedSpawnTable: (...args) => new FixedPageSpawnTable(...args), clientWildlifeState, bindMeleeContacts, startMeleeSecondary,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
 };

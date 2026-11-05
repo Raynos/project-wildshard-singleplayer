@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { MountedPassLaw, type MountedPassRows, type MountedPassTarget } from './mountedPass';
+import { MountedPassLaw, type MountedPassRows, type MountedPassTarget } from '../../shared/weapons/mountedPass';
 
 const rows: MountedPassRows = { chainWindow: 1.4, sense: 3.2, behind: 0.6, speedDivisor: 9, chainMax: 4, chainStep: 0.25, cooldown: 0.45 };
 

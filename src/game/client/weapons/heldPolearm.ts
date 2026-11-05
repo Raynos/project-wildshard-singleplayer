@@ -31,7 +31,7 @@ import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
-import { PolearmDecision } from '../../server/weapons/polearmDecision';
+import { PolearmDecision } from '../../shared/weapons/polearmDecision';
 import { JavelinFlight } from '../../shared/weapons/javelinFlight';
 
 type JavelinProfile = schema.InferOutput<typeof ThrownWeaponProfileSchema>;

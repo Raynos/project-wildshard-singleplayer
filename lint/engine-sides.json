@@ -475,10 +475,7 @@
   "src/engine/client/player/viewmodelTextures.worker.ts": "client",
   "src/engine/shared/player/walk.ts": "shared",
   "src/engine/client/player/WaterLine.ts": "client",
-  "src/engine/client/player/WeaponPickup.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/engine/client/player/WeaponPickup.ts": "client",
   "src/engine/client/practice/DummyClips.ts": "client",
   "src/engine/client/practice/dummyMetadata.ts": "client",
   "src/engine/client/practice/DummyMotion.ts": "client",
@@ -816,10 +813,7 @@
   "src/game/client/audio/sceneDirector.ts": "client",
   "src/game/client/audio/theme.ts": "client",
   "src/game/client/audio/voicePatches.ts": "client",
-  "src/game/client/bag/bag.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/bag/bag.ts": "client",
   "src/game/client/bag/BagButton.ts": "client",
   "src/game/client/bag/equipment.ts": "client",
   "src/game/shared/bag/findsCatalogue.ts": "shared",
@@ -1157,10 +1151,7 @@
   "src/game/server/plugin/simulation.ts": "server",
   "src/game/client/plugin/moverViews.ts": "client",
   "src/game/client/plugin/ui.ts": "client",
-  "src/game/client/plugin/weaponFamily.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/plugin/weaponFamily.ts": "client",
   "src/game/server/population/actorProjectionV2.ts": "server",
   "src/game/server/population/actors.ts": "server",
   "src/game/shared/population/census.ts": "shared",
@@ -1562,10 +1553,7 @@
   "src/game/client/ui/dataPanels.ts": "client",
   "src/game/client/ui/panels.ts": "client",
   "src/game/client/ui/panelTemplates.ts": "client",
-  "src/game/client/weapons/arcPower.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/client/weapons/arcPower.ts": "client",
   "src/game/client/weapons/Bow.ts": "client",
   "src/game/shared/weapons/heldBowBase.ts": "shared",
   "src/game/shared/weapons/heldDecision.ts": "shared",
@@ -1573,11 +1561,8 @@
   "src/game/client/weapons/heldPolearm.ts": "client",
   "src/game/shared/weapons/javelinFlight.ts": "shared",
   "src/game/shared/weapons/launcherSpring.ts": "shared",
-  "src/game/client/weapons/mountedBlade.ts": {
-   "side": "client",
-   "mixed": true
-  },
-  "src/game/server/weapons/mountedPass.ts": "server",
+  "src/game/client/weapons/mountedBlade.ts": "client",
+  "src/game/shared/weapons/mountedPass.ts": "shared",
   "src/game/shared/weapons/polearmContact.ts": "shared",
   "src/game/server/boss/openArenaNative.ts": "server",
   "src/game/server/boss/openArenaState.ts": "server",
@@ -1585,7 +1570,7 @@
   "src/game/server/population/encounterIntake.ts": "server",
   "src/game/server/quest/chapterRecords.ts": "server",
   "src/game/server/weapons/nativeHeld.ts": "server",
-  "src/game/server/weapons/polearmDecision.ts": "server",
+  "src/game/shared/weapons/polearmDecision.ts": "shared",
   "src/game/server/weapons/starter.generated.ts": "server",
   "src/game/server/weapons/starterBowProfile.ts": "server",
   "src/game/shared/weapons/starterCombat.ts": "shared",

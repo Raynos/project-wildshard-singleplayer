@@ -6,9 +6,7 @@ import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { clientNativeBook } from './clientNativeBook';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import { readSpawnScript } from '../../server/population/spawnScript';
-import { clientWildlifeState } from '../../server/population/wildlife';
-import { wildEnv } from '../../server/population/pageGroups';
+import { pageSim } from './clientMoverOwners';
 import { SceneDressing } from './sceneDressing';
 import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner, type EliteEntryConstruction } from '../../shared/shardfile/entryOwners';
 
@@ -32,13 +30,13 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   const {admission} = v.parse(v.object({admission: v.unknown()}), await product.json(row.admission)); live();
   const rows = parseEliteEntryPageRows(row.rows), program = ReturnProgram.page(admission, scope);
   const assets = clientNativeBook(ctx).decisionAssets;
-  const fight = await readSpawnScript(product, row.fight, assets); live();
+  const fight = await pageSim.spawnScript.read(product, row.fight, assets); live();
   const fightModule = fight.bytes === '' ? assets.get(fight.script.module.slice('blobs/wasm/'.length,-'.wasm'.length)) : undefined;
   if (fight.bytes === '' && fightModule === undefined) throw new Error('Missing prepared elite fight module');
   const ledges = SceneDressing.current(ctx).pieces.get(row.ledges.part)?.anchors[row.ledges.anchor] ?? [];
   const entry = new DeclaredEliteEntry(rows.entry, construction);
-  let population: ReturnType<typeof clientWildlifeState> | undefined;
-  const readPopulation = () => { live(); const current = clientWildlifeState(ctx); population ??= current;
+  let population: ReturnType<typeof pageSim.clientWildlifeState> | undefined;
+  const readPopulation = () => { live(); const current = pageSim.clientWildlifeState(ctx); population ??= current;
     if (population !== current) throw new Error('Elite population owner changed'); return current; };
   const resolveWeather = () => { const rig = weather(), sky = rig.sky, storm = rig.storm;
     if (sky === null || storm === null) throw new Error('Elite weather owner is missing'); return {sky, storm, clock: sky.clock}; };
@@ -46,7 +44,7 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   const readWeather = () => { live(); const rig = weather(); originalWeather ??= resolveWeather();
     if (rig.sky !== originalWeather.sky || rig.storm !== originalWeather.storm || originalWeather.sky.clock !== originalWeather.clock)
       throw new Error('Elite weather owner changed'); return originalWeather; };
-  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, fight, ...(fightModule === undefined ? {} : {fightModule}), environment: wildEnv, ledges,
+  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, fight, ...(fightModule === undefined ? {} : {fightModule}), environment: pageSim.wild, ledges,
     get population() { return readPopulation(); },
     get clock() { return readWeather().clock; },
     get weather() { return readWeather().storm; },

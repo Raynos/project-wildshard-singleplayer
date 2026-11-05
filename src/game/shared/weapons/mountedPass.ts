@@ -1,6 +1,6 @@
 import * as schema from 'valibot';
 import type { Vector3 } from 'three';
-import type { HeldDecision } from '../../shared/weapons/heldDecision';
+import type { HeldDecision } from './heldDecision';
 
 /** A mounted sabre's pass law as numbers only (Nalati's mounted blade): the 10 Hz decision that, from the rider's speed,
  *  the attack and charge inputs and the nearest targets either side, picks a left or right pass slash, its damage and

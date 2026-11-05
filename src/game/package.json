@@ -201,7 +201,7 @@
     "./shardfile/crowdRuntime": "./shared/shardfile/crowdRuntime.ts",
     "./shardfile/socketLiftProof": "./server/plugin/simulation.ts",
     "./weapons/starterGlyphs": "./shared/weapons/starterGlyphs.ts",
-    "./weapons/mountedPass": "./server/weapons/mountedPass.ts",
+    "./weapons/mountedPass": "./shared/weapons/mountedPass.ts",
     "./weapons/heldBowBase": "./shared/weapons/heldBowBase.ts",
     "./weapons/polearmContact": "./shared/weapons/polearmContact.ts",
     "./weapons/starterMoves": "./shared/weapons/starterMoves.ts",

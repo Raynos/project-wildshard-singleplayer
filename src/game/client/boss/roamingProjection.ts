@@ -6,7 +6,7 @@ import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import { RoamingBossProjectionSchema, type RoamingBossProjectionRows } from '@wildshard/format/roamingBossProjection';
 import type { RoamingEncounterRow } from '@wildshard/format/bossEncounter';
 import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
-import { pageDecisionAuthority } from '../../server/shardfile/borrowedDecisions';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { pageCombatSession, type PageCombatSession } from '../Boss';
 import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
@@ -20,7 +20,6 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { FixedPageSpawnTable } from '../../server/population/pageGroups';
 import { GroundTell } from '../eliteView';
 import { effectField } from '@wildshard/engine/fx/effectField';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
@@ -28,7 +27,7 @@ import type { ShardContext } from '../plugin/context';
 import { Rng, fnv1a32, type RngState } from '@wildshard/engine/core/rng';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Lane, type LaneState } from '../../shared/boss/lane';
-import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '../../server/plugin/bossPhase';
+import type { RoamingBossFight, RoamingBossPorts } from '../../server/plugin/bossPhase';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 
 interface HazardView { group: THREE.Group; flame: THREE.Object3D; ring: GroundTell; from: THREE.Vector3 }
@@ -56,7 +55,7 @@ function createProjectionFight(env: PageCombatSession['context'], views: Project
   const declared = species.brain.data, recipe = species.body, bound = new WeakSet<Animal>();
   const bind = (actor: Animal): Animal => { if (!bound.has(actor)) { decisions.bind(actor, declared, recipe); bound.add(actor); } return actor; };
   const contacts = new Map(program.strikes.map(strike => [strike.id, strikeFromData(strike)])), runner = new StrikeRunner();
-  const fight = bossFight(row.profile, { ...views, body: { ...views.body, make: () => bind(views.body.make()) }, player: env.player,
+  const fight = pageSim.bossFight(row.profile, { ...views, body: { ...views.body, make: () => bind(views.body.make()) }, player: env.player,
     random: { call: new Rng(fnv1a32(`${String(seed)}:${row.streams.call}`)), charge: new Rng(fnv1a32(`${String(seed)}:${row.streams.charge}`)) },
     contact: (actor, strike, hit, options) => {
       const spec = contacts.get(row.strikePrefix + strike); if (spec === undefined) throw new Error(`Missing roaming strike ${strike}`);
@@ -101,14 +100,14 @@ function disposeTell(tell: GroundTell): void {
 export async function installRoamingBossProjection(context: ShardContext, input: unknown): Promise<ProjectionFight> {
   const rows = v.parse(RoamingBossProjectionSchema, input), program = context.product.section('actors/species-programs').program;
   if (program === undefined) throw new Error('Roaming projection requires its species programme');
-  const decisions = await pageDecisionAuthority(context); await prepareBossSocketRig(context, rows.socketRig);
+  const decisions = await pageSim.pageDecisionAuthority(context); await prepareBossSocketRig(context, rows.socketRig);
   return context.scope.run(() => enterProjection(context, rows, program, decisions));
 }
 function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows, program: SpeciesProgramData, decisions: SpeciesDecisionAuthority): ProjectionFight {
   const session = pageCombatSession(context.scope, rows.session), ctx = session.context, source = context.product.shardfile;
   const scene = ctx.game.scene, kit = bossSocketResources(context.scope, rows.socketRig.id), encounterRows = rows.encounter, actions = new Map(Object.entries(encounterRows.actions));
   const bodyOwner = bindRuntimeBoss(context, source, rows.spawn, undefined, { identity: 'runtime' });
-  const spawner = new FixedPageSpawnTable(ctx.animals, context.app.encounters, context.scope, rows.spawnStream);
+  const spawner = pageSim.fixedSpawnTable(ctx.animals, context.app.encounters, context.scope, rows.spawnStream);
   const tellRing = new GroundTell(scene, 'ring', new THREE.Color(...rows.colours.tell));
   const waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', new THREE.Color(...rows.colours.wave)), r: 0, on: false, hit: false, delay: 0 }));
   const profiles = new Map(program.strikes.map(row => [row.id, strikeFromData(row)]));

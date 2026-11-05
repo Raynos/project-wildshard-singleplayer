@@ -3,7 +3,7 @@ import { Mesh } from 'three';
 import { ClientHeldMeleeSchema } from '@wildshard/format/clientNative';
 import type { ShardContext } from '../plugin/context';
 import { createDeclaredHeldMelee } from '../plugin/weaponFamily';
-import { startMeleeSecondary } from '../../server/plugin/simulation';
+import { pageSim } from './clientMoverOwners';
 import { runtimeEquipment } from '../../shared/plugin/runtimeRows';
 import { resolveSceneHeld } from '../models/sceneSpecimens';
 import { productPainterLight, productPaintedImage } from '../looks/paintedLook';
@@ -80,7 +80,7 @@ export function enterClientHeldMelee(ctx: ShardContext, input: unknown): void {
       if (ports.contacts === undefined || ports.secondary === undefined) throw new Error('Missing admitted secondary contact');
       const code = secondary.code;
       weapon.bindSecondary(family => code === undefined ? family.claim(secondary.move) ? secondary.move : null
-        : startMeleeSecondary(family, hook ?? null, { tick: motion.scriptHost.currentTick, dt: 1 / 60, action: code, move: secondary.move }), spec.charge);
+        : pageSim.startMeleeSecondary(family, hook ?? null, { tick: motion.scriptHost.currentTick, dt: 1 / 60, action: code, move: secondary.move }), spec.charge);
       weapon.row = { ...equipment, meta: native.meta };
       return weapon;
     },
