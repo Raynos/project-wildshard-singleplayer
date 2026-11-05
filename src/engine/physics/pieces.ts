@@ -4,7 +4,7 @@
  * piece's declared `colliderOwner` id), so a query hit knows it touched "the hut, planks".
  */
 import type { Collider, ColliderDesc as RapierDesc, RigidBody } from '@dimforge/rapier3d-simd';
-import * as THREE from 'three';
+import { Matrix4, Quaternion, Vector3, type Object3D } from 'three';
 import { currentOwner, withOwner } from '../app/ownership';
 import type { ColliderDesc, Piece } from '../world/registry';
 import type { Physics } from './Physics';
@@ -54,10 +54,10 @@ export interface AddedPiece {
   sync: () => void;
 }
 
-const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _m = new THREE.Matrix4();
+const _p = new Vector3(), _q = new Quaternion(), _s = new Vector3(), _m = new Matrix4();
 
 /** The followed object's pose in the physics world's frame: its world matrix, or relative to `frame` when given. */
-function poseOf(follows: THREE.Object3D, frame: THREE.Object3D | undefined): void {
+function poseOf(follows: Object3D, frame: Object3D | undefined): void {
   follows.updateWorldMatrix(true, false);
   if (frame === undefined) { follows.matrixWorld.decompose(_p, _q, _s); return; }
   frame.updateWorldMatrix(true, false);
@@ -70,7 +70,7 @@ function poseOf(follows: THREE.Object3D, frame: THREE.Object3D | undefined): voi
  * `frame`: the scene node that stands for this physics world's origin (a grid region drawn at its render offset); a
  * followed object is posed relative to it. Absent: the scene's origin is the world's.
  */
-export function addPiece(physics: Physics, piece: Piece, frame?: THREE.Object3D): AddedPiece {
+export function addPiece(physics: Physics, piece: Piece, frame?: Object3D): AddedPiece {
   const owner = currentOwner();
   if (owner?.disposed === true) throw new Error('Cannot add a piece to a disposed scope');
   const out: Collider[] = [];
