@@ -35,7 +35,7 @@ import { clipAnimate, stepCreatureLift, type SpeciesClips } from "../../shared/p
 import { numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import type { NpcMotion, NpcRow } from "../../server/plugin/quests";
+import type { NpcMotion, NpcRow } from "../../shared/plugin/quests";
 
 type AnimalSpecies = ReturnType<SpeciesLook['build']>;
 

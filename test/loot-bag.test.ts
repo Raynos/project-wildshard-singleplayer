@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { Owned } from '../src/game/shared/loot/Owned';

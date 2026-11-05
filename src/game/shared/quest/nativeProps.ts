@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { DeclaredBodyOps } from './bodyOps';
-import type { ShardDecisions } from '../shardfile/decisions';
+import type { DeclaredBodyOps } from '../../server/quest/bodyOps';
+import type { ShardDecisions } from '../../server/shardfile/decisions';
 import { QuestFlagGates } from './flagGates';
 
 const finite = v.pipe(v.number(), v.finite()), point: v.GenericSchema<BoundedNativePropPointInput, BoundedNativePropPoint> = v.strictObject({ x: finite, y: finite, z: finite });

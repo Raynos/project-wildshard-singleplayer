@@ -11,7 +11,7 @@ import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import * as ridingService from '../src/game/client/riding/client';
 import { Mount } from '../src/game/server/riding/mount';
 import { WorldRegistry } from '../src/engine/client/world/registry';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import type { ShardContext } from '../src/game/client/plugin/context';

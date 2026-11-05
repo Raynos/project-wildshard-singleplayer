@@ -13,7 +13,7 @@
  */
 import { Vector3 } from 'three';
 import type { ShardRuntime } from '../../shared/shard/runtime';
-import { createQuestScriptPorts } from '../../server/quest/declared';
+import { createQuestScriptPorts } from '../../shared/quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ShardfileSimulation } from '../../server/plugin/simulation';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

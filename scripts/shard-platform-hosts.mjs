@@ -49,7 +49,7 @@ const hosts = {
   'combat/items': ['game/server/shardfile/items#installDeclaredItems'],
   'combat/encounters': ['game/server/plugin/simulation#createShardfileSim'],
   'combat/strikes': ['game/server/plugin/simulation#createShardfileSim'],
-  'quests/quests': ['game/server/quest/declared#DeclaredQuests'],
+  'quests/quests': ['game/shared/quest/declared#DeclaredQuests'],
   'quests/host': ['game/server/plugin/simulation#installDeclaredQuestHost'],
   'quests/directors': ['game/shardfile/directorClient#installDeclaredDirector'],
   'economy/ledger': ['game/shared/ledger#Ledger', 'game/shared/ledger#installLedgerEmitter'],

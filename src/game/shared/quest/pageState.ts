@@ -2,8 +2,8 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ShardContext } from '../../client/plugin/context';
 import { QuestState, type QuestMarker, type QuestStep } from '@wildshard/engine/quest/core';
 import { installCableModes } from '@wildshard/engine/player/modes';
-import { publishBoundQuest } from '../../shared/quest/boundState';
-import type { RuntimeQuestPorts, RuntimeQuest } from '../plugin/headless';
+import { publishBoundQuest } from './boundState';
+import type { RuntimeQuestPorts, RuntimeQuest } from '../../server/plugin/headless';
 
 type MarkerRow = NonNullable<Shardfile['quests']['quests'][number]['steps'][number]['markers']>[number];
 /** Bind a declared quest to the actual flag/ledger owners. The caller chooses

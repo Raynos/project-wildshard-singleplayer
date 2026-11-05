@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { bindQuestTableSpots } from './quests';
+import { bindQuestTableSpots } from '../../shared/plugin/quests';
 import { Flags, bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 

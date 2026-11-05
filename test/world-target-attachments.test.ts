@@ -10,7 +10,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { snapshotSimHost, restoreSimHost, serializeSimSnapshot } from '../src/engine/shared/sim/snapshot';
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { parseInteractionRows } from '@wildshard/format/questInteractions';
-import { InteractionRules, installInteractionRows } from '../src/game/server/quest/interactionRows';
+import { InteractionRules, installInteractionRows } from '../src/game/shared/quest/interactionRows';
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
 import { bindMeleeContacts, bindNativeWorldTargets, installNativeMelee, type NativeRuntimeEffect, type NativeMeleeInput } from '../src/game/server/plugin/simulation';
 import { TickEffectSchema, TickCommitSchema } from '../src/sdk/tickProtocol';

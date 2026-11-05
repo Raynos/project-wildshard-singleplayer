@@ -5,7 +5,7 @@ import { parseEasedFields } from '@wildshard/format/easedFields';
 import { SIGNAL_WEATHER_FIELDS } from '../src/shards/sunscar-dunes/generators/weatherFields';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installWeatherFields, settleWeatherFields } from '../src/game/client/shardfile/weatherFields';
 import { sceneScalar, sceneScalarValue } from '../src/game/client/shardfile/sceneInputs';

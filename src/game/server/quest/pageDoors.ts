@@ -4,7 +4,7 @@ import { QuestPageDoorSchema } from '@wildshard/format/questPageFacets';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ShardContext } from '../../client/plugin/context';
 import { forestPage } from '../../client/shardfile/forestPage';
-import { QuestFlagGates } from './flagGates';
+import { QuestFlagGates } from '../../shared/quest/flagGates';
 
 /**
  * Borrow the forest page's declared door (its prompt and use, for the door page's owners) and bar it with the page's flag

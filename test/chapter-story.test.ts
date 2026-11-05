@@ -6,7 +6,7 @@ import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestLine, QuestState } from '../src/engine/server/quest/core';
+import { QuestLine, QuestState } from '../src/engine/shared/quest/core';
 import type { MapQuest } from '../src/engine/client/ui/Map';
 import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';

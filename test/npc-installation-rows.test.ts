@@ -5,7 +5,7 @@ import { installNpcTalk } from '../src/game/client/plugin/ui';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { DialogueBox } from '../src/engine/client/quest/view/ui';
 import { Scope } from '../src/engine/shared/app/scope';
-import type { NpcDef } from '../src/engine/server/quest/core';
+import type { NpcDef } from '../src/engine/shared/quest/core';
 import type { Piece } from '../src/engine/client/world/registry';
 import type { Interactable } from '../src/engine/shared/world/interact/types';
 import { QUEST_NPCS } from '../src/shards/pine-hollow/generators/questTalkPolicy';

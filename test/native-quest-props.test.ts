@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { addPiece } from '../src/engine/shared/physics/pieces';
 import { createSimHost } from '../src/engine/server/sim';
-import { NativeQuestProps } from '../src/game/server/quest/nativeProps';
+import { NativeQuestProps } from '../src/game/shared/quest/nativeProps';
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import { NATIVE_QUEST_PROPS } from '../src/shards/driftwood-isle/generators/nativeQuestProps';
 import * as v from 'valibot';

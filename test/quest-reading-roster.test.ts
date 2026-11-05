@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { NpcTalk } from '../src/engine/client/quest/view';
 import { DialogueBox } from '../src/engine/client/quest/view/ui';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { createReadingRoster } from '../src/game/server/plugin/quests';
+import { createReadingRoster } from '../src/game/shared/plugin/quests';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 
 test('the W3 camp roster can borrow its actual page talks and clock without a native save owner', () => {

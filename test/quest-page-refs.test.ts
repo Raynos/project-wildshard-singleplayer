@@ -2,7 +2,7 @@ import { originalSkyMovers } from './fixtures/sky-movers';
 import { originalSkyNavigation } from './fixtures/sky-navigation';
 import { QUEST_HOST as SIGNAL_HOST } from '../src/shards/sunscar-dunes/generators/questHost';
 import { QUEST_HOST as SKY_HOST } from '../src/shards/far-reach/generators/questHost';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { EmitterPresentation } from '../src/game/client/shardfile/lightEmitters';
 import { parseLightEmitters } from '@wildshard/format/lightEmitters';

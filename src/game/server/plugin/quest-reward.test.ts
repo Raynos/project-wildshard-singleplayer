@@ -2,9 +2,9 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
-import { QuestRewardController, applyQuestRewardPose } from './quests';
+import { QuestRewardController, applyQuestRewardPose } from '../../shared/plugin/quests';
 import { QuestRewardBeat } from '../quest/reward';
-import { questPhaseSpan, questPhaseAt } from '../quest/storyLaw';
+import { questPhaseSpan, questPhaseAt } from '../../shared/quest/storyLaw';
 
 const player = () => ({ position: new Vector3(2, 3, 4), velocity: new Vector3(1, 0, 1), yaw: 0.3, pitch: 0.1, carried: false });
 

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { beforeAll, expect, test } from 'vitest';
-import { questBooks } from '../src/engine/server/quest/players';
+import { questBooks } from '../src/engine/shared/quest/players';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';

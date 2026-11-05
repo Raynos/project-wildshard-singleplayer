@@ -4,7 +4,7 @@ import { beforeAll, expect, test } from 'vitest';
 import { NetClient } from '../src/engine/client/net/client';
 import { NetRoom } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
-import { questBooks } from '../src/engine/server/quest/players';
+import { questBooks } from '../src/engine/shared/quest/players';
 import { QuestReplica } from '../src/engine/client/quest/view/replica';
 import { directLoopback, type DirectLoopback } from '../src/engine/test/netLoopback';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';

@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { registerSpecies } from '@wildshard/engine/entities/species/registry';
 import { speciesWithLook } from '@wildshard/engine/entities/species/look';

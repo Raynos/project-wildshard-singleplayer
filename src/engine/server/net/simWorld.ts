@@ -6,7 +6,7 @@ import type { AnimalNetView } from '../../shared/net/animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
 import { keepHitHistory } from './hitHistory';
 import type { LedgerFiling } from './ledgerBook';
-import { questBooks, type QuestProgressRead } from '../quest/players';
+import { questBooks, type QuestProgressRead } from '../../shared/quest/players';
 import { encounterRows } from '../../shared/sim/encounterRows';
 import { ANIMAL_CLASS, ENCOUNTER_CLASS, FLAG_CLASS, PLAYER_CLASS, SCRIPT_CLASS, STATE_CLASS } from '../../shared/net/netSchemas';
 import { shardRows } from '../../shared/sim/shardRows';

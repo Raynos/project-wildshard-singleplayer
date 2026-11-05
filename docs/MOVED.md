@@ -527,7 +527,7 @@
 | src/game/quest/QuestUI.ts | src/game/quest/QuestUI.ts | src/engine/quest/QuestUI.ts |
 | src/game/quest/Spine.ts | src/shards/driftwood-isle/quest/Spine.ts | src/shards/driftwood-isle/quest/Spine.ts |
 | src/game/quest/TraderStall.ts | src/shards/driftwood-isle/quest/TraderStall.ts | src/shards/driftwood-isle/quest/TraderStall.ts |
-| src/game/quest/core.ts | src/game/quest/core.ts | src/engine/server/quest/core.ts |
+| src/game/quest/core.ts | src/game/quest/core.ts | src/engine/shared/quest/core.ts |
 | src/game/quest/driftwood.ts | src/shards/driftwood-isle/quest/questLine.ts | src/shards/driftwood-isle/quest/questLine.ts |
 | src/game/quest/guards.ts | src/shards/driftwood-isle/quest/guards.ts | src/shards/driftwood-isle/quest/guards.ts |
 | src/game/quest/gullGuide.ts | src/shards/driftwood-isle/quest/gullGuide.ts | src/shards/driftwood-isle/quest/gullGuide.ts |

@@ -1,5 +1,5 @@
 import { createClientChannelView, moverChannelValues, type ClientGeometryKernels } from './clientChannelView';
-import { bindPageQuest } from '../../server/quest/pageState';
+import { bindPageQuest } from '../../shared/quest/pageState';
 import { bindPagePersistence, bindPageBossRecord, type PagePersistenceRows, type PagePersistence } from '../../server/quest/pagePersistence';
 import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
@@ -32,7 +32,7 @@ import { questMessageHandlers, type QuestMessageRows, QuestState, type QuestDef,
 import { QuestChip, NpcTalk, type LiveMarker, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import {placesWithDiscovery,type PlacePoint,type Places} from '@wildshard/engine/quest/discovery';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
-import { InteractionRules } from '../../server/quest/interactionRows';
+import { InteractionRules } from '../../shared/quest/interactionRows';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../../server/quest/reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
@@ -47,7 +47,7 @@ import { bindRuntimeCoins, type RuntimeBoss, type RuntimeCoins } from '../../sha
 import type { SpeciesPageCatalogue } from '../../server/plugin/brain';
 import type { BossViewRows } from '../../server/shardfile/bossRow';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { npcDef, type NpcRow } from '../../server/plugin/quests';
+import { npcDef, type NpcRow } from '../../shared/plugin/quests';
 import { installPivotNpc, pivotNpcParts, type PivotNpcGeometry, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
 import { parseQuestNpcBinding, type QuestNpcTalkBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';

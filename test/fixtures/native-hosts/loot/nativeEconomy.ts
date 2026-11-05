@@ -13,7 +13,7 @@ import { coinValue } from '../../../../src/game/shared/loot/coinAmounts';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
 import { readLootTables } from '../../../../src/game/shared/loot/tableRows';
 import { declaredLootEconomy } from '../../../../src/game/shared/shard/declaredRows';
-import { createHeadlessPromptPicker, type HeadlessPrompt } from '../../../../src/game/server/quest/interactionRows';
+import { createHeadlessPromptPicker, type HeadlessPrompt } from '../../../../src/game/shared/quest/interactionRows';
 import { nativeQuestInputs } from '../../../../src/game/server/quest/nativeInputs';
 import type { MixedPopulationBody } from '@wildshard/game/population/mixedRoster';
 import { nativeQuestPromptRoster } from '@wildshard/game/quest/nativeComposition';

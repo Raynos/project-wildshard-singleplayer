@@ -1,5 +1,5 @@
 import type { NetAct } from '@wildshard/format/netCommand';
-import type { SimHost } from '../sim';
+import type { SimHost } from '../../server/sim';
 
 /** The tick command a named interaction is, as its owner reads it. */
 export interface InteractRoute { readonly actorId: string; readonly value: number }

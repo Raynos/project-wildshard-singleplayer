@@ -16,7 +16,7 @@ import { PINE_QUESTS } from '../src/shards/pine-hollow/generators/quests';
 import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests';
 import { completionRows } from '../src/shards/driftwood-isle/generators/completion';
 import type { MapQuest, MapPoi } from '../src/engine/client/ui/Map';
-import {QuestState,questMessageHandlers} from '../src/engine/server/quest/core';
+import {QuestState,questMessageHandlers} from '../src/engine/shared/quest/core';
 import {Flags} from '../src/engine/shared/world/interact/flags';
 import {QUEST_PRESENTATION as pine} from '../src/shards/pine-hollow/generators/questPresentation';
 import {QUEST_PRESENTATION as driftwood} from '../src/shards/driftwood-isle/generators/questPresentation';

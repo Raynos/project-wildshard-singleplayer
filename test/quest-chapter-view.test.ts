@@ -27,7 +27,7 @@ import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { Actor, DamageRequest } from '../src/engine/server/combat/pipeline';

@@ -7148,7 +7148,7 @@ and graph touch actions are explicit policies; no new clock or save is created.
 
 ### Authored quest notices
 
-`engine/server/quest/core.ts` defines `QuestMessageRows`, `QuestMessagePorts` and
+`engine/shared/quest/core.ts` defines `QuestMessageRows`, `QuestMessagePorts` and
 `questMessageHandlers`. Bounded notice prefixes and an optional first-step id
 produce existing quest text; transition order is toast, sting, borrowed beat.
 `game/client/plugin/ui.ts`'s `QuestPresentationOptions.messages` consumes these rows.

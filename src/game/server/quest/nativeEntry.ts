@@ -3,7 +3,7 @@ import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { NativeInventory } from '../inventoryLaw';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
-import { bindQuestTableSpots } from '../plugin/quests';
+import { bindQuestTableSpots } from '../../shared/plugin/quests';
 import { installDeclaredQuestHost, type QuestHostPorts } from '../plugin/simulation';
 import { nativeQuestInputs } from './nativeInputs';
 import { AchievementCounterBook, type AchievementCounterRows } from '../../shared/achievements';

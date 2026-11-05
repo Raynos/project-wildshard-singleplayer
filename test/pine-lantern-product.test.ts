@@ -5,7 +5,7 @@ import { parseQuestPageInteractions, parseInteractionRows } from '@wildshard/for
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { Scope } from '../src/engine/shared/app/scope';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import type { Interactable } from '../src/engine/shared/world/interact/types';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';
 

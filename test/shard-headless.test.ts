@@ -1,7 +1,7 @@
 /// <reference types="node" />
 // oxlint-disable-next-line import/no-nodejs-modules -- Headless behaviour runs the real authored product bytes.
 import { readFileSync } from 'node:fs';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { afterAll, expect, it, vi } from 'vitest';
 import { parseShardfileField } from '../src/sdk/shardfile';

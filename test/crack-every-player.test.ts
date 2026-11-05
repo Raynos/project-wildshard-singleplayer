@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost } from '../src/engine/server/sim';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { installNativeMelee, type NativeMeleeInput } from '../src/game/server/plugin/simulation';
-import { InteractionRules, installInteractionRows, playerInteractionRules } from '../src/game/server/quest/interactionRows';
+import { InteractionRules, installInteractionRows, playerInteractionRules } from '../src/game/shared/quest/interactionRows';
 import { SIGNAL_MELEE_HOST } from '../src/shards/sunscar-dunes/generators/rows/nativeMelee';
 import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/generators/rows/whipContacts';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

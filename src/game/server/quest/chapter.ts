@@ -13,7 +13,7 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { FullMap } from '@wildshard/engine/ui/Map';
 import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui';
 import { parseQuestStory, parseChapterStoryPresentation } from '@wildshard/format/questStory';
-import { NpcDialogueRowSchema, bindQuestDeathEffects } from '../plugin/quests';
+import { NpcDialogueRowSchema, bindQuestDeathEffects } from '../../shared/plugin/quests';
 import { chapterTalkFigures, completionMarkers, installInteractablesView, installQuestCableView, questBoardPage, questTalkFigures, questViews, type QuestCableView } from '../../client/quest/chapterView';
 import type { ContractBoardPage } from '../../client/quest/contractBoardPage';
 import type { ContractBoardPageRows } from '@wildshard/format/contracts';
@@ -29,7 +29,7 @@ import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from 
 import { bindRuntimeQuest } from '../plugin/headless';
 import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory, installStoryTalks } from './story';
 import { questPageWorld } from './pageResources';
-import { questBenchPose } from './storyLaw';
+import { questBenchPose } from '../../shared/quest/storyLaw';
 import type { QuestPageTalksRows } from '@wildshard/format/npcs';
 import { QuestStepRunner } from '../../shared/quest/steps';
 import { chapterDecide } from './chapterDecision';

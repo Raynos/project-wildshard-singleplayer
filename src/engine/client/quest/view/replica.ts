@@ -1,4 +1,4 @@
-import type { QuestDef, QuestStep } from '../../../server/quest/core';
+import type { QuestDef, QuestStep } from '../../../shared/quest/core';
 import { questChip, questHint, questObjective, type QuestCount, type QuestProgress } from '../../../shared/quest/progress';
 
 /**

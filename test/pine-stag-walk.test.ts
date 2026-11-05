@@ -5,7 +5,7 @@ import { publishBoundChapter } from '../src/game/shared/quest/chapterBindings';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';

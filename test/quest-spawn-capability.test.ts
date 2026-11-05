@@ -3,7 +3,7 @@ import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { DeclaredSoundBank } from '../src/engine/client/audio/declaredBank';
 import type { ShardContext } from '../src/game/client/plugin/context';

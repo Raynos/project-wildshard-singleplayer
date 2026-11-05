@@ -164,7 +164,7 @@ const w3SharedOwners = new Map([
   ...['src/engine/client/core/gpuOnly.ts', 'src/sdk/kit/bakedGeometry.ts',
     'src/sdk/kit/geometryPack.ts'].map(path => [path, 'C1']),
   ['src/engine/client/core/ktx2.ts', 'C2'],
-  ...['src/game/server/plugin/quests.ts'].map(path => [path, 'C5']),
+  ...['src/game/shared/plugin/quests.ts'].map(path => [path, 'C5']),
   ['src/game/server/shardfile/portalLinkProof.ts', 'C7'],
   ...['src/game/shared/grid/pageMode.ts', 'src/sdk/assets.ts',
     'src/sdk/buildBehaviour.ts', 'src/engine/client/app/systems.ts'].map(path => [path, 'C9']),

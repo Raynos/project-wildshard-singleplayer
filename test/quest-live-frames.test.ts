@@ -2,7 +2,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { createQuestPlacements, type Place, type PoiId } from '../src/engine/shared/world/interact/types';
 import { presentQuest } from '../src/game/client/plugin/ui';

@@ -5,7 +5,7 @@ import type { Actor, DamageDealt, DamageRequest, DeathCause } from '../../server
 export interface FaultEvent { source: string; message: string; phase?: Phase; limit?: number; error?: unknown }
 export interface EventMap {
   'app.state': { prev: AppState; next: AppState };
-  /** a quest moved a step (src/engine/server/quest/core.ts emits it; telemetry reads it) */
+  /** a quest moved a step (src/engine/shared/quest/core.ts emits it; telemetry reads it) */
   'quest.step': { level: string; quest: string; step: string | null; previous: string | null };
   'level.loaded': { id: string };
   'level.unloaded': { id: string };

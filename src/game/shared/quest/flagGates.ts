@@ -6,7 +6,7 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { ShardContext } from '../../client/plugin/context';
 import { questBooks } from '@wildshard/engine/quest/players';
-import { boundQuestState } from '../../shared/quest/boundState';
+import { boundQuestState } from './boundState';
 
 type Collider = ReturnType<SimHost['physics']['world']['getCollider']>;
 /** Gates borrow the installed flags and exact collision owners. Native gates run
@@ -40,7 +40,7 @@ export class QuestFlagGates {
       });
       withOwner(owner.scope, () => {
         for (const { row, source, colliders, follows } of pieces) world.registry.add({
-          id: row.id, name: row.name ?? row.id, category: source.category, file: 'src/game/server/quest/flagGates.ts',
+          id: row.id, name: row.name ?? row.id, category: source.category, file: 'src/game/shared/quest/flagGates.ts',
           ...(source.surface === undefined ? {} : { surface: source.surface }), colliders, follows,
           ...(source.followRotation === undefined ? {} : { followRotation: source.followRotation }),
           active: () => !test(this.flags, row.opensWhen),

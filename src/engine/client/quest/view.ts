@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
-import type {DialogueEntry,NpcDef} from '../../server/quest/core';
-import {NpcReading} from '../../server/quest/dialogueClock';
+import type {DialogueEntry,NpcDef} from '../../shared/quest/core';
+import {NpcReading} from '../../shared/quest/dialogueClock';
 import type { Flags } from '../../shared/world/interact/flags';
 import type { Interactable } from '../../shared/world/interact/types';
 import { emitFault } from '../../shared/core/faults';

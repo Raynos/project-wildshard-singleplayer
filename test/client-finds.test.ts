@@ -2,7 +2,7 @@
 import { expect,test,vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { Owned } from '../src/game/shared/loot/Owned';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installClientFinds } from '../src/game/client/shardfile/clientFinds';

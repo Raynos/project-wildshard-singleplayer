@@ -1,5 +1,5 @@
 import type { UiHandle } from '../../ui/layers';
-import { DialogueClock } from '../../../server/quest/dialogueClock';
+import { DialogueClock } from '../../../shared/quest/dialogueClock';
 import { uiScope, mountUi } from '../../ui/ownership';
 import { engineString } from '../../../shared/strings';
 /**

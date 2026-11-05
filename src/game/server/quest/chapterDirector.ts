@@ -12,7 +12,7 @@ import { readDirectorProduct } from '../plugin/director';
 import { enteredCompletion } from '../../client/complete/declared';
 import { boundQuestChapter } from './chapter';
 import { commitQuestEffects } from './effects';
-import { QuestRewardController } from '../plugin/quests';
+import { QuestRewardController } from '../../shared/plugin/quests';
 import { parseQuestSpawnPage, parseQuestLeadPage, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
 import * as v from 'valibot';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';

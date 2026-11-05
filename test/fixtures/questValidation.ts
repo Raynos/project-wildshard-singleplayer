@@ -1,4 +1,4 @@
-import { CHIP_MAX, type QuestDef } from '../../src/engine/server/quest/core';
+import { CHIP_MAX, type QuestDef } from '../../src/engine/shared/quest/core';
 import type { Cond } from '../../src/engine/shared/world/interact/types';
 
 // Historical contract oracle; production consumers use the data-driven owners.

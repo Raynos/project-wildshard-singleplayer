@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture uses shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { QuestFlagGates } from '../src/game/server/quest/flagGates';
+import { QuestFlagGates } from '../src/game/shared/quest/flagGates';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { FLAG_PREFIX } from '../src/engine/shared/net/shardNet';
-import { questBooks } from '../src/engine/server/quest/players';
+import { questBooks } from '../src/engine/shared/quest/players';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';

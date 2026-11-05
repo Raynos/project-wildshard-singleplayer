@@ -1,10 +1,10 @@
 import {expect,test} from 'vitest';
-import {DialogueClock,NpcDialogue,NpcReading} from '../src/engine/server/quest/dialogueClock';
+import {DialogueClock,NpcDialogue,NpcReading} from '../src/engine/shared/quest/dialogueClock';
 import oldPine from './fixtures/pine-reading-before.json' with { type: 'json' };
 import { RANGER, MILLER } from '../src/shards/pine-hollow/generators/nativeReadings';
-import { createReadingRoster } from '../src/game/server/plugin/quests';
+import { createReadingRoster } from '../src/game/shared/plugin/quests';
 import { PINE_READINGS } from '../src/shards/pine-hollow/generators/readings';
-import type {NpcDef} from '../src/engine/server/quest/core';
+import type {NpcDef} from '../src/engine/shared/quest/core';
 
 test('old reading resumes on the same clock, completes once, and refuses corrupt continuation before flags',()=>{
   const values=new Set(['ready']);let grants=0;

@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture uses shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import type { QuestState } from '../src/engine/server/quest/core';
-import { questBooks } from '../src/engine/server/quest/players';
+import type { QuestState } from '../src/engine/shared/quest/core';
+import { questBooks } from '../src/engine/shared/quest/players';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
-import { DeclaredQuests } from '../src/game/server/quest/declared';
-import { InteractionRules, parseInteractionRows, playerInteractionRules } from '../src/game/server/quest/interactionRows';
+import { DeclaredQuests } from '../src/game/shared/quest/declared';
+import { InteractionRules, parseInteractionRows, playerInteractionRules } from '../src/game/shared/quest/interactionRows';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3.3: quest state is per player. Each player's book is its own over the world's flags; the lead's is the host's.

@@ -1,5 +1,5 @@
 // Shipping Wendell dialogue captured unchanged from 574a193f37d38a2f8d09f02d22db7264ca725f08; figure/rig stays with the page.
-import type { NpcDef } from '../../../src/engine/server/quest/core';
+import type { NpcDef } from '../../../src/engine/shared/quest/core';
 import { SHARD_FLAGS } from '../../../src/shards/driftwood-isle/generators/interactables';
 const QUEST_DONE = 'quest:driftwood-done';
 

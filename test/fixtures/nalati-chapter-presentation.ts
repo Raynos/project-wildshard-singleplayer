@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {DialogueClock} from '../../src/engine/server/quest/dialogueClock';
+import {DialogueClock} from '../../src/engine/shared/quest/dialogueClock';
 import type {SimHost} from '../../src/engine/server/sim';
 import type {HeadlessRuntimeInstallation} from '../../src/sdk/headlessRuntime';
 import type {QuestPresentationPorts} from '../../src/game/client/quest/effectPresentation';

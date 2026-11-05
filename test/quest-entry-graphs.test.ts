@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
-import { installQuestGraph } from '../src/game/server/plugin/quests';
+import { installQuestGraph } from '../src/game/shared/plugin/quests';
 import { prepareNativeQuestEntry } from '@wildshard/game/quest/nativeEntry';
 import { registerNativeQuestInputs } from '../src/game/server/quest/nativeInputs';
 import { nativeInventorySchema } from '../src/game/server/inventoryLaw';

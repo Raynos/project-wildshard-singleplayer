@@ -18,7 +18,7 @@ import type { SimHost, SimValue, SimStateAdapter } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { StrikeRunner, StrikeSpec, StrikePhase } from '@wildshard/engine/ai/strikes';
 import type { Navmesh } from '@wildshard/engine/physics/navmesh';
-import type { DeclaredQuests, QuestDataPorts } from '../quest/declared';
+import type { DeclaredQuests, QuestDataPorts } from '../../shared/quest/declared';
 import type { MoverRuntime } from '../plugin/mover';
 import { simStrikes } from '../plugin/brain';
 import type { ShardScriptPorts } from './scripts';

@@ -10,7 +10,7 @@ import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { declaredBodyRegistries, DeclaredBodyOpsSchema } from '@wildshard/format/bodySlots';
-import { NativeQuestProps } from '../src/game/server/quest/nativeProps';
+import { NativeQuestProps } from '../src/game/shared/quest/nativeProps';
 import { installNativeBodyScripts } from '@wildshard/game/quest/nativeBodyScripts';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';

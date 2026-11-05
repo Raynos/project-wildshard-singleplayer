@@ -5,7 +5,7 @@ import { fnv1a32 } from '@wildshard/engine/core/rng';
 import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshotBytes, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot, type SimSnapshotBytes } from '@wildshard/engine/sim/snapshot';
 import { instanceSave, type LocalSaveInstance } from '../../shared/instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../../shared/ledger';
-import type { QuestDataPorts } from '../quest/declared';
+import type { QuestDataPorts } from '../../shared/quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { GridWallet } from '../../shared/grid/wallet';
 import { clientStateFromRegion, restoreClientState } from '../../client/shardfile/clientState';

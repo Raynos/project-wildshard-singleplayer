@@ -1,5 +1,5 @@
 import { installPageItems, installPageItemContexts } from '../shardfile/pageItems';
-import { bindPageQuest } from '../quest/pageState';
+import { bindPageQuest } from '../../shared/quest/pageState';
 import type { installCableModes } from '@wildshard/engine/player/modes';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
 import { parseItems } from '@wildshard/format/items';

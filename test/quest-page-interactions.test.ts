@@ -5,7 +5,7 @@ import { parseQuestPageInteractions, parseInteractionRows } from '@wildshard/for
 import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/generators/questPageInteractions';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';
 import { output as traderOutput } from '../src/shards/driftwood-isle/generators/output';
-import { InteractionRules } from '../src/game/server/quest/interactionRows';
+import { InteractionRules } from '../src/game/shared/quest/interactionRows';
 import { Vector3 } from 'three';
 import { expect, test, vi } from 'vitest';
 import { Flags } from '../src/engine/shared/world/interact/flags';

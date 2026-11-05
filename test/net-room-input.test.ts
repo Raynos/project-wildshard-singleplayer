@@ -4,7 +4,7 @@ import { decodeCommands, encodeCommands } from '../src/engine/shared/net/command
 import { BitWriter } from '../src/engine/shared/net/bits';
 import { decodeAct, encodeAct } from '../src/engine/shared/net/messages';
 import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
-import { lockedHook, type ActRoutes } from '../src/engine/server/sim/actRoutes';
+import { lockedHook, type ActRoutes } from '../src/engine/shared/sim/actRoutes';
 import { netRide, netTickCommands } from '../src/sdk/standalone/netInput';
 
 // What the room's input gained in format v0.3.0: LOCK has a bit, J116's target has a place, and riding is on the wire.

@@ -6,7 +6,7 @@ import {Scope} from '../src/engine/shared/app/scope';
 import {SkyRig} from '../src/engine/client/world/skyRig';
 import {WorldRegistry} from '../src/engine/client/world/registry';
 import {Flags} from '../src/engine/shared/world/interact/flags';
-import {QuestState} from '../src/engine/server/quest/core';
+import {QuestState} from '../src/engine/shared/quest/core';
 import {CarriedQuestProp} from '../src/game/server/quest/carriedProp';
 import {publishBoundQuest} from '../src/game/shared/quest/boundState';
 import {parseCarriedQuest} from '@wildshard/format/questSteps';

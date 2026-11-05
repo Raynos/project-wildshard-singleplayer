@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
-import { QuestRewardController, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from '../plugin/quests';
+import { QuestRewardController, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from '../../shared/plugin/quests';
 
 export interface QuestRewardPlayer extends QuestRewardPosePlayer { carried: boolean }
 export interface QuestRewardSpec extends QuestRewardPoseTarget {

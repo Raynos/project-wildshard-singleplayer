@@ -1,6 +1,6 @@
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { expect, test } from 'vitest';
-import { bindQuestDeathEffects } from '../src/game/server/plugin/quests';
+import { bindQuestDeathEffects } from '../src/game/shared/plugin/quests';
 import { createAchievementCounters } from '../src/game/shared/achievements';
 import { PINE_DEATH_EFFECTS, PINE_PAGE_DEATH_EFFECTS } from '../src/shards/pine-hollow/generators/questDeaths';
 import deathRows from '../src/shards/driftwood-isle/data/questDeaths.json' with { type: 'json' };

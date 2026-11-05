@@ -1,8 +1,8 @@
-import { questChip, questHint, questObjective, type QuestProgress } from '../../shared/quest/progress';
-import { test, type Flags } from '../../shared/world/interact/flags';
-import type { Scope } from '../../shared/app/scope';
-import type { Events } from '../../shared/events/events';
-import type { Cond, QuestPlace } from '../../shared/world/interact/types';
+import { questChip, questHint, questObjective, type QuestProgress } from './progress';
+import { test, type Flags } from '../world/interact/flags';
+import type { Scope } from '../app/scope';
+import type { Events } from '../events/events';
+import type { Cond, QuestPlace } from '../world/interact/types';
 
 export interface QuestMarker {
   id: string;

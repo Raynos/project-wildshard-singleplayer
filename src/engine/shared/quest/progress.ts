@@ -1,5 +1,5 @@
 import { engineString } from '../strings';
-import type { QuestDef, QuestStep } from '../../server/quest/core';
+import type { QuestDef, QuestStep } from './core';
 
 /** Where a player stands in one quest: the whole of what a client is told (P1-E3.3). `step` is null once it is finished. */
 export interface QuestProgress { readonly quest: string; readonly started: boolean; readonly step: string | null; readonly n: number }

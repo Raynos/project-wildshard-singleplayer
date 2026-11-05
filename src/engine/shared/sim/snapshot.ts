@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps, checkSnapshotDataWire } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
-import type { QuestBookSaved } from '../../server/quest/players';
+import type { QuestBookSaved } from '../quest/players';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../../server/sim';
 import { leadPlayer } from './leadPlayer';
 import type { PlayerSim } from '../../server/sim/playerSim';
@@ -13,7 +13,7 @@ import type { StrikeRunner } from '../../server/ai/strikes';
 import type { PlayerHealth } from '../../server/combat/health';
 import type { GameClockState } from '../core/clock';
 import { fnv1a32, type RngStreamsState } from '../core/rng';
-import type { QuestState } from '../../server/quest/core';
+import type { QuestState } from '../quest/core';
 import type { EventMap } from '../../client/events/maps';
 import { Physics } from '../physics/Physics';
 import { CharacterMotor } from '../physics/CharacterMotor';

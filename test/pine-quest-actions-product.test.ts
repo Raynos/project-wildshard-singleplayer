@@ -3,7 +3,7 @@ import { registerItemRow } from '../src/game/shared/bag/itemCatalog';
 import { QuestStepRunner } from '../src/game/shared/quest/steps';
 import { commitQuestEffects, readQuestServiceActions } from '../src/game/server/quest/effects';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/client/plugin/context';

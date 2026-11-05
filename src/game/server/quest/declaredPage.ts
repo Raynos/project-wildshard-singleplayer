@@ -6,7 +6,7 @@ import type { ShardContext } from '../../client/plugin/context';
 import type { MoverRuntime } from '../plugin/mover';
 import type { SceneHandles } from '../../client/shardfile/sceneHandles';
 import { WorldTargetHost, type WorldTargetLanding } from '../shardfile/worldTargets';
-import { InteractionRules } from './interactionRows';
+import { InteractionRules } from '../../shared/quest/interactionRows';
 import { commitQuestEffects } from './effects';
 import type { QuestEffect } from '@wildshard/format/questSteps';
 import { lightEmitterPresentation } from '../../client/shardfile/lightEmitters';

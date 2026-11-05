@@ -9,7 +9,7 @@ import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTarg
 import { ReturnModulesSchema, decisionScriptsFromSections } from '@wildshard/format/scriptContract';
 import { prepareNativePopulation, type NativePopulationRows } from '../shardfile/bossRow';
 import { parseQuestWorldReactions, type QuestWorldReactionsData } from '@wildshard/format/questInteractions';
-import { installQuestGraph, type QuestGraphPorts } from './quests';
+import { installQuestGraph, type QuestGraphPorts } from '../../shared/plugin/quests';
 import { parseQuestHost, type QuestHostRow } from '@wildshard/format/questHost';
 import { parseBossOwnerRow } from '@wildshard/format/bossProfiles';
 import type { QuestData } from '@wildshard/format/quests';
@@ -19,7 +19,7 @@ import { parseItems, parseMeleeContacts, parseNativeMeleeBinding } from '@wildsh
 import { scriptItemHook } from '@wildshard/engine/combat/items';
 import { flagValue, test as testQuestFlags, type Flags } from '@wildshard/engine/world/interact/flags';
 import { Vector3 } from 'three';
-import { parsePromptRegistrations, createHeadlessPromptPicker } from '../quest/interactionRows';
+import { parsePromptRegistrations, createHeadlessPromptPicker } from '../../shared/quest/interactionRows';
 import { questBooks } from '@wildshard/engine/quest/players';
 import { GridAssembly } from '../../shared/grid/assembly';
 import { GridSimulation } from '../grid/simulation';
@@ -54,7 +54,7 @@ import { clientGround } from "../../shared/shardfile/clientGround";
 import { declaredItemScriptEntities, type DeclaredItemPorts } from "../shardfile/items";
 import { syncTargetColliders } from "../../shared/shardfile/targets";
 import { scriptPhysicsQueries } from "@wildshard/engine/script/queries";
-import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type QuestScriptBindings } from "../quest/declared";
+import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type QuestScriptBindings } from "../../shared/quest/declared";
 import { installDeclaredEncounters } from "../shard/declaredEncounters";
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import { speciesResolver, simStrikes } from "./brain";

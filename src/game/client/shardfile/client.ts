@@ -39,7 +39,7 @@ import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
 import { declaredProductCompendium, declaredDay, declaredWeather } from '../../shared/shard/declaredRows';
 import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
-import { createQuestScriptPorts } from '../../server/quest/declared';
+import { createQuestScriptPorts } from '../../shared/quest/declared';
 import type { ClientScriptViewTarget } from "../plugin/ui";
 import { instanceSave } from '../../shared/instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../../shared/ledger';

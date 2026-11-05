@@ -329,7 +329,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/plugin/quests.ts",
+      "module": "src/game/shared/plugin/quests.ts",
       "export": "createReadingRoster",
       "shard": "nalati-grasslands",
       "plan": {
@@ -347,7 +347,7 @@
       }
     },
     {
-      "module": "src/game/server/plugin/quests.ts",
+      "module": "src/game/shared/plugin/quests.ts",
       "export": "QuestReading",
       "shard": "nalati-grasslands",
       "plan": {
@@ -365,7 +365,7 @@
       }
     },
     {
-      "module": "src/game/server/plugin/quests.ts",
+      "module": "src/game/shared/plugin/quests.ts",
       "export": "QuestReadingSpot",
       "shard": "nalati-grasslands",
       "plan": {
@@ -383,7 +383,7 @@
       }
     },
     {
-      "module": "src/game/server/plugin/quests.ts",
+      "module": "src/game/shared/plugin/quests.ts",
       "export": "QuestReadingRows",
       "shard": "nalati-grasslands",
       "plan": {
@@ -401,7 +401,7 @@
       }
     },
     {
-      "module": "src/game/server/plugin/quests.ts",
+      "module": "src/game/shared/plugin/quests.ts",
       "export": "QuestReadingRoster",
       "shard": "nalati-grasslands",
       "plan": {

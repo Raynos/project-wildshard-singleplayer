@@ -11,7 +11,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { prepareScriptMemoryLease } from '../src/engine/server/script/host';
 import { readDirectorProduct } from '../src/game/server/plugin/director';
 import { Flags } from '../src/engine/shared/world/interact/flags';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';

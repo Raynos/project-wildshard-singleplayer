@@ -1,4 +1,4 @@
-import {QuestLine} from '../../src/engine/server/quest/core';
+import {QuestLine} from '../../src/engine/shared/quest/core';
 import type {SimHost} from '../../src/engine/server/sim';
 import type {parseChapterStoryPresentation} from '@wildshard/format/questStory';
 import {chapterFlow} from '../../src/game/server/quest/chapterFlow';

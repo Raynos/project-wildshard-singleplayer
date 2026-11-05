@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { QuestState } from '../src/engine/server/quest/core';
+import { QuestState } from '../src/engine/shared/quest/core';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { PINE_QUESTS } from '../src/shards/pine-hollow/generators/quests';
 import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests';

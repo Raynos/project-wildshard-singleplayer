@@ -2,7 +2,7 @@ import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { SimHost } from '@wildshard/engine/sim';
 import { DeclaredBodyOps } from './bodyOps';
-import { lendQuestBodyScripts } from './nativeProps';
+import { lendQuestBodyScripts } from '../../shared/quest/nativeProps';
 import { focusPlayer, ShardDecisions, type DecisionRuntime } from '../shardfile/decisions';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 

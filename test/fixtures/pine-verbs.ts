@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import {KinematicMover} from '../../src/engine/shared/physics/mover';
 import {ForestPageSchema} from '@wildshard/format/forestPage';
 import {buildingDoor,toggleBuildingDoor,stepBuildingDoor,buildingDoorYaw,buildingDoorCollides} from '../../src/game/shared/shardfile/buildingDoor';
-import {eyeReaches} from '../../src/game/server/quest/interactionRows';
+import {eyeReaches} from '../../src/game/shared/quest/interactionRows';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan} from './headless-native';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

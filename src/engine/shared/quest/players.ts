@@ -1,7 +1,7 @@
-import type { SimHost } from '../sim';
-import { Flags, type FlagListener } from '../../shared/world/interact/flags';
+import type { SimHost } from '../../server/sim';
+import { Flags, type FlagListener } from '../world/interact/flags';
 import { QuestState, type QuestDef } from './core';
-import type { QuestProgress } from '../../shared/quest/progress';
+import type { QuestProgress } from './progress';
 
 /**
  * P1-E3.3: one player's flags over the world's. A flag a quest row writes (`QuestBooks.claim`) is that player's own; any

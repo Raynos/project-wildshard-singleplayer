@@ -15,7 +15,7 @@ import {installNativeWalkBounds} from './nativeBounds';
 import {prepareHeadlessRuntime} from '../../proof/driftwood-isle/worker';
 import {DRIFTWOOD_SPOTS} from '../../../src/shards/driftwood-isle/generators/spots';
 import {readNativeQuestSpots} from '@wildshard/game/quest/nativeComposition';
-import {eyeReaches} from '../../../src/game/server/quest/interactionRows';
+import {eyeReaches} from '../../../src/game/shared/quest/interactionRows';
 import {REEF_TREASURE} from '../../../src/shards/driftwood-isle/generators/interactables';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with {type:'json'};
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';

@@ -15,7 +15,7 @@ import { outputDescriptor } from '../../../src/game/shared/shardfile/outputDescr
 import { prepareNativeRuntime, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
-import type { QuestGraphSpot as SignalSpot } from '../../../src/game/server/plugin/quests';
+import type { QuestGraphSpot as SignalSpot } from '../../../src/game/shared/plugin/quests';
 import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/generators/signalInteractions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/generators/rows/matriarchEncounter';
 import { readRuntimeWorldMetadata, nativeMeleeVolumeHit } from '../../../src/game/server/plugin/simulation';
@@ -25,7 +25,7 @@ import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/generators/rows/flag
 import { COMPLETE_FLAG, MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/generators/rows/signalQuest';
 import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 import { SIGNAL_PHYSICS } from '../../../src/shards/sunscar-dunes/generators/physics';
-import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/game/server/quest/interactionRows';
+import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/game/shared/quest/interactionRows';
 import * as v from 'valibot';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

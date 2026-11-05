@@ -2,7 +2,7 @@ import {enteredLootPresentation} from '../../src/game/server/loot/runtime';
 import {parseRows} from '@wildshard/format/rows';
 import type {declaredLootEconomy} from '../../src/game/shared/shard/declaredRows';
 import type {Scope} from '../../src/engine/shared/app/scope';
-import {QuestState} from '../../src/engine/server/quest/core';
+import {QuestState} from '../../src/engine/shared/quest/core';
 import type {Flags} from '../../src/engine/shared/world/interact/flags';
 import type {Owned} from '../../src/game/shared/loot/Owned';
 import type {Audio} from '../../src/engine/client/audio/Audio';

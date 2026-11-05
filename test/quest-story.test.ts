@@ -17,7 +17,7 @@ import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import type { Progress } from '../src/game/client/Progress';
 import { progressSave } from '../src/game/shared/saves';
 import { bindStoryAchievements } from '../src/game/server/quest/story';
-import { questBenchPose } from '../src/game/server/quest/storyLaw';
+import { questBenchPose } from '../src/game/shared/quest/storyLaw';
 import { PAGE_STORY as driftStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
