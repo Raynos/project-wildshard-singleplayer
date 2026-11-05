@@ -5,6 +5,8 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { LiveGridWire } from '../grid/liveSession';
 import type { SystemSpec } from '@wildshard/engine/app/systems';
 import type { Player } from '@wildshard/engine/player/Player';
+import { appIdentity } from '@wildshard/engine/app/identity';
+import { saveEnvironment } from '@wildshard/engine/saves/environment';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { NetClient } from '@wildshard/engine/net/client';
 import { NetPlayer, type NetWeapons } from '@wildshard/engine/net/netPlayer';
@@ -49,11 +51,11 @@ export interface WorkerClientPorts {
   readonly system: (system: SystemSpec) => void;
 }
 interface Saves { readonly storage: SaveStorage; readonly write: (key: string, value: string | null) => Promise<boolean> }
-interface ShellModule { readonly openIndexedSaves: (name: string) => Promise<Saves>; readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true } & Saves) => Shell }
+interface ShellModule { readonly openIndexedSaves: (name: string) => Promise<Saves>; readonly importPageSaves: (saves: Saves, page: SaveStorage, prefix: string) => Promise<void>; readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true } & Saves) => Shell }
 interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
-/** The row's saves stand apart, so playing it never touches a real one. */
-const PROOF_SAVES = 'wildshard.worker.', PROOF_DATABASE = 'wildshard-worker-saves', SAVE_EVERY_MS = 30_000;
+/** The server's saves: the page's own, read once into IndexedDB and left in place. A session outgrows localStorage at its first cell. */
+const SAVES_DATABASE = 'wildshard-saves', SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
 const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive');
 
@@ -112,8 +114,11 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   await import(/* @vite-ignore */ `${root}/identity.js`);
   const environment = await import(/* @vite-ignore */ `${root}/storage.js`) as { installBrowserSaveEnvironment: () => void };
   environment.installBrowserSaveEnvironment();
-  const { openIndexedSaves, startStandalone } = await import(/* @vite-ignore */ `${root}/shell.js`) as ShellModule;
-  const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix: PROOF_SAVES, ...ports.grid === null ? { lone: true as const } : {}, ...await openIndexedSaves(PROOF_DATABASE) }), { client } = shell;
+  const { importPageSaves, openIndexedSaves, startStandalone } = await import(/* @vite-ignore */ `${root}/shell.js`) as ShellModule;
+  const saves = await openIndexedSaves(SAVES_DATABASE), { savePrefix } = appIdentity();
+  const page = saveEnvironment().storage('shard');
+  if (page !== null) await importPageSaves(saves, page, savePrefix);
+  const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix, ...ports.grid === null ? { lone: true as const } : {}, ...saves }), { client } = shell;
   scope.onDispose(() => { shell.dispose(); });
   const net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
   // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it

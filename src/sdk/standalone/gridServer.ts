@@ -23,6 +23,9 @@ import type { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage'
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Transport } from '@wildshard/engine/net/transport';
 import { GridAssembly, type GridCell, type GridPoint } from '@wildshard/game/grid/assembly';
+import { importPageProgress } from '@wildshard/game/grid/durability';
+import { gridRecovery } from '@wildshard/game/grid/recovery';
+import { regionalRuntimeCheckpoint } from '@wildshard/game/grid/runtimeCheckpoint';
 import { GridRoom } from '@wildshard/game/grid/room';
 import { commandsOf, GridNetRooms } from '@wildshard/game/grid/roomNet';
 import { GridSimulation, type GridResident } from '@wildshard/game/grid/simulation';
@@ -51,6 +54,8 @@ const ROAD: SimLevel = { version: SIM_API_VERSION, id: 'grid-road', seed: 1, gro
 
 /** One world the worker has open: its host, and how it takes a tick and reports what the tick granted. */
 interface CellWorld extends GridResident {
+  /** Take over a page's progress in this cell, in a world made fresh for it. False keeps the fresh world. */
+  readonly adopt: () => boolean;
   readonly effects: () => readonly HeadlessEffect[];
   readonly step: (inputs: readonly NetTickInput[]) => void;
   readonly fact: (name: string, entity: string) => { readonly id: string; readonly status: 'granted' | 'duplicate' | 'pending' } | null;
@@ -173,15 +178,20 @@ export class StandaloneGrid {
     if (home === undefined) throw new Error(`Standalone needs a grid cell: ${options.slug}`);
     const { saves, storage, savePrefix } = options, worlds = new Map<string, CellWorld>(), cells = new Map<string, ContinuationSlots<SavedContinuation>>();
     let settle: (held: ContinuationSlots<SavedContinuation>) => void = () => undefined;
-    const continuation = saves.define(CONTINUATION), sites = new ContinuationSlots(saves.define(SITE), siteDocuments(options.lone === true ? home.instance : options.slug), storage, savePrefix);
+    // A lone cell's world has walls and a grid cell's has a rim, so neither can restore the other's continuation. Facts and page progress they share.
+    const documents = options.lone === true ? (instance: string): readonly [string, string] => cellDocuments(`lone-${instance}`) : cellDocuments;
+    const continuation = saves.define(CONTINUATION), sites = new ContinuationSlots(saves.define(SITE), siteDocuments(options.lone === true ? `lone-${home.instance}` : options.slug), storage, savePrefix);
     const slots = (instance: string): ContinuationSlots<SavedContinuation> => {
-      const held = cells.get(instance) ?? new ContinuationSlots(continuation, cellDocuments(instance), storage, savePrefix);
+      const held = cells.get(instance) ?? new ContinuationSlots(continuation, documents(instance), storage, savePrefix);
       cells.set(instance, held);
       return held;
     };
     const candidate = sites.candidates().find(row => row.saved.site === null || assembly.cells.some(cell => cell.instance === row.saved.site));
     if (candidate !== undefined) sites.restored(candidate);
-    const site = options.arrival !== undefined ? null : candidate === undefined ? home.instance : candidate.saved.site;
+    // A session with no save of its own opens where the page's save last stood.
+    const place = candidate !== undefined || options.arrival !== undefined || options.lone === true ? null : gridRecovery(saves).lastPlace(assembly);
+    const arrival = options.arrival ?? (place?.location.kind === 'road' ? { x: place.road.x, y: 0, z: place.road.z } : undefined);
+    const site = arrival !== undefined ? null : candidate === undefined ? place?.instance ?? home.instance : candidate.saved.site;
     const firstSlug = site === null ? home.slug : assembly.cell(site).slug, first = await options.load(firstSlug), { rapier } = first, lent = new Map([[firstSlug, first]]);
     let resumed: SavedContinuation | undefined;
     const input = (cell: GridCell): Promise<HeadlessRuntimeInput> => { const held = lent.get(cell.slug); lent.clear(); return held === undefined ? options.load(cell.slug) : Promise.resolve(held); };
@@ -193,9 +203,12 @@ export class StandaloneGrid {
         try { const world = await StandaloneGrid.world(cell, source, row.saved.snapshot, options); held.restored(row); resumed = row.saved; return world; }
         catch (error) { held.setAside(row); options.refused?.(error); }
       }
-      return StandaloneGrid.world(cell, source, undefined, options);
+      const world = await StandaloneGrid.world(cell, source, undefined, options);
+      try { if (!world.adopt()) options.refused?.(new Error(`A page's progress in ${cell.instance} would not restore`)); }
+      catch (error) { options.refused?.(error); }
+      return world;
     };
-    const road = StandaloneGrid.road(rapier, assembly.cells, site === null ? candidate?.saved.road : undefined, options.arrival);
+    const road = StandaloneGrid.road(rapier, assembly.cells, site === null ? candidate?.saved.road : undefined, arrival);
     const grid: GridSimulation = new GridSimulation(assembly, { highway: { host: road, dispose: () => { road.dispose(); } }, maxResidents: options.residents ?? STANDALONE_RESIDENTS,
       load: async (cell, cached) => { const world = await open(cell, cached); worlds.set(cell.instance, world); return { host: world.host, dispose: () => { worlds.delete(cell.instance); world.dispose(); } }; },
       durable: (instance, host) => {
@@ -204,6 +217,10 @@ export class StandaloneGrid {
         return wrote;
       } });
     if (site !== null) await grid.enter(site);
+    if (site !== null && place?.location.kind === 'cell') {
+      const { x, y, z, yaw } = place.location, seat = sessionPlayer(grid.host());
+      seat.position.set(x, y, z); seat.yaw = yaw; seat.motor.resetAt(seat.position);
+    }
     const restored = site === null ? candidate?.saved : resumed;
     const server = new StandaloneGrid({ grid, assembly, restored, options, worlds, slots, sites, saved: candidate?.saved.tick ?? 0 });
     settle = held => { void server.settle([held]); };
@@ -219,7 +236,7 @@ export class StandaloneGrid {
   }
 
   private static async world(cell: GridCell, input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, options: GridServerOptions): Promise<CellWorld> {
-    const declared = new Set(input.shard.ledger.map(row => row.fact));
+    const declared = new Set(input.shard.ledger.map(row => row.fact)), placed = { id: cell.instance, shard: input.shard.identity.slug };
     const ledger = createQuestLedger(options.saves, input.shard, cell.instance), fact: CellWorld['fact'] = (name, entity) => declared.has(name) ? ledger(name, entity) : null;
     if (nativeCell(input)) {
       // J68: a native assembly keeps its ground whole and its solids as data. A saved world holds none of them, so a throwaway fresh one lists them.
@@ -228,14 +245,15 @@ export class StandaloneGrid {
       const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
       if (snapshot === undefined) addEdge(host, options.lone === true);
       host.respawn.served = true;
-      return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects, step: inputs => {
+      return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
+        adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); return true; }, step: inputs => {
         const player = sessionPlayer(host), own = inputs.find(row => row.player === player.id);
         near?.update(player.position.x, player.position.z);
         resident.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
       } };
     }
     const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects, options.lone === true);
-    return { host, dispose, fact, effects: () => effects, step: inputs => {
+    return { host, dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
       for (const { player, acts } of inputs) for (const act of acts) if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);

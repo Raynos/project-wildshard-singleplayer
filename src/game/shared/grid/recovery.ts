@@ -15,6 +15,8 @@ const savedSchema = v.strictObject({ instance: identity, slug: identity,
   catalogue: v.pipe(v.string(), v.maxLength(4096)), at: finite, road: roadSchema, location: locationSchema });
 /** A durable location references the instance's real continuation; it carries no progress or native bytes. */
 export type GridSavedLocation = v.InferOutput<typeof locationSchema>;
+/** A durable place: the instance, the road beside it and where in it the player stood. */
+export interface GridSavedPlace { readonly instance: string; readonly slug: string; readonly road: { readonly x: number; readonly z: number; readonly yaw: number }; readonly location: GridSavedLocation }
 const lastDefinition = { key: 'grid.last-played', scope: 'device' as const, version: 1, schema: v.nullable(savedSchema), initial: () => null };
 const localDefinition = { ...lastDefinition, key: 'platform.grid-position', scope: 'shard' as const };
 const guardDefinition = { key: 'grid.recovery.guard', scope: 'device' as const, version: 1,
@@ -58,6 +60,8 @@ export interface GridRecoveryService {
   /** Call only after every continuation/ledger writer succeeds. The instance slot fences New-game generations. */
   save: (assembly: GridAssembly, home: { instance: string; slug: string }, road: RoadPoint, location: GridSavedLocation) => boolean;
   clearLoop: () => boolean;
+  /** The last durable place, for a server opening a page's save for the first time. */
+  lastPlace: (assembly: GridAssembly) => GridSavedPlace | null;
   /** An abrupt end may resume only an already durable, catalogue-bound checkpoint. */
   restoreLast: (assembly: GridAssembly) => boolean;
   /** A pending reset never boots until the target namespace proves its atomic generation advance. */
@@ -98,6 +102,7 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): Gr
       return local.write(saved) && last.write(saved);
     },
     clearLoop: () => guard.write(null),
+    lastPlace: assembly => { const saved = last.peek(); return saved !== null && validSaved(saved, assembly) ? saved : null; },
     restoreLast: assembly => {
       if ([last.status?.(), session.status?.(), device.status?.(), pendingReset.status?.()].includes('future')
         || session.peek() !== null || device.peek() !== null) return false;

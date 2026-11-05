@@ -85,6 +85,18 @@ export async function openIndexedSaves(name: string): Promise<IndexedSaves> {
     setItem: (key, value) => { void write(key, value); }, removeItem: key => { void write(key, null); } } };
 }
 
+/** Marks a store as holding the page's saves. It sits outside the prefix, because no server reads it. */
+const IMPORTED = 'imported-page-saves';
+/**
+ * Copy a page's saves in, once, so a server opens the session the page had. The copy leaves the page's alone. A key the store has already
+ * stands: it is newer. A failed write leaves the mark off, and the next boot finishes the job.
+ */
+export async function importPageSaves({ storage, write }: IndexedSaves, page: SaveStorage, prefix: string): Promise<void> {
+  if (storage.getItem(IMPORTED) !== null) return;
+  const held = saveDocuments(page, prefix), wrote = await Promise.all(Object.entries(held).map(async ([key, value]) => storage.getItem(key) !== null || await write(key, value)));
+  if (wrote.every(Boolean)) await write(IMPORTED, '1');
+}
+
 /** Run the page half over the two ports. `startStandalone` is this over a real worker; a Node test passes a MessageChannel. */
 export function connectStandalone(config: StandaloneConfig, control: MessagePort, game: MessagePort, end: () => void): StandaloneShell {
   const transport = new WorkerLoopback(game), client = new NetClient(transport);

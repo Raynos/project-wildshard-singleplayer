@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { instanceSave, type LocalSaveInstance } from '../../shared/instanceSaves';
+import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
 
 const finite = v.pipe(v.number(), v.finite());
 const health = v.pipe(finite, v.minValue(0), v.maxValue(1_000_000_000));

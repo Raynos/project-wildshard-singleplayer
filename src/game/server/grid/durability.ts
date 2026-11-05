@@ -8,7 +8,7 @@ import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmit
 import type { QuestDataPorts } from '../../shared/quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { GridWallet } from '../../shared/grid/wallet';
-import { clientStateFromRegion, restoreClientState } from '../../client/shardfile/clientState';
+import { clientStateFromRegion, clientStateSave, restoreClientState } from '../../client/shardfile/clientState';
 import { ClientCheckpointSchema, type ClientCheckpoint } from '@wildshard/format/clientState';
 import type { ShardfileSimulation } from '../plugin/simulation';
 
@@ -27,6 +27,17 @@ const envelopeCharacters = JSON.stringify({ keys: { [continuation.key]: { v: con
 function sealRegion(value: NonNullable<SavedRegion>): { value: NonNullable<SavedRegion>; characters: number } {
   const body = regionBody(value), integrity = fnv1a32(body);
   return { value: { ...value, integrity }, characters: envelopeCharacters + body.length + ',"integrity":'.length + String(integrity).length };
+}
+
+/**
+ * A page's progress in a placement, for a server opening it for the first time. Its physics was the page's own world, so only the
+ * logical part crosses: a shard page's continuation, else a grid region's. False keeps the fresh world; the page's save is untouched.
+ */
+export function importPageProgress(store: SaveStore, placement: LocalSaveInstance, source: Shardfile, sim: ShardfileSimulation): boolean {
+  const region = instanceSave(store, continuation, placement).read();
+  const logical = instanceSave(store, clientStateSave, placement).read() ?? region?.logical
+    ?? (region?.snapshot === null || region === null ? null : clientStateFromRegion(source, decodeSimSnapshotBytes(region.snapshot), region.revision, 1));
+  return logical === null || restoreClientState(source, sim, new Map(), logical);
 }
 
 /** Durable local continuation and rewards for one stable placement; coordinates never enter a save key. */

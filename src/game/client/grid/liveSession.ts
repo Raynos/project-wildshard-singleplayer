@@ -84,7 +84,7 @@ import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type Prepa
 import { bindHomeBuildCache } from '../shardfile/homeBuildCache';
 import type { ClientTileRegistration } from '../shardfile/tileContent';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
-import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
+import { regionalRuntimeCheckpoint } from '../../shared/grid/runtimeCheckpoint';
 import { regionalDataCellBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../../shared/shard/runtime';
 
