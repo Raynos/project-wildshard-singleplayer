@@ -69,7 +69,7 @@ export function edgeName(edge) {
   return HEADLESS.has(from) && ['dom', 'render'].includes(to);
 }
 
-const PACKAGE = /^@wildshard\/(engine|format|game|sdk|commons)(?:\/([^?#]+))?$/u;
+const PACKAGE = /^@wildshard\/(engine|format|game|sdk|sharddev|commons)(?:\/([^?#]+))?$/u;
 /** Candidate repo paths an import specifier names (the sides map, not the disk, decides which one is ours). */
 export function importCandidates(path, specifier) {
   const pkg = PACKAGE.exec(specifier);

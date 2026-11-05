@@ -22,7 +22,7 @@ function parsed(file) {
   return result.program;
 }
 function target(root, file, source, observed) {
-  const pkg = /^@wildshard\/(engine|format|game|sdk|commons)\/(.+)$/u.exec(source);
+  const pkg = /^@wildshard\/(engine|format|game|sdk|sharddev|commons)\/(.+)$/u.exec(source);
   const base = pkg ? resolve(root, 'src', pkg[1], pkg[2]) : source.startsWith('.') ? resolve(dirname(file), source) : null;
   if (base === null) return null;
   const exported = pkg ? exportedPath(pkg[1], pkg[2], root) : null;

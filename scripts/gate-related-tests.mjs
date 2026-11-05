@@ -34,7 +34,7 @@ export const QUICK_TESTS = ['test/grid-reentry.test.ts'];
  * @param {readonly string[]} changed @returns {string[]} */
 export function pushGuards(changed) {
   return [
-    ...(changed.some(file => /^src\/(?:format|sdk)\//u.test(file)) ? ['test/schema-reference.test.ts'] : []),
+    ...(changed.some(file => /^src\/(?:format|sdk|sharddev)\//u.test(file)) ? ['test/schema-reference.test.ts'] : []),
     'test/host-callbacks.test.ts', 'test/shardfile-boundaries.test.ts',
     'test/platform-chargebacks.test.ts', 'test/manifest-declarations.test.ts',
   ];
@@ -98,7 +98,7 @@ export function scriptScenarioTests(changed, tests) {
 /** Disk readers have no import edge to the author modules that publish their bytes.
  * @param {string[]} changed @param {Record<string, string[]>} registry @returns {string[]} */
 export function productReaderTests(changed, registry) {
-  const shared = changed.some(file => /^(?:src\/(?:sdk|format)\/|scripts\/(?:build-shardfiles\.mjs|shardfile-cache\.mjs|test-products\.json)$)/u.test(file));
+  const shared = changed.some(file => /^(?:src\/(?:sdk|sharddev|format)\/|scripts\/(?:build-shardfiles\.mjs|shardfile-cache\.mjs|test-products\.json)$)/u.test(file));
   return Object.entries(registry).filter(([, slugs]) => shared || changed.some(file => slugs.some(slug =>
     file.startsWith(`src/shards/${slug}/`) || file.startsWith(`public/assets/${slug}/`))))
     .map(([test]) => test).sort((a, b) => a.localeCompare(b));

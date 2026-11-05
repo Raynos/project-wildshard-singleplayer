@@ -71,7 +71,7 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 const RULES = {
   typescript: /\.tsx?$/u,
   tests: /(?:^|\/)(?:tests?|__tests__)(?:\/|$)|\.(?:test|spec)\.tsx?$/u,
-  attributedLayers: /^src\/(?:engine|game|sdk)\//u,
+  attributedLayers: /^src\/(?:engine|game|sdk|sharddev)\//u,
   buildOnlySdk: /^src\/sdk\/(?:bake\/|project\.ts$)/u,
   publicUserCount: 2,
   template: '_template',
@@ -551,7 +551,7 @@ function approvedFeature(entry) {
 }
 // G419: planned users are an explicit, temporary allowance, never actual import-graph users.
 const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1'), entries:v.pipe(v.array(v.strictObject({
-  module:v.pipe(producerPath,v.regex(/^src\/(?:engine|game|sdk|format)\//u)), export:v.optional(v.string()),
+  module:v.pipe(producerPath,v.regex(/^src\/(?:engine|game|sdk|sharddev|format)\//u)), export:v.optional(v.string()),
   shard:v.exactOptional(v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack'])),
   plan:v.exactOptional(v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()})),
   documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.exactOptional(v.literal('end of W3')),
@@ -651,7 +651,7 @@ function censusMemo() {
 /** @param {string} root @param {boolean} includeSources @param {string} products @param {string[]} slugs @param {boolean} sourceProgress @param {string} sectionProducts */
 function countOutput(root, includeSources, products, slugs, sourceProgress = false, sectionProducts = resolve(root,'out'), memo = censusMemo(), reader = createOutputReader(root,sourceProgress ? sectionProducts : products)) {
   const attributed = path => RULES.attributedLayers.test(path) || platformChargeback(path) !== null || hasChargebackDeclarations(path);
-  const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
+  const platform = path => /^src\/(?:engine|game|sdk|sharddev|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const {probes,targets,edges,texts,graphs,sources,masks}=memo;
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(onDisk(root, path)); probes.set(path, hit); } return hit; };
@@ -719,7 +719,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     return targets.get(key);
   };
   const resolveEdgeOf = (path, spec) => {
-    const pkg = /^@wildshard\/(sdk|game|engine|commons)(?:\/|$)/u.exec(spec ?? '');
+    const pkg = /^@wildshard\/(sdk|sharddev|game|engine|commons)(?:\/|$)/u.exec(spec ?? '');
     const shaderBase = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec.split('?')[0])).replaceAll('\\', '/') : null;
     const shaderPath = shaderBase?.endsWith('.glsl') && exists(shaderBase) ? shaderBase : null;
     const to = spec === null ? null : shaderPath ?? (pkg === null ? null : publishedTarget(pkg[1], spec)) ?? resolveSpecifier(path, spec, exists);
@@ -763,7 +763,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       const path = queue.pop();
       if (seen.has(path) || !exists(path) || !sourceFile.test(path)) continue;
       seen.add(path);
-      if (!buildFile(slug, path) && !/^src\/(?:engine|game|sdk|commons)\//u.test(path)) continue;
+      if (!buildFile(slug, path) && !/^src\/(?:engine|game|sdk|sharddev|commons)\//u.test(path)) continue;
       if (path.startsWith('src/sdk/')) {
         if (!buildUsers.has(path)) buildUsers.set(path, new Set());
         buildUsers.get(path).add(slug);

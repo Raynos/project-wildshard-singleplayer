@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 import {parseSync} from 'vite';
 import * as v from 'valibot';
 
-const path=v.pipe(v.string(),v.regex(/^src\/(?:shards|engine|game|sdk)\/(?!.*(?:^|\/)\.\.(?:\/|$))[^\\]+\.(?:ts|tsx|glsl)$/u));
+const path=v.pipe(v.string(),v.regex(/^src\/(?:shards|engine|game|sdk|sharddev)\/(?!.*(?:^|\/)\.\.(?:\/|$))[^\\]+\.(?:ts|tsx|glsl)$/u));
 const label=v.pipe(v.string(),v.minLength(1));
 const entry=v.strictObject({path,name:v.exactOptional(v.pipe(label,v.regex(/^[A-Za-z_$][\w$]*$/u))),reason:label,decision:v.pipe(v.string(),v.regex(/^G\d+$/u))});
 const register=v.strictObject({schema:v.literal(1),shards:v.record(label,v.array(entry))});

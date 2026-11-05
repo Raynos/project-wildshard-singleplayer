@@ -61,6 +61,7 @@
     "@wildshard/engine": "workspace:*",
     "@wildshard/game": "workspace:*",
     "@wildshard/sdk": "workspace:*",
+    "@wildshard/sharddev": "workspace:*",
     "fflate": "0.8.3",
     "n8ao": "^2.0.1",
     "navcat": "0.4.1",

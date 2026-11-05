@@ -4,7 +4,7 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import ts from '@typescript/typescript6';
 
 const folders = new Set(['generators', 'data', 'quests', 'blender', 'assets', 'behaviour']);
-const layers = new Set(['sdk', 'commons']);
+const layers = new Set(['sdk', 'sharddev', 'commons']);
 
 /** Resolve only static string syntax. No identifiers, calls or interpolated values qualify.
  * @param {import('@typescript/typescript6').Node | undefined} node @returns {string | null} */
@@ -51,7 +51,7 @@ export function auditAuthoringInputs(root, shard, entry) {
       const target = resolve(base, dirname(file), name);
       return isAuthoringInput(relative(base, target).split(sep).join('/'), shard) ? sourceAt(target) : target;
     }
-    const match = /^@wildshard\/(sdk|commons|game|engine)(\/.*)$/u.exec(name);
+    const match = /^@wildshard\/(sdk|sharddev|commons|game|engine)(\/.*)$/u.exec(name);
     if (name.startsWith('@wildshard/format/')) return undefined; // Installed, like any other dependency.
     if (match === null) return name.startsWith('@wildshard/') || name.startsWith('#') ? null : undefined;
     const layer = match.at(1), module = match.at(2);

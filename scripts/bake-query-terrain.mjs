@@ -39,7 +39,7 @@ registerHooks({ resolve(specifier, context, next) {
     ? { url: new URL(`${specifier}.ts`, context.parentURL).href, shortCircuit: true } : next(specifier, context);
   if (result.url.startsWith('file:')) {
     const parts = relative(root, fileURLToPath(result.url)).split(sep);
-    if (parts[0] === 'src' && (parts.includes('runtime') || (parts[1] === 'shards' ? parts[2] !== owner || !folders.has(parts[3] ?? '') : !['sdk', 'commons', 'format'].includes(parts[1] ?? '')))) {
+    if (parts[0] === 'src' && (parts.includes('runtime') || (parts[1] === 'shards' ? parts[2] !== owner || !folders.has(parts[3] ?? '') : !['sdk', 'sharddev', 'commons', 'format'].includes(parts[1] ?? '')))) {
       throw new Error(`bake-query-terrain: non-authoring dependency refused: ${parts.join('/')}`);
     }
   }

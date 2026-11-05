@@ -35,7 +35,7 @@ export function generatorImportViolation(filename, source) {
   if(path.endsWith('.test.ts') && source!=='<computed>' && !source.startsWith('.')
     && !isAbsolute(source) && !source.startsWith('@wildshard/')) return null;
   if(/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source))return 'trusted SDK runtime code is not an authoring import';
-  if(source==='three' || source.startsWith('three/') || /^@wildshard\/(?:sdk|commons)(?:\/|$)/u.test(source))return null;
+  if(source==='three' || source.startsWith('three/') || /^@wildshard\/(?:sdk|sharddev|commons)(?:\/|$)/u.test(source))return null;
   const local=source.startsWith('.') ? resolve(dirname(filename),source).replaceAll('\\','/') : '';
   const boundary=path.slice(0,path.length-match[2].length);
   if(local.startsWith(boundary))return null;

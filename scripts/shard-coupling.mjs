@@ -17,7 +17,7 @@ export function classMoveSites(text, filename, root = ROOT) {
   const bindings = new Map(), locals = new Set();
   const moduleFile = module => {
     if (module.startsWith('.')) return relative(root, resolve(root, dirname(filename), module.replace(/\.js$/u, '') + (module.endsWith('.ts') ? '' : '.ts'))).replaceAll('\\', '/');
-    const match = /^@wildshard\/(engine|game|sdk)\/(.+)$/u.exec(module);
+    const match = /^@wildshard\/(engine|game|sdk|sharddev)\/(.+)$/u.exec(module);
     if (match === null) return null;
     const pack = resolve(root, `src/${match[1]}/package.json`);
     const exported = existsSync(pack) ? JSON.parse(readFileSync(pack, 'utf8')).exports?.[`./${match[2]}`] : null;

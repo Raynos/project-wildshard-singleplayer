@@ -89,7 +89,7 @@ export function hostGroupBindings(table:string,hostBar:string):Record<string,str
   const lines=hostBar.split('\n'),result:Record<string,string[]>={};
   for(const match of table.matchAll(/^\| (H\d{3}) [^|]*\| L(\d+) /gmu)){
     const line=lines[Number(match[2])-1];if(line===undefined)throw new Error(`Missing accepted host line: ${match[1]}`);
-    for(const module of line.matchAll(/`((?:engine|game|sdk|format)\/[\w./-]+)(?:#[\w$]+)?`/gu)){
+    for(const module of line.matchAll(/`((?:engine|game|sdk|sharddev|format)\/[\w./-]+)(?:#[\w$]+)?`/gu)){
       const group=match[1];if(group===undefined)throw new Error('Missing accepted host group');
       const path=`src/${module[1]}.ts`;result[path]=sorted([...(result[path]??[]),group]);
     }

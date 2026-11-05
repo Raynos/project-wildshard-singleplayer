@@ -66,10 +66,10 @@ export function runCommitJobs(root, jobs, deadline, env, signal, onResult) {
 export function commitGuards(changed) {
   const touches = (/** @type {RegExp} */ pattern) => changed.some(file => pattern.test(file));
   return [
-    ...(touches(/^src\/(?:format|sdk)\//u) ? ['test/schema-reference.test.ts'] : []),
+    ...(touches(/^src\/(?:format|sdk|sharddev)\//u) ? ['test/schema-reference.test.ts'] : []),
     ...(touches(/^(?:lint\/(?:host-callbacks\.mjs|wildshard-plugin\.js)|scripts\/gen-host-catalogue\.mjs|test\/host-callbacks\.test\.ts)$/u) ? ['test/host-callbacks.test.ts'] : []),
     ...(touches(/^(?:lint\/(?:shardfile-boundaries\.mjs|wildshard-plugin\.js)|test\/shardfile-boundaries\.test\.ts)$/u) ? ['test/shardfile-boundaries.test.ts'] : []),
-    ...(touches(/^(?:src\/(?:engine|game|format|sdk)\/|scripts\/(?:platform-chargebacks|inline-platform|host-approvals|g571-hosts|shard-components|shard-platform)[^/]*\.|docs\/HOST-BAR\.md$|test\/platform-chargebacks\.test\.ts$)/u) ? ['test/platform-chargebacks.test.ts'] : []),
+    ...(touches(/^(?:src\/(?:engine|game|format|sdk|sharddev)\/|scripts\/(?:platform-chargebacks|inline-platform|host-approvals|g571-hosts|shard-components|shard-platform)[^/]*\.|docs\/HOST-BAR\.md$|test\/platform-chargebacks\.test\.ts$)/u) ? ['test/platform-chargebacks.test.ts'] : []),
     ...(touches(/^(?:src\/shards\/(?:nalati-grasslands|nine-dragon-stack)\/|src\/game\/(?:(?:client|cook|server|shared)\/)?shard\/manifest\.ts$|scripts\/(?:authored-manifest|manifest-declaration)\.|test\/(?:manifest-declarations\.test\.ts|fixtures\/manifest-declarations\.json)$)/u) ? ['test/manifest-declarations.test.ts'] : []),
   ];
 }

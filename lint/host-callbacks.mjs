@@ -7,7 +7,7 @@ import { formatSource } from '../scripts/format-package.mjs';
 
 const projects = new Map();
 const localPath = (root, file) => relative(root, file).replaceAll('\\', '/');
-const platform = file => /^src\/(?:engine|game|sdk)\//u.test(file);
+const platform = file => /^src\/(?:engine|game|sdk|sharddev)\//u.test(file);
 const shard = file => /^src\/shards\/([^/]+)\/(.+)$/u.exec(file);
 /** One compiler/checker per immutable tree; no diagnostics or emit, only binding/signature resolution. */
 export function hostAnalysis(inputRoot) {

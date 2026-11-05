@@ -37,7 +37,7 @@ const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
  *  subpath is public (in the package's `exports`) is the `public-index` check's job; a deep one maps to its file so it
  *  is reported (it does not resolve at build time either). */
-const LAYER_PACKAGE = /^@wildshard\/(engine|format|game|sdk|commons)(?:\/([^?]+))?/u;
+const LAYER_PACKAGE = /^@wildshard\/(engine|format|game|sdk|sharddev|commons)(?:\/([^?]+))?/u;
 const packageTarget = (source) => {
   const m = LAYER_PACKAGE.exec(source);
   if (!m) return null;
@@ -305,9 +305,9 @@ const modulePath = (filename, source) => {
   return path;
 };
 const layerOf = (path) => {
-  const match = /^src\/(engine|format|game|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|format|game|sdk|commons|shards)\/([^/]+)?/u.exec(path);
+  const match = /^src\/(engine|format|game|sdk|sharddev|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|format|game|sdk|sharddev|commons|shards)\/([^/]+)?/u.exec(path);
   if (!match) return /^src\/[^/]+$/u.test(path) ? { name: 'app', rank: 6, slug: null } : null;
-  return { name: match[1], rank: ['format', 'engine', 'game', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
+  return { name: match[1], rank: ['format', 'engine', 'game', 'sdk', 'sharddev', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
 };
 const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
 const generatedWordsFile = new URL('shard-words.generated.json', import.meta.url);
@@ -388,7 +388,7 @@ const layerWalk = (kind) => (context) => {
     const target = layerOf(targetPath);
     // SF54: @wildshard/kit is dissolved; a workspace specifier names one of the layer packages or nothing
     if (kind === 'layer' && source.startsWith('@wildshard/') && packageTarget(source) === null) report(context, node, `No such layer package: ${source}`);
-    if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk', 'format'].includes(target.name)) report(context, node, `Commons author tools import only the SDK and pure format contracts: ${source}`);
+    if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk', 'sharddev', 'format'].includes(target.name)) report(context, node, `Commons author tools import only the SDK and pure format contracts: ${source}`);
     if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
     if (kind === 'layer' && shardLocal !== undefined) {
@@ -405,7 +405,7 @@ const layerWalk = (kind) => (context) => {
     const publicPath = !dynamic && (exported(source) || new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       if (kind === 'layer') report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
-    } else if (kind === 'public' && own.name !== target.name && ['engine', 'format', 'game', 'sdk', 'commons'].includes(target.name) && !publicPath) {
+    } else if (kind === 'public' && own.name !== target.name && ['engine', 'format', 'game', 'sdk', 'sharddev', 'commons'].includes(target.name) && !publicPath) {
       report(context, node, `Cross-layer imports use the public index: ${source}`);
     }
   };
@@ -1111,7 +1111,7 @@ export const TEST_DOMAIN_RUNTIME_RULES = [
   'runtime-performance', 'no-raw-random-time', 'no-runtime-generator',
 ];
 /** @param {string} path */
-const testFixtures = path => /^src\/(?:engine|game|sdk)\/test\//u.test(path);
+const testFixtures = path => /^src\/(?:engine|game|sdk|sharddev)\/test\//u.test(path);
 /** @param {string} path */
 const testModule = path => path.endsWith('.test.ts') || testFixtures(path);
 const testDomain = context => testModule(pathOf(context));

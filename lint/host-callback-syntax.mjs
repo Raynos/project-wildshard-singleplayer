@@ -3,7 +3,7 @@ import { hostPlayFile } from './host-files.mjs';
 import { createSyntaxGraph, syntaxChild as child,
   syntaxFunctions as functions, syntaxClasses as classes } from './syntax-values.mjs';
 
-const platform = file => /^src\/(?:engine|game|sdk)\//u.test(file);
+const platform = file => /^src\/(?:engine|game|sdk|sharddev)\//u.test(file);
 const shard = file => file.startsWith('src/shards/');
 const keyOf = node => node?.type === 'Identifier' ? node.name : node?.type === 'Literal' ? String(node.value) : null;
 const unwrap = input => {

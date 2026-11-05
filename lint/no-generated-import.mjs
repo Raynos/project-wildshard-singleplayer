@@ -14,7 +14,7 @@ function importTargets(root,snapshot){
     const path=clean(specifier);
     if(path.startsWith('.'))return [relative(root,resolve(dirname(resolve(root,file)),path)).split(sep).join('/')];
     if(path.startsWith('/src/'))return [path.slice(1)];
-    const match=/^@wildshard\/(engine|format|game|sdk|commons)(?:\/(.*))?$/u.exec(path);
+    const match=/^@wildshard\/(engine|format|game|sdk|sharddev|commons)(?:\/(.*))?$/u.exec(path);
     const packageName=match?.at(1);
     if(packageName===undefined)return [path];
     let exports=packages.get(packageName);

@@ -2,12 +2,12 @@
 import {existsSync,readdirSync,readFileSync} from 'node:fs';
 import {relative,resolve} from 'node:path';
 
-export const PLATFORM_LAYERS=['engine','game','format','sdk'];
+export const PLATFORM_LAYERS=['engine','game','format','sdk','sharddev'];
 /** The same unit at both dates: nonblank, comment-free TS and standalone
  * GLSL, excluding tests and declaration files. Build tools ARE included.
  * @param {string} path */
 export function platformLineFile(path) {
-  return /^src\/(?:engine|game|format|sdk)\//u.test(path)&&/\.(?:tsx?|glsl)$/u.test(path)&&!path.endsWith('.d.ts')
+  return /^src\/(?:engine|game|format|sdk|sharddev)\//u.test(path)&&/\.(?:tsx?|glsl)$/u.test(path)&&!path.endsWith('.d.ts')
     &&!/(?:^|\/)(?:tests?|__tests__)(?:\/|$)|\.(?:test|spec)\.tsx?$/u.test(path);
 }
 /** @param {string} root @param {(source:string,path:string)=>number} count */

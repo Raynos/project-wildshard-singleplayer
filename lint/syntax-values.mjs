@@ -45,7 +45,7 @@ function moduleFile(root, from, source) {
   if (source.startsWith('.')) path = resolve(root, dirname(from), source);
   else if (source.startsWith('/src/')) path = resolve(root, source.slice(1));
   else {
-    const pkg = /^@wildshard\/(engine|game|sdk|format)\/(.+)$/u.exec(source);
+    const pkg = /^@wildshard\/(engine|game|sdk|sharddev|format)\/(.+)$/u.exec(source);
     if (!pkg) return null;
     const manifest = resolve(root, 'src', pkg[1], 'package.json');
     const exports = existsSync(manifest) ? JSON.parse(readFileSync(manifest, 'utf8')).exports ?? {} : {};

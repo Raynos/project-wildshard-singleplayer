@@ -43,7 +43,7 @@ function removedPlatformSites(baselineRoot, candidateRoot) {
       }
     }
   };
-  for (const layer of ['game', 'sdk', 'engine']) walk(`src/${layer}`);
+  for (const layer of ['game', 'sdk', 'sharddev', 'engine']) walk(`src/${layer}`);
   return removed;
 }
 function verbatimRuntimeMoves(before, after, trees) {
@@ -171,7 +171,7 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees, so
         continue;
       }
       if (trees === undefined || Object.keys(move).sort().join(',') !== 'base,baseFile,from,hash,name,to'
-        || !/^src\/(?:game|sdk|engine)\/[^.][^:]*\.ts$/u.test(move.from) || move.from.split('/').includes('..')
+        || !/^src\/(?:game|sdk|sharddev|engine)\/[^.][^:]*\.ts$/u.test(move.from) || move.from.split('/').includes('..')
         || !/^src\/shards\/[^/]+\/runtime\/[^:]+\.ts$/u.test(move.to) || move.to.split('/').includes('..')
         || key !== `${move.to}:${move.hash}` || !/^[a-f0-9]{64}$/u.test(move.hash)) { failures.push(`${list}: unproved move ${key}`); continue; }
       const source = join(trees.baselineRoot, move.from), target = join(trees.candidateRoot, move.to);

@@ -25,7 +25,7 @@ export function g571HostApprovals(root) {
     const legacy = /^- G571\b/u.test(line);
     const picked = /^- (?:G(?:599|600|601|602|603)(?: [A-Z]\d+[a-z]?)?|G(?:614|665|667|677)) Jake-approved host:/u.test(line);
     if (!legacy && (!picked || /\b(?:conditional(?:ly)?|condition|until|unless|if)\b/iu.test(line))) continue;
-    for (const match of line.matchAll(/`((?:engine|game|sdk|format)\/[A-Za-z0-9_./-]+)(?:#([A-Za-z_$][\w$]*))?`/gu)) {
+    for (const match of line.matchAll(/`((?:engine|game|sdk|sharddev|format)\/[A-Za-z0-9_./-]+)(?:#([A-Za-z_$][\w$]*))?`/gu)) {
       /** @type {readonly (string|undefined)[]} */
       const captures = match;
       const module = captures[1], name = captures[2];
