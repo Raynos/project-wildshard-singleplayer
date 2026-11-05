@@ -19,7 +19,7 @@ const hosts = {
   'world/navigation': ['game/shardfile/productNavigation#installProductNavigation'],
   'world/props': ['game/shardfile/props#propColliderDescriptors'],
   'world/water': ['game/shardfile/clientWater#installClientWater', 'game/shardfile/water#shardfileWater'],
-  'world/movers': ['game/plugin/mover#installDeclaredMovers'],
+  'world/movers': ['game/plugin/moverInstall#installDeclaredMovers'],
   'world/traversal': ['game/shardfile/portalTraversal#createPortalTraversal'],
   'world/spawn': [], // Level admission metadata.
   'world/physics': [], // Handed to the runtime's explicitly imported native host.

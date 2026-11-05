@@ -3153,7 +3153,7 @@ The composition root installs the gold coin geometry recipe with `installCoinMod
 ### Declared platform movers
 
 `@wildshard/game/shardfile/moverRuntime` defines the declared platform owner.
-`installDeclaredMovers` admits guest modules and installs scoped page fixed steps; views read published poses.
+`installDeclaredMovers` (`@wildshard/game/plugin/moverInstall`, the client half that checks borrowed `Object3D` groups) admits guest modules and installs scoped page fixed steps; views read published poses. The runtime module imports no renderer class, so the headless host reaches it without one.
 `verifiedMoverModules` detaches and SHA-256-checks admitted bytes before page or native construction.
 `MoverScriptDriver` on `@wildshard/game/plugin/mover` supplies a consuming role and schedule to the generic
 composed script lane. `compose(content, assets, ports, brains?, permissions?)` joins numeric state, optional
@@ -6895,7 +6895,7 @@ and durable writes remain in their existing owners.
 `HybridResidentWorld` accepts optional motion rows: an admitted source,
 system id and up to 32 borrowed group/chain bindings. Its existing load
 installs motion for each entered scope, even when static geometry is cached.
-`plugin/mover.installDeclaredMovers` borrows named constructed groups or
+`plugin/moverInstall.installDeclaredMovers` borrows named constructed groups or
 actual `RopeChain` instances, with an optional `refreshPose` presentation
 hook. Render groups publish `userData.declaredMotion` to prevent a second
 legacy update owner; mooring geometry stays with its original owner.
@@ -9899,7 +9899,7 @@ The native installer drives the same owner and carries its ordinary
 mover/script continuation. A restore just before arrival still releases
 at the baked landing. Terrain and deck queries run only in the producer.
 No shard callback, extra ride controller or clock enters the row.
-`MoverRuntime.enter(ctx, world, data, rows, targets, ports)` admits borrowed
+`plugin/moverInstall.enterMovers(ctx, world, data, rows, targets, ports)` admits borrowed
 view bindings for existing native objects. Pine and Driftwood lend their real
 flags and prompts; installation retains the fixed-step mover owner. The
 entered `player.carrying` answer reads that same owner.

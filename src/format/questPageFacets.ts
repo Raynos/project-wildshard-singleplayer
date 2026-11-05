@@ -10,7 +10,7 @@ const n = v.pipe(v.number(), v.finite()), id = v.pipe(v.string(), v.minLength(1)
  * hidden while it is away; boarding plays the page kit's `board` interaction sound (an engine InteractSound) at its rest pose.
  */
 const mover = v.pipe(v.string(), v.regex(/^[a-zA-Z0-9_.-]{1,128}$/u));
-/** the declared mover bindings `MoverRuntime.enter` borrows (game plugin/mover.ts admits the same rows) */
+/** the declared mover bindings `enterMovers` borrows (game plugin/moverInstall.ts admits the same rows) */
 const bindings = v.pipe(v.array(v.strictObject({ id: mover, target: mover, chain: v.exactOptional(v.boolean()), group: v.exactOptional(v.literal('group')),
   visibility: v.exactOptional(v.literal('enabled')), order: v.exactOptional(v.literal('XYZ')), afterPose: v.exactOptional(v.literal('refreshPose')) })), v.maxLength(32));
 export const QuestPageMoverSchema: v.GenericSchema<QuestPageMoverRowsInput, QuestPageMoverRows> = v.strictObject({

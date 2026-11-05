@@ -2,7 +2,8 @@ import type { GridCellEvents } from '../grid/cellEvents';
 import { enterDeclaredAudioPhase } from '../audio/sceneDirector';
 import { admittedProductClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';
-import { MoverRuntime, type MoverInstallation } from '../plugin/mover';
+import type { MoverInstallation } from '../plugin/mover';
+import { enterMovers } from '../plugin/moverInstall';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
@@ -105,7 +106,7 @@ export class HybridResidentWorld<T> {
       const world = context.game.runtime?.world;
       if (world === undefined || world === null) throw new Error('Resident motion requires its world');
       const assets = runtimeProduct(row.source).assets;
-      await MoverRuntime.enter(context, world, row.source.movers, { systemId: row.systemId, bindings: row.rows }, value,
+      await enterMovers(context, world, row.source.movers, { systemId: row.systemId, bindings: row.rows }, value,
         { admitted: assets.retained, read: hash => assets.read(hash) });
     }
     return value;

@@ -7,7 +7,8 @@ import type { StingName } from '@wildshard/engine/audio/Music';
 import { INTERACT_SOUNDS } from '@wildshard/engine/audio/gen';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
-import { MoverRuntime } from '../plugin/mover';
+import type { MoverRuntime } from '../plugin/mover';
+import { enterMovers } from '../plugin/moverInstall';
 import type { ShardContext } from '../plugin/context';
 import type { SceneHandles } from '../shardfile/sceneHandles';
 import { forestPage } from '../shardfile/forestPage';
@@ -26,7 +27,7 @@ export async function installPageMover(ctx: ShardContext, input: unknown, ports:
   const rows = v.parse(QuestPageMoverSchema, input), { runtime, world, play } = entered(ctx);
   const board = INTERACT_SOUNDS.find(sound => sound === rows.board.sound);
   if (board === undefined) throw new Error(`Unknown mover boarding sound: ${rows.board.sound}`);
-  const motion = await MoverRuntime.enter(ctx, world, ctx.product.shardfile.movers, rows.binding,
+  const motion = await enterMovers(ctx, world, ctx.product.shardfile.movers, rows.binding,
     { [rows.target]: { group: ports.scenes.mesh(rows.mesh) } }, { flags: ports.flags, prompts: runtime.interactables });
   const update = (): void => {
     for (const event of motion.takeRideTransitions(rows.id)) {

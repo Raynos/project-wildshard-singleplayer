@@ -1,7 +1,8 @@
 /** Concrete entered mover views over construction-owned scene objects and chains. */
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
-import { installDeclaredMovers, type MoverRuntime, type MoverView } from '../plugin/mover';
+import type { MoverRuntime, MoverView } from '../plugin/mover';
+import { installDeclaredMovers } from '../plugin/moverInstall';
 import { entryOwner } from './entryOwners';
 import { boundResidentWorldScope } from './hybridPresentation';
 import { outputDescriptor } from './outputDescriptor';
