@@ -34,7 +34,7 @@ export async function prepareNativeTerrain(def, options) {
   if (grid === null || grid.heights.some(value => !Number.isFinite(value) || Math.abs(value) > 250)) throw new Error('Invalid original native terrain');
   const { _applyChunkConstants } = await src('engine/shared/core/config.ts');
   const { configureLevel } = await src('engine/shared/level/selection.ts');
-  const { toLevelSpec } = await src('game/server/shard/spec.ts');
+  const { toLevelSpec } = await src('game/client/shard/spec.ts');
   const { game } = await src('game/client/shard/registry.ts');
   game.shard = def;
   _applyChunkConstants(def); configureLevel(toLevelSpec(def));

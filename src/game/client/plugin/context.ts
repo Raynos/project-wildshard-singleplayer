@@ -2,7 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { pageGridCells } from '../../shared/grid/cellEvents';
 import type { HomeResidencyClaim, PageResidency } from '../grid/pageResidency';
 import { currentPageMode } from '../../shared/grid/pageMode';
-import type { ShardManifest } from '../../server/shard/manifest';
+import type { ShardManifest } from '../shard/manifest';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
 import { registerItemRow } from '../../shared/bag/itemCatalog';

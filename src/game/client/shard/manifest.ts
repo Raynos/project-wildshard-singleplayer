@@ -4,7 +4,7 @@ import { readFileInputs } from '../../shared/shardfile/fileInputs';
 import { ScalarLatticeSchema,ScalarTripletSchema,type ScalarLatticeRows,type ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
-import type { ShardPlugin } from "../../client/plugin/context";
+import type { ShardPlugin } from "../plugin/context";
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
 import type { Noise2D } from '@wildshard/engine/core/noise';
@@ -184,7 +184,7 @@ export interface ChunkAssets {
 /** A declared tree set's factory: its product's `world/trees` rows built on the game's tree set factory (models/treeSet). */
 export function declaredTreeSet(slug: string): ChunkTrees['factory'] {
   return async () => {
-    const { productTreeSet, TreeSetFactory } = await import('../../client/models/treeSet');
+    const { productTreeSet, TreeSetFactory } = await import('../models/treeSet');
     return async (renderer, sky) => new TreeSetFactory(renderer, await productTreeSet(slug), sky).build();
   };
 }
@@ -739,7 +739,7 @@ export function defineShard(rows: ShardManifestRows,
   };
   scalarBlocks.seal();
   if(scalarBlocks.files.length>0)manifest.scalarBlocks=scalarBlocks;
-  if (postLook !== undefined) manifest.render = async (product) => (await import('../../client/looks/postGraphLook')).postGraphLook(product, postLook);
+  if (postLook !== undefined) manifest.render = async (product) => (await import('../looks/postGraphLook')).postGraphLook(product, postLook);
   return manifest;
 }
 

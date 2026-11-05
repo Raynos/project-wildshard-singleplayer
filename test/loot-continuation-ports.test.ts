@@ -6,7 +6,7 @@ import { Scene, Vector3 } from 'three';
 import { app } from '../src/engine/client/app/runtime';
 import { RngService } from '../src/engine/shared/core/rng';
 import { installCoinModel } from '../src/game/client/loot/coinModel';
-import { coinGeometry } from '../src/game/cook/generators/pickups';
+import { coinGeometry } from '../src/game/client/generators/pickups';
 import { CoinMotion } from '../src/game/client/loot/CoinMotion';
 import { CoinBurst } from '../src/game/client/loot/CoinBurst';
 import { Purse } from '../src/game/shared/loot/Purse';

@@ -38,7 +38,7 @@
     "src/game/client/Progress.ts": 1,
     "src/game/shared/saves.ts": 1,
     "src/game/client/session/session.ts": 1,
-    "src/game/server/shard/manifest.ts": 1,
+    "src/game/client/shard/manifest.ts": 1,
     "src/game/shared/shard/slugs.generated.ts": 1,
     "src/game/client/shardfile/calibrationScripts.ts": 1,
     "src/game/client/summary.ts": 1,

@@ -58,7 +58,7 @@
     "./entities/animalPose": "./shared/entities/animalPose.ts",
     "./entities/animalRig": "./shared/entities/animalRig.ts",
     "./physics/navmesh": "./shared/physics/navmesh.ts",
-    "./physics/navmeshLoad": "./shared/physics/navmeshLoad.ts",
+    "./physics/navmeshLoad": "./client/physics/navmeshLoad.ts",
     "./entities/ids": "./shared/entities/ids.ts",
     "./ai/flock": "./shared/ai/flock.ts",
     "./ai/orbitDiver": "./server/ai/orbitDiver.ts",

@@ -64,7 +64,7 @@
 | src/boot/timing.ts | src/engine/boot/timing.ts | src/engine/boot/timing.ts |
 | src/boot/titleArrival.ts | src/engine/client/boot/titleArrival.ts | src/engine/client/boot/titleArrival.ts |
 | src/boot/versions.generated.ts | src/engine/boot/versions.generated.ts | src/engine/boot/versions.generated.ts |
-| src/chunks/ChunkDef.ts | src/game/server/shard/manifest.ts | src/game/server/shard/manifest.ts |
+| src/chunks/ChunkDef.ts | src/game/client/shard/manifest.ts | src/game/client/shard/manifest.ts |
 | src/chunks/_template.ts | deleted by F7 | deleted by its owner |
 | src/chunks/driftwood-isle.ts | src/shards/driftwood-isle/manifest.ts | src/shards/driftwood-isle/manifest.ts |
 | src/chunks/driftwood-isle/firstMinutes.ts | src/shards/driftwood-isle/firstMinutes.ts | src/shards/driftwood-isle/firstMinutes.ts |
@@ -598,7 +598,7 @@
 | src/native/updates.ts | src/engine/client/native/updates.ts | src/engine/client/native/updates.ts |
 | src/physics/CharacterMotor.ts | src/engine/shared/physics/CharacterMotor.ts | src/engine/shared/physics/CharacterMotor.ts |
 | src/physics/Physics.ts | src/engine/shared/physics/Physics.ts | src/engine/shared/physics/Physics.ts |
-| src/physics/active.ts | src/engine/shared/physics/active.ts | src/engine/shared/physics/active.ts |
+| src/physics/active.ts | src/engine/client/physics/active.ts | src/engine/client/physics/active.ts |
 | src/physics/bodies.ts | src/engine/shared/physics/bodies.ts | src/engine/shared/physics/bodies.ts |
 | src/physics/bridge.ts | src/engine/physics/bridge.ts | deleted by its owner |
 | src/physics/creatures.ts | src/engine/shared/physics/creatures.ts | src/engine/shared/physics/creatures.ts |

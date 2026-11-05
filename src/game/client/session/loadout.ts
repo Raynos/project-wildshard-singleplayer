@@ -2,7 +2,7 @@
 import type { SwimArms } from '@wildshard/engine/player/Hands';
 import type { EnteredEquipment as DeclarationEnteredEquipment } from '../grid/enteredEquipment';
 import type { World } from '@wildshard/engine/core/bootstrap';
-import type { ShardManifest, FieldModelsContext } from '../../server/shard/manifest';
+import type { ShardManifest, FieldModelsContext } from '../shard/manifest';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { Player } from '@wildshard/engine/player/Player';

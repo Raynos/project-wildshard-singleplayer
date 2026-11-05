@@ -4,7 +4,7 @@ import { bindLevelSelection } from '../src/engine/shared/level/selection';
 import { HeightfieldBinding, bindHeightfield } from '../src/engine/shared/world/Heightfield';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { installPagePathRamps } from '../src/game/client/shardfile/pagePreparation';
-import { toLevelSpec } from '../src/game/server/shard/spec';
+import { toLevelSpec } from '../src/game/client/shard/spec';
 import { MANIFEST } from '../src/shards/pine-hollow/discovery.generated';
 
 test('native paths read the installed floor, skip deck carriers and retire with their world', () => {

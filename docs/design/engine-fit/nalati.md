@@ -111,7 +111,7 @@ Biggest committed files: `player/Bow.ts` 942, `world/nalati/KurganDungeon.ts` 92
 
 ## 3. Shard abstraction — how forked is it?
 
-- **There is a data abstraction but no behaviour abstraction.** `ChunkDef` (309 lines, `src/game/server/shard/manifest.ts`) covers
+- **There is a data abstraction but no behaviour abstraction.** `ChunkDef` (309 lines, `src/game/client/shard/manifest.ts`) covers
   terrain function, splat, trees, fauna list, sky / fog / grade numbers, `style`, `weapon`, `ocean?`, `horizon?`. A
   `_template.ts` + `registry.ts` makes a *terrain-and-lighting* shard a copy-and-fill job.
 - Everything else is **identity checks on three different signals**:

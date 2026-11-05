@@ -1,6 +1,6 @@
 import { sceneLivingBytes } from '@wildshard/format/worldScenePages';
 /** Client-only forest fields, living buildings and their native resource lifetime. */
-import type { FieldModelsContext } from '../../server/shard/manifest';
+import type { FieldModelsContext } from '../shard/manifest';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Matrix4, MeshStandardMaterial, Object3D, Points, PointsMaterial, Quaternion, Vector3 } from 'three';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';

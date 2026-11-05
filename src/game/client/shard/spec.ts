@@ -63,7 +63,7 @@ export function toLevelSpec(manifest: ShardManifest, product?: ShardProduct): Le
     ...(manifest.explore === undefined ? {} : { explore: manifest.explore }),
     ...((roster === undefined && product?.has('explore/catalogue') !== true) ? {} : { roster: async () => {
       const native = await roster?.(bound()) ?? [];
-      return product?.has('explore/catalogue') === true ? (await import('../../client/models/explorerCatalogue')).explorerRoster(product, native) : native;
+      return product?.has('explore/catalogue') === true ? (await import('../models/explorerCatalogue')).explorerRoster(product, native) : native;
     } }),
   };
 }

@@ -1,4 +1,4 @@
-import type { ShardManifest } from '../../server/shard/manifest';
+import type { ShardManifest } from '../../client/shard/manifest';
 import { bilinearTerrainSamplers, decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import type { TerrainField } from '@wildshard/engine/level/data';
 import type { Shardfile } from '@wildshard/format/shardSchema';

@@ -5,7 +5,7 @@ import { installDeclaredBakedTerrain } from '../src/engine/shared/world/bakedTer
 import { readNativeTerrain } from '../src/sharddev/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { driftwoodCapturePoses } from '../src/shards/driftwood-isle/generators/capturePoses';
-import { declaredGround } from '../src/game/server/shard/manifest';
+import { declaredGround } from '../src/game/client/shard/manifest';
 import { driftwoodGroundDeclaration } from '../src/shards/driftwood-isle/generators/groundDeclaration';
 import source from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };
 import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };

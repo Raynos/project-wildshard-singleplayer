@@ -21,8 +21,8 @@ import { macrotask, slicer, type StepRunner } from '../boot/plan';
 import { levelBakedId, needsTerrainCollider, type LevelSpec } from '../../shared/level/spec';
 import { loadRapier } from '../../shared/physics/rapier';
 import { Physics } from '../../shared/physics/Physics';
-import { setActiveBodies, setActivePhysics } from '../../shared/physics/active';
-import { loadNavmesh } from '../../shared/physics/navmeshLoad';
+import { setActiveBodies, setActivePhysics } from '../physics/active';
+import { loadNavmesh } from '../physics/navmeshLoad';
 import { setRagdollClock } from '../physics/ragdoll';
 import { Bodies, BODY_CAP } from '../../shared/physics/bodies';
 import { addEdgeWalls, addTerrain } from '../../shared/physics/terrain';
@@ -108,7 +108,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
     p.detail(`${ph.world.colliders.len()} colliders`);
     return ph;
   });
-  setActivePhysics(physics); // weapons, aim assist, interact query it (src/engine/shared/physics/active.ts)
+  setActivePhysics(physics); // weapons, aim assist, interact query it (src/engine/client/physics/active.ts)
   setRagdollClock(() => game.alpha); // ragdoll poses interpolate between fixed steps like everything else
   installPhysicsDebug(physics, game.scene, params);
 

@@ -18,7 +18,7 @@ import type { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
 import type { TouchControls } from '@wildshard/engine/player/TouchControls';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import type { World } from '@wildshard/engine/core/bootstrap';
-import type { ShardManifest, FieldModelsContext } from '../../server/shard/manifest';
+import type { ShardManifest, FieldModelsContext } from '../shard/manifest';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { Player } from '@wildshard/engine/player/Player';

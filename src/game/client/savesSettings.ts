@@ -17,7 +17,7 @@ import catalogue from '../shared/grid/singleplayer.json' with { type: 'json' };
 import { previewNewGame, resetNewGame, type NewGameProgress, type NewGameSummary } from '../shared/newGame';
 import type { LocalSaveInstance } from '../shared/instanceSaves';
 import { catalogueManifests } from './shard/titleList';
-import type { ShardManifest } from '../server/shard/manifest';
+import type { ShardManifest } from './shard/manifest';
 
 /** Every string the section and the sheet show, quoted from the G83 board. */
 export const SAVES_STRINGS = {

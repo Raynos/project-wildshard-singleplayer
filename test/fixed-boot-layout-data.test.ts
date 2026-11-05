@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import * as pine from '../src/shards/pine-hollow/generators/layout';
 import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
-import { declaredForestQueries, declaredGround, declaredPondClip } from '../src/game/server/shard/manifest';
+import { declaredForestQueries, declaredGround, declaredPondClip } from '../src/game/client/shard/manifest';
 import { pondGrid } from '../src/engine/client/world/pondGrid';
 import { setLiveWaterLevel } from '../src/engine/shared/world/water/declared';
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';

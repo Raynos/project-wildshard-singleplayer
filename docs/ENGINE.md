@@ -611,7 +611,7 @@ are the row types; `EngineRows` is the verb set.
 
 ## 6. The shard manifest (`@wildshard/game`)
 
-`ShardManifest` (`src/game/server/shard/manifest.ts`) is the game's type. `manifest.ts` default-exports one, and
+`ShardManifest` (`src/game/client/shard/manifest.ts`) is the game's type. `manifest.ts` default-exports one, and
 `scripts/gen-shards.mjs` discovers it by folder. There is no `defineShard` helper: the manifest is a typed constant.
 
 **Identity and the title deck**

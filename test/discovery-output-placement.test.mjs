@@ -69,7 +69,7 @@ test('all four actual NU3 wrappers keep complete code, manifest rows and physica
   expect(moved).toContain(`defineAuthoredShard(data, ${JSON.stringify(row.slug)}, rows, native,`);
   expect(composition).toContain(`../${file.slice(0,-3)}`);
   expect(closure[row.slug]).toContain(file);
-  expect(closure[row.slug]).toContain('src/game/server/shard/manifest.ts');
+  expect(closure[row.slug]).toContain('src/game/client/shard/manifest.ts');
   const card=outputManifest(root,row.folder,row.output).card;
   expect(Object.keys(card).sort()).toEqual(['landscape','portrait','thumb']);
   for(const image of Object.values(card)){

@@ -2,7 +2,7 @@ import {readModuleGroups} from '@wildshard/engine/boot/download';
 import {isDev} from '@wildshard/engine/core/devMode';
 
 import type { getMusicStyle } from '@wildshard/engine/ui/Settings';
-import type { FieldModelsContext, ShardManifest } from '../../server/shard/manifest';
+import type { FieldModelsContext, ShardManifest } from '../shard/manifest';
 
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { checkProductClientModules } from '../shardfile/clientModules';

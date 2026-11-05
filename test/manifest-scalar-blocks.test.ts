@@ -6,7 +6,7 @@ import {bakedSamplers} from '@wildshard/format/bakedTerrainSampling';
 import {Scope} from '../src/engine/shared/app/scope';
 import type {ScalarLatticeRows} from '@wildshard/format/scalarChannel';
 import {ScalarLatticeBindings,readScalarChannel} from '../src/engine/shared/world/scalarChannel';
-import {defineShard,prepareManifestScalarBlocks,type ShardManifestRows} from '../src/game/server/shard/manifest';
+import {defineShard,prepareManifestScalarBlocks,type ShardManifestRows} from '../src/game/client/shard/manifest';
 import {absentShardProduct,type ShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {nameBlob} from '../src/sharddev/blobs';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';

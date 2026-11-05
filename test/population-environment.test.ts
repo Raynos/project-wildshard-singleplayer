@@ -8,7 +8,7 @@ import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { POPULATION_ENVIRONMENT } from '../src/shards/pine-hollow/generators/populationEnvironment';
 import { pineGeographyRows } from '../src/shards/pine-hollow/generators/geographyRows';
-import { declaredGround } from '../src/game/server/shard/manifest';
+import { declaredGround } from '../src/game/client/shard/manifest';
 import { TreeGrid } from '../src/engine/shared/world/forest/placement';
 import type { HuntTree } from '../src/engine/server/ai/hunt';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

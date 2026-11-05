@@ -6,7 +6,7 @@ import { markReload, type LastEnd } from '../src/engine/client/boot/lastEnd';
 import { consumeTitleArrival, pendingTitleArrival, setTitleArrival } from '../src/engine/client/boot/titleArrival';
 import { GridAssembly, type GridCell } from '../src/game/shared/grid/assembly';
 import { gridRecovery, initialGridReload, plannedGridReload } from '../src/game/shared/grid/recovery';
-import { pageGridIntents } from '../src/game/server/grid/intent';
+import { pageGridIntents } from '../src/game/client/grid/intent';
 import { bootPageMode, clearGridRecovery, consumeGridRecovery, gridRecoveryLoop } from '../src/game/client/grid/pageEntry';
 import { travelService, travelSlot } from '../src/game/client/travel/travel';
 

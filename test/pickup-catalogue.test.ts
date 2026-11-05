@@ -16,7 +16,7 @@ import { SkyRig } from '../src/engine/client/world/skyRig';
 import { pickupLook } from '../src/engine/shared/world/interact/types';
 import { coinModel } from '../src/game/client/loot/coinModel';
 import { installPickupCatalogue, preparePickupCatalogue } from '../src/game/client/models/specimenCatalogue';
-import { authoredPickups } from '../src/game/cook/generators/pickups';
+import { authoredPickups } from '../src/game/client/generators/pickups';
 import data from '../src/game/client/data/pickupCatalogue.json' with { type: 'json' };
 import { installWorldFixture } from './fixtures/worldSetup';
 

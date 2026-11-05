@@ -167,7 +167,7 @@ export function manifestContract(root, closure, fields = false) {
     if (typeof budget === 'number' && size > budget) failures.push(`src/shards/${slug}/manifest.ts: its static closure is ${size} files, over its budget ${budget} (${BUDGET_FILE}); move the new imports behind load / a lazy thunk`);
   }
   if (fields) {
-    const file = resolve(root, 'src/game/server/shard/manifest.ts');
+    const file = resolve(root, 'src/game/client/shard/manifest.ts');
     const decl = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
     let names = [];
     decl.forEachChild((n) => { if (ts.isInterfaceDeclaration(n) && n.name.text === 'ShardManifest') names = n.members.filter(ts.isPropertySignature).map((m) => m.name.getText(decl)); });
@@ -338,7 +338,7 @@ export function titleTables(root) {
   const selection = swap(selectionInput,
     'export const SHARD_LOADERS=', 'export const SHARD_LOADERS: Readonly<Record<string, () => Promise<ShardManifest>>> = ');
   return { 'out/.app/titleCatalogue.generated.ts': `import type { TitleManifest } from '../../src/game/client/shard/titleList';\n${catalogue}`,
-    'out/.app/shardSelection.generated.ts': `import type { ShardManifest } from '../../src/game/server/shard/manifest';\n${selection}` };
+    'out/.app/shardSelection.generated.ts': `import type { ShardManifest } from '../../src/game/client/shard/manifest';\n${selection}` };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

@@ -5,7 +5,7 @@ import {Scope} from '@wildshard/engine/app/scope';
 import {emptyShardfile} from '@wildshard/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import * as runtime from '../src/game/client/shardfile/runtimeProduct';
-import {productAudioCatalogue} from '../src/game/server/shardfile/audioCatalogue';
+import {productAudioCatalogue} from '../src/game/client/shardfile/audioCatalogue';
 import {parseAudioData} from '@wildshard/format/audio';
 import {MANIFEST as pine} from '../src/shards/pine-hollow/discovery.generated';
 import {MANIFEST as island} from '../src/shards/driftwood-isle/discovery.generated';

@@ -55,7 +55,7 @@ function declaration(layer, module) {
     return `${quote}${relative(from, to).replaceAll('\\', '/')}${quote}`;
   });
   // Relative declaration imports remain in the same copied module tree.
-  // Doc comments may quote example imports (game/server/shard/manifest.ts: `import('./look/render')`); only code is scanned.
+  // Doc comments may quote example imports (game/client/shard/manifest.ts: `import('./look/render')`); only code is scanned.
   const code = text.replaceAll(/\/\*[\s\S]*?\*\//gu, '').replaceAll(/^\s*\/\/.*$/gmu, '');
   for (const match of code.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)) {
     const dependency = relative(resolve(root, `src/${layer}`), resolve(root, `src/${layer}`, module, '..', match[2]));

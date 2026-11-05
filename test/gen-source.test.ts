@@ -161,7 +161,7 @@ test('the committed closure follows authored static edges with no product or dis
       accent: 'sand', budgets: { program: true }, runtimeCost: { module: './data/runtimeCost.json', export: 'default' },
       boot: { explore: { program: true } },
     } }));
-    write('src/game/server/shard/manifest.ts', "import './visible';import type {Erased} from './erased';export const lazy=()=>import('./lazy');");
+    write('src/game/client/shard/manifest.ts', "import './visible';import type {Erased} from './erased';export const lazy=()=>import('./lazy');");
     write('src/game/server/shard/visible.ts', 'export const visible=true;');
     write('src/game/server/shard/erased.ts', 'export interface Erased {}');
     write('src/game/server/shard/lazy.ts', 'export const lazy=true;');
@@ -171,7 +171,7 @@ test('the committed closure follows authored static edges with no product or dis
     write('scripts/manifest-art-inputs.json', JSON.stringify({ island: [{ file: 'data/art.json', field: ['extra'] }] }));
     write('src/shards/island/data/art.json', JSON.stringify({ extra: ['/src/shards/island/extra.webp'] }));
     expect(manifestClosure(root)).toEqual({ island: [
-      'out/.app/discovery.island.generated.ts', 'src/game/server/shard/manifest.ts', 'src/game/server/shard/visible.ts', 'src/shards/island/card.webp',
+      'out/.app/discovery.island.generated.ts', 'src/game/client/shard/manifest.ts', 'src/game/server/shard/visible.ts', 'src/shards/island/card.webp',
       'src/shards/island/data/runtimeCost.json',
       'src/shards/island/extra.webp', 'src/shards/island/manifest.json',
     ] });
@@ -214,7 +214,7 @@ test('shared manifest imports retain separate products and refresh path aliases 
     }
     const config = (folder: string): string => JSON.stringify({ compilerOptions: { module: 'ESNext', moduleResolution: 'Bundler', paths: { '@common/*': [`./src/${folder}/*`] } } });
     write('tsconfig.json', config('game/server/shard'));
-    write('src/game/server/shard/manifest.ts', "export {visible} from '@common/visible';export type {Erased} from './erased';export const lazy=()=>import('./lazy');");
+    write('src/game/client/shard/manifest.ts', "export {visible} from '@common/visible';export type {Erased} from './erased';export const lazy=()=>import('./lazy');");
     write('src/game/server/shard/visible.ts', "import './loop';export const visible=true;");
     write('src/game/server/shard/loop.ts', "import './visible';");
     write('src/game/server/shard/erased.ts', 'export interface Erased {}'); write('src/game/server/shard/lazy.ts', 'export const lazy=true;');

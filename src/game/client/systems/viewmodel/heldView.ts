@@ -30,7 +30,7 @@ import type { ShardProduct } from '../../../shared/shardfile/shardProduct';
 import { createClientScene } from '../../plugin/scene';
 import { worldScenePool } from '../../shardfile/scenePools';
 import { BLEND_ADD_KEEP_ALPHA } from '../../plugin/shaderFamily';
-import type { ShardSword } from '../../../server/shard/manifest';
+import type { ShardSword } from '../../shard/manifest';
 import type { ShardContext } from '../../plugin/context';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
 import { RigArms, skinRigid, swordArmsOf, vmScale, type RigState } from './rigArms';

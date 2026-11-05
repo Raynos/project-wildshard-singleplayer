@@ -1,4 +1,4 @@
-import type { ShardManifest } from '../../server/shard/manifest';
+import type { ShardManifest } from './manifest';
 
 // The shard list is the composition root's (src/shards.generated.ts, installed by src/shardList.ts; Node tools by
 // scripts/bake-loader.mjs; E362 AG4): the game knows that shards exist, never which. One slot per page, so a test that

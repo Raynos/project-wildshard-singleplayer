@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["client/app/sceneOwnership","client/boot/lastEnd","client/core/deflate","shared/physics/navmeshLoad","client/render/precompile","server/script/inputInboxV2","client/world/geometryKit","client/ui/ownership","server/entities/AnimalManager","client/audio/AmbienceBeds","client/audio/Audio","client/audio/Stems","client/core/worldDepth","client/input/InputService","client/render/graph/glslMaterial"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/app/sceneOwnership","client/boot/lastEnd","client/core/deflate","client/physics/navmeshLoad","client/render/precompile","server/script/inputInboxV2","client/world/geometryKit","client/ui/ownership","server/entities/AnimalManager","client/audio/AmbienceBeds","client/audio/Audio","client/audio/Stems","client/core/worldDepth","client/input/InputService","client/render/graph/glslMaterial"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);

@@ -1,7 +1,7 @@
 import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
-import { declaredMapColour as declaredMapColourInput } from '../src/game/server/shard/manifest';
+import { declaredMapColour as declaredMapColourInput } from '../src/game/client/shard/manifest';
 import {ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { mapPalette } from '@wildshard/format/minimap';

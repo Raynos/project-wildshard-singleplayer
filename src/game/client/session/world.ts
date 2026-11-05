@@ -1,5 +1,5 @@
 
-import type { ShardManifest, FieldModelsContext } from '../../server/shard/manifest';
+import type { ShardManifest, FieldModelsContext } from '../shard/manifest';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { Player } from '@wildshard/engine/player/Player';
@@ -19,7 +19,7 @@ import { INPUT_CONTEXTS } from '../inputContexts';
 import { type Audio as LevelAudio, Audio } from '@wildshard/engine/audio/Audio';
 import { type Music as LevelMusic, Music } from '@wildshard/engine/audio/Music';
 import type { LevelContext } from '@wildshard/engine/level/context';
-import { toLevelSpec } from '../../server/shard/spec';
+import { toLevelSpec } from '../shard/spec';
 import { gridLevel } from '../../shared/grid/pageMode';
 import { gridPageShellLevel } from '../grid/pageShell';
 import type * as THREE from 'three';

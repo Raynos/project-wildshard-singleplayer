@@ -23,7 +23,7 @@ import type { AnimalManager } from '../src/engine/server/entities/AnimalManager'
 import type { EquipmentService } from '../src/engine/client/combat/EquipmentService';
 import type { Audio } from '../src/engine/client/audio/Audio';
 import type { DeclaredSoundBank } from '../src/engine/client/audio/declaredBank';
-import type { ShardManifest } from '../src/game/server/shard/manifest';
+import type { ShardManifest } from '../src/game/client/shard/manifest';
 import { PosedDraw, type PosedLayout } from '../src/game/client/looks/posedInstances';
 
 test('forest v1 decisions retain arrival draws and exact corpse boundaries', () => {

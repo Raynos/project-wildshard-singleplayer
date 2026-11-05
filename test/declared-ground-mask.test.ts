@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { expect,test } from 'vitest';
 import { zlibSync } from 'fflate';
 import * as v from 'valibot';
-import { declaredGround } from '../src/game/server/shard/manifest';
+import { declaredGround } from '../src/game/client/shard/manifest';
 import { GroundRowsSchema } from '@wildshard/format/terrain';
 import { WaterSchema } from '@wildshard/format/water';
 import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';

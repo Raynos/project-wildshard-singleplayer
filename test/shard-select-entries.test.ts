@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { setDev } from '../src/engine/client/core/devMode';
 import { authoredRows } from '../src/engine/client/ui/authoredDebugRows';
 import { jsonSlot } from '../src/engine/client/saves/slots';
-import type { ShardManifest } from '../src/game/server/shard/manifest';
+import type { ShardManifest } from '../src/game/client/shard/manifest';
 import { installShards, shards } from '../src/game/client/shard/list';
 import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/client/titleDeck';
 import { SHARDS } from '../src/shards.generated';

@@ -6,7 +6,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import { GridAssembly, type GridCell } from '../../shared/grid/assembly';
-import { pageGridIntents } from '../../server/grid/intent';
+import { pageGridIntents } from './intent';
 import { DEVSERVER, gridMode, type MenuMode } from './menu';
 import { gridRecovery, recoveryCatalogue, type GridRecoveryRecord } from '../../shared/grid/recovery';
 import { setPageMode } from '../../shared/grid/pageMode';

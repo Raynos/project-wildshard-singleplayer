@@ -15,7 +15,7 @@ import { waitFor } from '@wildshard/engine/boot/waits';
 import { currentOwner } from '@wildshard/engine/app/ownership';
 import { shardProductData } from '../../shared/shardfile/productData';
 import { absentShardProduct, type ShardProduct } from '../../shared/shardfile/shardProduct';
-import { prepareManifestScalarBlocks,type ShardManifest } from '../../server/shard/manifest';
+import { prepareManifestScalarBlocks,type ShardManifest } from '../shard/manifest';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';

@@ -1,12 +1,9 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 29,
-  "cook → client": 2,
-  "cook → render": 1,
-  "server → client": 25,
-  "server → render": 1,
-  "shared → client": 3,
+  "client → server": 20,
+  "server → client": 19,
+  "shared → client": 1,
   "shared → dom": 1,
   "shared → server": 1
  },
@@ -23,13 +20,7 @@
   "src/engine/shared/boot/loadingWaits.ts": {
    "shared → dom": 1
   },
-  "src/engine/shared/physics/active.ts": {
-   "shared → client": 1
-  },
   "src/engine/shared/physics/box.ts": {
-   "shared → client": 1
-  },
-  "src/engine/shared/physics/navmeshLoad.ts": {
    "shared → client": 1
   },
   "src/engine/shared/sim/snapshot.ts": {
@@ -41,28 +32,13 @@
   "src/game/client/grid/liveSession.ts": {
    "client → server": 2
   },
-  "src/game/client/grid/pageEntry.ts": {
-   "client → server": 1
-  },
-  "src/game/client/grid/pageShell.ts": {
-   "client → server": 1
-  },
   "src/game/client/grid/regionalWorld.ts": {
-   "client → server": 4
+   "client → server": 2
   },
   "src/game/client/session/loadout.ts": {
    "client → server": 1
   },
   "src/game/client/session/play.ts": {
-   "client → server": 1
-  },
-  "src/game/client/session/session.ts": {
-   "client → server": 1
-  },
-  "src/game/client/session/world.ts": {
-   "client → server": 1
-  },
-  "src/game/client/shard/registry.ts": {
    "client → server": 1
   },
   "src/game/client/shardfile/client.ts": {
@@ -74,9 +50,6 @@
   "src/game/client/shardfile/clientPlan.ts": {
    "client → server": 3
   },
-  "src/game/client/shardfile/clientSource.ts": {
-   "client → server": 1
-  },
   "src/game/client/shardfile/clientSpeciesProgram.ts": {
    "client → server": 2
   },
@@ -86,21 +59,8 @@
   "src/game/client/shardfile/clientTargets.ts": {
    "client → server": 1
   },
-  "src/game/client/shardfile/runtimeProduct.ts": {
-   "client → server": 1
-  },
-  "src/game/cook/generators/pickups.ts": {
-   "cook → client": 2,
-   "cook → render": 1
-  },
   "src/game/server/ambient/crowdPage.ts": {
    "server → client": 4
-  },
-  "src/game/server/grid/intent.ts": {
-   "server → client": 1
-  },
-  "src/game/server/plugin/placeholderGeometry.ts": {
-   "server → render": 1
   },
   "src/game/server/population/pageGroups.ts": {
    "server → client": 2
@@ -110,15 +70,6 @@
   },
   "src/game/server/population/wildlife.ts": {
    "server → client": 4
-  },
-  "src/game/server/shard/manifest.ts": {
-   "server → client": 2
-  },
-  "src/game/server/shard/spec.ts": {
-   "server → client": 1
-  },
-  "src/game/server/shardfile/audioCatalogue.ts": {
-   "server → client": 2
   },
   "src/game/server/shardfile/worldUpdates.ts": {
    "server → client": 8

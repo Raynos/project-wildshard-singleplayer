@@ -5,7 +5,7 @@
  * in the `physics` step. Queried with navcat (pure JS, detour's queries).
  *
  * Renderer-free (SF72): the format, the parse and the queries, which the browser and the headless runtimes (Node) share;
- * the app binding (the active level's navmesh and its fetch) is src/engine/shared/physics/navmeshLoad.ts.
+ * the app binding (the active level's navmesh and its fetch) is src/engine/client/physics/navmeshLoad.ts.
  *
  * The file holds one layer per agent class (Driftwood: 0.3 m for crabs / monkeys / sailors, 0.5 m for the rest; Pine Hollow: 0.5 m);
  * a query takes the creature's radius and runs on the smallest layer that covers it (the largest when none does).

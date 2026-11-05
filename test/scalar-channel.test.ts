@@ -11,7 +11,7 @@ import { zlibSync,unzlibSync } from 'fflate';
 import { readScalarChannel,readScalarLattice,ScalarLatticeBindings } from '../src/engine/shared/world/scalarChannel';
 import { ScalarChannelSchema, ScalarLatticeSchema, ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { ForestRowsSchema } from '@wildshard/format/terrain';
-import { declaredForestQueries } from '../src/game/server/shard/manifest';
+import { declaredForestQueries } from '../src/game/client/shard/manifest';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from './fixtures/nalati-terrain';

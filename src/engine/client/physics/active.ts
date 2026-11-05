@@ -2,9 +2,9 @@
  * The shard's physics world for code that isn't handed it (weapons, aim assist, interact, FX): bootstrap sets it once
  * the `physics` step has built the world. Null before that and in node tests that build their own.
  */
-import type { Physics } from './Physics';
-import type { Bodies } from './bodies';
-import { app } from '../../client/app/runtime';
+import type { Physics } from '../../shared/physics/Physics';
+import type { Bodies } from '../../shared/physics/bodies';
+import { app } from '../app/runtime';
 
 export function setActivePhysics(p: Physics | null): void { app.physics = p; }
 

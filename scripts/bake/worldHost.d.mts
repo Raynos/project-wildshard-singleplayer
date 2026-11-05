@@ -5,7 +5,7 @@ import type { Forest } from '../../src/engine/client/world/forest/Forest';
 import type { Physics } from '../../src/engine/shared/physics/Physics';
 import type { WorldRegistry, ColliderDesc } from '../../src/engine/client/world/registry';
 import type { ModelPlacementVisitor } from '../../src/engine/client/models/model';
-import type { ShardManifest } from '../../src/game/server/shard/manifest';
+import type { ShardManifest } from '../../src/game/client/shard/manifest';
 import type { Tier } from '../../src/engine/client/core/tier';
 import type { BakedGrid } from '../../src/engine/shared/world/BakedTerrain';
 

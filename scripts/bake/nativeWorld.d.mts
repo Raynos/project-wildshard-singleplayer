@@ -1,4 +1,4 @@
-import type { ShardManifest } from '../../src/game/server/shard/manifest';
+import type { ShardManifest } from '../../src/game/client/shard/manifest';
 import type { BakedGrid } from '../../src/engine/shared/world/BakedTerrain';
 /** Prepare exact scalar bytes from the project or its declared public assets before native queries. */
 export function prepareNativeScalarBlocks(def: ShardManifest, root: string): void;

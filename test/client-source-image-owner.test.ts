@@ -10,8 +10,8 @@ import { emptyShardfile } from '../src/sharddev/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
-import { toLevelSpec } from '../src/game/server/shard/spec';
-import { bakedMapUrl } from '../src/game/server/shard/manifest';
+import { toLevelSpec } from '../src/game/client/shard/spec';
+import { bakedMapUrl } from '../src/game/client/shard/manifest';
 
 const original = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
 function fixture() {

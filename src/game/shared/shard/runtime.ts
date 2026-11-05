@@ -24,7 +24,7 @@ import type { Group, Vector2, Vector3 } from 'three';
 import type { Inventory } from '../../client/Inventory';
 import type { Progress } from '../../client/Progress';
 import type { Owned } from '../loot/Owned';
-import type { ShardSword } from '../../server/shard/manifest';
+import type { ShardSword } from '../../client/shard/manifest';
 import type { Bounds } from '@wildshard/engine/level/spec';
 
 /** Services supplied by the gameplay shell after it has built the player kit and UI. */

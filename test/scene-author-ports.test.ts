@@ -3,7 +3,7 @@ import type { modelSceneSourceFile, bakedSceneSourceFile } from '../src/sharddev
 import type { readManifestSource } from '../src/sharddev/projectManifest';
 import type { RigLibraryRows, ModelSpecimenRow, ModelLibraryRows } from '../src/game/client/plugin/geometry';
 import type { BakedColliderInput, WorldPieceRow } from '../src/game/client/shardfile/bakedKinds';
-import type { ChunkHorizon } from '../src/game/server/shard/manifest';
+import type { ChunkHorizon } from '../src/game/client/shard/manifest';
 import type { skyRigLibrary } from '../src/shards/far-reach/generators/rigLibrary';
 import type { BakedPiece } from '../src/shards/far-reach/generators/fileInventory';
 import type { UniformRows } from '../src/game/client/plugin/shaderFamily';

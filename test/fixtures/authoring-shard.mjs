@@ -25,7 +25,7 @@ if (existsSync(manifestJson)) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, relocated);
 }
-/** @type {{default:import('../../src/game/server/shard/manifest.ts').ShardManifest}} */
+/** @type {{default:import('../../src/game/client/shard/manifest.ts').ShardManifest}} */
 const loaded=await import(pathToFileURL(resolve(root,shardManifestPath(root, slug))).href);
 if(loaded.default.slug!==slug) throw new Error('Generator manifest identity differs');
 // Native authoring consumers query the same exact scalar values before any

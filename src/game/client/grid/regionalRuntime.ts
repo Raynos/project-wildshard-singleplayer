@@ -20,7 +20,7 @@ import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import { gridCreatureConstraint } from '@wildshard/engine/physics/gridBorders';
 import { shardContext, type ShardContext } from "../plugin/context";
-import type { ShardManifest } from '../../server/shard/manifest';
+import type { ShardManifest } from '../shard/manifest';
 import type { ShardPlayHost, ShardRuntime } from '../../shared/shard/runtime';
 import type { ShardWorld } from '../../server/shard/world';
 import type { HybridResident } from '../shardfile/hybrid';

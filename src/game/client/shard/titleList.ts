@@ -1,4 +1,4 @@
-import type { ShardManifest } from '../../server/shard/manifest';
+import type { ShardManifest } from './manifest';
 import { shards } from './list';
 
 /** Cold-title metadata contains no executable shard bindings. */

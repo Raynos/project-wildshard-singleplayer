@@ -319,7 +319,7 @@ test('C3 approvals select exactly the picked ground and engine primitives', () =
   for (const [path,name] of [
     ['src/engine/shared/physics/heightPatch.ts','HeightPatch'],['src/engine/shared/physics/heightPatch.ts','HeightPatchOpts'],
     ['src/engine/client/core/gpuOnly.ts','rebakes'],['src/engine/client/core/gpuOnly.ts','onGpuRestored'],
-    ['src/engine/shared/world/water/body.ts','basinBody'],['src/game/server/shard/manifest.ts','declaredGround'],
+    ['src/engine/shared/world/water/body.ts','basinBody'],['src/game/client/shard/manifest.ts','declaredGround'],
     ['src/format/terrain.ts','GroundRowsSchema'],
   ]) {
     if (path === undefined || name === undefined) throw new Error('Incomplete C3 selector');

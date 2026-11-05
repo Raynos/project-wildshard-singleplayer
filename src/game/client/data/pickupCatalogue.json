@@ -1,5 +1,5 @@
 {
-  "file": "src/game/cook/generators/pickups.ts",
+  "file": "src/game/client/generators/pickups.ts",
   "seed": 6782,
   "coin": "coin",
   "geometries": [

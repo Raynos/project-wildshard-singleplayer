@@ -8,8 +8,8 @@ import { shardContext, pageGridInstance, type GameServices, type ShardContext, t
 import { regionalDataCellBytes } from '../grid/runtimeCost';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bootPageMode } from '../grid/pageEntry';
-import type { ShardManifest } from '../../server/shard/manifest';
-import { toLevelSpec } from '../../server/shard/spec';
+import type { ShardManifest } from '../shard/manifest';
+import { toLevelSpec } from '../shard/spec';
 import { playable } from '../shard/registry';
 import { catalogueManifests } from '../shard/titleList';
 import { ART_URL_BYTES } from '../shard/art.generated';

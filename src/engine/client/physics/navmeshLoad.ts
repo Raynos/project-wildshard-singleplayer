@@ -1,14 +1,14 @@
 import { parseNavigation, readNavigation, type NavigationContent } from '@wildshard/format/navigation';
-import { app } from '../../client/app/runtime';
+import { app } from '../app/runtime';
 /**
  * The app's binding of the baked navmesh (SF72 split it from the renderer-free src/engine/shared/physics/navmesh.ts, which holds
  * the format, the parse and the queries): the active level's navmesh, and its fetch in the `physics` step. Every navmesh
  * this loads reports its query cost to the perf meter (frameCost.nav).
  */
-import { buildNavmesh, parseNavmesh, type Navmesh } from './navmesh';
-import { workSlice } from '../core/workSlice';
-import { navmeshUrl } from './navmeshUrl';
-import { frameCost } from '../core/frameCost';
+import { buildNavmesh, parseNavmesh, type Navmesh } from '../../shared/physics/navmesh';
+import { workSlice } from '../../shared/core/workSlice';
+import { navmeshUrl } from '../../shared/physics/navmeshUrl';
+import { frameCost } from '../../shared/core/frameCost';
 
 /**
  * The session's admitted-navigation port: given the level's baked id (`levelBakedId`) and its declared navigation row's file

@@ -660,7 +660,7 @@
     "src/engine/client/native/ota.ts",
     "src/engine/client/native/saves.ts",
     "src/engine/client/native/updates.ts",
-    "src/engine/shared/physics/active.ts",
+    "src/engine/client/physics/active.ts",
     "src/engine/shared/physics/bodies.ts",
     "src/engine/physics/bridge.ts",
     "src/engine/shared/physics/CharacterMotor.ts",
@@ -988,7 +988,7 @@
     "src/game/quest/QuestUI.ts",
     "src/game/quest/Spine.ts",
     "src/game/quest/TraderStall.ts",
-    "src/game/server/shard/manifest.ts",
+    "src/game/client/shard/manifest.ts",
     "src/game/client/shard/registry.ts",
     "src/game/Taming.ts",
     "src/game/client/titleDeck.ts",
@@ -2204,7 +2204,7 @@
     },
     {
       "from": "src/chunks/ChunkDef.ts",
-      "to": "src/game/server/shard/manifest.ts"
+      "to": "src/game/client/shard/manifest.ts"
     },
     {
       "from": "src/chunks/driftwood-isle.ts",
@@ -4064,7 +4064,7 @@
     },
     {
       "from": "src/physics/active.ts",
-      "to": "src/engine/shared/physics/active.ts"
+      "to": "src/engine/client/physics/active.ts"
     },
     {
       "from": "src/physics/bodies.ts",

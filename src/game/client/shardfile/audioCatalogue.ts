@@ -1,6 +1,6 @@
 import {Scope} from '@wildshard/engine/app/scope';
 import {createCatalogueAudio,type LevelAudioProfile} from '@wildshard/engine/audio/levelAudio';
-import {loadFirstPartyProduct} from '../../client/shardfile/runtimeProduct';
+import {loadFirstPartyProduct} from './runtimeProduct';
 import type {ShardProduct} from '../../shared/shardfile/shardProduct';
 
 /** Boot borrows admitted audio rows; the profile retains no product lease or decoded-asset copy. */

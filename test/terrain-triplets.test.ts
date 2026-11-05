@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { expect,test } from 'vitest';
 import { zlibSync,unzlibSync } from 'fflate';
-import { declaredGroundColour as declaredGroundColourInput,declaredSurface as declaredSurfaceInput } from '../src/game/server/shard/manifest';
+import { declaredGroundColour as declaredGroundColourInput,declaredSurface as declaredSurfaceInput } from '../src/game/client/shard/manifest';
 import {ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
 import { ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';

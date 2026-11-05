@@ -364,7 +364,7 @@ date** (`ChunkDef`, `src/chunks/`, `CHUNKS`, `main.ts` branches, `?chunk=` links
 ### Shards — Driftwood Isle, Pine Hollow, Nalati Grasslands (and how to add a fourth)
 
 The demo runs one Wildshard *chunk* (we call an authored chunk a **shard**) at a time. Every shard is a 500 m × 500 m
-floating slab with its own biome, built by the same engine from a `ChunkDef` (`src/game/server/shard/manifest.ts`) and listed in
+floating slab with its own biome, built by the same engine from a `ChunkDef` (`src/game/client/shard/manifest.ts`) and listed in
 `CHUNKS` (`src/game/client/shard/registry.ts`). Shards are picked on the title deck (or with `?chunk=<slug>`), and the page reloads
 to switch — chunks are not adjacent or streamed.
 

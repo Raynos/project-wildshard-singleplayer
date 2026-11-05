@@ -2,8 +2,8 @@ import type { LevelSpec } from '@wildshard/engine/level/spec';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { type ShardContext, type PageMode, ShardPlugin } from '../plugin/context';
 
-import type { ShardManifest } from '../../server/shard/manifest';
-import { toLevelSpec } from '../../server/shard/spec';
+import type { ShardManifest } from '../shard/manifest';
+import { toLevelSpec } from '../shard/spec';
 import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';
 import { ROAD_SKY } from './frameModel';

@@ -163,7 +163,7 @@ only contains the word, not a `#box` row).
 - `game/shared/inventoryLaw.ts`: `InventoryState`
 - `game/client/plugin/context.ts`: `ShardCube`
 - `game/server/plugin/mover.ts`: `moverQueries`
-- `game/server/shard/manifest.ts`: `Vec2`, `RGB`, `OceanDef`
+- `game/client/shard/manifest.ts`: `Vec2`, `RGB`, `OceanDef`
 - `game/client/shardfile/bakedKinds.ts`: `BakedKindRow`, `BakedColliderRow`, `bakedColliders`, `bakedKindsGroup`
 - `game/server/shardfile/homeKeeper.ts`: `KeptBossRow`
 - `game/shared/shardfile/movers.ts`: `MoverData`
@@ -198,8 +198,8 @@ string (legacy oracle), not a live import; where it is the only "reader" the sym
 - `engine/client/world/voxelAO.ts#withVoxelAOBake` (no internal use): test/fixtures/legacy-oracles/nalati-runtime-debt.json
 - `game/server/Boss.ts#BossPersistence` (also used inside its module): test/boss-encounter.test.ts
 - `game/server/Elite.ts#EliteDef` (also used inside its module): test/keeper-elite-page.test.ts
-- `game/server/shard/manifest.ts#ChunkTerrain` (also used inside its module): test/fixtures/nalati-terrain.ts, test/nalati-terrain-source-contract.test.ts
-- `game/server/shard/manifest.ts#ChunkHorizon` (also used inside its module): test/scene-author-ports.test.ts
+- `game/client/shard/manifest.ts#ChunkTerrain` (also used inside its module): test/fixtures/nalati-terrain.ts, test/nalati-terrain-source-contract.test.ts
+- `game/client/shard/manifest.ts#ChunkHorizon` (also used inside its module): test/scene-author-ports.test.ts
 - `game/server/shardfile/bossRow.ts#installBossRow` (also used inside its module): test/fixtures/boss-owner/signal.ts, test/fixtures/native-hosts/boss/native.ts
 - `game/shared/systems/looks/grassField.ts#configureGrassField` (also used inside its module): test/fixtures/legacy-oracles/nalati-runtime-debt.json
 - `game/client/systems/looks/trample.ts#RECOVER` (also used inside its module): game/client/systems/looks/trample-upload.test.ts

@@ -4,7 +4,7 @@
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { zlibSync, unzlibSync } from 'fflate';
-import { authoredPickups } from '../src/game/cook/generators/pickups.ts';
+import { authoredPickups } from '../src/game/client/generators/pickups.ts';
 import { byteWriter, jsonBytes } from './bake-output.mjs';
 import { installKitProps } from '../src/game/client/models/interact.ts';
 import { Interactables, Live } from '../src/engine/client/world/interact/Interactables.ts';
@@ -95,7 +95,7 @@ const members = [...memberBytes].map(([file, bytes]) => {
 writer.put(fileURLToPath(new URL(`../public${bankFile}`, import.meta.url)), bankBytes);
 const looks = authoredPickups.map(row => ({ id: row.id, model: row.model, name: row.name, batch: row.batch, lift: row.lift,
   parts: row.parts.map(({ geometry: _geometry, ...part }) => part) }));
-const rows = { file: 'src/game/cook/generators/pickups.ts', seed, coin: coin.key, geometries, looks,
+const rows = { file: 'src/game/client/generators/pickups.ts', seed, coin: coin.key, geometries, looks,
   banks: [{ file: bankFile, bytes: bankBytes.length, members }] };
 writer.put(fileURLToPath(new URL('../src/game/client/data/pickupCatalogue.json', import.meta.url)), jsonBytes(rows));
 writer.finish();
