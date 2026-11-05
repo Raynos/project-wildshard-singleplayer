@@ -16,7 +16,6 @@ import { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import { addEdgeWalls } from '@wildshard/engine/physics/terrain';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
-import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage';
@@ -30,6 +29,7 @@ import { GridRoom } from '@wildshard/game/grid/room';
 import { commandsOf, GridNetRooms } from '@wildshard/game/grid/roomNet';
 import { GridSimulation, type GridResident } from '@wildshard/game/grid/simulation';
 import { bindShardfileSim, createShardfileSim, HOST_PROBE, type ShardfileSimPorts, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
+import { installRoomRespawn } from '@wildshard/game/roomRespawn';
 import { hasNativeAssembly } from '@wildshard/game/shardfile/nativeAssembly';
 import { createQuestLedger } from '@wildshard/game/quest/ledger';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../headlessRuntime';
@@ -46,6 +46,8 @@ export const STANDALONE_RESIDENTS = 1;
 const ROAD_HALF_SIZE = 2000, ROAD_SPEED = 8;
 /** How far past a cell's edge the deck runs in that cell's own world: past the 10 m leave band, with room to stop. */
 const RIM = 16;
+/** Below this a player has left a cell's world: what a page's grid recovery falls back to where a shard declares no floor. */
+const FALL_FLOOR = -CHUNK_HALF;
 /** A cell wall's thickness and half its height. */
 const WALL = 0.5, WALL_HEIGHT = 30;
 /** How far out from a cell's edge its wall stands. */
@@ -253,6 +255,8 @@ export class StandaloneGrid {
       } };
     }
     const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects, options.lone === true);
+    installRoomRespawn(host, []);
+    host.respawn.served = true;
     return { host, dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
@@ -264,7 +268,10 @@ export class StandaloneGrid {
   private step(site: string | null, inputs: readonly NetTickInput[]): boolean {
     const started = this.options.now(), world = site === null ? undefined : this.worlds.get(site);
     if (world === undefined) this.grid.stepSite(site, commandsOf(inputs)); else world.step(inputs);
-    this.options.stepped(this.grid.hostOf(site), this.options.now() - started);
+    const host = this.grid.hostOf(site), player = sessionPlayer(host);
+    // The page used to catch a fall, on its own body. The server's world has nothing below it, so it would fall for ever.
+    if (world !== undefined && player.position.y < FALL_FLOOR) host.combat.fall(player.health, player.position, { kind: 'out-of-world', label: '' });
+    this.options.stepped(host, this.options.now() - started);
     return true;
   }
   private filings(site: string | null, first: string): ReturnType<typeof ledgerFilings> {

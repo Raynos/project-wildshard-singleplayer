@@ -73,6 +73,19 @@ test.each([['a grid shard', HOME], ['a slug the grid does not place', 'pastel-pl
   stop();
 });
 
+test('a player who falls out of a world is the server\'s to put back', { timeout: 60_000 }, async () => {
+  const storage = new PageStorage(), { shell, stop } = start(storage, undefined, 'pastel-plain', true);
+  await shell.booted;
+  shell.ready();
+  await until(() => shell.client.latest !== null);
+  const seat = running?.host.players.get('actor.player'), host = running?.host;
+  if (seat === undefined || host === undefined) throw new Error('No session player');
+  seat.position.set(0, -251, 0); seat.motor.resetAt(seat.position);
+  await walk(shell, 0, () => host.respawn.falls(seat.id) === 1);
+  expect(seat.position.y).toBeGreaterThan(-250);
+  stop();
+});
+
 test('a client walks off the road into a cell and back, and a reload resumes it wherever it stood', { timeout: 120_000 }, async () => {
   const storage = new PageStorage(), first = start(storage, { x: -259, y: 0, z: 0 }), travels: NetTravel[] = [], { client } = first.shell;
   client.onTravel(event => { travels.push(event); });

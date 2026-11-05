@@ -222,7 +222,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     toSpawn: () => { if (gridLive === null) toSpawn(); else app.combat.fall(playerHealth, player.position, { kind: 'out-of-world', label: '' }); },
     fallFloor: () => gridLive?.fallFloor() ?? bounds?.floor ?? GRID_FALL_FLOOR,
     floorAt: (x, z) => ((gridLive?.spawn() ?? null) === null ? registry.floorAt(x, z) : floorBelow(world.physics, x, z, player.position.y + 0.6, 1.2)),
-    suspended: () => world.freeCamera || world.tour.active || away() || (grid !== null && player.carried), grid: () => grid !== null, frame: () => gridLive?.frame() });
+    suspended: () => player.link !== null || world.freeCamera || world.tour.active || away() || (grid !== null && player.carried), grid: () => grid !== null, frame: () => gridLive?.frame() });
   // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
   // The installed play owner confirms its progress and pack writes; source clients supply their own durable handoff.
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
