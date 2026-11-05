@@ -3,6 +3,10 @@ import type { ScriptContract } from '@wildshard/format/scriptContract';
 import type { JsonSchema } from '@valibot/to-json-schema';
 import type { AssetCost } from '@wildshard/format/product';
 import type { OutputFile } from '@wildshard/format/outputIndex';
+import { AdmissionServerSchema, serverFilePath, type ServerFile } from '@wildshard/format/admissionServer';
+import { validatePlatformFile } from '@wildshard/format/platformFileFamilies';
+import { outputBlobKind } from '@wildshard/format/productValidation';
+import { parse } from 'valibot';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { nameBlobBytes } from './blobBytes';
 import { validateDefinedJson } from './sections';
@@ -108,3 +112,19 @@ export function emitNamedBlobs(blobs: readonly NamedBlob[]): EmittedBlobs {
   files.sort((a, b) => (a.name ?? '') < (b.name ?? '') ? -1 : (a.name ?? '') > (b.name ?? '') ? 1 : 0);
   return { files, assets: new Map([...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
 }
+
+/** J91: one server-class file and its bytes, ready for `ProjectOutput.server`. */
+export interface ServerBlob { readonly file: ServerFile; readonly bytes: Uint8Array }
+/** Name a server-class file: registered platform JSON by its defining schema, or binary bytes. The client never sees it. */
+export function serverBlob(name: string, input: { readonly bytes: Uint8Array } | { readonly schema: string; readonly value: unknown }): ServerBlob {
+  if ('bytes' in input) {
+    const bytes = Uint8Array.from(input.bytes), kind = outputBlobKind('binary', bytes);
+    if (kind !== 'bin' && kind !== 'tile') throw new Error('Server binary must be a bin or tile');
+    const hash = hashImmutableBytes(bytes);
+    return { bytes, file: parse(AdmissionServerSchema, [{ name, path: serverFilePath(kind, hash), hash, bytes: bytes.length, kind }])[0] ?? missingServerRow() };
+  }
+  if (validatePlatformFile(name, input.schema, input.value) === undefined) throw new Error(`Unregistered named JSON: ${name}`);
+  const bytes = new TextEncoder().encode(encodeCanonicalJson(input.value)), hash = hashImmutableBytes(bytes);
+  return { bytes, file: parse(AdmissionServerSchema, [{ name, path: serverFilePath('json', hash), hash, bytes: bytes.length, kind: 'json', schema: input.schema }])[0] ?? missingServerRow() };
+}
+function missingServerRow(): never { throw new Error('Missing server file row'); }

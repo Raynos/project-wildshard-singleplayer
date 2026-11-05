@@ -100,7 +100,9 @@ export function outputSectionPayloads(source: Shardfile): ReadonlyMap<string, un
 /** Reconstruct host fields without transport metadata. This returns unknown fields, never an admitted host model. The caller must
  * verify its exact build hashes or supply the original checked readers. */
 export function assembleOutputTransport(index: OutputIndex, sections: ReadonlyMap<string, unknown>, checks?: { readonly bounds: (name: string, value: unknown) => void; readonly platform: (name: keyof PlatformDataSections, value: unknown) => void; readonly fields: (name: string, value: object) => Record<string, unknown> }): Record<string, unknown> {
-  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...index.admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,tier: _tier,variantOf: _variant,commons: _commons,jsonSchema: _schema,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {kind:index.runtime.kind,cost:index.runtime.cost,binds:index.runtime.binds}};
+  // J91: the server class is the product index's alone, never a field of the Shardfile a client admits.
+  const {server:_server,...admission}=index.admission;
+  const result: Record<string, unknown> = {version:index.version,identity:index.identity,requires:index.requires,...admission,files:index.files.filter(file => file.commons !== true).map(({path: _path,name: _name,tier: _tier,variantOf: _variant,commons: _commons,jsonSchema: _schema,kind,...rest}) => Object.assign(rest,{kind:kind === 'tile' || kind === 'bin' ? 'binary' : kind})),runtime:index.runtime === null ? null : {kind:index.runtime.kind,cost:index.runtime.cost,binds:index.runtime.binds}};
   if (sections.size !== index.sections.length || index.sections.some(entry => !sections.has(entry.name))) throw new Error('Missing or surplus output section');
   const rows: Record<string, unknown> = {};
   for (const entry of index.sections) {

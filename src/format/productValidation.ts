@@ -155,6 +155,13 @@ export function validateShardfileProduct(files: ProductFiles, ports: ProductVali
     assets.set(`${entry.commons === true ? 'commons:' : ''}${entry.hash}`, bytes);
     if (index.requires.commons.includes(entry.hash)) assets.set(`commons:${entry.hash}`, bytes);
   }
+  // J91: server files pass the same hash, size and schema checks; they stay out of the client's admitted assets
+  for (const entry of index.admission.server ?? []) {
+    const bytes = read(entry);
+    if (entry.kind === 'json') {
+      if (validatePlatformFile(entry.name, entry.schema, readCanonicalJson(bytes)) === undefined) throw new Error(`Unregistered named JSON: ${entry.name}`);
+    } else if (outputBlobKind('binary', bytes) !== entry.kind) throw new Error('Output blob bytes differ from their declared kind');
+  }
   for (const [hash, cost] of Object.entries(index.ktx2Costs ?? {})) {
     const bytes = assets.get(hash);
     if (bytes === undefined || decoder().decode(validationSourceBytes(cost)) !== decoder().decode(validationSourceBytes(ktx2DeviceCosts(bytes)))) throw new Error('KTX2 device costs differ from verified bytes');

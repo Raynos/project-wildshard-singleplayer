@@ -40,12 +40,13 @@ export async function loadHeadlessProduct(outDir: string): Promise<ShardProduct>
   carryOutputDescriptor(assembled, source);
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) throw new Error('Native product has no verified index');
-  const files = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, file]));
+  const files = new Map<string, { readonly path: string; readonly hash: string; readonly compressed: number }>(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, file]));
+  for (const file of descriptor.index.admission.server ?? []) files.set(file.hash, { path: file.path, hash: file.hash, compressed: file.bytes });
   return shardProductData(source, base, async ref => {
     const file = files.get(ref);
     if (file === undefined) throw new Error('Undeclared native product blob');
     const bytes = await read(file.path, file.compressed);
     if (bytes.length !== file.compressed || await hash(bytes) !== file.hash) throw new Error('Native product blob hash or size mismatch');
     return bytes;
-  }, true, false, nodeNamedJsonCheck);
+  }, true, false, nodeNamedJsonCheck, { files: true });
 }

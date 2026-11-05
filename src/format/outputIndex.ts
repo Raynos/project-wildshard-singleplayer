@@ -1,6 +1,7 @@
 import { platformFileFamily } from './platformFileFamilies.ts';
 import type { Ktx2DeviceCosts } from './ktx2Cost.ts';
 import { AdmissionLateSchema, lateLibraryRootsValid, type AdmissionLate } from './admissionLate.ts';
+import { AdmissionServerSchema, serverFilesExclusive, type AdmissionServer } from './admissionServer.ts';
 /** Versioned, renderer-free disk contract shared by the writer and network reader. */
 import { isOutputIndex, outputBlobPath } from './outputAddress.ts';
 import { OUTPUT_SECTIONS, assembleOutputTransport, isPlatformDataSection, type OutputHostSectionName } from './outputFields.ts';
@@ -28,7 +29,7 @@ const runtime = v.strictObject({ ...v.omit(ClientPlanRuntimeSchema.pipe[0], ['sp
 export const OutputIndexSchema: v.GenericSchema<OutputIndexRowsInput, OutputIndexRows> & { readonly entries: { readonly [Key in keyof OutputIndexRows]-?: v.GenericSchema<OutputIndexRowsInput[Key], OutputIndexRows[Key]> } } = v.strictObject({
   format: v.literal('wildshard.shardfile'), formatVersion: v.literal(2), sdk: v.literal('0.2'), version: v.literal(SHARDFILE_VERSION),
   identity: IdentitySchema, build: v.strictObject({ sourceHash: ShardHashSchema, validator: v.pipe(v.string(), v.minLength(1), v.maxLength(160)) }), requires: RequiresSchema,
-  admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library, late: v.exactOptional(AdmissionLateSchema) }),
+  admission: v.strictObject({ budgets: ShardfileFieldSchemas.budgets, serverBudget: ShardfileFieldSchemas.serverBudget, authorCaps: ShardfileFieldSchemas.authorCaps, critical: ShardfileFieldSchemas.critical, library: ShardfileFieldSchemas.library, late: v.exactOptional(AdmissionLateSchema), server: v.exactOptional(AdmissionServerSchema) }),
   sections: v.pipe(v.array(section), v.maxLength(256)), schemas: v.pipe(v.array(v.strictObject(measuredFile)), v.maxLength(0)),
   files: v.pipe(v.array(fileSchema), v.maxLength(8192)), runtime: v.nullable(runtime),
   ktx2Costs: v.exactOptional(v.pipe(v.record(ShardHashSchema,v.strictObject({rgba:ShardNaturalSchema,astc:ShardNaturalSchema,bc7:ShardNaturalSchema})),v.check(rows=>Object.keys(rows).length<=8192,'bounded texture cost table'))),
@@ -86,6 +87,13 @@ function parseOutputIndexRows(input: unknown): OutputIndex {
   }
   const library = new Set(v.parse(ShardfileFieldSchemas.library, index.admission.library));
   if (!lateLibraryRootsValid(index.admission.late ?? [], refs, library)) throw new Error('Late output file must be a declared library root');
+  // J91: the server class owns its paths and names; a file is either the client's or the server's
+  for (const entry of index.admission.server ?? []) {
+    if (paths.has(entry.path)) throw new Error('Duplicate or escaping output path');
+    paths.add(entry.path);
+    if (entry.kind === 'json' && platformFileFamily(entry.name, entry.schema) === undefined) throw new Error(`Unregistered named JSON: ${entry.name}`);
+  }
+  if (!serverFilesExclusive(index.admission.server ?? [], index.files)) throw new Error('A server file is never also a client file');
   // I5: a pack lives beside the blobs, is listed once, and holds only listed members at their exact sizes, in order
   const members = new Map([...index.sections, ...index.schemas].map(entry => [entry.hash, entry.bytes] as const));
   for (const entry of index.files) members.set(entry.hash, entry.compressed);
@@ -156,6 +164,7 @@ interface OutputIndexRowsInputFields {
         critical: unknown;
         library: unknown;
         late?: AdmissionLate;
+        server?: AdmissionServer;
     };
     sections: {
         name: string;
@@ -247,6 +256,7 @@ interface OutputIndexRowsFields {
         critical: unknown;
         library: unknown;
         late?: AdmissionLate;
+        server?: AdmissionServer;
     };
     sections: {
         name: string;

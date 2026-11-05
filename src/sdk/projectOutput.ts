@@ -9,7 +9,7 @@ import { ScriptContractSchema, decisionModuleContracts, type ScriptContractInput
 import { OutputIndexSchema, type OutputFile } from '@wildshard/format/outputIndex';
 import { ShardNaturalSchema } from '@wildshard/format/shardSections';
 import { parseShardfile, type Shardfile } from './shardfile';
-import { readNamedBlob, emitNamedBlobs, nameBlob, type NamedBlob } from './blobs';
+import { readNamedBlob, emitNamedBlobs, nameBlob, type NamedBlob, type ServerBlob } from './blobs';
 import { encodeCanonicalJson } from './immutable';
 import { copyAssetBytes, hashAssetBytes } from './assetHandle';
 import { defineMirror, type RuntimeMirror } from './runtimeMirrors';
@@ -36,6 +36,7 @@ const output = v.strictObject({
   blobs: v.optional(v.pipe(v.array(declaration), v.maxLength(8192)), []),
   platform: v.exactOptional(emitted),
   late: v.exactOptional(AdmissionLateSchema),
+  server: v.exactOptional(v.pipe(v.array(v.custom<ServerBlob>(row => typeof row === 'object' && row !== null && 'file' in row && 'bytes' in row && row.bytes instanceof Uint8Array)), v.maxLength(256))),
   namedFiles: v.optional(OutputIndexSchema.entries.files, []), assets: v.optional(assetMap, () => new Map()),
 });
 
@@ -116,6 +117,7 @@ export async function prepareProjectOutput(project: string, input: unknown, deci
   return { blobs, assets: ownedAssets(parsed.assets), ...(parsed.late === undefined && late.length === 0 ? {} : { late }), options: {
     namedFiles: overlays,
     ...(parsed.platform === undefined ? {} : { platform: ownedSections(parsed.platform) }),
+    ...(parsed.server === undefined ? {} : { server: parsed.server }),
   } };
 }
 

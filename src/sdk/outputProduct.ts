@@ -23,6 +23,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { assetHandles, hashAssetBytes, immutableAsset, verifyAssetBytes, type ImmutableAsset } from './assetHandle';
 import { readBoundedFile } from './sourceReader';
 import { validateRuntimeImports } from './runtimeImports';
+import type { ServerBlob } from './blobs';
 import { validateDefinedJson, type EmittedSections } from './sections';
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 import { checkWorldTargets, outputBlobExtension as blobExtension, outputBlobKind as blobKind, readCanonicalJson as readJson, validateShardfileProduct, type ProductFiles, type ValidatedProduct } from '@wildshard/format/productValidation';
@@ -38,6 +39,8 @@ export interface OutputProductOptions {
   readonly discovery?: DiscoveryValues;
   readonly platform?: EmittedSections;
   readonly namedFiles?: readonly OutputFile[];
+  /** J91: server-class files. They enter the index's `admission.server`, never `files` or a pack. */
+  readonly server?: readonly ServerBlob[];
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
 }
 /** Read the named canonical platform payloads, each only after checking its emitted hash and size. */
@@ -87,6 +90,10 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     if (emitted.has(path)) throw new Error('Duplicate platform output path');
     emitted.set(path,bytes);
     if (path.startsWith('schemas/')) schemas.push({path,hash:hashAssetBytes(bytes),bytes:bytes.length});
+  }
+  for (const blob of options.server ?? []) {
+    if (emitted.has(blob.file.path)) throw new Error('Duplicate server output path');
+    emitted.set(blob.file.path,blob.bytes);
   }
   const declarations = new Map(source.files.map(file => [file.hash,file]));
   const names=new Map<string,OutputFile>();
@@ -173,7 +180,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
   }
   const {spawns:_spawns,...runtime} = source.runtime ?? {};
   const index = parseOutputIndex({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,requires:source.requires,
-    build:{sourceHash:hashImmutableBytes(jsonBytes(source)),validator:validationRevision() ?? 'source'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library,...(source.late===undefined?{}:{late:source.late})},
+    build:{sourceHash:hashImmutableBytes(jsonBytes(source)),validator:validationRevision() ?? 'source'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library,...(source.late===undefined?{}:{late:source.late}),...(options.server===undefined||options.server.length===0?{}:{server:options.server.map(blob=>blob.file).sort((a,b)=>a.name.localeCompare(b.name))})},
     ...(Object.keys(ktx2Costs).length===0?{}:{ktx2Costs}),
     sections:sections.sort((a,b)=>a.name.localeCompare(b.name)),schemas:schemas.sort((a,b)=>a.path.localeCompare(b.path)),files:files.sort((a,b)=>a.hash.localeCompare(b.hash)||a.path.localeCompare(b.path)),...(packs.length===0?{}:{packs}),runtime:source.runtime === null ? null : {...runtime,trust:'first-party',files:options.runtime?.files ?? [],lines:options.runtime?.lines ?? 0}});
   // A writer owns this product directory, never a source folder. Preserve only the
