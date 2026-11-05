@@ -13,6 +13,7 @@ import { genShardWords } from './gen-shard-words.mjs';
 import { quietCli } from './quiet-cli.mjs';
 import { beginPushInputs } from './push-post-inputs.mjs';
 import { beginProgramInputProof } from './source-input-proof.mjs';
+import { publishShardFiles } from './shard-public.mjs';
 
 quietCli('gen');
 const root = resolve(import.meta.dirname, '..');
@@ -36,6 +37,8 @@ async function step(name, run) {
   finally { if (timings) console.info(`gen-step ${name}: ${((performance.now() - started) / 1000).toFixed(3)}s`); }
 }
 
+// Every step below may walk public/, so the gathered shards' aliases come first.
+await step('shard-public', () => publishShardFiles(root));
 // Refresh available providers before dependent imports. A stale product keeps its
 // last module until strict post-program discovery can publish a full replacement.
 await step('discovery', () => refreshDiscovery());

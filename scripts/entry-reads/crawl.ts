@@ -5,7 +5,7 @@
 // A fresh context per region/tier walks the maintained declared entry. No new
 // Vite plugin, constructor shortcut, admission root or readiness claim is used.
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { chromium, devices, type Browser, type BrowserContext, type Page } from 'playwright';
 import * as v from 'valibot';
 import { crawlEntryReadSet, entryDemandUrls, type EntryCrawlDemand, type EntryCrawlRegion } from '@wildshard/sdk/entryReads';
@@ -13,6 +13,7 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import type { RegionEntryReads } from '@wildshard/format/entryReads';
 import { saveFixture, harnessPins } from '../debug-settings.mjs';
+import { entryReadsFile } from '../shard-public.mjs';
 import { frameFloorSettingsCode } from '../frame-floor-settings.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from '../frame-floor-navigation.mjs';
 import { gridFloorPlans, gridFloorDeclaredPlan, gridFloorDocumentIdentity, stageFloorGrid, driveFloorGrid,
@@ -30,7 +31,7 @@ if (!['local', 'fast4g-crossing'].includes(network)) throw new Error('Unknown en
 if (base === undefined || pin === undefined || !/^[a-f0-9]{40}$/u.test(pin)) throw new Error('Requires --base and --pin=<landed full SHA>');
 const origin = new URL(base);
 if (!['http:', 'https:'].includes(origin.protocol)) throw new Error('HTTP preview required');
-const out = resolve(arg('out') ?? 'public/assets'), requested = arg('shards')?.split(',');
+const out = arg('out'), requested = arg('shards')?.split(',');
 if (requested?.some(slug => !/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(slug))) throw new Error('Canonical shard names required');
 const versionResponse = await fetch(new URL('/version.json', origin));
 if (!versionResponse.ok) throw new Error('Preview identity unavailable');
@@ -138,7 +139,8 @@ try {
       });
       // Publish only a complete product: every selected region/tier and all its
       // bodies succeeded. An independent product failure never erases this data.
-      const path = join(out, productSlug, 'entry-reads.json'); await mkdir(join(out, productSlug), { recursive: true });
+      const path = out === undefined ? entryReadsFile(process.cwd(), productSlug) : resolve(out, productSlug, 'entry-reads.json');
+      await mkdir(dirname(path), { recursive: true });
       await writeFile(path, `${JSON.stringify(rows, null, 1)}\n`);
     } catch (error: unknown) {
       productFailures.push(error);

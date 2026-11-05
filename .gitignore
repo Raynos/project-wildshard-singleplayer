@@ -157,6 +157,11 @@ public/assets/driftwood-isle/map/top.webp
 /public/assets/pastel-plain/map/top.webp
 /public/assets/ink-cel-valley/map/top.webp
 /public/assets/blender-template/map/top.webp
+# A gathered shard's published files live in its folder; gen copies them here (scripts/shard-public.mjs).
+/public/assets/_template/entry-reads.json
+/public/assets/pastel-plain/entry-reads.json
+/public/assets/ink-cel-valley/entry-reads.json
+/public/assets/blender-template/entry-reads.json
 
 # Maintained ignored source tables; committed tables need no exception.
 /src/shards/_template/discovery.generated.ts
