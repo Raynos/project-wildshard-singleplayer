@@ -4,6 +4,7 @@ import { walkingSpeed } from '../../shared/player/walk';
 import { pondBob } from '../../shared/player/swim';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { boardShoved, HOVER_HARD_LANDING } from '../../shared/player/board';
+import { createMotionState } from '../../shared/player/motionState';
 import { leaveSwim, PAGE_MOTION, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
 import type { InputService } from '../input/InputService';
@@ -22,7 +23,7 @@ import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE } from '../../shared/physic
 import { floorBelow } from '../../shared/physics/query';
 import { addImpulse } from '../../shared/player/impulse';
 import { shoveHop, startShove, type ShoveState } from '../../shared/player/shove';
-import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
+import { COYOTE_MS } from '../../shared/player/jump';
 import { DODGE_COOLDOWN, DODGE_TIME, DODGE_DIST, dashToward, dodgeHeading, startDash, startDodge, type DashState, type DodgeState } from '../../shared/player/dash';
 import type { Physics } from '../../shared/physics/Physics';
 
@@ -53,11 +54,16 @@ const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
 const LUNGE_FOV_KICK = 7;             // … and a lunge (Sword.ts reads `fovKick`)
 
 export class Player {
-  position: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
-  velocity: THREE.Vector3 = new THREE.Vector3();
-  yaw = 0;
+  /** The step's plain state (player/motionState.ts). The fields below that read and write it are the Player's public view:
+   *  weapons, shards and the camera read them, and a predictor captures and restores the state itself. */
+  readonly motionState: PlayerMotionState = createMotionState();
+  readonly position: THREE.Vector3 = this.motionState.position;
+  readonly velocity: THREE.Vector3 = this.motionState.velocity;
+  get yaw(): number { return this.motionState.yaw; }
+  set yaw(value: number) { this.motionState.yaw = value; }
   pitch = 0;
-  onGround = true;
+  get onGround(): boolean { return this.motionState.fall.grounded; }
+  set onGround(value: boolean) { this.motionState.fall.grounded = value; }
   crouching = false;
   /** The actor carried by the current traversal, excluded from player targeting. */
   mountedOn: object | null = null;
@@ -75,26 +81,33 @@ export class Player {
   touchSprint = false;
   touchJump = false;
   /** hoverboard mode (H key / HOVER touch button) — see setHover() */
-  hover = false;
+  get hover(): boolean { return this.motionState.board.on; }
+  set hover(value: boolean) { this.motionState.board.on = value; }
   /** 0..1 smoothed hover state (viewmodel fade, camera blend) */
   hoverBlend = 0;
   /** hover telemetry for the viewmodel / camera: lateral (+right) and forward velocity along the heading, forward acceleration, ride-height error */
-  hoverLat = 0; hoverFwd = 0; hoverAccel = 0; hoverBob = 0;
+  hoverLat = 0; hoverFwd = 0; hoverAccel = 0;
+  get hoverBob(): number { return this.motionState.board.hoverBob; }
+  set hoverBob(value: number) { this.motionState.board.hoverBob = value; }
   /** airborne after a board jump (spring disengaged); `hoverLanded` is a one-frame impulse (m/s) for the viewmodel */
-  hoverAir = false; hoverLanded = 0; hoverJumpKick = 0;
+  get hoverAir(): boolean { return this.motionState.board.hoverAir; }
+  set hoverAir(value: boolean) { this.motionState.board.hoverAir = value; }
+  hoverLanded = 0; hoverJumpKick = 0;
   private jumpWasDown = false;
-  /** the on-foot jump's clocks (player/jump.ts, the law SimHost shares): ms since grounded, air jumps left */
-  private readonly jumpState: JumpState = { ago: Infinity, left: 0 };
   onHoverChange?: (on: boolean) => void;
   // ── water ──
   /** height of the water surface under the player (app.world.water: the sea, a pond / river, a creek); null on dry land */
-  waterSurface: number | null = null;
+  get waterSurface(): number | null { return this.motionState.footing.water; }
+  set waterSurface(value: number | null) { this.motionState.footing.water = value; }
   /** metres of water above the feet (0 when dry or the feet are above the surface) */
-  depth = 0;
+  get depth(): number { return this.motionState.footing.depth; }
+  set depth(value: number) { this.motionState.footing.depth = value; }
   /** on foot with water over the feet (speed scaled by depth, no sprint past knee-deep, splashy steps) */
-  wading = false;
+  get wading(): boolean { return this.motionState.footing.wading; }
+  set wading(value: boolean) { this.motionState.footing.wading = value; }
   /** floating: the feet hang FLOAT_DEPTH under the surface and buoyancy, not gravity, holds them there */
-  swimming = false;
+  get swimming(): boolean { return this.motionState.swim.on; }
+  set swimming(value: boolean) { this.motionState.swim.on = value; }
   /** the DIVE control (Space / the DIVE disc) is held while swimming: descend at DIVE_SPEED (the dive latches past DIVE_ENTER — see `diving`) */
   diveHeld = false;
   /** touch DIVE disc state (TouchControls) — summed into `diveHeld` with Space */
@@ -106,11 +119,14 @@ export class Player {
   /** the eye is under the water surface (the underwater look, muffled audio, the SURFACE disc). Also true for the beat a plunge dips the head under. */
   submerged = false;
   /** on foot on ground too steep to stand on (normal y < SLOPE_SLIDE): sliding down the fall line, no control, no jump */
-  sliding = false;
+  get sliding(): boolean { return this.motionState.footing.sliding; }
+  set sliding(value: boolean) { this.motionState.footing.sliding = value; }
   /** the ground under the feet this frame is a platform (deck, floor, steps), not the terrain — platforms are never "too steep" */
-  onPlatform = false;
+  get onPlatform(): boolean { return this.motionState.footing.onPlatform; }
+  set onPlatform(value: boolean) { this.motionState.footing.onPlatform = value; }
   /** diving: the dive latched (feet more than DIVE_ENTER below the float height) — neutral buoyancy holds the depth until SURFACE brings you back up */
-  diving = false;
+  get diving(): boolean { return this.motionState.swim.diving; }
+  set diving(value: boolean) { this.motionState.swim.diving = value; }
   /** the eye went under / came back up (Audio.dive() plunge / Audio.surface() gasp) */
   onSubmerge?: () => void;
   onSurface?: () => void;
@@ -125,7 +141,12 @@ export class Player {
   onStroke?: () => void;
   private inWater = false;
   /** the swim law's clocks (player/swim.ts SwimState): the stroke phase, a haul-out's deck top and its cooldown */
-  strokeTime = 0; climbTo: number | null = null; climbCooldown = 0;
+  get strokeTime(): number { return this.motionState.swim.strokeTime; }
+  set strokeTime(value: number) { this.motionState.swim.strokeTime = value; }
+  get climbTo(): number | null { return this.motionState.swim.climbTo; }
+  set climbTo(value: number | null) { this.motionState.swim.climbTo = value; }
+  get climbCooldown(): number { return this.motionState.swim.climbCooldown; }
+  set climbCooldown(value: number) { this.motionState.swim.climbCooldown = value; }
   private readonly waterLine: WaterLineView;
   /** Ground grace window, authored by the active level. */
   coyoteMs: number = COYOTE_MS;
@@ -151,7 +172,8 @@ export class Player {
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
   touchDodge = false;
   /** walking speed multiplier a weapon may pin (the Nalati spear's BRACE: 0 = planted, the view still turns) */
-  moveScale = 1;
+  get moveScale(): number { return this.motionState.moveScale; }
+  set moveScale(value: number) { this.motionState.moveScale = value; }
   /** Grid driver supplies a position-dependent board limit; standalone cruise retains HOVER_TOP. */
   hoverSpeedLimit: (() => number) | null = null;
   /** Developer HUD latch; the motion law also fences it with isDev on every step. */
@@ -171,14 +193,14 @@ export class Player {
   /** degrees to widen the view by: kicked by a dodge / lunge, held while the dash runs, eased out after — Sword.ts adds it to its FOV */
   fovKick = 0;
   /** the running dodge / lunge burst and the dodge's clocks (player/dash.ts, the law SimHost shares) */
-  private readonly dashState: DashState = { t: 0, vx: 0, vz: 0 };
-  private readonly dodgeState: DodgeState = { cd: 0, t: 0 };
+  private readonly dashState: DashState = this.motionState.dash;
+  private readonly dodgeState: DodgeState = this.motionState.dodge;
   private dashRoll = 0; // camera lean into a sideways dodge (rad), from the dodge envelope
   private readonly dodgeDir = { x: 0, z: 0 };
   private dodgeClock = -1; // ms since the running dodge started (-1 = none): the E63 feel curves
   /** a creature hit's knockback (player/shove.ts): it overrides the walk input and fades, through the controller */
-  private readonly shoveState: ShoveState = { t: 0, vx: 0, vz: 0 };
-  private readonly impulseVelocity = new THREE.Vector3();
+  private readonly shoveState: ShoveState = this.motionState.shove;
+  private readonly impulseVelocity: THREE.Vector3 = this.motionState.impulse;
   /** something else owns the position (the zipline's cable, the finale's reward shot): the fixed step leaves it alone */
   carried = false;
   // ── the fixed step (PHYSICS.md P2): input() reads intents, step() moves at 60 Hz, update() poses the camera ──
@@ -218,7 +240,6 @@ export class Player {
     this.canvas = canvas;
     this.waterLine = views.waterLine ?? new WaterLine();
     this.currentMotor = new CharacterMotor(physics, { ...PLAYER_CAPSULE, ...PLAYER_BODY, owner: this });
-    this.motionState = pageMotionState(this, { impulse: this.impulseVelocity, shove: this.shoveState, dash: this.dashState, dodge: this.dodgeState, jump: this.jumpState });
     this.motionWorld = this.pageMotionWorld();
   }
 
@@ -230,8 +251,6 @@ export class Player {
   }
   private groundHeightAt(x: number, z: number): number { return this.frameQueries === null ? heightAt(x, z) : this.frameQueries.heightAt(x, z); }
   private walkableSurfaces(): readonly ((x: number, z: number) => number | undefined)[] { return this.frameQueries?.platforms ?? this.platforms; }
-  /** This Player as the motion step's state (player/motion.ts): its own fields, read and written through. */
-  private readonly motionState: PlayerMotionState;
   private readonly motionWorld: MotionWorld;
   /** The step's world: this Player's motor, the level's queries, and the moments the view hangs off. */
   private pageMotionWorld(): MotionWorld {
@@ -596,29 +615,4 @@ export class Player {
     this.waterLine.update(eyeAbove, dt);
     this.waterLine.setHint(!swim ? 0 : submerged ? 2 : 1);
   }
-}
-
-/**
- * This Player as `PlayerMotionState`: it reads and writes the Player's public fields, which the view, the weapons and the
- * shards read, or the motion state the Player owns (`own`).
- */
-function pageMotionState(player: Player, own: Pick<PlayerMotionState, 'impulse' | 'shove' | 'dash' | 'dodge' | 'jump'>): PlayerMotionState {
-  const { position, velocity } = player;
-  return { ...own, position, velocity,
-    get yaw() { return player.yaw; }, set yaw(value) { player.yaw = value; },
-    get moveScale() { return player.moveScale; }, set moveScale(value) { player.moveScale = value; },
-    fall: { get grounded() { return player.onGround; }, set grounded(value) { player.onGround = value; } },
-    board: { get on() { return player.hover; }, set on(value) { player.hover = value; }, get onGround() { return player.onGround; }, set onGround(value) { player.onGround = value; },
-      get hoverAir() { return player.hoverAir; }, set hoverAir(value) { player.hoverAir = value; },
-      get hoverBob() { return player.hoverBob; }, set hoverBob(value) { player.hoverBob = value; } },
-    swim: { stood: false, get on() { return player.swimming; }, set on(value) { player.swimming = value; },
-      get diving() { return player.diving; }, set diving(value) { player.diving = value; },
-      get climbTo() { return player.climbTo; }, set climbTo(value) { player.climbTo = value; },
-      get climbCooldown() { return player.climbCooldown; }, set climbCooldown(value) { player.climbCooldown = value; },
-      get strokeTime() { return player.strokeTime; }, set strokeTime(value) { player.strokeTime = value; } },
-    footing: { get water() { return player.waterSurface; }, set water(value) { player.waterSurface = value; },
-      get depth() { return player.depth; }, set depth(value) { player.depth = value; },
-      get wading() { return player.wading; }, set wading(value) { player.wading = value; },
-      get onPlatform() { return player.onPlatform; }, set onPlatform(value) { player.onPlatform = value; },
-      get sliding() { return player.sliding; }, set sliding(value) { player.sliding = value; } } };
 }
