@@ -46,7 +46,7 @@ export interface WorkerClientPorts {
   readonly system: (system: SystemSpec) => void;
 }
 interface Saves { readonly storage: SaveStorage; readonly write: (key: string, value: string | null) => Promise<boolean> }
-interface ShellModule { readonly openIndexedSaves: (name: string) => Promise<Saves>; readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string } & Saves) => Shell }
+interface ShellModule { readonly openIndexedSaves: (name: string) => Promise<Saves>; readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true } & Saves) => Shell }
 interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 /** The row's saves stand apart, so playing it never touches a real one. */
@@ -110,7 +110,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const environment = await import(/* @vite-ignore */ `${root}/storage.js`) as { installBrowserSaveEnvironment: () => void };
   environment.installBrowserSaveEnvironment();
   const { openIndexedSaves, startStandalone } = await import(/* @vite-ignore */ `${root}/shell.js`) as ShellModule;
-  const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix: PROOF_SAVES, ...await openIndexedSaves(PROOF_DATABASE) }), { client } = shell;
+  const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix: PROOF_SAVES, ...ports.grid === null ? { lone: true as const } : {}, ...await openIndexedSaves(PROOF_DATABASE) }), { client } = shell;
   scope.onDispose(() => { shell.dispose(); });
   const net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
   // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it

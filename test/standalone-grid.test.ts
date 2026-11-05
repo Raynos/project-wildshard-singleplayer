@@ -38,10 +38,10 @@ const cell = (slug: string): number => assembly.cells.findIndex(row => row.slug 
 const until = async (ready: () => boolean, timeout = 30_000): Promise<void> => { await vi.waitFor(() => { expect(ready()).toBe(true); }, { timeout, interval: 5 }); };
 
 let running: StandaloneGrid | undefined;
-function start(storage: SaveStorage, arrival?: GridPoint, home = HOME): { shell: StandaloneShell; stop: () => void } {
+function start(storage: SaveStorage, arrival?: GridPoint, home = HOME, lone?: true): { shell: StandaloneShell; stop: () => void } {
   const control = new MessageChannel(), game = new MessageChannel();
   const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => serverInput(slug), proof: { ...(arrival === undefined ? {} : { arrival }), booted: grid => { running = grid; } } });
-  const shell = connectStandalone({ slug: home, base: `/shards/${home}/`, build: 'test', savePrefix: 'wildshard.', storage }, control.port2, game.port2, () => { server.dispose(); });
+  const shell = connectStandalone({ slug: home, base: `/shards/${home}/`, build: 'test', savePrefix: 'wildshard.', storage, ...(lone === undefined ? {} : { lone }) }, control.port2, game.port2, () => { server.dispose(); });
   return { shell, stop: () => { shell.dispose(); } };
 }
 /** Keep walking on a heading until `done`. Yaw π/2 is -x. */
@@ -50,6 +50,28 @@ async function walk(shell: StandaloneShell, yaw: number, done: () => boolean): P
   try { await until(done); } finally { clearInterval(timer); }
 }
 const ownerX = (shell: StandaloneShell): number => { const { client } = shell, frame = client.latest; return frame === null ? Number.NaN : Number(client.owner(frame)['px']); };
+
+// A one-shard page has one world: its player walks to the shard's own wall and stays there, in that world, on the same frame.
+test.each([['a grid shard', HOME], ['a slug the grid does not place', 'pastel-plain']])('a lone cell runs %s inside its own walls', { timeout: 120_000 }, async (_name, slug) => {
+  const storage = new PageStorage(), { shell, stop } = start(storage, undefined, slug, true), travels: NetTravel[] = [];
+  shell.client.onTravel(event => { travels.push(event); });
+  await shell.booted;
+  const seat = running?.host.players.get('actor.player');
+  if (seat === undefined) throw new Error('No session player');
+  seat.position.set(-230, seat.position.y + 60, seat.position.z); seat.motor.resetAt(seat.position); // a minute's walk from spawn
+  shell.ready();
+  await until(() => shell.client.latest !== null);
+  const frame = shell.client.latest?.cell;
+  expect(frame).toBe(1);
+  let last = ownerX(shell), still = 0;
+  await walk(shell, Math.PI / 2, () => { const at = ownerX(shell); still = Math.abs(at - last) < 0.01 ? still + 1 : 0; last = at; return still > 400; });
+  expect(last).toBeGreaterThan(-250);
+  expect(travels).toEqual([]);
+  expect(shell.client.latest?.cell).toBe(frame);
+  expect((await shell.save()).ok).toBe(true);
+  expect(storage.getItem(`wildshard.standalone-lone-${slug}`)?.length).toBeGreaterThan(1000);
+  stop();
+});
 
 test('a client walks off the road into a cell and back, and a reload resumes it wherever it stood', { timeout: 120_000 }, async () => {
   const storage = new PageStorage(), first = start(storage, { x: -259, y: 0, z: 0 }), travels: NetTravel[] = [], { client } = first.shell;

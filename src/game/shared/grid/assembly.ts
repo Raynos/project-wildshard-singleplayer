@@ -1,6 +1,6 @@
 import catalogue from './singleplayer.json' with { type: 'json' };
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { parseGridCatalogue, type CopyIdentity, type GridEdgeLook, type GridMode } from './catalogue';
+import { parseGridCatalogue, type CopyIdentity, type GridCatalogue, type GridEdgeLook, type GridMode } from './catalogue';
 
 /** A world-space or cell-local point; authoritative simulations only receive the latter. */
 export interface GridPoint { x: number; y: number; z: number }
@@ -30,11 +30,12 @@ export class GridAssembly {
   readonly emptyNeighbour: EmptyNeighbour;
   private readonly byInstance: ReadonlyMap<string, GridCell>;
   private readonly byCell: ReadonlyMap<string, GridCell>;
-  constructor(_mode: GridMode, input: unknown = catalogue.grid) {
-    const data = parseGridCatalogue(input);
-    if (new Set(data.cells.map((row) => row.instance)).size !== data.cells.length) throw new Error('Duplicate assembled grid identity');
+  /** `lone`: a session of that one shard, placed at the origin with nothing around it: what a one-shard page runs, on the grid or not. Its identity isn't the grid cell's, so their saves stay apart. */
+  constructor(_mode: GridMode, input: unknown = catalogue.grid, lone?: string) {
+    const data = parseGridCatalogue(input), rows: GridCatalogue['cells'] = lone === undefined ? data.cells : [{ instance: `lone-${lone}`, slug: lone, cell: [0, 0] }];
+    if (new Set(rows.map((row) => row.instance)).size !== rows.length) throw new Error('Duplicate assembled grid identity');
     this.pitch = data.pitch;
-    this.cells = Object.freeze(data.cells.map((row): GridCell => Object.freeze({ instance: row.instance, slug: row.slug,
+    this.cells = Object.freeze(rows.map((row): GridCell => Object.freeze({ instance: row.instance, slug: row.slug,
       cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }),
       ...(row.identity === undefined ? {} : { identity: row.identity }),
       ...(row.edgeLook === undefined ? {} : { edgeLook: Object.freeze({ ...row.edgeLook }) }),

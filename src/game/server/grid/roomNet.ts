@@ -20,6 +20,8 @@ export interface GridNetPorts {
   readonly step?: (site: string | null, inputs: readonly NetTickInput[]) => boolean;
   /** What this world's tick granted. */
   readonly filings?: (site: string | null, first: string) => readonly LedgerFiling[];
+  /** One cell and no road: nobody crosses, whatever their feet say. */
+  readonly lone?: boolean;
   /** Withhold every welcome until `open`, for a client that is still loading (§6.3.1). A later world opens as it is made. */
   readonly held?: boolean;
 }
@@ -62,7 +64,7 @@ export class GridNetRooms {
   open(): void { this.opened = true; for (const { net } of this.rooms.values()) net.open(); }
   /** One fixed tick: crossings, then their hand-offs, then each occupied world's room. A seat that crossed has left its old host, so its client must not send that room another command. */
   tick(): void {
-    this.room.cross();
+    if (this.ports.lone !== true) this.room.cross();
     for (const { player, from, to } of this.room.drainTravels()) {
       const client = this.clients.get(player);
       if (client === undefined) continue;

@@ -27,6 +27,8 @@ export interface StandaloneConfig {
   readonly write?: (key: string, value: string | null) => Promise<boolean>;
   /** Who this player is (J111); absent, this device's own id. */
   readonly identity?: NetIdentity;
+  /** A one-shard page: the server runs this cell alone, inside its own walls and with no road. */
+  readonly lone?: true;
 }
 /** A running standalone session. */
 export interface StandaloneShell {
@@ -110,7 +112,7 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
   const visibility = (): void => { post({ kind: document.visibilityState === 'hidden' ? 'pause' : 'resume' }); };
   const scope = new Scope('standalone.shell');
   if (typeof document !== 'undefined') scope.listen(document, 'visibilitychange', visibility);
-  post({ kind: 'boot', slug: config.slug, base: config.base, build: config.serverBuild ?? config.build, savePrefix: config.savePrefix, saves: saveDocuments(config.storage, config.savePrefix) });
+  post({ kind: 'boot', slug: config.slug, base: config.base, build: config.serverBuild ?? config.build, savePrefix: config.savePrefix, saves: saveDocuments(config.storage, config.savePrefix), ...(config.lone === true ? { lone: true } : {}) });
   return { client, transport, booted: bootPromise,
     ready: () => { post({ kind: 'ready' }); }, pause: () => { post({ kind: 'pause' }); }, resume: () => { post({ kind: 'resume' }); },
     save: () => request(id => ({ kind: 'save', id }), message => message.kind === 'saved' ? { tick: message.tick, ok: message.ok } : null),

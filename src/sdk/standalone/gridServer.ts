@@ -13,6 +13,7 @@ import type { ChatReports } from '@wildshard/engine/net/chat';
 import type { NetTickInput } from '@wildshard/engine/net/room';
 import { groups } from '@wildshard/engine/physics/groups';
 import { NearColliders } from '@wildshard/engine/physics/nearColliders';
+import { addEdgeWalls } from '@wildshard/engine/physics/terrain';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
@@ -65,6 +66,8 @@ export interface GridServerOptions {
   /** A world's tick finished, in how many milliseconds. */
   readonly stepped: (host: SimHost, ms: number) => void;
   readonly now: () => number;
+  /** A one-shard page: this cell alone, inside its own walls, with no crossing out of it, whether the grid places it or not. */
+  readonly lone?: boolean;
   /** A proof's way in: start on the road at this world point, as no player can, rather than in the home cell. */
   readonly arrival?: Readonly<GridPoint>;
   /** A proof's override of `STANDALONE_RESIDENTS`. */
@@ -105,14 +108,19 @@ function addRim(host: SimHost): void {
   for (const [x, z, hx, hz] of [[reach, 0, RIM / 2, long], [-reach, 0, RIM / 2, long], [0, reach, long, RIM / 2], [0, -reach, long, RIM / 2]] as const) addDeck(host, x, z, hx, hz);
 }
 
+/** What stands at a world's edge: a grid cell's deck runs out to the road, and a lone cell has the walls a shard's own page stands inside. */
+function addEdge(host: SimHost, lone: boolean): void {
+  if (lone) withOwner(host.scope, () => { addEdgeWalls(host.physics); }); else addRim(host);
+}
+
 /** A cell with no native plan: a data shard, which any host can run from its output. */
-async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, effects: HeadlessEffect[]): Promise<Pick<CellWorld, 'host' | 'dispose'> & { readonly sim: () => ShardfileSimulation | undefined }> {
+async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, effects: HeadlessEffect[], lone: boolean): Promise<Pick<CellWorld, 'host' | 'dispose'> & { readonly sim: () => ShardfileSimulation | undefined }> {
   await Promise.resolve();
   const { shard, assets, rapier } = input;
   const ports: ShardfileSimPorts = { rapier,
     quest: { fact: (name, actorId) => { effects.push({ kind: 'fact', name, actorId }); }, coins: (amount, actorId) => { effects.push({ kind: 'coins', amount, actorId }); } } };
   const fresh = createShardfileSim(shard, assets, ports);
-  if (snapshot === undefined) { addRim(fresh.host); return { host: fresh.host, sim: () => fresh, dispose: () => { fresh.dispose(); } }; }
+  if (snapshot === undefined) { addEdge(fresh.host, lone); return { host: fresh.host, sim: () => fresh, dispose: () => { fresh.dispose(); } }; }
   const { level } = fresh.host; fresh.dispose();
   const installed: { value?: ReturnType<typeof bindShardfileSim> } = {};
   const host = restoreSimHost(level, { rapier }, typeof snapshot === 'string' ? decodeSimSnapshot(snapshot) : snapshot, restored => { installed.value = bindShardfileSim(restored, shard, assets, { ...ports, restoring: true }); });
@@ -155,17 +163,17 @@ export class StandaloneGrid {
     this.grid = built.grid; this.assembly = built.assembly; this.restored = built.restored; this.saved = built.saved; this.options = built.options; this.worlds = built.worlds; this.slots = built.slots; this.sites = built.sites;
     const { book, build, reports } = built.options;
     this.room = new GridRoom(this.grid, this.assembly, { loadout: () => ({ checkpoint: () => true, stow: () => undefined, interior: () => undefined }) });
-    this.rooms = new GridNetRooms(this.grid, this.room, this.assembly, { held: true, build, book, ...(reports === undefined ? {} : { reports }),
+    this.rooms = new GridNetRooms(this.grid, this.room, this.assembly, { held: true, build, book, lone: built.options.lone === true, ...(reports === undefined ? {} : { reports }),
       step: (site, inputs) => this.step(site, inputs), filings: (site, first) => this.filings(site, first) });
   }
 
   /** Open the session: at its save if it has one that restores, else in the home cell's spawn. */
   static async boot(options: GridServerOptions): Promise<StandaloneGrid> {
-    const assembly = new GridAssembly({ developer: false, devserver: false }), home = new Map([...assembly.cells].reverse().map(cell => [cell.slug, cell])).get(options.slug);
+    const mode = { developer: false, devserver: false }, assembly = options.lone === true ? new GridAssembly(mode, undefined, options.slug) : new GridAssembly(mode), home = new Map([...assembly.cells].reverse().map(cell => [cell.slug, cell])).get(options.slug);
     if (home === undefined) throw new Error(`Standalone needs a grid cell: ${options.slug}`);
     const { saves, storage, savePrefix } = options, worlds = new Map<string, CellWorld>(), cells = new Map<string, ContinuationSlots<SavedContinuation>>();
     let settle: (held: ContinuationSlots<SavedContinuation>) => void = () => undefined;
-    const continuation = saves.define(CONTINUATION), sites = new ContinuationSlots(saves.define(SITE), siteDocuments(options.slug), storage, savePrefix);
+    const continuation = saves.define(CONTINUATION), sites = new ContinuationSlots(saves.define(SITE), siteDocuments(options.lone === true ? home.instance : options.slug), storage, savePrefix);
     const slots = (instance: string): ContinuationSlots<SavedContinuation> => {
       const held = cells.get(instance) ?? new ContinuationSlots(continuation, cellDocuments(instance), storage, savePrefix);
       cells.set(instance, held);
@@ -218,7 +226,7 @@ export class StandaloneGrid {
       const near = input.product !== undefined && hasNativeAssembly(input.product) ? new NearColliders() : undefined, around = near === undefined ? { room: true } : { room: true, near };
       if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
       const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
-      if (snapshot === undefined) addRim(host);
+      if (snapshot === undefined) addEdge(host, options.lone === true);
       host.respawn.served = true;
       return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects, step: inputs => {
         const player = sessionPlayer(host), own = inputs.find(row => row.player === player.id);
@@ -226,7 +234,7 @@ export class StandaloneGrid {
         resident.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
       } };
     }
-    const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects);
+    const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects, options.lone === true);
     return { host, dispose, fact, effects: () => effects, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.

@@ -57,7 +57,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     const local = storage, { arrival, residents } = options.proof ?? {};
     installWorkerIdentity(message.savePrefix);
     installSaveEnvironment({ storage: saveScope => saveScope === 'session' ? null : local, persistent: () => true, persist: () => Promise.resolve(false) });
-    const server = await StandaloneGrid.boot({ slug: message.slug, build: message.build, book, saves, storage: local, savePrefix: message.savePrefix, now: diagnosticNow,
+    const server = await StandaloneGrid.boot({ slug: message.slug, build: message.build, book, saves, storage: local, savePrefix: message.savePrefix, now: diagnosticNow, ...(message.lone === true ? { lone: true } : {}),
       load: slug => options.load(message, slug), stepped, ...(options.onSaveRefused === undefined ? {} : { refused: options.onSaveRefused }), ...(options.reports === undefined ? {} : { reports: options.reports }),
       ...(arrival === undefined ? {} : { arrival }), ...(residents === undefined ? {} : { residents }) });
     grid = server;
