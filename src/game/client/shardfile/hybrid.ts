@@ -2,8 +2,7 @@ import type { GridCellEvents } from '../../shared/grid/cellEvents';
 import { enterDeclaredAudioPhase } from '../audio/sceneDirector';
 import { admittedProductClientPlan, installClientPhase, type ClientPhase } from './clientPlan';
 import { bindResidentWorldScope, boundResidentWorldScope, residentWorldScope } from './hybridPresentation';
-import type { MoverInstallation } from '../../server/plugin/mover';
-import { enterMovers } from '../../server/plugin/moverInstall';
+import { enterMovers, type BorrowedMoverRow } from '../plugin/moverViews';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
@@ -92,7 +91,7 @@ interface ActiveRuntime {
 /** Static-world recipe optionally binds admitted motion after each entered load, on the existing mover host. */
 export interface ResidentWorldRecipe {
   readonly motion?: { readonly source: Shardfile; readonly systemId: string;
-    readonly rows: NonNullable<MoverInstallation['borrowed']>['rows'] };
+    readonly rows: readonly BorrowedMoverRow[] };
 }
 export class HybridResidentWorld<T> {
   private readonly builds = new WeakMap<Scope, Promise<T>>();

@@ -152,9 +152,6 @@ export interface MoverInstallation {
   flags?: Pick<Flags, 'has' | 'set'>;
   prompts?: Interactable[];
   data: MoverData; modules: ReadonlyMap<string, string>; views?: ReadonlyMap<string, MoverView>; systemId: string;
-  /** Bounded authored bindings borrow rendered groups or native chains from the constructed world. */
-  borrowed?: { rows: readonly { readonly id: string; readonly target: string; readonly chain?: boolean;
-    readonly group?: 'group'; readonly visibility?: 'enabled'; readonly order?: 'XYZ'; readonly afterPose?: 'refreshPose' }[]; targets: unknown };
   shared?: { host: ScriptHost; tick: () => number };
   /** Additional consuming item roles join this installer's single host and tick. Incompatible with an injected shared host. */
   composition?: MoverRoleComposition;

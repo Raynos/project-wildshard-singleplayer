@@ -8,7 +8,7 @@ import { INTERACT_SOUNDS } from '@wildshard/engine/audio/gen';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { MoverRuntime } from '../plugin/mover';
-import type { enterMovers } from '../plugin/moverInstall';
+import type { enterMovers } from '../../client/plugin/moverViews';
 import type { ShardContext } from '../../client/plugin/context';
 import type { SceneHandles } from '../../client/shardfile/sceneHandles';
 import { forestPage } from '../../client/shardfile/forestPage';

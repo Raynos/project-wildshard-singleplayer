@@ -54,6 +54,7 @@ import { parseQuestNpcBinding, type QuestNpcTalkBinding } from '@wildshard/forma
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bodyBossFight, type HeldBossBrain } from '../../shared/plugin/bodyBoss';
 import { bossStorm } from './bossStorm';
+import { enterMovers } from './moverViews';
 import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 
 
@@ -967,7 +968,7 @@ export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: Re
 }
 
 /** Enter a page's declared movers: the feed's owner, lent to the quest page's mover facet. */
-export const enterPageMovers = (...args: Parameters<typeof pageSim.enterMovers>): ReturnType<typeof pageSim.enterMovers> => pageSim.enterMovers(...args);
+export const enterPageMovers: typeof enterMovers = (...args) => enterMovers(...args);
 
 /** A real prompt awaiting its admitted page action; using it before binding refuses. */
 export function questPagePrompt(label:string,position:Vector3,radius:number):Interactable {

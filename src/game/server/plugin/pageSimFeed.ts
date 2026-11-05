@@ -1,4 +1,4 @@
-import { enterMovers, installDeclaredMovers } from './moverInstall';
+import { installDeclaredMovers } from './moverInstall';
 import { bindQuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
 
@@ -8,7 +8,6 @@ import { readSpawnScript, SpawnScript } from '../population/spawnScript';
  * the flip swaps one object instead of every view. Each row is the owner's own function: nothing here adds law.
  */
 export interface PageSimFeed {
-  readonly enterMovers: typeof enterMovers;
   readonly installDeclaredMovers: typeof installDeclaredMovers;
   readonly declaredItemScriptBindings: typeof declaredItemScriptBindings;
   readonly commandSocketLift: typeof commandSocketLift;
@@ -17,6 +16,6 @@ export interface PageSimFeed {
 }
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
-  enterMovers, installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
+  installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
 };

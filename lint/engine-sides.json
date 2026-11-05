@@ -1153,10 +1153,7 @@
   "src/game/shared/plugin/moduleHash.ts": "shared",
   "src/game/server/plugin/mover.ts": "server",
   "src/game/server/plugin/pageSimFeed.ts": "server",
-  "src/game/server/plugin/moverInstall.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/server/plugin/moverInstall.ts": "server",
   "src/game/server/plugin/nativeItems.ts": "server",
   "src/game/server/plugin/nativeRewind.ts": "server",
   "src/game/server/plugin/nativeSwept.ts": "server",
@@ -1166,6 +1163,7 @@
   "src/game/client/plugin/scene.ts": "client",
   "src/game/client/plugin/shaderFamily.ts": "client",
   "src/game/server/plugin/simulation.ts": "server",
+  "src/game/client/plugin/moverViews.ts": "client",
   "src/game/client/plugin/ui.ts": "client",
   "src/game/client/plugin/weaponFamily.ts": {
    "side": "client",
