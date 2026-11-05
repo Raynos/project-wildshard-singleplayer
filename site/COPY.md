@@ -1670,7 +1670,7 @@ How the MMO works.
 The technical side, for the curious and for authors: what a shard is, how shards fit together, and how far along the road we are.
 
 <!-- MS31. Every claim on this page comes from a doc or the code; each block's note says where. Status as of 2026-10-27 (E506).
-     {=name} numbers are read from the game's files at build time: site/tools/facts.ts. -->
+     {=name} numbers come from site/facts.json, which the game generates from its own files (scripts/site-facts.mjs). -->
 
 ## MMO · status
 
@@ -1734,7 +1734,7 @@ Placed by the server
 
 Upload it with your creator key; the server gives it a cell and everyone walks in.
 
-<!-- The shardfile: docs/SHARDFILE.md ("Shardfile 0.x", its section table), docs/api/SHARDFILE.md (coverage line), site/shardfile.json. -->
+<!-- The shardfile: docs/SHARDFILE.md ("Shardfile 0.x", its section table), docs/api/SHARDFILE.md (coverage line), the shardfile excerpt in site/facts.json. -->
 
 ## MMO · shardfile question
 
@@ -1895,7 +1895,7 @@ clocks, randomness, network, DOM or files
 
 Script ABI v0 · AssemblyScript first; other languages can target the same interface later
 
-<!-- The grid: drawn and counted from src/game/grid/singleplayer.json at build time (site/tools/facts.ts); src/engine/core/config.ts (the road), MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims, the 23.75 m verges). -->
+<!-- The grid: drawn and counted from src/game/grid/singleplayer.json, via site/facts.json at build time; src/engine/core/config.ts (the road), MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims, the 23.75 m verges). -->
 
 ## MMO · grid question
 

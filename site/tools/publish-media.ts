@@ -31,8 +31,7 @@ interface Media {
 
 const POSTER = '/media/trailer-alpha-poster.webp'; // renamed when the alpha trailer replaced the loop, so cached phones fetch it
 
-const repo = resolve(import.meta.dirname, '..', '..');
-const manifestPath = join(repo, 'site', 'media.json');
+const manifestPath = resolve(import.meta.dirname, '..', 'media.json');
 
 function blobToken(): string {
   const { BLOB_READ_WRITE_TOKEN: env } = process.env;
