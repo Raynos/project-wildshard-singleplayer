@@ -1339,7 +1339,7 @@ packages:
 
   '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a':
     resolution: {commit: 711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a, repo: git@github.com:project-wildshard/shardfile.git, type: git}
-    version: 0.3.3
+    version: 0.3.4
     engines: {node: '>=24.18.0'}
     hasBin: true
 
