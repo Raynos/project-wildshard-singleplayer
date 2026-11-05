@@ -5,7 +5,8 @@ import { pondBob } from '../../shared/player/swim';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
-import { resetMotion, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { pressDodge, resetMotion, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import type { MotionLock } from '../../shared/player/lockOrbit';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
 import { NET_BUTTONS } from '../../shared/input/netButtons';
 import type { InputService } from '../input/InputService';
@@ -26,7 +27,7 @@ import { floorBelow } from '../../shared/physics/query';
 import { applyImpulse } from '../../shared/player/impulse';
 import { shoveHop, startShove, type ShoveState } from '../../shared/player/shove';
 import { COYOTE_MS } from '../../shared/player/jump';
-import { DODGE_COOLDOWN, DODGE_TIME, DODGE_DIST, dashToward, dodgeHeading, startDash, startDodge, type DashState, type DodgeState } from '../../shared/player/dash';
+import { DODGE_COOLDOWN, dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import type { Physics } from '../../shared/physics/Physics';
 
 /** Frame-local surfaces supplied with a motor rebind; null restores the standalone level's existing queries. */
@@ -203,7 +204,6 @@ export class Player {
   private readonly dashState: DashState = this.motionState.dash;
   private readonly dodgeState: DodgeState = this.motionState.dodge;
   private dashRoll = 0; // camera lean into a sideways dodge (rad), from the dodge envelope
-  private readonly dodgeDir = { x: 0, z: 0 };
   private dodgeClock = -1; // ms since the running dodge started (-1 = none): the E63 feel curves
   /** a creature hit's knockback (player/shove.ts): it overrides the walk input and fades, through the controller */
   private readonly shoveState: ShoveState = this.motionState.shove;
@@ -289,7 +289,9 @@ export class Player {
       boardTop: () => hoverSpeed(this.hoverSpeedLimit?.(), this.hoverBoost && isDev()),
       boardCapped: () => this.hoverSpeedLimit !== null || this.hoverBoost,
       jumped: () => { this.commandJumpUsed = true; if (this.replaying) return; if (this.hover) this.hoverJumpKick = 1; app.events.emit('player.jump', true); this.onJump?.(); },
-      dodged: () => undefined, // the page presses its own dodge: dodge()
+      dodged: (x, z, back) => { this.dodgeFeel(x, z, back); },
+      lunged: () => { this.lungeFeel(); },
+      dodgeScale: () => this.dodgeCooldownScale,
       landed: (hard, vy, cushion) => { if (this.replaying) return; this.landImpulse = Math.min(0.35, -vy * 0.03) * (1 - 0.7 * cushion); this.onLand?.(hard); },
       boardLanded: (speed) => { if (this.replaying) return; this.hoverLanded = speed; this.onLand?.(speed > HOVER_HARD_LANDING); },
       swimChanged: (on) => { this.swimChanged(on); },
@@ -359,50 +361,21 @@ export class Player {
   /** the sword's lunge: dash toward (x, z) and stop `stopAt` m short of it, over `time` s. False (nothing happens) when already that close. */
   dashTo(x: number, z: number, stopAt: number, time: number): boolean {
     if (!this.canDash || !dashToward(this.dashState, this.position.x, this.position.z, x, z, stopAt, time)) return false;
-    this.fovKick = Math.max(this.fovKick, LUNGE_FOV_KICK);
-    this.onLunge?.();
+    this.lungeFeel();
     return true;
   }
-  /** DODGE (Left Alt / the DODGE disc): DODGE_DIST m in DODGE_TIME s toward the move input, a backstep with none;
-   *  DODGE_COOLDOWN s between. The feel is E63's T "lean + smear" — the user locked it in and V was deleted (E82) */
-  dodge(): boolean {
-    if (this.dodgeState.cd > 0 || !this.canDash) return false;
-    const move = this.moveInput(), fwd = move.y, str = move.x;
-    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
-    const heading = this.dodgeDir;
-    const len = dodgeHeading(-sin * fwd + cos * str, -cos * fwd - sin * str, this.yaw, heading); // no input: straight back
-    let mx = heading.x, mz = heading.z;
-    const v = DODGE_DIST / DODGE_TIME;
-    // locked on (E50 §2.4): the dodge is relative to the target — sideways = a side-hop of DODGE_DIST m of ARC round it (the
-    // radius kept), forward = a short close-in dash that stops at lunge distance, back / none = the backstep, straight away
-    const lt = lockOn.state === 'locked' ? lockOn.target : null;
-    let ok: boolean | null = null;
-    if (lt !== null && len >= 0.2) {
-      const dx = lt.position.x - this.position.x, dz = lt.position.z - this.position.z, r = Math.hypot(dx, dz);
-      if (r > 0.3) {
-        const ux = dx / r, uz = dz / r, radial = mx * ux + mz * uz, tang = -mx * uz + mz * ux; // input split: toward / round (right = (−uz, ux))
-        if (Math.abs(tang) >= Math.abs(radial)) {
-          const th = DODGE_DIST / Math.max(r, 1.5), ox = -ux * r, oz = -uz * r;
-          let best: [number, number] | null = null;
-          for (const a of [th, -th]) { // the rotation that moves along the pushed side
-            const c = Math.cos(a), sn = Math.sin(a);
-            const tx = lt.position.x + ox * c - oz * sn, tz = lt.position.z + ox * sn + oz * c;
-            if (((tx - this.position.x) * -uz + (tz - this.position.z) * ux) * tang > 0) best = [tx, tz];
-          }
-          if (best) { mx = best[0] - this.position.x; mz = best[1] - this.position.z; const l = Math.hypot(mx, mz) || 1; ok = this.dash(mx / DODGE_TIME, mz / DODGE_TIME, DODGE_TIME); mx /= l; mz /= l; }
-        } else if (radial > 0) ok = this.dashTo(lt.position.x, lt.position.z, targetRadius(lt) + 1.1, 0.2);
-      }
-    }
-    ok ??= this.dash(mx * v, mz * v, DODGE_TIME);
-    if (!ok) return false;
-    startDodge(this.dodgeState, this.dodgeCooldownScale);
-    if (this.replaying) return true;
-    // feel (E63): the camera / viewmodel / screen curves run off one clock — see the camera block in update()
-    const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, mx * cos - mz * sin)); // + = the dodge goes right (view space)
+  private lungeFeel(): void {
+    this.fovKick = Math.max(this.fovKick, LUNGE_FOV_KICK);
+    this.onLunge?.();
+  }
+  /** A dodge started, the shared law's `dodged` (player/motion.ts): its look, E63's T "lean + smear", which the user locked in
+   *  and V was deleted (E82). The camera, viewmodel and screen curves run off one clock: see the camera block in update(). */
+  private dodgeFeel(x: number, z: number, back: boolean): void {
+    if (this.replaying) return;
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw), side = back ? 0 : Math.max(-1, Math.min(1, x * cos - z * sin)); // + = the dodge goes right (view space)
     this.dodgeClock = 0;
-    dodgeFx.t = 0; dodgeFx.side = side; dodgeFx.back = len < 0.2; dodgeFx.id++;
+    dodgeFx.t = 0; dodgeFx.side = side; dodgeFx.back = back; dodgeFx.id++;
     app.events.emit('player.dodge', true); this.onDodge?.();
-    return true;
   }
   /** Add transient world velocity in m/s independently of steering; every displacement uses the motor. */
   impulse(worldVelocityMps: THREE.Vector3): void {
@@ -546,7 +519,14 @@ export class Player {
   private stepCommand(dt: number, command: PlayerCommand): void {
     this.yaw = command.yaw; this.pitch = command.pitch;
     this.crouchWanted = command.crouch;
-    if (command.dodge && this.dodge()) {
+    const fwd = command.moveY, str = command.moveX, sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    const moveX = -sin * fwd + cos * str, moveZ = -cos * fwd - sin * str;
+    // locked on (E50 §2.4): the shared law bends the move and the dodge round it. The lock is this page's, and its radius is
+    // LockOnTarget's until a step holds it; a replay runs on the radius it restored
+    const lt = lockOn.state === 'locked' ? lockOn.target : null;
+    const lock: MotionLock | undefined = lt === null ? undefined : { x: lt.position.x, z: lt.position.z, radius: targetRadius(lt), fwd, str };
+    if (!this.replaying) this.motionState.lock.r0 = lockOn.r0;
+    if (command.dodge && pressDodge(this.motionState, { moveX, moveZ, yaw: this.yaw, lock }, this.motionWorld)) {
       this.dodgeQueued = false; this.commandDodgeUsed = true;
     }
     this.prevFeet.copy(this.position);
@@ -555,38 +535,21 @@ export class Player {
     if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.lawless = true; this.ride.step(dt); return; }
     if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.impulseVelocity.set(0, 0, 0); this.jumpQueued = false; this.lawless = true; return; }
     if (this.carried || this.effectMoveLocked) { this.impulseVelocity.set(0, 0, 0); this.velocity.set(0, 0, 0); this.onGround = false; return; }
-    const fwd = command.moveY, str = command.moveX;
     const hover = this.hover;
     const swim = this.swimming && !hover;
     this.crouching = !hover && !swim && this.crouchWanted;
     this.sprinting = sprints(this.motionState, command.sprint, fwd, this.crouching);
     this.waveTime += dt;
 
-    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
-    let mx = (-sin * fwd + cos * str), mz = (-cos * fwd - sin * str);
-    // locked on (E50 §2.4): MOVE orbits the target — stick x = round it, y = in / out; a pure sideways push holds the radius
-    // you had (a straight strafe under a tracking view spirals out), and never closer than its body + 0.9 m
-    const lt = lockOn.state === 'locked' ? lockOn.target : null;
-    if (lt !== null && !hover && !swim) {
-      const dx = lt.position.x - this.position.x, dz = lt.position.z - this.position.z, r = Math.hypot(dx, dz);
-      if (r > 0.2) {
-        const ux = dx / r, uz = dz / r, minR = targetRadius(lt) + 0.9;
-        let f = fwd;
-        if (f > 0 && r <= minR) f = 0;
-        if (Math.abs(f) > 0.15) lockOn.r0 = r;
-        else if (Math.abs(str) > 0.1) f = Math.max(-0.6, Math.min(0.6, (r - lockOn.r0) * 0.8));
-        mx = ux * f - uz * str; mz = uz * f + ux * str;
-      }
-    }
     this.jumpQueued = false;
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
     this.diveHeld = swim && command.dive;
     this.surfaceHeld = swim && command.surface;
     if (hover) { this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4); }
 
-    // the move: the one motion step SimHost also runs (player/motion.ts), on this Player's world. dodge()
-    // above pressed its own dodge, because the lock-on's side-hop is client-only.
-    const out = stepPlayerMotion(this.motionState, { moveX: mx, moveZ: mz, yaw: this.yaw, jump: command.jump && !swim, dive: this.diveHeld, surface: this.surfaceHeld }, this.motionWorld, dt);
+    // the move: the one motion step SimHost also runs (player/motion.ts), on this Player's world
+    const out = stepPlayerMotion(this.motionState, { moveX, moveZ, yaw: this.yaw, jump: command.jump && !swim, dive: this.diveHeld, surface: this.surfaceHeld, lock }, this.motionWorld, dt);
+    if (!this.replaying) lockOn.r0 = this.motionState.lock.r0;
     this.afterMotion(out, hover, dt);
   }
 

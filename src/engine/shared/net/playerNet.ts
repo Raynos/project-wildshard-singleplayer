@@ -41,6 +41,7 @@ export const PLAYER_NET: NetSchema<PlayerSim> = netSchema<PlayerSim>({
     impulseX: { kind: 'f32', predicted: true, read: player => player.impulse.x },
     impulseY: { kind: 'f32', predicted: true, read: player => player.impulse.y },
     impulseZ: { kind: 'f32', predicted: true, read: player => player.impulse.z },
+    lockR0: { kind: 'f32', predicted: true, read: player => player.lock.r0 },
     jumpAgo: { kind: 'f32', predicted: true, read: player => player.jump.ago },
     jumpLeft: { kind: 'f32', predicted: true, read: player => player.jump.left },
     hoverAir: { kind: 'bool', predicted: true, read: player => player.board.hoverAir },

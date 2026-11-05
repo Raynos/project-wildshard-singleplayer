@@ -4,8 +4,8 @@
  * prediction can replay what the server ran (P1-E4.1, E5-REPLICATION §5.1).
  *
  * It is a pure step over `PlayerMotionState`, a command and a `MotionWorld` of injected queries and moments: no renderer,
- * no DOM, no `app`, no device. What a caller does around it stays with the caller: reading devices, the lock-on's orbit
- * and side-hop, camera, bob and FOV on the client; drivers, traversal asks and the weapon's strike on the server.
+ * no DOM, no `app`, no device. What a caller does around it stays with the caller: reading devices, camera, bob and FOV on
+ * the client; drivers, traversal asks and the weapon's strike on the server.
  *
  * The two callers ran two composers until E4.1. There is one law now, the page's (J112, P1-E5.3), so the step can be replayed
  * on the client to the server's 2 cm: a resting body steps too, because slopes slide and decks carry.
@@ -17,10 +17,11 @@ import { Vector3 } from 'three';
 import type { LocalMovementCommand } from '../input/commands';
 import type { CharacterMotor } from '../physics/CharacterMotor';
 import { stepBoard, type BoardPorts, type BoardState, type BoardStepOut } from './board';
-import { DODGE_DIST, DODGE_TIME, dashBlocked, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from './dash';
+import { DODGE_DIST, DODGE_TIME, dashBlocked, dashToward, dodgeHeading, startDash, startDodge, stepDash, stepDodge, type DashState, type DodgeState } from './dash';
 import { fallStep, groundedVelocity, hardLanding, landingCushion } from './fall';
 import { decayImpulse } from './impulse';
 import { jump as jumpLaw, jumpClock, jumpSpeed, type JumpState } from './jump';
+import { lockedDodge, orbitMove, type LockedDodge, type LockState, type MotionLock } from './lockOrbit';
 import { stepShove, type ShoveState } from './shove';
 import { deepWater, entryKeep, NO_SPRINT_DEPTH, stepSwim, swimEntry, swimStroke, wadeFraction, type SwimPorts, type SwimState } from './swim';
 import { walkingSpeed, walkVelocity } from './walk';
@@ -62,6 +63,8 @@ export interface PlayerMotionState {
   readonly shove: ShoveState;
   readonly dash: DashState;
   readonly dodge: DodgeState;
+  /** a lock-on's held orbit radius */
+  readonly lock: LockState;
   /** the jump clocks */
   jump: JumpState;
   readonly board: BoardState & { on: boolean };
@@ -76,7 +79,11 @@ export interface MotionCommand extends LocalMovementCommand {
   readonly jump?: boolean; readonly dodge?: boolean;
   /** held while swimming */
   readonly dive?: boolean; readonly surface?: boolean;
+  /** the target this step's move and dodge bend round: a caller resolves it, player/lockOrbit.ts */
+  readonly lock?: MotionLock | undefined;
 }
+/** All a dodge press reads of a command. */
+export type DodgePress = Pick<MotionCommand, 'moveX' | 'moveZ' | 'yaw' | 'lock'>;
 
 /** A floor function: a walkable surface's height at (x, z), or undefined off it. */
 export type MotionPlatform = (x: number, z: number) => number | undefined;
@@ -112,8 +119,12 @@ export interface MotionWorld {
   boardCapped: () => boolean;
   /** a jump left the ground or the board */
   jumped: () => void;
-  /** this step's press started a dodge */
-  dodged: () => void;
+  /** a press started a dodge along this unit world heading; `back` it had no input, so it is a backstep */
+  dodged: (x: number, z: number, back: boolean) => void;
+  /** a locked dodge closed in, as a lunge does */
+  lunged: () => void;
+  /** what a perk scales the dodge's cooldown by */
+  dodgeScale: () => number;
   /** the feet touched down from the air at `vy` m/s, on `cushion` of water */
   landed: (hard: boolean, vy: number, cushion: number) => void;
   /** an airborne board touched down at `speed` m/s */
@@ -145,6 +156,7 @@ export interface MotionScratch {
   readonly out: MotionOut;
   readonly want: Vector3;
   readonly heading: { x: number; z: number };
+  readonly locked: LockedDodge;
   readonly swimOut: { water: number | null };
   readonly boardPorts: BoardPorts;
   readonly swimPorts: SwimPorts;
@@ -183,7 +195,7 @@ export function sprints(s: PlayerMotionState, sprint: boolean, forward: number, 
 function motionScratch(s: PlayerMotionState, w: MotionWorld): MotionScratch {
   const ground = (): number => groundUnderFeet(s, w);
   const out: MotionOut = { mode: 'foot', jumped: false, left: null, board: { lat: 0, fwd: 0, accel: 0, water: null }, entryKeep: 0.3 };
-  return { out, ground, want: new Vector3(), heading: { x: 0, z: 0 }, swimOut: { water: null },
+  return { out, ground, want: new Vector3(), heading: { x: 0, z: 0 }, locked: { vx: 0, vz: 0, time: 0, stopAt: 0 }, swimOut: { water: null },
     deep: (x, z) => w.hasWater && deepWater(x, z, s.position.y, w.water(x, z), w.heightAt(x, z), w.platforms, w.floor),
     boardPorts: { move: (feet, want) => { w.motor.move(feet, want, true); }, ground, water: (x, z) => w.water(x, z),
       jumped: () => { out.jumped = true; w.jumped(); }, landed: (speed) => { w.boardLanded(speed); } },
@@ -223,13 +235,21 @@ function enterSwim(s: PlayerMotionState, w: MotionWorld, run: MotionScratch): vo
 
 /** The DODGE press: toward the command's world move, a backstep with none, at DODGE_DIST / DODGE_TIME. The page's
  *  dodge knows the lock-on, a client-only target: it presses for itself and never sends this. */
-function pressDodge(s: PlayerMotionState, cmd: MotionCommand, w: MotionWorld, run: MotionScratch): void {
-  const { dodge, board, swim } = s, heading = run.heading, v = DODGE_DIST / DODGE_TIME;
-  if (dodge.cd > 0 || board.on || swim.on) return;
-  dodgeHeading(cmd.moveX, cmd.moveZ, cmd.yaw, heading);
-  if (!startDash(s.dash, heading.x * v, heading.z * v, DODGE_TIME)) return;
-  startDodge(dodge, 1);
-  w.dodged();
+/** A dodge press, ahead of the tick's mode: a caller presses before it asks who owns the step, so a press counts as the page
+ *  has always counted it. Reads only the command. Refused on its cooldown, on the board, in the water and on a slide. */
+export function pressDodge(s: PlayerMotionState, cmd: DodgePress, w: MotionWorld): boolean {
+  const run = w.scratch ??= motionScratch(s, w), { dash, dodge, board, swim, footing, position: p } = s, { heading, locked } = run;
+  if (dodge.cd > 0 || board.on || swim.on || footing.sliding) return false;
+  const len = dodgeHeading(cmd.moveX, cmd.moveZ, cmd.yaw, heading), v = DODGE_DIST / DODGE_TIME;
+  const { lock } = cmd, kind = lock !== undefined && len >= 0.2 ? lockedDodge(lock, p.x, p.z, DODGE_DIST, DODGE_TIME, heading, locked) : 'straight';
+  if (kind === 'close') {
+    if (lock === undefined || !dashToward(dash, p.x, p.z, lock.x, lock.z, locked.stopAt, locked.time)) return false;
+    w.lunged();
+  } else if (kind === 'hop') startDash(dash, locked.vx, locked.vz, locked.time);
+  else startDash(dash, heading.x * v, heading.z * v, DODGE_TIME);
+  startDodge(dodge, w.dodgeScale());
+  w.dodged(heading.x, heading.z, len < 0.2);
+  return true;
 }
 
 /** The walk a command asks of a host: the dry speed, the same on every shard, and the crouch. The wade and the two scales
@@ -342,11 +362,13 @@ export function stepPlayerMotion(s: PlayerMotionState, cmd: MotionCommand | unde
   const run = w.scratch ??= motionScratch(s, w), { out } = run, { board, dash, swim } = s;
   out.jumped = false; out.left = null;
   if (cmd !== undefined) s.yaw = cmd.yaw;
-  if (cmd?.dodge === true) pressDodge(s, cmd, w, run);
   stepDodge(s.dodge, dash.t > 0, dt);
   if (!swim.on) swim.stood = false; // last tick's stand-up is over
   if (!board.on) board.hoverBob = 0;
-  let mx = cmd?.moveX ?? 0, mz = cmd?.moveZ ?? 0;
+  const { heading } = run;
+  heading.x = cmd?.moveX ?? 0; heading.z = cmd?.moveZ ?? 0;
+  if (cmd?.lock !== undefined && !board.on && !swim.on) orbitMove(s.lock, cmd.lock, s.position.x, s.position.z, heading);
+  let mx = heading.x, mz = heading.z;
   const len = Math.hypot(mx, mz);
   if (len > 1) { mx /= len; mz /= len; }
   if (board.on || swim.on) dash.t = 0; // the board and the water end a dash

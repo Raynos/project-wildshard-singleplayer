@@ -256,6 +256,7 @@
     "./physics/ropeDeck": "./client/physics/ropeDeck.ts",
     "./physics/surface": "./shared/physics/surface.ts",
     "./physics/terrain": "./shared/physics/terrain.ts",
+    "./player/lockOrbit": "./shared/player/lockOrbit.ts",
     "./player/AimTargets": "./client/player/AimTargets.ts",
     "./combat/lungeTarget": "./shared/combat/lungeTarget.ts",
     "./player/CameraFX": "./client/player/CameraFX.ts",

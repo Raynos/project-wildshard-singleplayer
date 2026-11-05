@@ -14,7 +14,9 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { commandedWalk, resetMotion, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { commandedWalk, pressDodge, resetMotion, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { LOCK_REACH, type LockState, type MotionLock } from '../../shared/player/lockOrbit';
+import { targetRadius } from '../../shared/combat/lungeTarget';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import { validateLocalMovement } from '../../shared/input/commands';
 import { netSimCommand } from '../../shared/sim/netMotion';
@@ -83,6 +85,10 @@ export class PlayerSim implements PlayerMotionState {
   readonly dash: DashState = { t: 0, vx: 0, vz: 0 };
   /** The dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
   readonly dodge: DodgeState = { cd: 0, t: 0 };
+  /** The orbit radius a lock holds (player/lockOrbit.ts). */
+  readonly lock: LockState = { r0: 0 };
+  /** The body this player's lock holds, as its last command named it; null with none. */
+  private lockId: string | null = null;
   /** Counts this player's teleports, for the wire: a client hears one even when no command is on its way (P1-E5.3-C2). Never saved. */
   resets = 0;
   /** Something else owns the position (a cable's seat): the step leaves it alone, and the client takes no local step. */
@@ -281,6 +287,18 @@ export class PlayerSim implements PlayerMotionState {
   /** A status effect holds this player still: the page's `effectMoveLocked`. */
   get moveLocked(): boolean { return (this.health.attributes['moveLocked'] ?? 0) > 0; }
   /** A saved read of the feet, or for a save older than it, what the step would have left at this pose. */
+  get lockHeld(): string | null { return this.lockId; }
+  /** A saved lock, or none in a save without one. */
+  restoreLock(saved: { readonly target: string; readonly r0: number } | undefined): void { this.lockId = saved?.target ?? null; this.lock.r0 = saved?.r0 ?? 0; }
+  /** What a command's lock means here: a real living body in reach, or nothing at all, so a bad target costs the client its
+   *  orbit and never the server anything. A new body starts its orbit at the radius the feet stand at. */
+  private resolveLock(id: string | undefined, steer: NonNullable<SimCommand['steer']>): MotionLock | undefined {
+    const body = id === undefined ? undefined : this.host.entities.get(id), p = this.position;
+    const r = body === undefined ? Infinity : Math.hypot(body.position.x - p.x, body.position.z - p.z);
+    if (id === undefined || body === undefined || !body.alive || !(r <= LOCK_REACH)) { this.lockId = null; return undefined; }
+    if (id !== this.lockId) { this.lockId = id; this.lock.r0 = r; }
+    return { x: body.position.x, z: body.position.z, radius: targetRadius(body), fwd: Math.max(-1, Math.min(1, steer.keyY + steer.stickY)), str: Math.max(-1, Math.min(1, steer.keyX + steer.stickX)) };
+  }
   restoreFooting(saved: MotionFooting | undefined): void {
     if (saved !== undefined) { Object.assign(this.footing, saved); return; }
     const { footing, position: p } = this, water = this.board.on ? null : this.world.water(p.x, p.z);
@@ -312,6 +330,8 @@ export class PlayerSim implements PlayerMotionState {
       boardCapped: () => false,
       jumped: () => { this.host.events.emit('player.jump', true); },
       dodged: () => { this.host.events.emit('player.dodge', true); },
+      lunged: () => undefined,
+      dodgeScale: () => this.health.attributes['dodgeCooldownMul'] ?? 1,
       // a hard landing files the client's fall hit (Player.onLand(hard) → PlayerHurt.fall)
       landed: (hard) => { if (hard) this.host.combat.hit(hardFallHit(this.health, this.position)); },
       boardLanded: (speed) => { if (speed > HOVER_HARD_LANDING) this.host.combat.hit(hardFallHit(this.health, this.position)); },
@@ -329,9 +349,10 @@ export class PlayerSim implements PlayerMotionState {
     if (![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
     validateLocalMovement(command);
     if ((command.dive !== undefined && typeof command.dive !== 'boolean') || (command.surface !== undefined && typeof command.surface !== 'boolean')) throw new RangeError('Invalid held swim control');
-    if (command.commandVersion !== 1 || command.steer === undefined) { this.command = command; return; }
+    if (command.commandVersion !== 1 || command.steer === undefined) { this.lockId = null; this.command = command; return; }
     localWalkingMove(command.steer, command.yaw, this.localMove);
-    this.command = { ...command, moveX: this.localMove.x, moveZ: this.localMove.z };
+    const lock = this.resolveLock(command.lockTarget, command.steer);
+    this.command = { ...command, moveX: this.localMove.x, moveZ: this.localMove.z, ...(lock === undefined ? {} : { lock }) };
   }
   /** The tick's input phase, before the world steps: the drivers, the walk's speed and the HOVER press. */
   input(): void {
@@ -352,6 +373,7 @@ export class PlayerSim implements PlayerMotionState {
   move(): void {
     const { command, delegated } = this, driver = this.tickDriver, host = this.host;
     const observe = this.motionObserver;
+    if (command?.dodge === true) pressDodge(this, command, this.world);
     // An unanswered ask returns its numeric dt input; only an explicit true claims motion.
     const traversal: unknown = delegated ? false : host.askTraversal(this);
     const traversed = traversal === true;

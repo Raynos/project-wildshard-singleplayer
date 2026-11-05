@@ -72,6 +72,8 @@ export interface SimCommand extends LocalMovementCommand {
   /** SF34: the DIVE and SURFACE controls held this tick while swimming (player/swim.ts; the page's Space / Shift and the
    *  touch discs). Held states, so `advance` repeats them; read only by a host with water (useWater). */
   dive?: boolean; surface?: boolean;
+  /** J116: the body the client says it is locked on: its orbit and side-hop bend round it, if it is real and in reach. */
+  lockTarget?: string;
 }
 /** One player's input for one tick: off the wire, or a recorded world-space tape command. */
 export type SimTickCommand = NetCommand | SimCommand;

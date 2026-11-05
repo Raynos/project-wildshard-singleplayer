@@ -90,6 +90,7 @@ const playerState = v.strictObject({ id, position: vector, yaw: finite, health: 
   board: v.optional(v.strictObject({ air: v.boolean(), bob: finite })),
   swim: v.optional(v.strictObject({ on: v.boolean(), diving: v.boolean(), climbTo: v.nullable(finite), climbCooldown: nonnegative, stroke: nonnegative, stood: v.boolean() })),
   footing: v.optional(v.strictObject({ water: v.nullable(finite), depth: nonnegative, wading: v.boolean(), onPlatform: v.boolean(), sliding: v.boolean() })),
+  lock: v.optional(v.strictObject({ target: id, r0: nonnegative })),
   jump: v.optional(v.strictObject({ ago: v.nullable(nonnegative), left: v.picklist([0, 1]) })),
   dash: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })), dodge: v.optional(v.strictObject({ cd: nonnegative, t: nonnegative })) });
 const entries = {

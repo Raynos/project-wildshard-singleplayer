@@ -191,7 +191,7 @@ export class PageSide implements MotionEvents {
       app.world.water.add({ id: 'sea', level: 0, surfaceAt: (x, z) => seaSwell(x, z, clock.seconds + PAGE_SEA_LEAD), inside: () => false, restAt: () => null }, this.scope);
     }
     if (scenario.lockAt !== undefined) {
-      this.target = { alive: true, kind: 'parity', position: new Vector3(scenario.lockAt.x, 0, scenario.lockAt.z), dims: { bodyRadius: .5, bodyHalfLen: .5 }, lockable: true };
+      this.target = { alive: true, kind: 'parity', position: new Vector3(scenario.lockAt.x, 0, scenario.lockAt.z), dims: SIM_CREATURE_RECIPE.spec.dims, lockable: true };
       lockOn.state = 'locked'; lockOn.target = this.target; lockOn.r0 = scenario.lockAt.r0;
     }
   }
@@ -203,8 +203,6 @@ export class PageSide implements MotionEvents {
   tick(tick: number, intent: MotionIntent): void {
     const { player } = this, moveX = axis(intent.keyX, intent.stickX), moveY = axis(intent.keyY, intent.stickY);
     this.course.advance(tick); this.tickClock.seconds = tick * FIXED_STEP;
-    // dodge() reads the device, not the command (A8)
-    player.touchMove.x = moveX; player.touchMove.y = moveY;
     if (intent.hover === true) player.setHover(!player.hover);
     this.physics.step();
     const command: PlayerCommand = { moveX, moveY, yaw: intent.yaw ?? player.yaw, pitch: intent.pitch ?? 0, crouch: intent.crouch === true, aim: NO_AIM,
@@ -292,8 +290,7 @@ export class HostSide implements MotionEvents {
   carried(on: boolean): void { this.player.carried = on; }
   /** A10: the host's board has no limit yet; its source is the grid's rules. */
   boardLimit(): void { /* A10 */ }
-  /** A8: the host has no perk scale yet; its source is the health attribute. */
-  dodgeCooldownScale(): void { /* A8 */ }
+  dodgeCooldownScale(scale: number): void { this.player.health.attributes['dodgeCooldownMul'] = scale; }
   phaseGate(): void { this.player.motor.phased.add(this.course.gate); }
   dispose(): void { this.host.dispose(); }
 }

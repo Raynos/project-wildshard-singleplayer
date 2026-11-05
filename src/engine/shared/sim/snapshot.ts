@@ -72,7 +72,9 @@ export interface SimPlayerSnapshot { id: string; position: number[]; yaw: number
     /** SF72: the on-foot jump clocks (SimHost.playerJump; `ago` null = never grounded since: no coyote), absent on a fresh
      *  player; the running dash (playerDash) and the dodge clocks (playerDodge) only while they run. */
     jump?: { ago: number | null; left: 0 | 1 } | undefined; dash?: { t: number; vx: number; vz: number } | undefined;
-    dodge?: { cd: number; t: number } | undefined }
+    dodge?: { cd: number; t: number } | undefined;
+    /** J116: the lock this player's orbit holds, only while it holds one. */
+    lock?: { target: string; r0: number } | undefined }
 /** The lead player's continuation, first in the list. */
 export function leadSnapshot(saved: Pick<SimSnapshot, 'players'>): SimPlayerSnapshot {
   const lead = saved.players[0];
@@ -282,7 +284,7 @@ function playerSnapshot(host: SimHost, player: PlayerSim): SimPlayerSnapshot {
     ...(player.fall.grounded ? {} : { airborne: true as const }),
     ...(player.shove.t > 0 ? { shove: { ...player.shove } } : {}),
     ...(player.board.on ? { board: { air: player.board.hoverAir, bob: player.board.hoverBob } } : {}),
-    ...swimField(player), ...footingField(player),
+    ...swimField(player), ...footingField(player), ...(player.lockHeld === null ? {} : { lock: { target: player.lockHeld, r0: player.lock.r0 } }),
     ...jumpFields(player), ...traversalField(player) };
 }
 /** The swim (SF34) while it runs or its haul-out cooldown does, else omitted. */
@@ -342,6 +344,7 @@ function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
   player.jump.ago = jump?.ago ?? Infinity; player.jump.left = jump?.left ?? 0;
   Object.assign(player.dash, saved.dash ?? { t: 0, vx: 0, vz: 0 });
   Object.assign(player.dodge, saved.dodge ?? { cd: 0, t: 0 });
+  player.restoreLock(saved.lock);
   player.health.restore(decode(saved.health, host) as ReturnType<PlayerHealth['snapshot']>);
   player.restoreFooting(saved.footing);
   if (saved.traversals?.length === 0) throw new Error('Invalid empty traversal mode continuation');
