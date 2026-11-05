@@ -4,7 +4,7 @@
   "client → server": 454,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 152,
+  "server → client": 151,
   "server → dom": 2,
   "server → render": 6,
   "shared → client": 3,
@@ -555,9 +555,6 @@
    "client → server": 1
   },
   "src/game/shard/declaredEntry.ts": {
-   "server → client": 1
-  },
-  "src/game/shard/declaredUi.ts": {
    "server → client": 1
   },
   "src/game/shard/load.ts": {

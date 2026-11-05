@@ -53,6 +53,14 @@ export function bindPlayerImpulse(apply: (velocity: Vector3) => void): {
   };
 }
 
+/** Every player in the world rises in a column of air, each read in the column's own fixed step (P1-E3.10). */
+export function bindPlayerColumns(host: Pick<SimHost, 'players' | 'parked' | 'focusedPlayer' | 'onStep'>, rows: readonly TraverseMode[]): void {
+  let rider = host.focusedPlayer;
+  bindPlayerImpulse(velocity => { rider.addImpulse(velocity); }).columns(rows, () => rider.position, () => rider.board.on, (id, run) => {
+    host.onStep(id, dt => { for (const player of host.players.values()) { if (host.parked.has(player.id)) continue; rider = player; run(dt); } });
+  });
+}
+
 /** Default data-only herd and diver recipes over one real host; injected trusted recipes remain separate. */
 export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardCreatures['spawns'] = [], borrowedImpulse?: (velocity: Vector3) => void): {
   brains: DeclaredBrainPorts; groups: DeclaredGroupPorts; install: () => void;

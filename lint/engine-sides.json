@@ -1309,7 +1309,7 @@
   "src/game/shard/declaredPlumbing.ts": "server",
   "src/game/shard/declaredRows.ts": "server",
   "src/game/shard/declaredTargets.ts": "server",
-  "src/game/shard/declaredUi.ts": "server",
+  "src/game/shard/declaredUi.ts": "client",
   "src/game/shard/list.ts": "client",
   "src/game/shard/load.ts": "client",
   "src/game/shard/manifest.ts": "server",

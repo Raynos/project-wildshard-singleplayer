@@ -60,7 +60,7 @@ import { speciesResolver, simStrikes } from "./brain";
 import { createShardfileScriptLane, verifiedScriptModules, type ScriptModuleAssets, type ShardScriptPorts } from "../shardfile/scripts";
 import { installDeclaredBrains, type DeclaredBrainPorts } from "../shardfile/brainRuntime";
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
-import { bindPlayerImpulse, dataCreaturePorts } from "../shardfile/dataCreaturePorts";
+import { bindPlayerColumns, dataCreaturePorts } from "../shardfile/dataCreaturePorts";
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../shardfile/crowdRuntime";
 import { installLadders, type LadderClientPorts } from '../shardfile/ladder';
@@ -258,8 +258,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
         encounters: new Map([[parseBossOwnerRow(recipe.population.owner).actor, encounter]]) },
     });
     if (ownsTargets) bindNativeWorldTargets(host, melee, questRuntime, targets, context.emit);
-    if (row.columns) bindPlayerImpulse(velocity => { lead.addImpulse(velocity); }).columns(shard.modes?.traverse ?? [], () => lead.position, () => lead.board.on,
-      (id, run) => { host.onStep(id, run); });
+    if (row.columns) bindPlayerColumns(host, shard.modes?.traverse ?? []);
     keeper.settle();
   } };
   const entries = row.entries;
