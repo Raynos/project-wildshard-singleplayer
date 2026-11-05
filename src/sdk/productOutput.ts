@@ -4,22 +4,20 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { admitShardfileProduct, assertProductTargets as assertTargets } from '@wildshard/format/productValidation';
 import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/product';
 import { validationRevision, validationSourceBytes } from '@wildshard/format/validationReceipt';
-import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { hashAssetBytes } from './assetHandle';
-import { performanceTargetIssues } from './reportCard';
 
 // Author-only facade: direct synchronous writers need the same readiness as the CLI.
 await prepareAssetDecoders();
 
 /** Refuse the same target overages as the author CLI; warning policy belongs only to trusted checkout callers. */
 export function assertProductTargets(source: Shardfile, policy: 'warn' | 'refuse'): void {
-  const issues = performanceTargetIssues(source, policy).filter(issue => issue.severity === 'refusal');
-  if (issues.length === 0) return;
   // Execution has not run yet; report only the targets actually checked.
-  throw new Error(issues.map(issue => `REFUSAL: ${issue.metric}: ${issue.actual} > ${issue.limit}`).join('\n'));
+  assertTargets(source, policy);
 }
 
 /** Each product admitProduct returned: the assets map, policy and script rows it was admitted with, and its exact JSON then
@@ -28,12 +26,14 @@ const admitted = new WeakMap<object, { readonly assets: ReadonlyMap<string, Uint
 
 /** Admit declared costs and actual immutable bytes through the browser's defining contracts, without a config loader. */
 export function admitProduct(input: unknown, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse' = 'refuse', scripts: ScriptAdmissionRows = []): Shardfile {
-  const source = parseShardfile(input);
-  preflightDeclaredCosts(source, offlineMemoryAdmission(policy));
-  assertProductTargets(source, policy);
-  const product = validateShardfileAssets(source, assets, hashAssetBytes, offlineMemoryAdmission(policy), undefined, scripts);
-  admitted.set(product, { assets, policy, scripts: JSON.stringify(scripts), snapshot: JSON.stringify(product) });
+  const product = admitShardfileProduct(input, assets, hashAssetBytes, policy, scripts);
+  rememberAdmitted(product, assets, policy, scripts);
   return product;
+}
+
+/** Record a product format validation just admitted, so a writer handed that same object does not admit it twice. */
+export function rememberAdmitted(product: Shardfile, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse', scripts: ScriptAdmissionRows): void {
+  admitted.set(product, { assets, policy, scripts: JSON.stringify(scripts), snapshot: JSON.stringify(product) });
 }
 
 /**

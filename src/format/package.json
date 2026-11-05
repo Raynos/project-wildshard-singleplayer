@@ -328,7 +328,8 @@
     "./paintedResources": "./paintedResources.ts",
     "./postGraphDocument": "./postGraphDocument.ts",
     "./scaledPostContract": "./scaledPostContract.ts",
-    "./arenaRoomDocument": "./arenaRoomDocument.ts"
+    "./arenaRoomDocument": "./arenaRoomDocument.ts",
+    "./productValidation": "./productValidation.ts"
   },
   "dependencies": {
     "meshoptimizer": "1.2.0",

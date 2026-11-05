@@ -1,6 +1,3 @@
-import { registeredJsonContract } from '@wildshard/format/registeredJson';
-import { validatePlatformFile } from '@wildshard/format/platformFileFamilies';
-import { parseNamedJson } from '@wildshard/format/json';
 import { ktx2DeviceCosts } from '@wildshard/format/ktx2Cost';
 import { controlFileHashes, playLibrarySteps } from '@wildshard/format/admissionControl';
 import { entryFileSteps } from '@wildshard/format/tierSelection';
@@ -12,20 +9,15 @@ import {postStackCost} from '@wildshard/format/postStack';
 import { existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Product paths are validated relative paths, never URLs.
 import { dirname, resolve } from 'node:path';
-import { assembleOutputShardfile, parseOutputIndex, parseOutputSection, validateOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
+import { parseOutputIndex, parseOutputSection, type OutputFile, type OutputIndex } from '@wildshard/format/outputIndex';
 import { outputSectionPayloads, OUTPUT_SECTIONS } from '@wildshard/format/outputFields';
-import { decisionModuleContracts, decisionScriptsFromSections, scriptAdmissionRows, type ScriptAdmissionRows, type ScriptContract } from '@wildshard/format/scriptContract';
+import { decisionScriptsFromSections, scriptAdmissionRows, type ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import type { DecisionScripts } from '@wildshard/format/decisionScripts';
-import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
-import type { Shardfile } from '@wildshard/format/shardSchema';
 import { structuralGridEvidence } from '@wildshard/format/gridReadiness';
-import { assetCost, offlineMemoryAdmission } from '@wildshard/format/product';
+import { offlineMemoryAdmission } from '@wildshard/format/product';
 import { validationRevision, validationSourceBytes } from '@wildshard/format/validationReceipt';
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
-import { isTerrainTileData } from '@wildshard/format/terrainTileBytes';
-import { parseImageAsset } from '@wildshard/format/stillImage';
-import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
-import { admitProduct, readmitted } from './productOutput';
+import { admitProduct, readmitted, rememberAdmitted } from './productOutput';
 import { performanceTargetIssues } from './reportCard';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { assetHandles, hashAssetBytes, immutableAsset, verifyAssetBytes, type ImmutableAsset } from './assetHandle';
@@ -33,50 +25,12 @@ import { readBoundedFile } from './sourceReader';
 import { validateRuntimeImports } from './runtimeImports';
 import { validateDefinedJson, type EmittedSections } from './sections';
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
+import { checkWorldTargets, outputBlobExtension as blobExtension, outputBlobKind as blobKind, readCanonicalJson as readJson, validateShardfileProduct, type ProductFiles, type ValidatedProduct } from '@wildshard/format/productValidation';
 
 const encoder = new TextEncoder();
 /** I5: larger encoded textures use separate envelopes; existing small packs stay stable. */
 const SMALL_PACK_MEMBER_BYTES = 1_048_576, PACK_BYTES = 4_194_304;
 function jsonBytes(value: unknown): Uint8Array { return encoder.encode(encodeCanonicalJson(value)); }
-function readJson(bytes: Uint8Array): unknown {
-  const text = new TextDecoder('utf-8', {fatal:true}).decode(bytes), value: unknown = JSON.parse(text);
-  if (encodeCanonicalJson(value) !== text) throw new Error('Output JSON must use canonical encoding');
-  return value;
-}
-function blobKind(kind: string, bytes: Uint8Array): OutputFile['kind'] {
-  if (kind === 'binary') return isTerrainTileData(bytes) ? 'tile' : 'bin';
-  if (kind === 'commons') {
-    const head = new TextDecoder().decode(bytes.subarray(0, 4));
-    if (head === 'glTF') return 'glb'; if (bytes[0] === 171) return 'ktx2';
-    if (head === 'RIFF' || new TextDecoder().decode(bytes.subarray(4,8)) === 'ftyp') return 'audio';
-    return isTerrainTileData(bytes) ? 'tile' : 'bin';
-  }
-  if (kind === 'glb' || kind === 'ktx2' || kind === 'audio' || kind === 'json' || kind === 'wasm' || kind === 'image') return kind;
-  throw new Error('Unsupported output asset kind');
-}
-function blobExtension(kind: OutputFile['kind'], bytes: Uint8Array): string {
-  if (kind === 'tile') return 'wtt';
-  if (kind === 'image') return {'image/webp':'webp','image/jpeg':'jpg','image/png':'png'}[parseImageAsset(bytes).mime];
-  if (kind === 'audio') {
-    const head = new TextDecoder().decode(bytes.subarray(0,4));
-    if (head === 'RIFF') return 'wav'; if (head === 'OggS') return 'ogg';
-    if (new TextDecoder().decode(bytes.subarray(4,8)) === 'ftyp') return 'm4a';
-    return 'mp3';
-  }
-  return kind;
-}
-function inspectBlob(file: OutputFile, bytes: Uint8Array, script?: ScriptContract): void {
-  if (file.name !== undefined && registeredJsonContract(file.name) !== undefined && (file.kind !== 'json' || file.jsonSchema === undefined)) throw new Error('Registered JSON requires its defining schema');
-  if (file.jsonSchema !== undefined) validateDefinedJson(jsonBytes(file.jsonSchema), bytes, file.name);
-  if (file.kind === 'json' && file.name !== undefined) {
-    const source = file.jsonSchema?.['$comment'];
-    if (validatePlatformFile(file.name, typeof source === 'string' ? source : undefined, parseNamedJson(bytes)) === undefined) throw new Error(`Unregistered named JSON: ${file.name}`);
-  }
-  const legacy = file.kind === 'bin' || file.kind === 'tile' ? 'binary' : file.kind;
-  if (blobKind(legacy,bytes) !== file.kind || !file.path.endsWith(`.${blobExtension(file.kind,bytes)}`)) throw new Error('Output blob bytes differ from their declared kind');
-  const cost = assetCost(legacy,bytes,script);
-  if ((['decoded','gpu','triangles','draws'] as const).some(key => cost[key] > file[key])) throw new Error('Output blob understates parsed costs');
-}
 function put(destination: string, path: string, bytes: Uint8Array): void { const target = resolve(destination,path); mkdirSync(dirname(target),{recursive:true});writeFileSync(target,bytes); }
 /** Optional build-only extensions. Runtime bytes themselves are written by the P3 copier. */
 export interface OutputProductOptions {
@@ -105,11 +59,6 @@ export function outputDecisionScripts(platform?: EmittedSections): DecisionScrip
 /** Exact contracts for both generic actor decisions and population-owned directors. */
 export function outputScriptAdmissionRows(platform?: EmittedSections): ScriptAdmissionRows {
   return scriptAdmissionRows(outputPlatformPayloads(platform, ['sim/scripts', 'actors/spawn-scripts', 'actors/return-scripts', 'view/modules']));
-}
-function checkWorldTargets(source: Shardfile, input: unknown): void {
-  if (input === undefined) return;
-  const errors = worldTargetRules(parseWorldTargets(input), source);
-  if (errors.length > 0) throw new Error(errors.join('; '));
 }
 /** Split an admitted product without changing host values or any immutable asset byte. */
 export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Uint8Array>, destination: string, options: OutputProductOptions = {}): OutputIndex {
@@ -241,34 +190,43 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     ...(discovery === undefined ? {} : { discovery: { hash: hashImmutableBytes(jsonBytes(discovery)), values: discovery } }) }));
   return index;
 }
-/** Validate format, exact file inventory, bytes/kinds and defining platform contracts.
- * Existing full product admission still enforces cross-references and budgets. */
-export function validateOutputProduct(destination: string, prior?: ReadonlyMap<string, ImmutableAsset>): {index:OutputIndex; shard:Shardfile; assets:ReadonlyMap<string,Uint8Array>} {
-  const index = parseOutputIndex(readJson(readBoundedFile(resolve(destination,'shard.json'),limits.sourceBytes)));
-  const verified = new Map(prior);
-  const listed = new Set(['shard.json','validation.json']), payloads = new Map<string,unknown>(), assets = new Map<string,Uint8Array>();
-  const read = (entry:{path:string;hash:string;bytes:number}):Uint8Array => {
-    let target=destination;
-    for(const part of entry.path.split('/')){target=resolve(target,part);if(lstatSync(target).isSymbolicLink())throw new Error('Output symlinks refuse');}
-    if(!lstatSync(target).isFile())throw new Error('Output inventory needs regular files');
-    listed.add(entry.path);const bytes=readBoundedFile(resolve(destination,entry.path),entry.bytes);
-    if(bytes.length!==entry.bytes||!verifyAssetBytes(bytes,entry.hash,verified.get(entry.hash)))throw new Error(`Output hash or size mismatch: ${entry.path}`);
-    verified.set(entry.hash,immutableAsset(bytes));return bytes;
+/** The product folder as format validation reads it: bounded reads of regular files only, never through a symlink. */
+function productFolder(destination: string): ProductFiles {
+  return {
+    read: (path: string, maxBytes: number): Uint8Array => {
+      let target = destination;
+      for (const part of path.split('/')) { target = resolve(target, part); if (lstatSync(target).isSymbolicLink()) throw new Error('Output symlinks refuse'); }
+      if (!lstatSync(target).isFile()) throw new Error('Output inventory needs regular files');
+      return readBoundedFile(resolve(destination, path), maxBytes);
+    },
+    paths: (): string[] => {
+      const found: string[] = [];
+      const walk = (folder: string): void => {
+        for (const name of readdirSync(resolve(destination, folder))) {
+          const path = folder === '' ? name : `${folder}/${name}`;
+          if (lstatSync(resolve(destination, path)).isDirectory()) walk(path); else found.push(path);
+        }
+      };
+      walk(''); return found;
+    },
   };
-  for(const entry of index.sections){const bytes=read(entry),value=readJson(bytes);validateOutputSection(entry.name,value);payloads.set(entry.name,value);}
-  const scripts = scriptAdmissionRows(payloads), contracts = decisionModuleContracts(scripts, index.files);
-  for(const entry of index.files){const bytes=read({path:entry.path,hash:entry.hash,bytes:entry.compressed});inspectBlob(entry,bytes,entry.kind === 'wasm' ? contracts.get(entry.hash) ?? {abi:0} : undefined);assets.set(`${entry.commons===true?'commons:':''}${entry.hash}`,bytes);if(index.requires.commons.includes(entry.hash))assets.set(`commons:${entry.hash}`,bytes);}
-  for (const [hash,cost] of Object.entries(index.ktx2Costs ?? {})) {
-    const bytes=assets.get(hash);if(bytes===undefined || encodeCanonicalJson(cost)!==encodeCanonicalJson(ktx2DeviceCosts(bytes)))throw new Error('KTX2 device costs differ from verified bytes');
-  }
-  for(const pack of index.packs??[]){const bytes=read(pack);for(const entry of pack.entries)if(!verifyAssetBytes(bytes.subarray(entry.offset,entry.offset+entry.bytes),entry.hash,verified.get(entry.hash)))throw new Error(`Pack member differs: ${pack.path}`);}
-  for(const entry of index.runtime?.files??[])validateRuntimeImports(destination,entry.path,new TextDecoder('utf-8',{fatal:true}).decode(read(entry)));
-  const walk=(folder:string):void=>{for(const name of readdirSync(resolve(destination,folder))){const path=folder===''?name:`${folder}/${name}`,stat=lstatSync(resolve(destination,path));if(stat.isDirectory())walk(path);else if(!stat.isFile()||!listed.has(path))throw new Error(`Unlisted output file: ${path}`);}};
-  walk('');
-  const shard=admitProduct(assembleOutputShardfile(index,payloads),assets,'warn',scripts);
-  checkWorldTargets(shard, payloads.get('world/targets'));
-  if(hashImmutableBytes(jsonBytes(shard))!==index.build.sourceHash)throw new Error('Output sections differ from the declared source hash');
-  return{index,shard,assets};
+}
+/** Validate a written product folder: P1-F3's format half (`@wildshard/format/productValidation`), with the author's
+ * Ajv schema check, runtime import check and verified-asset snapshots. Executing script bytes is not part of it. */
+export function validateOutputProduct(destination: string, prior?: ReadonlyMap<string, ImmutableAsset>): ValidatedProduct {
+  const verified = new Map(prior);
+  const checked = validateShardfileProduct(productFolder(destination), {
+    hash: hashAssetBytes,
+    verify: (bytes, expected, whole) => {
+      if (!verifyAssetBytes(bytes, expected, verified.get(expected))) return false;
+      if (whole) verified.set(expected, immutableAsset(bytes));
+      return true;
+    },
+    definedJson: (schemaBytes, bytes, name) => { validateDefinedJson(schemaBytes, bytes, name); },
+    runtimeImports: (path, source) => { validateRuntimeImports(destination, path, source); },
+  });
+  rememberAdmitted(checked.shard, checked.assets, 'warn', checked.scripts);
+  return checked;
 }
 /** Clear only a caller-owned generated product before a fresh emission. */
 export function clearOutputProduct(destination: string): void { if(existsSync(destination))rmSync(destination,{recursive:true,force:true}); }

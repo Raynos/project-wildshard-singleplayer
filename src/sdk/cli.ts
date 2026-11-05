@@ -91,15 +91,11 @@ export async function runCli(args: readonly string[], options: { readonly decisi
     if (input.endsWith('.json') && basename(input) !== 'shard.json') throw new Error('validate requires a format-2 shard.json or author project');
     const folder=resolve(input.endsWith('.json') ? dirname(input) : input);
     if (input.endsWith('.json') || existsSync(resolve(folder, 'shard.json'))) {
+      // P1-F3 (a): format validation, @wildshard/format/productValidation alone (schema, inventory, hashes, budgets, admission rows).
       const checked = validateOutputProduct(folder);
-      // G491: validation.json contains static build evidence, never authority
+      // P1-F3 (b): execution proof. G491: validation.json contains static build evidence, never authority
       // for current script CPU. Execute the admitted bytes again on this host.
-      const sections = new Map<string, unknown>();
-      for (const row of checked.index.sections) {
-        const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(resolve(folder, row.path), row.bytes)));
-        sections.set(row.name, value);
-      }
-      await admitBuild(checked.shard, checked.assets, checked.shard.runtime === null ? 'refuse' : 'warn', sections);
+      await admitBuild(checked.shard, checked.assets, checked.shard.runtime === null ? 'refuse' : 'warn', checked.sections);
       console.info(`validated ${checked.shard.identity.slug}: format 2 inventory, byte kinds and section schemas`); return;
     }
     const { shard, assets, output: extensions } = await readProjectAssets(resolve(input), undefined, options.manifest, options);
