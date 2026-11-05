@@ -189,3 +189,18 @@ test('a manifest lists section parts, then build-asset parts, then content parts
   expect(order[0]).toBe('section'); expect(order[1]).toBe('asset');
   expect(order.slice(2).every(kind => kind === 'content')).toBe(true);
 });
+
+// sp-x2's DL5 gzip n=3: Pine's product data (a small content part) sat behind 58 MB of asset-pack parts; past the sections,
+// parts go smallest wire first, so the small ones setup reads first never wait behind the big texture packs
+test('past the section parts, a small content part comes before a big asset part', async () => {
+  const noise = (url: string, bytes: number): Uint8Array => {
+    const bytesOut = new Uint8Array(bytes);
+    for (let at = 0; at < bytes; at += 32) bytesOut.set(createHash('sha256').update(`${url}:${String(at)}`).digest().subarray(0, Math.min(32, bytes - at)), at);
+    return bytesOut;
+  };
+  const big = file('/assets/pine-hollow.phone-aaaaaaaa.ktx2', 3_000_000), small = file('/shardfiles/s/blobs/json/data.json', 100_000);
+  const rows = [big, small];
+  const [table] = await writeSpawnParts(out, [manifest(rows)], url => noise(url, rows.find(row => row.url === url)?.bytes ?? 0), undefined, encoder());
+  const first = (table ?? []).map(part => rows[part.members[0]?.[0] ?? -1]?.url);
+  expect(first).toEqual([small.url, big.url]);
+});
