@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["shared/localSaveKeys","server/grid/farProxy","client/systems/looks/trample","server/population/nativeManager","client/shardfile/lentLooks"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["shared/localSaveKeys","shared/grid/farProxy","client/systems/looks/trample","server/population/nativeManager","client/shardfile/lentLooks"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["shared/localSaveKeys","server/grid/farProxy","client/systems
 
 test('game expressions retain save fields, readonly limits and borrowed uniforms',()=>{
  const consumer=resolve('src/game/t4-isolated-game-expression-declarations-consumer.ts');
- let source="import type {Vector4} from 'three';\nimport {inventoryKey,purseKey} from './shared/localSaveKeys';\nimport {GRID_HAZE,FAR_RING} from './server/grid/farProxy';\nimport {trample} from './client/systems/looks/trample';\nimport {pushLentParams} from './client/shardfile/lentLooks';\nexport const scope:\"shard\"=inventoryKey.scope;\nexport const count:number|undefined=inventoryKey.initial().counts[\"example\"];\nexport const coins:number=purseKey.initial();\nexport const near:600=GRID_HAZE.near;\nexport const ring:9=FAR_RING.count;\nexport const movers:Vector4[]=trample.uniforms.uMovers.value;\npushLentParams({push:looks=>{looks.setParam(\"look\",\"value\",1);}});\n";
+ let source="import type {Vector4} from 'three';\nimport {inventoryKey,purseKey} from './shared/localSaveKeys';\nimport {GRID_HAZE,FAR_RING} from './shared/grid/farProxy';\nimport {trample} from './client/systems/looks/trample';\nimport {pushLentParams} from './client/shardfile/lentLooks';\nexport const scope:\"shard\"=inventoryKey.scope;\nexport const count:number|undefined=inventoryKey.initial().counts[\"example\"];\nexport const coins:number=purseKey.initial();\nexport const near:600=GRID_HAZE.near;\nexport const ring:9=FAR_RING.count;\nexport const movers:Vector4[]=trample.uniforms.uMovers.value;\npushLentParams({push:looks=>{looks.setParam(\"look\",\"value\",1);}});\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

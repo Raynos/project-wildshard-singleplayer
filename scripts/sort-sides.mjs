@@ -303,6 +303,19 @@ export function rewriteTokens(text, path, tree, moves, dirMoves, notes) {
   return out;
 }
 
+const ROOTED_TOKEN = /(?<![\w/.@-])(\.\/)?((?:client|cook|server|shared)\/[\w./-]+?)(?=["'\\])/gu;
+
+/** An isolated declaration test spells its layer's modules from the layer root: `server/grid/rules`. */
+function rewriteRooted(text, path, tree, moves) {
+  const layer = /^src\/(engine|game)\/isolated-[^/]+\.test\.ts$/u.exec(path)?.[1];
+  if (layer === undefined) return text;
+  const root = `src/${layer}/`;
+  return text.replaceAll(ROOTED_TOKEN, (whole, dot, rel) => {
+    const old = `${root}${rel}`, file = fileAt(tree, old), next = file === null ? undefined : moves.get(file);
+    return file === null || next === undefined ? whole : `${dot ?? ''}${next.slice(root.length, next.length - (file.length - old.length))}`;
+  });
+}
+
 /** Keep a list sorted when its keys change, only where re-serialising it is byte-identical to what it was. */
 function resortJson(path, before, after) {
   if (!path.endsWith('.json')) return after;
@@ -461,7 +474,7 @@ function rewriteText(tree, placement, dirMoves, path, before, notes) {
   const { moves, index, stale } = placement;
   let after = rewriteSource(tree, index, moves, dirMoves, path, before, notes);
   if (CODE.test(path) && after.includes('src/')) after = applyEdits(after, rewriteDivided(path, after, rewriteTokens(after, path, tree, moves, dirMoves, []), moves, dirMoves, notes));
-  after = rewriteTokens(after, path, tree, moves, dirMoves, notes);
+  after = rewriteRooted(rewriteTokens(after, path, tree, moves, dirMoves, notes), path, tree, moves);
   if (path === SIDES_FILE) after = dropStale(after, stale);
   if (path === ALLOW_FILE) after = rewriteAllowances(after, moves);
   const layer = /^src\/(engine|game)\/package\.json$/u.exec(path)?.[1];

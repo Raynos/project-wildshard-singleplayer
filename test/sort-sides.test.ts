@@ -173,6 +173,14 @@ test('--move leaves a folder literal that still names its side',()=>{
   expect(plan.writes.has('scripts/names.mjs')).toBe(false);
 });
 
+test('--move follows the root spelling of an isolated declaration test',()=>{
+  const root=sorted();
+  put(root,{'src/engine/isolated-x.test.ts':"const names=[\"client/core/view\",\"client/ui/hud\"];\nconst source=\"import {view} from './client/core/view';\\n\";\n"});commit(root);
+  const {tree,plan}=planMove(headTree(root),['src/engine/client/core/view.ts'],'shared');
+  expect(plan.writes.get('src/engine/isolated-x.test.ts')).toBe("const names=[\"shared/core/view\",\"client/ui/hud\"];\nconst source=\"import {view} from './shared/core/view';\\n\";\n");
+  expect(planFailures(tree,plan,root)).toEqual([]);
+});
+
 test('--move refuses an untagged path, a wrong side and a file already there',()=>{
   const tree=headTree(sorted());
   expect(()=>planMove(tree,['src/engine/client/core/none.ts'],'shared')).toThrow(/no tag/u);

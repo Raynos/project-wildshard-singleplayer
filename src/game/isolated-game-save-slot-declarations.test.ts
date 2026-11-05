@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["shared/saves","shared/grapple/sim","server/grid/continuations","server/plugin/brain","server/plugin/context","server/population/pageGroups","server/quest/interactionRows","server/quest/legacyRecords","server/quest/persistence","server/weapons/Sword"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["shared/saves","shared/grapple/sim","server/grid/continuations","server/plugin/brain","client/plugin/context","server/population/pageGroups","server/quest/interactionRows","server/quest/legacyRecords","server/quest/persistence","server/weapons/Sword"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["shared/saves","shared/grapple/sim","server/grid/continuation
 
 test('game save slots and context aliases retain exact reads and writes',()=>{
  const consumer=resolve('src/game/t4-isolated-game-save-slot-declarations-consumer.ts');
- let source="import type {SaveSlot} from '@wildshard/engine/saves/store';\nimport {progressSave,inventorySave,purseSave,bountySave} from './shared/saves';\nimport {gridCells,gridHomeSim,type GridHomeHandoff} from './server/plugin/context';\nimport type {GridCellEvents} from './server/grid/cellEvents';\nexport const coins:SaveSlot<number>=purseSave;\nexport const cells:GridCellEvents=gridCells;\nexport const home:GridHomeHandoff=gridHomeSim;\nexport const progress:ReturnType<typeof progressSave.read>={counts:{},earned:[],title:null,playS:0};\nexport const inventory:ReturnType<typeof inventorySave.read>={counts:{},order:[]};\nexport const bounty:ReturnType<typeof bountySave.read>={example:2};\n";
+ let source="import type {SaveSlot} from '@wildshard/engine/saves/store';\nimport {progressSave,inventorySave,purseSave,bountySave} from './shared/saves';\nimport {gridCells,gridHomeSim,type GridHomeHandoff} from './client/plugin/context';\nimport type {GridCellEvents} from './shared/grid/cellEvents';\nexport const coins:SaveSlot<number>=purseSave;\nexport const cells:GridCellEvents=gridCells;\nexport const home:GridHomeHandoff=gridHomeSim;\nexport const progress:ReturnType<typeof progressSave.read>={counts:{},earned:[],title:null,playS:0};\nexport const inventory:ReturnType<typeof inventorySave.read>={counts:{},order:[]};\nexport const bounty:ReturnType<typeof bountySave.read>={example:2};\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};
