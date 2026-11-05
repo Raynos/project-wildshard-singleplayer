@@ -1,10 +1,12 @@
-import { CHUNK_HALF } from '@wildshard/format/contentBounds';
+import { roadSocketMetrics } from '@wildshard/sdk/entries';
 import layout from '../data/layout.json' with { type: 'json' };
 import { cellGround } from './ground';
 import { templateNoise } from './landscapeNoise';
 
 // Retained authored entry grading: 15 m road, reaching 60 m into the cell.
 const ROAD_WIDTH = 15, ROAD_LENGTH = 60;
+/** Half the 500 m cell, from the platform's road-socket dimensions. */
+const CHUNK_HALF = roadSocketMetrics().half;
 
 const smoothstep = (a: number, b: number, x: number): number => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));

@@ -2,11 +2,12 @@
 // SHARD-PLATFORM SF16: the template's creature skins as shardfile content. Copies the SF9c exported grey blob and boar
 // (public/assets/baked/skin-fixture, made by scripts/bake/skins.mjs) into the template's content-addressed assets: each
 // GLB, plus one `json` skin file ({ row, binding }) that depends on it, and writes data/skins.json for shard.config.ts.
+// P1-S1: it lives in scripts/, beside the fixture's own producer, since that fixture stays when the template moves out.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 
-const root = resolve(import.meta.dirname, '../../../..'), source = resolve(root, 'public/assets/baked/skin-fixture'), project = resolve(root, 'src/shards/_template');
+const root = resolve(import.meta.dirname, '../..'), source = resolve(root, 'public/assets/baked/skin-fixture'), project = resolve(root, 'src/shards/_template');
 const rows = JSON.parse(readFileSync(resolve(source, 'skins.json'), 'utf8')), bindings = JSON.parse(readFileSync(resolve(source, 'bindings.json'), 'utf8'));
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 // the template's species ids and the exported skin that draws each (the look ids are the legacy look rows')

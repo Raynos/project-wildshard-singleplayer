@@ -31,7 +31,7 @@ import edge from '../data/edge.post.json' with { type: 'json' };
 /** Pure template declarations (data/rows.json); SF16 binds these through the normal shardfile loader. */
 const INK_ROWS = parseRows(rows);
 /** The template's creature looks (SF16): the SF9c exported grey blob and boar, drawn by `platform.skin` and animated from
- *  the creature's state (`platform.clips`); `_template/generators/template-skins.mjs` writes `skins.json` and the files. */
+ *  the creature's state (`platform.clips`); `scripts/bake/template-skins.mjs` writes `skins.json` and the files. */
 const INK_SKIN_LOOKS = skins.map((entry) => ({ id: entry.look, species: entry.species, recipe: 'platform.skin', material: null,
   parameters: { skin: entry.skin }, animation: { recipe: 'platform.clips', parameters: { attackSpan: 1 } } }));
 const INK_SKIN_FILES = skins.flatMap((entry) => entry.files), INK_SKIN_LIBRARY = skins.map((entry) => entry.skin);

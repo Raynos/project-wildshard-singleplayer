@@ -30,7 +30,7 @@ import type { PastelBehaviour } from './behaviour';
 /** Pure template declarations (data/rows.json); SF16 binds these through the normal shardfile loader. */
 const PASTEL_ROWS = parseRows(rows);
 /** The template's creature looks (SF16): the SF9c exported grey blob and boar, drawn by `platform.skin` and animated from
- *  the creature's state (`platform.clips`); `_template/generators/template-skins.mjs` writes `skins.json` and the files. */
+ *  the creature's state (`platform.clips`); `scripts/bake/template-skins.mjs` writes `skins.json` and the files. */
 const PASTEL_SKIN_LOOKS = skins.map((entry) => ({ id: entry.look, species: entry.species, recipe: 'platform.skin', material: null,
   parameters: { skin: entry.skin }, animation: { recipe: 'platform.clips', parameters: { attackSpan: 1 } } }));
 const PASTEL_SKIN_FILES = skins.flatMap((entry) => entry.files), PASTEL_SKIN_LIBRARY = skins.map((entry) => entry.skin);
