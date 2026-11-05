@@ -6,8 +6,8 @@ import { bitsToFloat, BitReader, floatToBits, NetDecodeError, type BitWriter } f
 import { MSG_CMDS } from './messages';
 import type { NetRefs } from './schema';
 
-/** Buttons that fire once on their `seq`; the rest are holds, and only holds repeat when the queue starves. */
-export const NET_PRESSES: number = NET_BUTTONS.jump | NET_BUTTONS.dodge | NET_BUTTONS.hover;
+/** Buttons that fire once on their `seq`, LOCK's toggle among them; the rest are holds, and only holds last through an empty tick. */
+export const NET_PRESSES: number = NET_BUTTONS.jump | NET_BUTTONS.dodge | NET_BUTTONS.hover | NET_BUTTONS.lock;
 /** The most commands one bundle may carry: MAX_FIXED_STEPS new ones plus 4 redundant copies. */
 export const MAX_BUNDLE = 7;
 /** Maps a net handle back to its stable id; undefined for a handle the room does not know. */

@@ -213,6 +213,8 @@ export class SimHost {
   private focused: PlayerSim;
   /** Seats held out of the world: their capsule is disabled, and they take no input, move and heal nothing, and draw no one. */
   readonly parked: Set<string> = new Set<string>();
+  /** What a net room's queues say of the next `step` (J125). That step clears it; a host with no room never has one. */
+  commanded: { readonly still: ReadonlySet<string>; readonly extra: ReadonlyMap<string, SimTickCommand> } | null = null;
   /** The player `player.traversal` is being asked for: a mode answers only for its own player. */
   traversing: PlayerSim | null = null;
   private boardHandles: number[] = [];
@@ -577,12 +579,15 @@ export class SimHost {
     for (const player of present.values()) if (!player.hasMotor) throw new Error('Frozen simulation cannot step');
     if (commands !== undefined) for (const id of commands.keys()) if (!players.has(id)) throw new RangeError(`Unknown simulation player ${id}`);
     this.tickCommands = commands;
-    for (const player of present.values()) player.take(commands?.get(player.id));
+    const { commanded } = this;
+    this.commanded = null;
+    for (const player of present.values()) player.take(commands?.get(player.id), commanded?.still.has(player.id) === true);
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     for (const player of present.values()) player.input();
     if (this.boardHandles.length > 0) this.syncBoardColliders();
     this.physics.step();
     for (const player of present.values()) player.move();
+    if (commanded !== null) for (const [id, command] of commanded.extra) present.get(id)?.catchUp(command);
     this.stepSystems();
     for (const player of present.values()) player.health.update(FIXED_STEP);
     this.events.flush('fixed.post');

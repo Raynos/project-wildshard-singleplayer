@@ -103,6 +103,10 @@ export class PlayerSim implements PlayerMotionState {
   private command: SimCommand | undefined;
   private tickDriver: SimPlayerDriver | undefined;
   private delegated = false;
+  /** A traversal owned this player's last move. */
+  private traversed = false;
+  /** A net room's queue gave this player no command this tick (J125): its motion waits for one. */
+  private still = false;
   private walking: SimWalkingControl = this.commanded;
 
   constructor(host: SimHost, body: PlayerSimBody, scope: Scope) {
@@ -309,7 +313,8 @@ export class PlayerSim implements PlayerMotionState {
     };
   }
   /** Check this tick's command before the host moves anything, and resolve raw axes to a world move. */
-  take(input: SimTickCommand | undefined): void {
+  take(input: SimTickCommand | undefined, still = false): void {
+    this.still = still;
     if (input === undefined) { this.command = undefined; return; }
     const command = simCommandOf(input);
     if (![command.moveX, command.moveZ, command.yaw].every(Number.isFinite)) throw new RangeError('Invalid simulation command');
@@ -341,9 +346,10 @@ export class PlayerSim implements PlayerMotionState {
     // An unanswered ask returns its numeric dt input; only an explicit true claims motion.
     const traversal: unknown = delegated ? false : host.askTraversal(this);
     const traversed = traversal === true;
+    this.traversed = traversed;
     if (delegated) driver?.step(FIXED_STEP, host);
     else if (traversed) this.impulse.set(0, 0, 0);
-    else stepPlayerMotion(this, command, this.world, FIXED_STEP);
+    else if (!this.still) stepPlayerMotion(this, command, this.world, FIXED_STEP);
     if (command?.attack !== undefined) host.startStrike(this.id, command.attack.targetId);
     if (observe !== undefined) {
       let sample: SimPlayerMotionSample | null;
@@ -360,6 +366,12 @@ export class PlayerSim implements PlayerMotionState {
       observe.receive(sample);
     }
     this.command = undefined;
+  }
+  /** A second step this tick, after the world's, for a client catching up (J125). A driver or traversal keeps its one step
+   *  a tick: its motion is not this command's. */
+  catchUp(input: SimTickCommand): void {
+    if (this.delegated || this.traversed) return;
+    this.take(input); this.input(); this.move();
   }
   /** The strike actor view of this player. */
   actor(): { position: Vector3; yaw: number; scale: number; alive: boolean; startAttack: (seconds: number) => void; cancelAttack: () => void; setMotion: (yaw: number, speed: number, turn: number) => void } {

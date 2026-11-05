@@ -2,7 +2,6 @@
 // builds a world frame every second tick (30 Hz, J40) and encodes each client's delta from it. It holds no socket and
 // no save: a Transport carries its bytes, and accounts, rooms and persistence stay in the MMO plan.
 import * as v from 'valibot';
-import type { NetCommand } from '@wildshard/format/netCommand';
 import { NetRoomActSchema, type NetChatReport, type NetChatSay, type NetTickAct } from '../../shared/net/acts';
 import { CHAT_RADIUS, RoomChat, type ChatLine, type ChatReports } from './chat';
 import { BitWriter } from '../../shared/net/bits';
@@ -10,7 +9,7 @@ import { cleanName } from './chatFilter';
 import type { CombatEvent } from './combatWire';
 import type { QuestProgress } from '../../shared/quest/progress';
 import { decodeCommands } from '../../shared/net/command';
-import { CommandQueue } from './commandQueue';
+import { CommandQueue, type CommandTurn } from './commandQueue';
 import { encodeFrame, FRAME_RING, WorldFrameRing, type WorldFrame } from '../../shared/net/frame';
 import { NetHandles } from './handles';
 import { GUEST, NetIdentitySchema, type NetIdentity } from '../../shared/net/identity';
@@ -44,11 +43,13 @@ export interface NetWorld {
   quests?: (player: string, since: number) => { readonly version: number; readonly rows: readonly QuestProgress[]; readonly flags: readonly string[] } | null;
   /** What the tick granted (M8), each to its player. A world with no ledger leaves it out. */
   ledger?: () => readonly LedgerFiling[];
+  /** Hears who steps this tick, just before `step` (J125). A world whose players commands do not move leaves it out. */
+  commanded?: (inputs: readonly NetTickInput[]) => void;
   /** The player a client owns unless it joins as another. */
   readonly player: NetPlayer;
 }
-/** One client's input for one tick. */
-export interface NetTickInput { readonly client: number; readonly player: string; readonly command: NetCommand | null; readonly acts: readonly NetTickAct[] }
+/** One client's input for one tick: its turn, and its acts. */
+export interface NetTickInput extends CommandTurn { readonly client: number; readonly player: string; readonly acts: readonly NetTickAct[] }
 /** Bytes this room has put on the wire, for the bandwidth number (§7). */
 export interface RoomStats { frames: number; frameBytes: number; eventBytes: number; refused: number; /** Rows a far tier left out (§3.3). */ tierSkips: number }
 /** How a room is built. */
@@ -153,13 +154,14 @@ export class NetRoom {
     for (const client of waiting) this.welcome(client);
     if (waiting.length > 0) this.snapshot(this.world.tick());
   }
-  /** One fixed tick: one command per client, the world's step, and on every second tick a frame. */
+  /** One fixed tick: each client's turn, the world's step, and on every second tick a frame. */
   tick(): void {
     this.inputs.length = 0;
     for (const client of this.clients) {
       if (client.state !== 'live') continue;
-      this.inputs.push({ client: client.id, player: client.player.id, command: client.queue.next(), acts: client.acts.splice(0, ACTS_PER_TICK) });
+      this.inputs.push({ client: client.id, player: client.player.id, ...client.queue.next(), acts: client.acts.splice(0, ACTS_PER_TICK) });
     }
+    this.world.commanded?.(this.inputs);
     this.step(this.inputs);
     this.settled();
     for (const filing of this.world.ledger?.() ?? []) this.book.file(filing);

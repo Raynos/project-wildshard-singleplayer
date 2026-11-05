@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { BitWriter } from '../src/engine/shared/net/bits';
 import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
 import { decodeCommands, encodeCommands, MAX_BUNDLE, seqAfter } from '../src/engine/shared/net/command';
-import { CommandQueue, MAX_QUEUED_COMMANDS } from '../src/engine/server/net/commandQueue';
+import { CommandQueue, COMMAND_HEADROOM, MAX_QUEUED_COMMANDS, STALL_TICKS } from '../src/engine/server/net/commandQueue';
 import { localWalkingMove } from '../src/engine/shared/player/walk';
 import { NetActSchema, NetCommandSchema, type NetCommand } from '@wildshard/format/netCommand';
 import { netPlayerCommand, netTickCommands } from '../src/sdk/standalone/netInput';
@@ -44,7 +44,7 @@ test('malformed commands are refused before they reach the queue', () => {
   const queue = new CommandQueue();
   queue.admit([{ ...command(1), yaw: Number.NaN }]);
   expect(queue).toMatchObject({ refused: 1, duplicates: 0 });
-  expect(queue.next()).toBeNull();
+  expect(queue.next().command).toBeNull();
   expect(v.safeParse(NetActSchema, { kind: 'interact', seq: 1, id: '../door' }).success).toBe(false);
   expect(v.safeParse(NetActSchema, { kind: 'reload', seq: 1, slot: 99 }).success).toBe(false);
 });
@@ -74,29 +74,80 @@ test('redundancy cannot repeat a press: each seq applies once, across the 16-bit
   queue.admit([command(0xfffe, { buttons: NET_BUTTONS.jump }), command(0xffff), command(0), command(1)]);
   expect(queue.duplicates).toBe(2);
   const seen: number[] = [];
-  for (let next = queue.next(); next !== null && seen.length < 4; next = queue.next()) seen.push(next.seq);
+  for (let turn = queue.next(); turn.command !== null && !turn.still && seen.length < 4; turn = queue.next()) seen.push(turn.command.seq);
   expect(seen).toEqual([0xfffe, 0xffff, 0, 1]);
   expect(queue.lastSeq).toBe(1);
   expect(seqAfter(0, 0xffff)).toBe(true); expect(seqAfter(0xffff, 0)).toBe(false); expect(seqAfter(5, 5)).toBe(false);
 });
 
-test('a starved tick repeats the holds and drops the presses, the attack and the shot', () => {
+test('an empty tick steps nothing, and only the holds last through it', () => {
   const queue = new CommandQueue();
-  queue.admit([command(1, { buttons: NET_BUTTONS.jump | NET_BUTTONS.sprint | NET_BUTTONS.dive, attack: { aim }, launcher: { slot: 2, ads: 0.5, fire: true } })]);
-  expect(queue.next()?.buttons).toBe(NET_BUTTONS.jump | NET_BUTTONS.sprint | NET_BUTTONS.dive);
-  const repeat = queue.next();
-  expect(repeat?.buttons).toBe(NET_BUTTONS.sprint | NET_BUTTONS.dive);
-  expect(repeat?.attack).toBeUndefined();
-  expect(repeat?.launcher).toEqual({ slot: 2, ads: 0.5 });
-  expect(queue.lastSeq).toBe(1); // a repeat acks nothing new
+  queue.admit([command(1, { buttons: NET_BUTTONS.jump | NET_BUTTONS.sprint | NET_BUTTONS.dive | NET_BUTTONS.lock, attack: { aim }, launcher: { slot: 2, ads: 0.5, fire: true } })]);
+  expect(queue.next().command?.buttons).toBe(NET_BUTTONS.jump | NET_BUTTONS.sprint | NET_BUTTONS.dive | NET_BUTTONS.lock);
+  const empty = queue.next();
+  expect(empty.still).toBe(true); // J125: no command, no server step
+  expect(empty.command?.buttons).toBe(NET_BUTTONS.sprint | NET_BUTTONS.dive);
+  expect(empty.command?.attack).toBeUndefined();
+  expect(empty.command?.launcher).toEqual({ slot: 2, ads: 0.5 });
+  expect(queue.lastSeq).toBe(1); // an empty tick acks nothing new
 });
 
-test('a flood is trimmed to the queue cap, so no client runs ahead of the tick', () => {
+test('a stalled client freezes for 250 ms, then steps with no input and holds nothing', () => {
   const queue = new CommandQueue();
-  queue.admit(Array.from({ length: 64 }, (_, index) => command(index + 1)));
-  let consumed = 0;
-  while (queue.lastSeq !== 64) { queue.next(); consumed++; }
-  expect(consumed).toBe(MAX_QUEUED_COMMANDS);
+  queue.admit([command(1, { buttons: NET_BUTTONS.heavy })]);
+  queue.next();
+  for (let tick = 0; tick < STALL_TICKS; tick++) expect(queue.next()).toMatchObject({ still: true, command: { buttons: NET_BUTTONS.heavy } });
+  for (let tick = 0; tick < 100; tick++) expect(queue.next()).toEqual({ command: null, extra: null, still: false });
+  queue.admit([command(2)]);
+  expect(queue.next()).toMatchObject({ command: { seq: 2 }, still: false });
+  expect(queue.next().still).toBe(true); // its stall is over: the next empty tick waits again
+});
+
+test('a client that is behind steps twice a tick until it is not, and every seq still runs once', () => {
+  const queue = new CommandQueue(), run: number[] = [];
+  queue.admit(Array.from({ length: 7 }, (_, index) => command(index + 1)));
+  for (let tick = 0; tick < 5; tick++) { const { command: first, extra } = queue.next(); for (const step of [first, extra]) if (step !== null) run.push(step.seq); }
+  expect(run).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  expect(queue.lastSeq).toBe(7);
+});
+
+test('one client frame\'s burst is not catching up: it drains a step a tick', () => {
+  const queue = new CommandQueue();
+  queue.admit([command(1), command(2), command(3)]);
+  for (const seq of [1, 2, 3]) expect(queue.next()).toMatchObject({ command: { seq }, extra: null, still: false });
+});
+
+test('a press, a swing and a shot never ride in a second step: only a tick\'s first command reaches the weapons', () => {
+  for (const rich of [{ buttons: NET_BUTTONS.jump }, { buttons: NET_BUTTONS.lock }, { attack: { aim } }, { launcher: { slot: 1, ads: 0, fire: true as const } }]) {
+    const queue = new CommandQueue();
+    queue.admit([command(1), command(2, rich), command(3), command(4), command(5), command(6)]);
+    expect(queue.next()).toMatchObject({ command: { seq: 1 }, extra: null });
+    expect(queue.next()).toMatchObject({ command: { seq: 2 } });
+  }
+});
+
+test('a flood gains no speed: steps never pass the ticks elapsed plus the headroom', () => {
+  const queue = new CommandQueue();
+  let seq = 0, steps = 0;
+  for (let tick = 1; tick <= 600; tick++) {
+    queue.admit(Array.from({ length: 16 }, () => command(++seq)));
+    const { command: first, extra } = queue.next();
+    steps += Number(first !== null) + Number(extra !== null);
+    expect(steps).toBeLessThanOrEqual(tick + COMMAND_HEADROOM);
+  }
+  expect(steps).toBeGreaterThanOrEqual(600);
+});
+
+test('a client silent for a long time banks no sprint', () => {
+  const queue = new CommandQueue();
+  for (let tick = 0; tick < 6000; tick++) queue.next();
+  let seq = 0, steps = 0;
+  for (let tick = 1; tick <= 120; tick++) {
+    queue.admit(Array.from({ length: 2 }, () => command(++seq)));
+    const { command: first, extra } = queue.next();
+    steps += Number(first !== null) + Number(extra !== null);
+  }
+  expect(steps).toBeLessThanOrEqual(120 + MAX_QUEUED_COMMANDS);
 });
 
 test('the SimHost adapter produces ordinary admitted tick commands with today\'s walk law', () => {

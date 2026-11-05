@@ -1,3 +1,4 @@
+import type { NetCommand } from '@wildshard/format/netCommand';
 import type { AnimalPoseSample } from '../entities/AnimalSim';
 import type { SimHost } from '../sim';
 import { leadPlayer } from '../../shared/sim/leadPlayer';
@@ -11,7 +12,7 @@ import { ANIMAL_CLASS, ENCOUNTER_CLASS, FLAG_CLASS, PLAYER_CLASS, SCRIPT_CLASS, 
 import { shardRows } from '../../shared/sim/shardRows';
 import { FLAG_PREFIX, STATE_PREFIX } from '../../shared/net/shardNet';
 import type { NetRefs } from '../../shared/net/schema';
-import type { NetPlayer, NetVisitor, NetWorld } from './room';
+import type { NetPlayer, NetTickInput, NetVisitor, NetWorld } from './room';
 
 const emptyPose = (): AnimalPoseSample => ({ attackT: -1, attackDur: 1, groundY: 0, tiltRollT: 0, stunT: 0, flinch: 0, flinchRoll: 0, flinchPitch: 0, brace: 0, deathSide: 0 });
 
@@ -23,6 +24,7 @@ export class SimNetWorld implements NetWorld {
   private readonly wire: CombatWire;
   private readonly frame: number;
   private readonly filings: (() => readonly LedgerFiling[]) | undefined;
+  private readonly turn = { still: new Set<string>(), extra: new Map<string, NetCommand>() };
   /** `frame` names the cell this host's positions are local to; 0 is the highway, and any world that is not on a grid. `filings` reads the tick's grants, which the host's owner holds: the sim keeps none. */
   constructor(host: SimHost, frame = 0, filings?: () => readonly LedgerFiling[]) {
     this.host = host; this.frame = frame; this.filings = filings; this.wire = new CombatWire(host); keepHitHistory(host);
@@ -33,6 +35,15 @@ export class SimNetWorld implements NetWorld {
     const player = this.host.players.get(id);
     if (player === undefined) throw new RangeError(`Unknown net player ${id}`);
     return { id, cls: PLAYER_CLASS, sample: (out: Uint32Array, refs: NetRefs) => { PLAYER_CLASS.owner.forEach((column, index) => { out[index] = column.sample(player, refs); }); } };
+  }
+  commanded(inputs: readonly NetTickInput[]): void {
+    const { turn, host } = this;
+    turn.still.clear(); turn.extra.clear();
+    for (const { player, still, extra } of inputs) {
+      if (still) turn.still.add(player);
+      if (extra !== null) turn.extra.set(player, extra);
+    }
+    host.commanded = turn;
   }
   tick(): number { return this.host.state.tick; }
   cell(): number { return this.frame; }
