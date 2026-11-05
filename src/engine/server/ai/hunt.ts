@@ -1,6 +1,6 @@
 import type { AnimalSim } from '../entities/AnimalSim';
-import { StalkerBrain } from './stalker';
-import * as law from './huntPattern';
+import { StalkerBrain } from '../../shared/ai/stalker';
+import * as law from '../../shared/ai/huntPattern';
 
 import type { Vector3 } from 'three';
 

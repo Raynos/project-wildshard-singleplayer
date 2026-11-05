@@ -7,7 +7,7 @@ import type { SimHost } from '../sim';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { TerrainField } from '../../shared/level/data';
 import type { V2EnvironmentColumns } from '../../shared/script/observationColumnsV2';
-import { StalkerBrain, readPouncerSpec, readHowlerSpec, type PouncerContext, type PouncerLedge } from './stalker';
+import { StalkerBrain, readPouncerSpec, readHowlerSpec, type PouncerContext, type PouncerLedge } from '../../shared/ai/stalker';
 import type { PackBrain } from './pack';
 import { StrikeRunner, type StrikeSpec } from '../../shared/ai/strikes';
 import { canReach } from '../../shared/ai/reach';

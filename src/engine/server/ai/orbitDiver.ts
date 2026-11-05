@@ -1,7 +1,7 @@
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../sim';
 import type { StrikeSpec } from '../../shared/ai/strikes';
-import { DiverBrain, type OrbitDiverSpec as SharedSpec, type OrbitDiverPorts as SharedPorts, type OrbitDiverHome as SharedHome } from './diver';
+import { DiverBrain, type OrbitDiverSpec as SharedSpec, type OrbitDiverPorts as SharedPorts, type OrbitDiverHome as SharedHome } from '../../shared/ai/diver';
 
 /** Legacy Spec name for the shared diver preset. */
 export type OrbitDiverSpec = SharedSpec;

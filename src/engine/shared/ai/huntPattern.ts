@@ -1,11 +1,11 @@
 import { MathUtils, Vector3 } from 'three';
-import type { AnimalSim, AnimalState } from '../entities/AnimalSim';
+import type { AnimalSim, AnimalState } from '../../server/entities/AnimalSim';
 import { GroupBrain } from './GroupBrain';
-import type { Rng } from '../../shared/core/rng';
-import type { FightRules } from '../../shared/level/spec';
-import type { HerdPlan } from '../../shared/level/data';
-import type { Navmesh } from '../../shared/physics/navmesh';
-import { creatureSoundDefaults, rollVariant, speciesDef, variantOf, type SpeciesDef, type VariantDef, type VariantTable } from '../../shared/entities/species/registry';
+import type { Rng } from '../core/rng';
+import type { FightRules } from '../level/spec';
+import type { HerdPlan } from '../level/data';
+import type { Navmesh } from '../physics/navmesh';
+import { creatureSoundDefaults, rollVariant, speciesDef, variantOf, type SpeciesDef, type VariantDef, type VariantTable } from '../entities/species/registry';
 import { AggressionDirector } from './director';
 import { reengage, backoffPoint, aroundPoint, RING_DEFAULT, BACKOFF_MAX_T, BREAK_OFF_HP, BREAK_OFF_CHANCE, RULES_CD_HIT, RULES_CD_MISS } from '../entities/fightRules';
 

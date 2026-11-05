@@ -7,7 +7,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expect, test, vi } from 'vitest';
 import { NativeEliteKernels } from '../src/engine/server/ai/eliteKernels';
-import { StalkerBrain, readHowlerSpec } from '../src/engine/server/ai/stalker';
+import { StalkerBrain, readHowlerSpec } from '../src/engine/shared/ai/stalker';
 import * as reach from '../src/engine/shared/ai/reach';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 

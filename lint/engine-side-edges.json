@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 46,
+  "client → server": 41,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 28,
@@ -11,14 +11,8 @@
   "shared → server": 1
  },
  "files": {
-  "src/engine/client/ai/view/eliteController.ts": {
-   "client → server": 2
-  },
-  "src/engine/client/ai/view/eliteEntry.ts": {
-   "client → server": 2
-  },
   "src/engine/client/app/app.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/engine/client/combat/effects/EffectService.ts": {
    "client → server": 1

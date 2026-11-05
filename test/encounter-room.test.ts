@@ -16,7 +16,7 @@ import { SIM_CREATURE_RECIPE } from '../src/game/test/creatureRecipe';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { NativeEliteKernels } from '../src/engine/server/ai/eliteKernels';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
-import { StalkerBrain } from '../src/engine/server/ai/stalker';
+import { StalkerBrain } from '../src/engine/shared/ai/stalker';
 import * as reach from '../src/engine/shared/ai/reach';
 import { Vector3 } from 'three';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

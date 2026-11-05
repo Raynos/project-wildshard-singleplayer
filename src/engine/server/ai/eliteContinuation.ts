@@ -4,7 +4,7 @@ import { EliteContinuationRowsSchema, EliteCoreContinuationSchema, EliteMemberCo
 import type { SimHost, SimValue } from '../sim';
 import type { AnimalSim } from '../entities/AnimalSim';
 import { GrazerBrain } from './grazer';
-import { StalkerBrain } from './stalker';
+import { StalkerBrain } from '../../shared/ai/stalker';
 import type { PackBrain } from './pack';
 import type { NativeEliteLifecycle } from './eliteLifecycle';
 import { NativeEliteKernels, type NativeEliteKernelLoans } from './eliteKernels';

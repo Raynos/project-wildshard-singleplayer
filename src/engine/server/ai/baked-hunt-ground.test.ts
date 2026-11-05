@@ -1,6 +1,6 @@
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { TerrainField } from '../../shared/level/data';
-import type { HuntGround } from './huntPattern';
+import type { HuntGround } from '../../shared/ai/huntPattern';
 import { expect, test } from 'vitest';
 
 import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';

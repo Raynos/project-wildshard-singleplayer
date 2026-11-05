@@ -1,17 +1,17 @@
 import * as v from 'valibot';
 import { Vector3, MathUtils } from 'three';
-import type { AnimalSim } from '../entities/AnimalSim';
+import type { AnimalSim } from '../../server/entities/AnimalSim';
 import { HuntingStalkerCore, type HuntConfig, type HuntPorts } from './huntPattern';
 import type { AggressionDirector } from './director';
-import type { Rng } from '../../shared/core/rng';
-import { emitFault } from '../../shared/core/faults';
-import type { SimValue } from '../sim';
+import type { Rng } from '../core/rng';
+import { emitFault } from '../core/faults';
+import type { SimValue } from '../../server/sim';
 import { isJsonData } from '@wildshard/format/json';
-import type { Scope } from '../../shared/app/scope';
+import type { Scope } from '../app/scope';
 import type { GroupGuestBindingsV2, GroupGuestFrameV2, GroupGuestProjectionV2, GroupGuestPublicationV2 } from './GroupBrain';
-import { GroupBankV2 } from '../../shared/script/groupBankV2';
-import type { GroupStepNativeResultV2, GroupStepReferenceV2 } from '../../shared/script/groupStepV2';
-import type { V2ColumnOwners } from '../../shared/script/observationColumnsV2';
+import { GroupBankV2 } from '../script/groupBankV2';
+import type { GroupStepNativeResultV2, GroupStepReferenceV2 } from '../script/groupStepV2';
+import type { V2ColumnOwners } from '../script/observationColumnsV2';
 import type { GroupBankValueV2 } from '@wildshard/format/scriptGroupBankV2';
 import { GroupGuestBindingSchema, type GroupGuestBindingRows } from '@wildshard/format/groupBrains';
 

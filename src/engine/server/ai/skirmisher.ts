@@ -1,6 +1,6 @@
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../sim';
-import { StalkerBrain, type SkirmisherSpec as SharedSpec, type SkirmisherPorts as SharedPorts } from './stalker';
+import { StalkerBrain, type SkirmisherSpec as SharedSpec, type SkirmisherPorts as SharedPorts } from '../../shared/ai/stalker';
 
 /** Existing circling melee tuning alias for the parametric stalker preset. */
 export type SkirmisherSpec = SharedSpec;

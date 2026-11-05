@@ -560,7 +560,7 @@
     "src/engine/entities/creatureRigs.ts",
     "src/engine/shared/entities/eliteBrain.ts",
     "src/engine/client/entities/farHerd.ts",
-    "src/engine/server/entities/fightRules.ts",
+    "src/engine/shared/entities/fightRules.ts",
     "src/engine/entities/Flock.ts",
     "src/engine/entities/glbCreatures.ts",
     "src/engine/entities/Herd.ts",
@@ -3380,7 +3380,7 @@
     },
     {
       "from": "src/entities/fightRules.ts",
-      "to": "src/engine/server/entities/fightRules.ts"
+      "to": "src/engine/shared/entities/fightRules.ts"
     },
     {
       "from": "src/entities/glbCreatures.ts",

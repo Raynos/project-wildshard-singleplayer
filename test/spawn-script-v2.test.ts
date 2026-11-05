@@ -5,7 +5,7 @@ import { CharacterMotor } from '../src/engine/shared/physics/CharacterMotor';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import { SpawnInputV2Schema } from '@wildshard/format/spawnScriptV2';
 import { Scope } from '../src/engine/shared/app/scope';
-import { StalkerBrain } from '../src/engine/server/ai/stalker';
+import { StalkerBrain } from '../src/engine/shared/ai/stalker';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 import { SpawnScript } from '../src/game/server/population/spawnScript';
 import { PageWildEnvironment } from '../src/game/server/population/pageGroups';

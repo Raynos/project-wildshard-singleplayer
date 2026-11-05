@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 import { Rng } from '../src/engine/shared/core/rng';
-import { HuntingStalkerCore, huntMemoryCodec, type HuntGround, type HuntNav } from '../src/engine/server/ai/huntPattern';
+import { HuntingStalkerCore, huntMemoryCodec, type HuntGround, type HuntNav } from '../src/engine/shared/ai/huntPattern';
 import type { GuardedHerdContext } from '../src/engine/server/ai/grazer';
 import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
 import type { V2ColumnOwners } from '../src/engine/shared/script/observationColumnsV2';

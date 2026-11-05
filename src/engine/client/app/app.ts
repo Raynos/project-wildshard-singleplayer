@@ -30,7 +30,7 @@ import { LevelRegistrations } from '../level/registrations';
 import type { LevelAdapters, LevelHooks } from '../../server/level/context';
 import type { LevelSpec } from '../../shared/level/spec';
 import { CombatPipeline } from '../../server/combat/pipeline';
-import { AggressionService } from '../../server/ai/director';
+import { AggressionService } from '../../shared/ai/director';
 import { EncounterRegistry } from '../../shared/ai/encounters';
 import { SpeciesService } from '../entities/species/look';
 import type { PlayerHealth } from '../../server/combat/health';

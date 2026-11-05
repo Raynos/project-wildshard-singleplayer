@@ -1,7 +1,7 @@
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../sim';
 import type { StrikeSpec } from '../../shared/ai/strikes';
-import { DiverBrain, type PatrolDiverSpec as SharedSpec, type PatrolDiverPorts as SharedPorts } from './diver';
+import { DiverBrain, type PatrolDiverSpec as SharedSpec, type PatrolDiverPorts as SharedPorts } from '../../shared/ai/diver';
 
 /** Legacy Spec name for the shared diver preset. */
 type PatrolDiverSpec = SharedSpec;

@@ -15,7 +15,7 @@ import {Scope} from '../src/engine/shared/app/scope';
 import {Rng} from '../src/engine/shared/core/rng';
 import {GroupBankV2} from '../src/engine/shared/script/groupBankV2';
 import type {GroupBankValueV2} from '@wildshard/format/scriptGroupBankV2';
-import type {GroupGuestFrameV2} from '../src/engine/server/ai/GroupBrain';
+import type {GroupGuestFrameV2} from '../src/engine/shared/ai/GroupBrain';
 import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import {NALATI_PASTURE as pasture} from './fixtures/nalati-titan';

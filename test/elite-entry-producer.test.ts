@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nalatiEliteRows } from '../src/shards/nalati-grasslands/generators/nativeServer';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
-import { readPouncerSpec, readHowlerSpec } from '../src/engine/server/ai/stalker';
+import { readPouncerSpec, readHowlerSpec } from '../src/engine/shared/ai/stalker';
 import { buildEliteEntryRows, buildEliteEntryPageRows } from '../src/shards/nalati-grasslands/generators/eliteEntryRows';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import source from '../src/shards/nalati-grasslands/data/eliteRoster.json' with { type: 'json' };

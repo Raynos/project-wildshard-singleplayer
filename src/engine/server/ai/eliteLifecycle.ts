@@ -4,7 +4,7 @@ import { HandleIdSchema } from '@wildshard/format/sceneRefs';
 import type { SimHost } from '../sim';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { PackBrain } from './pack';
-import type { StalkerBrain } from './stalker';
+import type { StalkerBrain } from '../../shared/ai/stalker';
 import { NativeEliteKernels, type NativeEliteKernelState, type NativeEliteKernelLoans } from './eliteKernels';
 
 const finite = v.pipe(v.number(), v.finite());

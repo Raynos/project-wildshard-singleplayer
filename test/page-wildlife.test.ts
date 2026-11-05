@@ -13,7 +13,7 @@ import { Vector3 } from 'three';
 import { PageWildlife } from '../src/game/server/population/wildlife';
 import { initializeDeclaredGroup } from '../src/game/server/shardfile/groupRuntime';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
-import type { GroupGuestProjectionV2 } from '../src/engine/server/ai/GroupBrain';
+import type { GroupGuestProjectionV2 } from '../src/engine/shared/ai/GroupBrain';
 import { CrowdTargets } from '../src/game/shared/shardfile/crowdRuntime';
 import { FlockBrain } from '../src/engine/shared/ai/flock';
 import { parseFlock } from '@wildshard/format/crowds';

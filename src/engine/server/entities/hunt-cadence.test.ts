@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { AnimalSim } from './AnimalSim';
-import { StalkerBrain, type StalkerObservation } from '../ai/stalker';
+import { StalkerBrain, type StalkerObservation } from '../../shared/ai/stalker';
 import {onFault,type Fault} from '../../shared/core/faults';
 
 class ObservedBrain extends StalkerBrain<AnimalSim> {

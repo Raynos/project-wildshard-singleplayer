@@ -1,5 +1,5 @@
-import type { Scope } from '../../shared/app/scope';
-import type { Events } from '../../shared/events/events';
+import type { Scope } from '../app/scope';
+import type { Events } from '../events/events';
 
 declare module '../../client/events/maps' {
   interface AskMap {

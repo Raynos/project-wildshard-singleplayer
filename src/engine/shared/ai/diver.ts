@@ -1,11 +1,11 @@
 import { Vector3 } from 'three';
 import * as v from 'valibot';
-import type { AnimalSim } from '../entities/AnimalSim';
-import type { SimValue } from '../sim';
+import type { AnimalSim } from '../../server/entities/AnimalSim';
+import type { SimValue } from '../../server/sim';
 import { inspectBrain } from './inspect';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../shared/ai/strikes';
-import { readStrikeState } from '../../shared/ai/strikeState';
-import { emitFault } from '../../shared/core/faults';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from './strikes';
+import { readStrikeState } from './strikeState';
+import { emitFault } from '../core/faults';
 
 /** Circle, overhead stalk, telegraphed chest dive and rising rest tuning, in metres, seconds and m/s. */
 export interface OrbitDiverSpec {

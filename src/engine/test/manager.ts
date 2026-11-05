@@ -1,6 +1,6 @@
 import { AnimalHerdView } from '../client/entities/AnimalHerdView';
 import { AnimalManager } from '../server/entities/AnimalManager';
-import { StalkerBrain } from '../server/ai/stalker';
+import { StalkerBrain } from '../shared/ai/stalker';
 import { fakeWorld } from './world';
 import { app } from '../client/app/runtime';
 import { TickScheduler, type TickActor } from '../shared/app/scheduler';
@@ -27,7 +27,7 @@ export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWor
   if (legacyClock) {
     const scheduler = new LegacyClock(), prev = f.player.position.clone();
     let initialized = false, speed = 0;
-    // the decision tick is the manager's; the charge body clock is the hunting brain's (src/engine/server/ai/stalker.ts hunt pattern, SF82)
+    // the decision tick is the manager's; the charge body clock is the hunting brain's (src/engine/shared/ai/stalker.ts hunt pattern, SF82)
     const hunt: unknown = Reflect.get(m, 'hunt');
     if (!(hunt instanceof StalkerBrain)) throw new Error('Manager hunting brain moved');
     const think: unknown = Reflect.get(m, 'think'), charge: unknown = Reflect.get(hunt, 'advanceCharge');
@@ -48,7 +48,7 @@ export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWor
   return { ...f, manager: m, advance(n): void { for (let i = 0; i < n; i++) f.game.advance(1 / 60); if (f.game.dead) throw new Error('manager fixture faulted'); } };
 }
 
-/** The manager's hunting brain (src/engine/server/ai/stalker.ts hunt pattern, SF82): the herd animals' memories and charge body clock. */
+/** The manager's hunting brain (src/engine/shared/ai/stalker.ts hunt pattern, SF82): the herd animals' memories and charge body clock. */
 export function huntOf(m: AnimalManager): StalkerBrain<Animal> {
   const hunt: unknown = Reflect.get(m, 'hunt');
   if (!isHunt(hunt)) throw new Error('Manager hunting brain moved');

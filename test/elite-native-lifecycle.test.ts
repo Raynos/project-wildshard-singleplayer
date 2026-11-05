@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { NativeEliteLifecycle, type NativeElitePopulation } from '../src/engine/server/ai/eliteLifecycle';
-import { StalkerBrain } from '../src/engine/server/ai/stalker';
+import { StalkerBrain } from '../src/engine/shared/ai/stalker';
 import { Scope } from '../src/engine/shared/app/scope';
 import { NativeEliteKernels } from '../src/engine/server/ai/eliteKernels';
 import { PackBrain, type PackPorts } from '../src/engine/server/ai/pack';

@@ -13,7 +13,7 @@ import type { EventMap } from '../../client/events/maps';
 import type { CharacterMotor } from '../../shared/physics/CharacterMotor';
 import { SEED, CHUNK_HALF } from '../../shared/core/config';
 import { spawnRolls, fallbackSound, ATTACK_TURN, HURT_ARC, type HuntGround, type HuntHerd } from '../ai/hunt';
-import { StalkerBrain } from '../ai/stalker';
+import { StalkerBrain } from '../../shared/ai/stalker';
 import { Rng } from '../../shared/core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND, streamAt } from '../../shared/world/Heightfield';
 import type { Forest } from '../../client/world/forest/Forest';
@@ -108,7 +108,7 @@ declare module '../../client/events/maps' {
  *     nothing (a hull wall, a beam, a deck, a rock) short of the attacker's own body. Asked only on the frame a hit would
  *     land; `ThinkCtx.reach` lets a species skip a swing it could not land (the sailor does).
  *
- * FIGHT RULES (E297, `ShardManifest.fight.attackers` — Driftwood only; src/engine/server/entities/fightRules.ts): one set of rules for every enemy.
+ * FIGHT RULES (E297, `ShardManifest.fight.attackers` — Driftwood only; src/engine/shared/entities/fightRules.ts): one set of rules for every enemy.
  *   • At most `maxAttackers` (2) attack at once: a charge (wind-up + run) or a species' strike needs an attack token
  *     (`tokens`; `ThinkCtx.claim` / `mayAttack`); the rest hold back on a ring and wait. A token goes back when the
  *     charge ends / the strike's attackPhase drops below 0 (swept every think tick), or at once on leaving 'charge'.
@@ -232,7 +232,7 @@ export class AnimalManager {
   private playerSprinting = false;
   private playerPos = new Vector3();
   private playerPrev = new Vector3(); private playerSpeed = 0; private playerInit = false;
-  /** the stalker hunt pattern (src/engine/server/ai/stalker.ts, SF72/82): every herd animal's decisions, its memory, the herds and the tokens */
+  /** the stalker hunt pattern (src/engine/shared/ai/stalker.ts, SF72/82): every herd animal's decisions, its memory, the herds and the tokens */
   private readonly hunt: StalkerBrain<Animal>;
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) — Driftwood's swords, Nalati's sabre / spear */
   private get melee(): boolean { return this.hunt.melee; }

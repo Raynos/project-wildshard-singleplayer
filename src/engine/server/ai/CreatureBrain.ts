@@ -1,7 +1,7 @@
 import type { AnimalSim as Animal } from '../entities/AnimalSim';
 import type { ThinkCtx } from '../../shared/entities/species/registry';
 import { Hfsm } from '../../shared/ai/hfsm';
-import { inspectBrain } from './inspect';
+import { inspectBrain } from '../../shared/ai/inspect';
 
 /** Authored creature goals share an inspectable HFSM; movement and strike clocks remain separate.
  * C accepts a trusted renderer-free context; existing subclasses keep ThinkCtx by default.

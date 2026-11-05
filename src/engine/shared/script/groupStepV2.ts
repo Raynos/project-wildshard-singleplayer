@@ -16,9 +16,9 @@ import type { Scope } from '../app/scope';
 import { ANIMAL_STATES } from '../entities/animalStates';
 import type { AnimalSim } from '../../server/entities/AnimalSim';
 import type { Rng, RngState } from '../core/rng';
-import type { AggressionDirector, AggressionService } from '../../server/ai/director';
+import type { AggressionDirector, AggressionService } from '../ai/director';
 import type { Events } from '../events/events';
-import type { CirclingPackPrey, CirclingPackContext, StalkerBrain } from '../../server/ai/stalker';
+import type { CirclingPackPrey, CirclingPackContext, StalkerBrain } from '../ai/stalker';
 import type { GuardedHerdContext, GrazerBrain } from '../../server/ai/grazer';
 import { GUARDED_STALLION_STATES } from '@wildshard/format/groupBrains';
 

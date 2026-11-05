@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Events } from '../src/engine/shared/events/events';
-import { AggressionDirector, AggressionService } from '../src/engine/server/ai/director';
+import { AggressionDirector, AggressionService } from '../src/engine/shared/ai/director';
 import { Rng } from '../src/engine/shared/core/rng';
 import { GroupStepV2, prepareGroupNativeV2, type GroupStepNativeOwnersV2, type GroupStepOperationV2 } from '../src/engine/shared/script/groupStepV2';
 import type { V2ColumnOwners } from '../src/engine/shared/script/observationColumnsV2';

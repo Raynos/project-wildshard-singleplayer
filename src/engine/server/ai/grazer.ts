@@ -1,7 +1,7 @@
 import {HERD_DRIVE_PLAN_FIELDS,GUARDED_STALLION_STATES,GuardedHerdGuestSchema,type GuardedHerdGuestRows} from '@wildshard/format/groupBrains';
 import * as v from 'valibot';
 import { MathUtils, Vector3 } from 'three';
-import { GroupBrain, type GroupGuestPublicationV2, type GroupGuestProjectionV2, type GroupGuestBindingsV2, type GroupGuestFrameV2 } from './GroupBrain';
+import { GroupBrain, type GroupGuestPublicationV2, type GroupGuestProjectionV2, type GroupGuestBindingsV2, type GroupGuestFrameV2 } from '../../shared/ai/GroupBrain';
 import type { GroupBankValueV2, GroupBankReferenceV2 } from '@wildshard/format/scriptGroupBankV2';
 import type { Scope } from '../../shared/app/scope';
 import { GroupBankV2 } from '../../shared/script/groupBankV2';
@@ -11,7 +11,7 @@ import type { AnimalSim } from '../entities/AnimalSim';
 import type { Rng } from '../../shared/core/rng';
 import { emitFault } from '../../shared/core/faults';
 import type { SimValue } from '../sim';
-import { inspectBrain } from './inspect';
+import { inspectBrain } from '../../shared/ai/inspect';
 import { StrikeRunner, type StrikeSpec, type StrikeContext } from '../../shared/ai/strikes';
 import { readStrikeState } from '../../shared/ai/strikeState';
 

@@ -1,6 +1,6 @@
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
-import { huntMemoryCodec,type HuntMemory } from '../src/engine/server/ai/huntPattern';
+import { huntMemoryCodec,type HuntMemory } from '../src/engine/shared/ai/huntPattern';
 import { DRIFTWOOD_HUNT_MEMORY_FIELDS } from '../src/shards/driftwood-isle/generators/fauna';
 
 const memory=():HuntMemory=>({timer:2,tx:4,tz:8,fleeT:0,fleeUntil:12,chargeCd:0,callT:0,awareness:0.7,freeze:0,
