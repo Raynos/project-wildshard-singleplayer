@@ -44,7 +44,12 @@ const walk = (yaw: number): Omit<NetCommand, 'seq'> => ({ viewTick: 0, steer: { 
 /** A creature's row, and not one of the cell's encounter rows, which have no position and reach every client. */
 const isCreature = (client: NetClient, handle: number): boolean => client.entities.get(handle)?.cls.cls === 'animal';
 const creatureCount = (client: NetClient): number => [...client.entities.keys()].filter(handle => isCreature(client, handle)).length;
-function checkRows(resident: TrustedHeadlessResident, client: NetClient): number {
+/** A row past the near band is on its tier (§3.3): it may be the frame before, and only the frame before. */
+const NEAR_BAND = 60;
+type Positions = ReadonlyMap<string, Vector3>;
+const positions = (resident: TrustedHeadlessResident): Positions => new Map([...resident.host.entities].map(([id, sim]) => [id, sim.position.clone()]));
+const within = (fields: Readonly<Record<string, unknown>>, at: Vector3 | undefined, step: number): boolean => at !== undefined && (['x', 'y', 'z'] as const).every(axis => Math.abs(Number(fields[axis]) - at[axis]) <= step);
+function checkRows(resident: TrustedHeadlessResident, client: NetClient, before: Positions): number {
   const frame = client.latest;
   if (frame === null) throw new Error('No frame');
   expect(frame.tick).toBe(resident.host.state.tick);
@@ -55,8 +60,9 @@ function checkRows(resident: TrustedHeadlessResident, client: NetClient): number
     const info = client.entities.get(handle), sim = resident.host.entities.get(info?.id ?? ''), fields = client.fields(frame, handle);
     if (sim === undefined || fields === null) throw new Error(`Row ${String(handle)} names no creature`);
     expect(row).toHaveLength(ANIMAL_CLASS.row.length);
-    for (const axis of ['x', 'y', 'z'] as const) expect(Math.abs(Number(fields[axis]) - sim.position[axis])).toBeLessThanOrEqual(columns.get(axis)?.step ?? 0);
-    expect(fields['state']).toBe(sim.state); expect(fields['alive']).toBe(sim.alive); expect(fields['hp']).toBe(Math.ceil(sim.hp));
+    const step = columns.get('x')?.step ?? 0, far = sim.position.distanceTo(leadPlayer(resident.host).position) > NEAR_BAND - 1;
+    expect(within(fields, sim.position, step) || (far && within(fields, before.get(info?.id ?? ''), step)), `${info?.id ?? ''} at ${String(frame.tick)}`).toBe(true);
+    if (!far) { expect(fields['state']).toBe(sim.state); expect(fields['alive']).toBe(sim.alive); expect(fields['hp']).toBe(Math.ceil(sim.hp)); }
     expect(info?.initial).toMatchObject({ kind: sim.kind, variant: sim.variant, rarity: sim.rarity });
     rows++;
   }
@@ -72,13 +78,14 @@ test('frames carry every creature within one quantisation step, and the owner bl
   expect(client.welcome).toMatchObject({ schemaHash: NET_SCHEMA_HASH, simHz: 60, frameHz: 30 });
   expect(client.latest?.baselineTick).toBe(0xffffffff);
   expect(creatureCount(client)).toBe(resident.host.entities.size);
-  let frames = 0, seq = 0;
+  let frames = 0, seq = 0, before = positions(resident);
   client.onFrame(() => { frames++; });
   for (let tick = 0; tick < 600; tick++) {
     seq = client.command(walk(0.4)); client.flush(); link.pump();
     room.tick(); link.pump();
     if (resident.host.state.tick % 2 === 0) {
-      expect(checkRows(resident, client)).toBe(resident.host.entities.size);
+      expect(checkRows(resident, client, before)).toBe(resident.host.entities.size);
+      before = positions(resident);
       const player = leadPlayer(resident.host), owner = client.latest === null ? null : client.owner(client.latest);
       for (const [field, axis] of [['px', 'x'], ['py', 'y'], ['pz', 'z']] as const) expect(owner?.[field]).toBe(Math.fround(player.position[axis]));
     }
@@ -128,9 +135,11 @@ test('a bad link heals: loss, jitter and reordering never corrupt a row', async 
     decoded++; if (frame.baselineTick !== 0xffffffff) deltas++;
     const creatures = [...frame.rows.keys()].filter(handle => isCreature(client, handle));
     for (const handle of creatures) {
-      const fields = client.fields(frame, handle), at = held.get(client.entities.get(handle)?.id ?? '');
+      const id = client.entities.get(handle)?.id ?? '', fields = client.fields(frame, handle), at = held.get(id);
       if (at === undefined || fields === null) throw new Error(`Row ${String(handle)} names nothing in range on the server`);
-      for (const axis of ['x', 'y', 'z'] as const) expect(Math.abs(Number(fields[axis]) - at[axis])).toBeLessThanOrEqual(step);
+      // a near row is this tick's; a far one is on its tier, so it is some recent tick's, and never anything else
+      const recent = [...truth].filter(([tick]) => tick <= frame.tick && tick > frame.tick - 64).map(([, rows]) => rows.get(id));
+      expect(within(fields, at, step) || recent.some(row => within(fields, row, step)), `${id} at ${String(frame.tick)}`).toBe(true);
     }
     expect(creatures.length).toBe(held.size);
   });

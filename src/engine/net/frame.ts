@@ -54,7 +54,10 @@ export interface FrameInput {
   readonly ownerClass: NetClass<never>; readonly owner: Uint32Array;
   /** The handles this client should see now, and the same set as of its baseline. */
   readonly visible: ReadonlySet<number>;
-  readonly baseline: { readonly frame: WorldFrame; readonly visible: ReadonlySet<number> } | null;
+  /** `rowFrom` is the world frame a baseline row's values came from: its tier may have left it older than the baseline. */
+  readonly baseline: { readonly frame: WorldFrame; readonly visible: ReadonlySet<number>; readonly rowFrom?: (handle: number) => WorldFrame | null } | null;
+  /** Whether a row the baseline holds is sent this frame; left out, the client keeps it (§3.3). Absent, all are. */
+  readonly due?: (handle: number) => boolean;
   readonly classOf: (handle: number) => NetClass<never> | undefined;
 }
 
@@ -69,16 +72,19 @@ function rowMask(frame: WorldFrame, at: number, base: WorldFrame | null, baseAt:
 
 /** Write one client's frame: header, owner block, then only the rows that changed since its baseline. */
 export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
-  const { frame, baseline, visible, classOf } = input, base = baseline?.frame ?? null, seen = baseline?.visible;
-  writer.write(MSG_FRAME, 8); writer.write(frame.tick, 32); writer.write(base?.tick ?? NO_BASELINE, 32);
+  const { frame, baseline, visible, classOf, due } = input, seen = baseline?.visible;
+  /** The frame a handle's row is a delta against, or null for a whole row. */
+  const baseOf = (handle: number): WorldFrame | null => baseline === null || seen?.has(handle) !== true ? null : baseline.rowFrom === undefined ? baseline.frame : baseline.rowFrom(handle);
+  writer.write(MSG_FRAME, 8); writer.write(frame.tick, 32); writer.write(baseline?.frame.tick ?? NO_BASELINE, 32);
   writer.write(input.cell, 16); writer.write(input.lastSeq, 16);
   input.ownerClass.owner.forEach((column, index) => { writer.write(input.owner[index] ?? 0, column.bits); });
   const changed: number[] = [];
   for (const handle of visible) {
     const cls = classOf(handle), at = frame.offset(handle);
     if (cls === undefined || at === undefined) continue;
-    const baseAt = seen?.has(handle) === true ? base?.offset(handle) : undefined;
-    if (rowMask(frame, at, base, baseAt, cls.row.length) !== 0) changed.push(handle);
+    const base = baseOf(handle);
+    if (base !== null && due?.(handle) === false) continue;
+    if (rowMask(frame, at, base, base?.offset(handle), cls.row.length) !== 0) changed.push(handle);
   }
   const gone: number[] = [];
   if (seen !== undefined) for (const handle of seen) if (!visible.has(handle)) gone.push(handle);
@@ -87,7 +93,7 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
   for (const handle of changed) {
     const cls = classOf(handle), at = frame.offset(handle);
     if (cls === undefined || at === undefined) continue;
-    const baseAt = seen?.has(handle) === true ? base?.offset(handle) : undefined, mask = rowMask(frame, at, base, baseAt, cls.row.length);
+    const base = baseOf(handle), mask = rowMask(frame, at, base, base?.offset(handle), cls.row.length);
     writer.write(handle, 16); writer.writeBool(false); writer.write(mask, cls.row.length);
     cls.row.forEach((column, index) => { if (Math.floor(mask / 2 ** index) % 2 === 1) writer.write(frame.data[at + index] ?? 0, column.bits); });
   }

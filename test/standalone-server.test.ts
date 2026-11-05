@@ -58,8 +58,10 @@ test('the server ticks on its own clock, frames arrive at 30 Hz, and rows match 
   const frame = client.frame(probe.tick), step = ANIMAL_CLASS.row[0]?.step ?? 0;
   if (frame === null) throw new Error('Probed frame missing');
   expect(probe.rows).toHaveLength(13);
+  const { px, py, pz } = client.owner(frame);
   for (const row of probe.rows) {
     const handle = [...client.entities.values()].find(entity => entity.id === row.id)?.handle ?? -1, fields = client.fields(frame, handle);
+    if (Math.hypot(row.x - Number(px), row.y - Number(py), row.z - Number(pz)) > 59) continue; // past the near band a row is on its tier (P1-E5.2c)
     for (const axis of ['x', 'y', 'z'] as const) expect(Math.abs(Number(fields?.[axis]) - row[axis])).toBeLessThanOrEqual(step);
   }
   stop();

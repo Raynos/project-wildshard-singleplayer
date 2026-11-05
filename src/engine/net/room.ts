@@ -13,6 +13,7 @@ import { NetHandles } from './handles';
 import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetEvent, type NetHit, type NetReward } from './messages';
 import { NET_CLASSES, NET_SCHEMA_HASH } from './netSchemas';
 import type { NetClass, NetRefs } from './schema';
+import { framesBetween, rowDue } from './tiers';
 import type { NetChannel, Transport } from './transport';
 
 /** Sim steps per world frame: 60 Hz sim, 30 Hz frames (J40). */
@@ -40,7 +41,7 @@ export interface NetWorld {
 /** One client's input for one tick. */
 export interface NetTickInput { readonly client: number; readonly player: string; readonly command: NetCommand | null; readonly acts: readonly NetAct[] }
 /** Bytes this room has put on the wire, for the bandwidth number (§7). */
-export interface RoomStats { frames: number; frameBytes: number; eventBytes: number; refused: number }
+export interface RoomStats { frames: number; frameBytes: number; eventBytes: number; refused: number; /** Rows a far tier left out (§3.3). */ tierSkips: number }
 /** How a room is built. */
 export interface NetRoomOptions {
   readonly world: NetWorld;
@@ -50,7 +51,8 @@ export interface NetRoomOptions {
   readonly build?: string;
 }
 
-interface ClientView { tick: number; readonly visible: Set<number> }
+/** What a client held at a frame. `due` are the rows this frame may send; `rows` is the world frame each held row came from. */
+interface ClientView { tick: number; readonly visible: Set<number>; readonly due: Set<number>; readonly rows: Map<number, number> }
 /** A settled event in handles, kept until the next frame. */
 type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null }) | (NetReward & { readonly owner: string });
 interface RoomClient {
@@ -75,7 +77,7 @@ function rowPosition(frame: WorldFrame, at: number, cls: NetClass<never>): { x: 
 
 /** The server's end of the wire. */
 export class NetRoom {
-  readonly stats: RoomStats = { frames: 0, frameBytes: 0, eventBytes: 0, refused: 0 };
+  readonly stats: RoomStats = { frames: 0, frameBytes: 0, eventBytes: 0, refused: 0, tierSkips: 0 };
   private readonly clients: RoomClient[] = [];
   private readonly handles = new NetHandles();
   private readonly ring = new WorldFrameRing();
@@ -96,31 +98,14 @@ export class NetRoom {
     return this.clients.reduce((sum, client) => ({ refused: sum.refused + client.queue.refused, duplicates: sum.duplicates + client.queue.duplicates }), { refused: 0, duplicates: 0 });
   }
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
-  join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
+  join(transport: Transport, player: NetPlayer = this.world.player): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
-      views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>() })), nextView: 0, dispose: () => undefined };
+    const client: RoomClient = { id, transport, player, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
+      views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
     client.dispose = () => { off(); closed(); };
     this.clients.push(client);
-    return id;
-  }
-  /**
-   * A player crossed (P1-E3.9): their client leaves this world for the room of the one they stand in, on the same link and
-   * with the same command stream. It hears `travel`, then the new room's `welcome`, then a full frame at that room's next.
-   */
-  handOff(id: number, to: NetRoom, player: NetPlayer): number {
-    const client = this.clients.find(entry => entry.id === id);
-    if (client === undefined || client.state !== 'live' || !to.opened) throw new Error('Invalid net hand-off');
-    const tick = this.world.tick(), travel: NetEvent = { kind: 'travel', tick, from: this.world.cell(), to: to.world.cell() };
-    client.transport.send('reliable', encodeEvents(this.writer, tick, [travel], initialBits));
-    this.remove(client);
-    return to.adopt(client.transport, player, client.queue);
-  }
-  private adopt(transport: Transport, player: NetPlayer, queue: CommandQueue): number {
-    const id = this.join(transport, player, queue), client = this.clients.find(entry => entry.id === id);
-    if (client !== undefined) this.welcome(client); // it said hello to the room it came from
     return id;
   }
   /** The client finished loading (§6.3.1): welcome everyone waiting and send each its full frame. */
@@ -209,17 +194,32 @@ export class NetRoom {
     const view = client.views[client.nextView];
     if (view === undefined) throw new Error('Empty client view ring');
     client.nextView = (client.nextView + 1) % FRAME_RING;
-    view.tick = frame.tick; view.visible.clear();
+    view.tick = frame.tick; view.visible.clear(); view.due.clear();
     const ownClass = this.handles.row(own)?.cls, ownAt = frame.offset(own);
     const origin = ownClass === undefined || ownAt === undefined ? null : rowPosition(frame, ownAt, ownClass);
     for (const handle of frame.handles()) {
       const cls = this.handles.row(handle)?.cls, at = frame.offset(handle);
       if (handle === own || cls === undefined || at === undefined) continue;
-      const position = cls.radius === null || origin === null ? null : rowPosition(frame, at, cls);
-      if (position !== null && origin !== null && cls.radius !== null && (position.x - origin.x) ** 2 + (position.y - origin.y) ** 2 + (position.z - origin.z) ** 2 > cls.radius ** 2) continue;
+      const position = origin === null ? null : rowPosition(frame, at, cls);
+      const away = position === null || origin === null ? 0 : (position.x - origin.x) ** 2 + (position.y - origin.y) ** 2 + (position.z - origin.z) ** 2;
+      if (cls.radius !== null && away > cls.radius ** 2) continue;
       view.visible.add(handle);
+      if (rowDue(Math.floor(frame.tick / TICKS_PER_FRAME), handle, framesBetween(away))) view.due.add(handle);
     }
     return view;
+  }
+  /**
+   * Which world frame each row this client ends up holding came from. A row left out stays what its baseline had, so the
+   * next delta must start there and not at the baseline's own tick. A row whose source is about to leave the ring is sent whole.
+   */
+  private heldRows(view: ClientView, frame: WorldFrame, seen: ClientView | null): void {
+    view.rows.clear();
+    for (const handle of view.visible) {
+      const from = view.due.has(handle) ? undefined : seen?.rows.get(handle);
+      const kept = from !== undefined && frame.tick - from < (FRAME_RING - 2) * TICKS_PER_FRAME;
+      view.rows.set(handle, kept ? from : frame.tick);
+      if (kept) this.stats.tierSkips++;
+    }
   }
   private send(client: RoomClient, frame: WorldFrame, retired: readonly number[], combat: readonly RoomCombat[]): void {
     const { handles, writer, world } = this, own = handles.refs(client.player.id), view = this.view(client, frame, own), events: NetEvent[] = [];
@@ -255,11 +255,13 @@ export class NetRoom {
       this.stats.eventBytes += bytes.byteLength;
       client.transport.send('reliable', bytes);
     }
-    const base = client.ack < 0 ? null : this.ring.at(client.ack), seen = client.views.find(entry => entry.tick === client.ack);
+    const acked = client.ack < 0 ? null : this.ring.at(client.ack), seen = client.views.find(entry => entry.tick === client.ack);
+    const base = acked === frame || seen === undefined ? null : acked;
+    this.heldRows(view, frame, base === null ? null : seen ?? null);
     client.player.sample(client.owner, handles.refs);
     const bytes = encodeFrame(writer, { frame, cell: world.cell(), lastSeq: client.queue.lastSeq, ownerClass: client.player.cls, owner: client.owner,
-      visible: view.visible, baseline: base === null || seen === undefined || base === frame ? null : { frame: base, visible: seen.visible },
-      classOf: handle => handles.row(handle)?.cls });
+      visible: view.visible, baseline: base === null || seen === undefined ? null : { frame: base, visible: seen.visible, rowFrom: handle => this.ring.at(seen.rows.get(handle) ?? -1) },
+      due: handle => view.rows.get(handle) === frame.tick, classOf: handle => handles.row(handle)?.cls });
     this.stats.frames++; this.stats.frameBytes += bytes.byteLength;
     client.transport.send('unreliable', bytes);
   }
