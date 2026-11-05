@@ -13,7 +13,7 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { StripProfile } from '@wildshard/engine/sim/strips';
 import type { LookScope } from '../../shared/grid/roadLayout';
-import type { GridCrossingState } from '../../server/grid/crossing';
+import type { GridCrossingState } from '../../shared/grid/crossing';
 
 /** One cell's border in the home frame: its centre and its four declared edge rows (index 0 at the west / south end). */
 export interface ShimmerCell { readonly x: number; readonly z: number; readonly edges: Readonly<Record<'north' | 'east' | 'south' | 'west', StripProfile>> | null }

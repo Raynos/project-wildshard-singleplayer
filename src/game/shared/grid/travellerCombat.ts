@@ -1,8 +1,8 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
-import type { GridPoint } from '../../shared/grid/assembly';
-import { gridZone } from '../../shared/grid/rules';
+import type { GridPoint } from './assembly';
+import { gridZone } from './rules';
 
 /**
  * Hit-delivery permission for one authoritative world. The traveller's geometric cell owns combat, independently

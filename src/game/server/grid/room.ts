@@ -1,7 +1,7 @@
 import type { SimTickCommand } from '@wildshard/engine/sim';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { GridAssembly, GridPoint } from '../../shared/grid/assembly';
-import { installGridCrossing, type GridCrossingSession } from './crossing';
+import { installGridCrossing, type GridCrossingSession } from '../../shared/grid/crossing';
 import type { GridSimulation } from './simulation';
 import type { GridLoadout } from '../../shared/grid/wallet';
 

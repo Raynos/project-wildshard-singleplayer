@@ -4,7 +4,7 @@ import type { LiveGridAdmission, LiveGridRegion } from '../src/game/server/grid/
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { SimHost } from '@wildshard/engine/sim';
-import { GridCrossing } from '../src/game/server/grid/crossing';
+import { GridCrossing } from '../src/game/shared/grid/crossing';
 
 function prepareFixture(prepare: () => Promise<LiveGridAdmission>) { return preparationAdmission(prepare, prepare); }
 

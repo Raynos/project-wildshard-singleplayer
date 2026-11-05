@@ -1,7 +1,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import type { GridAssembly, GridPoint } from '../../shared/grid/assembly';
-import type { GridLoadout } from '../../shared/grid/wallet';
+import type { GridAssembly, GridPoint } from './assembly';
+import type { GridLoadout } from './wallet';
 
 /** A prepared, rollback-safe frame/view change. Commit must either finish completely or leave the source intact. */
 export interface PreparedGridCrossing { commit: () => void; cancel: () => void }

@@ -1,7 +1,7 @@
 import { BOOT_STEPS, STEP_INFO } from '@wildshard/engine/boot/steps';
 import { repeatedStep } from '@wildshard/engine/boot/timeline';
 import type { Loading } from '@wildshard/engine/ui/Loading';
-import type { GridCrossingTiming } from '../../server/grid/crossing';
+import type { GridCrossingTiming } from '../../shared/grid/crossing';
 
 /** The platform loading-path names. */
 export type LoadingPathId = 'legacy' | 'shardfile' | 'grid' | 'crossing' | 'cell';
