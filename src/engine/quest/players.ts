@@ -85,6 +85,8 @@ export class QuestBooks {
   show(flags: Iterable<string>): void { for (const flag of flags) this.shown.add(flag); }
   /** Name flags that quest rows write: each player keeps its own copy of them. */
   claim(flags: Iterable<string>): void { for (const flag of flags) this.claimed.add(flag); }
+  /** Whether a flag is a player's own, not the world's. */
+  personal(flag: string): boolean { return this.claimed.has(flag); }
   /** Run for every other player's book, now and as they join: an owner's state for that player. */
   install(owner: (book: QuestBook) => void): void {
     this.owners.push(owner);

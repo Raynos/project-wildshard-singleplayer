@@ -2,6 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { QuestFlagGates } from '../src/game/quest/flagGates';
+import { SimNetWorld } from '../src/engine/net/simWorld';
+import { FLAG_PREFIX } from '../src/engine/net/shardNet';
 import { questBooks } from '../src/engine/quest/players';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { createSimHost, type SimHost } from '../src/engine/sim';
@@ -58,4 +60,12 @@ test('a player who dies keeps its quest progress', () => {
   bot.health.attributes.health = 0; bot.health.update(1 / 60);
   expect(bot.health.attributes.health).toBe(bot.health.attributes.maxHealth);
   expect(book.flags.has('open:gate')).toBe(true);
+});
+
+test('the flags a whole room sees are the world\'s, never a player\'s', () => {
+  const { host } = room(), seen: string[] = [];
+  host.flags.set('open:gate'); host.flags.set('dead:wolf');
+  new SimNetWorld(host).visit({ entity: id => { if (id.startsWith(FLAG_PREFIX)) seen.push(id.slice(FLAG_PREFIX.length)); } });
+  expect(seen).toContain('dead:wolf');
+  expect(seen).not.toContain('open:gate');
 });
