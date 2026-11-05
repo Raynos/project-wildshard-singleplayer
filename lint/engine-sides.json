@@ -1280,7 +1280,7 @@
   "src/game/riding/pastureController.ts": "server",
   "src/game/riding/pastureCues.ts": "client",
   "src/game/riding/physics.ts": "shared",
-  "src/game/riding/presentation.ts": "client",
+  "src/game/riding/presentation.ts": "shared",
   "src/game/riding/reins.ts": "client",
   "src/game/riding/roster.ts": "server",
   "src/game/riding/seatedFigure.ts": "client",
