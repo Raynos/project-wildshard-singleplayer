@@ -77,7 +77,7 @@ export interface MoveResult {
   groundCollider: Collider | null;
 }
 /** Numbers in a flat `captureState`: the anchor, its body, and the last move's result. */
-export const MOTOR_WORDS = 10;
+export const MOTOR_WORDS = 11;
 interface MotorState {
   version: number; colliderHandle: number; filter: number; ghost: string; enabled: boolean; yaw: number;
   anchor: Vec3; anchorBodyHandle: number | null; climbAngle: number; slideAngle: number;
@@ -102,6 +102,8 @@ export class CharacterMotor {
   readonly result: MoveResult = { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null };
   private readonly anchor = { x: 0, y: 0, z: 0 };
   private anchorBody: RigidBody | null = null;
+  /** Metres the deck under the feet carried them on the last step. */
+  private carriedBy = 0;
   private readonly ray: Ray;
   private groundHit: RayColliderIntersection | undefined;
   /** a lying capsule: its half axis (between the caps) and heading; the quaternion that lays it along the heading */
@@ -171,7 +173,7 @@ export class CharacterMotor {
     const { anchor: a, result: r } = this;
     out[at] = a.x; out[at + 1] = a.y; out[at + 2] = a.z; out[at + 3] = this.anchorBody?.handle ?? -1;
     out[at + 4] = Number(r.grounded); out[at + 5] = r.groundNormalY; out[at + 6] = r.downhillX; out[at + 7] = r.downhillZ;
-    out[at + 8] = r.horizontalFreedom; out[at + 9] = r.groundCollider?.handle ?? -1;
+    out[at + 8] = r.horizontalFreedom; out[at + 9] = r.groundCollider?.handle ?? -1; out[at + 10] = this.carriedBy;
   }
   /** Put a `captureState` back. A body or collider the world has dropped since is let go. */
   restoreState(from: Float64Array, at: number): void {
@@ -180,7 +182,7 @@ export class CharacterMotor {
     // a handle's lookup boxes its number: the usual restore finds the wrapper it already holds
     if ((this.anchorBody?.handle ?? -1) !== body) this.anchorBody = body !== -1 && world.bodies.contains(body) ? world.getRigidBody(body) : null;
     r.grounded = from[at + 4] === 1; r.groundNormalY = from[at + 5] ?? 1; r.downhillX = from[at + 6] ?? 0; r.downhillZ = from[at + 7] ?? 0;
-    r.horizontalFreedom = from[at + 8] ?? 1;
+    r.horizontalFreedom = from[at + 8] ?? 1; this.carriedBy = from[at + 10] ?? 0;
     if ((r.groundCollider?.handle ?? -1) !== ground) r.groundCollider = ground !== -1 && world.colliders.contains(ground) ? world.getCollider(ground) : null;
   }
 
@@ -375,6 +377,7 @@ export class CharacterMotor {
    */
   carry(feet: Vec3): boolean {
     const b = this.anchorBody;
+    this.carriedBy = 0;
     if (b === null) return false;
     const t = b.translation(), q = b.rotation(), a = this.anchor;
     // rotate the local anchor by q, then translate
@@ -384,6 +387,7 @@ export class CharacterMotor {
     const z = t.z + iz * q.w + iw * -q.z + ix * -q.y - iy * -q.x;
     // the feet were put somewhere else since the last move (a respawn, a quest's teleport): that ends the ride
     if ((x - feet.x) ** 2 + (y - feet.y) ** 2 + (z - feet.z) ** 2 > 1.5 * 1.5) { this.anchorBody = null; return false; }
+    this.carriedBy = Math.hypot(x - feet.x, y - feet.y, z - feet.z);
     feet.x = x; feet.y = y; feet.z = z;
     return true;
   }

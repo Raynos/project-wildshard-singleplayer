@@ -15,6 +15,12 @@ import type { CharacterMotor, MoveResult } from '../../shared/physics/CharacterM
 export const PREDICTION_RING = 64;
 /** E5-REPLICATION §9: position within this, and equal flags, is a match. */
 export const PREDICTION_TOLERANCE = 0.02;
+/**
+ * Ticks a command can land from where a client guessed. A deck stands at the tick a command runs on the server, and a client
+ * knows that tick only to within the queue's own depth, so on a moving deck the feet can be this many of its steps off in
+ * phase with nothing wrong: the same spot on the deck. Correcting that would chase the deck for ever.
+ */
+const DECK_PHASE_TICKS = 3;
 /** A correction this far is a teleport: it snaps rather than glides. */
 export const PREDICTION_SNAP = 3;
 /** Room for a ride's words and its capsule's in a saved move. */
@@ -186,7 +192,8 @@ export class Predictor {
       return gapX * gapX + gapY * gapY + gapZ * gapZ <= PREDICTION_TOLERANCE * PREDICTION_TOLERANCE && ridden[3] === states[from + 3];
     }
     const x = this.value(table.x, owner) - (states[at + CAPTURED.x] ?? 0), y = this.value(table.y, owner) - (states[at + CAPTURED.y] ?? 0), z = this.value(table.z, owner) - (states[at + CAPTURED.z] ?? 0);
-    if (x * x + y * y + z * z > PREDICTION_TOLERANCE * PREDICTION_TOLERANCE) return false;
+    const reach = PREDICTION_TOLERANCE + DECK_PHASE_TICKS * (states[at + CAPTURED.carried] ?? 0);
+    if (x * x + y * y + z * z > reach * reach) return false;
     return this.flag(table.grounded, owner) === states[at + CAPTURED.grounded] && this.flag(table.board, owner) === states[at + CAPTURED.board] && this.flag(table.swim, owner) === states[at + CAPTURED.swim];
   }
   private flag(index: number, owner: ArrayLike<number>): number { return this.columns[index]?.value(owner[index] ?? 0) === true ? 1 : 0; }
